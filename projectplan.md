@@ -149,12 +149,12 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - **Ikona**: `drag-horizontal` nebo `reorder-four` pro intuitivní pochopení
 
 #### Plán implementace:
-- [ ] Odstranit reorder ikonu z HabitList header
-- [ ] Přidat drag handle ikonu do HabitItem action buttons
-- [ ] Implementovat přímé drag & drop na každém habit item
-- [ ] Přidat visual feedback při drag operaci
-- [ ] Otestovat a optimalizovat touch responsiveness
-- [ ] Odstranit debug logy po dokončení
+- [x] Odstranit reorder ikonu z HabitList header
+- [x] Přidat drag handle ikonu do HabitItem action buttons
+- [x] Implementovat přímé drag & drop na každém habit item
+- [x] Přidat visual feedback při drag operaci
+- [x] Otestovat a optimalizovat touch responsiveness
+- [x] Odstranit debug logy po dokončení
 
 #### Výhody nového řešení:
 1. **Intuitivnější UX**: Uživatel vidí drag handle přímo u každého item
@@ -163,7 +163,54 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 4. **Konzistentní design**: Fits within existing action button pattern
 5. **Okamžitá funkčnost**: Drag & drop funguje okamžitě bez přepínání
 
-Checkpoint 3.1 je technicky dokončen, ale čeká na UX redesign pro lepší uživatelský zážitek!
+### Review UX Redesign Drag & Drop:
+✅ **Dokončeno**: Drag & drop UX redesign je kompletně implementován:
+
+1. **Nahrazení react-native-draglist**: Přechod z nefunkční `react-native-draglist` knihovny na spolehlivou `react-native-draggable-flatlist`
+   - Instalace `react-native-draggable-flatlist` dependency
+   - Kompletní refaktoring HabitList komponenty pro použití nové knihovny
+   - Implementace DraggableFlatList pouze pro aktivní habits
+
+2. **Nová UX struktura**: Úspěšná implementace intuitivního drag & drop systému:
+   - Odstraněna reorder ikona z header a související stav
+   - Přidána drag handle ikona jako čtvrté action tlačítko v každém HabitItem
+   - Drag handle se zobrazuje pouze u aktivních habits
+   - Ikona `drag-horizontal` pro jasnou identifikaci drag funkcionality
+
+3. **Vizuální feedback**: Implementace výrazného visual feedback během drag operace:
+   - Dragging container: 0.8 opacity, 1.02 scale transform
+   - Zvýšený shadow (shadowOpacity: 0.3, shadowRadius: 8, elevation: 8)
+   - Drag handle se zbarví primary barvou během drag operace
+   - Smooth transitions a visual cues pro lepší UX
+
+4. **Optimalizace performance**: Čištění kódu a optimalizace touch responsiveness:
+   - Odebrány všechny debug logy z HabitList, HabitItem a HabitsScreen
+   - Odstraněny nepoužité DragList importy a funkce
+   - Jednoduché a efektivní handleDragEnd pro aktualizaci order
+   - Conditional rendering drag handle pouze pro aktivní habits
+
+5. **Zachování funkcionality**: Všechny původní funkce zůstávají beze změny:
+   - Pause/play, edit, delete tlačítka fungují stejně
+   - Neaktivní habits se nezobrazují s drag handle
+   - Reorder funkcionalita pracuje s existujícím order systémem
+   - Veškeré error handling zůstává zachováno
+
+#### Technická implementace:
+- **HabitList.tsx**: Přechod na DraggableFlatList s handleDragEnd callback
+- **HabitItem.tsx**: Přidání drag handle a visual feedback props
+- **HabitsScreen.tsx**: Zachování původní onReorderHabits logiky
+- **_layout.tsx**: Přidání GestureHandlerRootView wrapper pro gesture handling
+- **Package.json**: Přidání react-native-draggable-flatlist a react-native-gesture-handler dependencies
+
+#### Výsledek:
+Drag & drop funkcionalita je nyní plně funkční s intuitivním UX bez nutnosti aktivace speciálních módů. Uživatel může přímo uchopit drag handle u každého aktivního habit a přetáhnout ho na novou pozici s výrazným vizuálním feedbackem.
+
+#### Dodatečné opravy po testování:
+- **Oprava ikony**: Změněna neplatná ikona `drag-horizontal` na správnou `reorder-three-outline`
+- **Vylepšení animací**: Přidány smooth animation configs pro eliminaci škubnutí při dokončení drag operace
+- **GestureHandler fix**: Přidán GestureHandlerRootView wrapper pro správné fungování gesture handling
+
+Checkpoint 3.1 je nyní kompletně dokončen včetně vylepšeného UX a všech oprav po testování!
 
 ---
 

@@ -18,6 +18,9 @@ interface HabitItemProps {
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
   onToggleActive: (habitId: string, isActive: boolean) => void;
+  onReorder: (habitOrders: Array<{ id: string; order: number }>) => void;
+  onDrag?: () => void;
+  isDragging?: boolean;
 }
 
 const COLOR_MAP = {
@@ -52,9 +55,8 @@ const DAY_LABELS = {
   [DayOfWeek.SUNDAY]: 'Su',
 };
 
-export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItemProps) {
+export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, onDrag, isDragging }: HabitItemProps) {
   const { t } = useI18n();
-  console.log('HabitItem rendering:', { name: habit.name, isActive: habit.isActive });
 
   const handleDelete = () => {
     Alert.alert(
@@ -75,12 +77,14 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
   };
 
   const handleToggleActive = () => {
-    console.log('HabitItem handleToggleActive:', { habitId: habit.id, currentActive: habit.isActive, willBeActive: !habit.isActive });
     onToggleActive(habit.id, !habit.isActive);
   };
 
-  const containerStyle = [styles.container, !habit.isActive && styles.inactiveContainer];
-  console.log('HabitItem container style:', { name: habit.name, isActive: habit.isActive, applyInactiveStyle: !habit.isActive });
+  const containerStyle = [
+    styles.container,
+    !habit.isActive && styles.inactiveContainer,
+    isDragging && styles.draggingContainer,
+  ];
   
   return (
     <View style={containerStyle}>
@@ -157,6 +161,16 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
         >
           <Ionicons name="trash" size={20} color={Colors.error} />
         </TouchableOpacity>
+
+        {habit.isActive && (
+          <TouchableOpacity
+            style={[styles.actionButton, isDragging && styles.draggingActionButton]}
+            onPressIn={onDrag}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="reorder-three-outline" size={20} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -260,5 +274,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
+  },
+  draggingContainer: {
+    opacity: 0.8,
+    transform: [{ scale: 1.02 }],
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  draggingActionButton: {
+    backgroundColor: Colors.primary,
   },
 });

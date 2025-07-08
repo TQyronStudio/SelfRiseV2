@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DragList, { DragListRenderItemInfo } from 'react-native-draglist';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Habit } from '../../types/habit';
 import { HabitItem } from './HabitItem';
 import { Colors } from '../../constants/colors';
@@ -37,64 +37,31 @@ export function HabitList({
   onReorderHabits,
 }: HabitListProps) {
   const { t } = useI18n();
-  const [isReordering, setIsReordering] = useState(false);
 
   const activeHabits = habits.filter(habit => habit.isActive);
   const inactiveHabits = habits.filter(habit => !habit.isActive);
   
-  // Debug: log habits state
-  console.log('All habits:', habits.map(h => ({ name: h.name, isActive: h.isActive })));
-  console.log('Active habits count:', activeHabits.length);
-  console.log('Inactive habits count:', inactiveHabits.length);
 
-  const handleReorder = (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
 
-    const reorderedHabits = [...activeHabits];
-    const [movedItem] = reorderedHabits.splice(fromIndex, 1);
-    reorderedHabits.splice(toIndex, 0, movedItem);
-
-    const habitOrders = reorderedHabits.map((habit, index) => ({
-      id: habit.id,
-      order: index,
-    }));
-
-    onReorderHabits(habitOrders);
-  };
-
-  const renderHabitItem = ({ item, index, onDragStart, onDragEnd }: DragListRenderItemInfo<Habit>) => {
-    console.log('renderHabitItem called with:', { name: item.name, isActive: item.isActive, index });
-    return (
-      <View style={styles.habitItemContainer}>
-        <View style={styles.habitItemContent}>
-          <HabitItem
-            habit={item}
-            onEdit={onEditHabit}
-            onDelete={onDeleteHabit}
-            onToggleActive={onToggleActive}
-          />
-        </View>
-        <TouchableOpacity
-          style={styles.dragHandle}
-          onPressIn={onDragStart}
-          onPressOut={onDragEnd}
-          activeOpacity={0.7}
-          delayPressIn={0}
-        >
-          <Ionicons name="reorder-three" size={24} color={Colors.textTertiary} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const renderRegularHabitItem = ({ item }: { item: Habit }) => (
+  const renderHabitItem = ({ item, drag, isActive }: RenderItemParams<Habit>) => (
     <HabitItem
       habit={item}
       onEdit={onEditHabit}
       onDelete={onDeleteHabit}
       onToggleActive={onToggleActive}
+      onReorder={onReorderHabits}
+      onDrag={item.isActive ? drag : undefined}
+      isDragging={isActive}
     />
   );
+
+  const handleDragEnd = ({ data }: { data: Habit[] }) => {
+    const habitOrders = data.map((habit, index) => ({
+      id: habit.id,
+      order: index,
+    }));
+    onReorderHabits(habitOrders);
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -123,65 +90,62 @@ export function HabitList({
         </View>
         
         <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={[styles.headerButton, isReordering && styles.activeHeaderButton]}
-            onPress={() => setIsReordering(!isReordering)}
-          >
-            <Ionicons
-              name="reorder-three"
-              size={20}
-              color={isReordering ? Colors.textInverse : Colors.textSecondary}
-            />
-          </TouchableOpacity>
-          
           <TouchableOpacity style={styles.headerButton} onPress={onAddHabit}>
             <Ionicons name="add" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {activeHabits.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Habits</Text>
-          {isReordering ? (
-            <>
-              {console.log('DragList rendering with data:', activeHabits.map(h => ({ name: h.name, isActive: h.isActive })))}
-              <DragList
-                data={activeHabits}
-                keyExtractor={(item) => item.id}
-                onReordered={handleReorder}
-                renderItem={renderHabitItem}
-                containerStyle={styles.dragListContainer}
-                refreshControl={
-                  <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-                }
-              />
-            </>
-          ) : (
-            <FlatList
-              data={activeHabits}
-              keyExtractor={(item) => item.id}
-              renderItem={renderRegularHabitItem}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-              }
-            />
-          )}
-        </View>
-      )}
+      <FlatList
+        data={[1]}
+        keyExtractor={() => 'habits-content'}
+        renderItem={() => (
+          <View>
+            {activeHabits.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Active Habits</Text>
+                <DraggableFlatList
+                  data={activeHabits}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderHabitItem}
+                  onDragEnd={handleDragEnd}
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={false}
+                  activationDistance={10}
+                  animationConfig={{
+                    damping: 20,
+                    mass: 0.2,
+                    stiffness: 100,
+                    overshootClamping: true,
+                    restSpeedThreshold: 0.2,
+                    restDisplacementThreshold: 0.2,
+                  }}
+                />
+              </View>
+            )}
 
-      {inactiveHabits.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inactive Habits</Text>
-          <FlatList
-            data={inactiveHabits}
-            keyExtractor={(item) => item.id}
-            renderItem={renderRegularHabitItem}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      )}
+            {inactiveHabits.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Inactive Habits</Text>
+                {inactiveHabits.map((item) => (
+                  <HabitItem
+                    key={item.id}
+                    habit={item}
+                    onEdit={onEditHabit}
+                    onDelete={onDeleteHabit}
+                    onToggleActive={onToggleActive}
+                    onReorder={onReorderHabits}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
@@ -225,6 +189,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 16,
+    paddingBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -232,24 +197,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 12,
     paddingHorizontal: 20,
-  },
-  habitItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'transparent',
-  },
-  habitItemContent: {
-    flex: 1,
-  },
-  dragHandle: {
-    padding: 8,
-    marginLeft: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  dragListContainer: {
-    flex: 1,
   },
   emptyContainer: {
     flex: 1,

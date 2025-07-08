@@ -31,12 +31,9 @@ export function HabitsScreen() {
   const handleSubmitHabit = async (data: CreateHabitInput | UpdateHabitInput) => {
     try {
       if (editingHabit) {
-        console.log('Updating habit:', editingHabit.id, data);
         await actions.updateHabit(editingHabit.id, data as UpdateHabitInput);
       } else {
-        console.log('Creating new habit:', data);
-        const newHabit = await actions.createHabit(data as CreateHabitInput);
-        console.log('New habit created:', newHabit);
+        await actions.createHabit(data as CreateHabitInput);
       }
       handleCloseModal();
     } catch (error) {
@@ -59,7 +56,6 @@ export function HabitsScreen() {
   };
 
   const handleToggleActive = async (habitId: string, isActive: boolean) => {
-    console.log('handleToggleActive called:', { habitId, isActive });
     try {
       await actions.updateHabit(habitId, { isActive });
     } catch (error) {
