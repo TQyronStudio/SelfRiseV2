@@ -56,11 +56,11 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [x] Set up date handling utilities
 
 #### Checkpoint 2.2: Local Storage Implementation
-- [ ] Set up AsyncStorage for data persistence
-- [ ] Create storage service with CRUD operations
-- [ ] Implement data migration utilities
-- [ ] Add data backup/restore functionality
-- [ ] Create storage service with proper error handling
+- [x] Set up AsyncStorage for data persistence
+- [x] Create storage service with CRUD operations
+- [x] Implement data migration utilities
+- [x] Add data backup/restore functionality
+- [x] Create storage service with proper error handling
 
 #### Checkpoint 2.3: State Management
 - [ ] Set up React Context for global state management
