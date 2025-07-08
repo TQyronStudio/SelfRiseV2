@@ -31,6 +31,7 @@ type HabitsAction =
   | { type: 'ADD_HABIT'; payload: Habit }
   | { type: 'UPDATE_HABIT'; payload: Habit }
   | { type: 'DELETE_HABIT'; payload: string }
+  | { type: 'UPDATE_HABIT_ORDER'; payload: Array<{ id: string; order: number }> }
   | { type: 'ADD_COMPLETION'; payload: HabitCompletion }
   | { type: 'UPDATE_COMPLETION'; payload: HabitCompletion }
   | { type: 'DELETE_COMPLETION'; payload: string };
@@ -68,6 +69,14 @@ function habitsReducer(state: HabitsState, action: HabitsAction): HabitsState {
         ...state,
         habits: state.habits.filter(habit => habit.id !== action.payload),
         completions: state.completions.filter(completion => completion.habitId !== action.payload),
+      };
+    case 'UPDATE_HABIT_ORDER':
+      return {
+        ...state,
+        habits: state.habits.map(habit => {
+          const newOrder = action.payload.find(item => item.id === habit.id)?.order;
+          return newOrder !== undefined ? { ...habit, order: newOrder } : habit;
+        }),
       };
     case 'ADD_COMPLETION':
       return { ...state, completions: [...state.completions, action.payload] };
@@ -138,7 +147,6 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
 
   const updateHabit = async (id: string, updates: UpdateHabitInput): Promise<Habit> => {
     try {
-      setLoading(true);
       setError(null);
       
       const updatedHabit = await habitStorage.update(id, updates);
@@ -149,14 +157,11 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update habit';
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteHabit = async (id: string): Promise<void> => {
     try {
-      setLoading(true);
       setError(null);
       
       await habitStorage.delete(id);
@@ -165,8 +170,6 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete habit';
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -201,24 +204,19 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
 
   const updateHabitOrder = async (habitOrders: Array<{ id: string; order: number }>): Promise<void> => {
     try {
-      setLoading(true);
       setError(null);
       
+      // Optimistically update local state first
+      dispatch({ type: 'UPDATE_HABIT_ORDER', payload: habitOrders });
+      
+      // Then update storage
       await habitStorage.updateHabitOrder(habitOrders);
-      
-      // Update local state
-      const updatedHabits = state.habits.map(habit => {
-        const newOrder = habitOrders.find(item => item.id === habit.id)?.order;
-        return newOrder !== undefined ? { ...habit, order: newOrder } : habit;
-      });
-      
-      dispatch({ type: 'SET_HABITS', payload: updatedHabits });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update habit order';
       setError(errorMessage);
+      // On error, reload habits to restore correct state
+      await loadHabits();
       throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 

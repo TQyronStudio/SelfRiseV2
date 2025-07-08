@@ -97,10 +97,10 @@ export function HabitList({
       </View>
 
       <FlatList
-        data={[1]}
-        keyExtractor={() => 'habits-content'}
+        data={[{ key: 'content' }]}
+        keyExtractor={(item) => item.key}
         renderItem={() => (
-          <View>
+          <View style={styles.content}>
             {activeHabits.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Active Habits</Text>
@@ -111,15 +111,8 @@ export function HabitList({
                   onDragEnd={handleDragEnd}
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={false}
-                  activationDistance={10}
-                  animationConfig={{
-                    damping: 20,
-                    mass: 0.2,
-                    stiffness: 100,
-                    overshootClamping: true,
-                    restSpeedThreshold: 0.2,
-                    restDisplacementThreshold: 0.2,
-                  }}
+                  activationDistance={5}
+                  dragItemOverflow={true}
                 />
               </View>
             )}
@@ -127,16 +120,21 @@ export function HabitList({
             {inactiveHabits.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Inactive Habits</Text>
-                {inactiveHabits.map((item) => (
-                  <HabitItem
-                    key={item.id}
-                    habit={item}
-                    onEdit={onEditHabit}
-                    onDelete={onDeleteHabit}
-                    onToggleActive={onToggleActive}
-                    onReorder={onReorderHabits}
-                  />
-                ))}
+                <FlatList
+                  data={inactiveHabits}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <HabitItem
+                      habit={item}
+                      onEdit={onEditHabit}
+                      onDelete={onDeleteHabit}
+                      onToggleActive={onToggleActive}
+                      onReorder={onReorderHabits}
+                    />
+                  )}
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={false}
+                />
               </View>
             )}
           </View>
@@ -187,9 +185,11 @@ const styles = StyleSheet.create({
   activeHeaderButton: {
     backgroundColor: Colors.primary,
   },
+  content: {
+    flex: 1,
+  },
   section: {
     marginTop: 16,
-    paddingBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,

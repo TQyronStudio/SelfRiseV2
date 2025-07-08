@@ -209,6 +209,11 @@ Drag & drop funkcionalita je nyní plně funkční s intuitivním UX bez nutnost
 - **Oprava ikony**: Změněna neplatná ikona `drag-horizontal` na správnou `reorder-three-outline`
 - **Vylepšení animací**: Přidány smooth animation configs pro eliminaci škubnutí při dokončení drag operace
 - **GestureHandler fix**: Přidán GestureHandlerRootView wrapper pro správné fungování gesture handling
+- **Optimalizace renderování**: Eliminace zbytečných loading stavů a optimalizace context akcí
+  - Odstraněn loading stav z updateHabit, deleteHabit a updateHabitOrder pro rychlé akce
+  - Přidána optimistická aktualizace pro updateHabitOrder - lokální stav se aktualizuje okamžitě
+  - Implementace nové UPDATE_HABIT_ORDER action pro efektivnější aktualizaci order
+  - Vrácena jednoduchá struktura bez zbytečných optimalizací
 
 Checkpoint 3.1 je nyní kompletně dokončen včetně vylepšeného UX a všech oprav po testování!
 

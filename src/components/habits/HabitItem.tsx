@@ -165,8 +165,9 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
         {habit.isActive && (
           <TouchableOpacity
             style={[styles.actionButton, isDragging && styles.draggingActionButton]}
-            onPressIn={onDrag}
+            onLongPress={onDrag}
             activeOpacity={0.7}
+            delayLongPress={100}
           >
             <Ionicons name="reorder-three-outline" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
