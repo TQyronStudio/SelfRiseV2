@@ -11,8 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import DragList, { DragListRenderItemInfo } from 'react-native-draglist';
 import { Habit } from '../../types/habit';
 import { HabitItem } from './HabitItem';
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/fonts';
+import { Colors } from '../../constants/colors';
+import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
 interface HabitListProps {
@@ -71,7 +71,7 @@ export function HabitList({
           onPressIn={onDragStart}
           onPressOut={onDragEnd}
         >
-          <Ionicons name="reorder-three" size={24} color={COLORS.GRAY_500} />
+          <Ionicons name="reorder-three" size={24} color={Colors.textTertiary} />
         </TouchableOpacity>
       )}
     </View>
@@ -88,7 +88,7 @@ export function HabitList({
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="add-circle-outline" size={64} color={COLORS.GRAY_300} />
+      <Ionicons name="add-circle-outline" size={64} color={Colors.border} />
       <Text style={styles.emptyTitle}>{t('habits.title')}</Text>
       <Text style={styles.emptySubtitle}>
         Start building better habits by creating your first one
@@ -121,12 +121,12 @@ export function HabitList({
             <Ionicons
               name="reorder-three"
               size={20}
-              color={isReordering ? COLORS.WHITE : COLORS.GRAY_600}
+              color={isReordering ? Colors.textInverse : Colors.textSecondary}
             />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.headerButton} onPress={onAddHabit}>
-            <Ionicons name="add" size={20} color={COLORS.GRAY_600} />
+            <Ionicons name="add" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -176,29 +176,29 @@ export function HabitList({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.GRAY_50,
+    backgroundColor: Colors.backgroundSecondary,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.GRAY_200,
+    borderBottomColor: Colors.border,
   },
   headerLeft: {
     flex: 1,
   },
   title: {
     fontSize: 24,
-    fontFamily: FONTS.BOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   headerActions: {
@@ -208,21 +208,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
   activeHeaderButton: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
   },
   section: {
     marginTop: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
     marginBottom: 12,
     paddingHorizontal: 20,
   },
@@ -240,31 +240,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.background,
   },
   emptyTitle: {
     fontSize: 20,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   emptyButtonText: {
     fontSize: 16,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.WHITE,
+    fontFamily: Fonts.semibold,
+    color: Colors.textInverse,
   },
 });

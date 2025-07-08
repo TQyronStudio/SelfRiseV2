@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { DayOfWeek } from '../../types/common';
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/fonts';
+import { Colors } from '../../constants/colors';
+import { Fonts } from '../../constants/fonts';
 
 interface DayPickerProps {
   selectedDays: DayOfWeek[];
@@ -59,22 +59,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.GRAY_200,
+    borderColor: Colors.border,
   },
   selectedDay: {
-    backgroundColor: COLORS.PRIMARY,
-    borderColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   dayLabel: {
     fontSize: 16,
-    fontFamily: FONTS.MEDIUM,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
   },
   selectedDayLabel: {
-    color: COLORS.WHITE,
+    color: Colors.textInverse,
   },
 });

@@ -10,8 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { HabitForm } from './HabitForm';
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/fonts';
+import { Colors } from '../../constants/colors';
+import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
 interface HabitModalProps {
@@ -54,7 +54,7 @@ export function HabitModal({
             onPress={onClose}
             disabled={isLoading}
           >
-            <Ionicons name="close" size={24} color={COLORS.GRAY_600} />
+            <Ionicons name="close" size={24} color={Colors.textSecondary} />
           </TouchableOpacity>
           
           <Text style={styles.title}>
@@ -79,7 +79,7 @@ export function HabitModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -88,20 +88,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.GRAY_200,
+    borderBottomColor: Colors.border,
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 18,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
   },
   placeholder: {
     width: 40,

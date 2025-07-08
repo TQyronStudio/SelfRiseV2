@@ -9,8 +9,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '../../types/habit';
 import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/fonts';
+import { Colors } from '../../constants/colors';
+import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
 interface HabitItemProps {
@@ -21,14 +21,14 @@ interface HabitItemProps {
 }
 
 const COLOR_MAP = {
-  [HabitColor.RED]: '#FF6B6B',
-  [HabitColor.BLUE]: '#4ECDC4',
-  [HabitColor.GREEN]: '#45B7D1',
-  [HabitColor.YELLOW]: '#FFA07A',
-  [HabitColor.PURPLE]: '#98D8C8',
-  [HabitColor.ORANGE]: '#F7DC6F',
-  [HabitColor.PINK]: '#BB8FCE',
-  [HabitColor.TEAL]: '#85C1E9',
+  [HabitColor.RED]: Colors.habitRed,
+  [HabitColor.BLUE]: Colors.habitBlue,
+  [HabitColor.GREEN]: Colors.habitGreen,
+  [HabitColor.YELLOW]: Colors.habitYellow,
+  [HabitColor.PURPLE]: Colors.habitPurple,
+  [HabitColor.ORANGE]: Colors.habitOrange,
+  [HabitColor.PINK]: Colors.habitPink,
+  [HabitColor.TEAL]: Colors.habitTeal,
 };
 
 const ICON_MAP = {
@@ -84,7 +84,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
           <Ionicons
             name={ICON_MAP[habit.icon] as any}
             size={24}
-            color={COLORS.WHITE}
+            color={Colors.textInverse}
           />
         </View>
 
@@ -133,7 +133,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
           <Ionicons
             name={habit.isActive ? 'pause' : 'play'}
             size={20}
-            color={COLORS.GRAY_600}
+            color={Colors.textSecondary}
           />
         </TouchableOpacity>
 
@@ -142,7 +142,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
           onPress={() => onEdit(habit)}
           activeOpacity={0.7}
         >
-          <Ionicons name="pencil" size={20} color={COLORS.GRAY_600} />
+          <Ionicons name="pencil" size={20} color={Colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -150,7 +150,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash" size={20} color={COLORS.ERROR} />
+          <Ionicons name="trash" size={20} color={Colors.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -161,11 +161,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.background,
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: COLORS.BLACK,
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   inactiveContainer: {
     opacity: 0.6,
-    backgroundColor: COLORS.GRAY_50,
+    backgroundColor: Colors.backgroundSecondary,
   },
   mainContent: {
     flex: 1,
@@ -196,21 +196,21 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
     marginBottom: 4,
   },
   inactiveName: {
-    color: COLORS.GRAY_500,
+    color: Colors.textTertiary,
   },
   description: {
     fontSize: 14,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
     marginBottom: 8,
   },
   inactiveDescription: {
-    color: COLORS.GRAY_400,
+    color: Colors.textTertiary,
   },
   daysContainer: {
     flexDirection: 'row',
@@ -220,26 +220,26 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeDayIndicator: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
   },
   inactiveDayIndicator: {
-    backgroundColor: COLORS.GRAY_200,
+    backgroundColor: Colors.border,
   },
   dayLabel: {
     fontSize: 10,
-    fontFamily: FONTS.MEDIUM,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
   },
   activeDayLabel: {
-    color: COLORS.WHITE,
+    color: Colors.textInverse,
   },
   inactiveDayLabel: {
-    color: COLORS.GRAY_400,
+    color: Colors.textTertiary,
   },
   actions: {
     flexDirection: 'row',
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,

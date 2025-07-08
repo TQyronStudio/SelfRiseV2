@@ -13,8 +13,8 @@ import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { ColorPicker } from './ColorPicker';
 import { IconPicker } from './IconPicker';
 import { DayPicker } from './DayPicker';
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/fonts';
+import { Colors } from '../../constants/colors';
+import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
 interface HabitFormProps {
@@ -182,7 +182,7 @@ export function HabitForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.WHITE,
+    backgroundColor: Colors.background,
   },
   form: {
     padding: 20,
@@ -192,37 +192,37 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_800,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.GRAY_300,
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    fontFamily: FONTS.REGULAR,
-    backgroundColor: COLORS.WHITE,
+    fontFamily: Fonts.regular,
+    backgroundColor: Colors.background,
   },
   textArea: {
     borderWidth: 1,
-    borderColor: COLORS.GRAY_300,
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    fontFamily: FONTS.REGULAR,
-    backgroundColor: COLORS.WHITE,
+    fontFamily: Fonts.regular,
+    backgroundColor: Colors.background,
     minHeight: 80,
     textAlignVertical: 'top',
   },
   inputError: {
-    borderColor: COLORS.ERROR,
+    borderColor: Colors.error,
   },
   errorText: {
     fontSize: 12,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.ERROR,
+    fontFamily: Fonts.regular,
+    color: Colors.error,
     marginTop: 4,
   },
   actions: {
@@ -239,21 +239,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     marginRight: 8,
   },
   submitButton: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
     marginLeft: 8,
   },
   cancelButtonText: {
     fontSize: 16,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.GRAY_600,
+    fontFamily: Fonts.semibold,
+    color: Colors.textSecondary,
   },
   submitButtonText: {
     fontSize: 16,
-    fontFamily: FONTS.SEMIBOLD,
-    color: COLORS.WHITE,
+    fontFamily: Fonts.semibold,
+    color: Colors.textInverse,
   },
 });

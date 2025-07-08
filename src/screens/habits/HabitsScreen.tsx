@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { HabitList, HabitModal } from '../../components/habits';
 import { useHabitsData } from '../../hooks/useHabitsData';
-import { COLORS } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { useI18n } from '../../hooks/useI18n';
 
 export function HabitsScreen() {
@@ -115,6 +115,6 @@ export function HabitsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.GRAY_50,
+    backgroundColor: Colors.backgroundSecondary,
   },
 });

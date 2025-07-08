@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 // Import i18n configuration to initialize internationalization
 import '../src/config/i18n';
+import { RootProvider } from '../src/contexts';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -17,12 +18,12 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <RootProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="light" backgroundColor="#4A90E2" />
-    </>
+    </RootProvider>
   );
 }

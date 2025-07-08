@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { HabitColor } from '../../types/common';
-import { COLORS } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 
 interface ColorPickerProps {
   selectedColor: HabitColor;
@@ -9,14 +9,14 @@ interface ColorPickerProps {
 }
 
 const COLOR_MAP = {
-  [HabitColor.RED]: '#FF6B6B',
-  [HabitColor.BLUE]: '#4ECDC4',
-  [HabitColor.GREEN]: '#45B7D1',
-  [HabitColor.YELLOW]: '#FFA07A',
-  [HabitColor.PURPLE]: '#98D8C8',
-  [HabitColor.ORANGE]: '#F7DC6F',
-  [HabitColor.PINK]: '#BB8FCE',
-  [HabitColor.TEAL]: '#85C1E9',
+  [HabitColor.RED]: Colors.habitRed,
+  [HabitColor.BLUE]: Colors.habitBlue,
+  [HabitColor.GREEN]: Colors.habitGreen,
+  [HabitColor.YELLOW]: Colors.habitYellow,
+  [HabitColor.PURPLE]: Colors.habitPurple,
+  [HabitColor.ORANGE]: Colors.habitOrange,
+  [HabitColor.PINK]: Colors.habitPink,
+  [HabitColor.TEAL]: Colors.habitTeal,
 };
 
 export function ColorPicker({ selectedColor, onColorSelect }: ColorPickerProps) {
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginBottom: 12,
-    shadowColor: COLORS.BLACK,
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -61,6 +61,6 @@ const styles = StyleSheet.create({
   },
   selectedColor: {
     borderWidth: 3,
-    borderColor: COLORS.PRIMARY,
+    borderColor: Colors.primary,
   },
 });

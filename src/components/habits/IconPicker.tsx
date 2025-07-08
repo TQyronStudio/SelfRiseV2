@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HabitIcon } from '../../types/common';
-import { COLORS } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 
 interface IconPickerProps {
   selectedIcon: HabitIcon;
@@ -36,7 +36,7 @@ export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
           <Ionicons
             name={iconName as any}
             size={24}
-            color={selectedIcon === icon ? COLORS.WHITE : COLORS.GRAY_600}
+            color={selectedIcon === icon ? Colors.textInverse : Colors.textSecondary}
           />
         </TouchableOpacity>
       ))}
@@ -55,15 +55,15 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.GRAY_100,
+    backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_200,
+    borderColor: Colors.border,
   },
   selectedIcon: {
-    backgroundColor: COLORS.PRIMARY,
-    borderColor: COLORS.PRIMARY,
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 });
