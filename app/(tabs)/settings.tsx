@@ -3,18 +3,18 @@ import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
 
-export default function HomeScreen() {
+export default function SettingsScreen() {
   const { t } = useI18n();
 
   return (
     <View style={styles.fullContainer}>
       <SafeAreaView style={styles.safeContainer}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('home.title')}</Text>
+          <Text style={styles.title}>{t('settings.title')}</Text>
         </View>
         <View style={styles.content}>
           <Text style={styles.placeholder}>
-            {t('home.gratitudeStreak')} - Coming Soon
+            {t('settings.language')} - Coming Soon
           </Text>
         </View>
       </SafeAreaView>

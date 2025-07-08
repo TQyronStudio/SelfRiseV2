@@ -42,7 +42,7 @@ export const getSavedLanguage = async (): Promise<SupportedLanguage | null> => {
 
 // Get device language
 export const getDeviceLanguage = (): SupportedLanguage => {
-  const deviceLanguage = i18n.options.detection?.detect?.() || 'en';
+  const deviceLanguage = i18n.language || 'en';
   const supportedLanguages = Object.keys(SUPPORTED_LANGUAGES) as SupportedLanguage[];
   
   return supportedLanguages.includes(deviceLanguage as SupportedLanguage) 

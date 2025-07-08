@@ -25,7 +25,7 @@ const languageDetector = {
       }
       
       // Fall back to device locale
-      const deviceLanguage = Localization.locale.split('-')[0];
+      const deviceLanguage = Localization.getLocales()[0]?.languageCode || 'en';
       const supportedLanguages = ['en', 'de', 'es'];
       const languageToUse = supportedLanguages.includes(deviceLanguage) ? deviceLanguage : 'en';
       
