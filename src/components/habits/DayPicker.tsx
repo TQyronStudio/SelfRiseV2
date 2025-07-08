@@ -10,13 +10,13 @@ interface DayPickerProps {
 }
 
 const DAYS = [
-  { key: DayOfWeek.MONDAY, label: 'M' },
-  { key: DayOfWeek.TUESDAY, label: 'T' },
-  { key: DayOfWeek.WEDNESDAY, label: 'W' },
-  { key: DayOfWeek.THURSDAY, label: 'T' },
-  { key: DayOfWeek.FRIDAY, label: 'F' },
-  { key: DayOfWeek.SATURDAY, label: 'S' },
-  { key: DayOfWeek.SUNDAY, label: 'S' },
+  { key: DayOfWeek.MONDAY, label: 'Mo' },
+  { key: DayOfWeek.TUESDAY, label: 'Tu' },
+  { key: DayOfWeek.WEDNESDAY, label: 'We' },
+  { key: DayOfWeek.THURSDAY, label: 'Th' },
+  { key: DayOfWeek.FRIDAY, label: 'Fr' },
+  { key: DayOfWeek.SATURDAY, label: 'Sa' },
+  { key: DayOfWeek.SUNDAY, label: 'Su' },
 ];
 
 export function DayPicker({ selectedDays, onDayToggle }: DayPickerProps) {

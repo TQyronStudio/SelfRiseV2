@@ -19,6 +19,28 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
+## Aktuální úkol: Oprava designových detailů habits obrazovky
+
+### Plán oprav:
+- [x] Opravit barvu placeholderu v textových polích (HabitForm.tsx) - změnit z automatické na kontrastnější barvu z našich konstant
+- [x] Opravit zkratky dnů v týdnu (DayPicker.tsx) - změnit z jednopísmenných na dvoupísmenné anglické zkratky (Mo, Tu, We, Th, Fr, Sa, Su)
+
+### Detaily problémů:
+1. **Placeholder barva**: V HabitForm.tsx na řádcích 105-111 a 144-152 nemají TextInput komponenty specifikovanou barvu placeholderu, což způsobuje příliš světlý a nečitelný text. Použijeme Colors.textTertiary pro lepší kontrast.
+
+2. **Zkratky dnů**: V DayPicker.tsx na řádcích 12-20 jsou definovány matoucí jednopísmenné zkratky (M, T, W, T, F, S, S) kde T a S se opakují. Změníme je na dvoupísmenné anglické zkratky pro lepší čitelnost.
+
+### Review oprav:
+✅ **Dokončeno**: Oba designové problémy byly úspěšně opraveny jednoduchými změnami:
+
+1. **Placeholder barva opravena**: Přidán `placeholderTextColor={Colors.textTertiary}` do obou TextInput komponent v HabitForm.tsx (řádky 110, 150). Placeholder text bude nyní mít kontrastnější barvu #ADB5BD místo výchozí světlé barvy.
+
+2. **Zkratky dnů opraveny**: Změněny zkratky v DayPicker.tsx z matoucích jednopísmenných (M, T, W, T, F, S, S) na jednoznačné dvoupísmenné anglické zkratky (Mo, Tu, We, Th, Fr, Sa, Su).
+
+Obě úpravy jsou minimální a neovlivňují funkcionalitu aplikace - pouze zlepšují uživatelský zážitek a čitelnost rozhraní.
+
+---
+
 ## Development Phases
 
 ### Phase 1: Foundation & Core Setup

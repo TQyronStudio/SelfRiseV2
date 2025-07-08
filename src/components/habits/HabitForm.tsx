@@ -107,6 +107,7 @@ export function HabitForm({
             value={formData.name}
             onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
             placeholder={t('habits.form.namePlaceholder')}
+            placeholderTextColor={Colors.textTertiary}
             maxLength={50}
           />
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
@@ -146,6 +147,7 @@ export function HabitForm({
             value={formData.description}
             onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
             placeholder={t('habits.form.descriptionPlaceholder')}
+            placeholderTextColor={Colors.textTertiary}
             multiline
             numberOfLines={3}
             maxLength={200}
