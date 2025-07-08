@@ -5,3 +5,4 @@
 5. Please every step of the way just give me a high level explanation of what changes you made
 6. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
 7. Finally, add a review section to the projectplan.md file with a summary of the changes you made and any other relevant information.
+8. After you successfully complete any task (like creating a file, installing a dependency, or writing code), your immediate next action MUST be to update the corresponding checkbox in `projectplan.md` to `[x]`. This is a non-negotiable part of the workflow.

@@ -1,13 +1,52 @@
-import { BaseEntity } from './common';
+import { BaseEntity, DateString } from './common';
 
 export interface Gratitude extends BaseEntity {
   content: string;
-  date: string; // YYYY-MM-DD format
+  date: DateString;
   isBonus: boolean; // true if it's the 4th+ gratitude of the day
+  order: number; // order within the day (1, 2, 3, 4+)
+  mood?: number; // optional mood rating (1-5)
 }
 
 export interface GratitudeStreak {
   currentStreak: number;
   longestStreak: number;
-  lastEntryDate: string | null; // YYYY-MM-DD format
+  lastEntryDate: DateString | null;
+  streakStartDate: DateString | null;
+  canRecoverWithAd: boolean; // true if user can recover broken streak with ad
+}
+
+export interface DailyGratitudeStats {
+  date: DateString;
+  gratitudeCount: number;
+  isComplete: boolean; // true if has minimum 3 gratitudes
+  hasBonus: boolean; // true if has 4+ gratitudes
+}
+
+export interface GratitudeStats {
+  totalGratitudes: number;
+  totalDays: number;
+  averagePerDay: number;
+  streakInfo: GratitudeStreak;
+  milestones: GratitudeMilestone[];
+}
+
+export interface GratitudeMilestone {
+  type: 'streak' | 'total';
+  value: number; // streak days or total gratitudes
+  achievedAt: Date;
+  title: string;
+}
+
+// Create gratitude input interface
+export interface CreateGratitudeInput {
+  content: string;
+  date: DateString;
+  mood?: number;
+}
+
+// Update gratitude input interface
+export interface UpdateGratitudeInput {
+  content?: string;
+  mood?: number;
 }
