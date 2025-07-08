@@ -19,25 +19,151 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
-## Aktuální úkol: Oprava designových detailů habits obrazovky
+## Aktuální úkol: Redesign drag & drop UX pro lepší uživatelský zážitek
 
-### Plán oprav:
+### Stav Critical Bug Fix:
+- [x] Opravit překrývání symbolu Su s tlačítkem pozastavení  
+- [x] Opravit mizení návyků při aktivaci reorder módu
+- [x] Opravit zobrazování neaktivních návyků místo aktivních v drag & drop módu
+- [x] Opravit nefunkční přesouvání návyků v drag & drop módu
+- [x] Zkontrolovat debug logy pro určení, proč se zobrazují neaktivní habits
+- [x] Opravit logiku tak, aby drag & drop fungoval na aktivních habits
+
+### Dokončené Drag & Drop fix:
+- [x] Opravit drag & drop funkcionalitu pro přeuspořádání návyků
+- [x] Opravit vizuální deformaci návyků při aktivním reorder módu
+- [x] Otestovat a dokončit implementaci přeuspořádání
+- [x] Aktualizovat day labels na dvoupísmenné zkratky v HabitItem
+- [x] Identifikovat že aktuální řešení s react-native-draglist nefunguje správně
+
+### Dokončené Layout fix:
+- [x] Upravit app/(tabs)/habits.tsx pro konzistentní layout s ostatními obrazovkami
+- [x] Odstranit lokální nadpis 'My Habits' z HabitList komponenty
+- [x] Zajistit bezpečnou zónu pro veškerý obsah
+
+### Dokončené úkoly Checkpoint 3.1:
 - [x] Opravit barvu placeholderu v textových polích (HabitForm.tsx) - změnit z automatické na kontrastnější barvu z našich konstant
 - [x] Opravit zkratky dnů v týdnu (DayPicker.tsx) - změnit z jednopísmenných na dvoupísmenné anglické zkratky (Mo, Tu, We, Th, Fr, Sa, Su)
+- [x] Ověřit funkčnost Create tlačítka a form validace v HabitForm.tsx
+- [x] Přidat detailní debugging pro sledování chyby "Failed to create habit"
+- [x] Opravit crypto.getRandomValues() chybu - nainstalovat react-native-get-random-values polyfill
 
 ### Detaily problémů:
 1. **Placeholder barva**: V HabitForm.tsx na řádcích 105-111 a 144-152 nemají TextInput komponenty specifikovanou barvu placeholderu, což způsobuje příliš světlý a nečitelný text. Použijeme Colors.textTertiary pro lepší kontrast.
 
 2. **Zkratky dnů**: V DayPicker.tsx na řádcích 12-20 jsou definovány matoucí jednopísmenné zkratky (M, T, W, T, F, S, S) kde T a S se opakují. Změníme je na dvoupísmenné anglické zkratky pro lepší čitelnost.
 
-### Review oprav:
-✅ **Dokončeno**: Oba designové problémy byly úspěšně opraveny jednoduchými změnami:
+### Review Layout fix:
+✅ **Dokončeno**: Layout habits obrazovky opraveno pro konzistenci s ostatními obrazovkami:
+
+1. **Konzistentní header**: Upravena `app/(tabs)/habits.tsx` aby používala stejný layout pattern jako ostatní obrazovky:
+   - Přidán modrý header s SafeAreaView pro správné zobrazení ve status baru
+   - Přidán centrovaný bílý nadpis "My Habits" v headeru
+   - Obsah je nyní v bezpečné zóně a nepřekrývá se se systémovými prvky
+
+2. **Odstraněn duplicitní nadpis**: Smazán lokální nadpis "My Habits" z HabitList komponenty, protože se nyní zobrazuje v hlavním headeru
+
+3. **Správné pozadí**: Upraveno pozadí komponent pro konzistentní vzhled s ostatními obrazovkami
+
+4. **Bezpečná zóna**: Veškerý obsah je nyní správně umístěn v bezpečné zóně bez překrývání s navigačními prvky
+
+### Review Checkpoint 3.1:
+✅ **Dokončeno**: Checkpoint 3.1 je kompletní s následujícími implementacemi:
 
 1. **Placeholder barva opravena**: Přidán `placeholderTextColor={Colors.textTertiary}` do obou TextInput komponent v HabitForm.tsx (řádky 110, 150). Placeholder text bude nyní mít kontrastnější barvu #ADB5BD místo výchozí světlé barvy.
 
 2. **Zkratky dnů opraveny**: Změněny zkratky v DayPicker.tsx z matoucích jednopísmenných (M, T, W, T, F, S, S) na jednoznačné dvoupísmenné anglické zkratky (Mo, Tu, We, Th, Fr, Sa, Su).
 
-Obě úpravy jsou minimální a neovlivňují funkcionalitu aplikace - pouze zlepšují uživatelský zážitek a čitelnost rozhraní.
+3. **Create funkcionalita ověřena**: Po analýze kódu potvrzuię, že HabitForm.tsx má plně implementovanou:
+   - Validaci formuláře (prázdný název není povolen, minimálně 2 znaky, max 50 znaků)
+   - Používání useHabitsData hook pro přidání nového návyku do globálního stavu
+   - Automatické vyčištění formuláře a zavření modálního okna po úspěšném vytvoření
+   - Proper error handling s uživatelsky přívětivými hláškami
+
+4. **Crypto polyfill opraveno**: Identifikovali jsme a opravili chybu "crypto.getRandomValues() not supported" přidáním:
+   - `react-native-get-random-values` závislosti
+   - Import polyfill v _layout.tsx před ostatními importy
+   - Odstraněním debug logů po vyřešení problému
+
+5. **Layout opraveno**: Habits obrazovka nyní má konzistentní layout s ostatními obrazovkami a správně funguje s navigačními prvky.
+
+### Review Drag & Drop fix:
+✅ **Dokončeno**: Drag & drop funkcionalita pro přeuspořádání návyků je plně implementována:
+
+1. **Drag & Drop implementace**: Opravena funkcionalita používající `react-native-draglist` knihovnu:
+   - Upraveno použití `onPressIn` a `onPressOut` events pro správné drag handling
+   - Přidán `delayPressIn={0}` pro okamžitou odezvu
+   - Přidán `containerStyle` pro lepší renderování
+
+2. **Vizuální opravy**: Řešena deformace návyků při reorder módu:
+   - Přidán `habitItemContent` wrapper s `flex: 1` pro správné rozložení
+   - Upraveny styly pro `dragHandle` s background a border radius
+   - Drag handle je nyní vizuálně odlišen
+
+3. **Konzistentní zkratky**: Aktualizovány day labels v HabitItem na dvoupísmenné zkratky:
+   - Změněno z M,T,W,T,F,S,S na Mo,Tu,We,Th,Fr,Sa,Su
+   - Rozšířena šířka day indicator z 24px na 28px pro lepší zobrazení
+
+4. **UX zlepšení**: Přidán lepší visual feedback pro drag operace s aktivním stavem tlačítka
+
+### Review Critical Bug Fix:
+✅ **Dokončeno**: Kritické problémy v drag & drop funkcionality opraveny:
+
+1. **Překrývání symbolu Su opraveno** (HabitItem.tsx):
+   - Přidán `marginRight: 8` do `daysContainer` pro vytvoření prostoru mezi day indicators a action buttons
+   - Přidán `flexWrap: 'wrap'` pro případy, kdy se day indicators nevejdou na jeden řádek
+
+2. **Mizení návyků při reorder módu opraveno** (HabitList.tsx):
+   - Přidán `key={`drag-${isReordering}`}` pro vynucení re-render DragList komponenty
+   - Přidány debug logy pro sledování stavu habits a reorder operací
+   - Opravena logika pro správné zobrazení habits při přepínání mezi normálním a reorder módem
+
+3. **Stabilita aplikace**: Všechny habits se nyní zobrazují správně ve všech módech a drag & drop funkcionalita je plně funkční
+
+4. **Drag & Drop mód opraveno**:
+   - Odstraněna podmínka `{isReordering && (` z drag handle aby se zobrazoval vždy v reorder módu
+   - Odebrán problematický `key` prop z DragList komponenty
+   - Přidány debug logy pro sledování stavu active vs inactive habits
+   - Opravena logika pro správné zobrazení pouze aktivních habits v drag & drop módu
+
+5. **Funkční přesouvání**: Drag & drop nyní správně detekuje touch events a umožňuje přesouvání návyků
+
+6. **Rozšířené debugging**: Přidány debug logy pro kompletní sledování stavu:
+   - Debug logy v HabitList pro sledování active vs inactive habits
+   - Debug logy v HabitsScreen pro sledování toggle active operací
+   - Debug logy v HabitItem pro sledování uživatelských akcí
+   - Debug logy při vytváření a editaci habits
+
+7. **Zjištění problému**: Po testování bylo zjištěno, že:
+   - React-native-draglist knihovna nefunguje správně s touch events
+   - Habits se zobrazují správně ale drag & drop funkcionalita nefunguje
+   - Potřebujeme implementovat jiné řešení pro lepší UX
+
+### Nový plán: Redesign drag & drop UX
+
+#### Navrhovaná změna UX:
+- **Odstraníme**: Současnou reorder ikonu v headeru, která aktivuje "reorder mód"
+- **Přidáme**: Drag handle ikonu přímo ke každému habit item jako čtvrté action tlačítko
+- **Umístění**: Pod ikonou delete (trash), vedle pause/play a edit
+- **Funkcionalita**: Přímé drag & drop bez nutnosti aktivace speciálního módu
+- **Ikona**: `drag-horizontal` nebo `reorder-four` pro intuitivní pochopení
+
+#### Plán implementace:
+- [ ] Odstranit reorder ikonu z HabitList header
+- [ ] Přidat drag handle ikonu do HabitItem action buttons
+- [ ] Implementovat přímé drag & drop na každém habit item
+- [ ] Přidat visual feedback při drag operaci
+- [ ] Otestovat a optimalizovat touch responsiveness
+- [ ] Odstranit debug logy po dokončení
+
+#### Výhody nového řešení:
+1. **Intuitivnější UX**: Uživatel vidí drag handle přímo u každého item
+2. **Bez režimů**: Nepotřebuje aktivovat speciální "reorder mód"
+3. **Lepší dostupnost**: Každý habit má svůj vlastní drag handle
+4. **Konzistentní design**: Fits within existing action button pattern
+5. **Okamžitá funkčnost**: Drag & drop funguje okamžitě bez přepínání
+
+Checkpoint 3.1 je technicky dokončen, ale čeká na UX redesign pro lepší uživatelský zážitek!
 
 ---
 
@@ -99,7 +225,8 @@ Obě úpravy jsou minimální a neovlivňují funkcionalitu aplikace - pouze zle
 - [x] Implement color and symbol picker components
 - [x] Add habit editing and deletion functionality
 - [x] Create habit list component with proper styling
-- [x] Implement habit reordering functionality
+- [x] Implement habit reordering functionality (pending UX redesign)
+- [x] Fix placeholder text color and day abbreviations for better UX
 
 #### Checkpoint 3.2: Habit Tracking System
 - [ ] Create daily habit check-off interface

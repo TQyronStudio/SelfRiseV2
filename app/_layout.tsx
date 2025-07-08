@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

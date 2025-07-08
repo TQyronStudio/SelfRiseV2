@@ -43,7 +43,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       return newHabit;
     } catch (error) {
       throw new StorageError(
-        'Failed to create habit',
+        `Failed to create habit: ${error instanceof Error ? error.message : 'Unknown error'}`,
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.HABITS
       );

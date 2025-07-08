@@ -43,17 +43,18 @@ const ICON_MAP = {
 };
 
 const DAY_LABELS = {
-  [DayOfWeek.MONDAY]: 'M',
-  [DayOfWeek.TUESDAY]: 'T',
-  [DayOfWeek.WEDNESDAY]: 'W',
-  [DayOfWeek.THURSDAY]: 'T',
-  [DayOfWeek.FRIDAY]: 'F',
-  [DayOfWeek.SATURDAY]: 'S',
-  [DayOfWeek.SUNDAY]: 'S',
+  [DayOfWeek.MONDAY]: 'Mo',
+  [DayOfWeek.TUESDAY]: 'Tu',
+  [DayOfWeek.WEDNESDAY]: 'We',
+  [DayOfWeek.THURSDAY]: 'Th',
+  [DayOfWeek.FRIDAY]: 'Fr',
+  [DayOfWeek.SATURDAY]: 'Sa',
+  [DayOfWeek.SUNDAY]: 'Su',
 };
 
 export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItemProps) {
   const { t } = useI18n();
+  console.log('HabitItem rendering:', { name: habit.name, isActive: habit.isActive });
 
   const handleDelete = () => {
     Alert.alert(
@@ -74,11 +75,15 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive }: HabitItem
   };
 
   const handleToggleActive = () => {
+    console.log('HabitItem handleToggleActive:', { habitId: habit.id, currentActive: habit.isActive, willBeActive: !habit.isActive });
     onToggleActive(habit.id, !habit.isActive);
   };
 
+  const containerStyle = [styles.container, !habit.isActive && styles.inactiveContainer];
+  console.log('HabitItem container style:', { name: habit.name, isActive: habit.isActive, applyInactiveStyle: !habit.isActive });
+  
   return (
-    <View style={[styles.container, !habit.isActive && styles.inactiveContainer]}>
+    <View style={containerStyle}>
       <View style={styles.mainContent}>
         <View style={[styles.iconContainer, { backgroundColor: COLOR_MAP[habit.color] }]}>
           <Ionicons
@@ -215,9 +220,11 @@ const styles = StyleSheet.create({
   daysContainer: {
     flexDirection: 'row',
     gap: 4,
+    flexWrap: 'wrap',
+    marginRight: 8,
   },
   dayIndicator: {
-    width: 24,
+    width: 28,
     height: 24,
     borderRadius: 12,
     backgroundColor: Colors.backgroundSecondary,

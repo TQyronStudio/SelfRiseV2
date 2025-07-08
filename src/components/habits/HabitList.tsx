@@ -41,6 +41,11 @@ export function HabitList({
 
   const activeHabits = habits.filter(habit => habit.isActive);
   const inactiveHabits = habits.filter(habit => !habit.isActive);
+  
+  // Debug: log habits state
+  console.log('All habits:', habits.map(h => ({ name: h.name, isActive: h.isActive })));
+  console.log('Active habits count:', activeHabits.length);
+  console.log('Inactive habits count:', inactiveHabits.length);
 
   const handleReorder = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
@@ -57,25 +62,30 @@ export function HabitList({
     onReorderHabits(habitOrders);
   };
 
-  const renderHabitItem = ({ item, index, onDragStart, onDragEnd }: DragListRenderItemInfo<Habit>) => (
-    <View style={styles.habitItemContainer}>
-      <HabitItem
-        habit={item}
-        onEdit={onEditHabit}
-        onDelete={onDeleteHabit}
-        onToggleActive={onToggleActive}
-      />
-      {isReordering && (
+  const renderHabitItem = ({ item, index, onDragStart, onDragEnd }: DragListRenderItemInfo<Habit>) => {
+    console.log('renderHabitItem called with:', { name: item.name, isActive: item.isActive, index });
+    return (
+      <View style={styles.habitItemContainer}>
+        <View style={styles.habitItemContent}>
+          <HabitItem
+            habit={item}
+            onEdit={onEditHabit}
+            onDelete={onDeleteHabit}
+            onToggleActive={onToggleActive}
+          />
+        </View>
         <TouchableOpacity
           style={styles.dragHandle}
           onPressIn={onDragStart}
           onPressOut={onDragEnd}
+          activeOpacity={0.7}
+          delayPressIn={0}
         >
           <Ionicons name="reorder-three" size={24} color={Colors.textTertiary} />
         </TouchableOpacity>
-      )}
-    </View>
-  );
+      </View>
+    );
+  };
 
   const renderRegularHabitItem = ({ item }: { item: Habit }) => (
     <HabitItem
@@ -89,7 +99,7 @@ export function HabitList({
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="add-circle-outline" size={64} color={Colors.border} />
-      <Text style={styles.emptyTitle}>{t('habits.title')}</Text>
+      <Text style={styles.emptyTitle}>No habits yet</Text>
       <Text style={styles.emptySubtitle}>
         Start building better habits by creating your first one
       </Text>
@@ -107,7 +117,6 @@ export function HabitList({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>{t('habits.title')}</Text>
           <Text style={styles.subtitle}>
             {activeHabits.length} active • {inactiveHabits.length} inactive
           </Text>
@@ -135,15 +144,19 @@ export function HabitList({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Active Habits</Text>
           {isReordering ? (
-            <DragList
-              data={activeHabits}
-              keyExtractor={(item) => item.id}
-              onReordered={handleReorder}
-              renderItem={renderHabitItem}
-              refreshControl={
-                <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-              }
-            />
+            <>
+              {console.log('DragList rendering with data:', activeHabits.map(h => ({ name: h.name, isActive: h.isActive })))}
+              <DragList
+                data={activeHabits}
+                keyExtractor={(item) => item.id}
+                onReordered={handleReorder}
+                renderItem={renderHabitItem}
+                containerStyle={styles.dragListContainer}
+                refreshControl={
+                  <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+                }
+              />
+            </>
           ) : (
             <FlatList
               data={activeHabits}
@@ -176,7 +189,7 @@ export function HabitList({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -190,16 +203,10 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  title: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-  },
   subtitle: {
     fontSize: 14,
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
-    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -230,10 +237,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+  },
+  habitItemContent: {
+    flex: 1,
   },
   dragHandle: {
     padding: 8,
     marginLeft: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.backgroundSecondary,
+  },
+  dragListContainer: {
+    flex: 1,
   },
   emptyContainer: {
     flex: 1,
