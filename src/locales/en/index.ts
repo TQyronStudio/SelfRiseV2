@@ -38,6 +38,23 @@ const en: TranslationKeys = {
     cancel: 'Cancel',
     delete: 'Delete',
     save: 'Save',
+    form: {
+      name: 'Habit Name',
+      namePlaceholder: 'Enter habit name...',
+      color: 'Select Color',
+      icon: 'Select Icon',
+      scheduledDays: 'Scheduled Days',
+      description: 'Description (Optional)',
+      descriptionPlaceholder: 'Add a description for your habit...',
+      errors: {
+        nameRequired: 'Habit name is required',
+        nameTooShort: 'Habit name must be at least 2 characters',
+        nameTooLong: 'Habit name must be less than 50 characters',
+        daysRequired: 'Please select at least one day',
+        descriptionTooLong: 'Description must be less than 200 characters',
+        submitFailed: 'Failed to save habit. Please try again.',
+      },
+    },
   },
   
   // Gratitude screen
@@ -145,6 +162,8 @@ const en: TranslationKeys = {
     delete: 'Delete',
     edit: 'Edit',
     add: 'Add',
+    create: 'Create',
+    update: 'Update',
     confirm: 'Confirm',
     loading: 'Loading...',
     error: 'Error',

@@ -73,11 +73,11 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Goal**: Complete habit tracking functionality
 
 #### Checkpoint 3.1: Habit Creation & Management
-- [ ] Create habit creation form with validation
-- [ ] Implement color and symbol picker components
-- [ ] Add habit editing and deletion functionality
-- [ ] Create habit list component with proper styling
-- [ ] Implement habit reordering functionality
+- [x] Create habit creation form with validation
+- [x] Implement color and symbol picker components
+- [x] Add habit editing and deletion functionality
+- [x] Create habit list component with proper styling
+- [x] Implement habit reordering functionality
 
 #### Checkpoint 3.2: Habit Tracking System
 - [ ] Create daily habit check-off interface
