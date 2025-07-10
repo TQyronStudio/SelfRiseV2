@@ -76,118 +76,110 @@ export function HabitListWithCompletion({
     );
   }
 
-  // Create unified data for single DraggableFlatList
-  const createFlatListData = () => {
-    const data: Array<{type: 'header' | 'habit', id: string, title?: string, habit?: Habit}> = [];
+  // Render functions for different list types
+  const renderActiveHabitItem = ({ item: habit, drag, isActive }: RenderItemParams<Habit>) => {
+    const completion = getHabitCompletion(habit.id);
     
-    // Add active habits section
-    if (activeHabits.length > 0) {
-      data.push({ type: 'header', id: 'active-header', title: 'Active Habits' });
-      activeHabits.forEach(habit => {
-        data.push({ type: 'habit', id: habit.id, habit });
-      });
-    }
-    
-    // Add inactive habits section  
-    if (inactiveHabits.length > 0) {
-      data.push({ type: 'header', id: 'inactive-header', title: 'Inactive Habits' });
-      inactiveHabits.forEach(habit => {
-        data.push({ type: 'habit', id: habit.id, habit });
-      });
-    }
-    
-    return data;
-  };
-
-  const renderUnifiedItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
-    if (item.type === 'header') {
-      return (
-        <View style={styles.sectionHeaderContainer}>
-          <Text style={styles.sectionTitle}>{item.title}</Text>
-        </View>
-      );
-    }
-    
-    if (item.type === 'habit' && item.habit) {
-      const completion = getHabitCompletion(item.habit.id);
-      const isActiveHabit = activeHabits.some(h => h.id === item.habit.id);
-      
-      return (
-        <View style={styles.habitContainer}>
-          <HabitItemWithCompletion
-            habit={item.habit}
-            completion={completion}
-            onEdit={onEditHabit}
-            onDelete={onDeleteHabit}
-            onToggleActive={onToggleActive}
-            onToggleCompletion={onToggleCompletion}
-            onReorder={onReorderHabits}
-            onViewStats={onViewHabitStats}
-            onDrag={isActiveHabit ? drag : undefined}
-            isDragging={isActive}
-            date={date}
-          />
-        </View>
-      );
-    }
-    
-    return null;
-  };
-
-  const handleUnifiedDragEnd = ({ data }: { data: any[] }) => {
-    // Extract only active habits and update their order
-    const activeHabitItems = data.filter(item => 
-      item.type === 'habit' && 
-      item.habit && 
-      activeHabits.some(h => h.id === item.habit.id)
+    return (
+      <View style={styles.habitContainer}>
+        <HabitItemWithCompletion
+          habit={habit}
+          completion={completion}
+          onEdit={onEditHabit}
+          onDelete={onDeleteHabit}
+          onToggleActive={onToggleActive}
+          onToggleCompletion={onToggleCompletion}
+          onReorder={onReorderHabits}
+          onViewStats={onViewHabitStats}
+          onDrag={drag}
+          isDragging={isActive}
+          date={date}
+        />
+      </View>
     );
+  };
+
+  const renderInactiveHabitItem = ({ item: habit }: { item: Habit }) => {
+    const completion = getHabitCompletion(habit.id);
     
-    const habitOrders = activeHabitItems.map((item, index) => ({
-      id: item.habit.id,
+    return (
+      <View style={styles.habitContainer}>
+        <HabitItemWithCompletion
+          habit={habit}
+          completion={completion}
+          onEdit={onEditHabit}
+          onDelete={onDeleteHabit}
+          onToggleActive={onToggleActive}
+          onToggleCompletion={onToggleCompletion}
+          onReorder={onReorderHabits}
+          onViewStats={onViewHabitStats}
+          date={date}
+        />
+      </View>
+    );
+  };
+
+  const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
+    const habitOrders = data.map((habit, index) => ({
+      id: habit.id,
       order: index,
     }));
-    
-    if (habitOrders.length > 0) {
-      onReorderHabits(habitOrders);
-    }
+    onReorderHabits(habitOrders);
   };
 
   return (
-    <DraggableFlatList
-      data={createFlatListData()}
-      renderItem={renderUnifiedItem}
-      keyExtractor={(item) => item.id}
-      onDragEnd={handleUnifiedDragEnd}
-      style={styles.container}
-      contentContainerStyle={styles.listContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={onRefresh}
-          tintColor={Colors.primary}
-          colors={[Colors.primary]}
-        />
-      }
-      showsVerticalScrollIndicator={true}
-      bounces={true}
-      activationDistance={15}
-      autoscrollSpeed={100}
-      autoscrollThreshold={80}
-    />
+    <View style={styles.container}>
+      {/* Active Habits Section with Drag & Drop */}
+      {activeHabits.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>Active Habits</Text>
+          </View>
+          <DraggableFlatList
+            data={activeHabits}
+            renderItem={renderActiveHabitItem}
+            keyExtractor={(item) => item.id}
+            onDragEnd={handleActiveDragEnd}
+            style={styles.activeHabitsList}
+            contentContainerStyle={styles.activeHabitsContent}
+            scrollEnabled={false}
+            activationDistance={10}
+            autoscrollSpeed={100}
+            autoscrollThreshold={80}
+          />
+        </View>
+      )}
+
+      {/* Inactive Habits Section - No Drag & Drop */}
+      {inactiveHabits.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>Inactive Habits</Text>
+          </View>
+          <FlatList
+            data={inactiveHabits}
+            renderItem={renderInactiveHabitItem}
+            keyExtractor={(item) => item.id}
+            style={styles.inactiveHabitsList}
+            contentContainerStyle={styles.inactiveHabitsContent}
+            scrollEnabled={false}
+          />
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Critical: Take up all available space
+    flex: 1,
   },
-  listContent: {
-    paddingBottom: 20,
-    flexGrow: 1, // Allow content to grow and fill available space
+  section: {
+    marginBottom: 20,
   },
   sectionHeaderContainer: {
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 12,
   },
   sectionTitle: {
@@ -198,13 +190,25 @@ const styles = StyleSheet.create({
   habitContainer: {
     paddingHorizontal: 16,
   },
+  activeHabitsList: {
+    maxHeight: 400, // Limit height to prevent conflicts
+  },
+  activeHabitsContent: {
+    paddingBottom: 10,
+  },
+  inactiveHabitsList: {
+    maxHeight: 300, // Limit height for inactive habits
+  },
+  inactiveHabitsContent: {
+    paddingBottom: 10,
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
     paddingHorizontal: 24,
-    minHeight: 300, // Ensure minimum height for empty state
+    minHeight: 300,
   },
   emptyStateText: {
     fontSize: 18,

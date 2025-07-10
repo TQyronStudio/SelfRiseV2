@@ -301,14 +301,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
   },
-  actionButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   daysContainer: {
     flexDirection: 'row',
     gap: 3,
