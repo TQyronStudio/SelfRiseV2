@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Text, RefreshControl } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Text, RefreshControl, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { 

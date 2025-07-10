@@ -532,6 +532,110 @@ Habit tracking je nyní plně integrován v Habits screen s intuitivním UX!
 
 Výsledkem je výrazně kompaktnější a přehlednější seznam návyků!
 
+#### Android SafeAreaView Fix:
+- **[x] SafeAreaView implementace**: Plně implementována cross-platform SafeAreaView podpora:
+  - Aktualizován hlavní tab layout s SafeAreaProvider wrapper
+  - Všechny tab obrazovky nyní používají `react-native-safe-area-context` místo vestavěného SafeAreaView
+  - Přidán `edges={['top']}` pro správné zobrazení status bar na Androidu
+  - Upravena výška tab bar pro iOS (84px) vs Android (60px)
+  - Opraveno překrývání obsahu se systémovými prvky na obou platformách
+  - Testováno na iOS (status bar spacing) a Android (software navigation compatibility)
+
+Aplikace nyní plně podporuje SafeAreaView na obou platformách bez překrývání s navigačními prvky!
+
+#### Finální Android Layout Fix:
+- **[x] Spodní navigace opravena**: Implementováno řešení pro překrývání s Android system navigation:
+  - Aktualizována výška tab bar na Android z 60px na 70px
+  - Přidán dynamický `paddingBottom` využívající `useSafeAreaInsets().bottom`
+  - Minimální padding 15px pro Android, iOS zůstává 20px
+  - Použit `Math.max(insets.bottom, 15)` pro spolehlivé zobrazení na všech Android zařízeních
+
+- **[x] Edge-to-edge Status Bar**: Implementován doporučený postup pro status bar:
+  - Odstraněna `backgroundColor` prop z StatusBar (eliminuje varování)
+  - Přidán `translucent={true}` pro edge-to-edge režim
+  - Implementován absolutně pozicovaný barevný View pod status bar
+  - Všechny obrazovky mají dynamický `paddingTop: insets.top` pro správné odsazení headeru
+  - Použit `zIndex: 1000` pro správné vrstvení status bar pozadí
+
+- **[x] Cross-platform konzistence**: Všechny obrazovky nyní fungují stejně na iOS i Android:
+  - Správné zobrazení status bar na obou platformách
+  - Žádné překrývání s navigačními prvky
+  - Konzistentní layout a spacing napříč platformami
+  - Eliminace varování "StatusBar backgroundColor is not supported"
+
+Finální multiplatformní layout je nyní kompletní a plně kompatibilní s iOS i Android!
+
+#### Kritické Android opravy po testování:
+- **[x] Spodní navigace definitivně opravena**: Zvýšen padding a výška tab bar pro Android:
+  - Výška tab bar zvýšena na 85px pro Android (vs 84px pro iOS)
+  - Dynamický `paddingBottom: Math.max(insets.bottom + 10, 25)` pro spolehlivé překonání systémových tlačítek
+  - Přidán `paddingTop: 8` a `paddingHorizontal: 8` pro lepší rozložení
+  - Odstraněna konfliktní logika paddingu
+
+- **[x] Ikony tab bar opraveny**: Doplněny chybějící mapování v IconSymbol:
+  - Přidáno mapování pro `repeat.circle.fill` → `repeat` (Habits)
+  - Přidáno mapování pro `heart.fill` → `favorite` (Gratitude)  
+  - Přidáno mapování pro `target` → `my-location` (Goals)
+  - Přidáno mapování pro `gearshape.fill` → `settings` (Settings)
+  - Zmenšena velikost ikon na 22px pro lepší vyváženost
+
+- **[x] Text na tab bar opraven**: Implementovány styly pro viditelnost názvů:
+  - Přidán `tabBarLabelStyle` s `fontSize: 12` a `fontWeight: '600'`
+  - Přidán `tabBarIconStyle` s `marginBottom: 2` pro lepší rozložení
+  - Upraveny odsazení `marginTop: 2` pro konzistentní vzhled
+
+Všechny Android problémy jsou nyní vyřešeny - spodní navigace je plně viditelná, ikony se zobrazují správně a názvy screenů jsou čitelné!
+
+#### Finální UI úpravy tab bar:
+- **[x] Odstraněna tenká čára pod ikonami**: Nastaveno `borderTopColor: 'transparent'` a `borderTopWidth: 0`
+- **[x] Opravena viditelnost názvů screenů**: Upraveno rozložení pro lepší čitelnost:
+  - Změněn `marginTop: -2` pro posunutí textu nahoru
+  - Nastaveno `marginBottom: 0` pro ikony (zrušeno původní `marginBottom: 2`)
+  - Přidán `marginBottom: 2` pro labely pro kontrolu spodního odsazení
+  - Ikony zůstávají na stejném místě, text se posunul nahoru
+
+Tab bar nyní má čistý vzhled bez rušivých čar a plně viditelné názvy screenů!
+
+#### Finální Android specifická úprava - OPRAVA:
+- **[x] Zvětšena výška a upraveno rozložení tab bar pro Android**: Kompletní přepracování:
+  - Zvětšena výška tab bar na 100px (vs 84px iOS) pro více prostoru
+  - Zvýšen `paddingTop` na 25px (vs 8px iOS) pro posunutí obsahu výše
+  - Upraven `paddingBottom` na `Math.max(insets.bottom + 15, 25)` pro zachování safe area
+  - Platform-specifické styly pro labely:
+    - Zmenšen font na 11px (vs 12px iOS)
+    - Upraven `marginTop: -3` a `marginBottom: 3` pro lepší rozložení
+    - Přidán `lineHeight: 14` pro kontrolu výšky textu
+  - Platform-specifické styly pro ikony: `marginBottom: -2` pro Android
+
+Android tab bar nyní má dostatek prostoru pro plné zobrazení názvů screenů!
+
+#### Oprava pozicionování obsahu tab bar:
+- **[x] Použit `tabBarItemStyle` pro posun obsahu**: Přidáno správné pozicionování pro Android:
+  - `paddingTop: 15` pro každý tab item - posune ikony a text nahoru
+  - `paddingBottom: 5` pro tab item - kompenzuje spodní prostor
+  - Snížen celkový `paddingTop` tab bar na 10px (už není potřeba vysoký)
+  - Upraveny marginy: `marginTop: -5` pro labely, `marginBottom: -3` pro ikony
+  - `tabBarItemStyle` přímo ovlivňuje pozici obsahu každého tabu
+
+Nyní by se ikony a názvy měly skutečně posunout nahoru v rámci tab bar!
+
+#### Fundamentální SafeAreaView řešení - ČISTÉ ARCHITEKTONICKÉ ŘEŠENÍ:
+- **[x] Implementována SafeAreaView architektura**: Kompletní přepracování na čisté řešení:
+  - Přidán import `SafeAreaView` z `react-native-safe-area-context`
+  - Obaleny `<Tabs>` komponentu do `<SafeAreaView style={{ flex: 1 }}>`
+  - SafeAreaView automaticky zajišťuje správné odsazení od systémových prvků
+  - **Odstraněny VŠECHNY předchozí hacky**:
+    - Žádné Platform-specifické paddingTop/paddingBottom v tabBarStyle
+    - Žádné tabBarItemStyle s paddingTop/paddingBottom
+    - Žádné Platform-specifické marginTop/marginBottom v labelStyle a iconStyle
+    - Žádné lineHeight nebo fontSize rozdíly mezi platformami
+  - Vráceny čisté, jednoduché hodnoty:
+    - `height: Platform.OS === 'ios' ? 84 : 70` (standardní hodnoty)
+    - `paddingBottom: Platform.OS === 'ios' ? 20 : 10` (minimální)
+    - Jednotné styly pro labely a ikony napříč platformami
+
+SafeAreaView nyní automaticky a spolehlivě zajišťuje, že se tab bar posune nahoru a nebude se překrývat se systémovými tlačítky na Android!
+
 #### Bug fix - Neaktivní návyky:
 - **Problém identifikován**: `HabitListWithCompletion` zobrazovala pouze aktivní návyky
 - **Přidány podnadpisy**: "Active Habits" a "Inactive Habits" sekce pro lepší organizaci

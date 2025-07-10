@@ -26,7 +26,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style="light" backgroundColor="#4A90E2" />
+        <StatusBar style="light" translucent={true} />
       </RootProvider>
     </GestureHandlerRootView>
   );

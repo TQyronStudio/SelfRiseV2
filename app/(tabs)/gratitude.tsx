@@ -1,15 +1,17 @@
 import React from 'react';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
 
 export default function GratitudeScreen() {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.fullContainer}>
-      <SafeAreaView style={styles.safeContainer}>
-        <View style={styles.header}>
+      <SafeAreaView style={styles.safeContainer} edges={[]}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
           <Text style={styles.title}>{t('gratitude.title')}</Text>
         </View>
         <View style={styles.content}>
