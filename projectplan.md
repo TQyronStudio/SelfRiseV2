@@ -657,12 +657,12 @@ Layout je nyní optimální na obou platformách - Android má správně pozicov
 Kompletní cross-platform layout je nyní dokončen - žádné dvojité odsazení, správné pozicionování na obou platformách!
 
 #### Finální Android spodní padding:
-- **[x] Přidán Android-specifický spodní padding**: Vyřešeno překrývání s Android systémovými tlačítky:
-  - Upraveno `paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'android' ? 20 : 10`
-  - Android nyní má stejný spodní padding jako iOS (20px)
+- **[x] Zvýšen Android spodní padding**: Vyřešeno překrývání s Android systémovými tlačítky:
+  - Upraveno `paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'android' ? 30 : 10`
+  - Android nyní má větší spodní padding (30px) pro zřetelnou mezeru
   - iOS zůstává beze změny (20px)
   - Ostatní platformy mají fallback 10px
-  - Výsledek: Spodní lišta na Android se nepřekrývá se systémovými tlačítky
+  - Výsledek: Malá, ale zřetelná mezera mezi textem a systémovými tlačítky na Android
 
 **FINÁLNÍ STAV - CROSS-PLATFORM LAYOUT DOKONČEN:**
 - ✅ iOS: Správná výška horní lišty, optimální spodní navigace
@@ -671,6 +671,56 @@ Kompletní cross-platform layout je nyní dokončen - žádné dvojité odsazen�
 - ✅ SafeAreaView správně implementována s edges={['top']}
 - ✅ Všechny ikony tab bar fungují a zobrazují se správně
 - ✅ Jednotná platforma-specifická optimalizace
+
+#### ČISTÉ ARCHITEKTONICKÉ ŘEŠENÍ - FINÁLNÍ IMPLEMENTACE:
+- **[x] Odstraněny VŠECHNY padding/margin hacky**: Kompletní vyčištění kódu:
+  - Odstraněny všechny `paddingBottom`, `paddingTop`, `marginTop`, `marginBottom` z `tabBarStyle`
+  - Odstraněny všechny `marginTop`, `marginBottom` z `tabBarLabelStyle` a `tabBarIconStyle`
+  - Odstraněny Platform-specifické výšky a padding hodnoty
+  - Odstraněn status bar background View (nepotřebný)
+  - Odstraněn `useSafeAreaInsets` import a hook
+
+- **[x] Implementována čistá SafeAreaView architektura**: Správné React Native patterns:
+  - `<SafeAreaView style={{ flex: 1 }}>` bez `edges` prop
+  - SafeAreaView automaticky zpracovává všechny okraje pro iOS i Android
+  - Žádné manuální manipulace s paddingem nebo marginem
+  - Minimální `tabBarStyle` pouze s barvou a bordery
+
+**VÝSLEDEK: Architektonicky správné řešení bez styling hacků, které se spoléhá na SafeAreaView pro cross-platform kompatibilitu!**
+
+#### SPRÁVNÁ ARCHITEKTURA - FINÁLNÍ REFAKTORING:
+- **[x] Hlavní layout vyčištěn**: Kompletní refaktoring architektury:
+  - Odstraněn SafeAreaView wrapper z `app/(tabs)/_layout.tsx`
+  - Nejvyšší komponenta je nyní `<Tabs>` jak má být
+  - Přidán `<StatusBar style="light" />` pro správné zobrazení na modrém pozadí
+  - Nakonfigurováno centrální stylování headerů:
+    - `headerShown: true`
+    - `headerStyle: { backgroundColor: Colors.primary }`
+    - `headerTintColor: Colors.textInverse`
+    - `headerTitleStyle: { fontWeight: 'bold' }`
+
+- **[x] SafeAreaView implementována v jednotlivých obrazovkách**: Všech 5 obrazovek refaktorováno:
+  - Každá obrazovka obalena v `<SafeAreaView style={{ flex: 1 }}>`
+  - Odstraněny duplicitní header Views (jsou nyní součástí Tabs)
+  - Nastaveno `backgroundColor: Colors.background` pro konzistentní vzhled
+  - Zjednodušené styly - pouze container a content
+
+**ARCHITEKTURA:**
+- ✅ Centrální navigace s edge-to-edge designem
+- ✅ Každá obrazovka si řídí svou vlastní safe area
+- ✅ StatusBar správně nakonfigurován
+- ✅ Modré headery se správným kontrastem textu
+- ✅ Čisté, maintainable řešení bez hacků
+
+**Výsledek: Správná React Native architektura s centrálním stylingem navigace a decentralizovanou safe area správou!**
+
+#### Finální detail - centrování nadpisů:
+- **[x] Přidáno headerTitleAlign: 'center'**: Dokončena konzistence napříč platformami:
+  - Android nadpisy nyní zarovnané na střed (stejně jako iOS)
+  - Jednotný vzhled headerů na obou platformách
+  - Kompletní cross-platform konzistence
+
+**🎉 LAYOUT KOMPLETNĚ DOKONČEN - PERFEKTNÍ CROSS-PLATFORM DESIGN!**
 
 #### Bug fix - Neaktivní návyky:
 - **Problém identifikován**: `HabitListWithCompletion` zobrazovala pouze aktivní návyky

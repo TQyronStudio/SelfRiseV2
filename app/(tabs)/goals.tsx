@@ -8,46 +8,26 @@ export default function GoalsScreen() {
   const { t } = useI18n();
 
   return (
-    <View style={styles.fullContainer}>
-      <SafeAreaView style={styles.safeContainer} edges={[]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('goals.title')}</Text>
-        </View>
-        <View style={styles.content}>
-          <Text style={styles.placeholder}>
-            {t('goals.addGoal')} - Coming Soon
-          </Text>
-        </View>
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.placeholder}>
+          {t('goals.addGoal')} - Coming Soon
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  fullContainer: {
+  container: {
     flex: 1,
-    backgroundColor: Colors.primary, // Primary color extends to top edge
-  },
-  safeContainer: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingBottom: Layout.spacing.lg,
-    backgroundColor: Colors.primary,
-  },
-  title: {
-    fontSize: Fonts.sizes.xxl,
-    fontWeight: Fonts.weights.bold,
-    color: Colors.textInverse,
-    textAlign: 'center',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: Layout.spacing.md,
-    backgroundColor: Colors.background,
   },
   placeholder: {
     fontSize: Fonts.sizes.lg,
