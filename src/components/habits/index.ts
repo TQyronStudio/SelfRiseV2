@@ -13,3 +13,5 @@ export * from './DailyProgressBar';
 export * from './DailyHabitProgress';
 export * from './HabitItemWithCompletion';
 export * from './HabitListWithCompletion';
+export * from './HabitCalendarView';
+export * from './HabitStatsAccordionItem';

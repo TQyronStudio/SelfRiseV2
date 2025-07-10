@@ -794,11 +794,25 @@ Oba screeny jsou nyní plně scrollovatelné a všechny návyky jsou dostupné!
 Habits screen má nyní perfektní scrollování a habit items jsou designově optimalizované!
 
 #### Checkpoint 3.3: Habit Statistics & Calendar
-- [ ] Create detailed calendar view for individual habits
-- [ ] Implement monthly/weekly completion statistics
-- [ ] Add visual indicators for completion patterns
-- [ ] Create habit performance analytics
-- [ ] Implement data export functionality
+- [ ] **Individual Habit Detail Screen**: Direct access to single habit statistics
+  - Add chart icon to HabitItem for navigation to individual habit detail
+  - Create stack navigator for Individual Habit Detail screen
+  - Implement IndividualHabitDetailScreen with calendar and statistics
+  - Add navigation back to Habits screen with header icon
+- [ ] **Individual Habit Stats Screen**: Overview of all habits with accordion
+  - Create IndividualHabitStatsScreen with accordion list of all habits
+  - Implement HabitStatsAccordionItem (expandable habit item)
+  - Add navigation to IndividualHabitStatsScreen from main menu
+  - Add navigation back to Habits screen with header icon
+- [ ] **Shared Calendar Component**: Monthly calendar with completion visualization
+  - Create HabitCalendarView component for monthly calendar
+  - Add navigation between months in calendar (arrows)
+  - Implement visual indicators for completion states (normal/bonus/scheduled)
+  - Add visual distinction for scheduled vs bonus completions with stars
+- [ ] **Testing & Integration**: Ensure both navigation paths work correctly
+  - Test both navigation paths and functionality
+  - Verify calendar navigation and visual indicators
+  - Test accordion expand/collapse functionality
 
 ### Phase 4: Gratitude Feature
 **Goal**: Complete gratitude journaling system

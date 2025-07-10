@@ -17,6 +17,7 @@ interface HabitListWithCompletionProps {
   onToggleActive: (habitId: string, isActive: boolean) => void;
   onToggleCompletion: (habitId: string, date: string, isBonus: boolean) => Promise<void>;
   onReorderHabits: (habitOrders: Array<{ id: string; order: number }>) => void;
+  onViewHabitStats: (habitId: string) => void;
   date?: string;
 }
 
@@ -30,6 +31,7 @@ export function HabitListWithCompletion({
   onToggleActive,
   onToggleCompletion,
   onReorderHabits,
+  onViewHabitStats,
   date = formatDateToString(new Date()),
 }: HabitListWithCompletionProps) {
   // Filter and sort habits
@@ -70,6 +72,7 @@ export function HabitListWithCompletion({
         onToggleActive={onToggleActive}
         onToggleCompletion={onToggleCompletion}
         onReorder={onReorderHabits}
+        onViewStats={onViewHabitStats}
         onDrag={drag}
         isDragging={isActive}
         date={date}
@@ -90,6 +93,7 @@ export function HabitListWithCompletion({
         onToggleActive={onToggleActive}
         onToggleCompletion={onToggleCompletion}
         onReorder={onReorderHabits}
+        onViewStats={onViewHabitStats}
         date={date}
       />
     );

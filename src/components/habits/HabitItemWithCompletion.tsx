@@ -17,13 +17,14 @@ import { HabitCompletionButton, BonusCompletionIndicator } from './';
 
 interface HabitItemWithCompletionProps {
   habit: Habit;
-  completion?: HabitCompletion;
+  completion?: HabitCompletion | undefined;
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
   onToggleActive: (habitId: string, isActive: boolean) => void;
   onToggleCompletion: (habitId: string, date: string, isBonus: boolean) => Promise<void>;
   onReorder: (habitOrders: Array<{ id: string; order: number }>) => void;
-  onDrag?: () => void;
+  onViewStats: (habitId: string) => void;
+  onDrag?: (() => void) | undefined;
   isDragging?: boolean;
   date?: string;
 }
@@ -68,6 +69,7 @@ export function HabitItemWithCompletion({
   onToggleActive, 
   onToggleCompletion,
   onReorder, 
+  onViewStats,
   onDrag, 
   isDragging,
   date = formatDateToString(new Date())
@@ -126,7 +128,7 @@ export function HabitItemWithCompletion({
     !habit.isActive && styles.inactiveContainer,
     isDragging && styles.draggingContainer,
     isCompleted && styles.completedContainer,
-  ];
+  ].filter(Boolean);
   
   return (
     <View style={containerStyle}>
@@ -222,7 +224,17 @@ export function HabitItemWithCompletion({
               <Ionicons name="trash" size={16} color={Colors.error} />
             </TouchableOpacity>
 
-            {habit.isActive && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => onViewStats(habit.id)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="bar-chart-outline" size={16} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {habit.isActive && (
+            <View style={styles.actionsRow}>
               <TouchableOpacity
                 style={[styles.actionButton, isDragging && styles.draggingActionButton]}
                 onLongPress={onDrag}
@@ -231,8 +243,8 @@ export function HabitItemWithCompletion({
               >
                 <Ionicons name="reorder-three-outline" size={16} color={Colors.textSecondary} />
               </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          )}
         </View>
       </View>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Text, RefreshControl, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { 
   HabitModal, 
@@ -21,7 +22,8 @@ function HabitListContent({
   onDeleteHabit, 
   onToggleActive, 
   onToggleCompletion,
-  onReorderHabits 
+  onReorderHabits,
+  onViewHabitStats
 }: {
   habits: Habit[];
   completions: any[];
@@ -30,6 +32,7 @@ function HabitListContent({
   onToggleActive: (habitId: string, isActive: boolean) => void;
   onToggleCompletion: (habitId: string, date: string, isBonus: boolean) => Promise<void>;
   onReorderHabits: (habitOrders: Array<{ id: string; order: number }>) => void;
+  onViewHabitStats: (habitId: string) => void;
 }) {
   const date = formatDateToString(new Date());
   
@@ -69,6 +72,7 @@ function HabitListContent({
                 onToggleActive={onToggleActive}
                 onToggleCompletion={onToggleCompletion}
                 onReorder={onReorderHabits}
+                onViewStats={onViewHabitStats}
                 date={date}
               />
             );
@@ -92,6 +96,7 @@ function HabitListContent({
                 onToggleActive={onToggleActive}
                 onToggleCompletion={onToggleCompletion}
                 onReorder={onReorderHabits}
+                onViewStats={onViewHabitStats}
                 date={date}
               />
             );
@@ -203,6 +208,10 @@ export function HabitsScreen() {
     }
   };
 
+  const handleViewHabitStats = (habitId: string) => {
+    router.push(`/habit-detail/${habitId}`);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -238,6 +247,7 @@ export function HabitsScreen() {
           onToggleActive={handleToggleActive}
           onToggleCompletion={handleToggleCompletion}
           onReorderHabits={handleReorderHabits}
+          onViewHabitStats={handleViewHabitStats}
         />
       </ScrollView>
 
