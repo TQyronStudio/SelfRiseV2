@@ -1,17 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
 
 export default function GoalsScreen() {
   const { t } = useI18n();
-  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.fullContainer}>
       <SafeAreaView style={styles.safeContainer} edges={[]}>
-        <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
           <Text style={styles.title}>{t('goals.title')}</Text>
         </View>
         <View style={styles.content}>

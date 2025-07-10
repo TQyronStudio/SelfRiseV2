@@ -27,7 +27,7 @@ function TabLayoutContent() {
         }}
       />
       
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Tabs
           screenOptions={{
             tabBarActiveTintColor: Colors.tabIconSelected,
@@ -39,7 +39,7 @@ function TabLayoutContent() {
               borderTopColor: 'transparent',
               borderTopWidth: 0,
               height: Platform.OS === 'ios' ? 84 : 70,
-              paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+              paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'android' ? 20 : 10,
               paddingTop: 8,
               paddingHorizontal: 8,
             },

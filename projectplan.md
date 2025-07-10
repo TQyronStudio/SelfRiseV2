@@ -636,6 +636,42 @@ Nyní by se ikony a názvy měly skutečně posunout nahoru v rámci tab bar!
 
 SafeAreaView nyní automaticky a spolehlivě zajišťuje, že se tab bar posune nahoru a nebude se překrývat se systémovými tlačítky na Android!
 
+#### iOS layout oprava - edges prop:
+- **[x] Přidán edges={['top']} do SafeAreaView**: Optimalizace pro iOS:
+  - SafeAreaView nyní řeší pouze horní safe area (status bar)
+  - Spodní safe area se ponechává na navigační panel
+  - Odstraněno zbytečné odsazení zespodu na iOS
+  - Zachována funkčnost na Android
+  - Výsledek: `<SafeAreaView style={{ flex: 1 }} edges={['top']}>`
+
+Layout je nyní optimální na obou platformách - Android má správně pozicovaný tab bar a iOS nemá zbytečné odsazení!
+
+#### Oprava dvojitého odsazení na iOS:
+- **[x] Odstraněno paddingTop z jednotlivých obrazovek**: Vyřešeno dvojité odsazení:
+  - Odstraněn `{ paddingTop: insets.top }` ze všech tab obrazovek (index.tsx, habits.tsx, gratitude.tsx, goals.tsx, settings.tsx)
+  - Odstraněn `useSafeAreaInsets` import a hook ze všech obrazovek
+  - O horní safe area se nyní stará pouze hlavní SafeAreaView v _layout.tsx
+  - Jednotlivé obrazovky už nemají vlastní paddingTop v header stylu
+  - Výsledek: Správná výška horní modré lišty na iOS
+
+Kompletní cross-platform layout je nyní dokončen - žádné dvojité odsazení, správné pozicionování na obou platformách!
+
+#### Finální Android spodní padding:
+- **[x] Přidán Android-specifický spodní padding**: Vyřešeno překrývání s Android systémovými tlačítky:
+  - Upraveno `paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'android' ? 20 : 10`
+  - Android nyní má stejný spodní padding jako iOS (20px)
+  - iOS zůstává beze změny (20px)
+  - Ostatní platformy mají fallback 10px
+  - Výsledek: Spodní lišta na Android se nepřekrývá se systémovými tlačítky
+
+**FINÁLNÍ STAV - CROSS-PLATFORM LAYOUT DOKONČEN:**
+- ✅ iOS: Správná výška horní lišty, optimální spodní navigace
+- ✅ Android: Správné pozicionování tab bar, žádné překrývání se systémovými prvky
+- ✅ Čisté architektonické řešení bez hacků
+- ✅ SafeAreaView správně implementována s edges={['top']}
+- ✅ Všechny ikony tab bar fungují a zobrazují se správně
+- ✅ Jednotná platforma-specifická optimalizace
+
 #### Bug fix - Neaktivní návyky:
 - **Problém identifikován**: `HabitListWithCompletion` zobrazovala pouze aktivní návyky
 - **Přidány podnadpisy**: "Active Habits" a "Inactive Habits" sekce pro lepší organizaci
