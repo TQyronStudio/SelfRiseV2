@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, ScrollView, FlatList } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
-import { Habit, HabitCompletion } from '../../types/habit';
+import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
-import { formatDateToString } from '../../utils/date';
-import { Colors } from '../../constants/colors';
-import { Fonts } from '../../constants/fonts';
+import { formatDateToString } from '@/src/utils/date';
+import { Colors } from '@/src/constants/colors';
+import { Fonts } from '@/src/constants/fonts';
 
 interface HabitListWithCompletionProps {
   habits: Habit[];
@@ -52,57 +52,114 @@ export function HabitListWithCompletion({
     return todayCompletions.find(completion => completion.habitId === habitId);
   };
 
-  const handleDragEnd = ({ data }: { data: Habit[] }) => {
-    const habitOrders = data.map((habit, index) => ({
-      id: habit.id,
+
+  // Show empty state if no habits
+  if (habits.length === 0) {
+    return (
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
+      >
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>No habits created yet</Text>
+          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  // Create unified data for single DraggableFlatList
+  const createFlatListData = () => {
+    const data: Array<{type: 'header' | 'habit', id: string, title?: string, habit?: Habit}> = [];
+    
+    // Add active habits section
+    if (activeHabits.length > 0) {
+      data.push({ type: 'header', id: 'active-header', title: 'Active Habits' });
+      activeHabits.forEach(habit => {
+        data.push({ type: 'habit', id: habit.id, habit });
+      });
+    }
+    
+    // Add inactive habits section  
+    if (inactiveHabits.length > 0) {
+      data.push({ type: 'header', id: 'inactive-header', title: 'Inactive Habits' });
+      inactiveHabits.forEach(habit => {
+        data.push({ type: 'habit', id: habit.id, habit });
+      });
+    }
+    
+    return data;
+  };
+
+  const renderUnifiedItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
+    if (item.type === 'header') {
+      return (
+        <View style={styles.sectionHeaderContainer}>
+          <Text style={styles.sectionTitle}>{item.title}</Text>
+        </View>
+      );
+    }
+    
+    if (item.type === 'habit' && item.habit) {
+      const completion = getHabitCompletion(item.habit.id);
+      const isActiveHabit = activeHabits.some(h => h.id === item.habit.id);
+      
+      return (
+        <View style={styles.habitContainer}>
+          <HabitItemWithCompletion
+            habit={item.habit}
+            completion={completion}
+            onEdit={onEditHabit}
+            onDelete={onDeleteHabit}
+            onToggleActive={onToggleActive}
+            onToggleCompletion={onToggleCompletion}
+            onReorder={onReorderHabits}
+            onViewStats={onViewHabitStats}
+            onDrag={isActiveHabit ? drag : undefined}
+            isDragging={isActive}
+            date={date}
+          />
+        </View>
+      );
+    }
+    
+    return null;
+  };
+
+  const handleUnifiedDragEnd = ({ data }: { data: any[] }) => {
+    // Extract only active habits and update their order
+    const activeHabitItems = data.filter(item => 
+      item.type === 'habit' && 
+      item.habit && 
+      activeHabits.some(h => h.id === item.habit.id)
+    );
+    
+    const habitOrders = activeHabitItems.map((item, index) => ({
+      id: item.habit.id,
       order: index,
     }));
-    onReorderHabits(habitOrders);
-  };
-
-  const renderActiveHabitItem = ({ item: habit, drag, isActive }: RenderItemParams<Habit>) => {
-    const completion = getHabitCompletion(habit.id);
     
-    return (
-      <HabitItemWithCompletion
-        habit={habit}
-        completion={completion}
-        onEdit={onEditHabit}
-        onDelete={onDeleteHabit}
-        onToggleActive={onToggleActive}
-        onToggleCompletion={onToggleCompletion}
-        onReorder={onReorderHabits}
-        onViewStats={onViewHabitStats}
-        onDrag={drag}
-        isDragging={isActive}
-        date={date}
-      />
-    );
-  };
-
-  const renderInactiveHabitItem = (habit: Habit) => {
-    const completion = getHabitCompletion(habit.id);
-    
-    return (
-      <HabitItemWithCompletion
-        key={habit.id}
-        habit={habit}
-        completion={completion}
-        onEdit={onEditHabit}
-        onDelete={onDeleteHabit}
-        onToggleActive={onToggleActive}
-        onToggleCompletion={onToggleCompletion}
-        onReorder={onReorderHabits}
-        onViewStats={onViewHabitStats}
-        date={date}
-      />
-    );
+    if (habitOrders.length > 0) {
+      onReorderHabits(habitOrders);
+    }
   };
 
   return (
-    <ScrollView 
+    <DraggableFlatList
+      data={createFlatListData()}
+      renderItem={renderUnifiedItem}
+      keyExtractor={(item) => item.id}
+      onDragEnd={handleUnifiedDragEnd}
       style={styles.container}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={styles.listContent}
       refreshControl={
         <RefreshControl
           refreshing={isLoading}
@@ -113,65 +170,32 @@ export function HabitListWithCompletion({
       }
       showsVerticalScrollIndicator={true}
       bounces={true}
-      alwaysBounceVertical={true}
-    >
-      {/* Active Habits Section */}
-      {activeHabits.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Habits</Text>
-          <DraggableFlatList
-            data={activeHabits}
-            renderItem={renderActiveHabitItem}
-            keyExtractor={(item) => item.id}
-            onDragEnd={handleDragEnd}
-            scrollEnabled={false}
-            style={styles.flatList}
-          />
-        </View>
-      )}
-
-      {/* Inactive Habits Section */}
-      {inactiveHabits.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inactive Habits</Text>
-          <View style={styles.inactiveList}>
-            {inactiveHabits.map(renderInactiveHabitItem)}
-          </View>
-        </View>
-      )}
-
-      {/* Empty State */}
-      {activeHabits.length === 0 && inactiveHabits.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No habits created yet</Text>
-          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
-        </View>
-      )}
-    </ScrollView>
+      activationDistance={15}
+      autoscrollSpeed={100}
+      autoscrollThreshold={80}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // Critical: Take up all available space
   },
-  scrollContent: {
+  listContent: {
     paddingBottom: 20,
+    flexGrow: 1, // Allow content to grow and fill available space
   },
-  section: {
-    marginBottom: 24,
+  sectionHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: Fonts.semibold,
     color: Colors.text,
-    marginBottom: 12,
-    marginHorizontal: 16,
   },
-  flatList: {
-    paddingHorizontal: 16,
-  },
-  inactiveList: {
+  habitContainer: {
     paddingHorizontal: 16,
   },
   emptyState: {
@@ -180,6 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 60,
     paddingHorizontal: 24,
+    minHeight: 300, // Ensure minimum height for empty state
   },
   emptyStateText: {
     fontSize: 18,
