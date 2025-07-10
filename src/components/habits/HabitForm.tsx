@@ -98,8 +98,15 @@ export function HabitForm({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.form}>
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+      >
+        <View style={styles.form}>
         <View style={styles.section}>
           <Text style={styles.label}>{t('habits.form.name')}</Text>
           <TextInput
@@ -111,33 +118,6 @@ export function HabitForm({
             maxLength={50}
           />
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('habits.form.color')}</Text>
-          <ColorPicker
-            selectedColor={formData.color}
-            onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('habits.form.icon')}</Text>
-          <IconPicker
-            selectedIcon={formData.icon}
-            onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
-          <DayPicker
-            selectedDays={formData.scheduledDays}
-            onDayToggle={handleDayToggle}
-          />
-          {errors.scheduledDays && (
-            <Text style={styles.errorText}>{errors.scheduledDays}</Text>
-          )}
         </View>
 
         <View style={styles.section}>
@@ -155,6 +135,36 @@ export function HabitForm({
           {errors.description && (
             <Text style={styles.errorText}>{errors.description}</Text>
           )}
+        </View>
+
+        {/* Visual Properties Group */}
+        <View style={styles.visualGroup}>
+          <View style={styles.compactSection}>
+            <Text style={styles.label}>{t('habits.form.color')}</Text>
+            <ColorPicker
+              selectedColor={formData.color}
+              onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
+            />
+          </View>
+
+          <View style={styles.compactSection}>
+            <Text style={styles.label}>{t('habits.form.icon')}</Text>
+            <IconPicker
+              selectedIcon={formData.icon}
+              onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
+            />
+          </View>
+
+          <View style={[styles.compactSection, styles.lastCompactSection]}>
+            <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
+            <DayPicker
+              selectedDays={formData.scheduledDays}
+              onDayToggle={handleDayToggle}
+            />
+            {errors.scheduledDays && (
+              <Text style={styles.errorText}>{errors.scheduledDays}</Text>
+            )}
+          </View>
         </View>
 
         <View style={styles.actions}>
@@ -176,8 +186,9 @@ export function HabitForm({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -186,11 +197,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
   form: {
     padding: 20,
   },
   section: {
     marginBottom: 24,
+  },
+  visualGroup: {
+    marginBottom: 24,
+    backgroundColor: Colors.backgroundSecondary,
+    borderRadius: 12,
+    padding: 16,
+  },
+  compactSection: {
+    marginBottom: 16,
+  },
+  lastCompactSection: {
+    marginBottom: 0,
   },
   label: {
     fontSize: 16,
@@ -230,7 +259,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 32,
+    marginTop: 8,
+    paddingBottom: 20,
   },
   button: {
     flex: 1,

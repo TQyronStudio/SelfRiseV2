@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../types/habit';
 import { habitStorage } from '../services/storage/habitStorage';
 import { DateString } from '../types/common';
+import { HabitResetUtils } from '../utils/HabitResetUtils';
 
 export interface HabitsState {
   habits: Habit[];
@@ -112,6 +113,9 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
+      
+      // Initialize daily reset system
+      await HabitResetUtils.initializeResetSystem();
       
       const [habits, completions] = await Promise.all([
         habitStorage.getAll(),
