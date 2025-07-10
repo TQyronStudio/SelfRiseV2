@@ -209,7 +209,7 @@ export function HabitsScreen() {
   };
 
   const handleViewHabitStats = (habitId: string) => {
-    router.push(`/habit-detail/${habitId}`);
+    router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
   return (

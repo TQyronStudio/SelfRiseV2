@@ -793,26 +793,47 @@ Oba screeny jsou nyní plně scrollovatelné a všechny návyky jsou dostupné!
 
 Habits screen má nyní perfektní scrollování a habit items jsou designově optimalizované!
 
-#### Checkpoint 3.3: Habit Statistics & Calendar
-- [ ] **Individual Habit Detail Screen**: Direct access to single habit statistics
-  - Add chart icon to HabitItem for navigation to individual habit detail
-  - Create stack navigator for Individual Habit Detail screen
-  - Implement IndividualHabitDetailScreen with calendar and statistics
-  - Add navigation back to Habits screen with header icon
-- [ ] **Individual Habit Stats Screen**: Overview of all habits with accordion
-  - Create IndividualHabitStatsScreen with accordion list of all habits
-  - Implement HabitStatsAccordionItem (expandable habit item)
-  - Add navigation to IndividualHabitStatsScreen from main menu
-  - Add navigation back to Habits screen with header icon
-- [ ] **Shared Calendar Component**: Monthly calendar with completion visualization
-  - Create HabitCalendarView component for monthly calendar
-  - Add navigation between months in calendar (arrows)
-  - Implement visual indicators for completion states (normal/bonus/scheduled)
-  - Add visual distinction for scheduled vs bonus completions with stars
-- [ ] **Testing & Integration**: Ensure both navigation paths work correctly
-  - Test both navigation paths and functionality
-  - Verify calendar navigation and visual indicators
-  - Test accordion expand/collapse functionality
+#### Checkpoint 3.3: Habit Statistics & Calendar - REFACTORING
+- [x] **Fix Navigation from Chart Icon**
+  - Change handleViewHabitStats in HabitsScreen to navigate to /habit-stats instead of /habit-detail/[habitId]
+  - Pass habitId as query parameter for auto-expansion
+- [x] **Update IndividualHabitStatsScreen**
+  - Add support for auto-expanding habit based on query parameter
+  - Fix header to standard blue header with "Individual Habit Stats" title
+  - Add "Habits" text to back button
+- [x] **Remove Unnecessary Files**
+  - Delete IndividualHabitDetailScreen.tsx
+  - Delete /app/habit-detail/[habitId].tsx
+  - Remove related routing
+- [x] **Clean Up HabitStatsAccordionItem**
+  - Remove custom header with back button and home icon (will use main header)
+  - Simplify layout
+- [x] **Update Accordion Functionality**
+  - Add ability to auto-expand specific habit
+  - Implement query parameter checking
+- [x] **Testing**
+  - Test navigation from chart icon
+  - Test auto-expansion of habit
+  - Verify correct header design
+
+### Review Checkpoint 3.3 Refactoring:
+✅ **Dokončeno**: Refaktoring Checkpoint 3.3 je kompletní podle původního plánu:
+
+1. **Sjednocena navigace**: Všechny chart ikony nyní navigují na jednu obrazovku `/habit-stats` s query parametrem `habitId`
+2. **Opravena architektura**: Odstraněna samostatná detail obrazovka, ponechána pouze accordion obrazovka
+3. **Standardní header**: Implementován modrý header s názvem "Individual Habit Stats" a "Habits" back textem
+4. **Auto-expansion**: Návyk na který uživatel kliknul se automaticky rozbalí díky `initiallyExpanded` prop
+5. **Vyčištěn kód**: Odstraněny nepotřebné soubory a routing
+6. **Zachována funkcionalita**: Všechny původní funkce accordion komponenty zůstávají
+
+#### Implementované změny:
+- **HabitsScreen**: Upravena navigace z chart ikony na `/habit-stats?habitId=${habitId}`
+- **IndividualHabitStatsScreen**: Přidána podpora pro query parametr a standardní header
+- **HabitStatsAccordionItem**: Přidán `initiallyExpanded` prop pro auto-rozbalení
+- **Routing**: Implementován správný header design pomocí Stack.Screen options
+- **Cleanup**: Smazány `IndividualHabitDetailScreen.tsx` a `/app/habit-detail/`
+
+Výsledek: Jedna centrální obrazovka s accordion seznamem všech návyků, která se otevře z jakékoliv chart ikony a automaticky rozbalí příslušný návyk.
 
 ### Phase 4: Gratitude Feature
 **Goal**: Complete gratitude journaling system

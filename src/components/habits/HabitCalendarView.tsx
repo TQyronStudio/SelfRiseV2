@@ -133,7 +133,7 @@ export function HabitCalendarView({
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, styles.scheduledIndicator]} />
+          <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
           <Text style={styles.legendText}>Scheduled</Text>
         </View>
         <View style={styles.legendItem}>

@@ -10,6 +10,7 @@ import { HabitCalendarView } from './HabitCalendarView';
 
 interface HabitStatsAccordionItemProps {
   habit: Habit;
+  initiallyExpanded?: boolean;
 }
 
 const COLOR_MAP = {
@@ -34,11 +35,11 @@ const ICON_MAP = {
   [HabitIcon.WORK]: 'briefcase-outline',
 };
 
-export function HabitStatsAccordionItem({ habit }: HabitStatsAccordionItemProps) {
+export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: HabitStatsAccordionItemProps) {
   const { getHabitStats } = useHabitsData();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [animatedValue] = useState(new Animated.Value(0));
+  const [animatedValue] = useState(new Animated.Value(initiallyExpanded ? 1 : 0));
   
   const stats = getHabitStats(habit.id) || {
     currentStreak: 0,

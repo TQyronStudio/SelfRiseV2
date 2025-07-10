@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
@@ -12,6 +11,7 @@ import { HabitStatsAccordionItem } from '../../components/habits/HabitStatsAccor
 export function IndividualHabitStatsScreen() {
   const { t } = useI18n();
   const { habits } = useHabitsData();
+  const { habitId } = useLocalSearchParams<{ habitId?: string }>();
   
   // Filter to show only active habits first, then inactive
   const activeHabits = habits.filter(habit => habit.isActive).sort((a, b) => a.order - b.order);
@@ -19,23 +19,6 @@ export function IndividualHabitStatsScreen() {
   
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.textInverse} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Individual Habit Stats</Text>
-        <TouchableOpacity 
-          style={styles.homeButton} 
-          onPress={() => router.push('/(tabs)/habits')}
-        >
-          <Ionicons name="home" size={24} color={Colors.textInverse} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={true}>
         {/* Active Habits Section */}
         {activeHabits.length > 0 && (
@@ -44,7 +27,8 @@ export function IndividualHabitStatsScreen() {
             {activeHabits.map((habit) => (
               <HabitStatsAccordionItem 
                 key={habit.id} 
-                habit={habit} 
+                habit={habit}
+                initiallyExpanded={habit.id === habitId}
               />
             ))}
           </View>
@@ -57,7 +41,8 @@ export function IndividualHabitStatsScreen() {
             {inactiveHabits.map((habit) => (
               <HabitStatsAccordionItem 
                 key={habit.id} 
-                habit={habit} 
+                habit={habit}
+                initiallyExpanded={habit.id === habitId}
               />
             ))}
           </View>
@@ -81,36 +66,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 56,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  homeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontFamily: Fonts.bold,
-    color: Colors.textInverse,
-    textAlign: 'center',
-    marginHorizontal: 8,
   },
   content: {
     flex: 1,
