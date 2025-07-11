@@ -19,6 +19,7 @@ interface HabitListWithCompletionProps {
   onReorderHabits: (habitOrders: Array<{ id: string; order: number }>) => void;
   onViewHabitStats: (habitId: string) => void;
   date?: string;
+  ListHeaderComponent?: React.ReactElement;
 }
 
 export function HabitListWithCompletion({
@@ -33,6 +34,7 @@ export function HabitListWithCompletion({
   onReorderHabits,
   onViewHabitStats,
   date = formatDateToString(new Date()),
+  ListHeaderComponent,
 }: HabitListWithCompletionProps) {
   // Filter and sort habits
   const activeHabits = habits
@@ -53,28 +55,6 @@ export function HabitListWithCompletion({
   };
 
 
-  // Show empty state if no habits
-  if (habits.length === 0) {
-    return (
-      <ScrollView 
-        style={styles.container}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
-          />
-        }
-      >
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No habits created yet</Text>
-          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
-        </View>
-      </ScrollView>
-    );
-  }
 
   // Render functions for different list types
   const renderActiveHabitItem = ({ item: habit, drag, isActive }: RenderItemParams<Habit>) => {
@@ -128,7 +108,22 @@ export function HabitListWithCompletion({
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={true}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={onRefresh}
+          tintColor={Colors.primary}
+          colors={[Colors.primary]}
+        />
+      }
+    >
+      {/* Render header if provided */}
+      {ListHeaderComponent}
+
       {/* Active Habits Section with Drag & Drop */}
       {activeHabits.length > 0 && (
         <View style={styles.section}>
@@ -140,12 +135,9 @@ export function HabitListWithCompletion({
             renderItem={renderActiveHabitItem}
             keyExtractor={(item) => item.id}
             onDragEnd={handleActiveDragEnd}
-            style={styles.activeHabitsList}
-            contentContainerStyle={styles.activeHabitsContent}
+            style={styles.flatList}
             scrollEnabled={false}
             activationDistance={10}
-            autoscrollSpeed={100}
-            autoscrollThreshold={80}
           />
         </View>
       )}
@@ -156,23 +148,41 @@ export function HabitListWithCompletion({
           <View style={styles.sectionHeaderContainer}>
             <Text style={styles.sectionTitle}>Inactive Habits</Text>
           </View>
-          <FlatList
-            data={inactiveHabits}
-            renderItem={renderInactiveHabitItem}
-            keyExtractor={(item) => item.id}
-            style={styles.inactiveHabitsList}
-            contentContainerStyle={styles.inactiveHabitsContent}
-            scrollEnabled={false}
-          />
+          {inactiveHabits.map((habit) => (
+            <View key={habit.id} style={styles.habitContainer}>
+              <HabitItemWithCompletion
+                habit={habit}
+                completion={getHabitCompletion(habit.id)}
+                onEdit={onEditHabit}
+                onDelete={onDeleteHabit}
+                onToggleActive={onToggleActive}
+                onToggleCompletion={onToggleCompletion}
+                onReorder={onReorderHabits}
+                onViewStats={onViewHabitStats}
+                date={date}
+              />
+            </View>
+          ))}
         </View>
       )}
-    </View>
+
+      {/* Empty state */}
+      {habits.length === 0 && (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>No habits created yet</Text>
+          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    paddingBottom: 20,
   },
   section: {
     marginBottom: 20,
@@ -190,17 +200,8 @@ const styles = StyleSheet.create({
   habitContainer: {
     paddingHorizontal: 16,
   },
-  activeHabitsList: {
-    maxHeight: 400, // Limit height to prevent conflicts
-  },
-  activeHabitsContent: {
-    paddingBottom: 10,
-  },
-  inactiveHabitsList: {
-    maxHeight: 300, // Limit height for inactive habits
-  },
-  inactiveHabitsContent: {
-    paddingBottom: 10,
+  flatList: {
+    // Remove maxHeight constraints
   },
   emptyState: {
     flex: 1,

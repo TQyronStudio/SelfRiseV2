@@ -112,56 +112,31 @@ export function HabitsScreen() {
     router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
-  const renderHeader = () => (
-    <>
-      {/* Daily Progress Header */}
-      <DailyHabitProgress />
-
-      {/* Add Habit Button */}
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
-          <Ionicons name="add" size={24} color="white" />
-          <Text style={styles.addButtonText}>Add New Habit</Text>
-        </TouchableOpacity>
-      </View>
-    </>
-  );
-
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollWrapper}
-        contentContainerStyle={styles.scrollContent}
-        nestedScrollEnabled={false}
-        showsVerticalScrollIndicator={true}
-        bounces={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={handleRefresh}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
-          />
+      <HabitListWithCompletion
+        habits={habits}
+        completions={completions}
+        isLoading={isLoading}
+        onRefresh={handleRefresh}
+        onEditHabit={handleEditHabit}
+        onDeleteHabit={handleDeleteHabit}
+        onToggleActive={handleToggleActive}
+        onToggleCompletion={handleToggleCompletion}
+        onReorderHabits={handleReorderHabits}
+        onViewHabitStats={handleViewHabitStats}
+        ListHeaderComponent={
+          <>
+            <DailyHabitProgress />
+            <View style={styles.addButtonContainer}>
+              <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
+                <Ionicons name="add" size={24} color="white" />
+                <Text style={styles.addButtonText}>Add New Habit</Text>
+              </TouchableOpacity>
+            </View>
+          </>
         }
-      >
-        {renderHeader()}
-        
-        {/* Habit List Content with defined height */}
-        <View style={styles.habitListContainer}>
-          <HabitListWithCompletion
-            habits={habits}
-            completions={completions}
-            isLoading={isLoading}
-            onRefresh={handleRefresh}
-            onEditHabit={handleEditHabit}
-            onDeleteHabit={handleDeleteHabit}
-            onToggleActive={handleToggleActive}
-            onToggleCompletion={handleToggleCompletion}
-            onReorderHabits={handleReorderHabits}
-            onViewHabitStats={handleViewHabitStats}
-          />
-        </View>
-      </ScrollView>
+      />
 
       <HabitModal
         visible={modalVisible}
@@ -178,16 +153,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  scrollWrapper: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  habitListContainer: {
-    flex: 1,
-    minHeight: 400, // Definovaná minimální výška
   },
   addButtonContainer: {
     padding: 16,

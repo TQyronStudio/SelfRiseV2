@@ -19,106 +19,142 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
-## Current Task: Checkpoint 3.2 - Habit Tracking System Implementation
+## Current Task: Fix Habits Screen Scrolling Issues
 
-### Analysis Summary
-After analyzing the existing codebase, I've found that the habit tracking system is already **extensively implemented** with:
+### Problem Analysis
+The Habits screen has critical scrolling problems due to conflicting nested ScrollView components and height restrictions:
 
-#### ✅ **Already Implemented:**
-1. **Complete Data Model** (`/src/types/habit.ts`):
-   - `Habit` interface with all required fields
-   - `HabitCompletion` interface with completion tracking
-   - `HabitStats` interface for statistics
-   - Full CRUD input interfaces
+1. **Multiple scroll layers**: ScrollView → DraggableFlatList → jednotlivé položky
+2. **Disabled scrolling**: `nestedScrollEnabled={false}` blokuje vnořené komponenty
+3. **Height omezení**: maxHeight 400px a 300px omezuje zobrazení návyků
+4. **Konfliktní konfigurace**: DraggableFlatList má `scrollEnabled={false}`
 
-2. **Comprehensive Storage Layer** (`/src/services/storage/habitStorage.ts`):
-   - Complete CRUD operations for habits
-   - Full habit completion tracking system
-   - `toggleCompletion()` method for marking habits complete/incomplete
-   - Bulk operations and habit reordering
-   - Proper error handling with custom storage errors
+### Solution Plan: Redesign Scroll Architecture
 
-3. **Robust State Management** (`/src/contexts/HabitsContext.tsx`):
-   - Context provider with full state management
-   - Actions for all habit operations including `toggleCompletion`
-   - Proper loading states and error handling
-   - Optimistic updates for better UX
+#### Todo Items:
 
-4. **Advanced Data Hooks** (`/src/hooks/useHabitsData.ts`):
-   - `getHabitsByDate()` - returns habits with completion status for specific date
-   - `getHabitCompletion()` - retrieves completion for habit on specific date
-   - `getHabitStats()` - calculates comprehensive statistics
-   - Streak calculations (`calculateCurrentStreak`, `calculateLongestStreak`)
-   - Completion rate calculations
+- [ ] **Remove outer ScrollView wrapper from HabitsScreen.tsx**
+  - Delete entire ScrollView container and its styles
+  - Remove renderHeader function
+  - Restructure to use single scrollable component
 
-5. **Complete UI Components** (All in `/src/components/habits/`):
-   - `HabitList` - displays habits with proper organization
-   - `HabitItem` - individual habit display with actions
-   - `HabitForm` - comprehensive creation/editing form
-   - `HabitModal` - modal wrapper for forms
-   - Color and icon pickers, day scheduling picker
+- [ ] **Restructure HabitsScreen.tsx layout**
+  - Change main structure to use View container
+  - Pass header components via ListHeaderComponent prop
+  - Move DailyHabitProgress and Add Button to header
+  - Remove scrollWrapper and scrollContent styles
 
-6. **Date Utilities** (`/src/utils/date.ts`):
-   - Complete date manipulation functions
-   - `getDayOfWeek()` for checking scheduled days
-   - Streak calculation utilities
-   - Date formatting and comparison functions
+- [ ] **Fix HabitListWithCompletion.tsx scrolling**
+  - Add ListHeaderComponent prop to interface
+  - Replace nested scroll structure with single ScrollView
+  - Set DraggableFlatList scrollEnabled={false}
+  - Remove all maxHeight restrictions from styles
+  - Add proper RefreshControl integration
 
-### 🔍 **What's Missing for Checkpoint 3.2:**
+- [ ] **Update component interfaces and props**
+  - Add ListHeaderComponent to HabitListWithCompletionProps
+  - Pass header content from HabitsScreen
+  - Ensure proper TypeScript types
 
-Based on the project plan requirements, the following components need to be implemented:
+- [ ] **Remove height restrictions and improve layout**
+  - Delete maxHeight from flatList styles
+  - Implement proper contentContainerStyle
+  - Add showsVerticalScrollIndicator={true}
+  - Remove problematic style constraints
 
-#### 📋 **TODO Items for Checkpoint 3.2:**
+- [ ] **Test scrolling functionality**
+  - Verify all habits are visible and accessible
+  - Test drag & drop still works properly
+  - Confirm RefreshControl functions correctly
+  - Check performance with many habits
 
-- [ ] **Daily Habit Check-off Interface**
-  - Create a daily view component showing today's scheduled habits
-  - Implement quick toggle buttons for habit completion
-  - Add visual indicators for completed vs pending habits
-  - Show habit completion status for current day
+### Technical Implementation Details
 
-- [ ] **Scheduled vs Unscheduled Day Tracking**
-  - Implement logic to distinguish between scheduled and bonus completions
-  - Add visual indicators for bonus completions (completed on non-scheduled days)
-  - Create bonus completion tracking in the UI
-  - Update completion display to show scheduled vs bonus status
+#### 1. HabitsScreen.tsx Changes:
+```typescript
+return (
+  <View style={styles.container}>
+    <HabitListWithCompletion
+      habits={habits}
+      completions={completions}
+      isLoading={isLoading}
+      onRefresh={handleRefresh}
+      // ... other props
+      ListHeaderComponent={
+        <>
+          <DailyHabitProgress />
+          <View style={styles.addButtonContainer}>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
+              <Ionicons name="add" size={24} color="white" />
+              <Text style={styles.addButtonText}>Add New Habit</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      }
+    />
+    <HabitModal ... />
+  </View>
+);
+```
 
-- [ ] **"Star" System for Bonus Completions**
-  - Add star/bonus indicators to completed habits on non-scheduled days
-  - Implement bonus completion celebration/feedback
-  - Create bonus completion statistics
-  - Add bonus completion counter to habit stats
+#### 2. HabitListWithCompletion.tsx Changes:
+```typescript
+return (
+  <ScrollView
+    style={styles.container}
+    contentContainerStyle={styles.content}
+    showsVerticalScrollIndicator={true}
+    refreshControl={
+      <RefreshControl
+        refreshing={isLoading}
+        onRefresh={onRefresh}
+        tintColor={Colors.primary}
+        colors={[Colors.primary]}
+      />
+    }
+  >
+    {ListHeaderComponent}
+    
+    {/* Active Habits Section */}
+    {activeHabits.length > 0 && (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Active Habits</Text>
+        <DraggableFlatList
+          data={activeHabits}
+          renderItem={renderActiveHabitItem}
+          keyExtractor={(item) => item.id}
+          onDragEnd={handleActiveDragEnd}
+          scrollEnabled={false} // CRITICAL: disable to prevent conflicts
+          style={styles.flatList} // NO maxHeight
+          activationDistance={10}
+        />
+      </View>
+    )}
+    
+    {/* Inactive Habits Section - regular mapping */}
+    {/* Empty state */}
+  </ScrollView>
+);
+```
 
-- [ ] **Daily Habit Reset Functionality**
-  - Implement automatic daily reset logic
-  - Ensure proper date handling for habit scheduling
-  - Add time-based reset functionality
-  - Create daily habit state management
+#### 3. Style Updates:
+- Remove: `scrollWrapper`, `scrollContent`, `habitListContainer` from HabitsScreen
+- Remove: `maxHeight` from all flatList styles in HabitListWithCompletion
+- Add: proper `contentContainerStyle` with `paddingBottom: 20`
 
-- [ ] **Enhanced Habit Tracking UI**
-  - Create daily habit tracking screen/component
-  - Add calendar integration for habit completion history
-  - Implement habit completion animations/feedback
-  - Add progress visualization for daily habits
+### Expected Outcome
 
-#### 🎯 **Implementation Strategy:**
+After implementing these changes:
+- ✅ **Single scroll architecture**: One ScrollView handles all scrolling
+- ✅ **All habits visible**: No content hidden by height restrictions  
+- ✅ **Drag & drop functional**: DraggableFlatList works with scrollEnabled={false}
+- ✅ **Consistent UX**: Smooth scrolling through all content
+- ✅ **Performance optimized**: No conflicting scroll components
 
-1. **Start with Daily Tracking Interface** - Create the core UI for today's habits
-2. **Add Bonus Completion Logic** - Implement the star system for unscheduled completions
-3. **Enhance Visual Feedback** - Add animations and visual indicators
-4. **Implement Daily Reset** - Add automatic daily state management
-5. **Test and Polish** - Ensure all functionality works seamlessly
-
-### 📊 **Current Implementation Status:**
-- **Data Layer**: ✅ 100% Complete
-- **Storage Layer**: ✅ 100% Complete  
-- **State Management**: ✅ 100% Complete
-- **Basic UI Components**: ✅ 100% Complete
-- **Habit Management**: ✅ 100% Complete
-- **Daily Tracking Interface**: ❌ 0% Complete
-- **Bonus Completion System**: ❌ 0% Complete
-- **Daily Reset Logic**: ❌ 0% Complete
-
-The foundation is extremely solid - we just need to build the user-facing daily tracking interface and enhance the completion system with bonus tracking features.
+### Risk Assessment
+- **Low risk**: Changes are architectural but maintain existing functionality
+- **Testing required**: Drag & drop behavior needs verification
+- **Backup plan**: Current implementation can be restored if issues arise
 
 ---
 
