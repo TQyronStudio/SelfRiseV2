@@ -124,23 +124,36 @@ export function HabitItemWithCompletion({
     return habit.scheduledDays.includes(dayOfWeek);
   };
 
-  // Zjednodušená verze bez problematických komponent
   return (
-    <View style={styles.container}>
-      {/* Základní informace o návyku */}
+    <View style={[
+      styles.container,
+      !habit.isActive && styles.inactiveContainer,
+      isCompleted && styles.completedContainer,
+      isDragging && styles.draggingContainer,
+    ]}>
+      {/* Top row with completion, icon, content, and actions */}
       <View style={styles.topRow}>
-        {/* Completion Button - zjednodušený */}
-        <TouchableOpacity 
-          style={[styles.completionButton, isCompleted && styles.completionButtonActive]}
-          onPress={handleToggleCompletion}
-          disabled={!habit.isActive}
-        >
-          <Text style={styles.completionButtonText}>
-            {isCompleted ? '✓' : '○'}
-          </Text>
-        </TouchableOpacity>
+        {/* Completion section */}
+        <View style={styles.completionSection}>
+          <HabitCompletionButton
+            isCompleted={isCompleted}
+            isAnimating={isToggling}
+            onPress={handleToggleCompletion}
+            disabled={!habit.isActive}
+            size="medium"
+          />
+          {completion?.isBonus && (
+            <View style={styles.bonusIndicator}>
+              <BonusCompletionIndicator
+                isVisible={true}
+                size="small"
+                showText={false}
+              />
+            </View>
+          )}
+        </View>
 
-        {/* Habit Icon - zjednodušený */}
+        {/* Habit Icon */}
         <View style={[styles.iconContainer, { backgroundColor: COLOR_MAP[habit.color] }]}>
           <Ionicons
             name={ICON_MAP[habit.icon] as any}
@@ -151,40 +164,90 @@ export function HabitItemWithCompletion({
 
         {/* Content */}
         <View style={styles.contentContainer}>
-          <Text style={[styles.name, !habit.isActive && styles.inactiveName]} numberOfLines={2}>
-            {habit.name}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text style={[
+              styles.name,
+              !habit.isActive && styles.inactiveName,
+              isCompleted && styles.completedName,
+            ]} numberOfLines={2}>
+              {habit.name}
+            </Text>
+            {completion?.isBonus && (
+              <View style={styles.bonusLabel}>
+                <Text style={styles.bonusLabelText}>BONUS</Text>
+              </View>
+            )}
+          </View>
           {habit.description && (
-            <Text style={[styles.description, !habit.isActive && styles.inactiveDescription]} numberOfLines={2}>
+            <Text style={[
+              styles.description,
+              !habit.isActive && styles.inactiveDescription,
+              isCompleted && styles.completedDescription,
+            ]} numberOfLines={2}>
               {habit.description}
             </Text>
           )}
         </View>
 
-        {/* Actions - zjednodušené */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity onPress={handleToggleActive} style={styles.actionButton}>
-            <Ionicons name={habit.isActive ? 'pause' : 'play'} size={16} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onEdit(habit)} style={styles.actionButton}>
-            <Ionicons name="pencil" size={16} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
-            <Ionicons name="trash" size={16} color={Colors.error} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onViewStats(habit.id)} style={styles.actionButton}>
-            <Ionicons name="bar-chart-outline" size={16} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          {/* Drag handle - jen pro aktivní návyky */}
-          {habit.isActive && onDrag && (
-            <TouchableOpacity 
-              onLongPress={onDrag} 
-              style={[styles.actionButton, isDragging && styles.actionButtonDragging]}
-              delayLongPress={100}
-            >
-              <Ionicons name="reorder-three-outline" size={16} color={Colors.textSecondary} />
+        {/* Actions grid */}
+        <View style={styles.actionsGrid}>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity onPress={handleToggleActive} style={styles.actionButton}>
+              <Ionicons name={habit.isActive ? 'pause' : 'play'} size={16} color={Colors.textSecondary} />
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => onEdit(habit)} style={styles.actionButton}>
+              <Ionicons name="pencil" size={16} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
+              <Ionicons name="trash" size={16} color={Colors.error} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onViewStats(habit.id)} style={styles.actionButton}>
+              <Ionicons name="bar-chart-outline" size={16} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          {/* Drag handle row - jen pro aktivní návyky */}
+          {habit.isActive && onDrag && (
+            <View style={styles.actionsRow}>
+              <TouchableOpacity 
+                onLongPress={onDrag} 
+                style={[styles.actionButton, isDragging && styles.actionButtonDragging]}
+                delayLongPress={100}
+              >
+                <Ionicons name="reorder-three-outline" size={16} color={isDragging ? Colors.textInverse : Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           )}
+        </View>
+      </View>
+
+      {/* Bottom row with days */}
+      <View style={styles.bottomRow}>
+        <View style={styles.daysContainer}>
+          {Object.values(DayOfWeek).map((day) => {
+            const isScheduled = habit.scheduledDays.includes(day);
+            return (
+              <View
+                key={day}
+                style={[
+                  styles.dayIndicator,
+                  isScheduled && styles.activeDayIndicator,
+                  !habit.isActive && styles.inactiveDayIndicator,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dayLabel,
+                    isScheduled && styles.activeDayLabel,
+                    !habit.isActive && styles.inactiveDayLabel,
+                  ]}
+                >
+                  {DAY_LABELS[day]}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </View>
     </View>
@@ -340,27 +403,6 @@ const styles = StyleSheet.create({
   },
   draggingActionButton: {
     backgroundColor: Colors.primary,
-  },
-  // Styly pro zjednodušenou verzi
-  completionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  completionButtonActive: {
-    backgroundColor: Colors.success,
-  },
-  completionButtonText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: 8,
   },
   actionButton: {
     width: 28,

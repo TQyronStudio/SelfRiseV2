@@ -28,6 +28,7 @@ export const DailyHabitProgress: React.FC<DailyHabitProgressProps> = ({
     const dayOfWeek = getDayOfWeek(today);
     return habit.scheduledDays.includes(dayOfWeek);
   };
+
   
   // Calculate daily progress
   const calculateDailyProgress = () => {

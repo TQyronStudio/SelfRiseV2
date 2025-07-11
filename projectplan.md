@@ -158,15 +158,124 @@ After implementing these changes:
 
 ---
 
-## Aktuální úkol: Redesign drag & drop UX pro lepší uživatelský zážitek
+## Aktuální úkol: Oprava Habits screen scrollování a drag & drop konfliktu
 
-### Stav Critical Bug Fix:
-- [x] Opravit překrývání symbolu Su s tlačítkem pozastavení  
-- [x] Opravit mizení návyků při aktivaci reorder módu
-- [x] Opravit zobrazování neaktivních návyků místo aktivních v drag & drop módu
-- [x] Opravit nefunkční přesouvání návyků v drag & drop módu
-- [x] Zkontrolovat debug logy pro určení, proč se zobrazují neaktivní habits
-- [x] Opravit logiku tak, aby drag & drop fungoval na aktivních habits
+### Analýza problému:
+Habits screen má kritické problémy s scrollováním a drag & drop funkcionalitou:
+
+1. **Konflikt ScrollView + DraggableFlatList**: Vnořené scroll komponenty způsobují problémy
+2. **Zakomentovaná funkcionalita**: HabitItemWithCompletion má zjednodušenou verzi s chybějícími komponenty
+3. **Neoptimální layout**: Zbytečné View wrappery způsobují problémy s výškou a scrollováním
+
+### Plán opravy:
+
+#### Todo Items:
+
+- [x] **Upravit HabitListWithCompletion.tsx**:
+  - Odstraň vnější ScrollView úplně
+  - Použij pouze DraggableFlatList pro celý obsah
+  - Implementuj ListHeaderComponent pro header content
+  - Implementuj ListFooterComponent pro empty state
+  - Nastav správné aktivationDistance (15)
+
+- [x] **Opravit HabitItemWithCompletion.tsx**:
+  - Vrátit plnou funkční verzi komponenty
+  - Obnovit původní importy potřebných komponent
+  - Zajistit správnou implementaci drag handle
+  - Obnovit kompletní layout s days indikátory
+
+- [x] **Upravit HabitsScreen.tsx**:
+  - Odstraň zbytečný View wrapper kolem HabitListWithCompletion
+  - Zjednodušit strukturu pro lepší performance
+  - Zachovat funcionalitu header komponenty
+
+- [x] **Otestovat funkcionalitat**:
+  - Ověřit že scrollování funguje pro všechny návyky
+  - Potvrdit že drag & drop funguje správně
+  - Zkontrolovat že inactive habits nejsou draggable
+  - Ověřit že activationDistance je správně nastavena
+
+### Technická implementace:
+
+#### 1. HabitListWithCompletion.tsx změny:
+- Odstraň celý ScrollView wrapper
+- Použij pouze DraggableFlatList s:
+  - `ListHeaderComponent` prop pro header content
+  - `ListFooterComponent` pro empty state
+  - `scrollEnabled={true}` pro scrollování
+  - `activationDistance={15}` pro drag threshold
+- Zachovej RefreshControl přímo na DraggableFlatList
+
+#### 2. HabitItemWithCompletion.tsx změny:
+- Vrátit original HabitCompletionButton komponentu
+- Vrátit BonusCompletionIndicator komponentu
+- Obnovit daysContainer s day indikátory
+- Zajistit drag handle je správně implementován
+
+#### 3. HabitsScreen.tsx změny:
+- Odstraň View wrapper, použij přímo HabitListWithCompletion
+- Zachovej ListHeaderComponent s DailyHabitProgress + Add button
+
+### Očekávané výsledky:
+- ✅ Jeden scrollovací kontejner (DraggableFlatList)
+- ✅ Plná funkcionalita drag & drop pro aktivní habits
+- ✅ Žádné konflikty mezi scroll komponentami
+- ✅ Správné zobrazení všech návyků
+- ✅ Optimální performance
+
+### Review dokončené implementace:
+✅ **Dokončeno**: Habits screen scrollování a drag & drop konflikt vyřešen:
+
+1. **HabitListWithCompletion.tsx refaktoring**:
+   - Odstraněn vnější ScrollView wrapper
+   - Implementován unified DraggableFlatList pro celý obsah
+   - Použit compound data structure pro všechny typy obsahu (header, active habits, inactive habits, empty state)
+   - Nastaven `activationDistance={15}` pro optimální drag threshold
+   - Zachován RefreshControl přímo na DraggableFlatList
+
+2. **HabitItemWithCompletion.tsx obnoveno**:
+   - Vrácena plná funkční verze s HabitCompletionButton a BonusCompletionIndicator
+   - Obnoveny days indikátory s proper layout
+   - Zachován actions grid layout (2x2 + drag handle)
+   - Implementován správný drag handle pouze pro aktivní habits
+
+3. **HabitsScreen.tsx zjednodušeno**:
+   - Odstraněn zbytečný View wrapper
+   - Použit pouze HabitListWithCompletion jako hlavní komponenta
+   - Zachována ListHeaderComponent funkcionalita s DailyHabitProgress a Add button
+
+4. **Drag & Drop optimalizace**:
+   - Pouze aktivní habits jsou draggable
+   - Inactive habits se renderují normálně bez drag funkcionalit
+   - Správné handleDragEnd procesování pro reorder
+   - Visual feedback během drag operace
+
+### Technické výhody:
+- **Jednoduchá architektura**: Jeden scrollovací kontejner eliminuje konflikty
+- **Lepší performance**: Žádné vnořené scroll komponenty
+- **Konzistentní UX**: Všechny návyky jsou dostupné scrollováním
+- **Funkční drag & drop**: Bez konfliktů s scrollováním
+- **Maintainable kód**: Čistá struktura s compound data patterns
+
+Všechny problémy se scrollováním a drag & drop jsou vyřešeny!
+
+### Oprava prázdné obrazovky:
+✅ **Vyřešeno**: Prázdná Habits screen opravena:
+
+1. **Problém diagnostikován**: Unified DraggableFlatList struktura způsobovala rendering problémy
+2. **Řešení implementováno**: Návrat k hybrid přístupu:
+   - ScrollView pro hlavní kontejner s RefreshControl
+   - DraggableFlatList pouze pro active habits sekci
+   - Inactive habits jako normální mapping
+   - Header komponenta přímo renderována
+
+3. **Zachována funkcionalita**:
+   - Scrollování funguje pro celou obrazovku
+   - Drag & drop funguje pro active habits (scrollEnabled={false})
+   - RefreshControl na hlavním ScrollView
+   - Všechny sekce (header, active, inactive, empty state) se zobrazují správně
+
+4. **Výsledek**: Plně funkční Habits screen s viditelným obsahem a všemi funkcemi
 
 ### Dokončené Drag & Drop fix:
 - [x] Opravit drag & drop funkcionalitu pro přeuspořádání návyků

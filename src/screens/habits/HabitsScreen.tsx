@@ -112,8 +112,9 @@ export function HabitsScreen() {
     router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
+
   return (
-    <View style={styles.container}>
+    <>
       <HabitListWithCompletion
         habits={habits}
         completions={completions}
@@ -145,15 +146,11 @@ export function HabitsScreen() {
         onSubmit={handleSubmitHabit}
         isLoading={isLoading}
       />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
   addButtonContainer: {
     padding: 16,
     paddingBottom: 8,
