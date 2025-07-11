@@ -108,80 +108,84 @@ export function HabitListWithCompletion({
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={true}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={onRefresh}
-          tintColor={Colors.primary}
-          colors={[Colors.primary]}
-        />
-      }
-    >
-      {/* Render header if provided */}
-      {ListHeaderComponent}
-
-      {/* Active Habits Section with Drag & Drop */}
-      {activeHabits.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderContainer}>
-            <Text style={styles.sectionTitle}>Active Habits</Text>
-          </View>
-          <DraggableFlatList
-            data={activeHabits}
-            renderItem={renderActiveHabitItem}
-            keyExtractor={(item) => item.id}
-            onDragEnd={handleActiveDragEnd}
-            style={styles.flatList}
-            scrollEnabled={false}
-            activationDistance={10}
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
           />
-        </View>
-      )}
+        }
+      >
+        {/* Render header if provided */}
+        {ListHeaderComponent}
 
-      {/* Inactive Habits Section - No Drag & Drop */}
-      {inactiveHabits.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderContainer}>
-            <Text style={styles.sectionTitle}>Inactive Habits</Text>
-          </View>
-          {inactiveHabits.map((habit) => (
-            <View key={habit.id} style={styles.habitContainer}>
-              <HabitItemWithCompletion
-                habit={habit}
-                completion={getHabitCompletion(habit.id)}
-                onEdit={onEditHabit}
-                onDelete={onDeleteHabit}
-                onToggleActive={onToggleActive}
-                onToggleCompletion={onToggleCompletion}
-                onReorder={onReorderHabits}
-                onViewStats={onViewHabitStats}
-                date={date}
-              />
+        {/* Active Habits Section with Drag & Drop */}
+        {activeHabits.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderContainer}>
+              <Text style={styles.sectionTitle}>Active Habits</Text>
             </View>
-          ))}
-        </View>
-      )}
+            <DraggableFlatList
+              data={activeHabits}
+              renderItem={renderActiveHabitItem}
+              keyExtractor={(item) => item.id}
+              onDragEnd={handleActiveDragEnd}
+              style={styles.flatList}
+              scrollEnabled={false}
+              activationDistance={10}
+            />
+          </View>
+        )}
 
-      {/* Empty state */}
-      {habits.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No habits created yet</Text>
-          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
-        </View>
-      )}
-    </ScrollView>
+        {/* Inactive Habits Section - No Drag & Drop */}
+        {inactiveHabits.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderContainer}>
+              <Text style={styles.sectionTitle}>Inactive Habits</Text>
+            </View>
+            {inactiveHabits.map((habit) => (
+              <View key={habit.id} style={styles.habitContainer}>
+                <HabitItemWithCompletion
+                  habit={habit}
+                  completion={getHabitCompletion(habit.id)}
+                  onEdit={onEditHabit}
+                  onDelete={onDeleteHabit}
+                  onToggleActive={onToggleActive}
+                  onToggleCompletion={onToggleCompletion}
+                  onReorder={onReorderHabits}
+                  onViewStats={onViewHabitStats}
+                  date={date}
+                />
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Empty state */}
+        {habits.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No habits created yet</Text>
+            <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
   },
   content: {
+    flexGrow: 1,
     paddingBottom: 20,
   },
   section: {
