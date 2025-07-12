@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 
 interface DailyGratitudeProgressProps {
@@ -15,6 +16,9 @@ export default function DailyGratitudeProgress({
   hasBonus 
 }: DailyGratitudeProgressProps) {
   const { t } = useI18n();
+  const { state } = useGratitude();
+  
+  const streakInfo = state.streakInfo;
 
   const getProgressColor = () => {
     if (hasBonus) return Colors.gold || '#FFD700';
@@ -95,6 +99,21 @@ export default function DailyGratitudeProgress({
           </View>
         )}
       </View>
+      
+      {/* Streak Display */}
+      {streakInfo && (
+        <View style={styles.streakContainer}>
+          <View style={styles.streakItem}>
+            <Text style={styles.streakNumber}>{streakInfo.currentStreak}</Text>
+            <Text style={styles.streakLabel}>{t('gratitude.currentStreak')}</Text>
+          </View>
+          <View style={styles.streakDivider} />
+          <View style={styles.streakItem}>
+            <Text style={styles.streakNumber}>{streakInfo.longestStreak}</Text>
+            <Text style={styles.streakLabel}>{t('gratitude.longestStreak')}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -201,5 +220,68 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: Colors.white,
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Layout.spacing.md,
+    paddingTop: Layout.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  streakItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  streakNumber: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  streakLabel: {
+    fontSize: Fonts.sizes.xs,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    fontWeight: '500',
+  },
+  streakDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.border,
+    marginHorizontal: Layout.spacing.md,
+  },
+  bonusStreakContainer: {
+    marginTop: Layout.spacing.md,
+    paddingTop: Layout.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  bonusStreakTitle: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: Colors.gold || '#FFD700',
+    textAlign: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  bonusStreakRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bonusStreakNumber: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: 'bold',
+    color: Colors.gold || '#FFD700',
+    marginBottom: 4,
+  },
+  bonusStreakLabel: {
+    fontSize: Fonts.sizes.xs,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    fontWeight: '500',
   },
 });

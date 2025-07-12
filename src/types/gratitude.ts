@@ -14,6 +14,10 @@ export interface GratitudeStreak {
   lastEntryDate: DateString | null;
   streakStartDate: DateString | null;
   canRecoverWithAd: boolean; // true if user can recover broken streak with ad
+  // Bonus milestone counters (mysterious badges)
+  starCount: number; // ⭐ - times achieved 1 bonus gratitude in a day
+  flameCount: number; // 🔥 - times achieved 5 bonus gratitudes in a day  
+  crownCount: number; // 👑 - times achieved 10 bonus gratitudes in a day
 }
 
 export interface DailyGratitudeStats {

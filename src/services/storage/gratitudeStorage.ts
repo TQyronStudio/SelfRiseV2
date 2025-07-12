@@ -2,6 +2,7 @@ import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput } from
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
+import { calculateStreak, calculateLongestStreak, today, yesterday } from '../../utils/date';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
   // Gratitude CRUD operations
@@ -43,6 +44,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       gratitudes.push(newGratitude);
       await BaseStorage.set(STORAGE_KEYS.GRATITUDES, gratitudes);
+      
+      // Update streak after adding new gratitude
+      await this.calculateAndUpdateStreak();
       
       return newGratitude;
     } catch (error) {
@@ -247,6 +251,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
+        starCount: 0,
+        flameCount: 0,
+        crownCount: 0,
       };
     } catch (error) {
       throw new StorageError(
@@ -281,6 +288,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
+        starCount: 0,
+        flameCount: 0,
+        crownCount: 0,
       };
       
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreak);
@@ -288,6 +298,76 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     } catch (error) {
       throw new StorageError(
         'Failed to reset gratitude streak',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDE_STREAK
+      );
+    }
+  }
+
+  // Calculate and update streak based on completed dates
+  async calculateAndUpdateStreak(): Promise<GratitudeStreak> {
+    try {
+      const completedDates = await this.getCompletedDates();
+      const bonusDates = await this.getBonusDates();
+      const currentDate = today();
+      
+      // Calculate current streak
+      const currentStreak = calculateStreak(completedDates, currentDate);
+      
+      // Calculate longest streak
+      const longestStreak = Math.max(
+        calculateLongestStreak(completedDates),
+        currentStreak
+      );
+
+      // Calculate bonus milestone counters (preserve existing counts)
+      const currentStreakData = await this.getStreak();
+      const starCount = currentStreakData.starCount;
+      const flameCount = currentStreakData.flameCount;
+      const crownCount = currentStreakData.crownCount;
+      
+      // Determine last entry date and streak start
+      let lastEntryDate: DateString | null = null;
+      let streakStartDate: DateString | null = null;
+      
+      if (completedDates.length > 0) {
+        const sortedDates = [...completedDates].sort();
+        lastEntryDate = sortedDates[sortedDates.length - 1]!;
+        
+        if (currentStreak > 0) {
+          // Calculate streak start date
+          const streakDates = completedDates.filter(date => {
+            const streak = calculateStreak(completedDates, date);
+            return streak > 0;
+          }).sort();
+          
+          if (streakDates.length > 0) {
+            streakStartDate = streakDates[Math.max(0, streakDates.length - currentStreak)]!;
+          }
+        }
+      }
+      
+      // Check if user can recover streak with ad (if they missed yesterday)
+      const canRecoverWithAd = currentStreak === 0 && 
+        completedDates.includes(yesterday()) &&
+        !completedDates.includes(currentDate);
+      
+      const updatedStreak: GratitudeStreak = {
+        currentStreak,
+        longestStreak,
+        lastEntryDate,
+        streakStartDate,
+        canRecoverWithAd,
+        starCount,
+        flameCount,
+        crownCount,
+      };
+      
+      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
+      return updatedStreak;
+    } catch (error) {
+      throw new StorageError(
+        'Failed to calculate and update streak',
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDE_STREAK
       );
@@ -306,6 +386,30 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     } catch (error) {
       throw new StorageError(
         `Failed to search gratitudes by content: ${searchTerm}`,
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  // Get dates with bonus gratitudes (4+ per day)
+  async getBonusDates(): Promise<DateString[]> {
+    try {
+      const gratitudes = await this.getAll();
+      const dateCountMap = new Map<DateString, number>();
+      
+      gratitudes.forEach(gratitude => {
+        const current = dateCountMap.get(gratitude.date) || 0;
+        dateCountMap.set(gratitude.date, current + 1);
+      });
+      
+      return Array.from(dateCountMap.entries())
+        .filter(([, count]) => count >= 4)
+        .map(([date]) => date)
+        .sort();
+    } catch (error) {
+      throw new StorageError(
+        'Failed to get bonus dates',
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );
@@ -368,7 +472,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // Missing methods required by GratitudeContext
   async getStreakInfo(): Promise<GratitudeStreak> {
     try {
-      return await this.getStreak();
+      // Always calculate and return fresh streak data
+      return await this.calculateAndUpdateStreak();
     } catch (error) {
       throw new StorageError(
         'Failed to get streak info',
@@ -401,6 +506,91 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         'Failed to get gratitude stats',
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  // Increment milestone counter based on daily bonus count
+  async incrementMilestoneCounter(dailyBonusCount: number): Promise<void> {
+    try {
+      const currentStreak = await this.getStreak();
+      let starCount = currentStreak.starCount;
+      let flameCount = currentStreak.flameCount;
+      let crownCount = currentStreak.crownCount;
+
+      if (dailyBonusCount >= 10) {
+        crownCount++;
+      } else if (dailyBonusCount >= 5) {
+        flameCount++;
+      } else if (dailyBonusCount >= 1) {
+        starCount++;
+      }
+
+      const updatedStreak: GratitudeStreak = {
+        ...currentStreak,
+        starCount,
+        flameCount,
+        crownCount,
+      };
+
+      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
+    } catch (error) {
+      throw new StorageError(
+        'Failed to increment milestone counter',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDE_STREAK
+      );
+    }
+  }
+
+  // Check if current streak represents a milestone
+  private checkStreakMilestone(currentStreak: number): number | null {
+    const milestones = [
+      7, 14, 21, 30, 50, 60, 75, 90, 100, 
+      150, 180, 200, 250, 365, 500, 750, 1000
+    ];
+    
+    // Return milestone if current streak matches one of the predefined milestones
+    return milestones.includes(currentStreak) ? currentStreak : null;
+  }
+
+  // Streak recovery system (for future ad integration)
+  async canRecoverStreak(): Promise<boolean> {
+    try {
+      const streak = await this.getStreak();
+      return streak.canRecoverWithAd;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async recoverStreak(): Promise<GratitudeStreak> {
+    try {
+      const currentStreak = await this.getStreak();
+      
+      if (!currentStreak.canRecoverWithAd) {
+        throw new StorageError(
+          'Streak cannot be recovered',
+          STORAGE_ERROR_CODES.INVALID_OPERATION,
+          STORAGE_KEYS.GRATITUDE_STREAK
+        );
+      }
+
+      // Extend the streak by adding yesterday as a completed day
+      const yesterdayDate = yesterday();
+      await this.create({
+        content: 'Streak recovery - Ad watched',
+        date: yesterdayDate,
+      });
+
+      // Recalculate streak
+      return await this.calculateAndUpdateStreak();
+    } catch (error) {
+      if (error instanceof StorageError) throw error;
+      throw new StorageError(
+        'Failed to recover streak',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDE_STREAK
       );
     }
   }

@@ -20,6 +20,7 @@ export interface GratitudeContextType {
     deleteGratitude: (id: string) => Promise<void>;
     getGratitudesByDate: (date: DateString) => Gratitude[];
     refreshStats: () => Promise<void>;
+    incrementMilestoneCounter: (dailyBonusCount: number) => Promise<void>;
     clearError: () => void;
   };
 }
@@ -189,6 +190,14 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const incrementMilestoneCounter = async (dailyBonusCount: number): Promise<void> => {
+    try {
+      await gratitudeStorage.incrementMilestoneCounter(dailyBonusCount);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to increment milestone counter');
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -208,6 +217,7 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
           deleteGratitude,
           getGratitudesByDate,
           refreshStats,
+          incrementMilestoneCounter,
           clearError,
         },
       }}
