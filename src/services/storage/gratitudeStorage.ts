@@ -1,4 +1,4 @@
-import { Gratitude, GratitudeStreak, CreateGratitudeInput } from '../../types/gratitude';
+import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -104,8 +104,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         const sameDate = filteredGratitudes.filter(g => g.date === deletedGratitude.date);
         const reorderedGratitudes = filteredGratitudes.map(gratitude => {
           if (gratitude.date === deletedGratitude.date) {
-            const newOrder = sameDate.findIndex(g => g.id === gratitude.id) + 1;
-            const isBonus = newOrder > 3;
+            const positionIndex = sameDate.findIndex(g => g.id === gratitude.id) + 1;
+            const isBonus = positionIndex > 3;
+            
+            // Calculate new order: 1-3 for regular, 1+ for bonus
+            let newOrder;
+            if (positionIndex <= 3) {
+              newOrder = positionIndex; // Regular: 1, 2, 3
+            } else {
+              newOrder = positionIndex - 3; // Bonus: 1, 2, 3, 4...
+            }
+            
             return updateEntityTimestamp({ ...gratitude, order: newOrder, isBonus });
           }
           return gratitude;
@@ -348,6 +357,93 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     } catch (error) {
       throw new StorageError(
         'Failed to get average gratitudes per day',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  // Missing methods required by GratitudeContext
+  async getStreakInfo(): Promise<GratitudeStreak> {
+    try {
+      return await this.getStreak();
+    } catch (error) {
+      throw new StorageError(
+        'Failed to get streak info',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDE_STREAK
+      );
+    }
+  }
+
+  async getStats(): Promise<GratitudeStats> {
+    try {
+      const [totalGratitudes, totalDays, averagePerDay, streakInfo] = await Promise.all([
+        this.count(),
+        this.getTotalDaysWithGratitude(),
+        this.getAverageGratitudesPerDay(),
+        this.getStreakInfo(),
+      ]);
+
+      // For now, return basic stats without milestones
+      // Milestones can be added later when needed
+      return {
+        totalGratitudes,
+        totalDays,
+        averagePerDay,
+        streakInfo,
+        milestones: [],
+      };
+    } catch (error) {
+      throw new StorageError(
+        'Failed to get gratitude stats',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  // Migration function to fix existing data with old numbering
+  async migrateGratitudeNumbering(): Promise<void> {
+    try {
+      const gratitudes = await this.getAll();
+      let hasChanges = false;
+      
+      // Group by date and fix numbering
+      const dateGroups = new Map<string, Gratitude[]>();
+      gratitudes.forEach(gratitude => {
+        if (!dateGroups.has(gratitude.date)) {
+          dateGroups.set(gratitude.date, []);
+        }
+        dateGroups.get(gratitude.date)!.push(gratitude);
+      });
+      
+      const updatedGratitudes = gratitudes.map(gratitude => {
+        const dayGratitudes = dateGroups.get(gratitude.date)!
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+        
+        const position = dayGratitudes.findIndex(g => g.id === gratitude.id) + 1;
+        const isBonus = position > 3;
+        const newOrder = isBonus ? position - 3 : position;
+        
+        if (gratitude.order !== newOrder || gratitude.isBonus !== isBonus) {
+          hasChanges = true;
+          return updateEntityTimestamp({
+            ...gratitude,
+            order: newOrder,
+            isBonus,
+          });
+        }
+        
+        return gratitude;
+      });
+      
+      if (hasChanges) {
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDES, updatedGratitudes);
+      }
+    } catch (error) {
+      throw new StorageError(
+        'Failed to migrate gratitude numbering',
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );

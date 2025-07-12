@@ -77,6 +77,12 @@ const en: TranslationKeys = {
       title: 'Amazing Achievement! 🏆',
       message: 'You\'ve reached a {{days}} day streak!',
     },
+    milestone1_title: 'One Step Further! ✨',
+    milestone1_text: 'First bonus gratitude! Great work, keep it up.',
+    milestone5_title: 'Nice Combo! 🔥',
+    milestone5_text: 'Five bonus gratitudes! That\'s great!',
+    milestone10_title: 'Incredible Milestone! 🏆',
+    milestone10_text: '10 bonus gratitudes! You must be having an amazing day!',
     streakLost: {
       title: 'Streak Lost',
       message: 'Your gratitude streak has been broken. What would you like to do?',

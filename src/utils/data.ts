@@ -144,7 +144,16 @@ export const hasBonusGratitude = (gratitudes: Gratitude[], date: DateString): bo
 
 export const getNextGratitudeOrder = (gratitudes: Gratitude[], date: DateString): number => {
   const dayGratitudes = gratitudes.filter(g => g.date === date);
-  return dayGratitudes.length + 1;
+  const totalCount = dayGratitudes.length + 1;
+  
+  // For regular gratitudes (1-3), use sequential numbering
+  if (totalCount <= 3) {
+    return totalCount;
+  }
+  
+  // For bonus gratitudes (4+), restart numbering from 1
+  const bonusCount = totalCount - 3;
+  return bonusCount;
 };
 
 // Goal utilities

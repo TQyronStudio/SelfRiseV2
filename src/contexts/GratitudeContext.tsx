@@ -91,6 +91,9 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
+      // Run migration to fix existing data numbering
+      await gratitudeStorage.migrateGratitudeNumbering();
+      
       const gratitudes = await gratitudeStorage.getAll();
       dispatch({ type: 'SET_GRATITUDES', payload: gratitudes });
       
