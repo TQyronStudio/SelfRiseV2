@@ -41,6 +41,13 @@ export const Colors = {
   habitPink: '#FDCB6E',
   habitTeal: '#00B894',
   
+  // Basic colors
+  white: '#FFFFFF',
+  black: '#000000',
+  green: '#28A745',
+  gold: '#FFD700',
+  gray: '#6C757D',
+  
   // UI colors
   border: '#DEE2E6',
   borderLight: '#F1F3F4',

@@ -160,7 +160,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 4,
-    transition: 'width 0.3s ease',
   },
   bonusIndicator: {
     position: 'absolute',

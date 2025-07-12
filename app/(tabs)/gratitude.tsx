@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
@@ -46,12 +46,29 @@ export default function GratitudeScreen() {
       }, 1000); // Delay to let daily celebration show first
     }
 
-    // Track bonus milestones silently (no celebrations)
+    // Track bonus milestones with celebrations for specific milestones
     if (newCount >= 4) {
       const bonusCount = newCount - 3;
       
       // Check if this is a new milestone (1st, 5th, 10th bonus of the day)
       if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
+        // Show celebration alert for specific milestones
+        let title = '';
+        let message = '';
+        
+        if (bonusCount === 1) {
+          title = t('gratitude.milestone1_title') || 'First Bonus! ⭐';
+          message = t('gratitude.milestone1_text') || 'Amazing! You\'ve added your first bonus gratitude today!';
+        } else if (bonusCount === 5) {
+          title = t('gratitude.milestone5_title') || 'Five Bonuses! 🔥';
+          message = t('gratitude.milestone5_text') || 'Incredible! You\'ve reached 5 bonus gratitudes today!';
+        } else if (bonusCount === 10) {
+          title = t('gratitude.milestone10_title') || 'Ten Bonuses! 👑';
+          message = t('gratitude.milestone10_text') || 'Exceptional! You\'ve achieved 10 bonus gratitudes today!';
+        }
+        
+        Alert.alert(title, message);
+        
         // Immediately increment the appropriate milestone counter
         setTimeout(async () => {
           await actions.incrementMilestoneCounter(bonusCount);

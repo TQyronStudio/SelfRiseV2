@@ -510,20 +510,21 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     }
   }
 
-  // Increment milestone counter based on daily bonus count
-  async incrementMilestoneCounter(dailyBonusCount: number): Promise<void> {
+  // Increment milestone counter based on specific milestone reached
+  async incrementMilestoneCounter(milestoneType: number): Promise<void> {
     try {
       const currentStreak = await this.getStreak();
       let starCount = currentStreak.starCount;
       let flameCount = currentStreak.flameCount;
       let crownCount = currentStreak.crownCount;
 
-      if (dailyBonusCount >= 10) {
-        crownCount++;
-      } else if (dailyBonusCount >= 5) {
-        flameCount++;
-      } else if (dailyBonusCount >= 1) {
+      // Increment only the specific milestone reached
+      if (milestoneType === 1) {
         starCount++;
+      } else if (milestoneType === 5) {
+        flameCount++;
+      } else if (milestoneType === 10) {
+        crownCount++;
       }
 
       const updatedStreak: GratitudeStreak = {
