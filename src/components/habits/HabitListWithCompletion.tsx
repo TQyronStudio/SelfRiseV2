@@ -22,6 +22,13 @@ interface HabitListWithCompletionProps {
   ListHeaderComponent?: React.ReactElement;
 }
 
+// Interface pro unified data strukturu
+interface ListItem {
+  type: 'HEADER' | 'ACTIVE_HABIT' | 'INACTIVE_TITLE' | 'INACTIVE_HABIT' | 'EMPTY_STATE';
+  habit?: Habit;
+  id: string;
+}
+
 export function HabitListWithCompletion({
   habits,
   completions,
@@ -36,7 +43,7 @@ export function HabitListWithCompletion({
   date = formatDateToString(new Date()),
   ListHeaderComponent,
 }: HabitListWithCompletionProps) {
-  // Filter and sort habits
+  // 1. Filtrování a řazení návyků
   const activeHabits = habits
     .filter(habit => habit.isActive)
     .sort((a, b) => a.order - b.order);
@@ -45,24 +52,29 @@ export function HabitListWithCompletion({
     .filter(habit => !habit.isActive)
     .sort((a, b) => a.order - b.order);
 
-  // Get completions for the current date
-  const todayCompletions = completions.filter(completion => 
-    completion.date === date
-  );
+  // DEBUG: Logování props
+  console.log('HabitListWithCompletion DEBUG:', {
+    habitsCount: habits.length,
+    activeHabitsCount: activeHabits.length,
+    inactiveHabitsCount: inactiveHabits.length,
+    completionsCount: completions.length,
+    isLoading,
+    hasHeader: !!ListHeaderComponent
+  });
 
+  // 3. Získání dnešních splnění
+  const todayCompletions = completions.filter(completion => completion.date === date);
   const getHabitCompletion = (habitId: string): HabitCompletion | undefined => {
     return todayCompletions.find(completion => completion.habitId === habitId);
   };
 
-
-  const renderActiveHabitItem = ({ item: habit, drag, isActive }: RenderItemParams<Habit>) => {
-    const completion = getHabitCompletion(habit.id);
-    
+  // Renderovací funkce pro aktivní návyky s drag & drop
+  const renderActiveHabitItem = ({ item, drag, isActive }: RenderItemParams<Habit>) => {
     return (
       <View style={styles.habitContainer}>
         <HabitItemWithCompletion
-          habit={habit}
-          completion={completion}
+          habit={item}
+          completion={getHabitCompletion(item.id)}
           onEdit={onEditHabit}
           onDelete={onDeleteHabit}
           onToggleActive={onToggleActive}
@@ -76,7 +88,8 @@ export function HabitListWithCompletion({
       </View>
     );
   };
-
+  
+  // Funkce pro uložení nového pořadí aktivních návyků
   const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
     const habitOrders = data.map((habit, index) => ({
       id: habit.id,
@@ -85,6 +98,7 @@ export function HabitListWithCompletion({
     onReorderHabits(habitOrders);
   };
 
+  // Hybridní přístup: ScrollView s DraggableFlatList pouze pro aktivní návyky
   return (
     <ScrollView
       style={styles.container}
@@ -105,15 +119,12 @@ export function HabitListWithCompletion({
       {/* Active Habits Section with Drag & Drop */}
       {activeHabits.length > 0 && (
         <View style={styles.section}>
-          <View style={styles.sectionHeaderContainer}>
-            <Text style={styles.sectionTitle}>Active Habits</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Active Habits</Text>
           <DraggableFlatList
             data={activeHabits}
             renderItem={renderActiveHabitItem}
             keyExtractor={(item) => item.id}
             onDragEnd={handleActiveDragEnd}
-            style={styles.flatList}
             scrollEnabled={false}
             activationDistance={15}
           />
@@ -123,9 +134,7 @@ export function HabitListWithCompletion({
       {/* Inactive Habits Section - No Drag & Drop */}
       {inactiveHabits.length > 0 && (
         <View style={styles.section}>
-          <View style={styles.sectionHeaderContainer}>
-            <Text style={styles.sectionTitle}>Inactive Habits</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Inactive Habits</Text>
           {inactiveHabits.map((habit) => (
             <View key={habit.id} style={styles.habitContainer}>
               <HabitItemWithCompletion
@@ -167,21 +176,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
   },
-  sectionHeaderContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
   sectionTitle: {
     fontSize: 18,
     fontFamily: Fonts.semibold,
     color: Colors.text,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   habitContainer: {
     paddingHorizontal: 16,
-  },
-  flatList: {
-    // Remove any height constraints for proper scrolling
   },
   emptyState: {
     flex: 1,

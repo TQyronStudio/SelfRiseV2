@@ -1,5 +1,7 @@
+// src/screens/habits/HabitsScreen.tsx
+
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Text, RefreshControl, Platform } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
@@ -11,13 +13,56 @@ import {
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
-import { formatDateToString } from '@/src/utils/date';
-import { Fonts } from '@/src/constants/fonts';
+
+// Tento styl zajistí, že se hlavní kontejner obrazovky roztáhne na celou výšku
+const styles = StyleSheet.create({
+  // Toto je klíčová oprava!
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background, // Přidáme barvu pozadí pro konzistenci
+  },
+  addButtonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16, // Přidáme horní padding pro lepší vzhled
+    paddingBottom: 8,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+});
 
 
 export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
+  
+  // DEBUG: Logování dat
+  console.log('HabitsScreen DEBUG:', { 
+    habitsCount: habits.length, 
+    completionsCount: completions.length, 
+    isLoading,
+    habits: habits.slice(0, 2) // Jen první dva pro debug
+  });
   
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>();
@@ -54,14 +99,23 @@ export function HabitsScreen() {
   };
 
   const handleDeleteHabit = async (habitId: string) => {
-    try {
-      await actions.deleteHabit(habitId);
-    } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to delete habit'
-      );
-    }
+    Alert.alert(
+      "Delete Habit",
+      "Are you sure you want to delete this habit? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: async () => {
+          try {
+            await actions.deleteHabit(habitId);
+          } catch (error) {
+            Alert.alert(
+              t('common.error'),
+              error instanceof Error ? error.message : 'Failed to delete habit'
+            );
+          }
+        }},
+      ]
+    );
   };
 
   const handleToggleActive = async (habitId: string, isActive: boolean) => {
@@ -112,9 +166,8 @@ export function HabitsScreen() {
     router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
-
   return (
-    <>
+    <SafeAreaView style={styles.container}>
       <HabitListWithCompletion
         habits={habits}
         completions={completions}
@@ -146,36 +199,6 @@ export function HabitsScreen() {
         onSubmit={handleSubmitHabit}
         isLoading={isLoading}
       />
-    </>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  addButtonContainer: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-});

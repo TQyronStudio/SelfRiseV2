@@ -1,3 +1,5 @@
+// src/components/habits/HabitModal.tsx
+
 import React from 'react';
 import {
   View,
@@ -9,14 +11,16 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
-import { HabitForm } from './HabitForm';
+import { HabitForm, HabitFormData } from './HabitForm';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
 interface HabitModalProps {
   visible: boolean;
-  habit?: Habit;
+  // TOTO JE FINÁLNÍ A NEJEXPLICITNĚJŠÍ OPRAVA:
+  // Místo otazníku říkáme rovnou, že typ je 'Habit' NEBO 'undefined'.
+  habit: Habit | undefined;
   onClose: () => void;
   onSubmit: (data: CreateHabitInput | UpdateHabitInput) => Promise<void>;
   isLoading?: boolean;
@@ -32,13 +36,15 @@ export function HabitModal({
   const { t } = useI18n();
   const isEditing = !!habit;
 
-  const initialData = habit ? {
-    name: habit.name,
-    color: habit.color,
-    icon: habit.icon,
-    scheduledDays: habit.scheduledDays,
-    description: habit.description,
-  } : undefined;
+  const initialData: HabitFormData | undefined = habit
+    ? {
+        name: habit.name,
+        color: habit.color,
+        icon: habit.icon,
+        scheduledDays: habit.scheduledDays,
+        ...(habit.description && { description: habit.description }),
+      }
+    : undefined;
 
   return (
     <Modal

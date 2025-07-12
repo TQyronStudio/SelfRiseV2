@@ -1,3 +1,5 @@
+// src/components/habits/HabitForm.tsx
+
 import React, { useState } from 'react';
 import {
   View,
@@ -17,14 +19,18 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
+// ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
+export type HabitFormData = {
+  name: string;
+  color: HabitColor;
+  icon: HabitIcon;
+  scheduledDays: DayOfWeek[];
+  description?: string;
+};
+
 interface HabitFormProps {
-  initialData?: {
-    name: string;
-    color: HabitColor;
-    icon: HabitIcon;
-    scheduledDays: DayOfWeek[];
-    description?: string;
-  };
+  // ZMĚNA: Používáme náš nový, přesný typ a explicitně povolujeme undefined
+  initialData: HabitFormData | undefined;
   onSubmit: (data: CreateHabitInput | UpdateHabitInput) => Promise<void>;
   onCancel: () => void;
   isEditing?: boolean;
@@ -40,7 +46,7 @@ export function HabitForm({
 }: HabitFormProps) {
   const { t } = useI18n();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',
     color: initialData?.color || HabitColor.BLUE,
     icon: initialData?.icon || HabitIcon.FITNESS,
