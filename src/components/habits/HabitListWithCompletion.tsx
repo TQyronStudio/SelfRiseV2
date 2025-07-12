@@ -44,6 +44,8 @@ export function HabitListWithCompletion({
   ListHeaderComponent,
 }: HabitListWithCompletionProps) {
   const [isDragging, setIsDragging] = React.useState(false);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  
   // 1. Filtrování a řazení návyků
   const activeHabits = habits
     .filter(habit => habit.isActive)
@@ -52,6 +54,7 @@ export function HabitListWithCompletion({
   const inactiveHabits = habits
     .filter(habit => !habit.isActive)
     .sort((a, b) => a.order - b.order);
+
 
 
   // 3. Získání dnešních splnění
@@ -84,6 +87,8 @@ export function HabitListWithCompletion({
   // Funkce pro uložení nového pořadí aktivních návyků
   const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
     setIsDragging(false);
+    // Re-enable ScrollView scrolling after drag
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: true });
     const habitOrders = data.map((habit, index) => ({
       id: habit.id,
       order: index,
@@ -93,15 +98,18 @@ export function HabitListWithCompletion({
 
   const handleDragBegin = () => {
     setIsDragging(true);
+    // Disable ScrollView scrolling during drag
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
   };
 
-  // Hybridní přístup: ScrollView s DraggableFlatList pouze pro aktivní návyky
+  // Vrácení k ScrollView struktuře, ale s nestedScrollEnabled
   return (
     <ScrollView
+      ref={scrollViewRef}
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={true}
-      scrollEnabled={!isDragging} // Disable scrolling during drag
+      nestedScrollEnabled={true} // Řeší VirtualizedList warning
       refreshControl={
         <RefreshControl
           refreshing={isLoading}
@@ -125,6 +133,7 @@ export function HabitListWithCompletion({
             onDragBegin={handleDragBegin}
             onDragEnd={handleActiveDragEnd}
             scrollEnabled={false}
+            nestedScrollEnabled={true}
             activationDistance={20}
             dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
           />
