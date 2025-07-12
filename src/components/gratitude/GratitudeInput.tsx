@@ -5,12 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { today } from '@/src/utils/date';
+import { ErrorModal } from '@/src/components/common';
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
@@ -22,17 +22,21 @@ export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: Gra
   const { actions } = useGratitude();
   const [gratitudeText, setGratitudeText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async () => {
     const trimmedText = gratitudeText.trim();
     
     if (!trimmedText) {
-      Alert.alert(t('common.error'), 'Please enter your gratitude');
+      setErrorMessage('Please enter your gratitude');
+      setShowError(true);
       return;
     }
 
     if (trimmedText.length < 3) {
-      Alert.alert(t('common.error'), 'Gratitude must be at least 3 characters long');
+      setErrorMessage('Gratitude must be at least 3 characters long');
+      setShowError(true);
       return;
     }
 
@@ -47,10 +51,8 @@ export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: Gra
       setGratitudeText('');
       onSubmitSuccess?.();
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to save gratitude'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to save gratitude');
+      setShowError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -91,6 +93,12 @@ export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: Gra
           </Text>
         </TouchableOpacity>
       </View>
+      
+      <ErrorModal
+        visible={showError}
+        onClose={() => setShowError(false)}
+        message={errorMessage}
+      />
     </View>
   );
 }

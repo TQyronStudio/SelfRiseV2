@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
 import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
@@ -18,6 +17,7 @@ import { DayPicker } from './DayPicker';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { ErrorModal } from '@/src/components/common';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -55,6 +55,8 @@ export function HabitForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -87,10 +89,8 @@ export function HabitForm({
     try {
       await onSubmit(formData);
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : t('habits.form.errors.submitFailed')
-      );
+      setErrorMessage(error instanceof Error ? error.message : t('habits.form.errors.submitFailed'));
+      setShowError(true);
     }
   };
 
@@ -194,6 +194,12 @@ export function HabitForm({
         </View>
         </View>
       </ScrollView>
+      
+      <ErrorModal
+        visible={showError}
+        onClose={() => setShowError(false)}
+        message={errorMessage}
+      />
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
@@ -15,8 +15,9 @@ export default function GratitudeScreen() {
   const { state, actions } = useGratitude();
   const [showInput, setShowInput] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone'>('daily_complete');
+  const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone' | 'bonus_milestone'>('daily_complete');
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
+  const [bonusMilestone, setBonusMilestone] = useState<number | null>(null);
   
   const todayDate = today();
   const todaysGratitudes = actions.getGratitudesByDate(todayDate);
@@ -52,22 +53,10 @@ export default function GratitudeScreen() {
       
       // Check if this is a new milestone (1st, 5th, 10th bonus of the day)
       if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
-        // Show celebration alert for specific milestones
-        let title = '';
-        let message = '';
-        
-        if (bonusCount === 1) {
-          title = t('gratitude.milestone1_title') || 'First Bonus! ⭐';
-          message = t('gratitude.milestone1_text') || 'Amazing! You\'ve added your first bonus gratitude today!';
-        } else if (bonusCount === 5) {
-          title = t('gratitude.milestone5_title') || 'Five Bonuses! 🔥';
-          message = t('gratitude.milestone5_text') || 'Incredible! You\'ve reached 5 bonus gratitudes today!';
-        } else if (bonusCount === 10) {
-          title = t('gratitude.milestone10_title') || 'Ten Bonuses! 👑';
-          message = t('gratitude.milestone10_text') || 'Exceptional! You\'ve achieved 10 bonus gratitudes today!';
-        }
-        
-        Alert.alert(title, message);
+        // Show beautiful celebration modal for specific milestones
+        setBonusMilestone(bonusCount);
+        setCelebrationType('bonus_milestone');
+        setShowCelebration(true);
         
         // Immediately increment the appropriate milestone counter
         setTimeout(async () => {
@@ -134,9 +123,13 @@ export default function GratitudeScreen() {
       
       <CelebrationModal
         visible={showCelebration}
-        onClose={() => setShowCelebration(false)}
+        onClose={() => {
+          setShowCelebration(false);
+          setBonusMilestone(null);
+        }}
         type={celebrationType}
         streakDays={milestoneStreak}
+        bonusCount={bonusMilestone}
         title={milestoneStreak ? t(`gratitude.streak${milestoneStreak}_title`) || 'Another Milestone! 🎯' : undefined}
         message={milestoneStreak ? t(`gratitude.streak${milestoneStreak}_text`) || `Congratulations on reaching ${milestoneStreak} days in a row!` : undefined}
       />

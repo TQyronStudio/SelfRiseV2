@@ -15,10 +15,11 @@ const { width: screenWidth } = Dimensions.get('window');
 interface CelebrationModalProps {
   visible: boolean;
   onClose: () => void;
-  type: 'daily_complete' | 'streak_milestone';
+  type: 'daily_complete' | 'streak_milestone' | 'bonus_milestone';
   title?: string;
   message?: string;
   streakDays?: number;
+  bonusCount?: number;
 }
 
 export default function CelebrationModal({
@@ -28,6 +29,7 @@ export default function CelebrationModal({
   title,
   message,
   streakDays,
+  bonusCount,
 }: CelebrationModalProps) {
   const { t } = useI18n();
 
@@ -44,6 +46,13 @@ export default function CelebrationModal({
           title: t('gratitude.milestone.title'),
           message: t('gratitude.milestone.message').replace('{{days}}', String(streakDays)),
           emoji: '🏆',
+        };
+      case 'bonus_milestone':
+        const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
+        return {
+          title: t(`gratitude.milestone${bonusCount}_title`) || `Bonus Milestone ${bonusEmoji}`,
+          message: t(`gratitude.milestone${bonusCount}_text`) || `You've reached ${bonusCount} bonus gratitudes today!`,
+          emoji: bonusEmoji,
         };
       default:
         return {
@@ -79,6 +88,13 @@ export default function CelebrationModal({
             <View style={styles.streakBadge}>
               <Text style={styles.streakNumber}>{streakDays}</Text>
               <Text style={styles.streakLabel}>DAY{streakDays !== 1 ? 'S' : ''}</Text>
+            </View>
+          )}
+          
+          {type === 'bonus_milestone' && bonusCount && (
+            <View style={styles.streakBadge}>
+              <Text style={styles.streakNumber}>{bonusCount}</Text>
+              <Text style={styles.streakLabel}>BONUS{bonusCount !== 1 ? 'ES' : ''}</Text>
             </View>
           )}
           

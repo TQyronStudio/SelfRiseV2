@@ -1,7 +1,7 @@
 // src/screens/habits/HabitsScreen.tsx
 
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
@@ -13,6 +13,7 @@ import {
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
+import { ErrorModal } from '@/src/components/common';
 
 // Tento styl zajistí, že se hlavní kontejner obrazovky roztáhne na celou výšku
 const styles = StyleSheet.create({
@@ -59,6 +60,8 @@ export function HabitsScreen() {
   
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>();
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleAddHabit = () => {
     setEditingHabit(undefined);
@@ -84,41 +87,27 @@ export function HabitsScreen() {
       }
       handleCloseModal();
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to save habit'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to save habit');
+      setShowError(true);
     }
   };
 
   const handleDeleteHabit = async (habitId: string) => {
-    Alert.alert(
-      "Delete Habit",
-      "Are you sure you want to delete this habit? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: async () => {
-          try {
-            await actions.deleteHabit(habitId);
-          } catch (error) {
-            Alert.alert(
-              t('common.error'),
-              error instanceof Error ? error.message : 'Failed to delete habit'
-            );
-          }
-        }},
-      ]
-    );
+    // This is now handled by HabitItemWithCompletion - no duplicate confirmation needed
+    try {
+      await actions.deleteHabit(habitId);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete habit');
+      setShowError(true);
+    }
   };
 
   const handleToggleActive = async (habitId: string, isActive: boolean) => {
     try {
       await actions.updateHabit(habitId, { isActive });
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to update habit'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update habit');
+      setShowError(true);
     }
   };
 
@@ -126,10 +115,8 @@ export function HabitsScreen() {
     try {
       await actions.updateHabitOrder(habitOrders);
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to reorder habits'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to reorder habits');
+      setShowError(true);
     }
   };
 
@@ -137,10 +124,8 @@ export function HabitsScreen() {
     try {
       await actions.toggleCompletion(habitId, date, isBonus);
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to toggle completion'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to toggle completion');
+      setShowError(true);
     }
   };
 
@@ -148,10 +133,8 @@ export function HabitsScreen() {
     try {
       await actions.loadHabits();
     } catch (error) {
-      Alert.alert(
-        t('common.error'),
-        error instanceof Error ? error.message : 'Failed to refresh habits'
-      );
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to refresh habits');
+      setShowError(true);
     }
   };
 
@@ -191,6 +174,13 @@ export function HabitsScreen() {
         onClose={handleCloseModal}
         onSubmit={handleSubmitHabit}
         isLoading={isLoading}
+      />
+      
+      <ErrorModal
+        visible={showError}
+        onClose={() => setShowError(false)}
+        title={t('common.error')}
+        message={errorMessage}
       />
     </SafeAreaView>
   );

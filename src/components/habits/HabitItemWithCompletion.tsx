@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, HabitCompletion } from '@/src/types/habit';
@@ -15,6 +14,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { formatDateToString, getDayOfWeek } from '@/src/utils/date';
 import { HabitCompletionButton } from './HabitCompletionButton';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
+import { ConfirmationModal } from '@/src/components/common';
 
 interface HabitItemWithCompletionProps {
   habit: Habit;
@@ -77,23 +77,14 @@ export function HabitItemWithCompletion({
 }: HabitItemWithCompletionProps) {
   const { t } = useI18n();
   const [isToggling, setIsToggling] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Habit',
-      'Are you sure you want to delete this habit?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => onDelete(habit.id),
-        },
-      ]
-    );
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(habit.id);
   };
 
   const handleToggleActive = () => {
@@ -250,6 +241,17 @@ export function HabitItemWithCompletion({
           })}
         </View>
       </View>
+      
+      <ConfirmationModal
+        visible={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title={t('habits.confirmDelete')}
+        message={t('habits.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        emoji="🗑️"
+      />
     </View>
   );
 }

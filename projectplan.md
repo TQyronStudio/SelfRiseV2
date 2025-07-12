@@ -519,6 +519,22 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - Add input sanitization
 - Use HTTPS for all API calls
 
+### User Interface & Celebrations
+- **CRITICAL**: All celebrations, alerts, notifications, and user feedback throughout the app MUST use the elegant CelebrationModal component design standard
+- **NO simple Alert.alert()**: Never use system alerts for important user interactions
+- **Consistent styling**: All modals should follow the CelebrationModal pattern with:
+  - Large emoji display
+  - Styled title and message
+  - Beautiful button design
+  - Proper spacing and shadows
+  - Badge/counter displays when relevant
+- **Examples of correct implementation**: 
+  - Gratitude completion celebrations (daily_complete, streak_milestone, bonus_milestone)
+  - All future habit milestone celebrations
+  - Goal achievement notifications
+  - App onboarding confirmations
+  - Any significant user achievement or feedback
+
 ---
 
 ## Success Metrics
@@ -817,3 +833,447 @@ The hybrid architecture successfully resolves all critical scrolling issues whil
 ---
 
 *This implementation represents the optimal solution given React Native constraints and provides a stable, production-ready Habits screen with fully functional scrolling and drag & drop capabilities.*
+
+---
+
+## 📋 HABIT DELETION FLOW ANALYSIS
+
+### 🎯 ANALYSIS OBJECTIVE
+Identify why the habit deletion alert appears twice when users try to delete a habit and document the complete deletion flow.
+
+### 🔍 FINDINGS SUMMARY
+**Issue Identified**: **Double Alert Problem** - Users experience two separate Alert.alert confirmations when deleting habits, violating project design standards.
+
+#### Current Deletion Flow Issues:
+
+**1. Inconsistent Modal Usage**:
+- `HabitItem.tsx` (line 168-177): Uses proper ConfirmationModal component ✅
+- `HabitItemWithCompletion.tsx` (line 82-97): Uses Alert.alert ❌ 
+- `HabitsScreen.tsx` (line 95-111): Uses Alert.alert ❌
+
+**2. Double Deletion Confirmation Problem**:
+The user experiences alerts appearing twice because:
+- First alert: From `HabitItemWithCompletion.tsx` (system Alert.alert)
+- Second potential alert: Error handling in `HabitsScreen.tsx` (another Alert.alert)
+
+### 📋 DETAILED DELETION FLOW ANALYSIS
+
+#### Current Deletion Flow Path:
+1. **User clicks delete button** → `HabitItemWithCompletion.tsx:203`
+2. **First Alert appears** → `handleDelete()` function triggers `Alert.alert()` (lines 82-97)
+3. **User confirms deletion** → Calls `onDelete(habit.id)` (line 93)
+4. **Flow continues to HabitsScreen** → `handleDeleteHabit()` function (lines 94-112)
+5. **Potential second Alert** → If error occurs, another `Alert.alert()` appears (lines 104-108)
+
+#### Components Involved in Deletion:
+
+**1. HabitItemWithCompletion.tsx**: 
+- **Problem**: Uses `Alert.alert()` instead of ConfirmationModal (lines 82-97)
+- **Violates**: Project design standards requiring custom modals
+
+**2. HabitItem.tsx**: 
+- **Status**: ✅ **Correctly implemented** with ConfirmationModal (lines 168-177)
+- **Following standards**: Uses proper BaseModal + ConfirmationModal pattern
+
+**3. HabitsScreen.tsx**: 
+- **Problem**: Uses `Alert.alert()` for error handling (lines 104-108, 118-121, 129-133, 140-143, 151-154)
+- **Problem**: Contains duplicate deletion confirmation logic (lines 95-111)
+
+### 🔧 ROOT CAUSE ANALYSIS
+
+#### Why Double Alerts Occur:
+**Primary Issue**: Two different habit item components handle deletion differently:
+- `HabitItem.tsx`: Uses ConfirmationModal (correct approach)
+- `HabitItemWithCompletion.tsx`: Uses Alert.alert (incorrect approach)
+
+#### Alert.alert Usage Violations:
+Found **8 Alert.alert instances** in habit-related components:
+1. `HabitItemWithCompletion.tsx`: 1 deletion confirmation
+2. `HabitsScreen.tsx`: 7 error/confirmation alerts
+
+### 🎯 DESIGN STANDARDS VIOLATIONS
+
+**Project Standards State**:
+> "All celebrations, alerts, notifications, and user feedback throughout the app MUST use the elegant CelebrationModal component design standard"
+> "NO simple Alert.alert(): Never use system alerts for important user interactions"
+
+**Current Violations**:
+- ❌ **8 Alert.alert usages** in habit components
+- ❌ **Inconsistent modal patterns** between HabitItem and HabitItemWithCompletion
+- ❌ **Double confirmation flows** creating poor UX
+
+### 📋 COMPREHENSIVE MODAL COMPONENTS AUDIT
+
+### 🎯 AUDIT OBJECTIVE
+Perform comprehensive analysis of all modal windows and popup components throughout the entire SelfRise V2 project to:
+- Identify all existing modal/popup components
+- Evaluate current design standards and consistency
+- Assess accessibility and user experience quality
+- Identify areas for improvement and standardization
+- Recommend unified modal system implementation
+
+### 📋 AUDIT PLAN
+
+#### Phase 1: Discovery & Inventory
+- [x] Search entire project for Modal components (react-native Modal usage)
+- [x] Find components with overlay/backdrop styling patterns
+- [x] Identify popup, alert, dialog components
+- [x] Locate components with absolute positioning/z-index patterns
+- [x] Search for celebration, confirmation, and notification components
+
+#### Phase 2: Component Analysis
+- [x] Analyze each found component for design standards compliance
+- [x] Evaluate backdrop/overlay implementation quality
+- [x] Check text readability and contrast ratios
+- [x] Assess animation and transition consistency
+- [x] Review accessibility features (screen reader support, focus management)
+
+#### Phase 3: Design Standards Evaluation
+- [x] Document current styling patterns and inconsistencies
+- [x] Identify best-practice implementations to use as standards
+- [x] Check for responsive design and cross-platform compatibility
+- [x] Evaluate user experience flow and interaction patterns
+
+#### Phase 4: Recommendations & Standards
+- [x] Recommend unified modal component architecture
+- [x] Suggest design system improvements
+- [x] Propose accessibility enhancements
+- [x] Create implementation guidelines for future modal components
+
+### 🔍 SEARCH STRATEGY
+1. **File Pattern Searches**: `**/*Modal*.tsx`, `**/*Popup*.tsx`, `**/*Dialog*.tsx`
+2. **Code Content Searches**: 
+   - "Modal" imports and usage
+   - "overlay", "backdrop", "absolute" positioning
+   - "Alert.alert", confirmation patterns
+   - "z-index", elevation styling
+3. **Component Architecture Analysis**: Review each found component's structure and patterns
+
+---
+
+## 🔍 COMPREHENSIVE MODAL AUDIT FINDINGS
+
+### 📋 EXECUTIVE SUMMARY
+**Audit Date**: July 12, 2025  
+**Scope**: Complete project analysis for modal/popup components  
+**Components Found**: 2 Modal Components + 3 Alert.alert Implementations  
+**Overall Status**: **Mixed - One Excellent, One Needs Improvement**
+
+### 🔎 INVENTORY OF MODAL/POPUP COMPONENTS
+
+#### 1. **CelebrationModal.tsx** ⭐ **EXCELLENT STANDARD**
+**Location**: `/src/components/gratitude/CelebrationModal.tsx`  
+**Type**: Celebration/Achievement Modal  
+**Usage**: Gratitude milestones, streak celebrations, bonus achievements
+
+**✅ STRENGTHS**:
+- **Perfect backdrop implementation**: `rgba(0, 0, 0, 0.5)` semi-transparent overlay
+- **Fully opaque content**: Clean white background with proper contrast
+- **Excellent accessibility**: Proper semantic structure, readable text
+- **Professional animations**: `animationType="fade"` with smooth transitions
+- **Responsive design**: `maxWidth: screenWidth * 0.85` adapts to screen sizes
+- **Rich visual hierarchy**: Large emoji (64px), clear title/message structure
+- **Proper shadows**: Multi-layer shadow with elevation for depth
+- **Internationalization**: Full i18n support with proper fallbacks
+- **Flexible content system**: Dynamic content based on celebration type
+- **Badge integration**: Streak and bonus counters with professional styling
+
+**🎨 DESIGN STANDARDS**:
+```typescript
+// Excellent backdrop pattern
+overlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+}
+
+// Perfect modal content
+modal: {
+  backgroundColor: Colors.white,
+  borderRadius: 20,
+  shadowColor: Colors.black,
+  shadowOpacity: 0.3,
+  elevation: 10,
+}
+```
+
+#### 2. **HabitModal.tsx** ⚠️ **NEEDS IMPROVEMENT**
+**Location**: `/src/components/habits/HabitModal.tsx`  
+**Type**: Form Modal (Create/Edit Habits)  
+**Usage**: Habit creation and editing interface
+
+**❌ DESIGN ISSUES**:
+- **NO backdrop/overlay**: Missing semi-transparent background dimming
+- **Full-screen takeover**: Uses `presentationStyle="pageSheet"` without backdrop
+- **Inconsistent with app standards**: Doesn't follow CelebrationModal pattern
+- **No visual separation**: Content doesn't visually "float" above background
+- **Missing elevation/shadows**: Appears flat without proper depth
+
+**✅ FUNCTIONAL STRENGTHS**:
+- **Proper form structure**: Well-organized header with close button
+- **Good typography**: Appropriate font sizes and weights
+- **Loading state handling**: Disabled interactions during submissions
+- **i18n support**: Proper translation integration
+
+**🔧 IMPROVEMENT NEEDED**:
+- Add proper backdrop overlay for consistency
+- Consider using transparent modal with custom backdrop
+- Add shadow/elevation for better visual hierarchy
+
+#### 3. **Alert.alert Usage** ⚠️ **INCONSISTENT WITH STANDARDS**
+**Locations**: 
+- `/src/components/gratitude/GratitudeInput.tsx` (3 instances)
+- `/src/components/habits/HabitForm.tsx` (1 instance)  
+- `/src/components/habits/HabitItem.tsx` (1 deletion confirmation)
+
+**❌ DESIGN PROBLEMS**:
+- **System alerts**: Using native `Alert.alert()` instead of elegant custom modals
+- **Inconsistent styling**: System dialogs don't match app design
+- **No customization**: Cannot control appearance, animations, or branding
+- **Poor user experience**: Jarring system interruptions vs. smooth app flow
+
+**⚠️ VIOLATION OF PROJECT STANDARDS**:
+The project plan explicitly states:
+> "All celebrations, alerts, notifications, and user feedback throughout the app MUST use the elegant CelebrationModal component design standard"
+> "NO simple Alert.alert(): Never use system alerts for important user interactions"
+
+### 🎯 DESIGN STANDARDS ANALYSIS
+
+#### ✅ **GOLD STANDARD: CelebrationModal Pattern**
+The CelebrationModal represents the **perfect modal implementation** for this project:
+
+1. **Semi-transparent backdrop**: `rgba(0, 0, 0, 0.5)` properly dims background
+2. **Fully opaque content**: Clean white background with excellent readability
+3. **Professional shadows**: Multi-layer shadow system with proper elevation
+4. **Responsive sizing**: Adaptive to screen dimensions with proper margins
+5. **Rich typography**: Clear hierarchy with large emojis, bold titles, readable text
+6. **Smooth animations**: Fade transitions for polished feel
+7. **Accessibility**: Proper semantic structure, screen reader friendly
+
+#### ❌ **INCONSISTENCIES FOUND**
+1. **HabitModal**: Missing backdrop, inconsistent visual treatment
+2. **Alert.alert usage**: System dialogs violate design standards
+3. **No unified modal system**: Each modal implementation differs
+
+### 📊 DETAILED TECHNICAL ASSESSMENT
+
+#### **CelebrationModal.tsx - Technical Excellence**
+```typescript
+// PERFECT overlay implementation
+overlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',  // ✅ Semi-transparent backdrop
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: Layout.spacing.lg,
+}
+
+// EXCELLENT content styling
+modal: {
+  backgroundColor: Colors.white,           // ✅ Fully opaque background
+  borderRadius: 20,                       // ✅ Modern rounded corners
+  shadowColor: Colors.black,              // ✅ Professional shadows
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+  elevation: 10,                          // ✅ Android elevation
+}
+```
+
+**Color Contrast Analysis**:
+- Text on white: `Colors.text` (#212529) = **Excellent contrast ratio**
+- Secondary text: `Colors.textSecondary` (#6C757D) = **Good contrast ratio**
+- Button text on primary: White on #4A90E2 = **Excellent contrast**
+
+#### **HabitModal.tsx - Technical Deficiencies**
+```typescript
+// ❌ MISSING backdrop - no overlay dimming
+<Modal
+  visible={visible}
+  animationType="slide"
+  presentationStyle="pageSheet"  // ❌ Full-screen, no backdrop
+  onRequestClose={onClose}
+>
+```
+
+**Missing Elements**:
+- No overlay/backdrop component
+- No shadow/elevation on content
+- No visual separation from background
+
+### 🔧 RECOMMENDATIONS
+
+#### **Priority 1: Eliminate Alert.alert Usage**
+**Severity**: High - Violates project standards
+
+**Action Required**: Replace all `Alert.alert()` calls with custom modal components based on CelebrationModal pattern.
+
+**Affected Files**:
+1. **GratitudeInput.tsx**: Error messages (validation, submission errors)
+2. **HabitForm.tsx**: Form submission errors  
+3. **HabitItem.tsx**: Delete confirmations
+
+**Implementation Strategy**:
+```typescript
+// Create ErrorModal.tsx and ConfirmationModal.tsx
+// Follow CelebrationModal pattern:
+// - Semi-transparent backdrop
+// - White content background  
+// - Professional shadows
+// - Smooth fade animations
+// - Custom button styling
+```
+
+#### **Priority 2: Standardize HabitModal**
+**Severity**: Medium - Inconsistent visual treatment
+
+**Action Required**: Add proper backdrop and elevation to HabitModal for consistency.
+
+**Options**:
+1. **Add transparent backdrop**: Wrap content with overlay similar to CelebrationModal
+2. **Switch to transparent modal**: Use `transparent={true}` with custom backdrop
+3. **Maintain pageSheet**: Add backdrop as separate overlay component
+
+#### **Priority 3: Create Unified Modal System**
+**Severity**: Medium - Prevent future inconsistencies
+
+**Recommended Architecture**:
+```typescript
+// BaseModal.tsx - Unified modal foundation
+interface BaseModalProps {
+  visible: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  animationType?: 'fade' | 'slide';
+  hasBackdrop?: boolean;
+}
+
+// Specialized modals extending BaseModal:
+// - CelebrationModal (already excellent)
+// - ErrorModal (new)
+// - ConfirmationModal (new)  
+// - FormModal (improved HabitModal)
+```
+
+### 🚀 IMPLEMENTATION PRIORITIES
+
+#### **Phase 1: Critical Standards Compliance** (High Priority)
+- [x] Create ErrorModal component to replace Alert.alert error messages
+- [x] Create ConfirmationModal component for delete confirmations
+- [x] Replace all Alert.alert() usage in habit components
+- [ ] Replace remaining Alert.alert() usage in gratitude components
+
+#### **Phase 2: Visual Consistency** (Medium Priority)  
+- [ ] Add backdrop to HabitModal for visual consistency
+- [ ] Standardize animation types across all modals
+- [ ] Ensure consistent shadow/elevation patterns
+
+#### **Phase 3: System Architecture** (Low Priority)
+- [ ] Create BaseModal foundation component
+- [ ] Refactor existing modals to use BaseModal
+- [ ] Establish modal component guidelines
+
+### ✅ **OVERALL ASSESSMENT**
+
+**Current State**: **Mixed Quality**
+- ✅ **CelebrationModal**: Production-ready, excellent standard
+- ⚠️ **HabitModal**: Functional but visually inconsistent  
+- ❌ **Alert.alert**: Violates project design standards
+
+**Technical Debt**: **Medium**
+- Alert.alert usage creates inconsistent user experience
+- Modal implementations lack unified foundation
+- Design standards not consistently applied
+
+**User Experience Impact**: **Medium**
+- CelebrationModal provides excellent user delight
+- System alerts create jarring interruptions
+- HabitModal lacks visual polish of celebration modals
+
+**Recommendations Priority**: **Focus on eliminating Alert.alert usage first**, then standardize visual consistency across all modal components.
+
+The CelebrationModal should serve as the **gold standard template** for all future modal implementations in the project.
+
+---
+
+## 🚀 HABIT DELETION FIX RECOMMENDATIONS
+
+### ⚡ IMMEDIATE ACTION REQUIRED
+
+#### **Priority 1: Fix Double Alert Problem**
+**Severity**: High - Affects user experience directly
+
+**Root Issue**: `HabitItemWithCompletion.tsx` uses Alert.alert instead of ConfirmationModal, creating inconsistent deletion flows.
+
+**Solution Steps**:
+1. **Replace Alert.alert in HabitItemWithCompletion.tsx** (lines 82-97):
+   ```typescript
+   // Replace Alert.alert with ConfirmationModal (like HabitItem.tsx does)
+   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+   
+   const handleDelete = () => {
+     setShowDeleteConfirm(true);
+   };
+   
+   const confirmDelete = () => {
+     onDelete(habit.id);
+   };
+   ```
+
+2. **Remove duplicate deletion logic from HabitsScreen.tsx** (lines 95-111):
+   ```typescript
+   // Simplify to direct deletion without additional confirmation
+   const handleDeleteHabit = async (habitId: string) => {
+     try {
+       await actions.deleteHabit(habitId);
+     } catch (error) {
+       // Use ErrorModal instead of Alert.alert
+       showErrorModal(error.message);
+     }
+   };
+   ```
+
+#### **Priority 2: Create Missing Modal Components**
+**Create ErrorModal.tsx** for all error messaging:
+```typescript
+// src/components/common/ErrorModal.tsx
+// Based on CelebrationModal pattern with error styling
+```
+
+#### **Priority 3: Standardize All Alert.alert Usage**
+**Replace remaining Alert.alert instances**:
+- `HabitsScreen.tsx`: 7 instances (lines 87, 104, 118, 129, 140, 151)
+- Use ErrorModal for error messages
+- Use ConfirmationModal for confirmations
+
+### 🎯 IMPLEMENTATION PLAN
+
+#### **Phase 1: Immediate Fix (High Priority)**
+- [x] Fix HabitItemWithCompletion.tsx deletion to use ConfirmationModal
+- [x] Remove duplicate deletion confirmation from HabitsScreen.tsx  
+- [x] Replace all Alert.alert error messages in HabitsScreen.tsx with ErrorModal
+- [ ] Test deletion flow to ensure single confirmation
+
+#### **Phase 2: Standards Compliance (Medium Priority)**  
+- [ ] Create ErrorModal component following CelebrationModal pattern
+- [ ] Replace all Alert.alert error messages with ErrorModal
+- [ ] Ensure consistent modal experience across app
+
+#### **Phase 3: Complete Standardization (Low Priority)**
+- [ ] Create BaseModal foundation component
+- [ ] Refactor all modals to use unified architecture
+- [ ] Document modal component guidelines
+
+### ✅ **EXPECTED OUTCOME**
+After implementing these fixes:
+- ✅ **Single confirmation modal** for habit deletion
+- ✅ **Consistent modal design** across all components  
+- ✅ **No Alert.alert violations** in habit components
+- ✅ **Improved user experience** with unified modal patterns
+
+### 🔧 **TECHNICAL NOTES**
+- Both `HabitItem.tsx` and `HabitItemWithCompletion.tsx` should use identical deletion patterns
+- ConfirmationModal already exists and works correctly
+- BaseModal provides proper backdrop and styling foundation
+- ErrorModal should follow CelebrationModal design patterns

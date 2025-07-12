@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '../../types/habit';
@@ -12,6 +11,7 @@ import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { ConfirmationModal } from '@/src/components/common';
 
 interface HabitItemProps {
   habit: Habit;
@@ -57,23 +57,14 @@ const DAY_LABELS = {
 
 export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, onDrag, isDragging }: HabitItemProps) {
   const { t } = useI18n();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
-    Alert.alert(
-      t('habits.confirmDelete'),
-      t('habits.deleteMessage'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => onDelete(habit.id),
-        },
-      ]
-    );
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(habit.id);
   };
 
   const handleToggleActive = () => {
@@ -173,6 +164,17 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           </TouchableOpacity>
         )}
       </View>
+      
+      <ConfirmationModal
+        visible={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title={t('habits.confirmDelete')}
+        message={t('habits.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        emoji="🗑️"
+      />
     </View>
   );
 }

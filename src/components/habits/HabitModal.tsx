@@ -49,11 +49,12 @@ export function HabitModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType="fade"
+      transparent
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <View style={styles.overlay}>
+        <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.closeButton}
@@ -77,15 +78,32 @@ export function HabitModal({
           isEditing={isEditing}
           isLoading={isLoading}
         />
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: 50, // Space for status bar and backdrop visibility
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: Colors.black,
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 10,
   },
   header: {
     flexDirection: 'row',
