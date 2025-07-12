@@ -43,6 +43,7 @@ export function HabitListWithCompletion({
   date = formatDateToString(new Date()),
   ListHeaderComponent,
 }: HabitListWithCompletionProps) {
+  const [isDragging, setIsDragging] = React.useState(false);
   // 1. Filtrování a řazení návyků
   const activeHabits = habits
     .filter(habit => habit.isActive)
@@ -52,15 +53,6 @@ export function HabitListWithCompletion({
     .filter(habit => !habit.isActive)
     .sort((a, b) => a.order - b.order);
 
-  // DEBUG: Logování props
-  console.log('HabitListWithCompletion DEBUG:', {
-    habitsCount: habits.length,
-    activeHabitsCount: activeHabits.length,
-    inactiveHabitsCount: inactiveHabits.length,
-    completionsCount: completions.length,
-    isLoading,
-    hasHeader: !!ListHeaderComponent
-  });
 
   // 3. Získání dnešních splnění
   const todayCompletions = completions.filter(completion => completion.date === date);
@@ -91,11 +83,16 @@ export function HabitListWithCompletion({
   
   // Funkce pro uložení nového pořadí aktivních návyků
   const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
+    setIsDragging(false);
     const habitOrders = data.map((habit, index) => ({
       id: habit.id,
       order: index,
     }));
     onReorderHabits(habitOrders);
+  };
+
+  const handleDragBegin = () => {
+    setIsDragging(true);
   };
 
   // Hybridní přístup: ScrollView s DraggableFlatList pouze pro aktivní návyky
@@ -104,6 +101,7 @@ export function HabitListWithCompletion({
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={true}
+      scrollEnabled={!isDragging} // Disable scrolling during drag
       refreshControl={
         <RefreshControl
           refreshing={isLoading}
@@ -124,9 +122,11 @@ export function HabitListWithCompletion({
             data={activeHabits}
             renderItem={renderActiveHabitItem}
             keyExtractor={(item) => item.id}
+            onDragBegin={handleDragBegin}
             onDragEnd={handleActiveDragEnd}
             scrollEnabled={false}
-            activationDistance={15}
+            activationDistance={20}
+            dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
           />
         </View>
       )}

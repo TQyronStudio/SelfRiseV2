@@ -56,13 +56,6 @@ export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
   
-  // DEBUG: Logování dat
-  console.log('HabitsScreen DEBUG:', { 
-    habitsCount: habits.length, 
-    completionsCount: completions.length, 
-    isLoading,
-    habits: habits.slice(0, 2) // Jen první dva pro debug
-  });
   
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>();
