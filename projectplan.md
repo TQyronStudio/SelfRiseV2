@@ -277,8 +277,11 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Remove clickability from displayed gratitudes (no more TouchableOpacity)
 - [x] Add milestone celebration alerts for 1st, 5th, and 10th bonus gratitudes
 - [x] Fix bonus gratitude numbering to restart from 1 (instead of continuing 4, 5, 6...)
-- [x] Move star emoji ⭐ from number circle to bonus label: "BONUS ⭐ GRATITUDE"
+- [x] Simplify bonus label to show only "BONUS ⭐" (removed GRATITUDE text)
 - [x] Add data migration to fix existing gratitudes with old numbering
+- [x] Fix isBonus logic in storage service to work with new numbering system
+- [x] Fix Date serialization issues in sorting and migration functions
+- [x] Add proper sorting by creation time for daily gratitudes display
 
 #### Checkpoint 4.2: Streak System & Gamification
 - [ ] Implement streak calculation logic in storage service

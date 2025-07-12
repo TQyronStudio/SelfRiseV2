@@ -33,7 +33,7 @@ export default function GratitudeList({ gratitudes }: GratitudeListProps) {
           </Text>
           {item.isBonus && (
             <Text style={styles.bonusLabel}>
-              BONUS ⭐ GRATITUDE
+              BONUS ⭐
             </Text>
           )}
         </View>

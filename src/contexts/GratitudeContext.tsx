@@ -165,7 +165,14 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
   };
 
   const getGratitudesByDate = (date: DateString): Gratitude[] => {
-    return state.gratitudes.filter(gratitude => gratitude.date === date);
+    return state.gratitudes
+      .filter(gratitude => gratitude.date === date)
+      .sort((a, b) => {
+        // Sort by creation time to maintain order
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return timeA - timeB;
+      });
   };
 
   const refreshStats = async (): Promise<void> => {

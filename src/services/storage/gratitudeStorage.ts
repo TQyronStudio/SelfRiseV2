@@ -34,8 +34,10 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   async create(input: CreateGratitudeInput): Promise<Gratitude> {
     try {
       const gratitudes = await this.getAll();
+      const dayGratitudes = gratitudes.filter(g => g.date === input.date);
+      const totalCount = dayGratitudes.length + 1;
+      const isBonus = totalCount > 3; // 4th+ gratitude is bonus
       const order = getNextGratitudeOrder(gratitudes, input.date);
-      const isBonus = order > 3; // 4th+ gratitude is bonus
       
       const newGratitude = createGratitude(input, order, isBonus);
       
@@ -420,7 +422,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       const updatedGratitudes = gratitudes.map(gratitude => {
         const dayGratitudes = dateGroups.get(gratitude.date)!
-          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         
         const position = dayGratitudes.findIndex(g => g.id === gratitude.id) + 1;
         const isBonus = position > 3;
