@@ -25,21 +25,25 @@ export default function JournalStatsScreen() {
     loadStats();
   }, []);
 
+  useEffect(() => {
+    // Recalculate type breakdown when gratitudes change
+    const gratitudeCount = state.gratitudes.filter(g => g.type === 'gratitude').length;
+    const selfPraiseCount = state.gratitudes.filter(g => g.type === 'self-praise').length;
+    
+    setTypeBreakdown({
+      gratitude: gratitudeCount,
+      selfPraise: selfPraiseCount,
+    });
+  }, [state.gratitudes]);
+
   const loadStats = async () => {
     try {
       setIsLoading(true);
       await actions.refreshStats();
       setStats(state.stats);
       
-      // Calculate type breakdown
-      const allGratitudes = await actions.searchGratitudes(''); // Get all gratitudes
-      const gratitudeCount = allGratitudes.filter(g => g.type === 'gratitude').length;
-      const selfPraiseCount = allGratitudes.filter(g => g.type === 'self-praise').length;
-      
-      setTypeBreakdown({
-        gratitude: gratitudeCount,
-        selfPraise: selfPraiseCount,
-      });
+      // Ensure we have the latest data
+      await actions.loadGratitudes();
     } catch (error) {
       console.error('Failed to load stats:', error);
     } finally {

@@ -320,11 +320,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         currentStreak
       );
 
-      // Calculate bonus milestone counters (preserve existing counts)
-      const currentStreakData = await this.getStreak();
-      const starCount = currentStreakData.starCount;
-      const flameCount = currentStreakData.flameCount;
-      const crownCount = currentStreakData.crownCount;
+      // Calculate bonus milestone counters from actual data
+      const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
       
       // Determine last entry date and streak start
       let lastEntryDate: DateString | null = null;
@@ -410,6 +407,44 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     } catch (error) {
       throw new StorageError(
         'Failed to get bonus dates',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  async calculateMilestoneCounters(): Promise<{ starCount: number; flameCount: number; crownCount: number }> {
+    try {
+      const gratitudes = await this.getAll();
+      const dateCountMap = new Map<DateString, number>();
+      
+      // Count entries per date
+      gratitudes.forEach(gratitude => {
+        const current = dateCountMap.get(gratitude.date) || 0;
+        dateCountMap.set(gratitude.date, current + 1);
+      });
+      
+      let starCount = 0;
+      let flameCount = 0;
+      let crownCount = 0;
+      
+      // Calculate milestone counters based on actual data
+      dateCountMap.forEach((count, date) => {
+        if (count >= 4) { // 1st bonus entry (4th total)
+          starCount++;
+        }
+        if (count >= 8) { // 5th bonus entry (8th total)
+          flameCount++;
+        }
+        if (count >= 13) { // 10th bonus entry (13th total)
+          crownCount++;
+        }
+      });
+      
+      return { starCount, flameCount, crownCount };
+    } catch (error) {
+      throw new StorageError(
+        'Failed to calculate milestone counters',
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );
@@ -572,7 +607,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       if (!currentStreak.canRecoverWithAd) {
         throw new StorageError(
           'Streak cannot be recovered',
-          STORAGE_ERROR_CODES.INVALID_OPERATION,
+          STORAGE_ERROR_CODES.UNKNOWN,
           STORAGE_KEYS.GRATITUDE_STREAK
         );
       }

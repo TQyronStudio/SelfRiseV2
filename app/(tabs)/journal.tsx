@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -24,10 +24,15 @@ export default function JournalScreen() {
   const [bonusMilestone, setBonusMilestone] = useState<number | null>(null);
   
   const todayDate = today();
-  const todaysGratitudes = actions.getGratitudesByDate(todayDate);
+  const [todaysGratitudes, setTodaysGratitudes] = useState(actions.getGratitudesByDate(todayDate));
   const currentCount = todaysGratitudes.length;
   const isComplete = currentCount >= 3;
   const hasBonus = currentCount >= 4;
+
+  // Update today's gratitudes when state changes
+  useEffect(() => {
+    setTodaysGratitudes(actions.getGratitudesByDate(todayDate));
+  }, [state.gratitudes, todayDate, actions]);
 
   const handleInputSuccess = useCallback(async () => {
     setShowInput(false);

@@ -23,6 +23,7 @@ export interface GratitudeContextType {
     refreshStats: () => Promise<void>;
     incrementMilestoneCounter: (milestoneType: number) => Promise<void>;
     clearError: () => void;
+    forceRefresh: () => Promise<void>;
   };
 }
 
@@ -212,6 +213,11 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
     setError(null);
   };
 
+  const forceRefresh = async (): Promise<void> => {
+    // Force reload all gratitudes from storage
+    await loadGratitudes();
+  };
+
   useEffect(() => {
     loadGratitudes();
   }, []);
@@ -230,6 +236,7 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
           refreshStats,
           incrementMilestoneCounter,
           clearError,
+          forceRefresh,
         },
       }}
     >

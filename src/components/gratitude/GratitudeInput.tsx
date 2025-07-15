@@ -130,6 +130,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         <TouchableOpacity
           style={[
             styles.submitButton,
+            inputType === 'self-praise' && styles.submitButtonSelfPraise,
             (gratitudeText.trim().length < 3 || isSubmitting) && styles.submitButtonDisabled
           ]}
           onPress={handleSubmit}
@@ -193,6 +194,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.sm,
     borderRadius: 8,
+  },
+  submitButtonSelfPraise: {
+    backgroundColor: Colors.success,
   },
   submitButtonDisabled: {
     backgroundColor: Colors.gray,

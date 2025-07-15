@@ -18,7 +18,7 @@ import { today, addDays, subtractDays, formatDateForDisplay } from '@/src/utils/
 export default function JournalHistoryScreen() {
   const { t } = useI18n();
   const router = useRouter();
-  const { actions } = useGratitude();
+  const { state, actions } = useGratitude();
   const [selectedDate, setSelectedDate] = useState<DateString>(today());
   const [searchTerm, setSearchTerm] = useState('');
   const [gratitudes, setGratitudes] = useState(actions.getGratitudesByDate(selectedDate));
@@ -36,6 +36,13 @@ export default function JournalHistoryScreen() {
       setGratitudes(actions.getGratitudesByDate(selectedDate));
     }
   }, [searchTerm, selectedDate]);
+
+  // Refresh gratitudes when state changes (after delete/edit)
+  useEffect(() => {
+    if (!isSearching) {
+      setGratitudes(actions.getGratitudesByDate(selectedDate));
+    }
+  }, [state.gratitudes, selectedDate, isSearching]);
 
   const performSearch = async () => {
     try {
@@ -86,25 +93,31 @@ export default function JournalHistoryScreen() {
     
     try {
       await actions.deleteGratitude(deletingGratitude.id);
-      // Refresh the current view
+      
+      // Force refresh to ensure all screens have latest data
+      await actions.forceRefresh();
+      
+      // If searching, refresh search results
       if (isSearching) {
         performSearch();
-      } else {
-        setGratitudes(actions.getGratitudesByDate(selectedDate));
       }
+      // Note: useEffect will handle refreshing gratitudes list for regular view
+      
       setDeletingGratitude(null);
     } catch (error) {
       Alert.alert('Error', 'Failed to delete journal entry');
     }
   };
 
-  const handleEditSuccess = () => {
-    // Refresh the current view
+  const handleEditSuccess = async () => {
+    // Force refresh to ensure all screens have latest data
+    await actions.forceRefresh();
+    
+    // If searching, refresh search results
     if (isSearching) {
       performSearch();
-    } else {
-      setGratitudes(actions.getGratitudesByDate(selectedDate));
     }
+    // Note: useEffect will handle refreshing gratitudes list for regular view
     setEditingGratitude(null);
   };
 

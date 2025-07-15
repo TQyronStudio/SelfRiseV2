@@ -55,9 +55,10 @@ export default function CelebrationModal({
         };
       case 'bonus_milestone':
         const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
+        const bonusCountSafe = bonusCount || 1; // Fallback to 1 if null
         return {
-          title: t(`journal.bonusMilestone${bonusCount}_title`) || `Bonus Milestone ${bonusEmoji}`,
-          message: t(`journal.bonusMilestone${bonusCount}_text`) || `You've reached ${bonusCount} bonus entries today!`,
+          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `Bonus Milestone ${bonusEmoji}`,
+          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `You've reached ${bonusCountSafe} bonus entries today!`,
           emoji: bonusEmoji,
         };
       default:

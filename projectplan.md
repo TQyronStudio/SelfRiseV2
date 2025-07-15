@@ -318,6 +318,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - Eliminováno zobrazování "My Journal" textu během přechodu
 - Přidána správná konfigurace Stack.Screen v root layout
 - Optimalizace Journal Stats screenu pro eliminaci blikání při načítání
+- Oprava počítání Entry Types v Journal Statistics (Gratitude/Self-Praise)
+- Implementace správného přepočítávání Milestone Badges při mazání záznamů
+- Okamžité refreshování UI po mazání/editaci záznamů (History + My Journal)
+- Opravena chyba "Property 'state' doesn't exist" v Journal History screenu
+- Oprava i18n chyby "bonusMilestonenull_title" v CelebrationModal
+- Opravena nekonečná smyčka refreshování - nahrazena explicitní forceRefresh funkcí
+- Přidána forceRefresh funkce pro přímé refreshování po mazání/editaci v History
+- Implementace barevného rozlišení tlačítek (Gratitude modré, Self-Praise zelené)
 
 ### Phase 5: Goals Feature
 **Goal**: Complete goal tracking system
