@@ -10,10 +10,11 @@ import GratitudeList from '@/src/components/gratitude/GratitudeList';
 import DailyGratitudeProgress from '@/src/components/gratitude/DailyGratitudeProgress';
 import CelebrationModal from '@/src/components/gratitude/CelebrationModal';
 
-export default function GratitudeScreen() {
+export default function JournalScreen() {
   const { t } = useI18n();
   const { state, actions } = useGratitude();
   const [showInput, setShowInput] = useState(false);
+  const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone' | 'bonus_milestone'>('daily_complete');
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
@@ -98,21 +99,40 @@ export default function GratitudeScreen() {
         
         {showInput && (
           <GratitudeInput 
-            onSubmitSuccess={handleInputSuccess} 
+            onSubmitSuccess={handleInputSuccess}
+            onCancel={() => setShowInput(false)}
             isBonus={isComplete}
+            inputType={inputType}
           />
         )}
         
         {!showInput && (
           <View style={styles.addButtonContainer}>
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => setShowInput(true)}
-            >
-              <Text style={styles.addButtonText}>
-                + {t('gratitude.addGratitude')}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.addButton, styles.gratitudeButton]}
+                onPress={() => {
+                  setInputType('gratitude');
+                  setShowInput(true);
+                }}
+              >
+                <Text style={styles.addButtonText}>
+                  + Add Gratitude
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, styles.selfPraiseButton]}
+                onPress={() => {
+                  setInputType('self-praise');
+                  setShowInput(true);
+                }}
+              >
+                <Text style={styles.addButtonText}>
+                  + Add Self-Praise
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         
@@ -153,8 +173,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.md,
     marginBottom: Layout.spacing.md,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Layout.spacing.sm,
+  },
   addButton: {
-    backgroundColor: Colors.primary,
+    flex: 1,
     borderRadius: 12,
     padding: Layout.spacing.md,
     alignItems: 'center',
@@ -166,6 +191,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  gratitudeButton: {
+    backgroundColor: Colors.primary,
+  },
+  selfPraiseButton: {
+    backgroundColor: Colors.success,
   },
   addButtonText: {
     color: Colors.white,

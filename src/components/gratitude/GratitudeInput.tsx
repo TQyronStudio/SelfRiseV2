@@ -14,16 +14,50 @@ import { ErrorModal } from '@/src/components/common';
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
+  onCancel?: () => void; // funkce pro zavření formuláře
   isBonus?: boolean; // true if this is a bonus gratitude (already have 3+)
+  inputType?: 'gratitude' | 'self-praise';
 }
 
-export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: GratitudeInputProps) {
+// Rotační placeholdery pro Vděčnost
+const GRATITUDE_PLACEHOLDERS = [
+  "What made you smile today?",
+  "Who are you thankful for right now?",
+  "What small thing brought you joy?",
+  "What beautiful thing did you see today?",
+  "What skill are you grateful to have?",
+  "What part of your day are you most thankful for?",
+  "What is something you're looking forward to?",
+  "What food are you grateful for today?",
+  "What song made your day better?",
+  "What simple pleasure did you enjoy?"
+];
+
+// Rotační placeholdery pro Pochvalu
+const SELF_PRAISE_PLACEHOLDERS = [
+  "What challenge did you overcome today?",
+  "What's one thing you did well today?",
+  "What did you do today that you're proud of?",
+  "How did you take a step towards your goals?",
+  "What good decision did you make?",
+  "When were you disciplined today?",
+  "How did you show kindness to yourself?",
+  "What did you learn today?",
+  "What effort are you proud of, regardless of the outcome?",
+  "What did you do today that was just for you?"
+];
+
+export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude' }: GratitudeInputProps) {
   const { t } = useI18n();
   const { actions } = useGratitude();
   const [gratitudeText, setGratitudeText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [currentPlaceholder] = useState(() => {
+    const placeholders = inputType === 'gratitude' ? GRATITUDE_PLACEHOLDERS : SELF_PRAISE_PLACEHOLDERS;
+    return placeholders[Math.floor(Math.random() * placeholders.length)];
+  });
 
   const handleSubmit = async () => {
     const trimmedText = gratitudeText.trim();
@@ -46,6 +80,7 @@ export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: Gra
       await actions.createGratitude({
         content: trimmedText,
         date: today(),
+        type: inputType,
       });
 
       setGratitudeText('');
@@ -60,9 +95,24 @@ export default function GratitudeInput({ onSubmitSuccess, isBonus = false }: Gra
 
   return (
     <View style={styles.container}>
+      {/* Header s křížkem pro zavření */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>
+          {inputType === 'gratitude' ? 'Add Gratitude' : 'Add Self-Praise'}
+        </Text>
+        {onCancel && (
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={onCancel}
+          >
+            <Text style={styles.closeButtonText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      
       <TextInput
         style={styles.textInput}
-        placeholder={isBonus ? `${t('gratitude.gratitudePlaceholder')} (optional)` : t('gratitude.gratitudePlaceholder')}
+        placeholder={isBonus ? `${currentPlaceholder} (optional)` : currentPlaceholder}
         placeholderTextColor={Colors.textSecondary}
         value={gratitudeText}
         onChangeText={setGratitudeText}
@@ -154,5 +204,30 @@ const styles = StyleSheet.create({
   },
   submitButtonTextDisabled: {
     color: Colors.textSecondary,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  headerTitle: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  closeButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: Colors.white,
+    fontWeight: 'bold',
+    lineHeight: 18,
   },
 });

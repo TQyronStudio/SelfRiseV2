@@ -5,6 +5,7 @@ export interface Gratitude extends BaseEntity {
   date: DateString;
   isBonus: boolean; // true if it's the 4th+ gratitude of the day
   order: number; // order within the day (1, 2, 3, 4+)
+  type: 'gratitude' | 'self-praise'; // typ záznamu
   mood?: number; // optional mood rating (1-5)
 }
 
@@ -46,6 +47,7 @@ export interface GratitudeMilestone {
 export interface CreateGratitudeInput {
   content: string;
   date: DateString;
+  type?: 'gratitude' | 'self-praise'; // volitelný typ, default 'gratitude'
   mood?: number;
 }
 

@@ -21,6 +21,8 @@ export default function GratitudeList({ gratitudes }: GratitudeListProps) {
       style={[
         styles.gratitudeItem,
         item.isBonus && styles.bonusGratitudeItem,
+        item.type === 'self-praise' && styles.selfPraiseItem,
+        item.isBonus && item.type === 'self-praise' && styles.bonusSelfPraiseItem,
       ]}
     >
       <View style={styles.gratitudeHeader}>
@@ -28,14 +30,24 @@ export default function GratitudeList({ gratitudes }: GratitudeListProps) {
           <Text style={[
             styles.orderText,
             item.isBonus && styles.bonusOrderText,
+            item.type === 'self-praise' && !item.isBonus && styles.selfPraiseOrderText,
+            item.isBonus && item.type === 'self-praise' && styles.bonusSelfPraiseOrderText,
           ]}>
             {item.order}
           </Text>
-          {item.isBonus && (
-            <Text style={styles.bonusLabel}>
-              BONUS ⭐
+          <View style={styles.labelContainer}>
+            {item.isBonus && (
+              <Text style={styles.bonusLabel}>
+                BONUS ⭐
+              </Text>
+            )}
+            <Text style={[
+              styles.typeLabel,
+              item.type === 'self-praise' && styles.selfPraiseTypeLabel
+            ]}>
+              {item.type === 'gratitude' ? 'Gratitude' : 'Self-Praise'}
             </Text>
-          )}
+          </View>
         </View>
       </View>
       
@@ -98,6 +110,13 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.gold || '#FFD700',
     backgroundColor: Colors.background,
   },
+  selfPraiseItem: {
+    borderLeftColor: Colors.success,
+  },
+  bonusSelfPraiseItem: {
+    borderLeftColor: Colors.gold || '#FFD700',
+    backgroundColor: Colors.background,
+  },
   gratitudeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -107,6 +126,12 @@ const styles = StyleSheet.create({
   orderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  labelContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
   },
   orderText: {
     fontSize: Fonts.sizes.lg,
@@ -125,11 +150,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9E6',
     lineHeight: 32,
   },
+  selfPraiseOrderText: {
+    color: Colors.success,
+    backgroundColor: Colors.successLight || '#D4EDDA',
+    lineHeight: 32,
+  },
+  bonusSelfPraiseOrderText: {
+    color: Colors.gold || '#FFD700',
+    backgroundColor: '#FFF9E6',
+    lineHeight: 32,
+  },
   bonusLabel: {
     fontSize: Fonts.sizes.xs,
     color: Colors.gold || '#FFD700',
     fontWeight: 'bold',
     textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  typeLabel: {
+    fontSize: Fonts.sizes.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  selfPraiseTypeLabel: {
+    color: Colors.success,
   },
   gratitudeContent: {
     fontSize: Fonts.sizes.md,

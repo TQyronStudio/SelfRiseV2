@@ -119,6 +119,7 @@ export const createGratitude = (
     ...createBaseEntity(),
     content: input.content,
     date: input.date,
+    type: input.type || 'gratitude', // default typ 'gratitude'
     isBonus,
     order,
   };

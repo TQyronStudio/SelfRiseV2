@@ -300,12 +300,12 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Add bonus streak display in DailyGratitudeProgress component
 - [x] Redesign bonus system: remove repetitive streak alerts, add mysterious milestone counters (⭐🔥👑)
 
-#### Checkpoint 4.3: Gratitude History & Advanced Features
-- [ ] Create gratitude history screen with date navigation
-- [ ] Implement edit/delete functionality for gratitude entries
-- [ ] Add search functionality for gratitude content
+#### Checkpoint 4.3: Journal History & Advanced Features
+- [ ] Create journal history screen with date navigation
+- [ ] Implement edit/delete functionality for journal entries
+- [ ] Add search functionality for journal content
 - [ ] Create statistics dashboard (total entries, average per day)
-- [ ] Implement gratitude export functionality
+- [ ] Implement journal export functionality
 
 ### Phase 5: Goals Feature
 **Goal**: Complete goal tracking system
@@ -833,6 +833,54 @@ The hybrid architecture successfully resolves all critical scrolling issues whil
 ---
 
 *This implementation represents the optimal solution given React Native constraints and provides a stable, production-ready Habits screen with fully functional scrolling and drag & drop capabilities.*
+
+---
+
+## 📋 JOURNAL REFACTORING TASK
+
+### 🎯 CURRENT TASK: Refaktoring obrazovky Gratitude na Journal
+**Datum**: 15. července 2025  
+**Cíl**: Přejmenovat "My Gratitude" na "My Journal" a přidat dvě tlačítka s rotačními placeholdery
+
+#### Plán implementace:
+- [x] Přejmenovat soubor app/(tabs)/gratitude.tsx na app/(tabs)/journal.tsx
+- [x] Aktualizovat název a ikonu v navigaci (_layout.tsx) z 'My Gratitude' na 'My Journal' 
+- [x] Nahradit jedno velké tlačítko 'Add Gratitude' dvěma menšími tlačítky vedle sebe
+- [x] Implementovat rotační placeholdery pro Gratitude (10 textů)
+- [x] Implementovat rotační placeholdery pro Self-Praise (10 textů)
+- [x] Aktualizovat funkci ukládání pro přidání typu ('gratitude' nebo 'self-praise')
+- [x] Aktualizovat projectplan.md s dokončenými úkoly
+
+#### ✅ VÝSLEDKY REFACTORINGU:
+
+**Dokončené změny**:
+1. **Přejmenování**: Soubor `gratitude.tsx` → `journal.tsx`, ikona změněna na `book.fill`
+2. **Navigace**: Záložka nyní má název "My Journal" místo "My Gratitude"
+3. **UI s dvěma tlačítky**: 
+   - Modré tlačítko "Add Gratitude" (Colors.primary)
+   - Zelené tlačítko "Add Self-Praise" (Colors.success)
+4. **Rotační placeholdery**: Implementovány 2 seznamy s 10 texty každý
+5. **Typ záznamu**: Přidán `type: 'gratitude' | 'self-praise'` do Gratitude interface a ukládání
+
+**Technické detaily**:
+- Aktualizovány typy v `src/types/gratitude.ts`
+- Aktualizována utilita `createGratitude` v `src/utils/data.ts`
+- Komponenta `GratitudeInput` nyní podporuje `inputType` prop
+- Náhodný výběr placeholderů při každém otevření formuláře
+
+#### 🔄 DALŠÍ VYLEPŠENÍ (15. července 2025):
+
+**Přidané funkce**:
+1. **Křížek pro zavření**: GratitudeInput má header s křížkem pro snadné zavření
+2. **Rozlišení typu v seznamu**: Každý záznam má označení "Gratitude" nebo "Self-Praise"
+3. **Bonus + typ**: Bonusové záznamy mají text "BONUS ⭐" + typ záznamu
+4. **Lepší UX**: Uživatel může snadno zrušit zadávání bez nutnosti odeslat prázdný formulář
+
+**Implementované změny**:
+- Přidán `onCancel` prop do GratitudeInput komponenty
+- Header s názvem typu a křížkem pro zavření
+- Rozšířené zobrazení v GratitudeList s labelContainer pro typ
+- Zachován text "BONUS" s přidaným typem záznamu
 
 ---
 

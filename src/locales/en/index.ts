@@ -5,7 +5,7 @@ const en: TranslationKeys = {
   tabs: {
     home: 'Home',
     habits: 'Habits',
-    gratitude: 'My Gratitude',
+    journal: 'My Journal',
     goals: 'Goals',
     settings: 'Settings',
   },

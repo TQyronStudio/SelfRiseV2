@@ -55,10 +55,10 @@ function TabLayoutContent() {
         }}
       />
       <Tabs.Screen
-        name="gratitude"
+        name="journal"
         options={{
-          title: t('tabs.gratitude'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="heart.fill" color={color} />,
+          title: t('tabs.journal'),
+          tabBarIcon: ({ color }) => <IconSymbol size={22} name="book.fill" color={color} />,
         }}
       />
       <Tabs.Screen
