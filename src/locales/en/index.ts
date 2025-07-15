@@ -100,6 +100,7 @@ const en: TranslationKeys = {
     addGoal: 'Add Goal',
     editGoal: 'Edit Goal',
     deleteGoal: 'Delete Goal',
+    noGoals: 'No goals yet. Start by creating your first goal!',
     goalTitle: 'Goal Title',
     goalTitlePlaceholder: 'Enter your goal...',
     unit: 'Unit',
@@ -116,6 +117,40 @@ const en: TranslationKeys = {
     cancel: 'Cancel',
     delete: 'Delete',
     save: 'Save',
+    form: {
+      title: 'Goal Title',
+      description: 'Description (Optional)',
+      unit: 'Unit',
+      targetValue: 'Target Value',
+      category: 'Category',
+      targetDate: 'Target Date (Optional)',
+      placeholders: {
+        title: 'Enter your goal title...',
+        description: 'Describe your goal in more detail...',
+        unit: 'e.g., $, kg, hours, books...',
+        targetValue: '100',
+        targetDate: 'YYYY-MM-DD',
+      },
+      errors: {
+        titleRequired: 'Goal title is required',
+        titleTooShort: 'Goal title must be at least 2 characters',
+        titleTooLong: 'Goal title must be less than 100 characters',
+        unitRequired: 'Unit is required',
+        unitTooLong: 'Unit must be less than 20 characters',
+        targetValueRequired: 'Target value must be greater than 0',
+        targetValueTooLarge: 'Target value must be less than 1,000,000',
+        descriptionTooLong: 'Description must be less than 300 characters',
+        submitFailed: 'Failed to save goal. Please try again.',
+      },
+    },
+    categories: {
+      personal: 'Personal',
+      health: 'Health',
+      learning: 'Learning',
+      career: 'Career',
+      financial: 'Financial',
+      other: 'Other',
+    },
   },
   
   // Settings screen
@@ -167,6 +202,7 @@ const en: TranslationKeys = {
   // Common
   common: {
     save: 'Save',
+    saving: 'Saving...',
     cancel: 'Cancel',
     delete: 'Delete',
     edit: 'Edit',

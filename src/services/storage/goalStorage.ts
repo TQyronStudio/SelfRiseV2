@@ -1,4 +1,4 @@
-import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput } from '../../types/goal';
+import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats } from '../../types/goal';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -393,6 +393,72 @@ export class GoalStorage implements EntityStorage<Goal> {
     } catch (error) {
       throw new StorageError(
         'Failed to get goal completion rate',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GOALS
+      );
+    }
+  }
+
+  async getGoalStats(goalId: string): Promise<GoalStats> {
+    try {
+      const goal = await this.getById(goalId);
+      if (!goal) {
+        throw new StorageError(
+          `Goal with id ${goalId} not found`,
+          STORAGE_ERROR_CODES.NOT_FOUND,
+          STORAGE_KEYS.GOALS
+        );
+      }
+
+      const progress = await this.getProgressByGoalId(goalId);
+      const totalProgress = progress.reduce((sum, entry) => {
+        switch (entry.progressType) {
+          case 'add':
+            return sum + entry.value;
+          case 'subtract':
+            return sum - entry.value;
+          case 'set':
+            return entry.value;
+          default:
+            return sum;
+        }
+      }, 0);
+
+      const progressEntries = progress.length;
+      const startDate = new Date(goal.startDate);
+      const today = new Date();
+      const daysActive = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const averageDaily = daysActive > 0 ? totalProgress / daysActive : 0;
+      const completionPercentage = goal.targetValue > 0 ? (goal.currentValue / goal.targetValue) * 100 : 0;
+      
+      let estimatedCompletionDate: DateString | undefined;
+      let isOnTrack = false;
+
+      if (goal.targetDate && averageDaily > 0) {
+        const remainingValue = goal.targetValue - goal.currentValue;
+        const daysToComplete = Math.ceil(remainingValue / averageDaily);
+        const estimatedDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
+        estimatedCompletionDate = estimatedDate.toISOString().split('T')[0] as DateString;
+        
+        const targetDate = new Date(goal.targetDate);
+        isOnTrack = estimatedDate <= targetDate;
+      }
+
+      return {
+        goalId,
+        totalProgress,
+        progressEntries,
+        averageDaily,
+        daysActive,
+        completionPercentage,
+        estimatedCompletionDate,
+        isOnTrack,
+      };
+    } catch (error) {
+      if (error instanceof StorageError) throw error;
+      throw new StorageError(
+        `Failed to get stats for goal ${goalId}`,
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GOALS
       );
