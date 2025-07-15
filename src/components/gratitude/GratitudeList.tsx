@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
@@ -11,9 +12,12 @@ import { Colors, Fonts, Layout } from '@/src/constants';
 
 interface GratitudeListProps {
   gratitudes: Gratitude[];
+  showDate?: boolean;
+  onEdit?: (gratitude: Gratitude) => void;
+  onDelete?: (gratitude: Gratitude) => void;
 }
 
-export default function GratitudeList({ gratitudes }: GratitudeListProps) {
+export default function GratitudeList({ gratitudes, showDate = false, onEdit, onDelete }: GratitudeListProps) {
   const { t } = useI18n();
 
   const renderGratitudeItem = ({ item, index }: { item: Gratitude; index: number }) => (
@@ -55,12 +59,41 @@ export default function GratitudeList({ gratitudes }: GratitudeListProps) {
         {item.content}
       </Text>
       
-      <Text style={styles.gratitudeTime}>
-        {new Date(item.createdAt).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })}
-      </Text>
+      <View style={styles.timeContainer}>
+        {showDate && (
+          <Text style={styles.gratitudeDate}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+        )}
+        <Text style={styles.gratitudeTime}>
+          {new Date(item.createdAt).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
+        </Text>
+      </View>
+      
+      {/* Edit/Delete buttons - only show if handlers are provided */}
+      {(onEdit || onDelete) && (
+        <View style={styles.actionButtons}>
+          {onEdit && (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.editButton]}
+              onPress={() => onEdit(item)}
+            >
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          )}
+          {onDelete && (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.deleteButton]}
+              onPress={() => onDelete(item)}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 
@@ -182,10 +215,49 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Layout.spacing.sm,
   },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gratitudeDate: {
+    fontSize: Fonts.sizes.xs,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
   gratitudeTime: {
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
     textAlign: 'right',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: Layout.spacing.sm,
+    marginTop: Layout.spacing.md,
+    justifyContent: 'flex-end',
+  },
+  actionButton: {
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.sm,
+    borderRadius: 8,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  editButton: {
+    backgroundColor: Colors.primary,
+  },
+  deleteButton: {
+    backgroundColor: Colors.error,
+  },
+  editButtonText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: '600',
+  },
+  deleteButtonText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,

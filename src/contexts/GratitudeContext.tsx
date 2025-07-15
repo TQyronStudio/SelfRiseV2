@@ -19,6 +19,7 @@ export interface GratitudeContextType {
     updateGratitude: (id: string, updates: UpdateGratitudeInput) => Promise<Gratitude>;
     deleteGratitude: (id: string) => Promise<void>;
     getGratitudesByDate: (date: DateString) => Gratitude[];
+    searchGratitudes: (searchTerm: string) => Promise<Gratitude[]>;
     refreshStats: () => Promise<void>;
     incrementMilestoneCounter: (milestoneType: number) => Promise<void>;
     clearError: () => void;
@@ -198,6 +199,15 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const searchGratitudes = async (searchTerm: string): Promise<Gratitude[]> => {
+    try {
+      return await gratitudeStorage.searchByContent(searchTerm);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to search gratitudes');
+      return [];
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -216,6 +226,7 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
           updateGratitude,
           deleteGratitude,
           getGratitudesByDate,
+          searchGratitudes,
           refreshStats,
           incrementMilestoneCounter,
           clearError,

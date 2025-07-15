@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { today } from '@/src/utils/date';
 import { Colors, Layout } from '@/src/constants';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeInput from '@/src/components/gratitude/GratitudeInput';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
 import DailyGratitudeProgress from '@/src/components/gratitude/DailyGratitudeProgress';
@@ -12,6 +14,7 @@ import CelebrationModal from '@/src/components/gratitude/CelebrationModal';
 
 export default function JournalScreen() {
   const { t } = useI18n();
+  const router = useRouter();
   const { state, actions } = useGratitude();
   const [showInput, setShowInput] = useState(false);
   const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
@@ -97,6 +100,25 @@ export default function JournalScreen() {
             </View>
           </View>
         )}
+        
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push('/journal-history')}
+          >
+            <IconSymbol name="clock" size={20} color={Colors.primary} />
+            <Text style={styles.actionButtonText}>History</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push('/journal-stats')}
+          >
+            <IconSymbol name="chart.bar" size={20} color={Colors.primary} />
+            <Text style={styles.actionButtonText}>Statistics</Text>
+          </TouchableOpacity>
+        </View>
         
         {showInput && (
           <GratitudeInput 
@@ -226,5 +248,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: Colors.text,
+  },
+  actionButtonsContainer: {
+    paddingHorizontal: Layout.spacing.md,
+    marginBottom: Layout.spacing.md,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: Layout.spacing.md,
+    gap: Layout.spacing.sm,
+    shadowColor: Colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: Layout.spacing.sm,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });
