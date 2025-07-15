@@ -40,6 +40,7 @@ export default function JournalScreen() {
         await actions.refreshStats();
         const currentStreak = state.streakInfo?.currentStreak || 0;
         
+        // Show celebration for special milestones (21, 100, 365, 1000) or generic for others
         if ([7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000].includes(currentStreak)) {
           setMilestoneStreak(currentStreak);
           setCelebrationType('streak_milestone');
@@ -150,8 +151,8 @@ export default function JournalScreen() {
         type={celebrationType}
         streakDays={milestoneStreak}
         bonusCount={bonusMilestone}
-        title={milestoneStreak ? t(`gratitude.streak${milestoneStreak}_title`) || 'Another Milestone! 🎯' : undefined}
-        message={milestoneStreak ? t(`gratitude.streak${milestoneStreak}_text`) || `Congratulations on reaching ${milestoneStreak} days in a row!` : undefined}
+        title={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_title`) || t('journal.streakMilestone_generic_title') : undefined}
+        message={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(milestoneStreak)) : undefined}
       />
     </SafeAreaView>
   );

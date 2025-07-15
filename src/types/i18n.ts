@@ -4,7 +4,7 @@ export interface TranslationKeys {
   tabs: {
     home: string;
     habits: string;
-    gratitude: string;
+    journal: string;
     goals: string;
     settings: string;
   };
@@ -37,10 +37,27 @@ export interface TranslationKeys {
     cancel: string;
     delete: string;
     save: string;
+    form: {
+      name: string;
+      namePlaceholder: string;
+      color: string;
+      icon: string;
+      scheduledDays: string;
+      description: string;
+      descriptionPlaceholder: string;
+      errors: {
+        nameRequired: string;
+        nameTooShort: string;
+        nameTooLong: string;
+        daysRequired: string;
+        descriptionTooLong: string;
+        submitFailed: string;
+      };
+    };
   };
   
-  // Gratitude screen
-  gratitude: {
+  // Journal screen
+  journal: {
     title: string;
     addGratitude: string;
     gratitudePlaceholder: string;
@@ -49,16 +66,25 @@ export interface TranslationKeys {
     currentStreak: string;
     longestStreak: string;
     history: string;
-    celebration: {
-      title: string;
-      message: string;
-      bonusPrompt: string;
-      continue: string;
-    };
-    milestone: {
-      title: string;
-      message: string;
-    };
+    // --- NEW UNIVERSAL MILESTONE SYSTEM ---
+    // Pro bonusové záznamy
+    bonusMilestone1_title: string;
+    bonusMilestone1_text: string;
+    bonusMilestone5_title: string;
+    bonusMilestone5_text: string;
+    bonusMilestone10_title: string;
+    bonusMilestone10_text: string;
+    // Pro hlavní 'SelfRise Streak'
+    streakMilestone_generic_title: string;
+    streakMilestone_generic_text: string;
+    streakMilestone21_title: string;
+    streakMilestone21_text: string;
+    streakMilestone100_title: string;
+    streakMilestone100_text: string;
+    streakMilestone365_title: string;
+    streakMilestone365_text: string;
+    streakMilestone1000_title: string;
+    streakMilestone1000_text: string;
     streakLost: {
       title: string;
       message: string;
@@ -144,6 +170,8 @@ export interface TranslationKeys {
     delete: string;
     edit: string;
     add: string;
+    create: string;
+    update: string;
     confirm: string;
     loading: string;
     error: string;
@@ -154,6 +182,7 @@ export interface TranslationKeys {
     next: string;
     skip: string;
     close: string;
+    continue: string;
     yes: string;
     no: string;
   };

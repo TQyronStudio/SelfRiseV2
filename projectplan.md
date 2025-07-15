@@ -6,7 +6,7 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 ## Core Features
 - **Home**: Daily gratitude streak display and interactive habit statistics
 - **Habits**: Habit creation, management, and tracking with customizable scheduling
-- **My Gratitude**: Daily gratitude journaling with streak maintenance
+- **My Journal**: Daily reflection with gratitude and self-praise entries
 - **Goals**: Long-term goal setting with progress tracking
 - **Settings**: Notifications, user authentication, and preferences
 
@@ -239,17 +239,17 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 #### Checkpoint 3.3: Habit Statistics & Calendar  
 - [x] **Refactoring completed**: Sjednocena navigace chart ikon na `/habit-stats` s auto-expansion funkcionalitou
 
-### Phase 4: Gratitude Feature
-**Goal**: Complete gratitude journaling system
+### Phase 4: Journal Feature
+**Goal**: Complete universal journal system
 
-#### Current Gratitude Implementation Analysis
+#### Current Journal Implementation Analysis
 
 **✅ FULLY COMPLETED AND OPERATIONAL**:
 - Complete type definitions in `/src/types/gratitude.ts` with badge system
 - Full storage service in `/src/services/storage/gratitudeStorage.ts` with all CRUD operations
 - React Context with complete state management in `/src/contexts/GratitudeContext.tsx`
 - All required UI components: GratitudeInput, GratitudeList, DailyGratitudeProgress, CelebrationModal
-- Functional main screen at `/app/(tabs)/gratitude.tsx` with full feature set
+- Functional main screen at `/app/(tabs)/journal.tsx` with full feature set
 - Localization support in English (complete), German and Spanish (partial)
 - Data utilities for gratitude creation, validation, and migration
 - Mysterious badge system (⭐🔥👑) fully implemented and working
@@ -267,7 +267,7 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Fix missing storage methods (getStreakInfo, getStats) in GratitudeStorage
 - [x] Create GratitudeInput component with text validation
 - [x] Create DailyGratitudeList component to display today's entries
-- [x] Replace gratitude.tsx placeholder with functional daily gratitude screen
+- [x] Replace gratitude.tsx placeholder with functional daily journal screen
 - [x] Implement "Add Gratitude" button with proper form handling
 - [x] Add visual indicators for minimum requirement (3/3) and bonus entries
 - [x] Fix getCurrentDate import error (use today() function instead)
@@ -299,6 +299,12 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Implement bonus streak celebrations (1, 5, 10 consecutive bonus days)
 - [x] Add bonus streak display in DailyGratitudeProgress component
 - [x] Redesign bonus system: remove repetitive streak alerts, add mysterious milestone counters (⭐🔥👑)
+- [x] **MAJOR TEXT REFACTORING**: Complete overhaul of celebration system for universal "My Journal" concept
+  - Replaced all specific gratitude milestone texts with universal journal texts
+  - Implemented new milestone system: bonusMilestone1/5/10 and streakMilestone21/100/365/1000
+  - Updated all i18n keys from `gratitude.*` to `journal.*`
+  - Fixed all missing key errors and syntax issues
+  - Created unified celebration system supporting both gratitude and self-praise entries
 
 #### Checkpoint 4.3: Journal History & Advanced Features
 - [ ] Create journal history screen with date navigation
@@ -881,6 +887,7 @@ The hybrid architecture successfully resolves all critical scrolling issues whil
 - Header s názvem typu a křížkem pro zavření
 - Rozšířené zobrazení v GratitudeList s labelContainer pro typ
 - Zachován text "BONUS" s přidaným typem záznamu
+
 
 ---
 

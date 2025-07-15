@@ -37,21 +37,27 @@ export default function CelebrationModal({
     switch (type) {
       case 'daily_complete':
         return {
-          title: t('gratitude.celebration.title'),
-          message: t('gratitude.celebration.message'),
+          title: 'Congratulations! 🎉',
+          message: 'You\'ve completed your daily journal practice!',
           emoji: '🎉',
         };
       case 'streak_milestone':
+        // Použít speciální texty pro klíčové milníky nebo generický text
+        const hasSpecialMilestone = [21, 100, 365, 1000].includes(streakDays || 0);
+        const milestoneKey = hasSpecialMilestone ? `streakMilestone${streakDays}` : 'streakMilestone_generic';
+        
         return {
-          title: t('gratitude.milestone.title'),
-          message: t('gratitude.milestone.message').replace('{{days}}', String(streakDays)),
+          title: t(`journal.${milestoneKey}_title`),
+          message: hasSpecialMilestone 
+            ? t(`journal.${milestoneKey}_text`)
+            : t('journal.streakMilestone_generic_text').replace('{days}', String(streakDays)),
           emoji: '🏆',
         };
       case 'bonus_milestone':
         const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
         return {
-          title: t(`gratitude.milestone${bonusCount}_title`) || `Bonus Milestone ${bonusEmoji}`,
-          message: t(`gratitude.milestone${bonusCount}_text`) || `You've reached ${bonusCount} bonus gratitudes today!`,
+          title: t(`journal.bonusMilestone${bonusCount}_title`) || `Bonus Milestone ${bonusEmoji}`,
+          message: t(`journal.bonusMilestone${bonusCount}_text`) || `You've reached ${bonusCount} bonus entries today!`,
           emoji: bonusEmoji,
         };
       default:
@@ -100,7 +106,7 @@ export default function CelebrationModal({
           
           <TouchableOpacity style={styles.button} onPress={onClose}>
             <Text style={styles.buttonText}>
-              {t('gratitude.celebration.continue')}
+              {t('common.continue')}
             </Text>
           </TouchableOpacity>
         </View>

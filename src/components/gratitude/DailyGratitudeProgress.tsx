@@ -28,7 +28,7 @@ export default function DailyGratitudeProgress({
 
   const getProgressText = () => {
     if (hasBonus) {
-      return `${currentCount}/3+ ${t('gratitude.bonusGratitude')}`;
+      return `${currentCount}/3+ ${t('journal.bonusGratitude')}`;
     }
     if (isComplete) {
       return `${currentCount}/3 Complete ✓`;
@@ -38,19 +38,19 @@ export default function DailyGratitudeProgress({
 
   const getSubText = () => {
     if (hasBonus) {
-      return 'Amazing! You\'ve added bonus gratitudes! 🌟';
+      return 'Amazing! You\'ve added bonus entries! 🌟';
     }
     if (isComplete) {
-      return 'Daily gratitude complete! Keep your streak alive! 🔥';
+      return 'Daily journal complete! Keep your streak alive! 🔥';
     }
     const remaining = 3 - currentCount;
-    return `${remaining} more gratitude${remaining !== 1 ? 's' : ''} needed`;
+    return `${remaining} more ${remaining !== 1 ? 'entries' : 'entry'} needed`;
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Today's Gratitude Progress</Text>
+        <Text style={styles.title}>Today's Journal Progress</Text>
         <Text style={[styles.progressText, { color: getProgressColor() }]}>
           {getProgressText()}
         </Text>
@@ -105,12 +105,12 @@ export default function DailyGratitudeProgress({
         <View style={styles.streakContainer}>
           <View style={styles.streakItem}>
             <Text style={styles.streakNumber}>{streakInfo.currentStreak}</Text>
-            <Text style={styles.streakLabel}>{t('gratitude.currentStreak')}</Text>
+            <Text style={styles.streakLabel}>{t('journal.currentStreak')}</Text>
           </View>
           <View style={styles.streakDivider} />
           <View style={styles.streakItem}>
             <Text style={styles.streakNumber}>{streakInfo.longestStreak}</Text>
-            <Text style={styles.streakLabel}>{t('gratitude.longestStreak')}</Text>
+            <Text style={styles.streakLabel}>{t('journal.longestStreak')}</Text>
           </View>
         </View>
       )}

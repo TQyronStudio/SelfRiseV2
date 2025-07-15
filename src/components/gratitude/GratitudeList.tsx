@@ -68,7 +68,7 @@ export default function GratitudeList({ gratitudes }: GratitudeListProps) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>
-          {t('gratitude.minimumRequired')}
+          {t('journal.minimumRequired')}
         </Text>
       </View>
     );
