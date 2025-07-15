@@ -110,12 +110,14 @@ export default function JournalHistoryScreen() {
 
   return (
     <>
-      <StatusBar style="light" />
       <Stack.Screen 
         options={{
           headerShown: false,
+          presentation: 'card',
+          animationTypeForReplace: 'push',
         }} 
       />
+      <StatusBar style="light" />
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         {/* Custom Header */}
         <View style={styles.header}>

@@ -307,11 +307,17 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
   - Created unified celebration system supporting both gratitude and self-praise entries
 
 #### Checkpoint 4.3: Journal History & Advanced Features
-- [ ] Create journal history screen with date navigation
-- [ ] Implement edit/delete functionality for journal entries
-- [ ] Add search functionality for journal content
-- [ ] Create statistics dashboard (total entries, average per day)
-- [ ] Implement journal export functionality
+- [x] Create journal history screen with date navigation
+- [x] Implement edit/delete functionality for journal entries
+- [x] Add search functionality for journal content
+- [x] Create statistics dashboard (total entries, average per day)
+- [x] Implement journal export functionality
+
+**✅ DOKONČENO** - Vyřešeny byly také navigační problémy:
+- Opravena trhaná navigace u Journal Statistics screen
+- Eliminováno zobrazování "My Journal" textu během přechodu
+- Přidána správná konfigurace Stack.Screen v root layout
+- Optimalizace Journal Stats screenu pro eliminaci blikání při načítání
 
 ### Phase 5: Goals Feature
 **Goal**: Complete goal tracking system

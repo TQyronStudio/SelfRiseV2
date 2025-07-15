@@ -80,24 +80,16 @@ export default function JournalStatsScreen() {
     return stats.totalDays > 0 ? 1 : 0;
   };
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading statistics...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <>
-      <StatusBar style="light" />
       <Stack.Screen 
         options={{
           headerShown: false,
+          presentation: 'card',
+          animationTypeForReplace: 'push',
         }} 
       />
+      <StatusBar style="light" />
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         {/* Custom Header */}
         <View style={styles.header}>
@@ -115,7 +107,12 @@ export default function JournalStatsScreen() {
           </View>
         </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading statistics...</Text>
+          </View>
+        ) : (
+          <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.statsGrid}>
           {/* Total Entries */}
           <StatisticsCard
@@ -141,7 +138,7 @@ export default function JournalStatsScreen() {
             value={`${state.streakInfo?.currentStreak || 0} days`}
             subtitle={getStreakDescription()}
             icon="🔥"
-            color={Colors.orange || '#FF6B35'}
+            color={Colors.habitOrange}
           />
 
           {/* Average Per Day */}
@@ -196,6 +193,7 @@ export default function JournalStatsScreen() {
           </View>
         </View>
       </ScrollView>
+        )}
       
       <ExportModal
         visible={showExportModal}
@@ -233,6 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.background,
   },
   loadingText: {
     fontSize: 16,
