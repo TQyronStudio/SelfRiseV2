@@ -132,8 +132,10 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_GOALS', payload: goals });
       dispatch({ type: 'SET_PROGRESS', payload: progress });
       
-      // Load stats for all goals
-      await refreshStats();
+      // Load stats for all goals using the freshly loaded goals
+      const statsPromises = goals.map(goal => goalStorage.getGoalStats(goal.id));
+      const stats = await Promise.all(statsPromises);
+      dispatch({ type: 'SET_STATS', payload: stats });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load goals');
     } finally {
@@ -164,7 +166,7 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const updatedGoal = await goalStorage.update(id, updates);
+      const updatedGoal = await goalStorage.update(id, updates as Partial<Goal>);
       dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
       
       return updatedGoal;
@@ -198,24 +200,28 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Execute all operations in parallel
+      // Just add the progress - storage will handle goal updates
       const newProgress = await goalStorage.addProgress(input);
-      const [updatedGoal, updatedStats] = await Promise.all([
-        goalStorage.getById(input.goalId),
-        goalStorage.getGoalStats(input.goalId)
-      ]);
       
-      // Single batch update instead of multiple dispatches
-      if (updatedGoal) {
-        dispatch({ 
-          type: 'BATCH_PROGRESS_UPDATE', 
-          payload: { 
-            progress: newProgress, 
-            goal: updatedGoal, 
-            stats: updatedStats 
+      // Add progress to state immediately
+      dispatch({ type: 'ADD_PROGRESS', payload: newProgress });
+      
+      // Refresh the specific goal and stats in background
+      setTimeout(async () => {
+        try {
+          const [updatedGoal, updatedStats] = await Promise.all([
+            goalStorage.getById(input.goalId),
+            goalStorage.getGoalStats(input.goalId)
+          ]);
+          
+          if (updatedGoal) {
+            dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
+            dispatch({ type: 'UPDATE_GOAL_STATS', payload: updatedStats });
           }
-        });
-      }
+        } catch (error) {
+          console.error('Failed to update goal after progress:', error);
+        }
+      }, 0);
       
       return newProgress;
     } catch (error) {
@@ -281,6 +287,12 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
 
   const refreshStats = async (): Promise<void> => {
     try {
+      // Only refresh if we have goals to avoid unnecessary operations
+      if (state.goals.length === 0) {
+        dispatch({ type: 'SET_STATS', payload: [] });
+        return;
+      }
+      
       const statsPromises = state.goals.map(goal => goalStorage.getGoalStats(goal.id));
       const stats = await Promise.all(statsPromises);
       dispatch({ type: 'SET_STATS', payload: stats });

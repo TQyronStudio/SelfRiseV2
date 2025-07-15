@@ -95,6 +95,13 @@ function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
 
 export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: ProgressHistoryListProps) {
   const { t } = useI18n();
+  
+  // Debug: Check for duplicate IDs
+  const ids = progress.map(p => p.id);
+  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
+  if (duplicates.length > 0) {
+    console.warn('Duplicate progress IDs found:', duplicates);
+  }
 
   const renderProgressItem = ({ item }: { item: GoalProgress }) => (
     <ProgressItem
@@ -116,7 +123,11 @@ export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: Pr
       <FlatList
         data={progress}
         renderItem={renderProgressItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => {
+          // Use ID + timestamp for uniqueness
+          const timestamp = item.createdAt ? new Date(item.createdAt).getTime() : Date.now();
+          return `${item.id || `progress-${index}`}-${timestamp}`;
+        }}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
         scrollEnabled={false}

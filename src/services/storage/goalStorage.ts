@@ -1,6 +1,6 @@
 import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats } from '../../types/goal';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
-import { createGoal, updateEntityTimestamp, updateGoalValue } from '../../utils/data';
+import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
 
 export class GoalStorage implements EntityStorage<Goal> {
@@ -66,7 +66,7 @@ export class GoalStorage implements EntityStorage<Goal> {
       const updatedGoal = updateEntityTimestamp({
         ...goals[goalIndex],
         ...updates,
-      });
+      } as Goal);
 
       goals[goalIndex] = updatedGoal;
       await BaseStorage.set(STORAGE_KEYS.GOALS, goals);
@@ -161,13 +161,20 @@ export class GoalStorage implements EntityStorage<Goal> {
   async getAllProgress(): Promise<GoalProgress[]> {
     try {
       const progress = await BaseStorage.get<GoalProgress[]>(STORAGE_KEYS.GOAL_PROGRESS);
-      return progress || [];
+      if (!progress) return [];
+      
+      // Validate progress data structure
+      if (!Array.isArray(progress)) {
+        console.warn('Progress data is not an array, resetting to empty array');
+        await BaseStorage.set(STORAGE_KEYS.GOAL_PROGRESS, []);
+        return [];
+      }
+      
+      return progress;
     } catch (error) {
-      throw new StorageError(
-        'Failed to get all goal progress',
-        STORAGE_ERROR_CODES.UNKNOWN,
-        STORAGE_KEYS.GOAL_PROGRESS
-      );
+      console.error('Failed to get all goal progress:', error);
+      // Return empty array instead of throwing to prevent app crash
+      return [];
     }
   }
 
@@ -175,14 +182,16 @@ export class GoalStorage implements EntityStorage<Goal> {
     try {
       const progress = await this.getAllProgress();
       return progress
-        .filter(p => p.goalId === goalId)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        .filter(p => p && p.goalId === goalId)
+        .sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return timeB - timeA;
+        });
     } catch (error) {
-      throw new StorageError(
-        `Failed to get progress for goal ${goalId}`,
-        STORAGE_ERROR_CODES.UNKNOWN,
-        STORAGE_KEYS.GOAL_PROGRESS
-      );
+      console.error(`Failed to get progress for goal ${goalId}:`, error);
+      // Return empty array instead of throwing to prevent app crash
+      return [];
     }
   }
 
@@ -201,11 +210,7 @@ export class GoalStorage implements EntityStorage<Goal> {
       // Create progress entry
       const progress = await this.getAllProgress();
       const newProgress: GoalProgress = {
-        ...updateEntityTimestamp({
-          id: '',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }),
+        ...createBaseEntity(),
         goalId: input.goalId,
         value: input.value,
         note: input.note,
@@ -221,7 +226,7 @@ export class GoalStorage implements EntityStorage<Goal> {
       await this.update(input.goalId, { 
         currentValue: updatedGoal.currentValue,
         status: updatedGoal.status,
-        completedDate: updatedGoal.completedDate 
+        completedDate: updatedGoal.completedDate || undefined
       });
 
       return newProgress;
@@ -251,7 +256,7 @@ export class GoalStorage implements EntityStorage<Goal> {
       const updatedProgress = updateEntityTimestamp({
         ...progress[progressIndex],
         ...updates,
-      });
+      } as GoalProgress);
 
       progress[progressIndex] = updatedProgress;
       await BaseStorage.set(STORAGE_KEYS.GOAL_PROGRESS, progress);
@@ -348,7 +353,7 @@ export class GoalStorage implements EntityStorage<Goal> {
       await this.update(goalId, { 
         currentValue,
         status,
-        completedDate: isCompleted && !goal.completedDate ? new Date().toISOString().split('T')[0]! : goal.completedDate
+        completedDate: isCompleted && !goal.completedDate ? new Date().toISOString().split('T')[0]! : goal.completedDate || undefined
       });
     } catch (error) {
       throw new StorageError(
@@ -403,11 +408,16 @@ export class GoalStorage implements EntityStorage<Goal> {
     try {
       const goal = await this.getById(goalId);
       if (!goal) {
-        throw new StorageError(
-          `Goal with id ${goalId} not found`,
-          STORAGE_ERROR_CODES.NOT_FOUND,
-          STORAGE_KEYS.GOALS
-        );
+        // Return default stats for missing goal instead of throwing
+        return {
+          goalId,
+          totalProgress: 0,
+          progressEntries: 0,
+          averageDaily: 0,
+          daysActive: 0,
+          completionPercentage: 0,
+          isOnTrack: false,
+        };
       }
 
       const progress = await this.getProgressByGoalId(goalId);
@@ -452,7 +462,7 @@ export class GoalStorage implements EntityStorage<Goal> {
         averageDaily,
         daysActive,
         completionPercentage,
-        estimatedCompletionDate,
+        estimatedCompletionDate: estimatedCompletionDate || undefined,
         isOnTrack,
       };
     } catch (error) {

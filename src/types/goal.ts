@@ -26,7 +26,7 @@ export interface Goal extends BaseEntity {
   category: GoalCategory;
   targetDate?: DateString;
   startDate: DateString;
-  completedDate?: DateString;
+  completedDate?: DateString | undefined;
   order: number; // For custom ordering in UI
 }
 
@@ -45,7 +45,7 @@ export interface GoalStats {
   averageDaily: number;
   daysActive: number;
   completionPercentage: number;
-  estimatedCompletionDate?: DateString;
+  estimatedCompletionDate?: DateString | undefined;
   isOnTrack: boolean;
 }
 

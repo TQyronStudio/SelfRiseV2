@@ -242,7 +242,7 @@ export function ProgressEntryForm({
             disabled={isLoading}
           >
             <Text style={[styles.buttonText, styles.submitButtonText]}>
-              {isLoading ? t('common.saving') : t('goals.progress.form.addProgress')}
+              {isLoading ? t('common.saving') : t('goals.progress.form.submit')}
             </Text>
           </TouchableOpacity>
         </View>
