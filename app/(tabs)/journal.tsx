@@ -176,8 +176,8 @@ export default function JournalScreen() {
           setBonusMilestone(null);
         }}
         type={celebrationType}
-        streakDays={milestoneStreak}
-        bonusCount={bonusMilestone}
+        streakDays={milestoneStreak || undefined}
+        bonusCount={bonusMilestone || undefined}
         title={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_title`) || t('journal.streakMilestone_generic_title') : undefined}
         message={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(milestoneStreak)) : undefined}
       />

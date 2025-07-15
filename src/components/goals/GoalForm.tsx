@@ -18,11 +18,11 @@ import { ErrorModal } from '@/src/components/common';
 
 export type GoalFormData = {
   title: string;
-  description?: string;
+  description: string | undefined;
   unit: string;
   targetValue: number;
   category: GoalCategory;
-  targetDate?: DateString;
+  targetDate: DateString | undefined;
 };
 
 interface GoalFormProps {
@@ -45,7 +45,7 @@ export function GoalForm({
   
   const [formData, setFormData] = useState<GoalFormData>({
     title: initialData?.title || '',
-    description: initialData?.description || '',
+    description: initialData?.description || undefined,
     unit: initialData?.unit || '',
     targetValue: initialData?.targetValue || 0,
     category: initialData?.category || GoalCategory.PERSONAL,
@@ -98,6 +98,7 @@ export function GoalForm({
         title: formData.title.trim(),
         unit: formData.unit.trim(),
         description: formData.description?.trim() || undefined,
+        targetDate: formData.targetDate || undefined,
       };
       await onSubmit(submitData);
     } catch (error) {
@@ -114,7 +115,7 @@ export function GoalForm({
   const handleDateChange = (text: string) => {
     setFormData(prev => ({
       ...prev,
-      targetDate: text ? (text as DateString) : undefined,
+      targetDate: text.trim() ? (text as DateString) : undefined,
     }));
   };
 
@@ -165,8 +166,8 @@ export function GoalForm({
           <TextInput
             style={[styles.input, styles.textArea, errors.description && styles.inputError]}
             placeholder={t('goals.form.placeholders.description')}
-            value={formData.description}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
+            value={formData.description || ''}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, description: text || undefined }))}
             onFocus={() => scrollToInput(100)}
             multiline
             numberOfLines={3}

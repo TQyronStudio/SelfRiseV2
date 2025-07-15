@@ -16,10 +16,10 @@ interface CelebrationModalProps {
   visible: boolean;
   onClose: () => void;
   type: 'daily_complete' | 'streak_milestone' | 'bonus_milestone';
-  title?: string;
-  message?: string;
-  streakDays?: number;
-  bonusCount?: number;
+  title?: string | undefined;
+  message?: string | undefined;
+  streakDays?: number | undefined;
+  bonusCount?: number | undefined;
 }
 
 export default function CelebrationModal({

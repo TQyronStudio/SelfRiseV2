@@ -52,22 +52,22 @@ export interface GoalStats {
 // Create goal input interface
 export interface CreateGoalInput {
   title: string;
-  description?: string;
+  description?: string | undefined;
   unit: string;
   targetValue: number;
   category: GoalCategory;
-  targetDate?: DateString;
+  targetDate?: DateString | undefined;
 }
 
 // Update goal input interface
 export interface UpdateGoalInput {
   title?: string;
-  description?: string;
+  description?: string | undefined;
   unit?: string;
   targetValue?: number;
   status?: GoalStatus;
   category?: GoalCategory;
-  targetDate?: DateString;
+  targetDate?: DateString | undefined;
   order?: number;
 }
 

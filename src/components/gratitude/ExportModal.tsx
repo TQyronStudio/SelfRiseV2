@@ -56,6 +56,8 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     
     sortedDates.forEach(date => {
       const entries = groupedByDate[date];
+      if (!entries) return;
+      
       exportText += `${new Date(date).toLocaleDateString()}\n`;
       exportText += `${'-'.repeat(20)}\n`;
       
