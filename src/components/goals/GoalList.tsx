@@ -12,6 +12,7 @@ interface GoalListProps {
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
   onViewGoalStats: (goalId: string) => void;
+  onAddProgress: (goal: Goal) => void;
   onReorderGoals: (goalOrders: Array<{ id: string; order: number }>) => void;
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
 }
@@ -23,6 +24,7 @@ export function GoalList({
   onEditGoal,
   onDeleteGoal,
   onViewGoalStats,
+  onAddProgress,
   onReorderGoals,
   ListHeaderComponent,
 }: GoalListProps) {
@@ -36,6 +38,7 @@ export function GoalList({
       onEdit={() => onEditGoal(goal)}
       onDelete={() => onDeleteGoal(goal.id)}
       onViewStats={() => onViewGoalStats(goal.id)}
+      onAddProgress={() => onAddProgress(goal)}
     />
   );
 

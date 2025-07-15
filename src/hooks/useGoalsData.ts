@@ -5,9 +5,11 @@ import { Goal, GoalStatus, GoalCategory } from '../types/goal';
 export function useGoalsData() {
   const { state, actions } = useGoals();
 
+  const sortedGoals = useMemo(() => {
+    return [...state.goals].sort((a, b) => a.order - b.order);
+  }, [state.goals]);
+
   const goalsData = useMemo(() => {
-    const sortedGoals = [...state.goals].sort((a, b) => a.order - b.order);
-    
     return {
       goals: sortedGoals,
       activeGoals: sortedGoals.filter(goal => goal.status === GoalStatus.ACTIVE),
@@ -19,7 +21,7 @@ export function useGoalsData() {
       isLoading: state.isLoading,
       error: state.error,
     };
-  }, [state.goals, state.progress, state.stats, state.isLoading, state.error]);
+  }, [sortedGoals, state.progress, state.stats, state.isLoading, state.error]);
 
   const getGoalsByCategory = (category: GoalCategory): Goal[] => {
     return goalsData.goals.filter(goal => goal.category === category);

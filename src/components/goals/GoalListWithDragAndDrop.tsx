@@ -13,8 +13,9 @@ interface GoalListWithDragAndDropProps {
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
   onViewGoalStats: (goalId: string) => void;
+  onAddProgress: (goal: Goal) => void;
   onReorderGoals: (goalOrders: Array<{ id: string; order: number }>) => void;
-  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+  ListHeaderComponent?: React.ReactNode;
 }
 
 export function GoalListWithDragAndDrop({
@@ -24,6 +25,7 @@ export function GoalListWithDragAndDrop({
   onEditGoal,
   onDeleteGoal,
   onViewGoalStats,
+  onAddProgress,
   onReorderGoals,
   ListHeaderComponent,
 }: GoalListWithDragAndDropProps) {
@@ -61,6 +63,7 @@ export function GoalListWithDragAndDrop({
         onEdit={() => onEditGoal(goal)}
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
+        onAddProgress={() => onAddProgress(goal)}
         onDrag={drag}
         isDragging={isActive}
       />
@@ -74,6 +77,7 @@ export function GoalListWithDragAndDrop({
         onEdit={() => onEditGoal(goal)}
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
+        onAddProgress={() => onAddProgress(goal)}
       />
     </View>
   );

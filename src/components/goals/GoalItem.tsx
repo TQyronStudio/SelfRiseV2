@@ -12,11 +12,12 @@ interface GoalItemProps {
   onEdit: () => void;
   onDelete: () => void;
   onViewStats: () => void;
+  onAddProgress: () => void;
   onDrag?: () => void;
   isDragging?: boolean;
 }
 
-export function GoalItem({ goal, onEdit, onDelete, onViewStats, onDrag, isDragging }: GoalItemProps) {
+export function GoalItem({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging }: GoalItemProps) {
   const { t } = useI18n();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -77,6 +78,9 @@ export function GoalItem({ goal, onEdit, onDelete, onViewStats, onDrag, isDraggi
               <Ionicons name="reorder-three-outline" size={20} color={Colors.textSecondary} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity style={styles.actionButton} onPress={onAddProgress}>
+            <Ionicons name="add-circle-outline" size={20} color={Colors.success} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={onViewStats}>
             <Ionicons name="stats-chart" size={20} color={Colors.primary} />
           </TouchableOpacity>

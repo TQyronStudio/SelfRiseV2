@@ -37,7 +37,8 @@ type GoalsAction =
   | { type: 'DELETE_GOAL'; payload: string }
   | { type: 'ADD_PROGRESS'; payload: GoalProgress }
   | { type: 'DELETE_PROGRESS'; payload: string }
-  | { type: 'UPDATE_GOAL_STATS'; payload: GoalStats };
+  | { type: 'UPDATE_GOAL_STATS'; payload: GoalStats }
+  | { type: 'BATCH_PROGRESS_UPDATE'; payload: { progress: GoalProgress; goal: Goal; stats: GoalStats } };
 
 const initialState: GoalsState = {
   goals: [],
@@ -89,6 +90,17 @@ function goalsReducer(state: GoalsState, action: GoalsAction): GoalsState {
         ...state,
         stats: state.stats.map(stat =>
           stat.goalId === action.payload.goalId ? action.payload : stat
+        ),
+      };
+    case 'BATCH_PROGRESS_UPDATE':
+      return {
+        ...state,
+        progress: [...state.progress, action.payload.progress],
+        goals: state.goals.map(goal =>
+          goal.id === action.payload.goal.id ? action.payload.goal : goal
+        ),
+        stats: state.stats.map(stat =>
+          stat.goalId === action.payload.stats.goalId ? action.payload.stats : stat
         ),
       };
     default:
@@ -186,12 +198,24 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
+      // Execute all operations in parallel
       const newProgress = await goalStorage.addProgress(input);
-      dispatch({ type: 'ADD_PROGRESS', payload: newProgress });
+      const [updatedGoal, updatedStats] = await Promise.all([
+        goalStorage.getById(input.goalId),
+        goalStorage.getGoalStats(input.goalId)
+      ]);
       
-      // Refresh stats for this goal
-      const updatedStats = await goalStorage.getGoalStats(input.goalId);
-      dispatch({ type: 'UPDATE_GOAL_STATS', payload: updatedStats });
+      // Single batch update instead of multiple dispatches
+      if (updatedGoal) {
+        dispatch({ 
+          type: 'BATCH_PROGRESS_UPDATE', 
+          payload: { 
+            progress: newProgress, 
+            goal: updatedGoal, 
+            stats: updatedStats 
+          }
+        });
+      }
       
       return newProgress;
     } catch (error) {

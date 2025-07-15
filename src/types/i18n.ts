@@ -99,22 +99,86 @@ export interface TranslationKeys {
     addGoal: string;
     editGoal: string;
     deleteGoal: string;
-    goalTitle: string;
+    noGoals: string;
+    goalTitleLabel: string;
     goalTitlePlaceholder: string;
-    unit: string;
+    unitLabel: string;
     unitPlaceholder: string;
-    targetValue: string;
-    addProgress: string;
+    targetValueLabel: string;
+    addProgressButton: string;
     progressValue: string;
     progressNote: string;
     progressNotePlaceholder: string;
     completed: string;
-    progress: string;
+    progressLabel: string;
+    progress: {
+      addProgress: string;
+      progressHistory: string;
+      noProgress: string;
+      form: {
+        progressType: string;
+        value: string;
+        note: string;
+        date: string;
+        preview: string;
+        submit: string;
+        placeholders: {
+          value: string;
+          note: string;
+          date: string;
+        };
+        types: {
+          add: string;
+          subtract: string;
+          set: string;
+        };
+        errors: {
+          valueRequired: string;
+          valueTooLarge: string;
+          noteTooLong: string;
+          submitFailed: string;
+        };
+      };
+    };
     confirmDelete: string;
     deleteMessage: string;
     cancel: string;
     delete: string;
     save: string;
+    form: {
+      title: string;
+      description: string;
+      unit: string;
+      targetValue: string;
+      category: string;
+      targetDate: string;
+      placeholders: {
+        title: string;
+        description: string;
+        unit: string;
+        targetValue: string;
+        targetDate: string;
+      };
+      errors: {
+        titleRequired: string;
+        titleTooShort: string;
+        titleTooLong: string;
+        unitRequired: string;
+        unitTooLong: string;
+        targetValueRequired: string;
+        targetValueTooLarge: string;
+        descriptionTooLong: string;
+        submitFailed: string;
+      };
+    };
+    categories: {
+      personal: string;
+      health: string;
+      learning: string;
+      career: string;
+      financial: string;
+      other: string;
+    };
   };
   
   // Settings screen
@@ -166,6 +230,7 @@ export interface TranslationKeys {
   // Common
   common: {
     save: string;
+    saving: string;
     cancel: string;
     delete: string;
     edit: string;

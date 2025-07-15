@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Goal, CreateGoalInput, UpdateGoalInput } from '@/src/types/goal';
-import { GoalModal, GoalListWithDragAndDrop } from '@/src/components/goals';
+import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
+import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -50,6 +50,10 @@ export function GoalsScreen() {
   
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
+  const [progressModalVisible, setProgressModalVisible] = useState(false);
+  const [progressGoal, setProgressGoal] = useState<Goal | undefined>();
+  const [completionModalVisible, setCompletionModalVisible] = useState(false);
+  const [completedGoal, setCompletedGoal] = useState<Goal | undefined>();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -113,6 +117,47 @@ export function GoalsScreen() {
     router.push(`/goal-stats?goalId=${goalId}` as any);
   };
 
+  const handleAddProgress = (goal: Goal) => {
+    setProgressGoal(goal);
+    setProgressModalVisible(true);
+  };
+
+  const handleCloseProgressModal = () => {
+    setProgressModalVisible(false);
+    setProgressGoal(undefined);
+  };
+
+  const handleSubmitProgress = async (data: AddGoalProgressInput) => {
+    try {
+      const previousGoal = progressGoal;
+      await actions.addProgress(data);
+      
+      handleCloseProgressModal();
+      
+      // Check if goal was completed by this progress
+      if (previousGoal) {
+        // Get fresh goal data immediately after state update
+        const updatedGoal = goals.find(g => g.id === previousGoal.id);
+        
+        if (updatedGoal && 
+            updatedGoal.status === GoalStatus.COMPLETED && 
+            previousGoal.status !== GoalStatus.COMPLETED) {
+          // Goal was just completed, show celebration
+          setCompletedGoal(updatedGoal);
+          setCompletionModalVisible(true);
+        }
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to add progress');
+      setShowError(true);
+    }
+  };
+
+  const handleCloseCompletionModal = () => {
+    setCompletionModalVisible(false);
+    setCompletedGoal(undefined);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <GoalListWithDragAndDrop
@@ -122,6 +167,7 @@ export function GoalsScreen() {
         onEditGoal={handleEditGoal}
         onDeleteGoal={handleDeleteGoal}
         onViewGoalStats={handleViewGoalStats}
+        onAddProgress={handleAddProgress}
         onReorderGoals={handleReorderGoals}
         ListHeaderComponent={
           <View style={styles.addButtonContainer}>
@@ -140,6 +186,24 @@ export function GoalsScreen() {
         onSubmit={handleSubmitGoal}
         isLoading={isLoading}
       />
+
+      {progressGoal && (
+        <ProgressModal
+          visible={progressModalVisible}
+          goal={progressGoal}
+          onClose={handleCloseProgressModal}
+          onSubmit={handleSubmitProgress}
+          isLoading={isLoading}
+        />
+      )}
+
+      {completedGoal && (
+        <GoalCompletionModal
+          visible={completionModalVisible}
+          goal={completedGoal}
+          onClose={handleCloseCompletionModal}
+        />
+      )}
 
       <ErrorModal
         visible={showError}
