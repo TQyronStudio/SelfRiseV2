@@ -78,7 +78,7 @@ export function GoalStatsCard({ goal, stats }: GoalStatsCardProps) {
           <View style={styles.progressHeader}>
             <Text style={styles.progressLabel}>Completion</Text>
             <Text style={styles.progressPercentage}>
-              {Math.round(stats.completionPercentage)}%
+              {stats.completionPercentage.toFixed(2)}%
             </Text>
           </View>
           <View style={styles.progressBar}>

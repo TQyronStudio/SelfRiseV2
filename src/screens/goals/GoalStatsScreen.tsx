@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { ProgressHistoryList } from '@/src/components/goals/ProgressHistoryList';
 import { GoalStatsCard } from '@/src/components/goals/GoalStatsCard';
@@ -19,6 +20,7 @@ export function GoalStatsScreen() {
   const router = useRouter();
   const { goalId } = useLocalSearchParams<{ goalId: string }>();
   const { getGoalWithStats, getGoalProgress, actions } = useGoalsData();
+  const insets = useSafeAreaInsets();
   
   const [goal, setGoal] = useState<Goal | null>(null);
   const [stats, setStats] = useState<GoalStats | null>(null);
@@ -71,36 +73,50 @@ export function GoalStatsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Loading...</Text>
+          <View style={styles.shareButton} />
+        </View>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!goal || !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Error</Text>
+          <View style={styles.shareButton} />
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Goal not found</Text>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{goal.title}</Text>
         <TouchableOpacity style={styles.shareButton} onPress={() => setShowSharingModal(true)}>
-          <Ionicons name="share-outline" size={24} color={Colors.primary} />
+          <Ionicons name="share-outline" size={24} color={Colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -132,7 +148,7 @@ export function GoalStatsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: insets.bottom }} showsVerticalScrollIndicator={false}>
         {activeTab === 'stats' && (
           <>
             <GoalStatsCard goal={goal} stats={stats} />
@@ -170,14 +186,14 @@ export function GoalStatsScreen() {
           onClose={() => setShowSharingModal(false)}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.primary,
   },
   header: {
     flexDirection: 'row',
@@ -185,6 +201,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
+    backgroundColor: Colors.primary,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -194,7 +211,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: Fonts.semibold,
-    color: Colors.text,
+    color: Colors.white,
   },
   shareButton: {
     padding: 8,
@@ -228,6 +245,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
