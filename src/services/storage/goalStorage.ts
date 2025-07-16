@@ -441,7 +441,15 @@ export class GoalStorage implements EntityStorage<Goal> {
       }
 
       const progress = await this.getProgressByGoalId(goalId);
-      const totalProgress = progress.reduce((sum, entry) => {
+      
+      // Sort progress chronologically before calculating total (critical for 'set' type)
+      const sortedProgress = progress.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeA - timeB; // ASC order for chronological processing
+      });
+      
+      const totalProgress = sortedProgress.reduce((sum, entry) => {
         switch (entry.progressType) {
           case 'add':
             return sum + entry.value;
@@ -454,13 +462,13 @@ export class GoalStorage implements EntityStorage<Goal> {
         }
       }, 0);
 
-      const progressEntries = progress.length;
+      const progressEntries = sortedProgress.length;
       const startDate = new Date(goal.startDate);
       const today = new Date();
       const daysActive = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
       // Calculate average daily based only on days with actual progress
-      const uniqueProgressDays = new Set(progress.map(p => p.date)).size;
+      const uniqueProgressDays = new Set(sortedProgress.map(p => p.date)).size;
       const averageDaily = uniqueProgressDays > 0 ? totalProgress / uniqueProgressDays : 0;
       const completionPercentage = goal.targetValue > 0 ? (goal.currentValue / goal.targetValue) * 100 : 0;
       
