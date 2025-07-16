@@ -47,7 +47,7 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
       // Determine trend
       let trend: 'up' | 'down' | 'stable' = 'stable';
       if (index > 0 && data[index - 1]) {
-        const prevPercentage = data[index - 1].percentage;
+        const prevPercentage = data[index - 1]?.percentage ?? 0;
         if (percentage > prevPercentage) trend = 'up';
         else if (percentage < prevPercentage) trend = 'down';
       }
@@ -207,14 +207,14 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
-              {trendData.length > 0 && trendData[trendData.length - 1] ? trendData[trendData.length - 1].percentage.toFixed(1) : '0'}%
+              {trendData.length > 0 && trendData[trendData.length - 1] ? trendData[trendData.length - 1]?.percentage?.toFixed(1) ?? '0' : '0'}%
             </Text>
             <Text style={styles.statLabel}>{t('goals.analysis.currentProgress')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
               {trendData.length > 1 && trendData[trendData.length - 1] && trendData[0] ? 
-                ((trendData[trendData.length - 1].percentage - trendData[0].percentage) / trendData.length).toFixed(1) : 
+                (((trendData[trendData.length - 1]?.percentage ?? 0) - (trendData[0]?.percentage ?? 0)) / trendData.length).toFixed(1) : 
                 '0'
               }%
             </Text>

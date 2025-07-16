@@ -66,7 +66,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       const updatedHabit = updateEntityTimestamp({
         ...habits[habitIndex],
         ...updates,
-      });
+      } as Habit);
 
       habits[habitIndex] = updatedHabit;
       await BaseStorage.set(STORAGE_KEYS.HABITS, habits);
@@ -240,7 +240,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       const updatedCompletion = updateEntityTimestamp({
         ...completions[completionIndex],
         ...updates,
-      });
+      } as HabitCompletion);
 
       completions[completionIndex] = updatedCompletion;
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);

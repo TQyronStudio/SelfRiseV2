@@ -1,4 +1,4 @@
-import { User, UserSettings, UserStats } from '../../types/user';
+import { User, UserSettings, UserStats, UserSubscriptionStatus } from '../../types/user';
 import { BaseStorage, STORAGE_KEYS, StorageError, STORAGE_ERROR_CODES } from './base';
 import { updateEntityTimestamp } from '../../utils/data';
 
@@ -271,7 +271,9 @@ export class UserStorage {
 
   async removeProfileImage(): Promise<User> {
     try {
-      return await this.updateUser({ profileImageUrl: undefined });
+      const updates: Partial<User> = {};
+      delete (updates as any).profileImageUrl;
+      return await this.updateUser(updates);
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(
@@ -288,10 +290,13 @@ export class UserStorage {
     expiresAt?: Date
   ): Promise<User> {
     try {
-      return await this.updateUser({
-        subscriptionStatus: status,
-        subscriptionExpiresAt: expiresAt,
-      });
+      const updates: Partial<User> = {
+        subscriptionStatus: status as UserSubscriptionStatus,
+      };
+      if (expiresAt !== undefined) {
+        updates.subscriptionExpiresAt = expiresAt;
+      }
+      return await this.updateUser(updates);
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(

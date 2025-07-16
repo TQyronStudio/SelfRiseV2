@@ -74,7 +74,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const updatedGratitude = updateEntityTimestamp({
         ...gratitudes[gratitudeIndex],
         ...updates,
-      });
+      } as Gratitude);
 
       gratitudes[gratitudeIndex] = updatedGratitude;
       await BaseStorage.set(STORAGE_KEYS.GRATITUDES, gratitudes);
