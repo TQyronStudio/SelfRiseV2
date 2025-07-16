@@ -19,6 +19,7 @@ import { useI18n } from '../../hooks/useI18n';
 interface GoalModalProps {
   visible: boolean;
   goal: Goal | undefined;
+  templateData?: CreateGoalInput;
   onClose: () => void;
   onSubmit: (data: CreateGoalInput | UpdateGoalInput) => Promise<void>;
   isLoading?: boolean;
@@ -27,6 +28,7 @@ interface GoalModalProps {
 export function GoalModal({
   visible,
   goal,
+  templateData,
   onClose,
   onSubmit,
   isLoading = false,
@@ -42,6 +44,15 @@ export function GoalModal({
         targetValue: goal.targetValue,
         category: goal.category,
         targetDate: goal.targetDate,
+      }
+    : templateData
+    ? {
+        title: templateData.title,
+        description: '',
+        unit: templateData.unit,
+        targetValue: templateData.targetValue,
+        category: templateData.category,
+        targetDate: templateData.targetDate,
       }
     : undefined;
 

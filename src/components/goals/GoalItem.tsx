@@ -125,6 +125,11 @@ export function GoalItem({ goal, onEdit, onDelete, onViewStats, onAddProgress, o
         </Text>
       )}
 
+      <View style={styles.categoryContainer}>
+        <Text style={styles.categoryLabel}>{t('goals.form.category')}: </Text>
+        <Text style={styles.categoryValue}>{t(`goals.category.${goal.category.toLowerCase()}`)}</Text>
+      </View>
+
       <ConfirmationModal
         visible={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
@@ -221,5 +226,20 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
     marginTop: 4,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  categoryLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+  },
+  categoryValue: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: Colors.primary,
   },
 });

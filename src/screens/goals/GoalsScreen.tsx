@@ -83,9 +83,11 @@ export function GoalsScreen() {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [templateData, setTemplateData] = useState<CreateGoalInput | undefined>();
 
   const handleAddGoal = () => {
     setEditingGoal(undefined);
+    setTemplateData(undefined);
     setModalVisible(true);
   };
 
@@ -93,24 +95,23 @@ export function GoalsScreen() {
     setShowTemplatesModal(true);
   };
 
-  const handleSelectTemplate = (templateData: CreateGoalInput) => {
+  const handleSelectTemplate = (selectedTemplateData: CreateGoalInput) => {
     setShowTemplatesModal(false);
     setEditingGoal(undefined);
+    setTemplateData(selectedTemplateData);
     setModalVisible(true);
-    // Pre-fill the modal with template data
-    setTimeout(() => {
-      // This would need to be passed as props to GoalModal
-    }, 100);
   };
 
   const handleEditGoal = (goal: Goal) => {
     setEditingGoal(goal);
+    setTemplateData(undefined);
     setModalVisible(true);
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
     setEditingGoal(undefined);
+    setTemplateData(undefined);
   };
 
   const handleSubmitGoal = async (data: CreateGoalInput | UpdateGoalInput) => {
@@ -227,6 +228,7 @@ export function GoalsScreen() {
       <GoalModal
         visible={modalVisible}
         goal={editingGoal}
+        {...(templateData && { templateData })}
         onClose={handleCloseModal}
         onSubmit={handleSubmitGoal}
         isLoading={isLoading}

@@ -165,7 +165,8 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input, errors.value && styles.inputError]}
             placeholder={t('goals.progress.form.placeholders.value')}
-            value={formData.value.toString()}
+            placeholderTextColor={Colors.textSecondary}
+            value={formData.value > 0 ? formData.value.toString() : ''}
             onChangeText={(text) => {
               const numValue = parseInt(text) || 0;
               setFormData(prev => ({ ...prev, value: numValue }));
@@ -194,6 +195,7 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input, styles.textArea, errors.note && styles.inputError]}
             placeholder={t('goals.progress.form.placeholders.note')}
+            placeholderTextColor={Colors.textSecondary}
             value={formData.note}
             onChangeText={(text) => setFormData(prev => ({ ...prev, note: text }))}
             onFocus={() => scrollToInput(300)}
@@ -211,6 +213,7 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input]}
             placeholder={t('goals.progress.form.placeholders.date')}
+            placeholderTextColor={Colors.textSecondary}
             value={formData.date}
             onChangeText={(text) => setFormData(prev => ({ ...prev, date: text as DateString }))}
             onFocus={() => scrollToInput(450)}

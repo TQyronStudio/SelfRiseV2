@@ -151,6 +151,7 @@ export function GoalForm({
           <TextInput
             style={[styles.input, errors.title && styles.inputError]}
             placeholder={t('goals.form.placeholders.title')}
+            placeholderTextColor={Colors.textSecondary}
             value={formData.title}
             onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
             onFocus={() => scrollToInput(0)}
@@ -166,6 +167,7 @@ export function GoalForm({
           <TextInput
             style={[styles.input, styles.textArea, errors.description && styles.inputError]}
             placeholder={t('goals.form.placeholders.description')}
+            placeholderTextColor={Colors.textSecondary}
             value={formData.description || ''}
             onChangeText={(text) => setFormData(prev => ({ ...prev, description: text || undefined }))}
             onFocus={() => scrollToInput(100)}
@@ -183,6 +185,7 @@ export function GoalForm({
           <TextInput
             style={[styles.input, errors.unit && styles.inputError]}
             placeholder={t('goals.form.placeholders.unit')}
+            placeholderTextColor={Colors.textSecondary}
             value={formData.unit}
             onChangeText={(text) => setFormData(prev => ({ ...prev, unit: text }))}
             onFocus={() => scrollToInput(200)}
@@ -198,7 +201,8 @@ export function GoalForm({
           <TextInput
             style={[styles.input, errors.targetValue && styles.inputError]}
             placeholder={t('goals.form.placeholders.targetValue')}
-            value={formData.targetValue.toString()}
+            placeholderTextColor={Colors.textSecondary}
+            value={formData.targetValue > 0 ? formData.targetValue.toString() : ''}
             onChangeText={(text) => {
               const numValue = parseInt(text) || 0;
               setFormData(prev => ({ ...prev, targetValue: numValue }));
@@ -241,6 +245,7 @@ export function GoalForm({
           <TextInput
             style={[styles.input]}
             placeholder={t('goals.form.placeholders.targetDate')}
+            placeholderTextColor={Colors.textSecondary}
             value={formatDateForInput(formData.targetDate)}
             onChangeText={handleDateChange}
             onFocus={() => scrollToInput(450)}

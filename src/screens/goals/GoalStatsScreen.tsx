@@ -57,15 +57,6 @@ export function GoalStatsScreen() {
     }
   };
 
-  const handleDeleteProgress = async (progressId: string) => {
-    try {
-      await actions.deleteProgress(progressId);
-      await loadGoalData(); // Refresh data
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete progress');
-      setShowError(true);
-    }
-  };
 
   const handleBack = () => {
     router.back();
@@ -155,7 +146,6 @@ export function GoalStatsScreen() {
             <ProgressHistoryList
               progress={progress}
               goalUnit={goal.unit}
-              onDeleteProgress={handleDeleteProgress}
             />
           </>
         )}

@@ -358,6 +358,13 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Implement goal templates system
 - [x] **FIXED**: Insights interpolation bug - replaced single braces {} with double braces {{}} in i18n texts (July 16, 2025)
 - [x] **FIXED**: NaN values in Predictions Insights - added proper validation for daysRemaining calculations (July 16, 2025)
+- [x] **FIXED**: TypeScript errors in base.ts - fixed readonly arrays assignment issues (July 16, 2025)
+- [x] **FEATURE**: Goal Templates pre-fill functionality - templates now pre-populate goal creation form (July 16, 2025)
+- [x] **IMPROVEMENT**: Goal Templates description field - removed template descriptions from pre-fill (July 16, 2025)
+- [x] **FIXED**: Goal form placeholders visibility - added proper placeholder text color (July 16, 2025)
+- [x] **FIXED**: Target Value input glitching - empty field shows correctly instead of "0" (July 16, 2025)
+- [x] **FIXED**: Progress form placeholders visibility - added proper placeholder text color (July 16, 2025)
+- [x] **FIXED**: Progress Value input glitching - empty field shows correctly instead of "0" (July 16, 2025)
 
 
 ### Phase 6: Home Dashboard

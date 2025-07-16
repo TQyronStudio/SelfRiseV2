@@ -97,7 +97,8 @@ export class BaseStorage {
   // Get all keys
   static async getAllKeys(): Promise<string[]> {
     try {
-      return await AsyncStorage.getAllKeys();
+      const keys = await AsyncStorage.getAllKeys();
+      return [...keys];
     } catch (error) {
       console.error('Failed to get all keys:', error);
       throw new Error(`Storage getAllKeys operation failed: ${error}`);
@@ -107,7 +108,8 @@ export class BaseStorage {
   // Get multiple items
   static async multiGet(keys: string[]): Promise<Array<[string, string | null]>> {
     try {
-      return await AsyncStorage.multiGet(keys);
+      const result = await AsyncStorage.multiGet(keys);
+      return result.map(([key, value]) => [key, value]);
     } catch (error) {
       console.error('Failed to get multiple items:', error);
       throw new Error(`Storage multiGet operation failed: ${error}`);
