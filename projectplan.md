@@ -371,6 +371,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
   - Average Daily: Now calculates based on unique days with progress, not total days since start
   - Data Thresholds: Shows basic estimates for insufficient data, complex predictions require recent data
   - TypeScript: Updated GoalStats interface with daysWithProgress property
+- [x] **TIMELINE STATUS SYSTEM**: Implemented multi-level status system based on estimated vs target completion (July 16, 2025)
+  - Way Ahead: >30 days early (blue color)
+  - Ahead: 1-30 days early (green color)
+  - On Track: ±1 day of target (green color)
+  - Behind: 1-30 days late (orange/yellow color)
+  - Way Behind: >30 days late (red color)
+  - Updated GoalStatsCard.tsx with proper color-coded status display
+  - Added translations for all timeline status labels
 
 
 ### Phase 6: Home Dashboard

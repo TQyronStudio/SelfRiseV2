@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Goal, GoalStats, GoalStatus } from '../../types/goal';
+import { Goal, GoalStats, GoalStatus, GoalTimelineStatus } from '../../types/goal';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
@@ -38,6 +38,40 @@ export function GoalStatsCard({ goal, stats }: GoalStatsCardProps) {
         return 'Paused';
       case GoalStatus.ARCHIVED:
         return 'Archived';
+      default:
+        return status;
+    }
+  };
+
+  const getTimelineStatusColor = (status: GoalTimelineStatus) => {
+    switch (status) {
+      case 'wayAhead':
+        return Colors.primary; // Blue
+      case 'ahead':
+        return Colors.success; // Green
+      case 'onTrack':
+        return Colors.success; // Green
+      case 'behind':
+        return Colors.warning; // Orange/Yellow
+      case 'wayBehind':
+        return Colors.error; // Red
+      default:
+        return Colors.textSecondary;
+    }
+  };
+
+  const getTimelineStatusText = (status: GoalTimelineStatus) => {
+    switch (status) {
+      case 'wayAhead':
+        return t('goals.dashboard.wayAhead');
+      case 'ahead':
+        return t('goals.dashboard.ahead');
+      case 'onTrack':
+        return t('goals.dashboard.onTrack');
+      case 'behind':
+        return t('goals.dashboard.behind');
+      case 'wayBehind':
+        return t('goals.dashboard.wayBehind');
       default:
         return status;
     }
@@ -112,10 +146,10 @@ export function GoalStatsCard({ goal, stats }: GoalStatsCardProps) {
             <Text style={styles.statLabel}>Avg Daily</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: stats.isOnTrack ? Colors.success : Colors.error }]}>
-              {stats.isOnTrack ? 'On Track' : 'Behind'}
+            <Text style={[styles.statValue, { color: getTimelineStatusColor(stats.timelineStatus || 'onTrack') }]}>
+              {getTimelineStatusText(stats.timelineStatus || 'onTrack')}
             </Text>
-            <Text style={styles.statLabel}>Status</Text>
+            <Text style={styles.statLabel}>Timeline Status</Text>
           </View>
         </View>
       </View>

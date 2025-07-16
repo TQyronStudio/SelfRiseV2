@@ -270,6 +270,11 @@ const en: TranslationKeys = {
       completion: 'Completion',
       quickActions: 'Quick Actions',
       complete: 'Complete',
+      // Timeline Status
+      wayAhead: 'Way Ahead',
+      ahead: 'Ahead',
+      behind: 'Behind',
+      wayBehind: 'Way Behind',
     },
     
     // Goal Analytics

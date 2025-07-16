@@ -90,6 +90,31 @@ const de: TranslationKeys = {
     cancel: 'Abbrechen',
     delete: 'Löschen',
     save: 'Speichern',
+    
+    // Goal Dashboard
+    dashboard: {
+      overview: 'Übersicht',
+      activeGoals: 'Aktive Ziele',
+      completedGoals: 'Abgeschlossene Ziele',
+      completionRate: 'Abschlussrate',
+      onTrack: 'Auf Kurs',
+      deadlines: 'Fristen',
+      overdue: 'Überfällig',
+      dueThisWeek: 'Diese Woche fällig',
+      dueThisMonth: 'Diesen Monat fällig',
+      behindSchedule: 'Hinter dem Zeitplan',
+      categories: 'Kategorien',
+      active: 'Aktiv',
+      completed: 'Abgeschlossen',
+      completion: 'Abschluss',
+      quickActions: 'Schnellaktionen',
+      complete: 'Abschließen',
+      // Timeline Status
+      wayAhead: 'Weit Voraus',
+      ahead: 'Voraus',
+      behind: 'Hinterher',
+      wayBehind: 'Weit Hinterher',
+    },
   },
   
   // Settings screen

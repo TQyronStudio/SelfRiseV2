@@ -246,6 +246,10 @@ export interface TranslationKeys {
       completion: string;
       quickActions: string;
       complete: string;
+      wayAhead: string;
+      ahead: string;
+      behind: string;
+      wayBehind: string;
     };
     analysis: {
       progressTrend: string;

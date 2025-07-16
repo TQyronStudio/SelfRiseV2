@@ -1,4 +1,4 @@
-import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats } from '../../types/goal';
+import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats, GoalTimelineStatus } from '../../types/goal';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -436,6 +436,7 @@ export class GoalStorage implements EntityStorage<Goal> {
           daysWithProgress: 0,
           completionPercentage: 0,
           isOnTrack: false,
+          timelineStatus: 'onTrack' as GoalTimelineStatus,
         };
       }
 
@@ -476,6 +477,9 @@ export class GoalStorage implements EntityStorage<Goal> {
         isOnTrack = estimatedDate <= targetDate;
       }
 
+      // Calculate timeline status
+      const timelineStatus = calculateTimelineStatus(estimatedCompletionDate, goal.targetDate);
+
       return {
         goalId,
         totalProgress,
@@ -486,6 +490,7 @@ export class GoalStorage implements EntityStorage<Goal> {
         completionPercentage,
         estimatedCompletionDate: estimatedCompletionDate || undefined,
         isOnTrack,
+        timelineStatus,
       };
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -506,6 +511,33 @@ export class GoalStorage implements EntityStorage<Goal> {
     } catch (error) {
       console.error('Failed to cleanup goal progress data:', error);
     }
+  }
+}
+
+// Timeline status calculation function
+export function calculateTimelineStatus(estimatedCompletionDate: DateString | undefined, targetDate: DateString | undefined): GoalTimelineStatus {
+  if (!estimatedCompletionDate || !targetDate) {
+    return 'onTrack'; // Default when no dates available
+  }
+
+  const estimated = new Date(estimatedCompletionDate);
+  const target = new Date(targetDate);
+  
+  // Calculate difference in days
+  const diffTime = estimated.getTime() - target.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  // Apply the new logic based on requirements
+  if (diffDays <= -30) {
+    return 'wayAhead'; // More than 30 days early
+  } else if (diffDays <= -1) {
+    return 'ahead'; // 1-30 days early
+  } else if (diffDays <= 1) {
+    return 'onTrack'; // Approximately same (±1 day)
+  } else if (diffDays <= 30) {
+    return 'behind'; // 1-30 days late
+  } else {
+    return 'wayBehind'; // More than 30 days late
   }
 }
 

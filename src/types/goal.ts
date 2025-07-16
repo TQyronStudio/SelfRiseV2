@@ -38,6 +38,9 @@ export interface GoalProgress extends BaseEntity {
   progressType: 'add' | 'subtract' | 'set'; // type of progress update
 }
 
+// Timeline status for goal progress tracking
+export type GoalTimelineStatus = 'wayAhead' | 'ahead' | 'onTrack' | 'behind' | 'wayBehind';
+
 export interface GoalStats {
   goalId: string;
   totalProgress: number;
@@ -48,6 +51,7 @@ export interface GoalStats {
   completionPercentage: number;
   estimatedCompletionDate?: DateString | undefined;
   isOnTrack: boolean;
+  timelineStatus?: GoalTimelineStatus;
 }
 
 // Create goal input interface
