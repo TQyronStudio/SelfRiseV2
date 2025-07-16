@@ -301,6 +301,7 @@ const en: TranslationKeys = {
       high: 'High',
       medium: 'Medium',
       low: 'Low',
+      basicMethod: 'Basic Estimate',
       linearMethod: 'Linear Progression',
       trendMethod: 'Recent Trend',
       targetMethod: 'Target Date',

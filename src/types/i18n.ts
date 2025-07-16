@@ -273,6 +273,7 @@ export interface TranslationKeys {
       high: string;
       medium: string;
       low: string;
+      basicMethod: string;
       linearMethod: string;
       trendMethod: string;
       targetMethod: string;

@@ -365,6 +365,12 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] **FIXED**: Target Value input glitching - empty field shows correctly instead of "0" (July 16, 2025)
 - [x] **FIXED**: Progress form placeholders visibility - added proper placeholder text color (July 16, 2025)
 - [x] **FIXED**: Progress Value input glitching - empty field shows correctly instead of "0" (July 16, 2025)
+- [x] **MATHEMATICAL FIXES**: Fixed mathematical logic in goal predictions (July 16, 2025)
+  - Recent Trend: Now works with 2-3 days of data, compares latest entry with previous average
+  - Accelerated Progress: Conservative model requiring 5+ entries, caps acceleration at 2x, requires 20% improvement
+  - Average Daily: Now calculates based on unique days with progress, not total days since start
+  - Data Thresholds: Shows basic estimates for insufficient data, complex predictions require recent data
+  - TypeScript: Updated GoalStats interface with daysWithProgress property
 
 
 ### Phase 6: Home Dashboard

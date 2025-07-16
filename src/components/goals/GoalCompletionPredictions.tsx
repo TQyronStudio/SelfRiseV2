@@ -35,6 +35,33 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
     const remainingValue = goal.targetValue - goal.currentValue;
     const results: PredictionData[] = [];
 
+    // Check minimum data requirements
+    const hasMinimumData = progressHistory.length >= 2;
+    const hasRecentData = progressHistory.some(p => {
+      const progressDate = new Date(p.date);
+      const daysDiff = (today.getTime() - progressDate.getTime()) / (24 * 60 * 60 * 1000);
+      return daysDiff <= 7; // At least one entry in last 7 days
+    });
+
+    // If insufficient data, show only basic linear prediction
+    if (!hasMinimumData || !hasRecentData) {
+      if (stats.averageDaily > 0 && remainingValue > 0) {
+        const daysToComplete = Math.ceil(remainingValue / stats.averageDaily);
+        if (daysToComplete > 0 && !isNaN(daysToComplete) && isFinite(daysToComplete)) {
+          const estimatedDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
+          
+          results.push({
+            method: t('goals.predictions.basicMethod'),
+            estimatedDate: estimatedDate.toLocaleDateString(),
+            confidence: Math.min(70, Math.max(30, 85 - (daysToComplete * 0.3))),
+            daysRemaining: daysToComplete,
+            accuracy: daysToComplete <= 30 ? 'medium' : daysToComplete <= 90 ? 'low' : 'low',
+          });
+        }
+      }
+      return results;
+    }
+
     // Method 1: Linear progression based on average daily progress
     if (stats.averageDaily > 0 && remainingValue > 0) {
       const daysToComplete = Math.ceil(remainingValue / stats.averageDaily);
@@ -51,7 +78,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
       }
     }
 
-    // Method 2: Trend-based prediction (recent 7 days)
+    // Method 2: Trend-based prediction (recent progress comparison)
     const recentProgress = progressHistory
       .filter(p => {
         const progressDate = new Date(p.date);
@@ -60,22 +87,51 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    if (recentProgress.length >= 3) {
-      const recentAverage = recentProgress.reduce((sum, p) => {
+    // Works with even 2 days of data - compare latest with previous average
+    if (recentProgress.length >= 2) {
+      // Get latest progress value
+      const latestProgress = recentProgress[0];
+      if (!latestProgress) return results;
+      
+      const latestValue = latestProgress.progressType === 'add' ? latestProgress.value : 
+                         latestProgress.progressType === 'subtract' ? -latestProgress.value : 0;
+
+      // Calculate average of previous entries (excluding latest)
+      const previousEntries = recentProgress.slice(1);
+      const previousAverage = previousEntries.reduce((sum, p) => {
         if (p.progressType === 'add') return sum + p.value;
         if (p.progressType === 'subtract') return sum - p.value;
         return sum;
-      }, 0) / recentProgress.length;
+      }, 0) / previousEntries.length;
 
-      if (recentAverage > 0 && remainingValue > 0) {
-        const trendDays = Math.ceil(remainingValue / recentAverage);
+      // Determine trend direction and use appropriate rate
+      let dailyRate: number;
+      if (latestValue > previousAverage) {
+        // Upward trend - use latest value as it's higher
+        dailyRate = latestValue;
+      } else {
+        // Downward or stable trend - use average of all recent data
+        dailyRate = recentProgress.reduce((sum, p) => {
+          if (p.progressType === 'add') return sum + p.value;
+          if (p.progressType === 'subtract') return sum - p.value;
+          return sum;
+        }, 0) / recentProgress.length;
+      }
+
+      if (dailyRate > 0 && remainingValue > 0) {
+        const trendDays = Math.ceil(remainingValue / dailyRate);
         if (trendDays > 0 && !isNaN(trendDays) && isFinite(trendDays)) {
           const trendDate = new Date(today.getTime() + trendDays * 24 * 60 * 60 * 1000);
+          
+          // Adjust confidence based on data quality and trend direction
+          let baseConfidence = 70;
+          if (latestValue > previousAverage) baseConfidence += 10; // Upward trend bonus
+          if (recentProgress.length >= 3) baseConfidence += 5; // More data bonus
           
           results.push({
             method: t('goals.predictions.trendMethod'),
             estimatedDate: trendDate.toLocaleDateString(),
-            confidence: Math.min(85, Math.max(40, 100 - (trendDays * 0.8))),
+            confidence: Math.min(85, Math.max(40, baseConfidence - (trendDays * 0.5))),
             daysRemaining: trendDays,
             accuracy: trendDays <= 21 ? 'high' : trendDays <= 60 ? 'medium' : 'low',
           });
@@ -103,28 +159,58 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
       }
     }
 
-    // Method 4: Accelerated prediction (if recent progress is increasing)
-    if (recentProgress.length >= 2) {
-      const firstHalf = recentProgress.slice(recentProgress.length / 2);
-      const secondHalf = recentProgress.slice(0, recentProgress.length / 2);
+    // Method 4: Conservative Accelerated prediction (requires sufficient data)
+    if (recentProgress.length >= 5) { // Increased minimum to 5 for better reliability
+      // Split data more evenly for better comparison
+      const midpoint = Math.floor(recentProgress.length / 2);
+      const firstHalf = recentProgress.slice(midpoint);  // Older data (second half of array)
+      const secondHalf = recentProgress.slice(0, midpoint); // Newer data (first half of array)
       
-      const firstHalfAvg = firstHalf.reduce((sum, p) => sum + p.value, 0) / firstHalf.length;
-      const secondHalfAvg = secondHalf.reduce((sum, p) => sum + p.value, 0) / secondHalf.length;
+      const firstHalfAvg = firstHalf.reduce((sum, p) => {
+        if (p.progressType === 'add') return sum + p.value;
+        if (p.progressType === 'subtract') return sum - p.value;
+        return sum;
+      }, 0) / firstHalf.length;
       
+      const secondHalfAvg = secondHalf.reduce((sum, p) => {
+        if (p.progressType === 'add') return sum + p.value;
+        if (p.progressType === 'subtract') return sum - p.value;
+        return sum;
+      }, 0) / secondHalf.length;
+      
+      // Check for meaningful acceleration (at least 20% improvement)
       if (secondHalfAvg > firstHalfAvg && firstHalfAvg > 0 && remainingValue > 0) {
         const accelerationFactor = secondHalfAvg / firstHalfAvg;
-        const acceleratedRate = stats.averageDaily * accelerationFactor;
-        if (acceleratedRate > 0) {
+        
+        // Cap acceleration factor to prevent unrealistic predictions
+        const cappedAcceleration = Math.min(accelerationFactor, 2.0); // Max 2x acceleration
+        
+        // Use conservative base rate (recent trend rather than all-time average)
+        const baseRate = recentProgress.reduce((sum, p) => {
+          if (p.progressType === 'add') return sum + p.value;
+          if (p.progressType === 'subtract') return sum - p.value;
+          return sum;
+        }, 0) / recentProgress.length;
+        
+        const acceleratedRate = baseRate * cappedAcceleration;
+        
+        // Only proceed if acceleration is significant (>20% improvement)
+        if (acceleratedRate > baseRate * 1.2 && acceleratedRate > 0) {
           const acceleratedDays = Math.ceil(remainingValue / acceleratedRate);
           if (acceleratedDays > 0 && !isNaN(acceleratedDays) && isFinite(acceleratedDays)) {
             const acceleratedDate = new Date(today.getTime() + acceleratedDays * 24 * 60 * 60 * 1000);
             
+            // Conservative confidence calculation based on data quality
+            let confidence = 60; // Lower base confidence for predictions
+            if (recentProgress.length >= 7) confidence += 10; // More data bonus
+            if (cappedAcceleration < 1.5) confidence += 5; // Modest acceleration bonus
+            
             results.push({
               method: t('goals.predictions.acceleratedMethod'),
               estimatedDate: acceleratedDate.toLocaleDateString(),
-              confidence: Math.min(80, Math.max(35, 100 - (acceleratedDays * 0.6))),
+              confidence: Math.min(75, Math.max(30, confidence - (acceleratedDays * 0.4))),
               daysRemaining: acceleratedDays,
-              accuracy: acceleratedDays <= 45 ? 'high' : acceleratedDays <= 90 ? 'medium' : 'low',
+              accuracy: acceleratedDays <= 30 ? 'high' : acceleratedDays <= 60 ? 'medium' : 'low',
             });
           }
         }

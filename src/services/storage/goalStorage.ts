@@ -433,6 +433,7 @@ export class GoalStorage implements EntityStorage<Goal> {
           progressEntries: 0,
           averageDaily: 0,
           daysActive: 0,
+          daysWithProgress: 0,
           completionPercentage: 0,
           isOnTrack: false,
         };
@@ -457,7 +458,9 @@ export class GoalStorage implements EntityStorage<Goal> {
       const today = new Date();
       const daysActive = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      const averageDaily = daysActive > 0 ? totalProgress / daysActive : 0;
+      // Calculate average daily based only on days with actual progress
+      const uniqueProgressDays = new Set(progress.map(p => p.date)).size;
+      const averageDaily = uniqueProgressDays > 0 ? totalProgress / uniqueProgressDays : 0;
       const completionPercentage = goal.targetValue > 0 ? (goal.currentValue / goal.targetValue) * 100 : 0;
       
       let estimatedCompletionDate: DateString | undefined;
@@ -479,6 +482,7 @@ export class GoalStorage implements EntityStorage<Goal> {
         progressEntries,
         averageDaily,
         daysActive,
+        daysWithProgress: uniqueProgressDays,
         completionPercentage,
         estimatedCompletionDate: estimatedCompletionDate || undefined,
         isOnTrack,

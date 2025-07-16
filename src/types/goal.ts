@@ -44,6 +44,7 @@ export interface GoalStats {
   progressEntries: number;
   averageDaily: number;
   daysActive: number;
+  daysWithProgress: number;
   completionPercentage: number;
   estimatedCompletionDate?: DateString | undefined;
   isOnTrack: boolean;
