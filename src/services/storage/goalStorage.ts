@@ -476,12 +476,22 @@ export class GoalStorage implements EntityStorage<Goal> {
       let isOnTrack = false;
 
       if (goal.targetDate && averageDaily > 0) {
-        const remainingValue = goal.targetValue - goal.currentValue;
+        const remainingValue = goal.targetValue - totalProgress;
         const daysToComplete = Math.ceil(remainingValue / averageDaily);
         const estimatedDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
         estimatedCompletionDate = estimatedDate.toISOString().split('T')[0] as DateString;
         
-        const targetDate = new Date(goal.targetDate);
+        
+        // Parse target date - handle Czech format (DD.MM.YYYY) and ISO format (YYYY-MM-DD)
+        let targetDate: Date;
+        if (goal.targetDate.includes('.')) {
+          // Czech format: DD.MM.YYYY
+          const [day, month, year] = goal.targetDate.split('.');
+          targetDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+          // ISO format: YYYY-MM-DD
+          targetDate = new Date(goal.targetDate);
+        }
         isOnTrack = estimatedDate <= targetDate;
       }
 
@@ -529,7 +539,17 @@ export function calculateTimelineStatus(estimatedCompletionDate: DateString | un
   }
 
   const estimated = new Date(estimatedCompletionDate);
-  const target = new Date(targetDate);
+  
+  // Parse target date - handle Czech format (DD.MM.YYYY) and ISO format (YYYY-MM-DD)
+  let target: Date;
+  if (targetDate.includes('.')) {
+    // Czech format: DD.MM.YYYY
+    const [day, month, year] = targetDate.split('.');
+    target = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  } else {
+    // ISO format: YYYY-MM-DD
+    target = new Date(targetDate);
+  }
   
   // Calculate difference in days
   const diffTime = estimated.getTime() - target.getTime();
