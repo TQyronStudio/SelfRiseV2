@@ -486,8 +486,12 @@ export class GoalStorage implements EntityStorage<Goal> {
         let targetDate: Date;
         if (goal.targetDate.includes('.')) {
           // Czech format: DD.MM.YYYY
-          const [day, month, year] = goal.targetDate.split('.');
-          targetDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          const parts = goal.targetDate.split('.');
+          if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+            targetDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          } else {
+            targetDate = new Date(goal.targetDate);
+          }
         } else {
           // ISO format: YYYY-MM-DD
           targetDate = new Date(goal.targetDate);
@@ -544,8 +548,12 @@ export function calculateTimelineStatus(estimatedCompletionDate: DateString | un
   let target: Date;
   if (targetDate.includes('.')) {
     // Czech format: DD.MM.YYYY
-    const [day, month, year] = targetDate.split('.');
-    target = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const parts = targetDate.split('.');
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      target = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    } else {
+      target = new Date(targetDate);
+    }
   } else {
     // ISO format: YYYY-MM-DD
     target = new Date(targetDate);
