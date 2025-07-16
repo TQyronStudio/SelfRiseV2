@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
-import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal } from '@/src/components/goals';
+import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
+    gap: 8,
   },
   addButton: {
     flexDirection: 'row',
@@ -42,6 +43,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  templateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundSecondary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  templateButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });
 
 export function GoalsScreen() {
@@ -56,10 +82,25 @@ export function GoalsScreen() {
   const [completedGoal, setCompletedGoal] = useState<Goal | undefined>();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
   const handleAddGoal = () => {
     setEditingGoal(undefined);
     setModalVisible(true);
+  };
+
+  const handleAddFromTemplate = () => {
+    setShowTemplatesModal(true);
+  };
+
+  const handleSelectTemplate = (templateData: CreateGoalInput) => {
+    setShowTemplatesModal(false);
+    setEditingGoal(undefined);
+    setModalVisible(true);
+    // Pre-fill the modal with template data
+    setTimeout(() => {
+      // This would need to be passed as props to GoalModal
+    }, 100);
   };
 
   const handleEditGoal = (goal: Goal) => {
@@ -175,6 +216,10 @@ export function GoalsScreen() {
               <Ionicons name="add" size={24} color="white" />
               <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
+              <Ionicons name="library-outline" size={24} color={Colors.primary} />
+              <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -210,6 +255,12 @@ export function GoalsScreen() {
         onClose={() => setShowError(false)}
         title={t('common.error')}
         message={errorMessage}
+      />
+
+      <GoalTemplatesModal
+        visible={showTemplatesModal}
+        onClose={() => setShowTemplatesModal(false)}
+        onSelectTemplate={handleSelectTemplate}
       />
     </SafeAreaView>
   );

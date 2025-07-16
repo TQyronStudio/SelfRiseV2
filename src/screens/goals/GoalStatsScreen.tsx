@@ -5,6 +5,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { ProgressHistoryList } from '@/src/components/goals/ProgressHistoryList';
 import { GoalStatsCard } from '@/src/components/goals/GoalStatsCard';
+import { ProgressTrendAnalysis } from '@/src/components/goals/ProgressTrendAnalysis';
+import { GoalCompletionPredictions } from '@/src/components/goals/GoalCompletionPredictions';
+import { GoalSharingModal } from '@/src/components/goals/GoalSharingModal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
@@ -23,6 +26,8 @@ export function GoalStatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showSharingModal, setShowSharingModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'stats' | 'trends' | 'predictions'>('stats');
 
   useEffect(() => {
     loadGoalData();
@@ -94,16 +99,58 @@ export function GoalStatsScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>{goal.title}</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity style={styles.shareButton} onPress={() => setShowSharingModal(true)}>
+          <Ionicons name="share-outline" size={24} color={Colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'stats' && styles.activeTab]}
+          onPress={() => setActiveTab('stats')}
+        >
+          <Text style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>
+            {t('goals.stats.overview')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'trends' && styles.activeTab]}
+          onPress={() => setActiveTab('trends')}
+        >
+          <Text style={[styles.tabText, activeTab === 'trends' && styles.activeTabText]}>
+            {t('goals.stats.trends')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'predictions' && styles.activeTab]}
+          onPress={() => setActiveTab('predictions')}
+        >
+          <Text style={[styles.tabText, activeTab === 'predictions' && styles.activeTabText]}>
+            {t('goals.stats.predictions')}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <GoalStatsCard goal={goal} stats={stats} />
-        <ProgressHistoryList
-          progress={progress}
-          goalUnit={goal.unit}
-          onDeleteProgress={handleDeleteProgress}
-        />
+        {activeTab === 'stats' && (
+          <>
+            <GoalStatsCard goal={goal} stats={stats} />
+            <ProgressHistoryList
+              progress={progress}
+              goalUnit={goal.unit}
+              onDeleteProgress={handleDeleteProgress}
+            />
+          </>
+        )}
+        
+        {activeTab === 'trends' && (
+          <ProgressTrendAnalysis goal={goal} progressHistory={progress} />
+        )}
+        
+        {activeTab === 'predictions' && (
+          <GoalCompletionPredictions goal={goal} stats={stats} progressHistory={progress} />
+        )}
       </ScrollView>
 
       <ErrorModal
@@ -112,6 +159,17 @@ export function GoalStatsScreen() {
         title={t('common.error')}
         message={errorMessage}
       />
+
+      {/* Sharing Modal */}
+      {showSharingModal && (
+        <GoalSharingModal
+          visible={showSharingModal}
+          goal={goal}
+          stats={stats}
+          progressHistory={progress}
+          onClose={() => setShowSharingModal(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -138,8 +196,34 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semibold,
     color: Colors.text,
   },
-  placeholder: {
-    width: 40,
+  shareButton: {
+    padding: 8,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.backgroundSecondary,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
+  },
+  activeTabText: {
+    color: Colors.white,
   },
   content: {
     flex: 1,

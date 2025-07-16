@@ -170,7 +170,25 @@ export class GoalStorage implements EntityStorage<Goal> {
         return [];
       }
       
-      return progress;
+      // Filter out invalid entries and clean up data
+      const validProgress = progress.filter(p => 
+        p && 
+        p.id && 
+        p.id.trim() !== '' &&
+        p.goalId &&
+        p.goalId.trim() !== '' &&
+        typeof p.value === 'number' &&
+        p.progressType &&
+        p.date
+      );
+      
+      // If we filtered out some entries, save the cleaned data
+      if (validProgress.length !== progress.length) {
+        console.log(`Cleaned up ${progress.length - validProgress.length} invalid progress entries`);
+        await BaseStorage.set(STORAGE_KEYS.GOAL_PROGRESS, validProgress);
+      }
+      
+      return validProgress;
     } catch (error) {
       console.error('Failed to get all goal progress:', error);
       // Return empty array instead of throwing to prevent app crash
@@ -182,7 +200,7 @@ export class GoalStorage implements EntityStorage<Goal> {
     try {
       const progress = await this.getAllProgress();
       return progress
-        .filter(p => p && p.goalId === goalId)
+        .filter(p => p.goalId === goalId)
         .sort((a, b) => {
           const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -472,6 +490,17 @@ export class GoalStorage implements EntityStorage<Goal> {
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GOALS
       );
+    }
+  }
+
+  // Data cleanup utility
+  async cleanupInvalidData(): Promise<void> {
+    try {
+      // This will trigger the cleanup logic in getAllProgress
+      await this.getAllProgress();
+      console.log('Goal progress data cleanup completed');
+    } catch (error) {
+      console.error('Failed to cleanup goal progress data:', error);
     }
   }
 }

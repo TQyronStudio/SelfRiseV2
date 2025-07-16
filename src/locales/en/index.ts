@@ -117,6 +117,15 @@ const en: TranslationKeys = {
     cancel: 'Cancel',
     delete: 'Delete',
     save: 'Save',
+    
+    // Goal Analytics
+    useTemplate: 'Use Template',
+    stats: {
+      overview: 'Overview',
+      trends: 'Trends',
+      predictions: 'Predictions',
+    },
+    
     form: {
       title: 'Goal Title',
       description: 'Description (Optional)',
@@ -143,14 +152,7 @@ const en: TranslationKeys = {
         submitFailed: 'Failed to save goal. Please try again.',
       },
     },
-    categories: {
-      personal: 'Personal',
-      health: 'Health',
-      learning: 'Learning',
-      career: 'Career',
-      financial: 'Financial',
-      other: 'Other',
-    },
+    
     progress: {
       addProgress: 'Add Progress',
       progressHistory: 'Progress History',
@@ -179,6 +181,177 @@ const en: TranslationKeys = {
           submitFailed: 'Failed to add progress. Please try again.',
         },
       },
+    },
+    
+    categories: {
+      personal: 'Personal',
+      health: 'Health',
+      learning: 'Learning',
+      career: 'Career',
+      financial: 'Financial',
+      other: 'Other',
+    },
+    
+    // Goal Categories
+    category: {
+      health: 'Health',
+      financial: 'Financial',
+      learning: 'Learning',
+      career: 'Career',
+      personal: 'Personal',
+      other: 'Other',
+    },
+    
+    // Goal Templates
+    templates: {
+      title: 'Goal Templates',
+      searchPlaceholder: 'Search templates...',
+      footerText: 'Select a template to get started quickly with pre-filled goal details.',
+      all: 'All',
+      target: 'Target',
+      noTemplates: 'No templates found matching your search.',
+      
+      // Health Templates
+      loseWeight: 'Lose Weight',
+      loseWeightDescription: 'Set a target weight loss goal with healthy progress tracking.',
+      dailySteps: 'Daily Steps',
+      dailyStepsDescription: 'Track your daily step count to maintain an active lifestyle.',
+      waterIntake: 'Water Intake',
+      waterIntakeDescription: 'Monitor your daily water consumption for better hydration.',
+      
+      // Financial Templates
+      saveMoney: 'Save Money',
+      saveMoneyDescription: 'Build your savings with a specific target amount.',
+      payDebt: 'Pay Off Debt',
+      payDebtDescription: 'Track progress toward eliminating debt completely.',
+      
+      // Learning Templates
+      readBooks: 'Read Books',
+      readBooksDescription: 'Set a goal to read a specific number of books this year.',
+      learnLanguage: 'Learn Language',
+      learnLanguageDescription: 'Track hours spent learning a new language.',
+      onlineCourse: 'Complete Online Course',
+      onlineCourseDescription: 'Finish lessons or modules in an online course.',
+      
+      // Career Templates
+      jobApplications: 'Job Applications',
+      jobApplicationsDescription: 'Track the number of job applications submitted.',
+      networking: 'Professional Networking',
+      networkingDescription: 'Build your professional network with new connections.',
+      
+      // Personal Templates
+      meditation: 'Daily Meditation',
+      meditationDescription: 'Track minutes spent in daily meditation practice.',
+      journalEntries: 'Journal Entries',
+      journalEntriesDescription: 'Maintain a regular journaling habit.',
+      
+      // Other Templates
+      artProjects: 'Art Projects',
+      artProjectsDescription: 'Complete creative art projects throughout the year.',
+      cookingRecipes: 'Try New Recipes',
+      cookingRecipesDescription: 'Expand your cooking skills by trying new recipes.',
+    },
+    
+    // Goal Dashboard
+    dashboard: {
+      overview: 'Overview',
+      activeGoals: 'Active Goals',
+      completedGoals: 'Completed Goals',
+      completionRate: 'Completion Rate',
+      onTrack: 'On Track',
+      deadlines: 'Deadlines',
+      overdue: 'Overdue',
+      dueThisWeek: 'Due This Week',
+      dueThisMonth: 'Due This Month',
+      behindSchedule: 'Behind Schedule',
+      categories: 'Categories',
+      active: 'Active',
+      completed: 'Completed',
+      completion: 'Completion',
+      quickActions: 'Quick Actions',
+      complete: 'Complete',
+    },
+    
+    // Goal Analytics
+    analysis: {
+      progressTrend: 'Progress Trend',
+      progressChart: 'Progress Chart',
+      statistics: 'Statistics',
+      insights: 'Insights',
+      totalEntries: 'Total Entries',
+      currentProgress: 'Current Progress',
+      avgDaily: 'Avg Daily',
+      noData: 'No progress data available for analysis.',
+      recentProgress: 'Recent Progress',
+      positiveProgress: 'Great progress! Average daily increase of {rate}%.',
+      negativeProgress: 'Progress has declined by {rate}% daily. Consider reviewing your approach.',
+      upwardTrend: 'Your recent progress shows an upward trend. Keep it up!',
+      downwardTrend: 'Recent progress is declining. Time to refocus on your goal.',
+      completionPrediction: 'At this rate, you\'ll complete your goal in {days} days.',
+    },
+    
+    // Goal Predictions
+    predictions: {
+      title: 'Goal Completion Predictions',
+      methods: 'Prediction Methods',
+      insights: 'Insights',
+      estimatedDate: 'Estimated Date',
+      daysRemaining: 'Days Remaining',
+      confidence: 'Confidence',
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low',
+      linearMethod: 'Linear Progression',
+      trendMethod: 'Recent Trend',
+      targetMethod: 'Target Date',
+      acceleratedMethod: 'Accelerated Progress',
+      noDataTitle: 'Insufficient Data',
+      noDataDescription: 'Add more progress entries to get accurate predictions.',
+      highConfidenceTitle: 'High Confidence Prediction',
+      highConfidenceDescription: 'Based on {method}, you\'ll complete your goal on {date} with {confidence}% confidence.',
+      inconsistentTitle: 'Inconsistent Predictions',
+      inconsistentDescription: 'Predictions vary by {difference} days. Consider adding more progress data.',
+      behindScheduleTitle: 'Behind Schedule',
+      behindScheduleDescription: 'You\'re {days} days behind your target date. Consider increasing your progress rate.',
+      aheadScheduleTitle: 'Ahead of Schedule',
+      aheadScheduleDescription: 'Great job! You\'re {days} days ahead of your target date.',
+      increaseRateTitle: 'Increase Progress Rate',
+      increaseRateDescription: 'You need {required} {unit} daily vs. your current {current} {unit} daily to meet your target.',
+    },
+    
+    // Goal Sharing
+    sharing: {
+      title: 'Share Goal',
+      shareOptions: 'Share Options',
+      copyOptions: 'Copy Options',
+      quickSummary: 'Quick Summary',
+      quickSummaryDescription: 'Share a brief overview of your goal progress.',
+      detailedReport: 'Detailed Report',
+      detailedReportDescription: 'Share comprehensive progress details and insights.',
+      dataExport: 'Data Export',
+      dataExportDescription: 'Export goal data in JSON format for backup or analysis.',
+      copyToClipboard: 'Copy Summary',
+      copyToClipboardDescription: 'Copy goal summary to your clipboard.',
+      copyDetailed: 'Copy Detailed',
+      copyDetailedDescription: 'Copy detailed progress report to clipboard.',
+      copyJson: 'Copy JSON',
+      copyJsonDescription: 'Copy goal data in JSON format to clipboard.',
+      footerText: 'Share your progress with others or export your data for backup.',
+      complete: 'Complete',
+      summary: 'Goal: {title}\nProgress: {completion}% ({current}/{target} {unit})\nDays Active: {daysActive}\nAverage Daily: {averageDaily} {unit}',
+      progressEntry: '{date}: {type} {value} {unit} - {note}',
+      noNote: 'No note',
+      onTrack: '✅ On track to meet target date',
+      estimatedCompletion: '📅 Estimated completion: {date}',
+      noRecentProgress: 'No recent progress entries.',
+      noInsights: 'No insights available.',
+      detailedReportTemplate: 'GOAL PROGRESS REPORT\n\n{summary}\n\nRECENT PROGRESS:\n{recentProgress}\n\nINSIGHTS:\n{insights}',
+      summaryTitle: 'Goal Summary: {title}',
+      detailedTitle: 'Goal Report: {title}',
+      jsonTitle: 'Goal Data: {title}',
+      exportError: 'Failed to export goal data. Please try again.',
+      copied: 'Content copied to clipboard!',
+      copyError: 'Failed to copy content. Please try again.',
     },
   },
   

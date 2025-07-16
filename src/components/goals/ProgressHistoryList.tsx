@@ -95,13 +95,6 @@ function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
 
 export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: ProgressHistoryListProps) {
   const { t } = useI18n();
-  
-  // Debug: Check for duplicate IDs
-  const ids = progress.map(p => p.id);
-  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
-  if (duplicates.length > 0) {
-    console.warn('Duplicate progress IDs found:', duplicates);
-  }
 
   const renderProgressItem = ({ item }: { item: GoalProgress }) => (
     <ProgressItem

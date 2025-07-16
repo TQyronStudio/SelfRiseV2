@@ -124,6 +124,9 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
+      // Clean up any invalid data first
+      await goalStorage.cleanupInvalidData();
+      
       const [goals, progress] = await Promise.all([
         goalStorage.getAll(),
         goalStorage.getAllProgress(),
