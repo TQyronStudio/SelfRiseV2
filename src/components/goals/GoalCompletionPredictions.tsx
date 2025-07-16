@@ -36,17 +36,19 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
     const results: PredictionData[] = [];
 
     // Method 1: Linear progression based on average daily progress
-    if (stats.averageDaily > 0) {
+    if (stats.averageDaily > 0 && remainingValue > 0) {
       const daysToComplete = Math.ceil(remainingValue / stats.averageDaily);
-      const estimatedDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
-      
-      results.push({
-        method: t('goals.predictions.linearMethod'),
-        estimatedDate: estimatedDate.toLocaleDateString(),
-        confidence: Math.min(90, Math.max(30, 100 - (daysToComplete * 0.5))),
-        daysRemaining: daysToComplete,
-        accuracy: daysToComplete <= 30 ? 'high' : daysToComplete <= 90 ? 'medium' : 'low',
-      });
+      if (daysToComplete > 0 && !isNaN(daysToComplete) && isFinite(daysToComplete)) {
+        const estimatedDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
+        
+        results.push({
+          method: t('goals.predictions.linearMethod'),
+          estimatedDate: estimatedDate.toLocaleDateString(),
+          confidence: Math.min(90, Math.max(30, 100 - (daysToComplete * 0.5))),
+          daysRemaining: daysToComplete,
+          accuracy: daysToComplete <= 30 ? 'high' : daysToComplete <= 90 ? 'medium' : 'low',
+        });
+      }
     }
 
     // Method 2: Trend-based prediction (recent 7 days)
@@ -65,17 +67,19 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
         return sum;
       }, 0) / recentProgress.length;
 
-      if (recentAverage > 0) {
+      if (recentAverage > 0 && remainingValue > 0) {
         const trendDays = Math.ceil(remainingValue / recentAverage);
-        const trendDate = new Date(today.getTime() + trendDays * 24 * 60 * 60 * 1000);
-        
-        results.push({
-          method: t('goals.predictions.trendMethod'),
-          estimatedDate: trendDate.toLocaleDateString(),
-          confidence: Math.min(85, Math.max(40, 100 - (trendDays * 0.8))),
-          daysRemaining: trendDays,
-          accuracy: trendDays <= 21 ? 'high' : trendDays <= 60 ? 'medium' : 'low',
-        });
+        if (trendDays > 0 && !isNaN(trendDays) && isFinite(trendDays)) {
+          const trendDate = new Date(today.getTime() + trendDays * 24 * 60 * 60 * 1000);
+          
+          results.push({
+            method: t('goals.predictions.trendMethod'),
+            estimatedDate: trendDate.toLocaleDateString(),
+            confidence: Math.min(85, Math.max(40, 100 - (trendDays * 0.8))),
+            daysRemaining: trendDays,
+            accuracy: trendDays <= 21 ? 'high' : trendDays <= 60 ? 'medium' : 'low',
+          });
+        }
       }
     }
 
@@ -84,15 +88,15 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
       const targetDate = new Date(goal.targetDate);
       const daysToTarget = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
       
-      if (daysToTarget > 0) {
+      if (daysToTarget > 0 && !isNaN(daysToTarget) && isFinite(daysToTarget) && remainingValue > 0) {
         const requiredDailyRate = remainingValue / daysToTarget;
-        const achievabilityScore = stats.averageDaily > 0 ? 
+        const achievabilityScore = stats.averageDaily > 0 && requiredDailyRate > 0 ? 
           Math.min(100, (stats.averageDaily / requiredDailyRate) * 100) : 0;
         
         results.push({
           method: t('goals.predictions.targetMethod'),
           estimatedDate: targetDate.toLocaleDateString(),
-          confidence: achievabilityScore,
+          confidence: Math.max(0, Math.min(100, achievabilityScore)),
           daysRemaining: daysToTarget,
           accuracy: achievabilityScore > 70 ? 'high' : achievabilityScore > 40 ? 'medium' : 'low',
         });
@@ -107,19 +111,23 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
       const firstHalfAvg = firstHalf.reduce((sum, p) => sum + p.value, 0) / firstHalf.length;
       const secondHalfAvg = secondHalf.reduce((sum, p) => sum + p.value, 0) / secondHalf.length;
       
-      if (secondHalfAvg > firstHalfAvg) {
+      if (secondHalfAvg > firstHalfAvg && firstHalfAvg > 0 && remainingValue > 0) {
         const accelerationFactor = secondHalfAvg / firstHalfAvg;
         const acceleratedRate = stats.averageDaily * accelerationFactor;
-        const acceleratedDays = Math.ceil(remainingValue / acceleratedRate);
-        const acceleratedDate = new Date(today.getTime() + acceleratedDays * 24 * 60 * 60 * 1000);
-        
-        results.push({
-          method: t('goals.predictions.acceleratedMethod'),
-          estimatedDate: acceleratedDate.toLocaleDateString(),
-          confidence: Math.min(80, Math.max(35, 100 - (acceleratedDays * 0.6))),
-          daysRemaining: acceleratedDays,
-          accuracy: acceleratedDays <= 45 ? 'high' : acceleratedDays <= 90 ? 'medium' : 'low',
-        });
+        if (acceleratedRate > 0) {
+          const acceleratedDays = Math.ceil(remainingValue / acceleratedRate);
+          if (acceleratedDays > 0 && !isNaN(acceleratedDays) && isFinite(acceleratedDays)) {
+            const acceleratedDate = new Date(today.getTime() + acceleratedDays * 24 * 60 * 60 * 1000);
+            
+            results.push({
+              method: t('goals.predictions.acceleratedMethod'),
+              estimatedDate: acceleratedDate.toLocaleDateString(),
+              confidence: Math.min(80, Math.max(35, 100 - (acceleratedDays * 0.6))),
+              daysRemaining: acceleratedDays,
+              accuracy: acceleratedDays <= 45 ? 'high' : acceleratedDays <= 90 ? 'medium' : 'low',
+            });
+          }
+        }
       }
     }
 
@@ -172,29 +180,35 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory }: Goal
     }
 
     // Target date comparison
-    if (goal.targetDate && bestPrediction) {
+    if (goal.targetDate && bestPrediction && bestPrediction.daysRemaining && !isNaN(bestPrediction.daysRemaining)) {
       const targetDate = new Date(goal.targetDate);
       const today = new Date();
       const bestEstimate = new Date(today.getTime() + bestPrediction.daysRemaining * 24 * 60 * 60 * 1000);
       
       if (bestEstimate > targetDate) {
-        results.push({
-          type: 'negative',
-          title: t('goals.predictions.behindScheduleTitle'),
-          description: t('goals.predictions.behindScheduleDescription', {
-            days: Math.ceil((bestEstimate.getTime() - targetDate.getTime()) / (24 * 60 * 60 * 1000)),
-          }),
-          icon: 'time',
-        });
+        const daysBehind = Math.ceil((bestEstimate.getTime() - targetDate.getTime()) / (24 * 60 * 60 * 1000));
+        if (daysBehind > 0) {
+          results.push({
+            type: 'negative',
+            title: t('goals.predictions.behindScheduleTitle'),
+            description: t('goals.predictions.behindScheduleDescription', {
+              days: daysBehind,
+            }),
+            icon: 'time',
+          });
+        }
       } else {
-        results.push({
-          type: 'positive',
-          title: t('goals.predictions.aheadScheduleTitle'),
-          description: t('goals.predictions.aheadScheduleDescription', {
-            days: Math.ceil((targetDate.getTime() - bestEstimate.getTime()) / (24 * 60 * 60 * 1000)),
-          }),
-          icon: 'rocket',
-        });
+        const daysAhead = Math.ceil((targetDate.getTime() - bestEstimate.getTime()) / (24 * 60 * 60 * 1000));
+        if (daysAhead > 0) {
+          results.push({
+            type: 'positive',
+            title: t('goals.predictions.aheadScheduleTitle'),
+            description: t('goals.predictions.aheadScheduleDescription', {
+              days: daysAhead,
+            }),
+            icon: 'rocket',
+          });
+        }
       }
     }
 

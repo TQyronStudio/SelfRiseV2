@@ -356,6 +356,8 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Add goal completion predictions
 - [x] Create goal sharing functionality
 - [x] Implement goal templates system
+- [x] **FIXED**: Insights interpolation bug - replaced single braces {} with double braces {{}} in i18n texts (July 16, 2025)
+- [x] **FIXED**: NaN values in Predictions Insights - added proper validation for daysRemaining calculations (July 16, 2025)
 
 
 ### Phase 6: Home Dashboard

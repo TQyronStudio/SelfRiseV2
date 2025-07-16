@@ -91,15 +91,17 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
     const daysCount = trendData.length;
     const avgDailyProgress = totalProgress / daysCount;
 
-    if (avgDailyProgress > 0) {
+    if (avgDailyProgress > 0.01) { // Only show if meaningful change
+      const rateValue = avgDailyProgress.toFixed(1);
       insights.push({
         type: 'positive',
-        text: t('goals.analysis.positiveProgress', { rate: avgDailyProgress.toFixed(1) }),
+        text: t('goals.analysis.positiveProgress', { rate: rateValue }),
       });
-    } else if (avgDailyProgress < 0) {
+    } else if (avgDailyProgress < -0.01) { // Only show if meaningful change
+      const rateValue = Math.abs(avgDailyProgress).toFixed(1);
       insights.push({
         type: 'negative',
-        text: t('goals.analysis.negativeProgress', { rate: Math.abs(avgDailyProgress).toFixed(1) }),
+        text: t('goals.analysis.negativeProgress', { rate: rateValue }),
       });
     }
 

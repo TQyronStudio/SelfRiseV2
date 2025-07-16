@@ -193,7 +193,7 @@ export function GoalStatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: Colors.background,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 8,
@@ -232,7 +232,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: Colors.primary,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
   },
   tabText: {
     fontSize: 14,
@@ -240,7 +241,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   activeTabText: {
-    color: Colors.white,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
   content: {
     flex: 1,
