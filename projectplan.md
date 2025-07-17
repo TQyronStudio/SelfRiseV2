@@ -512,6 +512,69 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 
 ---
 
+## Current Issue: Habit Statistics Screen Header Fix
+
+### Problem Analysis
+Při testování Habits screen bylo zjištěno, že po kliknutí na statistiku daného habitu habit stats screen má následující problémy:
+
+1. **Horní SafeArea není modrá** - na rozdíl od ostatních screenů (journal-stats, goal-stats)
+2. **Nápis "Individual Habit Stats" není uprostřed** - je na levém kraji
+3. **Chybí šípka zpět** - nelze se vrátit na habits screen
+
+### Current vs Expected Implementation
+
+**Current Implementation (habit-stats.tsx):**
+- Používá standardní React Navigation header
+- Žádná custom SafeAreaView s modrým pozadím
+- Standardní header layout s levým alignmentem
+
+**Expected Implementation (stejně jako journal-stats.tsx):**
+- Custom header s SafeAreaView
+- Modré pozadí (Colors.primary)
+- Centrovaný title
+- Custom back button s chevron.left ikonou
+
+### Solution Plan
+
+#### Todo Tasks:
+- [x] Přepsat habit-stats.tsx na custom header pattern (jako journal-stats.tsx)
+- [x] Přidat SafeAreaView s modrým pozadím
+- [x] Implementovat custom header s centrovaným nápisem "Active Habits"
+- [x] Přidat custom back button s chevron.left ikonou
+- [x] Otestovat navigaci zpět na habits screen
+
+#### Výsledek implementace:
+✅ **DOKONČENO** - Habit Statistics Screen Header Fix (July 17, 2025)
+
+**Provedené změny:**
+1. **Refaktoring `/app/habit-stats.tsx`**:
+   - Přepsan ze standardního React Navigation header na custom header pattern
+   - Přidán SafeAreaView s modrým pozadím (Colors.primary)
+   - Implementován centrovaný title "Active Habits"
+   - Přidán custom back button s chevron.left ikonou
+   - Opraveny duplicate import warnings
+
+2. **Úprava `/src/screens/habits/IndividualHabitStatsScreen.tsx`**:
+   - Odstraněn SafeAreaView (už je v parent komponentě)
+   - Upraveno na ScrollView jako root element
+   - Zachována veškerá funkcionalita (active/inactive habits, statistiky, accordion)
+
+**Výsledek:**
+- ✅ Horní SafeArea je nyní modrá (stejně jako u ostatních stats screenů)
+- ✅ Nápis "Active Habits" je centrovaný
+- ✅ Přidána functional šípka zpět pro návrat na habits screen
+- ✅ Konzistentní design s journal-stats a goal-stats screeny
+- ✅ Žádné breaking changes ve funkcionalitě
+
+#### Files to Modify:
+1. `/app/habit-stats.tsx` - kompletní refaktoring na custom header pattern
+2. Možná úprava title textu z "Individual Habit Stats" na "Active Habits"
+
+#### Reference Implementation:
+Použít jako template `/app/journal-stats.tsx` lines 87-112 (SafeAreaView + custom header)
+
+---
+
 ## Configuration Keys
 
 ### Firebase Configuration

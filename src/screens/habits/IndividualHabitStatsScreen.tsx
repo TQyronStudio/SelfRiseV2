@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
@@ -18,8 +17,7 @@ export function IndividualHabitStatsScreen() {
   const inactiveHabits = habits.filter(habit => !habit.isActive).sort((a, b) => a.order - b.order);
   
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={true}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={true}>
         {/* Active Habits Section */}
         {activeHabits.length > 0 && (
           <View style={styles.section}>
@@ -58,7 +56,6 @@ export function IndividualHabitStatsScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
   );
 }
 
@@ -66,9 +63,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  content: {
-    flex: 1,
   },
   section: {
     paddingHorizontal: 16,
