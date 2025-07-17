@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Text,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
@@ -50,35 +51,65 @@ export function HabitModal({
     <Modal
       visible={visible}
       animationType="fade"
-      transparent
+      transparent={Platform.OS === 'ios'}
       onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === 'android'}
     >
       <View style={styles.overlay}>
-        <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            disabled={isLoading}
-          >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          
-          <Text style={styles.title}>
-            {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
-          </Text>
-          
-          <View style={styles.placeholder} />
-        </View>
+        {Platform.OS === 'ios' ? (
+          <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={onClose}
+                disabled={isLoading}
+              >
+                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              
+              <Text style={styles.title}>
+                {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
+              </Text>
+              
+              <View style={styles.placeholder} />
+            </View>
 
-        <HabitForm
-          initialData={initialData}
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          isEditing={isEditing}
-          isLoading={isLoading}
-        />
-        </SafeAreaView>
+            <HabitForm
+              initialData={initialData}
+              onSubmit={onSubmit}
+              onCancel={onClose}
+              isEditing={isEditing}
+              isLoading={isLoading}
+            />
+          </SafeAreaView>
+        ) : (
+          // Android specifická implementace bez SafeAreaView
+          <View style={styles.androidContainer}>
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={onClose}
+                disabled={isLoading}
+              >
+                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              
+              <Text style={styles.title}>
+                {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
+              </Text>
+              
+              <View style={styles.placeholder} />
+            </View>
+
+            <HabitForm
+              initialData={initialData}
+              onSubmit={onSubmit}
+              onCancel={onClose}
+              isEditing={isEditing}
+              isLoading={isLoading}
+            />
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -87,8 +118,8 @@ export function HabitModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.8)',
+    justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
   },
   container: {
     flex: 1,
@@ -103,7 +134,22 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 10,
+    elevation: 1500,
+    zIndex: 1500,
+  },
+  // Android specifický kontejner - úplně jednoduchý bez marginů a borderů
+  androidContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.background,
+    elevation: 9999, // Maximální možná elevation
+    zIndex: 9999,
+    // Debug styly pro Android
+    borderWidth: Platform.OS === 'android' ? 5 : 0,
+    borderColor: Platform.OS === 'android' ? 'red' : 'transparent',
   },
   header: {
     flexDirection: 'row',

@@ -17,15 +17,20 @@ import { ErrorModal } from '@/src/components/common';
 
 // Tento styl zajistí, že se hlavní kontejner obrazovky roztáhne na celou výšku
 const styles = StyleSheet.create({
-  // Toto je klíčová oprava!
   container: {
     flex: 1,
-    backgroundColor: Colors.background, // Přidáme barvu pozadí pro konzistenci
+    backgroundColor: Colors.background,
   },
   addButtonContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16, // Přidáme horní padding pro lepší vzhled
+    paddingTop: 16,
     paddingBottom: 8,
+    backgroundColor: Colors.background,
+    zIndex: 100, // Sníženo z 1000 na 100 - stále vyšší než seznam, ale nižší než modaly
+    elevation: 100, // Pro Android
+  },
+  listContainer: {
+    flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
   },
   addButton: {
     flexDirection: 'row',
@@ -144,29 +149,30 @@ export function HabitsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <HabitListWithCompletion
-        habits={habits}
-        completions={completions}
-        isLoading={isLoading}
-        onRefresh={handleRefresh}
-        onEditHabit={handleEditHabit}
-        onDeleteHabit={handleDeleteHabit}
-        onToggleActive={handleToggleActive}
-        onToggleCompletion={handleToggleCompletion}
-        onReorderHabits={handleReorderHabits}
-        onViewHabitStats={handleViewHabitStats}
-        ListHeaderComponent={
-          <>
-            <DailyHabitProgress />
-            <View style={styles.addButtonContainer}>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
-                <Ionicons name="add" size={24} color="white" />
-                <Text style={styles.addButtonText}>Add New Habit</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        }
-      />
+      {/* Tlačítko Add je nyní odděleno od seznamu */}
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
+          <Ionicons name="add" size={24} color="white" />
+          <Text style={styles.addButtonText}>Add New Habit</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Seznam má vlastní kontejner s flex: 1 */}
+      <View style={styles.listContainer}>
+        <HabitListWithCompletion
+          habits={habits}
+          completions={completions}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+          onEditHabit={handleEditHabit}
+          onDeleteHabit={handleDeleteHabit}
+          onToggleActive={handleToggleActive}
+          onToggleCompletion={handleToggleCompletion}
+          onReorderHabits={handleReorderHabits}
+          onViewHabitStats={handleViewHabitStats}
+          ListHeaderComponent={<DailyHabitProgress />}
+        />
+      </View>
 
       <HabitModal
         visible={modalVisible}

@@ -19,6 +19,12 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
     gap: 8,
+    backgroundColor: Colors.background,
+    zIndex: 100, // Sníženo z 1000 na 100 - stále vyšší než seznam, ale nižší než modaly
+    elevation: 100, // Pro Android
+  },
+  listContainer: {
+    flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
   },
   addButton: {
     flexDirection: 'row',
@@ -202,28 +208,31 @@ export function GoalsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <GoalListWithDragAndDrop
-        goals={goals}
-        isLoading={isLoading}
-        onRefresh={handleRefresh}
-        onEditGoal={handleEditGoal}
-        onDeleteGoal={handleDeleteGoal}
-        onViewGoalStats={handleViewGoalStats}
-        onAddProgress={handleAddProgress}
-        onReorderGoals={handleReorderGoals}
-        ListHeaderComponent={
-          <View style={styles.addButtonContainer}>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
-              <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
-              <Ionicons name="library-outline" size={24} color={Colors.primary} />
-              <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
+      {/* Tlačítka Add a Template jsou nyní oddělena od seznamu */}
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
+          <Ionicons name="add" size={24} color="white" />
+          <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
+          <Ionicons name="library-outline" size={24} color={Colors.primary} />
+          <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Seznam má vlastní kontejner s flex: 1 */}
+      <View style={styles.listContainer}>
+        <GoalListWithDragAndDrop
+          goals={goals}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+          onEditGoal={handleEditGoal}
+          onDeleteGoal={handleDeleteGoal}
+          onViewGoalStats={handleViewGoalStats}
+          onAddProgress={handleAddProgress}
+          onReorderGoals={handleReorderGoals}
+        />
+      </View>
 
       <GoalModal
         visible={modalVisible}
