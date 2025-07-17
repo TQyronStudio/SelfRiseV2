@@ -834,47 +834,77 @@ androidContainer: {
 - Pokud se zobrazí obsah modalu → problém vyřešen
 - Pokud se stále zobrazuje jen křížek → problém je v child komponentách
 
-### Current Status: Android Modal Still Broken (July 17, 2025)
+### Critical Android Modal Fix - Following Claude Opus 4 Instructions (July 17, 2025)
 
-**❌ PROBLÉM STÁLE PŘETRVÁVÁ:**
-I po všech implementovaných opravách (z-index, platform-specific restructure, absolutní positioning) se na Androidu stále zobrazuje jen overlay (stmavnutí) a křížek, ale obsah modalu není vidět.
+**PROBLÉM:** Na Androidu přestanou fungovat všechny modaly po prvním použití. Modal se pravděpodobně nezavírá správně a blokuje UI.
 
-**Současný stav:**
-- ✅ **Tlačítka Add fungují** - layout fix byl úspěšný
-- ✅ **Overlay se zobrazuje** - modal se otevírá
-- ✅ **Křížek je viditelný** - header se renderuje
-- ❌ **Obsah modalu chybí** - formulář a další komponenty se neobrazují
+**SOUBORY K ÚPRAVĚ:**
+- src/components/habits/HabitModal.tsx
+- src/components/goals/GoalModal.tsx  
+- src/components/goals/ProgressModal.tsx
 
-**Proběhlé pokusy o opravu:**
-1. **Z-index hierarchie** - zvýšení elevation na 1500, 2000, 9999
-2. **Platform-specific Modal** - iOS vs Android implementace
-3. **Absolutní positioning** - odstranění flex, přidání position: absolute
-4. **Debug borders** - červený border pro debugging
-5. **SafeAreaView removal** - odstranění SafeAreaView z Android verze
+**POŽADOVANÉ ZMĚNY DLE CLAUDE OPUS 4:**
 
-**Všechny pokusy selhaly** - problém je pravděpodobně hlubší v architektuře.
+#### Todo Tasks:
+- [x] Implementovat platform-specific Modal properties pro všechny 3 soubory
+- [x] Upravit animationType: iOS "fade", Android "slide" 
+- [x] Upravit transparent: iOS true, Android false
+- [x] Odstranit position: 'absolute' z Android kontejnerů
+- [x] Odstranit extrémní elevation (9999) a zIndex (9999)
+- [x] Odstranit debug border (červený rámeček)
+- [x] Implementovat nové styly pro Android overlay a container
+- [x] Přidat StatusBar import a handling
+- [x] Upravit KeyboardAvoidingView pro Android
+- [ ] Otestovat že modaly fungují opakovaně na Androidu
 
-**Možné příčiny:**
-1. **Child komponenty** - HabitForm/GoalForm se neobrazují správně
-2. **KeyboardAvoidingView** - konflikt s Modal na Androidu
-3. **React Native Modal bug** - známý problém s Android Modal
-4. **Styling konflikty** - CSS styling blokuje renderování
-5. **Layout bug** - problém s flexbox na Androidu
+#### Konkrétní implementace dle instrukcí:
 
-**Potřebné soubory k dalšímu zkoumání:**
-- `/src/components/habits/HabitForm.tsx`
-- `/src/components/goals/GoalForm.tsx`
-- `/src/components/habits/HabitModal.tsx`
-- `/src/components/goals/GoalModal.tsx`
-- `/src/screens/habits/HabitsScreen.tsx`
-- `/src/screens/goals/GoalsScreen.tsx`
+**Modal konfigurace:**
+```typescript
+<Modal
+  visible={visible}
+  animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
+  transparent={Platform.OS === 'ios'}
+  onRequestClose={onClose}
+  statusBarTranslucent
+>
+```
 
-**Doporučený další postup:**
-1. Zkoumat child komponenty (HabitForm, GoalForm)
-2. Otestovat alternativní Modal implementaci
-3. Zkusit react-native-modal knihovnu
-4. Implementovat podmíněné renderování pro Android
-5. Použít debugger pro identifikaci přesné příčiny
+**Styly:**
+```typescript
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
+    justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    ...(Platform.OS === 'ios' ? {
+      marginTop: 50,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    } : {
+      paddingTop: StatusBar.currentHeight || 0,
+    }),
+  },
+  // Odstranit androidContainer úplně
+});
+```
+
+**Struktura komponenty:**
+- iOS: Zachovat současnou strukturu s overlay
+- Android: Zjednodušit strukturu - bez overlay div
+
+**KeyboardAvoidingView:**
+```typescript
+keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : StatusBar.currentHeight}
+```
 
 ---
 

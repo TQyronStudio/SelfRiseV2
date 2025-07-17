@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, AddGoalProgressInput } from '../../types/goal';
@@ -36,15 +37,56 @@ export function ProgressModal({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
-      transparent
+      animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
+      transparent={Platform.OS === 'ios'}
       onRequestClose={onClose}
+      statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <SafeAreaView style={styles.container}>
+        {Platform.OS === 'ios' ? (
+          <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoidingView}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <View style={styles.header}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={onClose}
+                  disabled={isLoading}
+                >
+                  <Ionicons name="close" size={24} color={Colors.textSecondary} />
+                </TouchableOpacity>
+                
+                <View style={styles.titleContainer}>
+                  <Text style={styles.title}>
+                    {t('goals.progress.addProgress')}
+                  </Text>
+                  <Text style={styles.subtitle}>
+                    {goal.title}
+                  </Text>
+                </View>
+                
+                <View style={styles.placeholder} />
+              </View>
+
+              <ProgressEntryForm
+                goalId={goal.id}
+                goalUnit={goal.unit}
+                currentValue={goal.currentValue}
+                targetValue={goal.targetValue}
+                onSubmit={onSubmit}
+                onCancel={onClose}
+                isLoading={isLoading}
+              />
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        ) : (
+          // Android - zjednodušená struktura bez overlay div
           <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
+            behavior="height"
+            keyboardVerticalOffset={StatusBar.currentHeight || 0}
           >
             <View style={styles.header}>
               <TouchableOpacity
@@ -77,7 +119,7 @@ export function ProgressModal({
               isLoading={isLoading}
             />
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        )}
       </View>
     </Modal>
   );
@@ -86,23 +128,23 @@ export function ProgressModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
+    justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
   },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    marginTop: 50,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 10,
+    ...(Platform.OS === 'ios' ? {
+      marginTop: 50,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    } : {
+      paddingTop: StatusBar.currentHeight || 0,
+    }),
   },
   keyboardAvoidingView: {
     flex: 1,

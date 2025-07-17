@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, CreateGoalInput, UpdateGoalInput } from '../../types/goal';
@@ -59,10 +60,10 @@ export function GoalModal({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
       transparent={Platform.OS === 'ios'}
       onRequestClose={onClose}
-      statusBarTranslucent={Platform.OS === 'android'}
+      statusBarTranslucent
     >
       <View style={styles.overlay}>
         {Platform.OS === 'ios' ? (
@@ -97,10 +98,11 @@ export function GoalModal({
             </KeyboardAvoidingView>
           </SafeAreaView>
         ) : (
-          // Android specifická implementace bez SafeAreaView
+          // Android - zjednodušená struktura bez overlay div
           <KeyboardAvoidingView
-            style={styles.androidContainer}
+            style={styles.container}
             behavior="height"
+            keyboardVerticalOffset={StatusBar.currentHeight || 0}
           >
             <View style={styles.header}>
               <TouchableOpacity
@@ -135,38 +137,23 @@ export function GoalModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
     justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
   },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    marginTop: 50,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 1500,
-    zIndex: 1500,
-  },
-  // Android specifický kontejner - úplně jednoduchý bez marginů a borderů
-  androidContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.background,
-    elevation: 9999, // Maximální možná elevation
-    zIndex: 9999,
-    // Debug styly pro Android
-    borderWidth: Platform.OS === 'android' ? 5 : 0,
-    borderColor: Platform.OS === 'android' ? 'red' : 'transparent',
+    ...(Platform.OS === 'ios' ? {
+      marginTop: 50,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    } : {
+      paddingTop: StatusBar.currentHeight || 0,
+    }),
   },
   keyboardAvoidingView: {
     flex: 1,

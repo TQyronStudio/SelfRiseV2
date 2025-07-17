@@ -9,6 +9,7 @@ import {
   Text,
   SafeAreaView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
@@ -50,10 +51,10 @@ export function HabitModal({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
       transparent={Platform.OS === 'ios'}
       onRequestClose={onClose}
-      statusBarTranslucent={Platform.OS === 'android'}
+      statusBarTranslucent
     >
       <View style={styles.overlay}>
         {Platform.OS === 'ios' ? (
@@ -83,8 +84,8 @@ export function HabitModal({
             />
           </SafeAreaView>
         ) : (
-          // Android specifická implementace bez SafeAreaView
-          <View style={styles.androidContainer}>
+          // Android - zjednodušená struktura bez overlay div
+          <View style={styles.container}>
             <View style={styles.header}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -118,38 +119,23 @@ export function HabitModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
     justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
   },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    marginTop: 50, // Space for status bar and backdrop visibility
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 1500,
-    zIndex: 1500,
-  },
-  // Android specifický kontejner - úplně jednoduchý bez marginů a borderů
-  androidContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.background,
-    elevation: 9999, // Maximální možná elevation
-    zIndex: 9999,
-    // Debug styly pro Android
-    borderWidth: Platform.OS === 'android' ? 5 : 0,
-    borderColor: Platform.OS === 'android' ? 'red' : 'transparent',
+    ...(Platform.OS === 'ios' ? {
+      marginTop: 50,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    } : {
+      paddingTop: StatusBar.currentHeight || 0,
+    }),
   },
   header: {
     flexDirection: 'row',
