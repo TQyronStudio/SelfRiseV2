@@ -247,9 +247,16 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       await goalStorage.deleteProgress(id);
       dispatch({ type: 'DELETE_PROGRESS', payload: id });
       
-      // Refresh stats for the affected goal
+      // Refresh both goal and stats for the affected goal
       if (progressItem) {
-        const updatedStats = await goalStorage.getGoalStats(progressItem.goalId);
+        const [updatedGoal, updatedStats] = await Promise.all([
+          goalStorage.getById(progressItem.goalId),
+          goalStorage.getGoalStats(progressItem.goalId)
+        ]);
+        
+        if (updatedGoal) {
+          dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
+        }
         dispatch({ type: 'UPDATE_GOAL_STATS', payload: updatedStats });
       }
     } catch (error) {

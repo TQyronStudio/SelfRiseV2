@@ -10,6 +10,7 @@ import { ProgressTrendAnalysis } from '@/src/components/goals/ProgressTrendAnaly
 import { GoalCompletionPredictions } from '@/src/components/goals/GoalCompletionPredictions';
 import { GoalSharingModal } from '@/src/components/goals/GoalSharingModal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
+import { useGoals } from '@/src/contexts/GoalsContext';
 import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -19,41 +20,28 @@ export function GoalStatsScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const { goalId } = useLocalSearchParams<{ goalId: string }>();
-  const { getGoalWithStats, getGoalProgress, actions } = useGoalsData();
+  const { getGoalWithStats, getGoalProgress, actions, isLoading } = useGoalsData();
+  const { actions: goalsActions } = useGoals();
   const insets = useSafeAreaInsets();
   
-  const [goal, setGoal] = useState<Goal | null>(null);
-  const [stats, setStats] = useState<GoalStats | null>(null);
-  const [progress, setProgress] = useState<GoalProgress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSharingModal, setShowSharingModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'stats' | 'trends' | 'predictions'>('stats');
 
-  useEffect(() => {
-    loadGoalData();
-  }, [goalId]);
+  // Get data directly from the global state via useGoalsData hook
+  const goalWithStats = goalId ? getGoalWithStats(goalId) : null;
+  const goal = goalWithStats ? { ...goalWithStats, stats: undefined, progress: undefined } : null;
+  const stats = goalWithStats?.stats || null;
+  const progress = goalId ? getGoalProgress(goalId) : [];
 
-  const loadGoalData = async () => {
-    if (!goalId) return;
-
+  const handleDeleteProgress = async (progressId: string) => {
     try {
-      setIsLoading(true);
-      const goalWithStats = getGoalWithStats(goalId);
-      const progressEntries = getGoalProgress(goalId);
-      
-      if (goalWithStats) {
-        const { stats, progress, ...goal } = goalWithStats;
-        setGoal(goal);
-        setStats(stats || null);
-        setProgress(progressEntries);
-      }
+      await goalsActions.deleteProgress(progressId);
+      // No need to reload - the global state will automatically update
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to load goal data');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete progress');
       setShowError(true);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -146,6 +134,7 @@ export function GoalStatsScreen() {
             <ProgressHistoryList
               progress={progress}
               goalUnit={goal.unit}
+              onDeleteProgress={handleDeleteProgress}
             />
           </>
         )}

@@ -157,6 +157,8 @@ const en: TranslationKeys = {
       addProgress: 'Add Progress',
       progressHistory: 'Progress History',
       noProgress: 'No progress entries yet',
+      confirmDelete: 'Delete Progress',
+      deleteMessage: 'Are you sure you want to delete this progress entry? This action cannot be undone.',
       form: {
         progressType: 'Progress Type',
         value: 'Value',

@@ -19,7 +19,7 @@ interface HabitItemProps {
   onDelete: (habitId: string) => void;
   onToggleActive: (habitId: string, isActive: boolean) => void;
   onReorder: (habitOrders: Array<{ id: string; order: number }>) => void;
-  onDrag?: () => void;
+  onDrag?: (() => void) | undefined;
   isDragging?: boolean;
 }
 

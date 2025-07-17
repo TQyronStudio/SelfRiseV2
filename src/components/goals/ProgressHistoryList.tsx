@@ -1,21 +1,36 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { GoalProgress } from '../../types/goal';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { ConfirmationModal } from '../common';
 
 interface ProgressHistoryListProps {
   progress: GoalProgress[];
   goalUnit: string;
+  onDeleteProgress: (id: string) => Promise<void>;
 }
 
 interface ProgressItemProps {
   item: GoalProgress;
   goalUnit: string;
+  onDelete: (id: string) => void;
 }
 
-function ProgressItem({ item, goalUnit }: ProgressItemProps) {
+function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
+  const { t } = useI18n();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(item.id);
+    setShowDeleteConfirm(false);
+  };
 
   const getProgressTypeIcon = (type: string) => {
     switch (type) {
@@ -58,22 +73,49 @@ function ProgressItem({ item, goalUnit }: ProgressItemProps) {
             <Text style={styles.progressDate}>{item.date}</Text>
           </View>
         </View>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trash" size={16} color={Colors.error} />
+        </TouchableOpacity>
       </View>
       
       {item.note && (
         <Text style={styles.progressNote}>{item.note}</Text>
       )}
+
+      <ConfirmationModal
+        visible={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title={t('goals.progress.confirmDelete')}
+        message={t('goals.progress.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        emoji="🗑️"
+      />
     </View>
   );
 }
 
-export function ProgressHistoryList({ progress, goalUnit }: ProgressHistoryListProps) {
+export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: ProgressHistoryListProps) {
   const { t } = useI18n();
+
+  const handleDeleteProgress = async (id: string) => {
+    try {
+      await onDeleteProgress(id);
+    } catch (error) {
+      console.error('Failed to delete progress:', error);
+    }
+  };
 
   const renderProgressItem = ({ item }: { item: GoalProgress }) => (
     <ProgressItem
       item={item}
       goalUnit={goalUnit}
+      onDelete={handleDeleteProgress}
     />
   );
 
@@ -173,6 +215,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 8,
     marginLeft: 44,
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: Colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     paddingVertical: 32,

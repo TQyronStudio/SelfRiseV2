@@ -40,7 +40,6 @@ export function HabitList({
 
   const activeHabits = habits.filter(habit => habit.isActive);
   const inactiveHabits = habits.filter(habit => !habit.isActive);
-  
 
 
   const renderHabitItem = ({ item, drag, isActive }: RenderItemParams<Habit>) => (

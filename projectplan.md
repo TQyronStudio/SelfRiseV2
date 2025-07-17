@@ -575,6 +575,88 @@ Použít jako template `/app/journal-stats.tsx` lines 87-112 (SafeAreaView + cus
 
 ---
 
+## Current Task: Goals Progress History Delete Functionality
+
+### Problem Description
+V Goals screen v Overview tab je Progress History seznam, kde uživatel nemohl mazat jednotlivé progress entries. 
+
+### Implementation Plan
+
+#### Todo Tasks:
+- [x] Analyzovat současnou strukturu Goals screen a Progress History
+- [x] Najít komponenty pro Progress History a Overview screen  
+- [x] Přidat ikonu koše pro každou položku v Progress History
+- [x] Implementovat funkci pro mazání progress entries
+- [x] Zajistit okamžité obnovení statistik po smazání
+- [x] Otestovat funkcionalitu mazání a přepočítávání statistik
+
+### Implementation Summary
+
+**Provedené změny:**
+
+1. **Rozšíření `ProgressHistoryList.tsx`**:
+   - Přidán `onDeleteProgress` prop pro handling mazání
+   - Přidána ikona koše (trash) pro každou progress entry
+   - Implementován `ConfirmationModal` pro potvrzení mazání
+   - Přidán i18n support pro delete confirmation
+
+2. **Úprava `GoalStatsScreen.tsx`**:
+   - Přidán import `useGoals` context
+   - Implementována `handleDeleteProgress` funkce
+   - Propojení s `goalsActions.deleteProgress`
+   - Automatické obnovení dat po smazání
+
+3. **Aktualizace lokalizace**:
+   - Přidány klíče `goals.progress.confirmDelete` a `goals.progress.deleteMessage`
+   - Konzistentní používání i18n klíčů
+
+4. **Funkcionalita**:
+   - Každá progress entry má ikonu koše vpravo
+   - Kliknutím na koš se zobrazí confirmation modal
+   - Po potvrzení se entry smaže z databáze
+   - Statistiky se okamžitě přepočítají a aktualizují
+   - UI se obnoví bez potřeby manuálního refreshu
+
+**Výsledek:**
+- ✅ Mazání progress entries plně funkční
+- ✅ Okamžité obnovení statistik po smazání
+- ✅ Elegantní confirmation modal s i18n
+- ✅ Konzistentní design s ostatními delete funkcemi v aplikaci
+- ✅ Žádné breaking changes v existující funkcionalitě
+
+### Opravy synchronizace dat (July 17, 2025)
+
+**Identifikované problémy:**
+1. Změny se neprojevovaly na hlavním Goals screen
+2. Mazání progress entries nebylo okamžité - vyžadovalo refresh
+
+**Provedené opravy:**
+
+1. **Refaktoring `GoalStatsScreen.tsx`**:
+   - Odstraněn lokální state pro goal, stats, progress
+   - Přechod na přímé používání globálního state přes `useGoalsData`
+   - Eliminace `loadGoalData()` funkce
+   - Okamžité propagace změn bez manuálního refresh
+
+2. **Vylepšení `GoalsContext.tsx`**:
+   - Rozšířena `deleteProgress` funkce o aktualizaci goal objektu
+   - Přidáno paralelní načítání goal + stats po smazání progress
+   - Zajištěna synchronizace currentValue a dalších goal properties
+
+3. **Synchronizace mezi screeny**:
+   - Goals main screen automaticky zobrazuje aktualizované hodnoty
+   - Goal Stats screen okamžitě odráží smazání progress entries
+   - Všechny statistiky se přepočítávají v reálném čase
+
+**Finální výsledek:**
+- ✅ Okamžité zobrazení smazání v Progress History
+- ✅ Synchronizace mezi Goals screen a Goal Stats screen
+- ✅ Automatické přepočítávání všech statistik a goal values
+- ✅ Žádné manual refresh není potřeba
+- ✅ Konzistentní data state napříč celou aplikací
+
+---
+
 ## Configuration Keys
 
 ### Firebase Configuration
