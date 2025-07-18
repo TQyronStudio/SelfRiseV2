@@ -842,6 +842,161 @@ Modal -> View (overlay) -> View (container) -> Content
 
 **TESTOVÁNÍ:** Po každé změně otestuj, že modal funguje opakovaně na Androidu!
 
+### Finální řešení s react-native-modal (July 18, 2025)
+
+**PROBLÉM:** I po všech předchozích pokusech (z-index, elevation, platformně specifické struktury) se Android modaly stále nezobrazují správně.
+
+**IDENTIFIKOVANÁ HLAVNÍ PŘÍČINA:** `"edgeToEdgeEnabled": true` v app.json
+
+#### Todo Tasks:
+- [x] Instalovat react-native-modal knihovnu
+- [x] Nahradit standardní Modal za react-native-modal ve všech 3 komponentách
+- [x] Sjednotit kód pro iOS i Android - odstranit platformně specifické hacky
+- [x] Opravit iOS modal zobrazení (maxHeight → flex: 1)
+- [x] Deaktivovat edgeToEdgeEnabled v app.json
+- [x] Otestovat modaly na obou platformách - iOS trhavé, Android stále stejný problém
+
+#### Implementované změny:
+
+1. **react-native-modal implementace:**
+   - `import Modal from 'react-native-modal'`
+   - `visible` → `isVisible`
+   - Přidány vlastnosti: `onBackdropPress`, `onBackButtonPress`, `onSwipeComplete`, `swipeDirection="down"`
+   - `avoidKeyboard` pro automatické řešení klávesnice
+   - `statusBarTranslucent` pro Android
+
+2. **Sjednocená struktura pro iOS i Android:**
+   ```typescript
+   return (
+     <Modal isVisible={visible} /* ... */>
+       <SafeAreaView style={styles.container}>
+         <View style={styles.handle} />
+         <View style={styles.header}>/* header */</View>
+         <FormComponent /* ... */ />
+       </SafeAreaView>
+     </Modal>
+   );
+   ```
+
+3. **Zjednodušené styly:**
+   ```typescript
+   const styles = StyleSheet.create({
+     modal: { justifyContent: 'flex-end', margin: 0 },
+     container: { 
+       backgroundColor: Colors.background,
+       borderTopLeftRadius: 20,
+       borderTopRightRadius: 20,
+       paddingTop: 8,
+       flex: 1,
+       marginTop: 50,
+     },
+     handle: {
+       width: 40, height: 4, borderRadius: 2,
+       backgroundColor: Colors.border,
+       alignSelf: 'center', marginBottom: 10,
+     },
+   });
+   ```
+
+4. **Oprava app.json:**
+   - `"edgeToEdgeEnabled": false` - deaktivováno kvůli konfliktům s modaly
+
+#### Výhody nového řešení:
+- ✅ Jeden kód pro iOS i Android
+- ✅ Automatické řešení klávesnice
+- ✅ Gesto potažení dolů pro zavření
+- ✅ Zavření kliknutím na pozadí
+- ✅ Hardwarové tlačítko zpět na Androidu
+- ✅ Odstranění všech platformně specifických hacků
+
+### Diagnostický plán: Pojďme najít viníka (July 18, 2025)
+
+**VÝSLEDEK TESTOVÁNÍ:** iOS je trochu trhavé, sekající se screen, u Androidu je výsledek stále stejný.
+
+**STRATEGIE:** Udělejme dva jednoduché testy, které nám s jistotou řeknou, kde je problém.
+
+#### Test č. 1: Dočasná výměna DraggableFlatList (cca 5 minut)
+
+**Cíl:** Potvrdit nebo vyvrátit podezření na DraggableFlatList jako zdroj problému.
+
+**Postup:**
+1. Otevřete soubor `src/screens/habits/HabitsScreen.tsx`
+2. Najděte, kde používáte `<DraggableFlatList ... />`
+3. Dočasně tuto komponentu nahraďte za úplně standardní `<FlatList ... />` z react-native
+4. Upravte některé propy (např. odstranit `onDragEnd`), ale nechte ji zobrazit stejná data
+5. **Otestujte chování:** Zkuste na Androidu přidat jeden návyk a hned poté druhý
+
+**Očekávaný výsledek:** Pokud modaly nyní fungují, našli jsme zdroj problému.
+
+#### Test č. 2: Úplná izolace modalu (cca 10 minut)
+
+**Cíl:** Vytvořit úplně čisté prostředí pro 100% jistotu.
+
+**Postup:**
+1. Vytvořte si dočasně novou, naprosto jednoduchou obrazovku (např. `TestScreen.tsx`)
+2. Na tuto obrazovku vložte jen `View`, `Button` a vaši komponentu `<HabitModal />`
+3. Žádné seznamy, žádné další komplexní komponenty
+4. Nechte tlačítko ovládat viditelnost modalu
+
+**Implementace:**
+```typescript
+// Příklad TestScreen.tsx
+import React, { useState } from 'react';
+import { View, Button } from 'react-native';
+import { HabitModal } from '../components/habits/HabitModal';
+
+export function TestScreen() {
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button title="Otevřít Modal" onPress={() => setModalVisible(true)} />
+      <HabitModal
+        visible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={(data) => {
+          console.log('Data z modalu:', data);
+          setModalVisible(false);
+        }}
+      />
+    </View>
+  );
+}
+```
+
+**Očekávaný výsledek:** Pokud modal na této izolované obrazovce funguje bez problémů, definitivně víme, že problém je v interakci s jinou komponentou na původní HabitsScreen.
+
+#### Řešení problému s trháním na iOS (Optimalizace)
+
+**Příčina:** Trhání je téměř vždy způsobeno zbytečným překreslováním komponent. Když otevřete modal, změní se stav na hlavní obrazovce a ta se celá překreslí, včetně onoho náročného DraggableFlatList.
+
+**Optimalizace:**
+
+1. **Optimalizujte položky seznamu:**
+   - Ujistěte se, že komponenta pro jednotlivé řádky v seznamu (`renderItem`) je obalena v `React.memo`
+   - To zabrání jejímu překreslení, pokud se její data nezměnila
+   ```typescript
+   // v souboru s vaší položkou seznamu
+   export default React.memo(VaseKomponentaProPolozku);
+   ```
+
+2. **Použijte useCallback:**
+   - Funkce, které předáváte komponentám (jako `onPress`, `onSubmit`), obalte do háčku `useCallback`
+   - Aby se nevytvářely stále znovu při každém překreslení
+   ```typescript
+   const handleModalSubmit = useCallback((data) => {
+     // vaše logika
+   }, []); // pole závislostí
+   ```
+
+#### Todo Tasks:
+- [x] Provést Test č. 1: Nahradit DraggableFlatList za FlatList
+- [x] Otestovat modaly po Test č. 1 - **ÚSPĚCH!** Modal se zobrazuje na Androidu
+- [x] **VINÍK IDENTIFIKOVÁN:** DraggableFlatList způsobuje konflikty s react-native-modal
+- [x] Implementovat optimalizace pro trhání a scrollování
+- [ ] Finální testování všech řešení
+- [ ] Rozhodnout o náhradě za DraggableFlatList (zachovat drag&drop nebo ne)
+
 ---
 
 ## Configuration Keys

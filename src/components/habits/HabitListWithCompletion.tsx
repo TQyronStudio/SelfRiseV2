@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, RefreshControl, ScrollView } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { View, Text, StyleSheet, RefreshControl, ScrollView, FlatList } from 'react-native';
+// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO PRO TEST
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
@@ -63,8 +63,8 @@ export function HabitListWithCompletion({
     return todayCompletions.find(completion => completion.habitId === habitId);
   };
 
-  // Renderovací funkce pro aktivní návyky s drag & drop
-  const renderActiveHabitItem = ({ item, drag, isActive }: RenderItemParams<Habit>) => {
+  // Renderovací funkce pro aktivní návyky (dočasně bez drag & drop)
+  const renderActiveHabitItem = ({ item }: { item: Habit }) => {
     return (
       <View style={styles.habitContainer}>
         <HabitItemWithCompletion
@@ -76,8 +76,8 @@ export function HabitListWithCompletion({
           onToggleCompletion={onToggleCompletion}
           onReorder={onReorderHabits}
           onViewStats={onViewHabitStats}
-          onDrag={drag}
-          isDragging={isActive}
+          onDrag={undefined}
+          isDragging={false}
           date={date}
         />
       </View>
@@ -126,16 +126,12 @@ export function HabitListWithCompletion({
       {activeHabits.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Active Habits</Text>
-          <DraggableFlatList
+          <FlatList
             data={activeHabits}
             renderItem={renderActiveHabitItem}
             keyExtractor={(item) => item.id}
-            onDragBegin={handleDragBegin}
-            onDragEnd={handleActiveDragEnd}
             scrollEnabled={false}
             nestedScrollEnabled={true}
-            activationDistance={20}
-            dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
           />
         </View>
       )}
