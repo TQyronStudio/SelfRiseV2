@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, RefreshControl, ScrollView, FlatList } from 'react-native';
-// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO PRO TEST
+// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO - ZPŮSOBUJE KONFLIKTY
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
@@ -63,7 +63,7 @@ export function HabitListWithCompletion({
     return todayCompletions.find(completion => completion.habitId === habitId);
   };
 
-  // Renderovací funkce pro aktivní návyky (dočasně bez drag & drop)
+  // Renderovací funkce pro aktivní návyky (bez drag & drop)
   const renderActiveHabitItem = ({ item }: { item: Habit }) => {
     return (
       <View style={styles.habitContainer}>

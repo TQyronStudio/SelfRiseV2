@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, Text, FlatList } from 'react-native';
-// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO PRO ANDROID FIX
+// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO - ZPŮSOBUJE KONFLIKTY
 import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
 import { Colors } from '../../constants/colors';

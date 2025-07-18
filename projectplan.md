@@ -19,127 +19,39 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
-## Android Goals Modal Fix: Replace DraggableFlatList with FlatList (July 18, 2025)
+## Android Modal Fix Summary (July 18, 2025)
 
-### Problem Description
-The Goals section is still using `DraggableFlatList` in the `GoalListWithDragAndDrop` component, which causes Android modal conflicts. This is similar to the issue that was successfully resolved in the Habits section by replacing `DraggableFlatList` with `FlatList`.
+### Root Cause Identified:
+**Main Issue:** `DraggableFlatList` from `react-native-draggable-flatlist` causes conflicts with both modals and scrolling on Android.
 
-**Affected Files:**
-- `/Users/turage/Documents/SelfRiseV2/src/components/goals/GoalListWithDragAndDrop.tsx`
-- Currently imports and uses `DraggableFlatList` from `react-native-draggable-flatlist`
+### Final Solution:
+- **Modal Implementation:** Standard React Native `Modal` with `presentationStyle="pageSheet"`
+- **List Implementation:** Standard React Native `FlatList` instead of `DraggableFlatList`
+- **Trade-off:** Sacrificed drag&drop functionality for modal stability and scrolling
 
-**Success Reference:**
-- `/Users/turage/Documents/SelfRiseV2/src/components/habits/HabitListWithCompletion.tsx`
-- Successfully replaced `DraggableFlatList` with `FlatList` and works perfectly with modals
-
-### Solution Plan
-
-#### Todo Tasks:
-- [ ] Replace DraggableFlatList import with FlatList in GoalListWithDragAndDrop.tsx
-- [ ] Remove RenderItemParams type import from react-native-draggable-flatlist
-- [ ] Update renderActiveGoalItem function to use standard FlatList item props
-- [ ] Remove drag-related props from DraggableFlatList (onDragBegin, onDragEnd, activationDistance, dragHitSlop)
-- [ ] Remove drag-related state and handlers (isDragging, handleDragBegin, handleActiveDragEnd)
-- [ ] Remove drag prop from GoalItem component calls
-- [ ] Remove drag-related styling (draggedItem styles)
-- [ ] Test Goals modals on Android to confirm fix
-- [ ] Document the change and update any related code
-
-#### Implementation Steps:
-
-1. **Update imports in GoalListWithDragAndDrop.tsx:**
+### Key Technical Details:
 ```typescript
-// BEFORE:
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+// Working Modal Pattern:
+<Modal
+  visible={visible}
+  animationType="slide"
+  presentationStyle="pageSheet"
+  onRequestClose={onClose}
+>
+  <SafeAreaView style={styles.container}>
+    {/* Modal content */}
+  </SafeAreaView>
+</Modal>
 
-// AFTER:
-import { FlatList } from 'react-native';
-```
-
-2. **Update renderActiveGoalItem function:**
-```typescript
-// BEFORE:
-const renderActiveGoalItem = ({ item: goal, drag, isActive }: RenderItemParams<Goal>) => (
-  <View style={[styles.goalItemContainer, isActive && styles.draggedItem]}>
-    <GoalItem
-      goal={goal}
-      onEdit={() => onEditGoal(goal)}
-      onDelete={() => onDeleteGoal(goal.id)}
-      onViewStats={() => onViewGoalStats(goal.id)}
-      onAddProgress={() => onAddProgress(goal)}
-      onDrag={drag}
-      isDragging={isActive}
-    />
-  </View>
-);
-
-// AFTER:
-const renderActiveGoalItem = ({ item: goal }: { item: Goal }) => (
-  <View style={styles.goalItemContainer}>
-    <GoalItem
-      goal={goal}
-      onEdit={() => onEditGoal(goal)}
-      onDelete={() => onDeleteGoal(goal.id)}
-      onViewStats={() => onViewGoalStats(goal.id)}
-      onAddProgress={() => onAddProgress(goal)}
-    />
-  </View>
-);
-```
-
-3. **Replace DraggableFlatList with FlatList:**
-```typescript
-// BEFORE:
-<DraggableFlatList
-  data={activeGoals}
-  renderItem={renderActiveGoalItem}
-  keyExtractor={(item) => item.id}
-  onDragBegin={handleDragBegin}
-  onDragEnd={handleActiveDragEnd}
-  scrollEnabled={false}
-  nestedScrollEnabled={true}
-  activationDistance={20}
-  dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
-/>
-
-// AFTER:
+// Working List Pattern:
 <FlatList
-  data={activeGoals}
-  renderItem={renderActiveGoalItem}
+  data={activeItems}
+  renderItem={renderItem}
   keyExtractor={(item) => item.id}
   scrollEnabled={false}
   nestedScrollEnabled={true}
 />
 ```
-
-4. **Remove drag-related state and handlers:**
-```typescript
-// REMOVE these:
-const [isDragging, setIsDragging] = useState(false);
-const handleDragBegin = () => { /* ... */ };
-const handleActiveDragEnd = ({ data }: { data: Goal[] }) => { /* ... */ };
-```
-
-5. **Remove drag-related styles:**
-```typescript
-// REMOVE from styles:
-draggedItem: {
-  opacity: 0.8,
-  transform: [{ scale: 1.02 }],
-},
-```
-
-### Expected Results:
-- ✅ Android Goals modals will work correctly
-- ✅ Consistent behavior between Habits and Goals sections
-- ❌ Loss of drag-and-drop reordering functionality (acceptable trade-off)
-- ✅ Maintained visual consistency and all other functionality
-
-### Testing Plan:
-1. Test Goals modal opening on Android
-2. Test multiple modal openings in sequence
-3. Verify all Goals functionality still works (create, edit, delete, progress)
-4. Confirm no iOS regressions
 
 ---
 
@@ -636,540 +548,127 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 
 ---
 
-## Critical Android Bug Fix: Add Button Touch Events (July 17, 2025)
+## Button Touch Events Fix (July 17, 2025)
 
-### Problem Description
-**Kritická, platformně specifická chyba na Androidu:**
+### Problem & Solution:
+**Issue:** Add buttons stopped working when lists had items (Android)
+**Fix:** Separated buttons from scrollable lists using proper layout structure
 
-Na obrazovkách "Habits" a "Goals" funguje tlačítko pro přidání nové položky (+ Add) pouze tehdy, když je seznam prázdný. Jakmile se v seznamu objeví první položka, tlačítko přestane reagovat.
-
-**Příčina**: Kontejner, ve kterém je seznam položek (ScrollView nebo FlatList), se pravděpodobně na Androidu roztáhne přes celou obrazovku a překryje tak tlačítko, čímž zablokuje dotykové události.
-
-### Solution Implementation
-
-#### Todo Tasks:
-- [x] Analyzovat strukturu Habits screen a identifikovat překrývání tlačítka
-- [x] Analyzovat strukturu Goals screen a identifikovat překrývání tlačítka  
-- [x] Opravit layout strukturu na Habits screen - oddělit seznam od tlačítka
-- [x] Opravit layout strukturu na Goals screen - oddělit seznam od tlačítka
-- [x] Implementovat flex: 1 pro kontejnery seznamů
-- [x] Přidat z-index jako fallback pro tlačítka
-- [x] Otestovat funkcionalitu na Androidu
-
-### Architectural Changes
-
-**Původní problémová architektura:**
+### Key Architecture:
 ```typescript
-// PROBLÉM: Tlačítka byla v ListHeaderComponent uvnitř scrollovatelného kontejneru
-<ScrollView>
-  <ListHeaderComponent>
-    <AddButton />  // ← Překryto seznamem na Androidu
-  </ListHeaderComponent>
-  <ListContent />
-</ScrollView>
-```
-
-**Nová opravená architektura:**
-```typescript
-// ŘEŠENÍ: Tlačítka a seznamy jsou naprosto oddělené
+// Working Button Layout:
 <SafeAreaView style={{flex: 1}}>
-  <View style={{zIndex: 1000, elevation: 1000}}>
-    <AddButton />  // ← Vždy funkční, nikdy nepřekryto
+  <View style={styles.addButtonContainer}>
+    <TouchableOpacity>Add Button</TouchableOpacity>
   </View>
   <View style={{flex: 1}}>
-    <ScrollView>
-      <ListContent />  // ← Zabere pouze zbývající místo
-    </ScrollView>
+    <ScrollView>List Content</ScrollView>
   </View>
 </SafeAreaView>
 ```
 
-### Implementation Details
+## Drag&Drop Problém - Brainstorming alternativních řešení (July 18, 2025)
 
-**1. Habits Screen opravy (`/src/screens/habits/HabitsScreen.tsx`):**
+### Aktuální situace:
+- ✅ **Modaly fungují perfektně** (standardní React Native Modal s pageSheet)
+- ✅ **Scrollování funguje perfektně** (standardní FlatList)
+- ❌ **Drag&Drop nefunguje** (DraggableFlatList způsobuje konflikty)
 
+### Alternativní řešení pro Drag&Drop:
+
+#### 1. **Alternativní knihovny**
 ```typescript
-// Přidány nové styly
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  addButtonContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: Colors.background,
-    zIndex: 1000, // Zajistí, že bude tlačítko vždy navrchu
-    elevation: 1000, // Pro Android
-  },
-  listContainer: {
-    flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
-  },
-});
+// Možnosti k vyzkoušení:
+- react-native-super-grid (s drag&drop)
+- react-native-sortable-list
+- react-native-gesture-handler (custom implementace)
+- react-native-reanimated (s gesture handler)
+- @react-native-community/react-native-drag-sort
+```
 
-// Nová struktura komponenty
-return (
-  <SafeAreaView style={styles.container}>
-    {/* Tlačítko Add je nyní odděleno od seznamu */}
-    <View style={styles.addButtonContainer}>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
-        <Ionicons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>Add New Habit</Text>
-      </TouchableOpacity>
-    </View>
-    
-    {/* Seznam má vlastní kontejner s flex: 1 */}
-    <View style={styles.listContainer}>
-      <HabitListWithCompletion
-        // ... props
-        ListHeaderComponent={<DailyHabitProgress />}
-      />
-    </View>
-  </SafeAreaView>
+#### 2. **Vlastní implementace s Gesture Handler**
+```typescript
+// Výhody:
+- Plná kontrola nad chováním
+- Žádné konflikty s modaly
+- Optimalizace pro naše specifické potřeby
+- Možnost fine-tuningu pro iOS/Android
+
+// Nevýhody:
+- Více práce na implementaci
+- Potřeba testování na obou platformách
+```
+
+#### 3. **Hybridní přístup - Conditional Drag&Drop**
+```typescript
+// Drag&Drop pouze při splnění podmínek:
+const enableDragDrop = Platform.OS === 'ios' || !hasActiveModals;
+
+return enableDragDrop ? (
+  <DraggableFlatList {...props} />
+) : (
+  <FlatList {...props} />
 );
 ```
 
-**2. Goals Screen opravy (`/src/screens/goals/GoalsScreen.tsx`):**
-
+#### 4. **Oddělené Drag&Drop módy**
 ```typescript
-// Přidány nové styly
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  addButtonContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    gap: 8,
-    backgroundColor: Colors.background,
-    zIndex: 1000, // Zajistí, že budou tlačítka vždy navrchu
-    elevation: 1000, // Pro Android
-  },
-  listContainer: {
-    flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
-  },
-});
+// Tlačítko pro přepnutí mezi módy:
+- "View Mode" - standardní FlatList, modaly fungují
+- "Edit Mode" - DraggableFlatList, modaly dočasně zakázány
 
-// Nová struktura komponenty
-return (
-  <SafeAreaView style={styles.container}>
-    {/* Tlačítka Add a Template jsou nyní oddělena od seznamu */}
-    <View style={styles.addButtonContainer}>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
-        <Ionicons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
-        <Ionicons name="library-outline" size={24} color={Colors.primary} />
-        <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
-      </TouchableOpacity>
-    </View>
-    
-    {/* Seznam má vlastní kontejner s flex: 1 */}
-    <View style={styles.listContainer}>
-      <GoalListWithDragAndDrop
-        // ... props (bez ListHeaderComponent)
-      />
-    </View>
-  </SafeAreaView>
-);
+// UX: Podobně jako iOS homescreen editing
 ```
 
-### Key Technical Solutions
-
-1. **Architektonické oddělení**:
-   - Tlačítka jsou nyní v samostatném kontejneru nad seznamem
-   - Seznam má vlastní kontejner s `flex: 1`
-   - Eliminace `ListHeaderComponent` pro tlačítka
-
-2. **Android-specific opravy**:
-   - `zIndex: 1000` pro iOS
-   - `elevation: 1000` pro Android
-   - `backgroundColor` pro tlačítka kontejnery
-
-3. **Flexbox optimalizace**:
-   - Hlavní kontejner: `flex: 1`
-   - Seznam kontejner: `flex: 1` (zabere zbývající místo)
-   - Tlačítka kontejner: fixed height (auto-sizing)
-
-### Final Result
-
-**✅ Opraveno:**
-- Tlačítka + Add jsou vždy plně funkční na Androidu
-- Žádné překrývání seznamu přes tlačítka
-- Konzistentní chování mezi iOS a Android
-- Zachována veškerá existující funkcionalita
-- Žádné breaking changes
-
-**✅ Testováno:**
-- Prázdný seznam: tlačítka fungují ✓
-- Seznam s položkami: tlačítka fungují ✓
-- Scrollování seznamu: tlačítka zůstávají funkční ✓
-- Drag & drop: žádné konflikty ✓
-
-**Výsledek**: Kritická Android chyba je kompletně vyřešena s minimálními změnami kódu a zachováním všech funkcionalit.
-
-### Additional Android Modal Z-Index Fix (July 17, 2025)
-
-**Nově identifikovaný problém po testování na Androidu:**
-Po prvním použití tlačítka Add se zobrazí jen křížek v SafeArea a modal se nezobrazí správně.
-
-**Příčina**: Z-index/elevation konflikt mezi tlačítky (elevation: 1000) a modaly (elevation: 10).
-
-**Oprava implementována:**
-
-1. **Modal elevation zvýšena**:
-   - `HabitModal.tsx`: `elevation: 10` → `elevation: 1500`
-   - `GoalModal.tsx`: `elevation: 10` → `elevation: 1500`
-   - Přidán `zIndex: 1500` pro iOS kompatibilitu
-
-2. **Tlačítka elevation snížena**:
-   - `HabitsScreen.tsx`: `elevation: 1000` → `elevation: 100`
-   - `GoalsScreen.tsx`: `elevation: 1000` → `elevation: 100`
-   - Snížen i `zIndex: 1000` → `zIndex: 100`
-
-3. **Overlay positioning opraven**:
-   - `justifyContent: 'flex-end'` → `justifyContent: 'center'` pro lepší Android kompatibilitu
-
-**Z-index hierarchie po opravě:**
-- Modaly: `elevation: 1500` (nejvyšší - vždy viditelné)
-- Tlačítka: `elevation: 100` (střední - nad seznamy)
-- Seznamy: `elevation: 0` (nejnižší - base layer)
-
-**Testovací scénáře:**
-- ✅ První použití tlačítka Add funguje
-- ✅ Druhé a další použití tlačítka Add funguje
-- ✅ Modal se zobrazí správně nad tlačítky
-- ✅ Zavření modalu obnoví plnou funkcionalitu
-- ✅ Žádné konflikt s drag & drop funkcionalitou
-
-### Radical Android Modal Restructure (July 17, 2025)
-
-**PROBLÉM:** Na Androidu se modal zobrazí (vidíš stín), ale obsah je "pohřben" a vidíš jen křížek.
-
-**SOUBORY K ÚPRAVĚ:**
-- src/components/habits/HabitModal.tsx
-- src/components/goals/GoalModal.tsx  
-- src/components/goals/ProgressModal.tsx
-- src/screens/habits/HabitsScreen.tsx
-- src/screens/goals/GoalsScreen.tsx
-
-**FINÁLNÍ ŘEŠENÍ DLE CLAUDE OPUS 4:**
-
-#### Todo Tasks:
-- [x] Odstranit zIndex a elevation z addButtonContainer v HabitsScreen.tsx a GoalsScreen.tsx
-- [x] Implementovat oddělené returns pro iOS a Android v modal komponentách
-- [x] Přidat presentationStyle="fullScreen" pro Android modaly
-- [x] Odstranit overlay wrapper div pro Android
-- [x] Implementovat androidContainer styl s flex: 1
-- [ ] Otestovat opakované použití modalů na Androidu
-
-#### 1. Oprava Habits a Goals Screen:
-
-**HabitsScreen.tsx a GoalsScreen.tsx:**
+#### 5. **Context Menu řešení**
 ```typescript
-// ODSTRANIT tyto řádky z addButtonContainer:
-// zIndex: 100,
-// elevation: 100,
+// Dlouhý stisk → kontextové menu s možnostmi:
+- "Move Up" / "Move Down"
+- "Move to Top" / "Move to Bottom"
+- "Edit" / "Delete"
+
+// Alternativa k drag&drop s podobnou funkcionalitou
 ```
 
-#### 2. Implementace Modal komponent:
-
-**DŮLEŽITÉ:** Pro Android NEPOUŽÍVEJ overlay wrapper div. Modal musí mít obsah přímo.
-
-**HabitModal.tsx, GoalModal.tsx, ProgressModal.tsx:**
+#### 6. **Separátní Reorder Screen**
 ```typescript
-export function HabitModal({ /* props */ }) {
-  // ...
-  
-  if (Platform.OS === 'android') {
-    // Android - BEZ overlay divu!
-    return (
-      <Modal
-        visible={visible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={onClose}
-        statusBarTranslucent
-        presentationStyle="fullScreen" // Klíčové pro Android
-      >
-        <View style={styles.androidContainer}>
-          <View style={styles.header}>
-            {/* header content */}
-          </View>
-          <HabitForm
-            {/* props */}
-          />
-        </View>
-      </Modal>
-    );
-  }
-  
-  // iOS - zachovat původní strukturu
-  return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        {/* iOS content */}
-      </View>
-    </Modal>
-  );
-}
+// Dedikovaná obrazovka pro přeuspořádání:
+- Hlavní screen: FlatList (stabilní)
+- "Reorder" tlačítko → navigace na ReorderScreen
+- ReorderScreen: DraggableFlatList (izolovaný)
+- Žádné modaly na ReorderScreen
 ```
 
-#### 3. Styly pro Android:
-
+#### 7. **Numeric Input řešení**
 ```typescript
-const styles = StyleSheet.create({
-  // Pro Android - jednoduchý container bez position absolute
-  androidContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    paddingTop: StatusBar.currentHeight || 0,
-  },
-  // iOS styly zůstávají stejné
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  // Ostatní styly...
-});
+// Číselné input pro pořadí:
+- Každá položka má "Order" pole
+- Uživatel může zadat číslo pozice
+- Automatické přeuspořádání podle čísel
 ```
 
-#### 4. Klíčové body implementace:
-
-1. **NIKDY nedávej Modal do View wrapperu na Androidu**
-2. **Android Modal musí mít presentationStyle="fullScreen"**
-3. **Použij podmíněné renderování - úplně oddělené returns pro iOS a Android**
-4. **Žádné position: absolute, žádné vysoké elevation/zIndex hodnoty**
-5. **Pro Android použij jen základní flex layout**
-
-#### 5. Požadovaná struktura:
-
-**Android:**
-```
-Modal -> View (androidContainer) -> Content
-```
-
-**iOS:**
-```
-Modal -> View (overlay) -> View (container) -> Content
-```
-
-**TESTOVÁNÍ:** Po každé změně otestuj, že modal funguje opakovaně na Androidu!
-
-### Finální řešení s react-native-modal (July 18, 2025)
-
-**PROBLÉM:** I po všech předchozích pokusech (z-index, elevation, platformně specifické struktury) se Android modaly stále nezobrazují správně.
-
-**IDENTIFIKOVANÁ HLAVNÍ PŘÍČINA:** `"edgeToEdgeEnabled": true` v app.json
-
-#### Todo Tasks:
-- [x] Instalovat react-native-modal knihovnu
-- [x] Nahradit standardní Modal za react-native-modal ve všech 3 komponentách
-- [x] Sjednotit kód pro iOS i Android - odstranit platformně specifické hacky
-- [x] Opravit iOS modal zobrazení (maxHeight → flex: 1)
-- [x] Deaktivovat edgeToEdgeEnabled v app.json
-- [x] Otestovat modaly na obou platformách - iOS trhavé, Android stále stejný problém
-
-#### Implementované změny:
-
-1. **react-native-modal implementace:**
-   - `import Modal from 'react-native-modal'`
-   - `visible` → `isVisible`
-   - Přidány vlastnosti: `onBackdropPress`, `onBackButtonPress`, `onSwipeComplete`, `swipeDirection="down"`
-   - `avoidKeyboard` pro automatické řešení klávesnice
-   - `statusBarTranslucent` pro Android
-
-2. **Sjednocená struktura pro iOS i Android:**
-   ```typescript
-   return (
-     <Modal isVisible={visible} /* ... */>
-       <SafeAreaView style={styles.container}>
-         <View style={styles.handle} />
-         <View style={styles.header}>/* header */</View>
-         <FormComponent /* ... */ />
-       </SafeAreaView>
-     </Modal>
-   );
-   ```
-
-3. **Zjednodušené styly:**
-   ```typescript
-   const styles = StyleSheet.create({
-     modal: { justifyContent: 'flex-end', margin: 0 },
-     container: { 
-       backgroundColor: Colors.background,
-       borderTopLeftRadius: 20,
-       borderTopRightRadius: 20,
-       paddingTop: 8,
-       flex: 1,
-       marginTop: 50,
-     },
-     handle: {
-       width: 40, height: 4, borderRadius: 2,
-       backgroundColor: Colors.border,
-       alignSelf: 'center', marginBottom: 10,
-     },
-   });
-   ```
-
-4. **Oprava app.json:**
-   - `"edgeToEdgeEnabled": false` - deaktivováno kvůli konfliktům s modaly
-
-#### Výhody nového řešení:
-- ✅ Jeden kód pro iOS i Android
-- ✅ Automatické řešení klávesnice
-- ✅ Gesto potažení dolů pro zavření
-- ✅ Zavření kliknutím na pozadí
-- ✅ Hardwarové tlačítko zpět na Androidu
-- ✅ Odstranění všech platformně specifických hacků
-
-### Diagnostický plán: Pojďme najít viníka (July 18, 2025)
-
-**VÝSLEDEK TESTOVÁNÍ:** iOS je trochu trhavé, sekající se screen, u Androidu je výsledek stále stejný.
-
-**STRATEGIE:** Udělejme dva jednoduché testy, které nám s jistotou řeknou, kde je problém.
-
-#### Test č. 1: Dočasná výměna DraggableFlatList (cca 5 minut)
-
-**Cíl:** Potvrdit nebo vyvrátit podezření na DraggableFlatList jako zdroj problému.
-
-**Postup:**
-1. Otevřete soubor `src/screens/habits/HabitsScreen.tsx`
-2. Najděte, kde používáte `<DraggableFlatList ... />`
-3. Dočasně tuto komponentu nahraďte za úplně standardní `<FlatList ... />` z react-native
-4. Upravte některé propy (např. odstranit `onDragEnd`), ale nechte ji zobrazit stejná data
-5. **Otestujte chování:** Zkuste na Androidu přidat jeden návyk a hned poté druhý
-
-**Očekávaný výsledek:** Pokud modaly nyní fungují, našli jsme zdroj problému.
-
-#### Test č. 2: Úplná izolace modalu (cca 10 minut)
-
-**Cíl:** Vytvořit úplně čisté prostředí pro 100% jistotu.
-
-**Postup:**
-1. Vytvořte si dočasně novou, naprosto jednoduchou obrazovku (např. `TestScreen.tsx`)
-2. Na tuto obrazovku vložte jen `View`, `Button` a vaši komponentu `<HabitModal />`
-3. Žádné seznamy, žádné další komplexní komponenty
-4. Nechte tlačítko ovládat viditelnost modalu
-
-**Implementace:**
+#### 8. **Arrow Buttons řešení**
 ```typescript
-// Příklad TestScreen.tsx
-import React, { useState } from 'react';
-import { View, Button } from 'react-native';
-import { HabitModal } from '../components/habits/HabitModal';
-
-export function TestScreen() {
-  const [isModalVisible, setModalVisible] = useState(false);
-
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button title="Otevřít Modal" onPress={() => setModalVisible(true)} />
-      <HabitModal
-        visible={isModalVisible}
-        onClose={() => setModalVisible(false)}
-        onSubmit={(data) => {
-          console.log('Data z modalu:', data);
-          setModalVisible(false);
-        }}
-      />
-    </View>
-  );
-}
+// Tlačítka pro pohyb:
+- ⬆️ Move Up
+- ⬇️ Move Down
+- ⏫ Move to Top
+- ⏬ Move to Bottom
 ```
 
-**Očekávaný výsledek:** Pokud modal na této izolované obrazovce funguje bez problémů, definitivně víme, že problém je v interakci s jinou komponentou na původní HabitsScreen.
+### Doporučené testovací pořadí:
 
-#### Řešení problému s trháním na iOS (Optimalizace)
+1. **react-native-sortable-list** (rychlé testování)
+2. **Vlastní Gesture Handler implementace** (dlouhodobé řešení)
+3. **Hybridní přístup** (kompromis)
+4. **Context Menu** (alternativní UX)
 
-**Příčina:** Trhání je téměř vždy způsobeno zbytečným překreslováním komponent. Když otevřete modal, změní se stav na hlavní obrazovce a ta se celá překreslí, včetně onoho náročného DraggableFlatList.
-
-**Optimalizace:**
-
-1. **Optimalizujte položky seznamu:**
-   - Ujistěte se, že komponenta pro jednotlivé řádky v seznamu (`renderItem`) je obalena v `React.memo`
-   - To zabrání jejímu překreslení, pokud se její data nezměnila
-   ```typescript
-   // v souboru s vaší položkou seznamu
-   export default React.memo(VaseKomponentaProPolozku);
-   ```
-
-2. **Použijte useCallback:**
-   - Funkce, které předáváte komponentám (jako `onPress`, `onSubmit`), obalte do háčku `useCallback`
-   - Aby se nevytvářely stále znovu při každém překreslení
-   ```typescript
-   const handleModalSubmit = useCallback((data) => {
-     // vaše logika
-   }, []); // pole závislostí
-   ```
-
-#### Todo Tasks:
-- [x] Provést Test č. 1: Nahradit DraggableFlatList za FlatList
-- [x] Otestovat modaly po Test č. 1 - **ÚSPĚCH!** Modal se zobrazuje na Androidu
-- [x] **VINÍK IDENTIFIKOVÁN:** DraggableFlatList způsobuje konflikty s react-native-modal
-- [x] Implementovat optimalizace pro trhání a scrollování
-- [x] Finální testování všech řešení
-- [x] **FINÁLNÍ ŘEŠENÍ IMPLEMENTOVÁNO:** Standardní React Native Modal s presentationStyle="pageSheet"
-
-### Finální řešení - Standardní React Native Modal (July 18, 2025)
-
-**ÚSPĚCH!** Problém s Android modaly byl kompletně vyřešen díky identifikaci viníka a implementaci správného řešení.
-
-#### Identifikace viníka:
-- **Hlavní viník:** `DraggableFlatList` z knihovny `react-native-draggable-flatlist`
-- **Důvod:** Konflikty mezi DraggableFlatList a react-native-modal knihovnou
-- **Projev:** Modaly se na Androidu nezobrazovaly správně po prvním použití
-
-#### Implementované řešení:
-1. **Dočasná náhrada:** DraggableFlatList → standardní FlatList (Test č. 1)
-2. **Výsledek:** Modaly se začaly zobrazovat na Androidu ✅
-3. **Finální řešení:** Nahrazení react-native-modal za standardní React Native Modal
-
-#### Nová Modal implementace:
-```typescript
-<Modal
-  visible={visible}
-  animationType="slide"
-  presentationStyle="pageSheet"
-  onRequestClose={onClose}
->
-  <SafeAreaView style={styles.container}>
-    {/* Obsah modalu */}
-  </SafeAreaView>
-</Modal>
-```
-
-#### Výhody finálního řešení:
-- ✅ **Krásný pageSheet styl** - screen v pozadí se zmenší (inspirováno GoalTemplatesModal)
-- ✅ **Plynulé animace** - nativní iOS/Android animace
-- ✅ **Perfektní scrollování** - žádné konflikty
-- ✅ **Žádná trhavost** - standardní React Native Modal je optimalizovaný
-- ✅ **Jednotný styl** - všechny modaly vypadají stejně
-
-#### Aktuální stav po implementaci:
-- **iOS:** Skoro dokonalý ✅
-- **Android Habits:** Funguje ✅
-- **Android Goals:** Nefunguje ❌ (pravděpodobně stále používá DraggableFlatList)
-
-#### Identifikované další problémy:
-- [ ] **Vertikální centrování nadpisů** - nadpis s křížkem není uprostřed na výšku v header lajně (iOS + Android)
-- [ ] **Android Goals sekce** - modaly nefungují (pravděpodobně DraggableFlatList konflikt)
-- [ ] **Android Drag&Drop ikony** - chybí ikony pro přesunutí návyků (důsledek nahrazení DraggableFlatList)
-
-#### Rozhodnutí o DraggableFlatList:
-**Doporučení:** Zachovat standardní FlatList a obětovat drag&drop funkcionalitu
-**Důvod:** Drag&drop způsobuje kritické konflikty s modaly na Androidu
-**Alternativa:** Najít jinou drag&drop knihovnu nebo implementovat vlastní řešení
+### Kritéria pro výběr:
+- ✅ Kompatibilita s našimi modaly
+- ✅ Stabilita na obou platformách
+- ✅ Dobrá UX (intuitivní ovládání)
+- ✅ Performance (žádné lag)
+- ✅ Minimální refaktoring existing kódu
 
 ---
 
