@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Text } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { View, StyleSheet, ScrollView, RefreshControl, Text, FlatList } from 'react-native';
+// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO PRO ANDROID FIX
 import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
 import { Colors } from '../../constants/colors';
@@ -56,16 +56,16 @@ export function GoalListWithDragAndDrop({
     onReorderGoals(goalOrders);
   };
 
-  const renderActiveGoalItem = ({ item: goal, drag, isActive }: RenderItemParams<Goal>) => (
-    <View style={[styles.goalItemContainer, isActive && styles.draggedItem]}>
+  const renderActiveGoalItem = ({ item: goal }: { item: Goal }) => (
+    <View style={styles.goalItemContainer}>
       <GoalItem
         goal={goal}
         onEdit={() => onEditGoal(goal)}
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
         onAddProgress={() => onAddProgress(goal)}
-        onDrag={drag}
-        isDragging={isActive}
+        onDrag={undefined}
+        isDragging={false}
       />
     </View>
   );
@@ -120,16 +120,12 @@ export function GoalListWithDragAndDrop({
       {activeGoals.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Active Goals</Text>
-          <DraggableFlatList
+          <FlatList
             data={activeGoals}
             renderItem={renderActiveGoalItem}
             keyExtractor={(item) => item.id}
-            onDragBegin={handleDragBegin}
-            onDragEnd={handleActiveDragEnd}
             scrollEnabled={false}
             nestedScrollEnabled={true}
-            activationDistance={20}
-            dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
           />
         </View>
       )}
@@ -173,10 +169,6 @@ const styles = StyleSheet.create({
   },
   goalItemContainer: {
     marginBottom: 12,
-  },
-  draggedItem: {
-    opacity: 0.8,
-    transform: [{ scale: 1.02 }],
   },
   emptyContainer: {
     flex: 1,

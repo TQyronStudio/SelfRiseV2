@@ -19,6 +19,130 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
+## Android Goals Modal Fix: Replace DraggableFlatList with FlatList (July 18, 2025)
+
+### Problem Description
+The Goals section is still using `DraggableFlatList` in the `GoalListWithDragAndDrop` component, which causes Android modal conflicts. This is similar to the issue that was successfully resolved in the Habits section by replacing `DraggableFlatList` with `FlatList`.
+
+**Affected Files:**
+- `/Users/turage/Documents/SelfRiseV2/src/components/goals/GoalListWithDragAndDrop.tsx`
+- Currently imports and uses `DraggableFlatList` from `react-native-draggable-flatlist`
+
+**Success Reference:**
+- `/Users/turage/Documents/SelfRiseV2/src/components/habits/HabitListWithCompletion.tsx`
+- Successfully replaced `DraggableFlatList` with `FlatList` and works perfectly with modals
+
+### Solution Plan
+
+#### Todo Tasks:
+- [ ] Replace DraggableFlatList import with FlatList in GoalListWithDragAndDrop.tsx
+- [ ] Remove RenderItemParams type import from react-native-draggable-flatlist
+- [ ] Update renderActiveGoalItem function to use standard FlatList item props
+- [ ] Remove drag-related props from DraggableFlatList (onDragBegin, onDragEnd, activationDistance, dragHitSlop)
+- [ ] Remove drag-related state and handlers (isDragging, handleDragBegin, handleActiveDragEnd)
+- [ ] Remove drag prop from GoalItem component calls
+- [ ] Remove drag-related styling (draggedItem styles)
+- [ ] Test Goals modals on Android to confirm fix
+- [ ] Document the change and update any related code
+
+#### Implementation Steps:
+
+1. **Update imports in GoalListWithDragAndDrop.tsx:**
+```typescript
+// BEFORE:
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+
+// AFTER:
+import { FlatList } from 'react-native';
+```
+
+2. **Update renderActiveGoalItem function:**
+```typescript
+// BEFORE:
+const renderActiveGoalItem = ({ item: goal, drag, isActive }: RenderItemParams<Goal>) => (
+  <View style={[styles.goalItemContainer, isActive && styles.draggedItem]}>
+    <GoalItem
+      goal={goal}
+      onEdit={() => onEditGoal(goal)}
+      onDelete={() => onDeleteGoal(goal.id)}
+      onViewStats={() => onViewGoalStats(goal.id)}
+      onAddProgress={() => onAddProgress(goal)}
+      onDrag={drag}
+      isDragging={isActive}
+    />
+  </View>
+);
+
+// AFTER:
+const renderActiveGoalItem = ({ item: goal }: { item: Goal }) => (
+  <View style={styles.goalItemContainer}>
+    <GoalItem
+      goal={goal}
+      onEdit={() => onEditGoal(goal)}
+      onDelete={() => onDeleteGoal(goal.id)}
+      onViewStats={() => onViewGoalStats(goal.id)}
+      onAddProgress={() => onAddProgress(goal)}
+    />
+  </View>
+);
+```
+
+3. **Replace DraggableFlatList with FlatList:**
+```typescript
+// BEFORE:
+<DraggableFlatList
+  data={activeGoals}
+  renderItem={renderActiveGoalItem}
+  keyExtractor={(item) => item.id}
+  onDragBegin={handleDragBegin}
+  onDragEnd={handleActiveDragEnd}
+  scrollEnabled={false}
+  nestedScrollEnabled={true}
+  activationDistance={20}
+  dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+/>
+
+// AFTER:
+<FlatList
+  data={activeGoals}
+  renderItem={renderActiveGoalItem}
+  keyExtractor={(item) => item.id}
+  scrollEnabled={false}
+  nestedScrollEnabled={true}
+/>
+```
+
+4. **Remove drag-related state and handlers:**
+```typescript
+// REMOVE these:
+const [isDragging, setIsDragging] = useState(false);
+const handleDragBegin = () => { /* ... */ };
+const handleActiveDragEnd = ({ data }: { data: Goal[] }) => { /* ... */ };
+```
+
+5. **Remove drag-related styles:**
+```typescript
+// REMOVE from styles:
+draggedItem: {
+  opacity: 0.8,
+  transform: [{ scale: 1.02 }],
+},
+```
+
+### Expected Results:
+- ✅ Android Goals modals will work correctly
+- ✅ Consistent behavior between Habits and Goals sections
+- ❌ Loss of drag-and-drop reordering functionality (acceptable trade-off)
+- ✅ Maintained visual consistency and all other functionality
+
+### Testing Plan:
+1. Test Goals modal opening on Android
+2. Test multiple modal openings in sequence
+3. Verify all Goals functionality still works (create, edit, delete, progress)
+4. Confirm no iOS regressions
+
+---
+
 ### FINÁLNÍ ŘEŠENÍ: Hybrid ScrollView + DraggableFlatList architektura
 ✅ **DOKONČENO**: Habits screen scrollování a drag & drop definitivně vyřešeno
 
@@ -1189,4 +1313,3 @@ export function TestScreen() {
 3. **Team Alignment**: Ensure all team members understand the plan and requirements
 4. **Timeline Planning**: Create detailed timeline with milestones and deadlines
 5. **Begin Implementation**: Start with Phase 1 development tasks
-
