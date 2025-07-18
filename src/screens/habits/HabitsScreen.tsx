@@ -26,8 +26,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
     backgroundColor: Colors.background,
-    zIndex: 100, // Sníženo z 1000 na 100 - stále vyšší než seznam, ale nižší než modaly
-    elevation: 100, // Pro Android
   },
   listContainer: {
     flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo

@@ -57,52 +57,63 @@ export function GoalModal({
       }
     : undefined;
 
+  if (Platform.OS === 'android') {
+    // Android - BEZ overlay divu!
+    return (
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={onClose}
+        statusBarTranslucent
+        presentationStyle="fullScreen"
+      >
+        <KeyboardAvoidingView
+          style={styles.androidContainer}
+          behavior="height"
+          keyboardVerticalOffset={StatusBar.currentHeight || 0}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              disabled={isLoading}
+            >
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            
+            <Text style={styles.title}>
+              {isEditing ? t('goals.editGoal') : t('goals.addGoal')}
+            </Text>
+            
+            <View style={styles.placeholder} />
+          </View>
+
+          <GoalForm
+            initialData={initialData}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            isEditing={isEditing}
+            isLoading={isLoading}
+          />
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  }
+  
+  // iOS - zachovat původní strukturu
   return (
     <Modal
       visible={visible}
-      animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
-      transparent={Platform.OS === 'ios'}
+      animationType="fade"
+      transparent
       onRequestClose={onClose}
-      statusBarTranslucent
     >
       <View style={styles.overlay}>
-        {Platform.OS === 'ios' ? (
-          <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView
-              style={styles.keyboardAvoidingView}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-              <View style={styles.header}>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={onClose}
-                  disabled={isLoading}
-                >
-                  <Ionicons name="close" size={24} color={Colors.textSecondary} />
-                </TouchableOpacity>
-                
-                <Text style={styles.title}>
-                  {isEditing ? t('goals.editGoal') : t('goals.addGoal')}
-                </Text>
-                
-                <View style={styles.placeholder} />
-              </View>
-
-              <GoalForm
-                initialData={initialData}
-                onSubmit={onSubmit}
-                onCancel={onClose}
-                isEditing={isEditing}
-                isLoading={isLoading}
-              />
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        ) : (
-          // Android - zjednodušená struktura bez overlay div
+        <SafeAreaView style={styles.container}>
           <KeyboardAvoidingView
-            style={styles.container}
-            behavior="height"
-            keyboardVerticalOffset={StatusBar.currentHeight || 0}
+            style={styles.keyboardAvoidingView}
+            behavior="padding"
           >
             <View style={styles.header}>
               <TouchableOpacity
@@ -128,32 +139,35 @@ export function GoalModal({
               isLoading={isLoading}
             />
           </KeyboardAvoidingView>
-        )}
+        </SafeAreaView>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  // Pro Android - jednoduchý container bez position absolute
+  androidContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingTop: StatusBar.currentHeight || 0,
+  },
+  // iOS styly zůstávají stejné
   overlay: {
     flex: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
-    justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    ...(Platform.OS === 'ios' ? {
-      marginTop: 50,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      shadowColor: Colors.black,
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-    } : {
-      paddingTop: StatusBar.currentHeight || 0,
-    }),
+    marginTop: 50,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   keyboardAvoidingView: {
     flex: 1,

@@ -724,187 +724,123 @@ Po prvním použití tlačítka Add se zobrazí jen křížek v SafeArea a modal
 
 ### Radical Android Modal Restructure (July 17, 2025)
 
-**Problém pokračuje i po z-index opravě:**
-I po zvýšení elevation modalů se na Androidu stále zobrazuje jen křížek a modal je "hluboko pod vrstvami".
-
-**Identifikovaná příčina:**
-Kombinace SafeAreaView + Modal + marginTop způsobuje na Androidu špatné renderování modal struktury.
-
-**Radikální řešení - Platform-specific Modal implementace:**
-
-1. **iOS**: Zachována původní struktura (funguje bez problémů)
-2. **Android**: Kompletně jiná struktura bez SafeAreaView
-
-**Implementované změny:**
-
-**HabitModal.tsx & GoalModal.tsx:**
-```typescript
-// Platform-specific Modal properties
-<Modal
-  visible={visible}
-  animationType="fade"
-  transparent={Platform.OS === 'ios'}          // iOS: transparent, Android: fullscreen
-  onRequestClose={onClose}
-  statusBarTranslucent={Platform.OS === 'android'}  // Android: překryj status bar
->
-  <View style={styles.overlay}>
-    {Platform.OS === 'ios' ? (
-      // iOS - původní struktura se SafeAreaView
-      <SafeAreaView style={styles.container}>
-        {/* iOS implementace */}
-      </SafeAreaView>
-    ) : (
-      // Android - nová struktura bez SafeAreaView
-      <View style={styles.androidContainer}>
-        {/* Android implementace */}
-      </View>
-    )}
-  </View>
-</Modal>
-```
-
-**Styly pro Android:**
-```typescript
-overlay: {
-  flex: 1,
-  backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.8)',
-  justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
-},
-
-// Nový Android kontejner
-androidContainer: {
-  flex: 1,
-  backgroundColor: Colors.background,
-  marginTop: Platform.OS === 'android' ? 40 : 0,  // Minimal margin pro status bar
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  elevation: 2000,  // Extrémně vysoká elevation
-  zIndex: 2000,
-},
-```
-
-**Klíčové rozdíly Android vs iOS:**
-1. **Modal transparency**: iOS `transparent={true}`, Android `transparent={false}`
-2. **Status bar handling**: Android `statusBarTranslucent={true}`
-3. **Container struktura**: Android bez SafeAreaView
-4. **Elevation**: Android `elevation: 2000` vs iOS `elevation: 1500`
-5. **Overlay positioning**: Android `center` vs iOS `flex-end`
-
-**Očekávaný výsledek:**
-- Android: Fullscreen modal s vlastní elevation hierarchií
-- iOS: Zachována původní funkční implementace
-- Modal se zobrazí nad všemi elementy na obou platformách
-
-### Emergency Android Modal Fix - Absolute Positioning (July 17, 2025)
-
-**Problém pokračuje:**
-I po platform-specific restructure se na Androidu stále zobrazuje jen overlay (stmavnutí) a křížek, ale obsah modalu není vidět.
-
-**Nová diagnóza:**
-Problém je v použití `flex: 1` i po odstranění SafeAreaView. Na Androidu se modal container stále renderuje mimo viditelnou oblast.
-
-**Emergency fix - Absolutní positioning:**
-
-```typescript
-// Nová Android container struktura
-androidContainer: {
-  position: 'absolute',    // Místo flex: 1
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: Colors.background,
-  elevation: 9999,         // Maximální možná elevation
-  zIndex: 9999,
-  // Debug styly pro Android
-  borderWidth: Platform.OS === 'android' ? 5 : 0,
-  borderColor: Platform.OS === 'android' ? 'red' : 'transparent',
-},
-```
-
-**Klíčové změny:**
-1. **Positioning**: `flex: 1` → `position: 'absolute'`
-2. **Dimensions**: Explicitní `top: 0, left: 0, right: 0, bottom: 0`
-3. **Elevation**: Zvýšena na `9999` (maximální)
-4. **Debug borders**: Červený border pro Android debugging
-5. **Odstraněny**: `marginTop`, `borderRadius`, `flex`
-
-**Testovací indikátory:**
-- Pokud se zobrazí červený border kolem celé obrazovky → modal container je viditelný
-- Pokud se zobrazí obsah modalu → problém vyřešen
-- Pokud se stále zobrazuje jen křížek → problém je v child komponentách
-
-### Critical Android Modal Fix - Following Claude Opus 4 Instructions (July 17, 2025)
-
-**PROBLÉM:** Na Androidu přestanou fungovat všechny modaly po prvním použití. Modal se pravděpodobně nezavírá správně a blokuje UI.
+**PROBLÉM:** Na Androidu se modal zobrazí (vidíš stín), ale obsah je "pohřben" a vidíš jen křížek.
 
 **SOUBORY K ÚPRAVĚ:**
 - src/components/habits/HabitModal.tsx
 - src/components/goals/GoalModal.tsx  
 - src/components/goals/ProgressModal.tsx
+- src/screens/habits/HabitsScreen.tsx
+- src/screens/goals/GoalsScreen.tsx
 
-**POŽADOVANÉ ZMĚNY DLE CLAUDE OPUS 4:**
+**FINÁLNÍ ŘEŠENÍ DLE CLAUDE OPUS 4:**
 
 #### Todo Tasks:
-- [x] Implementovat platform-specific Modal properties pro všechny 3 soubory
-- [x] Upravit animationType: iOS "fade", Android "slide" 
-- [x] Upravit transparent: iOS true, Android false
-- [x] Odstranit position: 'absolute' z Android kontejnerů
-- [x] Odstranit extrémní elevation (9999) a zIndex (9999)
-- [x] Odstranit debug border (červený rámeček)
-- [x] Implementovat nové styly pro Android overlay a container
-- [x] Přidat StatusBar import a handling
-- [x] Upravit KeyboardAvoidingView pro Android
-- [ ] Otestovat že modaly fungují opakovaně na Androidu
+- [x] Odstranit zIndex a elevation z addButtonContainer v HabitsScreen.tsx a GoalsScreen.tsx
+- [x] Implementovat oddělené returns pro iOS a Android v modal komponentách
+- [x] Přidat presentationStyle="fullScreen" pro Android modaly
+- [x] Odstranit overlay wrapper div pro Android
+- [x] Implementovat androidContainer styl s flex: 1
+- [ ] Otestovat opakované použití modalů na Androidu
 
-#### Konkrétní implementace dle instrukcí:
+#### 1. Oprava Habits a Goals Screen:
 
-**Modal konfigurace:**
+**HabitsScreen.tsx a GoalsScreen.tsx:**
 ```typescript
-<Modal
-  visible={visible}
-  animationType={Platform.OS === 'ios' ? 'fade' : 'slide'}
-  transparent={Platform.OS === 'ios'}
-  onRequestClose={onClose}
-  statusBarTranslucent
->
+// ODSTRANIT tyto řádky z addButtonContainer:
+// zIndex: 100,
+// elevation: 100,
 ```
 
-**Styly:**
+#### 2. Implementace Modal komponent:
+
+**DŮLEŽITÉ:** Pro Android NEPOUŽÍVEJ overlay wrapper div. Modal musí mít obsah přímo.
+
+**HabitModal.tsx, GoalModal.tsx, ProgressModal.tsx:**
+```typescript
+export function HabitModal({ /* props */ }) {
+  // ...
+  
+  if (Platform.OS === 'android') {
+    // Android - BEZ overlay divu!
+    return (
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={onClose}
+        statusBarTranslucent
+        presentationStyle="fullScreen" // Klíčové pro Android
+      >
+        <View style={styles.androidContainer}>
+          <View style={styles.header}>
+            {/* header content */}
+          </View>
+          <HabitForm
+            {/* props */}
+          />
+        </View>
+      </Modal>
+    );
+  }
+  
+  // iOS - zachovat původní strukturu
+  return (
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        {/* iOS content */}
+      </View>
+    </Modal>
+  );
+}
+```
+
+#### 3. Styly pro Android:
+
 ```typescript
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.5)' : Colors.background,
-    justifyContent: Platform.OS === 'ios' ? 'flex-end' : 'center',
-  },
-  container: {
+  // Pro Android - jednoduchý container bez position absolute
+  androidContainer: {
     flex: 1,
     backgroundColor: Colors.background,
-    ...(Platform.OS === 'ios' ? {
-      marginTop: 50,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      shadowColor: Colors.black,
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-    } : {
-      paddingTop: StatusBar.currentHeight || 0,
-    }),
+    paddingTop: StatusBar.currentHeight || 0,
   },
-  // Odstranit androidContainer úplně
+  // iOS styly zůstávají stejné
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  // Ostatní styly...
 });
 ```
 
-**Struktura komponenty:**
-- iOS: Zachovat současnou strukturu s overlay
-- Android: Zjednodušit strukturu - bez overlay div
+#### 4. Klíčové body implementace:
 
-**KeyboardAvoidingView:**
-```typescript
-keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : StatusBar.currentHeight}
+1. **NIKDY nedávej Modal do View wrapperu na Androidu**
+2. **Android Modal musí mít presentationStyle="fullScreen"**
+3. **Použij podmíněné renderování - úplně oddělené returns pro iOS a Android**
+4. **Žádné position: absolute, žádné vysoké elevation/zIndex hodnoty**
+5. **Pro Android použij jen základní flex layout**
+
+#### 5. Požadovaná struktura:
+
+**Android:**
 ```
+Modal -> View (androidContainer) -> Content
+```
+
+**iOS:**
+```
+Modal -> View (overlay) -> View (container) -> Content
+```
+
+**TESTOVÁNÍ:** Po každé změně otestuj, že modal funguje opakovaně na Androidu!
 
 ---
 
