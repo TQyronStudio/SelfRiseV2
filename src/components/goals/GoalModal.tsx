@@ -102,9 +102,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    minHeight: 60,
   },
   closeButton: {
     width: 40,
