@@ -238,7 +238,7 @@ export function GoalsScreen() {
           onPress={() => setIsEditMode(!isEditMode)}
         >
           <Text style={styles.editButtonText}>
-            {isEditMode ? 'Done' : 'Edit'}
+            {isEditMode ? 'Done' : 'Reorder'}
           </Text>
         </TouchableOpacity>
       </View>

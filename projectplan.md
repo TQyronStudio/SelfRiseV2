@@ -550,127 +550,6 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 
 ## ✅ FINÁLNÍ ŘEŠENÍ: Drag & Drop s Edit Mode - 100% FUNKČNÍ (July 19, 2025)
 
-### Problem & Solution:
-**Issue:** Add buttons stopped working when lists had items (Android)
-**Fix:** Separated buttons from scrollable lists using proper layout structure
-
-### Key Architecture:
-```typescript
-// Working Button Layout:
-<SafeAreaView style={{flex: 1}}>
-  <View style={styles.addButtonContainer}>
-    <TouchableOpacity>Add Button</TouchableOpacity>
-  </View>
-  <View style={{flex: 1}}>
-    <ScrollView>List Content</ScrollView>
-  </View>
-</SafeAreaView>
-```
-
-## Drag&Drop Problém - Brainstorming alternativních řešení (July 18, 2025)
-
-### Aktuální situace:
-- ✅ **Modaly fungují perfektně** (standardní React Native Modal s pageSheet)
-- ✅ **Scrollování funguje perfektně** (standardní FlatList)
-- ❌ **Drag&Drop nefunguje** (DraggableFlatList způsobuje konflikty)
-
-### Alternativní řešení pro Drag&Drop:
-
-#### 1. **Alternativní knihovny**
-```typescript
-// Možnosti k vyzkoušení:
-- react-native-super-grid (s drag&drop)
-- react-native-sortable-list
-- react-native-gesture-handler (custom implementace)
-- react-native-reanimated (s gesture handler)
-- @react-native-community/react-native-drag-sort
-```
-
-#### 2. **Vlastní implementace s Gesture Handler**
-```typescript
-// Výhody:
-- Plná kontrola nad chováním
-- Žádné konflikty s modaly
-- Optimalizace pro naše specifické potřeby
-- Možnost fine-tuningu pro iOS/Android
-
-// Nevýhody:
-- Více práce na implementaci
-- Potřeba testování na obou platformách
-```
-
-#### 3. **Hybridní přístup - Conditional Drag&Drop**
-```typescript
-// Drag&Drop pouze při splnění podmínek:
-const enableDragDrop = Platform.OS === 'ios' || !hasActiveModals;
-
-return enableDragDrop ? (
-  <DraggableFlatList {...props} />
-) : (
-  <FlatList {...props} />
-);
-```
-
-#### 4. **Oddělené Drag&Drop módy**
-```typescript
-// Tlačítko pro přepnutí mezi módy:
-- "View Mode" - standardní FlatList, modaly fungují
-- "Edit Mode" - DraggableFlatList, modaly dočasně zakázány
-
-// UX: Podobně jako iOS homescreen editing
-```
-
-#### 5. **Context Menu řešení**
-```typescript
-// Dlouhý stisk → kontextové menu s možnostmi:
-- "Move Up" / "Move Down"
-- "Move to Top" / "Move to Bottom"
-- "Edit" / "Delete"
-
-// Alternativa k drag&drop s podobnou funkcionalitou
-```
-
-#### 6. **Separátní Reorder Screen**
-```typescript
-// Dedikovaná obrazovka pro přeuspořádání:
-- Hlavní screen: FlatList (stabilní)
-- "Reorder" tlačítko → navigace na ReorderScreen
-- ReorderScreen: DraggableFlatList (izolovaný)
-- Žádné modaly na ReorderScreen
-```
-
-#### 7. **Numeric Input řešení**
-```typescript
-// Číselné input pro pořadí:
-- Každá položka má "Order" pole
-- Uživatel může zadat číslo pozice
-- Automatické přeuspořádání podle čísel
-```
-
-#### 8. **Arrow Buttons řešení**
-```typescript
-// Tlačítka pro pohyb:
-- ⬆️ Move Up
-- ⬇️ Move Down
-- ⏫ Move to Top
-- ⏬ Move to Bottom
-```
-
-### Doporučené testovací pořadí:
-
-1. **react-native-sortable-list** (rychlé testování)
-2. **Vlastní Gesture Handler implementace** (dlouhodobé řešení)
-3. **Hybridní přístup** (kompromis)
-4. **Context Menu** (alternativní UX)
-
-### Kritéria pro výběr:
-- ✅ Kompatibilita s našimi modaly
-- ✅ Stabilita na obou platformách
-- ✅ Dobrá UX (intuitivní ovládání)
-- ✅ Performance (žádné lag)
-- ✅ Minimální refaktoring existing kódu
-
----
 
 ## 🚨 Drag & Drop Implementation Status - KRITICKÉ PROBLÉMY (July 19, 2025)
 
@@ -940,11 +819,55 @@ onDrag={Platform.OS === 'ios' ? drag : undefined}
 - **Performance**: Memoized callbacks pro optimální re-rendering
 - **UX**: ReorderScreen pro Android, edit mode pro iOS
 
-#### **Finální výsledek:**
+#### **Finální výsledek - BREAKTHROUGH:**
 - ✅ **Android**: Touch eventy, modály a delete ikony **100% funkční**
 - ✅ **iOS**: Zachován edit mode s drag&drop a wiggle animací  
 - ✅ **ReorderScreen**: Dedikovaná drag&drop obrazovka pro Android
 - ✅ **Unified codebase**: Jedna implementace, platformně optimalizovaná
+- ✅ **Zero compromises**: Každá platforma má nejlepší možný UX
+- ✅ **Future-proof**: Template pro všechny budoucí cross-platform komponenty
+
+### 🔥 KRITICKÁ ARCHITEKTONICKÁ POZOROVÁNÍ:
+
+#### **Unified Architecture Pattern:**
+Toto řešení představuje **template pro budoucí cross-platform komponenty**:
+
+```typescript
+// Architectural Pattern Template
+const OptimizedComponent = ({ isInteractive, ...props }) => {
+  // 1. Platform-specific wrapper selection
+  const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
+  
+  // 2. Conditional animation setup
+  const animationValue = Platform.OS === 'ios' ? useSharedValue(0) : null;
+  
+  // 3. Platform-specific props
+  const platformProps = Platform.OS === 'ios' 
+    ? { style: [baseStyle, animatedStyle] }
+    : { style: baseStyle };
+  
+  // 4. Render with conditional behavior
+  return (
+    <WrapperComponent {...platformProps}>
+      <TouchableOpacity {...interactiveProps} />
+    </WrapperComponent>
+  );
+};
+```
+
+#### **Performance Optimization Guidelines:**
+1. **Memoization is crucial**: Every drag&drop list needs `useCallback` render functions
+2. **Platform isolation prevents conflicts**: Don't try to make universal solutions
+3. **Animation overhead**: Reanimated should be iOS-only for complex touch interactions
+4. **Component-level platform switches** are better than app-level compromises
+
+#### **Future Drag&Drop Implementation Checklist:**
+- [ ] ✅ iOS: Use `DraggableFlatList` with conditional edit mode
+- [ ] ✅ Android: Use separate reorder screen or vanilla FlatList
+- [ ] ✅ Wrapper: `Platform.OS === 'ios' ? Animated.View : View`
+- [ ] ✅ Props: Conditional edit/drag props based on platform
+- [ ] ✅ Performance: Memoized callbacks and render functions
+- [ ] ✅ Testing: Verify touch events work on Android before animation
 
 ---
 

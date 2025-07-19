@@ -192,10 +192,7 @@ export function HabitsScreen() {
             onPress={handleEditPress}
           >
             <Text style={styles.editButtonText}>
-              {Platform.OS === 'ios' 
-                ? (isEditMode ? 'Done' : 'Edit')
-                : 'Reorder'
-              }
+              {isEditMode ? 'Done' : 'Reorder'}
             </Text>
           </TouchableOpacity>
         </View>
