@@ -1,7 +1,7 @@
 // src/screens/habits/HabitsScreen.tsx
 
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
@@ -30,7 +30,12 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
   },
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   addButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -47,11 +52,27 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundSecondary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   addButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  editButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
@@ -60,7 +81,7 @@ export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
   
-  
+  const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>();
   const [showError, setShowError] = useState(false);
@@ -132,27 +153,52 @@ export function HabitsScreen() {
     }
   };
 
-  const handleRefresh = async () => {
-    try {
-      await actions.loadHabits();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to refresh habits');
-      setShowError(true);
-    }
-  };
 
   const handleViewHabitStats = (habitId: string) => {
     router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
+  // Univerzální funkce pro Edit/Reorder tlačítko
+  const handleEditPress = () => {
+    if (Platform.OS === 'ios') {
+      // Na iOS pouze přepneme lokální stav
+      setIsEditMode(!isEditMode);
+    } else {
+      // Na Androidu navigujeme na ReorderScreen
+      const activeHabits = habits.filter(habit => habit.isActive);
+      router.push({
+        pathname: '/reorder-habits',
+        params: {
+          initialItems: JSON.stringify(activeHabits),
+        }
+      } as any);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Tlačítko Add je nyní odděleno od seznamu */}
+      {/* Tlačítka Add a Edit/Reorder */}
       <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
-          <Ionicons name="add" size={24} color="white" />
-          <Text style={styles.addButtonText}>Add New Habit</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonsRow}>
+          {/* Na Androidu se Add tlačítko zobrazí vždy, na iOS se skryje v edit mode */}
+          {(Platform.OS === 'android' || !isEditMode) && (
+            <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
+              <Ionicons name="add" size={24} color="white" />
+              <Text style={styles.addButtonText}>Add New Habit</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={handleEditPress}
+          >
+            <Text style={styles.editButtonText}>
+              {Platform.OS === 'ios' 
+                ? (isEditMode ? 'Done' : 'Edit')
+                : 'Reorder'
+              }
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       {/* Seznam má vlastní kontejner s flex: 1 */}
@@ -161,7 +207,7 @@ export function HabitsScreen() {
           habits={habits}
           completions={completions}
           isLoading={isLoading}
-          onRefresh={handleRefresh}
+          isEditMode={Platform.OS === 'ios' ? isEditMode : false}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
           onToggleActive={handleToggleActive}

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Text, FlatList } from 'react-native';
-// import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist'; // DOČASNĚ VYPNUTO - ZPŮSOBUJE KONFLIKTY
+import { View, StyleSheet, ScrollView, Text, FlatList } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
 import { Colors } from '../../constants/colors';
@@ -9,7 +9,7 @@ import { useI18n } from '../../hooks/useI18n';
 interface GoalListWithDragAndDropProps {
   goals: Goal[];
   isLoading: boolean;
-  onRefresh: () => void;
+  isEditMode: boolean;
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
   onViewGoalStats: (goalId: string) => void;
@@ -21,7 +21,7 @@ interface GoalListWithDragAndDropProps {
 export function GoalListWithDragAndDrop({
   goals,
   isLoading,
-  onRefresh,
+  isEditMode,
   onEditGoal,
   onDeleteGoal,
   onViewGoalStats,
@@ -56,6 +56,7 @@ export function GoalListWithDragAndDrop({
     onReorderGoals(goalOrders);
   };
 
+  // Renderovací funkce pro FlatList
   const renderActiveGoalItem = ({ item: goal }: { item: Goal }) => (
     <View style={styles.goalItemContainer}>
       <GoalItem
@@ -64,8 +65,24 @@ export function GoalListWithDragAndDrop({
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
         onAddProgress={() => onAddProgress(goal)}
-        onDrag={undefined}
         isDragging={false}
+        isEditMode={isEditMode}
+      />
+    </View>
+  );
+
+  // Renderovací funkce pro DraggableFlatList
+  const renderDraggableGoalItem = ({ item: goal, drag, isActive }: RenderItemParams<Goal>) => (
+    <View style={styles.goalItemContainer}>
+      <GoalItem
+        goal={goal}
+        onEdit={() => onEditGoal(goal)}
+        onDelete={() => onDeleteGoal(goal.id)}
+        onViewStats={() => onViewGoalStats(goal.id)}
+        onAddProgress={() => onAddProgress(goal)}
+        onDrag={drag}
+        isDragging={isActive}
+        isEditMode={isEditMode}
       />
     </View>
   );
@@ -78,6 +95,7 @@ export function GoalListWithDragAndDrop({
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
         onAddProgress={() => onAddProgress(goal)}
+        isEditMode={isEditMode}
       />
     </View>
   );
@@ -93,9 +111,6 @@ export function GoalListWithDragAndDrop({
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-        }
       >
         {ListHeaderComponent}
         {renderEmpty()}
@@ -110,23 +125,34 @@ export function GoalListWithDragAndDrop({
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={true}
       nestedScrollEnabled={true}
-      refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
-      }
     >
       {ListHeaderComponent}
 
-      {/* Active Goals Section with Drag & Drop */}
+      {/* Active Goals Section - Conditional Drag & Drop */}
       {activeGoals.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Active Goals</Text>
-          <FlatList
-            data={activeGoals}
-            renderItem={renderActiveGoalItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            nestedScrollEnabled={true}
-          />
+          {isEditMode ? (
+            <DraggableFlatList
+              data={activeGoals}
+              renderItem={renderDraggableGoalItem}
+              keyExtractor={(item) => item.id}
+              onDragBegin={handleDragBegin}
+              onDragEnd={handleActiveDragEnd}
+              scrollEnabled={false}
+              nestedScrollEnabled={true}
+              activationDistance={20}
+              dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+            />
+          ) : (
+            <FlatList
+              data={activeGoals}
+              renderItem={renderActiveGoalItem}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              nestedScrollEnabled={true}
+            />
+          )}
         </View>
       )}
 

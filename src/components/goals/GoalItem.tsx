@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalStatus } from '../../types/goal';
 import { Colors } from '../../constants/colors';
@@ -15,11 +22,43 @@ interface GoalItemProps {
   onAddProgress: () => void;
   onDrag?: () => void;
   isDragging?: boolean;
+  isEditMode: boolean;
 }
 
-export function GoalItem({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging }: GoalItemProps) {
+export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging, isEditMode }: GoalItemProps) => {
   const { t } = useI18n();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Wiggle animace pro edit mode
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    if (isEditMode) {
+      // Náhodný delay pro každou položku (0-500ms)
+      const randomDelay = Math.random() * 500;
+      setTimeout(() => {
+        rotation.value = withRepeat(
+          withSequence(
+            withTiming(-1, { duration: 150 }), // Mírně doleva
+            withTiming(1, { duration: 150 }),  // Mírně doprava
+            withTiming(0, { duration: 150 })   // Zpět na střed
+          ),
+          -1, // Nekonečné opakování
+          true // Povolí obrácení sekvence pro plynulejší smyčku
+        );
+      }, randomDelay);
+    } else {
+      // Když režim úprav skončí, vrátíme rotaci na nulu
+      rotation.value = withTiming(0, { duration: 150 });
+    }
+  }, [isEditMode, rotation]);
+
+  // Animovaný styl pro wiggle efekt
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${rotation.value}deg` }],
+    };
+  });
 
   const getStatusColor = (status: GoalStatus) => {
     switch (status) {
@@ -64,7 +103,7 @@ export function GoalItem({ goal, onEdit, onDelete, onViewStats, onAddProgress, o
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedStyle]}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{goal.title}</Text>
@@ -139,9 +178,9 @@ export function GoalItem({ goal, onEdit, onDelete, onViewStats, onAddProgress, o
         confirmText={t('common.delete')}
         cancelText={t('common.cancel')}
       />
-    </View>
+    </Animated.View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

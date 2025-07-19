@@ -21,6 +21,10 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: Colors.background,
   },
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   listContainer: {
     flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
   },
@@ -72,12 +76,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundSecondary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  editButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
 export function GoalsScreen() {
   const { t } = useI18n();
   const { goals, isLoading, actions } = useGoalsData();
   
+  const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
   const [progressModalVisible, setProgressModalVisible] = useState(false);
@@ -150,14 +171,6 @@ export function GoalsScreen() {
     }
   };
 
-  const handleRefresh = async () => {
-    try {
-      await actions.loadGoals();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to refresh goals');
-      setShowError(true);
-    }
-  };
 
   const handleViewGoalStats = (goalId: string) => {
     router.push(`/goal-stats?goalId=${goalId}` as any);
@@ -206,15 +219,27 @@ export function GoalsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Tlačítka Add a Template jsou nyní oddělena od seznamu */}
+      {/* Tlačítka Add, Template a Edit */}
       <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
-          <Ionicons name="add" size={24} color="white" />
-          <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
-          <Ionicons name="library-outline" size={24} color={Colors.primary} />
-          <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
+        {!isEditMode && (
+          <>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
+              <Ionicons name="add" size={24} color="white" />
+              <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
+              <Ionicons name="library-outline" size={24} color={Colors.primary} />
+              <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => setIsEditMode(!isEditMode)}
+        >
+          <Text style={styles.editButtonText}>
+            {isEditMode ? 'Done' : 'Edit'}
+          </Text>
         </TouchableOpacity>
       </View>
       
@@ -223,7 +248,7 @@ export function GoalsScreen() {
         <GoalListWithDragAndDrop
           goals={goals}
           isLoading={isLoading}
-          onRefresh={handleRefresh}
+          isEditMode={isEditMode}
           onEditGoal={handleEditGoal}
           onDeleteGoal={handleDeleteGoal}
           onViewGoalStats={handleViewGoalStats}

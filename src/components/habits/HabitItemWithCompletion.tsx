@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitColor, HabitIcon, DayOfWeek } from '@/src/types/common';
@@ -27,6 +34,7 @@ interface HabitItemWithCompletionProps {
   onViewStats: (habitId: string) => void;
   onDrag?: (() => void) | undefined;
   isDragging?: boolean;
+  isEditMode: boolean;
   date?: string;
 }
 
@@ -62,7 +70,7 @@ const DAY_LABELS = {
   [DayOfWeek.SUNDAY]: 'Su',
 };
 
-export function HabitItemWithCompletion({ 
+export const HabitItemWithCompletion = React.memo(({ 
   habit, 
   completion,
   onEdit, 
@@ -73,11 +81,43 @@ export function HabitItemWithCompletion({
   onViewStats,
   onDrag, 
   isDragging,
+  isEditMode,
   date = formatDateToString(new Date())
-}: HabitItemWithCompletionProps) {
+}: HabitItemWithCompletionProps) => {
   const { t } = useI18n();
   const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Wiggle animace pro edit mode
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    if (isEditMode) {
+      // Náhodný delay pro každou položku (0-500ms)
+      const randomDelay = Math.random() * 500;
+      setTimeout(() => {
+        rotation.value = withRepeat(
+          withSequence(
+            withTiming(-1, { duration: 150 }), // Mírně doleva
+            withTiming(1, { duration: 150 }),  // Mírně doprava
+            withTiming(0, { duration: 150 })   // Zpět na střed
+          ),
+          -1, // Nekonečné opakování
+          true // Povolí obrácení sekvence pro plynulejší smyčku
+        );
+      }, randomDelay);
+    } else {
+      // Když režim úprav skončí, vrátíme rotaci na nulu
+      rotation.value = withTiming(0, { duration: 150 });
+    }
+  }, [isEditMode, rotation]);
+
+  // Animovaný styl pro wiggle efekt
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${rotation.value}deg` }],
+    };
+  });
 
   const handleDelete = () => {
     setShowDeleteConfirm(true);
@@ -116,11 +156,12 @@ export function HabitItemWithCompletion({
   };
 
   return (
-    <View style={[
+    <Animated.View style={[
       styles.container,
       !habit.isActive && styles.inactiveContainer,
       isCompleted && styles.completedContainer,
       isDragging && styles.draggingContainer,
+      animatedStyle, // Přidáno pro wiggle animaci
     ]}>
       {/* Top row with completion, icon, content, and actions */}
       <View style={styles.topRow}>
@@ -252,9 +293,9 @@ export function HabitItemWithCompletion({
         cancelText={t('common.cancel')}
         emoji="🗑️"
       />
-    </View>
+    </Animated.View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
