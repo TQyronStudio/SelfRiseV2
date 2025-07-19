@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -155,14 +156,26 @@ export const HabitItemWithCompletion = React.memo(({
     return habit.scheduledDays.includes(dayOfWeek);
   };
 
+  // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
+  const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
+  const wrapperStyle = Platform.OS === 'ios' 
+    ? [
+        styles.container,
+        !habit.isActive && styles.inactiveContainer,
+        isCompleted && styles.completedContainer,
+        isDragging && styles.draggingContainer,
+        animatedStyle, // Wiggle animace pouze na iOS
+      ] 
+    : [
+        styles.container,
+        !habit.isActive && styles.inactiveContainer,
+        isCompleted && styles.completedContainer,
+        isDragging && styles.draggingContainer,
+        // Žádná animace na Androidu
+      ];
+
   return (
-    <Animated.View style={[
-      styles.container,
-      !habit.isActive && styles.inactiveContainer,
-      isCompleted && styles.completedContainer,
-      isDragging && styles.draggingContainer,
-      animatedStyle, // Přidáno pro wiggle animaci
-    ]}>
+    <WrapperComponent style={wrapperStyle}>
       {/* Top row with completion, icon, content, and actions */}
       <View style={styles.topRow}>
         {/* Completion section */}
@@ -293,7 +306,7 @@ export const HabitItemWithCompletion = React.memo(({
         cancelText={t('common.cancel')}
         emoji="🗑️"
       />
-    </Animated.View>
+    </WrapperComponent>
   );
 });
 

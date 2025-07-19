@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -102,8 +102,14 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
     onDelete();
   };
 
+  // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
+  const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
+  const wrapperStyle = Platform.OS === 'ios' 
+    ? [styles.container, animatedStyle] // Wiggle animace pouze na iOS
+    : [styles.container]; // Žádná animace na Androidu
+
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <WrapperComponent style={wrapperStyle}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{goal.title}</Text>
@@ -178,7 +184,7 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
         confirmText={t('common.delete')}
         cancelText={t('common.cancel')}
       />
-    </Animated.View>
+    </WrapperComponent>
   );
 });
 
