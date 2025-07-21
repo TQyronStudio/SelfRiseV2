@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -79,7 +79,19 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={[
+            styles.content,
+            showInput && styles.contentWithInput
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
         <DailyGratitudeProgress
           currentCount={currentCount}
           isComplete={isComplete}
@@ -167,7 +179,8 @@ export default function JournalScreen() {
         <GratitudeList
           gratitudes={todaysGratitudes}
         />
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
       
       <CelebrationModal
         visible={showCelebration}
@@ -190,12 +203,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
   content: {
     flexGrow: 1,
     paddingTop: Layout.spacing.md,
+  },
+  contentWithInput: {
+    paddingBottom: 100, // Extra padding when input is shown to ensure scrollability
   },
   addButtonContainer: {
     paddingHorizontal: Layout.spacing.md,
