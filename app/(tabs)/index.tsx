@@ -1,10 +1,13 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout } from '@/src/constants';
 import { JournalStreakCard } from '@/src/components/home/GratitudeStreakCard';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
+import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
+import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
+import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
@@ -29,10 +32,14 @@ export default function HomeScreen() {
         {/* Journal history graph */}
         <StreakHistoryGraph />
         
-        {/* Placeholder for future components */}
-        <View style={styles.placeholder}>
-          {/* Future: Habit statistics dashboard will go here */}
-        </View>
+        {/* Habit Statistics Dashboard */}
+        <HabitStatsDashboard />
+        
+        {/* Performance Indicators */}
+        <HabitPerformanceIndicators />
+        
+        {/* Trend Analysis */}
+        <HabitTrendAnalysis />
       </ScrollView>
     </SafeAreaView>
   );
@@ -49,10 +56,5 @@ const styles = StyleSheet.create({
   content: {
     paddingVertical: Layout.spacing.md,
     paddingBottom: Layout.spacing.xl,
-  },
-  placeholder: {
-    height: 100,
-    marginTop: Layout.spacing.md,
-    // Future habit statistics will replace this
   },
 });

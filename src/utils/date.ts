@@ -128,8 +128,9 @@ export const getWeekEnd = (dateString: DateString): DateString => {
   return addDays(weekStart, 6);
 };
 
-export const getWeekDates = (dateString: DateString): DateString[] => {
-  const weekStart = getWeekStart(dateString);
+export const getWeekDates = (dateString?: DateString): DateString[] => {
+  const targetDate = dateString || today();
+  const weekStart = getWeekStart(targetDate);
   const dates: DateString[] = [];
   for (let i = 0; i < 7; i++) {
     dates.push(addDays(weekStart, i));
@@ -294,6 +295,17 @@ export const getRelativeDateText = (dateString: DateString): string => {
     day: 'numeric',
     year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
   });
+};
+
+export const formatDate = (date: Date, format: string): string => {
+  switch (format) {
+    case 'YYYY-MM-DD':
+      return formatDateToString(date);
+    case 'dd':
+      return date.toLocaleDateString('en-US', { weekday: 'long' });
+    default:
+      return date.toLocaleDateString();
+  }
 };
 
 export const formatDateForDisplay = (dateString: DateString, format: 'short' | 'long' | 'full' = 'short'): string => {

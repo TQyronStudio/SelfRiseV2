@@ -436,12 +436,216 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Create streak milestone indicators
 - [x] Implement streak sharing functionality
 
-#### Checkpoint 6.2: Habit Statistics Dashboard
-- [ ] Create weekly habit completion chart
-- [ ] Implement monthly habit statistics
-- [ ] Add interactive chart navigation
-- [ ] Create habit performance indicators
-- [ ] Implement habit trend analysis
+#### Checkpoint 6.2: Habit Statistics Dashboard ✅ COMPLETED
+- [x] Create weekly habit completion chart
+- [x] Implement monthly habit statistics
+- [x] Add interactive chart navigation
+- [x] Create habit performance indicators
+- [x] Implement habit trend analysis
+
+#### Checkpoint 6.2.1: Habit Statistics Dashboard Fixes & Improvements ✅ COMPLETED
+**Identified Issues**:
+- Weekly chart scrollable instead of fixed 7-day display like My Journal History
+- All completion counts showing 0 - data integration not working
+- Fixed daily habit count instead of scheduled day-specific calculations
+- Missing bonus/extra completion visual differentiation
+- All statistics calculations potentially incorrect
+
+#### Checkpoint 6.2.2: Advanced Chart Improvements & Time Period Restructuring ⚠️ IN PROGRESS
+**New Requirements**:
+- Weekly chart bar stacking: Green (scheduled) first, Gold (bonus) on top
+- Weekly chart time direction: Show past 7 days ending with today (today = rightmost)
+- Monthly statistics restructure: Move current monthly stats to Yearly view
+- New monthly view: Show past 30 days ending with today (like weekly but monthly)
+- Consistent retrospective time display across all statistics
+
+**Technical Implementation Plan**:
+
+**Priority 1: Weekly Chart Visual & Logic Improvements**
+- [ ] **Fix bar stacking order**: Green scheduled bars as base, gold bonus bars on top
+- [ ] **Implement retrospective week logic**: Past 7 days ending with today
+- [ ] **Update date calculation**: Use `subtractDays(today(), 6)` to `today()` range
+- [ ] **Adjust day labels**: Show correct day names for retrospective view
+- [ ] **Today positioning**: Ensure today appears as rightmost column
+
+**Priority 2: Time Period Architecture Restructuring**
+- [ ] **Create YearlyHabitOverview component**: Move current monthly logic here
+- [ ] **Redesign MonthlyHabitOverview**: Implement past 30 days logic
+- [ ] **Update HabitStatsDashboard**: Add Year toggle option (Week/Month/Year)
+- [ ] **Consistent date ranges**: All views show retrospective periods ending with today
+
+**Priority 3: New Monthly View Implementation**
+- [ ] **Past 30 days calculation**: Similar to weekly but 30-day period
+- [ ] **Daily completion visualization**: Mini bar chart or heatmap for 30 days
+- [ ] **Monthly statistics**: Adapted from current monthly logic for 30-day period
+- [ ] **Performance optimization**: Efficient data processing for 30-day range
+
+**Priority 4: Navigation & UX Updates**
+- [ ] **Three-way toggle**: Week / Month (30 days) / Year (12 months)
+- [ ] **Consistent header styling**: All periods show "Past X ending today"
+- [ ] **Loading states**: Proper loading indicators for data-heavy year view
+- [ ] **Performance considerations**: Lazy loading for year statistics
+
+**Technical Implementation Details**:
+
+1. **Retrospective Week Logic**:
+```typescript
+// Current: getWeekDates() - gets current week (Mon-Sun)
+// New: getPast7Days() - gets past 7 days ending with today
+const getPast7Days = (): DateString[] => {
+  const dates: DateString[] = [];
+  for (let i = 6; i >= 0; i--) {
+    dates.push(subtractDays(today(), i));
+  }
+  return dates; // [today-6, today-5, ..., today-1, today]
+};
+```
+
+2. **Bar Stacking Order Fix**:
+```typescript
+// Current: Bonus bar on top, scheduled below
+// New: Scheduled bar as base, bonus stacked on top
+<View style={styles.barContainer}>
+  {/* Base: Scheduled completions (green) */}
+  <View style={[styles.scheduledBar, { backgroundColor: Colors.success }]} />
+  
+  {/* Stacked: Bonus completions (gold) on top */}
+  <View style={[styles.bonusBar, { backgroundColor: Colors.gold }]} />
+</View>
+```
+
+3. **Time Period Architecture**:
+```typescript
+// HabitStatsDashboard.tsx
+type ViewMode = 'week' | 'month' | 'year';
+
+// Component mapping:
+// - Week: WeeklyHabitChart (past 7 days)
+// - Month: MonthlyHabitOverview (past 30 days) 
+// - Year: YearlyHabitOverview (past 12 months)
+```
+
+4. **Past 30 Days Implementation**:
+```typescript
+const getPast30Days = (): DateString[] => {
+  const dates: DateString[] = [];
+  for (let i = 29; i >= 0; i--) {
+    dates.push(subtractDays(today(), i));
+  }
+  return dates; // Array of 30 dates ending with today
+};
+```
+
+**Component Architecture Changes**:
+
+- **WeeklyHabitChart**: Past 7 days, green+gold stacked bars
+- **MonthlyHabitOverview**: Past 30 days, mini daily visualization  
+- **YearlyHabitOverview**: Past 12 months, current monthly statistics logic
+- **HabitStatsDashboard**: 3-way toggle (Week/Month/Year)
+
+**Expected Results**:
+
+1. **Visual Improvements**:
+   - Bars grow upward correctly: green base → gold top
+   - Today always appears as rightmost column
+   - Past 7 days clearly labeled with correct day names
+   
+2. **Time Period Consistency**:
+   - Week: Past 7 days ending today
+   - Month: Past 30 days ending today  
+   - Year: Past 12 months ending this month
+   
+3. **Enhanced Navigation**:
+   - Three-way toggle: Week ↔ Month ↔ Year
+   - Headers show "Past 7 days", "Past 30 days", "Past 12 months"
+   - All statistics calculated for retrospective periods
+
+4. **Data Accuracy**:
+   - All completion counts based on actual past performance
+   - Consistent scheduled vs bonus logic across all time periods
+   - Proper performance trends showing improvement/decline over time
+
+**Implementation Order**:
+1. Fix weekly chart visual & logic (Priority 1)
+2. Create yearly component with current monthly logic (Priority 2) 
+3. Redesign monthly for past 30 days (Priority 3)
+4. Update navigation and UX (Priority 4)
+
+**Technical Implementation Plan**:
+
+**Priority 1: Chart Layout Fixes** ✅ COMPLETED
+- [x] **Remove horizontal ScrollView** from WeeklyHabitChart
+- [x] **Fixed 7-day layout** using Flexbox instead of scrollable content
+- [x] **Responsive bar sizing** to fit all days on screen width
+- [x] **Match Journal History graph styling** for consistency
+
+**Priority 2: Data Integration & Logic Fixes** ✅ COMPLETED
+- [x] **Debug getHabitsByDate()** method - verify data retrieval
+- [x] **Implement scheduled days filtering** for habit counting:
+  - Only count habits scheduled for specific days
+  - Calculate correct "total possible" based on scheduled days
+  - Handle "bonus" completions (unscheduled day completions)
+- [x] **Fix completion counting logic**:
+  - Use habit.scheduledDays array for day-specific calculations
+  - Implement isScheduledForDate() helper function
+  - Calculate bonus completions separately
+
+**Priority 3: Visual Enhancements** ✅ COMPLETED
+- [x] **Bonus completion visualization**:
+  - Different bar color for bonus completions (gold/orange)
+  - Stacked bars: scheduled (blue) + bonus (gold) completions
+  - Legend showing scheduled vs bonus completion types
+- [x] **Bar styling improvements**:
+  - Proper bar height calculations based on screen size
+  - Better spacing and proportions
+  - Today highlighting enhancement
+
+**Priority 4: Data Validation & Testing** ✅ COMPLETED
+- [x] **Fixed data property issues** across all statistics components:
+  - WeeklyHabitChart: h.completed → h.isCompleted
+  - MonthlyHabitOverview: proper scheduled days filtering
+  - HabitPerformanceIndicators: h.completed → h.isCompleted
+  - HabitTrendAnalysis: h.habitId → h.id, h.completed → h.isCompleted
+- [x] **Validate calculations** across all statistics components:
+  - Weekly completion rates
+  - Monthly averages with scheduled days logic
+  - Performance indicators with correct data properties
+  - Trend analysis with proper habit identification
+
+**Technical Details**:
+
+1. **Chart Layout Architecture**:
+```typescript
+// Replace ScrollView with fixed Flexbox layout
+<View style={styles.chartContainer}>
+  <View style={styles.barsContainer}>
+    {weekData.map((day, index) => (
+      <View key={day.date} style={styles.dayColumn}>
+        {/* Stacked bar for scheduled + bonus */}
+      </View>
+    ))}
+  </View>
+</View>
+```
+
+2. **Scheduled Days Logic**:
+```typescript
+const getScheduledHabitsForDate = (date: DateString, habits: Habit[]) => {
+  const dayOfWeek = getDayOfWeekFromDateString(date);
+  return habits.filter(habit => 
+    habit.isActive && habit.scheduledDays.includes(dayOfWeek)
+  );
+};
+```
+
+3. **Bonus Completion Detection**:
+```typescript
+const getBonusCompletions = (date: DateString, completions: HabitCompletion[]) => {
+  return completions.filter(completion => 
+    completion.date === date && completion.isBonus === true
+  );
+};
+```
 
 #### Checkpoint 6.3: Home Screen Integration
 - [ ] Integrate all dashboard components
