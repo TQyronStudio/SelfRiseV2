@@ -871,6 +871,17 @@ const OptimizedComponent = ({ isInteractive, ...props }) => {
 
 ---
 
+## Habits Screen Visual Enhancement ✅ (July 22, 2025)
+
+**Implementováno hybridní zvýraznění pro lepší vizuální přehlednost:**
+- **Jemný modrý rámeček** - kolem návyků naplánovaných na dnešek (skryje se při splnění)
+- **Zelený kroužek** - kolem dnešního dne když je naplánován
+- **Zlatý kroužek** - kolem dnešního dne když není naplánován (bonusová příležitost)
+
+**Technická implementace:** `HabitItemWithCompletion.tsx` s conditional styling `getDayOfWeek()` + `Colors.primary+'30'`
+
+---
+
 ## Configuration Keys
 
 ### Firebase Configuration

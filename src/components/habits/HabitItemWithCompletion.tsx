@@ -155,6 +155,11 @@ export const HabitItemWithCompletion = React.memo(({
     const dayOfWeek = getDayOfWeek(today);
     return habit.scheduledDays.includes(dayOfWeek);
   };
+  
+  // Detekce dnešního dne pro vizuální zvýraznění
+  const todayDayOfWeek = getDayOfWeek(new Date(date));
+  const isHabitScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
+  const isActiveHabit = habit.isActive;
 
   // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
   const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
@@ -164,6 +169,8 @@ export const HabitItemWithCompletion = React.memo(({
         !habit.isActive && styles.inactiveContainer,
         isCompleted && styles.completedContainer,
         isDragging && styles.draggingContainer,
+        // Jemný modrý rámeček pro návyky naplánované na dnešek (pouze aktivní a nesplněné návyky)
+        isActiveHabit && isHabitScheduledToday && !isCompleted && styles.todayScheduledContainer,
         animatedStyle, // Wiggle animace pouze na iOS
       ] 
     : [
@@ -171,6 +178,8 @@ export const HabitItemWithCompletion = React.memo(({
         !habit.isActive && styles.inactiveContainer,
         isCompleted && styles.completedContainer,
         isDragging && styles.draggingContainer,
+        // Jemný modrý rámeček pro návyky naplánované na dnešek (pouze aktivní a nesplněné návyky)
+        isActiveHabit && isHabitScheduledToday && !isCompleted && styles.todayScheduledContainer,
         // Žádná animace na Androidu
       ];
 
@@ -272,6 +281,10 @@ export const HabitItemWithCompletion = React.memo(({
         <View style={styles.daysContainer}>
           {Object.values(DayOfWeek).map((day) => {
             const isScheduled = habit.scheduledDays.includes(day);
+            const isToday = day === todayDayOfWeek;
+            const isTodayScheduled = isToday && isScheduled;
+            const isTodayUnscheduled = isToday && !isScheduled && isActiveHabit;
+            
             return (
               <View
                 key={day}
@@ -279,6 +292,10 @@ export const HabitItemWithCompletion = React.memo(({
                   styles.dayIndicator,
                   isScheduled && styles.activeDayIndicator,
                   !habit.isActive && styles.inactiveDayIndicator,
+                  // Zelený kroužek pro dnešek naplánovaný
+                  isTodayScheduled && styles.todayScheduledDayIndicator,
+                  // Zlatý kroužek pro dnešek nenaplánovaný (bonusová příležitost)
+                  isTodayUnscheduled && styles.todayUnscheduledDayIndicator,
                 ]}
               >
                 <Text
@@ -286,6 +303,9 @@ export const HabitItemWithCompletion = React.memo(({
                     styles.dayLabel,
                     isScheduled && styles.activeDayLabel,
                     !habit.isActive && styles.inactiveDayLabel,
+                    // Text styling pro dnešní den
+                    isTodayScheduled && styles.todayScheduledDayLabel,
+                    isTodayUnscheduled && styles.todayUnscheduledDayLabel,
                   ]}
                 >
                   {DAY_LABELS[day]}
@@ -470,5 +490,28 @@ const styles = StyleSheet.create({
   },
   actionButtonDragging: {
     backgroundColor: Colors.primary,
+  },
+  // Styly pro dnešní zvýraznění
+  todayScheduledContainer: {
+    borderWidth: 1,
+    borderColor: Colors.primary + '30', // Jemná průhlednost podobná zelené při splnění
+  },
+  todayScheduledDayIndicator: {
+    borderWidth: 2,
+    borderColor: Colors.success,
+    backgroundColor: Colors.success,
+  },
+  todayUnscheduledDayIndicator: {
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    backgroundColor: Colors.gold,
+  },
+  todayScheduledDayLabel: {
+    color: Colors.textInverse,
+    fontFamily: Fonts.bold,
+  },
+  todayUnscheduledDayLabel: {
+    color: Colors.text,
+    fontFamily: Fonts.bold,
   },
 });

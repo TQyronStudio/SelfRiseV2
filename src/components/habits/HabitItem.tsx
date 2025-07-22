@@ -12,6 +12,7 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ConfirmationModal } from '@/src/components/common';
+import { getDayOfWeek } from '../../utils/date';
 
 interface HabitItemProps {
   habit: Habit;
@@ -58,6 +59,11 @@ const DAY_LABELS = {
 export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, onDrag, isDragging }: HabitItemProps) {
   const { t } = useI18n();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Detekce dnešního dne pro vizuální zvýraznění
+  const todayDayOfWeek = getDayOfWeek(new Date());
+  const isScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
+  const isActiveHabit = habit.isActive;
 
   const handleDelete = () => {
     setShowDeleteConfirm(true);
@@ -75,6 +81,8 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
     styles.container,
     !habit.isActive && styles.inactiveContainer,
     isDragging && styles.draggingContainer,
+    // Modrý rámeček pro návyky naplánované na dnešek (pouze aktivní návyky)
+    isActiveHabit && isScheduledToday && styles.todayScheduledContainer,
   ];
   
   return (
@@ -100,26 +108,40 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           )}
 
           <View style={styles.daysContainer}>
-            {Object.values(DayOfWeek).map((day) => (
-              <View
-                key={day}
-                style={[
-                  styles.dayIndicator,
-                  habit.scheduledDays.includes(day) && styles.activeDayIndicator,
-                  !habit.isActive && styles.inactiveDayIndicator,
-                ]}
-              >
-                <Text
+            {Object.values(DayOfWeek).map((day) => {
+              const isToday = day === todayDayOfWeek;
+              const isScheduledDay = habit.scheduledDays.includes(day);
+              const isTodayScheduled = isToday && isScheduledDay;
+              const isTodayUnscheduled = isToday && !isScheduledDay && isActiveHabit;
+              
+              return (
+                <View
+                  key={day}
                   style={[
-                    styles.dayLabel,
-                    habit.scheduledDays.includes(day) && styles.activeDayLabel,
-                    !habit.isActive && styles.inactiveDayLabel,
+                    styles.dayIndicator,
+                    isScheduledDay && styles.activeDayIndicator,
+                    !habit.isActive && styles.inactiveDayIndicator,
+                    // Zelený kroužek pro dnešek naplánovaný
+                    isTodayScheduled && styles.todayScheduledDayIndicator,
+                    // Zlatý kroužek pro dnešek nenaplánovaný (bonusová příležitost)
+                    isTodayUnscheduled && styles.todayUnscheduledDayIndicator,
                   ]}
                 >
-                  {DAY_LABELS[day]}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={[
+                      styles.dayLabel,
+                      isScheduledDay && styles.activeDayLabel,
+                      !habit.isActive && styles.inactiveDayLabel,
+                      // Text styling pro dnešní den
+                      isTodayScheduled && styles.todayScheduledDayLabel,
+                      isTodayUnscheduled && styles.todayUnscheduledDayLabel,
+                    ]}
+                  >
+                    {DAY_LABELS[day]}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -287,5 +309,28 @@ const styles = StyleSheet.create({
   },
   draggingActionButton: {
     backgroundColor: Colors.primary,
+  },
+  // Styly pro dnešní zvýraznění
+  todayScheduledContainer: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  todayScheduledDayIndicator: {
+    borderWidth: 2,
+    borderColor: Colors.success,
+    backgroundColor: Colors.success,
+  },
+  todayUnscheduledDayIndicator: {
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    backgroundColor: Colors.gold,
+  },
+  todayScheduledDayLabel: {
+    color: Colors.textInverse,
+    fontFamily: Fonts.bold,
+  },
+  todayUnscheduledDayLabel: {
+    color: Colors.text,
+    fontFamily: Fonts.bold,
   },
 });
