@@ -3,14 +3,17 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate } from '@/src/utils/date';
 
 export const WeeklyHabitChart: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getDataDateRange } = useHabitsData();
 
   const weekData = useMemo(() => {
-    const weekDates = getPast7Days(); // Gets past 7 days ending with today
+    // Use either available data period or past 7 days, whichever is shorter
+    const availableDataRange = getDataDateRange();
+    const past7Days = getPast7Days();
+    const weekDates = availableDataRange.length <= 7 ? availableDataRange : past7Days;
     const activeHabits = habits.filter(habit => habit.isActive);
     
     return weekDates.map(dateStr => {
@@ -40,7 +43,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       const completionRate = totalScheduled > 0 ? (scheduledCount / totalScheduled) * 100 : 0;
       
       // Parse date string to Date object for day operations
-      const dateObj = new Date(dateStr + 'T00:00:00.000Z');
+      const dateObj = parseDate(dateStr);
       
       return {
         date: dateStr,
@@ -51,10 +54,10 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
         totalScheduled,
         totalCompleted,
         completionRate,
-        isToday: formatDateToString(new Date()) === dateStr
+        isToday: today() === dateStr
       };
     });
-  }, [habits, getHabitsByDate]);
+  }, [habits, getHabitsByDate, getDataDateRange]);
 
   const overallStats = useMemo(() => {
     const totalScheduledCompletions = weekData.reduce((sum, day) => sum + day.scheduledCount, 0);
@@ -82,6 +85,10 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     return Math.max(...weekData.map(day => day.totalScheduled + day.bonusCount), 1);
   }, [weekData]);
 
+  const actualDataPeriod = useMemo(() => {
+    return weekData.length;
+  }, [weekData]);
+
   const getBarColor = (completionRate: number) => {
     if (completionRate >= 80) return Colors.success;
     if (completionRate >= 60) return Colors.warning;
@@ -93,7 +100,9 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 7 Days Completion</Text>
+        <Text style={styles.title}>
+          {actualDataPeriod >= 7 ? 'Past 7 Days Completion' : `Past ${actualDataPeriod} Days Completion`}
+        </Text>
         <Text style={styles.subtitle}>
           {overallStats.totalCompletions}/{overallStats.totalPossible} ({overallStats.avgCompletionRate}%)
           {overallStats.totalBonusCompletions > 0 && ` + ${overallStats.totalBonusCompletions} bonus`}

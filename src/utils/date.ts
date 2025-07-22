@@ -355,3 +355,19 @@ export const formatDateForDisplay = (dateString: DateString, format: 'short' | '
       return dateString;
   }
 };
+
+// Data availability utilities
+export const findEarliestDate = (dates: DateString[]): DateString | null => {
+  if (dates.length === 0) return null;
+  return dates.sort()[0] || null;
+};
+
+export const findLatestDate = (dates: DateString[]): DateString | null => {
+  if (dates.length === 0) return null;
+  return dates.sort().reverse()[0] || null;
+};
+
+export const getDateRangeFromToday = (startDate: DateString): DateString[] => {
+  if (startDate > today()) return [];
+  return getDateRange(startDate, today());
+};

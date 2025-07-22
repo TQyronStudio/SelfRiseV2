@@ -3,14 +3,17 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate } from '@/src/utils/date';
 
 export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange } = useHabitsData();
 
   const monthData = useMemo(() => {
-    const monthDates = getPast30Days(); // Gets past 30 days ending with today
+    // Use either available data period or past 30 days, whichever is shorter
+    const availableDataRange = getDataDateRange();
+    const past30Days = getPast30Days();
+    const monthDates = availableDataRange.length <= 30 ? availableDataRange : past30Days.slice(-30);
     const activeHabits = habits.filter(habit => habit.isActive);
     
     return monthDates.map(dateStr => {
@@ -40,7 +43,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       const completionRate = totalScheduled > 0 ? (scheduledCount / totalScheduled) * 100 : 0;
       
       // Parse date string to Date object for day operations
-      const dateObj = new Date(dateStr + 'T00:00:00.000Z');
+      const dateObj = parseDate(dateStr);
       
       return {
         date: dateStr,
@@ -51,10 +54,10 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
         totalScheduled,
         totalCompleted,
         completionRate,
-        isToday: formatDateToString(new Date()) === dateStr
+        isToday: today() === dateStr
       };
     });
-  }, [habits, getHabitsByDate]);
+  }, [habits, getHabitsByDate, getDataDateRange]);
 
   const overallStats = useMemo(() => {
     const totalScheduledCompletions = monthData.reduce((sum, day) => sum + day.scheduledCount, 0);
@@ -82,11 +85,17 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
     return Math.max(...monthData.map(day => day.totalScheduled + day.bonusCount), 1);
   }, [monthData]);
 
+  const actualDataPeriod = useMemo(() => {
+    return monthData.length;
+  }, [monthData]);
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 30 Days Completion</Text>
+        <Text style={styles.title}>
+          {actualDataPeriod >= 30 ? 'Past 30 Days Completion' : `Past ${actualDataPeriod} Days Completion`}
+        </Text>
         <Text style={styles.subtitle}>
           {overallStats.totalCompletions}/{overallStats.totalPossible} ({overallStats.avgCompletionRate}%)
           {overallStats.totalBonusCompletions > 0 && ` + ${overallStats.totalBonusCompletions} bonus`}

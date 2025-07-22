@@ -22,7 +22,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color = Col
 
 export const YearlyHabitOverview: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange } = useHabitsData();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       };
     }
 
-    const yearDates = getPast365Days();
+    const yearDates = getDataDateRange(); // Use only available data period
     const activeHabits = habits.filter(habit => habit.isActive);
     const totalActiveHabits = activeHabits.length;
 
@@ -115,7 +115,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       activeDays,
       totalDays: yearDates.length
     };
-  }, [habits, getHabitsByDate, isLoading]);
+  }, [habits, getHabitsByDate, isLoading, getDataDateRange]);
 
   const habitPerformanceStats = useMemo(() => {
     if (isLoading) {
@@ -141,6 +141,13 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
   const topPerformer = habitPerformanceStats[0];
   const strugglingHabit = habitPerformanceStats[habitPerformanceStats.length - 1];
 
+  const actualDataPeriod = useMemo(() => {
+    const earliestDate = getEarliestDataDate();
+    if (!earliestDate) return 0;
+    const dateRange = getDataDateRange();
+    return dateRange.length;
+  }, [getEarliestDataDate, getDataDateRange]);
+
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -154,7 +161,9 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 365 Days Overview</Text>
+        <Text style={styles.title}>
+          {actualDataPeriod >= 365 ? 'Past 365 Days Overview' : `Past ${actualDataPeriod} Days Overview`}
+        </Text>
         <Text style={styles.subtitle}>
           {yearlyStats.activeDays}/{yearlyStats.totalDays} active days
         </Text>

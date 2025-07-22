@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
+import { findEarliestDate, formatDateToString, getDateRangeFromToday } from '../utils/date';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -108,11 +109,47 @@ export function useHabitsData() {
     return longestStreak;
   };
 
+  const getEarliestDataDate = (): DateString | null => {
+    const completionDates = state.completions.map(c => c.date);
+    const habitCreationDates = state.habits.map(h => {
+      // Handle both Date object and string formats from storage
+      const createdAt = h.createdAt instanceof Date ? h.createdAt : new Date(h.createdAt);
+      return formatDateToString(createdAt);
+    });
+    
+    const allDates = [...completionDates, ...habitCreationDates];
+    return findEarliestDate(allDates);
+  };
+
+  const getEarliestCompletionDate = (): DateString | null => {
+    const completionDates = state.completions.map(c => c.date);
+    return findEarliestDate(completionDates);
+  };
+
+  const getDataDateRange = (): DateString[] => {
+    const earliestDate = getEarliestDataDate();
+    if (!earliestDate) return [];
+    return getDateRangeFromToday(earliestDate);
+  };
+
+  const getHabitDataDateRange = (habitId: string): DateString[] => {
+    const habitCompletions = state.completions.filter(c => c.habitId === habitId);
+    const completionDates = habitCompletions.map(c => c.date);
+    const earliestDate = findEarliestDate(completionDates);
+    
+    if (!earliestDate) return [];
+    return getDateRangeFromToday(earliestDate);
+  };
+
   return {
     ...habitsData,
     actions,
     getHabitsByDate,
     getHabitCompletion,
     getHabitStats,
+    getEarliestDataDate,
+    getEarliestCompletionDate,
+    getDataDateRange,
+    getHabitDataDateRange,
   };
 }
