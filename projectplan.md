@@ -647,6 +647,342 @@ const getBonusCompletions = (date: DateString, completions: HabitCompletion[]) =
 };
 ```
 
+#### Checkpoint 6.2.3: Top Performer Logic Enhancement ✅ COMPLETED (July 22, 2025)
+
+**Identified Issues with Original Top Performer:**
+- Used overall completion rate instead of respecting scheduled days
+- Single metric didn't provide time period context  
+- Bonus completions weren't properly weighted
+- User feedback: confusing percentage without time context
+
+**Implemented Solutions:**
+
+**1. Smart Completion Rate Calculation:**
+```typescript
+// New logic respects scheduled days + bonus weighting
+scheduledRate = (completedScheduled / scheduledDays) * 100
+bonusRate = (bonusCompletions / scheduledDays) * 25  // 25% bonus per extra day
+finalRate = scheduledRate + bonusRate  // Can exceed 100%
+```
+
+**2. Dual Time Period Top Performers:**
+- **Weekly Top Performer**: "This Week" label with 🏆 icon (calendar week: Monday-Sunday)
+- **Monthly Top Performer**: Current month name with 👑 icon (calendar month: 1st to end)
+- Clear time context eliminates user confusion
+
+**3. Enhanced "Needs Focus" Logic:**
+- Identifies habits below 50% completion rate using monthly calendar data
+- Label format: "[Month] Focus" (e.g., "July Focus")
+- Provides actionable insight for habit improvement over longer timeframe
+- Uses same scheduled days + bonus logic for consistency
+
+**Example Scenarios:**
+```
+Habit A: Scheduled Mo/We/Fr (3 days), completed all + 1 bonus
+Result: 100% + 33% = 133% (can exceed 100%)
+
+Habit B: Scheduled daily (7 days), completed 5 days  
+Result: 71% (5/7 scheduled days)
+
+Habit C: Scheduled Tu/Th (2 days), completed 1 + 2 bonus
+Result: 50% + 100% = 150% (great bonus performance)
+```
+
+**Technical Implementation:**
+- New `calculatePeriodCompletionRate()` helper function
+- Uses `getWeekDates()` and `getMonthDates()` utility functions for calendar periods
+- Respects `habit.scheduledDays` array for accurate calculations
+- Bonus detection via day-of-week comparison with scheduled days
+- Calendar-based time periods for intuitive user understanding
+
+**User Experience Improvements:**
+- Clear calendar-based time periods ("This Week" = Mon-Sun, "January" = 1st-31st)
+- Different icons for different periods (🏆 weekly, 👑 monthly, 💪 focus)
+- Percentage can exceed 100% showing exceptional performance
+- "Needs Focus" uses monthly data for better habit improvement insights
+- Consistent calendar periods eliminate confusion about measurement timeframe
+
+**Updated Time Period Logic (July 22, 2025):**
+- **"This Week"**: Current calendar week (Monday to Sunday)
+- **"[Month]"**: Current calendar month (1st to last day of month)  
+- **"[Month] Focus"**: Monthly calendar data for struggling habits identification
+- All periods use proper calendar boundaries instead of rolling windows
+
+#### Checkpoint 6.2.3.1: Smart Bonus Conversion Logic 🧠 ENHANCED UX (July 22, 2025)
+
+**INTELLIGENT BONUS-TO-SCHEDULED CONVERSION:**
+Implement smart logic where bonus completions automatically "cover" for missed scheduled days within the same calendar week, providing more intuitive and forgiving habit tracking.
+
+**EXAMPLE SCENARIO:**
+- **Habit**: Exercise (scheduled: Mon, Wed, Fri)
+- **Monday**: ✅ Completed (scheduled - green)
+- **Tuesday**: ✅ Completed (bonus - currently gold)
+- **Wednesday**: ❌ Missed (scheduled - currently red)
+- **Result**: Tuesday bonus converts to "makeup" for Wednesday miss
+
+**SMART CONVERSION ALGORITHM:**
+
+**1. Weekly Scope:** Only within calendar week boundaries (Mon-Sun)
+**2. Pairing Logic:** Chronological matching - oldest missed scheduled + oldest bonus
+**3. Conversion Rules:**
+```typescript
+// Within same calendar week:
+const missedScheduled = findMissedScheduledDays(habit, weekDates);
+const bonusCompletions = findBonusCompletions(habit, weekDates);
+
+// Pair oldest missed with oldest bonus
+const conversions = pairChronologically(missedScheduled, bonusCompletions);
+
+conversions.forEach(pair => {
+  // Convert bonus day to "makeup completion" (green)
+  pair.bonusDay.type = 'makeup';  
+  pair.bonusDay.color = 'green';
+  
+  // Hide original missed day (remove red failure)
+  pair.missedDay.hidden = true;
+});
+```
+
+**4. UI/UX Impact:**
+
+**Home Screen Weekly Chart:**
+- **Before**: Gray bar (missed Wed) + Gold bar (bonus Tue)
+- **After**: Green bar (makeup Tue), no gray bar for Wed
+
+**Individual Habit Calendar:**
+- **Before**: Red Wednesday + Gold Tuesday  
+- **After**: Green Tuesday + Neutral Wednesday (no color)
+
+**Performance Statistics:**
+- **Before**: 1/2 scheduled (50%) + 1 bonus
+- **After**: 2/2 scheduled (100%), no bonus counted
+
+**5. Implementation Requirements:**
+
+**Core Data Layer:**
+- Add `conversion` tracking to HabitCompletion type
+- Implement weekly pairing algorithm in useHabitsData.ts
+- Update completion rate calculations to use converted data
+
+**Visual Components:**
+- Update WeeklyHabitChart to show green "makeup" vs gold "bonus"
+- Update individual habit calendar colors  
+- Update all statistics to reflect conversions
+
+**6. Conversion Rules:**
+
+✅ **Valid Conversions:**
+- Bonus within same calendar week as missed scheduled
+- One bonus can cover one missed scheduled day
+- Chronological pairing (oldest missed + oldest bonus)
+- Only scheduled→bonus pairing (not bonus→scheduled)
+
+❌ **Invalid Conversions:**
+- Cross-week conversions (Tuesday this week ↛ Wednesday last week)
+- Multiple bonuses for single missed day
+- Bonus older than missed day within same week
+
+**7. Edge Cases Handling:**
+
+**More bonuses than misses:** Extra bonuses remain as regular bonuses (gold)
+**More misses than bonuses:** Unpaired misses remain as failures (red)
+**Same-day bonus + scheduled:** Impossible scenario (day can't be both)
+
+**8. Testing Scenarios:**
+
+**Scenario A: Perfect Conversion**
+- Habit: Mon/Wed/Fri, Complete: Mon + Tue(bonus), Miss: Wed
+- Result: Mon(green) + Tue(green makeup) + Wed(hidden), Rate: 2/2=100%
+
+**Scenario B: Partial Conversion** 
+- Habit: Mon/Wed/Fri, Complete: Tue(bonus), Miss: Wed+Fri
+- Result: Mon(green) + Tue(green makeup for Wed) + Fri(red), Rate: 2/3=67%
+
+**Scenario C: Excess Bonuses**
+- Habit: Mon/Wed/Fri, Complete: Mon+Wed+Fri + Tue(bonus) + Thu(bonus)
+- Result: All scheduled green + Tue(gold bonus) + Thu(gold bonus), Rate: 3/3=100% + 2 bonuses
+
+#### Checkpoint 6.2.4: Habit Creation Date Respect - Statistics Fix 🚨 CRITICAL (July 22, 2025)
+
+**IDENTIFIED CRITICAL ISSUE:**
+When creating a new habit today, statistics show "missing completions" for entire past week/month/year, even though the habit didn't exist. This creates misleading data and poor UX.
+
+**ROOT CAUSE:** 
+All statistics calculations ignore habit creation date (`createdAt`) and calculate completion rates from arbitrary time periods (calendar week/month) instead of from habit creation date forward.
+
+**SCOPE OF IMPACT:**
+1. **Home Screen Performance Section**
+2. **Home Screen Habits Statistics Dashboard** 
+3. **Individual Habit Statistics** (when clicking on habit stats)
+4. **All time periods**: Weekly, Monthly, Yearly views
+
+---
+
+### **SYSTEMATIC AUDIT PLAN:**
+
+#### **Phase A: Home Screen Performance Indicators** 🎯
+**File:** `/src/components/home/HabitPerformanceIndicators.tsx`
+
+**Issues to Fix:**
+- **"This Week" 🏆**: Should only count days since habit creation (not full calendar week)
+- **"[Month]" 👑**: Should only count days since habit creation (not full calendar month) 
+- **"[Month] Focus" 💪**: Should use creation-date-aware completion rates
+
+**Logic Fix Required:**
+```typescript
+// WRONG: Uses full calendar period
+const weekDates = getWeekDates(today());
+
+// CORRECT: Should use intersection of calendar period + habit existence
+const relevantDates = getWeekDates(today()).filter(date => date >= habit.createdAt);
+```
+
+**Expected Behavior:**
+- Habit created today (Thursday) → "This Week" counts only Thu-Sun (not Mon-Wed)
+- Habit created 5 days ago → "This Week" counts all 7 days
+- Habit created last month → "[Month]" counts full current month
+
+#### **Phase B: Home Screen Habits Statistics Dashboard** 📊  
+**Files:** 
+- `/src/components/home/WeeklyHabitChart.tsx`
+- `/src/components/home/MonthlyHabitOverview.tsx` 
+- `/src/components/home/YearlyHabitOverview.tsx`
+- `/src/components/home/HabitTrendAnalysis.tsx`
+
+**Issues to Fix:**
+
+**1. WeeklyHabitChart:**
+- **Problem**: Shows "0% completion" for days before habit existed
+- **Fix**: Only show bars for days >= habit creation date
+- **Visual**: Gray out or hide bars for pre-creation days
+
+**2. MonthlyHabitOverview (Past 30 days):**
+- **Problem**: Counts "missing" completions for days before creation
+- **Fix**: Filter date range to start from habit creation date
+- **Stats**: Completion rate should be completions / days-since-creation (not /30)
+
+**3. YearlyHabitOverview (Past 12 months):**
+- **Problem**: Shows months with 0% when habit didn't exist
+- **Fix**: Only include months where habit existed for at least 1 day
+- **Display**: Maybe show "N/A" or hide bars for pre-creation months
+
+**4. HabitTrendAnalysis:**
+- **Problem**: Trend calculation includes pre-creation "failures"
+- **Fix**: Only analyze trend from creation date forward
+- **Algorithm**: Ensure trend calculation uses creation-date-aware data
+
+#### **Phase C: Individual Habit Statistics** 📈
+**Files:**
+- `/src/screens/habits/HabitStatsScreen.tsx`
+- Related habit detail components
+- Any habit-specific chart components
+
+**Issues to Fix:**
+- **Calendar view**: Don't show red "failed" days before habit creation
+- **Completion rate**: Should be based on days since creation, not arbitrary period
+- **Streak calculation**: Should start from creation date
+- **Progress charts**: Should start timeline from creation date
+
+#### **Phase D: Core Data Layer Fixes** ⚙️
+**Files:**
+- `/src/hooks/useHabitsData.ts`
+- `/src/services/storage/habitStorage.ts`
+- Any utility functions calculating habit stats
+
+**Core Logic Fixes:**
+
+**1. getHabitStats() function:**
+```typescript
+// Current (WRONG):
+const totalDays = habitCompletions.length;
+
+// Fixed (CORRECT):  
+const daysSinceCreation = getDaysBetween(habit.createdAt, today());
+const totalDays = daysSinceCreation;
+```
+
+**2. Completion rate calculation:**
+```typescript
+// Current (WRONG):
+completionRate = completedDays / allRecordsCount
+
+// Fixed (CORRECT):
+completionRate = completedDays / daysSinceCreation
+```
+
+**3. Period filtering helper:**
+```typescript
+// New helper function needed:
+const getRelevantDatesForHabit = (habit: Habit, periodDates: DateString[]): DateString[] => {
+  const creationDate = formatDateToString(habit.createdAt);
+  return periodDates.filter(date => date >= creationDate);
+};
+```
+
+#### **Phase E: Testing Scenarios** 🧪
+
+**Test Case 1: Brand New Habit**
+- Create habit today at 3pm
+- Check all statistics show 0% or N/A (not negative percentages)
+- Verify no "missing" completions for past days
+
+**Test Case 2: Week-Old Habit**  
+- Create habit last Monday
+- Verify "This Week" shows only Mon-today data (not previous Monday data)
+- Check monthly stats don't penalize for pre-creation days
+
+**Test Case 3: Month-Old Habit**
+- Create habit 20 days ago  
+- Verify monthly stats use 20 days, not 30 days as denominator
+- Check yearly view only shows current month data
+
+**Test Case 4: Edge Cases**
+- Habit created at midnight
+- Habit created on last day of month
+- Habit created on Sunday (week boundary)
+
+---
+
+### **IMPLEMENTATION PRIORITY:**
+
+**🔥 CRITICAL (Do First):**
+1. Fix `getHabitStats()` in useHabitsData.ts (affects everything)
+2. Fix Home Screen Performance Indicators (most visible to user)
+
+**⚠️ HIGH (Do Second):**  
+3. Fix WeeklyHabitChart (very visible on home screen)
+4. Fix individual habit statistics (user clicks on them)
+
+**📊 MEDIUM (Do Third):**
+5. Fix Monthly/Yearly overviews
+6. Fix trend analysis
+
+**🧪 LOW (Do Last):**
+7. Comprehensive testing
+8. Edge case handling
+
+---
+
+### **SUCCESS CRITERIA:**
+
+✅ **New habit created today shows:**
+- "This Week": 0% or N/A (not negative %)
+- No red "failed" days in past week
+- Completion rate based on days since creation only
+
+✅ **Week-old habit shows:**
+- Statistics only for the days it existed
+- Proper completion rates (not artificially low)
+- Charts start from creation date
+
+✅ **All time periods respect creation date:**
+- Weekly: Only days since creation within current week
+- Monthly: Only days since creation within current month  
+- Yearly: Only months where habit existed
+
+**CORE PRINCIPLE:**
+**"A habit cannot fail on days it didn't exist"**
+
 #### Checkpoint 6.3: Home Screen Integration
 - [ ] Integrate all dashboard components
 - [ ] Add quick action buttons

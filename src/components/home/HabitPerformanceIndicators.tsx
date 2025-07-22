@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { getWeekDates, today, formatDateForDisplay } from '@/src/utils/date';
+import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates } from '@/src/utils/date';
 
 interface PerformanceIndicatorProps {
   title: string;
@@ -47,6 +47,45 @@ const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
   );
 };
 
+// Helper function to calculate completion rate for a specific time period  
+const calculatePeriodCompletionRate = (
+  habit: any, 
+  dates: string[], 
+  getHabitsByDate: (date: string) => any[]
+) => {
+  let scheduledDays = 0;
+  let completedScheduled = 0;
+  let bonusCompletions = 0;
+
+  dates.forEach(date => {
+    const dayOfWeek = getDayOfWeekFromDateString(date);
+    const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+    const habitsOnDate = getHabitsByDate(date);
+    const habitOnDate = habitsOnDate.find((h: any) => h.id === habit.id);
+    
+    if (isScheduled) {
+      scheduledDays++;
+      if (habitOnDate?.isCompleted) {
+        completedScheduled++;
+      }
+    } else if (habitOnDate?.isCompleted) {
+      bonusCompletions++;
+    }
+  });
+
+  // Calculate completion rate: scheduled completions + bonus points
+  // Bonus completions add extra percentage points (can exceed 100%)
+  const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
+  const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0; // Bonus worth 25% each
+  
+  return {
+    rate: scheduledRate + bonusRate,
+    scheduledDays,
+    completedScheduled,
+    bonusCompletions
+  };
+};
+
 export const HabitPerformanceIndicators: React.FC = () => {
   const { t } = useI18n();
   const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
@@ -68,7 +107,8 @@ export const HabitPerformanceIndicators: React.FC = () => {
         currentWeekRate: 0,
         previousWeekRate: 0,
         trend: 'stable' as const,
-        topPerformer: null,
+        weeklyTopPerformer: null,
+        monthlyTopPerformer: null,
         strugglingHabit: null
       };
     }
@@ -107,18 +147,35 @@ export const HabitPerformanceIndicators: React.FC = () => {
     if (currentWeekRate > previousWeekRate + 5) trend = 'up';
     else if (currentWeekRate < previousWeekRate - 5) trend = 'down';
 
-    // Get top performer and struggling habit
-    const habitPerformances = activeHabits.map(habit => {
-      const stats = getHabitStats(habit.id);
+    // Calculate weekly top performer (current calendar week - Monday to Sunday)
+    const weekDatesForTopPerformer = getWeekDates(today());
+    const weeklyPerformances = activeHabits.map(habit => {
+      const performance = calculatePeriodCompletionRate(habit, weekDatesForTopPerformer, getHabitsByDate);
       return {
         habit,
-        completionRate: stats.completionRate,
-        currentStreak: stats.currentStreak
+        completionRate: performance.rate,
+        scheduledDays: performance.scheduledDays,
+        completedScheduled: performance.completedScheduled,
+        bonusCompletions: performance.bonusCompletions
       };
     }).sort((a, b) => b.completionRate - a.completionRate);
 
-    const topPerformer = habitPerformances[0];
-    const strugglingHabit = habitPerformances[habitPerformances.length - 1];
+    // Calculate monthly top performer (current calendar month)
+    const currentMonthDates = getMonthDates(today());
+    const monthlyPerformances = activeHabits.map(habit => {
+      const performance = calculatePeriodCompletionRate(habit, currentMonthDates, getHabitsByDate);
+      return {
+        habit,
+        completionRate: performance.rate,
+        scheduledDays: performance.scheduledDays,
+        completedScheduled: performance.completedScheduled,
+        bonusCompletions: performance.bonusCompletions
+      };
+    }).sort((a, b) => b.completionRate - a.completionRate);
+
+    const weeklyTopPerformer = weeklyPerformances[0];
+    const monthlyTopPerformer = monthlyPerformances[0];
+    const strugglingHabit = monthlyPerformances[monthlyPerformances.length - 1]; // Now uses monthly data
 
     return {
       totalActive: activeHabits.length,
@@ -127,7 +184,8 @@ export const HabitPerformanceIndicators: React.FC = () => {
       currentWeekRate,
       previousWeekRate,
       trend,
-      topPerformer,
+      weeklyTopPerformer,
+      monthlyTopPerformer,
       strugglingHabit
     };
   }, [habits, getHabitsByDate, getHabitStats]);
@@ -201,19 +259,29 @@ export const HabitPerformanceIndicators: React.FC = () => {
           color={getTrendColor()}
         />
 
-        {performanceData.topPerformer && (
+        {performanceData.weeklyTopPerformer && (
           <PerformanceIndicator
-            title="Top Performer"
-            value={`${Math.round(performanceData.topPerformer.completionRate)}%`}
-            subtitle={performanceData.topPerformer.habit.name}
+            title="This Week"
+            value={`${Math.round(performanceData.weeklyTopPerformer.completionRate)}%`}
+            subtitle={performanceData.weeklyTopPerformer.habit.name}
             icon="🏆"
             color={Colors.secondary}
           />
         )}
 
+        {performanceData.monthlyTopPerformer && (
+          <PerformanceIndicator
+            title={new Date().toLocaleDateString('en-US', { month: 'long' })}
+            value={`${Math.round(performanceData.monthlyTopPerformer.completionRate)}%`}
+            subtitle={performanceData.monthlyTopPerformer.habit.name}
+            icon="👑"
+            color={Colors.primary}
+          />
+        )}
+
         {performanceData.strugglingHabit && performanceData.strugglingHabit.completionRate < 50 && (
           <PerformanceIndicator
-            title="Needs Focus"
+            title={`${new Date().toLocaleDateString('en-US', { month: 'long' })} Focus`}
             value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
             subtitle={performanceData.strugglingHabit.habit.name}
             icon="💪"
