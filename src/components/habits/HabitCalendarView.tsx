@@ -54,6 +54,14 @@ export function HabitCalendarView({
     const dayOfWeek = getDayOfWeek(date);
     return habit.scheduledDays.includes(dayOfWeek);
   };
+
+  const isHabitExisting = (day: number): boolean => {
+    const date = new Date(year, month, day);
+    const dateString = formatDateToString(date);
+    const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
+    const creationDateString = formatDateToString(createdAt);
+    return dateString >= creationDateString;
+  };
   
   // Create calendar grid
   const calendarDays = [];
@@ -71,6 +79,7 @@ export function HabitCalendarView({
     const isCompleted = completion?.completed || false;
     const isBonus = completion?.isBonus || false;
     const isScheduled = isScheduledDay(day);
+    const habitExisted = isHabitExisting(day);
     const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
     
     calendarDays.push(
@@ -92,7 +101,7 @@ export function HabitCalendarView({
             <Ionicons name="star" size={8} color={Colors.warning} />
           </View>
         )}
-        {isScheduled && !isCompleted && (
+        {isScheduled && !isCompleted && habitExisted && (
           <View style={styles.scheduledIndicator} />
         )}
       </View>

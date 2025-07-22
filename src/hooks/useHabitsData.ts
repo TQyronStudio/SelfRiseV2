@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
-import { findEarliestDate, formatDateToString, getDateRangeFromToday } from '../utils/date';
+import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today } from '../utils/date';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -42,14 +42,22 @@ export function useHabitsData() {
     const habit = state.habits.find(h => h.id === habitId);
     if (!habit) return null;
 
+    // Calculate days since habit creation (respecting creation date)
+    const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
+    const creationDateString = formatDateToString(createdAt);
+    const daysSinceCreation = daysBetween(creationDateString, today()) + 1; // +1 to include creation day
+
     const habitCompletions = state.completions.filter(c => c.habitId === habitId);
     const completedDays = habitCompletions.filter(c => c.completed).length;
-    const totalDays = habitCompletions.length;
+    
+    // Use days since creation instead of completion record count
+    const totalDays = Math.max(daysSinceCreation, habitCompletions.length);
     
     return {
       habit,
       completedDays,
       totalDays,
+      daysSinceCreation, // Add this for debugging/reference
       completionRate: totalDays > 0 ? (completedDays / totalDays) * 100 : 0,
       currentStreak: calculateCurrentStreak(habitCompletions),
       longestStreak: calculateLongestStreak(habitCompletions),
@@ -141,6 +149,13 @@ export function useHabitsData() {
     return getDateRangeFromToday(earliestDate);
   };
 
+  // Helper function to filter period dates based on habit creation date
+  const getRelevantDatesForHabit = (habit: Habit, periodDates: DateString[]): DateString[] => {
+    const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
+    const creationDate = formatDateToString(createdAt);
+    return periodDates.filter(date => date >= creationDate);
+  };
+
   return {
     ...habitsData,
     actions,
@@ -151,5 +166,6 @@ export function useHabitsData() {
     getEarliestCompletionDate,
     getDataDateRange,
     getHabitDataDateRange,
+    getRelevantDatesForHabit, // Export new helper function
   };
 }

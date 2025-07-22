@@ -7,7 +7,7 @@ import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateStrin
 
 export const WeeklyHabitChart: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats, getDataDateRange } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getDataDateRange, getRelevantDatesForHabit } = useHabitsData();
 
   const weekData = useMemo(() => {
     // Use either available data period or past 7 days, whichever is shorter
@@ -20,19 +20,28 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       const dayOfWeek = getDayOfWeekFromDateString(dateStr);
       const habitsOnDate = getHabitsByDate(dateStr);
       
-      // Filter habits scheduled for this day
-      const scheduledHabits = activeHabits.filter(habit => 
-        habit.scheduledDays.includes(dayOfWeek)
-      );
+      // Filter habits that existed on this date and are scheduled for this day
+      const scheduledHabits = activeHabits.filter(habit => {
+        const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
+        return habit.scheduledDays.includes(dayOfWeek) && relevantDatesForHabit.length > 0;
+      });
+      
+      // Filter habits that existed on this date (for bonus calculation)
+      const existingHabits = activeHabits.filter(habit => {
+        const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
+        return relevantDatesForHabit.length > 0;
+      });
       
       // Count completions
       const scheduledCompletions = habitsOnDate.filter(h => 
         h.isCompleted && scheduledHabits.some(sh => sh.id === h.id)
       );
       
-      // Count bonus completions (completed but not scheduled for this day)
+      // Count bonus completions (completed but not scheduled for this day, only for existing habits)
       const bonusCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && !scheduledHabits.some(sh => sh.id === h.id)
+        h.isCompleted && 
+        existingHabits.some(eh => eh.id === h.id) &&
+        !scheduledHabits.some(sh => sh.id === h.id)
       );
       
       const scheduledCount = scheduledCompletions.length;

@@ -51,13 +51,17 @@ const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
 const calculatePeriodCompletionRate = (
   habit: any, 
   dates: string[], 
-  getHabitsByDate: (date: string) => any[]
+  getHabitsByDate: (date: string) => any[],
+  getRelevantDatesForHabit?: (habit: any, dates: string[]) => string[]
 ) => {
+  // Filter dates to only include days since habit creation
+  const relevantDates = getRelevantDatesForHabit ? getRelevantDatesForHabit(habit, dates) : dates;
+  
   let scheduledDays = 0;
   let completedScheduled = 0;
   let bonusCompletions = 0;
 
-  dates.forEach(date => {
+  relevantDates.forEach(date => {
     const dayOfWeek = getDayOfWeekFromDateString(date);
     const isScheduled = habit.scheduledDays.includes(dayOfWeek);
     const habitsOnDate = getHabitsByDate(date);
@@ -88,7 +92,7 @@ const calculatePeriodCompletionRate = (
 
 export const HabitPerformanceIndicators: React.FC = () => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getRelevantDatesForHabit } = useHabitsData();
 
   const performanceData = useMemo(() => {
     const activeHabits = habits.filter(habit => habit.isActive);
@@ -150,7 +154,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
     // Calculate weekly top performer (current calendar week - Monday to Sunday)
     const weekDatesForTopPerformer = getWeekDates(today());
     const weeklyPerformances = activeHabits.map(habit => {
-      const performance = calculatePeriodCompletionRate(habit, weekDatesForTopPerformer, getHabitsByDate);
+      const performance = calculatePeriodCompletionRate(habit, weekDatesForTopPerformer, getHabitsByDate, getRelevantDatesForHabit);
       return {
         habit,
         completionRate: performance.rate,
@@ -163,7 +167,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
     // Calculate monthly top performer (current calendar month)
     const currentMonthDates = getMonthDates(today());
     const monthlyPerformances = activeHabits.map(habit => {
-      const performance = calculatePeriodCompletionRate(habit, currentMonthDates, getHabitsByDate);
+      const performance = calculatePeriodCompletionRate(habit, currentMonthDates, getHabitsByDate, getRelevantDatesForHabit);
       return {
         habit,
         completionRate: performance.rate,

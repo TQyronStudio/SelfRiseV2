@@ -22,7 +22,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color = Col
 
 export const MonthlyHabitOverview: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getRelevantDatesForHabit } = useHabitsData();
 
   const monthlyStats = useMemo(() => {
     const past30Days = getPast30Days(); // Past 30 days ending with today
@@ -52,10 +52,11 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       const dayOfWeek = getDayOfWeekFromDateString(date);
       const habitsOnDate = getHabitsByDate(date);
       
-      // Filter habits scheduled for this day
-      const scheduledHabits = activeHabits.filter(habit => 
-        habit.scheduledDays.includes(dayOfWeek)
-      );
+      // Filter habits scheduled for this day AND that existed on this date
+      const scheduledHabits = activeHabits.filter(habit => {
+        const relevantDates = getRelevantDatesForHabit(habit, [date]);
+        return habit.scheduledDays.includes(dayOfWeek) && relevantDates.length > 0;
+      });
       
       const scheduledCompletions = habitsOnDate.filter(h => 
         h.isCompleted && scheduledHabits.some(sh => sh.id === h.id)
