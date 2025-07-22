@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { getPast30Days, formatDateForDisplay, today, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
+import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString } from '@/src/utils/date';
 
 interface StatCardProps {
   title: string;
@@ -20,12 +20,35 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color = Col
   </View>
 );
 
-export const MonthlyHabitOverview: React.FC = React.memo(() => {
+export const YearlyHabitOverview: React.FC = React.memo(() => {
   const { t } = useI18n();
   const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const monthlyStats = useMemo(() => {
-    const past30Days = getPast30Days(); // Past 30 days ending with today
+  useEffect(() => {
+    // Simulate loading for heavy calculations
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [habits]);
+
+  const yearlyStats = useMemo(() => {
+    if (isLoading) {
+      return {
+        totalCompletions: 0,
+        totalPossible: 0,
+        completionRate: 0,
+        avgDaily: 0,
+        bestDay: '',
+        bestDayCount: 0,
+        activeDays: 0,
+        totalDays: 0
+      };
+    }
+
+    const yearDates = getPast365Days();
     const activeHabits = habits.filter(habit => habit.isActive);
     const totalActiveHabits = activeHabits.length;
 
@@ -38,7 +61,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
         bestDay: '',
         bestDayCount: 0,
         activeDays: 0,
-        totalDays: past30Days.length
+        totalDays: yearDates.length
       };
     }
 
@@ -48,7 +71,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
     let bestDayCount = 0;
     let bestDay = '';
 
-    past30Days.forEach(date => {
+    yearDates.forEach(date => {
       const dayOfWeek = getDayOfWeekFromDateString(date);
       const habitsOnDate = getHabitsByDate(date);
       
@@ -90,11 +113,15 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       bestDay,
       bestDayCount,
       activeDays,
-      totalDays: past30Days.length
+      totalDays: yearDates.length
     };
-  }, [habits, getHabitsByDate]);
+  }, [habits, getHabitsByDate, isLoading]);
 
   const habitPerformanceStats = useMemo(() => {
+    if (isLoading) {
+      return [];
+    }
+
     const activeHabits = habits.filter(habit => habit.isActive);
     
     const performanceData = activeHabits.map(habit => {
@@ -109,139 +136,64 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
     }).sort((a, b) => b.completionRate - a.completionRate);
 
     return performanceData;
-  }, [habits, getHabitStats]);
+  }, [habits, getHabitStats, isLoading]);
 
   const topPerformer = habitPerformanceStats[0];
   const strugglingHabit = habitPerformanceStats[habitPerformanceStats.length - 1];
 
-  const dailyChartData = useMemo(() => {
-    const past30Days = getPast30Days();
-    const activeHabits = habits.filter(habit => habit.isActive);
-    
-    return past30Days.map(dateStr => {
-      const dayOfWeek = getDayOfWeekFromDateString(dateStr);
-      const habitsOnDate = getHabitsByDate(dateStr);
-      
-      // Filter habits scheduled for this day
-      const scheduledHabits = activeHabits.filter(habit => 
-        habit.scheduledDays.includes(dayOfWeek)
-      );
-      
-      const scheduledCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && scheduledHabits.some(sh => sh.id === h.id)
-      ).length;
-      
-      const bonusCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && !scheduledHabits.some(sh => sh.id === h.id)
-      ).length;
-      
-      const totalScheduled = scheduledHabits.length;
-      const completionRate = totalScheduled > 0 ? (scheduledCompletions / totalScheduled) * 100 : 0;
-      
-      const dateObj = new Date(dateStr + 'T00:00:00.000Z');
-      
-      return {
-        date: dateStr,
-        dayNumber: dateObj.getDate(),
-        scheduledCompletions,
-        bonusCompletions,
-        totalScheduled,
-        completionRate,
-        isToday: formatDateToString(new Date()) === dateStr
-      };
-    });
-  }, [habits, getHabitsByDate]);
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Loading yearly statistics...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 30 Days</Text>
+        <Text style={styles.title}>Past 365 Days Overview</Text>
         <Text style={styles.subtitle}>
-          {monthlyStats.activeDays}/{monthlyStats.totalDays} active days
+          {yearlyStats.activeDays}/{yearlyStats.totalDays} active days
         </Text>
       </View>
 
       {/* Main Stats Grid */}
       <View style={styles.statsGrid}>
         <StatCard
-          title={t('home.habitStats.totalHabits')}
+          title="Total Habits"
           value={habits.filter(h => h.isActive).length.toString()}
           color={Colors.primary}
         />
         
         <StatCard
-          title={t('home.habitStats.monthlyAverage')}
-          value={`${monthlyStats.completionRate}%`}
-          subtitle={`${monthlyStats.totalCompletions}/${monthlyStats.totalPossible}`}
-          color={monthlyStats.completionRate >= 70 ? Colors.success : monthlyStats.completionRate >= 50 ? Colors.warning : Colors.error}
+          title="Yearly Average"
+          value={`${yearlyStats.completionRate}%`}
+          subtitle={`${yearlyStats.totalCompletions}/${yearlyStats.totalPossible}`}
+          color={yearlyStats.completionRate >= 70 ? Colors.success : yearlyStats.completionRate >= 50 ? Colors.warning : Colors.error}
         />
 
         <StatCard
-          title={t('home.habitStats.bestDay')}
-          value={monthlyStats.bestDayCount.toString()}
-          subtitle={monthlyStats.bestDay ? formatDateForDisplay(monthlyStats.bestDay, 'short') : '-'}
+          title="Best Day"
+          value={yearlyStats.bestDayCount.toString()}
+          subtitle={yearlyStats.bestDay ? formatDateForDisplay(yearlyStats.bestDay, 'short') : '-'}
           color={Colors.secondary}
         />
         
         <StatCard
-          title={t('home.habitStats.weeklyAverage')}
-          value={monthlyStats.avgDaily.toString()}
+          title="Daily Average"
+          value={yearlyStats.avgDaily.toString()}
           subtitle="per active day"
           color={Colors.accent}
         />
       </View>
 
-      {/* Daily Mini Chart */}
-      {habits.length > 0 && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Daily Progress (Past 30 Days)</Text>
-          <View style={styles.miniChart}>
-            {dailyChartData.map((day, index) => {
-              const barHeight = Math.max(2, (day.completionRate / 100) * 20);
-              const hasBonus = day.bonusCompletions > 0;
-              
-              return (
-                <View key={day.date} style={styles.miniBar}>
-                  <View style={styles.miniBarContainer}>
-                    {/* Base bar for scheduled completions */}
-                    {day.totalScheduled > 0 && (
-                      <View 
-                        style={[
-                          styles.miniBarFill,
-                          { 
-                            height: barHeight,
-                            backgroundColor: day.completionRate >= 80 ? Colors.success : 
-                                           day.completionRate >= 60 ? Colors.warning : 
-                                           day.completionRate >= 40 ? Colors.secondary : Colors.textSecondary
-                          }
-                        ]} 
-                      />
-                    )}
-                    
-                    {/* Bonus indicator */}
-                    {hasBonus && (
-                      <View style={[styles.bonusIndicator, { backgroundColor: Colors.gold }]} />
-                    )}
-                  </View>
-                  
-                  {/* Show day number every 5 days or for today */}
-                  {(index % 5 === 0 || day.isToday) && (
-                    <Text style={[styles.miniDayLabel, day.isToday && styles.todayMiniLabel]}>
-                      {day.dayNumber}
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      )}
-
       {/* Performance Insights */}
       {habits.length > 0 && (
         <View style={styles.insightsContainer}>
-          <Text style={styles.insightsTitle}>{t('home.habitStats.performanceIndicators')}</Text>
+          <Text style={styles.insightsTitle}>Performance Insights</Text>
           
           {topPerformer && (
             <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
@@ -261,18 +213,18 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
             </View>
           )}
 
-          {monthlyStats.completionRate >= 80 && (
+          {yearlyStats.completionRate >= 80 && (
             <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
-              <Text style={styles.insightLabel}>🔥 {t('home.habitStats.improvingTrend')}</Text>
+              <Text style={styles.insightLabel}>🔥 Excellent Year</Text>
               <Text style={styles.insightText}>
-                Great month! Keep up the excellent work.
+                Outstanding yearly performance! Keep it up.
               </Text>
             </View>
           )}
 
-          {monthlyStats.completionRate < 40 && (
+          {yearlyStats.completionRate < 40 && (
             <View style={[styles.insightItem, { borderLeftColor: Colors.error }]}>
-              <Text style={styles.insightLabel}>📈 {t('home.habitStats.decliningTrend')}</Text>
+              <Text style={styles.insightLabel}>📈 Room for Improvement</Text>
               <Text style={styles.insightText}>
                 Consider reviewing your habits and goals.
               </Text>
@@ -284,8 +236,8 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       {/* No Data State */}
       {habits.length === 0 && (
         <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
-          <Text style={styles.noDataSubtext}>Add some habits to see your monthly overview</Text>
+          <Text style={styles.noDataText}>No habit data available</Text>
+          <Text style={styles.noDataSubtext}>Add some habits to see your yearly overview</Text>
         </View>
       )}
     </View>
@@ -400,58 +352,16 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
-  chartContainer: {
-    marginBottom: Layout.spacing.md,
-    paddingTop: Layout.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Layout.spacing.xl,
   },
-  chartTitle: {
+  loadingText: {
+    marginTop: Layout.spacing.sm,
     fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-    textAlign: 'center',
-  },
-  miniChart: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 35,
-    paddingHorizontal: Layout.spacing.xs,
-  },
-  miniBar: {
-    flex: 1,
-    alignItems: 'center',
-    maxWidth: 8,
-  },
-  miniBarContainer: {
-    height: 24,
-    width: 3,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  miniBarFill: {
-    width: 3,
-    borderRadius: 1.5,
-    minHeight: 2,
-  },
-  bonusIndicator: {
-    width: 3,
-    height: 2,
-    borderTopLeftRadius: 1.5,
-    borderTopRightRadius: 1.5,
-    marginTop: -1,
-  },
-  miniDayLabel: {
-    fontSize: 8,
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
-  },
-  todayMiniLabel: {
-    color: Colors.primary,
-    fontFamily: Fonts.semibold,
   },
 });

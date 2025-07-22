@@ -3,17 +3,17 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString } from '@/src/utils/date';
 
-export const WeeklyHabitChart: React.FC = React.memo(() => {
+export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
   const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
 
-  const weekData = useMemo(() => {
-    const weekDates = getPast7Days(); // Gets past 7 days ending with today
+  const monthData = useMemo(() => {
+    const monthDates = getPast30Days(); // Gets past 30 days ending with today
     const activeHabits = habits.filter(habit => habit.isActive);
     
-    return weekDates.map(dateStr => {
+    return monthDates.map(dateStr => {
       const dayOfWeek = getDayOfWeekFromDateString(dateStr);
       const habitsOnDate = getHabitsByDate(dateStr);
       
@@ -57,9 +57,9 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
   }, [habits, getHabitsByDate]);
 
   const overallStats = useMemo(() => {
-    const totalScheduledCompletions = weekData.reduce((sum, day) => sum + day.scheduledCount, 0);
-    const totalBonusCompletions = weekData.reduce((sum, day) => sum + day.bonusCount, 0);
-    const totalPossible = weekData.reduce((sum, day) => sum + day.totalScheduled, 0);
+    const totalScheduledCompletions = monthData.reduce((sum, day) => sum + day.scheduledCount, 0);
+    const totalBonusCompletions = monthData.reduce((sum, day) => sum + day.bonusCount, 0);
+    const totalPossible = monthData.reduce((sum, day) => sum + day.totalScheduled, 0);
     const avgCompletionRate = totalPossible > 0 ? (totalScheduledCompletions / totalPossible) * 100 : 0;
     
     return {
@@ -69,118 +69,102 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       totalPossible,
       avgCompletionRate: Math.round(avgCompletionRate)
     };
-  }, [weekData]);
+  }, [monthData]);
 
   const getBarHeightForCount = (count: number, maxCount: number) => {
-    const maxHeight = 80;
-    const baseHeight = 4;
+    const maxHeight = 40; // Smaller bars for 30-day view
+    const baseHeight = 2;
     if (maxCount === 0) return baseHeight;
     return Math.max(baseHeight, (count / maxCount) * maxHeight);
   };
 
   const maxHabitsPerDay = useMemo(() => {
-    return Math.max(...weekData.map(day => day.totalScheduled + day.bonusCount), 1);
-  }, [weekData]);
-
-  const getBarColor = (completionRate: number) => {
-    if (completionRate >= 80) return Colors.success;
-    if (completionRate >= 60) return Colors.warning;
-    if (completionRate >= 40) return Colors.secondary;
-    return Colors.textSecondary;
-  };
+    return Math.max(...monthData.map(day => day.totalScheduled + day.bonusCount), 1);
+  }, [monthData]);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 7 Days Completion</Text>
+        <Text style={styles.title}>Past 30 Days Completion</Text>
         <Text style={styles.subtitle}>
           {overallStats.totalCompletions}/{overallStats.totalPossible} ({overallStats.avgCompletionRate}%)
           {overallStats.totalBonusCompletions > 0 && ` + ${overallStats.totalBonusCompletions} bonus`}
         </Text>
       </View>
 
-      {/* Chart */}
-      <View style={styles.chartContainer}>
-        <View style={styles.chartContent}>
-          {weekData.map((day) => (
-            <View key={day.date} style={styles.dayColumn}>
-              {/* Unified Stacked Bar */}
-              <View style={styles.barContainer}>
-                {(day.totalScheduled > 0 || day.bonusCount > 0) && (
-                  <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.totalScheduled + day.bonusCount, maxHabitsPerDay) }]}>
-                    {/* Gray section for missed tasks (bottom) */}
-                    {(day.totalScheduled - day.scheduledCount) > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
-                            backgroundColor: Colors.textSecondary,
-                            bottom: 0,
-                          }
-                        ]} 
-                      />
-                    )}
-                    
-                    {/* Green section for completed scheduled tasks (middle) */}
-                    {day.scheduledCount > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.scheduledCount, maxHabitsPerDay),
-                            backgroundColor: Colors.success,
-                            bottom: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
-                          }
-                        ]} 
-                      />
-                    )}
-                    
-                    {/* Gold section for bonus completions (top) */}
-                    {day.bonusCount > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.bonusCount, maxHabitsPerDay),
-                            backgroundColor: Colors.gold,
-                            bottom: getBarHeightForCount(day.totalScheduled, maxHabitsPerDay),
-                          }
-                        ]} 
-                      />
-                    )}
-                  </View>
-                )}
-                
-                <View style={styles.barBase} />
-              </View>
+      {/* Chart - Scrollable for 30 days */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.chartContainer}
+        contentContainerStyle={styles.chartContent}
+      >
+        {monthData.map((day) => (
+          <View key={day.date} style={styles.dayColumn}>
+            {/* Unified Stacked Bar */}
+            <View style={styles.barContainer}>
+              {(day.totalScheduled > 0 || day.bonusCount > 0) && (
+                <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.totalScheduled + day.bonusCount, maxHabitsPerDay) }]}>
+                  {/* Gray section for missed tasks (bottom) */}
+                  {(day.totalScheduled - day.scheduledCount) > 0 && (
+                    <View 
+                      style={[
+                        styles.barSection,
+                        {
+                          height: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
+                          backgroundColor: Colors.textSecondary,
+                          bottom: 0,
+                        }
+                      ]} 
+                    />
+                  )}
+                  
+                  {/* Green section for completed scheduled tasks (middle) */}
+                  {day.scheduledCount > 0 && (
+                    <View 
+                      style={[
+                        styles.barSection,
+                        {
+                          height: getBarHeightForCount(day.scheduledCount, maxHabitsPerDay),
+                          backgroundColor: Colors.success,
+                          bottom: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
+                        }
+                      ]} 
+                    />
+                  )}
+                  
+                  {/* Gold section for bonus completions (top) */}
+                  {day.bonusCount > 0 && (
+                    <View 
+                      style={[
+                        styles.barSection,
+                        {
+                          height: getBarHeightForCount(day.bonusCount, maxHabitsPerDay),
+                          backgroundColor: Colors.gold,
+                          bottom: getBarHeightForCount(day.totalScheduled, maxHabitsPerDay),
+                        }
+                      ]} 
+                    />
+                  )}
+                </View>
+              )}
               
-              {/* Day label */}
+              <View style={styles.barBase} />
+            </View>
+            
+            {/* Day number - show every 5 days or for today */}
+            {(monthData.indexOf(day) % 5 === 0 || day.isToday) && (
               <Text style={[
                 styles.dayLabel,
                 day.isToday && styles.todayLabel
               ]}>
-                {day.dayName}
-              </Text>
-              
-              {/* Day number */}
-              <Text style={[
-                styles.dayNumber,
-                day.isToday && styles.todayNumber
-              ]}>
                 {day.dayNumber}
               </Text>
-
-              {/* Completion count */}
-              <Text style={styles.completionText}>
-                {day.scheduledCount}/{day.totalScheduled}
-                {day.bonusCount > 0 && ` +${day.bonusCount}`}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
+            )}
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Legend */}
       <View style={styles.legend}>
@@ -231,68 +215,57 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chartContainer: {
-    height: 140,
+    height: 70,
     marginBottom: Layout.spacing.md,
   },
   chartContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
     paddingHorizontal: Layout.spacing.xs,
   },
   dayColumn: {
-    flex: 1,
     alignItems: 'center',
-    maxWidth: 50,
+    width: 12,
+    marginHorizontal: 1,
   },
   barContainer: {
-    height: 90,
+    height: 50,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: Layout.spacing.xs,
+    width: 10,
   },
   unifiedBar: {
-    width: 24,
-    borderRadius: Layout.borderRadius.sm,
+    width: 8,
+    borderRadius: 2,
     position: 'relative',
     overflow: 'hidden',
   },
   barSection: {
-    width: 24,
+    width: 8,
     position: 'absolute',
     left: 0,
   },
   barBase: {
-    width: 28,
-    height: 2,
+    width: 10,
+    height: 1,
     backgroundColor: Colors.border,
     position: 'absolute',
     bottom: -1,
   },
   dayLabel: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginTop: 2,
+    textAlign: 'center',
   },
   todayLabel: {
     color: Colors.primary,
-    fontWeight: '600',
-  },
-  dayNumber: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  todayNumber: {
-    color: Colors.primary,
-    fontWeight: '700',
+    fontFamily: Fonts.semibold,
   },
   completionText: {
-    fontSize: 9,
+    fontSize: 7,
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
+    textAlign: 'center',
   },
   legend: {
     flexDirection: 'row',

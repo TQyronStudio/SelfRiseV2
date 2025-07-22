@@ -462,29 +462,29 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 **Technical Implementation Plan**:
 
 **Priority 1: Weekly Chart Visual & Logic Improvements**
-- [ ] **Fix bar stacking order**: Green scheduled bars as base, gold bonus bars on top
-- [ ] **Implement retrospective week logic**: Past 7 days ending with today
-- [ ] **Update date calculation**: Use `subtractDays(today(), 6)` to `today()` range
-- [ ] **Adjust day labels**: Show correct day names for retrospective view
-- [ ] **Today positioning**: Ensure today appears as rightmost column
+- [x] **Fix bar stacking order**: Green scheduled bars as base, gold bonus bars on top
+- [x] **Implement retrospective week logic**: Past 7 days ending with today
+- [x] **Update date calculation**: Use `subtractDays(today(), 6)` to `today()` range
+- [x] **Adjust day labels**: Show correct day names for retrospective view
+- [x] **Today positioning**: Ensure today appears as rightmost column
 
 **Priority 2: Time Period Architecture Restructuring**
-- [ ] **Create YearlyHabitOverview component**: Move current monthly logic here
-- [ ] **Redesign MonthlyHabitOverview**: Implement past 30 days logic
-- [ ] **Update HabitStatsDashboard**: Add Year toggle option (Week/Month/Year)
-- [ ] **Consistent date ranges**: All views show retrospective periods ending with today
+- [x] **Create YearlyHabitOverview component**: Move current monthly logic here
+- [x] **Redesign MonthlyHabitOverview**: Implement past 30 days logic
+- [x] **Update HabitStatsDashboard**: Add Year toggle option (Week/Month/Year)
+- [x] **Consistent date ranges**: All views show retrospective periods ending with today
 
 **Priority 3: New Monthly View Implementation**
-- [ ] **Past 30 days calculation**: Similar to weekly but 30-day period
-- [ ] **Daily completion visualization**: Mini bar chart or heatmap for 30 days
-- [ ] **Monthly statistics**: Adapted from current monthly logic for 30-day period
-- [ ] **Performance optimization**: Efficient data processing for 30-day range
+- [x] **Past 30 days calculation**: Similar to weekly but 30-day period
+- [x] **Daily completion visualization**: Mini bar chart or heatmap for 30 days
+- [x] **Monthly statistics**: Adapted from current monthly logic for 30-day period
+- [x] **Performance optimization**: Efficient data processing for 30-day range
 
 **Priority 4: Navigation & UX Updates**
-- [ ] **Three-way toggle**: Week / Month (30 days) / Year (12 months)
-- [ ] **Consistent header styling**: All periods show "Past X ending today"
-- [ ] **Loading states**: Proper loading indicators for data-heavy year view
-- [ ] **Performance considerations**: Lazy loading for year statistics
+- [x] **Three-way toggle**: Week / Month (30 days) / Year (12 months)
+- [x] **Consistent header styling**: All periods show "Past X ending today"
+- [x] **Loading states**: Proper loading indicators for data-heavy year view
+- [x] **Performance considerations**: Lazy loading for year statistics
 
 **Technical Implementation Details**:
 

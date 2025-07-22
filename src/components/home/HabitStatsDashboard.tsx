@@ -3,9 +3,10 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { WeeklyHabitChart } from './WeeklyHabitChart';
-import { MonthlyHabitOverview } from './MonthlyHabitOverview';
+import { Monthly30DayChart } from './Monthly30DayChart';
+import { YearlyHabitOverview } from './YearlyHabitOverview';
 
-type ViewMode = 'week' | 'month';
+type ViewMode = 'week' | 'month' | 'year';
 
 export const HabitStatsDashboard: React.FC = () => {
   const { t } = useI18n();
@@ -33,7 +34,7 @@ export const HabitStatsDashboard: React.FC = () => {
               styles.toggleText,
               viewMode === 'week' && styles.toggleTextActive
             ]}>
-              {t('home.habitStats.week')}
+              Week
             </Text>
           </TouchableOpacity>
           
@@ -48,7 +49,22 @@ export const HabitStatsDashboard: React.FC = () => {
               styles.toggleText,
               viewMode === 'month' && styles.toggleTextActive
             ]}>
-              {t('home.habitStats.month')}
+              Month
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              viewMode === 'year' && styles.toggleButtonActive
+            ]}
+            onPress={() => toggleMode('year')}
+          >
+            <Text style={[
+              styles.toggleText,
+              viewMode === 'year' && styles.toggleTextActive
+            ]}>
+              Year
             </Text>
           </TouchableOpacity>
         </View>
@@ -56,11 +72,9 @@ export const HabitStatsDashboard: React.FC = () => {
 
       {/* Content */}
       <View style={styles.content}>
-        {viewMode === 'week' ? (
-          <WeeklyHabitChart />
-        ) : (
-          <MonthlyHabitOverview />
-        )}
+        {viewMode === 'week' && <WeeklyHabitChart />}
+        {viewMode === 'month' && <Monthly30DayChart />}
+        {viewMode === 'year' && <YearlyHabitOverview />}
       </View>
     </View>
   );

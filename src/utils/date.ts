@@ -138,6 +138,30 @@ export const getWeekDates = (dateString?: DateString): DateString[] => {
   return dates;
 };
 
+export const getPast7Days = (): DateString[] => {
+  const dates: DateString[] = [];
+  for (let i = 6; i >= 0; i--) {
+    dates.push(subtractDays(today(), i));
+  }
+  return dates; // [today-6, today-5, ..., today-1, today]
+};
+
+export const getPast30Days = (): DateString[] => {
+  const dates: DateString[] = [];
+  for (let i = 29; i >= 0; i--) {
+    dates.push(subtractDays(today(), i));
+  }
+  return dates; // Array of 30 dates ending with today
+};
+
+export const getPast365Days = (): DateString[] => {
+  const dates: DateString[] = [];
+  for (let i = 364; i >= 0; i--) {
+    dates.push(subtractDays(today(), i));
+  }
+  return dates; // Array of 365 dates ending with today
+};
+
 // Month utilities
 export const getMonthStart = (dateString: DateString): DateString => {
   const date = parseDate(dateString);
