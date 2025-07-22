@@ -34,6 +34,10 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
     return () => clearTimeout(timer);
   }, [habits]);
 
+  const yearDates = useMemo(() => {
+    return isLoading ? [] : getDataDateRange(); // Use only available data period
+  }, [isLoading, getDataDateRange]);
+
   const yearlyStats = useMemo(() => {
     if (isLoading) {
       return {
@@ -47,8 +51,6 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
         totalDays: 0
       };
     }
-
-    const yearDates = getDataDateRange(); // Use only available data period
     const activeHabits = habits.filter(habit => habit.isActive);
     const totalActiveHabits = activeHabits.length;
 
@@ -116,7 +118,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       activeDays,
       totalDays: yearDates.length
     };
-  }, [habits, getHabitsByDate, isLoading, getDataDateRange]);
+  }, [habits, getHabitsByDate, isLoading, yearDates]);
 
   const habitPerformanceStats = useMemo(() => {
     if (isLoading) {
@@ -125,19 +127,47 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
 
     const activeHabits = habits.filter(habit => habit.isActive);
     
+    // Calculate yearly completion rates using actual yearly data (not lifetime stats)
     const performanceData = activeHabits.map(habit => {
-      const stats = getHabitStats(habit.id);
+      const relevantYearDates = getRelevantDatesForHabit(habit, yearDates);
+      
+      let scheduledDays = 0;
+      let completedScheduled = 0;
+      let bonusCompletions = 0;
+      
+      relevantYearDates.forEach(date => {
+        const dayOfWeek = getDayOfWeekFromDateString(date);
+        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        const habitsOnDate = getHabitsByDate(date);
+        const habitOnDate = habitsOnDate.find((h: any) => h.id === habit.id);
+        
+        if (isScheduled) {
+          scheduledDays++;
+          if (habitOnDate?.isCompleted) {
+            completedScheduled++;
+          }
+        } else if (habitOnDate?.isCompleted) {
+          bonusCompletions++;
+        }
+      });
+      
+      // Calculate yearly completion rate with bonus
+      const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
+      const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
+      const yearlyCompletionRate = scheduledRate + bonusRate;
+      
       return {
         name: habit.name,
         color: habit.color,
-        completionRate: Math.round(stats.completionRate),
-        currentStreak: stats.currentStreak,
-        totalCompletions: stats.totalCompletions
+        completionRate: Math.round(yearlyCompletionRate),
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
       };
     }).sort((a, b) => b.completionRate - a.completionRate);
 
     return performanceData;
-  }, [habits, getHabitStats, isLoading]);
+  }, [habits, getHabitsByDate, getRelevantDatesForHabit, isLoading, yearDates]);
 
   const topPerformer = habitPerformanceStats[0];
   const strugglingHabit = habitPerformanceStats[habitPerformanceStats.length - 1];

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { getWeekDates, subtractDays, today, formatDateForDisplay } from '@/src/utils/date';
+import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString } from '@/src/utils/date';
 
 interface TrendItemProps {
   title: string;
@@ -87,34 +87,44 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (overallTrendChange > 10) overallTrend = 'improving';
     else if (overallTrendChange < -10) overallTrend = 'declining';
 
-    // Individual habit analysis
+    // Individual habit analysis - using 4 weeks of data
     const habitAnalysis = activeHabits.map(habit => {
       const stats = getHabitStats(habit.id);
-      const recentWeekDates = getWeekDates();
-      const previousWeekDates = recentWeekDates.map(date => {
-        const d = new Date(date + 'T00:00:00.000Z');
-        d.setDate(d.getDate() - 7);
-        return d.toISOString().split('T')[0] as string;
-      });
-
-      let recentCompletions = 0;
-      let previousCompletions = 0;
-
-      recentWeekDates.forEach(date => {
+      
+      // Calculate completion rate over past 4 weeks (28 days)
+      const past28Days = [];
+      for (let i = 27; i >= 0; i--) {
+        const date = subtractDays(today(), i);
+        past28Days.push(date);
+      }
+      
+      let scheduledDays = 0;
+      let completedScheduled = 0;
+      let bonusCompletions = 0;
+      
+      past28Days.forEach(date => {
+        const dayOfWeek = getDayOfWeekFromDateString(date);
+        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
         const habitsOnDate = getHabitsByDate(date);
-        const habitCompletion = habitsOnDate.find(h => h.id === habit.id);
-        if (habitCompletion?.isCompleted) recentCompletions++;
+        const habitOnDate = habitsOnDate.find(h => h.id === habit.id);
+        
+        if (isScheduled) {
+          scheduledDays++;
+          if (habitOnDate?.isCompleted) {
+            completedScheduled++;
+          }
+        } else if (habitOnDate?.isCompleted) {
+          bonusCompletions++;
+        }
       });
-
-      previousWeekDates.forEach(date => {
-        const habitsOnDate = getHabitsByDate(date);
-        const habitCompletion = habitsOnDate.find(h => h.id === habit.id);
-        if (habitCompletion?.isCompleted) previousCompletions++;
-      });
-
-      const recentRate = (recentCompletions / 7) * 100;
-      const previousRate = (previousCompletions / 7) * 100;
-      const change = recentRate - previousRate;
+      
+      // Calculate 4-week completion rate with bonus
+      const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
+      const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
+      const recentRate = scheduledRate + bonusRate;
+      
+      // For trend, compare with overall completion rate
+      const change = recentRate - stats.completionRate;
 
       let trend: 'improving' | 'declining' | 'stable' = 'stable';
       if (change > 15) trend = 'improving';
@@ -123,11 +133,13 @@ export const HabitTrendAnalysis: React.FC = () => {
       return {
         habit,
         recentRate: Math.round(recentRate),
-        previousRate: Math.round(previousRate),
         change: Math.round(change),
         trend,
         currentStreak: stats.currentStreak,
-        completionRate: stats.completionRate
+        completionRate: stats.completionRate,
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
       };
     });
 
@@ -175,7 +187,7 @@ export const HabitTrendAnalysis: React.FC = () => {
 
     // Habit needing attention
     const strugglingHabit = habitAnalysis
-      .filter(h => h.trend === 'declining' || h.recentRate < 40)
+      .filter(h => h.trend === 'declining' || h.recentRate < 50)
       .sort((a, b) => a.recentRate - b.recentRate)[0];
 
     if (strugglingHabit) {
