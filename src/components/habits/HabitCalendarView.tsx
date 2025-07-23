@@ -5,7 +5,7 @@ import { Habit, HabitCompletion } from '../../types/habit';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
-import { formatDateToString, getDayOfWeek } from '../../utils/date';
+import { formatDateToString, getDayOfWeek, parseDate } from '../../utils/date';
 import { DayOfWeek } from '../../types/common';
 
 interface HabitCalendarViewProps {
@@ -34,13 +34,15 @@ export function HabitCalendarView({
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
   
-  // Adjust for Monday start (0 = Monday, 6 = Sunday)
+  // Adjust for Monday start (convert JS Sunday=0 to Monday=0 system)
+  // JS: Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
+  // Our headers: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
   const mondayStartOffset = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
   
   // Get completions for this month
   const monthCompletions = completions.filter(completion => {
     if (completion.habitId !== habit.id) return false;
-    const completionDate = new Date(completion.date);
+    const completionDate = parseDate(completion.date);
     return completionDate.getFullYear() === year && completionDate.getMonth() === month;
   });
   
@@ -81,29 +83,34 @@ export function HabitCalendarView({
     const isScheduled = isScheduledDay(day);
     const habitExisted = isHabitExisting(day);
     const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+    const dayDate = new Date(year, month, day);
+    const isPastDay = dayDate < new Date() && !isToday; // Only past days, not today or future
     
     calendarDays.push(
-      <View key={day} style={[
-        styles.dayCell,
-        isToday && styles.todayCell,
-        isCompleted && isScheduled && styles.completedDay,
-        isCompleted && isBonus && styles.bonusDay,
-      ]}>
-        <Text style={[
-          styles.dayText,
-          isToday && styles.todayText,
-          isCompleted && styles.completedText,
+      <View key={day} style={styles.dayCell}>
+        <View style={[
+          styles.dayCellInner,
+          isToday && styles.todayCell,
+          isCompleted && isScheduled && styles.completedDay,
+          isCompleted && isBonus && styles.bonusDay,
+          isScheduled && !isCompleted && habitExisted && isPastDay && styles.missedDay,
         ]}>
-          {day}
-        </Text>
-        {isCompleted && isBonus && (
-          <View style={styles.bonusIndicator}>
-            <Ionicons name="star" size={8} color={Colors.warning} />
-          </View>
-        )}
-        {isScheduled && !isCompleted && habitExisted && (
-          <View style={styles.scheduledIndicator} />
-        )}
+          <Text style={[
+            styles.dayText,
+            isToday && styles.todayText,
+            isCompleted && styles.completedText,
+          ]}>
+            {day}
+          </Text>
+          {isCompleted && isBonus && (
+            <View style={styles.bonusIndicator}>
+              <Ionicons name="star" size={8} color={Colors.warning} />
+            </View>
+          )}
+          {isScheduled && !isCompleted && habitExisted && (
+            <View style={styles.scheduledIndicator} />
+          )}
+        </View>
       </View>
     );
   }
@@ -152,6 +159,10 @@ export function HabitCalendarView({
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
           <Text style={styles.legendText}>Bonus</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
+          <Text style={styles.legendText}>Missed</Text>
         </View>
       </View>
     </View>
@@ -203,14 +214,18 @@ const styles = StyleSheet.create({
   emptyDay: {
     width: '14.28%', // 100% / 7 days
     aspectRatio: 1,
+    padding: 1, // Internal padding for spacing
   },
   dayCell: {
-    width: '14.28%', // 100% / 7 days
+    width: '14.28%', // 100% / 7 days  
     aspectRatio: 1,
+    padding: 1, // Internal padding for spacing
+  },
+  dayCellInner: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    margin: 1,
     borderRadius: 8,
     backgroundColor: Colors.backgroundSecondary,
   },
@@ -223,6 +238,9 @@ const styles = StyleSheet.create({
   },
   bonusDay: {
     backgroundColor: Colors.warning,
+  },
+  missedDay: {
+    backgroundColor: Colors.error,
   },
   dayText: {
     fontSize: 14,

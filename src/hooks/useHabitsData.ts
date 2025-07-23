@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
-import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today } from '../utils/date';
+import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today, parseDate } from '../utils/date';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -24,11 +24,16 @@ export function useHabitsData() {
       const completion = state.completions.find(
         c => c.habitId === habit.id && c.date === date
       );
-      return {
+      const result: Habit & { isCompleted: boolean; completion?: HabitCompletion } = {
         ...habit,
         isCompleted: completion?.completed || false,
-        completion,
       };
+      
+      if (completion) {
+        result.completion = completion;
+      }
+      
+      return result;
     });
   };
 
@@ -61,6 +66,7 @@ export function useHabitsData() {
       completionRate: totalDays > 0 ? (completedDays / totalDays) * 100 : 0,
       currentStreak: calculateCurrentStreak(habitCompletions),
       longestStreak: calculateLongestStreak(habitCompletions),
+      totalCompletions: completedDays, // Total number of times habit was completed
     };
   };
 
@@ -73,7 +79,7 @@ export function useHabitsData() {
     let currentDate = new Date();
     
     for (const completion of sortedCompletions) {
-      const completionDate = new Date(completion.date);
+      const completionDate = parseDate(completion.date);
       const daysDiff = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
       
       if (daysDiff === streak) {
@@ -97,7 +103,7 @@ export function useHabitsData() {
     let lastDate: Date | null = null;
     
     for (const completion of sortedCompletions) {
-      const completionDate = new Date(completion.date);
+      const completionDate = parseDate(completion.date);
       
       if (lastDate) {
         const daysDiff = Math.floor((completionDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));

@@ -51,6 +51,11 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
   const toggleExpanded = () => {
     const toValue = isExpanded ? 0 : 1;
     
+    // Reset calendar to current month when expanding
+    if (!isExpanded) {
+      setCurrentDate(new Date());
+    }
+    
     Animated.timing(animatedValue, {
       toValue,
       duration: 300,
@@ -133,13 +138,13 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
               styles.statValue,
               !habit.isActive && styles.inactiveText
             ]}>
-              {stats.currentStreak}
+              {stats.totalCompletions}
             </Text>
             <Text style={[
               styles.statLabel,
               !habit.isActive && styles.inactiveText
             ]}>
-              Streak
+              Days
             </Text>
           </View>
           
