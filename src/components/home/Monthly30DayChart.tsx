@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate } from '@/src/utils/date';
+import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
 
 export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
@@ -115,14 +115,14 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
             <View style={styles.barContainer}>
               {(day.totalScheduled > 0 || day.bonusCount > 0) && (
                 <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.totalScheduled + day.bonusCount, maxHabitsPerDay) }]}>
-                  {/* Gray section for missed tasks (bottom) */}
+                  {/* Red/Gray section for missed tasks (bottom) */}
                   {(day.totalScheduled - day.scheduledCount) > 0 && (
                     <View 
                       style={[
                         styles.barSection,
                         {
                           height: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
-                          backgroundColor: Colors.textSecondary,
+                          backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
                           bottom: 0,
                         }
                       ]} 
@@ -137,7 +137,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                         {
                           height: getBarHeightForCount(day.scheduledCount, maxHabitsPerDay),
                           backgroundColor: Colors.success,
-                          bottom: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
+                          bottom: (day.totalScheduled - day.scheduledCount) > 0 ? getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay) : 0,
                         }
                       ]} 
                     />
@@ -182,7 +182,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.textSecondary }]} />
+          <View style={[styles.legendColor, { backgroundColor: Colors.error }]} />
           <Text style={styles.legendText}>Missed</Text>
         </View>
         <View style={styles.legendItem}>

@@ -17,6 +17,11 @@ export interface HabitCompletion extends BaseEntity {
   isBonus: boolean; // true if completed on non-scheduled day
   completedAt?: Date; // timestamp when marked as complete
   note?: string; // optional note for completion
+  // Smart Bonus Conversion fields
+  isConverted?: boolean; // true if this bonus completion was converted to cover a missed scheduled day
+  convertedFromDate?: DateString; // original missed scheduled date this bonus is covering
+  convertedToDate?: DateString; // the bonus date that was converted (for the missed scheduled day record)
+  isCovered?: boolean; // true if this missed scheduled day is covered by a makeup completion
 }
 
 export interface HabitStats {

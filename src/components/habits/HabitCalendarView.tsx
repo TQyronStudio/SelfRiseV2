@@ -21,7 +21,7 @@ export function HabitCalendarView({
   onPrevMonth, 
   onNextMonth 
 }: HabitCalendarViewProps) {
-  const { completions } = useHabitsData();
+  const { getHabitCompletionsWithConversion } = useHabitsData();
   
   // Get month info
   const year = currentDate.getFullYear();
@@ -39,9 +39,9 @@ export function HabitCalendarView({
   // Our headers: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
   const mondayStartOffset = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
   
-  // Get completions for this month
-  const monthCompletions = completions.filter(completion => {
-    if (completion.habitId !== habit.id) return false;
+  // Get completions for this month (with smart conversion applied)
+  const allCompletions = getHabitCompletionsWithConversion(habit.id);
+  const monthCompletions = allCompletions.filter(completion => {
     const completionDate = parseDate(completion.date);
     return completionDate.getFullYear() === year && completionDate.getMonth() === month;
   });
@@ -80,34 +80,48 @@ export function HabitCalendarView({
     const completion = getCompletionForDay(day);
     const isCompleted = completion?.completed || false;
     const isBonus = completion?.isBonus || false;
+    const isConverted = completion?.isConverted || false;
     const isScheduled = isScheduledDay(day);
     const habitExisted = isHabitExisting(day);
     const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
     const dayDate = new Date(year, month, day);
     const isPastDay = dayDate < new Date() && !isToday; // Only past days, not today or future
+
+    // Determine display type for smart conversion
+    const isMakeupCompletion = isCompleted && isConverted && !isBonus && completion?.convertedFromDate; // Bonus converted to makeup
+    const isRegularBonus = isCompleted && isBonus && !isConverted; // Real bonus (not converted)
+    const isScheduledCompletion = isCompleted && isScheduled && !isBonus && !isConverted; // Normal scheduled completion
+    const isCoveredMissed = !isCompleted && isScheduled && completion?.isCovered; // Missed day covered by makeup
     
     calendarDays.push(
       <View key={day} style={styles.dayCell}>
         <View style={[
           styles.dayCellInner,
           isToday && styles.todayCell,
-          isCompleted && isScheduled && styles.completedDay,
-          isCompleted && isBonus && styles.bonusDay,
-          isScheduled && !isCompleted && habitExisted && isPastDay && styles.missedDay,
+          isScheduledCompletion && styles.completedDay, // Green for normal scheduled
+          isMakeupCompletion && styles.makeupDay, // Green for makeup (converted bonus)
+          isRegularBonus && styles.bonusDay, // Gold for real bonus
+          isScheduled && !isCompleted && !isCoveredMissed && habitExisted && isPastDay && styles.missedDay,
         ]}>
           <Text style={[
             styles.dayText,
             isToday && styles.todayText,
-            isCompleted && styles.completedText,
+            (isScheduledCompletion || isMakeupCompletion) && styles.completedText,
           ]}>
             {day}
           </Text>
-          {isCompleted && isBonus && (
+          {isRegularBonus && (
             <View style={styles.bonusIndicator}>
               <Ionicons name="star" size={8} color={Colors.warning} />
             </View>
           )}
-          {isScheduled && !isCompleted && habitExisted && (
+          {isMakeupCompletion && (
+            <View style={styles.makeupIndicator}>
+              <Ionicons name="checkmark" size={14} color={Colors.warning} />
+            </View>
+          )}
+          {/* Show scheduled indicator for scheduled days (but not for makeup completions) */}
+          {isScheduled && habitExisted && (!isMakeupCompletion || isCoveredMissed) && (
             <View style={styles.scheduledIndicator} />
           )}
         </View>
@@ -146,23 +160,36 @@ export function HabitCalendarView({
         {calendarDays}
       </View>
       
-      {/* Legend */}
+      {/* Legend - 2 rows */}
       <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
-          <Text style={styles.legendText}>Scheduled</Text>
+        {/* First row */}
+        <View style={styles.legendRow}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
+            <Text style={styles.legendText}>Scheduled</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: Colors.success }]} />
+            <Text style={styles.legendText}>Completed</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
+            <Text style={styles.legendText}>Missed</Text>
+          </View>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.success }]} />
-          <Text style={styles.legendText}>Completed</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
-          <Text style={styles.legendText}>Bonus</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
-          <Text style={styles.legendText}>Missed</Text>
+        
+        {/* Second row */}
+        <View style={styles.legendRow}>
+          <View style={styles.legendItem}>
+            <View style={styles.legendGoldCheck}>
+              <Text style={styles.legendCheckmark}>✓</Text>
+            </View>
+            <Text style={styles.legendText}>Makeup</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
+            <Text style={styles.legendText}>Bonus</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -242,6 +269,9 @@ const styles = StyleSheet.create({
   missedDay: {
     backgroundColor: Colors.error,
   },
+  makeupDay: {
+    backgroundColor: Colors.success, // Same as completed, but for converted bonus
+  },
   dayText: {
     fontSize: 14,
     fontFamily: Fonts.medium,
@@ -268,29 +298,63 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: Colors.primary,
   },
+  makeupIndicator: {
+    position: 'absolute',
+    bottom: 1,
+    left: '50%',
+    marginLeft: -7, // Half of icon width to center (14/2)
+    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Subtle background for better visibility
+    borderRadius: 8,
+    width: 14,
+    height: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   legend: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     paddingVertical: 16,
     paddingHorizontal: 24,
-    marginTop: 16,
+    marginTop: 16,  
     backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
     marginHorizontal: 8,
   },
+  legendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8,
+  },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   legendDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
+    marginRight: 4,
+  },
+  legendGoldCheck: {
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 4,
+  },
+  legendCheckmark: {
+    fontSize: 10,
+    color: Colors.warning,
+    fontWeight: '900',
+    textShadowColor: Colors.warning,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 1,
+    lineHeight: 12,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
+    marginLeft: 4,
   },
 });

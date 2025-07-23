@@ -214,7 +214,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
                             height: barHeight,
                             backgroundColor: day.completionRate >= 80 ? Colors.success : 
                                            day.completionRate >= 60 ? Colors.warning : 
-                                           day.completionRate >= 40 ? Colors.secondary : Colors.textSecondary
+                                           day.completionRate >= 40 ? Colors.secondary : Colors.error
                           }
                         ]} 
                       />
