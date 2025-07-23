@@ -1,0 +1,90 @@
+export interface HomeScreenComponent {
+  id: string;
+  name: string;
+  visible: boolean;
+  order: number;
+  configurable: boolean;
+}
+
+export interface HomeScreenPreferences {
+  components: HomeScreenComponent[];
+  quickActions: {
+    showHabitToggle: boolean;
+    showAddButtons: boolean;
+  };
+  theme: {
+    cardStyle: 'default' | 'minimal' | 'bold';
+    spacing: 'compact' | 'default' | 'spacious';
+  };
+}
+
+export const defaultHomeComponents: HomeScreenComponent[] = [
+  {
+    id: 'journalStreak',
+    name: 'Journal Streak',
+    visible: true,
+    order: 1,
+    configurable: false, // Always visible as primary feature
+  },
+  {
+    id: 'quickActions',
+    name: 'Quick Actions',
+    visible: true,
+    order: 2,
+    configurable: true,
+  },
+  {
+    id: 'dailyQuote',
+    name: 'Daily Quote',
+    visible: true,
+    order: 3,
+    configurable: true,
+  },
+  {
+    id: 'recommendations',
+    name: 'Recommendations',
+    visible: true,
+    order: 4,
+    configurable: true,
+  },
+  {
+    id: 'streakHistory',
+    name: 'Streak History',
+    visible: true,
+    order: 5,
+    configurable: true,
+  },
+  {
+    id: 'habitStats',
+    name: 'Habit Statistics',
+    visible: true,
+    order: 6,
+    configurable: true,
+  },
+  {
+    id: 'habitPerformance',
+    name: 'Performance Indicators',
+    visible: true,
+    order: 7,
+    configurable: true,
+  },
+  {
+    id: 'habitTrends',
+    name: 'Trend Analysis',
+    visible: true,
+    order: 8,
+    configurable: true,
+  },
+];
+
+export const defaultHomePreferences: HomeScreenPreferences = {
+  components: defaultHomeComponents,
+  quickActions: {
+    showHabitToggle: true,
+    showAddButtons: true,
+  },
+  theme: {
+    cardStyle: 'default',
+    spacing: 'default',
+  },
+};

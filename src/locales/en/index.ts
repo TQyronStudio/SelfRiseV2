@@ -72,6 +72,35 @@ const en: TranslationKeys = {
     copiedToClipboard: 'Copied to clipboard!',
     shareError: 'Failed to share. Please try again.',
     copyError: 'Failed to copy. Please try again.',
+    // Quick Actions
+    quickActions: 'Quick Actions',
+    addHabit: 'Add Habit',
+    addJournal: 'Add Entry',
+    addGoal: 'Add Goal',
+    todayHabits: 'Today\'s Habits',
+    // Daily Quote
+    dailyQuote: 'Daily Inspiration',
+    quoteCategories: {
+      motivation: 'Motivation',
+      gratitude: 'Gratitude',
+      habits: 'Habits',
+      goals: 'Goals',
+    },
+    // Personalized Recommendations
+    recommendations: 'For You',
+    noRecommendations: 'Great job! You\'re on track with everything.',
+    journalPrompt: 'Try this prompt',
+    // Home Customization
+    customization: {
+      title: 'Customize Home',
+      components: 'Home Components',
+      componentsDescription: 'Choose which sections to show on your home screen',
+      order: 'Position {{order}}',
+      actions: 'Actions',
+      resetToDefaults: 'Reset to Defaults',
+      resetTitle: 'Reset Home Layout',
+      resetMessage: 'This will restore the default home screen layout. Are you sure?',
+    },
   },
   
   // Habits screen

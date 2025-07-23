@@ -3,6 +3,7 @@ import { AppProvider } from './AppContext';
 import { HabitsProvider } from './HabitsContext';
 import { GratitudeProvider } from './GratitudeContext';
 import { GoalsProvider } from './GoalsContext';
+import { HomeCustomizationProvider } from './HomeCustomizationContext';
 
 interface RootProviderProps {
   children: ReactNode;
@@ -14,7 +15,9 @@ export function RootProvider({ children }: RootProviderProps) {
       <HabitsProvider>
         <GratitudeProvider>
           <GoalsProvider>
-            {children}
+            <HomeCustomizationProvider>
+              {children}
+            </HomeCustomizationProvider>
           </GoalsProvider>
         </GratitudeProvider>
       </HabitsProvider>
