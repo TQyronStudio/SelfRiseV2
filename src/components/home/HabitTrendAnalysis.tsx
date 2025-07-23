@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
-import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
 
 interface TrendItemProps {
   title: string;
@@ -91,12 +91,16 @@ export const HabitTrendAnalysis: React.FC = () => {
     const habitAnalysis = activeHabits.map(habit => {
       const stats = getHabitStats(habit.id);
       
-      // Calculate completion rate over past 4 weeks (28 days)
-      const past28Days = [];
+      // Calculate completion rate over past 4 weeks (28 days) but only since habit creation
+      const allPast28Days = [];
       for (let i = 27; i >= 0; i--) {
         const date = subtractDays(today(), i);
-        past28Days.push(date);
+        allPast28Days.push(date);
       }
+      
+      // Filter to only include dates since habit creation
+      const habitCreationDate = formatDateToString(new Date(habit.createdAt));
+      const past28Days = allPast28Days.filter(date => date >= habitCreationDate);
       
       let scheduledDays = 0;
       let completedScheduled = 0;

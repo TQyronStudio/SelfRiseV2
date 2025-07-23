@@ -983,6 +983,32 @@ const getRelevantDatesForHabit = (habit: Habit, periodDates: DateString[]): Date
 **CORE PRINCIPLE:**
 **"A habit cannot fail on days it didn't exist"**
 
+### **CURRENT TASK: HabitTrendAnalysis Component Fix** ✅ COMPLETED
+
+#### Task Details:
+- [x] Fix HabitTrendAnalysis.tsx to respect habit creation dates 
+- [x] Locate the 28-day calculation loop (around lines 94-124)
+- [x] Modify logic to only count days since habit was created
+- [x] Ensure calculation uses: completions / days_since_creation (not completions / 28_days)
+- [x] Filter past28Days array to only include dates >= habit.createdAt
+- [x] Use filtered dates count as denominator for scheduled days calculation
+- [x] Maintain same bonus logic but with creation-date-aware base calculations
+
+#### Implementation Summary:
+**Fixed Creation Date Issue:** Modified HabitTrendAnalysis.tsx to filter the past28Days array to only include dates >= habit.createdAt, ensuring completion rates are calculated based on days since creation rather than arbitrary 28-day periods.
+
+**Key Changes:**
+- Added `formatDateToString` import to date utilities
+- Created filtered `past28Days` array that respects habit creation date
+- Maintained existing bonus logic and scheduled days calculations
+- Ensured chronological order is preserved in filtered dates
+
+**Expected Results:**
+- New habits show accurate completion rates (e.g., 50% for 1/2 completed days instead of 4%)
+- Recently created habits no longer penalized for non-existent days
+- All existing bonus and trend analysis logic continues to work correctly
+- Follows core principle: "A habit cannot fail on days it didn't exist"
+
 #### Checkpoint 6.3: Home Screen Integration
 - [ ] Integrate all dashboard components
 - [ ] Add quick action buttons
@@ -1331,7 +1357,7 @@ isEditMode={Platform.OS === 'ios' ? isEditMode : false}
 - ✅ Jeden codebase, optimální chování na obou platformách
 - ✅ iOS: Nejlepší možný UX s edit mode
 - ✅ Android: 100% stabilita s funkčními modály
-- ✅ Goals screen má stejnou funkcionalnost jako Habits
+- ✅ Goals screen má stejnou funkcionalitu jako Habits
 - ✅ Žádné konflikty mezi drag&drop a modály
 
 ### KRITICKÁ OPRAVA PRO ANDROID - Finální řešení (July 19, 2025) ✅
@@ -1562,3 +1588,48 @@ const OptimizedComponent = ({ isInteractive, ...props }) => {
 3. **Team Alignment**: Ensure all team members understand the plan and requirements
 4. **Timeline Planning**: Create detailed timeline with milestones and deadlines
 5. **Begin Implementation**: Start with Phase 1 development tasks
+
+---
+
+## HabitTrendAnalysis Component Fix - Plan
+
+### Problem Statement
+The HabitTrendAnalysis component shows misleading completion rates for newly created habits. For example, a habit created yesterday shows only 4% completion rate instead of 50%, because it calculates against the full 28-day period instead of just the days since creation.
+
+### Root Cause
+In lines 94-124 of HabitTrendAnalysis.tsx, the 28-day calculation loop includes all past 28 days regardless of when the habit was created. This violates the core principle: **"A habit cannot fail on days it didn't exist"**.
+
+### Implementation Plan
+
+#### Task 1: Filter Past 28 Days by Creation Date
+- [ ] Modify the `past28Days` array generation (lines 95-99) to filter out dates before habit creation
+- [ ] Add logic to only include dates >= `habit.createdAt`
+- [ ] Ensure the filtered array maintains chronological order
+
+#### Task 2: Update Denominator Calculations
+- [ ] Replace fixed 28-day denominator with actual days since creation count
+- [ ] Update `scheduledDays` calculation to use filtered dates only
+- [ ] Maintain the same scheduled days filtering logic but with creation-aware dates
+
+#### Task 3: Preserve Bonus Logic
+- [ ] Keep the existing bonus completion detection unchanged
+- [ ] Ensure bonus rate calculation uses the creation-aware denominator
+- [ ] Maintain the 25% bonus weighting per extra completion
+
+#### Task 4: Update Completion Rate Formula
+- [ ] Change from: `(completedScheduled / 28_days_scheduled) * 100`
+- [ ] Change to: `(completedScheduled / days_since_creation_scheduled) * 100`
+- [ ] Keep bonus rate calculation: `(bonusCompletions / scheduledDays) * 25`
+
+### Expected Outcome
+After the fix:
+- A habit created yesterday with 1/2 scheduled days completed should show ~50% (not 4%)
+- A habit created 14 days ago should use 14-day period (not 28-day)
+- A habit created 30+ days ago should use full 28-day period
+- All bonus logic remains functional with creation-date-aware base calculations
+
+### Success Criteria
+✅ **New habit statistics are accurate and intuitive**
+✅ **No artificially low completion rates for recently created habits**
+✅ **Bonus logic continues to work correctly**
+✅ **Trend analysis uses creation-date-aware data**
