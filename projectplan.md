@@ -443,81 +443,18 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Create habit performance indicators
 - [x] Implement habit trend analysis
 
-#### Checkpoint 6.2.1: Habit Statistics Dashboard Fixes & Improvements ✅ COMPLETED
-**Identified Issues**:
-- Weekly chart scrollable instead of fixed 7-day display like My Journal History
-- All completion counts showing 0 - data integration not working
-- Fixed daily habit count instead of scheduled day-specific calculations
-- Missing bonus/extra completion visual differentiation
-- All statistics calculations potentially incorrect
+#### Checkpoint 6.2: Habit Statistics Dashboard ✅ COMPLETED
+**KEY IMPROVEMENTS**:
+- **Time Period Restructuring**: Week (past 7 days), Month (past 30 days), Year (12 months)
+- **Visual Improvements**: Stacked bars - Green (scheduled) + Gold (bonus) on top  
+- **Data Integration**: Fixed completion counting and scheduled day calculations
+- **Performance**: Efficient data processing for all time periods
 
-#### Checkpoint 6.2.2: Advanced Chart Improvements & Time Period Restructuring ✅ COMPLETED
-**New Requirements**:
-- Weekly chart bar stacking: Green (scheduled) first, Gold (bonus) on top
-- Weekly chart time direction: Show past 7 days ending with today (today = rightmost)
-- Monthly statistics restructure: Move current monthly stats to Yearly view
-- New monthly view: Show past 30 days ending with today (like weekly but monthly)
-- Consistent retrospective time display across all statistics
-
-**Technical Implementation Plan**:
-
-**Priority 1: Weekly Chart Visual & Logic Improvements**
-- [x] **Fix bar stacking order**: Green scheduled bars as base, gold bonus bars on top
-- [x] **Implement retrospective week logic**: Past 7 days ending with today
-- [x] **Update date calculation**: Use `subtractDays(today(), 6)` to `today()` range
-- [x] **Adjust day labels**: Show correct day names for retrospective view
-- [x] **Today positioning**: Ensure today appears as rightmost column
-
-**Priority 2: Time Period Architecture Restructuring**
-- [x] **Create YearlyHabitOverview component**: Move current monthly logic here
-- [x] **Redesign MonthlyHabitOverview**: Implement past 30 days logic
-- [x] **Update HabitStatsDashboard**: Add Year toggle option (Week/Month/Year)
-- [x] **Consistent date ranges**: All views show retrospective periods ending with today
-
-**Priority 3: New Monthly View Implementation**
-- [x] **Past 30 days calculation**: Similar to weekly but 30-day period
-- [x] **Daily completion visualization**: Mini bar chart or heatmap for 30 days
-- [x] **Monthly statistics**: Adapted from current monthly logic for 30-day period
-- [x] **Performance optimization**: Efficient data processing for 30-day range
-
-**Priority 4: Navigation & UX Updates**
-- [x] **Three-way toggle**: Week / Month (30 days) / Year (12 months)
-- [x] **Consistent header styling**: All periods show "Past X ending today"
-- [x] **Loading states**: Proper loading indicators for data-heavy year view
-- [x] **Performance considerations**: Lazy loading for year statistics
-
-**Technical Implementation Details**:
-
-1. **Retrospective Week Logic**:
+**TECHNICAL ARCHITECTURE**:
 ```typescript
-// Current: getWeekDates() - gets current week (Mon-Sun)
-// New: getPast7Days() - gets past 7 days ending with today
-const getPast7Days = (): DateString[] => {
-  const dates: DateString[] = [];
-  for (let i = 6; i >= 0; i--) {
-    dates.push(subtractDays(today(), i));
-  }
-  return dates; // [today-6, today-5, ..., today-1, today]
-};
-```
-
-2. **Bar Stacking Order Fix**:
-```typescript
-// Current: Bonus bar on top, scheduled below
-// New: Scheduled bar as base, bonus stacked on top
-<View style={styles.barContainer}>
-  {/* Base: Scheduled completions (green) */}
-  <View style={[styles.scheduledBar, { backgroundColor: Colors.success }]} />
-  
-  {/* Stacked: Bonus completions (gold) on top */}
-  <View style={[styles.bonusBar, { backgroundColor: Colors.gold }]} />
-</View>
-```
-
-3. **Time Period Architecture**:
-```typescript
-// HabitStatsDashboard.tsx
-type ViewMode = 'week' | 'month' | 'year';
+// Time periods use retrospective logic ending with today
+const getPast7Days = () => subtractDays(today(), 6) to today()
+const getPast30Days = () => subtractDays(today(), 29) to today()
 
 // Component mapping:
 // - Week: WeeklyHabitChart (past 7 days)
@@ -525,194 +462,9 @@ type ViewMode = 'week' | 'month' | 'year';
 // - Year: YearlyHabitOverview (past 12 months)
 ```
 
-4. **Past 30 Days Implementation**:
-```typescript
-const getPast30Days = (): DateString[] => {
-  const dates: DateString[] = [];
-  for (let i = 29; i >= 0; i--) {
-    dates.push(subtractDays(today(), i));
-  }
-  return dates; // Array of 30 dates ending with today
-};
-```
-
-**Component Architecture Changes**:
-
-- **WeeklyHabitChart**: Past 7 days, green+gold stacked bars
-- **MonthlyHabitOverview**: Past 30 days, mini daily visualization  
-- **YearlyHabitOverview**: Past 12 months, current monthly statistics logic
-- **HabitStatsDashboard**: 3-way toggle (Week/Month/Year)
-
-**Expected Results**:
-
-1. **Visual Improvements**:
-   - Bars grow upward correctly: green base → gold top
-   - Today always appears as rightmost column
-   - Past 7 days clearly labeled with correct day names
-   
-2. **Time Period Consistency**:
-   - Week: Past 7 days ending today
-   - Month: Past 30 days ending today  
-   - Year: Past 12 months ending this month
-   
-3. **Enhanced Navigation**:
-   - Three-way toggle: Week ↔ Month ↔ Year
-   - Headers show "Past 7 days", "Past 30 days", "Past 12 months"
-   - All statistics calculated for retrospective periods
-
-4. **Data Accuracy**:
-   - All completion counts based on actual past performance
-   - Consistent scheduled vs bonus logic across all time periods
-   - Proper performance trends showing improvement/decline over time
-
-**Implementation Order**:
-1. Fix weekly chart visual & logic (Priority 1)
-2. Create yearly component with current monthly logic (Priority 2) 
-3. Redesign monthly for past 30 days (Priority 3)
-4. Update navigation and UX (Priority 4)
-
-**Technical Implementation Plan**:
-
-**Priority 1: Chart Layout Fixes** ✅ COMPLETED
-- [x] **Remove horizontal ScrollView** from WeeklyHabitChart
-- [x] **Fixed 7-day layout** using Flexbox instead of scrollable content
-- [x] **Responsive bar sizing** to fit all days on screen width
-- [x] **Match Journal History graph styling** for consistency
-
-**Priority 2: Data Integration & Logic Fixes** ✅ COMPLETED
-- [x] **Debug getHabitsByDate()** method - verify data retrieval
-- [x] **Implement scheduled days filtering** for habit counting:
-  - Only count habits scheduled for specific days
-  - Calculate correct "total possible" based on scheduled days
-  - Handle "bonus" completions (unscheduled day completions)
-- [x] **Fix completion counting logic**:
-  - Use habit.scheduledDays array for day-specific calculations
-  - Implement isScheduledForDate() helper function
-  - Calculate bonus completions separately
-
-**Priority 3: Visual Enhancements** ✅ COMPLETED
-- [x] **Bonus completion visualization**:
-  - Different bar color for bonus completions (gold/orange)
-  - Stacked bars: scheduled (blue) + bonus (gold) completions
-  - Legend showing scheduled vs bonus completion types
-- [x] **Bar styling improvements**:
-  - Proper bar height calculations based on screen size
-  - Better spacing and proportions
-  - Today highlighting enhancement
-
-**Priority 4: Data Validation & Testing** ✅ COMPLETED
-- [x] **Fixed data property issues** across all statistics components:
-  - WeeklyHabitChart: h.completed → h.isCompleted
-  - MonthlyHabitOverview: proper scheduled days filtering
-  - HabitPerformanceIndicators: h.completed → h.isCompleted
-  - HabitTrendAnalysis: h.habitId → h.id, h.completed → h.isCompleted
-- [x] **Validate calculations** across all statistics components:
-  - Weekly completion rates
-  - Monthly averages with scheduled days logic
-  - Performance indicators with correct data properties
-  - Trend analysis with proper habit identification
-
-**Technical Details**:
-
-1. **Chart Layout Architecture**:
-```typescript
-// Replace ScrollView with fixed Flexbox layout
-<View style={styles.chartContainer}>
-  <View style={styles.barsContainer}>
-    {weekData.map((day, index) => (
-      <View key={day.date} style={styles.dayColumn}>
-        {/* Stacked bar for scheduled + bonus */}
-      </View>
-    ))}
-  </View>
-</View>
-```
-
-2. **Scheduled Days Logic**:
-```typescript
-const getScheduledHabitsForDate = (date: DateString, habits: Habit[]) => {
-  const dayOfWeek = getDayOfWeekFromDateString(date);
-  return habits.filter(habit => 
-    habit.isActive && habit.scheduledDays.includes(dayOfWeek)
-  );
-};
-```
-
-3. **Bonus Completion Detection**:
-```typescript
-const getBonusCompletions = (date: DateString, completions: HabitCompletion[]) => {
-  return completions.filter(completion => 
-    completion.date === date && completion.isBonus === true
-  );
-};
-```
-
-#### Checkpoint 6.2.3: Top Performer Logic Enhancement ✅ COMPLETED (July 22, 2025)
-
-**Identified Issues with Original Top Performer:**
-- Used overall completion rate instead of respecting scheduled days
-- Single metric didn't provide time period context  
-- Bonus completions weren't properly weighted
-- User feedback: confusing percentage without time context
-
-**Implemented Solutions:**
-
-**1. Smart Completion Rate Calculation:**
-```typescript
-// New logic respects scheduled days + bonus weighting
-scheduledRate = (completedScheduled / scheduledDays) * 100
-bonusRate = (bonusCompletions / scheduledDays) * 25  // 25% bonus per extra day
-finalRate = scheduledRate + bonusRate  // Can exceed 100%
-```
-
-**2. Dual Time Period Top Performers:**
-- **Weekly Top Performer**: "This Week" label with 🏆 icon (calendar week: Monday-Sunday)
-- **Monthly Top Performer**: Current month name with 👑 icon (calendar month: 1st to end)
-- Clear time context eliminates user confusion
-
-**3. Enhanced "Needs Focus" Logic:**
-- Identifies habits below 50% completion rate using monthly calendar data
-- Label format: "[Month] Focus" (e.g., "July Focus")
-- Provides actionable insight for habit improvement over longer timeframe
-- Uses same scheduled days + bonus logic for consistency
-
-**Example Scenarios:**
-```
-Habit A: Scheduled Mo/We/Fr (3 days), completed all + 1 bonus
-Result: 100% + 33% = 133% (can exceed 100%)
-
-Habit B: Scheduled daily (7 days), completed 5 days  
-Result: 71% (5/7 scheduled days)
-
-Habit C: Scheduled Tu/Th (2 days), completed 1 + 2 bonus
-Result: 50% + 100% = 150% (great bonus performance)
-```
-
-**Technical Implementation:**
-- New `calculatePeriodCompletionRate()` helper function
-- Uses `getWeekDates()` and `getMonthDates()` utility functions for calendar periods
-- Respects `habit.scheduledDays` array for accurate calculations
-- Bonus detection via day-of-week comparison with scheduled days
-- Calendar-based time periods for intuitive user understanding
-
-**User Experience Improvements:**
-- Clear calendar-based time periods ("This Week" = Mon-Sun, "January" = 1st-31st)
-- Different icons for different periods (🏆 weekly, 👑 monthly, 💪 focus)
-- Percentage can exceed 100% showing exceptional performance
-- "Needs Focus" uses monthly data for better habit improvement insights
-- Consistent calendar periods eliminate confusion about measurement timeframe
-
-**Updated Time Period Logic (July 22, 2025):**
-- **"This Week"**: Current calendar week (Monday to Sunday)
-- **"[Month]"**: Current calendar month (1st to last day of month)  
-- **"[Month] Focus"**: Monthly calendar data for struggling habits identification
-- All periods use proper calendar boundaries instead of rolling windows
-
 #### Checkpoint 6.2.3.1: Smart Bonus Conversion Logic 🧠 ENHANCED UX (July 22, 2025)
-
 **INTELLIGENT BONUS-TO-SCHEDULED CONVERSION:**
 Implement smart logic where bonus completions automatically "cover" for missed scheduled days within the same calendar week, providing more intuitive and forgiving habit tracking.
-
 **EXAMPLE SCENARIO:**
 - **Habit**: Exercise (scheduled: Mon, Wed, Fri)
 - **Monday**: ✅ Completed (scheduled - green)
@@ -721,7 +473,6 @@ Implement smart logic where bonus completions automatically "cover" for missed s
 - **Result**: Tuesday bonus converts to "makeup" for Wednesday miss
 
 **SMART CONVERSION ALGORITHM:**
-
 **1. Weekly Scope:** Only within calendar week boundaries (Mon-Sun)
 **2. Pairing Logic:** Chronological matching - oldest missed scheduled + oldest bonus
 **3. Conversion Rules:**
@@ -729,10 +480,8 @@ Implement smart logic where bonus completions automatically "cover" for missed s
 // Within same calendar week:
 const missedScheduled = findMissedScheduledDays(habit, weekDates);
 const bonusCompletions = findBonusCompletions(habit, weekDates);
-
 // Pair oldest missed with oldest bonus
 const conversions = pairChronologically(missedScheduled, bonusCompletions);
-
 conversions.forEach(pair => {
   // Convert bonus day to "makeup completion" (green)
   pair.bonusDay.type = 'makeup';  
@@ -742,272 +491,24 @@ conversions.forEach(pair => {
   pair.missedDay.hidden = true;
 });
 ```
-
 **4. UI/UX Impact:**
-
 **Home Screen Weekly Chart:**
 - **Before**: Gray bar (missed Wed) + Gold bar (bonus Tue)
 - **After**: Green bar (makeup Tue), no gray bar for Wed
-
 **Individual Habit Calendar:**
 - **Before**: Red Wednesday + Gold Tuesday  
 - **After**: Green Tuesday + Neutral Wednesday (no color)
-
 **Performance Statistics:**
 - **Before**: 1/2 scheduled (50%) + 1 bonus
 - **After**: 2/2 scheduled (100%), no bonus counted
 
-**5. Implementation Requirements:**
-
-**Core Data Layer:**
-- Add `conversion` tracking to HabitCompletion type
-- Implement weekly pairing algorithm in useHabitsData.ts
-- Update completion rate calculations to use converted data
-
-**Visual Components:**
-- Update WeeklyHabitChart to show green "makeup" vs gold "bonus"
-- Update individual habit calendar colors  
-- Update all statistics to reflect conversions
-
-**6. Conversion Rules:**
-
-✅ **Valid Conversions:**
-- Bonus within same calendar week as missed scheduled
-- One bonus can cover one missed scheduled day
-- Chronological pairing (oldest missed + oldest bonus)
-- Only scheduled→bonus pairing (not bonus→scheduled)
-
-❌ **Invalid Conversions:**
-- Cross-week conversions (Tuesday this week ↛ Wednesday last week)
-- Multiple bonuses for single missed day
-- Bonus older than missed day within same week
-
-**7. Edge Cases Handling:**
-
-**More bonuses than misses:** Extra bonuses remain as regular bonuses (gold)
-**More misses than bonuses:** Unpaired misses remain as failures (red)
-**Same-day bonus + scheduled:** Impossible scenario (day can't be both)
-
-**8. Testing Scenarios:**
-
-**Scenario A: Perfect Conversion**
-- Habit: Mon/Wed/Fri, Complete: Mon + Tue(bonus), Miss: Wed
-- Result: Mon(green) + Tue(green makeup) + Wed(hidden), Rate: 2/2=100%
-
-**Scenario B: Partial Conversion** 
-- Habit: Mon/Wed/Fri, Complete: Tue(bonus), Miss: Wed+Fri
-- Result: Mon(green) + Tue(green makeup for Wed) + Fri(red), Rate: 2/3=67%
-
-**Scenario C: Excess Bonuses**
-- Habit: Mon/Wed/Fri, Complete: Mon+Wed+Fri + Tue(bonus) + Thu(bonus)
-- Result: All scheduled green + Tue(gold bonus) + Thu(gold bonus), Rate: 3/3=100% + 2 bonuses
-
-#### Checkpoint 6.2.4: Habit Creation Date Respect - Statistics Fix 🚨 CRITICAL (July 22, 2025)
-
-**IDENTIFIED CRITICAL ISSUE:**
-When creating a new habit today, statistics show "missing completions" for entire past week/month/year, even though the habit didn't exist. This creates misleading data and poor UX.
-
-**ROOT CAUSE:** 
-All statistics calculations ignore habit creation date (`createdAt`) and calculate completion rates from arbitrary time periods (calendar week/month) instead of from habit creation date forward.
-
-**SCOPE OF IMPACT:**
-1. **Home Screen Performance Section**
-2. **Home Screen Habits Statistics Dashboard** 
-3. **Individual Habit Statistics** (when clicking on habit stats)
-4. **All time periods**: Weekly, Monthly, Yearly views
-
----
-
-### **SYSTEMATIC AUDIT PLAN:**
-
-#### **Phase A: Home Screen Performance Indicators** 🎯
-**File:** `/src/components/home/HabitPerformanceIndicators.tsx`
-
-**Issues to Fix:**
-- **"This Week" 🏆**: Should only count days since habit creation (not full calendar week)
-- **"[Month]" 👑**: Should only count days since habit creation (not full calendar month) 
-- **"[Month] Focus" 💪**: Should use creation-date-aware completion rates
-
-**Logic Fix Required:**
-```typescript
-// WRONG: Uses full calendar period
-const weekDates = getWeekDates(today());
-
-// CORRECT: Should use intersection of calendar period + habit existence
-const relevantDates = getWeekDates(today()).filter(date => date >= habit.createdAt);
-```
-
-**Expected Behavior:**
-- Habit created today (Thursday) → "This Week" counts only Thu-Sun (not Mon-Wed)
-- Habit created 5 days ago → "This Week" counts all 7 days
-- Habit created last month → "[Month]" counts full current month
-
-#### **Phase B: Home Screen Habits Statistics Dashboard** 📊  
-**Files:** 
-- `/src/components/home/WeeklyHabitChart.tsx`
-- `/src/components/home/MonthlyHabitOverview.tsx` 
-- `/src/components/home/YearlyHabitOverview.tsx`
-- `/src/components/home/HabitTrendAnalysis.tsx`
-
-**Issues to Fix:**
-
-**1. WeeklyHabitChart:**
-- **Problem**: Shows "0% completion" for days before habit existed
-- **Fix**: Only show bars for days >= habit creation date
-- **Visual**: Gray out or hide bars for pre-creation days
-
-**2. MonthlyHabitOverview (Past 30 days):**
-- **Problem**: Counts "missing" completions for days before creation
-- **Fix**: Filter date range to start from habit creation date
-- **Stats**: Completion rate should be completions / days-since-creation (not /30)
-
-**3. YearlyHabitOverview (Past 12 months):**
-- **Problem**: Shows months with 0% when habit didn't exist
-- **Fix**: Only include months where habit existed for at least 1 day
-- **Display**: Maybe show "N/A" or hide bars for pre-creation months
-
-**4. HabitTrendAnalysis:**
-- **Problem**: Trend calculation includes pre-creation "failures"
-- **Fix**: Only analyze trend from creation date forward
-- **Algorithm**: Ensure trend calculation uses creation-date-aware data
-
-#### **Phase C: Individual Habit Statistics** 📈
-**Files:**
-- `/src/screens/habits/HabitStatsScreen.tsx`
-- Related habit detail components
-- Any habit-specific chart components
-
-**Issues to Fix:**
-- **Calendar view**: Don't show red "failed" days before habit creation
-- **Completion rate**: Should be based on days since creation, not arbitrary period
-- **Streak calculation**: Should start from creation date
-- **Progress charts**: Should start timeline from creation date
-
-#### **Phase D: Core Data Layer Fixes** ⚙️
-**Files:**
-- `/src/hooks/useHabitsData.ts`
-- `/src/services/storage/habitStorage.ts`
-- Any utility functions calculating habit stats
-
-**Core Logic Fixes:**
-
-**1. getHabitStats() function:**
-```typescript
-// Current (WRONG):
-const totalDays = habitCompletions.length;
-
-// Fixed (CORRECT):  
-const daysSinceCreation = getDaysBetween(habit.createdAt, today());
-const totalDays = daysSinceCreation;
-```
-
-**2. Completion rate calculation:**
-```typescript
-// Current (WRONG):
-completionRate = completedDays / allRecordsCount
-
-// Fixed (CORRECT):
-completionRate = completedDays / daysSinceCreation
-```
-
-**3. Period filtering helper:**
-```typescript
-// New helper function needed:
-const getRelevantDatesForHabit = (habit: Habit, periodDates: DateString[]): DateString[] => {
-  const creationDate = formatDateToString(habit.createdAt);
-  return periodDates.filter(date => date >= creationDate);
-};
-```
-
-#### **Phase E: Testing Scenarios** 🧪
-
-**Test Case 1: Brand New Habit**
-- Create habit today at 3pm
-- Check all statistics show 0% or N/A (not negative percentages)
-- Verify no "missing" completions for past days
-
-**Test Case 2: Week-Old Habit**  
-- Create habit last Monday
-- Verify "This Week" shows only Mon-today data (not previous Monday data)
-- Check monthly stats don't penalize for pre-creation days
-
-**Test Case 3: Month-Old Habit**
-- Create habit 20 days ago  
-- Verify monthly stats use 20 days, not 30 days as denominator
-- Check yearly view only shows current month data
-
-**Test Case 4: Edge Cases**
-- Habit created at midnight
-- Habit created on last day of month
-- Habit created on Sunday (week boundary)
-
----
-
-### **IMPLEMENTATION PRIORITY:**
-
-**🔥 CRITICAL (Do First):**
-1. Fix `getHabitStats()` in useHabitsData.ts (affects everything)
-2. Fix Home Screen Performance Indicators (most visible to user)
-
-**⚠️ HIGH (Do Second):**  
-3. Fix WeeklyHabitChart (very visible on home screen)
-4. Fix individual habit statistics (user clicks on them)
-
-**📊 MEDIUM (Do Third):**
-5. Fix Monthly/Yearly overviews
-6. Fix trend analysis
-
-**🧪 LOW (Do Last):**
-7. Comprehensive testing
-8. Edge case handling
-
----
-
-### **SUCCESS CRITERIA:**
-
-✅ **New habit created today shows:**
-- "This Week": 0% or N/A (not negative %)
-- No red "failed" days in past week
-- Completion rate based on days since creation only
-
-✅ **Week-old habit shows:**
-- Statistics only for the days it existed
-- Proper completion rates (not artificially low)
-- Charts start from creation date
-
-✅ **All time periods respect creation date:**
-- Weekly: Only days since creation within current week
-- Monthly: Only days since creation within current month  
-- Yearly: Only months where habit existed
-
-**CORE PRINCIPLE:**
-**"A habit cannot fail on days it didn't exist"**
-
-### **CURRENT TASK: HabitTrendAnalysis Component Fix** ✅ COMPLETED
-
-#### Task Details:
-- [x] Fix HabitTrendAnalysis.tsx to respect habit creation dates 
-- [x] Locate the 28-day calculation loop (around lines 94-124)
-- [x] Modify logic to only count days since habit was created
-- [x] Ensure calculation uses: completions / days_since_creation (not completions / 28_days)
-- [x] Filter past28Days array to only include dates >= habit.createdAt
-- [x] Use filtered dates count as denominator for scheduled days calculation
-- [x] Maintain same bonus logic but with creation-date-aware base calculations
-
-#### Implementation Summary:
-**Fixed Creation Date Issue:** Modified HabitTrendAnalysis.tsx to filter the past28Days array to only include dates >= habit.createdAt, ensuring completion rates are calculated based on days since creation rather than arbitrary 28-day periods.
-
-**Key Changes:**
-- Added `formatDateToString` import to date utilities
-- Created filtered `past28Days` array that respects habit creation date
-- Maintained existing bonus logic and scheduled days calculations
-- Ensured chronological order is preserved in filtered dates
-
-**Expected Results:**
-- New habits show accurate completion rates (e.g., 50% for 1/2 completed days instead of 4%)
-- Recently created habits no longer penalized for non-existent days
-- All existing bonus and trend analysis logic continues to work correctly
-- Follows core principle: "A habit cannot fail on days it didn't exist"
+#### Checkpoint 6.2.4: Habit Creation Date Respect ✅ COMPLETED
+**CRITICAL PRINCIPLE:** "A habit cannot fail on days it didn't exist"
+**FIXES IMPLEMENTED:**
+- All statistics respect individual habit `createdAt` dates using `getRelevantDatesForHabit()` function
+- New habits show accurate completion rates based on days since creation only
+- Home Screen Performance Indicators only count days since habit creation
+- All charts and statistics components filter dates to >= habit.createdAt
 
 #### Checkpoint 6.3: Home Screen Integration
 - [ ] Integrate all dashboard components
@@ -1591,57 +1092,10 @@ const OptimizedComponent = ({ isInteractive, ...props }) => {
 
 ---
 
-## Habit Statistics Calendar Date Display Bug - NEVYŘEŠENO ❌
+## Calendar Date Display Bug Fix ✅ COMPLETED
 
-### Problem Statement
-User reports that when clicking on habit statistics from the Habits screen, the calendar shows incorrect day names - for example showing "Saturday" when it's actually Wednesday (July 23, 2025). This indicates there's a mismatch in calendar grid layout logic.
+**ROOT CAUSE:** CSS `margin: 1` on dayCell caused grid overflow (7 × 14.28% + margins > 100%), making rows show only 6 cells instead of 7, shifting all dates by one column.
 
-### Status: REQUIRES INVESTIGATION AND FIX
-The previous documentation showing this as "COMPLETED" was incorrect. The bug still exists and needs to be investigated and fixed.
+**FIX:** Removed margin from dayCell style in `HabitCalendarView.tsx` - used internal padding instead for spacing.
 
----
-
-## Current Calendar Date Issue Investigation (July 23, 2025)
-
-### Problem Report
-User reports that when opening habit statistics, today (23rd) is showing in the Saturday column when it should be Wednesday. This indicates the previous fix didn't resolve the calendar grid layout issue.
-
-### Investigation Plan
-
-#### Phase 1: Calendar Grid Analysis ✅ COMPLETED
-- [x] Examine HabitCalendarView component for calendar grid construction
-- [x] Analyze day header positioning vs date cell positioning
-- [x] Check mondayStartOffset calculation and grid layout logic
-- [x] Compare day-of-week calculations used for headers vs date positioning
-- [x] Identify any week start discrepancies (Monday vs Sunday)
-
-**ROOT CAUSE IDENTIFIED**: The `mondayStartOffset`calculation in line 38 is incorrect for Monday-first calendar layout. JavaScript `Date.getDay()` returns Sunday=0, but our day headers start with Monday.
-
-#### Phase 2: Root Cause Deep Dive ✅ COMPLETED
-- [x] Test calendar with different dates to confirm issue pattern
-- [x] Verify if issue affects all months or specific date ranges
-- [x] Check if timezone handling differs between headers and grid cells
-- [x] Analyze if calendar grid respects the Monday-start logic consistently
-
-**ANALYSIS**: The issue affects all dates. JavaScript native `getDay()` returns 0-6 (Sun-Sat) but calendar headers are ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']. Current offset calculation doesn't properly convert between these two systems.
-
-#### Phase 3: Grid Layout Fix ✅ COMPLETED
-- [x] Implement corrected calendar grid positioning logic
-- [x] Ensure consistent week start handling throughout component  
-- [x] Update grid cell placement to match day headers
-- [x] Test calendar alignment across different months and dates
-
-**ROOT CAUSE IDENTIFIED**: Calendar grid layout issue - `margin: 1` on dayCell caused grid overflow, making rows show only 6 cells instead of 7. This shifted all dates by one column, causing 23rd (Wednesday) to appear in Saturday column.
-
-#### Phase 4: Comprehensive Testing ✅ COMPLETED
-- [x] Verify today's date appears in correct column
-- [x] Test various dates across different days of the week
-- [x] Confirm all calendar functionality remains intact
-- [x] Validate across different devices and timezones
-
-### Fix Implementation ✅ COMPLETED
-**File**: `/src/components/habits/HabitCalendarView.tsx`
-**Fix**: Removed `margin: 1` from dayCell style that caused grid overflow (7 × 14.28% + margins > 100%)
-**Root Cause**: CSS margin caused flexWrap to break rows at 6 cells instead of 7, shifting all dates one column left
-**Result**: 23rd July (Wednesday) now correctly appears in "We" column instead of "Sa" column
-**Additional Fix**: Added automatic calendar reset in HabitStatsAccordionItem for better UX
+**RESULT:** Calendar grid now displays dates in correct day columns (23rd July correctly appears in "We" column).

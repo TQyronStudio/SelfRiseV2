@@ -7,7 +7,7 @@ import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateStri
 
 export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
-  const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange } = useHabitsData();
+  const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange, getRelevantDatesForHabit } = useHabitsData();
 
   const monthData = useMemo(() => {
     // Use either available data period or past 30 days, whichever is shorter
@@ -20,23 +20,45 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       const dayOfWeek = getDayOfWeekFromDateString(dateStr);
       const habitsOnDate = getHabitsByDate(dateStr);
       
-      // Filter habits scheduled for this day
-      const scheduledHabits = activeHabits.filter(habit => 
-        habit.scheduledDays.includes(dayOfWeek)
-      );
+      // Filter habits that existed on this date and are scheduled for this day
+      const scheduledHabits = activeHabits.filter(habit => {
+        const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
+        return habit.scheduledDays.includes(dayOfWeek) && relevantDatesForHabit.length > 0;
+      });
       
-      // Count completions
-      const scheduledCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && scheduledHabits.some(sh => sh.id === h.id)
-      );
+      // Count completions using Smart Bonus Conversion logic
+      let scheduledCompletions = 0;
+      let bonusCompletions = 0;
       
-      // Count bonus completions (completed but not scheduled for this day)
-      const bonusCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && !scheduledHabits.some(sh => sh.id === h.id)
-      );
+      // Filter habits that existed on this date (for reference)
+      const existingHabits = activeHabits.filter(habit => {
+        const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
+        return relevantDatesForHabit.length > 0;
+      });
       
-      const scheduledCount = scheduledCompletions.length;
-      const bonusCount = bonusCompletions.length;
+      habitsOnDate.forEach(h => {
+        if (!h.isCompleted) return;
+        
+        const completion = h.completion;
+        const isScheduledForThisDay = scheduledHabits.some(sh => sh.id === h.id);
+        
+        if (completion?.isBonus && !completion?.isConverted) {
+          // Regular bonus (not converted)
+          bonusCompletions++;
+        } else if (completion?.isConverted && completion?.convertedFromDate) {
+          // Makeup completion (bonus converted to cover missed day)
+          scheduledCompletions++;
+        } else if (isScheduledForThisDay && !completion?.isBonus) {
+          // Normal scheduled completion
+          scheduledCompletions++;
+        } else if (!isScheduledForThisDay && !completion?.isBonus) {
+          // This shouldn't happen with proper conversion logic
+          bonusCompletions++;
+        }
+      });
+      
+      const scheduledCount = scheduledCompletions;
+      const bonusCount = bonusCompletions;
       const totalScheduled = scheduledHabits.length;
       const totalCompleted = scheduledCount + bonusCount;
       

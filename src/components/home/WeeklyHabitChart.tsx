@@ -32,20 +32,33 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
         return relevantDatesForHabit.length > 0;
       });
       
-      // Count completions
-      const scheduledCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && scheduledHabits.some(sh => sh.id === h.id)
-      );
+      // Count completions using Smart Bonus Conversion logic
+      let scheduledCompletions = 0;
+      let bonusCompletions = 0;
       
-      // Count bonus completions (completed but not scheduled for this day, only for existing habits)
-      const bonusCompletions = habitsOnDate.filter(h => 
-        h.isCompleted && 
-        existingHabits.some(eh => eh.id === h.id) &&
-        !scheduledHabits.some(sh => sh.id === h.id)
-      );
+      habitsOnDate.forEach(h => {
+        if (!h.isCompleted) return;
+        
+        const completion = h.completion;
+        const isScheduledForThisDay = scheduledHabits.some(sh => sh.id === h.id);
+        
+        if (completion?.isBonus && !completion?.isConverted) {
+          // Regular bonus (not converted)
+          bonusCompletions++;
+        } else if (completion?.isConverted && completion?.convertedFromDate) {
+          // Makeup completion (bonus converted to cover missed day)
+          scheduledCompletions++;
+        } else if (isScheduledForThisDay && !completion?.isBonus) {
+          // Normal scheduled completion
+          scheduledCompletions++;
+        } else if (!isScheduledForThisDay && !completion?.isBonus) {
+          // This shouldn't happen with proper conversion logic
+          bonusCompletions++;
+        }
+      });
       
-      const scheduledCount = scheduledCompletions.length;
-      const bonusCount = bonusCompletions.length;
+      const scheduledCount = scheduledCompletions;
+      const bonusCount = bonusCompletions;
       const totalScheduled = scheduledHabits.length;
       const totalCompleted = scheduledCount + bonusCount;
       

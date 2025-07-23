@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
@@ -29,7 +29,7 @@ const TrendItem: React.FC<TrendItemProps> = ({ title, description, icon, color, 
         <Text style={styles.trendIndicator}>{getTrendIcon()}</Text>
       </View>
       <Text style={styles.trendTitle}>{title}</Text>
-      <Text style={styles.trendDescription}>{description}</Text>
+      <Text style={styles.trendDescription} numberOfLines={2} ellipsizeMode="tail">{description}</Text>
     </View>
   );
 };
@@ -151,7 +151,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (overallTrend === 'improving') {
       trends.push({
         title: '🚀 Overall Progress',
-        description: `Your habit completion improved by ${Math.round(overallTrendChange)}% over the last 4 weeks. Keep it up!`,
+        description: `Improved by ${Math.round(overallTrendChange)}% over 4 weeks. Keep it up!`,
         icon: '📊',
         color: Colors.success,
         trend: 'improving' as const
@@ -159,7 +159,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     } else if (overallTrend === 'declining') {
       trends.push({
         title: '⚠️ Needs Attention',
-        description: `Your habit completion dropped by ${Math.round(Math.abs(overallTrendChange))}% recently. Consider reviewing your routine.`,
+        description: `Dropped by ${Math.round(Math.abs(overallTrendChange))}% recently. Review your routine.`,
         icon: '📊',
         color: Colors.error,
         trend: 'declining' as const
@@ -167,7 +167,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     } else {
       trends.push({
         title: '📈 Steady Progress',
-        description: `Your habit consistency remains stable. Current average: ${Math.round(recentAvg)}%.`,
+        description: `Consistency stable at ${Math.round(recentAvg)}% average.`,
         icon: '📊',
         color: Colors.warning,
         trend: 'stable' as const
@@ -182,7 +182,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (bestPerformer) {
       trends.push({
         title: '🏆 Star Performer',
-        description: `${bestPerformer.habit.name} improved by ${bestPerformer.change}% this week!`,
+        description: `${bestPerformer.habit.name} improved by ${bestPerformer.change}%!`,
         icon: '⭐',
         color: Colors.success,
         trend: 'improving' as const
@@ -197,7 +197,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (strugglingHabit) {
       trends.push({
         title: '💪 Focus Needed',
-        description: `${strugglingHabit.habit.name} is at ${strugglingHabit.recentRate}%. Try breaking it into smaller steps.`,
+        description: `${strugglingHabit.habit.name} at ${strugglingHabit.recentRate}%. Try smaller steps.`,
         icon: '🎯',
         color: Colors.warning,
         trend: 'declining' as const
@@ -209,7 +209,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (consistentHabits > 0) {
       trends.push({
         title: '🔥 Streak Champions',
-        description: `${consistentHabits} habit${consistentHabits > 1 ? 's' : ''} with 7+ day streaks. Consistency is key!`,
+        description: `${consistentHabits} habit${consistentHabits > 1 ? 's' : ''} with 7+ day streaks!`,
         icon: '🔥',
         color: Colors.secondary,
         trend: 'stable' as const
@@ -221,7 +221,7 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (currentWeek && currentWeek.completionRate >= 80) {
       trends.push({
         title: '🎯 Excellent Week',
-        description: `This week you completed ${currentWeek.completionRate}% of your habits. Amazing work!`,
+        description: `${currentWeek.completionRate}% completion this week. Amazing!`,
         icon: '🌟',
         color: Colors.success,
         trend: 'improving' as const
@@ -263,8 +263,8 @@ export const HabitTrendAnalysis: React.FC = () => {
         </Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {trendAnalysis.trends.map((trend, index) => (
+      <View>
+        {trendAnalysis.trends.slice(0, 2).map((trend, index) => (
           <TrendItem
             key={index}
             title={trend.title}
@@ -274,7 +274,7 @@ export const HabitTrendAnalysis: React.FC = () => {
             trend={trend.trend}
           />
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     padding: Layout.spacing.md,
     marginHorizontal: Layout.spacing.md,
     marginTop: Layout.spacing.md,
-    maxHeight: 300,
+    minHeight: 240, // Minimum height, can grow if needed
     shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
@@ -316,6 +316,7 @@ const styles = StyleSheet.create({
     padding: Layout.spacing.md,
     marginBottom: Layout.spacing.sm,
     borderLeftWidth: 4,
+    minHeight: 70,
   },
   trendHeader: {
     flexDirection: 'row',
