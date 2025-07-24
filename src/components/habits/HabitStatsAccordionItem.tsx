@@ -121,7 +121,8 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
           <View style={styles.statsSection}>
             <Text style={[
               styles.statValue,
-              !habit.isActive && styles.inactiveText
+              !habit.isActive && styles.inactiveText,
+              stats.completionRate > 100 && { color: Colors.warning }
             ]}>
               {stats.completionRate.toFixed(0)}%
             </Text>
@@ -129,7 +130,7 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
               styles.statLabel,
               !habit.isActive && styles.inactiveText
             ]}>
-              Success
+              Success{stats.bonusCompletions > 0 ? ' + Bonus' : ''}
             </Text>
           </View>
           

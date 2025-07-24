@@ -6,10 +6,39 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Typography } from '@/src/constants';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { HabitColor, HabitIcon } from '@/src/types/common';
 
 interface QuickActionButtonsProps {
   onHabitToggle?: (habitId: string) => void;
 }
+
+// Color mapping for habits
+const COLOR_MAP = {
+  [HabitColor.RED]: Colors.habitRed,
+  [HabitColor.BLUE]: Colors.habitBlue,
+  [HabitColor.GREEN]: Colors.habitGreen,
+  [HabitColor.YELLOW]: Colors.habitYellow,
+  [HabitColor.PURPLE]: Colors.habitPurple,
+  [HabitColor.ORANGE]: Colors.habitOrange,
+  [HabitColor.PINK]: Colors.habitPink,
+  [HabitColor.TEAL]: Colors.habitTeal,
+};
+
+// Icon mapping for habits
+const ICON_MAP = {
+  [HabitIcon.FITNESS]: 'fitness-outline',
+  [HabitIcon.BOOK]: 'book-outline',
+  [HabitIcon.WATER]: 'water-outline',
+  [HabitIcon.MEDITATION]: 'leaf-outline',
+  [HabitIcon.MUSIC]: 'musical-notes-outline',
+  [HabitIcon.HEALTH]: 'heart-outline',
+  [HabitIcon.WORK]: 'briefcase-outline',
+  [HabitIcon.SOCIAL]: 'people-outline',
+  [HabitIcon.CREATIVE]: 'color-palette-outline',
+  [HabitIcon.LEARNING]: 'school-outline',
+  [HabitIcon.FINANCE]: 'card-outline',
+  [HabitIcon.HOME]: 'home-outline',
+};
 
 export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const { t } = useI18n();
@@ -81,11 +110,15 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
             {pendingTodayHabits.map((habit) => (
               <TouchableOpacity
                 key={habit.id}
-                style={[styles.habitToggle, { backgroundColor: habit.color + '20' }]}
+                style={[styles.habitToggle, { backgroundColor: COLOR_MAP[habit.color] + '20' }]}
                 onPress={() => handleHabitQuickToggle(habit.id)}
               >
-                <View style={[styles.symbolCircle, { backgroundColor: habit.color }]}>
-                  <Text style={styles.symbolText}>{habit.symbol}</Text>
+                <View style={[styles.symbolCircle, { backgroundColor: COLOR_MAP[habit.color] }]}>
+                  <Ionicons 
+                    name={ICON_MAP[habit.icon] as any} 
+                    size={16} 
+                    color={Colors.textInverse} 
+                  />
                 </View>
                 <Text style={styles.habitName} numberOfLines={1}>
                   {habit.name}
@@ -171,10 +204,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Layout.spacing.xs,
-  },
-  symbolText: {
-    fontSize: 16,
-    color: Colors.white,
   },
   habitName: {
     ...Typography.caption,

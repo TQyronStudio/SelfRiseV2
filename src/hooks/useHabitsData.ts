@@ -52,23 +52,56 @@ export function useHabitsData() {
     const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
     const creationDateString = formatDateToString(createdAt);
     const daysSinceCreation = daysBetween(creationDateString, today()) + 1; // +1 to include creation day
-
-    // Use converted completions for accurate statistics
-    const habitCompletions = getHabitCompletionsWithConversion(habitId);
-    const completedDays = habitCompletions.filter(c => c.completed).length;
     
-    // Use days since creation instead of completion record count
-    const totalDays = Math.max(daysSinceCreation, habitCompletions.length);
+    // Get all dates since habit was created
+    const allDatesSinceCreation = getDateRangeFromToday(creationDateString);
+    const relevantDates = getRelevantDatesForHabit(habit, allDatesSinceCreation);
+
+    // Use the same sophisticated calculation logic as Home screen components
+    let scheduledDays = 0;
+    let completedScheduled = 0;
+    let bonusCompletions = 0;
+    let totalCompletedDays = 0;
+
+    // Get habit completions with smart conversion applied
+    const convertedCompletions = getHabitCompletionsWithConversion(habitId);
+    
+    relevantDates.forEach(date => {
+      const dayOfWeek = getDayOfWeekFromDateString(date);
+      const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+      const completion = convertedCompletions.find(c => c.date === date);
+      const isCompleted = completion?.completed || false;
+      
+      if (isScheduled) {
+        scheduledDays++;
+        if (isCompleted) {
+          completedScheduled++;
+          totalCompletedDays++;
+        }
+      } else if (isCompleted) {
+        bonusCompletions++;
+        totalCompletedDays++;
+      }
+    });
+
+    // Calculate completion rate using the same logic as Home screen:
+    // scheduled completions + bonus points (25% each bonus completion)
+    const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
+    const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
+    const completionRate = scheduledRate + bonusRate;
     
     return {
       habit,
-      completedDays,
-      totalDays,
-      daysSinceCreation, // Add this for debugging/reference
-      completionRate: totalDays > 0 ? (completedDays / totalDays) * 100 : 0,
-      currentStreak: calculateCurrentStreak(habitCompletions),
-      longestStreak: calculateLongestStreak(habitCompletions),
-      totalCompletions: completedDays, // Total number of times habit was completed
+      completedDays: totalCompletedDays,
+      totalDays: daysSinceCreation,
+      scheduledDays,
+      completedScheduled,
+      bonusCompletions,
+      daysSinceCreation,
+      completionRate,
+      currentStreak: calculateCurrentStreak(convertedCompletions),
+      longestStreak: calculateLongestStreak(convertedCompletions),
+      totalCompletions: totalCompletedDays,
     };
   };
 
