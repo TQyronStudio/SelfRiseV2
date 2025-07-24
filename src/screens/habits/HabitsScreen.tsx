@@ -1,9 +1,9 @@
 // src/screens/habits/HabitsScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
 import { 
   HabitModal, 
@@ -80,12 +80,25 @@ const styles = StyleSheet.create({
 export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
+  const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Handle quick action from home screen
+  useEffect(() => {
+    if (params.quickAction === 'addHabit') {
+      setEditingHabit(undefined);
+      setModalVisible(true);
+      // Clear the quick action parameter after a brief delay to prevent re-triggering
+      setTimeout(() => {
+        router.replace('/(tabs)/habits');
+      }, 100);
+    }
+  }, [params.quickAction]);
 
   const handleAddHabit = () => {
     setEditingHabit(undefined);

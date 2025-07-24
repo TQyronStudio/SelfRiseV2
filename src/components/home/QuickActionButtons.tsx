@@ -27,15 +27,19 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   }).slice(0, 3); // Limit to 3 for space
 
   const handleAddHabit = () => {
-    router.push('/(tabs)/habits');
+    router.push('/(tabs)/habits?quickAction=addHabit');
   };
 
-  const handleAddJournal = () => {
-    router.push('/(tabs)/journal');
+  const handleAddGratitude = () => {
+    router.push('/(tabs)/journal?quickAction=addGratitude');
+  };
+
+  const handleAddSelfPraise = () => {
+    router.push('/(tabs)/journal?quickAction=addSelfPraise');
   };
 
   const handleAddGoal = () => {
-    router.push('/(tabs)/goals');
+    router.push('/(tabs)/goals?quickAction=addGoal');
   };
 
   const handleHabitQuickToggle = (habitId: string) => {
@@ -49,18 +53,23 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}
         <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit}>
-          <Ionicons name="add-circle" size={24} color={Colors.primary} />
-          <Text style={styles.actionText}>{t('home.addHabit')}</Text>
+          <Ionicons name="add-circle" size={20} color={Colors.primary} />
+          <Text style={styles.actionText}>Add Habit</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton} onPress={handleAddJournal}>
-          <Ionicons name="book" size={24} color={Colors.success} />
-          <Text style={styles.actionText}>{t('home.addJournal')}</Text>
+        <TouchableOpacity style={styles.actionButton} onPress={handleAddGratitude}>
+          <Ionicons name="heart" size={20} color={Colors.primary} />
+          <Text style={styles.actionText}>Gratitude</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionButton} onPress={handleAddSelfPraise}>
+          <Ionicons name="star" size={20} color={Colors.success} />
+          <Text style={styles.actionText}>Self-Praise</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGoal}>
-          <Ionicons name="flag" size={24} color={Colors.secondary} />
-          <Text style={styles.actionText}>{t('home.addGoal')}</Text>
+          <Ionicons name="flag" size={20} color={Colors.secondary} />
+          <Text style={styles.actionText}>Add Goal</Text>
         </TouchableOpacity>
       </View>
 
@@ -97,7 +106,7 @@ const styles = StyleSheet.create({
     padding: Layout.spacing.md,
     marginHorizontal: Layout.spacing.md,
     marginBottom: Layout.spacing.md,
-    shadowColor: Colors.textPrimary,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -117,20 +126,26 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: Layout.spacing.sm,
+    gap: Layout.spacing.xs,
   },
   actionButton: {
+    flex: 1,
     alignItems: 'center',
     padding: Layout.spacing.sm,
     borderRadius: Layout.borderRadius.md,
-    minWidth: 80,
+    backgroundColor: Colors.background + '80',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   actionText: {
     ...Typography.caption,
     color: Colors.textSecondary,
     marginTop: Layout.spacing.xs,
     textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '600',
   },
   habitTogglesContainer: {
     marginTop: Layout.spacing.sm,

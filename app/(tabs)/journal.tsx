@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { today } from '@/src/utils/date';
@@ -15,7 +15,9 @@ import CelebrationModal from '@/src/components/gratitude/CelebrationModal';
 export default function JournalScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [showInput, setShowInput] = useState(false);
   const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
   const [showCelebration, setShowCelebration] = useState(false);
@@ -33,6 +35,33 @@ export default function JournalScreen() {
   useEffect(() => {
     setTodaysGratitudes(actions.getGratitudesByDate(todayDate));
   }, [state.gratitudes, todayDate, actions]);
+
+  // Handle quick actions from home screen
+  useEffect(() => {
+    if (params.quickAction === 'addGratitude') {
+      setInputType('gratitude');
+      setShowInput(true);
+      // Scroll to input area after a brief delay to ensure it's rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300);
+      // Clear the quick action parameter after a brief delay to prevent re-triggering
+      setTimeout(() => {
+        router.replace('/(tabs)/journal');
+      }, 100);
+    } else if (params.quickAction === 'addSelfPraise') {
+      setInputType('self-praise');
+      setShowInput(true);
+      // Scroll to input area after a brief delay to ensure it's rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300);
+      // Clear the quick action parameter after a brief delay to prevent re-triggering
+      setTimeout(() => {
+        router.replace('/(tabs)/journal');
+      }, 100);
+    }
+  }, [params.quickAction]);
 
   const handleInputSuccess = useCallback(async () => {
     setShowInput(false);
@@ -85,6 +114,7 @@ export default function JournalScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <ScrollView 
+          ref={scrollViewRef}
           style={styles.scrollView} 
           contentContainerStyle={[
             styles.content,
@@ -154,6 +184,10 @@ export default function JournalScreen() {
                 onPress={() => {
                   setInputType('gratitude');
                   setShowInput(true);
+                  // Auto-scroll to input area after a brief delay
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 300);
                 }}
               >
                 <Text style={styles.addButtonText}>
@@ -166,6 +200,10 @@ export default function JournalScreen() {
                 onPress={() => {
                   setInputType('self-praise');
                   setShowInput(true);
+                  // Auto-scroll to input area after a brief delay
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 300);
                 }}
               >
                 <Text style={styles.addButtonText}>

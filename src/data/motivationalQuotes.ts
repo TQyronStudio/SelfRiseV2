@@ -201,7 +201,13 @@ export function getDailyQuote(
   const dateHash = date.split('-').reduce((acc, part) => acc + parseInt(part, 10), 0);
   const index = dateHash % availableQuotes.length;
   
-  return availableQuotes[index];
+  // Ensure we always return a quote (fallback to first English quote if somehow undefined)
+  return availableQuotes[index] || motivationalQuotes.find(q => q.language === 'en') || motivationalQuotes[0] || {
+    id: 'fallback',
+    text: 'Every day is a new opportunity to grow.',
+    category: 'motivation' as const,
+    language: 'en' as const
+  };
 }
 
 /**
@@ -228,8 +234,20 @@ export function getRandomQuoteFromCategory(
   if (categoryQuotes.length === 0) {
     // Fallback to English
     const fallbackQuotes = getQuotesByCategory(category, 'en');
-    return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+    const fallbackQuote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+    return fallbackQuote || motivationalQuotes.find(q => q.language === 'en') || motivationalQuotes[0] || {
+      id: 'fallback',
+      text: 'Every day is a new opportunity to grow.',
+      category: 'motivation' as const,
+      language: 'en' as const
+    };
   }
   
-  return categoryQuotes[Math.floor(Math.random() * categoryQuotes.length)];
+  const selectedQuote = categoryQuotes[Math.floor(Math.random() * categoryQuotes.length)];
+  return selectedQuote || motivationalQuotes.find(q => q.language === 'en') || motivationalQuotes[0] || {
+    id: 'fallback',
+    text: 'Every day is a new opportunity to grow.',
+    category: 'motivation' as const,
+    language: 'en' as const
+  };
 }

@@ -18,15 +18,25 @@ export function PersonalizedRecommendations() {
   const { state: goalsState } = useGoals();
   const { state: gratitudeState } = useGratitude();
 
-  // Generate recommendations
+  // Generate recommendations with error handling
   const recommendations = useMemo(() => {
-    return RecommendationEngine.generateRecommendations(
-      habits,
-      completions,
-      goalsState.goals,
-      gratitudeState.gratitudeEntries
-    );
-  }, [habits, completions, goalsState.goals, gratitudeState.gratitudeEntries]);
+    try {
+      // Ensure all data is loaded before generating recommendations
+      if (!habits || !completions || !goalsState || !gratitudeState) {
+        return [];
+      }
+
+      return RecommendationEngine.generateRecommendations(
+        habits || [],
+        completions || [],
+        goalsState?.goals || [],
+        gratitudeState?.gratitudeEntries || []
+      );
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      return [];
+    }
+  }, [habits, completions, goalsState?.goals, gratitudeState?.gratitudeEntries]);
 
   const getRecommendationIcon = (recommendation: PersonalizedRecommendation) => {
     switch (recommendation.type) {
@@ -175,7 +185,7 @@ const styles = StyleSheet.create({
     marginRight: Layout.spacing.sm,
     width: 240,
     minHeight: 140,
-    shadowColor: Colors.textPrimary,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

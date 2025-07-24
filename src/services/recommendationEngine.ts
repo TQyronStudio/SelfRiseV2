@@ -1,8 +1,8 @@
 import { Habit, HabitCompletion } from '../types/habit';
-import { Goal } from '../types/goal';
-import { GratitudeEntry } from '../types/gratitude';
-import { DateString, DayOfWeek } from '../types/common';
-import { today, subtractDays, getDateRangeFromToday, getDayOfWeek } from '../utils/date';
+import { Goal, GoalStatus } from '../types/goal';
+import { Gratitude } from '../types/gratitude';
+import { DayOfWeek } from '../types/common';
+import { getPast7Days, getDayOfWeek } from '../utils/date';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -45,18 +45,29 @@ export class RecommendationEngine {
     habits: Habit[],
     completions: HabitCompletion[],
     goals: Goal[],
-    gratitudeEntries: GratitudeEntry[]
+    gratitudeEntries: Gratitude[]
   ): PersonalizedRecommendation[] {
+    // Safe guard against undefined arrays
+    const safeHabits = habits || [];
+    const safeCompletions = completions || [];
+    const safeGoals = goals || [];
+    const safeGratitudeEntries = gratitudeEntries || [];
+
     const recommendations: PersonalizedRecommendation[] = [];
 
-    // Add habit recommendations
-    recommendations.push(...this.generateHabitRecommendations(habits, completions));
-    
-    // Add journal recommendations
-    recommendations.push(...this.generateJournalRecommendations(gratitudeEntries));
-    
-    // Add goal recommendations
-    recommendations.push(...this.generateGoalRecommendations(goals));
+    try {
+      // Add habit recommendations
+      recommendations.push(...this.generateHabitRecommendations(safeHabits, safeCompletions));
+      
+      // Add journal recommendations
+      recommendations.push(...this.generateJournalRecommendations(safeGratitudeEntries));
+      
+      // Add goal recommendations
+      recommendations.push(...this.generateGoalRecommendations(safeGoals));
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      return [];
+    }
 
     // Sort by priority and limit to top 4
     return recommendations
@@ -75,9 +86,7 @@ export class RecommendationEngine {
     completions: HabitCompletion[]
   ): HabitRecommendation[] {
     const recommendations: HabitRecommendation[] = [];
-    const todayDate = today();
-    const past7Days = getDateRangeFromToday(7);
-    const past30Days = getDateRangeFromToday(30);
+    const past7Days = getPast7Days();
 
     // Analyze completion patterns
     habits.forEach(habit => {
@@ -116,7 +125,7 @@ export class RecommendationEngine {
     // Suggest new habits based on successful patterns
     const activeHabits = habits.filter(h => h.isActive);
     if (activeHabits.length > 0 && activeHabits.length < 5) {
-      const successfulDays = this.findBestDaysForHabits(activeHabits, completions);
+      const successfulDays = this.findBestDaysForHabits(completions);
       
       recommendations.push({
         type: 'new_habit',
@@ -135,10 +144,10 @@ export class RecommendationEngine {
    * Generate journal-specific recommendations
    */
   private static generateJournalRecommendations(
-    gratitudeEntries: GratitudeEntry[]
+    gratitudeEntries: Gratitude[]
   ): JournalRecommendation[] {
     const recommendations: JournalRecommendation[] = [];
-    const past7Days = getDateRangeFromToday(7);
+    const past7Days = getPast7Days();
     const recentEntries = gratitudeEntries.filter(entry => 
       past7Days.includes(entry.date)
     );
@@ -187,27 +196,20 @@ export class RecommendationEngine {
     const recommendations: GoalRecommendation[] = [];
 
     goals.forEach(goal => {
-      if (goal.isCompleted) return;
+      if (goal.status === GoalStatus.COMPLETED) return;
 
       const progressPercentage = (goal.currentValue / goal.targetValue) * 100;
 
-      // Stalled progress
-      if (progressPercentage < 10 && goal.progressEntries.length > 0) {
-        const lastEntry = goal.progressEntries[goal.progressEntries.length - 1];
-        const daysSinceUpdate = Math.floor(
-          (Date.now() - new Date(lastEntry.date).getTime()) / (1000 * 60 * 60 * 24)
-        );
-
-        if (daysSinceUpdate > 7) {
-          recommendations.push({
-            type: 'goal_progress',
-            title: 'Update Progress',
-            description: `${goal.title} hasn't been updated in ${daysSinceUpdate} days.`,
-            priority: 'high',
-            goalId: goal.id,
-            suggestedAction: 'Log Progress',
-          });
-        }
+      // Basic progress recommendation for low progress goals
+      if (progressPercentage < 10) {
+        recommendations.push({
+          type: 'goal_progress',
+          title: 'Start Making Progress',
+          description: `${goal.title} needs attention. Start making some progress!`,
+          priority: 'medium',
+          goalId: goal.id,
+          suggestedAction: 'Log Progress',
+        });
       }
 
       // Near completion
@@ -224,9 +226,9 @@ export class RecommendationEngine {
 
       // Behind schedule
       if (goal.targetDate) {
-        const today = new Date();
+        const todayDate = new Date();
         const targetDate = new Date(goal.targetDate);
-        const daysRemaining = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (daysRemaining > 0 && progressPercentage < 50 && daysRemaining < 30) {
           recommendations.push({
@@ -242,7 +244,7 @@ export class RecommendationEngine {
     });
 
     // Suggest new goals if user has few active goals
-    const activeGoals = goals.filter(g => !g.isCompleted);
+    const activeGoals = goals.filter(g => g.status === GoalStatus.ACTIVE);
     if (activeGoals.length < 2) {
       recommendations.push({
         type: 'new_goal',
@@ -260,7 +262,6 @@ export class RecommendationEngine {
    * Find the best days for new habits based on existing success patterns
    */
   private static findBestDaysForHabits(
-    habits: Habit[],
     completions: HabitCompletion[]
   ): DayOfWeek[] {
     const dayStats: Record<DayOfWeek, number> = {
@@ -276,7 +277,7 @@ export class RecommendationEngine {
     // Count completions by day of week
     completions.forEach(completion => {
       if (completion.completed) {
-        const dayOfWeek = getDayOfWeek(completion.date);
+        const dayOfWeek = getDayOfWeek(new Date(completion.date));
         dayStats[dayOfWeek]++;
       }
     });

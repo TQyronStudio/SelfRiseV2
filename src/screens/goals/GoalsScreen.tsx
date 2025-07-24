@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
 import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
 export function GoalsScreen() {
   const { t } = useI18n();
   const { goals, isLoading, actions } = useGoalsData();
+  const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -109,6 +110,19 @@ export function GoalsScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [templateData, setTemplateData] = useState<CreateGoalInput | undefined>();
+
+  // Handle quick action from home screen
+  useEffect(() => {
+    if (params.quickAction === 'addGoal') {
+      setEditingGoal(undefined);
+      setTemplateData(undefined);
+      setModalVisible(true);
+      // Clear the quick action parameter after a brief delay to prevent re-triggering
+      setTimeout(() => {
+        router.replace('/(tabs)/goals');
+      }, 100);
+    }
+  }, [params.quickAction]);
 
   const handleAddGoal = () => {
     setEditingGoal(undefined);

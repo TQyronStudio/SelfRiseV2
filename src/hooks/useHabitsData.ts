@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
-import { DateString, DayOfWeek } from '../types/common';
+import { DateString } from '../types/common';
 import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today, parseDate, getWeekDates, getDayOfWeekFromDateString } from '../utils/date';
 
 export function useHabitsData() {
@@ -173,10 +173,12 @@ export function useHabitsData() {
       const weekDates = getWeekDates(completion.date);
       const weekKey = weekDates[0]; // Use Monday as week key
       
-      if (!weeklyCompletions.has(weekKey)) {
+      if (weekKey && !weeklyCompletions.has(weekKey)) {
         weeklyCompletions.set(weekKey, []);
       }
-      weeklyCompletions.get(weekKey)!.push(completion);
+      if (weekKey) {
+        weeklyCompletions.get(weekKey)!.push(completion);
+      }
     });
 
     // Apply conversion logic for each week
@@ -220,10 +222,15 @@ export function useHabitsData() {
       // Create pairings (1:1)
       const pairCount = Math.min(sortedMissed.length, sortedBonuses.length);
       for (let i = 0; i < pairCount; i++) {
-        conversions.push({
-          missedDate: sortedMissed[i],
-          bonusCompletion: sortedBonuses[i]
-        });
+        const missedDate = sortedMissed[i];
+        const bonusCompletion = sortedBonuses[i];
+        
+        if (missedDate && bonusCompletion) {
+          conversions.push({
+            missedDate,
+            bonusCompletion
+          });
+        }
       }
 
       // Apply conversions

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -7,19 +7,25 @@ import { getDailyQuote, getRandomQuoteFromCategory, MotivationalQuote } from '@/
 import { today } from '@/src/utils/date';
 
 export function DailyMotivationalQuote() {
-  const { t, i18n } = useI18n();
-  const currentLanguage = i18n.language as 'en' | 'de' | 'es';
+  const { t, currentLanguage } = useI18n();
   
   const [currentQuote, setCurrentQuote] = useState<MotivationalQuote>(() => 
     getDailyQuote(today(), currentLanguage)
   );
 
+  // Update quote when language changes
+  useEffect(() => {
+    setCurrentQuote(getDailyQuote(today(), currentLanguage));
+  }, [currentLanguage]);
+
   const handleRefreshQuote = () => {
     // Get a random quote from a random category for variety
     const categories: MotivationalQuote['category'][] = ['motivation', 'gratitude', 'habits', 'goals'];
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    const newQuote = getRandomQuoteFromCategory(randomCategory, currentLanguage);
-    setCurrentQuote(newQuote);
+    if (randomCategory) {
+      const newQuote = getRandomQuoteFromCategory(randomCategory, currentLanguage);
+      setCurrentQuote(newQuote);
+    }
   };
 
   const getCategoryIcon = (category: MotivationalQuote['category']) => {
@@ -96,7 +102,7 @@ const styles = StyleSheet.create({
     padding: Layout.spacing.md,
     marginHorizontal: Layout.spacing.md,
     marginBottom: Layout.spacing.md,
-    shadowColor: Colors.textPrimary,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
