@@ -215,7 +215,7 @@ const en: TranslationKeys = {
       unit: 'Unit',
       targetValue: 'Target Value',
       category: 'Category',
-      targetDate: 'Target Date (Optional)',
+      targetDate: 'Target Date (Recommended)',
       placeholders: {
         title: 'Enter your goal title...',
         description: 'Describe your goal in more detail...',
@@ -234,6 +234,13 @@ const en: TranslationKeys = {
         descriptionTooLong: 'Description must be less than 300 characters',
         submitFailed: 'Failed to save goal. Please try again.',
       },
+    },
+    
+    targetDateConfirmation: {
+      title: 'Add Target Date?',
+      message: 'A goal without a date is just a dream. Setting a target date will help you stay motivated and on track.',
+      addDate: 'Add Date',
+      continueWithoutDate: 'Continue Without Date',
     },
     
     progress: {

@@ -1533,3 +1533,391 @@ The habit calendar statistics now perfectly align with Checkpoint 6.2 improvemen
 - ✅ Habit creation date respect implemented
 - ✅ Consistent calculation across all components
 - ✅ Enhanced UI feedback for bonus achievements
+
+---
+
+## Goal Screen UX Improvements - Add Goal Modal Enhancements (July 24, 2025)
+
+### Problem Analysis
+After completing Checkpoint 6.3, user identified several UX improvements needed in the Add Goal modal:
+
+1. **Text Change**: "(optional)" → "(recommended)" for Target Date field
+2. **Missing Date Confirmation Modal**: Need alert when creating goal without target date
+3. **Keyboard Navigation**: Automatic scrolling and keyboard handling when adding date
+
+### Solution Strategy
+Implement focused UX improvements that align with the app's existing modal culture and form handling patterns while maintaining simplicity.
+
+### Implementation Plan
+
+#### Task 1: Update Target Date Label Text ✅
+- [x] Change localization key from "Target Date (Optional)" to "Target Date (Recommended)"
+- [x] File: `/src/locales/en/index.ts` line 218
+- [x] Simple text replacement maintaining existing i18n structure
+
+#### Task 2: Implement Target Date Confirmation Modal ✅
+- [x] Create new modal component following CelebrationModal design pattern
+- [x] Trigger when user attempts to create goal without target date
+- [x] Include motivational message: "A goal without a date is just a dream"
+- [x] Two action buttons: "Add Date" and "Continue Without Date"
+- [x] Follow app's modal culture with elegant styling and proper UX flow
+
+#### Task 3: Enhanced Date Input Experience ✅
+- [x] Implement automatic keyboard display when "Add Date" is pressed
+- [x] Add screen scrolling to ensure Target Date field is visible
+- [x] Add TextInput ref and auto-focus functionality
+- [x] Maintain focus on date input until completion or cancellation
+
+#### Task 4: Form Integration and Validation ✅
+- [x] Integrate modal into existing GoalForm.tsx validation flow
+- [x] Ensure modal respects existing form state and error handling
+- [x] Maintain backward compatibility with current goal creation process
+
+### Technical Architecture
+
+#### Current Modal Pattern (from CelebrationModal):
+```typescript
+// Base Modal Pattern from app culture
+<Modal
+  visible={visible}
+  animationType="fade" 
+  transparent={true}
+  onRequestClose={onClose}
+>
+  <View style={styles.overlay}>
+    <View style={styles.modalContainer}>
+      {/* Elegant modal content with shadows and styling */}
+    </View>
+  </View>
+</Modal>
+```
+
+#### Proposed Target Date Confirmation Modal:
+```typescript
+<TargetDateConfirmationModal
+  visible={showDateConfirmation}
+  onAddDate={() => {
+    setShowDateConfirmation(false);
+    // Auto-scroll to date field and show keyboard
+    scrollToDateInput();
+  }}
+  onContinueWithoutDate={() => {
+    setShowDateConfirmation(false);
+    // Proceed with goal creation
+    handleSubmit();
+  }}
+  onClose={() => setShowDateConfirmation(false)}
+/>
+```
+
+#### Enhanced Keyboard Handling:
+```typescript
+// Add to GoalForm.tsx
+const scrollToDateInput = () => {
+  // Scroll to Target Date field
+  scrollToInput('targetDate');
+  // Auto-focus date picker
+  dateInputRef.current?.focus();
+};
+
+// Modified form submission
+const handleSubmit = () => {
+  if (!targetDate && !showDateConfirmation) {
+    setShowDateConfirmation(true);
+    return;
+  }
+  // Proceed with normal goal creation
+  onSave(goalData);
+};
+```
+
+### Expected User Experience
+
+#### Before Changes:
+1. User sees "Target Date (Optional)" 
+2. Can create goal without date - no feedback
+3. Manual scrolling and tapping to access date field
+
+#### After Changes:
+1. User sees "Target Date (Recommended)" - clearer guidance
+2. Attempts to create goal without date → Beautiful confirmation modal appears
+3. Modal message: "A goal without a date is just a dream" with elegant styling
+4. Modal offers choice: "Add Date" or "Continue Without Date"
+5. If "Add Date" selected → Automatic scroll + keyboard + date picker focus
+6. Motivational messaging reinforces best practices
+
+### Implementation Complexity: 🟢 SIMPLE
+
+- **Task 1**: Single line text change (5 minutes)
+- **Task 2**: New modal component following existing patterns (45 minutes)
+- **Task 3**: Date input enhancements (30 minutes)  
+- **Task 4**: Form integration (20 minutes)
+
+**Total Estimate**: ~100 minutes of focused work
+
+### Success Criteria
+
+✅ **Text Change**: Target Date field shows "(recommended)" instead of "(optional)"
+✅ **Modal Trigger**: Creating goal without target date shows confirmation modal
+✅ **Modal Design**: Follows CelebrationModal styling with elegant appearance
+✅ **Motivational Message**: Modal includes inspiring text about goals needing dates
+✅ **Smart Navigation**: "Add Date" button scrolls to field and shows date picker
+✅ **Form Integration**: Modal respects existing validation and error handling
+✅ **Platform Compatibility**: Works correctly on both iOS and Android
+✅ **Existing Functionality**: All current goal creation features remain intact
+
+### Dependencies & Files to Modify
+
+1. **Localization**: `/src/locales/en/index.ts` - Line 218
+2. **Goal Form**: `/src/components/goals/GoalForm.tsx` - Add modal logic
+3. **New Component**: Create `TargetDateConfirmationModal.tsx`
+4. **Styling**: Follow existing modal patterns from CelebrationModal
+
+### Test Scenarios
+
+1. **Happy Path**: User creates goal with target date → No modal, normal flow
+2. **Confirmation Path**: User creates goal without date → Modal appears → "Add Date" → Auto-scroll + date picker
+3. **Skip Path**: User creates goal without date → Modal appears → "Continue Without Date" → Goal created
+4. **Platform Test**: Verify behavior on both iOS and Android devices
+
+### Review & Summary ✅ COMPLETED (July 24, 2025)
+
+**ALL TASKS SUCCESSFULLY IMPLEMENTED** - The Goal screen UX improvements have been completed exactly as requested:
+
+#### Changes Made:
+
+1. **Text Update**: 
+   - Changed "Target Date (Optional)" → "Target Date (Recommended)" in `/src/locales/en/index.ts`
+   - Provides clearer guidance to users about the importance of setting target dates
+
+2. **Target Date Confirmation Modal**:
+   - Created new `TargetDateConfirmationModal.tsx` component following CelebrationModal design patterns
+   - Elegant modal with calendar emoji, motivational message, and two action buttons
+   - Message: "A goal without a date is just a dream. Setting a target date will help you stay motivated and on track."
+   - Follows app's modal culture with fade animation, overlay, shadows, and consistent styling
+
+3. **Enhanced Keyboard Experience**:
+   - Added TextInput ref for direct focus control
+   - Implemented `scrollToDateInput()` function with automatic scrolling and keyboard focus
+   - When "Add Date" is pressed → Modal closes → Screen scrolls to date field → Keyboard appears automatically
+   - 400ms delay ensures smooth scroll-then-focus transition
+
+4. **Form Integration**:
+   - Modified `handleSubmit()` to check for missing target date before submission
+   - Added `submitGoal()` function for actual goal creation logic
+   - Implemented `handleAddDate()` and `handleContinueWithoutDate()` handlers
+   - Maintains full backward compatibility with existing goal creation flow
+
+#### Technical Implementation:
+- **Files Modified**: 2 files updated, 1 new component created
+- **Lines of Code**: ~100 lines added total
+- **Breaking Changes**: None - fully backward compatible
+- **Dependencies**: Uses existing patterns and imports only
+
+#### User Experience Impact:
+- **Before**: User sees "(optional)", can create goal without feedback, manual date input
+- **After**: User sees "(recommended)", gets beautiful confirmation modal, automatic keyboard+scroll experience
+
+#### Architecture Compliance:
+- ✅ Follows CelebrationModal styling patterns
+- ✅ Uses existing i18n structure  
+- ✅ Maintains existing form validation flow
+- ✅ Simple, focused changes with minimal code impact
+- ✅ Elegant, motivational user messaging
+
+**RESULT**: Goal creation UX significantly improved while maintaining app's design language and existing functionality.
+
+#### Additional Improvement ✅ (Follow-up):
+- **Field Reordering**: Moved Target Date section below Description for better form flow
+- **Scroll Optimization**: Updated scroll positions to match new field order
+- **UX Enhancement**: Target Date now appears earlier in form, reducing scroll issues
+- **Technical**: Updated `scrollToDateInput()` from position 450 → 200
+
+---
+
+## Add Goal Screen Enhancement Implementation (July 24, 2025)
+
+### Problem Statement
+The current Add Goal screen has several UX issues that need to be addressed:
+1. **Text change needed**: Target Date field shows "(optional)" but should show "(recommended)"
+2. **Missing date picker modal**: Users currently enter dates manually which is error-prone
+3. **No keyboard shortcuts**: Enter key doesn't submit the form, requiring multiple taps
+
+### Current Implementation Analysis
+
+#### Add Goal Form Structure (/src/components/goals/GoalForm.tsx)
+- **Target Date Field**: Located at lines 242-254 with manual text input
+- **Text Source**: `t('goals.form.targetDate')` from `/src/locales/en/index.ts` line 218
+- **Modal Pattern**: Uses standard React Native Modal with `presentationStyle="pageSheet"`
+- **Keyboard Handling**: Basic `Keyboard.dismiss()` on cancel, no Enter key support
+
+#### Existing Modal Patterns
+- **BaseModal** (/src/components/common/BaseModal.tsx): Overlay-style modal with KeyboardAvoidingView
+- **CelebrationModal** (/src/components/gratitude/CelebrationModal.tsx): Fade animation, button-focused
+- **GoalModal** (/src/components/goals/GoalModal.tsx): Uses pageSheet presentation with SafeAreaView
+
+#### Current Keyboard Implementation
+- **Form scrolling**: `scrollToInput()` function with manual position targeting
+- **Dismissal**: `Keyboard.dismiss()` on cancel button
+- **No Enter handling**: No onSubmitEditing or returnKeyType configuration
+
+### Implementation Plan
+
+#### Task 1: Update Target Date Text Label ✅ SIMPLE TEXT CHANGE
+- [ ] **File**: `/src/locales/en/index.ts`
+- [ ] **Location**: Line 218 - `targetDate: 'Target Date (Optional)'`
+- [ ] **Change**: Replace "(Optional)" with "(Recommended)"
+- [ ] **Impact**: Immediate text change across all Goal forms
+
+#### Task 2: Implement Date Picker Modal 🗓️ NEW COMPONENT
+- [ ] **Create**: `/src/components/common/DatePickerModal.tsx`
+- [ ] **Design**: Follow existing modal patterns with:
+  - Native iOS/Android date picker component
+  - Consistent styling with BaseModal approach
+  - Cancel/Confirm buttons with proper validation
+  - Support for min/max date constraints
+- [ ] **Integration**: Add to GoalForm.tsx Target Date field
+- [ ] **UX**: Tap on Target Date field opens modal instead of keyboard
+
+#### Task 3: Add Keyboard Navigation Support ⌨️ FORM ENHANCEMENT
+- [ ] **Enter key submission**: Add `onSubmitEditing={handleSubmit}` to final form field
+- [ ] **Return key types**: Configure appropriate `returnKeyType` for each field:
+  - Title: "next"
+  - Description: "next" 
+  - Unit: "next"
+  - Target Value: "done" (triggers submission)
+- [ ] **Tab navigation**: Ensure proper field focusing with `onSubmitEditing` chaining
+- [ ] **Submit validation**: Ensure Enter key respects form validation before submission
+
+#### Task 4: Enhanced Modal Integration 🎯 UX REFINEMENT
+- [ ] **Modal dismissal**: Ensure date picker modal dismisses properly on form submit
+- [ ] **Form state**: Maintain form state when date picker modal opens/closes
+- [ ] **Validation**: Add date validation (not in past, reasonable future limit)
+- [ ] **Accessibility**: Add proper accessibility labels for date picker
+
+### Technical Architecture
+
+#### Date Picker Modal Component Structure
+```typescript
+interface DatePickerModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (date: DateString) => void;
+  initialDate?: DateString;
+  minimumDate?: Date;
+  maximumDate?: Date;
+  title?: string;
+}
+
+// Implementation approach:
+// - Use native DatePickerIOS/DatePickerAndroid for platform consistency
+// - Wrap in BaseModal structure for consistent styling
+// - Format dates as YYYY-MM-DD (DateString type)
+// - Provide reasonable defaults (today as minimum, +2 years as maximum)
+```
+
+#### Keyboard Navigation Flow
+```typescript
+// Enhanced field configuration:
+<TextInput
+  returnKeyType="next"
+  onSubmitEditing={() => nextFieldRef.current?.focus()}
+  blurOnSubmit={false}
+/>
+
+// Final field with submission:
+<TextInput
+  returnKeyType="done"
+  onSubmitEditing={() => {
+    Keyboard.dismiss();
+    handleSubmit();
+  }}
+/>
+```
+
+### Expected User Experience Improvements
+
+#### Before Changes
+- **Text confusion**: "Optional" suggests target date isn't important
+- **Manual date entry**: Users type "2024-12-31" prone to format errors
+- **Multiple taps required**: Must tap through form fields then tap Submit button
+- **Inconsistent UX**: No visual date picker despite mobile platform
+
+#### After Changes  
+- **Clear guidance**: "Recommended" encourages setting target dates
+- **Native date picker**: Familiar iOS/Android date selection experience
+- **Efficient input**: Enter key advances through fields and submits form
+- **Reduced errors**: Date picker eliminates format mistakes
+
+### Implementation Complexity Assessment
+
+#### Low Complexity (Task 1) 🟢
+- **Text change**: Single line modification in localization file
+- **Risk**: Minimal, immediate visual feedback
+- **Time**: < 5 minutes
+
+#### Medium Complexity (Tasks 2-3) 🟡  
+- **Date picker**: New component following existing patterns
+- **Keyboard navigation**: Standard React Native TextInput features
+- **Risk**: Moderate, needs testing on both platforms
+- **Time**: 2-3 hours implementation + testing
+
+#### Low Risk Integration (Task 4) 🟢
+- **Modal integration**: Uses established modal patterns
+- **Form state**: No complex state management changes needed
+- **Risk**: Low, builds on proven architecture
+- **Time**: 1 hour refinement + validation
+
+### Testing Strategy
+
+#### Platform Testing
+- **iOS**: Verify native date picker appearance and behavior
+- **Android**: Ensure consistent date picker styling and functionality
+- **Keyboard**: Test Enter key navigation on both platforms
+
+#### Edge Cases
+- **Date validation**: Past dates, far future dates, invalid selections
+- **Modal interactions**: Opening/closing while form has errors
+- **Keyboard behavior**: Focus management during modal interactions
+
+#### User Journey Testing
+1. **Complete flow**: Navigate through all fields using only Enter key
+2. **Date selection**: Open date picker, select date, verify form updates
+3. **Form submission**: Submit form with Enter key from final field
+4. **Error handling**: Attempt submission with invalid data
+
+### Success Criteria
+
+#### Functional Requirements ✅
+- [ ] Target Date field shows "(Recommended)" instead of "(Optional)"
+- [ ] Tapping Target Date field opens native date picker modal
+- [ ] Enter key navigates between form fields and submits form
+- [ ] Date picker formats and validates dates correctly
+
+#### User Experience Requirements ✅  
+- [ ] Form submission possible without touching Submit button
+- [ ] Date selection uses familiar native UI patterns
+- [ ] No regression in existing form functionality
+- [ ] Consistent styling with app's modal standards
+
+#### Technical Requirements ✅
+- [ ] Zero TypeScript compilation errors
+- [ ] No performance impact on form rendering
+- [ ] Proper keyboard dismissal on all user actions
+- [ ] Cross-platform compatibility maintained
+
+### Dependencies and Considerations
+
+#### External Dependencies
+- **None required**: Uses built-in React Native DatePickerIOS/Android
+- **Expo compatibility**: Ensure date picker works in Expo managed workflow
+
+#### Architectural Consistency
+- **Modal patterns**: Follow established BaseModal and GoalModal approaches
+- **Styling**: Use existing Colors, Fonts, and Layout constants
+- **i18n support**: Ensure date picker labels support internationalization
+
+#### Future Extensibility
+- **Reusable component**: DatePickerModal can be used for habit scheduling
+- **Enhanced validation**: Foundation for more sophisticated date constraints
+- **Accessibility**: Pattern for accessible date selection across app

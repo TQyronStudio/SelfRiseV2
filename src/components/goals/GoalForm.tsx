@@ -15,6 +15,7 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
+import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 
 export type GoalFormData = {
   title: string;
@@ -42,6 +43,7 @@ export function GoalForm({
 }: GoalFormProps) {
   const { t } = useI18n();
   const scrollViewRef = useRef<ScrollView>(null);
+  const dateInputRef = useRef<TextInput>(null);
   
   const [formData, setFormData] = useState<GoalFormData>({
     title: initialData?.title || '',
@@ -55,6 +57,7 @@ export function GoalForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDateConfirmation, setShowDateConfirmation] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -92,6 +95,17 @@ export function GoalForm({
       return;
     }
 
+    // Check if target date is missing and show confirmation modal
+    if (!formData.targetDate) {
+      setShowDateConfirmation(true);
+      return;
+    }
+
+    // Proceed with normal submission
+    await submitGoal();
+  };
+
+  const submitGoal = async () => {
     try {
       const submitData = {
         ...formData,
@@ -126,6 +140,26 @@ export function GoalForm({
         animated: true,
       });
     }, 100);
+  };
+
+  const scrollToDateInput = () => {
+    // Scroll to Target Date field (now at position 200 after moving it up)
+    scrollToInput(200);
+    // Focus the date input after scrolling
+    setTimeout(() => {
+      dateInputRef.current?.focus();
+    }, 400);
+  };
+
+  const handleAddDate = () => {
+    setShowDateConfirmation(false);
+    scrollToDateInput();
+  };
+
+  const handleContinueWithoutDate = () => {
+    setShowDateConfirmation(false);
+    // Proceed with goal creation without target date
+    submitGoal();
   };
 
   const categoryOptions = [
@@ -179,6 +213,21 @@ export function GoalForm({
           {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
         </View>
 
+        {/* Target Date */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
+          <TextInput
+            ref={dateInputRef}
+            style={[styles.input]}
+            placeholder={t('goals.form.placeholders.targetDate')}
+            placeholderTextColor={Colors.textSecondary}
+            value={formatDateForInput(formData.targetDate)}
+            onChangeText={handleDateChange}
+            onFocus={() => scrollToInput(200)}
+            editable={!isLoading}
+          />
+        </View>
+
         {/* Unit */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.unit')}</Text>
@@ -188,7 +237,7 @@ export function GoalForm({
             placeholderTextColor={Colors.textSecondary}
             value={formData.unit}
             onChangeText={(text) => setFormData(prev => ({ ...prev, unit: text }))}
-            onFocus={() => scrollToInput(200)}
+            onFocus={() => scrollToInput(250)}
             editable={!isLoading}
             maxLength={20}
           />
@@ -239,20 +288,6 @@ export function GoalForm({
           </View>
         </View>
 
-        {/* Target Date */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
-          <TextInput
-            style={[styles.input]}
-            placeholder={t('goals.form.placeholders.targetDate')}
-            placeholderTextColor={Colors.textSecondary}
-            value={formatDateForInput(formData.targetDate)}
-            onChangeText={handleDateChange}
-            onFocus={() => scrollToInput(450)}
-            editable={!isLoading}
-          />
-        </View>
-
         {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -288,6 +323,13 @@ export function GoalForm({
         onClose={() => setShowError(false)}
         title={t('common.error')}
         message={errorMessage}
+      />
+
+      <TargetDateConfirmationModal
+        visible={showDateConfirmation}
+        onClose={() => setShowDateConfirmation(false)}
+        onAddDate={handleAddDate}
+        onContinueWithoutDate={handleContinueWithoutDate}
       />
     </ScrollView>
   );
