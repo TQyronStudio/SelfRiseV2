@@ -1,8 +1,8 @@
 import { Habit, HabitCompletion } from '../types/habit';
 import { Goal, GoalStatus } from '../types/goal';
 import { Gratitude } from '../types/gratitude';
-import { DayOfWeek } from '../types/common';
-import { getPast7Days, getDayOfWeek } from '../utils/date';
+import { DayOfWeek, DateString } from '../types/common';
+import { getPast7Days, getDayOfWeek, formatDateToString } from '../utils/date';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -38,6 +38,16 @@ export type PersonalizedRecommendation =
   | GoalRecommendation;
 
 export class RecommendationEngine {
+  /**
+   * Helper function to filter dates based on habit creation date
+   * Only considers days since the habit was created
+   */
+  private static getRelevantDatesForHabit(habit: Habit, periodDates: DateString[]): DateString[] {
+    const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
+    const creationDate = formatDateToString(createdAt);
+    return periodDates.filter(date => date >= creationDate);
+  }
+
   /**
    * Generate personalized recommendations based on user data
    */
@@ -90,12 +100,16 @@ export class RecommendationEngine {
 
     // Analyze completion patterns
     habits.forEach(habit => {
+      // Filter dates to only include days since habit creation
+      const relevantDates = this.getRelevantDatesForHabit(habit, past7Days);
+      
       const recentCompletions = completions.filter(c => 
         c.habitId === habit.id && 
-        past7Days.includes(c.date)
+        relevantDates.includes(c.date)
       );
 
-      const completionRate = recentCompletions.length / 7;
+      // Calculate completion rate based on days the habit actually existed
+      const completionRate = relevantDates.length > 0 ? recentCompletions.length / relevantDates.length : 0;
 
       // Low completion rate - suggest schedule adjustment
       if (completionRate < 0.3 && habit.isActive) {

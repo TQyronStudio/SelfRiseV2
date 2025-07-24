@@ -19,6 +19,90 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
+## Timeline Check Recommendation Logic Improvement (July 24, 2025)
+
+### Problem Analysis
+Currently the "Timeline Check" recommendation shows when:
+- Less than 30 days to target date AND
+- Goal is less than 50% complete
+
+**Issue**: For short-term goals (e.g., 1 month), this shows almost the entire time, which is not useful.
+
+### Solution Strategy
+Add a third condition using the existing goal prediction system:
+- **New Condition**: Estimated completion date (from `GoalStats.estimatedCompletionDate`) is LATER than target date
+- **Result**: Only shows when goal is genuinely at risk of missing deadline based on current progress trends
+
+### Implementation Plan
+
+#### Task 1: Understand Current Timeline Check Logic ✅
+- [x] Locate Timeline Check in `/src/services/recommendationEngine.ts` (lines 247-256)
+- [x] Analyze current conditions: `daysRemaining < 30` AND `progressPercentage < 50`
+- [x] Document current logic behavior
+
+#### Task 2: Understand Goal Prediction System ✅
+- [x] Review `GoalStats` interface in `/src/types/goal.ts` (line 52: `estimatedCompletionDate`)
+- [x] Analyze prediction calculation in `getGoalStats()` method in `/src/services/storage/goalStorage.ts` (lines 475-482)
+- [x] Verify how `estimatedCompletionDate` is calculated from progress trends
+
+#### Task 3: Integrate Goal Predictions into Recommendation Engine
+- [ ] Import `goalStorage` service into recommendation engine
+- [ ] Fetch goal statistics with `getGoalStats(goal.id)` for goals near deadline
+- [ ] Add third condition: `estimatedCompletionDate > targetDate` 
+- [ ] Ensure all three conditions must be true for Timeline Check to appear
+
+#### Task 4: Update Recommendation Logic
+- [ ] Modify `generateGoalRecommendations()` method in `/src/services/recommendationEngine.ts`
+- [ ] Add async/await support for goal stats fetching
+- [ ] Update Timeline Check condition with estimated completion date comparison
+- [ ] Test edge cases (no progress data, no target date, etc.)
+
+#### Task 5: Verify Integration and Testing
+- [ ] Test with short-term goals that are on track (should NOT show Timeline Check)
+- [ ] Test with goals genuinely behind schedule (should show Timeline Check)
+- [ ] Verify recommendation engine still functions correctly overall
+- [ ] Document the new logic behavior
+
+### Expected Results
+
+**Before Fix:**
+- 1-month goal at 30% completion → Shows Timeline Check immediately (not useful)
+- Goal making good progress but still < 50% → Shows Timeline Check unnecessarily
+
+**After Fix:**
+- Goal on track to finish on time → No Timeline Check (even if < 50% complete)
+- Goal genuinely behind schedule → Shows Timeline Check appropriately
+- Short-term goals making progress → No false positives
+
+### Technical Architecture
+
+**Current Logic:**
+```typescript
+if (daysRemaining > 0 && progressPercentage < 50 && daysRemaining < 30) {
+  // Show Timeline Check
+}
+```
+
+**New Logic:**
+```typescript
+if (daysRemaining > 0 && progressPercentage < 50 && daysRemaining < 30) {
+  const goalStats = await goalStorage.getGoalStats(goal.id);
+  if (goalStats.estimatedCompletionDate && 
+      goalStats.estimatedCompletionDate > goal.targetDate) {
+    // Show Timeline Check only when actually at risk
+  }
+}
+```
+
+### Success Criteria
+- ✅ Timeline Check only appears when goal is genuinely at risk
+- ✅ No false positives for short-term goals making good progress  
+- ✅ Existing recommendation engine functionality preserved
+- ✅ Proper error handling for edge cases
+- ✅ Clean integration with goal statistics system
+
+---
+
 ## Android Modal Fix Summary (July 18, 2025)
 
 ### Root Cause Identified:
@@ -510,6 +594,57 @@ conversions.forEach(pair => {
 - Home Screen Performance Indicators only count days since habit creation
 - All charts and statistics components filter dates to >= habit.createdAt
 
+## URGENT FIX: "Adjust Schedule" Recommendation Logic Verification ✅ COMPLETED (July 24, 2025)
+
+### Problem Analysis
+User reported that the "Adjust Schedule" recommendation logic in the "For You" section might incorrectly calculate completion rates for recently created habits. The concern is that a 7-day lookback period might include days before the habit was created, causing artificially low completion percentages.
+
+### Investigation Results ✅ ISSUE CONFIRMED AND FIXED
+- [x] **Find the recommendation engine** - located in `/src/services/recommendationEngine.ts`
+- [x] **Locate the "Adjust Schedule" logic** - found at lines 101-110 with 30% threshold and 7-day calculation
+- [x] **Check if it uses `getRelevantDatesForHabit()`** - NO, it was missing creation date filtering
+- [x] **Verify the 7-day completion rate calculation** - CONFIRMED: Used fixed 7-day division regardless of habit age
+- [x] **Compare with other components** - Home screen components properly use `getRelevantDatesForHabit()`
+- [x] **Fix the logic** - Implemented creation date filtering for accurate completion rates
+
+### Root Cause Confirmed
+The problematic logic at line 98 in `recommendationEngine.ts`:
+```typescript
+const completionRate = recentCompletions.length / 7; // ❌ FIXED
+```
+This divided by a fixed 7 days without considering if the habit existed for all 7 days, causing incorrect low completion rates for new habits.
+
+### Fix Implemented ✅
+Created proper habit creation date filtering:
+```typescript
+// Added helper function
+private static getRelevantDatesForHabit(habit: Habit, periodDates: DateString[]): DateString[] {
+  const createdAt = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
+  const creationDate = formatDateToString(createdAt);
+  return periodDates.filter(date => date >= creationDate);
+}
+
+// Updated calculation logic
+const relevantDates = this.getRelevantDatesForHabit(habit, past7Days);
+const recentCompletions = completions.filter(c => 
+  c.habitId === habit.id && 
+  relevantDates.includes(c.date)
+);
+const completionRate = relevantDates.length > 0 ? recentCompletions.length / relevantDates.length : 0;
+```
+
+### Impact
+- **Habit created today with 1 completion**: Previously 1/7 = 14% → Now 1/1 = 100% ✅
+- **Habit created 3 days ago with 2 completions**: Previously 2/7 = 29% → Now 2/3 = 67% ✅
+- **Existing habits**: No change in behavior (still uses 7-day period) ✅
+- **Edge cases**: Handles dates correctly, prevents division by zero ✅
+
+### Technical Details
+- **File modified**: `/src/services/recommendationEngine.ts`
+- **Lines changed**: Added imports, helper function, and updated calculation logic
+- **Pattern consistency**: Now matches other components that properly implement Checkpoint 6.2 fixes
+- **TypeScript compliance**: Zero compilation errors confirmed
+
 #### Checkpoint 6.3: Home Screen Integration ✅ COMPLETED
 
 **IMPLEMENTATION SUMMARY:**
@@ -731,7 +866,7 @@ conversions.forEach(pair => {
 - [ ] Zkontrolovat `ScrollView` gesture konfigurace
 - [ ] Investigate `useSharedValue` global impact
 
-#### 2. Goals Screen Issues
+#### 2, Goals Screen Issues
 ```typescript
 // PROBLÉM: RefreshControl stále přítomen
 <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />  // ❌ ODSTRANIT
@@ -780,7 +915,7 @@ const renderGoalItem = ({ item }) => ...  // ❌ NENÍ MEMOIZED
 
 ### 🎯 SUCCESS CRITERIA (NEDOSAŽENO):
 
-- [ ] **Android modály funkční** (edit, delete, add buttons work)
+- [ ] **Android modády funkční** (edit, delete, add buttons work)
 - [ ] **Goals screen smooth drag** (no post-drag jumping)
 - [ ] **Pull-to-refresh completely removed** from Goals screen
 - [ ] **Consistent platform behavior** across Habits and Goals
