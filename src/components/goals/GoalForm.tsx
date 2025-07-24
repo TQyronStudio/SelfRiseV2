@@ -175,8 +175,10 @@ export function GoalForm({
     <ScrollView 
       ref={scrollViewRef}
       style={styles.container} 
-      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
       keyboardShouldPersistTaps="handled"
+      bounces={true}
     >
       <View style={styles.content}>
         {/* Title */}
@@ -338,6 +340,9 @@ export function GoalForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   content: {
     padding: 20,

@@ -79,13 +79,19 @@ export function GoalModal({
           </Text>
           <View style={styles.placeholder} />
         </View>
-        <GoalForm
-          initialData={initialData}
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          isEditing={isEditing}
-          isLoading={isLoading}
-        />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <GoalForm
+            initialData={initialData}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            isEditing={isEditing}
+            isLoading={isLoading}
+          />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
