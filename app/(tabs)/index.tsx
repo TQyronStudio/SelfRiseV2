@@ -70,10 +70,11 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Main streak display card - Always visible */}
-        <JournalStreakCard onPress={handleStreakPress} />
-        
         {/* Conditionally rendered components based on user preferences */}
+        {isComponentVisible('journalStreak') && (
+          <JournalStreakCard onPress={handleStreakPress} />
+        )}
+        
         {isComponentVisible('quickActions') && (
           <QuickActionButtons onHabitToggle={handleHabitToggle} />
         )}

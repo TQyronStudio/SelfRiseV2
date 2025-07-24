@@ -516,6 +516,7 @@ const en: TranslationKeys = {
     continue: 'Continue',
     yes: 'Yes',
     no: 'No',
+    reset: 'Reset',
   },
   
   // Days of week

@@ -24,7 +24,7 @@ export const defaultHomeComponents: HomeScreenComponent[] = [
     name: 'Journal Streak',
     visible: true,
     order: 1,
-    configurable: false, // Always visible as primary feature
+    configurable: true, // Now customizable per user request
   },
   {
     id: 'quickActions',
