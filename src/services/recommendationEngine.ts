@@ -3,6 +3,7 @@ import { Goal, GoalStatus } from '../types/goal';
 import { Gratitude } from '../types/gratitude';
 import { DayOfWeek, DateString } from '../types/common';
 import { getPast7Days, getDayOfWeek, formatDateToString } from '../utils/date';
+import { goalStorage } from '../services/storage/goalStorage';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -51,12 +52,12 @@ export class RecommendationEngine {
   /**
    * Generate personalized recommendations based on user data
    */
-  static generateRecommendations(
+  static async generateRecommendations(
     habits: Habit[],
     completions: HabitCompletion[],
     goals: Goal[],
     gratitudeEntries: Gratitude[]
-  ): PersonalizedRecommendation[] {
+  ): Promise<PersonalizedRecommendation[]> {
     // Safe guard against undefined arrays
     const safeHabits = habits || [];
     const safeCompletions = completions || [];
@@ -73,7 +74,7 @@ export class RecommendationEngine {
       recommendations.push(...this.generateJournalRecommendations(safeGratitudeEntries));
       
       // Add goal recommendations
-      recommendations.push(...this.generateGoalRecommendations(safeGoals));
+      recommendations.push(...await this.generateGoalRecommendations(safeGoals));
     } catch (error) {
       console.error('Error generating recommendations:', error);
       return [];
@@ -206,24 +207,38 @@ export class RecommendationEngine {
   /**
    * Generate goal-specific recommendations
    */
-  private static generateGoalRecommendations(goals: Goal[]): GoalRecommendation[] {
+  private static async generateGoalRecommendations(goals: Goal[]): Promise<GoalRecommendation[]> {
     const recommendations: GoalRecommendation[] = [];
 
-    goals.forEach(goal => {
-      if (goal.status === GoalStatus.COMPLETED) return;
+    for (const goal of goals) {
+      if (goal.status === GoalStatus.COMPLETED) continue;
 
       const progressPercentage = (goal.currentValue / goal.targetValue) * 100;
 
       // Basic progress recommendation for low progress goals
+      // Show only if more than 10% of allocated time has passed AND progress < 10%
       if (progressPercentage < 10) {
-        recommendations.push({
-          type: 'goal_progress',
-          title: 'Start Making Progress',
-          description: `${goal.title} needs attention. Start making some progress!`,
-          priority: 'medium',
-          goalId: goal.id,
-          suggestedAction: 'Log Progress',
-        });
+        const todayDate = new Date();
+        const createdDate = new Date(goal.createdAt);
+        const targetDate = goal.targetDate ? new Date(goal.targetDate) : null;
+        
+        // Only show if goal has target date and more than 10% of time has elapsed
+        if (targetDate) {
+          const totalDuration = targetDate.getTime() - createdDate.getTime();
+          const elapsedDuration = todayDate.getTime() - createdDate.getTime();
+          const timeElapsedPercentage = totalDuration > 0 ? (elapsedDuration / totalDuration) * 100 : 0;
+          
+          if (timeElapsedPercentage > 10) {
+            recommendations.push({
+              type: 'goal_progress',
+              title: 'Start Making Progress',
+              description: `${goal.title} needs attention. Start making some progress!`,
+              priority: 'medium',
+              goalId: goal.id,
+              suggestedAction: 'Log Progress',
+            });
+          }
+        }
       }
 
       // Near completion
@@ -245,17 +260,34 @@ export class RecommendationEngine {
         const daysRemaining = Math.ceil((targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (daysRemaining > 0 && progressPercentage < 50 && daysRemaining < 30) {
-          recommendations.push({
-            type: 'goal_adjustment',
-            title: 'Timeline Check',
-            description: `${goal.title} may need timeline adjustment. ${daysRemaining} days remaining.`,
-            priority: 'medium',
-            goalId: goal.id,
-            suggestedAction: 'Adjust Timeline',
-          });
+          // Add third condition: only show if estimated completion is later than target date
+          try {
+            const goalStats = await goalStorage.getGoalStats(goal.id);
+            if (goalStats.estimatedCompletionDate && goalStats.estimatedCompletionDate > goal.targetDate) {
+              recommendations.push({
+                type: 'goal_adjustment',
+                title: 'Timeline Check',
+                description: `${goal.title} may need timeline adjustment. ${daysRemaining} days remaining.`,
+                priority: 'medium',
+                goalId: goal.id,
+                suggestedAction: 'Adjust Timeline',
+              });
+            }
+          } catch (error) {
+            // Fallback to original logic if goal stats cannot be fetched
+            console.warn('Failed to fetch goal stats for Timeline Check:', error);
+            recommendations.push({
+              type: 'goal_adjustment',
+              title: 'Timeline Check',
+              description: `${goal.title} may need timeline adjustment. ${daysRemaining} days remaining.`,
+              priority: 'medium',
+              goalId: goal.id,
+              suggestedAction: 'Adjust Timeline',
+            });
+          }
         }
       }
-    });
+    }
 
     // Suggest new goals if user has few active goals
     const activeGoals = goals.filter(g => g.status === GoalStatus.ACTIVE);

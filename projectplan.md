@@ -45,23 +45,23 @@ Add a third condition using the existing goal prediction system:
 - [x] Analyze prediction calculation in `getGoalStats()` method in `/src/services/storage/goalStorage.ts` (lines 475-482)
 - [x] Verify how `estimatedCompletionDate` is calculated from progress trends
 
-#### Task 3: Integrate Goal Predictions into Recommendation Engine
-- [ ] Import `goalStorage` service into recommendation engine
-- [ ] Fetch goal statistics with `getGoalStats(goal.id)` for goals near deadline
-- [ ] Add third condition: `estimatedCompletionDate > targetDate` 
-- [ ] Ensure all three conditions must be true for Timeline Check to appear
+#### Task 3: Integrate Goal Predictions into Recommendation Engine ✅
+- [x] Import `goalStorage` service into recommendation engine
+- [x] Fetch goal statistics with `getGoalStats(goal.id)` for goals near deadline
+- [x] Add third condition: `estimatedCompletionDate > targetDate` 
+- [x] Ensure all three conditions must be true for Timeline Check to appear
 
-#### Task 4: Update Recommendation Logic
-- [ ] Modify `generateGoalRecommendations()` method in `/src/services/recommendationEngine.ts`
-- [ ] Add async/await support for goal stats fetching
-- [ ] Update Timeline Check condition with estimated completion date comparison
-- [ ] Test edge cases (no progress data, no target date, etc.)
+#### Task 4: Update Recommendation Logic ✅
+- [x] Modify `generateGoalRecommendations()` method in `/src/services/recommendationEngine.ts`
+- [x] Add async/await support for goal stats fetching
+- [x] Update Timeline Check condition with estimated completion date comparison
+- [x] Test edge cases (no progress data, no target date, etc.)
 
-#### Task 5: Verify Integration and Testing
-- [ ] Test with short-term goals that are on track (should NOT show Timeline Check)
-- [ ] Test with goals genuinely behind schedule (should show Timeline Check)
-- [ ] Verify recommendation engine still functions correctly overall
-- [ ] Document the new logic behavior
+#### Task 5: Verify Integration and Testing ✅
+- [x] Test with short-term goals that are on track (should NOT show Timeline Check)
+- [x] Test with goals genuinely behind schedule (should show Timeline Check)
+- [x] Verify recommendation engine still functions correctly overall
+- [x] Document the new logic behavior
 
 ### Expected Results
 
@@ -1121,6 +1121,146 @@ const OptimizedComponent = ({ isInteractive, ...props }) => {
 - **Zlatý kroužek** - kolem dnešního dne když není naplánován (bonusová příležitost)
 
 **Technická implementace:** `HabitItemWithCompletion.tsx` s conditional styling `getDayOfWeek()` + `Colors.primary+'30'`
+
+---
+
+## Smart Logic Design Guidelines ✅ (July 24, 2025)
+
+### **Fundamental Principle: "Context is King"**
+Never use absolute numerical values without considering time, history, or entity state context.
+
+---
+
+#### **1. Temporal Context Principles**
+
+**❌ Wrong: Absolute values without time**
+```typescript
+if (progress < 10%) show "Start Making Progress"
+if (habit.completionRate < 30%) show "Adjust Schedule"
+```
+
+**✅ Correct: Time and existence context**
+```typescript
+// Respect when entity was created
+if (timeElapsed > 10% && progress < 10%) show "Start Making Progress"
+if (recentDays.filter(day => day >= creationDate).length >= 7 && rate < 30%) show "Adjust Schedule"
+```
+
+**Key Question**: *"Can this state be considered problematic given the entity's existence time?"*
+
+#### **2. Relevant Data Principle**
+
+**❌ Wrong: Fixed time windows**
+```typescript
+// Habit may exist only 2 days, but we calculate 7 days back
+const last7Days = getPast7Days()
+const completionRate = completions.length / 7
+```
+
+**✅ Correct: Dynamic windows based on existence**
+```typescript
+const relevantDays = getPastDays(7).filter(day => day >= habit.createdAt)
+const completionRate = completions.length / relevantDays.length
+```
+
+**Key Question**: *"Does my data include periods when the entity didn't exist?"*
+
+#### **3. Proportional Assessment Principle**
+
+**❌ Wrong: Same thresholds for everything**
+```typescript
+if (daysToDeadline < 30 && progress < 50%) show "Timeline Check"
+// 1-month goal: Warns almost entire time
+```
+
+**✅ Correct: Proportional to total duration**
+```typescript
+if (daysToDeadline < 30 && progress < 50% && estimatedCompletion > targetDate) show "Timeline Check"
+// Warns only when actually at risk
+```
+
+**Key Question**: *"Is this warning relevant for the entity's duration?"*
+
+#### **4. Design Checklist for New Logic**
+
+**A) Context Analysis:**
+- [ ] **When was entity created?** (createdAt respect)
+- [ ] **How long should it last?** (total timeframe)
+- [ ] **What phase is it in?** (beginning/middle/end)
+
+**B) Edge Case Validation:**
+- [ ] **New entity** (created today) - does warning make sense?
+- [ ] **Short entity** (duration < 7 days) - isn't warning permanent?
+- [ ] **Long entity** (duration > 1 year) - isn't threshold too strict?
+
+**C) Test Scenarios:**
+```typescript
+// Always test these 3 scenarios:
+const scenarios = [
+  { name: "New entity", createdAt: "today", duration: "30 days", progress: 0 },
+  { name: "Short entity", duration: "7 days", progress: 30 },
+  { name: "Long entity", duration: "365 days", progress: 5 }
+]
+```
+
+#### **5. Template for New Logic**
+
+```typescript
+function shouldShowRecommendation(entity, currentDate) {
+  // 1. CONTEXT: Calculate relevant time period
+  const createdDate = new Date(entity.createdAt)
+  const targetDate = entity.targetDate ? new Date(entity.targetDate) : null
+  const totalDuration = targetDate ? targetDate - createdDate : null
+  const elapsed = currentDate - createdDate
+  
+  // 2. CONDITIONS: Define proportional thresholds
+  const timeElapsedPercent = totalDuration ? (elapsed / totalDuration) * 100 : 0
+  const progressPercent = (entity.currentValue / entity.targetValue) * 100
+  
+  // 3. LOGIC: Combine absolute + relative conditions
+  const hasEnoughTimeElapsed = timeElapsedPercent > MINIMUM_TIME_THRESHOLD
+  const hasLowProgress = progressPercent < PROGRESS_THRESHOLD
+  const isActuallyBehind = entity.estimatedCompletion > entity.targetDate // when available
+  
+  // 4. DECISION: All relevant conditions simultaneously
+  return hasEnoughTimeElapsed && hasLowProgress && isActuallyBehind
+}
+```
+
+#### **6. Design Patterns**
+
+**Pattern 1: "Grace Period"**
+```typescript
+// Give user time to get started
+const gracePeriod = Math.max(totalDuration * 0.1, 1) // Min 1 day, max 10% duration
+if (elapsedTime < gracePeriod) return false
+```
+
+**Pattern 2: "Proportional Thresholds"**
+```typescript
+// Thresholds proportional to duration
+const expectedProgress = (elapsedTime / totalDuration) * 100
+const threshold = entity.duration < 30 ? 20 : 10 // Gentler for short goals
+```
+
+**Pattern 3: "Smart Fallbacks"**
+```typescript
+// When you don't have perfect data, fallback to reasonable logic
+if (!targetDate) {
+  // Without deadline, can't calculate timeline pressure
+  return false
+}
+```
+
+#### **7. Final Checklist**
+
+Before implementing new logic, ask:
+
+1. **🕒 Time**: *"Does it respect when entity was created and how long it should last?"*
+2. **📊 Proportion**: *"Are thresholds proportional to entity context?"*
+3. **🎯 Relevance**: *"Is warning useful at this exact moment?"*
+4. **🔄 Edge cases**: *"Did I test very new and very long entities?"*
+5. **🎮 UX**: *"Am I not annoying users with unnecessary notifications?"*
 
 ---
 

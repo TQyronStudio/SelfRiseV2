@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -18,24 +18,33 @@ export function PersonalizedRecommendations() {
   const { state: goalsState } = useGoals();
   const { state: gratitudeState } = useGratitude();
 
-  // Generate recommendations with error handling
-  const recommendations = useMemo(() => {
-    try {
-      // Ensure all data is loaded before generating recommendations
-      if (!habits || !completions || !goalsState || !gratitudeState) {
-        return [];
-      }
+  // State for async recommendations
+  const [recommendations, setRecommendations] = useState<PersonalizedRecommendation[]>([]);
 
-      return RecommendationEngine.generateRecommendations(
-        habits || [],
-        completions || [],
-        goalsState?.goals || [],
-        gratitudeState?.gratitudeEntries || []
-      );
-    } catch (error) {
-      console.error('Error generating recommendations:', error);
-      return [];
-    }
+  // Generate recommendations with error handling
+  useEffect(() => {
+    const generateRecommendations = async () => {
+      try {
+        // Ensure all data is loaded before generating recommendations
+        if (!habits || !completions || !goalsState || !gratitudeState) {
+          setRecommendations([]);
+          return;
+        }
+
+        const result = await RecommendationEngine.generateRecommendations(
+          habits || [],
+          completions || [],
+          goalsState?.goals || [],
+          gratitudeState?.gratitudeEntries || []
+        );
+        setRecommendations(result);
+      } catch (error) {
+        console.error('Error generating recommendations:', error);
+        setRecommendations([]);
+      }
+    };
+
+    generateRecommendations();
   }, [habits, completions, goalsState?.goals, gratitudeState?.gratitudeEntries]);
 
   const getRecommendationIcon = (recommendation: PersonalizedRecommendation) => {
