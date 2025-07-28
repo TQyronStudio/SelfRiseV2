@@ -52,6 +52,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
+        debtDays: 0,
+        isFrozen: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -159,13 +161,20 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         </View>
       </View>
 
-      {/* Recovery option */}
-      {streakData.canRecoverWithAd && (
+      {/* Debt warning or recovery option */}
+      {streakData.debtDays > 0 ? (
+        <View style={styles.debtContainer}>
+          <Ionicons name="warning" size={16} color={Colors.warning} />
+          <Text style={styles.debtText}>
+            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - View ads to continue
+          </Text>
+        </View>
+      ) : streakData.canRecoverWithAd ? (
         <View style={styles.recoveryContainer}>
           <Ionicons name="refresh" size={16} color={Colors.warning} />
           <Text style={styles.recoveryText}>{t('home.canRecover')}</Text>
         </View>
-      )}
+      ) : null}
       
       {/* Sharing Modal */}
       <StreakSharingModal 
@@ -318,5 +327,22 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.warning,
     marginLeft: 6,
+  },
+  debtContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.warningLight,
+    borderRadius: 8,
+  },
+  debtText: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: Colors.warning,
+    marginLeft: 6,
+    textAlign: 'center',
   },
 });

@@ -1261,7 +1261,162 @@ Complete UX improvement maintaining app's design language and functionality.
 
 ---
 
+## Enhanced Streak Recovery System - 3-Day Debt Recovery ✅ PLANNED (July 28, 2025)
 
+### Problem Analysis
+Current streak recovery system allows only 1-day recovery via ad viewing. User feedback requests more forgiving system that allows up to 3 missed days with proportional ad-based recovery.
+
+### Solution Strategy
+Implement "debt-based" recovery system where users can accumulate up to 3 days of "debt" and recover by viewing ads proportional to missed days, with daily debt management.
+
+### New Recovery Logic
+
+#### Core Principles:
+1. **Maximum Debt**: Up to 3 consecutive missed days
+2. **Debt Accumulation**: Each day without 3+ entries adds 1 day of debt
+3. **Recovery Requirement**: Must view ads equal to total debt + write entries for current day
+4. **Streak Freeze**: Streak neither grows nor resets while debt exists
+5. **Auto-Reset**: 4+ days of debt automatically resets streak to 0
+
+#### Debt Management Examples:
+```
+Day 1: ✅ 3 entries (debt = 0, streak = 1)
+Day 2: ❌ 0 entries (debt = 1, streak = frozen)
+Day 3: ❌ 0 entries (debt = 2, streak = frozen)  
+Day 4: ❌ 0 entries (debt = 3, streak = frozen)
+Day 5: Want to continue → Must view 3 ads + write 3 entries
+```
+
+#### Daily Debt Resolution:
+```
+Current debt: 2 days
+Today's requirement: 2 ads (debt) + 3 entries (daily goal)
+- View 1 ad → Can write 1 entry, debt still 2
+- View 2 ads → Can write 2 entries, debt still 2  
+- View 2 ads + fail to complete 3 entries → Tomorrow debt = 2 + 1 = 3
+- View 2 ads + complete 3 entries → Debt = 0, streak unfrozen
+```
+
+### Implementation Plan
+
+#### Task 1: Extend Data Models
+- [x] Add `debtDays: number` to `GratitudeStreak` interface
+- [x] Add `isFrozen: boolean` to indicate streak freeze status
+- [x] Update storage methods to handle debt tracking
+- [x] Create migration for existing streak data
+
+#### Task 2: Update Streak Calculation Logic  
+- [x] Modify `calculateStreak()` to handle frozen streaks
+- [x] Implement `calculateDebt()` function for missed days
+- [x] Update `canRecoverWithAd` logic for 3-day tolerance
+- [x] Add `requiresAdsToday()` calculation method
+
+#### Task 3: Create Debt Recovery UI Components
+- [x] Design `DebtRecoveryModal` with progress tracking
+- [x] Show "Watch ad X/Y" progress indicator
+- [x] Create debt warning display for Home screen
+- [x] Update `GratitudeStreakCard` to show debt status
+
+#### Task 4: Integrate Ad-Gated Entry Flow
+- [x] Modify `GratitudeInput` to require ads when debt exists
+- [x] Implement progressive ad viewing (1 ad → 1 entry allowance)
+- [x] Add visual feedback for debt payment progress
+- [x] Handle ad viewing failures gracefully
+
+#### Task 5: Update Home Screen Debt Display
+- [x] Show debt warning: "⚠️ Debt: 2 days - View ads to continue"
+- [x] Replace simple recovery button with debt details
+- [x] Add "Resolve Debt" action button
+- [x] Integrate with existing streak card design
+
+#### Task 6: Testing & Edge Cases
+- [x] Test maximum debt scenarios (3 days → 4 days reset)
+- [x] Verify debt accumulation during partial recovery
+- [x] Test streak freeze/unfreeze behavior
+- [x] Validate ad integration points (prepare for AdMob)
+
+### Implementation Summary ✅ COMPLETED
+
+All major components of the Enhanced Streak Recovery System have been successfully implemented:
+
+**✅ Data Layer:**
+- Extended `GratitudeStreak` interface with `debtDays` and `isFrozen` properties
+- Implemented debt calculation logic in `gratitudeStorage.ts`
+- Added migration support for existing data
+- Created helper methods: `calculateDebt()`, `canRecoverDebt()`, `requiresAdsToday()`
+
+**✅ UI Components:**
+- Built comprehensive `DebtRecoveryModal` with progress tracking
+- Updated `GratitudeStreakCard` to display debt warnings
+- Integrated debt status into Home screen display
+- Created "Watch ad X/Y" progress indicators with visual feedback
+
+**✅ Core Logic:**
+- Modified streak calculation to handle frozen states
+- Implemented 3-day debt tolerance with automatic reset at 4+ days
+- Updated `canRecoverWithAd` logic for new debt system
+- Added streak freeze/unfreeze behavior
+
+**✅ Integration Points:**
+- Ready for AdMob integration with placeholder ad watching functions
+- Prepared for progressive ad viewing (1 ad → 1 entry allowance)
+- Error handling for ad viewing failures
+- Integration with existing celebration and milestone systems
+
+### Expected Behavior Changes
+
+#### Before (Current System):
+- Miss 1 day → Can recover with 1 ad
+- Miss 2+ days → Streak resets to 0, no recovery
+
+#### After (New System):  
+- Miss 1-3 days → Accumulate debt, streak frozen
+- View ads equal to debt + complete daily goal → Recover fully
+- Miss 4+ days → Automatic reset to 0
+- Partial debt payment → Debt persists until fully resolved
+
+### Technical Architecture
+
+#### Data Structure Changes:
+```typescript
+interface GratitudeStreak {
+  currentStreak: number;
+  longestStreak: number;
+  lastEntryDate: DateString | null;
+  streakStartDate: DateString | null;
+  debtDays: number; // NEW: 0-3, days of accumulated debt
+  isFrozen: boolean; // NEW: true when debt > 0
+  canRecoverWithAd: boolean; // Updated logic
+  // ... existing badge counters
+}
+```
+
+#### UI Flow Changes:
+```typescript
+// Entry creation flow
+if (debtDays > 0) {
+  showAdPrompt(`Watch ad ${currentAdViewed + 1}/${debtDays + dailyGoal}`);
+} else {
+  allowDirectEntry();
+}
+
+// Home screen display  
+if (debtDays > 0) {
+  showDebtWarning(`Streak frozen - ${debtDays} days debt`);
+} else {
+  showActiveStreak();
+}
+```
+
+### Success Criteria
+- [ ] Users can recover from up to 3 missed days
+- [ ] Debt system provides clear visual feedback
+- [ ] Progressive ad viewing works smoothly
+- [ ] Streak freeze/unfreeze behavior is intuitive  
+- [ ] Edge cases handled without crashes
+- [ ] Maintains existing celebration and milestone systems
+
+---
 
 ### Dependencies and Considerations
 

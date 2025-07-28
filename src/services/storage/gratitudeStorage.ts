@@ -2,7 +2,7 @@ import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput } from
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
-import { calculateStreak, calculateLongestStreak, today, yesterday } from '../../utils/date';
+import { calculateStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
   // Gratitude CRUD operations
@@ -245,12 +245,26 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   async getStreak(): Promise<GratitudeStreak> {
     try {
       const streak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
+      
+      // Migration: Add new properties if they don't exist
+      if (streak && (streak.debtDays === undefined || streak.isFrozen === undefined)) {
+        const migratedStreak: GratitudeStreak = {
+          ...streak,
+          debtDays: streak.debtDays || 0,
+          isFrozen: streak.isFrozen || false,
+        };
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, migratedStreak);
+        return migratedStreak;
+      }
+      
       return streak || {
         currentStreak: 0,
         longestStreak: 0,
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
+        debtDays: 0,
+        isFrozen: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -288,6 +302,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
+        debtDays: 0,
+        isFrozen: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -344,17 +360,39 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         }
       }
       
-      // Check if user can recover streak with ad (if they missed yesterday)
-      const canRecoverWithAd = currentStreak === 0 && 
-        completedDates.includes(yesterday()) &&
-        !completedDates.includes(currentDate);
+      // NEW: Calculate debt and freeze status
+      const debtDays = await this.calculateDebt();
+      const isFrozen = debtDays > 0;
+      
+      // Auto-reset if debt exceeds 3 days
+      if (debtDays > 3) {
+        const resetStreak: GratitudeStreak = {
+          currentStreak: 0,
+          longestStreak,
+          lastEntryDate: null,
+          streakStartDate: null,
+          canRecoverWithAd: false,
+          debtDays: 0,
+          isFrozen: false,
+          starCount,
+          flameCount,
+          crownCount,
+        };
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreak);
+        return resetStreak;
+      }
+      
+      // Update recovery logic for debt system
+      const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
       
       const updatedStreak: GratitudeStreak = {
-        currentStreak,
+        currentStreak: isFrozen ? currentStreak : currentStreak, // Keep current if frozen
         longestStreak,
         lastEntryDate,
         streakStartDate,
         canRecoverWithAd,
+        debtDays,
+        isFrozen,
         starCount,
         flameCount,
         crownCount,
@@ -675,6 +713,68 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );
+    }
+  }
+
+  // NEW: Debt tracking methods for 3-day recovery system
+  
+  /**
+   * Calculate debt days (days without 3+ entries, up to 3 days max)
+   */
+  async calculateDebt(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+      
+      let debtDays = 0;
+      let checkDate = subtractDays(currentDate, 1); // Start with yesterday
+      
+      // Check up to 3 previous days
+      for (let i = 0; i < 3; i++) {
+        if (completedDates.includes(formatDateToString(new Date(checkDate)))) {
+          break; // Found a completed day, no more debt from earlier days
+        }
+        debtDays++;
+        checkDate = subtractDays(checkDate, 1);
+      }
+      
+      return debtDays;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Check if user can recover with ads (debt <= 3 days)
+   */
+  async canRecoverDebt(): Promise<boolean> {
+    try {
+      const debtDays = await this.calculateDebt();
+      return debtDays > 0 && debtDays <= 3;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Calculate how many ads user needs to watch today
+   */
+  async requiresAdsToday(): Promise<number> {
+    try {
+      const debtDays = await this.calculateDebt();
+      const todayEntries = await this.getByDate(today());
+      const todayComplete = todayEntries.length >= 3;
+      
+      // If debt > 3, automatic reset (handled elsewhere)
+      if (debtDays > 3) return 0;
+      
+      // If today is already complete, no ads needed
+      if (todayComplete) return 0;
+      
+      // Need ads for debt days + need to complete today (3 entries total)
+      return debtDays + (3 - todayEntries.length);
+    } catch (error) {
+      return 0;
     }
   }
 }

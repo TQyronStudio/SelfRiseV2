@@ -15,6 +15,9 @@ export interface GratitudeStreak {
   lastEntryDate: DateString | null;
   streakStartDate: DateString | null;
   canRecoverWithAd: boolean; // true if user can recover broken streak with ad
+  // NEW: Debt tracking system
+  debtDays: number; // 0-3, days of accumulated debt from missed days
+  isFrozen: boolean; // true when debt > 0, streak neither grows nor resets
   // Bonus milestone counters (mysterious badges)
   starCount: number; // ⭐ - times achieved 1 bonus gratitude in a day
   flameCount: number; // 🔥 - times achieved 5 bonus gratitudes in a day  
