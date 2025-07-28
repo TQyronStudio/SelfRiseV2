@@ -220,7 +220,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.textSecondary }]} />
+          <View style={[styles.legendColor, { backgroundColor: Colors.error }]} />
           <Text style={styles.legendText}>Missed</Text>
         </View>
         <View style={styles.legendItem}>
