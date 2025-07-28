@@ -71,16 +71,16 @@ export default function DebtRecoveryModal({
 
   const getDebtMessage = () => {
     if (debtDays === 1) {
-      return 'You missed 1 day. Watch ads to recover your streak!';
+      return `You missed 1 day. Watch ${totalAdsNeeded} ad to pay your debt, then write entries normally.`;
     }
-    return `You missed ${debtDays} days. Watch ads to recover your streak!`;
+    return `You missed ${debtDays} days. Watch ${totalAdsNeeded} ads to pay your debt, then write entries normally.`;
   };
 
   const getProgressMessage = () => {
     if (remainingAds === 0) {
-      return 'Recovery complete! You can now continue your streak.';
+      return 'Debt paid! Go to Journal to write entries normally.';
     }
-    return `Watch ad ${adsWatched + 1}/${totalAdsNeeded}`;
+    return `Paying debt: ${adsWatched + 1}/${totalAdsNeeded}`;
   };
 
   return (
@@ -174,7 +174,7 @@ export default function DebtRecoveryModal({
           <View style={styles.infoCard}>
             <IconSymbol name="info.circle" size={20} color={Colors.textSecondary} />
             <Text style={styles.infoText}>
-              After watching all ads, you can continue writing entries to maintain your streak.
+              First pay your debt by watching ads. After debt is paid, you can write journal entries normally without watching more ads.
             </Text>
           </View>
         </View>

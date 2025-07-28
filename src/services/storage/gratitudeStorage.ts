@@ -364,13 +364,22 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const debtDays = await this.calculateDebt();
       const isFrozen = debtDays > 0;
       
-      // Auto-reset if debt exceeds 3 days
-      if (debtDays > 3) {
+      // Calculate debt excluding today for auto-reset decision
+      const debtExcludingToday = await this.calculateDebtExcludingToday();
+      
+      // Auto-reset if debt exceeds 3 days (excluding today)
+      if (debtExcludingToday > 3) {
+        // If today is complete, start new streak from 1, otherwise reset to 0
+        const todayComplete = completedDates.includes(currentDate);
+        const newCurrentStreak = todayComplete ? 1 : 0;
+        const newLastEntryDate = todayComplete ? currentDate : null;
+        const newStreakStartDate = todayComplete ? currentDate : null;
+        
         const resetStreak: GratitudeStreak = {
-          currentStreak: 0,
+          currentStreak: newCurrentStreak,
           longestStreak,
-          lastEntryDate: null,
-          streakStartDate: null,
+          lastEntryDate: newLastEntryDate,
+          streakStartDate: newStreakStartDate,
           canRecoverWithAd: false,
           debtDays: 0,
           isFrozen: false,
@@ -719,7 +728,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // NEW: Debt tracking methods for 3-day recovery system
   
   /**
-   * Calculate debt days (days without 3+ entries, up to 3 days max)
+   * Calculate debt days (consecutive days without 3+ entries from yesterday backwards)
+   * Returns actual number of missed days (can be > 3 for auto-reset detection)
    */
   async calculateDebt(): Promise<number> {
     try {
@@ -729,8 +739,35 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       let debtDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday
       
-      // Check up to 3 previous days
-      for (let i = 0; i < 3; i++) {
+      // Check backwards until we find a completed day or reach reasonable limit
+      for (let i = 0; i < 10; i++) { // Check up to 10 days back for auto-reset detection
+        if (completedDates.includes(checkDate)) {
+          break; // Found a completed day, no more debt from earlier days
+        }
+        debtDays++;
+        checkDate = subtractDays(checkDate, 1);
+      }
+      
+      return debtDays;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate debt days excluding today (for auto-reset decision)
+   * This prevents auto-reset when user completes today after missing previous days
+   */
+  async calculateDebtExcludingToday(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+      
+      let debtDays = 0;
+      let checkDate = subtractDays(currentDate, 1); // Start with yesterday (skip today)
+      
+      // Check backwards until we find a completed day or reach reasonable limit
+      for (let i = 0; i < 10; i++) { // Check up to 10 days back
         if (completedDates.includes(checkDate)) {
           break; // Found a completed day, no more debt from earlier days
         }
@@ -757,25 +794,84 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Calculate how many ads user needs to watch today
+   * Calculate how many ads user needs to watch to pay debt only
+   * After debt is paid, user can write entries normally without ads
    */
   async requiresAdsToday(): Promise<number> {
     try {
       const debtDays = await this.calculateDebt();
-      const todayEntries = await this.getByDate(today());
-      const todayComplete = todayEntries.length >= 3;
       
       // If debt > 3, automatic reset (handled elsewhere)
       if (debtDays > 3) return 0;
       
-      // If today is already complete, no ads needed
-      if (todayComplete) return 0;
-      
-      // Need ads for debt days + remaining entries to complete today
-      const remainingToday = Math.max(0, 3 - todayEntries.length);
-      return debtDays + remainingToday;
+      // Only need ads to pay off debt
+      // After debt is paid, entries can be written normally
+      return debtDays;
     } catch (error) {
       return 0;
+    }
+  }
+
+  /**
+   * Pay off debt by watching ads - creates fake entries for missed days
+   */
+  async payDebtWithAds(adsWatched: number): Promise<void> {
+    try {
+      const debtDays = await this.calculateDebt();
+      
+      if (adsWatched < debtDays) {
+        throw new Error(`Not enough ads watched. Need ${debtDays}, got ${adsWatched}`);
+      }
+
+      // Create fake entries for debt days to "fill the gaps"
+      const currentDate = today();
+      for (let i = 1; i <= debtDays; i++) {
+        const debtDate = subtractDays(currentDate, i);
+        
+        // Create 3 fake entries for each debt day
+        for (let j = 1; j <= 3; j++) {
+          await this.create({
+            content: `Debt recovery - Ad ${i}.${j}`,
+            date: debtDate,
+            type: 'gratitude',
+          });
+        }
+      }
+
+      // Recalculate streak after paying debt
+      await this.calculateAndUpdateStreak();
+    } catch (error) {
+      throw new StorageError(
+        'Failed to pay debt with ads',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
+    }
+  }
+
+  /**
+   * Debug method to simulate debt scenarios for testing
+   */
+  async simulateDebtScenario(missedDays: number): Promise<GratitudeStreak> {
+    try {
+      // Clear recent entries to simulate missed days
+      const currentDate = today();
+      for (let i = 1; i <= missedDays; i++) {
+        const missedDate = subtractDays(currentDate, i);
+        // Remove entries for this date to simulate missing day
+        const allGratitudes = await this.getAll();
+        const filteredGratitudes = allGratitudes.filter(g => g.date !== missedDate);
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDES, filteredGratitudes);
+      }
+      
+      // Recalculate streak which will trigger auto-reset if needed
+      return await this.calculateAndUpdateStreak();
+    } catch (error) {
+      throw new StorageError(
+        'Failed to simulate debt scenario',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        STORAGE_KEYS.GRATITUDES
+      );
     }
   }
 }

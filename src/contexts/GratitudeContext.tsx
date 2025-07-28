@@ -181,7 +181,7 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
   const refreshStats = async (): Promise<void> => {
     try {
       const [streakInfo, stats] = await Promise.all([
-        gratitudeStorage.getStreakInfo(),
+        gratitudeStorage.calculateAndUpdateStreak(), // Force recalculation to trigger auto-reset if needed
         gratitudeStorage.getStats(),
       ]);
       

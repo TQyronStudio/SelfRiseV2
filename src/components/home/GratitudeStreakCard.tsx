@@ -43,8 +43,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const loadStreakData = async () => {
     try {
       setIsLoading(true);
-      const streakData = await gratitudeStorage.getStreakInfo();
-      
+      // Force recalculation to trigger auto-reset if needed
+      const streakData = await gratitudeStorage.calculateAndUpdateStreak();
       
       setStreak(streakData);
     } catch (error) {
@@ -98,9 +98,16 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   };
 
   const handleDebtComplete = async () => {
-    // Reset ads watched and reload streak data
-    setAdsWatched(0);
-    await loadStreakData();
+    try {
+      // Pay debt with ads watched
+      await gratitudeStorage.payDebtWithAds(adsWatched);
+      
+      // Reset ads watched and reload streak data
+      setAdsWatched(0);
+      await loadStreakData();
+    } catch (error) {
+      console.error('Failed to complete debt payment:', error);
+    }
   };
 
   const handleSharePress = (e: any) => {
