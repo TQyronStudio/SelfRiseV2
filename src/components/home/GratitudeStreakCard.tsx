@@ -14,6 +14,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
 import { GratitudeStreak } from '../../types/gratitude';
 import { StreakSharingModal } from './StreakSharingModal';
+import DebtRecoveryModal from '../gratitude/DebtRecoveryModal';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -24,6 +25,9 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSharingModal, setShowSharingModal] = useState(false);
+  const [showDebtModal, setShowDebtModal] = useState(false);
+  const [adsWatched, setAdsWatched] = useState(0);
+  const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
 
   useEffect(() => {
     loadStreakData();
@@ -72,6 +76,32 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   }
 
   const streakData = streak!;
+
+  const handleDebtPress = async (e: any) => {
+    e.stopPropagation();
+    
+    // Calculate total ads needed
+    const adsNeeded = await gratitudeStorage.requiresAdsToday();
+    setTotalAdsNeeded(adsNeeded);
+    setShowDebtModal(true);
+  };
+
+  const handleWatchAd = async (): Promise<boolean> => {
+    // TODO: Integrate with AdMob
+    // For now, simulate ad watching
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setAdsWatched(prev => prev + 1);
+        resolve(true);
+      }, 1000);
+    });
+  };
+
+  const handleDebtComplete = async () => {
+    // Reset ads watched and reload streak data
+    setAdsWatched(0);
+    await loadStreakData();
+  };
 
   const handleSharePress = (e: any) => {
     e.stopPropagation(); // Prevent triggering card onPress
@@ -163,12 +193,12 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
 
       {/* Debt warning or recovery option */}
       {streakData.debtDays > 0 ? (
-        <View style={styles.debtContainer}>
+        <TouchableOpacity style={styles.debtContainer} onPress={handleDebtPress}>
           <Ionicons name="warning" size={16} color={Colors.warning} />
           <Text style={styles.debtText}>
-            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - View ads to continue
+            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - Tap to recover
           </Text>
-        </View>
+        </TouchableOpacity>
       ) : streakData.canRecoverWithAd ? (
         <View style={styles.recoveryContainer}>
           <Ionicons name="refresh" size={16} color={Colors.warning} />
@@ -181,6 +211,17 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         visible={showSharingModal}
         onClose={() => setShowSharingModal(false)}
         streak={streakData}
+      />
+      
+      {/* Debt Recovery Modal */}
+      <DebtRecoveryModal
+        visible={showDebtModal}
+        onClose={() => setShowDebtModal(false)}
+        debtDays={streakData.debtDays}
+        adsWatched={adsWatched}
+        totalAdsNeeded={totalAdsNeeded}
+        onWatchAd={handleWatchAd}
+        onComplete={handleDebtComplete}
       />
     </TouchableOpacity>
   );

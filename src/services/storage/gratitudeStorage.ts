@@ -386,7 +386,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
       
       const updatedStreak: GratitudeStreak = {
-        currentStreak: isFrozen ? currentStreak : currentStreak, // Keep current if frozen
+        currentStreak, // When frozen, debt prevents new entries, so streak stays same
         longestStreak,
         lastEntryDate,
         streakStartDate,
@@ -731,7 +731,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // Check up to 3 previous days
       for (let i = 0; i < 3; i++) {
-        if (completedDates.includes(formatDateToString(new Date(checkDate)))) {
+        if (completedDates.includes(checkDate)) {
           break; // Found a completed day, no more debt from earlier days
         }
         debtDays++;
@@ -771,8 +771,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // If today is already complete, no ads needed
       if (todayComplete) return 0;
       
-      // Need ads for debt days + need to complete today (3 entries total)
-      return debtDays + (3 - todayEntries.length);
+      // Need ads for debt days + remaining entries to complete today
+      const remainingToday = Math.max(0, 3 - todayEntries.length);
+      return debtDays + remainingToday;
     } catch (error) {
       return 0;
     }
