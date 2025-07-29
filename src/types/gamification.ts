@@ -14,6 +14,7 @@ export enum XPSourceType {
   HABIT_STREAK_MILESTONE = 'habit_streak_milestone',
   JOURNAL_ENTRY = 'journal_entry',
   JOURNAL_BONUS = 'journal_bonus', 
+  JOURNAL_BONUS_MILESTONE = 'journal_bonus_milestone', // New: For ⭐🔥👑 milestones
   JOURNAL_STREAK_MILESTONE = 'journal_streak_milestone',
   GOAL_PROGRESS = 'goal_progress',
   GOAL_COMPLETION = 'goal_completion',

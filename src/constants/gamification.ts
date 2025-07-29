@@ -26,10 +26,15 @@ export const XP_REWARDS = {
     FIRST_ENTRY: 20,            // First daily journal entry
     SECOND_ENTRY: 20,           // Second daily journal entry
     THIRD_ENTRY: 20,            // Third daily journal entry (completes daily goal)
-    FOURTH_ENTRY: 8,            // Bonus entry #1 (reduced reward)
-    FIFTH_ENTRY: 8,             // Bonus entry #2 (reduced reward)
-    SIXTH_ENTRY: 8,             // Bonus entry #3 (reduced reward)
-    SEVENTH_PLUS_ENTRY: 0,      // No XP for 7+ entries (spam prevention)
+    BONUS_ENTRY: 8,             // Bonus entries 4-13 (reduced but consistent reward)
+    FOURTEENTH_PLUS_ENTRY: 0,   // No XP for 14+ entries (spam prevention)
+    
+    // Bonus milestone rewards (on top of regular entry XP)
+    FIRST_BONUS_MILESTONE: 25,  // First bonus entry ⭐ (entry #4)
+    FIFTH_BONUS_MILESTONE: 50,  // Fifth bonus entry 🔥 (entry #8) 
+    TENTH_BONUS_MILESTONE: 100, // Tenth bonus entry 👑 (entry #13) - Big achievement!
+    
+    // Streak rewards
     STREAK_7_DAYS: 75,          // Weekly journal streak
     STREAK_21_DAYS: 100,        // Habit-forming streak
     STREAK_30_DAYS: 150,        // Monthly streak milestone
@@ -92,12 +97,12 @@ export const XP_REWARDS = {
 export const DAILY_XP_LIMITS = {
   // Per-feature daily maximums
   HABITS_MAX_DAILY: 500,       // Max XP from habits per day
-  JOURNAL_MAX_DAILY: 300,      // Max XP from journal per day  
+  JOURNAL_MAX_DAILY: 415,      // Max XP from journal per day (3×20 + 10×8 + 25 + 50 + 100 = 415)
   GOALS_MAX_DAILY: 400,        // Max XP from goals per day
   ENGAGEMENT_MAX_DAILY: 200,   // Max XP from engagement per day
 
   // Global daily limits
-  TOTAL_DAILY_MAX: 1200,       // Absolute maximum XP per day
+  TOTAL_DAILY_MAX: 1500,       // Absolute maximum XP per day (increased for bonus milestones)
   SINGLE_SOURCE_MAX_PERCENT: 80, // Max % of daily XP from one source
 } as const;
 
@@ -133,15 +138,25 @@ export const XP_SOURCES = {
   [XPSourceType.JOURNAL_ENTRY]: {
     baseAmount: XP_REWARDS.JOURNAL.FIRST_ENTRY,
     description: 'Created journal entry',
-    dailyLimit: XP_REWARDS.JOURNAL.FIRST_ENTRY * 3 + XP_REWARDS.JOURNAL.FOURTH_ENTRY * 3, // 3 full + 3 bonus
+    dailyLimit: XP_REWARDS.JOURNAL.FIRST_ENTRY * 3 + XP_REWARDS.JOURNAL.BONUS_ENTRY * 10 + 
+                XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE + 
+                XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // 3 required + 10 bonus + 3 milestones = 415 XP max
     requirements: ['entry must have minimum 10 characters'],
   },
 
   [XPSourceType.JOURNAL_BONUS]: {
-    baseAmount: XP_REWARDS.JOURNAL.FOURTH_ENTRY,
+    baseAmount: XP_REWARDS.JOURNAL.BONUS_ENTRY,
     description: 'Created bonus journal entry',
-    dailyLimit: XP_REWARDS.JOURNAL.FOURTH_ENTRY * 3, // Max 3 bonus entries
+    dailyLimit: XP_REWARDS.JOURNAL.BONUS_ENTRY * 10, // Just the bonus entries themselves
     requirements: ['already completed 3 daily entries'],
+  },
+
+  [XPSourceType.JOURNAL_BONUS_MILESTONE]: {
+    baseAmount: XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE, // Base value, varies by milestone
+    description: 'Reached journal bonus milestone',
+    dailyLimit: XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE + 
+                XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // All three milestones per day max
+    requirements: ['reached specific bonus entry milestone (⭐🔥👑)'],
   },
 
   [XPSourceType.JOURNAL_STREAK_MILESTONE]: {
@@ -325,11 +340,13 @@ export const NOTIFICATION_BATCHING = {
   NOTIFICATION_PRIORITIES: {
     [XPSourceType.ACHIEVEMENT_UNLOCK]: 'high',
     [XPSourceType.WEEKLY_CHALLENGE]: 'high',
+    [XPSourceType.JOURNAL_BONUS_MILESTONE]: 'high', // ⭐🔥👑 milestones are exciting!
     [XPSourceType.GOAL_COMPLETION]: 'medium',
     [XPSourceType.HABIT_STREAK_MILESTONE]: 'medium',
     [XPSourceType.JOURNAL_STREAK_MILESTONE]: 'medium',
     [XPSourceType.HABIT_COMPLETION]: 'low',
     [XPSourceType.JOURNAL_ENTRY]: 'low',
+    [XPSourceType.JOURNAL_BONUS]: 'low',
     [XPSourceType.GOAL_PROGRESS]: 'low',
   } as const,
 } as const;

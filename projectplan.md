@@ -464,7 +464,7 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 **Goal**: Define balanced XP rewards with anti-spam protection
 - [x] Create XP constants file with all reward values
 - [x] Set habit completion rewards (scheduled: 25 XP, bonus: 15 XP)
-- [x] Define journal entry XP with anti-spam logic (first 3: 20 XP, entries 4-6: 8 XP, 7+: 0 XP)
+- [x] Define journal entry XP with anti-spam logic (first 3: 20 XP, entries 4-13: 8 XP, 14+: 0 XP + bonus milestones)
 - [x] Set goal progress rewards (35 XP once per goal per day)
 - [x] Define milestone achievement bonuses (streaks: 75-100 XP, completions: 200-250 XP)
 - [x] Set engagement action rewards (daily launch: 10 XP, recommendations: 30 XP)
