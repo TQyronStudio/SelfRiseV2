@@ -488,13 +488,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 #### Checkpoint 4.5.2: XP Integration & Level System
 **Goal**: Integrate XP rewards into existing storage services and implement leveling
 
-##### Sub-checkpoint 4.5.2.A: HabitStorage XP Integration 🏃‍♂️
+##### Sub-checkpoint 4.5.2.A: HabitStorage XP Integration 🏃‍♂️ ✅ COMPLETED
 **Goal**: Add XP rewards to all habit-related actions
-- [ ] Modify habit completion methods to award XP (scheduled: 25 XP, bonus: 15 XP)
-- [ ] Implement streak milestone XP detection and rewards (7, 14, 30, 50, 100+ days)
-- [ ] Add habit statistics tracking for achievements (total completions, max streak, etc.)
-- [ ] Create XP source attribution system for habit actions
-- [ ] Test habit XP integration with existing habit functionality
+- [x] Modify habit completion methods to award XP (scheduled: 25 XP, bonus: 15 XP)
+- [x] Implement streak milestone XP detection and rewards (7, 14, 30, 50, 100+ days)
+- [x] Add habit statistics tracking for achievements (total completions, max streak, etc.)
+- [x] Create XP source attribution system for habit actions
+- [x] Test habit XP integration with existing habit functionality
+- [x] **PERFORMANCE FIX**: Optimized XP operations to run asynchronously, preventing UI lag during habit completion
 
 ##### Sub-checkpoint 4.5.2.B: GratitudeStorage XP Integration 📝
 **Goal**: Add XP rewards to journal entries with spam prevention

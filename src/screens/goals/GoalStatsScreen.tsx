@@ -67,7 +67,7 @@ export function GoalStatsScreen() {
     );
   }
 
-  if (!goal || !stats) {
+  if (!goal) {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top }]}>
@@ -130,7 +130,7 @@ export function GoalStatsScreen() {
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: insets.bottom }} showsVerticalScrollIndicator={false}>
         {activeTab === 'stats' && (
           <>
-            <GoalStatsCard goal={goal} stats={stats} />
+            <GoalStatsCard goal={goal} stats={stats} isLoading={isLoading} />
             <ProgressHistoryList
               progress={progress}
               goalUnit={goal.unit}
@@ -144,7 +144,7 @@ export function GoalStatsScreen() {
         )}
         
         {activeTab === 'predictions' && (
-          <GoalCompletionPredictions goal={goal} stats={stats} progressHistory={progress} />
+          <GoalCompletionPredictions goal={goal} stats={stats} progressHistory={progress} isLoading={isLoading} />
         )}
       </ScrollView>
 

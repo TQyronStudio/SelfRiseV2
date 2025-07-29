@@ -37,6 +37,16 @@ export function GoalModal({
   const { t } = useI18n();
   const isEditing = !!goal;
 
+  const formatDateForInput = (date: string | undefined): string => {
+    if (!date) return '';
+    // Convert YYYY-MM-DD to DD.MM.YYYY for display
+    if (date.includes('-')) {
+      const [year, month, day] = date.split('-');
+      return `${day}.${month}.${year}`;
+    }
+    return date;
+  };
+
   const initialData: GoalFormData | undefined = goal
     ? {
         title: goal.title,
@@ -45,6 +55,7 @@ export function GoalModal({
         targetValue: goal.targetValue,
         category: goal.category,
         targetDate: goal.targetDate,
+        _displayDate: formatDateForInput(goal.targetDate),
       }
     : templateData
     ? {
@@ -54,6 +65,7 @@ export function GoalModal({
         targetValue: templateData.targetValue,
         category: templateData.category,
         targetDate: templateData.targetDate,
+        _displayDate: formatDateForInput(templateData.targetDate),
       }
     : undefined;
 

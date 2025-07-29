@@ -235,6 +235,8 @@ export interface TranslationKeys {
       addProgress: string;
       progressHistory: string;
       noProgress: string;
+      confirmDelete: string;
+      deleteMessage: string;
       form: {
         progressType: string;
         value: string;
@@ -259,6 +261,9 @@ export interface TranslationKeys {
           submitFailed: string;
         };
       };
+    };
+    details: {
+      predictions: string;
     };
     categories: {
       personal: string;

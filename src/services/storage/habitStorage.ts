@@ -2,8 +2,14 @@ import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';
 import { DateString } from '../../types/common';
+// Lazy import gamification modules only when XP is enabled
+// import { GamificationService } from '../gamificationService';
+// import { XPSourceType } from '../../types/gamification';
+// import { XP_REWARDS } from '../../constants/gamification';
 
 export class HabitStorage implements EntityStorage<Habit> {
+  // Debug flag to temporarily disable XP operations during testing
+  private static XP_ENABLED = false; // TEMPORARILY DISABLED FOR DEBUGGING
   // Habit CRUD operations
   async getAll(): Promise<Habit[]> {
     try {
@@ -213,6 +219,11 @@ export class HabitStorage implements EntityStorage<Habit> {
       completions.push(newCompletion);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);
       
+      // Add XP rewards asynchronously (don't block UI) - only if enabled
+      if (HabitStorage.XP_ENABLED) {
+        this.awardHabitCompletionXPAsync(habitId, isBonus);
+      }
+      
       return newCompletion;
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -306,7 +317,7 @@ export class HabitStorage implements EntityStorage<Habit> {
         await this.deleteCompletion(existingCompletion.id);
         return null;
       } else {
-        // If not completed, create completion
+        // If not completed, create completion (XP will be awarded in createCompletion)
         return await this.createCompletion(habitId, date, isBonus);
       }
     } catch (error) {
@@ -340,6 +351,312 @@ export class HabitStorage implements EntityStorage<Habit> {
         STORAGE_KEYS.HABITS
       );
     }
+  }
+
+  // ========================================
+  // XP SYSTEM INTEGRATION
+  // ========================================
+
+  /**
+   * Award XP for habit completion asynchronously (non-blocking)
+   * @param habitId ID of completed habit
+   * @param isBonus Whether this is a bonus completion
+   */
+  private awardHabitCompletionXPAsync(habitId: string, isBonus: boolean): void {
+    // Defer XP operations to next tick to avoid blocking UI
+    setTimeout(async () => {
+      try {
+        await this.awardHabitCompletionXP(habitId, isBonus);
+        await this.checkAndAwardStreakMilestones(habitId);
+      } catch (error) {
+        console.error('Background XP processing error:', error);
+      }
+    }, 0);
+  }
+
+  /**
+   * Award XP for habit completion
+   * @param habitId ID of completed habit
+   * @param isBonus Whether this is a bonus completion
+   */
+  private async awardHabitCompletionXP(habitId: string, isBonus: boolean): Promise<void> {
+    try {
+      // Lazy import gamification modules
+      const { GamificationService } = await import('../gamificationService');
+      const { XPSourceType } = await import('../../types/gamification');
+      const { XP_REWARDS } = await import('../../constants/gamification');
+
+      const habit = await this.getById(habitId);
+      if (!habit) return;
+
+      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+
+      await GamificationService.addXP(xpAmount, {
+        source: xpSource,
+        sourceId: habitId,
+        description: isBonus ? 
+          `Completed bonus habit: ${habit.name}` : 
+          `Completed scheduled habit: ${habit.name}`
+      });
+
+    } catch (error) {
+      console.error('Error awarding habit completion XP:', error);
+      // Don't throw error - XP is bonus functionality
+    }
+  }
+
+  /**
+   * Check for streak milestones and award bonus XP
+   * @param habitId ID of the habit to check streaks for
+   */
+  private async checkAndAwardStreakMilestones(habitId: string): Promise<void> {
+    try {
+      const habit = await this.getById(habitId);
+      if (!habit) return;
+
+      // Get completions once and reuse for calculations
+      const completions = await this.getCompletionsByHabitId(habitId);
+      const currentStreak = this.calculateStreakFromCompletions(completions);
+      const previousStreak = currentStreak - 1; // Previous streak length
+
+      // Check if we've crossed a milestone boundary
+      const milestones = [7, 14, 30, 50, 100];
+      
+      for (const milestone of milestones) {
+        if (currentStreak >= milestone && previousStreak < milestone) {
+          // We've just achieved this milestone
+          await this.awardStreakMilestoneXP(habitId, milestone);
+          break; // Only award one milestone per completion
+        }
+      }
+
+    } catch (error) {
+      console.error('Error checking streak milestones:', error);
+      // Don't throw error - XP is bonus functionality
+    }
+  }
+
+  /**
+   * Award XP for reaching a streak milestone
+   * @param habitId ID of the habit
+   * @param milestone Streak milestone reached
+   */
+  private async awardStreakMilestoneXP(habitId: string, milestone: number): Promise<void> {
+    try {
+      // Lazy import gamification modules
+      const { GamificationService } = await import('../gamificationService');
+      const { XPSourceType } = await import('../../types/gamification');
+      const { XP_REWARDS } = await import('../../constants/gamification');
+
+      const habit = await this.getById(habitId);
+      if (!habit) return;
+
+      let xpAmount: number;
+      switch (milestone) {
+        case 7:
+          xpAmount = XP_REWARDS.HABIT.STREAK_7_DAYS;
+          break;
+        case 14:
+          xpAmount = XP_REWARDS.HABIT.STREAK_14_DAYS;
+          break;
+        case 30:
+          xpAmount = XP_REWARDS.HABIT.STREAK_30_DAYS;
+          break;
+        case 50:
+          xpAmount = XP_REWARDS.HABIT.STREAK_50_DAYS;
+          break;
+        case 100:
+          xpAmount = XP_REWARDS.HABIT.STREAK_100_DAYS;
+          break;
+        default:
+          xpAmount = XP_REWARDS.HABIT.STREAK_100_DAYS; // For 100+ streaks
+      }
+
+      await GamificationService.addXP(xpAmount, {
+        source: XPSourceType.HABIT_STREAK_MILESTONE,
+        sourceId: habitId,
+        description: `Reached ${milestone}-day streak for habit: ${habit.name}`
+      });
+
+    } catch (error) {
+      console.error('Error awarding streak milestone XP:', error);
+      // Don't throw error - XP is bonus functionality
+    }
+  }
+
+  /**
+   * Calculate current streak for a habit (public method)
+   * @param habitId ID of the habit
+   * @returns Current streak length in days
+   */
+  private async calculateCurrentStreak(habitId: string): Promise<number> {
+    try {
+      const completions = await this.getCompletionsByHabitId(habitId);
+      return this.calculateStreakFromCompletions(completions);
+    } catch (error) {
+      console.error('Error calculating current streak:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate current streak from completions array (optimized for reuse)
+   * @param completions Array of habit completions
+   * @returns Current streak length in days
+   */
+  private calculateStreakFromCompletions(completions: HabitCompletion[]): number {
+    try {
+      if (completions.length === 0) return 0;
+
+      // Sort completions by date (most recent first)
+      const sortedCompletions = completions
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      // Get today's date as string
+      const today = new Date().toISOString().split('T')[0] || '';
+      
+      let streak = 0;
+      let currentDate = today;
+      
+      // Count consecutive days with completions, going backwards from today
+      while (true) {
+        const hasCompletion = sortedCompletions.some(c => c.date === currentDate);
+        
+        if (hasCompletion) {
+          streak++;
+          // Move to previous day
+          const prevDate = new Date(currentDate);
+          prevDate.setDate(prevDate.getDate() - 1);
+          currentDate = prevDate.toISOString().split('T')[0] || '';
+        } else {
+          break; // Streak broken
+        }
+      }
+
+      return streak;
+
+    } catch (error) {
+      console.error('Error calculating streak from completions:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get habit statistics for achievements tracking
+   * @param habitId ID of the habit
+   * @returns Statistics object with completion counts and streaks
+   */
+  async getHabitStatistics(habitId: string): Promise<{
+    totalCompletions: number;
+    scheduledCompletions: number;
+    bonusCompletions: number;
+    currentStreak: number;
+    longestStreak: number;
+    totalDaysActive: number;
+  }> {
+    try {
+      const completions = await this.getCompletionsByHabitId(habitId);
+      
+      const totalCompletions = completions.length;
+      const scheduledCompletions = completions.filter(c => !c.isBonus).length;
+      const bonusCompletions = completions.filter(c => c.isBonus).length;
+      const currentStreak = await this.calculateCurrentStreak(habitId);
+      const longestStreak = await this.calculateLongestStreak(habitId);
+      
+      // Calculate total days active (unique dates with completions)
+      const uniqueDates = new Set(completions.map(c => c.date));
+      const totalDaysActive = uniqueDates.size;
+
+      return {
+        totalCompletions,
+        scheduledCompletions,
+        bonusCompletions,
+        currentStreak,
+        longestStreak,
+        totalDaysActive,
+      };
+
+    } catch (error) {
+      console.error('Error getting habit statistics:', error);
+      return {
+        totalCompletions: 0,
+        scheduledCompletions: 0,
+        bonusCompletions: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        totalDaysActive: 0,
+      };
+    }
+  }
+
+  /**
+   * Calculate the longest streak ever achieved for a habit
+   * @param habitId ID of the habit
+   * @returns Longest streak length in days
+   */
+  private async calculateLongestStreak(habitId: string): Promise<number> {
+    try {
+      const completions = await this.getCompletionsByHabitId(habitId);
+      if (completions.length === 0) return 0;
+
+      // Sort completions by date
+      const sortedDates = completions
+        .map(c => c.date)
+        .sort()
+        .filter((date, index, array) => array.indexOf(date) === index); // Remove duplicates
+
+      let longestStreak = 0;
+      let currentStreak = 1;
+
+      for (let i = 1; i < sortedDates.length; i++) {
+        const prevDate = new Date(sortedDates[i - 1]!);
+        const currentDate = new Date(sortedDates[i]!);
+        
+        // Calculate difference in days
+        const diffTime = currentDate.getTime() - prevDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Consecutive day
+          currentStreak++;
+        } else {
+          // Streak broken
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 1;
+        }
+      }
+
+      // Check final streak
+      longestStreak = Math.max(longestStreak, currentStreak);
+
+      return longestStreak;
+
+    } catch (error) {
+      console.error('Error calculating longest streak:', error);
+      return 0;
+    }
+  }
+
+  // ========================================
+  // DEBUG & TESTING UTILITIES
+  // ========================================
+
+  /**
+   * Enable or disable XP operations (for testing/debugging)
+   * @param enabled Whether XP operations should be enabled
+   */
+  static setXPEnabled(enabled: boolean): void {
+    HabitStorage.XP_ENABLED = enabled;
+    console.log(`HabitStorage XP operations ${enabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+  /**
+   * Get current XP enabled status
+   * @returns Whether XP operations are currently enabled
+   */
+  static isXPEnabled(): boolean {
+    return HabitStorage.XP_ENABLED;
   }
 }
 

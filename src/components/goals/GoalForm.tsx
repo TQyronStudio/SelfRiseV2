@@ -24,6 +24,7 @@ export type GoalFormData = {
   targetValue: number;
   category: GoalCategory;
   targetDate: DateString | undefined;
+  _displayDate: string; // For DD.MM.YYYY display format
 };
 
 interface GoalFormProps {
@@ -33,6 +34,16 @@ interface GoalFormProps {
   isEditing?: boolean;
   isLoading?: boolean;
 }
+
+const formatDateForInput = (date: DateString | undefined): string => {
+  if (!date) return '';
+  // Convert YYYY-MM-DD to DD.MM.YYYY for display
+  if (date.includes('-')) {
+    const [year, month, day] = date.split('-');
+    return `${day}.${month}.${year}`;
+  }
+  return date;
+};
 
 export function GoalForm({
   initialData,
@@ -52,6 +63,7 @@ export function GoalForm({
     targetValue: initialData?.targetValue || 0,
     category: initialData?.category || GoalCategory.PERSONAL,
     targetDate: initialData?.targetDate || undefined,
+    _displayDate: initialData?.targetDate ? formatDateForInput(initialData.targetDate) : '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -121,15 +133,43 @@ export function GoalForm({
     }
   };
 
-  const formatDateForInput = (date: DateString | undefined): string => {
-    if (!date) return '';
-    return date;
-  };
-
   const handleDateChange = (text: string) => {
+    // Remove any non-numeric characters except dots
+    let cleanText = text.replace(/[^\d.]/g, '');
+    
+    // Apply DD.MM.YYYY format mask
+    if (cleanText.length >= 2 && !cleanText.includes('.')) {
+      cleanText = cleanText.substring(0, 2) + '.' + cleanText.substring(2);
+    }
+    if (cleanText.length >= 5 && cleanText.split('.').length === 2) {
+      const parts = cleanText.split('.');
+      if (parts[0] && parts[1]) {
+        cleanText = parts[0] + '.' + parts[1].substring(0, 2) + '.' + parts[1].substring(2);
+      }
+    }
+    
+    // Limit to DD.MM.YYYY format
+    if (cleanText.length > 10) {
+      cleanText = cleanText.substring(0, 10);
+    }
+    
+    // Convert DD.MM.YYYY to YYYY-MM-DD for internal storage
+    let dateString: DateString | undefined = undefined;
+    if (cleanText.length === 10 && cleanText.split('.').length === 3) {
+      const [day, month, year] = cleanText.split('.');
+      if (day && month && year && year.length === 4) {
+        // Validate the date
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (date.getFullYear() === parseInt(year) && date.getMonth() === parseInt(month) - 1 && date.getDate() === parseInt(day)) {
+          dateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` as DateString;
+        }
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
-      targetDate: text.trim() ? (text as DateString) : undefined,
+      targetDate: dateString,
+      _displayDate: cleanText, // Store display format separately
     }));
   };
 
@@ -218,15 +258,18 @@ export function GoalForm({
         {/* Target Date */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
+          <Text style={styles.dateHint}>Format: DD.MM.YYYY (např. 31.12.2024)</Text>
           <TextInput
             ref={dateInputRef}
             style={[styles.input]}
-            placeholder={t('goals.form.placeholders.targetDate')}
+            placeholder="DD.MM.YYYY"
             placeholderTextColor={Colors.textSecondary}
-            value={formatDateForInput(formData.targetDate)}
+            value={formData._displayDate}
             onChangeText={handleDateChange}
             onFocus={() => scrollToInput(200)}
+            keyboardType="numeric"
             editable={!isLoading}
+            maxLength={10}
           />
         </View>
 
@@ -356,6 +399,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.text,
     marginBottom: 8,
+  },
+  dateHint: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
   input: {
     borderWidth: 1,

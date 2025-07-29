@@ -7,10 +7,11 @@ import { useI18n } from '../../hooks/useI18n';
 
 interface GoalStatsCardProps {
   goal: Goal;
-  stats: GoalStats;
+  stats: GoalStats | null;
+  isLoading?: boolean;
 }
 
-export function GoalStatsCard({ goal, stats }: GoalStatsCardProps) {
+export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardProps) {
   const { t } = useI18n();
 
   const getStatusColor = (status: GoalStatus) => {
@@ -42,6 +43,25 @@ export function GoalStatsCard({ goal, stats }: GoalStatsCardProps) {
         return status;
     }
   };
+
+  // If stats are not available, show loading or no data message
+  if (!stats) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{goal.title}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(goal.status) }]}>
+            <Text style={styles.statusText}>{getStatusText(goal.status)}</Text>
+          </View>
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.loadingText}>
+            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see statistics.'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const getTimelineStatusColor = (status: GoalTimelineStatus) => {
     switch (status) {
@@ -183,6 +203,34 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: Fonts.semibold,
+    color: Colors.text,
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
   section: {
     marginBottom: 16,
   },
@@ -261,5 +309,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginVertical: 20,
   },
 });

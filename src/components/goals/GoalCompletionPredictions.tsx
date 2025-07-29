@@ -8,8 +8,9 @@ import { Layout } from '@/src/constants/dimensions';
 
 interface GoalCompletionPredictionsProps {
   goal: Goal;
-  stats: GoalStats;
+  stats: GoalStats | null;
   progressHistory: GoalProgress[];
+  isLoading?: boolean;
 }
 
 interface PredictionData {
@@ -27,8 +28,22 @@ interface PredictionInsight {
   icon: string;
 }
 
-export function GoalCompletionPredictions({ goal, stats, progressHistory }: GoalCompletionPredictionsProps) {
+export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoading = false }: GoalCompletionPredictionsProps) {
   const { t } = useI18n();
+
+  // If stats are not available, show loading or no data message
+  if (!stats) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.sectionTitle}>{t('goals.details.predictions')}</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>
+            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see predictions.'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const predictions = useMemo(() => {
     const today = new Date();
@@ -520,5 +535,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 20,
+  },
+  loadingContainer: {
+    backgroundColor: Colors.backgroundSecondary,
+    borderRadius: 8,
+    padding: Layout.spacing.lg,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

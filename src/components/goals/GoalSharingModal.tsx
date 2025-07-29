@@ -9,7 +9,7 @@ import { Layout } from '@/src/constants/dimensions';
 interface GoalSharingModalProps {
   visible: boolean;
   goal: Goal;
-  stats: GoalStats;
+  stats: GoalStats | null;
   progressHistory: GoalProgress[];
   onClose: () => void;
 }
@@ -17,6 +17,11 @@ interface GoalSharingModalProps {
 export function GoalSharingModal({ visible, goal, stats, progressHistory, onClose }: GoalSharingModalProps) {
   const { t } = useI18n();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Don't render if stats are not available
+  if (!stats) {
+    return null;
+  }
 
   const generateGoalSummary = () => {
     const completionPercentage = Math.round(stats.completionPercentage);
