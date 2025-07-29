@@ -453,246 +453,339 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 #### Checkpoint 4.5.1: Core Gamification Foundation
 **Goal**: Establish basic XP system and data structures
 
-- [ ] Define XP Value Matrix with balanced point distribution and spam prevention
-  - [ ] Set XP rewards for habit completions (scheduled: 25 XP, bonus: 15 XP)
-  - [ ] Set XP rewards for journal entries with anti-spam logic:
-    - [ ] First 3 daily entries: 20 XP each (60 XP total)
-    - [ ] Bonus entries 4-6: 8 XP each (24 XP max) 
-    - [ ] Entries 7+: 0 XP (prevents content spam)
-    - [ ] Special milestone bonuses: 1st bonus (⭐), 5th bonus (🔥), 10th bonus (👑) - one-time XP rewards
-  - [ ] Set XP rewards for goal progress (35 XP once per goal per day)
-  - [ ] Set XP rewards for milestone achievements (streaks, completions)
-  - [ ] Set XP rewards for engagement actions (daily launch: 10 XP, recommendations: 30 XP)
-  - [ ] Implement XP balancing system to prevent single-feature dominance
-- [ ] Create GamificationService core architecture
-  - [ ] Implement basic XP storage and retrieval methods
-  - [ ] Create XP addition with source tracking
-  - [ ] Add AsyncStorage persistence for XP data
-  - [ ] Implement transaction-based XP additions with rollback capability
-- [ ] Define TypeScript interfaces and types
-  - [ ] Create XP-related interfaces (XPSource, XPTransaction, GamificationStats)
-  - [ ] Define level calculation interfaces
-  - [ ] Create achievement-related type definitions
-- [ ] Mathematical level progression model with dynamic balancing
-  - [ ] Implement progressive XP formula (linear → quadratic → exponential)
-  - [ ] Create level calculation functions (getXPRequiredForLevel, getCurrentLevel)
-  - [ ] Validate mathematical model for 5-year progression timeline
-  - [ ] Test edge cases (level 1, level 100, XP overflow scenarios)
-  - [ ] Implement XP source balancing algorithm (prevents 80%+ XP from single feature)
-  - [ ] Add level progression adjustment system based on user behavior analytics
+##### Sub-checkpoint 4.5.1.A: TypeScript Interfaces & Types 📝
+**Goal**: Define all gamification-related TypeScript interfaces
+- [ ] Create XP-related interfaces (XPSource, XPTransaction, GamificationStats)
+- [ ] Define level calculation interfaces (LevelInfo, LevelRequirement)
+- [ ] Create achievement-related type definitions (Achievement, AchievementCondition, AchievementCategory)
+- [ ] Add gamification enums (XPSourceType, AchievementRarity, NotificationType)
+
+##### Sub-checkpoint 4.5.1.B: XP Value Matrix & Constants 🎯
+**Goal**: Define balanced XP rewards with anti-spam protection
+- [ ] Create XP constants file with all reward values
+- [ ] Set habit completion rewards (scheduled: 25 XP, bonus: 15 XP)
+- [ ] Define journal entry XP with anti-spam logic (first 3: 20 XP, entries 4-6: 8 XP, 7+: 0 XP)
+- [ ] Set goal progress rewards (35 XP once per goal per day)
+- [ ] Define milestone achievement bonuses (streaks: 75-100 XP, completions: 200-250 XP)
+- [ ] Set engagement action rewards (daily launch: 10 XP, recommendations: 30 XP)
+
+##### Sub-checkpoint 4.5.1.C: Mathematical Level Model 📊
+**Goal**: Implement progressive level calculation system
+- [ ] Create level progression formula (linear→quadratic→exponential phases)
+- [ ] Implement getXPRequiredForLevel() function
+- [ ] Create getCurrentLevel() and getXPProgress() functions
+- [ ] Add level milestone detection (levels 10, 25, 50, 75, 100)
+- [ ] Validate 5-year progression timeline with test scenarios
+
+##### Sub-checkpoint 4.5.1.D: Basic GamificationService Core 🛠️
+**Goal**: Create foundational service architecture
+- [ ] Create GamificationService class with static methods
+- [ ] Implement XP storage/retrieval using AsyncStorage
+- [ ] Add XP addition method with source tracking
+- [ ] Create transaction system with rollback capability
+- [ ] Add basic error handling and logging
 
 #### Checkpoint 4.5.2: XP Integration & Level System
 **Goal**: Integrate XP rewards into existing storage services and implement leveling
 
-- [ ] Integrate XP into HabitStorage service
-  - [ ] Add XP rewards to habit completion methods
-  - [ ] Implement streak milestone XP rewards (7, 14, 30, 50, 100+ days)
-  - [ ] Track habit-specific statistics for achievements
-  - [ ] Add XP source attribution for habit actions
-- [ ] Integrate XP into GratitudeStorage service
-  - [ ] Add XP rewards to journal entry creation
-  - [ ] Implement journal streak milestone XP rewards
-  - [ ] Track journal-specific statistics for achievements
-  - [ ] Handle bonus entry XP calculations
-- [ ] Integrate XP into GoalStorage service
-  - [ ] Add XP rewards to goal progress additions
-  - [ ] Implement goal completion XP rewards (250 XP)
-  - [ ] Add goal milestone XP rewards (25%, 50%, 75%)
-  - [ ] Track goal-specific statistics for achievements
-- [ ] Create GamificationContext for React state management
-  - [ ] Implement context provider with XP and level state
-  - [ ] Add methods for XP addition and level checking
-  - [ ] Create hooks for accessing gamification data
-  - [ ] Implement real-time state updates across components
-- [ ] Level-up detection and celebrations
-  - [ ] Implement automatic level-up detection after XP gains
-  - [ ] Create level-up celebration using CelebrationModal
-  - [ ] Add level-up sound effects and visual feedback
-  - [ ] Store level-up history and timestamps
+##### Sub-checkpoint 4.5.2.A: HabitStorage XP Integration 🏃‍♂️
+**Goal**: Add XP rewards to all habit-related actions
+- [ ] Modify habit completion methods to award XP (scheduled: 25 XP, bonus: 15 XP)
+- [ ] Implement streak milestone XP detection and rewards (7, 14, 30, 50, 100+ days)
+- [ ] Add habit statistics tracking for achievements (total completions, max streak, etc.)
+- [ ] Create XP source attribution system for habit actions
+- [ ] Test habit XP integration with existing habit functionality
+
+##### Sub-checkpoint 4.5.2.B: GratitudeStorage XP Integration 📝
+**Goal**: Add XP rewards to journal entries with spam prevention
+- [ ] Modify journal entry creation to award XP with anti-spam logic
+- [ ] Implement journal streak milestone XP detection and rewards
+- [ ] Add journal statistics tracking for achievements (total entries, streak, bonus count)
+- [ ] Handle bonus entry XP calculations (entries 4-6: 8 XP, 7+: 0 XP)
+- [ ] Test journal XP integration with existing journal functionality
+
+##### Sub-checkpoint 4.5.2.C: GoalStorage XP Integration 🎯
+**Goal**: Add XP rewards to goal progress and completions
+- [ ] Modify goal progress addition to award XP (35 XP once per goal per day)
+- [ ] Implement goal completion XP rewards (250 XP)
+- [ ] Add goal milestone XP rewards (25%, 50%, 75% progress markers)
+- [ ] Add goal statistics tracking for achievements (completions, progress frequency)
+- [ ] Test goal XP integration with existing goal functionality
+
+##### Sub-checkpoint 4.5.2.D: GamificationContext & State Management ⚛️
+**Goal**: Create React context for gamification state
+- [ ] Create GamificationContext with XP and level state
+- [ ] Implement context provider with all gamification methods
+- [ ] Create custom hooks (useGamification, useXP, useLevel, useAchievements)
+- [ ] Add real-time state updates and event listeners
+- [ ] Integrate context into app's provider hierarchy
+
+##### Sub-checkpoint 4.5.2.E: Level-up System & Celebrations 🎉
+**Goal**: Implement automatic level-up detection and celebrations
+- [ ] Create level-up detection logic (triggered after XP gains)
+- [ ] Design and implement level-up CelebrationModal
+- [ ] Add level-up visual effects and animations
+- [ ] Implement level-up sound effects and haptic feedback
+- [ ] Create level-up history storage and timestamps
 
 #### Checkpoint 4.5.3: Home Screen XP Bar & Visual Integration
 **Goal**: Create visible XP progress display on Home screen
 
-- [ ] Create XpProgressBar component
-  - [ ] Design level badge with current level display
-  - [ ] Implement animated progress bar for XP progression
-  - [ ] Add XP text display (current/required format)
-  - [ ] Create responsive layout for different screen sizes
-- [ ] Integrate XP bar into Home screen layout
-  - [ ] Position XP bar prominently in Home screen header/top section
-  - [ ] Ensure compatibility with existing Home screen components
-  - [ ] Add XP bar to HomeCustomizationContext (make it toggleable)
-  - [ ] Test XP bar with different customization settings
-- [ ] Real-time XP animations and feedback
-  - [ ] Create subtle XP gain animations (+XP popup)
-  - [ ] Implement progress bar fill animations
-  - [ ] Add level-up particle effects and animations
-  - [ ] Create haptic feedback for XP gains and level-ups
-- [ ] Smart XP notification system (anti-spam)
-  - [ ] Create XpNotification component with intelligent batching
-  - [ ] Implement smart batching logic (combine XP gains within 3-second window)
-  - [ ] Create summary notifications ("3 habits completed: +75 XP total")
-  - [ ] Add subtle visual feedback without disruptive popups
-  - [ ] Implement notification cooldown periods to prevent spam
+##### Sub-checkpoint 4.5.3.A: XpProgressBar Component 📊
+**Goal**: Create animated XP progress bar component
+- [ ] Design level badge with current level display
+- [ ] Implement animated progress bar for XP progression
+- [ ] Add XP text display (current/required format with thousands separators)
+- [ ] Create responsive layout for different screen sizes
+- [ ] Add progress bar styling and theming
+
+##### Sub-checkpoint 4.5.3.B: Home Screen Integration 🏠
+**Goal**: Integrate XP bar into existing Home screen layout
+- [ ] Position XP bar prominently in Home screen header/top section
+- [ ] Ensure compatibility with existing Home screen components
+- [ ] Add XP bar to HomeCustomizationContext (make it toggleable)
+- [ ] Test XP bar with different customization settings
+- [ ] Verify XP bar doesn't break existing Home screen functionality
+
+##### Sub-checkpoint 4.5.3.C: XP Animations & Visual Feedback ✨
+**Goal**: Create engaging XP gain animations and effects
+- [ ] Create subtle XP gain animations (+XP popup with fade effect)
+- [ ] Implement progress bar fill animations (smooth transitions)
+- [ ] Add level-up particle effects and celebrations
+- [ ] Create haptic feedback for XP gains and level-ups
+- [ ] Add sound effects for major XP milestones
+
+##### Sub-checkpoint 4.5.3.D: Smart Notification System 🔔
+**Goal**: Implement intelligent anti-spam notification system
+- [ ] Create XpNotification component with batching capability
+- [ ] Implement smart batching logic (combine XP gains within 3-second window)
+- [ ] Create summary notifications ("3 habits completed: +75 XP total")
+- [ ] Add subtle visual feedback without disruptive popups
+- [ ] Implement notification cooldown periods and spam prevention
 
 #### Checkpoint 4.5.4: Achievement System Foundation
 **Goal**: Create basic achievement detection and storage system
 
-- [ ] Define Achievement data structure and interfaces
-  - [ ] Create Achievement interface with all required properties
-  - [ ] Define achievement categories (habits, journal, goals, consistency, mastery)
-  - [ ] Implement achievement rarity system (common, rare, epic, legendary)
-  - [ ] Create achievement condition evaluation system
-- [ ] Create first batch of achievements (15 basic achievements + weekly specials)
-  - [ ] Implement "First Steps" achievements (first habit, first journal, first goal)
-  - [ ] Create milestone achievements (100 habits, 30-day streaks)
-  - [ ] Add level-based achievements (reach level 10, 25, 50)
-  - [ ] Implement consistency achievements (7-day app usage, daily completions)
-  - [ ] Add "Weekly Challenge" achievements (complete 1, 5, 10 weekly challenges)
-  - [ ] Create "Balance Master" achievements (use all 3 features in single day)
-  - [ ] Design limited-time seasonal achievements (monthly special themes)
-- [ ] Achievement detection engine
-  - [ ] Create achievement condition checking system
-  - [ ] Implement real-time achievement monitoring
-  - [ ] Add batch achievement checking (daily background process)
-  - [ ] Create achievement unlock notification system
-- [ ] Achievement storage and persistence
-  - [ ] Implement AsyncStorage for achievement data
-  - [ ] Create achievement unlock timestamp tracking
-  - [ ] Add achievement progress tracking for progressive achievements
-  - [ ] Implement achievement data migration and versioning
+##### Sub-checkpoint 4.5.4.A: Achievement Data Structures 🏆
+**Goal**: Define all achievement-related interfaces and types
+- [ ] Create Achievement interface with all required properties (id, name, description, icon, rarity, condition)
+- [ ] Define achievement categories enum (habits, journal, goals, consistency, mastery)
+- [ ] Implement achievement rarity system (common, rare, epic, legendary)
+- [ ] Create achievement condition evaluation interfaces (AchievementCondition, ConditionChecker)
+- [ ] Add achievement progress tracking types for progressive achievements
+
+##### Sub-checkpoint 4.5.4.B: Basic Achievement Catalog (15 Core Achievements) 📜
+**Goal**: Create first batch of essential achievements
+- [ ] Implement "First Steps" achievements (first habit, first journal, first goal)
+- [ ] Create milestone achievements (100 habits, 30-day streaks, level milestones)
+- [ ] Add consistency achievements (7-day app usage, daily completions)
+- [ ] Create "Balance Master" achievements (use all 3 features in single day)
+- [ ] Design achievement icons, descriptions, and XP rewards for each
+
+##### Sub-checkpoint 4.5.4.C: Achievement Detection Engine 🔍
+**Goal**: Create system for detecting and unlocking achievements
+- [ ] Create achievement condition checking system (evaluateCondition function)
+- [ ] Implement real-time achievement monitoring (triggers after XP actions)
+- [ ] Add batch achievement checking for complex conditions (daily background process)
+- [ ] Create achievement unlock logic with duplicate prevention
+- [ ] Add achievement unlock notification system using CelebrationModal
+
+##### Sub-checkpoint 4.5.4.D: Achievement Storage & Persistence 💾
+**Goal**: Implement achievement data storage and management
+- [ ] Create AsyncStorage structure for achievement data
+- [ ] Implement achievement unlock timestamp tracking
+- [ ] Add achievement progress tracking for progressive achievements
+- [ ] Create achievement data migration and versioning system
+- [ ] Add achievement statistics and analytics collection
 
 #### Checkpoint 4.5.5: Trophy Room Screen
 **Goal**: Create dedicated achievements screen with visual trophy display
 
-- [ ] Create AchievementsScreen navigation and routing
-  - [ ] Add new screen to navigation structure
-  - [ ] Create proper navigation integration (tab or stack navigation)
-  - [ ] Implement screen header with trophy count statistics
-  - [ ] Add navigation accessibility and proper screen transitions
-- [ ] Design and implement AchievementCard component
-  - [ ] Create visual card design for locked/unlocked achievements
-  - [ ] Implement rarity-based color schemes and visual indicators
-  - [ ] Add achievement progress bars for progressive achievements
-  - [ ] Create achievement detail modal with full description
-- [ ] Achievement categorization and filtering
-  - [ ] Implement category-based achievement grouping
-  - [ ] Create category headers and visual separation
-  - [ ] Add filtering options (show all, unlocked only, by category)
-  - [ ] Implement search functionality for achievements
-- [ ] Trophy Room statistics and immersive experience
-  - [ ] Display total achievements unlocked vs available
-  - [ ] Show overall progress bar for achievement completion
-  - [ ] Add achievement unlocking rate statistics
-  - [ ] Create achievement celebration history view
-  - [ ] Implement 3D trophy shelf with physics-based interaction
-  - [ ] Add trophy combination bonuses (collecting themed sets)
-  - [ ] Create "Achievement Spotlight" featuring random unlocked trophies with stories
-  - [ ] Add trophy room expansion system (unlock new shelves with level progression)
+##### Sub-checkpoint 4.5.5.A: Navigation & Screen Structure 🧭
+**Goal**: Create AchievementsScreen with proper navigation
+- [ ] Add AchievementsScreen to navigation structure (stack or tab)
+- [ ] Create screen header with trophy count statistics and progress overview
+- [ ] Implement proper navigation integration with back buttons and transitions
+- [ ] Add screen accessibility labels and navigation announcements
+- [ ] Test navigation flow from Home screen and other entry points
+
+##### Sub-checkpoint 4.5.5.B: AchievementCard Component 🎴
+**Goal**: Design and implement individual achievement display cards
+- [ ] Create visual card design for locked/unlocked achievements (gray vs colored)
+- [ ] Implement rarity-based color schemes (common: silver, rare: blue, epic: purple, legendary: gold)
+- [ ] Add achievement progress bars for progressive achievements
+- [ ] Create achievement detail modal with full description and unlock date
+- [ ] Add achievement card animations (unlock effects, hover states)
+
+##### Sub-checkpoint 4.5.5.C: Categorization & Filtering System 📋
+**Goal**: Organize achievements with filtering and search capabilities
+- [ ] Implement category-based achievement grouping (Habits, Journal, Goals, etc.)
+- [ ] Create category headers with visual separation and category statistics
+- [ ] Add filtering options (show all, unlocked only, by category, by rarity)
+- [ ] Implement search functionality for achievements (search by name/description)
+- [ ] Add sorting options (by unlock date, by rarity, alphabetical)
+
+##### Sub-checkpoint 4.5.5.D: Interactive Trophy Room Experience 🏠
+**Goal**: Create immersive 3D trophy room with advanced features
+- [ ] Display trophy room statistics (unlocked vs available, completion percentage)
+- [ ] Create achievement celebration history view (recent unlocks timeline)
+- [ ] Implement 3D trophy shelf with physics-based interaction
+- [ ] Add trophy combination bonuses system (collecting themed achievement sets)
+- [ ] Create "Achievement Spotlight" featuring random unlocked trophies with stories
+- [ ] Add trophy room expansion system (unlock new shelves with level progression)
 
 #### Checkpoint 4.5.6: Advanced Achievement Implementation
-**Goal**: Complete full achievement catalog with all 30 achievements
+**Goal**: Complete full achievement catalog with all 30+ achievements
 
-- [ ] Implement Habits category achievements (8 achievements)
-  - [ ] First Steps, Habit Builder, Century Club achievements
-  - [ ] Streak Master, Multi-Tasker achievements with proper condition checking
-  - [ ] Consistency King, Diamond Streak, Habit Legend achievements
-  - [ ] Test all habit-related achievement conditions thoroughly
-- [ ] Implement Journal category achievements (8 achievements)
-  - [ ] First Reflection, Grateful Heart, Deep Thinker achievements
-  - [ ] Journal Enthusiast, Gratitude Guru, Bonus Seeker achievements
-  - [ ] Chronicle Master, Eternal Gratitude achievements
-  - [ ] Implement character count tracking for Deep Thinker achievement
-- [ ] Implement Goals category achievements (6 achievements)
-  - [ ] Dream Starter, Goal Getter, Ambitious achievements
-  - [ ] Goal Champion, Progress Tracker achievements
-  - [ ] Achievement Unlocked achievement with proper goal completion tracking
-  - [ ] Test goal value tracking and consecutive progress day counting
-- [ ] Implement Consistency and Mastery achievements (10 achievements)
-  - [ ] Daily Visitor, Dedicated User, Perfect Month achievements
-  - [ ] Recommendation Master, Triple Crown achievements
-  - [ ] Level Up, SelfRise Expert, SelfRise Master achievements
-  - [ ] Weekly Challenge achievements (Challenge Seeker, Challenge Master)
-  - [ ] XP Multiplier achievements (Harmony Keeper, Balance Master)
-  - [ ] Implement complex multi-condition checking for Triple Crown
-  - [ ] Add special "Trophy Collector" meta-achievements for collecting achievement sets
+##### Sub-checkpoint 4.5.6.A: Habits Category Achievements (8 achievements) 🏃‍♂️
+**Goal**: Implement all habit-related achievements with proper tracking
+- [ ] Basic achievements: First Steps (first habit), Habit Builder (5 habits created)
+- [ ] Milestone achievements: Century Club (100 habits), Consistency King (1000 habits)
+- [ ] Streak achievements: Streak Master (30-day streak), Diamond Streak (100-day streak)
+- [ ] Daily achievements: Multi-Tasker (5 habits in one day)
+- [ ] Advanced achievement: Habit Legend (reach Level 50 with habit XP alone)
+- [ ] Test all habit achievement conditions with various user scenarios
+
+##### Sub-checkpoint 4.5.6.B: Journal Category Achievements (8 achievements) 📝
+**Goal**: Implement all journal-related achievements with content tracking
+- [ ] Basic achievements: First Reflection (first entry), Deep Thinker (200+ chars)
+- [ ] Milestone achievements: Journal Enthusiast (100 entries), Chronicle Master (500 entries)
+- [ ] Streak achievements: Grateful Heart (7-day streak), Gratitude Guru (30-day), Eternal Gratitude (100-day)
+- [ ] Bonus achievements: Bonus Seeker (50 bonus entries with proper counting)
+- [ ] Implement character count tracking for Deep Thinker achievement
+- [ ] Test journal achievement conditions with anti-spam logic
+
+##### Sub-checkpoint 4.5.6.C: Goals Category Achievements (6 achievements) 🎯
+**Goal**: Implement all goal-related achievements with progress tracking
+- [ ] Basic achievements: Dream Starter (first goal), Goal Getter (first completion)
+- [ ] Milestone achievements: Goal Champion (5 completions), Achievement Unlocked (10 completions)
+- [ ] Value achievement: Ambitious (goal with target value ≥ 1000)
+- [ ] Consistency achievement: Progress Tracker (7 consecutive days of goal progress)
+- [ ] Test goal value tracking and consecutive progress day counting
+- [ ] Verify achievement unlock timing with goal completion events
+
+##### Sub-checkpoint 4.5.6.D: Consistency & Mastery Achievements (10+ achievements) 🏆
+**Goal**: Implement advanced achievements for long-term engagement
+- [ ] App usage: Daily Visitor (7 days), Dedicated User (30 days)
+- [ ] Performance: Perfect Month (30 days all activities), Recommendation Master (20 recs)
+- [ ] Leveling: Level Up (level 10), SelfRise Expert (level 50), SelfRise Master (level 100)
+- [ ] Advanced: Triple Crown (7+ day streaks in all categories simultaneously)
+- [ ] New features: Weekly Challenge achievements, XP Multiplier achievements
+- [ ] Meta-achievements: Trophy Collector achievements for collecting themed sets
+- [ ] Implement complex multi-condition checking with proper state management
 
 #### Checkpoint 4.5.7: Performance Optimization & Polish
 **Goal**: Optimize gamification system performance and add final polish
 
-- [ ] Performance optimization implementation
-  - [ ] Implement lazy achievement checking (only relevant achievements)
-  - [ ] Create XP batching system for rapid consecutive actions
-  - [ ] Add cached calculations for expensive operations
-  - [ ] Implement background processing for non-critical achievement checks
-- [ ] Visual polish and animations
-  - [ ] Refine XP gain animations and transitions
-  - [ ] Implement particle effects for major milestones
-  - [ ] Add smooth loading states for Trophy Room
-  - [ ] Create polished achievement unlock celebrations
-- [ ] Accessibility and internationalization
-  - [ ] Add proper accessibility labels for all gamification elements
-  - [ ] Implement screen reader support for XP and achievement announcements
-  - [ ] Add high contrast mode support for achievement rarities
-  - [ ] Create complete localization for all gamification text (EN/DE/ES)
-- [ ] Testing and quality assurance
-  - [ ] Test XP calculation accuracy across all sources
-  - [ ] Verify achievement condition logic with edge cases
-  - [ ] Performance test with large datasets (1000+ achievements unlocked)
-  - [ ] Test data persistence and migration scenarios
-  - [ ] Validate mathematical model accuracy over extended usage
+##### Sub-checkpoint 4.5.7.A: Performance Optimization ⚡
+**Goal**: Implement performance improvements for smooth user experience
+- [ ] Implement lazy achievement checking (only check relevant achievements per action)
+- [ ] Create XP batching system for rapid consecutive actions (combine within 500ms)
+- [ ] Add cached calculations for expensive operations (level requirements, achievement progress)
+- [ ] Implement background processing for non-critical achievement checks
+- [ ] Optimize AsyncStorage operations with batching and compression
+
+##### Sub-checkpoint 4.5.7.B: Visual Polish & Animations ✨
+**Goal**: Perfect visual effects and user experience polish
+- [ ] Refine XP gain animations and transitions (smooth, non-jarring)
+- [ ] Implement particle effects for major milestones (level-ups, rare achievements)
+- [ ] Add smooth loading states for Trophy Room and achievement screens
+- [ ] Create polished achievement unlock celebrations with proper timing
+- [ ] Add micro-interactions and hover states for better user feedback
+
+##### Sub-checkpoint 4.5.7.C: Accessibility & Internationalization 🌍
+**Goal**: Ensure gamification is accessible and fully localized
+- [ ] Add proper accessibility labels for all gamification elements
+- [ ] Implement screen reader support for XP and achievement announcements
+- [ ] Add high contrast mode support for achievement rarities and visual indicators
+- [ ] Create complete localization for all gamification text (EN/DE/ES)
+- [ ] Test gamification with VoiceOver/TalkBack and other accessibility tools
+
+##### Sub-checkpoint 4.5.7.D: Testing & Quality Assurance 🧪
+**Goal**: Comprehensive testing of all gamification features
+- [ ] Test XP calculation accuracy across all sources with various scenarios
+- [ ] Verify achievement condition logic with edge cases and boundary conditions
+- [ ] Performance test with large datasets (1000+ achievements, high XP volumes)
+- [ ] Test data persistence and migration scenarios across app updates
+- [ ] Validate mathematical model accuracy over extended simulated usage
 
 #### Checkpoint 4.5.8: Advanced Gamification Features (Weekly Challenges & Multipliers)
 **Goal**: Implement advanced engagement systems to maintain long-term user interest
 
-- [ ] Weekly Challenge System
-  - [ ] Create WeeklyChallengeService for challenge generation and management
-  - [ ] Implement dynamic challenge templates (habits, journal, goals, mixed)
-  - [ ] Design challenge difficulty scaling based on user level and activity
-  - [ ] Create challenge completion tracking and validation
-  - [ ] Add weekly challenge display in Home screen and dedicated section
-  - [ ] Implement challenge reward system (150-400 XP + special badges)
-- [ ] XP Multiplier System for Balanced Usage
-  - [ ] Create "Harmony Streak" detection (all 3 categories active for 7+ days)
-  - [ ] Implement 24-hour 2x XP Multiplier activation
-  - [ ] Design multiplier visual indicators and countdown timer
-  - [ ] Add multiplier notifications and celebration modal
-  - [ ] Create multiplier history tracking and statistics
-- [ ] Interactive Trophy Room Enhancement
-  - [ ] Design 3D shelf/garden visual system for trophy display
-  - [ ] Create trophy models for each achievement category
-  - [ ] Implement progressive trophy room expansion (unlocks with levels)
-  - [ ] Add trophy interaction animations and sound effects
-  - [ ] Create trophy combination rewards (collect sets for bonus XP)
-- [ ] Social Gamification Preparation
-  - [ ] Design achievement sharing system (screenshots with privacy)
-  - [ ] Create level milestone celebration posts
-  - [ ] Implement streak comparison with anonymous leaderboards
-  - [ ] Add motivational quotes based on user's current achievements
+##### Sub-checkpoint 4.5.8.A: Weekly Challenge System 🏆
+**Goal**: Create dynamic weekly challenges to maintain engagement
+- [ ] Create WeeklyChallengeService for challenge generation and management
+- [ ] Implement dynamic challenge templates (habits, journal, goals, mixed categories)
+- [ ] Design challenge difficulty scaling based on user level and activity history
+- [ ] Create challenge completion tracking and validation system
+- [ ] Add weekly challenge display in Home screen and dedicated challenges section
+- [ ] Implement challenge reward system (150-400 XP + special achievement badges)
+
+##### Sub-checkpoint 4.5.8.B: XP Multiplier System ✨
+**Goal**: Reward balanced app usage with XP multipliers
+- [ ] Create "Harmony Streak" detection (all 3 categories active for 7+ consecutive days)
+- [ ] Implement 24-hour 2x XP Multiplier activation and timer system
+- [ ] Design multiplier visual indicators and countdown timer UI
+- [ ] Add multiplier activation notifications and celebration modal
+- [ ] Create multiplier history tracking and usage statistics
+- [ ] Test multiplier integration with all XP-earning actions
+
+##### Sub-checkpoint 4.5.8.C: Interactive Trophy Room Enhancement 🏠
+**Goal**: Transform Trophy Room into immersive 3D experience
+- [ ] Design 3D shelf/garden visual system for trophy display
+- [ ] Create unique trophy models for each achievement category with physics
+- [ ] Implement progressive trophy room expansion (unlock new areas with level progression)
+- [ ] Add trophy interaction animations and satisfying sound effects
+- [ ] Create trophy combination rewards system (collect themed sets for bonus XP)
+- [ ] Test 3D performance across different device capabilities
+
+##### Sub-checkpoint 4.5.8.D: Social Features Foundation 👥
+**Goal**: Prepare social gamification features while maintaining privacy
+- [ ] Design achievement sharing system (beautiful screenshots with privacy protection)
+- [ ] Create level milestone celebration posts for social sharing
+- [ ] Implement anonymous streak comparison and motivational leaderboards
+- [ ] Add context-aware motivational quotes based on user's current achievements
+- [ ] Create "Daily Heroes" anonymous showcase of interesting achievements
+- [ ] Test all social features ensure complete anonymity and data protection
 
 #### Checkpoint 4.5.9: Integration Testing & Launch Preparation
 **Goal**: Final integration testing and system validation
 
-- [ ] End-to-end integration testing
-  - [ ] Test complete user journey from first XP gain to achievement unlock
-  - [ ] Verify proper integration with existing app features
-  - [ ] Test gamification system with existing user data
-  - [ ] Validate data migration for users upgrading to gamified version
-  - [ ] Test weekly challenge generation and completion cycles
-  - [ ] Verify XP multiplier activation and deactivation logic
-- [ ] Performance and scalability validation
-  - [ ] Measure performance impact on core app functionality (<50ms requirement)
-  - [ ] Test system behavior with high XP volumes and frequent actions
-  - [ ] Validate memory usage and prevent memory leaks
-  - [ ] Test concurrent user scenarios and race condition handling
-  - [ ] Benchmark Trophy Room 3D rendering performance
-- [ ] User experience validation
-  - [ ] Verify XP bar real-time updates across all screens
-  - [ ] Test achievement notifications don't interfere with core workflows
-  - [ ] Validate celebration timing and appropriateness
-  - [ ] Ensure gamification feels rewarding but not overwhelming
-  - [ ] Test weekly challenge UX flow and completion satisfaction
-  - [ ] Validate XP multiplier visual feedback and excitement level
+##### Sub-checkpoint 4.5.9.A: End-to-End Integration Testing 🔄
+**Goal**: Comprehensive testing of complete gamification user journeys
+- [ ] Test complete user journey from first XP gain to achievement unlock
+- [ ] Verify proper integration with existing app features (habits, journal, goals)
+- [ ] Test gamification system with existing user data and various user profiles
+- [ ] Validate data migration for users upgrading to gamified version
+- [ ] Test weekly challenge generation, completion cycles, and reward distribution
+- [ ] Verify XP multiplier activation/deactivation logic with various usage patterns
+
+##### Sub-checkpoint 4.5.9.B: Performance & Scalability Validation ⚡
+**Goal**: Ensure gamification system meets performance requirements
+- [ ] Measure performance impact on core app functionality (<50ms requirement)
+- [ ] Test system behavior with high XP volumes and frequent rapid actions
+- [ ] Validate memory usage patterns and prevent memory leaks
+- [ ] Test concurrent user scenarios and race condition handling
+- [ ] Benchmark Trophy Room 3D rendering performance across device types
+- [ ] Load test achievement detection with thousands of unlocked achievements
+
+##### Sub-checkpoint 4.5.9.C: User Experience Validation 👤
+**Goal**: Ensure gamification enhances rather than disrupts user experience
+- [ ] Verify XP bar real-time updates across all screens and contexts
+- [ ] Test achievement notifications don't interfere with core workflows
+- [ ] Validate celebration timing and appropriateness (not too frequent/annoying)
+- [ ] Ensure gamification feels rewarding but not overwhelming or addictive
+- [ ] Test weekly challenge UX flow and completion satisfaction levels
+- [ ] Validate XP multiplier visual feedback creates excitement without confusion
+
+##### Sub-checkpoint 4.5.9.D: Anti-Abuse & Balance Testing 🛡️
+**Goal**: Verify all anti-spam and balance systems work correctly
+- [ ] Test journal entry spam prevention (7+ entries = 0 XP)
+- [ ] Verify XP balancing prevents single-feature exploitation (max 80% from one source)
+- [ ] Test notification batching reduces interruption frequency effectively
+- [ ] Validate achievement conditions prevent gaming/cheating the system
+- [ ] Test XP multiplier system can't be abused for infinite XP gains
+- [ ] Verify weekly challenges maintain appropriate difficulty without exploitation
 - [ ] Anti-abuse and balance testing
   - [ ] Test journal entry spam prevention (7+ entries give 0 XP)
   - [ ] Verify XP balancing prevents single-feature exploitation
@@ -709,33 +802,50 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 #### Checkpoint 4.5.10: Advanced Analytics & Long-term Sustainability
 **Goal**: Implement sophisticated analytics and self-balancing systems for long-term success
 
-- [ ] Gamification Analytics Dashboard (Internal)
-  - [ ] Track XP distribution across features (prevent 80%+ single-source dominance)
-  - [ ] Monitor achievement unlock rates and progression bottlenecks
-  - [ ] Analyze weekly challenge completion patterns and difficulty optimization
-  - [ ] Create XP inflation detection and automatic rebalancing algorithms
-  - [ ] Implement user engagement heat maps (daily/weekly/monthly patterns)
-- [ ] Adaptive Difficulty System
-  - [ ] Create user behavior profiling (casual vs hardcore vs balanced users)
-  - [ ] Implement dynamic XP requirements based on user activity patterns
-  - [ ] Design personalized weekly challenge difficulty scaling
-  - [ ] Add automatic achievement unlock rate optimization (target: 15-20% monthly)
-- [ ] Long-term Engagement Mechanics
-  - [ ] Design "Prestige System" for users reaching Level 100
-  - [ ] Create "Legacy Achievements" that unlock after specific time periods
-  - [ ] Implement "Mentor Mode" for high-level users to earn XP by helping others
-  - [ ] Add seasonal events with exclusive achievements and XP bonuses
-  - [ ] Create "Achievement Archaeology" - rediscover and celebrate old achievements
-- [ ] Predictive Retention System
-  - [ ] Implement user churn prediction based on gamification engagement drop
-  - [ ] Create automatic "Win-back Campaigns" with personalized challenges
-  - [ ] Design "Comeback Bonuses" for users returning after >30 days absence
-  - [ ] Add smart notification timing based on user's optimal engagement windows
-- [ ] Community Features Foundation
-  - [ ] Create anonymous achievement sharing system (no personal data)
-  - [ ] Implement "Daily Heroes" showcase of interesting achievement unlocks
-  - [ ] Design motivational quote system based on user's current achievement status
-  - [ ] Add "Achievement Inspiration" - see what others accomplished (anonymized)
+##### Sub-checkpoint 4.5.10.A: Internal Analytics Dashboard 📊
+**Goal**: Create comprehensive analytics to monitor and optimize gamification health
+- [ ] Track XP distribution across features (prevent 80%+ single-source dominance)
+- [ ] Monitor achievement unlock rates and identify progression bottlenecks
+- [ ] Analyze weekly challenge completion patterns and optimize difficulty
+- [ ] Create XP inflation detection and automatic rebalancing algorithms
+- [ ] Implement user engagement heat maps (daily/weekly/monthly activity patterns)
+- [ ] Add gamification ROI metrics (retention impact, engagement lift)
+
+##### Sub-checkpoint 4.5.10.B: Adaptive Difficulty System 🎯
+**Goal**: Personalize gamification experience based on user behavior patterns
+- [ ] Create user behavior profiling system (casual vs hardcore vs balanced users)
+- [ ] Implement dynamic XP requirements based on individual activity patterns
+- [ ] Design personalized weekly challenge difficulty scaling
+- [ ] Add automatic achievement unlock rate optimization (target: 15-20% monthly)
+- [ ] Create smart pacing algorithms to prevent burnout or boredom
+- [ ] Test adaptive system with different user persona simulations
+
+##### Sub-checkpoint 4.5.10.C: Long-term Engagement Mechanics 🚀
+**Goal**: Design systems to maintain engagement beyond initial gamification novelty
+- [ ] Design "Prestige System" for users reaching Level 100 (reset with bonuses)
+- [ ] Create "Legacy Achievements" that unlock after specific time periods
+- [ ] Implement "Mentor Mode" for high-level users to earn XP by helping others
+- [ ] Add seasonal events with exclusive achievements and limited-time XP bonuses
+- [ ] Create "Achievement Archaeology" - rediscover and celebrate old achievements
+- [ ] Design "Mastery Paths" - specialized progression routes for different interests
+
+##### Sub-checkpoint 4.5.10.D: Predictive Retention System 🔮
+**Goal**: Proactively identify and re-engage users at risk of churning
+- [ ] Implement user churn prediction based on gamification engagement patterns
+- [ ] Create automatic "Win-back Campaigns" with personalized challenges
+- [ ] Design "Comeback Bonuses" for users returning after >30 days absence
+- [ ] Add smart notification timing based on user's optimal engagement windows
+- [ ] Implement "At-Risk User" intervention system with special offers
+- [ ] Create predictive models for identifying optimal re-engagement timing
+
+##### Sub-checkpoint 4.5.10.E: Community Features Foundation 👥
+**Goal**: Build social elements while maintaining privacy and data protection
+- [ ] Create anonymous achievement sharing system (beautiful screenshots, no personal data)
+- [ ] Implement "Daily Heroes" showcase of interesting achievement unlocks
+- [ ] Design context-aware motivational quote system based on achievement status
+- [ ] Add "Achievement Inspiration" - see what others accomplished (fully anonymized)
+- [ ] Create community challenges and group achievement events
+- [ ] Build foundation for future social features (friend connections, group challenges)
 
 ---
 
