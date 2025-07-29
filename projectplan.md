@@ -460,14 +460,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [x] Create achievement-related type definitions (Achievement, AchievementCondition, AchievementCategory)
 - [x] Add gamification enums (XPSourceType, AchievementRarity, NotificationType)
 
-##### Sub-checkpoint 4.5.1.B: XP Value Matrix & Constants 🎯
+##### Sub-checkpoint 4.5.1.B: XP Value Matrix & Constants 🎯 ✅ COMPLETED
 **Goal**: Define balanced XP rewards with anti-spam protection
-- [ ] Create XP constants file with all reward values
-- [ ] Set habit completion rewards (scheduled: 25 XP, bonus: 15 XP)
-- [ ] Define journal entry XP with anti-spam logic (first 3: 20 XP, entries 4-6: 8 XP, 7+: 0 XP)
-- [ ] Set goal progress rewards (35 XP once per goal per day)
-- [ ] Define milestone achievement bonuses (streaks: 75-100 XP, completions: 200-250 XP)
-- [ ] Set engagement action rewards (daily launch: 10 XP, recommendations: 30 XP)
+- [x] Create XP constants file with all reward values
+- [x] Set habit completion rewards (scheduled: 25 XP, bonus: 15 XP)
+- [x] Define journal entry XP with anti-spam logic (first 3: 20 XP, entries 4-6: 8 XP, 7+: 0 XP)
+- [x] Set goal progress rewards (35 XP once per goal per day)
+- [x] Define milestone achievement bonuses (streaks: 75-100 XP, completions: 200-250 XP)
+- [x] Set engagement action rewards (daily launch: 10 XP, recommendations: 30 XP)
 
 ##### Sub-checkpoint 4.5.1.C: Mathematical Level Model 📊
 **Goal**: Implement progressive level calculation system
