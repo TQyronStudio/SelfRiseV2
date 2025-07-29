@@ -33,7 +33,13 @@ const ICON_MAP = {
   [HabitIcon.FOOD]: 'restaurant-outline',
   [HabitIcon.SLEEP]: 'moon-outline',
   [HabitIcon.WORK]: 'briefcase-outline',
-};
+  [HabitIcon.HEALTH]: 'heart-outline',
+  [HabitIcon.SOCIAL]: 'people-outline',
+  [HabitIcon.CREATIVE]: 'color-palette-outline',
+  [HabitIcon.LEARNING]: 'school-outline',
+  [HabitIcon.FINANCE]: 'card-outline',
+  [HabitIcon.HOME]: 'home-outline',
+} as const;
 
 export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: HabitStatsAccordionItemProps) {
   const { getHabitStats } = useHabitsData();
@@ -46,6 +52,7 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
     longestStreak: 0,
     completionRate: 0,
     totalCompletions: 0,
+    bonusCompletions: 0,
   };
   
   const toggleExpanded = () => {

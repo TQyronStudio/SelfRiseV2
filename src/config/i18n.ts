@@ -5,8 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import translation files
 import en from '../locales/en';
-import de from '../locales/de';
-import es from '../locales/es';
 
 // Storage key for language preference
 const LANGUAGE_STORAGE_KEY = 'user_language';
@@ -24,10 +22,8 @@ const languageDetector = {
         return;
       }
       
-      // Fall back to device locale
-      const deviceLanguage = Localization.getLocales()[0]?.languageCode || 'en';
-      const supportedLanguages = ['en', 'de', 'es'];
-      const languageToUse = supportedLanguages.includes(deviceLanguage) ? deviceLanguage : 'en';
+      // Only English is supported for now
+      const languageToUse = 'en';
       
       callback(languageToUse);
     } catch (error) {
@@ -52,8 +48,6 @@ i18n
   .init({
     resources: {
       en: { translation: en },
-      de: { translation: de },
-      es: { translation: es },
     },
     fallbackLng: 'en',
     debug: __DEV__,

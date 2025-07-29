@@ -739,14 +739,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [ ] Create trophy combination rewards system (collect themed sets for bonus XP)
 - [ ] Test 3D performance across different device capabilities
 
-##### Sub-checkpoint 4.5.8.D: Sharing & Motivation Features 📤
-**Goal**: Enable external sharing and local motivation enhancement
-- [ ] Design achievement sharing system (beautiful screenshots for external social media)
-- [ ] Create level milestone celebration posts optimized for sharing platforms
+##### Sub-checkpoint 4.5.8.D: Social Features Foundation 👥
+**Goal**: Prepare social gamification features while maintaining privacy
+- [ ] Design achievement sharing system (beautiful screenshots with privacy protection)
+- [ ] Create level milestone celebration posts for social sharing
+- [ ] Implement anonymous streak comparison and motivational leaderboards
 - [ ] Add context-aware motivational quotes based on user's current achievements
-- [ ] Implement "Personal Highlights" showcase of user's best accomplishments
-- [ ] Create customizable sharing templates for different milestone types
-- [ ] Test sharing functionality across different platforms (Twitter, Instagram, Facebook)
+- [ ] Create "Daily Heroes" anonymous showcase of interesting achievements
+- [ ] Test all social features ensure complete anonymity and data protection
 
 #### Checkpoint 4.5.9: Integration Testing & Launch Preparation
 **Goal**: Final integration testing and system validation
@@ -838,14 +838,14 @@ Toto je nejlepší možné řešení vzhledem k omezením React Native a react-n
 - [ ] Implement "At-Risk User" intervention system with special offers
 - [ ] Create predictive models for identifying optimal re-engagement timing
 
-##### Sub-checkpoint 4.5.10.E: External Sharing & Motivation Features 📱
-**Goal**: Enable external sharing and enhance local motivation without online connectivity
-- [ ] Create achievement sharing system (beautiful screenshots for social media sharing)
-- [ ] Design context-aware motivational quote system based on user's current achievement status
-- [ ] Implement "Achievement Gallery" - local celebration of user's personal accomplishments
-- [ ] Add level milestone celebration posts ready for external sharing (Twitter, Instagram, etc.)
-- [ ] Create "Personal Stats" summary cards for sharing major milestones
-- [ ] Design "Achievement Stories" - personalized narratives of user's progress journey
+##### Sub-checkpoint 4.5.10.E: Community Features Foundation 👥
+**Goal**: Build social elements while maintaining privacy and data protection
+- [ ] Create anonymous achievement sharing system (beautiful screenshots, no personal data)
+- [ ] Implement "Daily Heroes" showcase of interesting achievement unlocks
+- [ ] Design context-aware motivational quote system based on achievement status
+- [ ] Add "Achievement Inspiration" - see what others accomplished (fully anonymized)
+- [ ] Create community challenges and group achievement events
+- [ ] Build foundation for future social features (friend connections, group challenges)
 
 ---
 

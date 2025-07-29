@@ -103,9 +103,9 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       return {
         name: habit.name,
         color: habit.color,
-        completionRate: Math.round(stats.completionRate),
-        currentStreak: stats.currentStreak,
-        totalCompletions: stats.totalCompletions
+        completionRate: Math.round(stats?.completionRate || 0),
+        currentStreak: stats?.currentStreak || 0,
+        totalCompletions: stats?.totalCompletions || 0
       };
     }).sort((a, b) => b.completionRate - a.completionRate);
 

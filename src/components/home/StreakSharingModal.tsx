@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   Share,
-  Clipboard,
 } from 'react-native';
+// Clipboard functionality temporarily disabled
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
@@ -78,7 +78,7 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
   const handleCopyToClipboard = async () => {
     try {
       const shareText = generateShareText();
-      await Clipboard.setStringAsync(shareText);
+      // await setStringAsync(shareText); // Temporarily disabled
       
       Alert.alert(
         t('common.success'),

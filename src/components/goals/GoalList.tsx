@@ -15,6 +15,7 @@ interface GoalListProps {
   onAddProgress: (goal: Goal) => void;
   onReorderGoals: (goalOrders: Array<{ id: string; order: number }>) => void;
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+  isEditMode?: boolean;
 }
 
 export function GoalList({
@@ -27,6 +28,7 @@ export function GoalList({
   onAddProgress,
   onReorderGoals,
   ListHeaderComponent,
+  isEditMode = false,
 }: GoalListProps) {
   const { t } = useI18n();
 
@@ -39,6 +41,7 @@ export function GoalList({
       onDelete={() => onDeleteGoal(goal.id)}
       onViewStats={() => onViewGoalStats(goal.id)}
       onAddProgress={() => onAddProgress(goal)}
+      isEditMode={isEditMode}
     />
   );
 

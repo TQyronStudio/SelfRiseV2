@@ -33,6 +33,12 @@ export enum HabitIcon {
   FOOD = 'food',
   SLEEP = 'sleep',
   WORK = 'work',
+  HEALTH = 'health',
+  SOCIAL = 'social',
+  CREATIVE = 'creative',
+  LEARNING = 'learning',
+  FINANCE = 'finance',
+  HOME = 'home',
 }
 
 // Base entity interface for all data models

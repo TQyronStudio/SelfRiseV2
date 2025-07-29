@@ -105,6 +105,12 @@ export const getHabitIconName = (icon: HabitIcon): string => {
     [HabitIcon.FOOD]: 'fork.knife',
     [HabitIcon.SLEEP]: 'moon.fill',
     [HabitIcon.WORK]: 'briefcase.fill',
+    [HabitIcon.HEALTH]: 'heart.fill',
+    [HabitIcon.SOCIAL]: 'person.2.fill',
+    [HabitIcon.CREATIVE]: 'paintbrush.fill',
+    [HabitIcon.LEARNING]: 'graduationcap.fill',
+    [HabitIcon.FINANCE]: 'creditcard.fill',
+    [HabitIcon.HOME]: 'house.fill',
   };
   return iconMap[icon];
 };

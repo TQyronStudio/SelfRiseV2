@@ -42,7 +42,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
       [
         { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: t('common.reset'), 
+          text: t('home.customization.resetToDefaults'), 
           style: 'destructive',
           onPress: async () => {
             try {

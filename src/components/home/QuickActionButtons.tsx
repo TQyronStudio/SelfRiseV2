@@ -31,6 +31,8 @@ const ICON_MAP = {
   [HabitIcon.WATER]: 'water-outline',
   [HabitIcon.MEDITATION]: 'leaf-outline',
   [HabitIcon.MUSIC]: 'musical-notes-outline',
+  [HabitIcon.FOOD]: 'restaurant-outline',
+  [HabitIcon.SLEEP]: 'bed-outline',
   [HabitIcon.HEALTH]: 'heart-outline',
   [HabitIcon.WORK]: 'briefcase-outline',
   [HabitIcon.SOCIAL]: 'people-outline',
@@ -38,7 +40,7 @@ const ICON_MAP = {
   [HabitIcon.LEARNING]: 'school-outline',
   [HabitIcon.FINANCE]: 'card-outline',
   [HabitIcon.HOME]: 'home-outline',
-};
+} as const;
 
 export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const { t } = useI18n();

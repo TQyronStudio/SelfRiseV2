@@ -35,7 +35,7 @@ export function PersonalizedRecommendations() {
           habits || [],
           completions || [],
           goalsState?.goals || [],
-          gratitudeState?.gratitudeEntries || []
+          gratitudeState?.gratitudes || []
         );
         setRecommendations(result);
       } catch (error) {
@@ -45,7 +45,7 @@ export function PersonalizedRecommendations() {
     };
 
     generateRecommendations();
-  }, [habits, completions, goalsState?.goals, gratitudeState?.gratitudeEntries]);
+  }, [habits, completions, goalsState?.goals, gratitudeState?.gratitudes]);
 
   const getRecommendationIcon = (recommendation: PersonalizedRecommendation) => {
     switch (recommendation.type) {

@@ -17,6 +17,7 @@ export const Colors = {
   
   // Text colors
   text: '#212529',
+  textPrimary: '#212529',
   textSecondary: '#6C757D',
   textTertiary: '#ADB5BD',
   textInverse: '#FFFFFF',

@@ -39,11 +39,11 @@ export default function TargetDateConfirmationModal({
           <Text style={styles.emoji}>📅</Text>
           
           <Text style={styles.title}>
-            {t('goals.targetDateConfirmation.title')}
+            Add Target Date?
           </Text>
           
           <Text style={styles.message}>
-            {t('goals.targetDateConfirmation.message')}
+            A goal without a date is just a dream. Setting a target date will help you stay motivated and on track.
           </Text>
           
           <View style={styles.buttonContainer}>
@@ -52,7 +52,7 @@ export default function TargetDateConfirmationModal({
               onPress={onAddDate}
             >
               <Text style={styles.primaryButtonText}>
-                {t('goals.targetDateConfirmation.addDate')}
+                Add Date
               </Text>
             </TouchableOpacity>
             
@@ -61,7 +61,7 @@ export default function TargetDateConfirmationModal({
               onPress={onContinueWithoutDate}
             >
               <Text style={styles.secondaryButtonText}>
-                {t('goals.targetDateConfirmation.continueWithoutDate')}
+                Continue Without Date
               </Text>
             </TouchableOpacity>
           </View>

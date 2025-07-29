@@ -236,19 +236,10 @@ const en: TranslationKeys = {
       },
     },
     
-    targetDateConfirmation: {
-      title: 'Add Target Date?',
-      message: 'A goal without a date is just a dream. Setting a target date will help you stay motivated and on track.',
-      addDate: 'Add Date',
-      continueWithoutDate: 'Continue Without Date',
-    },
-    
     progress: {
       addProgress: 'Add Progress',
       progressHistory: 'Progress History',
       noProgress: 'No progress entries yet',
-      confirmDelete: 'Delete Progress',
-      deleteMessage: 'Are you sure you want to delete this progress entry? This action cannot be undone.',
       form: {
         progressType: 'Progress Type',
         value: 'Value',
@@ -514,7 +505,6 @@ const en: TranslationKeys = {
     error: 'Error',
     success: 'Success',
     retry: 'Retry',
-    ok: 'OK',
     done: 'Done',
     back: 'Back',
     next: 'Next',
@@ -523,7 +513,6 @@ const en: TranslationKeys = {
     continue: 'Continue',
     yes: 'Yes',
     no: 'No',
-    reset: 'Reset',
   },
   
   // Days of week

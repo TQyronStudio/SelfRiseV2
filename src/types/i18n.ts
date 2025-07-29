@@ -12,11 +12,94 @@ export interface TranslationKeys {
   // Home screen
   home: {
     title: string;
-    gratitudeStreak: string;
+    journalStreak: string;
     habitStatistics: string;
     weeklyProgress: string;
     monthlyProgress: string;
     dayDetail: string;
+    // Streak display
+    day: string;
+    days: string;
+    streakActive: string;
+    startToday: string;
+    bestStreak: string;
+    canRecover: string;
+    // Streak visualization  
+    recentActivity: string;
+    completed: string;
+    bonus: string;
+    today: string;
+    // Streak history graph
+    journalHistory: string;
+    last30Days: string;
+    todayCount: string;
+    peakDay: string;
+    completeDays: string;
+    bonusDays: string;
+    // Habit Statistics Dashboard
+    habitStats: {
+      weeklyChart: string;
+      monthlyOverview: string;
+      performanceIndicators: string;
+      trendAnalysis: string;
+      totalHabits: string;
+      activeHabits: string;
+      completedToday: string;
+      weeklyAverage: string;
+      monthlyAverage: string;
+      bestDay: string;
+      improvingTrend: string;
+      decliningTrend: string;
+      steadyProgress: string;
+      noData: string;
+      chartToggle: string;
+      week: string;
+      month: string;
+    };
+    // Streak sharing
+    shareStreak: string;
+    shareSubtitle: string;
+    sharePreview: string;
+    copyText: string;
+    shareNow: string;
+    sharing: string;
+    shareTitle: string;
+    shareStreakText: string;
+    shareBestStreak: string;
+    shareBadges: string;
+    shareAppPromo: string;
+    copiedToClipboard: string;
+    shareError: string;
+    copyError: string;
+    // Quick Actions
+    quickActions: string;
+    addHabit: string;
+    addJournal: string;
+    addGoal: string;
+    todayHabits: string;
+    // Daily Quote
+    dailyQuote: string;
+    quoteCategories: {
+      motivation: string;
+      gratitude: string;
+      habits: string;
+      goals: string;
+    };
+    // Personalized Recommendations
+    recommendations: string;
+    noRecommendations: string;
+    journalPrompt: string;
+    // Home Customization
+    customization: {
+      title: string;
+      components: string;
+      componentsDescription: string;
+      order: string;
+      actions: string;
+      resetToDefaults: string;
+      resetTitle: string;
+      resetMessage: string;
+    };
   };
   
   // Habits screen

@@ -79,8 +79,8 @@ export const HabitTrendAnalysis: React.FC = () => {
     }
 
     // Overall trend calculation
-    const recentAvg = (weeks[2]?.completionRate + weeks[3]?.completionRate) / 2;
-    const earlierAvg = (weeks[0]?.completionRate + weeks[1]?.completionRate) / 2;
+    const recentAvg = ((weeks[2]?.completionRate || 0) + (weeks[3]?.completionRate || 0)) / 2;
+    const earlierAvg = ((weeks[0]?.completionRate || 0) + (weeks[1]?.completionRate || 0)) / 2;
     const overallTrendChange = recentAvg - earlierAvg;
 
     let overallTrend: 'improving' | 'declining' | 'stable' = 'stable';
@@ -128,7 +128,7 @@ export const HabitTrendAnalysis: React.FC = () => {
       const recentRate = scheduledRate + bonusRate;
       
       // For trend, compare with overall completion rate
-      const change = recentRate - stats.completionRate;
+      const change = recentRate - (stats?.completionRate || 0);
 
       let trend: 'improving' | 'declining' | 'stable' = 'stable';
       if (change > 15) trend = 'improving';
@@ -139,8 +139,8 @@ export const HabitTrendAnalysis: React.FC = () => {
         recentRate: Math.round(recentRate),
         change: Math.round(change),
         trend,
-        currentStreak: stats.currentStreak,
-        completionRate: stats.completionRate,
+        currentStreak: stats?.currentStreak || 0,
+        completionRate: stats?.completionRate || 0,
         scheduledDays,
         completedScheduled,
         bonusCompletions

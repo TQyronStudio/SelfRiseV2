@@ -18,7 +18,13 @@ const ICON_MAP = {
   [HabitIcon.FOOD]: 'restaurant-outline',
   [HabitIcon.SLEEP]: 'moon-outline',
   [HabitIcon.WORK]: 'briefcase-outline',
-};
+  [HabitIcon.HEALTH]: 'heart-outline',
+  [HabitIcon.SOCIAL]: 'people-outline',
+  [HabitIcon.CREATIVE]: 'color-palette-outline',
+  [HabitIcon.LEARNING]: 'school-outline',
+  [HabitIcon.FINANCE]: 'card-outline',
+  [HabitIcon.HOME]: 'home-outline',
+} as const;
 
 export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
   return (

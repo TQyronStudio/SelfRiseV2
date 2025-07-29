@@ -44,7 +44,13 @@ const ICON_MAP = {
   [HabitIcon.FOOD]: 'restaurant-outline',
   [HabitIcon.SLEEP]: 'moon-outline',
   [HabitIcon.WORK]: 'briefcase-outline',
-};
+  [HabitIcon.HEALTH]: 'heart-outline',
+  [HabitIcon.SOCIAL]: 'people-outline',
+  [HabitIcon.CREATIVE]: 'color-palette-outline',
+  [HabitIcon.LEARNING]: 'school-outline',
+  [HabitIcon.FINANCE]: 'card-outline',
+  [HabitIcon.HOME]: 'home-outline',
+} as const;
 
 const DAY_LABELS = {
   [DayOfWeek.MONDAY]: 'Mo',
