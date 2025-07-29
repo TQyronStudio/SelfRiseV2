@@ -511,6 +511,7 @@ const en: TranslationKeys = {
     error: 'Error',
     success: 'Success',
     retry: 'Retry',
+    ok: 'OK',
     done: 'Done',
     back: 'Back',
     next: 'Next',

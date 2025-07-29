@@ -479,6 +479,7 @@ export interface TranslationKeys {
     error: string;
     success: string;
     retry: string;
+    ok: string;
     done: string;
     back: string;
     next: string;
