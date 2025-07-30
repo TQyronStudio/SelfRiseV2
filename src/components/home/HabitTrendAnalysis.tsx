@@ -50,32 +50,63 @@ export const HabitTrendAnalysis: React.FC = () => {
     const trends = [];
     const weeks = [];
     
-    // Calculate weekly completion rates for last 4 weeks
+    // Calculate weekly completion rates using improved logic for last 4 weeks
     for (let i = 0; i < 4; i++) {
       const weekStart = subtractDays(today(), i * 7 + 6);
-      const weekDates = [];
+      const weekDates: string[] = [];
       for (let j = 0; j < 7; j++) {
         const date = new Date(weekStart + 'T00:00:00.000Z');
         date.setDate(date.getDate() + j);
         weekDates.push(date.toISOString().split('T')[0] as string);
       }
 
-      let weekCompletions = 0;
-      let weekPossible = 0;
+      let totalWeekCompletionRate = 0;
+      let validHabits = 0;
 
-      weekDates.forEach(date => {
-        const habitsOnDate = getHabitsByDate(date);
-        const completed = habitsOnDate.filter(h => h.isCompleted).length;
-        weekCompletions += completed;
-        weekPossible += activeHabits.length;
+      // Calculate proper completion rate for each habit in this week
+      activeHabits.forEach(habit => {
+        const habitCreationDate = formatDateToString(new Date(habit.createdAt));
+        const relevantWeekDates = weekDates.filter(date => date >= habitCreationDate);
+        
+        if (relevantWeekDates.length === 0) return; // Skip habits not yet created
+
+        let scheduledDays = 0;
+        let completedScheduled = 0;
+        let bonusCompletions = 0;
+
+        relevantWeekDates.forEach(date => {
+          const dayOfWeek = getDayOfWeekFromDateString(date);
+          const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+          const habitsOnDate = getHabitsByDate(date);
+          const habitOnDate = habitsOnDate.find(h => h.id === habit.id);
+          
+          if (isScheduled) {
+            scheduledDays++;
+            if (habitOnDate?.isCompleted) {
+              completedScheduled++;
+            }
+          } else if (habitOnDate?.isCompleted) {
+            bonusCompletions++;
+          }
+        });
+
+        // Use unified calculation for this habit's week performance
+        const habitWeekResult = calculateHabitCompletionRate(habit, {
+          scheduledDays,
+          completedScheduled,
+          bonusCompletions
+        });
+
+        totalWeekCompletionRate += habitWeekResult.totalCompletionRate;
+        validHabits++;
       });
 
-      const completionRate = weekPossible > 0 ? (weekCompletions / weekPossible) * 100 : 0;
+      const avgCompletionRate = validHabits > 0 ? totalWeekCompletionRate / validHabits : 0;
       weeks.unshift({
         weekNumber: i + 1,
-        completionRate: Math.round(completionRate),
-        completions: weekCompletions,
-        possible: weekPossible
+        completionRate: Math.round(avgCompletionRate),
+        completions: 0, // Not used in new logic
+        possible: validHabits
       });
     }
 

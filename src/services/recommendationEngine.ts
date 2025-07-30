@@ -2,8 +2,9 @@ import { Habit, HabitCompletion } from '../types/habit';
 import { Goal, GoalStatus } from '../types/goal';
 import { Gratitude } from '../types/gratitude';
 import { DayOfWeek, DateString } from '../types/common';
-import { getPast7Days, getDayOfWeek, formatDateToString } from '../utils/date';
+import { getPast7Days, getDayOfWeek, formatDateToString, getDayOfWeekFromDateString } from '../utils/date';
 import { goalStorage } from '../services/storage/goalStorage';
+import { calculateHabitCompletionRate, getHabitAgeInfo } from '../utils/habitCalculations';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -99,53 +100,123 @@ export class RecommendationEngine {
     const recommendations: HabitRecommendation[] = [];
     const past7Days = getPast7Days();
 
-    // Analyze completion patterns
+    // Track level up recommendations to limit to 1
+    let levelUpRecommendationAdded = false;
+    
+    // Analyze completion patterns using unified calculation logic
     habits.forEach(habit => {
+      // Skip very new habits (less than 3 days) to avoid premature recommendations
+      const ageInfo = getHabitAgeInfo(habit);
+      if (ageInfo.daysSinceCreation < 3) return;
+
       // Filter dates to only include days since habit creation
       const relevantDates = this.getRelevantDatesForHabit(habit, past7Days);
       
-      const recentCompletions = completions.filter(c => 
-        c.habitId === habit.id && 
-        relevantDates.includes(c.date)
-      );
+      // Calculate proper completion data for the past 7 days
+      let scheduledDays = 0;
+      let completedScheduled = 0;
+      let bonusCompletions = 0;
 
-      // Calculate completion rate based on days the habit actually existed
-      const completionRate = relevantDates.length > 0 ? recentCompletions.length / relevantDates.length : 0;
+      relevantDates.forEach(date => {
+        const dayOfWeek = getDayOfWeekFromDateString(date);
+        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        const recentCompletions = completions.filter(c => 
+          c.habitId === habit.id && c.date === date
+        );
+        const isCompleted = recentCompletions.length > 0;
+        
+        if (isScheduled) {
+          scheduledDays++;
+          if (isCompleted) {
+            completedScheduled++;
+          }
+        } else if (isCompleted) {
+          bonusCompletions++;
+        }
+      });
+
+      // Use unified calculation for proper completion rate
+      const completionResult = calculateHabitCompletionRate(habit, {
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
+      });
+
+      const completionRate = completionResult.totalCompletionRate / 100; // Convert to 0-1 scale
 
       // Low completion rate - suggest schedule adjustment
-      if (completionRate < 0.3 && habit.isActive) {
+      // Only for established habits (7+ days) with genuinely low performance
+      if (completionRate < 0.3 && habit.isActive && ageInfo.isEstablishedHabit) {
         recommendations.push({
           type: 'habit_schedule',
           title: 'Adjust Schedule',
-          description: `${habit.name} has low completion rate. Consider reducing frequency.`,
+          description: `${habit.name} showing ${Math.round(completionResult.totalCompletionRate)}% completion. Consider reducing frequency.`,
           priority: 'medium',
           habitId: habit.id,
           actionText: 'Adjust Schedule',
         });
       }
 
-      // High completion rate - suggest more challenging goals
-      if (completionRate > 0.8 && habit.isActive) {
+      // High completion rate - suggest more challenging goals (limit to 1)
+      // Only for established habits with consistent high performance
+      if (completionRate > 0.8 && habit.isActive && !levelUpRecommendationAdded && ageInfo.isEstablishedHabit) {
         recommendations.push({
           type: 'habit_adjustment',
           title: 'Level Up',
-          description: `You're crushing ${habit.name}! Ready for a new challenge?`,
+          description: `You're crushing ${habit.name} at ${Math.round(completionResult.totalCompletionRate)}%! Ready for a new challenge?`,
           priority: 'low',
           habitId: habit.id,
           actionText: 'Add Challenge',
         });
+        levelUpRecommendationAdded = true; // Only one Level Up recommendation
       }
     });
 
     // Suggest new habits based on successful patterns
     const activeHabits = habits.filter(h => h.isActive);
-    if (activeHabits.length > 0 && activeHabits.length < 5) {
+    // Only suggest new habits if user has at least one established habit (14+ days) with good performance
+    const establishedSuccessfulHabits = activeHabits.filter(habit => {
+      const ageInfo = getHabitAgeInfo(habit);
+      if (!ageInfo.isEstablishedHabit) return false;
+      
+      // Check if this habit has good performance
+      const relevantDates = this.getRelevantDatesForHabit(habit, past7Days);
+      let scheduledDays = 0;
+      let completedScheduled = 0;
+      let bonusCompletions = 0;
+
+      relevantDates.forEach(date => {
+        const dayOfWeek = getDayOfWeekFromDateString(date);
+        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        const recentCompletions = completions.filter(c => 
+          c.habitId === habit.id && c.date === date
+        );
+        const isCompleted = recentCompletions.length > 0;
+        
+        if (isScheduled) {
+          scheduledDays++;
+          if (isCompleted) completedScheduled++;
+        } else if (isCompleted) {
+          bonusCompletions++;
+        }
+      });
+
+      const completionResult = calculateHabitCompletionRate(habit, {
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
+      });
+
+      return completionResult.totalCompletionRate >= 60; // Good performance threshold
+    });
+
+    if (establishedSuccessfulHabits.length > 0 && activeHabits.length < 5) {
       const successfulDays = this.findBestDaysForHabits(completions);
       
       recommendations.push({
         type: 'new_habit',
         title: 'Add New Habit',
-        description: `Based on your success pattern, ${successfulDays.join(', ')} are your best days.`,
+        description: `You're doing great with existing habits! ${successfulDays.join(', ')} are your strongest days.`,
         priority: 'low',
         suggestedDays: successfulDays,
         actionText: 'Create Habit',
