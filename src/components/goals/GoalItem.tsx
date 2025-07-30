@@ -33,10 +33,12 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
   const rotation = useSharedValue(0);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     if (isEditMode) {
       // Náhodný delay pro každou položku (0-500ms)
       const randomDelay = Math.random() * 500;
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         rotation.value = withRepeat(
           withSequence(
             withTiming(-1, { duration: 150 }), // Mírně doleva
@@ -51,6 +53,15 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
       // Když režim úprav skončí, vrátíme rotaci na nulu
       rotation.value = withTiming(0, { duration: 150 });
     }
+
+    // Cleanup function
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      // Stop the animation when component unmounts or edit mode stops
+      rotation.value = withTiming(0, { duration: 150 });
+    };
   }, [isEditMode, rotation]);
 
   // Animovaný styl pro wiggle efekt

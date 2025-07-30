@@ -26,15 +26,25 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   const percentage = total > 0 ? (completed / total) * 100 : 0;
   
   useEffect(() => {
+    let animationRef: Animated.CompositeAnimation | null = null;
+    
     if (animated) {
-      Animated.timing(progressAnim, {
+      animationRef = Animated.timing(progressAnim, {
         toValue: percentage,
         duration: 800,
         useNativeDriver: false,
-      }).start();
+      });
+      animationRef.start();
     } else {
       progressAnim.setValue(percentage);
     }
+
+    // Cleanup function to stop animation if component unmounts
+    return () => {
+      if (animationRef) {
+        animationRef.stop();
+      }
+    };
   }, [percentage, animated, progressAnim]);
 
   const animatedWidth = animated 

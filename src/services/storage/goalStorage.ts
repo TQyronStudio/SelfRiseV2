@@ -529,7 +529,7 @@ export class GoalStorage implements EntityStorage<Goal> {
     try {
       // This will trigger the cleanup logic in getAllProgress
       await this.getAllProgress();
-      console.log('Goal progress data cleanup completed');
+      // console.log('Goal progress data cleanup completed'); // Debug log removed
     } catch (error) {
       console.error('Failed to cleanup goal progress data:', error);
     }
