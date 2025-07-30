@@ -248,8 +248,6 @@ export function useHabitsData() {
 
   // Smart Bonus Conversion Logic
   const applySmartBonusConversion = (habit: Habit, completions: HabitCompletion[]): HabitCompletion[] => {
-    const startTime = Date.now();
-    console.log(`🔄 Starting Smart Bonus Conversion for habit "${habit.name}" (${completions.length} completions)`);
     // Group completions by week
     const weeklyCompletions = new Map<string, HabitCompletion[]>();
     
@@ -375,10 +373,6 @@ export function useHabitsData() {
       });
     });
 
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    console.log(`✅ Smart Bonus Conversion completed for "${habit.name}" in ${duration}ms (${convertedCompletions.length} result completions)`);
-    
     return convertedCompletions;
   };
 
