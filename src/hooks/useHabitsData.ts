@@ -3,6 +3,7 @@ import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
 import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today, parseDate, getWeekDates, getDayOfWeekFromDateString } from '../utils/date';
+import { calculateHabitCompletionRate } from '../utils/habitCalculations';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -133,11 +134,13 @@ export function useHabitsData() {
       }
     });
 
-    // Calculate completion rate using the same logic as Home screen:
-    // scheduled completions + bonus points (25% each bonus completion)
-    const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-    const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
-    const completionRate = scheduledRate + bonusRate;
+    // Calculate completion rate using unified logic with frequency-proportional bonus
+    const completionResult = calculateHabitCompletionRate(habit, {
+      scheduledDays,
+      completedScheduled,
+      bonusCompletions
+    });
+    const completionRate = completionResult.totalCompletionRate;
     
     return {
       habit,

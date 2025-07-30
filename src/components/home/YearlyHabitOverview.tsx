@@ -4,6 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { calculateHabitCompletionRate } from '@/src/utils/habitCalculations';
 
 interface StatCardProps {
   title: string;
@@ -151,10 +152,13 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
         }
       });
       
-      // Calculate yearly completion rate with bonus
-      const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-      const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
-      const yearlyCompletionRate = scheduledRate + bonusRate;
+      // Calculate yearly completion rate with frequency-proportional bonus
+      const completionResult = calculateHabitCompletionRate(habit, {
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
+      });
+      const yearlyCompletionRate = completionResult.totalCompletionRate;
       
       return {
         name: habit.name,

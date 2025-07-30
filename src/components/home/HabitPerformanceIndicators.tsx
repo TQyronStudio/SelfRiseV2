@@ -4,6 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates } from '@/src/utils/date';
+import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
 
 interface PerformanceIndicatorProps {
   title: string;
@@ -47,7 +48,7 @@ const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
   );
 };
 
-// Helper function to calculate completion rate for a specific time period  
+// Helper function to calculate completion rate for a specific time period using unified logic
 const calculatePeriodCompletionRate = (
   habit: any, 
   dates: string[], 
@@ -77,16 +78,19 @@ const calculatePeriodCompletionRate = (
     }
   });
 
-  // Calculate completion rate: scheduled completions + bonus points
-  // Bonus completions add extra percentage points (can exceed 100%)
-  const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-  const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0; // Bonus worth 25% each
-  
-  return {
-    rate: scheduledRate + bonusRate,
+  // Use unified calculation with frequency-proportional bonus
+  const completionResult = calculateHabitCompletionRate(habit, {
     scheduledDays,
     completedScheduled,
     bonusCompletions
+  });
+  
+  return {
+    rate: completionResult.totalCompletionRate,
+    scheduledDays,
+    completedScheduled,
+    bonusCompletions,
+    completionResult
   };
 };
 
@@ -263,35 +267,68 @@ export const HabitPerformanceIndicators: React.FC = () => {
           color={getTrendColor()}
         />
 
-        {performanceData.weeklyTopPerformer && (
-          <PerformanceIndicator
-            title="This Week"
-            value={`${Math.round(performanceData.weeklyTopPerformer.completionRate)}%`}
-            subtitle={performanceData.weeklyTopPerformer.habit.name}
-            icon="🏆"
-            color={Colors.secondary}
-          />
-        )}
+        {performanceData.weeklyTopPerformer && (() => {
+          // Only show percentage for habits 7+ days old
+          const ageInfo = getHabitAgeInfo(performanceData.weeklyTopPerformer.habit);
+          if (ageInfo.canShowPerformance) {
+            return (
+              <PerformanceIndicator
+                title="This Week"
+                value={`${Math.round(performanceData.weeklyTopPerformer.completionRate)}%`}
+                subtitle={performanceData.weeklyTopPerformer.habit.name}
+                icon="🏆"
+                color={Colors.secondary}
+              />
+            );
+          } else {
+            // For new habits (Days 1-6), show raw completion count
+            const completions = (performanceData.weeklyTopPerformer.completedScheduled || 0) + 
+                              (performanceData.weeklyTopPerformer.bonusCompletions || 0);
+            return (
+              <PerformanceIndicator
+                title="This Week"
+                value={`${completions}`}
+                subtitle={`${performanceData.weeklyTopPerformer.habit.name} (building)`}
+                icon="🌱"
+                color={Colors.success}
+              />
+            );
+          }
+        })()}
 
-        {performanceData.monthlyTopPerformer && (
-          <PerformanceIndicator
-            title={new Date().toLocaleDateString('en-US', { month: 'long' })}
-            value={`${Math.round(performanceData.monthlyTopPerformer.completionRate)}%`}
-            subtitle={performanceData.monthlyTopPerformer.habit.name}
-            icon="👑"
-            color={Colors.primary}
-          />
-        )}
+        {performanceData.monthlyTopPerformer && (() => {
+          // Only show percentage for habits 7+ days old
+          const ageInfo = getHabitAgeInfo(performanceData.monthlyTopPerformer.habit);
+          if (ageInfo.canShowPerformance) {
+            return (
+              <PerformanceIndicator
+                title={new Date().toLocaleDateString('en-US', { month: 'long' })}
+                value={`${Math.round(performanceData.monthlyTopPerformer.completionRate)}%`}
+                subtitle={performanceData.monthlyTopPerformer.habit.name}
+                icon="👑"
+                color={Colors.primary}
+              />
+            );
+          }
+          return null; // Don't show monthly stats for very new habits
+        })()}
 
-        {performanceData.strugglingHabit && performanceData.strugglingHabit.completionRate < 50 && (
-          <PerformanceIndicator
-            title={`${new Date().toLocaleDateString('en-US', { month: 'long' })} Focus`}
-            value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
-            subtitle={performanceData.strugglingHabit.habit.name}
-            icon="💪"
-            color={Colors.warning}
-          />
-        )}
+        {performanceData.strugglingHabit && (() => {
+          // Only show struggling habits for established habits (14+ days) to avoid discouraging new users
+          const ageInfo = getHabitAgeInfo(performanceData.strugglingHabit.habit);
+          if (ageInfo.isEstablishedHabit && performanceData.strugglingHabit.completionRate < 50) {
+            return (
+              <PerformanceIndicator
+                title={`${new Date().toLocaleDateString('en-US', { month: 'long' })} Focus`}
+                value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
+                subtitle={performanceData.strugglingHabit.habit.name}
+                icon="💪"
+                color={Colors.warning}
+              />
+            );
+          }
+          return null;
+        })()}
       </ScrollView>
     </View>
   );

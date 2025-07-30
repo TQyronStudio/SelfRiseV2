@@ -4,6 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
+import { calculateHabitCompletionRate, getHabitAgeInfo, getCompletionRateMessage } from '@/src/utils/habitCalculations';
 
 interface TrendItemProps {
   title: string;
@@ -87,9 +88,10 @@ export const HabitTrendAnalysis: React.FC = () => {
     if (overallTrendChange > 10) overallTrend = 'improving';
     else if (overallTrendChange < -10) overallTrend = 'declining';
 
-    // Individual habit analysis - using 4 weeks of data
+    // Individual habit analysis - using 4 weeks of data (preserving original time period)
     const habitAnalysis = activeHabits.map(habit => {
       const stats = getHabitStats(habit.id);
+      const ageInfo = getHabitAgeInfo(habit);
       
       // Calculate completion rate over past 4 weeks (28 days) but only since habit creation
       const allPast28Days = [];
@@ -122,13 +124,15 @@ export const HabitTrendAnalysis: React.FC = () => {
         }
       });
       
-      // Calculate 4-week completion rate with bonus
-      const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-      const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 25 : 0;
-      const recentRate = scheduledRate + bonusRate;
+      // Use new unified calculation with frequency-proportional bonus
+      const completionResult = calculateHabitCompletionRate(habit, {
+        scheduledDays,
+        completedScheduled,
+        bonusCompletions
+      });
       
       // For trend, compare with overall completion rate
-      const change = recentRate - (stats?.completionRate || 0);
+      const change = completionResult.totalCompletionRate - (stats?.completionRate || 0);
 
       let trend: 'improving' | 'declining' | 'stable' = 'stable';
       if (change > 15) trend = 'improving';
@@ -136,14 +140,16 @@ export const HabitTrendAnalysis: React.FC = () => {
 
       return {
         habit,
-        recentRate: Math.round(recentRate),
+        recentRate: completionResult.totalCompletionRate,
         change: Math.round(change),
         trend,
         currentStreak: stats?.currentStreak || 0,
         completionRate: stats?.completionRate || 0,
         scheduledDays,
         completedScheduled,
-        bonusCompletions
+        bonusCompletions,
+        ageInfo,
+        completionResult
       };
     });
 
@@ -174,34 +180,73 @@ export const HabitTrendAnalysis: React.FC = () => {
       });
     }
 
-    // Best performing habit
-    const bestPerformer = habitAnalysis
-      .filter(h => h.trend === 'improving')
-      .sort((a, b) => b.change - a.change)[0];
-
-    if (bestPerformer) {
-      trends.push({
-        title: '🏆 Star Performer',
-        description: `${bestPerformer.habit.name} improved by ${bestPerformer.change}%!`,
-        icon: '⭐',
-        color: Colors.success,
-        trend: 'improving' as const
-      });
+    // Handle new habits with encouraging messages (Days 1-6)
+    const newHabits = habitAnalysis.filter(h => h.ageInfo.isNewHabit);
+    if (newHabits.length > 0) {
+      const totalNewCompletions = newHabits.reduce((sum, h) => sum + h.completedScheduled + h.bonusCompletions, 0);
+      if (totalNewCompletions > 0) {
+        trends.push({
+          title: '🌱 Building New Habits',
+          description: `${totalNewCompletions} completion${totalNewCompletions > 1 ? 's' : ''} across ${newHabits.length} new habit${newHabits.length > 1 ? 's' : ''}! Great start!`,
+          icon: '🌱',
+          color: Colors.success,
+          trend: 'improving' as const
+        });
+      }
     }
 
-    // Habit needing attention
-    const strugglingHabit = habitAnalysis
-      .filter(h => h.trend === 'declining' || h.recentRate < 50)
-      .sort((a, b) => a.recentRate - b.recentRate)[0];
+    // Handle early habits with positive reinforcement (Days 7-13)
+    const earlyHabits = habitAnalysis.filter(h => h.ageInfo.isEarlyHabit);
+    if (earlyHabits.length > 0) {
+      const highPerformingEarly = earlyHabits.filter(h => h.recentRate >= 50);
+      if (highPerformingEarly.length > 0) {
+        const avgRate = Math.round(highPerformingEarly.reduce((sum, h) => sum + h.recentRate, 0) / highPerformingEarly.length);
+        trends.push({
+          title: '🚀 Early Momentum',
+          description: `${avgRate}% average completion rate in building habits. You're establishing strong patterns!`,
+          icon: '📈',
+          color: Colors.primary,
+          trend: 'improving' as const
+        });
+      }
+    }
+    
+    // Filter habits that are old enough for detailed trend analysis (14+ days)
+    const establishedHabitsForTrends = habitAnalysis.filter(h => h.ageInfo.isEstablishedHabit);
+    
+    // Only show detailed habit-specific trends for established habits
+    if (establishedHabitsForTrends.length > 0) {
+      // Best performing habit (only for established habits 14+ days)
+      const bestPerformer = establishedHabitsForTrends
+        .filter(h => h.trend === 'improving')
+        .sort((a, b) => b.change - a.change)[0];
 
-    if (strugglingHabit) {
-      trends.push({
-        title: '💪 Focus Needed',
-        description: `${strugglingHabit.habit.name} at ${strugglingHabit.recentRate}%. Try smaller steps.`,
-        icon: '🎯',
-        color: Colors.warning,
-        trend: 'declining' as const
-      });
+      if (bestPerformer) {
+        const message = getCompletionRateMessage(bestPerformer.completionResult, bestPerformer.ageInfo, bestPerformer.habit.name);
+        trends.push({
+          title: '🏆 Star Performer',
+          description: `${bestPerformer.habit.name}: ${message.description}`,
+          icon: '⭐',
+          color: Colors.success,
+          trend: 'improving' as const
+        });
+      }
+
+      // Habit needing attention (only for established habits 14+ days to avoid discouraging new users)
+      const strugglingHabit = establishedHabitsForTrends
+        .filter(h => h.recentRate < 50) // Remove trend filter to focus on actual performance
+        .sort((a, b) => a.recentRate - b.recentRate)[0];
+
+      if (strugglingHabit) {
+        const message = getCompletionRateMessage(strugglingHabit.completionResult, strugglingHabit.ageInfo, strugglingHabit.habit.name);
+        trends.push({
+          title: message.title,
+          description: message.description,
+          icon: '🎯',
+          color: message.tone === 'warning' ? Colors.warning : Colors.info,
+          trend: 'declining' as const
+        });
+      }
     }
 
     // Consistency insights
