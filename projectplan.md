@@ -1862,3 +1862,118 @@ The Enhanced Streak Recovery System implementation represents a well-architected
 - **Reusable component**: DatePickerModal can be used for habit scheduling
 - **Enhanced validation**: Foundation for more sophisticated date constraints
 - **Accessibility**: Pattern for accessible date selection across app
+
+---
+
+## Performance Fix: Habit Toggle Lag Issue ✅ (July 30, 2025)
+
+### Problem Analysis
+**Issue**: Habit completion toggle is laggy/choppy on both Habits screen and Home screen quick actions
+**Root Cause**: Smart Bonus Conversion Logic implemented in commit fc3caa1 causes performance bottleneck
+**Impact**: Poor user experience when marking habits as complete/incomplete
+
+### Investigation Results
+- **Working Version**: Git commit `f8a560a` (smooth habit toggles)
+- **Broken Version**: Git commit `fc3caa1` (laggy habit toggles)  
+- **Key Change**: Implementation of Smart Bonus Conversion Logic (Checkpoint 6.2.3.1)
+
+### Technical Root Cause
+**Performance Bottleneck in `useHabitsData.ts`:**
+
+```typescript
+// PROBLEMATIC: Called multiple times per render cycle
+const getHabitsByDate = (date: DateString) => {
+  const convertedCompletions = getHabitCompletionsWithConversion(habit.id); // ← EXPENSIVE!
+  // Complex weekly grouping, missed/bonus pairing, conversion logic
+}
+```
+
+**Cascading Effects:**
+1. **Multiple Component Calls**: QuickActionButtons, HabitItemWithCompletion, HabitCalendarView all call conversion
+2. **Re-render Chain**: Toggle completion → Context update → All components re-render → Multiple expensive conversions
+3. **Missing Memoization**: Same conversion calculations repeated for unchanged data
+4. **Blocking Computation**: Complex weekly analysis blocks UI thread
+
+### Performance Fix Implementation Plan
+
+#### Task 1: Immediate Performance Fix (Priority: HIGH) ⏱️ 1-2 hours ✅ COMPLETED
+- [x] **Add memoization wrapper** around `getHabitCompletionsWithConversion()` function
+- [x] **Implement useMemo** with proper dependency array `[state.completions, state.habits]`
+- [x] **Test immediate responsiveness** improvement on habit toggle actions
+- [x] **Verify conversion logic** still works correctly with memoization
+
+#### Task 2: Optimize Conversion Caching (Priority: HIGH) ⏱️ 2-3 hours  
+- [ ] **Create conversion cache** using useState/useRef for storing computed results
+- [ ] **Implement cache invalidation** only when relevant completion data changes
+- [ ] **Add selective cache updates** for specific habitId rather than full recomputation
+- [ ] **Test cache performance** and memory usage patterns
+
+#### Task 3: UI Response Optimization (Priority: MEDIUM) ⏱️ 1-2 hours
+- [ ] **Implement optimistic UI updates** for immediate visual feedback
+- [ ] **Add debouncing mechanism** for rapid successive toggles (100ms delay)
+- [ ] **Background conversion processing** to avoid blocking main thread
+- [ ] **Test smooth user experience** across different devices and data volumes
+
+#### Task 4: Code Quality & Monitoring (Priority: LOW) ⏱️ 1 hour
+- [ ] **Add performance monitoring** for conversion computation timing
+- [ ] **Code cleanup** and documentation for memoized functions  
+- [ ] **Error boundary handling** for conversion cache failures
+- [ ] **Performance regression tests** to prevent future similar issues
+
+### Technical Architecture Changes
+
+#### Before Fix (Problematic):
+```typescript
+// Called on every component render
+const getHabitsByDate = (date: DateString) => {
+  const convertedCompletions = getHabitCompletionsWithConversion(habit.id);
+  // ... expensive weekly conversion logic runs repeatedly
+};
+```
+
+#### After Fix (Optimized):
+```typescript
+// Memoized conversion with smart cache invalidation
+const memoizedConversions = useMemo(() => {
+  const cache = new Map<string, HabitCompletion[]>();
+  return {
+    getConvertedCompletions: (habitId: string) => {
+      if (!cache.has(habitId)) {
+        cache.set(habitId, applySmartBonusConversion(habit, completions));
+      }
+      return cache.get(habitId)!;
+    },
+    invalidateCache: (habitId?: string) => {
+      habitId ? cache.delete(habitId) : cache.clear();
+    }
+  };
+}, [state.completions, state.habits]);
+```
+
+### Success Criteria
+- **Response Time**: Habit toggle response < 100ms (currently ~500-1000ms)
+- **Smooth Animation**: No choppy/laggy visual feedback during toggle
+- **Functionality Preserved**: All Smart Bonus Conversion features work identically
+- **Memory Efficiency**: Cache memory usage remains reasonable (< 10MB)
+- **Cross-Platform**: Smooth performance on both iOS and Android
+
+### Risk Assessment & Mitigation
+- **Risk**: Memoization might break conversion logic edge cases
+- **Mitigation**: Comprehensive testing of all conversion scenarios before deployment
+- **Risk**: Cache invalidation bugs could show stale data  
+- **Mitigation**: Conservative cache invalidation strategy with fallback to full recomputation
+- **Risk**: Memory leaks from conversion cache
+- **Mitigation**: Proper cache cleanup and size monitoring
+
+### Files to Modify
+- **Primary**: `/src/hooks/useHabitsData.ts` (memoization implementation)
+- **Secondary**: `/src/components/habits/HabitItemWithCompletion.tsx` (optimistic updates)
+- **Secondary**: `/src/components/home/QuickActionButtons.tsx` (debounced interactions)
+
+### Expected Impact
+- **User Experience**: Immediate, responsive habit completion toggles
+- **Performance**: 80-90% reduction in conversion computation time
+- **Stability**: Maintained functionality with improved reliability
+- **Scalability**: Better performance as user data grows over time
+
+---

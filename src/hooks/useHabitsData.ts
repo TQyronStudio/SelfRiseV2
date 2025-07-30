@@ -19,24 +19,65 @@ export function useHabitsData() {
     };
   }, [state.habits, state.completions, state.isLoading, state.error]);
 
-  const getHabitsByDate = (date: DateString): Array<Habit & { isCompleted: boolean; completion?: HabitCompletion }> => {
-    return habitsData.activeHabits.map(habit => {
-      // Use converted completions for accurate data
-      const convertedCompletions = getHabitCompletionsWithConversion(habit.id);
-      const completion = convertedCompletions.find(c => c.date === date);
-      
-      const result: Habit & { isCompleted: boolean; completion?: HabitCompletion } = {
-        ...habit,
-        isCompleted: completion?.completed || false,
-      };
-      
-      if (completion) {
-        result.completion = completion;
+  // Get completions with smart bonus conversion applied (MEMOIZED for performance)
+  const getHabitCompletionsWithConversion = useMemo(() => {
+    // Create a cache for converted completions
+    const conversionCache = new Map<string, HabitCompletion[]>();
+    
+    return (habitId: string): HabitCompletion[] => {
+      // Check cache first
+      if (conversionCache.has(habitId)) {
+        return conversionCache.get(habitId)!;
       }
       
-      return result;
-    });
-  };
+      // If not in cache, compute conversion
+      const habit = state.habits.find(h => h.id === habitId);
+      if (!habit) return [];
+      
+      const rawCompletions = state.completions.filter(c => c.habitId === habitId);
+      const convertedCompletions = applySmartBonusConversion(habit, rawCompletions);
+      
+      // Store in cache
+      conversionCache.set(habitId, convertedCompletions);
+      
+      return convertedCompletions;
+    };
+  }, [state.completions, state.habits]); // Only recompute when habits or completions change
+
+  const getHabitsByDate = useMemo(() => {
+    // Cache for habits by date to avoid recomputation
+    const habitsByDateCache = new Map<DateString, Array<Habit & { isCompleted: boolean; completion?: HabitCompletion }>>();
+    
+    return (date: DateString): Array<Habit & { isCompleted: boolean; completion?: HabitCompletion }> => {
+      // Check cache first
+      if (habitsByDateCache.has(date)) {
+        return habitsByDateCache.get(date)!;
+      }
+      
+      // Compute habits for date
+      const habitsForDate = habitsData.activeHabits.map(habit => {
+        // Use converted completions for accurate data
+        const convertedCompletions = getHabitCompletionsWithConversion(habit.id);
+        const completion = convertedCompletions.find(c => c.date === date);
+        
+        const result: Habit & { isCompleted: boolean; completion?: HabitCompletion } = {
+          ...habit,
+          isCompleted: completion?.completed || false,
+        };
+        
+        if (completion) {
+          result.completion = completion;
+        }
+        
+        return result;
+      });
+      
+      // Store in cache
+      habitsByDateCache.set(date, habitsForDate);
+      
+      return habitsForDate;
+    };
+  }, [habitsData.activeHabits, getHabitCompletionsWithConversion]); // Recompute when habits or conversion function changes
 
   const getHabitCompletion = (habitId: string, date: DateString): HabitCompletion | null => {
     return state.completions.find(
@@ -325,15 +366,6 @@ export function useHabitsData() {
     });
 
     return convertedCompletions;
-  };
-
-  // Get completions with smart bonus conversion applied
-  const getHabitCompletionsWithConversion = (habitId: string): HabitCompletion[] => {
-    const habit = state.habits.find(h => h.id === habitId);
-    if (!habit) return [];
-    
-    const rawCompletions = state.completions.filter(c => c.habitId === habitId);
-    return applySmartBonusConversion(habit, rawCompletions);
   };
 
   return {
