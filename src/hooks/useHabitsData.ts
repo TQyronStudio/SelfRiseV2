@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import { useHabits } from '../contexts/HabitsContext';
 import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
@@ -19,30 +19,38 @@ export function useHabitsData() {
     };
   }, [state.habits, state.completions, state.isLoading, state.error]);
 
-  // Get completions with smart bonus conversion applied (MEMOIZED for performance)
-  const getHabitCompletionsWithConversion = useMemo(() => {
-    // Create a cache for converted completions
-    const conversionCache = new Map<string, HabitCompletion[]>();
+  // STABLE cache that doesn't invalidate on every render
+  const conversionCacheRef = useRef(new Map<string, HabitCompletion[]>());
+  const lastDataHashRef = useRef('');
+  
+  // Get completions with smart bonus conversion applied (STABLE CACHE)
+  const getHabitCompletionsWithConversion = useCallback((habitId: string): HabitCompletion[] => {
+    // Lightweight hash - just count arrays length for performance on Android
+    const currentDataHash = `${state.habits.length}-${state.completions.length}`;
     
-    return (habitId: string): HabitCompletion[] => {
-      // Check cache first
-      if (conversionCache.has(habitId)) {
-        return conversionCache.get(habitId)!;
-      }
-      
-      // If not in cache, compute conversion
-      const habit = state.habits.find(h => h.id === habitId);
-      if (!habit) return [];
-      
-      const rawCompletions = state.completions.filter(c => c.habitId === habitId);
-      const convertedCompletions = applySmartBonusConversion(habit, rawCompletions);
-      
-      // Store in cache
-      conversionCache.set(habitId, convertedCompletions);
-      
-      return convertedCompletions;
-    };
-  }, [state.completions, state.habits]); // Only recompute when habits or completions change
+    // If data changed, clear cache
+    if (currentDataHash !== lastDataHashRef.current) {
+      conversionCacheRef.current.clear();
+      lastDataHashRef.current = currentDataHash;
+    }
+    
+    // Check cache first
+    if (conversionCacheRef.current.has(habitId)) {
+      return conversionCacheRef.current.get(habitId)!;
+    }
+    
+    // If not in cache, compute conversion
+    const habit = state.habits.find(h => h.id === habitId);
+    if (!habit) return [];
+    
+    const rawCompletions = state.completions.filter(c => c.habitId === habitId);
+    const convertedCompletions = applySmartBonusConversion(habit, rawCompletions);
+    
+    // Store in cache
+    conversionCacheRef.current.set(habitId, convertedCompletions);
+    
+    return convertedCompletions;
+  }, [state.completions, state.habits]);
 
   const getHabitsByDate = useMemo(() => {
     // Cache for habits by date to avoid recomputation
@@ -240,6 +248,8 @@ export function useHabitsData() {
 
   // Smart Bonus Conversion Logic
   const applySmartBonusConversion = (habit: Habit, completions: HabitCompletion[]): HabitCompletion[] => {
+    const startTime = Date.now();
+    console.log(`🔄 Starting Smart Bonus Conversion for habit "${habit.name}" (${completions.length} completions)`);
     // Group completions by week
     const weeklyCompletions = new Map<string, HabitCompletion[]>();
     
@@ -365,6 +375,10 @@ export function useHabitsData() {
       });
     });
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    console.log(`✅ Smart Bonus Conversion completed for "${habit.name}" in ${duration}ms (${convertedCompletions.length} result completions)`);
+    
     return convertedCompletions;
   };
 
