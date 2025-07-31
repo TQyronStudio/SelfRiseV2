@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "afterSuccessfulEdit": {
+      "command": "git add . && git commit -m '🤖 Auto-commit: Successful code changes without errors' && git push origin main",
+      "description": "Automatically commit and push changes when code is successfully modified without TypeScript errors",
+      "enabled": true,
+      "runConditions": {
+        "noTypeScriptErrors": true,
+        "noEslintErrors": true
+      }
+    },
+    "afterTaskCompletion": {
+      "command": "echo '✅ Task completed successfully at $(date)'",
+      "description": "Log successful task completion",
+      "enabled": true
+    }
+  },
+  "autoCommit": {
+    "enabled": true,
+    "commitMessageFormat": "🤖 Auto-commit: {description}",
+    "excludePatterns": [
+      "*.log",
+      "*.tmp",
+      "node_modules/**",
+      ".expo/**"
+    ]
+  }
+}
