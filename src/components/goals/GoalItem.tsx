@@ -33,7 +33,7 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
   const rotation = useSharedValue(0);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     
     if (isEditMode) {
       // Náhodný delay pro každou položku (0-500ms)

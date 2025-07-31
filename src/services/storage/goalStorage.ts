@@ -2,6 +2,10 @@ import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, 
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
+import { GamificationService } from '../gamificationService';
+import { XP_REWARDS } from '../../constants/gamification';
+import { XPSourceType } from '../../types/gamification';
+import { today } from '../../utils/date';
 
 export class GoalStorage implements EntityStorage<Goal> {
   // Goal CRUD operations
@@ -225,6 +229,10 @@ export class GoalStorage implements EntityStorage<Goal> {
         );
       }
 
+      // Store previous values for milestone detection
+      const previousCurrentValue = goal.currentValue;
+      const previousCompletionPercentage = goal.targetValue > 0 ? (previousCurrentValue / goal.targetValue) * 100 : 0;
+
       // Create progress entry
       const progress = await this.getAllProgress();
       const newProgress: GoalProgress = {
@@ -241,11 +249,16 @@ export class GoalStorage implements EntityStorage<Goal> {
 
       // Update goal's current value
       const updatedGoal = updateGoalValue(goal, input.value, input.progressType);
+      const newCompletionPercentage = goal.targetValue > 0 ? (updatedGoal.currentValue / goal.targetValue) * 100 : 0;
+      
       await this.update(input.goalId, { 
         currentValue: updatedGoal.currentValue,
         status: updatedGoal.status,
         completedDate: updatedGoal.completedDate || undefined
       });
+
+      // Award XP asynchronously to prevent UI lag
+      this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, updatedGoal.status === GoalStatus.COMPLETED);
 
       return newProgress;
     } catch (error) {
@@ -532,6 +545,217 @@ export class GoalStorage implements EntityStorage<Goal> {
       // console.log('Goal progress data cleanup completed'); // Debug log removed
     } catch (error) {
       console.error('Failed to cleanup goal progress data:', error);
+    }
+  }
+
+  // ========================================
+  // XP INTEGRATION METHODS
+  // ========================================
+
+  /**
+   * Award XP for goal progress, milestones, and completions
+   * Runs asynchronously to prevent UI lag
+   */
+  private async awardGoalProgressXP(
+    goal: Goal, 
+    previousPercentage: number, 
+    newPercentage: number, 
+    isCompleted: boolean
+  ): Promise<void> {
+    try {
+      // 1. Award progress XP (35 XP, max once per goal per day)
+      await this.awardProgressXP(goal);
+
+      // 2. Check for milestone XP (25%, 50%, 75%)
+      await this.awardMilestoneXP(goal, previousPercentage, newPercentage);
+
+      // 3. Award completion XP if goal was completed
+      if (isCompleted) {
+        await this.awardCompletionXP(goal);
+      }
+    } catch (error) {
+      console.error('Failed to award goal XP:', error);
+      // Don't throw error - XP is enhancement, shouldn't break core functionality
+    }
+  }
+
+  /**
+   * Award XP for goal progress (35 XP, max once per goal per day)
+   */
+  private async awardProgressXP(goal: Goal): Promise<void> {
+    try {
+      // Check if we already awarded progress XP for this goal today
+      const todayString = today();
+      const todayProgress = await this.getProgressByGoalId(goal.id);
+      const todayProgressEntries = todayProgress.filter(p => p.date === todayString);
+      
+      // Only award XP for the first progress entry of the day for this goal
+      if (todayProgressEntries.length === 1) {
+        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+          source: XPSourceType.GOAL_PROGRESS,
+          sourceId: goal.id,
+          description: `Added progress to goal: ${goal.title}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to award progress XP:', error);
+    }
+  }
+
+  /**
+   * Award XP for reaching goal milestones (25%, 50%, 75%)
+   */
+  private async awardMilestoneXP(goal: Goal, previousPercentage: number, newPercentage: number): Promise<void> {
+    try {
+      const milestones = [
+        { threshold: 25, xp: XP_REWARDS.GOALS.MILESTONE_25_PERCENT, name: '25%' },
+        { threshold: 50, xp: XP_REWARDS.GOALS.MILESTONE_50_PERCENT, name: '50%' },
+        { threshold: 75, xp: XP_REWARDS.GOALS.MILESTONE_75_PERCENT, name: '75%' },
+      ];
+
+      for (const milestone of milestones) {
+        // Check if we crossed this milestone
+        if (previousPercentage < milestone.threshold && newPercentage >= milestone.threshold) {
+          await GamificationService.addXP(milestone.xp, {
+            source: XPSourceType.GOAL_MILESTONE,
+            sourceId: goal.id,
+            description: `Reached ${milestone.name} completion for goal: ${goal.title}`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to award milestone XP:', error);
+    }
+  }
+
+  /**
+   * Award XP for goal completion (250 XP basic, 350 XP for big goals)
+   */
+  private async awardCompletionXP(goal: Goal): Promise<void> {
+    try {
+      // Determine XP amount based on goal target value
+      const isBigGoal = goal.targetValue >= 1000;
+      const xpAmount = isBigGoal ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
+      const description = isBigGoal 
+        ? `Completed big goal (${goal.targetValue}): ${goal.title}` 
+        : `Completed goal: ${goal.title}`;
+
+      await GamificationService.addXP(xpAmount, {
+        source: XPSourceType.GOAL_COMPLETION,
+        sourceId: goal.id,
+        description,
+      });
+    } catch (error) {
+      console.error('Failed to award completion XP:', error);
+    }
+  }
+
+  // ========================================
+  // GOAL STATISTICS FOR ACHIEVEMENTS
+  // ========================================
+
+  /**
+   * Get achievement-related statistics for goals
+   */
+  async getAchievementStats(): Promise<{
+    totalGoalsCompleted: number;
+    totalGoalsCreated: number;
+    bigGoalsCompleted: number;
+    averageGoalValue: number;
+    goalCompletionRate: number;
+    totalProgressEntries: number;
+    goalsWithProgressToday: number;
+    consecutiveGoalProgressDays: number;
+  }> {
+    try {
+      const allGoals = await this.getAll();
+      const allProgress = await this.getAllProgress();
+      const todayString = today();
+
+      // Basic counts
+      const totalGoalsCreated = allGoals.length;
+      const completedGoals = allGoals.filter(g => g.status === GoalStatus.COMPLETED);
+      const totalGoalsCompleted = completedGoals.length;
+      const bigGoalsCompleted = completedGoals.filter(g => g.targetValue >= 1000).length;
+
+      // Average goal value
+      const averageGoalValue = totalGoalsCreated > 0 
+        ? allGoals.reduce((sum, g) => sum + g.targetValue, 0) / totalGoalsCreated 
+        : 0;
+
+      // Completion rate
+      const goalCompletionRate = totalGoalsCreated > 0 
+        ? (totalGoalsCompleted / totalGoalsCreated) * 100 
+        : 0;
+
+      // Progress statistics
+      const totalProgressEntries = allProgress.length;
+      const todayProgress = allProgress.filter(p => p.date === todayString);
+      const uniqueGoalsWithProgressToday = new Set(todayProgress.map(p => p.goalId)).size;
+
+      // Calculate consecutive days with goal progress
+      const consecutiveGoalProgressDays = await this.calculateConsecutiveProgressDays();
+
+      return {
+        totalGoalsCompleted,
+        totalGoalsCreated,
+        bigGoalsCompleted,
+        averageGoalValue: Math.round(averageGoalValue),
+        goalCompletionRate: Math.round(goalCompletionRate * 100) / 100,
+        totalProgressEntries,
+        goalsWithProgressToday: uniqueGoalsWithProgressToday,
+        consecutiveGoalProgressDays,
+      };
+    } catch (error) {
+      console.error('Failed to get goal achievement stats:', error);
+      // Return safe defaults
+      return {
+        totalGoalsCompleted: 0,
+        totalGoalsCreated: 0,
+        bigGoalsCompleted: 0,
+        averageGoalValue: 0,
+        goalCompletionRate: 0,
+        totalProgressEntries: 0,
+        goalsWithProgressToday: 0,
+        consecutiveGoalProgressDays: 0,
+      };
+    }
+  }
+
+  /**
+   * Calculate consecutive days with at least one goal progress entry
+   */
+  private async calculateConsecutiveProgressDays(): Promise<number> {
+    try {
+      const allProgress = await this.getAllProgress();
+      if (allProgress.length === 0) return 0;
+
+      // Get unique dates with progress, sorted in descending order
+      const progressDates = [...new Set(allProgress.map(p => p.date))]
+        .sort((a, b) => b.localeCompare(a)); // Descending order
+
+      if (progressDates.length === 0) return 0;
+
+      const todayString = today();
+      let consecutiveDays = 0;
+      let currentDate = new Date(todayString);
+
+      // Count consecutive days from today backwards
+      for (const dateString of progressDates) {
+        const expectedDateString = currentDate.toISOString().split('T')[0];
+
+        if (dateString === expectedDateString) {
+          consecutiveDays++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      return consecutiveDays;
+    } catch (error) {
+      console.error('Failed to calculate consecutive progress days:', error);
+      return 0;
     }
   }
 }

@@ -30,6 +30,7 @@ const STORAGE_KEYS = {
   LAST_ACTIVITY: 'gamification_last_activity',
   XP_MULTIPLIER: 'gamification_xp_multiplier',
   PENDING_NOTIFICATIONS: 'gamification_pending_notifications',
+  LEVEL_UP_HISTORY: 'gamification_level_up_history',
 } as const;
 
 // Transaction result interface
@@ -41,6 +42,12 @@ export interface XPTransactionResult {
   newLevel: number;
   leveledUp: boolean;
   milestoneReached: boolean;
+  levelUpInfo?: {
+    newLevelTitle: string;
+    newLevelDescription: string;
+    rewards?: string[];
+    isMilestone: boolean;
+  };
   transaction?: XPTransaction;
   error?: string | undefined;
 }
@@ -62,6 +69,18 @@ interface DailyXPData {
   xpBySource: Record<XPSourceType, number>;
   transactionCount: number;
   lastTransactionTime: number;
+}
+
+// Level-up event tracking
+interface LevelUpEvent {
+  id: string;
+  timestamp: Date;
+  date: DateString;
+  previousLevel: number;
+  newLevel: number;
+  totalXPAtLevelUp: number;
+  triggerSource: XPSourceType;
+  isMilestone: boolean;
 }
 
 /**
@@ -161,6 +180,21 @@ export class GamificationService {
       const leveledUp = newLevel > previousLevel;
       const milestoneReached = leveledUp && isLevelMilestone(newLevel);
 
+      // Get level-up information if leveled up
+      let levelUpInfo = undefined;
+      if (leveledUp) {
+        const levelInfo = getLevelInfo(newLevel);
+        levelUpInfo = {
+          newLevelTitle: levelInfo.title,
+          newLevelDescription: levelInfo.description,
+          rewards: levelInfo.rewards,
+          isMilestone: levelInfo.isMilestone,
+        };
+
+        // Store level-up event in history
+        await this.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);
+      }
+
       // Handle notifications (if not skipped)
       if (!options.skipNotification) {
         await this.queueXPNotification(transaction, leveledUp, milestoneReached);
@@ -175,6 +209,7 @@ export class GamificationService {
         newLevel,
         leveledUp,
         milestoneReached,
+        levelUpInfo,
         transaction
       };
 
@@ -457,6 +492,78 @@ export class GamificationService {
     };
 
     return sourceMap[source] || null;
+  }
+
+  // ========================================
+  // LEVEL-UP EVENT TRACKING
+  // ========================================
+
+  /**
+   * Store level-up event for analytics and history
+   */
+  private static async storeLevelUpEvent(
+    newLevel: number,
+    previousLevel: number,
+    totalXP: number,
+    triggerSource: XPSourceType
+  ): Promise<void> {
+    try {
+      const levelUpEvent: LevelUpEvent = {
+        id: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date(),
+        date: today(),
+        previousLevel,
+        newLevel,
+        totalXPAtLevelUp: totalXP,
+        triggerSource,
+        isMilestone: isLevelMilestone(newLevel),
+      };
+
+      const levelUpHistory = await this.getLevelUpHistory();
+      levelUpHistory.push(levelUpEvent);
+
+      // Keep only last 100 level-up events for performance
+      const trimmedHistory = levelUpHistory.slice(-100);
+
+      await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(trimmedHistory));
+      
+      console.log(`🎉 Level-up stored: ${previousLevel} → ${newLevel} (${triggerSource})`);
+    } catch (error) {
+      console.error('GamificationService.storeLevelUpEvent error:', error);
+    }
+  }
+
+  /**
+   * Get level-up history
+   */
+  static async getLevelUpHistory(): Promise<LevelUpEvent[]> {
+    try {
+      const stored = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL_UP_HISTORY);
+      if (!stored) return [];
+
+      const events = JSON.parse(stored);
+      // Convert date strings back to Date objects
+      return events.map((event: any) => ({
+        ...event,
+        timestamp: new Date(event.timestamp),
+      }));
+    } catch (error) {
+      console.error('GamificationService.getLevelUpHistory error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get recent level-ups (last N events)
+   */
+  static async getRecentLevelUps(count: number = 5): Promise<LevelUpEvent[]> {
+    try {
+      const history = await this.getLevelUpHistory();
+      return history.slice(-count).reverse(); // Most recent first
+    } catch (error) {
+      console.error('GamificationService.getRecentLevelUps error:', error);
+      return [];
+    }
   }
 
   // ========================================
@@ -761,6 +868,7 @@ export class GamificationService {
         STORAGE_KEYS.LAST_ACTIVITY,
         STORAGE_KEYS.XP_MULTIPLIER,
         STORAGE_KEYS.PENDING_NOTIFICATIONS,
+        STORAGE_KEYS.LEVEL_UP_HISTORY,
       ]);
       console.log('🧹 All gamification data reset');
     } catch (error) {

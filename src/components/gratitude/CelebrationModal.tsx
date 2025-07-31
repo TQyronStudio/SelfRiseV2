@@ -15,11 +15,20 @@ const { width: screenWidth } = Dimensions.get('window');
 interface CelebrationModalProps {
   visible: boolean;
   onClose: () => void;
-  type: 'daily_complete' | 'streak_milestone' | 'bonus_milestone';
+  type: 'daily_complete' | 'streak_milestone' | 'bonus_milestone' | 'level_up';
   title?: string | undefined;
   message?: string | undefined;
   streakDays?: number | undefined;
   bonusCount?: number | undefined;
+  // Level-up specific props
+  levelUpData?: {
+    previousLevel: number;
+    newLevel: number;
+    levelTitle: string;
+    levelDescription?: string;
+    rewards?: string[];
+    isMilestone: boolean;
+  };
 }
 
 export default function CelebrationModal({
