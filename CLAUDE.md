@@ -23,3 +23,11 @@
     - Each agent documents their part of the solution
     - Main Claude Code consolidates and verifies consistency
     - Single review section covers all agents' contributions
+14. PROJECT DOCUMENTATION MANAGEMENT:
+When working on SelfRise V2, maintain clean documentation structure:
+ - **projectplan.md**: ONLY active development phases, incomplete tasks, and current planning. Maximum 25,000 tokens.
+ - **projectplan-archive.md**: All completed features, fixes, and historical implementations. Reference for context but don't modify.
+ - **technical-guides.md**: Development guidelines, patterns, best practices, and coding standards. Reference when implementing.
+ - **implementation-history.md**: Detailed technical fixes, root cause analyses, and implementation details. Reference for debugging similar issues.
+
+ CRITICAL: When completing any task, move detailed implementation notes to appropriate archive file and update projectplan.md with brief summary only. Always check projectplan.md token count and archive content when it approaches 25,000 tokens.
