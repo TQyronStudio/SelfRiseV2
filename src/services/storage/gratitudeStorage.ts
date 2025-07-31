@@ -3,6 +3,9 @@ import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_C
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
 import { calculateStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
   // Gratitude CRUD operations
@@ -47,6 +50,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
+      
+      // Award XP based on entry position and anti-spam logic
+      await this.awardJournalXP(totalCount, input.date);
       
       return newGratitude;
     } catch (error) {
@@ -872,6 +878,202 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );
+    }
+  }
+
+  // ========================================
+  // XP INTEGRATION METHODS
+  // ========================================
+
+  /**
+   * Award XP for journal entries with anti-spam logic and milestone rewards
+   * 
+   * @param entryPosition Position of this entry for the day (1-based)
+   * @param date Date of the entry for tracking
+   */
+  private async awardJournalXP(entryPosition: number, date: DateString): Promise<void> {
+    try {
+      // Base XP calculation with anti-spam logic
+      let xpToAward = 0;
+      let xpSourceType: XPSourceType;
+      let description = '';
+
+      if (entryPosition <= 3) {
+        // First 3 entries: 20 XP each
+        xpToAward = XP_REWARDS.JOURNAL.FIRST_ENTRY;
+        xpSourceType = XPSourceType.JOURNAL_ENTRY;
+        description = `Journal entry #${entryPosition}`;
+      } else if (entryPosition <= 13) {
+        // Entries 4-13: 8 XP each (bonus entries)
+        xpToAward = XP_REWARDS.JOURNAL.BONUS_ENTRY;
+        xpSourceType = XPSourceType.JOURNAL_BONUS;
+        description = `Bonus journal entry #${entryPosition}`;
+      } else {
+        // Entries 14+: 0 XP (spam prevention)
+        xpToAward = 0;
+        xpSourceType = XPSourceType.JOURNAL_BONUS;
+        description = `Journal entry #${entryPosition} (no XP - daily limit reached)`;
+      }
+
+      // Award base entry XP if applicable
+      if (xpToAward > 0) {
+        await GamificationService.addXP(xpToAward, {
+          source: xpSourceType,
+          description,
+          sourceId: `journal_${date}_${entryPosition}`,
+        });
+      }
+
+      // Check for milestone rewards (awarded in addition to base XP)
+      await this.checkAndAwardJournalMilestones(entryPosition, date);
+
+      // Check for streak milestones after every entry
+      await this.checkAndAwardStreakMilestones();
+
+    } catch (error) {
+      console.error('GratitudeStorage.awardJournalXP error:', error);
+      // Don't throw - XP failure shouldn't block gratitude creation
+    }
+  }
+
+  /**
+   * Check and award milestone XP for bonus entries (⭐🔥👑)
+   */
+  private async checkAndAwardJournalMilestones(entryPosition: number, date: DateString): Promise<void> {
+    try {
+      let milestoneXP = 0;
+      let description = '';
+
+      if (entryPosition === 4) {
+        // First bonus entry ⭐ (entry #4)
+        milestoneXP = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
+        description = 'First bonus journal entry ⭐';
+      } else if (entryPosition === 8) {
+        // Fifth bonus entry 🔥 (entry #8)
+        milestoneXP = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
+        description = 'Fifth bonus journal entry 🔥';
+      } else if (entryPosition === 13) {
+        // Tenth bonus entry 👑 (entry #13)
+        milestoneXP = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
+        description = 'Tenth bonus journal entry 👑';
+      }
+
+      // Award milestone XP if applicable
+      if (milestoneXP > 0) {
+        await GamificationService.addXP(milestoneXP, {
+          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+          description,
+          sourceId: `journal_milestone_${date}_${entryPosition}`,
+        });
+      }
+    } catch (error) {
+      console.error('GratitudeStorage.checkAndAwardJournalMilestones error:', error);
+    }
+  }
+
+  /**
+   * Check and award streak milestone XP rewards
+   */
+  private async checkAndAwardStreakMilestones(): Promise<void> {
+    try {
+      const streak = await this.getStreak();
+      const currentStreak = streak.currentStreak;
+
+      // Define streak milestones that should award XP
+      const streakMilestones = [
+        { days: 7, xp: XP_REWARDS.JOURNAL.STREAK_7_DAYS, description: '7-day journal streak!' },
+        { days: 21, xp: XP_REWARDS.JOURNAL.STREAK_21_DAYS, description: '21-day journal streak!' },
+        { days: 30, xp: XP_REWARDS.JOURNAL.STREAK_30_DAYS, description: '30-day journal streak!' },
+        { days: 100, xp: XP_REWARDS.JOURNAL.STREAK_100_DAYS, description: '100-day journal streak!' },
+        { days: 365, xp: XP_REWARDS.JOURNAL.STREAK_365_DAYS, description: '365-day journal streak!' },
+      ];
+
+      // Check if current streak matches any milestone
+      const milestone = streakMilestones.find(m => m.days === currentStreak);
+      if (milestone) {
+        await GamificationService.addXP(milestone.xp, {
+          source: XPSourceType.JOURNAL_STREAK_MILESTONE,
+          description: milestone.description,
+          sourceId: `journal_streak_${currentStreak}`,
+        });
+      }
+    } catch (error) {
+      console.error('GratitudeStorage.checkAndAwardStreakMilestones error:', error);
+    }
+  }
+
+  /**
+   * Get journal statistics for achievements and progress tracking
+   */
+  async getJournalStatistics(): Promise<{
+    totalEntries: number;
+    totalDays: number;
+    currentStreak: number;
+    longestStreak: number;
+    totalBonusEntries: number;
+    starsEarned: number;  // ⭐ milestones (4th entries)
+    flamesEarned: number; // 🔥 milestones (8th entries)
+    crownsEarned: number; // 👑 milestones (13th entries)
+    averageEntriesPerDay: number;
+  }> {
+    try {
+      const [totalEntries, totalDays, averagePerDay, streakInfo] = await Promise.all([
+        this.count(),
+        this.getTotalDaysWithGratitude(),
+        this.getAverageGratitudesPerDay(),
+        this.getStreakInfo(),
+      ]);
+
+      // Calculate bonus entries and milestones
+      const gratitudes = await this.getAll();
+      let totalBonusEntries = 0;
+      let starsEarned = 0;
+      let flamesEarned = 0;
+      let crownsEarned = 0;
+
+      const dateCountMap = new Map<DateString, number>();
+      
+      // Count entries per date
+      gratitudes.forEach(gratitude => {
+        const current = dateCountMap.get(gratitude.date) || 0;
+        dateCountMap.set(gratitude.date, current + 1);
+      });
+
+      // Calculate bonus entries and milestone counts
+      dateCountMap.forEach((count) => {
+        if (count > 3) {
+          totalBonusEntries += (count - 3); // Bonus entries are 4th+ entries
+        }
+        if (count >= 4) starsEarned++;     // ⭐ for 4th entry
+        if (count >= 8) flamesEarned++;    // 🔥 for 8th entry  
+        if (count >= 13) crownsEarned++;   // 👑 for 13th entry
+      });
+
+      return {
+        totalEntries,
+        totalDays,
+        currentStreak: streakInfo.currentStreak,
+        longestStreak: streakInfo.longestStreak,
+        totalBonusEntries,
+        starsEarned,
+        flamesEarned,
+        crownsEarned,
+        averageEntriesPerDay: averagePerDay,
+      };
+    } catch (error) {
+      console.error('GratitudeStorage.getJournalStatistics error:', error);
+      // Return safe defaults
+      return {
+        totalEntries: 0,
+        totalDays: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        totalBonusEntries: 0,
+        starsEarned: 0,
+        flamesEarned: 0,
+        crownsEarned: 0,
+        averageEntriesPerDay: 0,
+      };
     }
   }
 }
