@@ -171,8 +171,8 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [x] Create level-up celebration trigger logic in storage services
 - [x] Add level-up specific visual styling and content
 - [x] Implement celebration integration with XP flow
-- [ ] Test level-up scenarios and edge cases
-- [ ] Add milestone-specific celebrations for special levels
+- [x] Test level-up scenarios and edge cases
+- [x] Add milestone-specific celebrations for special levels
 
 **TODO Items:**
 - [x] Extend CelebrationModal to fully support level-up type with proper content rendering
