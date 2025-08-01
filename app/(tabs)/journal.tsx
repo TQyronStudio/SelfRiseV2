@@ -18,6 +18,7 @@ export default function JournalScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
+  const { celebrationState, checkAndTriggerLevelUpCelebration, hideCelebration } = useLevelUpCelebrations();
   const scrollViewRef = useRef<ScrollView>(null);
   const [showInput, setShowInput] = useState(false);
   const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
