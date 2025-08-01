@@ -44,6 +44,10 @@ interface GamificationContextValue {
   // Level utilities
   getLevelInfo: (level?: number) => ReturnType<typeof getLevelInfo>;
   isLevelMilestone: (level?: number) => boolean;
+  
+  // Level-up celebration utilities
+  checkForRecentLevelUps: () => Promise<any[]>;
+  getRecentLevelUps: (count?: number) => Promise<any[]>;
 }
 
 // ========================================
