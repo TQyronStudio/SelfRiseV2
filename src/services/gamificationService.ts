@@ -214,7 +214,7 @@ export class GamificationService {
         newLevel,
         leveledUp,
         milestoneReached,
-        levelUpInfo: leveledUp ? levelUpInfo : undefined,
+        levelUpInfo,
         transaction
       };
 
