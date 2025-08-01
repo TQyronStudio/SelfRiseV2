@@ -13,6 +13,7 @@ import { QuickActionButtons } from '@/src/components/home/QuickActionButtons';
 import { DailyMotivationalQuote } from '@/src/components/home/DailyMotivationalQuote';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
+import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
@@ -71,6 +72,10 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Conditionally rendered components based on user preferences */}
+        {isComponentVisible('xpProgressBar') && (
+          <XpProgressBar />
+        )}
+        
         {isComponentVisible('journalStreak') && (
           <JournalStreakCard onPress={handleStreakPress} />
         )}

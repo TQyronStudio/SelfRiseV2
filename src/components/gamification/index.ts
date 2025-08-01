@@ -1,0 +1,1 @@
+export { XpProgressBar } from './XpProgressBar';

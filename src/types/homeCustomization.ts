@@ -20,6 +20,13 @@ export interface HomeScreenPreferences {
 
 export const defaultHomeComponents: HomeScreenComponent[] = [
   {
+    id: 'xpProgressBar',
+    name: 'XP Progress',
+    visible: true,
+    order: 0,
+    configurable: true,
+  },
+  {
     id: 'journalStreak',
     name: 'Journal Streak',
     visible: true,
