@@ -71,6 +71,23 @@ export default function CelebrationModal({
           message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `You've reached ${bonusCountSafe} bonus entries today!`,
           emoji: bonusEmoji,
         };
+      case 'level_up':
+        if (!levelUpData) {
+          return {
+            title: 'Level Up! 🎉',
+            message: 'Congratulations on reaching a new level!',
+            emoji: '🎉',
+          };
+        }
+        
+        const levelEmoji = levelUpData.isMilestone ? '🏆' : '⬆️';
+        const milestoneText = levelUpData.isMilestone ? ' Milestone!' : '';
+        
+        return {
+          title: `Level ${levelUpData.newLevel}${milestoneText} ${levelEmoji}`,
+          message: levelUpData.levelDescription || `You've unlocked ${levelUpData.levelTitle}!`,
+          emoji: levelEmoji,
+        };
       default:
         return {
           title: 'Congratulations!',
