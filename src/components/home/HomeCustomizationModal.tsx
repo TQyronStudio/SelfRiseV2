@@ -58,6 +58,8 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
 
   const getComponentDisplayName = (componentId: string) => {
     const names: Record<string, string> = {
+      xpProgressBar: 'XP Progress',
+      journalStreak: 'Journal Streak',
       quickActions: 'Quick Actions',
       dailyQuote: 'Daily Quote',
       recommendations: 'Recommendations',

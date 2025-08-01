@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { useLevel } from '../../contexts/GamificationContext';
+import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { LEVEL_PROGRESSION } from '../../constants/gamification';
 
 // SafeLinearGradient: Wrapper to handle ExpoLinearGradient warnings
@@ -29,9 +30,69 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
 }) => {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const { currentLevel, xpProgress, xpToNextLevel, getLevelInfo, isLevelMilestone, isLoading } = useLevel();
+  const { state: customizationState } = useHomeCustomization();
+  
+  // Get screen dimensions for responsive design
+  const screenWidth = Dimensions.get('window').width;
+  const isSmallScreen = screenWidth < 375; // iPhone SE size
+  const isLargeScreen = screenWidth > 414; // Plus-sized phones and tablets
   
   const levelInfo = getLevelInfo(currentLevel);
   const isMilestone = isLevelMilestone(currentLevel);
+  
+  // Get theme-based styling
+  const getThemeStyles = () => {
+    const theme = customizationState.preferences.theme;
+    const baseStyles = styles.container;
+    
+    switch (theme.cardStyle) {
+      case 'minimal':
+        return {
+          ...baseStyles,
+          backgroundColor: 'transparent',
+          shadowOpacity: 0,
+          elevation: 0,
+          borderWidth: 1,
+          borderColor: Colors.border,
+        };
+      case 'bold':
+        return {
+          ...baseStyles,
+          backgroundColor: Colors.background,
+          shadowOpacity: 0.15,
+          elevation: 5,
+          borderWidth: 2,
+          borderColor: Colors.primary + '20',
+        };
+      default: // 'default'
+        return baseStyles;
+    }
+  };
+  
+  // Get spacing based on theme
+  const getSpacingStyles = () => {
+    const spacing = customizationState.preferences.theme.spacing;
+    switch (spacing) {
+      case 'compact':
+        return {
+          paddingVertical: 8,
+          paddingHorizontal: 12,
+          marginVertical: 6,
+        };
+      case 'spacious':
+        return {
+          paddingVertical: 16,
+          paddingHorizontal: 20,
+          marginVertical: 12,
+        };
+      default: // 'default'
+        return {
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          marginVertical: 8,
+        };
+    }
+  };
   
   // Animation for progress bar
   useEffect(() => {
@@ -121,9 +182,46 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   // Get next level for display
   const nextLevel = currentLevel + 1;
   const nextLevelInfo = getLevelInfo(nextLevel);
+  
+  // Get responsive badge size
+  const getResponsiveBadgeSize = () => {
+    if (compactMode || isSmallScreen) {
+      return { width: 50, height: 50, borderRadius: 25 };
+    } else if (isLargeScreen) {
+      return { width: 70, height: 70, borderRadius: 35 };
+    }
+    return { width: 60, height: 60, borderRadius: 30 }; // default
+  };
+  
+  // Get responsive font sizes
+  const getResponsiveFontSizes = () => {
+    if (compactMode || isSmallScreen) {
+      return {
+        levelNumber: 16,
+        levelTitle: 9,
+        xpText: 12,
+        xpNumbers: 10,
+      };
+    } else if (isLargeScreen) {
+      return {
+        levelNumber: 20,
+        levelTitle: 11,
+        xpText: 16,
+        xpNumbers: 14,
+      };
+    }
+    return {
+      levelNumber: 18,
+      levelTitle: 10,
+      xpText: 14,
+      xpNumbers: 12,
+    }; // default
+  };
 
   const progressColors = getProgressColors();
   const badgeColors = getLevelBadgeColors();
+  const badgeSize = getResponsiveBadgeSize();
+  const fontSizes = getResponsiveFontSizes();
   
   const animatedWidth = animated 
     ? progressAnim.interpolate({
@@ -135,7 +233,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
 
   if (isLoading) {
     return (
-      <View style={[styles.container, compactMode && styles.containerCompact]}>
+      <View style={[getThemeStyles(), getSpacingStyles(), compactMode && styles.containerCompact]}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading XP...</Text>
         </View>
@@ -150,7 +248,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
 
   return (
     <View 
-      style={[styles.container, compactMode && styles.containerCompact]}
+      style={[getThemeStyles(), getSpacingStyles(), compactMode && styles.containerCompact]}
       accessible={true}
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
@@ -169,17 +267,18 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
             colors={badgeColors.background}
             style={[
               styles.levelBadge,
+              badgeSize,
               { borderColor: badgeColors.border },
               isMilestone && styles.milestoneBadge
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={[styles.levelNumber, { color: badgeColors.text }]}>
+            <Text style={[styles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
               {currentLevel}
             </Text>
-            {!compactMode && (
-              <Text style={[styles.levelTitle, { color: badgeColors.text }]} numberOfLines={1}>
+            {!compactMode && !isSmallScreen && (
+              <Text style={[styles.levelTitle, { color: badgeColors.text, fontSize: fontSizes.levelTitle }]} numberOfLines={1}>
                 {levelInfo.title}
               </Text>
             )}
@@ -224,14 +323,14 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
         {showXPText && !compactMode && (
           <View style={styles.xpTextContainer}>
             <Text 
-              style={styles.xpText}
+              style={[styles.xpText, { fontSize: fontSizes.xpText }]}
               accessible={true}
               accessibilityRole="text"
             >
               Level {currentLevel} • {Math.round(xpProgress)}% to Level {nextLevel}
             </Text>
             <Text 
-              style={styles.xpNumbers}
+              style={[styles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}
               accessible={true}
               accessibilityRole="text"
             >
@@ -241,9 +340,9 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
         )}
 
         {/* Compact XP Text */}
-        {showXPText && compactMode && (
+        {showXPText && (compactMode || isSmallScreen) && (
           <Text 
-            style={styles.xpTextCompact}
+            style={[styles.xpTextCompact, { fontSize: fontSizes.xpNumbers }]}
             accessible={true}
             accessibilityRole="text"
           >
@@ -259,8 +358,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    shadowColor: Colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   containerCompact: {
     paddingVertical: 8,
@@ -282,9 +393,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   levelBadge: {
-    minWidth: 60,
-    height: 60,
-    borderRadius: 30,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -309,12 +417,10 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
   levelNumber: {
-    fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   levelTitle: {
-    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 2,
@@ -366,17 +472,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   xpText: {
-    fontSize: 14,
     color: Colors.text,
     fontWeight: '500',
   },
   xpNumbers: {
-    fontSize: 12,
     color: Colors.textSecondary,
     fontWeight: '400',
   },
   xpTextCompact: {
-    fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 4,
     textAlign: 'center',
