@@ -108,7 +108,41 @@ export default function JournalScreen() {
         }, 100); // Small delay to ensure gratitude is saved first
       }
     }
-  }, [currentCount, t]);
+
+    // Check for level-ups after all other celebrations
+    setTimeout(async () => {
+      try {
+        const recentLevelUps = await checkForRecentLevelUps();
+        if (recentLevelUps.length > 0) {
+          // Get the most recent level-up
+          const latestLevelUp = recentLevelUps[0];
+          const levelInfo = getLevelInfo(latestLevelUp.newLevel);
+          
+          // Create level-up celebration data
+          const levelUpResult = {
+            success: true,
+            xpGained: 0, // Not needed for celebration
+            totalXP: latestLevelUp.totalXPAtLevelUp,
+            previousLevel: latestLevelUp.previousLevel,
+            newLevel: latestLevelUp.newLevel,
+            leveledUp: true,
+            milestoneReached: latestLevelUp.isMilestone,
+            levelUpInfo: {
+              newLevelTitle: levelInfo.title,
+              newLevelDescription: levelInfo.description || '',
+              rewards: levelInfo.rewards,
+              isMilestone: latestLevelUp.isMilestone,
+            },
+          };
+          
+          // Trigger level-up celebration
+          checkAndTriggerLevelUpCelebration(levelUpResult);
+        }
+      } catch (error) {
+        console.error('Failed to check for level-ups:', error);
+      }
+    }, 2000); // Check after other celebrations have had time to show
+  }, [currentCount, t, checkForRecentLevelUps, getLevelInfo, checkAndTriggerLevelUpCelebration]);
 
   return (
     <SafeAreaView style={styles.container}>
