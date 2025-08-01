@@ -206,7 +206,7 @@ export class GamificationService {
       }
 
       // Return comprehensive result
-      return {
+      const result: XPTransactionResult = {
         success: true,
         xpGained: finalAmount,
         totalXP: newTotalXP,
@@ -214,9 +214,14 @@ export class GamificationService {
         newLevel,
         leveledUp,
         milestoneReached,
-        levelUpInfo,
         transaction
       };
+      
+      if (levelUpInfo) {
+        result.levelUpInfo = levelUpInfo;
+      }
+      
+      return result;
 
     } catch (error) {
       console.error('GamificationService.addXP error:', error);
