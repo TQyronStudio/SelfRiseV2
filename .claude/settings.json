@@ -1,11 +1,17 @@
 {
   "hooks": {
-    "Stop": [
+    "PostToolUse": [
       {
+        "matcher": "Edit|MultiEdit",
+        "condition": {
+          "type": "file_content_matches",
+          "file": "projectplan.md", 
+          "pattern": "✅ COMPLETED"
+        },
         "hooks": [
           {
             "type": "command",
-            "command": "cd /Users/turage/Documents/SelfRiseV2 && ./scripts/smart-commit.sh"
+            "command": "cd /Users/turage/Documents/SelfRiseV2 && sleep 2 && ./scripts/smart-commit.sh"
           }
         ]
       }
