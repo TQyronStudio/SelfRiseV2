@@ -23,7 +23,7 @@ export default function JournalScreen() {
   const [showInput, setShowInput] = useState(false);
   const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone' | 'bonus_milestone'>('daily_complete');
+  const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone' | 'bonus_milestone' | 'level_up'>('daily_complete');
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
   const [bonusMilestone, setBonusMilestone] = useState<number | null>(null);
   
