@@ -39,6 +39,7 @@ export default function CelebrationModal({
   message,
   streakDays,
   bonusCount,
+  levelUpData,
 }: CelebrationModalProps) {
   const { t } = useI18n();
 
