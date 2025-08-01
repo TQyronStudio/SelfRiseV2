@@ -270,6 +270,14 @@ export default function JournalScreen() {
         title={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_title`) || t('journal.streakMilestone_generic_title') : undefined}
         message={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(milestoneStreak)) : undefined}
       />
+      
+      {/* Level-up celebration modal */}
+      <CelebrationModal
+        visible={celebrationState.visible}
+        onClose={hideCelebration}
+        type="level_up"
+        levelUpData={celebrationState.levelUpData}
+      />
     </SafeAreaView>
   );
 }
