@@ -162,6 +162,8 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 #### Checkpoint 4.5.3: Home Screen XP Bar & Visual Integration
 **Goal**: Create visible XP progress display on Home screen
 
+<!-- Test hook: Smart commit should trigger when ✅ COMPLETED checkpoints are found -->
+
 ##### Sub-checkpoint 4.5.3.A: XpProgressBar Component 📊
 **Goal**: Create animated XP progress bar component
 
