@@ -132,6 +132,28 @@ export default function CelebrationModal({
             </View>
           )}
           
+          {type === 'level_up' && levelUpData && (
+            <View style={styles.levelUpContainer}>
+              <View style={[styles.streakBadge, levelUpData.isMilestone && styles.milestoneBadge]}>
+                <Text style={styles.streakNumber}>{levelUpData.newLevel}</Text>
+                <Text style={styles.streakLabel}>LEVEL</Text>
+              </View>
+              
+              <Text style={styles.levelTitle}>{levelUpData.levelTitle}</Text>
+              
+              {levelUpData.rewards && levelUpData.rewards.length > 0 && (
+                <View style={styles.rewardsContainer}>
+                  <Text style={styles.rewardsTitle}>New Rewards:</Text>
+                  {levelUpData.rewards.map((reward, index) => (
+                    <Text key={index} style={styles.rewardItem}>
+                      • {reward}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+          
           <TouchableOpacity style={styles.button} onPress={onClose}>
             <Text style={styles.buttonText}>
               {t('common.continue')}
