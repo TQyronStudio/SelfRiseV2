@@ -186,7 +186,7 @@ export class GamificationService {
         const levelInfo = getLevelInfo(newLevel);
         levelUpInfo = {
           newLevelTitle: levelInfo.title,
-          newLevelDescription: levelInfo.description,
+          newLevelDescription: levelInfo.description || '',
           rewards: levelInfo.rewards,
           isMilestone: levelInfo.isMilestone,
         };
