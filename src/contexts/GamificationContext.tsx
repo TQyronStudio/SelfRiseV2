@@ -222,6 +222,35 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
   }, [state.currentLevel]);
 
   // ========================================
+  // LEVEL-UP CELEBRATION UTILITIES
+  // ========================================
+
+  const checkForRecentLevelUps = useCallback(async () => {
+    try {
+      // Get level-ups from the last 5 minutes to catch recent ones
+      const recentLevelUps = await GamificationService.getRecentLevelUps(5);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      // Filter for very recent level-ups (within last 5 minutes)
+      return recentLevelUps.filter(levelUp => 
+        levelUp.timestamp > fiveMinutesAgo
+      );
+    } catch (error) {
+      console.error('GamificationContext.checkForRecentLevelUps error:', error);
+      return [];
+    }
+  }, []);
+
+  const getRecentLevelUps = useCallback(async (count: number = 5) => {
+    try {
+      return await GamificationService.getRecentLevelUps(count);
+    } catch (error) {
+      console.error('GamificationContext.getRecentLevelUps error:', error);
+      return [];
+    }
+  }, []);
+
+  // ========================================
   // INITIALIZATION & AUTO-REFRESH
   // ========================================
 
