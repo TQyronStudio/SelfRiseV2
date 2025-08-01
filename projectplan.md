@@ -715,3 +715,37 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Files**: XpProgressBar.tsx, HomeCustomizationModal.tsx  
 **Impact**: Perfect Home screen integration with zero layout conflicts
 **Technical Notes**: Detailed testing results in implementation-history.md
+
+---
+
+## CRITICAL ISSUE: Streak Recovery System Bug (August 1, 2025) 🚨
+
+### Problem Statement
+Uživatel nahlásil kritické chyby ve streak recovery (debt management) systému:
+
+1. **HLAVNÍ PROBLÉM**: Debt calculation je špatný - uživatel má dnes 3+ záznamy ale systém stále hlásí dluh
+2. **AD COUNTING BUG**: Po kliknutí na "Watch Ad" (1x) systém tvrdí "You need to watch 1 more ad" (chce 2 ads místo 1)
+3. **LOGICKÁ CHYBA**: Pokud má uživatel dnes 3+ záznamy, znamená to že již dříve splatil všechny dluhy (jinak by ho systém nepustil psát první záznam), takže debt by měl být 0
+
+### Root Cause Analysis
+- `calculateDebt()` funkce počítá debt i když má uživatel dnes splněno (3+ entries)
+- **HLAVNÍ LOGICKÁ CHYBA**: Pokud má uživatel dnes 3+ záznamy, znamená to že buď:
+  - A) Neměl žádný dluh a psal záznamy normálně, NEBO
+  - B) Měl dluh, splatil ho ads a pak teprve mohl psát záznamy
+- V obou případech by debt měl být nyní 0, protože jinak by ho systém nepustil psát první záznam dnes
+- `requiresAdsToday()` nerespektuje že pokud má user dnes 3+ entries, všechny dluhy jsou automaticky splacené
+
+### Emergency Fixes Applied (Partial)
+✅ **Bonus entries povolené** při debt (GratitudeInput.tsx)
+✅ **Force reset debt option** přidán (GratitudeStreakCard.tsx)
+❌ **Core debt calculation** stále vadná
+
+### Critical Issues to Fix Tomorrow
+1. **Fix calculateDebt() logika**: Debt MUSÍ být 0 pokud má uživatel dnes 3+ záznamy (logická konzistence - jinak by ho systém nepustil psát první záznam)
+2. **Fix requiresAdsToday()**: Vrátit 0 pokud má user dnes 3+ entries (všechny dluhy jsou automaticky splacené)
+3. **Fix ad counting bug**: Po 1 kliknutí na "Watch Ad" chce systém ještě 1 ad navíc
+4. **Test debt payment flow**: Ověřit že payDebtWithAds() skutečně maže debt a refreshuje calculation
+5. **Add debt validation**: Přidat check že pokud user má dnes 3+ entries, automaticky vyresetovat debt na 0
+
+### Priority: CRITICAL - User Experience Breaking Bug
+Uživatel nemůže správně používat streak recovery systém.

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,33 +81,131 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const handleDebtPress = async (e: any) => {
     e.stopPropagation();
     
-    // Calculate total ads needed
+    // Reset modal state first
+    setAdsWatched(0);
+    
+    // Calculate total ads needed (fresh calculation)
     const adsNeeded = await gratitudeStorage.requiresAdsToday();
     setTotalAdsNeeded(adsNeeded);
+    
+    // If no ads needed, debt might already be paid
+    if (adsNeeded === 0) {
+      Alert.alert(
+        'No Debt',
+        'Your debt appears to be already paid. Refreshing your streak data...',
+        [{ text: 'OK', onPress: () => loadStreakData() }]
+      );
+      return;
+    }
+    
     setShowDebtModal(true);
   };
 
   const handleWatchAd = async (): Promise<boolean> => {
-    // TODO: Integrate with AdMob
-    // For now, simulate ad watching
+    // TODO: Replace with real AdMob integration
+    // For testing: simulate ad with user confirmation
     return new Promise((resolve) => {
-      setTimeout(() => {
-        setAdsWatched(prev => prev + 1);
-        resolve(true);
-      }, 1000);
+      Alert.alert(
+        'Watch Ad to Pay Debt',
+        'This would show a real advertisement. Continue with ad simulation?',
+        [
+          { text: 'Cancel', onPress: () => resolve(false) },
+          { 
+            text: 'Watch Ad', 
+            onPress: () => {
+              setAdsWatched(prev => prev + 1);
+              resolve(true);
+            }
+          }
+        ]
+      );
     });
   };
 
   const handleDebtComplete = async () => {
     try {
+      // Verify ads were actually watched
+      if (adsWatched < totalAdsNeeded) {
+        Alert.alert(
+          'Not Enough Ads',
+          `You need to watch ${totalAdsNeeded - adsWatched} more ad${totalAdsNeeded - adsWatched > 1 ? 's' : ''} to pay your debt.`
+        );
+        return;
+      }
+      
       // Pay debt with ads watched
       await gratitudeStorage.payDebtWithAds(adsWatched);
       
       // Reset ads watched and reload streak data
       setAdsWatched(0);
+      setTotalAdsNeeded(0);
+      setShowDebtModal(false);
       await loadStreakData();
+      
+      // Double-check if debt was actually cleared
+      const remainingDebt = await gratitudeStorage.calculateDebt();
+      if (remainingDebt > 0) {
+        Alert.alert(
+          'Debt Payment Issue',
+          `There seems to be an issue with debt payment. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`,
+          [
+            { text: 'Try Again', onPress: () => setShowDebtModal(true) },
+            { text: 'Force Reset Debt', onPress: handleForceResetDebt }
+          ]
+        );
+        return;
+      }
+      
+      // Show success message
+      Alert.alert(
+        'Debt Paid!',
+        'Your debt has been cleared. You can now write journal entries normally and your streak will continue.',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Failed to complete debt payment:', error);
+      Alert.alert(
+        'Debt Payment Error',
+        `Failed to pay debt: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`,
+        [
+          { text: 'Try Again', onPress: () => setShowDebtModal(true) },
+          { text: 'Force Reset Debt', onPress: handleForceResetDebt }
+        ]
+      );
+    }
+  };
+  
+  const handleForceResetDebt = async () => {
+    try {
+      Alert.alert(
+        'Force Reset Debt',
+        'This will clear your debt without watching ads. Your streak will continue normally. Continue?',
+        [
+          { text: 'Cancel' },
+          { 
+            text: 'Reset Debt', 
+            onPress: async () => {
+              // Force set debt to 0 by updating streak directly
+              if (streak) {
+                const resetStreak = {
+                  ...streak,
+                  debtDays: 0,
+                  isFrozen: false,
+                  canRecoverWithAd: false
+                };
+                // Use internal storage method to force update streak
+                const { BaseStorage, STORAGE_KEYS } = await import('../../services/storage/base');
+                await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreak);
+                await loadStreakData();
+                Alert.alert('Debt Reset', 'Your debt has been reset. You can now write entries normally.');
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Failed to reset debt:', error);
+      Alert.alert('Error', 'Failed to reset debt. Please contact support.');
     }
   };
 

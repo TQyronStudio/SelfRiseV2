@@ -11,6 +11,7 @@ import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { today } from '@/src/utils/date';
 import { ErrorModal } from '@/src/components/common';
+import { gratitudeStorage } from '@/src/services/storage/gratitudeStorage';
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
@@ -76,6 +77,22 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
 
     try {
       setIsSubmitting(true);
+      
+      // CHECK FOR DEBT: Block only if user has <3 entries today AND has debt
+      const debtDays = await gratitudeStorage.calculateDebt();
+      if (debtDays > 0) {
+        // Check how many entries user has today
+        const allGratitudes = await gratitudeStorage.getAll();
+        const todayEntries = allGratitudes.filter(g => g.date === today()).length;
+        
+        if (todayEntries < 3) {
+          // User hasn't completed daily requirement - must pay debt first
+          setErrorMessage(`You have ${debtDays} day${debtDays > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Pay Debt" to watch ads before writing your daily entries.`);
+          setShowError(true);
+          return;
+        }
+        // If user has 3+ entries today, allow bonus entries even with debt
+      }
       
       await actions.createGratitude({
         content: trimmedText,

@@ -333,17 +333,24 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const bonusDates = await this.getBonusDates();
       const currentDate = today();
       
-      // Calculate current streak
-      const currentStreak = calculateStreak(completedDates, currentDate);
+      // Get current saved streak for frozen streak handling
+      const savedStreak = await this.getStreak();
+      
+      // Calculate new streak value
+      const newCalculatedStreak = calculateStreak(completedDates, currentDate);
       
       // Calculate longest streak
       const longestStreak = Math.max(
         calculateLongestStreak(completedDates),
-        currentStreak
+        newCalculatedStreak
       );
 
       // Calculate bonus milestone counters from actual data
       const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
+      
+      // NEW: Calculate debt and freeze status first
+      const debtDays = await this.calculateDebt();
+      const isFrozen = debtDays > 0;
       
       // Determine last entry date and streak start
       let lastEntryDate: DateString | null = null;
@@ -351,9 +358,12 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       if (completedDates.length > 0) {
         const sortedDates = [...completedDates].sort();
-        lastEntryDate = sortedDates[sortedDates.length - 1]!;
+        const newLastEntryDate = sortedDates[sortedDates.length - 1]!;
         
-        if (currentStreak > 0) {
+        // Use saved values when frozen, new values when not frozen
+        lastEntryDate = isFrozen ? savedStreak.lastEntryDate : newLastEntryDate;
+        
+        if (newCalculatedStreak > 0) {
           // Calculate streak start date
           const streakDates = completedDates.filter(date => {
             const streak = calculateStreak(completedDates, date);
@@ -361,14 +371,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           }).sort();
           
           if (streakDates.length > 0) {
-            streakStartDate = streakDates[Math.max(0, streakDates.length - currentStreak)]!;
+            const newStreakStartDate = streakDates[Math.max(0, streakDates.length - newCalculatedStreak)]!;
+            streakStartDate = isFrozen ? savedStreak.streakStartDate : newStreakStartDate;
           }
         }
       }
-      
-      // NEW: Calculate debt and freeze status
-      const debtDays = await this.calculateDebt();
-      const isFrozen = debtDays > 0;
       
       // Calculate debt excluding today for auto-reset decision
       const debtExcludingToday = await this.calculateDebtExcludingToday();
@@ -401,7 +408,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
       
       const updatedStreak: GratitudeStreak = {
-        currentStreak, // When frozen, debt prevents new entries, so streak stays same
+        currentStreak: isFrozen ? savedStreak.currentStreak : newCalculatedStreak, // Frozen streaks don't change, unfrozen recalculate
         longestStreak,
         lastEntryDate,
         streakStartDate,
