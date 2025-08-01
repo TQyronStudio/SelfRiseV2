@@ -19,6 +19,7 @@ export default function JournalScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
+  const { checkForRecentLevelUps, getLevelInfo } = useGamification();
   const { celebrationState, checkAndTriggerLevelUpCelebration, hideCelebration } = useLevelUpCelebrations();
   const scrollViewRef = useRef<ScrollView>(null);
   const [showInput, setShowInput] = useState(false);
