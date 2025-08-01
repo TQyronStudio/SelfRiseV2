@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '🤖 Creating backup commit for completed task...' && git add . && git commit -m '✅ Completed: $(date +\"%Y-%m-%d %H:%M\") - Task finished' && git push origin main && echo '✅ Backup completed successfully'"
+            "command": "cd /Users/turage/Documents/SelfRiseV2 && ./scripts/smart-commit.sh"
           }
         ]
       }
