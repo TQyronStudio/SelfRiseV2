@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { AppProvider } from './AppContext';
+import { GamificationProvider } from './GamificationContext';
 import { HabitsProvider } from './HabitsContext';
 import { GratitudeProvider } from './GratitudeContext';
 import { GoalsProvider } from './GoalsContext';
