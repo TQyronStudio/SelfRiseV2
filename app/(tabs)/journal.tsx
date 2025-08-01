@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
+import { useLevelUpCelebrations } from '@/src/hooks/useLevelUpCelebrations';
 import { today } from '@/src/utils/date';
 import { Colors, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
