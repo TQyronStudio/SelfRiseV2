@@ -13,15 +13,17 @@ interface RootProviderProps {
 export function RootProvider({ children }: RootProviderProps) {
   return (
     <AppProvider>
-      <HabitsProvider>
-        <GratitudeProvider>
-          <GoalsProvider>
-            <HomeCustomizationProvider>
-              {children}
-            </HomeCustomizationProvider>
-          </GoalsProvider>
-        </GratitudeProvider>
-      </HabitsProvider>
+      <GamificationProvider>
+        <HabitsProvider>
+          <GratitudeProvider>
+            <GoalsProvider>
+              <HomeCustomizationProvider>
+                {children}
+              </HomeCustomizationProvider>
+            </GoalsProvider>
+          </GratitudeProvider>
+        </HabitsProvider>
+      </GamificationProvider>
     </AppProvider>
   );
 }
