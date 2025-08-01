@@ -187,8 +187,8 @@ export class GamificationService {
         levelUpInfo = {
           newLevelTitle: levelInfo.title,
           newLevelDescription: levelInfo.description || '',
-          ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
           isMilestone: levelInfo.isMilestone,
+          ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
         };
 
         // Store level-up event in history
