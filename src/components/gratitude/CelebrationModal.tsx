@@ -240,4 +240,48 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  // Level-up specific styles
+  levelUpContainer: {
+    alignItems: 'center',
+    marginBottom: Layout.spacing.lg,
+  },
+  milestoneBadge: {
+    backgroundColor: '#FFD700', // Gold color for milestone levels
+    shadowColor: '#FFD700',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  levelTitle: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    textAlign: 'center',
+    marginTop: Layout.spacing.md,
+    marginBottom: Layout.spacing.sm,
+  },
+  rewardsContainer: {
+    backgroundColor: Colors.background || '#F8F9FA',
+    borderRadius: 8,
+    padding: Layout.spacing.md,
+    marginTop: Layout.spacing.sm,
+    width: '100%',
+  },
+  rewardsTitle: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Layout.spacing.sm,
+    textAlign: 'center',
+  },
+  rewardItem: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 2,
+  },
 });
