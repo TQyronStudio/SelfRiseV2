@@ -1,6 +1,8 @@
 import React, { ReactNode } from 'react';
 import { AppProvider } from './AppContext';
 import { GamificationProvider } from './GamificationContext';
+import { XpAnimationProvider } from './XpAnimationContext';
+import { XpAnimationContainer } from '../components/gamification/XpAnimationContainer';
 import { HabitsProvider } from './HabitsContext';
 import { GratitudeProvider } from './GratitudeContext';
 import { GoalsProvider } from './GoalsContext';
@@ -14,15 +16,19 @@ export function RootProvider({ children }: RootProviderProps) {
   return (
     <AppProvider>
       <GamificationProvider>
-        <HabitsProvider>
-          <GratitudeProvider>
-            <GoalsProvider>
-              <HomeCustomizationProvider>
-                {children}
-              </HomeCustomizationProvider>
-            </GoalsProvider>
-          </GratitudeProvider>
-        </HabitsProvider>
+        <XpAnimationProvider>
+          <HabitsProvider>
+            <GratitudeProvider>
+              <GoalsProvider>
+                <HomeCustomizationProvider>
+                  <XpAnimationContainer>
+                    {children}
+                  </XpAnimationContainer>
+                </HomeCustomizationProvider>
+              </GoalsProvider>
+            </GratitudeProvider>
+          </HabitsProvider>
+        </XpAnimationProvider>
       </GamificationProvider>
     </AppProvider>
   );

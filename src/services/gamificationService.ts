@@ -1,5 +1,6 @@
 // Core gamification service for XP management and level progression
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
 import { 
   XPTransaction, 
   XPSourceType, 
@@ -200,9 +201,12 @@ export class GamificationService {
         await this.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);
       }
 
-      // Handle notifications (if not skipped)
+      // Handle notifications and animations (if not skipped)
       if (!options.skipNotification) {
         await this.queueXPNotification(transaction, leveledUp, milestoneReached);
+        
+        // Trigger XP popup animation via event system
+        this.triggerXPAnimation(finalAmount, options.source, options.metadata?.position);
       }
 
       // Return comprehensive result
@@ -723,7 +727,7 @@ export class GamificationService {
   }
 
   // ========================================
-  // NOTIFICATION SYSTEM
+  // NOTIFICATION & ANIMATION SYSTEM
   // ========================================
 
   /**
@@ -745,6 +749,33 @@ export class GamificationService {
       }
     } catch (error) {
       console.error('GamificationService.queueXPNotification error:', error);
+    }
+  }
+
+  /**
+   * Trigger XP animation via global event system
+   * This method will be called by external animation contexts
+   */
+  private static triggerXPAnimation(
+    amount: number, 
+    source: XPSourceType, 
+    position?: { x: number; y: number }
+  ): void {
+    try {
+      // Create event data for XP animation
+      const eventData = {
+        amount,
+        source,
+        position: position || { x: 0, y: 0 },
+        timestamp: Date.now(),
+      };
+
+      // Dispatch to React Native event system
+      DeviceEventEmitter.emit('xpGained', eventData);
+      
+      console.log(`✨ XP Animation triggered: +${amount} XP from ${source}`);
+    } catch (error) {
+      console.error('GamificationService.triggerXPAnimation error:', error);
     }
   }
 

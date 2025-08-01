@@ -7,6 +7,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Import i18n configuration to initialize internationalization
 import '../src/config/i18n';
+// Auto-suppress known development warnings (ExpoLinearGradient, etc.)
+import '../src/utils/consoleSuppression';
 import { RootProvider } from '../src/contexts';
 
 export default function RootLayout() {

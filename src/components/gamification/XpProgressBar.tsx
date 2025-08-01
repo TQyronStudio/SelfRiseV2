@@ -1,17 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { useLevel } from '../../contexts/GamificationContext';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { LEVEL_PROGRESSION } from '../../constants/gamification';
-
-// SafeLinearGradient: Wrapper to handle ExpoLinearGradient warnings
-// Note: "Unable to get the view config for ExpoLinearGradient" is a known warning
-// with Expo SDK 53 + new React Native architecture but doesn't affect functionality
-const SafeLinearGradient: React.FC<React.ComponentProps<typeof LinearGradient>> = (props) => {
-  return <LinearGradient {...props} />;
-};
+import { SafeLinearGradient } from '../common';
 
 interface XpProgressBarProps {
   animated?: boolean;
@@ -94,14 +87,16 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
     }
   };
   
-  // Animation for progress bar
+  // Enhanced animation for progress bar
   useEffect(() => {
     let animationRef: Animated.CompositeAnimation | null = null;
     
     if (animated && !isLoading) {
-      animationRef = Animated.timing(progressAnim, {
+      // Use spring animation for more satisfying feel
+      animationRef = Animated.spring(progressAnim, {
         toValue: xpProgress,
-        duration: 800,
+        tension: 100,
+        friction: 8,
         useNativeDriver: false,
       });
       animationRef.start();
@@ -269,10 +264,12 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
               styles.levelBadge,
               badgeSize,
               { borderColor: badgeColors.border },
-              isMilestone && styles.milestoneBadge
+              ...(isMilestone ? [styles.milestoneBadge] : [])
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
+            suppressWarnings={true}
+            fallbackColor={badgeColors.background[0] as string}
           >
             <Text style={[styles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
               {currentLevel}
@@ -306,6 +303,8 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
               style={styles.progressFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
+              suppressWarnings={true}
+              fallbackColor={progressColors[0] as string}
             />
           </Animated.View>
           

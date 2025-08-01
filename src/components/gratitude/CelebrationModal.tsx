@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
+import { ParticleEffects } from '../gamification/ParticleEffects';
+import { useXpFeedback } from '../../contexts/XpAnimationContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -42,6 +44,45 @@ export default function CelebrationModal({
   levelUpData,
 }: CelebrationModalProps) {
   const { t } = useI18n();
+  const { triggerHapticFeedback, playSoundEffect } = useXpFeedback();
+  const [showParticles, setShowParticles] = useState(false);
+
+  // Trigger effects when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      setShowParticles(true);
+      
+      // Trigger haptic feedback based on celebration type
+      const triggerEffects = async () => {
+        switch (type) {
+          case 'level_up':
+            if (levelUpData?.isMilestone) {
+              await triggerHapticFeedback('heavy');
+              await playSoundEffect('milestone');
+            } else {
+              await triggerHapticFeedback('medium');
+              await playSoundEffect('level_up');
+            }
+            break;
+          case 'streak_milestone':
+            await triggerHapticFeedback('medium');
+            await playSoundEffect('milestone');
+            break;
+          case 'bonus_milestone':
+            await triggerHapticFeedback('light');
+            await playSoundEffect('xp_gain');
+            break;
+          default:
+            await triggerHapticFeedback('light');
+            break;
+        }
+      };
+
+      triggerEffects();
+    } else {
+      setShowParticles(false);
+    }
+  }, [visible, type, levelUpData?.isMilestone, triggerHapticFeedback, playSoundEffect]);
 
   const getDefaultContent = () => {
     switch (type) {
@@ -103,6 +144,31 @@ export default function CelebrationModal({
     emoji: getDefaultContent().emoji,
   };
 
+  // Get particle effect type based on celebration type
+  const getParticleType = (): 'level_up' | 'milestone' | 'achievement' | 'celebration' => {
+    switch (type) {
+      case 'level_up':
+        return levelUpData?.isMilestone ? 'milestone' : 'level_up';
+      case 'streak_milestone':
+        return 'milestone';
+      case 'bonus_milestone':
+        return 'achievement';
+      default:
+        return 'celebration';
+    }
+  };
+
+  const getParticleIntensity = (): 'low' | 'medium' | 'high' => {
+    switch (type) {
+      case 'level_up':
+        return levelUpData?.isMilestone ? 'high' : 'medium';
+      case 'streak_milestone':
+        return (streakDays && streakDays >= 100) ? 'high' : 'medium';
+      default:
+        return 'low';
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -111,6 +177,14 @@ export default function CelebrationModal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        {/* Particle Effects */}
+        <ParticleEffects
+          visible={showParticles}
+          type={getParticleType()}
+          intensity={getParticleIntensity()}
+          duration={3000}
+          onComplete={() => setShowParticles(false)}
+        />
         <View style={styles.modal}>
           <Text style={styles.emoji}>{content.emoji}</Text>
           
