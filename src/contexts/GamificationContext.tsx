@@ -290,6 +290,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
     getXPBySource,
     getLevelInfo: getLevelInfoUtil,
     isLevelMilestone,
+    checkForRecentLevelUps,
+    getRecentLevelUps,
   };
 
   return (
