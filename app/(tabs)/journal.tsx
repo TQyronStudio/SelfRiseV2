@@ -130,7 +130,7 @@ export default function JournalScreen() {
             levelUpInfo: {
               newLevelTitle: levelInfo.title,
               newLevelDescription: levelInfo.description || '',
-              rewards: levelInfo.rewards,
+              ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
               isMilestone: latestLevelUp.isMilestone,
             },
           };
