@@ -2,16 +2,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit|MultiEdit",
-        "condition": {
-          "type": "file_content_matches",
-          "file": "projectplan.md", 
-          "pattern": "✅ COMPLETED"
-        },
+        "matcher": "Edit.*projectplan\\.md",
         "hooks": [
           {
             "type": "command",
-            "command": "cd /Users/turage/Documents/SelfRiseV2 && sleep 2 && ./scripts/smart-commit.sh"
+            "command": "cd /Users/turage/Documents/SelfRiseV2 && if grep -q '✅ COMPLETED' projectplan.md; then echo '🎯 Checkpoint completed - creating backup...' && sleep 2 && ./scripts/smart-commit.sh; else echo '📝 No completed checkpoints detected'; fi"
           }
         ]
       }
