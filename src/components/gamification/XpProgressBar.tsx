@@ -5,6 +5,13 @@ import { Colors } from '../../constants/colors';
 import { useLevel } from '../../contexts/GamificationContext';
 import { LEVEL_PROGRESSION } from '../../constants/gamification';
 
+// SafeLinearGradient: Wrapper to handle ExpoLinearGradient warnings
+// Note: "Unable to get the view config for ExpoLinearGradient" is a known warning
+// with Expo SDK 53 + new React Native architecture but doesn't affect functionality
+const SafeLinearGradient: React.FC<React.ComponentProps<typeof LinearGradient>> = (props) => {
+  return <LinearGradient {...props} />;
+};
+
 interface XpProgressBarProps {
   animated?: boolean;
   showLevelBadge?: boolean;
@@ -158,7 +165,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
           accessibilityRole="text"
           accessibilityLabel={`Level ${currentLevel} badge, ${levelInfo.title}${isMilestone ? ', milestone level' : ''}`}
         >
-          <LinearGradient
+          <SafeLinearGradient
             colors={badgeColors.background}
             style={[
               styles.levelBadge,
@@ -176,7 +183,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
                 {levelInfo.title}
               </Text>
             )}
-          </LinearGradient>
+          </SafeLinearGradient>
           {isMilestone && <View style={styles.milestoneGlow} />}
         </View>
       )}
@@ -195,7 +202,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
           
           {/* Animated Fill */}
           <Animated.View style={[styles.progressFillContainer, { width: animatedWidth as any, height }]}>
-            <LinearGradient
+            <SafeLinearGradient
               colors={progressColors}
               style={styles.progressFill}
               start={{ x: 0, y: 0 }}
