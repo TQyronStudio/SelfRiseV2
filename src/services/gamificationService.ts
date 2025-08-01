@@ -181,15 +181,20 @@ export class GamificationService {
       const milestoneReached = leveledUp && isLevelMilestone(newLevel);
 
       // Get level-up information if leveled up
-      let levelUpInfo = undefined;
+      let levelUpInfo: XPTransactionResult['levelUpInfo'] = undefined;
       if (leveledUp) {
         const levelInfo = getLevelInfo(newLevel);
-        levelUpInfo = {
+        const levelUpData = {
           newLevelTitle: levelInfo.title,
           newLevelDescription: levelInfo.description || '',
           isMilestone: levelInfo.isMilestone,
-          ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
-        };
+        } as const;
+        
+        if (levelInfo.rewards) {
+          levelUpInfo = { ...levelUpData, rewards: levelInfo.rewards };
+        } else {
+          levelUpInfo = levelUpData;
+        }
 
         // Store level-up event in history
         await this.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);
