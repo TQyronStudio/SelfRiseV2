@@ -45,3 +45,11 @@
 12. After you OR ANY SUB-AGENT successfully completes any task, the responsible agent MUST immediately update the corresponding checkbox in `projectplan.md` to `[x]`. Sub-agents must coordinate to avoid conflicts.
 
 13. The `projectplan.md` file is our single source of truth for ALL agents. No agent (main or sub) may delete, clear, or overwrite the entire content without explicit permission. All agents must add to it or check off tasks in coordination.
+
+14. Po dokončení úkolu a mé pochvale (např. „Dobrá práce", „Skvěle",
+  „Perfektní", „Hezky", „Výborně", „Skvělá práce"):
+     - Udělej `git add .` pro všechny změny
+     - Vytvoř commit s popisným názvem (např. „Checkpoint XXX -
+  Complete")
+     - AUTOMATICKY pushni pomocí `git push` do remote repository
+     - Potvrď úspěšné uložení a push
