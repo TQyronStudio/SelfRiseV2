@@ -14,6 +14,148 @@ A comprehensive record of technical problem-solving, debugging procedures, and i
 
 ---
 
+## Archive: Critical Bug Fixes and Implementation Details
+
+### CRITICAL ISSUE: Streak Recovery System Bug (August 2, 2025) 🚨
+
+#### 🔍 CRITICAL LOGICAL INCONSISTENCY IDENTIFIED:
+**Agent**: habit-logic-debugger
+
+**THE FUNDAMENTAL FLAW**: Current debt calculation violates the system's own entry creation rules.
+
+**Logic Problem**: 
+- System prevents users from writing entries when they have unpaid debt
+- BUT if user has 3+ entries today, it means debt was ALREADY paid
+- YET debt calculation still shows debt > 0
+
+**This creates impossible state**: User has entries they shouldn't be able to create.
+
+#### 📊 SPECIFIC BUGS FOUND:
+
+**1. calculateDebt() Function (Lines 747-768)**
+- ❌ **Ignores today's completion status**: Doesn't check if user already completed today
+- ❌ **Counts debt from yesterday backwards**: Should exclude today if completed
+- ❌ **Wrong logic flow**: If user has 3+ entries today, debt should be automatically 0
+
+**2. requiresAdsToday() Function (Lines 813-826)** 
+- ❌ **Uses raw debt calculation**: Doesn't account for today's completion status
+- ❌ **Ignores system rules**: Violates the "no entries with unpaid debt" principle
+- ❌ **Returns wrong values**: Should return 0 if user has 3+ entries today
+
+**3. Ad Counting Bug (DebtRecoveryModal.tsx Lines 47-53)**
+- ❌ **Off-by-one error**: Checks `adsWatched + 1 >= totalAdsNeeded` instead of `adsWatched >= totalAdsNeeded`
+- ❌ **Incorrect completion logic**: Triggers "completion" before actually completing
+- ❌ **Double counting**: User watches 1 ad but system thinks they need 2
+
+#### 🛠️ DETAILED FIX IMPLEMENTATION:
+
+**Fix 1: Update calculateDebt() Logic**
+```typescript
+async calculateDebt(): Promise<number> {
+  try {
+    const currentDate = today();
+    const completedDates = await this.getCompletedDates();
+    
+    // CRITICAL FIX: If user completed today, debt is automatically 0
+    if (completedDates.includes(currentDate)) {
+      return 0;
+    }
+    
+    let debtDays = 0;
+    let checkDate = subtractDays(currentDate, 1); // Start with yesterday
+    
+    // Rest of existing logic...
+  } catch (error) {
+    return 0;
+  }
+}
+```
+
+**Fix 2: Update requiresAdsToday() Logic**
+```typescript
+async requiresAdsToday(): Promise<number> {
+  try {
+    const currentDate = today();
+    const todayCount = await this.countByDate(currentDate);
+    
+    // CRITICAL FIX: If user has 3+ entries today, no ads needed
+    if (todayCount >= 3) {
+      return 0;
+    }
+    
+    const debtDays = await this.calculateDebt();
+    return debtDays > 3 ? 0 : debtDays;
+  } catch (error) {
+    return 0;
+  }
+}
+```
+
+**Fix 3: Fix Ad Counting Logic (DebtRecoveryModal.tsx)**
+```typescript
+// Line 47: Change this
+if (adsWatched + 1 >= totalAdsNeeded) {
+// To this  
+if (adsWatched >= totalAdsNeeded) {
+```
+
+#### 🛠️ FIXES APPLIED:
+
+**1. calculateDebt() Function Fix** - `/src/services/storage/gratitudeStorage.ts:748-776`
+- ✅ Added critical check: `if (completedDates.includes(currentDate)) return 0;`
+- ✅ Maintains logical consistency: If user has 3+ entries today, debt is automatically 0
+- ✅ Prevents impossible state where debt exists but user already completed today
+
+**2. requiresAdsToday() Function Fix** - `/src/services/storage/gratitudeStorage.ts:822-844`  
+- ✅ Added today's entry count check: `const todayCount = await this.countByDate(currentDate);`
+- ✅ Early return: `if (todayCount >= 3) return 0;`
+- ✅ Respects system rules: No ads needed if user already completed today
+
+**3. Ad Counting Bug Fix** - `/src/components/gratitude/DebtRecoveryModal.tsx:47-55`
+- ✅ Fixed off-by-one error: Changed `adsWatched + 1 >= totalAdsNeeded` to `adsWatched >= totalAdsNeeded`
+- ✅ Corrected completion logic: Now properly detects when all ads are watched
+- ✅ Fixed double counting: 1 ad watched = 1 ad credited
+
+#### 🎯 ROOT CAUSE RESOLVED:
+The fundamental logical inconsistency has been fixed. The system now properly recognizes that users with 3+ entries today have automatically resolved any debt, maintaining consistency with the entry creation rules.
+
+### CRITICAL UX IMPROVEMENT: Replace Alert.alert() with CelebrationModal (August 2, 2025) 🎨
+
+#### Problem Statement
+According to technical-guides.md, all celebrations, alerts, notifications, and user feedback throughout the app MUST use the elegant CelebrationModal component design standard. No simple Alert.alert() should be used for important user interactions.
+
+Currently 9 instances of Alert.alert() exist in the debt recovery system, breaking our design standards.
+
+#### Implementation Details
+
+**Alert.alert() Analysis**:
+- Found 2 Alert.alert() calls in DebtRecoveryModal.tsx (lines 57-61, 64-68)
+- Found 7 Alert.alert() calls in GratitudeStreakCard.tsx (lines 93-97, 108-122, 129-132, 148-155, 160-164, 167-174, 180-208)
+- Total: 9 Alert.alert() instances requiring replacement
+
+**Modal Components Created**:
+1. **DebtSuccessModal** - For successful operations (✅ emoji)
+2. **DebtErrorModal** - For errors and issues (⚠️ emoji)  
+3. **DebtConfirmationModal** - For confirmations (🔄 emoji)
+4. **DebtIssueModal** - For multi-action issues (🛠️ emoji)
+5. **ForceResetModal** - For force reset confirmations (🔄 emoji)
+
+**Files Modified**:
+- `/src/components/gratitude/DebtRecoveryModal.tsx` - Replaced 2 Alert.alert() calls with specialized modals
+- `/src/components/home/GratitudeStreakCard.tsx` - Replaced 7 Alert.alert() calls with modal state management
+- `/src/components/gratitude/DebtModals.tsx` - Created 5 specialized modal components (NEW FILE)
+
+**Key Improvements Made**:
+1. **Created Specialized Modal Components**: 5 new modal components following CelebrationModal pattern
+2. **Complete Alert.alert() Elimination**: All 9 instances replaced with beautiful modals
+3. **Enhanced UX**: Large emojis, styled titles, beautiful buttons, proper spacing
+4. **Maintained Functionality**: Exact same behavior as original alerts
+5. **Design Consistency**: All modals follow app's celebration-focused design language
+
+**Impact**: Complete elimination of jarring system alerts in debt recovery system, replaced with beautiful, consistent modal experiences that enhance user engagement and maintain the app's celebration-focused design philosophy.
+
+---
+
 ## UI/Navigation Issues
 
 ### ExpoLinearGradient Warning Fix ✅ COMPLETED (August 1, 2025)
