@@ -762,7 +762,7 @@ export class GamificationService {
     position?: { x: number; y: number }
   ): void {
     try {
-      // Create event data for XP animation
+      // Create event data for XP animation (legacy popup system)
       const eventData = {
         amount,
         source,
@@ -770,8 +770,15 @@ export class GamificationService {
         timestamp: Date.now(),
       };
 
-      // Dispatch to React Native event system
+      // Dispatch to React Native event system for popup animations
       DeviceEventEmitter.emit('xpGained', eventData);
+
+      // Trigger smart notification system (new anti-spam system)
+      DeviceEventEmitter.emit('xpSmartNotification', {
+        amount,
+        source,
+        timestamp: Date.now(),
+      });
       
       console.log(`✨ XP Animation triggered: +${amount} XP from ${source}`);
     } catch (error) {

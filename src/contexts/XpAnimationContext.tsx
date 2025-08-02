@@ -15,11 +15,21 @@ interface XpPopupData {
   timestamp: number;
 }
 
+interface XpGain {
+  id: string;
+  amount: number;
+  source: XPSourceType;
+  timestamp: number;
+}
+
 interface XpAnimationState {
   activePopups: XpPopupData[];
+  pendingNotifications: XpGain[];
+  isNotificationVisible: boolean;
   isAnimationEnabled: boolean;
   isHapticsEnabled: boolean;
   isSoundEnabled: boolean;
+  lastNotificationTime: number;
 }
 
 interface XpAnimationContextValue {
@@ -30,6 +40,10 @@ interface XpAnimationContextValue {
   showXpPopup: (amount: number, source: XPSourceType, position?: { x: number; y: number }) => void;
   clearPopup: (id: string) => void;
   clearAllPopups: () => void;
+  
+  // Smart notification system
+  showSmartNotification: (amount: number, source: XPSourceType) => void;
+  dismissNotification: () => void;
   
   // Settings
   toggleAnimations: (enabled: boolean) => void;
@@ -58,13 +72,105 @@ interface XpAnimationProviderProps {
 export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ children }) => {
   const [state, setState] = useState<XpAnimationState>({
     activePopups: [],
+    pendingNotifications: [],
+    isNotificationVisible: false,
     isAnimationEnabled: true,
     isHapticsEnabled: true,
     isSoundEnabled: true,
+    lastNotificationTime: 0,
   });
 
   // Create a ref for the showXpPopup function to avoid dependency issues
   const showXpPopupRef = useRef<((amount: number, source: XPSourceType, position?: { x: number; y: number }) => void) | undefined>(undefined);
+
+  // ========================================
+  // SMART NOTIFICATION SYSTEM
+  // ========================================
+
+  // Constants for smart batching
+  const BATCHING_WINDOW = 3000; // 3 seconds
+  const COOLDOWN_PERIOD = 5000; // 5 seconds
+  const batchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showSmartNotification = useCallback((amount: number, source: XPSourceType) => {
+    const now = Date.now();
+    
+    // Check cooldown period to prevent spam
+    if (now - state.lastNotificationTime < COOLDOWN_PERIOD && state.isNotificationVisible) {
+      // Add to pending notifications during cooldown
+      const newGain: XpGain = {
+        id: `xp_gain_${now}_${Math.random().toString(36).substr(2, 9)}`,
+        amount,
+        source,
+        timestamp: now,
+      };
+
+      setState(prev => ({
+        ...prev,
+        pendingNotifications: [...prev.pendingNotifications, newGain],
+      }));
+      return;
+    }
+
+    // Add new XP gain to pending notifications
+    const newGain: XpGain = {
+      id: `xp_gain_${now}_${Math.random().toString(36).substr(2, 9)}`,
+      amount,
+      source,
+      timestamp: now,
+    };
+
+    setState(prev => ({
+      ...prev,
+      pendingNotifications: [...prev.pendingNotifications, newGain],
+    }));
+
+    // Clear existing batch timeout
+    if (batchTimeoutRef.current) {
+      clearTimeout(batchTimeoutRef.current);
+    }
+
+    // Set new batch timeout
+    batchTimeoutRef.current = setTimeout(() => {
+      setState(prev => {
+        if (prev.pendingNotifications.length === 0) return prev;
+
+        return {
+          ...prev,
+          isNotificationVisible: true,
+          lastNotificationTime: now,
+        };
+      });
+    }, BATCHING_WINDOW);
+
+    // Trigger subtle haptic feedback
+    if (state.isHapticsEnabled) {
+      triggerHapticFeedback('light');
+    }
+  }, [state.lastNotificationTime, state.isNotificationVisible, state.isHapticsEnabled]);
+
+  const dismissNotification = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isNotificationVisible: false,
+      pendingNotifications: [], // Clear all pending notifications when dismissed
+    }));
+
+    // Clear any pending batch timeout
+    if (batchTimeoutRef.current) {
+      clearTimeout(batchTimeoutRef.current);
+      batchTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (batchTimeoutRef.current) {
+        clearTimeout(batchTimeoutRef.current);
+      }
+    };
+  }, []);
   
   // Listen for global XP animation events from GamificationService
   useEffect(() => {
@@ -74,13 +180,21 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     };
 
-    // Add event listener for React Native using DeviceEventEmitter
-    const subscription = DeviceEventEmitter.addListener('xpGained', handleXPGained);
+    const handleSmartNotification = (eventData: any) => {
+      if (eventData && eventData.amount && eventData.source) {
+        showSmartNotification(eventData.amount, eventData.source);
+      }
+    };
+
+    // Add event listeners for React Native using DeviceEventEmitter
+    const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', handleXPGained);
+    const smartNotificationSubscription = DeviceEventEmitter.addListener('xpSmartNotification', handleSmartNotification);
 
     return () => {
-      subscription?.remove();
+      xpGainedSubscription?.remove();
+      smartNotificationSubscription?.remove();
     };
-  }, []);
+  }, [showSmartNotification]);
 
   // ========================================
   // ANIMATION MANAGEMENT
@@ -227,6 +341,8 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     showXpPopup,
     clearPopup,
     clearAllPopups,
+    showSmartNotification,
+    dismissNotification,
     toggleAnimations,
     toggleHaptics,
     toggleSounds,
@@ -280,6 +396,21 @@ export const useXpFeedback = () => {
     playSoundEffect,
     isHapticsEnabled: state.isHapticsEnabled,
     isSoundEnabled: state.isSoundEnabled,
+  };
+};
+
+/**
+ * Hook for smart notification system
+ */
+export const useXpNotification = () => {
+  const { showSmartNotification, dismissNotification, state } = useXpAnimation();
+  
+  return {
+    showSmartNotification,
+    dismissNotification,
+    pendingNotifications: state.pendingNotifications,
+    isNotificationVisible: state.isNotificationVisible,
+    isAnimationEnabled: state.isAnimationEnabled,
   };
 };
 

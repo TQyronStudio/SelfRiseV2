@@ -1,5 +1,6 @@
 // XP Animation System Components
 export { XpPopupAnimation } from './XpPopupAnimation';
+export { XpNotification } from './XpNotification';
 export { XpAnimationContainer } from './XpAnimationContainer';
 export { ParticleEffects } from './ParticleEffects';
 
@@ -11,5 +12,6 @@ export {
   XpAnimationProvider, 
   useXpAnimation, 
   useXpPopup, 
-  useXpFeedback 
+  useXpFeedback,
+  useXpNotification 
 } from '../../contexts/XpAnimationContext';
