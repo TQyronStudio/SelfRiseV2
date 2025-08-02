@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, ViewStyle } from 'react-native';
-import { LinearGradient, LinearGradientProps } from 'expo-linear-gradient';
+
+// Define props interface for simplified LinearGradient replacement
+interface LinearGradientProps {
+  colors: (string | number)[];
+  start?: { x: number; y: number };
+  end?: { x: number; y: number };
+  locations?: number[];
+  style?: ViewStyle;
+  children?: React.ReactNode;
+  suppressWarnings?: boolean;
+  fallbackColor?: string;
+}
 
 /**
- * SafeLinearGradient - Robust wrapper component to handle ExpoLinearGradient issues
+ * SafeLinearGradient - Simplified gradient component to avoid ExpoLinearGradient warnings
  * 
  * TECHNICAL CONTEXT:
- * With Expo SDK 53 + newArchEnabled: true, LinearGradient causes two warnings:
- * 1. "NativeViewManagerAdapter for ExpoLinearGradient isn't exported by expo-modules-core"
- * 2. "Unable to get the view config for ExpoLinearGradient"
- * 
- * ROOT CAUSE: Expo SDK 53 + React Native 0.79.5 + new architecture compatibility issues
+ * ExpoLinearGradient causes persistent warnings in Expo SDK 53 + React Native 0.79.5:
+ * "NativeViewManagerAdapter for ExpoLinearGradient isn't exported by expo-modules-core"
  * 
  * SOLUTION STRATEGY:
- * 1. Try LinearGradient first (works in most cases despite warnings)
- * 2. Fallback to solid color background if LinearGradient fails to render
- * 3. Provide graceful degradation with minimal visual impact
- * 4. Suppress console warnings in production
+ * Use simple View with solid color (first gradient color) instead of actual gradient
+ * This eliminates warning while maintaining visual consistency for badges and progress bars
+ * 
+ * TRADE-OFF: No gradient effect, but clean console and stable rendering
+ * STATUS: Warning eliminated, basic color functionality preserved
  */
 
 interface SafeLinearGradientProps extends LinearGradientProps {
@@ -32,101 +41,27 @@ export const SafeLinearGradient: React.FC<SafeLinearGradientProps> = ({
   suppressWarnings = false,
   ...otherProps
 }) => {
-  const [shouldUseFallback, setShouldUseFallback] = useState(false);
-  const [hasRendered, setHasRendered] = useState(false);
-
-  // Determine fallback color from gradient colors if not provided
-  const getFallbackColor = (): string => {
+  // Determine background color from gradient colors or fallback
+  const getBackgroundColor = (): string => {
     if (fallbackColor) return fallbackColor;
     if (colors && colors.length > 0) {
-      // Use the first color as fallback
+      // Use the first color as background
       return colors[0] as string;
     }
     return '#007AFF'; // Default iOS blue
   };
 
-  // Error boundary effect to catch LinearGradient rendering issues
-  useEffect(() => {
-    if (!hasRendered) {
-      // Give LinearGradient a chance to render
-      const timer = setTimeout(() => {
-        setHasRendered(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [hasRendered]);
-
-  // Console warning suppression for production
-  useEffect(() => {
-    if (suppressWarnings && __DEV__) {
-      // Optionally suppress warnings in development
-      const originalWarn = console.warn;
-      const originalLog = console.log;
-      
-      console.warn = (...args) => {
-        const message = args.join(' ');
-        if (message.includes('ExpoLinearGradient') || message.includes('NativeViewManagerAdapter')) {
-          return; // Suppress these specific warnings
-        }
-        originalWarn.apply(console, args);
-      };
-
-      console.log = (...args) => {
-        const message = args.join(' ');
-        if (message.includes('ExpoLinearGradient')) {
-          return; // Suppress these specific logs
-        }
-        originalLog.apply(console, args);
-      };
-
-      return () => {
-        console.warn = originalWarn;
-        console.log = originalLog;
-      };
-    }
-    return undefined;
-  }, [suppressWarnings]);
-
-  // Fallback rendering with solid color background
-  if (shouldUseFallback) {
-    const fallbackStyle: ViewStyle = {
-      backgroundColor: getFallbackColor(),
-      ...(Array.isArray(style) ? Object.assign({}, ...style) : style),
-    };
-
-    return (
-      <View style={fallbackStyle}>
-        {children}
-      </View>
-    );
-  }
-
-  // Try LinearGradient first (works despite warnings)
-  try {
-    return (
-      <LinearGradient
-        colors={colors}
-        style={style}
-        {...otherProps}
-      >
-        {children}
-      </LinearGradient>
-    );
-  } catch (error) {
-    // Immediate fallback if LinearGradient throws during render
-    const fallbackStyle: ViewStyle = {
-      backgroundColor: getFallbackColor(),
-      ...(Array.isArray(style) ? Object.assign({}, ...style) : style),
-    };
-
-    return (
-      <View style={fallbackStyle}>
-        {children}
-      </View>
-    );
-  }
+  // Simple View with solid color instead of gradient
+  // This eliminates ExpoLinearGradient warnings while maintaining basic visual functionality
+  return (
+    <View
+      style={[
+        style,
+        { backgroundColor: getBackgroundColor() }
+      ]}
+      {...otherProps}
+    >
+      {children}
+    </View>
+  );
 };
-
-// Default export for easier importing
-export default SafeLinearGradient;

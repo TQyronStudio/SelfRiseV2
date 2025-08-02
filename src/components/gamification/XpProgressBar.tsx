@@ -260,12 +260,12 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
         >
           <SafeLinearGradient
             colors={badgeColors.background}
-            style={[
+            style={StyleSheet.flatten([
               styles.levelBadge,
               badgeSize,
               { borderColor: badgeColors.border },
               ...(isMilestone ? [styles.milestoneBadge] : [])
-            ]}
+            ])}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             suppressWarnings={true}

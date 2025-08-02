@@ -16,6 +16,9 @@
    - **app-store-publisher**: Deployment, ASO, release management
    - **security-integration-specialist**: Firebase, AdMob, API security
    - **business-logic-architect**: Recommendation engines, complex algorithms
+   SUB-AGENT SELECTIVE USAGE: Use specialists ONLY for complex tasks (>30min work).
+     For simple tasks (styling, typos, small bugs): work directly without agents
+   ALWAYS ask yourself: "Is agent overhead worth it for this task?"
 
 3. DOCUMENTATION MANAGEMENT (CRITICAL PRIORITY):
    - projectplan.md MAXIMUM 25,000 tokens - check token count before writing
