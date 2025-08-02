@@ -743,11 +743,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   /**
    * Calculate debt days (consecutive days without 3+ entries from yesterday backwards)
    * Returns actual number of missed days (can be > 3 for auto-reset detection)
+   * CRITICAL FIX: If user completed today, debt is automatically 0
    */
   async calculateDebt(): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
+      
+      // CRITICAL FIX: If user completed today, debt is automatically 0
+      // This maintains logical consistency - if user has 3+ entries today,
+      // it means they either had no debt or already paid it
+      if (completedDates.includes(currentDate)) {
+        return 0;
+      }
       
       let debtDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday
@@ -809,9 +817,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   /**
    * Calculate how many ads user needs to watch to pay debt only
    * After debt is paid, user can write entries normally without ads
+   * CRITICAL FIX: If user has 3+ entries today, no ads needed
    */
   async requiresAdsToday(): Promise<number> {
     try {
+      const currentDate = today();
+      const todayCount = await this.countByDate(currentDate);
+      
+      // CRITICAL FIX: If user has 3+ entries today, no ads needed
+      // This maintains system consistency - user already completed today
+      if (todayCount >= 3) {
+        return 0;
+      }
+      
       const debtDays = await this.calculateDebt();
       
       // If debt > 3, automatic reset (handled elsewhere)

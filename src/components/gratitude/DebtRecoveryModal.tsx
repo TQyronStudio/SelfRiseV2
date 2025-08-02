@@ -6,11 +6,189 @@ import {
   StyleSheet,
   Modal,
   SafeAreaView,
-  Alert,
+  Dimensions,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+// Specialized modal components following CelebrationModal pattern
+interface DebtModalProps {
+  visible: boolean;
+  onClose: () => void;
+  title?: string;
+  message?: string;
+  buttonText?: string;
+}
+
+interface DebtConfirmationModalProps extends DebtModalProps {
+  onConfirm: () => void;
+  confirmText?: string;
+  cancelText?: string;
+}
+
+// AdFailedModal Component
+function AdFailedModal({ visible, onClose, title, message, buttonText }: DebtModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modal}>
+          <Text style={modalStyles.emoji}>❌</Text>
+          <Text style={modalStyles.title}>{title || 'Ad Failed'}</Text>
+          <Text style={modalStyles.message}>
+            {message || 'Failed to load ad. Please try again.'}
+          </Text>
+          <TouchableOpacity style={modalStyles.button} onPress={onClose}>
+            <Text style={modalStyles.buttonText}>{buttonText || 'OK'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// DebtErrorModal Component  
+function DebtErrorModal({ visible, onClose, title, message, buttonText }: DebtModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modal}>
+          <Text style={modalStyles.emoji}>⚠️</Text>
+          <Text style={modalStyles.title}>{title || 'Error'}</Text>
+          <Text style={modalStyles.message}>
+            {message || 'Something went wrong. Please try again.'}
+          </Text>
+          <TouchableOpacity style={modalStyles.button} onPress={onClose}>
+            <Text style={modalStyles.buttonText}>{buttonText || 'OK'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// DebtConfirmationModal Component
+function DebtConfirmationModal({ 
+  visible, 
+  onClose, 
+  onConfirm,
+  title, 
+  message, 
+  confirmText,
+  cancelText 
+}: DebtConfirmationModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.modal}>
+          <Text style={modalStyles.emoji}>🔄</Text>
+          <Text style={modalStyles.title}>{title || 'Watch Ad to Pay Debt'}</Text>
+          <Text style={modalStyles.message}>
+            {message || 'This would show a real advertisement. Continue with ad simulation?'}
+          </Text>
+          <View style={modalStyles.buttonContainer}>
+            <TouchableOpacity 
+              style={[modalStyles.button, modalStyles.cancelButton]} 
+              onPress={onClose}
+            >
+              <Text style={[modalStyles.buttonText, modalStyles.cancelButtonText]}>
+                {cancelText || 'Cancel'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={modalStyles.button} onPress={onConfirm}>
+              <Text style={modalStyles.buttonText}>{confirmText || 'Watch Ad'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Layout.spacing.lg,
+  },
+  modal: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    paddingVertical: Layout.spacing.xl,
+    paddingHorizontal: Layout.spacing.lg,
+    alignItems: 'center',
+    maxWidth: screenWidth * 0.85,
+    width: '100%',
+    shadowColor: Colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  emoji: {
+    fontSize: 64,
+    marginBottom: Layout.spacing.md,
+  },
+  title: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  message: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Layout.spacing.lg,
+  },
+  button: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.xl,
+    minWidth: 120,
+  },
+  buttonText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: Layout.spacing.md,
+  },
+  cancelButton: {
+    backgroundColor: Colors.backgroundSecondary,
+  },
+  cancelButtonText: {
+    color: Colors.text,
+  },
+});
 
 interface DebtRecoveryModalProps {
   visible: boolean;
@@ -33,6 +211,8 @@ export default function DebtRecoveryModal({
 }: DebtRecoveryModalProps) {
   const { t } = useI18n();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+  const [showAdFailedModal, setShowAdFailedModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const remainingAds = totalAdsNeeded - adsWatched;
   const progressPercentage = totalAdsNeeded > 0 ? (adsWatched / totalAdsNeeded) * 100 : 0;
@@ -44,7 +224,9 @@ export default function DebtRecoveryModal({
     try {
       const success = await onWatchAd();
       if (success) {
-        if (adsWatched + 1 >= totalAdsNeeded) {
+        // CRITICAL FIX: Check if ads are complete after this ad is watched
+        // adsWatched is already incremented by onWatchAd() callback
+        if (adsWatched >= totalAdsNeeded) {
           // All ads watched, recovery complete
           setTimeout(() => {
             onComplete();
@@ -52,18 +234,10 @@ export default function DebtRecoveryModal({
           }, 500);
         }
       } else {
-        Alert.alert(
-          'Ad Failed',
-          'Failed to load ad. Please try again.',
-          [{ text: 'OK' }]
-        );
+        setShowAdFailedModal(true);
       }
     } catch (error) {
-      Alert.alert(
-        'Error',
-        'Something went wrong. Please try again.',
-        [{ text: 'OK' }]
-      );
+      setShowErrorModal(true);
     } finally {
       setIsWatchingAd(false);
     }
@@ -179,6 +353,17 @@ export default function DebtRecoveryModal({
           </View>
         </View>
       </SafeAreaView>
+
+      {/* Specialized Modals */}
+      <AdFailedModal
+        visible={showAdFailedModal}
+        onClose={() => setShowAdFailedModal(false)}
+      />
+      
+      <DebtErrorModal
+        visible={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+      />
     </Modal>
   );
 }

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +15,13 @@ import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
 import { GratitudeStreak } from '../../types/gratitude';
 import { StreakSharingModal } from './StreakSharingModal';
 import DebtRecoveryModal from '../gratitude/DebtRecoveryModal';
+import {
+  DebtSuccessModal,
+  DebtErrorModal,
+  DebtConfirmationModal,
+  DebtIssueModal,
+  ForceResetModal,
+} from '../gratitude/DebtModals';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -29,6 +35,17 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
+
+  // Modal states for debt recovery system
+  const [showNoDebtModal, setShowNoDebtModal] = useState(false);
+  const [showWatchAdModal, setShowWatchAdModal] = useState(false);
+  const [showNotEnoughAdsModal, setShowNotEnoughAdsModal] = useState(false);
+  const [showDebtIssueModal, setShowDebtIssueModal] = useState(false);
+  const [showDebtPaidModal, setShowDebtPaidModal] = useState(false);
+  const [showDebtErrorModal, setShowDebtErrorModal] = useState(false);
+  const [showForceResetModal, setShowForceResetModal] = useState(false);
+  const [currentErrorMessage, setCurrentErrorMessage] = useState('');
+  const [watchAdResolve, setWatchAdResolve] = useState<any>(null);
 
   useEffect(() => {
     loadStreakData();
@@ -90,11 +107,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     
     // If no ads needed, debt might already be paid
     if (adsNeeded === 0) {
-      Alert.alert(
-        'No Debt',
-        'Your debt appears to be already paid. Refreshing your streak data...',
-        [{ text: 'OK', onPress: () => loadStreakData() }]
-      );
+      setShowNoDebtModal(true);
       return;
     }
     
@@ -105,20 +118,20 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     // TODO: Replace with real AdMob integration
     // For testing: simulate ad with user confirmation
     return new Promise((resolve) => {
-      Alert.alert(
-        'Watch Ad to Pay Debt',
-        'This would show a real advertisement. Continue with ad simulation?',
-        [
-          { text: 'Cancel', onPress: () => resolve(false) },
-          { 
-            text: 'Watch Ad', 
-            onPress: () => {
-              setAdsWatched(prev => prev + 1);
-              resolve(true);
-            }
-          }
-        ]
-      );
+      const handleConfirm = () => {
+        setAdsWatched(prev => prev + 1);
+        resolve(true);
+        setShowWatchAdModal(false);
+      };
+      
+      const handleCancel = () => {
+        resolve(false);
+        setShowWatchAdModal(false);
+      };
+      
+      // Store resolve functions for modal callbacks
+      setWatchAdResolve(() => ({ handleConfirm, handleCancel }));
+      setShowWatchAdModal(true);
     });
   };
 
@@ -126,10 +139,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     try {
       // Verify ads were actually watched
       if (adsWatched < totalAdsNeeded) {
-        Alert.alert(
-          'Not Enough Ads',
-          `You need to watch ${totalAdsNeeded - adsWatched} more ad${totalAdsNeeded - adsWatched > 1 ? 's' : ''} to pay your debt.`
-        );
+        setShowNotEnoughAdsModal(true);
         return;
       }
       
@@ -145,67 +155,47 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       // Double-check if debt was actually cleared
       const remainingDebt = await gratitudeStorage.calculateDebt();
       if (remainingDebt > 0) {
-        Alert.alert(
-          'Debt Payment Issue',
-          `There seems to be an issue with debt payment. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`,
-          [
-            { text: 'Try Again', onPress: () => setShowDebtModal(true) },
-            { text: 'Force Reset Debt', onPress: handleForceResetDebt }
-          ]
-        );
+        setCurrentErrorMessage(`There seems to be an issue with debt payment. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`);
+        setShowDebtIssueModal(true);
         return;
       }
       
       // Show success message
-      Alert.alert(
-        'Debt Paid!',
-        'Your debt has been cleared. You can now write journal entries normally and your streak will continue.',
-        [{ text: 'OK' }]
-      );
+      setShowDebtPaidModal(true);
     } catch (error) {
       console.error('Failed to complete debt payment:', error);
-      Alert.alert(
-        'Debt Payment Error',
-        `Failed to pay debt: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`,
-        [
-          { text: 'Try Again', onPress: () => setShowDebtModal(true) },
-          { text: 'Force Reset Debt', onPress: handleForceResetDebt }
-        ]
-      );
+      setCurrentErrorMessage(`Failed to pay debt: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`);
+      setShowDebtErrorModal(true);
     }
   };
   
   const handleForceResetDebt = async () => {
+    setShowForceResetModal(true);
+  };
+
+  const executeForceResetDebt = async () => {
     try {
-      Alert.alert(
-        'Force Reset Debt',
-        'This will clear your debt without watching ads. Your streak will continue normally. Continue?',
-        [
-          { text: 'Cancel' },
-          { 
-            text: 'Reset Debt', 
-            onPress: async () => {
-              // Force set debt to 0 by updating streak directly
-              if (streak) {
-                const resetStreak = {
-                  ...streak,
-                  debtDays: 0,
-                  isFrozen: false,
-                  canRecoverWithAd: false
-                };
-                // Use internal storage method to force update streak
-                const { BaseStorage, STORAGE_KEYS } = await import('../../services/storage/base');
-                await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreak);
-                await loadStreakData();
-                Alert.alert('Debt Reset', 'Your debt has been reset. You can now write entries normally.');
-              }
-            }
-          }
-        ]
-      );
+      // Force set debt to 0 by updating streak directly
+      if (streak) {
+        const resetStreak = {
+          ...streak,
+          debtDays: 0,
+          isFrozen: false,
+          canRecoverWithAd: false
+        };
+        // Use internal storage method to force update streak
+        const { BaseStorage, STORAGE_KEYS } = await import('../../services/storage/base');
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreak);
+        await loadStreakData();
+        setShowForceResetModal(false);
+        // Show success message
+        setCurrentErrorMessage('Your debt has been reset. You can now write entries normally.');
+        setShowDebtPaidModal(true);
+      }
     } catch (error) {
       console.error('Failed to reset debt:', error);
-      Alert.alert('Error', 'Failed to reset debt. Please contact support.');
+      setCurrentErrorMessage('Failed to reset debt. Please contact support.');
+      setShowDebtErrorModal(true);
     }
   };
 
@@ -328,6 +318,105 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         totalAdsNeeded={totalAdsNeeded}
         onWatchAd={handleWatchAd}
         onComplete={handleDebtComplete}
+      />
+
+      {/* No Debt Modal */}
+      <DebtSuccessModal
+        visible={showNoDebtModal}
+        onClose={() => {
+          setShowNoDebtModal(false);
+          loadStreakData();
+        }}
+        title="No Debt"
+        message="Your debt appears to be already paid. Refreshing your streak data..."
+        buttonText="OK"
+      />
+
+      {/* Watch Ad Confirmation Modal */}
+      <DebtConfirmationModal
+        visible={showWatchAdModal}
+        onClose={() => {
+          if (watchAdResolve) {
+            watchAdResolve.handleCancel();
+          }
+        }}
+        onConfirm={() => {
+          if (watchAdResolve) {
+            watchAdResolve.handleConfirm();
+          }
+        }}
+        title="Watch Ad to Pay Debt"
+        message="This would show a real advertisement. Continue with ad simulation?"
+        confirmText="Watch Ad"
+        cancelText="Cancel"
+      />
+
+      {/* Not Enough Ads Modal */}
+      <DebtErrorModal
+        visible={showNotEnoughAdsModal}
+        onClose={() => setShowNotEnoughAdsModal(false)}
+        title="Not Enough Ads"
+        message={`You need to watch ${totalAdsNeeded - adsWatched} more ad${totalAdsNeeded - adsWatched > 1 ? 's' : ''} to pay your debt.`}
+        buttonText="OK"
+      />
+
+      {/* Debt Payment Issue Modal */}
+      <DebtIssueModal
+        visible={showDebtIssueModal}
+        onClose={() => setShowDebtIssueModal(false)}
+        onPrimaryAction={() => {
+          setShowDebtIssueModal(false);
+          setShowDebtModal(true);
+        }}
+        onSecondaryAction={() => {
+          setShowDebtIssueModal(false);
+          handleForceResetDebt();
+        }}
+        title="Debt Payment Issue"
+        message={currentErrorMessage}
+        primaryActionText="Try Again"
+        secondaryActionText="Force Reset Debt"
+      />
+
+      {/* Debt Paid Success Modal */}
+      <DebtSuccessModal
+        visible={showDebtPaidModal}
+        onClose={() => setShowDebtPaidModal(false)}
+        title="Debt Paid!"
+        message={currentErrorMessage || 'Your debt has been cleared. You can now write journal entries normally and your streak will continue.'}
+        buttonText="OK"
+      />
+
+      {/* Debt Payment Error Modal */}
+      <DebtIssueModal
+        visible={showDebtErrorModal}
+        onClose={() => setShowDebtErrorModal(false)}
+        onPrimaryAction={() => {
+          setShowDebtErrorModal(false);
+          setShowDebtModal(true);
+        }}
+        onSecondaryAction={() => {
+          setShowDebtErrorModal(false);
+          handleForceResetDebt();
+        }}
+        title="Debt Payment Error"
+        message={currentErrorMessage}
+        primaryActionText="Try Again"
+        secondaryActionText="Force Reset Debt"
+      />
+
+      {/* Force Reset Debt Confirmation Modal */}
+      <ForceResetModal
+        visible={showForceResetModal}
+        onClose={() => setShowForceResetModal(false)}
+        onConfirm={() => {
+          setShowForceResetModal(false);
+          executeForceResetDebt();
+        }}
+        title="Force Reset Debt"
+        message="This will clear your debt without watching ads. Your streak will continue normally. Continue?"
+        confirmText="Reset Debt"
+        cancelText="Cancel"
       />
     </TouchableOpacity>
   );

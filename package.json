@@ -11,7 +11,12 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:debt-recovery": "jest --testPathPatterns=\"debtRecovery\"",
+    "test:debt-recovery:coverage": "jest --testPathPatterns=\"debtRecovery\" --coverage"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
