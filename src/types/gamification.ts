@@ -161,12 +161,41 @@ export interface Achievement extends BaseEntity {
  * Condition that must be met to unlock an achievement
  */
 export interface AchievementCondition {
-  type: 'count' | 'streak' | 'value' | 'time' | 'combination';
+  type: 'count' | 'streak' | 'value' | 'time' | 'combination' | 'level' | 'percentage';
   target: number; // Target value to reach
   source: XPSourceType | string; // What to count/track
   operator: 'gte' | 'lte' | 'eq' | 'gt' | 'lt'; // Comparison operator
   timeframe?: 'daily' | 'weekly' | 'monthly' | 'all_time';
   additionalConditions?: AchievementCondition[]; // For complex achievements
+  metadata?: Record<string, any>; // Additional condition-specific data
+}
+
+/**
+ * Function type for evaluating achievement conditions
+ */
+export type ConditionChecker = (
+  condition: AchievementCondition,
+  userStats: GamificationStats,
+  additionalData?: Record<string, any>
+) => Promise<{
+  isMet: boolean;
+  currentValue: number;
+  progress: number; // 0-100 percentage
+  nextMilestone?: number;
+}>;
+
+/**
+ * Achievement evaluation result
+ */
+export interface AchievementEvaluationResult {
+  achievementId: string;
+  isMet: boolean;
+  currentProgress: number; // 0-100
+  previousProgress: number;
+  isNewlyUnlocked: boolean;
+  progressDelta: number;
+  nextMilestone?: number;
+  evaluatedAt: Date;
 }
 
 /**
@@ -179,6 +208,117 @@ export interface UserAchievements {
   totalXPFromAchievements: number;
   rarityCount: Record<AchievementRarity, number>;
   categoryProgress: Record<AchievementCategory, number>;
+  progressHistory: AchievementProgressHistory[];
+  streakData: Record<string, StreakTrackingData>; // For streak-based achievements
+}
+
+/**
+ * Historical progress tracking for achievements
+ */
+export interface AchievementProgressHistory {
+  achievementId: string;
+  progress: number;
+  timestamp: Date;
+  trigger: XPSourceType | 'manual_check' | 'daily_batch';
+  context?: Record<string, any>; // Additional context for the progress update
+}
+
+/**
+ * Streak tracking data for streak-based achievements
+ */
+export interface StreakTrackingData {
+  currentStreak: number;
+  longestStreak: number;
+  lastActivityDate: DateString;
+  streakStartDate: DateString;
+  streakType: 'daily' | 'weekly' | 'monthly';
+  category: AchievementCategory;
+}
+
+/**
+ * Progressive achievement milestone definition
+ */
+export interface AchievementMilestone {
+  value: number; // Progress value for this milestone
+  xpReward: number; // XP awarded at this milestone
+  title?: string; // Special title for this milestone
+  description?: string;
+  isMainGoal: boolean; // Whether this is the final achievement goal
+}
+
+/**
+ * Complex achievement with multiple milestones
+ */
+export interface ProgressiveAchievement extends Achievement {
+  milestones: AchievementMilestone[];
+  currentMilestone: number; // Index of current milestone
+  incrementalRewards: boolean; // Whether to award XP for each milestone
+}
+
+// ========================================
+// ACHIEVEMENT UTILITY TYPES
+// ========================================
+
+/**
+ * Achievement unlock trigger event
+ */
+export interface AchievementUnlockEvent {
+  achievementId: string;
+  userId?: string;
+  unlockedAt: Date;
+  trigger: XPSourceType | 'manual_check' | 'daily_batch';
+  xpAwarded: number;
+  previousProgress: number;
+  finalProgress: number;
+  context?: Record<string, any>;
+}
+
+/**
+ * Achievement statistics for analytics
+ */
+export interface AchievementStats {
+  totalAchievements: number;
+  unlockedAchievements: number;
+  completionRate: number; // 0-100
+  averageTimeToUnlock: number; // Days
+  mostRecentUnlock?: {
+    achievementId: string;
+    unlockedAt: Date;
+    rarity: AchievementRarity;
+  };
+  rarityBreakdown: Record<AchievementRarity, {
+    total: number;
+    unlocked: number;
+    completionRate: number;
+  }>;
+  categoryBreakdown: Record<AchievementCategory, {
+    total: number;
+    unlocked: number;
+    totalProgress: number;
+  }>;
+}
+
+/**
+ * Achievement catalog metadata
+ */
+export interface AchievementCatalog {
+  achievements: Achievement[];
+  totalCount: number;
+  version: string;
+  lastUpdated: Date;
+  categoryCount: Record<AchievementCategory, number>;
+  rarityDistribution: Record<AchievementRarity, number>;
+}
+
+/**
+ * Batch achievement evaluation options
+ */
+export interface BatchEvaluationOptions {
+  achievementIds?: string[]; // Specific achievements to check (if not provided, checks all)
+  categories?: AchievementCategory[]; // Only check certain categories
+  skipRecent?: boolean; // Skip achievements checked recently
+  forceUpdate?: boolean; // Force update even if recently checked
+  maxBatchSize?: number; // Limit concurrent evaluations
 }
 
 // ========================================
