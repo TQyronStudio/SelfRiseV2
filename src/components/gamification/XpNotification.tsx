@@ -49,22 +49,27 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
   // ========================================
 
   const batchXpGains = (gains: XpGain[]): BatchedNotification => {
-    const sourceMap = new Map<XPSourceType, { count: number; totalXP: number }>();
+    const sourceMap = new Map<XPSourceType, { count: number; totalXP: number; positiveCount: number; negativeCount: number }>();
     let totalXP = 0;
 
     gains.forEach(gain => {
+      // Calculate NET XP change (this is the critical fix)
       totalXP += gain.amount;
       
       if (sourceMap.has(gain.source)) {
         const existing = sourceMap.get(gain.source)!;
         sourceMap.set(gain.source, {
           count: existing.count + 1,
-          totalXP: existing.totalXP + gain.amount
+          totalXP: existing.totalXP + gain.amount,
+          positiveCount: existing.positiveCount + (gain.amount > 0 ? 1 : 0),
+          negativeCount: existing.negativeCount + (gain.amount < 0 ? 1 : 0)
         });
       } else {
         sourceMap.set(gain.source, {
           count: 1,
-          totalXP: gain.amount
+          totalXP: gain.amount,
+          positiveCount: gain.amount > 0 ? 1 : 0,
+          negativeCount: gain.amount < 0 ? 1 : 0
         });
       }
     });
@@ -76,7 +81,7 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
     }));
 
     return {
-      totalXP,
+      totalXP, // This is now the correct NET XP change
       sources,
       timestamp: Math.max(...gains.map(g => g.timestamp))
     };
@@ -143,6 +148,19 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
   // ========================================
 
   const generateNotificationText = (data: BatchedNotification): string => {
+    const netXP = data.totalXP;
+    
+    // Handle different XP outcomes with appropriate messaging
+    if (netXP <= 0) {
+      // For zero or negative net XP, show neutral/informative message
+      if (netXP === 0) {
+        return `📊 Activities balanced (no net progress)`;
+      } else {
+        return `📉 Progress reversed`;
+      }
+    }
+    
+    // Only show congratulatory messages for NET POSITIVE XP
     if (data.sources.length === 1) {
       const source = data.sources[0];
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
@@ -153,14 +171,20 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
         return `${sourceInfo.icon} ${source?.count || 0} ${sourceInfo.name} completed`;
       }
     } else {
-      // Multiple sources - create summary
-      const sourceTexts = data.sources.map(source => {
-        const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-        const count = source?.count || 0;
-        return `${count} ${count === 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name}`;
-      });
+      // Multiple sources - create summary (only for positive gains)
+      const sourceTexts = data.sources
+        .filter(source => source.totalXP > 0) // Only include sources with positive contribution
+        .map(source => {
+          const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
+          const count = source?.count || 0;
+          return `${count} ${count === 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name}`;
+        });
       
-      if (sourceTexts.length === 2) {
+      if (sourceTexts.length === 0) {
+        return `📊 Activities updated`;
+      } else if (sourceTexts.length === 1) {
+        return `🎉 ${sourceTexts[0]} completed`;
+      } else if (sourceTexts.length === 2) {
         return `🎉 ${sourceTexts.join(' and ')} completed`;
       } else {
         const lastSource = sourceTexts.pop();
@@ -259,9 +283,23 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
         </Text>
         
         {/* XP Amount */}
-        <View style={styles.xpContainer}>
-          <Text style={styles.xpLabel}>+{batchedData.totalXP}</Text>
-          <Text style={styles.xpSuffix}>XP</Text>
+        <View style={[
+          styles.xpContainer,
+          batchedData.totalXP < 0 && styles.xpContainerNegative,
+          batchedData.totalXP === 0 && styles.xpContainerNeutral
+        ]}>
+          <Text style={[
+            styles.xpLabel,
+            batchedData.totalXP < 0 && styles.xpLabelNegative,
+            batchedData.totalXP === 0 && styles.xpLabelNeutral
+          ]}>
+            {batchedData.totalXP > 0 ? '+' : ''}{batchedData.totalXP}
+          </Text>
+          <Text style={[
+            styles.xpSuffix,
+            batchedData.totalXP < 0 && styles.xpSuffixNegative,
+            batchedData.totalXP === 0 && styles.xpSuffixNeutral
+          ]}>XP</Text>
         </View>
       </View>
     </Animated.View>
@@ -318,10 +356,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 12,
   },
+  xpContainerNegative: {
+    backgroundColor: '#FF3B3B15', // Red background for negative XP
+  },
+  xpContainerNeutral: {
+    backgroundColor: '#99999915', // Gray background for zero XP
+  },
   xpLabel: {
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.primary,
+  },
+  xpLabelNegative: {
+    color: '#FF3B3B', // Red text for negative XP
+  },
+  xpLabelNeutral: {
+    color: '#999999', // Gray text for zero XP
   },
   xpSuffix: {
     fontSize: 12,
@@ -329,5 +379,11 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginLeft: 2,
     opacity: 0.8,
+  },
+  xpSuffixNegative: {
+    color: '#FF3B3B', // Red text for negative XP
+  },
+  xpSuffixNeutral: {
+    color: '#999999', // Gray text for zero XP
   },
 });

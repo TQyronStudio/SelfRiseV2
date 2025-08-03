@@ -727,6 +727,53 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Files Modified**: gratitudeStorage.ts, DebtRecoveryModal.tsx, GratitudeStreakCard.tsx, DebtModals.tsx (NEW)
 **Result**: Fully functional streak recovery system with beautiful UI
 
+### 🚨 CRITICAL: XP Bar & Scheduled Habits XP Bug Analysis (August 3, 2025)
+**Status**: 🔧 FIXES IMPLEMENTED, TESTING REQUIRED
+
+**Problem 1: XP Bar Display Issue** ✅ FIXED
+- ~~Under the level/XP bar, there's text showing "Newco..." that's cut off~~
+- **Location**: `/src/components/gamification/XpProgressBar.tsx` (lines 278-282)
+- **Issue**: Level title text truncation on small screens or long titles
+- **Fix**: Added `ellipsizeMode="tail"` to level title text component
+- **Result**: Long level titles now display with proper ellipsis truncation
+
+**Problem 2: Scheduled Habits Not Awarding XP** 🔧 DEBUGGING ADDED
+From log analysis, scheduled habits show CREATING logs but no XP animation/addition logs:
+```
+🔄 Habit toggle: CREATING completion for habit f13435eb-e5dc-407d-9ed7-b7ee7eb42e37 (scheduled)
+🔄 Habit toggle: CREATING completion for habit 84a68219-e3f2-4ba9-a048-bd7c54f71b54 (scheduled)
+```
+vs bonus habits that show:
+```
+🔄 Habit toggle: CREATING completion for habit 49ff5535-7fc9-4525-8eec-55f097712d11 (bonus)
+✨ XP Animation triggered: +15 XP from habit_bonus
+💰 XP added: +15 XP from habit_bonus (102 → 117)
+```
+
+**Root Cause Analysis**:
+- [x] **XP_ENABLED flag**: ✅ Confirmed true in habitStorage.ts
+- [x] **isBonus parameter logic**: ✅ Confirmed correct in HabitItemWithCompletion.tsx
+- [x] **XP reward values**: ✅ Confirmed correct (25 XP scheduled, 15 XP bonus)
+- [x] **Debug logging added**: ✅ Enhanced logging in awardHabitCompletionXP() method
+- [ ] **GamificationService.addXP()**: Need to check if method fails silently for scheduled habits
+- [ ] **Async XP awarding**: Check if awardHabitCompletionXPAsync() has timing issues
+
+**Debug Enhancement** ✅ IMPLEMENTED:
+Added comprehensive logging to `/src/services/storage/habitStorage.ts`:
+- Logs XP award attempts with habit ID and isBonus flag
+- Logs XP amount, source type, and description
+- Logs success/failure results from GamificationService
+- Will help identify exactly where scheduled habit XP is failing
+
+**Next Steps**:
+- [ ] Test the enhanced logging to see what's happening with scheduled habits
+- [ ] Investigate GamificationService.addXP() if logs reveal issues
+- [ ] Check XP animation system for scheduled vs bonus handling differences
+- [ ] Verify both fixes work correctly in production
+
+**Files Modified**:
+- `/src/components/gamification/XpProgressBar.tsx` - Fixed text truncation
+- `/src/services/storage/habitStorage.ts` - Added debug logging
 
 **Technical details moved to implementation-history.md**
 
@@ -770,6 +817,20 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - **Issue 2**: Streak not restoring properly after debt recovery - 🚧 IN PROGRESS (frozen state logic)
 - **Issue 3**: Level-up modal appearing 3x instead of once - ✅ FIXED: XP batching implemented
 
+### 🚨 CRITICAL XP BATCHING BUG FIX (August 3, 2025)
+**Status**: ✅ COMPLETED - Comprehensive fix implemented and tested
+- **Problem**: Rapid habit toggling showed incorrect batched notifications ("+-40 XP" instead of net result)
+- **Root Cause**: `XpNotification.batchXpGains()` summed ALL amounts without considering positive/negative signs
+- **Impact**: Users saw congratulations for net-zero or negative XP changes, destroying gamification trust
+- **Complete Fix Implementation**:
+  - ✅ **NET XP Calculation**: Fixed `batchXpGains()` to calculate correct net result (lines 51-88)
+  - ✅ **Smart Congratulations**: Only show celebration messages for NET POSITIVE XP gains (lines 150-194)
+  - ✅ **Correct Sign Display**: Show "+25 XP", "-25 XP", or "0 XP" with appropriate colors (lines 286-303)
+  - ✅ **Visual Feedback**: Red styling for negative XP, gray for zero, green for positive (lines 359-388)
+  - ✅ **Neutral Messaging**: "Activities balanced" for zero net progress, "Progress reversed" for negative
+- **Files Modified**: `/src/components/gamification/XpNotification.tsx` (comprehensive overhaul)
+- **Result**: Mathematically accurate XP notifications that maintain user trust in gamification system
+
 ### 🎯 FIXED: Multiple Level-up Modals Issue (August 3, 2025)
 **Status**: ✅ COMPLETED - XP batching system implemented
 - **Root Cause**: `awardJournalXP()` called `GamificationService.addXP()` 3 times separately
@@ -781,3 +842,49 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - **Result**: Single level-up modal with combined description (e.g., "Journal entry #1 + 7-day journal streak!")
 - **Files Modified**: `/src/services/storage/gratitudeStorage.ts` (lines 964-1097)
 - **Backward Compatibility**: Legacy functions maintained for other code paths
+
+---
+
+## 🚨 CRITICAL XP SYSTEM ISSUES - August 3, 2025 Evening Session
+
+### 🎨 UI/UX Issues Identified
+1. **Level Title Truncation**: XP bar level title still truncated (even with maxWidth removed)
+   - **Proposed Solution**: Redesign to "trophy" style - circle with level number + rectangle below with title
+   - **Status**: ⏳ PENDING DESIGN IMPLEMENTATION
+
+2. **XP Bar Delayed Update**: UI not updating immediately after XP changes
+   - **Status**: 🔧 ATTEMPTED FIX - Modified GamificationContext but still delayed
+   - **Issue**: `refreshStats()` background call may not be immediate enough
+
+### 💰 XP Calculation Critical Bugs
+3. **Journal XP Asymmetry**: Deleting bonus entries still subtracts 20 XP instead of 8 XP
+   - **Root Cause**: `subtractJournalXP()` may still include milestone XP despite fix attempt
+   - **Status**: 🔧 PARTIALLY FIXED - Milestone XP removed but base amounts wrong
+
+4. **Goals XP Missing Features**:
+   - **Issue A**: Deleting progress entries from statistics view doesn't subtract XP
+   - **Issue B**: Daily XP limits not properly decreasing when XP subtracted (same as Habits issue)
+   - **Issue C**: No new XP awarded after reaching daily limits
+   - **Status**: ❌ CRITICAL - Same daily limit bug affects Goals as Habits
+
+### 🎯 Daily XP Limit System Bug (Cross-Feature)
+5. **Systematic Daily Limit Issue**:
+   - **Problem**: `subtractXP()` calls `updateDailyXPTracking(-amount)` but system may not handle negative tracking properly
+   - **Impact**: Once daily limit reached, users can't regain XP even after subtracting
+   - **Affected Features**: Habits ✅ FIXED, Goals ❌ BROKEN, Journal ❌ POTENTIALLY BROKEN
+   - **Status**: 🚨 URGENT - Needs comprehensive daily tracking system audit
+
+### 📋 Required Actions
+- [ ] **Design Implementation**: Trophy-style level display (circle + rectangle)
+- [ ] **XP Bar Responsiveness**: Fix immediate UI updates
+- [ ] **Journal XP Fix**: Ensure 1:1 ratio (8 XP bonus ↔ -8 XP deletion)
+- [ ] **Goals Daily Limits**: Apply same fix as Habits for `updateDailyXPTracking`
+- [ ] **Goals Statistics Deletion**: Add XP subtraction for manual progress deletions
+- [ ] **Daily Tracking Audit**: Verify negative XP properly reduces daily limits across all features
+- [ ] **Comprehensive Testing**: Verify XP symmetry across Habits, Journal, Goals
+
+### 🔍 Analysis Notes
+- User reported same daily limit issue affects Goals and potentially Journal
+- Daily XP tracking system needs systematic fix across all XP sources
+- XP asymmetry indicates incomplete implementation of previous fixes
+- UI responsiveness suggests GamificationContext changes insufficient

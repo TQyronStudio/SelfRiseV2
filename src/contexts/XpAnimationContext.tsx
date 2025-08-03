@@ -88,8 +88,8 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // ========================================
 
   // Constants for smart batching
-  const BATCHING_WINDOW = 3000; // 3 seconds
-  const COOLDOWN_PERIOD = 5000; // 5 seconds
+  const BATCHING_WINDOW = 1500; // 1.5 seconds - faster feedback
+  const COOLDOWN_PERIOD = 4000; // 4 seconds
   const batchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showSmartNotification = useCallback((amount: number, source: XPSourceType) => {
@@ -109,6 +109,25 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         ...prev,
         pendingNotifications: [...prev.pendingNotifications, newGain],
       }));
+      
+      // Reset batch timeout to ensure latest changes are included
+      if (batchTimeoutRef.current) {
+        clearTimeout(batchTimeoutRef.current);
+      }
+      
+      // Set new timeout for updated batch
+      batchTimeoutRef.current = setTimeout(() => {
+        setState(prev => {
+          if (prev.pendingNotifications.length === 0) return prev;
+
+          return {
+            ...prev,
+            isNotificationVisible: true,
+            lastNotificationTime: now,
+          };
+        });
+      }, BATCHING_WINDOW);
+      
       return;
     }
 

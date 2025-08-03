@@ -324,10 +324,12 @@ export class HabitStorage implements EntityStorage<Habit> {
       
       if (existingCompletion) {
         // If completed, remove the completion
+        console.log(`🔄 Habit toggle: REMOVING completion for habit ${habitId} (${isBonus ? 'bonus' : 'scheduled'})`);
         await this.deleteCompletion(existingCompletion.id);
         return null;
       } else {
         // If not completed, create completion (XP will be awarded in createCompletion)
+        console.log(`🔄 Habit toggle: CREATING completion for habit ${habitId} (${isBonus ? 'bonus' : 'scheduled'})`);
         return await this.createCompletion(habitId, date, isBonus);
       }
     } catch (error) {
@@ -373,6 +375,7 @@ export class HabitStorage implements EntityStorage<Habit> {
    * @param isBonus Whether this is a bonus completion
    */
   private awardHabitCompletionXPAsync(habitId: string, isBonus: boolean): void {
+    console.log(`🚀 DEBUG: awardHabitCompletionXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
     // Award basic XP immediately for instant UI feedback
     this.awardHabitCompletionXP(habitId, isBonus).catch(error => {
       console.error('Error awarding immediate XP:', error);
@@ -395,19 +398,31 @@ export class HabitStorage implements EntityStorage<Habit> {
    */
   private async awardHabitCompletionXP(habitId: string, isBonus: boolean): Promise<void> {
     try {
+      console.log(`💰 Attempting to award XP for habit ${habitId}, isBonus: ${isBonus}`);
       const habit = await this.getById(habitId);
-      if (!habit) return;
+      if (!habit) {
+        console.log(`❌ Habit ${habitId} not found, no XP awarded`);
+        return;
+      }
 
       const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
       const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+      const description = isBonus ? 
+        `Completed bonus habit: ${habit.name}` : 
+        `Completed scheduled habit: ${habit.name}`;
 
-      await GamificationService.addXP(xpAmount, {
+      console.log(`💰 Awarding ${xpAmount} XP for ${xpSource}: ${description}`);
+      const result = await GamificationService.addXP(xpAmount, {
         source: xpSource,
         sourceId: habitId,
-        description: isBonus ? 
-          `Completed bonus habit: ${habit.name}` : 
-          `Completed scheduled habit: ${habit.name}`
+        description
       });
+
+      if (result.success) {
+        console.log(`✅ XP successfully awarded: ${result.xpGained} XP (${result.totalXP} total)`);
+      } else {
+        console.log(`❌ XP award failed: ${result.error}`);
+      }
 
     } catch (error) {
       console.error('Error awarding habit completion XP:', error);

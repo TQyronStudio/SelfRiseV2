@@ -225,6 +225,12 @@ export class GamificationService {
         result.levelUpInfo = levelUpInfo;
       }
       
+      // Log the XP addition
+      console.log(`💰 XP added: +${finalAmount} XP from ${options.source} (${previousTotalXP} → ${newTotalXP})`);
+      if (leveledUp) {
+        console.log(`🎉 Level up! ${previousLevel} → ${newLevel}`);
+      }
+      
       return result;
 
     } catch (error) {
@@ -290,6 +296,9 @@ export class GamificationService {
       
       // Update source tracking (subtract from source)
       await this.updateXPBySource(options.source, -amount);
+      
+      // Update daily XP tracking (reduce daily limits)
+      await this.updateDailyXPTracking(-amount, options.source);
       
       // Log the subtraction
       console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
@@ -868,10 +877,10 @@ export class GamificationService {
         timestamp: Date.now(),
       };
 
-      // Dispatch to React Native event system for popup animations
+      // Trigger both popup animation (immediate) and smart notification (batched)
       DeviceEventEmitter.emit('xpGained', eventData);
 
-      // Trigger smart notification system (new anti-spam system)
+      // Also trigger smart notification for batching
       DeviceEventEmitter.emit('xpSmartNotification', {
         amount,
         source,

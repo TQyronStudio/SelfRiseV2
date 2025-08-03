@@ -1140,12 +1140,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       let totalXP = xpToSubtract;
       let descriptions: string[] = [description];
 
-      // Check for milestone XP to subtract
-      const milestoneXP = await this.getMilestoneXPData(originalPosition, date);
-      if (milestoneXP.xp > 0) {
-        totalXP += milestoneXP.xp;
-        descriptions.push(`Removed ${milestoneXP.description.toLowerCase()}`);
-      }
+      // Don't subtract milestone XP - milestones are achievements that shouldn't be lost
 
       // Subtract XP in single transaction
       if (totalXP > 0) {

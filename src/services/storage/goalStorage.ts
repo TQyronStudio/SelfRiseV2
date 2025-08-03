@@ -697,24 +697,17 @@ export class GoalStorage implements EntityStorage<Goal> {
 
   /**
    * Subtract XP for "subtract" progress type
-   * Awards negative progress XP to discourage subtracting from goals
+   * Subtracts the same amount as was awarded for progress (1:1 ratio)
    */
   private async subtractGoalProgressXPForSubtract(goal: Goal, subtractValue: number): Promise<void> {
     try {
-      // Calculate proportional XP to subtract based on how much progress was removed
-      // Base: 35 XP for full progress entry, scale proportionally
-      const baseXP = XP_REWARDS.GOALS.PROGRESS_ENTRY;
-      
-      // Calculate what percentage of goal this subtract represents
-      const subtractPercentage = goal.targetValue > 0 ? (subtractValue / goal.targetValue) * 100 : 0;
-      
-      // Scale XP proportionally, but with minimum of 10 XP and maximum of base XP
-      const xpToSubtract = Math.min(baseXP, Math.max(10, Math.round(baseXP * (subtractPercentage / 10))));
+      // Subtract the same XP amount as was awarded for progress entry (1:1 ratio)
+      const xpToSubtract = XP_REWARDS.GOALS.PROGRESS_ENTRY;
 
       await GamificationService.subtractXP(xpToSubtract, {
         source: XPSourceType.GOAL_PROGRESS,
         sourceId: goal.id,
-        description: `Subtracted ${subtractValue} from goal: ${goal.title}`,
+        description: `Subtracted progress from goal: ${goal.title} (-${subtractValue})`,
       });
     } catch (error) {
       console.error('Failed to subtract XP for goal subtract:', error);

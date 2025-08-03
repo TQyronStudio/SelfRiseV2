@@ -302,7 +302,7 @@ export const ACHIEVEMENT_RARITY_XP = {
  */
 export const BALANCE_VALIDATION = {
   // Minimum time between identical XP gains (milliseconds)
-  MIN_TIME_BETWEEN_IDENTICAL_GAINS: 1000, // 1 second
+  MIN_TIME_BETWEEN_IDENTICAL_GAINS: 100, // 0.1 second - allow fast habit toggling
   
   // Maximum XP gain in single transaction
   MAX_SINGLE_TRANSACTION_XP: 1000,

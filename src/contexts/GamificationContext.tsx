@@ -132,12 +132,22 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
 
   const addXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
       const result = await GamificationService.addXP(amount, options);
       
-      // Update state with new totals
-      await refreshStats();
+      // Update state immediately with result for instant UI feedback
+      if (result.success) {
+        dispatch({
+          type: 'UPDATE_STATS',
+          payload: {
+            totalXP: result.totalXP,
+            multiplierActive: state.multiplierActive, // Keep current multiplier state
+            multiplierEndTime: state.multiplierEndTime,
+          }
+        });
+        
+        // Refresh full stats in background for accuracy
+        setTimeout(() => refreshStats(), 0);
+      }
       
       return result;
     } catch (error) {
@@ -156,16 +166,26 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
         error: errorMessage,
       };
     }
-  }, [state.totalXP, state.currentLevel]);
+  }, [state.totalXP, state.currentLevel, state.multiplierActive, state.multiplierEndTime, refreshStats]);
 
   const subtractXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
       const result = await GamificationService.subtractXP(amount, options);
       
-      // Update state with new totals
-      await refreshStats();
+      // Update state immediately with result for instant UI feedback
+      if (result.success) {
+        dispatch({
+          type: 'UPDATE_STATS',
+          payload: {
+            totalXP: result.totalXP,
+            multiplierActive: state.multiplierActive, // Keep current multiplier state
+            multiplierEndTime: state.multiplierEndTime,
+          }
+        });
+        
+        // Refresh full stats in background for accuracy
+        setTimeout(() => refreshStats(), 0);
+      }
       
       return result;
     } catch (error) {
@@ -184,7 +204,7 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
         error: errorMessage,
       };
     }
-  }, [state.totalXP, state.currentLevel]);
+  }, [state.totalXP, state.currentLevel, state.multiplierActive, state.multiplierEndTime, refreshStats]);
 
   const refreshStats = useCallback(async (): Promise<void> => {
     try {

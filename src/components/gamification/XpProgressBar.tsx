@@ -275,7 +275,11 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
               {currentLevel}
             </Text>
             {!compactMode && !isSmallScreen && (
-              <Text style={[styles.levelTitle, { color: badgeColors.text, fontSize: fontSizes.levelTitle }]} numberOfLines={1}>
+              <Text 
+                style={[styles.levelTitle, { color: badgeColors.text, fontSize: fontSizes.levelTitle }]} 
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {levelInfo.title}
               </Text>
             )}
@@ -423,6 +427,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 2,
+    // Removed maxWidth to allow full level title display
+    flexShrink: 0, // Don't shrink text, allow full display
   },
 
   // Progress Bar Styles
