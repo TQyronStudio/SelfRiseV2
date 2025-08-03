@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   GRATITUDE_STREAK: 'gratitude_streak',
   GOALS: 'goals',
   GOAL_PROGRESS: 'goal_progress',
+  GOAL_DAILY_XP_TRACKING: 'goal_daily_xp_tracking',
   USER: 'user',
   USER_SETTINGS: 'user_settings',
   APP_VERSION: 'app_version',

@@ -178,36 +178,36 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   const nextLevel = currentLevel + 1;
   // const nextLevelInfo = getLevelInfo(nextLevel); // Unused
   
-  // Get responsive badge size
+  // Get responsive badge size (made smaller per user feedback)
   const getResponsiveBadgeSize = () => {
     if (compactMode || isSmallScreen) {
-      return { width: 50, height: 50, borderRadius: 25 };
+      return { width: 40, height: 40, borderRadius: 20 };
     } else if (isLargeScreen) {
-      return { width: 70, height: 70, borderRadius: 35 };
+      return { width: 55, height: 55, borderRadius: 27.5 };
     }
-    return { width: 60, height: 60, borderRadius: 30 }; // default
+    return { width: 48, height: 48, borderRadius: 24 }; // default
   };
   
-  // Get responsive font sizes
+  // Get responsive font sizes (adjusted for smaller circle and larger title)
   const getResponsiveFontSizes = () => {
     if (compactMode || isSmallScreen) {
       return {
-        levelNumber: 16,
-        levelTitle: 9,
+        levelNumber: 14,  // Smaller to fit in smaller circle
+        levelTitle: 10,   // Slightly bigger title
         xpText: 12,
         xpNumbers: 10,
       };
     } else if (isLargeScreen) {
       return {
-        levelNumber: 20,
-        levelTitle: 11,
+        levelNumber: 18,  // Smaller to fit in smaller circle
+        levelTitle: 12,   // Bigger title
         xpText: 16,
         xpNumbers: 14,
       };
     }
     return {
-      levelNumber: 18,
-      levelTitle: 10,
+      levelNumber: 16,   // Smaller to fit in smaller circle
+      levelTitle: 11,    // Bigger title
       xpText: 14,
       xpNumbers: 12,
     }; // default
@@ -250,31 +250,46 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
       accessibilityHint={accessibilityHint}
       accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
     >
-      {/* Level Badge */}
+      {/* Trophy-Style Level Badge */}
       {showLevelBadge && (
         <View 
-          style={styles.levelBadgeContainer}
+          style={styles.trophyContainer}
           accessible={true}
           accessibilityRole="text"
           accessibilityLabel={`Level ${currentLevel} badge, ${levelInfo.title}${isMilestone ? ', milestone level' : ''}`}
         >
-          <SafeLinearGradient
-            colors={badgeColors.background}
-            style={StyleSheet.flatten([
-              styles.levelBadge,
-              badgeSize,
-              { borderColor: badgeColors.border },
-              ...(isMilestone ? [styles.milestoneBadge] : [])
-            ])}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            suppressWarnings={true}
-            fallbackColor={badgeColors.background[0] as string}
-          >
-            <Text style={[styles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
-              {currentLevel}
-            </Text>
-            {!compactMode && !isSmallScreen && (
+          {/* Circle Badge for Level Number */}
+          <View style={styles.levelBadgeContainer}>
+            <SafeLinearGradient
+              colors={badgeColors.background}
+              style={StyleSheet.flatten([
+                styles.levelBadge,
+                badgeSize,
+                { borderColor: badgeColors.border },
+                ...(isMilestone ? [styles.milestoneBadge] : [])
+              ])}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              suppressWarnings={true}
+              fallbackColor={badgeColors.background[0] as string}
+            >
+              <Text style={[styles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
+                {currentLevel}
+              </Text>
+            </SafeLinearGradient>
+            {isMilestone && <View style={styles.milestoneGlow} />}
+          </View>
+          
+          {/* Rectangle Badge for Level Title */}
+          {!compactMode && (
+            <SafeLinearGradient
+              colors={badgeColors.background}
+              style={StyleSheet.flatten([styles.titleBadgeGradient, { borderColor: badgeColors.border }])}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              suppressWarnings={true}
+              fallbackColor={badgeColors.background[0] as string}
+            >
               <Text 
                 style={[styles.levelTitle, { color: badgeColors.text, fontSize: fontSizes.levelTitle }]} 
                 numberOfLines={1}
@@ -282,9 +297,8 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
               >
                 {levelInfo.title}
               </Text>
-            )}
-          </SafeLinearGradient>
-          {isMilestone && <View style={styles.milestoneGlow} />}
+            </SafeLinearGradient>
+          )}
         </View>
       )}
 
@@ -390,16 +404,40 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   
-  // Level Badge Styles
+  // Trophy-Style Level Badge Styles
+  trophyContainer: {
+    alignItems: 'center',
+    marginRight: 16,
+  },
   levelBadgeContainer: {
     position: 'relative',
-    marginRight: 16,
+    marginBottom: 4,
   },
   levelBadge: {
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
+  },
+  titleBadge: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,  // Slightly more padding
+    paddingVertical: 5,     // Slightly more padding
+    minWidth: 85,           // Much wider minimum
+    maxWidth: 130,          // Much wider maximum
+    overflow: 'hidden',
+  },
+  titleBadgeGradient: {
+    paddingHorizontal: 10,  // Match titleBadge padding
+    paddingVertical: 5,     // Match titleBadge padding
+    borderRadius: 12,
+    borderWidth: 1,         // Add border to gradient
+    minWidth: 85,           // Much wider minimum
+    maxWidth: 130,          // Much wider maximum
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   milestoneBadge: {
     shadowColor: '#FFD700',
@@ -426,9 +464,8 @@ const styles = StyleSheet.create({
   levelTitle: {
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 2,
-    // Removed maxWidth to allow full level title display
-    flexShrink: 0, // Don't shrink text, allow full display
+    flexShrink: 1,
+    flexGrow: 0,
   },
 
   // Progress Bar Styles

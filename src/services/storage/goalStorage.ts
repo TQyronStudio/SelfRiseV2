@@ -7,7 +7,18 @@ import { XP_REWARDS } from '../../constants/gamification';
 import { XPSourceType } from '../../types/gamification';
 import { today } from '../../utils/date';
 
+// Daily XP tracking per goal
+interface GoalDailyXPData {
+  date: DateString;
+  goalId: string;
+  positiveXPCount: number; // How many positive XP awards this goal got today
+  negativeXPCount: number; // How many negative XP operations this goal had today  
+}
+
 export class GoalStorage implements EntityStorage<Goal> {
+  // Constants
+  private static readonly MAX_DAILY_POSITIVE_XP_PER_GOAL = 3; // Max 3 positive XP per goal per day
+  
   // Goal CRUD operations
   async getAll(): Promise<Goal[]> {
     try {
@@ -353,7 +364,16 @@ export class GoalStorage implements EntityStorage<Goal> {
   async deleteProgressByGoalId(goalId: string): Promise<void> {
     try {
       const progress = await this.getAllProgress();
+      const progressToDelete = progress.filter(p => p.goalId === goalId);
       const filteredProgress = progress.filter(p => p.goalId !== goalId);
+      
+      // Subtract XP for each deleted progress entry (apply same logic as individual deleteProgress)
+      const goal = await this.getById(goalId);
+      if (goal) {
+        for (const deletedProgress of progressToDelete) {
+          await this.subtractGoalProgressXP(goal, deletedProgress);
+        }
+      }
       
       await BaseStorage.set(STORAGE_KEYS.GOAL_PROGRESS, filteredProgress);
     } catch (error) {
@@ -594,23 +614,28 @@ export class GoalStorage implements EntityStorage<Goal> {
   }
 
   /**
-   * Award XP for goal progress (35 XP, max once per goal per day)
+   * Award XP for goal progress (35 XP, max 3 times per goal per day)
    */
   private async awardProgressXP(goal: Goal): Promise<void> {
     try {
-      // Check if we already awarded progress XP for this goal today
-      const todayString = today();
-      const todayProgress = await this.getProgressByGoalId(goal.id);
-      const todayProgressEntries = todayProgress.filter(p => p.date === todayString);
+      // Check daily limit first
+      const canReceiveXP = await this.canGoalReceivePositiveXP(goal.id);
       
-      // Only award XP for the first progress entry of the day for this goal
-      if (todayProgressEntries.length === 1) {
-        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-          source: XPSourceType.GOAL_PROGRESS,
-          sourceId: goal.id,
-          description: `Added progress to goal: ${goal.title}`,
-        });
+      if (!canReceiveXP) {
+        console.log(`🚫 Goal ${goal.title} has reached daily XP limit (${GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL}/day)`);
+        return;
       }
+
+      // Award XP
+      await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+        source: XPSourceType.GOAL_PROGRESS,
+        sourceId: goal.id,
+        description: `Added progress to goal: ${goal.title}`,
+      });
+      
+      // Update tracking (positive XP)
+      await this.updateGoalDailyXPTracking(goal.id, true);
+      
     } catch (error) {
       console.error('Failed to award progress XP:', error);
     }
@@ -665,53 +690,155 @@ export class GoalStorage implements EntityStorage<Goal> {
   }
 
   /**
-   * Subtract XP for deleted goal progress entry
-   * Only subtract progress XP if this was the first (and only) progress for this goal today
+   * Handle XP for deleted goal progress entry based on progress type
+   * ADD/SET progress deletion: subtract XP and reduce daily limit
+   * SUBTRACT progress deletion: add XP back and increase available daily limit
    */
   private async subtractGoalProgressXP(goal: Goal, deletedProgress: GoalProgress): Promise<void> {
     try {
-      // Check if this was the only progress entry for this goal today
-      const todayString = today();
-      if (deletedProgress.date !== todayString) {
-        // Only subtract XP for today's progress deletions
-        return;
-      }
-
-      const todayProgress = await this.getProgressByGoalId(goal.id);
-      const todayProgressEntries = todayProgress.filter(p => p.date === todayString);
-      
-      // Only subtract XP if this was the only progress entry for today
-      // (meaning user will have 0 progress entries for this goal today after deletion)
-      if (todayProgressEntries.length === 1 && todayProgressEntries[0]?.id === deletedProgress.id) {
+      if (deletedProgress.progressType === 'subtract') {
+        // Deleting a SUBTRACT progress should ADD XP back (reverse the previous subtraction)
+        // This also reduces daily negative count, effectively increasing available positive XP slots
+        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+          source: XPSourceType.GOAL_PROGRESS,
+          sourceId: goal.id,
+          description: `Removed negative progress from goal: ${goal.title} (+${deletedProgress.value})`,
+        });
+        
+        // Update tracking (positive XP from deleting negative)
+        await this.updateGoalDailyXPTracking(goal.id, true);
+        
+      } else {
+        // Deleting an ADD/SET progress should SUBTRACT XP (reverse the previous addition)
+        // This also reduces daily positive count, allowing more positive XP in the future
         await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
           source: XPSourceType.GOAL_PROGRESS,
           sourceId: goal.id,
-          description: `Removed progress from goal: ${goal.title}`,
+          description: `Removed progress from goal: ${goal.title} (-${deletedProgress.value})`,
         });
+        
+        // Update tracking (negative XP from deleting positive)
+        await this.updateGoalDailyXPTracking(goal.id, false);
       }
     } catch (error) {
-      console.error('Failed to subtract goal progress XP:', error);
+      console.error('Failed to handle goal progress deletion XP:', error);
       // Don't throw - XP failure shouldn't block goal deletion
     }
   }
 
   /**
-   * Subtract XP for "subtract" progress type
-   * Subtracts the same amount as was awarded for progress (1:1 ratio)
+   * Subtract XP for "subtract" progress type and update tracking
    */
   private async subtractGoalProgressXPForSubtract(goal: Goal, subtractValue: number): Promise<void> {
     try {
-      // Subtract the same XP amount as was awarded for progress entry (1:1 ratio)
-      const xpToSubtract = XP_REWARDS.GOALS.PROGRESS_ENTRY;
-
-      await GamificationService.subtractXP(xpToSubtract, {
+      // Subtract XP for negative progress
+      await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
         source: XPSourceType.GOAL_PROGRESS,
         sourceId: goal.id,
         description: `Subtracted progress from goal: ${goal.title} (-${subtractValue})`,
       });
+      
+      // Update tracking (negative XP operation - this reduces daily limit for positive XP)
+      await this.updateGoalDailyXPTracking(goal.id, false);
+      
     } catch (error) {
       console.error('Failed to subtract XP for goal subtract:', error);
       // Don't throw - XP failure shouldn't block goal operations
+    }
+  }
+
+  // ========================================
+  // DAILY XP TRACKING SYSTEM
+  // ========================================
+
+  /**
+   * Get today's XP tracking data for a specific goal
+   */
+  private async getGoalDailyXPData(goalId: string): Promise<GoalDailyXPData> {
+    try {
+      const todayString = today();
+      const allTrackingData = await BaseStorage.get<GoalDailyXPData[]>(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING) || [];
+      
+      // Find today's data for this goal
+      let goalData = allTrackingData.find(data => data.date === todayString && data.goalId === goalId);
+      
+      if (!goalData) {
+        // Create new tracking data for this goal today
+        goalData = {
+          date: todayString,
+          goalId,
+          positiveXPCount: 0,
+          negativeXPCount: 0,
+        };
+        allTrackingData.push(goalData);
+        await BaseStorage.set(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING, allTrackingData);
+      }
+      
+      return goalData;
+    } catch (error) {
+      console.error('Failed to get goal daily XP data:', error);
+      // Return default data on error
+      return {
+        date: today(),
+        goalId,
+        positiveXPCount: 0,
+        negativeXPCount: 0,
+      };
+    }
+  }
+
+  /**
+   * Update daily XP tracking for a goal
+   */
+  private async updateGoalDailyXPTracking(goalId: string, isPositiveXP: boolean): Promise<void> {
+    try {
+      const todayString = today();
+      const allTrackingData = await BaseStorage.get<GoalDailyXPData[]>(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING) || [];
+      
+      // Find or create today's data for this goal
+      let goalDataIndex = allTrackingData.findIndex(data => data.date === todayString && data.goalId === goalId);
+      
+      if (goalDataIndex === -1) {
+        // Create new tracking data
+        allTrackingData.push({
+          date: todayString,
+          goalId,
+          positiveXPCount: isPositiveXP ? 1 : 0,
+          negativeXPCount: isPositiveXP ? 0 : 1,
+        });
+      } else {
+        // Update existing data
+        const existingData = allTrackingData[goalDataIndex];
+        if (existingData) {
+          if (isPositiveXP) {
+            existingData.positiveXPCount += 1;
+          } else {
+            existingData.negativeXPCount += 1;
+          }
+        }
+      }
+      
+      await BaseStorage.set(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING, allTrackingData);
+    } catch (error) {
+      console.error('Failed to update goal daily XP tracking:', error);
+    }
+  }
+
+  /**
+   * Check if goal can receive positive XP today (within daily limit)
+   */
+  private async canGoalReceivePositiveXP(goalId: string): Promise<boolean> {
+    try {
+      const dailyData = await this.getGoalDailyXPData(goalId);
+      
+      // Calculate effective positive XP count (positive XP - negative XP)
+      // Negative XP reduces the limit, allowing more positive XP
+      const effectivePositiveCount = Math.max(0, dailyData.positiveXPCount - dailyData.negativeXPCount);
+      
+      return effectivePositiveCount < GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL;
+    } catch (error) {
+      console.error('Failed to check goal XP limit:', error);
+      return false; // Conservative approach - deny on error
     }
   }
 

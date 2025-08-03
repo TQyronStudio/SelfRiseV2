@@ -113,12 +113,15 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Calculate XP to subtract BEFORE deletion and reordering
       const deletedGratitude = gratitudes.find(g => g.id === id);
       if (deletedGratitude) {
-        // Get all entries for this date in order to determine original position
+        // Get all entries for this date to determine true position (not based on order field)
         const sameDateEntries = gratitudes
           .filter(g => g.date === deletedGratitude.date)
-          .sort((a, b) => a.order - b.order);
+          .sort((a, b) => {
+            // Sort by creation time to get true chronological order
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          });
         
-        // Find original position (1-based index) of deleted entry
+        // Find original position (1-based index) based on chronological creation order
         const originalPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
         
         // Subtract XP for the deleted entry

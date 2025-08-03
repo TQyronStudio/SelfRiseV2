@@ -130,6 +130,30 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
   // CORE ACTIONS
   // ========================================
 
+  // Define refreshStats first to avoid circular dependency
+  const refreshStats = useCallback(async (): Promise<void> => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const [totalXP, multiplierInfo] = await Promise.all([
+        GamificationService.getTotalXP(),
+        GamificationService.getActiveXPMultiplier(),
+      ]);
+
+      dispatch({
+        type: 'UPDATE_STATS',
+        payload: {
+          totalXP,
+          multiplierActive: multiplierInfo.isActive,
+          multiplierEndTime: multiplierInfo.endTime,
+        }
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh stats';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+    }
+  }, []);
+
   const addXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
     try {
       const result = await GamificationService.addXP(amount, options);
@@ -145,8 +169,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
           }
         });
         
-        // Refresh full stats in background for accuracy
-        setTimeout(() => refreshStats(), 0);
+        // Refresh full stats in background for accuracy - use immediate call for faster updates
+        refreshStats();
       }
       
       return result;
@@ -183,8 +207,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
           }
         });
         
-        // Refresh full stats in background for accuracy
-        setTimeout(() => refreshStats(), 0);
+        // Refresh full stats in background for accuracy - use immediate call for faster updates
+        refreshStats();
       }
       
       return result;
@@ -205,29 +229,6 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
       };
     }
   }, [state.totalXP, state.currentLevel, state.multiplierActive, state.multiplierEndTime, refreshStats]);
-
-  const refreshStats = useCallback(async (): Promise<void> => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
-      const [totalXP, multiplierInfo] = await Promise.all([
-        GamificationService.getTotalXP(),
-        GamificationService.getActiveXPMultiplier(),
-      ]);
-
-      dispatch({
-        type: 'UPDATE_STATS',
-        payload: {
-          totalXP,
-          multiplierActive: multiplierInfo.isActive,
-          multiplierEndTime: multiplierInfo.endTime,
-        }
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh stats';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
-    }
-  }, []);
 
   const resetData = useCallback(async (): Promise<void> => {
     try {

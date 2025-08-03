@@ -219,9 +219,9 @@ export class HabitStorage implements EntityStorage<Habit> {
       completions.push(newCompletion);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);
       
-      // Add XP rewards asynchronously (don't block UI) - only if enabled
+      // Add XP rewards immediately for instant UI feedback - only if enabled
       if (HabitStorage.XP_ENABLED) {
-        this.awardHabitCompletionXPAsync(habitId, isBonus);
+        await this.awardHabitCompletionXP(habitId, isBonus);
       }
       
       return newCompletion;
@@ -287,9 +287,9 @@ export class HabitStorage implements EntityStorage<Habit> {
       const filteredCompletions = completions.filter(completion => completion.id !== id);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, filteredCompletions);
       
-      // Subtract XP for the removed completion (only if XP is enabled)
+      // Subtract XP for the removed completion immediately for instant UI feedback (only if XP is enabled)
       if (HabitStorage.XP_ENABLED && habit) {
-        this.awardHabitUncompleteXPAsync(completionToDelete.habitId, completionToDelete.isBonus || false);
+        await this.awardHabitUncompleteXP(completionToDelete.habitId, completionToDelete.isBonus || false);
       }
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -420,6 +420,15 @@ export class HabitStorage implements EntityStorage<Habit> {
 
       if (result.success) {
         console.log(`✅ XP successfully awarded: ${result.xpGained} XP (${result.totalXP} total)`);
+        
+        // Check streak milestones on background (don't block UI)
+        setTimeout(async () => {
+          try {
+            await this.checkAndAwardStreakMilestones(habitId);
+          } catch (error) {
+            console.error('Background streak milestone processing error:', error);
+          }
+        }, 0);
       } else {
         console.log(`❌ XP award failed: ${result.error}`);
       }

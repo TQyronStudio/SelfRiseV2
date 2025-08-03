@@ -686,9 +686,15 @@ export class GamificationService {
     try {
       const dailyData = await this.getDailyXPData();
       
-      dailyData.totalXP += amount;
-      dailyData.xpBySource[source] = (dailyData.xpBySource[source] || 0) + amount;
-      dailyData.transactionCount += 1;
+      // Update totals, ensuring they don't go negative (daily tracking should never be negative)
+      dailyData.totalXP = Math.max(0, dailyData.totalXP + amount);
+      dailyData.xpBySource[source] = Math.max(0, (dailyData.xpBySource[source] || 0) + amount);
+      
+      // Only increment transaction count for positive XP (additions), not for negative XP (subtractions)
+      if (amount > 0) {
+        dailyData.transactionCount += 1;
+      }
+      
       dailyData.lastTransactionTime = Date.now();
 
       await AsyncStorage.setItem(STORAGE_KEYS.DAILY_XP_TRACKING, JSON.stringify(dailyData));
