@@ -286,14 +286,16 @@ export function useHabitsData() {
           if (completion?.completed) {
             scheduledCompletions.push(completion);
           } else {
-            // Only count missed days in the past (not future scheduled days)
+            // Count missed days in the past AND today (not future scheduled days)
             // AND only count days AFTER habit was created
             const dateObj = parseDate(date);
             const today = new Date();
+            const todayStr = formatDateToString(today);
             const habitCreationDate = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
             const creationDateString = formatDateToString(habitCreationDate);
             
-            if (dateObj < today && date !== formatDateToString(today) && date >= creationDateString) {
+            // Include today in missed days for display purposes (will show as gray in charts)
+            if ((dateObj < today || date === todayStr) && date >= creationDateString) {
               missedScheduledDays.push(date);
             }
           }

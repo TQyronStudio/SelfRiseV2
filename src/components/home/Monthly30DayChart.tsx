@@ -29,6 +29,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       // Count completions using Smart Bonus Conversion logic
       let scheduledCompletions = 0;
       let bonusCompletions = 0;
+      let coveredMissedDays = 0; // Track covered missed days (shouldn't count as missed)
       
       // Filter habits that existed on this date (for reference)
       const existingHabits = activeHabits.filter(habit => {
@@ -37,23 +38,26 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       });
       
       habitsOnDate.forEach(h => {
-        if (!h.isCompleted) return;
-        
         const completion = h.completion;
         const isScheduledForThisDay = scheduledHabits.some(sh => sh.id === h.id);
         
-        if (completion?.isBonus && !completion?.isConverted) {
-          // Regular bonus (not converted)
-          bonusCompletions++;
-        } else if (completion?.isConverted && completion?.convertedFromDate) {
-          // Makeup completion (bonus converted to cover missed day)
-          scheduledCompletions++;
-        } else if (isScheduledForThisDay && !completion?.isBonus) {
-          // Normal scheduled completion
-          scheduledCompletions++;
-        } else if (!isScheduledForThisDay && !completion?.isBonus) {
-          // This shouldn't happen with proper conversion logic
-          bonusCompletions++;
+        if (h.isCompleted) {
+          if (completion?.isBonus && !completion?.isConverted) {
+            // Regular bonus (not converted)
+            bonusCompletions++;
+          } else if (completion?.isConverted && completion?.convertedFromDate) {
+            // Makeup completion (bonus converted to cover missed day)
+            scheduledCompletions++;
+          } else if (isScheduledForThisDay && !completion?.isBonus) {
+            // Normal scheduled completion
+            scheduledCompletions++;
+          } else if (!isScheduledForThisDay && !completion?.isBonus) {
+            // This shouldn't happen with proper conversion logic
+            bonusCompletions++;
+          }
+        } else if (completion?.isCovered) {
+          // Missed day that is covered by makeup - don't count as missed
+          coveredMissedDays++;
         }
       });
       
@@ -61,6 +65,8 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       const bonusCount = bonusCompletions;
       const totalScheduled = scheduledHabits.length;
       const totalCompleted = scheduledCount + bonusCount;
+      // Calculate actual missed days (total scheduled - completed - covered)
+      const actualMissedDays = Math.max(0, totalScheduled - scheduledCount - coveredMissedDays);
       
       const completionRate = totalScheduled > 0 ? (scheduledCount / totalScheduled) * 100 : 0;
       
@@ -75,6 +81,9 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
         bonusCount,
         totalScheduled,
         totalCompleted,
+        actualMissedDays, // Add actualMissedDays to data
+        // Calculate actual visible bar height (completed + bonus)
+        visibleBarHeight: scheduledCount + bonusCount,
         completionRate,
         isToday: today() === dateStr
       };
@@ -104,7 +113,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
   };
 
   const maxHabitsPerDay = useMemo(() => {
-    return Math.max(...monthData.map(day => day.totalScheduled + day.bonusCount), 1);
+    return Math.max(...monthData.map(day => day.actualMissedDays + day.scheduledCount + day.bonusCount), 1);
   }, [monthData]);
 
   const actualDataPeriod = useMemo(() => {
@@ -135,15 +144,15 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
           <View key={day.date} style={styles.dayColumn}>
             {/* Unified Stacked Bar */}
             <View style={styles.barContainer}>
-              {(day.totalScheduled > 0 || day.bonusCount > 0) && (
-                <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.totalScheduled + day.bonusCount, maxHabitsPerDay) }]}>
-                  {/* Red/Gray section for missed tasks (bottom) */}
-                  {(day.totalScheduled - day.scheduledCount) > 0 && (
+              {(day.actualMissedDays > 0 || day.scheduledCount > 0 || day.bonusCount > 0) && (
+                <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.actualMissedDays + day.scheduledCount + day.bonusCount, maxHabitsPerDay) }]}>
+                  {/* Red/Gray section for missed tasks (bottom) - now using actualMissedDays */}
+                  {day.actualMissedDays > 0 && (
                     <View 
                       style={[
                         styles.barSection,
                         {
-                          height: getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay),
+                          height: getBarHeightForCount(day.actualMissedDays, maxHabitsPerDay),
                           backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
                           bottom: 0,
                         }
@@ -159,7 +168,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                         {
                           height: getBarHeightForCount(day.scheduledCount, maxHabitsPerDay),
                           backgroundColor: Colors.success,
-                          bottom: (day.totalScheduled - day.scheduledCount) > 0 ? getBarHeightForCount(day.totalScheduled - day.scheduledCount, maxHabitsPerDay) : 0,
+                          bottom: day.actualMissedDays > 0 ? getBarHeightForCount(day.actualMissedDays, maxHabitsPerDay) : 0,
                         }
                       ]} 
                     />
@@ -173,7 +182,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                         {
                           height: getBarHeightForCount(day.bonusCount, maxHabitsPerDay),
                           backgroundColor: Colors.gold,
-                          bottom: getBarHeightForCount(day.totalScheduled, maxHabitsPerDay),
+                          bottom: getBarHeightForCount(day.actualMissedDays + day.scheduledCount, maxHabitsPerDay),
                         }
                       ]} 
                     />
