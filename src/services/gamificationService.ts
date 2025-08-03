@@ -243,6 +243,92 @@ export class GamificationService {
   }
 
   /**
+   * Subtract XP (for reversing actions like un-completing habits)
+   */
+  static async subtractXP(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
+    try {
+      // Input validation
+      if (amount <= 0) {
+        const totalXP = await this.getTotalXP();
+        return {
+          success: false,
+          xpGained: 0,
+          totalXP,
+          previousLevel: getCurrentLevel(totalXP),
+          newLevel: getCurrentLevel(totalXP),
+          leveledUp: false,
+          milestoneReached: false,
+          error: 'XP amount to subtract must be positive'
+        };
+      }
+
+      const currentTotalXP = await this.getTotalXP();
+      const previousLevel = getCurrentLevel(currentTotalXP);
+      
+      // Create negative XP transaction
+      const transaction: XPTransaction = {
+        id: `xp_subtract_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        amount: -amount, // Negative amount for subtraction
+        source: options.source,
+        ...(options.sourceId && { sourceId: options.sourceId }),
+        description: options.description || `Subtracted ${amount} XP from ${options.source}`,
+        date: today(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Calculate new total (ensure it doesn't go below 0)
+      const newTotalXP = Math.max(0, currentTotalXP - amount);
+      const newLevel = getCurrentLevel(newTotalXP);
+      const leveledDown = newLevel < previousLevel;
+      
+      // Store transaction
+      await this.saveTransaction(transaction);
+      
+      // Update total XP
+      await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
+      
+      // Update source tracking (subtract from source)
+      await this.updateXPBySource(options.source, -amount);
+      
+      // Log the subtraction
+      console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
+      if (leveledDown) {
+        console.log(`📉 Level decreased: ${previousLevel} → ${newLevel}`);
+      }
+
+      // Trigger visual feedback for XP loss (red/negative animation)
+      if (!options.skipNotification) {
+        this.triggerXPAnimation(-amount, options.source, options.metadata?.position);
+      }
+
+      return {
+        success: true,
+        xpGained: -amount,
+        totalXP: newTotalXP,
+        previousLevel,
+        newLevel,
+        leveledUp: false,
+        milestoneReached: false,
+        transaction
+      };
+
+    } catch (error) {
+      console.error('GamificationService.subtractXP error:', error);
+      return {
+        success: false,
+        xpGained: 0,
+        totalXP: await this.getTotalXP(),
+        previousLevel: 0,
+        newLevel: 0,
+        leveledUp: false,
+        milestoneReached: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Get user's total accumulated XP
    */
   static async getTotalXP(): Promise<number> {
@@ -739,11 +825,23 @@ export class GamificationService {
     milestoneReached: boolean
   ): Promise<void> {
     try {
-      // Implementation will be completed when notification system is built
-      // For now, just log important events
       if (leveledUp) {
-        console.log(`🎉 Level up! Transaction: ${transaction.amount} XP from ${transaction.source}`);
+        const newLevel = getCurrentLevel(await this.getTotalXP());
+        const levelInfo = getLevelInfo(newLevel);
+        
+        // Trigger level-up celebration via event system
+        DeviceEventEmitter.emit('levelUp', {
+          newLevel,
+          levelTitle: levelInfo.title,
+          levelDescription: levelInfo.description || '',
+          isMilestone: levelInfo.isMilestone,
+          source: transaction.source,
+          timestamp: Date.now()
+        });
+        
+        console.log(`🎉 Level up celebration triggered: Level ${newLevel} (${levelInfo.title})`);
       }
+      
       if (milestoneReached) {
         console.log(`🏆 Milestone reached! Transaction: ${transaction.amount} XP from ${transaction.source}`);
       }
@@ -766,7 +864,7 @@ export class GamificationService {
       const eventData = {
         amount,
         source,
-        position: position || { x: 0, y: 0 },
+        position: position || { x: 50, y: 130 }, // Default to better position
         timestamp: Date.now(),
       };
 
@@ -780,7 +878,8 @@ export class GamificationService {
         timestamp: Date.now(),
       });
       
-      console.log(`✨ XP Animation triggered: +${amount} XP from ${source}`);
+      const sign = amount >= 0 ? '+' : '';
+      console.log(`✨ XP Animation triggered: ${sign}${amount} XP from ${source}`);
     } catch (error) {
       console.error('GamificationService.triggerXPAnimation error:', error);
     }

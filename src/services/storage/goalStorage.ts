@@ -257,8 +257,14 @@ export class GoalStorage implements EntityStorage<Goal> {
         completedDate: updatedGoal.completedDate || undefined
       });
 
-      // Award XP asynchronously to prevent UI lag
-      this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, updatedGoal.status === GoalStatus.COMPLETED);
+      // Award/subtract XP based on progress type asynchronously to prevent UI lag
+      if (input.progressType === 'subtract') {
+        // Subtract XP for negative progress
+        this.subtractGoalProgressXPForSubtract(goal, input.value);
+      } else {
+        // Award XP for positive progress (add/set)
+        this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, updatedGoal.status === GoalStatus.COMPLETED);
+      }
 
       return newProgress;
     } catch (error) {
@@ -319,6 +325,14 @@ export class GoalStorage implements EntityStorage<Goal> {
           STORAGE_ERROR_CODES.NOT_FOUND,
           STORAGE_KEYS.GOAL_PROGRESS
         );
+      }
+
+      // Get goal info for XP calculation
+      const goal = await this.getById(progressToDelete.goalId);
+      
+      // Subtract XP for deleted progress entry before removing it
+      if (goal) {
+        await this.subtractGoalProgressXP(goal, progressToDelete);
       }
 
       const filteredProgress = progress.filter(p => p.id !== id);
@@ -647,6 +661,64 @@ export class GoalStorage implements EntityStorage<Goal> {
       });
     } catch (error) {
       console.error('Failed to award completion XP:', error);
+    }
+  }
+
+  /**
+   * Subtract XP for deleted goal progress entry
+   * Only subtract progress XP if this was the first (and only) progress for this goal today
+   */
+  private async subtractGoalProgressXP(goal: Goal, deletedProgress: GoalProgress): Promise<void> {
+    try {
+      // Check if this was the only progress entry for this goal today
+      const todayString = today();
+      if (deletedProgress.date !== todayString) {
+        // Only subtract XP for today's progress deletions
+        return;
+      }
+
+      const todayProgress = await this.getProgressByGoalId(goal.id);
+      const todayProgressEntries = todayProgress.filter(p => p.date === todayString);
+      
+      // Only subtract XP if this was the only progress entry for today
+      // (meaning user will have 0 progress entries for this goal today after deletion)
+      if (todayProgressEntries.length === 1 && todayProgressEntries[0]?.id === deletedProgress.id) {
+        await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+          source: XPSourceType.GOAL_PROGRESS,
+          sourceId: goal.id,
+          description: `Removed progress from goal: ${goal.title}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to subtract goal progress XP:', error);
+      // Don't throw - XP failure shouldn't block goal deletion
+    }
+  }
+
+  /**
+   * Subtract XP for "subtract" progress type
+   * Awards negative progress XP to discourage subtracting from goals
+   */
+  private async subtractGoalProgressXPForSubtract(goal: Goal, subtractValue: number): Promise<void> {
+    try {
+      // Calculate proportional XP to subtract based on how much progress was removed
+      // Base: 35 XP for full progress entry, scale proportionally
+      const baseXP = XP_REWARDS.GOALS.PROGRESS_ENTRY;
+      
+      // Calculate what percentage of goal this subtract represents
+      const subtractPercentage = goal.targetValue > 0 ? (subtractValue / goal.targetValue) * 100 : 0;
+      
+      // Scale XP proportionally, but with minimum of 10 XP and maximum of base XP
+      const xpToSubtract = Math.min(baseXP, Math.max(10, Math.round(baseXP * (subtractPercentage / 10))));
+
+      await GamificationService.subtractXP(xpToSubtract, {
+        source: XPSourceType.GOAL_PROGRESS,
+        sourceId: goal.id,
+        description: `Subtracted ${subtractValue} from goal: ${goal.title}`,
+      });
+    } catch (error) {
+      console.error('Failed to subtract XP for goal subtract:', error);
+      // Don't throw - XP failure shouldn't block goal operations
     }
   }
 

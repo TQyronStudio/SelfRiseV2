@@ -110,9 +110,21 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         );
       }
 
-      // Reorder remaining gratitudes for the same date
+      // Calculate XP to subtract BEFORE deletion and reordering
       const deletedGratitude = gratitudes.find(g => g.id === id);
       if (deletedGratitude) {
+        // Get all entries for this date in order to determine original position
+        const sameDateEntries = gratitudes
+          .filter(g => g.date === deletedGratitude.date)
+          .sort((a, b) => a.order - b.order);
+        
+        // Find original position (1-based index) of deleted entry
+        const originalPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
+        
+        // Subtract XP for the deleted entry
+        await this.subtractJournalXP(originalPosition, deletedGratitude.date);
+        
+        // Reorder remaining gratitudes for the same date
         const sameDate = filteredGratitudes.filter(g => g.date === deletedGratitude.date);
         const reorderedGratitudes = filteredGratitudes.map(gratitude => {
           if (gratitude.date === deletedGratitude.date) {
@@ -1093,6 +1105,60 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       }
     } catch (error) {
       console.error('GratitudeStorage.checkAndAwardStreakMilestones error:', error);
+    }
+  }
+
+  /**
+   * Subtract XP for deleted journal entry based on its original position
+   * 
+   * @param originalPosition Original position of deleted entry (1-based)
+   * @param date Date of the deleted entry
+   */
+  private async subtractJournalXP(originalPosition: number, date: DateString): Promise<void> {
+    try {
+      // Calculate XP to subtract based on original position
+      let xpToSubtract = 0;
+      let xpSourceType: XPSourceType;
+      let description = '';
+
+      if (originalPosition <= 3) {
+        // First 3 entries: subtract 20 XP each
+        xpToSubtract = XP_REWARDS.JOURNAL.FIRST_ENTRY;
+        xpSourceType = XPSourceType.JOURNAL_ENTRY;
+        description = `Removed journal entry #${originalPosition}`;
+      } else if (originalPosition <= 13) {
+        // Entries 4-13: subtract 8 XP each (bonus entries)
+        xpToSubtract = XP_REWARDS.JOURNAL.BONUS_ENTRY;
+        xpSourceType = XPSourceType.JOURNAL_BONUS;
+        description = `Removed bonus journal entry #${originalPosition}`;
+      } else {
+        // Entries 14+: no XP to subtract (they didn't give any)
+        return;
+      }
+
+      // Calculate total XP to subtract including milestones
+      let totalXP = xpToSubtract;
+      let descriptions: string[] = [description];
+
+      // Check for milestone XP to subtract
+      const milestoneXP = await this.getMilestoneXPData(originalPosition, date);
+      if (milestoneXP.xp > 0) {
+        totalXP += milestoneXP.xp;
+        descriptions.push(`Removed ${milestoneXP.description.toLowerCase()}`);
+      }
+
+      // Subtract XP in single transaction
+      if (totalXP > 0) {
+        await GamificationService.subtractXP(totalXP, {
+          source: xpSourceType,
+          description: descriptions.join(' + '),
+          sourceId: `journal_subtract_${date}_${originalPosition}`,
+        });
+      }
+
+    } catch (error) {
+      console.error('GratitudeStorage.subtractJournalXP error:', error);
+      // Don't throw - XP failure shouldn't block gratitude deletion
     }
   }
 

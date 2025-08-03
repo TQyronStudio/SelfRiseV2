@@ -2,14 +2,14 @@ import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';
 import { DateString } from '../../types/common';
-// Lazy import gamification modules only when XP is enabled
-// import { GamificationService } from '../gamificationService';
-// import { XPSourceType } from '../../types/gamification';
-// import { XP_REWARDS } from '../../constants/gamification';
+// Gamification imports for XP system
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 export class HabitStorage implements EntityStorage<Habit> {
-  // Debug flag to temporarily disable XP operations during testing
-  private static XP_ENABLED = false; // TEMPORARILY DISABLED FOR DEBUGGING
+  // XP system enabled for habit completions
+  private static XP_ENABLED = true;
   // Habit CRUD operations
   async getAll(): Promise<Habit[]> {
     try {
@@ -270,9 +270,9 @@ export class HabitStorage implements EntityStorage<Habit> {
   async deleteCompletion(id: string): Promise<void> {
     try {
       const completions = await this.getAllCompletions();
-      const filteredCompletions = completions.filter(completion => completion.id !== id);
+      const completionToDelete = completions.find(completion => completion.id === id);
       
-      if (filteredCompletions.length === completions.length) {
+      if (!completionToDelete) {
         throw new StorageError(
           `Completion with id ${id} not found`,
           STORAGE_ERROR_CODES.NOT_FOUND,
@@ -280,7 +280,17 @@ export class HabitStorage implements EntityStorage<Habit> {
         );
       }
 
+      // Get habit info for XP calculation
+      const habit = await this.getById(completionToDelete.habitId);
+      
+      // Remove completion from storage first
+      const filteredCompletions = completions.filter(completion => completion.id !== id);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, filteredCompletions);
+      
+      // Subtract XP for the removed completion (only if XP is enabled)
+      if (HabitStorage.XP_ENABLED && habit) {
+        this.awardHabitUncompleteXPAsync(completionToDelete.habitId, completionToDelete.isBonus || false);
+      }
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(
@@ -331,7 +341,7 @@ export class HabitStorage implements EntityStorage<Habit> {
   }
 
   // Bulk operations
-  async updateHabitOrder(habitOrders: Array<{ id: string; order: number }>): Promise<void> {
+  async updateHabitOrder(habitOrders: { id: string; order: number }[]): Promise<void> {
     try {
       const habits = await this.getAll();
       const updates = new Map(habitOrders.map(item => [item.id, item.order]));
@@ -363,13 +373,17 @@ export class HabitStorage implements EntityStorage<Habit> {
    * @param isBonus Whether this is a bonus completion
    */
   private awardHabitCompletionXPAsync(habitId: string, isBonus: boolean): void {
-    // Defer XP operations to next tick to avoid blocking UI
+    // Award basic XP immediately for instant UI feedback
+    this.awardHabitCompletionXP(habitId, isBonus).catch(error => {
+      console.error('Error awarding immediate XP:', error);
+    });
+    
+    // Defer streak milestone checks to next tick (these are heavier operations)
     setTimeout(async () => {
       try {
-        await this.awardHabitCompletionXP(habitId, isBonus);
         await this.checkAndAwardStreakMilestones(habitId);
       } catch (error) {
-        console.error('Background XP processing error:', error);
+        console.error('Background streak milestone processing error:', error);
       }
     }, 0);
   }
@@ -381,11 +395,6 @@ export class HabitStorage implements EntityStorage<Habit> {
    */
   private async awardHabitCompletionXP(habitId: string, isBonus: boolean): Promise<void> {
     try {
-      // Lazy import gamification modules
-      const { GamificationService } = await import('../gamificationService');
-      const { XPSourceType } = await import('../../types/gamification');
-      const { XP_REWARDS } = await import('../../constants/gamification');
-
       const habit = await this.getById(habitId);
       if (!habit) return;
 
@@ -402,6 +411,45 @@ export class HabitStorage implements EntityStorage<Habit> {
 
     } catch (error) {
       console.error('Error awarding habit completion XP:', error);
+      // Don't throw error - XP is bonus functionality
+    }
+  }
+
+  /**
+   * Subtract XP for habit un-completion asynchronously (non-blocking)
+   * @param habitId ID of un-completed habit  
+   * @param isBonus Whether this was a bonus completion
+   */
+  private awardHabitUncompleteXPAsync(habitId: string, isBonus: boolean): void {
+    // Subtract XP immediately for instant UI feedback
+    this.awardHabitUncompleteXP(habitId, isBonus).catch(error => {
+      console.error('Error subtracting habit XP:', error);
+    });
+  }
+
+  /**
+   * Subtract XP for habit un-completion
+   * @param habitId ID of un-completed habit
+   * @param isBonus Whether this was a bonus completion
+   */
+  private async awardHabitUncompleteXP(habitId: string, isBonus: boolean): Promise<void> {
+    try {
+      const habit = await this.getById(habitId);
+      if (!habit) return;
+
+      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+
+      await GamificationService.subtractXP(xpAmount, {
+        source: xpSource,
+        sourceId: habitId,
+        description: isBonus ? 
+          `Removed bonus habit completion: ${habit.name}` : 
+          `Removed scheduled habit completion: ${habit.name}`
+      });
+
+    } catch (error) {
+      console.error('Error subtracting habit completion XP:', error);
       // Don't throw error - XP is bonus functionality
     }
   }

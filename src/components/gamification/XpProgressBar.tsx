@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useLevel } from '../../contexts/GamificationContext';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
-import { LEVEL_PROGRESSION } from '../../constants/gamification';
+// import { LEVEL_PROGRESSION } from '../../constants/gamification'; // Unused
 import { SafeLinearGradient } from '../common';
 
 interface XpProgressBarProps {
@@ -176,7 +176,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
 
   // Get next level for display
   const nextLevel = currentLevel + 1;
-  const nextLevelInfo = getLevelInfo(nextLevel);
+  // const nextLevelInfo = getLevelInfo(nextLevel); // Unused
   
   // Get responsive badge size
   const getResponsiveBadgeSize = () => {

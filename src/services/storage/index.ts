@@ -1,19 +1,13 @@
 // Main storage service exports
 export * from './base';
-export * from './habitStorage';
-export * from './gratitudeStorage';
-export * from './goalStorage';
-export * from './userStorage';
-export * from './migration';
-export * from './backup';
 
-// Storage service instances
-export { habitStorage } from './habitStorage';
-export { gratitudeStorage } from './gratitudeStorage';
-export { goalStorage } from './goalStorage';
-export { userStorage } from './userStorage';
-export { dataMigration } from './migration';
-export { dataBackup } from './backup';
+// Storage classes (avoid * export to prevent conflicts)
+export { HabitStorage, habitStorage } from './habitStorage';
+export { GratitudeStorage, gratitudeStorage } from './gratitudeStorage';
+export { GoalStorage, goalStorage } from './goalStorage';
+export { UserStorage, userStorage } from './userStorage';
+export { DataMigration, dataMigration } from './migration';
+export { DataBackup, dataBackup } from './backup';
 
 // Storage service initialization
 import { dataMigration } from './migration';

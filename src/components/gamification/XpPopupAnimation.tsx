@@ -3,13 +3,12 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  Animated, 
-  Dimensions 
+  Animated 
 } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
 
-const { height: screenHeight } = Dimensions.get('window');
+// const { height: screenHeight } = Dimensions.get('window'); // Unused
 
 interface XpPopupAnimationProps {
   visible: boolean;
@@ -32,6 +31,15 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
 
   // Get source-specific colors and icons
   const getSourceStyle = () => {
+    // For negative amounts, use red colors regardless of source
+    if (amount < 0) {
+      return {
+        color: '#F44336',
+        icon: '💸',
+        shadowColor: '#F44336',
+      };
+    }
+
     switch (source) {
       case XPSourceType.HABIT_COMPLETION:
       case XPSourceType.HABIT_BONUS:
@@ -148,7 +156,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
       <View style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]}>
         <Text style={styles.icon}>{sourceStyle.icon}</Text>
         <Text style={[styles.xpText, { color: sourceStyle.color }]}>
-          +{amount} XP
+          {amount >= 0 ? '+' : ''}{amount} XP
         </Text>
       </View>
     </Animated.View>

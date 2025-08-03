@@ -274,11 +274,11 @@ export interface GamificationNotification {
  */
 export interface BatchedXPNotification {
   totalXP: number;
-  sources: Array<{
+  sources: {
     type: XPSourceType;
     amount: number;
     count: number;
-  }>;
+  }[];
   timeWindow: number; // Milliseconds the batch was collected over
   timestamp: Date;
 }

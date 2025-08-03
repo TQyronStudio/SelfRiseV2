@@ -350,12 +350,12 @@ export class DataMigration {
   }
 
   // Get migration history (from backup keys)
-  async getMigrationHistory(): Promise<Array<{ version: number; timestamp: string; backupKey: string }>> {
+  async getMigrationHistory(): Promise<{ version: number; timestamp: string; backupKey: string }[]> {
     try {
       const allKeys = await BaseStorage.getAllKeys();
       const backupKeys = allKeys.filter(key => key.startsWith('backup_'));
       
-      const history: Array<{ version: number; timestamp: string; backupKey: string }> = [];
+      const history: { version: number; timestamp: string; backupKey: string }[] = [];
 
       for (const key of backupKeys) {
         try {

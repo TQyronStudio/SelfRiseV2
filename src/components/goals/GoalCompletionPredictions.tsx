@@ -31,21 +31,12 @@ interface PredictionInsight {
 export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoading = false }: GoalCompletionPredictionsProps) {
   const { t } = useI18n();
 
-  // If stats are not available, show loading or no data message
-  if (!stats) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.sectionTitle}>{t('goals.details.predictions')}</Text>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>
-            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see predictions.'}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   const predictions = useMemo(() => {
+    // If no stats, return empty predictions
+    if (!stats) {
+      return [];
+    }
+
     const today = new Date();
     const remainingValue = goal.targetValue - goal.currentValue;
     const results: PredictionData[] = [];
@@ -314,7 +305,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
     }
 
     // Progress rate analysis
-    if (stats.averageDaily > 0) {
+    if (stats && stats.averageDaily > 0) {
       const requiredRate = goal.targetDate ? 
         (goal.targetValue - goal.currentValue) / Math.ceil((new Date(goal.targetDate).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) :
         null;
@@ -336,7 +327,21 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
     return results;
   }, [predictions, goal, stats, t]);
 
-  const today = new Date();
+  // If stats are not available, show loading or no data message
+  if (!stats) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.sectionTitle}>{t('goals.details.predictions')}</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>
+            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see predictions.'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // const today = new Date(); // Unused in render
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

@@ -33,6 +33,7 @@ interface GamificationContextValue {
   
   // Core actions
   addXP: (amount: number, options: XPAdditionOptions) => Promise<XPTransactionResult>;
+  subtractXP: (amount: number, options: XPAdditionOptions) => Promise<XPTransactionResult>;
   refreshStats: () => Promise<void>;
   resetData: () => Promise<void>;
   
@@ -141,6 +142,34 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to add XP';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      
+      // Return failed result
+      return {
+        success: false,
+        xpGained: 0,
+        totalXP: state.totalXP,
+        previousLevel: state.currentLevel,
+        newLevel: state.currentLevel,
+        leveledUp: false,
+        milestoneReached: false,
+        error: errorMessage,
+      };
+    }
+  }, [state.totalXP, state.currentLevel]);
+
+  const subtractXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const result = await GamificationService.subtractXP(amount, options);
+      
+      // Update state with new totals
+      await refreshStats();
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to subtract XP';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       
       // Return failed result
@@ -283,6 +312,7 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
   const contextValue: GamificationContextValue = {
     state,
     addXP,
+    subtractXP,
     refreshStats,
     resetData,
     getFullStats,

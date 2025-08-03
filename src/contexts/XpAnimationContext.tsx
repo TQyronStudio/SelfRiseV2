@@ -186,13 +186,22 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     };
 
+    const handleLevelUp = (eventData: any) => {
+      if (eventData && eventData.newLevel && eventData.levelTitle) {
+        console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
+        // TODO: Implement global level-up celebration modal
+      }
+    };
+
     // Add event listeners for React Native using DeviceEventEmitter
     const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', handleXPGained);
     const smartNotificationSubscription = DeviceEventEmitter.addListener('xpSmartNotification', handleSmartNotification);
+    const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', handleLevelUp);
 
     return () => {
       xpGainedSubscription?.remove();
       smartNotificationSubscription?.remove();
+      levelUpSubscription?.remove();
     };
   }, [showSmartNotification]);
 
@@ -203,7 +212,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   const showXpPopup = useCallback((
     amount: number, 
     source: XPSourceType, 
-    position = { x: 0, y: 0 }
+    position = { x: 50, y: 130 } // Moved down further for better visibility
   ) => {
     if (!state.isAnimationEnabled) return;
 
