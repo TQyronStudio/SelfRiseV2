@@ -224,9 +224,10 @@ export default function DebtRecoveryModal({
     try {
       const success = await onWatchAd();
       if (success) {
-        // CRITICAL FIX: Check if ads are complete after this ad is watched
-        // adsWatched is already incremented by onWatchAd() callback
-        if (adsWatched >= totalAdsNeeded) {
+        // CRITICAL FIX: Calculate ads after increment (React state is async)
+        const newAdsWatched = adsWatched + 1;
+        
+        if (newAdsWatched >= totalAdsNeeded) {
           // All ads watched, recovery complete
           setTimeout(() => {
             onComplete();

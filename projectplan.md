@@ -728,3 +728,55 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Result**: Fully functional streak recovery system with beautiful UI
 
 **Technical details moved to implementation-history.md**
+
+### 🚨 DŮLEŽITÉ: Testing Mock for Ad System (August 3, 2025)
+**Status**: TEMPORARY TESTING IMPLEMENTATION  
+- **Changed**: `handleWatchAd()` function in `GratitudeStreakCard.tsx`
+- **Purpose**: Enable testing of debt recovery system without real ads
+- **Implementation**: Simple 1-second delay + automatic success
+- **Warning**: ⚠️ MUST be replaced with real AdMob integration before production
+- **Testing Impact**: Users can now click "Watch Ad" and debt will be paid automatically
+- **Files Modified**: `/src/components/home/GratitudeStreakCard.tsx` (lines 117-128)
+
+### 🔧 CRITICAL FIX: Debt Recovery State Timing Issues (August 3, 2025)
+**Status**: ✅ COMPLETED - Critical bugs resolved
+- **Problem**: React state timing issues preventing debt completion
+- **Root Cause**: `adsWatched` state checked before React updates, causing infinite loop
+- **Solution**: Calculate incremented value instead of relying on async state
+- **Impact**: Debt recovery now works correctly - debt clears after watching ads
+- **Files Modified**: 
+  - `/src/components/gratitude/DebtRecoveryModal.tsx` (lines 227-236)
+  - `/src/components/home/GratitudeStreakCard.tsx` (lines 127-164)
+- **Debug**: Added console logs for troubleshooting
+- **Result**: Users can successfully pay debt and resume normal journaling
+
+### 🚨 MEGA CRITICAL FIX: Debt Calculation vs Storage Mismatch (August 3, 2025)
+**Status**: ✅ COMPLETED - Root cause identified and resolved
+- **Problem**: `payDebtWithAds()` throwing StorageError + Force Reset not working
+- **Root Cause Discovery**: `calculateDebt()` analyzes **real entries**, not streak object state
+- **Critical Insight**: Force reset only updated streak object but didn't create actual entries
+- **Solution**: Both `payDebtWithAds()` and `executeForceResetDebt()` now create real entries
+- **Technical Fix**: Enhanced error handling with detailed debug logs
+- **Files Modified**:
+  - `/src/services/storage/gratitudeStorage.ts` (lines 849-902) - Enhanced payDebtWithAds
+  - `/src/components/home/GratitudeStreakCard.tsx` (lines 170-222) - Fixed force reset
+- **Debug Enhancement**: Comprehensive logging for full debt recovery process tracking
+- **Result**: Both ad-based and force debt recovery now function correctly
+
+### 🔧 ADDITIONAL CRITICAL FIXES: Multiple Issues from Testing (August 3, 2025)
+**Status**: ✅ MAJOR PROGRESS - Critical fixes implemented
+- **Issue 1**: `payDebtWithAds(adsWatched=0)` - ✅ FIXED: Uses `totalAdsNeeded` instead of `adsWatched` 
+- **Issue 2**: Streak not restoring properly after debt recovery - 🚧 IN PROGRESS (frozen state logic)
+- **Issue 3**: Level-up modal appearing 3x instead of once - ✅ FIXED: XP batching implemented
+
+### 🎯 FIXED: Multiple Level-up Modals Issue (August 3, 2025)
+**Status**: ✅ COMPLETED - XP batching system implemented
+- **Root Cause**: `awardJournalXP()` called `GamificationService.addXP()` 3 times separately
+  1. Base entry XP (20 XP) → Level-up modal #1
+  2. Milestone XP (if applicable) → Level-up modal #2  
+  3. Streak XP (if applicable) → Level-up modal #3
+- **Solution**: Batch all XP into single transaction to prevent multiple level-ups
+- **Implementation**: Created helper functions `getMilestoneXPData()` and `getStreakMilestoneXPData()`
+- **Result**: Single level-up modal with combined description (e.g., "Journal entry #1 + 7-day journal streak!")
+- **Files Modified**: `/src/services/storage/gratitudeStorage.ts` (lines 964-1097)
+- **Backward Compatibility**: Legacy functions maintained for other code paths

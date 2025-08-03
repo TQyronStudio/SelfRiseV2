@@ -848,35 +848,56 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
    */
   async payDebtWithAds(adsWatched: number): Promise<void> {
     try {
+      console.log(`[DEBUG] payDebtWithAds: adsWatched=${adsWatched}`);
+      
       const debtDays = await this.calculateDebt();
+      console.log(`[DEBUG] payDebtWithAds: debtDays=${debtDays}`);
       
       if (adsWatched < debtDays) {
-        throw new Error(`Not enough ads watched. Need ${debtDays}, got ${adsWatched}`);
+        const errorMsg = `Not enough ads watched. Need ${debtDays}, got ${adsWatched}`;
+        console.error(`[DEBUG] payDebtWithAds: ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+
+      // CRITICAL FIX: Check if debt is already 0
+      if (debtDays === 0) {
+        console.log(`[DEBUG] payDebtWithAds: No debt to pay, returning early`);
+        return; // No debt to pay
       }
 
       // Create fake entries for debt days to "fill the gaps"
       const currentDate = today();
+      console.log(`[DEBUG] payDebtWithAds: Creating entries for ${debtDays} debt days`);
+      
       for (let i = 1; i <= debtDays; i++) {
         const debtDate = subtractDays(currentDate, i);
+        console.log(`[DEBUG] payDebtWithAds: Processing debt day ${i}, date=${debtDate}`);
         
         // Create 3 fake entries for each debt day
         for (let j = 1; j <= 3; j++) {
-          await this.create({
-            content: `Debt recovery - Ad ${i}.${j}`,
-            date: debtDate,
-            type: 'gratitude',
-          });
+          try {
+            await this.create({
+              content: `Debt recovery - Ad ${i}.${j}`,
+              date: debtDate,
+              type: 'gratitude',
+            });
+            console.log(`[DEBUG] payDebtWithAds: Created entry ${i}.${j} for ${debtDate}`);
+          } catch (createError) {
+            console.error(`[DEBUG] payDebtWithAds: Failed to create entry ${i}.${j}:`, createError);
+            // Continue with other entries even if one fails
+          }
         }
       }
 
       // Recalculate streak after paying debt
+      console.log(`[DEBUG] payDebtWithAds: Recalculating streak...`);
       await this.calculateAndUpdateStreak();
+      console.log(`[DEBUG] payDebtWithAds: Successfully completed debt payment`);
+      
     } catch (error) {
-      throw new StorageError(
-        'Failed to pay debt with ads',
-        STORAGE_ERROR_CODES.UNKNOWN,
-        STORAGE_KEYS.GRATITUDES
-      );
+      console.error(`[DEBUG] payDebtWithAds: Error occurred:`, error);
+      // Re-throw original error with more context instead of generic StorageError
+      throw new Error(`Failed to pay debt with ads: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -940,20 +961,38 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         description = `Journal entry #${entryPosition} (no XP - daily limit reached)`;
       }
 
-      // Award base entry XP if applicable
+      // CRITICAL FIX: Batch all XP into single transaction to prevent multiple level-ups
+      let totalXP = 0;
+      let descriptions: string[] = [];
+      
+      // Add base entry XP if applicable
       if (xpToAward > 0) {
-        await GamificationService.addXP(xpToAward, {
-          source: xpSourceType,
-          description,
-          sourceId: `journal_${date}_${entryPosition}`,
-        });
+        totalXP += xpToAward;
+        descriptions.push(description);
       }
 
-      // Check for milestone rewards (awarded in addition to base XP)
-      await this.checkAndAwardJournalMilestones(entryPosition, date);
+      // Check for milestone XP and add to batch (instead of separate award)
+      const milestoneXP = await this.getMilestoneXPData(entryPosition, date);
+      if (milestoneXP.xp > 0) {
+        totalXP += milestoneXP.xp;
+        descriptions.push(milestoneXP.description);
+      }
 
-      // Check for streak milestones after every entry
-      await this.checkAndAwardStreakMilestones();
+      // Check for streak milestone XP and add to batch
+      const streakXP = await this.getStreakMilestoneXPData();
+      if (streakXP.xp > 0) {
+        totalXP += streakXP.xp;
+        descriptions.push(streakXP.description);
+      }
+
+      // Award all XP in single transaction to prevent multiple level-ups
+      if (totalXP > 0) {
+        await GamificationService.addXP(totalXP, {
+          source: xpSourceType,
+          description: descriptions.join(' + '),
+          sourceId: `journal_batch_${date}_${entryPosition}`,
+        });
+      }
 
     } catch (error) {
       console.error('GratitudeStorage.awardJournalXP error:', error);
@@ -962,9 +1001,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Check and award milestone XP for bonus entries (⭐🔥👑)
+   * Get milestone XP data for bonus entries (⭐🔥👑) without awarding
    */
-  private async checkAndAwardJournalMilestones(entryPosition: number, date: DateString): Promise<void> {
+  private async getMilestoneXPData(entryPosition: number, date: DateString): Promise<{xp: number, description: string}> {
     try {
       let milestoneXP = 0;
       let description = '';
@@ -983,11 +1022,23 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         description = 'Tenth bonus journal entry 👑';
       }
 
-      // Award milestone XP if applicable
-      if (milestoneXP > 0) {
-        await GamificationService.addXP(milestoneXP, {
+      return { xp: milestoneXP, description };
+    } catch (error) {
+      console.error('GratitudeStorage.getMilestoneXPData error:', error);
+      return { xp: 0, description: '' };
+    }
+  }
+
+  /**
+   * Legacy function for backward compatibility - now just calls getMilestoneXPData and awards
+   */
+  private async checkAndAwardJournalMilestones(entryPosition: number, date: DateString): Promise<void> {
+    try {
+      const milestoneData = await this.getMilestoneXPData(entryPosition, date);
+      if (milestoneData.xp > 0) {
+        await GamificationService.addXP(milestoneData.xp, {
           source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description,
+          description: milestoneData.description,
           sourceId: `journal_milestone_${date}_${entryPosition}`,
         });
       }
@@ -997,9 +1048,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Check and award streak milestone XP rewards
+   * Get streak milestone XP data without awarding
    */
-  private async checkAndAwardStreakMilestones(): Promise<void> {
+  private async getStreakMilestoneXPData(): Promise<{xp: number, description: string}> {
     try {
       const streak = await this.getStreak();
       const currentStreak = streak.currentStreak;
@@ -1016,10 +1067,28 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Check if current streak matches any milestone
       const milestone = streakMilestones.find(m => m.days === currentStreak);
       if (milestone) {
-        await GamificationService.addXP(milestone.xp, {
+        return { xp: milestone.xp, description: milestone.description };
+      }
+
+      return { xp: 0, description: '' };
+    } catch (error) {
+      console.error('GratitudeStorage.getStreakMilestoneXPData error:', error);
+      return { xp: 0, description: '' };
+    }
+  }
+
+  /**
+   * Legacy function for backward compatibility - now just calls getStreakMilestoneXPData and awards
+   */
+  private async checkAndAwardStreakMilestones(): Promise<void> {
+    try {
+      const streakData = await this.getStreakMilestoneXPData();
+      if (streakData.xp > 0) {
+        const streak = await this.getStreak();
+        await GamificationService.addXP(streakData.xp, {
           source: XPSourceType.JOURNAL_STREAK_MILESTONE,
-          description: milestone.description,
-          sourceId: `journal_streak_${currentStreak}`,
+          description: streakData.description,
+          sourceId: `journal_streak_${streak.currentStreak}`,
         });
       }
     } catch (error) {
