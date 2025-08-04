@@ -4,4 +4,11 @@ export * from './GratitudeContext';
 export * from './GoalsContext';
 export * from './HomeCustomizationContext';
 export * from './GamificationContext';
+export { 
+  AchievementProvider, 
+  useAchievements as useAchievementSystem, 
+  useAchievementStats, 
+  useFilteredAchievements,
+  useAchievement 
+} from './AchievementContext';
 export * from './RootProvider';

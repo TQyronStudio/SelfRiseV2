@@ -209,6 +209,24 @@ export class GamificationService {
         this.triggerXPAnimation(finalAmount, options.source, options.metadata?.position);
       }
 
+      // Check for achievement unlocks after XP action
+      try {
+        const { AchievementService } = await import('./achievementService');
+        const achievementResult = await AchievementService.checkAchievementsAfterXPAction(
+          options.source,
+          finalAmount,
+          options.sourceId,
+          options.metadata
+        );
+        
+        if (achievementResult.unlocked.length > 0) {
+          console.log(`🏆 ${achievementResult.unlocked.length} achievement(s) unlocked from XP action`);
+        }
+      } catch (error) {
+        console.error('Achievement check after XP action failed:', error);
+        // Non-blocking error - XP was still awarded successfully
+      }
+
       // Return comprehensive result
       const result: XPTransactionResult = {
         success: true,
