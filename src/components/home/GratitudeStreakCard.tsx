@@ -21,6 +21,8 @@ import {
   DebtIssueModal,
   ForceResetModal,
 } from '../gratitude/DebtModals';
+import { AnimatedStreakNumber } from '../animations/AnimatedStreakNumber';
+import { StreakTransition } from '../animations/StreakTransition';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -43,6 +45,11 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [showDebtErrorModal, setShowDebtErrorModal] = useState(false);
   const [showForceResetModal, setShowForceResetModal] = useState(false);
   const [currentErrorMessage, setCurrentErrorMessage] = useState('');
+  
+  // Animation states
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionType, setTransitionType] = useState<'freeze-to-fire' | 'fire-to-freeze'>('freeze-to-fire');
+  const [previousFrozenState, setPreviousFrozenState] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadStreakData();
@@ -91,6 +98,21 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   }
 
   const streakData = streak!;
+
+  // Detect frozen state changes and trigger transitions
+  useEffect(() => {
+    if (previousFrozenState !== null && previousFrozenState !== streakData.isFrozen) {
+      // State changed, trigger transition
+      const newTransitionType = previousFrozenState ? 'freeze-to-fire' : 'fire-to-freeze';
+      setTransitionType(newTransitionType);
+      setIsTransitioning(true);
+    }
+    setPreviousFrozenState(streakData.isFrozen);
+  }, [streakData.isFrozen, previousFrozenState]);
+
+  const handleTransitionComplete = () => {
+    setIsTransitioning(false);
+  };
 
   const handleDebtPress = async (e: any) => {
     e.stopPropagation();
@@ -258,12 +280,24 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       {/* Main streak display */}
       <View style={styles.streakSection}>
         <View style={styles.currentStreakContainer}>
-          <Text style={[
-            styles.streakNumber,
-            streakData.isFrozen && styles.frozenStreakNumber
-          ]}>
-            {streakData.isFrozen ? '🧊 ' : ''}{streakData.currentStreak}
-          </Text>
+          {/* Animated Streak Number */}
+          <AnimatedStreakNumber
+            number={streakData.currentStreak}
+            isFrozen={streakData.isFrozen}
+            isTransitioning={isTransitioning}
+            onTransitionComplete={handleTransitionComplete}
+            fontSize={48}
+            style={styles.animatedNumber}
+          />
+          
+          {/* Transition Overlay */}
+          <StreakTransition
+            isVisible={isTransitioning}
+            transitionType={transitionType}
+            onComplete={handleTransitionComplete}
+            containerSize={{ width: 120, height: 100 }}
+          />
+          
           <Text style={[
             styles.streakLabel,
             streakData.isFrozen && styles.frozenStreakLabel
@@ -497,6 +531,12 @@ const styles = StyleSheet.create({
   },
   currentStreakContainer: {
     alignItems: 'center',
+    marginBottom: 8,
+    position: 'relative',
+    minHeight: 80,
+    justifyContent: 'center',
+  },
+  animatedNumber: {
     marginBottom: 8,
   },
   streakNumber: {
