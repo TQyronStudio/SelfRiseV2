@@ -208,13 +208,13 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [x] Add achievement progress tracking types for progressive achievements
 - [x] Create basic achievement catalog with 15 core achievements
 
-##### Sub-checkpoint 4.5.4.B: Basic Achievement Catalog (15 Core Achievements) 📜
+##### Sub-checkpoint 4.5.4.B: Basic Achievement Catalog (15 Core Achievements) 📜 ✅ COMPLETED
 **Goal**: Create first batch of essential achievements
-- [ ] Implement "First Steps" achievements (first habit, first journal, first goal)
-- [ ] Create milestone achievements (100 habits, 30-day streaks, level milestones)
-- [ ] Add consistency achievements (7-day app usage, daily completions)
-- [ ] Create "Balance Master" achievements (use all 3 features in single day)
-- [ ] Design achievement icons, descriptions, and XP rewards for each
+- [x] Implement "First Steps" achievements (first habit, first journal, first goal)
+- [x] Create milestone achievements (100 habits, 30-day streaks, level milestones)
+- [x] Add consistency achievements (7-day app usage, daily completions)
+- [x] Create "Balance Master" achievements (use all 3 features in single day)
+- [x] Design achievement icons, descriptions, and XP rewards for each
 
 ##### Sub-checkpoint 4.5.4.C: Achievement Detection Engine 🔍
 **Goal**: Create system for detecting and unlocking achievements
