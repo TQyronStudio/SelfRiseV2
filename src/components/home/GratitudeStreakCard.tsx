@@ -21,8 +21,6 @@ import {
   DebtIssueModal,
   ForceResetModal,
 } from '../gratitude/DebtModals';
-import { AnimatedStreakNumber } from '../animations/AnimatedStreakNumber';
-import { StreakTransition } from '../animations/StreakTransition';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -46,10 +44,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [showForceResetModal, setShowForceResetModal] = useState(false);
   const [currentErrorMessage, setCurrentErrorMessage] = useState('');
   
-  // Animation states
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionType, setTransitionType] = useState<'freeze-to-fire' | 'fire-to-freeze'>('freeze-to-fire');
-  const [previousFrozenState, setPreviousFrozenState] = useState<boolean | null>(null);
+  
 
   useEffect(() => {
     loadStreakData();
@@ -89,18 +84,6 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     }
   };
 
-  // Detect frozen state changes and trigger transitions
-  useEffect(() => {
-    if (streak && previousFrozenState !== null && previousFrozenState !== streak.isFrozen) {
-      // State changed, trigger transition
-      const newTransitionType = previousFrozenState ? 'freeze-to-fire' : 'fire-to-freeze';
-      setTransitionType(newTransitionType);
-      setIsTransitioning(true);
-    }
-    if (streak) {
-      setPreviousFrozenState(streak.isFrozen);
-    }
-  }, [streak?.isFrozen, previousFrozenState]);
 
   if (isLoading) {
     return (
@@ -111,10 +94,6 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   }
 
   const streakData = streak!;
-
-  const handleTransitionComplete = () => {
-    setIsTransitioning(false);
-  };
 
   const handleDebtPress = async (e: any) => {
     e.stopPropagation();
@@ -282,24 +261,12 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       {/* Main streak display */}
       <View style={styles.streakSection}>
         <View style={styles.currentStreakContainer}>
-          {/* Animated Streak Number */}
-          <AnimatedStreakNumber
-            number={streakData.currentStreak}
-            isFrozen={streakData.isFrozen}
-            isTransitioning={isTransitioning}
-            onTransitionComplete={handleTransitionComplete}
-            fontSize={48}
-            style={styles.animatedNumber}
-          />
-          
-          {/* Transition Overlay */}
-          <StreakTransition
-            isVisible={isTransitioning}
-            transitionType={transitionType}
-            onComplete={handleTransitionComplete}
-            containerSize={{ width: 120, height: 100 }}
-          />
-          
+          <Text style={[
+            styles.streakNumber,
+            streakData.isFrozen && styles.frozenStreakNumber
+          ]}>
+            {streakData.currentStreak}
+          </Text>
           <Text style={[
             styles.streakLabel,
             streakData.isFrozen && styles.frozenStreakLabel
@@ -538,30 +505,36 @@ const styles = StyleSheet.create({
     minHeight: 80,
     justifyContent: 'center',
   },
-  animatedNumber: {
-    marginBottom: 8,
-  },
   streakNumber: {
     fontSize: 48,
     fontFamily: Fonts.bold,
     color: Colors.primary,
     lineHeight: 56,
-  },
-  frozenStreakNumber: {
-    color: '#4A90E2', // Ice blue color
-    textShadowColor: 'rgba(74, 144, 226, 0.4)',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+  },
+  frozenStreakNumber: {
+    color: '#E8F4FD', // Light ice blue for better visibility
+    textShadowColor: 'rgba(74, 144, 226, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   streakLabel: {
     fontSize: 16,
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   frozenStreakLabel: {
-    color: '#4A90E2',
+    color: '#B0E0E6',
     fontWeight: 'bold',
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(74, 144, 226, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   statusContainer: {
     marginTop: 4,

@@ -1,5 +1,16 @@
 # SelfRise V2 - Project Plan
 
+## 🚨 DŮLEŽITÉ - NEMAZAT 🚨
+
+### Cílová kvalita - TOP světová úroveň:
+Aplikace MUSÍ být na špičkové úrovni ve všech aspektech:
+- **Funkcionalita** - Bezchybná, intuitivní, rychlá
+- **Design** - Moderní, elegantní, profesionální  
+- **Animace** - Smooth, přírodní, poutavé
+- **UX** - Vynikající uživatelský zážitek srovnatelný s nejlepšími aplikacemi na trhu
+
+---
+
 ## Project Overview
 SelfRise V2 is a React Native mobile application built with Expo and TypeScript, focused on goal tracking, habit formation, and gratitude journaling. The app will feature internationalization (i18n) support with English as the default language and future support for German and Spanish.
 
