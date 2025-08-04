@@ -278,6 +278,49 @@ export const calculateStreak = (dates: DateString[], endDate?: DateString): numb
   return streak;
 };
 
+// Calculate current streak from most recent completed date
+export const calculateCurrentStreak = (dates: DateString[]): number => {
+  if (dates.length === 0) return 0;
+  
+  const sortedDates = [...dates].sort().reverse(); // Most recent first
+  const mostRecentDate = sortedDates[0]!; // Start from most recent completed date
+  
+  let streak = 0;
+  let expectedDate = mostRecentDate;
+  
+  for (const date of sortedDates) {
+    if (date === expectedDate) {
+      streak++;
+      expectedDate = subtractDays(expectedDate, 1);
+    } else if (date < expectedDate) {
+      break; // Gap found, streak ends
+    }
+  }
+  
+  return streak;
+};
+
+// Calculate "continuing streak" - shows ongoing streak even if today isn't completed yet
+export const calculateContinuingStreak = (dates: DateString[], currentDate?: DateString): number => {
+  if (dates.length === 0) return 0;
+  
+  const today = currentDate || new Date().toISOString().split('T')[0] as DateString;
+  const yesterday = subtractDays(today, 1);
+  
+  // If today is already completed, use normal streak calculation
+  if (dates.includes(today)) {
+    return calculateStreak(dates, today);
+  }
+  
+  // If yesterday is completed, calculate continuing streak from yesterday
+  if (dates.includes(yesterday)) {
+    return calculateStreak(dates, yesterday);
+  }
+  
+  // No recent completion, streak is 0
+  return 0;
+};
+
 export const calculateLongestStreak = (dates: DateString[]): number => {
   if (dates.length === 0) return 0;
   

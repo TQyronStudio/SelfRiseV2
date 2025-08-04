@@ -2,7 +2,7 @@ import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput } from
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
-import { calculateStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
+import { calculateStreak, calculateCurrentStreak, calculateContinuingStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
@@ -351,8 +351,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Get current saved streak for frozen streak handling
       const savedStreak = await this.getStreak();
       
-      // Calculate new streak value
-      const newCalculatedStreak = calculateStreak(completedDates, currentDate);
+      // Calculate continuing streak - shows current streak even if today isn't completed yet
+      const newCalculatedStreak = calculateContinuingStreak(completedDates, currentDate);
       
       // Calculate longest streak
       const longestStreak = Math.max(

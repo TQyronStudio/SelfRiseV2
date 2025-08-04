@@ -258,15 +258,28 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       {/* Main streak display */}
       <View style={styles.streakSection}>
         <View style={styles.currentStreakContainer}>
-          <Text style={styles.streakNumber}>{streakData.currentStreak}</Text>
-          <Text style={styles.streakLabel}>
-            {streakData.currentStreak === 1 ? t('home.day') : t('home.days')}
+          <Text style={[
+            styles.streakNumber,
+            streakData.isFrozen && styles.frozenStreakNumber
+          ]}>
+            {streakData.isFrozen ? '🧊 ' : ''}{streakData.currentStreak}
+          </Text>
+          <Text style={[
+            styles.streakLabel,
+            streakData.isFrozen && styles.frozenStreakLabel
+          ]}>
+            {streakData.isFrozen ? 'frozen' : (streakData.currentStreak === 1 ? t('home.day') : t('home.days'))}
           </Text>
         </View>
 
         {/* Streak status */}
         <View style={styles.statusContainer}>
-          {streakData.currentStreak > 0 ? (
+          {streakData.isFrozen ? (
+            <View style={styles.statusFrozen}>
+              <Ionicons name="snow" size={16} color="#4A90E2" />
+              <Text style={styles.statusFrozenText}>Streak Frozen - Pay Debt to Continue</Text>
+            </View>
+          ) : streakData.currentStreak > 0 ? (
             <View style={styles.statusActive}>
               <Ionicons name="flame" size={16} color={Colors.success} />
               <Text style={styles.statusText}>{t('home.streakActive')}</Text>
@@ -342,6 +355,14 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         totalAdsNeeded={totalAdsNeeded}
         onWatchAd={handleWatchAd}
         onComplete={handleDebtComplete}
+        onResetStreak={async () => {
+          try {
+            await gratitudeStorage.resetStreak();
+            await loadStreakData();
+          } catch (error) {
+            console.error('Failed to reset streak:', error);
+          }
+        }}
       />
 
       {/* No Debt Modal */}
@@ -484,10 +505,21 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     lineHeight: 56,
   },
+  frozenStreakNumber: {
+    color: '#4A90E2', // Ice blue color
+    textShadowColor: 'rgba(74, 144, 226, 0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
   streakLabel: {
     fontSize: 16,
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
+  },
+  frozenStreakLabel: {
+    color: '#4A90E2',
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   statusContainer: {
     marginTop: 4,
@@ -508,11 +540,28 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
   },
+  statusFrozen: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 144, 226, 0.3)',
+  },
   statusText: {
     fontSize: 14,
     fontFamily: Fonts.medium,
     color: Colors.text,
     marginLeft: 4,
+  },
+  statusFrozenText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: '#4A90E2',
+    marginLeft: 4,
+    fontWeight: 'bold',
   },
   statsRow: {
     flexDirection: 'row',

@@ -26,6 +26,8 @@ export default function HomeScreen() {
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
 
+
+
   const handleStreakPress = () => {
     // Navigate to journal tab for now
     router.push('/(tabs)/journal');

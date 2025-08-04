@@ -104,8 +104,18 @@ export default function DailyGratitudeProgress({
       {streakInfo && (
         <View style={styles.streakContainer}>
           <View style={styles.streakItem}>
-            <Text style={styles.streakNumber}>{streakInfo.currentStreak}</Text>
-            <Text style={styles.streakLabel}>{t('journal.currentStreak')}</Text>
+            <Text style={[
+              styles.streakNumber,
+              streakInfo.isFrozen && styles.frozenStreakNumber
+            ]}>
+              {streakInfo.isFrozen ? '🧊 ' : ''}{streakInfo.currentStreak}
+            </Text>
+            <Text style={[
+              styles.streakLabel,
+              streakInfo.isFrozen && styles.frozenStreakLabel
+            ]}>
+              {streakInfo.isFrozen ? 'Frozen Streak' : t('journal.currentStreak')}
+            </Text>
           </View>
           <View style={styles.streakDivider} />
           <View style={styles.streakItem}>
@@ -239,12 +249,22 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginBottom: 4,
   },
+  frozenStreakNumber: {
+    color: '#4A90E2', // Ice blue color
+    textShadowColor: 'rgba(74, 144, 226, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   streakLabel: {
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
     textAlign: 'center',
     textTransform: 'uppercase',
     fontWeight: '500',
+  },
+  frozenStreakLabel: {
+    color: '#4A90E2',
+    fontWeight: 'bold',
   },
   streakDivider: {
     width: 1,

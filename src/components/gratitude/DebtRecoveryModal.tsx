@@ -198,6 +198,7 @@ interface DebtRecoveryModalProps {
   totalAdsNeeded: number;
   onWatchAd: () => Promise<boolean>; // Returns true if ad was successfully watched
   onComplete: () => void; // Called when all ads are watched
+  onResetStreak?: () => void; // Called when user chooses to reset streak instead of watching ads
 }
 
 export default function DebtRecoveryModal({
@@ -208,11 +209,13 @@ export default function DebtRecoveryModal({
   totalAdsNeeded,
   onWatchAd,
   onComplete,
+  onResetStreak,
 }: DebtRecoveryModalProps) {
   const { t } = useI18n();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
 
   const remainingAds = totalAdsNeeded - adsWatched;
   const progressPercentage = totalAdsNeeded > 0 ? (adsWatched / totalAdsNeeded) * 100 : 0;
@@ -241,6 +244,13 @@ export default function DebtRecoveryModal({
       setShowErrorModal(true);
     } finally {
       setIsWatchingAd(false);
+    }
+  };
+
+  const handleResetStreak = () => {
+    if (onResetStreak) {
+      onResetStreak();
+      onClose();
     }
   };
 
@@ -326,7 +336,7 @@ export default function DebtRecoveryModal({
             <Text style={styles.progressMessage}>{getProgressMessage()}</Text>
           </View>
 
-          {/* Action Button */}
+          {/* Action Buttons */}
           <TouchableOpacity
             style={[
               styles.watchButton,
@@ -344,6 +354,18 @@ export default function DebtRecoveryModal({
               }
             </Text>
           </TouchableOpacity>
+
+          {/* Reset Option */}
+          {onResetStreak && remainingAds > 0 && (
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={() => setShowResetConfirmation(true)}
+            >
+              <Text style={styles.resetButtonText}>
+                Skip Ads & Reset Streak to 0
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Info */}
           <View style={styles.infoCard}>
@@ -364,6 +386,16 @@ export default function DebtRecoveryModal({
       <DebtErrorModal
         visible={showErrorModal}
         onClose={() => setShowErrorModal(false)}
+      />
+
+      <DebtConfirmationModal
+        visible={showResetConfirmation}
+        onClose={() => setShowResetConfirmation(false)}
+        onConfirm={handleResetStreak}
+        title="Reset Streak?"
+        message="This will permanently reset your current streak to 0. You can start fresh without paying debt. This action cannot be undone."
+        confirmText="Reset to 0"
+        cancelText="Cancel"
       />
     </Modal>
   );
@@ -517,6 +549,20 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.md,
     fontWeight: 'bold',
     color: Colors.white,
+  },
+  resetButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: Layout.spacing.md,
+    alignItems: 'center',
+    marginBottom: Layout.spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  resetButtonText: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: Colors.error,
   },
   infoCard: {
     flexDirection: 'row',
