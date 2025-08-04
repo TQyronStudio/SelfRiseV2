@@ -1,7 +1,5 @@
 import 'react-native-get-random-values';
 
-// Note: Console suppression for ExpoLinearGradient removed - no longer needed with react-native-linear-gradient
-
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -13,8 +11,13 @@ import { LogBox } from 'react-native';
 import '../src/config/i18n';
 import { RootProvider } from '../src/contexts';
 
-// Note: ExpoLinearGradient warning suppression removed - 
-// switched to react-native-linear-gradient to eliminate warning at source
+// Suppress ExpoLinearGradient view config warnings
+LogBox.ignoreLogs([
+  'Unable to get the view config for',
+  'ExpoLinearGradient',
+  'ViewPropTypes will be removed',
+  'componentWillReceiveProps has been renamed',
+]);
 
 export default function RootLayout() {
   const [loaded] = useFonts({

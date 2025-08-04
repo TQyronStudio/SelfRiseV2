@@ -89,6 +89,19 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     }
   };
 
+  // Detect frozen state changes and trigger transitions
+  useEffect(() => {
+    if (streak && previousFrozenState !== null && previousFrozenState !== streak.isFrozen) {
+      // State changed, trigger transition
+      const newTransitionType = previousFrozenState ? 'freeze-to-fire' : 'fire-to-freeze';
+      setTransitionType(newTransitionType);
+      setIsTransitioning(true);
+    }
+    if (streak) {
+      setPreviousFrozenState(streak.isFrozen);
+    }
+  }, [streak?.isFrozen, previousFrozenState]);
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -98,17 +111,6 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   }
 
   const streakData = streak!;
-
-  // Detect frozen state changes and trigger transitions
-  useEffect(() => {
-    if (previousFrozenState !== null && previousFrozenState !== streakData.isFrozen) {
-      // State changed, trigger transition
-      const newTransitionType = previousFrozenState ? 'freeze-to-fire' : 'fire-to-freeze';
-      setTransitionType(newTransitionType);
-      setIsTransitioning(true);
-    }
-    setPreviousFrozenState(streakData.isFrozen);
-  }, [streakData.isFrozen, previousFrozenState]);
 
   const handleTransitionComplete = () => {
     setIsTransitioning(false);
