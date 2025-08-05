@@ -7,6 +7,7 @@ const en: TranslationKeys = {
     habits: 'Habits',
     journal: 'My Journal',
     goals: 'Goals',
+    achievements: 'Achievements',
     settings: 'Settings',
   },
   
@@ -447,6 +448,179 @@ const en: TranslationKeys = {
       exportError: 'Failed to export goal data. Please try again.',
       copied: 'Content copied to clipboard!',
       copyError: 'Failed to copy content. Please try again.',
+    },
+  },
+  
+  // Achievements screen
+  achievements: {
+    title: 'Trophy Room',
+    subtitle: 'Your personal hall of fame',
+    
+    // Overview Statistics
+    overview: {
+      unlockedCount: 'Unlocked',
+      totalCount: 'Total',
+      completionRate: 'Progress',
+      totalXP: 'Total XP',
+      recentUnlocks: 'Recent',
+      nextToUnlock: 'Coming Up',
+      noAchievements: 'No achievements unlocked yet',
+      getStarted: 'Start completing habits, writing in your journal, and achieving goals to unlock your first achievement!',
+    },
+    
+    // Categories
+    categories: {
+      all: 'All',
+      habits: 'Habits',
+      journal: 'Journal',
+      goals: 'Goals',
+      consistency: 'Consistency',
+      mastery: 'Mastery',
+      social: 'Social',
+      special: 'Special',
+    },
+    
+    // Rarity levels
+    rarity: {
+      common: 'Common',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+    },
+    
+    // Filtering and Search
+    filter: {
+      showAll: 'Show All',
+      unlockedOnly: 'Unlocked Only',
+      lockedOnly: 'Locked Only',
+      byCategory: 'By Category',
+      byRarity: 'By Rarity',
+      searchPlaceholder: 'Search achievements...',
+      noResults: 'No achievements found',
+      clearFilters: 'Clear Filters',
+    },
+    
+    // Sorting
+    sort: {
+      byName: 'Name',
+      byUnlockDate: 'Unlock Date',
+      byRarity: 'Rarity',
+      byCategory: 'Category',
+      byProgress: 'Progress',
+      ascending: 'A-Z',
+      descending: 'Z-A',
+    },
+    
+    // Achievement Card
+    card: {
+      locked: 'Locked',
+      unlocked: 'Unlocked',
+      unlockedOn: 'Unlocked on {{date}}',
+      progress: 'Progress: {{current}}/{{target}}',
+      xpReward: '+{{xp}} XP',
+      viewDetails: 'View Details',
+      almostThere: 'Almost there!',
+      keepGoing: 'Keep going!',
+    },
+    
+    // Achievement Details Modal
+    details: {
+      title: 'Achievement Details',
+      description: 'Description',
+      category: 'Category',
+      rarity: 'Rarity',
+      xpReward: 'XP Reward',
+      unlockCondition: 'How to Unlock',
+      progress: 'Your Progress',
+      unlockedDate: 'Unlocked Date',
+      timeToUnlock: 'Time to Unlock',
+      tips: 'Tips',
+      close: 'Close',
+      shareAchievement: 'Share Achievement',
+    },
+    
+    // Interactive Features
+    interactive: {
+      celebrationHistory: 'Recent Celebrations',
+      achievementSpotlight: 'Achievement Spotlight',
+      featuredAchievement: 'Featured Achievement',
+      dailyChallenge: 'Today\'s Challenge',
+      progressPreview: 'Progress Preview',
+      upcomingRewards: 'Upcoming Rewards',
+    },
+    
+    // Statistics Panel
+    stats: {
+      title: 'Achievement Statistics',
+      breakdown: 'Category Breakdown',
+      rarityDistribution: 'Rarity Distribution',
+      unlockTimeline: 'Unlock Timeline',
+      averageTimeToUnlock: 'Avg. Time to Unlock',
+      totalXPEarned: 'Total XP from Achievements',
+      achievementRate: 'Achievement Rate',
+      consistencyScore: 'Consistency Score',
+      nextMilestone: 'Next Milestone',
+      daysActive: '{{days}} days active',
+      thisWeek: 'This Week',
+      thisMonth: 'This Month',
+      allTime: 'All Time',
+    },
+    
+    // Empty States
+    empty: {
+      noAchievements: 'No Achievements Yet',
+      noAchievementsSubtitle: 'Complete your first habit, journal entry, or goal to start earning achievements!',
+      noSearchResults: 'No Results Found',
+      noSearchResultsSubtitle: 'Try adjusting your search terms or filters.',
+      noCategory: 'No achievements in this category yet.',
+      noCategorySubtitle: 'Keep using the app and achievements will appear here!',
+    },
+    
+    // Achievement Names (will be used for individual achievements)
+    names: {
+      firstSteps: 'First Steps',
+      habitBuilder: 'Habit Builder',
+      streakMaster: 'Streak Master',
+      deepThinker: 'Deep Thinker',
+      goalGetter: 'Goal Getter',
+      consistent: 'Consistent',
+      dedicated: 'Dedicated',
+      perfectMonth: 'Perfect Month',
+    },
+    
+    // Achievement Descriptions (will be used for individual achievements)
+    descriptions: {
+      firstSteps: 'Created your first habit, journal entry, or goal.',
+      habitBuilder: 'Created 5 different habits.',
+      streakMaster: 'Maintained a 30-day streak.',
+      deepThinker: 'Wrote a journal entry with more than 200 characters.',
+      goalGetter: 'Completed your first goal.',
+      consistent: 'Used the app for 7 consecutive days.',
+      dedicated: 'Used the app for 30 consecutive days.',
+      perfectMonth: 'Completed all activities for 30 days.',
+    },
+    
+    // Sharing
+    sharing: {
+      shareTitle: 'I just unlocked an achievement!',
+      shareText: 'Just unlocked "{{name}}" in SelfRise! 🏆 {{description}}',
+      shareError: 'Failed to share achievement. Please try again.',
+      copySuccess: 'Achievement details copied to clipboard!',
+      copyError: 'Failed to copy achievement details.',
+    },
+    
+    // Accessibility
+    accessibility: {
+      achievementCard: 'Achievement card for {{name}}',
+      lockedAchievement: 'Locked achievement: {{name}}',
+      unlockedAchievement: 'Unlocked achievement: {{name}}, earned on {{date}}',
+      progressBar: 'Progress: {{progress}} percent complete',
+      categoryFilter: 'Filter by {{category}} category',
+      rarityBadge: '{{rarity}} rarity achievement',
+      searchInput: 'Search achievements by name or description',
+      sortButton: 'Sort achievements by {{criteria}}',
+      filterButton: 'Filter achievements',
+      viewDetails: 'View details for {{name}} achievement',
     },
   },
   

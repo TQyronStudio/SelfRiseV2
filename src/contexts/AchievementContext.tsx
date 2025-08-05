@@ -10,6 +10,7 @@ import {
   AchievementCategory
 } from '../types/gamification';
 import { AchievementService, AchievementUnlockResult } from '../services/achievementService';
+import { AchievementStorage } from '../services/achievementStorage';
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
 
 // Achievement context state interface
@@ -125,7 +126,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   const loadAchievements = useCallback(async () => {
     try {
       setIsLoading(true);
-      const userData = await AchievementService.getUserAchievements();
+      const userData = await AchievementStorage.getUserAchievements();
       setUserAchievements(userData);
     } catch (error) {
       console.error('AchievementContext.loadAchievements error:', error);

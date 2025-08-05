@@ -89,7 +89,6 @@ const initialState: GamificationState = {
   multiplierActive: false,
   error: null,
   showLevelUpModal: false,
-  levelUpData: undefined,
   shownLevelUps: new Set<number>(),
 };
 
@@ -142,10 +141,10 @@ function gamificationReducer(state: GamificationState, action: GamificationActio
       };
     
     case 'HIDE_LEVEL_UP_MODAL':
+      const { levelUpData, ...stateWithoutLevelUpData } = state;
       return { 
-        ...state, 
+        ...stateWithoutLevelUpData, 
         showLevelUpModal: false, 
-        levelUpData: undefined 
       };
     
     default:
@@ -458,13 +457,15 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
       {children}
       
       {/* Level-up celebration modal */}
-      <CelebrationModal
-        visible={state.showLevelUpModal}
-        onClose={hideLevelUpModal}
-        type="level_up"
-        levelUpData={state.levelUpData}
-        disableXpAnimations={true}
-      />
+      {state.showLevelUpModal && state.levelUpData && (
+        <CelebrationModal
+          visible={state.showLevelUpModal}
+          onClose={hideLevelUpModal}
+          type="level_up"
+          levelUpData={state.levelUpData}
+          disableXpAnimations={true}
+        />
+      )}
     </GamificationContext.Provider>
   );
 };

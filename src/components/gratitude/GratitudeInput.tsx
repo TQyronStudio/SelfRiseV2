@@ -110,8 +110,8 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
           XP_REWARDS.JOURNAL.FIRST_ENTRY : // Same reward for self-praise as regular entries
           XP_REWARDS.JOURNAL.FIRST_ENTRY;
         const xpSource = inputType === 'self-praise' ? 
-          XPSourceType.JOURNAL_SELF_PRAISE : 
-          XPSourceType.JOURNAL_GRATITUDE;
+          XPSourceType.JOURNAL_ENTRY : 
+          XPSourceType.JOURNAL_ENTRY;
         const description = inputType === 'self-praise' ? 
           'Added self-praise entry' : 
           'Added gratitude entry';

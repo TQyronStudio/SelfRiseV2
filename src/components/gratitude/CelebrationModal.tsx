@@ -49,8 +49,8 @@ export default function CelebrationModal({
   const { t } = useI18n();
   
   // Conditionally use XP feedback hooks only if not disabled
-  let triggerHapticFeedback: ((type: string) => Promise<void>) | undefined;
-  let playSoundEffect: ((type: string) => Promise<void>) | undefined;
+  let triggerHapticFeedback: ((type: 'light' | 'medium' | 'heavy') => Promise<void>) | undefined;
+  let playSoundEffect: ((type: 'xp_gain' | 'level_up' | 'milestone') => Promise<void>) | undefined;
   
   if (!disableXpAnimations) {
     const xpFeedback = useXpFeedback();

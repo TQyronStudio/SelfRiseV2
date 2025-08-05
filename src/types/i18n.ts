@@ -6,6 +6,7 @@ export interface TranslationKeys {
     habits: string;
     journal: string;
     goals: string;
+    achievements: string;
     settings: string;
   };
   
@@ -415,6 +416,151 @@ export interface TranslationKeys {
       exportError: string;
       copied: string;
       copyError: string;
+    };
+  };
+  
+  // Achievements screen
+  achievements: {
+    title: string;
+    subtitle: string;
+    overview: {
+      unlockedCount: string;
+      totalCount: string;
+      completionRate: string;
+      totalXP: string;
+      recentUnlocks: string;
+      nextToUnlock: string;
+      noAchievements: string;
+      getStarted: string;
+    };
+    categories: {
+      all: string;
+      habits: string;
+      journal: string;
+      goals: string;
+      consistency: string;
+      mastery: string;
+      social: string;
+      special: string;
+    };
+    rarity: {
+      common: string;
+      rare: string;
+      epic: string;
+      legendary: string;
+    };
+    filter: {
+      showAll: string;
+      unlockedOnly: string;
+      lockedOnly: string;
+      byCategory: string;
+      byRarity: string;
+      searchPlaceholder: string;
+      noResults: string;
+      clearFilters: string;
+    };
+    sort: {
+      byName: string;
+      byUnlockDate: string;
+      byRarity: string;
+      byCategory: string;
+      byProgress: string;
+      ascending: string;
+      descending: string;
+    };
+    card: {
+      locked: string;
+      unlocked: string;
+      unlockedOn: string;
+      progress: string;
+      xpReward: string;
+      viewDetails: string;
+      almostThere: string;
+      keepGoing: string;
+    };
+    details: {
+      title: string;
+      description: string;
+      category: string;
+      rarity: string;
+      xpReward: string;
+      unlockCondition: string;
+      progress: string;
+      unlockedDate: string;
+      timeToUnlock: string;
+      tips: string;
+      close: string;
+      shareAchievement: string;
+    };
+    interactive: {
+      celebrationHistory: string;
+      achievementSpotlight: string;
+      featuredAchievement: string;
+      dailyChallenge: string;
+      progressPreview: string;
+      upcomingRewards: string;
+    };
+    stats: {
+      title: string;
+      breakdown: string;
+      rarityDistribution: string;
+      unlockTimeline: string;
+      averageTimeToUnlock: string;
+      totalXPEarned: string;
+      achievementRate: string;
+      consistencyScore: string;
+      nextMilestone: string;
+      daysActive: string;
+      thisWeek: string;
+      thisMonth: string;
+      allTime: string;
+    };
+    empty: {
+      noAchievements: string;
+      noAchievementsSubtitle: string;
+      noSearchResults: string;
+      noSearchResultsSubtitle: string;
+      noCategory: string;
+      noCategorySubtitle: string;
+    };
+    names: {
+      firstSteps: string;
+      habitBuilder: string;
+      streakMaster: string;
+      deepThinker: string;
+      goalGetter: string;
+      consistent: string;
+      dedicated: string;
+      perfectMonth: string;
+    };
+    descriptions: {
+      firstSteps: string;
+      habitBuilder: string;
+      streakMaster: string;
+      deepThinker: string;
+      goalGetter: string;
+      consistent: string;
+      dedicated: string;
+      perfectMonth: string;
+    };
+    sharing: {
+      shareTitle: string;
+      shareText: string;
+      shareError: string;
+      copySuccess: string;
+      copyError: string;
+    };
+    accessibility: {
+      achievementCard: string;
+      lockedAchievement: string;
+      unlockedAchievement: string;
+      progressBar: string;
+      categoryFilter: string;
+      rarityBadge: string;
+      searchInput: string;
+      sortButton: string;
+      filterButton: string;
+      viewDetails: string;
     };
   };
   

@@ -392,7 +392,7 @@ export class AchievementStorage {
       }
       
       // Calculate rarity breakdown
-      const rarityBreakdown: AchievementStats['rarityBreakdown'] = {};
+      const rarityBreakdown: AchievementStats['rarityBreakdown'] = {} as AchievementStats['rarityBreakdown'];
       for (const rarity of Object.values(AchievementRarity)) {
         const totalOfRarity = CORE_ACHIEVEMENTS.filter(a => a.rarity === rarity).length;
         const unlockedOfRarity = userAchievements.rarityCount[rarity] || 0;
@@ -405,7 +405,7 @@ export class AchievementStorage {
       }
       
       // Calculate category breakdown
-      const categoryBreakdown: AchievementStats['categoryBreakdown'] = {};
+      const categoryBreakdown: AchievementStats['categoryBreakdown'] = {} as AchievementStats['categoryBreakdown'];
       for (const category of Object.values(AchievementCategory)) {
         const totalOfCategory = CORE_ACHIEVEMENTS.filter(a => a.category === category).length;
         const unlockedOfCategory = userAchievements.categoryProgress[category] || 0;
@@ -428,7 +428,7 @@ export class AchievementStorage {
         unlockedAchievements: unlockedCount,
         completionRate,
         averageTimeToUnlock,
-        mostRecentUnlock,
+        ...(mostRecentUnlock && { mostRecentUnlock }),
         rarityBreakdown,
         categoryBreakdown
       };
@@ -546,7 +546,8 @@ export class AchievementStorage {
       
     } catch (error) {
       console.error('AchievementStorage.performMigrationIfNeeded error:', error);
-      await this.logMigration('unknown', ACHIEVEMENT_DATA_VERSION.CURRENT, false, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      await this.logMigration('unknown', ACHIEVEMENT_DATA_VERSION.CURRENT, false, errorMessage);
       throw error;
     }
   }
@@ -629,7 +630,7 @@ export class AchievementStorage {
         migratedAt: new Date(),
         migrationType: 'data',
         success,
-        notes
+        ...(notes && { notes })
       };
       
       const existingLog = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.MIGRATION_LOG);
