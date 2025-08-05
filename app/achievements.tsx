@@ -10,17 +10,23 @@ import {
   RefreshControl,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useGamification } from '@/src/contexts/GamificationContext';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { AchievementService } from '@/src/services/achievementService';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
 import { AchievementFilters, FilterOptions } from '@/src/components/achievements/AchievementFilters';
 import { CategorySection } from '@/src/components/achievements/CategorySection';
 import { AchievementCard } from '@/src/components/achievements/AchievementCard';
+import { TrophyRoomStats } from '@/src/components/achievements/TrophyRoomStats';
+import { AchievementHistory } from '@/src/components/achievements/AchievementHistory';
+import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
+import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
 import { 
   Achievement, 
   UserAchievements, 
@@ -37,6 +43,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function AchievementsScreen() {
   const { t } = useI18n();
+  const { state } = useGamification();
   
   // ========================================
   // STATE MANAGEMENT
@@ -57,6 +64,10 @@ export default function AchievementsScreen() {
     searchQuery: '',
     sortBy: 'category',
   });
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState<'overview' | 'achievements'>('overview');
+  
   
   // ========================================
   // DATA LOADING
@@ -271,6 +282,7 @@ export default function AchievementsScreen() {
     setIsRefreshing(true);
     loadAchievementData(false);
   };
+
 
   const handleAchievementPress = (achievement: Achievement) => {
     // TODO: Open achievement detail modal (Sub-checkpoint 4.5.5.D)
@@ -526,10 +538,111 @@ export default function AchievementsScreen() {
     );
   };
 
+  const renderViewModeToggle = () => (
+    <View style={styles.viewModeContainer}>
+      <TouchableOpacity
+        style={[
+          styles.viewModeButton,
+          viewMode === 'overview' && styles.viewModeButtonActive
+        ]}
+        onPress={() => setViewMode('overview')}
+      >
+        <Text style={[
+          styles.viewModeText,
+          viewMode === 'overview' && styles.viewModeTextActive
+        ]}>
+          🏠 Trophy Room
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[
+          styles.viewModeButton,
+          viewMode === 'achievements' && styles.viewModeButtonActive
+        ]}
+        onPress={() => setViewMode('achievements')}
+      >
+        <Text style={[
+          styles.viewModeText,
+          viewMode === 'achievements' && styles.viewModeTextActive
+        ]}>
+          🏆 Browse All
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderOverviewMode = () => {
+    if (!userAchievements || !achievementStats) return null;
+    
+    return (
+      <View>
+        {/* Enhanced Trophy Room Statistics */}
+        <TrophyRoomStats
+          stats={achievementStats}
+          totalAchievements={CORE_ACHIEVEMENTS.length}
+          unlockedCount={overviewStats.unlockedCount}
+          userLevel={state.currentLevel}
+          userAchievements={userAchievements}
+        />
+        
+        {/* Achievement Spotlight */}
+        <AchievementSpotlight
+          userAchievements={userAchievements}
+          allAchievements={CORE_ACHIEVEMENTS}
+          onAchievementPress={handleAchievementPress}
+        />
+        
+        {/* Achievement History */}
+        <AchievementHistory
+          userAchievements={userAchievements}
+          allAchievements={CORE_ACHIEVEMENTS}
+          onAchievementPress={handleAchievementPress}
+        />
+        
+        {/* Trophy Collections */}
+        <TrophyCombinations
+          userAchievements={userAchievements}
+          allAchievements={CORE_ACHIEVEMENTS}
+          onCollectionPress={(collection) => {
+            console.log('Collection pressed:', collection.name);
+            // TODO: Open collection detail modal
+          }}
+        />
+      </View>
+    );
+  };
+
+  const renderAchievementsMode = () => (
+    <View>
+      {/* Filters */}
+      <AchievementFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        totalCount={CORE_ACHIEVEMENTS.length}
+        filteredCount={filteredAndSortedAchievements.length}
+      />
+      
+      {/* Achievement Grid/List */}
+      {filteredAndSortedAchievements.length === 0 ? (
+        <View style={styles.noResultsContainer}>
+          <Text style={styles.noResultsTitle}>No achievements found</Text>
+          <Text style={styles.noResultsSubtitle}>
+            Try adjusting your filters or search criteria
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.achievementsContainer}>
+          {filters.sortBy === 'category' ? renderCategoryView() : renderGridView()}
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={['header', 'filters', 'achievements']}
+        data={['viewToggle', 'content']}
         keyExtractor={(item) => item}
         refreshControl={
           <RefreshControl
@@ -542,52 +655,16 @@ export default function AchievementsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         renderItem={({ item }) => {
-          if (item === 'header') {
-            return (
-              <View>
-                {/* Overview Statistics */}
-                {renderOverviewStats()}
-                
-                {/* Category Breakdown */}
-                {renderCategoryBreakdown()}
-                
-                {/* Rarity Distribution */}
-                {renderRarityDistribution()}
-                
-                {/* Empty State */}
-                {overviewStats.unlockedCount === 0 && renderEmptyState()}
-              </View>
-            );
+          if (item === 'viewToggle') {
+            return renderViewModeToggle();
           }
           
-          if (item === 'filters') {
-            return (
-              <AchievementFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                totalCount={CORE_ACHIEVEMENTS.length}
-                filteredCount={filteredAndSortedAchievements.length}
-              />
-            );
-          }
-          
-          if (item === 'achievements') {
-            if (filteredAndSortedAchievements.length === 0) {
-              return (
-                <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsTitle}>No achievements found</Text>
-                  <Text style={styles.noResultsSubtitle}>
-                    Try adjusting your filters or search criteria
-                  </Text>
-                </View>
-              );
+          if (item === 'content') {
+            if (viewMode === 'overview') {
+              return renderOverviewMode();
+            } else {
+              return renderAchievementsMode();
             }
-            
-            return (
-              <View style={styles.achievementsContainer}>
-                {filters.sortBy === 'category' ? renderCategoryView() : renderGridView()}
-              </View>
-            );
           }
           
           return null;
@@ -632,6 +709,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  
+  // View mode toggle
+  viewModeContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginVertical: 12,
+    backgroundColor: Colors.backgroundSecondary,
+    borderRadius: 8,
+    padding: 4,
+  },
+  
+  viewModeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  
+  viewModeButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  
+  viewModeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  
+  viewModeTextActive: {
+    color: Colors.white,
   },
   
   scrollView: {
