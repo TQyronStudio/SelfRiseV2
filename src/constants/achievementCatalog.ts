@@ -220,6 +220,133 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   {
+    id: 'deep-thinker',
+    name: 'Deep Thinker',
+    description: 'Write a journal entry with at least 200 characters - show your thoughtfulness',
+    icon: '🤔',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'value',
+      target: 200,
+      source: 'journal_entry_length',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'journal-enthusiast',
+    name: 'Journal Enthusiast',
+    description: 'Write 100 journal entries - you are building a beautiful habit of reflection',
+    icon: '📖',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 100,
+      source: 'journal_entry',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+
+  {
+    id: 'grateful-heart',
+    name: 'Grateful Heart',
+    description: 'Maintain a 7-day journal writing streak - consistency builds gratitude',
+    icon: '💝',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'streak',
+      target: 7,
+      source: 'journal_entry',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'gratitude-guru',
+    name: 'Gratitude Guru',
+    description: 'Achieve a 30-day journal writing streak - you are a master of daily reflection',
+    icon: '🧘‍♀️',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'streak',
+      target: 30,
+      source: 'journal_entry',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'eternal-gratitude',
+    name: 'Eternal Gratitude',
+    description: 'Maintain a 100-day journal streak - your gratitude practice is legendary',
+    icon: '🌟',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'streak',
+      target: 100,
+      source: 'journal_entry',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'bonus-seeker',
+    name: 'Bonus Seeker',
+    description: 'Write 50 bonus journal entries - you go above and beyond in your gratitude practice',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 50,
+      source: 'journal_bonus_entries',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
     id: 'first-goal',
     name: 'First Vision',
     description: 'Set your first goal and define where you want your journey to lead',
@@ -329,29 +456,9 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   // ========================================
-  // MASTERY ACHIEVEMENTS (2 achievements)
+  // MASTERY ACHIEVEMENTS (1 achievement)
   // ========================================
 
-  {
-    id: 'journal-master',
-    name: 'Reflection Sage',
-    description: 'Write 100 journal entries - master of self-reflection',
-    icon: '🧙‍♂️',
-    category: AchievementCategory.JOURNAL,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'count',
-      target: 100,
-      source: 'journal_entry',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
-    isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
-  },
 
   {
     id: 'goal-achiever',

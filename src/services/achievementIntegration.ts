@@ -560,6 +560,9 @@ export class AchievementIntegration {
         case 'journal_entry_length':
           return await this.getMaxJournalEntryLength(timeframe);
           
+        case 'journal_bonus_entries':
+          return await this.getBonusJournalEntriesCount(timeframe);
+          
         case 'goal_target_value':
           return await this.getMaxGoalTargetValue(timeframe);
           
