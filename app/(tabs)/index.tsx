@@ -14,6 +14,7 @@ import { DailyMotivationalQuote } from '@/src/components/home/DailyMotivationalQ
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
+import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useGamification } from '@/src/contexts/GamificationContext';
@@ -87,8 +88,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Customization Button */}
+      {/* Header Actions */}
       <View style={styles.headerActions}>
+        {/* Trophy Room Button */}
+        <TouchableOpacity 
+          style={styles.trophyButton}
+          onPress={() => router.push('/achievements')}
+        >
+          <PremiumTrophyIcon size={32} />
+        </TouchableOpacity>
+        
+        {/* Customization Button */}
         <TouchableOpacity 
           style={styles.customizeButton}
           onPress={() => setShowCustomizationModal(true)}
@@ -156,10 +166,14 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     paddingHorizontal: Layout.spacing.md,
     paddingTop: Layout.spacing.xs,
     paddingBottom: Layout.spacing.xs,
+  },
+  trophyButton: {
+    padding: Layout.spacing.xs,
+    borderRadius: Layout.borderRadius.md,
   },
   customizeButton: {
     padding: Layout.spacing.sm,

@@ -34,6 +34,23 @@ export default function RootLayout() {
       <RootProvider>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="achievements" 
+            options={{ 
+              headerShown: true,
+              title: 'Trophy Room',
+              headerBackTitle: 'Home',
+              headerBackTitleVisible: false,
+              headerStyle: {
+                backgroundColor: '#007AFF',
+              },
+              headerTintColor: '#FFFFFF',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+              presentation: 'card' 
+            }} 
+          />
           <Stack.Screen name="journal-history" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="journal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="habit-stats" options={{ headerShown: false, presentation: 'card' }} />

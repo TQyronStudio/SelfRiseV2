@@ -7,8 +7,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
-  StatusBar,
   RefreshControl,
   Dimensions,
   ActivityIndicator,
@@ -321,26 +319,22 @@ export default function AchievementsScreen() {
   
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <View style={styles.container}>
         {renderLoadingState()}
-      </SafeAreaView>
+      </View>
     );
   }
   
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <View style={styles.container}>
         {renderErrorState()}
-      </SafeAreaView>
+      </View>
     );
   }
   
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
-      
+    <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -354,16 +348,6 @@ export default function AchievementsScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View 
-          style={styles.header}
-          accessible={true}
-          accessibilityRole="header"
-          accessibilityLabel={`${t('achievements.title')} - ${t('achievements.subtitle')}`}
-        >
-          <Text style={styles.headerTitle}>{t('achievements.title')}</Text>
-          <Text style={styles.headerSubtitle}>{t('achievements.subtitle')}</Text>
-        </View>
         
         {/* Overview Statistics */}
         {renderOverviewStats()}
@@ -388,7 +372,7 @@ export default function AchievementsScreen() {
         </View>
         
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -435,29 +419,7 @@ const styles = StyleSheet.create({
   
   scrollContent: {
     paddingBottom: 100,
-  },
-  
-  // Header
-  header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-    alignItems: 'center',
-  },
-  
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.textInverse,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  
-  headerSubtitle: {
-    fontSize: 16,
-    color: Colors.textInverse,
-    opacity: 0.9,
-    textAlign: 'center',
+    paddingTop: 16,
   },
   
   // Overview Statistics
