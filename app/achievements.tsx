@@ -18,6 +18,8 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { AchievementService } from '@/src/services/achievementService';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
+import { AchievementFilters, FilterOptions } from '@/src/components/achievements/AchievementFilters';
+import { CategorySection } from '@/src/components/achievements/CategorySection';
 import { AchievementCard } from '@/src/components/achievements/AchievementCard';
 import { 
   Achievement, 
@@ -45,6 +47,16 @@ export default function AchievementsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter state
+  const [filters, setFilters] = useState<FilterOptions>({
+    showAll: true,
+    unlockedOnly: false,
+    selectedCategory: 'all',
+    selectedRarity: 'all',
+    searchQuery: '',
+    sortBy: 'category',
+  });
   
   // ========================================
   // DATA LOADING
@@ -133,6 +145,123 @@ export default function AchievementsScreen() {
       completionRate: data.completionRate,
     }));
   }, [achievementStats, t]);
+  
+  // ========================================
+  // FILTERING AND SORTING LOGIC
+  // ========================================
+  
+  const filteredAndSortedAchievements = useMemo(() => {
+    let filtered = [...CORE_ACHIEVEMENTS];
+    
+    // Apply filters
+    if (filters.unlockedOnly && userAchievements) {
+      filtered = filtered.filter(achievement => 
+        userAchievements.unlockedAchievements.includes(achievement.id)
+      );
+    }
+    
+    if (filters.selectedCategory !== 'all') {
+      filtered = filtered.filter(achievement => 
+        achievement.category === filters.selectedCategory
+      );
+    }
+    
+    if (filters.selectedRarity !== 'all') {
+      filtered = filtered.filter(achievement => 
+        achievement.rarity === filters.selectedRarity
+      );
+    }
+    
+    // Search filter
+    if (filters.searchQuery.trim()) {
+      const query = filters.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(achievement => 
+        achievement.name.toLowerCase().includes(query) ||
+        achievement.description.toLowerCase().includes(query)
+      );
+    }
+    
+    // Sort achievements
+    filtered.sort((a, b) => {
+      switch (filters.sortBy) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name);
+        
+        case 'rarity': {
+          const rarityOrder = {
+            [AchievementRarity.COMMON]: 0,
+            [AchievementRarity.RARE]: 1,
+            [AchievementRarity.EPIC]: 2,
+            [AchievementRarity.LEGENDARY]: 3,
+          };
+          return rarityOrder[b.rarity] - rarityOrder[a.rarity]; // Descending order
+        }
+        
+        case 'unlock_date': {
+          if (!userAchievements) return 0;
+          const aUnlocked = userAchievements.unlockedAchievements.includes(a.id);
+          const bUnlocked = userAchievements.unlockedAchievements.includes(b.id);
+          
+          if (aUnlocked && bUnlocked) {
+            // Both unlocked, sort by order in unlockedAchievements array (most recent first)
+            const aIndex = userAchievements.unlockedAchievements.indexOf(a.id);
+            const bIndex = userAchievements.unlockedAchievements.indexOf(b.id);
+            return bIndex - aIndex; // Higher index = more recent
+          } else if (aUnlocked && !bUnlocked) {
+            return -1; // Unlocked first
+          } else if (!aUnlocked && bUnlocked) {
+            return 1; // Unlocked first
+          }
+          return 0; // Both locked, maintain original order
+        }
+        
+        case 'category':
+        default: {
+          const categoryOrder = {
+            [AchievementCategory.HABITS]: 0,
+            [AchievementCategory.JOURNAL]: 1,
+            [AchievementCategory.GOALS]: 2,
+            [AchievementCategory.CONSISTENCY]: 3,
+            [AchievementCategory.MASTERY]: 4,
+            [AchievementCategory.SPECIAL]: 5,
+            [AchievementCategory.SOCIAL]: 6,
+          };
+          const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category];
+          if (categoryDiff !== 0) return categoryDiff;
+          
+          // Within same category, sort by rarity (descending)
+          const rarityOrder = {
+            [AchievementRarity.COMMON]: 0,
+            [AchievementRarity.RARE]: 1,
+            [AchievementRarity.EPIC]: 2,
+            [AchievementRarity.LEGENDARY]: 3,
+          };
+          return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+        }
+      }
+    });
+    
+    return filtered;
+  }, [filters, userAchievements]);
+  
+  // Group achievements by category for category display
+  const achievementsByCategory = useMemo(() => {
+    if (filters.sortBy !== 'category') return null;
+    
+    const categories = Object.values(AchievementCategory);
+    const grouped: { [key in AchievementCategory]?: Achievement[] } = {};
+    
+    categories.forEach(category => {
+      const categoryAchievements = filteredAndSortedAchievements.filter(
+        achievement => achievement.category === category
+      );
+      if (categoryAchievements.length > 0) {
+        grouped[category] = categoryAchievements;
+      }
+    });
+    
+    return grouped;
+  }, [filteredAndSortedAchievements, filters.sortBy]);
   
   // ========================================
   // EVENT HANDLERS
@@ -339,12 +468,69 @@ export default function AchievementsScreen() {
     );
   }
   
+  const renderCategoryView = () => {
+    if (!achievementsByCategory || !userAchievements) return null;
+
+    return Object.entries(achievementsByCategory).map(([category, achievements]) => (
+      <CategorySection
+        key={category}
+        category={category as AchievementCategory}
+        categoryName={t(`achievements.categories.${category}`)}
+        achievements={achievements}
+        userAchievements={userAchievements}
+        onAchievementPress={handleAchievementPress}
+      />
+    ));
+  };
+
+  const renderGridView = () => {
+    if (!userAchievements) return null;
+
+    const numColumns = Math.floor((Dimensions.get('window').width - 32) / 162);
+    const rows: Achievement[][] = [];
+    
+    // Group achievements into rows
+    for (let i = 0; i < filteredAndSortedAchievements.length; i += numColumns) {
+      rows.push(filteredAndSortedAchievements.slice(i, i + numColumns));
+    }
+
+    return (
+      <View style={styles.gridContainer}>
+        {rows.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.achievementRow}>
+            {row.map((achievement) => {
+              const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
+              const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
+              
+              return (
+                <View key={achievement.id} style={styles.cardWrapper}>
+                  <AchievementCard
+                    achievement={achievement}
+                    userProgress={userProgress}
+                    isUnlocked={isUnlocked}
+                    onPress={() => handleAchievementPress(achievement)}
+                  />
+                </View>
+              );
+            })}
+            
+            {/* Fill empty spaces in the last row */}
+            {row.length < numColumns && (
+              Array.from({ length: numColumns - row.length }).map((_, index) => (
+                <View key={`empty-${index}`} style={styles.cardWrapper} />
+              ))
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Use FlatList as main container instead of ScrollView */}
       <FlatList
-        data={userAchievements ? ['header', ...CORE_ACHIEVEMENTS.map(a => a.id)] : ['header']}
-        keyExtractor={(item) => typeof item === 'string' ? item : item}
+        data={['header', 'filters', 'achievements']}
+        keyExtractor={(item) => item}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -355,7 +541,7 @@ export default function AchievementsScreen() {
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        renderItem={({ item, index }) => {
+        renderItem={({ item }) => {
           if (item === 'header') {
             return (
               <View>
@@ -370,46 +556,38 @@ export default function AchievementsScreen() {
                 
                 {/* Empty State */}
                 {overviewStats.unlockedCount === 0 && renderEmptyState()}
-                
-                {/* Achievement Cards Header */}
-                {userAchievements && CORE_ACHIEVEMENTS.length > 0 && (
-                  <View style={styles.achievementHeaderContainer}>
-                    <Text style={styles.achievementHeaderTitle}>Achievements</Text>
-                  </View>
-                )}
               </View>
             );
           }
           
-          // Render achievement cards in grid format
-          if (userAchievements && index > 0) {
-            const achievementIndex = index - 1;
-            const numColumns = Math.floor((Dimensions.get('window').width - 32) / 162); // card width + spacing
-            
-            // Only render every nth item to create rows
-            if (achievementIndex % numColumns === 0) {
-              const rowAchievements = CORE_ACHIEVEMENTS.slice(achievementIndex, achievementIndex + numColumns);
-              
+          if (item === 'filters') {
+            return (
+              <AchievementFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                totalCount={CORE_ACHIEVEMENTS.length}
+                filteredCount={filteredAndSortedAchievements.length}
+              />
+            );
+          }
+          
+          if (item === 'achievements') {
+            if (filteredAndSortedAchievements.length === 0) {
               return (
-                <View style={styles.achievementRow}>
-                  {rowAchievements.map((achievement) => {
-                    const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
-                    const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
-                    
-                    return (
-                      <View key={achievement.id} style={styles.cardWrapper}>
-                        <AchievementCard
-                          achievement={achievement}
-                          userProgress={userProgress}
-                          isUnlocked={isUnlocked}
-                          onPress={() => handleAchievementPress(achievement)}
-                        />
-                      </View>
-                    );
-                  })}
+                <View style={styles.noResultsContainer}>
+                  <Text style={styles.noResultsTitle}>No achievements found</Text>
+                  <Text style={styles.noResultsSubtitle}>
+                    Try adjusting your filters or search criteria
+                  </Text>
                 </View>
               );
             }
+            
+            return (
+              <View style={styles.achievementsContainer}>
+                {filters.sortBy === 'category' ? renderCategoryView() : renderGridView()}
+              </View>
+            );
           }
           
           return null;
@@ -480,15 +658,45 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   
+  gridContainer: {
+    paddingHorizontal: 16,
+  },
+  
+  achievementsContainer: {
+    paddingBottom: 24,
+  },
+  
   achievementRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    marginBottom: 12,
   },
   
   cardWrapper: {
     marginHorizontal: 4,
+    width: 150, // Fixed width to maintain consistent spacing
+  },
+  
+  // No results state
+  noResultsContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  
+  noResultsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  
+  noResultsSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   
   // Overview Statistics

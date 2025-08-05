@@ -42,7 +42,6 @@ export default function RootLayout() {
               headerShown: true,
               title: 'Trophy Room',
               headerBackTitle: 'Home',
-              headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: Colors.primary,
               },
