@@ -1,8 +1,8 @@
 // Achievement Detection Engine - Sub-checkpoint 4.5.4.C
 // Comprehensive system for detecting, unlocking, and managing achievements
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Achievement,
   AchievementCondition,
@@ -20,17 +20,9 @@ import {
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
 import { ACHIEVEMENT_EVALUATION, ACHIEVEMENT_XP_REWARDS } from '../constants/achievements';
 import { GamificationService } from './gamificationService';
+import { AchievementStorage } from './achievementStorage';
 import { DateString } from '../types/common';
 import { today, formatDateToString } from '../utils/date';
-
-// Storage keys for achievement data
-const ACHIEVEMENT_STORAGE_KEYS = {
-  USER_ACHIEVEMENTS: 'achievements_user_data',
-  PROGRESS_HISTORY: 'achievements_progress_history',
-  UNLOCK_EVENTS: 'achievements_unlock_events',
-  LAST_BATCH_CHECK: 'achievements_last_batch_check',
-  STATISTICS_CACHE: 'achievements_statistics_cache',
-} as const;
 
 // Achievement unlock result
 export interface AchievementUnlockResult {
@@ -335,7 +327,7 @@ export class AchievementService {
       }
 
       // Get current user achievements and stats
-      const userAchievements = await this.getUserAchievements();
+      const userAchievements = await AchievementStorage.getUserAchievements();
       const userStats = await GamificationService.getGamificationStats();
       
       // Filter out already unlocked achievements
@@ -378,12 +370,33 @@ export class AchievementService {
           totalXPAwarded += achievement.xpReward;
           
           // Store unlock event
-          await this.storeUnlockEvent(achievement, xpSource, evaluationResult);
+          await AchievementStorage.storeUnlockEvent(
+            achievement.id,
+            achievement,
+            xpSource,
+            { 
+              evaluationResult,
+              xpSource,
+              amount,
+              sourceId,
+              ...metadata 
+            }
+          );
           
           console.log(`🏆 Achievement unlocked: ${achievement.name} (+${achievement.xpReward} XP)`);
         } else if (evaluationResult.progressDelta > 0) {
           // Store progress update
-          await this.storeProgressUpdate(achievement.id, conditionResult.progress, xpSource);
+          await AchievementStorage.storeProgressUpdate(
+            achievement.id,
+            conditionResult.progress,
+            xpSource,
+            {
+              xpSource,
+              amount,
+              sourceId,
+              ...metadata
+            }
+          );
         }
       }
 
@@ -517,7 +530,7 @@ export class AchievementService {
       }
 
       // Get current state
-      const userAchievements = await this.getUserAchievements();
+      const userAchievements = await AchievementStorage.getUserAchievements();
       const userStats = await GamificationService.getGamificationStats();
       
       // Filter out already unlocked achievements
@@ -553,7 +566,12 @@ export class AchievementService {
           newlyUnlocked.push(achievement);
           totalXPAwarded += achievement.xpReward;
           
-          await this.storeUnlockEvent(achievement, 'daily_batch' as any, evaluationResult);
+          await AchievementStorage.storeUnlockEvent(
+            achievement.id,
+            achievement,
+            'daily_batch',
+            { evaluationResult, triggerType: 'batch' }
+          );
           console.log(`🏆 Batch unlock: ${achievement.name} (+${achievement.xpReward} XP)`);
         }
       }
@@ -610,95 +628,7 @@ export class AchievementService {
   // ========================================
   // UNLOCK LOGIC & DUPLICATE PREVENTION
   // ========================================
-
-  /**
-   * Store achievement unlock event with duplicate prevention
-   */
-  private static async storeUnlockEvent(
-    achievement: Achievement,
-    triggerSource: XPSourceType | string,
-    evaluationResult: AchievementEvaluationResult
-  ): Promise<void> {
-    try {
-      // Check for duplicates
-      const existingEvents = await this.getUnlockEvents();
-      const isDuplicate = existingEvents.some(event => 
-        event.achievementId === achievement.id
-      );
-
-      if (isDuplicate) {
-        console.warn(`Duplicate unlock prevented for achievement: ${achievement.id}`);
-        return;
-      }
-
-      const unlockEvent: AchievementUnlockEvent = {
-        achievementId: achievement.id,
-        unlockedAt: new Date(),
-        trigger: triggerSource as any,
-        xpAwarded: achievement.xpReward,
-        previousProgress: evaluationResult.previousProgress,
-        finalProgress: evaluationResult.currentProgress,
-        context: {
-          evaluationResult,
-          achievementName: achievement.name,
-          achievementRarity: achievement.rarity,
-          achievementCategory: achievement.category
-        }
-      };
-
-      // Store unlock event
-      const events = await this.getUnlockEvents();
-      events.push(unlockEvent);
-      
-      // Keep only last 500 events for performance
-      const trimmedEvents = events.slice(-500);
-      
-      await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS,
-        JSON.stringify(trimmedEvents)
-      );
-
-    } catch (error) {
-      console.error('AchievementService.storeUnlockEvent error:', error);
-    }
-  }
-
-  /**
-   * Store achievement progress update
-   */
-  private static async storeProgressUpdate(
-    achievementId: string,
-    newProgress: number,
-    triggerSource: XPSourceType | string
-  ): Promise<void> {
-    try {
-      const progressHistory = await this.getProgressHistory();
-      
-      const progressUpdate: AchievementProgressHistory = {
-        achievementId,
-        progress: newProgress,
-        timestamp: new Date(),
-        trigger: triggerSource as any,
-        context: {
-          source: triggerSource,
-          timestamp: Date.now()
-        }
-      };
-
-      progressHistory.push(progressUpdate);
-      
-      // Keep only last 1000 progress updates for performance
-      const trimmedHistory = progressHistory.slice(-1000);
-      
-      await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.PROGRESS_HISTORY,
-        JSON.stringify(trimmedHistory)
-      );
-
-    } catch (error) {
-      console.error('AchievementService.storeProgressUpdate error:', error);
-    }
-  }
+  // (Moved to AchievementStorage service)
 
   /**
    * Update user achievements data
@@ -708,7 +638,7 @@ export class AchievementService {
     evaluationResults: AchievementEvaluationResult[]
   ): Promise<void> {
     try {
-      const userAchievements = await this.getUserAchievements();
+      const userAchievements = await AchievementStorage.getUserAchievements();
       
       // Add newly unlocked achievements
       for (const achievement of newlyUnlocked) {
@@ -731,14 +661,8 @@ export class AchievementService {
         userAchievements.achievementProgress[result.achievementId] = result.currentProgress;
       }
       
-      // Update metadata
-      userAchievements.lastChecked = today();
-      
-      // Save updated data
-      await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS,
-        JSON.stringify(userAchievements)
-      );
+      // Save updated data using new storage service
+      await AchievementStorage.saveUserAchievements(userAchievements);
 
     } catch (error) {
       console.error('AchievementService.updateUserAchievements error:', error);
@@ -791,106 +715,14 @@ export class AchievementService {
   // ========================================
   // DATA MANAGEMENT & UTILITIES
   // ========================================
-
-  /**
-   * Get user achievements data
-   */
-  static async getUserAchievements(): Promise<UserAchievements> {
-    try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS);
-      if (!stored) {
-        return this.createEmptyUserAchievements();
-      }
-      
-      const data: UserAchievements = JSON.parse(stored);
-      
-      // Convert date strings back to proper format if needed
-      if (typeof data.lastChecked === 'string') {
-        // Already in DateString format, no conversion needed
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('AchievementService.getUserAchievements error:', error);
-      return this.createEmptyUserAchievements();
-    }
-  }
-
-  /**
-   * Create empty user achievements data
-   */
-  private static createEmptyUserAchievements(): UserAchievements {
-    return {
-      unlockedAchievements: [],
-      achievementProgress: {},
-      lastChecked: today(),
-      totalXPFromAchievements: 0,
-      rarityCount: {
-        common: 0,
-        rare: 0,
-        epic: 0,
-        legendary: 0
-      },
-      categoryProgress: {
-        habits: 0,
-        journal: 0,
-        goals: 0,
-        consistency: 0,
-        mastery: 0,
-        social: 0,
-        special: 0
-      },
-      progressHistory: [],
-      streakData: {}
-    };
-  }
-
-  /**
-   * Get unlock events history
-   */
-  private static async getUnlockEvents(): Promise<AchievementUnlockEvent[]> {
-    try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS);
-      if (!stored) return [];
-      
-      const events = JSON.parse(stored);
-      // Convert date strings back to Date objects
-      return events.map((event: any) => ({
-        ...event,
-        unlockedAt: new Date(event.unlockedAt)
-      }));
-    } catch (error) {
-      console.error('AchievementService.getUnlockEvents error:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get progress history
-   */
-  private static async getProgressHistory(): Promise<AchievementProgressHistory[]> {
-    try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.PROGRESS_HISTORY);
-      if (!stored) return [];
-      
-      const history = JSON.parse(stored);
-      // Convert date strings back to Date objects
-      return history.map((entry: any) => ({
-        ...entry,
-        timestamp: new Date(entry.timestamp)
-      }));
-    } catch (error) {
-      console.error('AchievementService.getProgressHistory error:', error);
-      return [];
-    }
-  }
+  // (Moved to AchievementStorage service)
 
   /**
    * Get last batch check time
    */
   private static async getLastBatchCheckTime(): Promise<number> {
     try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.LAST_BATCH_CHECK);
+      const stored = await AsyncStorage.getItem('achievements_last_batch_check');
       return stored ? parseInt(stored, 10) : 0;
     } catch (error) {
       console.error('AchievementService.getLastBatchCheckTime error:', error);
@@ -904,7 +736,7 @@ export class AchievementService {
   private static async updateLastBatchCheckTime(): Promise<void> {
     try {
       await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.LAST_BATCH_CHECK,
+        'achievements_last_batch_check',
         Date.now().toString()
       );
     } catch (error) {
@@ -961,18 +793,15 @@ export class AchievementService {
    */
   static async getAchievementStats(): Promise<any> {
     try {
-      const userAchievements = await this.getUserAchievements();
-      const totalAchievements = CORE_ACHIEVEMENTS.length;
+      // Try to get cached statistics first
+      const cachedStats = await AchievementStorage.getCachedStatistics(24);
+      if (cachedStats) {
+        return cachedStats;
+      }
       
-      return {
-        totalAchievements,
-        unlockedCount: userAchievements.unlockedAchievements.length,
-        completionRate: (userAchievements.unlockedAchievements.length / totalAchievements) * 100,
-        totalXPFromAchievements: userAchievements.totalXPFromAchievements,
-        rarityBreakdown: userAchievements.rarityCount,
-        categoryProgress: userAchievements.categoryProgress,
-        lastChecked: userAchievements.lastChecked
-      };
+      // Generate fresh statistics
+      return await AchievementStorage.generateAchievementStatistics();
+      
     } catch (error) {
       console.error('AchievementService.getAchievementStats error:', error);
       return {
@@ -1007,13 +836,7 @@ export class AchievementService {
    */
   static async resetAllAchievementData(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([
-        ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS,
-        ACHIEVEMENT_STORAGE_KEYS.PROGRESS_HISTORY,
-        ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS,
-        ACHIEVEMENT_STORAGE_KEYS.LAST_BATCH_CHECK,
-        ACHIEVEMENT_STORAGE_KEYS.STATISTICS_CACHE,
-      ]);
+      await AchievementStorage.clearAllAchievementData();
       console.log('🧹 All achievement data reset');
     } catch (error) {
       console.error('AchievementService.resetAllAchievementData error:', error);
