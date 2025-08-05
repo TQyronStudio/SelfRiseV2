@@ -37,6 +37,9 @@ interface GamificationState {
     rewards?: string[];
     isMilestone: boolean;
   };
+  
+  // Level-up history tracking (prevent duplicate modals)
+  shownLevelUps: Set<number>;
 }
 
 interface GamificationContextValue {
@@ -87,6 +90,7 @@ const initialState: GamificationState = {
   error: null,
   showLevelUpModal: false,
   levelUpData: undefined,
+  shownLevelUps: new Set<number>(),
 };
 
 function gamificationReducer(state: GamificationState, action: GamificationAction): GamificationState {
@@ -101,6 +105,8 @@ function gamificationReducer(state: GamificationState, action: GamificationActio
       const { totalXP, multiplierActive, multiplierEndTime } = action.payload;
       const currentLevel = getCurrentLevel(totalXP);
       const progress = getXPProgress(totalXP);
+      
+      console.log(`📊 UPDATE_STATS: totalXP=${totalXP}, currentLevel=${currentLevel} (was ${state.currentLevel}), progress=${progress.xpProgress}%`);
       
       return {
         ...state,
@@ -119,13 +125,20 @@ function gamificationReducer(state: GamificationState, action: GamificationActio
       return { ...state, isInitialized: action.payload };
     
     case 'RESET_STATE':
-      return { ...initialState, isInitialized: true };
+      return { 
+        ...initialState, 
+        isInitialized: true,
+        shownLevelUps: new Set<number>() // Clear level-up history on reset
+      };
     
     case 'SHOW_LEVEL_UP_MODAL':
+      const newShownLevelUps = new Set(state.shownLevelUps);
+      newShownLevelUps.add(action.payload.newLevel);
       return { 
         ...state, 
         showLevelUpModal: true, 
-        levelUpData: action.payload 
+        levelUpData: action.payload,
+        shownLevelUps: newShownLevelUps
       };
     
     case 'HIDE_LEVEL_UP_MODAL':
@@ -164,6 +177,7 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
   // Define refreshStats first to avoid circular dependency
   const refreshStats = useCallback(async (): Promise<void> => {
     try {
+      console.log(`🔄 refreshStats called - current level: ${state.currentLevel}, totalXP: ${state.totalXP}`);
       dispatch({ type: 'SET_LOADING', payload: true });
       
       const [totalXP, multiplierInfo] = await Promise.all([
@@ -171,6 +185,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
         GamificationService.getActiveXPMultiplier(),
       ]);
 
+      console.log(`📊 refreshStats data: totalXP=${totalXP} (was ${state.totalXP}), currentLevel calculation pending`);
+      
       dispatch({
         type: 'UPDATE_STATS',
         payload: {
@@ -191,6 +207,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
       
       // Update state immediately with result for instant UI feedback
       if (result.success) {
+        console.log(`🔄 GamificationContext.addXP: ${amount} XP, leveledUp=${result.leveledUp}, newLevel=${result.newLevel}`);
+        
         dispatch({
           type: 'UPDATE_STATS',
           payload: {
@@ -200,14 +218,16 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
           }
         });
         
-        // Check for level-up and show celebration modal
-        if (result.leveledUp) {
+        // Check for level-up and show celebration modal (only if not shown before)
+        console.log(`🔍 Level-up check: leveledUp=${result.leveledUp}, newLevel=${result.newLevel}, alreadyShown=${state.shownLevelUps.has(result.newLevel)}`);
+        if (result.leveledUp && !state.shownLevelUps.has(result.newLevel)) {
           const levelInfo = getLevelInfo(result.newLevel);
           const isLevelMilestone = (level?: number) => {
             if (!level) return false;
             return level % 10 === 0 || level === 25 || level === 50 || level === 75 || level === 100;
           };
           
+          console.log(`🎉 Level-up modal: Level ${result.newLevel} (first time)`);
           dispatch({
             type: 'SHOW_LEVEL_UP_MODAL',
             payload: {
@@ -219,6 +239,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
               isMilestone: isLevelMilestone(result.newLevel),
             }
           });
+        } else if (result.leveledUp) {
+          console.log(`🚫 Level-up modal: Level ${result.newLevel} already shown`);
         }
         
         // Refresh full stats in background for accuracy - use immediate call for faster updates
@@ -250,6 +272,8 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
       
       // Update state immediately with result for instant UI feedback
       if (result.success) {
+        console.log(`🔄 GamificationContext.subtractXP: -${amount} XP, leveledUp=${result.leveledUp}, newLevel=${result.newLevel}`);
+        
         dispatch({
           type: 'UPDATE_STATS',
           payload: {
@@ -258,6 +282,29 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
             multiplierEndTime: state.multiplierEndTime,
           }
         });
+        
+        // Check for level-up even in subtractXP (level could increase after subtract due to background processes)
+        console.log(`🔍 Level-up check (subtract): leveledUp=${result.leveledUp}, newLevel=${result.newLevel}, alreadyShown=${state.shownLevelUps.has(result.newLevel)}`);
+        if (result.leveledUp && !state.shownLevelUps.has(result.newLevel)) {
+          const levelInfo = getLevelInfo(result.newLevel);
+          const isLevelMilestone = (level?: number) => {
+            if (!level) return false;
+            return level % 10 === 0 || level === 25 || level === 50 || level === 75 || level === 100;
+          };
+          
+          console.log(`🎉 Level-up modal (from subtractXP): Level ${result.newLevel} (first time)`);
+          dispatch({
+            type: 'SHOW_LEVEL_UP_MODAL',
+            payload: {
+              previousLevel: result.previousLevel,
+              newLevel: result.newLevel,
+              levelTitle: levelInfo.title,
+              levelDescription: levelInfo.description,
+              rewards: levelInfo.rewards,
+              isMilestone: isLevelMilestone(result.newLevel),
+            }
+          });
+        }
         
         // Refresh full stats in background for accuracy - use immediate call for faster updates
         refreshStats();
