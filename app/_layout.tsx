@@ -18,6 +18,7 @@ LogBox.ignoreLogs([
   'ExpoLinearGradient',
   'ViewPropTypes will be removed',
   'componentWillReceiveProps has been renamed',
+  'Sending `onAnimatedValueUpdate` with no listeners registered',
 ]);
 
 export default function RootLayout() {

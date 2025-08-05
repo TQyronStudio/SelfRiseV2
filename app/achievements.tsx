@@ -6,7 +6,7 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   RefreshControl,
   Dimensions,
   ActivityIndicator,
@@ -18,6 +18,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { AchievementService } from '@/src/services/achievementService';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
+import { AchievementCard } from '@/src/components/achievements/AchievementCard';
 import { 
   Achievement, 
   UserAchievements, 
@@ -140,6 +141,11 @@ export default function AchievementsScreen() {
   const handleRefresh = () => {
     setIsRefreshing(true);
     loadAchievementData(false);
+  };
+
+  const handleAchievementPress = (achievement: Achievement) => {
+    // TODO: Open achievement detail modal (Sub-checkpoint 4.5.5.D)
+    console.log('Achievement pressed:', achievement.name);
   };
   
   // ========================================
@@ -335,9 +341,10 @@ export default function AchievementsScreen() {
   
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+      {/* Use FlatList as main container instead of ScrollView */}
+      <FlatList
+        data={userAchievements ? ['header', ...CORE_ACHIEVEMENTS.map(a => a.id)] : ['header']}
+        keyExtractor={(item) => typeof item === 'string' ? item : item}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -347,31 +354,67 @@ export default function AchievementsScreen() {
           />
         }
         showsVerticalScrollIndicator={false}
-      >
-        
-        {/* Overview Statistics */}
-        {renderOverviewStats()}
-        
-        {/* Category Breakdown */}
-        {renderCategoryBreakdown()}
-        
-        {/* Rarity Distribution */}
-        {renderRarityDistribution()}
-        
-        {/* Empty State */}
-        {overviewStats.unlockedCount === 0 && renderEmptyState()}
-        
-        {/* TODO: Achievement Cards Grid will be added in next sub-checkpoint */}
-        <View style={styles.placeholderContainer}>
-          <Text style={styles.placeholderText}>
-            🏆 Achievement Cards Grid Coming Soon 🏆
-          </Text>
-          <Text style={styles.placeholderSubtext}>
-            Individual achievement cards with filtering and search will be implemented in the next phase.
-          </Text>
-        </View>
-        
-      </ScrollView>
+        contentContainerStyle={styles.scrollContent}
+        renderItem={({ item, index }) => {
+          if (item === 'header') {
+            return (
+              <View>
+                {/* Overview Statistics */}
+                {renderOverviewStats()}
+                
+                {/* Category Breakdown */}
+                {renderCategoryBreakdown()}
+                
+                {/* Rarity Distribution */}
+                {renderRarityDistribution()}
+                
+                {/* Empty State */}
+                {overviewStats.unlockedCount === 0 && renderEmptyState()}
+                
+                {/* Achievement Cards Header */}
+                {userAchievements && CORE_ACHIEVEMENTS.length > 0 && (
+                  <View style={styles.achievementHeaderContainer}>
+                    <Text style={styles.achievementHeaderTitle}>Achievements</Text>
+                  </View>
+                )}
+              </View>
+            );
+          }
+          
+          // Render achievement cards in grid format
+          if (userAchievements && index > 0) {
+            const achievementIndex = index - 1;
+            const numColumns = Math.floor((Dimensions.get('window').width - 32) / 162); // card width + spacing
+            
+            // Only render every nth item to create rows
+            if (achievementIndex % numColumns === 0) {
+              const rowAchievements = CORE_ACHIEVEMENTS.slice(achievementIndex, achievementIndex + numColumns);
+              
+              return (
+                <View style={styles.achievementRow}>
+                  {rowAchievements.map((achievement) => {
+                    const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
+                    const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
+                    
+                    return (
+                      <View key={achievement.id} style={styles.cardWrapper}>
+                        <AchievementCard
+                          achievement={achievement}
+                          userProgress={userProgress}
+                          isUnlocked={isUnlocked}
+                          onPress={() => handleAchievementPress(achievement)}
+                        />
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            }
+          }
+          
+          return null;
+        }}
+      />
     </View>
   );
 }
@@ -420,6 +463,32 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
     paddingTop: 16,
+  },
+  
+  // Achievement grid styles
+  achievementHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.backgroundSecondary,
+  },
+  
+  achievementHeaderTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  
+  achievementRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  
+  cardWrapper: {
+    marginHorizontal: 4,
   },
   
   // Overview Statistics
@@ -635,31 +704,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Placeholder
-  placeholderContainer: {
-    backgroundColor: Colors.white,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    padding: 30,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
-  },
-  
-  placeholderText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  
-  placeholderSubtext: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
 });
