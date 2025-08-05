@@ -36,6 +36,169 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   {
+    id: 'habit-builder',
+    name: 'Habit Builder',
+    description: 'Create 5 different habits to diversify your personal development journey',
+    icon: '🏗️',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'habit_creation',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'century-club',
+    name: 'Century Club',
+    description: 'Complete 100 habit tasks - join the elite ranks of consistent achievers',
+    icon: '💯',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 100,
+      source: 'habit_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'consistency-king',
+    name: 'Consistency King',
+    description: 'Complete 1000 habit tasks - you are the master of consistency',
+    icon: '👑',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 1000,
+      source: 'habit_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'streak-master',
+    name: 'Streak Master',
+    description: 'Achieve a 30-day streak with any single habit - proof of dedication',
+    icon: '🔥',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'streak',
+      target: 30,
+      source: 'habit_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'diamond-streak',
+    name: 'Diamond Streak',
+    description: 'Maintain a 100-day streak with any habit - legendary persistence',
+    icon: '💎',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'streak',
+      target: 100,
+      source: 'habit_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'multi-tasker',
+    name: 'Multi-Tasker',
+    description: 'Complete 5 different habits in a single day - showing diverse commitment',
+    icon: '⚡',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'daily_habit_variety',
+      operator: 'gte',
+      timeframe: 'daily'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'habit-legend',
+    name: 'Habit Legend',
+    description: 'Reach Level 50 with XP earned primarily from habit activities - true mastery',
+    icon: '🏆',
+    category: AchievementCategory.HABITS,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'combination',
+      target: 2,
+      source: 'multi_source',
+      operator: 'eq',
+      timeframe: 'all_time',
+      additionalConditions: [
+        {
+          type: 'level',
+          target: 50,
+          source: 'xp_total',
+          operator: 'gte',
+          timeframe: 'all_time'
+        },
+        {
+          type: 'percentage',
+          target: 50,
+          source: 'habit_xp_ratio',
+          operator: 'gte',
+          timeframe: 'all_time'
+        }
+      ]
+    },
+    isProgressive: true,
+    isSecret: true,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
     id: 'first-journal',
     name: 'First Reflection',
     description: 'Write your first gratitude journal entry and start practicing mindfulness',
@@ -166,50 +329,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   // ========================================
-  // MASTERY ACHIEVEMENTS (4 achievements)
+  // MASTERY ACHIEVEMENTS (2 achievements)
   // ========================================
-
-  {
-    id: 'habit-collector',
-    name: 'Habit Collector',
-    description: 'Create 5 different habits - diversify your growth',
-    icon: '📚',
-    category: AchievementCategory.MASTERY,
-    rarity: AchievementRarity.RARE,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
-    condition: {
-      type: 'count',
-      target: 5,
-      source: 'habit_creation',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
-    isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
-  },
-
-  {
-    id: 'completion-machine',
-    name: 'Completion Machine',
-    description: 'Complete 100 habit tasks - you are unstoppable',
-    icon: '⚡',
-    category: AchievementCategory.MASTERY,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'count',
-      target: 100,
-      source: 'habit_completion',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
-    isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
-  },
 
   {
     id: 'journal-master',

@@ -348,6 +348,50 @@ export class AchievementIntegration {
   // ========================================
 
   /**
+   * Get habit XP ratio as percentage (habit XP / total XP * 100)
+   * Used for Habit Legend achievement to ensure user earned primarily from habits
+   */
+  static async getHabitXPRatio(timeframe?: string): Promise<number> {
+    try {
+      const { GamificationService } = await import('./gamificationService');
+      const transactions = await GamificationService.getAllTransactions();
+      
+      if (transactions.length === 0) {
+        return 0;
+      }
+      
+      // Filter by timeframe if specified
+      const filteredTransactions = this.filterByTimeframe(
+        transactions.map(t => ({ ...t, date: t.date })),
+        timeframe || 'all_time'
+      );
+      
+      // Calculate total XP and habit XP
+      let totalXP = 0;
+      let habitXP = 0;
+      
+      for (const transaction of filteredTransactions) {
+        if (transaction.amount > 0) { // Only count positive XP gains
+          totalXP += transaction.amount;
+          
+          // Count habit-related XP sources
+          if (transaction.source === 'habit_completion' || 
+              transaction.source === 'habit_bonus' || 
+              transaction.source === 'habit_streak_milestone') {
+            habitXP += transaction.amount;
+          }
+        }
+      }
+      
+      // Return percentage (0-100)
+      return totalXP > 0 ? Math.round((habitXP / totalXP) * 100) : 0;
+    } catch (error) {
+      console.error('AchievementIntegration.getHabitXPRatio error:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Check if all 3 features (habits, journal, goals) were used on the same day
    */
   static async getDailyFeatureCombo(timeframe?: string): Promise<number> {
@@ -524,6 +568,9 @@ export class AchievementIntegration {
           
         case 'daily_feature_combo':
           return await this.getDailyFeatureCombo(timeframe);
+          
+        case 'habit_xp_ratio':
+          return await this.getHabitXPRatio(timeframe);
           
         case 'user_level':
           // This is handled directly in AchievementService via GamificationStats
