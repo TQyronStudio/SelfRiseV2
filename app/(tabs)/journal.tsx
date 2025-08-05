@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -22,6 +22,7 @@ export default function JournalScreen() {
   const { checkForRecentLevelUps, getLevelInfo } = useGamification();
   const { celebrationState, checkAndTriggerLevelUpCelebration, hideCelebration } = useLevelUpCelebrations();
   const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<View>(null);
   const [showInput, setShowInput] = useState(false);
   const [inputType, setInputType] = useState<'gratitude' | 'self-praise'>('gratitude');
   const [showCelebration, setShowCelebration] = useState(false);
@@ -40,15 +41,34 @@ export default function JournalScreen() {
     setTodaysGratitudes(actions.getGratitudesByDate(todayDate));
   }, [state.gratitudes, todayDate, actions]);
 
+  // Smart scroll to position input in upper third of screen
+  const scrollToInputInUpperThird = useCallback(() => {
+    setTimeout(() => {
+      if (inputRef.current && scrollViewRef.current) {
+        inputRef.current.measureInWindow((x, y, width, height) => {
+          const screenHeight = Dimensions.get('window').height;
+          const upperThirdPosition = screenHeight / 3;
+          
+          // Calculate scroll offset to position input in upper third
+          const targetScrollY = Math.max(0, y - upperThirdPosition);
+          
+          scrollViewRef.current?.scrollTo({
+            y: targetScrollY,
+            animated: true
+          });
+        });
+      }
+    }, 200); // Delay to ensure input is rendered and measured
+  }, []);
+
+
   // Handle quick actions from home screen
   useEffect(() => {
     if (params.quickAction === 'addGratitude') {
       setInputType('gratitude');
       setShowInput(true);
-      // Scroll to input area after a brief delay to ensure it's rendered
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 300);
+      // Smart scroll to position input in upper third
+      scrollToInputInUpperThird();
       // Clear the quick action parameter after a brief delay to prevent re-triggering
       setTimeout(() => {
         router.replace('/(tabs)/journal');
@@ -56,16 +76,14 @@ export default function JournalScreen() {
     } else if (params.quickAction === 'addSelfPraise') {
       setInputType('self-praise');
       setShowInput(true);
-      // Scroll to input area after a brief delay to ensure it's rendered
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 300);
+      // Smart scroll to position input in upper third
+      scrollToInputInUpperThird();
       // Clear the quick action parameter after a brief delay to prevent re-triggering
       setTimeout(() => {
         router.replace('/(tabs)/journal');
       }, 100);
     }
-  }, [params.quickAction]);
+  }, [params.quickAction, scrollToInputInUpperThird]);
 
   const handleInputSuccess = useCallback(async () => {
     setShowInput(false);
@@ -206,12 +224,14 @@ export default function JournalScreen() {
         </View>
         
         {showInput && (
-          <GratitudeInput 
-            onSubmitSuccess={handleInputSuccess}
-            onCancel={() => setShowInput(false)}
-            isBonus={isComplete}
-            inputType={inputType}
-          />
+          <View ref={inputRef}>
+            <GratitudeInput 
+              onSubmitSuccess={handleInputSuccess}
+              onCancel={() => setShowInput(false)}
+              isBonus={isComplete}
+              inputType={inputType}
+            />
+          </View>
         )}
         
         {!showInput && (
@@ -222,10 +242,8 @@ export default function JournalScreen() {
                 onPress={() => {
                   setInputType('gratitude');
                   setShowInput(true);
-                  // Auto-scroll to input area after a brief delay
-                  setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
-                  }, 300);
+                  // Smart scroll to position input in upper third
+                  scrollToInputInUpperThird();
                 }}
               >
                 <Text style={styles.addButtonText}>
@@ -238,10 +256,8 @@ export default function JournalScreen() {
                 onPress={() => {
                   setInputType('self-praise');
                   setShowInput(true);
-                  // Auto-scroll to input area after a brief delay
-                  setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
-                  }, 300);
+                  // Smart scroll to position input in upper third
+                  scrollToInputInUpperThird();
                 }}
               >
                 <Text style={styles.addButtonText}>
