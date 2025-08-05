@@ -16,13 +16,17 @@ import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationM
 import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
+import { useGamification } from '@/src/contexts/GamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
+import { XPSourceType } from '@/src/types/gamification';
+import { XP_REWARDS } from '@/src/constants/gamification';
 
 export default function HomeScreen() {
-  const { t } = useI18n();
+  // const { t } = useI18n(); // Unused for now
   const router = useRouter();
-  const { actions } = useHabits();
+  const { actions, state: habitsState } = useHabits();
+  const { addXP, subtractXP } = useGamification();
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
 
@@ -35,7 +39,32 @@ export default function HomeScreen() {
 
   const handleHabitToggle = async (habitId: string) => {
     try {
-      await actions.toggleCompletion(habitId, today(), false);
+      const completion = await actions.toggleCompletion(habitId, today(), false);
+      
+      const habit = habitsState.habits.find(h => h.id === habitId);
+      if (habit) {
+        const isBonus = false; // From home screen, always scheduled completion
+        const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+        const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+        
+        if (completion) {
+          // Habit was completed - award XP
+          const description = isBonus ? 
+            `Completed bonus habit: ${habit.name}` : 
+            `Completed scheduled habit: ${habit.name}`;
+
+          console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for ${xpSource}`);
+          await addXP(xpAmount, { source: xpSource, description });
+        } else {
+          // Habit was uncompleted - deduct XP
+          const description = isBonus ? 
+            `Uncompleted bonus habit: ${habit.name}` : 
+            `Uncompleted scheduled habit: ${habit.name}`;
+
+          console.log(`🚀 Real-time XP: Deducting ${xpAmount} XP for ${xpSource}`);
+          await subtractXP(xpAmount, { source: xpSource, description });
+        }
+      }
     } catch (error) {
       console.error('Failed to toggle habit:', error);
     }

@@ -9,7 +9,8 @@ import { XP_REWARDS } from '../../constants/gamification';
 
 export class HabitStorage implements EntityStorage<Habit> {
   // XP system enabled for habit completions
-  private static XP_ENABLED = true;
+  // DISABLED: XP is now handled in UI layer (Home screen) for real-time updates
+  private static XP_ENABLED = false;
   // Habit CRUD operations
   async getAll(): Promise<Habit[]> {
     try {

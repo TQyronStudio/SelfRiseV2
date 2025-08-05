@@ -9,9 +9,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHabitsData } from '../../hooks/useHabitsData';
+import { useGamification } from '../../contexts/GamificationContext';
 import { Colors } from '../../constants/colors';
 import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../utils/date';
 import { Habit, HabitCompletion } from '../../types/habit';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 interface DailyHabitTrackerProps {
   date?: string; // Optional date, defaults to today
@@ -21,6 +24,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   date = formatDateToString(new Date()) 
 }) => {
   const { habits, completions, actions, isLoading } = useHabitsData();
+  const { addXP, subtractXP } = useGamification();
   const [completingHabit, setCompletingHabit] = useState<string | null>(null);
   
   // Filter active habits for the current date
@@ -50,8 +54,31 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
     try {
       const currentCompletion = getHabitCompletion(habit.id);
       const isScheduled = isScheduledToday(habit);
+      const isBonus = !isScheduled;
       
-      await actions.toggleCompletion(habit.id, date, !isScheduled);
+      const completion = await actions.toggleCompletion(habit.id, date, isBonus);
+      
+      // Handle XP changes based on completion state
+      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+      
+      if (completion && !currentCompletion) {
+        // Habit was completed - award XP
+        const description = isBonus ? 
+          `Completed bonus habit: ${habit.name}` : 
+          `Completed scheduled habit: ${habit.name}`;
+
+        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for ${xpSource}`);
+        await addXP(xpAmount, { source: xpSource, description });
+      } else if (!completion && currentCompletion) {
+        // Habit was uncompleted - deduct XP
+        const description = isBonus ? 
+          `Uncompleted bonus habit: ${habit.name}` : 
+          `Uncompleted scheduled habit: ${habit.name}`;
+
+        console.log(`🚀 Real-time XP: Deducting ${xpAmount} XP for ${xpSource}`);
+        await subtractXP(xpAmount, { source: xpSource, description });
+      }
       
       // Brief animation delay
       setTimeout(() => {

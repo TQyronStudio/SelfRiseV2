@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useEffect, useReducer } 
 import { GamificationService, XPTransactionResult, XPAdditionOptions } from '../services/gamificationService';
 import { GamificationStats, XPSourceType, XPTransaction } from '../types/gamification';
 import { getCurrentLevel, getXPProgress, getLevelInfo } from '../services/levelCalculation';
+import CelebrationModal from '../components/gratitude/CelebrationModal';
 
 // ========================================
 // TYPES AND INTERFACES
@@ -25,6 +26,17 @@ interface GamificationState {
   
   // Error handling
   error: string | null;
+  
+  // Level-up celebration modal
+  showLevelUpModal: boolean;
+  levelUpData?: {
+    previousLevel: number;
+    newLevel: number;
+    levelTitle: string;
+    levelDescription?: string;
+    rewards?: string[];
+    isMilestone: boolean;
+  };
 }
 
 interface GamificationContextValue {
@@ -49,6 +61,9 @@ interface GamificationContextValue {
   // Level-up celebration utilities
   checkForRecentLevelUps: () => Promise<any[]>;
   getRecentLevelUps: (count?: number) => Promise<any[]>;
+  
+  // Level-up modal handlers
+  hideLevelUpModal: () => void;
 }
 
 // ========================================
@@ -56,7 +71,7 @@ interface GamificationContextValue {
 // ========================================
 
 interface GamificationAction {
-  type: 'SET_LOADING' | 'SET_ERROR' | 'UPDATE_STATS' | 'RESET_STATE' | 'SET_INITIALIZED';
+  type: 'SET_LOADING' | 'SET_ERROR' | 'UPDATE_STATS' | 'RESET_STATE' | 'SET_INITIALIZED' | 'SHOW_LEVEL_UP_MODAL' | 'HIDE_LEVEL_UP_MODAL';
   payload?: any;
 }
 
@@ -70,6 +85,8 @@ const initialState: GamificationState = {
   lastUpdated: null,
   multiplierActive: false,
   error: null,
+  showLevelUpModal: false,
+  levelUpData: undefined,
 };
 
 function gamificationReducer(state: GamificationState, action: GamificationAction): GamificationState {
@@ -103,6 +120,20 @@ function gamificationReducer(state: GamificationState, action: GamificationActio
     
     case 'RESET_STATE':
       return { ...initialState, isInitialized: true };
+    
+    case 'SHOW_LEVEL_UP_MODAL':
+      return { 
+        ...state, 
+        showLevelUpModal: true, 
+        levelUpData: action.payload 
+      };
+    
+    case 'HIDE_LEVEL_UP_MODAL':
+      return { 
+        ...state, 
+        showLevelUpModal: false, 
+        levelUpData: undefined 
+      };
     
     default:
       return state;
@@ -168,6 +199,27 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
             multiplierEndTime: state.multiplierEndTime,
           }
         });
+        
+        // Check for level-up and show celebration modal
+        if (result.leveledUp) {
+          const levelInfo = getLevelInfo(result.newLevel);
+          const isLevelMilestone = (level?: number) => {
+            if (!level) return false;
+            return level % 10 === 0 || level === 25 || level === 50 || level === 75 || level === 100;
+          };
+          
+          dispatch({
+            type: 'SHOW_LEVEL_UP_MODAL',
+            payload: {
+              previousLevel: result.previousLevel,
+              newLevel: result.newLevel,
+              levelTitle: levelInfo.title,
+              levelDescription: levelInfo.description,
+              rewards: levelInfo.rewards,
+              isMilestone: isLevelMilestone(result.newLevel),
+            }
+          });
+        }
         
         // Refresh full stats in background for accuracy - use immediate call for faster updates
         refreshStats();
@@ -315,16 +367,24 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
     }
   }, [state.isInitialized, refreshStats]);
 
-  // Auto-refresh every 30 seconds when app is active
-  useEffect(() => {
-    if (!state.isInitialized) return;
+  // Auto-refresh disabled - real-time updates handle this now
+  // useEffect(() => {
+  //   if (!state.isInitialized) return;
 
-    const intervalId = setInterval(() => {
-      refreshStats();
-    }, 30000); // 30 seconds
+  //   const intervalId = setInterval(() => {
+  //     refreshStats();
+  //   }, 30000); // 30 seconds
 
-    return () => clearInterval(intervalId);
-  }, [state.isInitialized, refreshStats]);
+  //   return () => clearInterval(intervalId);
+  // }, [state.isInitialized, refreshStats]);
+
+  // ========================================
+  // LEVEL-UP MODAL HANDLERS
+  // ========================================
+
+  const hideLevelUpModal = useCallback(() => {
+    dispatch({ type: 'HIDE_LEVEL_UP_MODAL' });
+  }, []);
 
   // ========================================
   // CONTEXT VALUE
@@ -343,11 +403,21 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
     isLevelMilestone,
     checkForRecentLevelUps,
     getRecentLevelUps,
+    hideLevelUpModal,
   };
 
   return (
     <GamificationContext.Provider value={contextValue}>
       {children}
+      
+      {/* Level-up celebration modal */}
+      <CelebrationModal
+        visible={state.showLevelUpModal}
+        onClose={hideLevelUpModal}
+        type="level_up"
+        levelUpData={state.levelUpData}
+        disableXpAnimations={true}
+      />
     </GamificationContext.Provider>
   );
 };

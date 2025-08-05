@@ -8,6 +8,10 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
+  // XP system enabled for journal entries
+  // DISABLED: XP is now handled in UI layer (GratitudeInput) for real-time updates
+  private static XP_ENABLED = false;
+  
   // Gratitude CRUD operations
   async getAll(): Promise<Gratitude[]> {
     try {
@@ -1000,8 +1004,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         descriptions.push(streakXP.description);
       }
 
-      // Award all XP in single transaction to prevent multiple level-ups
-      if (totalXP > 0) {
+      // Award all XP in single transaction to prevent multiple level-ups - only if enabled
+      if (totalXP > 0 && GratitudeStorage.XP_ENABLED) {
         await GamificationService.addXP(totalXP, {
           source: xpSourceType,
           description: descriptions.join(' + '),
@@ -1050,7 +1054,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   private async checkAndAwardJournalMilestones(entryPosition: number, date: DateString): Promise<void> {
     try {
       const milestoneData = await this.getMilestoneXPData(entryPosition, date);
-      if (milestoneData.xp > 0) {
+      if (milestoneData.xp > 0 && GratitudeStorage.XP_ENABLED) {
         await GamificationService.addXP(milestoneData.xp, {
           source: XPSourceType.JOURNAL_BONUS_MILESTONE,
           description: milestoneData.description,
@@ -1098,7 +1102,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   private async checkAndAwardStreakMilestones(): Promise<void> {
     try {
       const streakData = await this.getStreakMilestoneXPData();
-      if (streakData.xp > 0) {
+      if (streakData.xp > 0 && GratitudeStorage.XP_ENABLED) {
         const streak = await this.getStreak();
         await GamificationService.addXP(streakData.xp, {
           source: XPSourceType.JOURNAL_STREAK_MILESTONE,

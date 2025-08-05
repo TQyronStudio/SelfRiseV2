@@ -31,6 +31,8 @@ interface CelebrationModalProps {
     rewards?: string[];
     isMilestone: boolean;
   };
+  // Optional flag to disable XP animation hooks (for GamificationContext usage)
+  disableXpAnimations?: boolean;
 }
 
 export default function CelebrationModal({
@@ -42,9 +44,19 @@ export default function CelebrationModal({
   streakDays,
   bonusCount,
   levelUpData,
+  disableXpAnimations = false,
 }: CelebrationModalProps) {
   const { t } = useI18n();
-  const { triggerHapticFeedback, playSoundEffect } = useXpFeedback();
+  
+  // Conditionally use XP feedback hooks only if not disabled
+  let triggerHapticFeedback: ((type: string) => Promise<void>) | undefined;
+  let playSoundEffect: ((type: string) => Promise<void>) | undefined;
+  
+  if (!disableXpAnimations) {
+    const xpFeedback = useXpFeedback();
+    triggerHapticFeedback = xpFeedback.triggerHapticFeedback;
+    playSoundEffect = xpFeedback.playSoundEffect;
+  }
   const [showParticles, setShowParticles] = useState(false);
 
   // Trigger effects when modal becomes visible
@@ -57,23 +69,23 @@ export default function CelebrationModal({
         switch (type) {
           case 'level_up':
             if (levelUpData?.isMilestone) {
-              await triggerHapticFeedback('heavy');
-              await playSoundEffect('milestone');
+              if (triggerHapticFeedback) await triggerHapticFeedback('heavy');
+              if (playSoundEffect) await playSoundEffect('milestone');
             } else {
-              await triggerHapticFeedback('medium');
-              await playSoundEffect('level_up');
+              if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+              if (playSoundEffect) await playSoundEffect('level_up');
             }
             break;
           case 'streak_milestone':
-            await triggerHapticFeedback('medium');
-            await playSoundEffect('milestone');
+            if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+            if (playSoundEffect) await playSoundEffect('milestone');
             break;
           case 'bonus_milestone':
-            await triggerHapticFeedback('light');
-            await playSoundEffect('xp_gain');
+            if (triggerHapticFeedback) await triggerHapticFeedback('light');
+            if (playSoundEffect) await playSoundEffect('xp_gain');
             break;
           default:
-            await triggerHapticFeedback('light');
+            if (triggerHapticFeedback) await triggerHapticFeedback('light');
             break;
         }
       };

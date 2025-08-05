@@ -361,7 +361,11 @@ export class GamificationService {
   static async getTotalXP(): Promise<number> {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_XP);
-      return stored ? parseInt(stored, 10) : 0;
+      if (!stored) return 0;
+      
+      const parsed = parseInt(stored, 10);
+      // Safety check: if parseInt returns NaN, default to 0
+      return isNaN(parsed) ? 0 : parsed;
     } catch (error) {
       console.error('GamificationService.getTotalXP error:', error);
       return 0;

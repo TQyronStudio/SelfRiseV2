@@ -5,9 +5,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
 import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
+import { useGamification } from '@/src/contexts/GamificationContext';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
+import { XPSourceType } from '@/src/types/gamification';
+import { XP_REWARDS } from '@/src/constants/gamification';
 
 const styles = StyleSheet.create({
   container: {
@@ -97,6 +100,7 @@ const styles = StyleSheet.create({
 export function GoalsScreen() {
   const { t } = useI18n();
   const { goals, isLoading, actions } = useGoalsData();
+  const { addXP } = useGamification();
   const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -203,7 +207,20 @@ export function GoalsScreen() {
   const handleSubmitProgress = async (data: AddGoalProgressInput) => {
     try {
       const previousGoal = progressGoal;
-      await actions.addProgress(data);
+      const newProgress = await actions.addProgress(data);
+      
+      // Award real-time XP for basic progress entry (milestones/completion handled by storage)
+      if (newProgress && previousGoal && data.progressType !== 'subtract') {
+        const xpAmount = XP_REWARDS.GOALS.PROGRESS_ENTRY;
+        const description = `Added progress to goal: ${previousGoal.title}`;
+        
+        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for goal progress`);
+        await addXP(xpAmount, { 
+          source: XPSourceType.GOAL_PROGRESS, 
+          description,
+          sourceId: previousGoal.id 
+        });
+      }
       
       handleCloseProgressModal();
       

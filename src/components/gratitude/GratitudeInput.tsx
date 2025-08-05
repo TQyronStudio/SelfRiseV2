@@ -8,10 +8,13 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
+import { useGamification } from '@/src/contexts/GamificationContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { today } from '@/src/utils/date';
 import { ErrorModal } from '@/src/components/common';
 import { gratitudeStorage } from '@/src/services/storage/gratitudeStorage';
+import { XPSourceType } from '@/src/types/gamification';
+import { XP_REWARDS } from '@/src/constants/gamification';
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
@@ -51,6 +54,7 @@ const SELF_PRAISE_PLACEHOLDERS = [
 export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude' }: GratitudeInputProps) {
   const { t } = useI18n();
   const { actions } = useGratitude();
+  const { addXP } = useGamification();
   const [gratitudeText, setGratitudeText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -94,11 +98,27 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         // If user has 3+ entries today, allow bonus entries even with debt
       }
       
-      await actions.createGratitude({
+      const newEntry = await actions.createGratitude({
         content: trimmedText,
         date: today(),
         type: inputType,
       });
+
+      // Award real-time XP for journal entry (streaks/milestones handled by storage)
+      if (newEntry) {
+        const xpAmount = inputType === 'self-praise' ? 
+          XP_REWARDS.JOURNAL.FIRST_ENTRY : // Same reward for self-praise as regular entries
+          XP_REWARDS.JOURNAL.FIRST_ENTRY;
+        const xpSource = inputType === 'self-praise' ? 
+          XPSourceType.JOURNAL_SELF_PRAISE : 
+          XPSourceType.JOURNAL_GRATITUDE;
+        const description = inputType === 'self-praise' ? 
+          'Added self-praise entry' : 
+          'Added gratitude entry';
+
+        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for journal entry`);
+        await addXP(xpAmount, { source: xpSource, description });
+      }
 
       setGratitudeText('');
       onSubmitSuccess?.();

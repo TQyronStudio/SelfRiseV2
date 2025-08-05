@@ -16,6 +16,9 @@ interface GoalDailyXPData {
 }
 
 export class GoalStorage implements EntityStorage<Goal> {
+  // XP system enabled for goal actions
+  // DISABLED: XP is now handled in UI layer (GoalsScreen) for real-time updates
+  private static XP_ENABLED = false;
   // Constants
   private static readonly MAX_DAILY_POSITIVE_XP_PER_GOAL = 3; // Max 3 positive XP per goal per day
   
@@ -626,12 +629,14 @@ export class GoalStorage implements EntityStorage<Goal> {
         return;
       }
 
-      // Award XP
-      await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+      // Award XP - only if enabled
+      if (GoalStorage.XP_ENABLED) {
+        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
         source: XPSourceType.GOAL_PROGRESS,
         sourceId: goal.id,
         description: `Added progress to goal: ${goal.title}`,
-      });
+        });
+      }
       
       // Update tracking (positive XP)
       await this.updateGoalDailyXPTracking(goal.id, true);
@@ -654,7 +659,7 @@ export class GoalStorage implements EntityStorage<Goal> {
 
       for (const milestone of milestones) {
         // Check if we crossed this milestone
-        if (previousPercentage < milestone.threshold && newPercentage >= milestone.threshold) {
+        if (previousPercentage < milestone.threshold && newPercentage >= milestone.threshold && GoalStorage.XP_ENABLED) {
           await GamificationService.addXP(milestone.xp, {
             source: XPSourceType.GOAL_MILESTONE,
             sourceId: goal.id,
@@ -679,11 +684,13 @@ export class GoalStorage implements EntityStorage<Goal> {
         ? `Completed big goal (${goal.targetValue}): ${goal.title}` 
         : `Completed goal: ${goal.title}`;
 
-      await GamificationService.addXP(xpAmount, {
-        source: XPSourceType.GOAL_COMPLETION,
-        sourceId: goal.id,
-        description,
-      });
+      if (GoalStorage.XP_ENABLED) {
+        await GamificationService.addXP(xpAmount, {
+          source: XPSourceType.GOAL_COMPLETION,
+          sourceId: goal.id,
+          description,
+        });
+      }
     } catch (error) {
       console.error('Failed to award completion XP:', error);
     }
@@ -699,11 +706,13 @@ export class GoalStorage implements EntityStorage<Goal> {
       if (deletedProgress.progressType === 'subtract') {
         // Deleting a SUBTRACT progress should ADD XP back (reverse the previous subtraction)
         // This also reduces daily negative count, effectively increasing available positive XP slots
-        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-          source: XPSourceType.GOAL_PROGRESS,
-          sourceId: goal.id,
-          description: `Removed negative progress from goal: ${goal.title} (+${deletedProgress.value})`,
-        });
+        if (GoalStorage.XP_ENABLED) {
+          await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+            source: XPSourceType.GOAL_PROGRESS,
+            sourceId: goal.id,
+            description: `Removed negative progress from goal: ${goal.title} (+${deletedProgress.value})`,
+          });
+        }
         
         // Update tracking (positive XP from deleting negative)
         await this.updateGoalDailyXPTracking(goal.id, true);
