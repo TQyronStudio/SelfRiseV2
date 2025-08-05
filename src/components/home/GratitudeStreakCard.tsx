@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { useGratitude } from '../../contexts/GratitudeContext';
 import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
 import { GratitudeStreak } from '../../types/gratitude';
 import { StreakSharingModal } from './StreakSharingModal';
@@ -28,6 +29,7 @@ interface JournalStreakCardProps {
 
 export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const { t } = useI18n();
+  const { actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSharingModal, setShowSharingModal] = useState(false);
@@ -148,6 +150,10 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       // Reload streak data to reflect changes
       await loadStreakData();
       console.log(`[DEBUG] loadStreakData completed`);
+      
+      // CRITICAL FIX: Also refresh GratitudeContext so My Journal screen updates immediately
+      await actions.refreshStats();
+      console.log(`[DEBUG] GratitudeContext refreshStats completed`);
       
       // Double-check if debt was actually cleared
       const remainingDebt = await gratitudeStorage.calculateDebt();

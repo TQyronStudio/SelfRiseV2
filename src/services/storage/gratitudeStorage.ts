@@ -863,7 +863,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Pay off debt by watching ads - creates fake entries for missed days
+   * Pay off debt by watching ads - clears debt without creating fake entries
+   * CRITICAL FIX: Preserves current streak instead of incrementing it
    */
   async payDebtWithAds(adsWatched: number): Promise<void> {
     try {
@@ -877,41 +878,32 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         console.error(`[DEBUG] payDebtWithAds: ${errorMsg}`);
         throw new Error(errorMsg);
       }
-
+      
       // CRITICAL FIX: Check if debt is already 0
       if (debtDays === 0) {
         console.log(`[DEBUG] payDebtWithAds: No debt to pay, returning early`);
         return; // No debt to pay
       }
 
-      // Create fake entries for debt days to "fill the gaps"
-      const currentDate = today();
-      console.log(`[DEBUG] payDebtWithAds: Creating entries for ${debtDays} debt days`);
+      // CRITICAL FIX: Instead of creating fake entries, simply clear the debt
+      // This preserves the current streak without incrementing it
+      console.log(`[DEBUG] payDebtWithAds: Clearing debt without creating fake entries`);
       
-      for (let i = 1; i <= debtDays; i++) {
-        const debtDate = subtractDays(currentDate, i);
-        console.log(`[DEBUG] payDebtWithAds: Processing debt day ${i}, date=${debtDate}`);
-        
-        // Create 3 fake entries for each debt day
-        for (let j = 1; j <= 3; j++) {
-          try {
-            await this.create({
-              content: `Debt recovery - Ad ${i}.${j}`,
-              date: debtDate,
-              type: 'gratitude',
-            });
-            console.log(`[DEBUG] payDebtWithAds: Created entry ${i}.${j} for ${debtDate}`);
-          } catch (createError) {
-            console.error(`[DEBUG] payDebtWithAds: Failed to create entry ${i}.${j}:`, createError);
-            // Continue with other entries even if one fails
-          }
-        }
-      }
-
-      // Recalculate streak after paying debt
-      console.log(`[DEBUG] payDebtWithAds: Recalculating streak...`);
-      await this.calculateAndUpdateStreak();
-      console.log(`[DEBUG] payDebtWithAds: Successfully completed debt payment`);
+      // Get current streak to preserve it
+      const currentStreakInfo = await this.getStreak();
+      console.log(`[DEBUG] payDebtWithAds: Current streak before payment: ${currentStreakInfo.currentStreak}`);
+      
+      // Clear debt by updating streak info - preserve current streak but unfreeze it
+      const updatedStreakInfo: GratitudeStreak = {
+        ...currentStreakInfo,
+        debtDays: 0,           // Clear debt
+        isFrozen: false,       // Unfreeze streak
+        canRecoverWithAd: false // No longer need recovery
+      };
+      
+      // Save updated streak info
+      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreakInfo);
+      console.log(`[DEBUG] payDebtWithAds: Successfully cleared debt. Streak preserved at ${updatedStreakInfo.currentStreak}`);
       
     } catch (error) {
       console.error(`[DEBUG] payDebtWithAds: Error occurred:`, error);
