@@ -367,6 +367,111 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     updatedAt: new Date('2025-08-04')
   },
 
+  {
+    id: 'goal-getter',
+    name: 'Goal Getter',
+    description: 'Complete your first goal - you turn dreams into reality',
+    icon: '✅',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 1,
+      source: 'goal_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'goal-champion',
+    name: 'Goal Champion',
+    description: 'Complete 5 goals - you are becoming a master of achievement',
+    icon: '🏆',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'goal_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'achievement-unlocked',
+    name: 'Achievement Unlocked',
+    description: 'Complete 10 goals - you are a legendary goal achiever',
+    icon: '🎖️',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'goal_completion',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'ambitious',
+    name: 'Ambitious',
+    description: 'Set a goal with target value of 1000 or more - you dream big',
+    icon: '🚀',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'value',
+      target: 1000,
+      source: 'goal_target_value',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'progress-tracker',
+    name: 'Progress Tracker',
+    description: 'Make progress on goals for 7 consecutive days - consistency leads to success',
+    icon: '📈',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'streak',
+      target: 7,
+      source: 'goal_progress_consecutive_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-05'),
+    updatedAt: new Date('2025-08-05')
+  },
+
   // ========================================
   // CONSISTENCY ACHIEVEMENTS (4 achievements)
   // ========================================

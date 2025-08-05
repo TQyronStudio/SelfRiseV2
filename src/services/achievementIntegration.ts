@@ -348,6 +348,69 @@ export class AchievementIntegration {
   // ========================================
 
   /**
+   * Get consecutive days of goal progress
+   * Used for Progress Tracker achievement to track daily goal engagement
+   */
+  static async getGoalProgressConsecutiveDays(timeframe?: string): Promise<number> {
+    try {
+      const { GamificationService } = await import('./gamificationService');
+      const transactions = await GamificationService.getAllTransactions();
+      
+      if (transactions.length === 0) {
+        return 0;
+      }
+      
+      // Filter for goal progress transactions
+      const goalProgressTransactions = transactions.filter(t => 
+        t.source === 'goal_progress' && t.amount > 0
+      );
+      
+      if (goalProgressTransactions.length === 0) {
+        return 0;
+      }
+      
+      // Get unique dates with goal progress, sorted chronologically
+      const progressDates = [...new Set(goalProgressTransactions.map(t => t.date))]
+        .sort((a, b) => a.localeCompare(b));
+      
+      // Find longest consecutive streak ending with today or in the past
+      let maxConsecutive = 0;
+      let currentConsecutive = 0;
+      const todayStr = today();
+      
+      // Check consecutive days from the end (most recent)
+      for (let i = progressDates.length - 1; i >= 0; i--) {
+        const currentDate = progressDates[i];
+        
+        if (i === progressDates.length - 1) {
+          // First iteration (most recent date)
+          currentConsecutive = 1;
+          maxConsecutive = 1;
+        } else {
+          // Check if current date is exactly one day before the previous date
+          const nextDate = progressDates[i + 1];
+          if (!nextDate) break; // Safety check
+          
+          const expectedDate = formatDateToString(new Date(Date.parse(nextDate) - 24 * 60 * 60 * 1000));
+          
+          if (currentDate === expectedDate) {
+            currentConsecutive++;
+            maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+          } else {
+            // Gap found, streak broken
+            break;
+          }
+        }
+      }
+      
+      return maxConsecutive;
+    } catch (error) {
+      console.error('AchievementIntegration.getGoalProgressConsecutiveDays error:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get habit XP ratio as percentage (habit XP / total XP * 100)
    * Used for Habit Legend achievement to ensure user earned primarily from habits
    */
@@ -565,6 +628,9 @@ export class AchievementIntegration {
           
         case 'goal_target_value':
           return await this.getMaxGoalTargetValue(timeframe);
+          
+        case 'goal_progress_consecutive_days':
+          return await this.getGoalProgressConsecutiveDays(timeframe);
           
         case 'daily_habit_variety':
           return await this.getDailyHabitVariety(timeframe);
