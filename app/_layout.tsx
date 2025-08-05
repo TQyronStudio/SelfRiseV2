@@ -10,6 +10,7 @@ import { LogBox } from 'react-native';
 // Import i18n configuration to initialize internationalization
 import '../src/config/i18n';
 import { RootProvider } from '../src/contexts';
+import { Colors } from '../src/constants/colors';
 
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
@@ -42,7 +43,7 @@ export default function RootLayout() {
               headerBackTitle: 'Home',
               headerBackTitleVisible: false,
               headerStyle: {
-                backgroundColor: '#007AFF',
+                backgroundColor: Colors.primary,
               },
               headerTintColor: '#FFFFFF',
               headerTitleStyle: {

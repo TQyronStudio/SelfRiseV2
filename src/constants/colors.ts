@@ -1,7 +1,7 @@
 // Application color constants - Light theme only
 export const Colors = {
   // Primary colors
-  primary: '#4A90E2',
+  primary: '#007AFF',
   primaryDark: '#357ABD',
   primaryLight: '#7BB3F0',
   
@@ -60,5 +60,5 @@ export const Colors = {
   tabBarBackground: '#FFFFFF',
   tabBarBorder: '#E9ECEF',
   tabIconDefault: '#ADB5BD',
-  tabIconSelected: '#4A90E2',
+  tabIconSelected: '#007AFF',
 } as const;
