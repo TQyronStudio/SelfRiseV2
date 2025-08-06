@@ -587,6 +587,289 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   // ========================================
+  // CONSISTENCY ACHIEVEMENTS - Advanced (8 achievements)
+  // ========================================
+
+  {
+    id: 'daily-visitor',
+    name: 'Daily Visitor',
+    description: 'Use the app for 7 consecutive days - building a healthy habit',
+    icon: '📅',
+    category: AchievementCategory.CONSISTENCY,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'streak',
+      target: 7,
+      source: 'app_usage_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'dedicated-user',
+    name: 'Dedicated User', 
+    description: 'Use the app for 30 consecutive days - your commitment is inspiring',
+    icon: '🎯',
+    category: AchievementCategory.CONSISTENCY,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'streak',
+      target: 30,
+      source: 'app_usage_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'perfect-month',
+    name: 'Perfect Month',
+    description: 'Complete activities in all 3 areas (habits, journal, goals) for 30 days',
+    icon: '🌟',
+    category: AchievementCategory.CONSISTENCY,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 30,
+      source: 'daily_feature_combo',
+      operator: 'gte',
+      timeframe: 'monthly'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'triple-crown',
+    name: 'Triple Crown',
+    description: 'Maintain 7+ day streaks in habits, journal, and goals simultaneously',
+    icon: '👑',
+    category: AchievementCategory.CONSISTENCY,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'combination',
+      target: 3,
+      source: 'multi_source',
+      operator: 'eq',
+      timeframe: 'all_time',
+      additionalConditions: [
+        {
+          type: 'streak',
+          target: 7,
+          source: 'habit_completion',
+          operator: 'gte',
+          timeframe: 'all_time'
+        },
+        {
+          type: 'streak', 
+          target: 7,
+          source: 'journal_entry',
+          operator: 'gte',
+          timeframe: 'all_time'
+        },
+        {
+          type: 'streak',
+          target: 7,
+          source: 'goal_progress_consecutive_days',
+          operator: 'gte',
+          timeframe: 'all_time'
+        }
+      ]
+    },
+    isProgressive: false,
+    isSecret: true,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  // ========================================
+  // MASTERY ACHIEVEMENTS - Advanced (8 achievements)
+  // ========================================
+
+  {
+    id: 'level-up',
+    name: 'Level Up',
+    description: 'Reach level 10 - you are growing stronger',
+    icon: '⬆️',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'level',
+      target: 10,
+      source: 'xp_total',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'selfrise-expert',
+    name: 'SelfRise Expert',
+    description: 'Reach level 25 - you have mastered the fundamentals',
+    icon: '🎓',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'level',
+      target: 25,
+      source: 'xp_total',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'selfrise-master',
+    name: 'SelfRise Master',
+    description: 'Reach level 50 - you are a true master of self-improvement',
+    icon: '🏅',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'level',
+      target: 50,
+      source: 'xp_total',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'recommendation-master',
+    name: 'Recommendation Master',
+    description: 'Follow 20 personalized recommendations from the For You section',
+    icon: '💡',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 20,
+      source: 'recommendations_followed',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'balance-master',
+    name: 'Balance Master',
+    description: 'Use all 3 features (habits, journal, goals) in a single day 10 times',
+    icon: '⚖️',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'daily_feature_combo',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'trophy-collector-basic',
+    name: 'Trophy Collector',
+    description: 'Unlock 10 achievements - you are building an impressive collection',
+    icon: '🏆',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'achievements_unlocked',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'trophy-collector-master',
+    name: 'Trophy Master',
+    description: 'Unlock 25 achievements - your trophy room is legendary',
+    icon: '🏆',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 25,
+      source: 'achievements_unlocked',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'ultimate-selfrise-legend',
+    name: 'Ultimate SelfRise Legend',
+    description: 'Reach level 100 - you have achieved the ultimate mastery of self-improvement',
+    icon: '🌟',
+    category: AchievementCategory.MASTERY,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'level',
+      target: 100,
+      source: 'xp_total',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: true,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  // ========================================
   // SPECIAL ACHIEVEMENTS (4 achievements)
   // ========================================
 
