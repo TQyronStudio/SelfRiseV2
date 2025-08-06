@@ -749,6 +749,20 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 **Status**: Production-ready weekly challenge system with full TypeScript compliance and UI polish
 
+**Critical Hotfix Applied - Achievement Animation Crash**: August 6, 2025
+- ✅ **Animation Conflict Resolution**: Fixed native driver animation crash in AchievementCard.tsx
+- ✅ **Root Cause**: Conflicting `useNativeDriver: true` (scale) and `useNativeDriver: false` (shadow) on same Animated.View
+- ✅ **Solution**: Split animations into nested Animated.View components (outer for shadow/JS, inner for scale/native)
+- ✅ **TypeScript Compliance**: Added missing accessibility_label and accessibility_hint to i18n types
+- ✅ **User Verification**: Tested and confirmed fix resolves achievement clicking crashes
+
+**Files Modified**:
+- `/src/components/achievements/AchievementCard.tsx` - Split conflicting animations
+- `/src/types/i18n.ts` - Added accessibility properties to achievements.card type
+- `/src/locales/en/index.ts` - Added accessibility translation keys
+
+**Status**: All animation crashes resolved, Trophy Room fully functional
+
 ##### Sub-checkpoint 4.5.8.B: XP Multiplier System ✨
 **Goal**: Reward balanced app usage with XP multipliers
 - [ ] Create "Harmony Streak" detection (all 3 categories active for 7+ consecutive days)

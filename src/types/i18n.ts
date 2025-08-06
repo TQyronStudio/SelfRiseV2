@@ -487,6 +487,8 @@ export interface TranslationKeys {
       viewDetails: string;
       almostThere: string;
       keepGoing: string;
+      accessibility_label: string;
+      accessibility_hint: string;
     };
     details: {
       title: string;

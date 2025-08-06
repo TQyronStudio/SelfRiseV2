@@ -126,7 +126,6 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   return (
     <Animated.View
       style={[
-        { transform: isReduceMotionEnabled ? [] : [{ scale: scaleAnim }] },
         { 
           shadowColor: rarityColor,
           shadowOpacity: glowAnim.interpolate({
@@ -140,6 +139,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         }
       ]}
     >
+      <Animated.View
+        style={[
+          { transform: isReduceMotionEnabled ? [] : [{ scale: scaleAnim }] }
+        ]}
+      >
       <TouchableOpacity
         style={[
           styles.card,
@@ -231,7 +235,8 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           <Text style={styles.lockedIcon}>🔒</Text>
         </View>
       )}
-    </TouchableOpacity>
+      </TouchableOpacity>
+      </Animated.View>
     </Animated.View>
   );
 };
