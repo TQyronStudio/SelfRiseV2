@@ -632,6 +632,104 @@ export class AchievementIntegration {
     }
   }
 
+  /**
+   * Get count of same-day habit creation and completion (Lightning Start)
+   */
+  static async getSameDayHabitCreationCompletionCount(timeframe?: string): Promise<number> {
+    try {
+      const habits = await this.habitStorage.getAll();
+      let sameDayCount = 0;
+      
+      for (const habit of habits) {
+        const creationDate = formatDateToString(habit.createdAt);
+        const completions = await this.getHabitCompletions(habit.id);
+        
+        // Check if any completion happened on the same day as creation
+        const sameDayCompletion = completions.find(completion => 
+          completion.date === creationDate
+        );
+        
+        if (sameDayCompletion) {
+          // Check if this falls within timeframe
+          if (!timeframe || timeframe === 'all_time' || 
+              this.isDateInTimeframe(creationDate, timeframe)) {
+            sameDayCount++;
+          }
+        }
+      }
+      
+      return sameDayCount;
+    } catch (error) {
+      console.error('AchievementIntegration.getSameDayHabitCreationCompletionCount error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get maximum number of active habits at the same time (Seven Wonder)
+   */
+  static async getActiveHabitsSimultaneousCount(timeframe?: string): Promise<number> {
+    try {
+      const habits = await this.habitStorage.getAll();
+      
+      // For simplicity, count all created habits as active
+      // In a more sophisticated system, we'd track historical active habit counts and deletions
+      const activeHabits = habits.filter(habit => 
+        (!timeframe || timeframe === 'all_time' || 
+         this.isDateInTimeframe(formatDateToString(habit.createdAt), timeframe))
+      );
+      
+      return activeHabits.length;
+    } catch (error) {
+      console.error('AchievementIntegration.getActiveHabitsSimultaneousCount error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get count of comeback activities (Persistence Pays)
+   * Detects activities after 3+ day breaks in XP transactions
+   */
+  static async getComebackActivitiesCount(timeframe?: string): Promise<number> {
+    try {
+      const { GamificationService } = await import('./gamificationService');
+      const transactions = await GamificationService.getAllTransactions();
+      
+      if (transactions.length === 0) {
+        return 0;
+      }
+      
+      // Sort transactions by date
+      const sortedTransactions = transactions
+        .filter(t => t.amount > 0) // Only count positive XP activities
+        .sort((a, b) => a.date.localeCompare(b.date));
+      
+      let comebackCount = 0;
+      let previousDate: string | null = null;
+      
+      for (const transaction of sortedTransactions) {
+        if (previousDate) {
+          // Calculate days between transactions
+          const daysBetween = this.calculateDaysBetween(previousDate, transaction.date);
+          
+          // If gap is 3+ days, this is a comeback
+          if (daysBetween >= 3) {
+            if (!timeframe || timeframe === 'all_time' || 
+                this.isDateInTimeframe(transaction.date, timeframe)) {
+              comebackCount++;
+            }
+          }
+        }
+        previousDate = transaction.date;
+      }
+      
+      return comebackCount;
+    } catch (error) {
+      console.error('AchievementIntegration.getComebackActivitiesCount error:', error);
+      return 0;
+    }
+  }
+
   // ========================================
   // UTILITY METHODS
   // ========================================
@@ -689,6 +787,16 @@ export class AchievementIntegration {
     }
   }
 
+  /**
+   * Calculate days between two date strings
+   */
+  private static calculateDaysBetween(date1: string, date2: string): number {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    const timeDiff = Math.abs(d2.getTime() - d1.getTime());
+    return Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  }
+
   // ========================================
   // PUBLIC API FOR ACHIEVEMENT SERVICE
   // ========================================
@@ -737,6 +845,15 @@ export class AchievementIntegration {
           
         case 'achievements_unlocked':
           return await this.getAchievementsUnlockedCount(timeframe);
+          
+        case 'same_day_habit_creation_completion':
+          return await this.getSameDayHabitCreationCompletionCount(timeframe);
+          
+        case 'active_habits_simultaneous':
+          return await this.getActiveHabitsSimultaneousCount(timeframe);
+          
+        case 'comeback_activities':
+          return await this.getComebackActivitiesCount(timeframe);
           
         case 'user_level':
           // This is handled directly in AchievementService via GamificationStats

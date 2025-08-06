@@ -1,12 +1,13 @@
-// Core Achievement Catalog - Sub-checkpoint 4.5.4.B
-// Basic Achievement Catalog (15 Core Achievements) 📜
+// Core Achievement Catalog - Sub-checkpoint 4.5.6.D
+// Complete Achievement Catalog (42 Total Achievements) 📜
 
 import { Achievement, AchievementCategory, AchievementRarity } from '../types/gamification';
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';
 
 /**
- * Core catalog of 15 essential achievements for SelfRise V2
- * Organized by category with balanced progression and engagement
+ * Complete catalog of 42 achievements for SelfRise V2
+ * Organized by category with balanced progression and long-term engagement
+ * Categories: Habits (8), Journal (8), Goals (7), Consistency (8), Mastery (9), Special (4)
  */
 export const CORE_ACHIEVEMENTS: Achievement[] = [
   
@@ -99,45 +100,45 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   {
-    id: 'streak-master',
-    name: 'Streak Master',
-    description: 'Achieve a 30-day streak with any single habit - proof of dedication',
-    icon: '🔥',
+    id: 'streak-champion',
+    name: 'Habit Streak Champion',
+    description: 'Achieve a 21-day streak with any single habit - building lasting change',
+    icon: '🏆',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.EPIC,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
     condition: {
       type: 'streak',
-      target: 30,
+      target: 21,
       source: 'habit_completion',
       operator: 'gte',
       timeframe: 'all_time'
     },
     isProgressive: false,
     isSecret: false,
-    createdAt: new Date('2025-08-05'),
-    updatedAt: new Date('2025-08-05')
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
   },
 
   {
-    id: 'diamond-streak',
-    name: 'Diamond Streak',
-    description: 'Maintain a 100-day streak with any habit - legendary persistence',
-    icon: '💎',
+    id: 'century-streak',
+    name: 'Century Streak',
+    description: 'Maintain a 75-day streak with any habit - approaching legendary status',
+    icon: '⚡',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.LEGENDARY,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
     condition: {
       type: 'streak',
-      target: 100,
+      target: 75,
       source: 'habit_completion',
       operator: 'gte',
       timeframe: 'all_time'
     },
     isProgressive: false,
     isSecret: false,
-    createdAt: new Date('2025-08-05'),
-    updatedAt: new Date('2025-08-05')
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
   },
 
   {
@@ -544,7 +545,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     name: 'Gratitude Guardian',
     description: 'Write in your journal for 21 consecutive days',
     icon: '📖',
-    category: AchievementCategory.JOURNAL,
+    category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.RARE,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
     condition: {
@@ -570,7 +571,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     name: 'Dream Fulfiller',
     description: 'Complete 3 goals - you turn dreams into reality',
     icon: '🌟',
-    category: AchievementCategory.GOALS,
+    category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
     condition: {
@@ -635,14 +636,14 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'perfect-month',
     name: 'Perfect Month',
-    description: 'Complete activities in all 3 areas (habits, journal, goals) for 30 days',
+    description: 'Complete activities in all 3 areas (habits, journal, goals) for 28+ days in any month',
     icon: '🌟',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.LEGENDARY,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
     condition: {
       type: 'count',
-      target: 30,
+      target: 28,
       source: 'daily_feature_combo',
       operator: 'gte',
       timeframe: 'monthly'
@@ -874,77 +875,66 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   // ========================================
 
   {
-    id: 'early-bird',
-    name: 'Early Bird',
-    description: 'Complete habits before 8 AM for 7 consecutive days',
-    icon: '🌅',
+    id: 'lightning-start',
+    name: 'Lightning Start',
+    description: 'Create and complete a habit on the same day 3 times - instant action taker',
+    icon: '⚡',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
     condition: {
-      type: 'time',
-      target: 8, // 8 AM
-      source: 'habit_completion',
-      operator: 'lt',
-      timeframe: 'weekly',
-      additionalConditions: [{
-        type: 'streak',
-        target: 7,
-        source: 'habit_completion',
-        operator: 'gte',
-        timeframe: 'all_time'
-      }]
-    },
-    isProgressive: false,
-    isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
-  },
-
-  {
-    id: 'perfect-week',
-    name: 'Perfect Week',
-    description: 'Complete all scheduled habits for an entire week',
-    icon: '💎',
-    category: AchievementCategory.SPECIAL,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'percentage',
-      target: 100,
-      source: 'habit_completion',
-      operator: 'eq',
-      timeframe: 'weekly'
-    },
-    isProgressive: false,
-    isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
-  },
-
-  {
-    id: 'weekend-warrior',
-    name: 'Weekend Warrior',
-    description: 'Stay consistent with habits even on weekends for 4 weeks',
-    icon: '🏔️',
-    category: AchievementCategory.SPECIAL,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'combination',
-      target: 4,
-      source: 'habit_completion',
+      type: 'count',
+      target: 3,
+      source: 'same_day_habit_creation_completion',
       operator: 'gte',
-      timeframe: 'monthly',
-      metadata: {
-        weekendOnly: true,
-        consecutiveWeeks: true
-      }
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'seven-wonder',
+    name: 'Seven Wonder',
+    description: 'Have 7 or more active habits at the same time - master of organization',
+    icon: '🏛️',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 7,
+      source: 'active_habits_simultaneous',
+      operator: 'gte',
+      timeframe: 'all_time'
     },
     isProgressive: false,
     isSecret: false,
-    createdAt: new Date('2025-08-04'),
-    updatedAt: new Date('2025-08-04')
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
+  },
+
+  {
+    id: 'persistence-pays',
+    name: 'Persistence Pays',
+    description: 'Resume activity after a 3+ day break and complete 7 activities - comeback champion',
+    icon: '💪',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 7,
+      source: 'comeback_activities',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-06'),
+    updatedAt: new Date('2025-08-06')
   },
 
   {
