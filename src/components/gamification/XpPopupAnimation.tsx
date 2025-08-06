@@ -91,37 +91,49 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
       // Reset animations
       fadeAnim.setValue(0);
       translateYAnim.setValue(0);
-      scaleAnim.setValue(0.8);
+      scaleAnim.setValue(0.5);
 
-      // Start animation sequence
+      // Start improved animation sequence with better easing
       Animated.sequence([
-        // Fade in and scale up quickly
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        // Bounce in effect with spring animation
+        Animated.parallel([
+          Animated.spring(scaleAnim, {
+            toValue: 1.15,
+            damping: 8,
+            mass: 1,
+            stiffness: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+        
+        // Brief pause at full scale
         Animated.timing(scaleAnim, {
-          toValue: 1.1,
-          duration: 200,
+          toValue: 1.0,
+          duration: 100,
           useNativeDriver: true,
         }),
-        // Float up while fading out
+        
+        // Smooth float up with gentle fade out
         Animated.parallel([
           Animated.timing(translateYAnim, {
-            toValue: -60,
-            duration: 1000,
+            toValue: -80,
+            duration: 1200,
             useNativeDriver: true,
           }),
           Animated.timing(scaleAnim, {
-            toValue: 0.9,
-            duration: 1000,
+            toValue: 0.8,
+            duration: 1200,
             useNativeDriver: true,
           }),
           Animated.timing(fadeAnim, {
             toValue: 0,
-            duration: 800,
-            delay: 200,
+            duration: 900,
+            delay: 300,
             useNativeDriver: true,
           }),
         ]),
@@ -173,19 +185,20 @@ const styles = StyleSheet.create({
   popup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(10px)',
   },
   icon: {
     fontSize: 16,

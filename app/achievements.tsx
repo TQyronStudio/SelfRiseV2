@@ -449,8 +449,20 @@ export default function AchievementsScreen() {
   
   const renderLoadingState = () => (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={Colors.primary} />
-      <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      <View style={styles.loadingContent}>
+        {/* Trophy icon with pulse animation */}
+        <View style={styles.loadingIconContainer}>
+          <Text style={styles.loadingIcon}>🏆</Text>
+        </View>
+        
+        {/* Animated dots indicator */}
+        <View style={styles.loadingDotsContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+        
+        <Text style={styles.loadingTitle}>Loading Trophy Room</Text>
+        <Text style={styles.loadingText}>Polishing your achievements...</Text>
+      </View>
     </View>
   );
   
@@ -992,18 +1004,46 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   
-  // Loading State
+  // Enhanced Loading State
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    backgroundColor: Colors.background,
+  },
+  
+  loadingContent: {
+    alignItems: 'center',
+    maxWidth: 300,
+  },
+  
+  loadingIconContainer: {
+    marginBottom: 24,
+  },
+  
+  loadingIcon: {
+    fontSize: 56,
+    textAlign: 'center',
+  },
+  
+  loadingDotsContainer: {
+    marginBottom: 20,
+  },
+  
+  loadingTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   
   loadingText: {
     fontSize: 16,
     color: Colors.textSecondary,
-    marginTop: 16,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   
   // Error State

@@ -233,14 +233,20 @@ export class GamificationService {
 
       // Return optimistic result (actual result will be processed in batch)
       const totalXP = await this.getTotalXP();
+      const previousLevel = getCurrentLevel(totalXP);
+      const newLevel = getCurrentLevel(totalXP + amount);
+      const leveledUp = newLevel > previousLevel;
+      
+      console.log(`📊 Optimistic result: ${totalXP} → ${totalXP + amount} XP, level ${previousLevel} → ${newLevel}, leveledUp=${leveledUp}`);
+      
       return {
         success: true,
         xpGained: amount,
         totalXP: totalXP + amount, // Optimistic total
-        previousLevel: getCurrentLevel(totalXP),
-        newLevel: getCurrentLevel(totalXP + amount),
-        leveledUp: false, // Will be determined in batch commit
-        milestoneReached: false,
+        previousLevel,
+        newLevel,
+        leveledUp, // Properly detect level-up in optimistic result
+        milestoneReached: isLevelMilestone(newLevel) && leveledUp,
         transaction: {
           id: `batch_pending_${now}`,
           amount,

@@ -22,16 +22,44 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   compactMode = false,
 }) => {
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const { currentLevel, xpProgress, xpToNextLevel, getLevelInfo, isLevelMilestone, isLoading } = useLevel();
   const { state: customizationState } = useHomeCustomization();
+  
+  // Get level info first
+  const levelInfo = getLevelInfo(currentLevel);
+  const isMilestone = isLevelMilestone(currentLevel);
+  
+  // Add subtle pulse animation for milestone levels
+  useEffect(() => {
+    if (isMilestone && !isLoading) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      
+      return () => pulseAnimation.stop();
+    } else {
+      pulseAnim.setValue(1);
+      return undefined;
+    }
+  }, [isMilestone, isLoading, pulseAnim]);
   
   // Get screen dimensions for responsive design
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 375; // iPhone SE size
   const isLargeScreen = screenWidth > 414; // Plus-sized phones and tablets
-  
-  const levelInfo = getLevelInfo(currentLevel);
-  const isMilestone = isLevelMilestone(currentLevel);
   
   // Get theme-based styling
   const getThemeStyles = () => {
@@ -259,7 +287,12 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
           accessibilityLabel={`Level ${currentLevel} badge, ${levelInfo.title}${isMilestone ? ', milestone level' : ''}`}
         >
           {/* Circle Badge for Level Number */}
-          <View style={styles.levelBadgeContainer}>
+          <Animated.View 
+            style={[
+              styles.levelBadgeContainer,
+              { transform: [{ scale: pulseAnim }] }
+            ]}
+          >
             <SafeLinearGradient
               colors={badgeColors.background}
               style={StyleSheet.flatten([
@@ -278,7 +311,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
               </Text>
             </SafeLinearGradient>
             {isMilestone && <View style={styles.milestoneGlow} />}
-          </View>
+          </Animated.View>
           
           {/* Rectangle Badge for Level Title */}
           {!compactMode && (

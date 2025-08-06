@@ -34,11 +34,23 @@ export class AchievementIntegration {
         return habits.length;
       }
       
-      // Filter by timeframe if specified
-      const filteredHabits = this.filterByTimeframe(
-        habits.map(h => ({ createdAt: h.createdAt, date: formatDateToString(h.createdAt) })),
-        timeframe
-      );
+      // Filter by timeframe if specified - safe mapping
+      const habitsWithSafeDates = habits.map(h => {
+        if (!h.createdAt) {
+          console.warn('Habit missing createdAt:', h.id);
+          return null;
+        }
+        
+        const createdAtDate = h.createdAt instanceof Date ? h.createdAt : new Date(h.createdAt);
+        if (isNaN(createdAtDate.getTime())) {
+          console.warn('Invalid createdAt date for habit:', h.id, h.createdAt);
+          return null;
+        }
+        
+        return { createdAt: createdAtDate, date: formatDateToString(createdAtDate) };
+      }).filter((item): item is { createdAt: Date, date: string } => item !== null);
+      
+      const filteredHabits = this.filterByTimeframe(habitsWithSafeDates, timeframe);
       
       return filteredHabits.length;
     } catch (error) {
@@ -250,11 +262,23 @@ export class AchievementIntegration {
         return goals.length;
       }
       
-      // Filter by timeframe if specified
-      const filteredGoals = this.filterByTimeframe(
-        goals.map(g => ({ createdAt: g.createdAt, date: formatDateToString(g.createdAt) })),
-        timeframe
-      );
+      // Filter by timeframe if specified - safe mapping
+      const goalsWithSafeDates = goals.map(g => {
+        if (!g.createdAt) {
+          console.warn('Goal missing createdAt:', g.id);
+          return null;
+        }
+        
+        const createdAtDate = g.createdAt instanceof Date ? g.createdAt : new Date(g.createdAt);
+        if (isNaN(createdAtDate.getTime())) {
+          console.warn('Invalid createdAt date for goal:', g.id, g.createdAt);
+          return null;
+        }
+        
+        return { createdAt: createdAtDate, date: formatDateToString(createdAtDate) };
+      }).filter((item): item is { createdAt: Date, date: string } => item !== null);
+      
+      const filteredGoals = this.filterByTimeframe(goalsWithSafeDates, timeframe);
       
       return filteredGoals.length;
     } catch (error) {
@@ -301,7 +325,24 @@ export class AchievementIntegration {
       
       // Filter by timeframe if specified
       const goalsToCheck = timeframe && timeframe !== 'all_time'
-        ? goals.filter(g => this.isDateInTimeframe(formatDateToString(g.createdAt), timeframe))
+        ? goals.filter(g => {
+            if (!g.createdAt) {
+              console.warn('Goal missing createdAt:', g.id);
+              return false;
+            }
+            
+            // Ensure createdAt is a Date object
+            const createdAtDate = g.createdAt instanceof Date 
+              ? g.createdAt 
+              : new Date(g.createdAt);
+            
+            if (isNaN(createdAtDate.getTime())) {
+              console.warn('Invalid createdAt date for goal:', g.id, g.createdAt);
+              return false;
+            }
+            
+            return this.isDateInTimeframe(formatDateToString(createdAtDate), timeframe);
+          })
         : goals;
       
       for (const goal of goalsToCheck) {
@@ -643,7 +684,23 @@ export class AchievementIntegration {
       let sameDayCount = 0;
       
       for (const habit of habits) {
-        const creationDate = formatDateToString(habit.createdAt);
+        // Add safe date handling
+        if (!habit.createdAt) {
+          console.warn('Habit missing createdAt:', habit.id);
+          continue;
+        }
+        
+        // Ensure createdAt is a Date object
+        const createdAtDate = habit.createdAt instanceof Date 
+          ? habit.createdAt 
+          : new Date(habit.createdAt);
+        
+        if (isNaN(createdAtDate.getTime())) {
+          console.warn('Invalid createdAt date for habit:', habit.id, habit.createdAt);
+          continue;
+        }
+        
+        const creationDate = formatDateToString(createdAtDate);
         const completions = await this.getHabitCompletions(habit.id);
         
         // Check if any completion happened on the same day as creation
@@ -676,10 +733,25 @@ export class AchievementIntegration {
       
       // For simplicity, count all created habits as active
       // In a more sophisticated system, we'd track historical active habit counts and deletions
-      const activeHabits = habits.filter(habit => 
-        (!timeframe || timeframe === 'all_time' || 
-         this.isDateInTimeframe(formatDateToString(habit.createdAt), timeframe))
-      );
+      const activeHabits = habits.filter(habit => {
+        if (!habit.createdAt) {
+          console.warn('Habit missing createdAt:', habit.id);
+          return false;
+        }
+        
+        // Ensure createdAt is a Date object
+        const createdAtDate = habit.createdAt instanceof Date 
+          ? habit.createdAt 
+          : new Date(habit.createdAt);
+        
+        if (isNaN(createdAtDate.getTime())) {
+          console.warn('Invalid createdAt date for habit:', habit.id, habit.createdAt);
+          return false;
+        }
+        
+        return (!timeframe || timeframe === 'all_time' || 
+                this.isDateInTimeframe(formatDateToString(createdAtDate), timeframe));
+      });
       
       return activeHabits.length;
     } catch (error) {
@@ -756,7 +828,23 @@ export class AchievementIntegration {
       if ('date' in item) {
         itemDateStr = item.date;
       } else if ('createdAt' in item) {
-        itemDateStr = formatDateToString(item.createdAt);
+        // Add safe date handling for createdAt
+        if (!item.createdAt) {
+          console.warn('Item missing createdAt:', item);
+          return false;
+        }
+        
+        // Ensure createdAt is a Date object
+        const createdAtDate = item.createdAt instanceof Date 
+          ? item.createdAt 
+          : new Date(item.createdAt);
+        
+        if (isNaN(createdAtDate.getTime())) {
+          console.warn('Invalid createdAt date for item:', item);
+          return false;
+        }
+        
+        itemDateStr = formatDateToString(createdAtDate);
       } else {
         return false;
       }

@@ -95,82 +95,88 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
     stopAnimations(); // Clear any existing animations
 
     const animations = particles.current.map((particle, index) => {
-      // Stagger particle start times
-      const delay = (index * 50) % 300;
+      // Improved stagger timing for better visual flow
+      const delay = (index * 40) % 250;
       
-      // Random initial position around center
+      // More dynamic initial positioning based on type
       const angle = (Math.PI * 2 * index) / particles.current.length;
-      const startRadius = 20;
+      const startRadius = type === 'milestone' ? 30 : 20;
       
-      // Random final position
-      const endX = Math.random() * screenWidth;
-      const endY = Math.random() * screenHeight * 0.6 + screenHeight * 0.2;
+      // Enhanced final positioning with better distribution
+      const endX = Math.random() * (screenWidth * 0.8) + screenWidth * 0.1;
+      const endY = Math.random() * (screenHeight * 0.4) + screenHeight * 0.3;
       
-      // Set initial position
-      particle.x.setValue(screenWidth / 2 + Math.cos(angle) * startRadius);
-      particle.y.setValue(screenHeight / 2 + Math.sin(angle) * startRadius);
+      // Set initial position with slight randomization
+      const initialOffsetX = (Math.random() - 0.5) * 40;
+      const initialOffsetY = (Math.random() - 0.5) * 40;
+      particle.x.setValue(screenWidth / 2 + Math.cos(angle) * startRadius + initialOffsetX);
+      particle.y.setValue(screenHeight / 2 + Math.sin(angle) * startRadius + initialOffsetY);
       
       return Animated.sequence([
         // Delay before starting
         Animated.delay(delay),
         
-        // Particle lifecycle animation
+        // Enhanced particle lifecycle animation
         Animated.parallel([
-          // Fade in
+          // Smooth fade in with bounce
           Animated.timing(particle.opacity, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: false,
-          }),
-          
-          // Scale up
-          Animated.timing(particle.scale, {
-            toValue: 1,
-            duration: 200,
-            easing: Easing.out(Easing.back(1.2)),
-            useNativeDriver: false,
-          }),
-        ]),
-        
-        // Movement and fade out
-        Animated.parallel([
-          // Move to final position
-          Animated.timing(particle.x, {
-            toValue: endX,
-            duration: duration - 400,
+            toValue: 0.9,
+            duration: 300,
             easing: Easing.out(Easing.quad),
             useNativeDriver: false,
           }),
           
-          // Gravity effect
-          Animated.timing(particle.y, {
-            toValue: endY,
-            duration: duration - 400,
-            easing: Easing.in(Easing.quad),
+          // Spring scale up for more life
+          Animated.spring(particle.scale, {
+            toValue: type === 'milestone' ? 1.3 : 1.0,
+            damping: 12,
+            mass: 1,
+            stiffness: 400,
+            useNativeDriver: false,
+          }),
+        ]),
+        
+        // Enhanced movement and fade out
+        Animated.parallel([
+          // Smooth curved movement
+          Animated.timing(particle.x, {
+            toValue: endX,
+            duration: duration - 500,
+            easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
             useNativeDriver: false,
           }),
           
-          // Rotation
+          // Physics-based gravity with bounce
+          Animated.timing(particle.y, {
+            toValue: endY,
+            duration: duration - 500,
+            easing: Easing.bezier(0.55, 0.055, 0.675, 0.19),
+            useNativeDriver: false,
+          }),
+          
+          // Smooth continuous rotation
           Animated.timing(particle.rotation, {
-            toValue: 360 * (Math.random() > 0.5 ? 1 : -1),
-            duration: duration - 400,
+            toValue: (360 + Math.random() * 180) * (Math.random() > 0.5 ? 1 : -1),
+            duration: duration - 300,
             easing: Easing.linear,
             useNativeDriver: false,
           }),
           
-          // Fade out
+          // Gradual fade out
           Animated.timing(particle.opacity, {
             toValue: 0,
-            duration: 800,
-            delay: duration - 1000,
+            duration: 1000,
+            delay: duration - 1200,
+            easing: Easing.out(Easing.quad),
             useNativeDriver: false,
           }),
           
-          // Scale down
+          // Final scale down with slight bounce
           Animated.timing(particle.scale, {
-            toValue: 0,
-            duration: 400,
-            delay: duration - 600,
+            toValue: 0.2,
+            duration: 600,
+            delay: duration - 800,
+            easing: Easing.in(Easing.back(1.2)),
             useNativeDriver: false,
           }),
         ]),
@@ -238,51 +244,55 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
 // Helper functions
 function getParticleCount(type: string, intensity: string): number {
   const baseCount = {
-    level_up: 15,
-    milestone: 25,
-    achievement: 20,
-    celebration: 30,
+    level_up: 18,
+    milestone: 35,
+    achievement: 25,
+    celebration: 40,
   };
 
   const intensityMultiplier = {
-    low: 0.5,
+    low: 0.6,
     medium: 1,
-    high: 1.5,
+    high: 1.8,
   };
 
-  return Math.floor((baseCount[type as keyof typeof baseCount] || 20) * intensityMultiplier[intensity as keyof typeof intensityMultiplier]);
+  return Math.floor((baseCount[type as keyof typeof baseCount] || 25) * intensityMultiplier[intensity as keyof typeof intensityMultiplier]);
 }
 
 function getParticleStyle(shape: 'circle' | 'star' | 'square') {
   const baseStyle = {
-    width: 8,
-    height: 8,
+    width: 10,
+    height: 10,
   };
 
   switch (shape) {
     case 'circle':
       return {
         ...baseStyle,
-        borderRadius: 4,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
       };
     case 'star':
       return {
         ...baseStyle,
-        width: 10,
-        height: 10,
-        // Star shape approximated with border radius
+        width: 14,
+        height: 14,
+        // Enhanced star shape with better visual impact
         borderRadius: 2,
         transform: [{ rotate: '45deg' }],
       };
     case 'square':
       return {
         ...baseStyle,
-        borderRadius: 1,
+        width: 10,
+        height: 10,
+        borderRadius: 2,
       };
     default:
       return {
         ...baseStyle,
-        borderRadius: 4,
+        borderRadius: 5,
       };
   }
 }

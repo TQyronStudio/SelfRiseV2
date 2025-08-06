@@ -217,9 +217,15 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
           }
         });
         
-        // Check for level-up and show celebration modal (only if not shown before)
+        // Check for level-up and show celebration modal (with batching-aware duplicate prevention)
         console.log(`🔍 Level-up check: leveledUp=${result.leveledUp}, newLevel=${result.newLevel}, alreadyShown=${state.shownLevelUps.has(result.newLevel)}`);
-        if (result.leveledUp && !state.shownLevelUps.has(result.newLevel)) {
+        
+        // For batching system, only show modal if level actually changed and not already shown
+        const shouldShowModal = result.leveledUp && 
+          !state.shownLevelUps.has(result.newLevel) && 
+          result.newLevel > state.currentLevel;
+          
+        if (shouldShowModal) {
           const levelInfo = getLevelInfo(result.newLevel);
           const isLevelMilestone = (level?: number) => {
             if (!level) return false;
@@ -238,8 +244,10 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
               isMilestone: isLevelMilestone(result.newLevel),
             }
           });
-        } else if (result.leveledUp) {
+        } else if (result.leveledUp && state.shownLevelUps.has(result.newLevel)) {
           console.log(`🚫 Level-up modal: Level ${result.newLevel} already shown`);
+        } else if (result.leveledUp) {
+          console.log(`🚫 Level-up modal: Level ${result.newLevel} skipped (no actual level change or other condition)`);
         }
         
         // Refresh full stats in background for accuracy - use immediate call for faster updates
@@ -284,7 +292,13 @@ export const GamificationProvider: React.FC<GamificationProviderProps> = ({ chil
         
         // Check for level-up even in subtractXP (level could increase after subtract due to background processes)
         console.log(`🔍 Level-up check (subtract): leveledUp=${result.leveledUp}, newLevel=${result.newLevel}, alreadyShown=${state.shownLevelUps.has(result.newLevel)}`);
-        if (result.leveledUp && !state.shownLevelUps.has(result.newLevel)) {
+        
+        // For batching system, only show modal if level actually changed and not already shown
+        const shouldShowModalSubtract = result.leveledUp && 
+          !state.shownLevelUps.has(result.newLevel) && 
+          result.newLevel > state.currentLevel;
+          
+        if (shouldShowModalSubtract) {
           const levelInfo = getLevelInfo(result.newLevel);
           const isLevelMilestone = (level?: number) => {
             if (!level) return false;

@@ -59,17 +59,25 @@ export default function CelebrationModal({
   }
   const [showParticles, setShowParticles] = useState(false);
 
-  // Trigger effects when modal becomes visible
+  // Enhanced celebration effects with better timing
   useEffect(() => {
     if (visible) {
-      setShowParticles(true);
+      // Delay particle effects slightly for better visual flow
+      const particleDelay = setTimeout(() => {
+        setShowParticles(true);
+      }, 200);
       
-      // Trigger haptic feedback based on celebration type
+      // Trigger haptic feedback based on celebration type with proper timing
       const triggerEffects = async () => {
+        // Initial immediate feedback
         switch (type) {
           case 'level_up':
             if (levelUpData?.isMilestone) {
               if (triggerHapticFeedback) await triggerHapticFeedback('heavy');
+              // Second burst for milestone
+              setTimeout(async () => {
+                if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+              }, 300);
               if (playSoundEffect) await playSoundEffect('milestone');
             } else {
               if (triggerHapticFeedback) await triggerHapticFeedback('medium');
@@ -78,6 +86,12 @@ export default function CelebrationModal({
             break;
           case 'streak_milestone':
             if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+            // Extended celebration for long streaks
+            if (streakDays && streakDays >= 100) {
+              setTimeout(async () => {
+                if (triggerHapticFeedback) await triggerHapticFeedback('light');
+              }, 400);
+            }
             if (playSoundEffect) await playSoundEffect('milestone');
             break;
           case 'bonus_milestone':
@@ -91,10 +105,15 @@ export default function CelebrationModal({
       };
 
       triggerEffects();
+      
+      return () => {
+        clearTimeout(particleDelay);
+      };
     } else {
       setShowParticles(false);
+      return undefined;
     }
-  }, [visible, type, levelUpData?.isMilestone, triggerHapticFeedback, playSoundEffect]);
+  }, [visible, type, levelUpData?.isMilestone, streakDays, triggerHapticFeedback, playSoundEffect]);
 
   const getDefaultContent = () => {
     switch (type) {

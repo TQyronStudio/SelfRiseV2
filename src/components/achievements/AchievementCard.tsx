@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { Colors } from '@/src/constants/colors';
 import { 
@@ -47,25 +48,83 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const rarityColor = getRarityColor(achievement.rarity);
   const rarityGlow = getRarityGlow(achievement.rarity);
   const progress = achievement.isProgressive ? userProgress : (isUnlocked ? 100 : 0);
+  
+  // Animation states for micro-interactions
+  const [scaleAnim] = useState(new Animated.Value(1));
+  const [glowAnim] = useState(new Animated.Value(0));
+  
+  const handlePressIn = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 10,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 10,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
 
+  const dynamicGlow = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(0,0,0,0)', rarityGlow],
+  });
+  
   return (
-    <TouchableOpacity
+    <Animated.View
       style={[
-        styles.card,
-        !isUnlocked && styles.cardLocked,
-        { borderColor: isUnlocked ? rarityColor : Colors.border },
-        isUnlocked && { 
+        { transform: [{ scale: scaleAnim }] },
+        { 
           shadowColor: rarityColor,
-          backgroundColor: rarityGlow,
+          shadowOpacity: glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [isUnlocked ? 0.1 : 0, isUnlocked ? 0.3 : 0.1],
+          }),
+          shadowRadius: glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [4, 8],
+          }),
         }
       ]}
-      onPress={onPress}
-      disabled={!isUnlocked && !achievement.isProgressive}
-      accessible={true}
-      accessibilityRole="button"
-      accessibilityLabel={`${achievement.name}. ${isUnlocked ? 'Unlocked' : 'Locked'} ${achievement.rarity} achievement. ${achievement.xpReward} XP reward.`}
-      accessibilityHint={isUnlocked ? "Tap to view details" : "Complete requirements to unlock"}
     >
+      <TouchableOpacity
+        style={[
+          styles.card,
+          !isUnlocked && styles.cardLocked,
+          { 
+            borderColor: isUnlocked ? rarityColor : Colors.border,
+            backgroundColor: isUnlocked ? rarityGlow : Colors.white,
+          },
+        ]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={!isUnlocked && !achievement.isProgressive}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={`${achievement.name}. ${isUnlocked ? 'Unlocked' : 'Locked'} ${achievement.rarity} achievement. ${achievement.xpReward} XP reward.`}
+        accessibilityHint={isUnlocked ? "Tap to view details" : "Complete requirements to unlock"}
+      >
       {/* Rarity indicator */}
       <View style={[styles.rarityIndicator, { backgroundColor: rarityColor }]} />
       
@@ -140,6 +199,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         </View>
       )}
     </TouchableOpacity>
+    </Animated.View>
   );
 };
 
