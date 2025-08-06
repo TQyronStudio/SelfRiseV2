@@ -699,14 +699,55 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 #### Checkpoint 4.5.8: Advanced Gamification Features (Weekly Challenges & Multipliers)
 **Goal**: Implement advanced engagement systems to maintain long-term user interest
 
-##### Sub-checkpoint 4.5.8.A: Weekly Challenge System 🏆
+##### Sub-checkpoint 4.5.8.A: Weekly Challenge System 🏆 ✅ COMPLETED
 **Goal**: Create dynamic weekly challenges to maintain engagement
-- [ ] Create WeeklyChallengeService for challenge generation and management
-- [ ] Implement dynamic challenge templates (habits, journal, goals, mixed categories)
-- [ ] Design challenge difficulty scaling based on user level and activity history
-- [ ] Create challenge completion tracking and validation system
-- [ ] Add weekly challenge display in Home screen and dedicated challenges section
-- [ ] Implement challenge reward system (150-400 XP + special achievement badges)
+- [x] Create WeeklyChallengeService for challenge generation and management
+- [x] Implement dynamic challenge templates (habits, journal, goals, mixed categories)
+- [x] Design challenge difficulty scaling based on user level and activity history
+- [x] Create challenge completion tracking and validation system
+- [x] Add weekly challenge display in Home screen and dedicated challenges section
+- [x] Implement challenge reward system (150-400 XP + special achievement badges)
+
+**Implementation Summary**: August 6, 2025
+- ✅ **WeeklyChallengeService**: Comprehensive service with 12 challenge templates across all categories
+- ✅ **Dynamic Challenge Generation**: User activity profiling with intelligent difficulty scaling
+- ✅ **UI Components**: WeeklyChallengeCard, ChallengeSection, ChallengeDetailModal with full integration
+- ✅ **Progress Tracking**: Real-time progress updates with automated completion detection
+- ✅ **XP Reward Integration**: Seamless integration with existing gamification system
+- ✅ **Home Screen Integration**: Customizable weekly challenges section with user preferences
+- ✅ **TypeScript Compliance**: Zero compilation errors with comprehensive type safety
+
+**Key Features Implemented**:
+- **Challenge Templates**: Habits (3), Journal (3), Goals (3), Consistency (2), Mastery (1)
+- **User Profiling**: Activity analysis for personalized challenge generation
+- **Difficulty Scaling**: 5-tier difficulty system based on user level and engagement
+- **Progress Validation**: Automated tracking via XP events and storage integration
+- **Visual Polish**: Fixed LinearGradient issues, proper close buttons, accessibility support
+
+**System Architecture**:
+- **WeeklyChallengeService**: Core challenge logic with template system
+- **Challenge Templates**: 12 unique templates with dynamic parameter scaling
+- **Progress Tracking**: Integration with HabitStorage, GratitudeStorage, GoalStorage
+- **UI Components**: Complete component library with proper styling
+- **Home Integration**: Customizable section with visibility controls
+
+**Files Created/Modified**:
+- `/src/services/weeklyChallengeService.ts` - Main challenge service (1,600+ lines)
+- `/src/components/challenges/WeeklyChallengeCard.tsx` - Individual challenge display
+- `/src/components/challenges/ChallengeSection.tsx` - Home screen integration
+- `/src/components/challenges/ChallengeDetailModal.tsx` - Detailed challenge view
+- `/src/components/challenges/index.ts` - Component exports
+- `/app/(tabs)/index.tsx` - Home screen integration
+- `/src/types/homeCustomization.ts` - Added weekly challenges to customization
+- `/src/locales/en/index.ts` - Added accessibility translation keys
+
+**Hotfixes Applied**:
+- ✅ **LinearGradient Issues**: Replaced with standard View components to resolve view config warnings
+- ✅ **Modal Close Button**: Fixed positioning from `top: -40` to `top: 0` for proper visibility  
+- ✅ **Overlapping Text**: Resolved display issues by removing problematic gradient components
+- ✅ **I18n Missing Keys**: Added `achievements.card.accessibility_label` and `accessibility_hint`
+
+**Status**: Production-ready weekly challenge system with full TypeScript compliance and UI polish
 
 ##### Sub-checkpoint 4.5.8.B: XP Multiplier System ✨
 **Goal**: Reward balanced app usage with XP multipliers

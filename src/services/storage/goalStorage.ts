@@ -959,6 +959,42 @@ export class GoalStorage implements EntityStorage<Goal> {
       return 0;
     }
   }
+
+  // ========================================
+  // WEEKLY CHALLENGE SUPPORT METHODS
+  // ========================================
+
+  /**
+   * Get goals and check if any progress was made today (for challenge tracking)
+   */
+  async hasGoalProgressToday(): Promise<boolean> {
+    try {
+      const goals = await this.getAll();
+      const todayStr = today();
+      
+      return goals.some((goal: any) => 
+        goal.progressEntries?.some((entry: any) => entry.date === todayStr && entry.amount > 0)
+      );
+    } catch (error) {
+      console.error('GoalStorage.hasGoalProgressToday error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get maximum goal target value for challenge conditions
+   */
+  async getMaxGoalTargetValue(): Promise<number> {
+    try {
+      const goals = await this.getAll();
+      if (goals.length === 0) return 0;
+      
+      return Math.max(...goals.map(goal => goal.targetValue || 0));
+    } catch (error) {
+      console.error('GoalStorage.getMaxGoalTargetValue error:', error);
+      return 0;
+    }
+  }
 }
 
 // Timeline status calculation function

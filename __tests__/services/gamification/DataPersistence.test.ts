@@ -113,11 +113,13 @@ describe('Data Persistence and Migration Tests', () => {
       
       // All results should have same length and content
       const firstResult = results[0];
-      results.forEach(result => {
-        expect(result.length).toBe(firstResult.length);
-      });
-      
-      console.log(`✅ Transaction retrieval consistently returned ${firstResult.length} transactions`);
+      if (firstResult) {
+        results.forEach(result => {
+          expect(result.length).toBe(firstResult.length);
+        });
+        
+        console.log(`✅ Transaction retrieval consistently returned ${firstResult.length} transactions`);
+      }
     });
   });
 

@@ -1230,6 +1230,49 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       };
     }
   }
+
+  // ========================================
+  // WEEKLY CHALLENGE SUPPORT METHODS
+  // ========================================
+
+  /**
+   * Get entries for a specific date (for WeeklyChallengeService compatibility)
+   */
+  async getEntriesForDate(date: DateString): Promise<Gratitude[]> {
+    try {
+      return await this.getByDate(date);
+    } catch (error) {
+      console.error('GratitudeStorage.getEntriesForDate error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get entries in a date range (for WeeklyChallengeService compatibility)
+   */
+  async getEntriesInRange(startDate: Date, endDate: Date): Promise<Gratitude[]> {
+    try {
+      const startDateStr = formatDateToString(startDate);
+      const endDateStr = formatDateToString(endDate);
+      return await this.getByDateRange(startDateStr, endDateStr);
+    } catch (error) {
+      console.error('GratitudeStorage.getEntriesInRange error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get bonus journal entries count for challenges
+   */
+  async getBonusJournalEntriesCount(): Promise<number> {
+    try {
+      const stats = await this.getJournalStatistics();
+      return stats.totalBonusEntries;
+    } catch (error) {
+      console.error('GratitudeStorage.getBonusJournalEntriesCount error:', error);
+      return 0;
+    }
+  }
 }
 
 // Singleton instance

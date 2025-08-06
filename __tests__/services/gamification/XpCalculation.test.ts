@@ -1,4 +1,4 @@
-import { XPSourceType, XPTransaction, XPAdditionOptions } from '../../../src/types/gamification';
+import { XPSourceType, XPTransaction } from '../../../src/types/gamification';
 import { GamificationService } from '../../../src/services/gamificationService';
 
 describe('XP Calculation Accuracy Tests', () => {
@@ -188,8 +188,11 @@ describe('XP Calculation Accuracy Tests', () => {
       let expectedTotal = 0;
       for (let i = 0; i < sourceTypes.length; i++) {
         const amount = (i + 1) * 10;
-        await GamificationService.addXP(amount, { source: sourceTypes[i] });
-        expectedTotal += amount;
+        const source = sourceTypes[i];
+        if (source) {
+          await GamificationService.addXP(amount, { source });
+          expectedTotal += amount;
+        }
       }
 
       const finalXP = await GamificationService.getTotalXP();

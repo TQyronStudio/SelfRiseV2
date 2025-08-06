@@ -1,5 +1,5 @@
 import { GamificationService } from '../../../src/services/gamificationService';
-import { getCurrentLevel, getLevelRequiredXP, isLevelMilestone } from '../../../src/services/levelCalculation';
+import { getCurrentLevel, getXPRequiredForLevel, isLevelMilestone } from '../../../src/services/levelCalculation';
 import { XPSourceType } from '../../../src/types/gamification';
 
 describe('Mathematical Model Validation Tests', () => {
@@ -41,7 +41,7 @@ describe('Mathematical Model Validation Tests', () => {
       let previousRequirement = 0;
 
       for (let level = 1; level <= maxTestLevel; level++) {
-        const requirement = getLevelRequiredXP(level);
+        const requirement = getXPRequiredForLevel(level);
         
         // Each level should require more XP than the previous
         expect(requirement).toBeGreaterThan(previousRequirement);
@@ -195,7 +195,7 @@ describe('Mathematical Model Validation Tests', () => {
       for (let level = 1; level <= 10; level++) {
         await GamificationService.clearAllData();
         
-        const requiredXP = getLevelRequiredXP(level);
+        const requiredXP = getXPRequiredForLevel(level);
         
         // Add XP to just below the level threshold
         const belowThreshold = requiredXP - 1;
@@ -230,8 +230,8 @@ describe('Mathematical Model Validation Tests', () => {
       
       for (const xp of largeValues) {
         const level = getCurrentLevel(xp);
-        const requiredForLevel = getLevelRequiredXP(level);
-        const requiredForNext = getLevelRequiredXP(level + 1);
+        const requiredForLevel = getXPRequiredForLevel(level);
+        const requiredForNext = getXPRequiredForLevel(level + 1);
         
         // Verify the level calculation is mathematically correct
         expect(xp).toBeGreaterThanOrEqual(requiredForLevel);

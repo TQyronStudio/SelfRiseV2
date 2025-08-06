@@ -533,6 +533,8 @@ const en: TranslationKeys = {
       viewDetails: 'View Details',
       almostThere: 'Almost there!',
       keepGoing: 'Keep going!',
+      accessibility_label: 'Achievement card for {{name}}{{#if unlocked}}, unlocked on {{date}}{{else}}, locked{{/if}}',
+      accessibility_hint: 'Tap to view details and track progress for this achievement',
     },
     
     // Achievement Details Modal

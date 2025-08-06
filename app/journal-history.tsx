@@ -13,7 +13,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
 import EditGratitudeModal from '@/src/components/gratitude/EditGratitudeModal';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
-import { today, addDays, subtractDays, formatDateForDisplay } from '@/src/utils/date';
+import { today, addDays, subtractDays, formatDateForDisplay, formatDateToString } from '@/src/utils/date';
 
 export default function JournalHistoryScreen() {
   const { t } = useI18n();
@@ -58,10 +58,11 @@ export default function JournalHistoryScreen() {
       ? subtractDays(selectedDate, 1)
       : addDays(selectedDate, 1);
     
-    setSelectedDate(newDateString);
+    const finalDateString = typeof newDateString === 'string' ? newDateString : formatDateToString(newDateString);
+    setSelectedDate(finalDateString);
     
     if (!isSearching) {
-      setGratitudes(actions.getGratitudesByDate(newDateString));
+      setGratitudes(actions.getGratitudesByDate(finalDateString));
     }
   };
 

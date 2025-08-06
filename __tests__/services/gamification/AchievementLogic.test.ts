@@ -207,11 +207,13 @@ describe('Achievement Condition Logic Tests', () => {
 
       // All results should be identical
       const firstResult = results[0];
-      results.forEach(result => {
-        expect(result.xpGained).toBe(firstResult.xpGained);
-        expect(result.totalXP).toBe(firstResult.totalXP);
-        expect(result.success).toBe(firstResult.success);
-      });
+      if (firstResult) {
+        results.forEach(result => {
+          expect(result.xpGained).toBe(firstResult.xpGained);
+          expect(result.totalXP).toBe(firstResult.totalXP);
+          expect(result.success).toBe(firstResult.success);
+        });
+      }
     });
 
     test('Order of XP additions should not affect final result', async () => {

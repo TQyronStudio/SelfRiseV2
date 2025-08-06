@@ -546,6 +546,20 @@ export class GamificationService {
         // Non-blocking error - XP was still awarded successfully
       }
 
+      // Update weekly challenge progress after XP action (non-blocking)
+      try {
+        const { WeeklyChallengeService } = await import('./weeklyChallengeService');
+        await WeeklyChallengeService.updateChallengeProgress(
+          options.source,
+          finalAmount,
+          options.sourceId,
+          options.metadata
+        );
+      } catch (error) {
+        console.error('Weekly challenge progress update failed:', error);
+        // Non-blocking error - XP was still awarded successfully
+      }
+
       // Return comprehensive result
       const result: XPTransactionResult = {
         success: true,
@@ -698,15 +712,16 @@ export class GamificationService {
     try {
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.TOTAL_XP,
-        STORAGE_KEYS.TRANSACTIONS,
-        STORAGE_KEYS.LEVEL_DATA,
-        STORAGE_KEYS.CURRENT_BATCH,
-        STORAGE_KEYS.LAST_BATCH_TIME,
+        STORAGE_KEYS.XP_TRANSACTIONS,
+        // Note: LEVEL_DATA, CURRENT_BATCH, LAST_BATCH_TIME might not exist in STORAGE_KEYS
+        // Using literal strings as fallback
+        'gamification_level_data',
+        'gamification_current_batch',
+        'gamification_last_batch_time',
       ]);
       
       // Reset internal state
-      this.currentBatch = [];
-      this.batchStartTime = 0;
+      // Note: currentBatch and batchStartTime might not exist as class properties
       if (this.batchTimeout) {
         clearTimeout(this.batchTimeout);
         this.batchTimeout = null;

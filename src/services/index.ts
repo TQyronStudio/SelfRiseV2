@@ -1,5 +1,6 @@
 // Export all services
 export * from './gamificationService';
+export * from './weeklyChallengeService';
 export * from './achievementService';
 export * from './achievementStorage';
 export * from './achievementIntegration';

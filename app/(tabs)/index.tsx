@@ -15,12 +15,13 @@ import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedR
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
+import { ChallengeSection, ChallengeDetailModal } from '@/src/components/challenges';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useGamification } from '@/src/contexts/GamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
-import { XPSourceType } from '@/src/types/gamification';
+import { XPSourceType, WeeklyChallenge } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 
 export default function HomeScreen() {
@@ -30,12 +31,29 @@ export default function HomeScreen() {
   const { addXP, subtractXP } = useGamification();
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState<WeeklyChallenge | null>(null);
+  const [showChallengeDetail, setShowChallengeDetail] = useState(false);
 
 
 
   const handleStreakPress = () => {
     // Navigate to journal tab for now
     router.push('/(tabs)/journal');
+  };
+
+  const handleChallengePress = (challenge: WeeklyChallenge) => {
+    setSelectedChallenge(challenge);
+    setShowChallengeDetail(true);
+  };
+
+  const handleViewAllChallenges = () => {
+    // TODO: Navigate to dedicated challenges screen or achievements tab
+    router.push('/achievements');
+  };
+
+  const handleCloseChallengeDetail = () => {
+    setShowChallengeDetail(false);
+    setSelectedChallenge(null);
   };
 
   const handleHabitToggle = async (habitId: string) => {
@@ -124,6 +142,13 @@ export default function HomeScreen() {
         {isComponentVisible('quickActions') && (
           <QuickActionButtons onHabitToggle={handleHabitToggle} />
         )}
+
+        {isComponentVisible('weeklyChallenges') && (
+          <ChallengeSection 
+            onChallengePress={handleChallengePress}
+            onViewAllPress={handleViewAllChallenges}
+          />
+        )}
         
         {isComponentVisible('dailyQuote') && (
           <DailyMotivationalQuote />
@@ -154,6 +179,20 @@ export default function HomeScreen() {
       <HomeCustomizationModal
         visible={showCustomizationModal}
         onClose={() => setShowCustomizationModal(false)}
+      />
+
+      {/* Challenge Detail Modal */}
+      <ChallengeDetailModal
+        challenge={selectedChallenge}
+        progress={selectedChallenge ? { 
+          challengeId: selectedChallenge.id,
+          userId: 'local_user',
+          progress: {},
+          isCompleted: false,
+          xpEarned: 0
+        } : null}
+        visible={showChallengeDetail}
+        onClose={handleCloseChallengeDetail}
       />
     </SafeAreaView>
   );

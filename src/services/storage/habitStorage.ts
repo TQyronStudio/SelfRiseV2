@@ -731,6 +731,125 @@ export class HabitStorage implements EntityStorage<Habit> {
   static isXPEnabled(): boolean {
     return HabitStorage.XP_ENABLED;
   }
+
+  // ========================================
+  // WEEKLY CHALLENGE SUPPORT METHODS
+  // ========================================
+
+  /**
+   * Get habit completion statistics for challenge tracking
+   */
+  async getHabitCompletionStats(days: number): Promise<{
+    totalScheduled: number;
+    completed: number;
+    completionRate: number;
+  }> {
+    try {
+      const habits = await this.getAll();
+      const activeHabits = habits.filter(h => h.isActive);
+      
+      if (activeHabits.length === 0) {
+        return { totalScheduled: 0, completed: 0, completionRate: 0 };
+      }
+
+      // Calculate total scheduled opportunities in last N days
+      let totalScheduled = 0;
+      let completed = 0;
+
+      for (let i = 0; i < days; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0] as DateString;
+        
+        const dayCompletions = await this.getCompletionsByDate(dateStr);
+        const scheduledCompletions = dayCompletions.filter(c => !c.isBonus);
+        
+        // Count scheduled habits for this day (based on frequency)
+        for (const habit of activeHabits) {
+          if (this.shouldHabitBeScheduledOnDate(habit, dateStr)) {
+            totalScheduled++;
+            if (scheduledCompletions.some(c => c.habitId === habit.id)) {
+              completed++;
+            }
+          }
+        }
+      }
+
+      const completionRate = totalScheduled > 0 ? completed / totalScheduled : 0;
+
+      return { totalScheduled, completed, completionRate };
+    } catch (error) {
+      console.error('HabitStorage.getHabitCompletionStats error:', error);
+      return { totalScheduled: 0, completed: 0, completionRate: 0 };
+    }
+  }
+
+  /**
+   * Get habit completion statistics for a specific date
+   */
+  async getHabitCompletionStatsForDate(date: DateString): Promise<{
+    totalScheduled: number;
+    completed: number;
+    completionRate: number;
+  }> {
+    try {
+      const habits = await this.getAll();
+      const activeHabits = habits.filter(h => h.isActive);
+      const dayCompletions = await this.getCompletionsByDate(date);
+      const scheduledCompletions = dayCompletions.filter(c => !c.isBonus);
+
+      let totalScheduled = 0;
+      let completed = 0;
+
+      for (const habit of activeHabits) {
+        if (this.shouldHabitBeScheduledOnDate(habit, date)) {
+          totalScheduled++;
+          if (scheduledCompletions.some(c => c.habitId === habit.id)) {
+            completed++;
+          }
+        }
+      }
+
+      const completionRate = totalScheduled > 0 ? completed / totalScheduled : 0;
+
+      return { totalScheduled, completed, completionRate };
+    } catch (error) {
+      console.error('HabitStorage.getHabitCompletionStatsForDate error:', error);
+      return { totalScheduled: 0, completed: 0, completionRate: 0 };
+    }
+  }
+
+  /**
+   * Get unique habits completed on a specific date
+   */
+  async getUniqueHabitsCompletedOnDate(date: DateString): Promise<string[]> {
+    try {
+      const completions = await this.getCompletionsByDate(date);
+      const uniqueHabitIds = [...new Set(completions.map(c => c.habitId))];
+      return uniqueHabitIds;
+    } catch (error) {
+      console.error('HabitStorage.getUniqueHabitsCompletedOnDate error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get journal entries for a specific date (for GratitudeStorage compatibility)
+   */
+  async getEntriesForDate(date: DateString): Promise<any[]> {
+    // This method is for API compatibility with GratitudeStorage
+    // Returns empty array since this is HabitStorage
+    return [];
+  }
+
+  /**
+   * Check if a habit should be scheduled on a specific date based on frequency
+   */
+  private shouldHabitBeScheduledOnDate(habit: Habit, date: DateString): boolean {
+    // Simple logic - for daily habits, always true
+    // For more complex scheduling, implement frequency logic here
+    return true; // Assuming daily habits for now
+  }
 }
 
 // Singleton instance

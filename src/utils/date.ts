@@ -62,18 +62,26 @@ export const tomorrow = (): DateString => {
 };
 
 // Date arithmetic
-export const addDays = (dateString: DateString, days: number): DateString => {
-  const date = parseDate(dateString);
-  date.setDate(date.getDate() + days);
-  return formatDateToString(date);
+export const addDays = (date: DateString | Date, days: number): DateString | Date => {
+  if (date instanceof Date) {
+    const newDate = new Date(date);
+    newDate.setDate(newDate.getDate() + days);
+    return newDate;
+  } else {
+    const parsedDate = parseDate(date);
+    parsedDate.setDate(parsedDate.getDate() + days);
+    return formatDateToString(parsedDate);
+  }
 };
 
 export const subtractDays = (dateString: DateString, days: number): DateString => {
-  return addDays(dateString, -days);
+  const result = addDays(dateString, -days);
+  return typeof result === 'string' ? result : formatDateToString(result);
 };
 
 export const addWeeks = (dateString: DateString, weeks: number): DateString => {
-  return addDays(dateString, weeks * 7);
+  const result = addDays(dateString, weeks * 7);
+  return typeof result === 'string' ? result : formatDateToString(result);
 };
 
 export const addMonths = (dateString: DateString, months: number): DateString => {
@@ -125,7 +133,8 @@ export const getWeekStart = (dateString: DateString): DateString => {
 
 export const getWeekEnd = (dateString: DateString): DateString => {
   const weekStart = getWeekStart(dateString);
-  return addDays(weekStart, 6);
+  const result = addDays(weekStart, 6);
+  return typeof result === 'string' ? result : formatDateToString(result);
 };
 
 export const getWeekDates = (dateString?: DateString): DateString[] => {
@@ -133,7 +142,8 @@ export const getWeekDates = (dateString?: DateString): DateString[] => {
   const weekStart = getWeekStart(targetDate);
   const dates: DateString[] = [];
   for (let i = 0; i < 7; i++) {
-    dates.push(addDays(weekStart, i));
+    const result = addDays(weekStart, i);
+    dates.push(typeof result === 'string' ? result : formatDateToString(result));
   }
   return dates;
 };
@@ -183,7 +193,8 @@ export const getMonthDates = (dateString: DateString): DateString[] => {
   let currentDate = monthStart;
   while (currentDate <= monthEnd) {
     dates.push(currentDate);
-    currentDate = addDays(currentDate, 1);
+    const result = addDays(currentDate, 1);
+    currentDate = typeof result === 'string' ? result : formatDateToString(result);
   }
   
   return dates;
@@ -214,7 +225,8 @@ export const getDateRange = (startDate: DateString, endDate: DateString): DateSt
   
   while (currentDate <= endDate) {
     dates.push(currentDate);
-    currentDate = addDays(currentDate, 1);
+    const result = addDays(currentDate, 1);
+    currentDate = typeof result === 'string' ? result : formatDateToString(result);
   }
   
   return dates;
@@ -413,4 +425,18 @@ export const findLatestDate = (dates: DateString[]): DateString | null => {
 export const getDateRangeFromToday = (startDate: DateString): DateString[] => {
   if (startDate > today()) return [];
   return getDateRange(startDate, today());
+};
+
+// Week utilities with Date parameter support
+export const startOfWeek = (date: Date): Date => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust if sunday
+  d.setDate(diff);
+  return d;
+};
+
+export const endOfWeek = (date: Date): Date => {
+  const startWeek = startOfWeek(date);
+  return addDays(startWeek, 6) as Date;
 };

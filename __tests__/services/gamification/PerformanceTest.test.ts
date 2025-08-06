@@ -135,13 +135,15 @@ describe('Gamification Performance Tests', () => {
           const amount = (sourceIndex + 1) * 5; // Varying amounts
           const source = sources[sourceIndex];
           
-          await GamificationService.addXP(amount, {
-            source,
-            metadata: { skipBatching: true },
-            sourceId: `round_${round}_source_${sourceIndex}`
-          });
-          
-          expectedTotal += amount;
+          if (source) {
+            await GamificationService.addXP(amount, {
+              source,
+              metadata: { skipBatching: true },
+              sourceId: `round_${round}_source_${sourceIndex}`
+            });
+            
+            expectedTotal += amount;
+          }
         }
         
         console.log(`Completed round ${round + 1}/10`);
