@@ -3,11 +3,55 @@ import { LEVEL_PROGRESSION } from '../constants/gamification';
 import { LevelInfo, LevelRequirement } from '../types/gamification';
 
 // ========================================
+// PERFORMANCE CACHING SYSTEM
+// ========================================
+
+interface LevelCache {
+  xpRequiredCache: Map<number, number>;
+  levelProgressCache: Map<number, ReturnType<typeof getXPProgress>>;
+  levelInfoCache: Map<number, LevelInfo>;
+  lastCacheReset: number;
+}
+
+// Cache with 5-minute TTL to balance memory usage and performance
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_CACHE_SIZE = 200; // Limit cache size to prevent memory leaks
+
+let levelCache: LevelCache = {
+  xpRequiredCache: new Map(),
+  levelProgressCache: new Map(),
+  levelInfoCache: new Map(),
+  lastCacheReset: Date.now(),
+};
+
+/**
+ * Reset cache if it's expired or too large
+ */
+function resetCacheIfNeeded(): void {
+  const now = Date.now();
+  const cacheAge = now - levelCache.lastCacheReset;
+  const totalCacheSize = 
+    levelCache.xpRequiredCache.size + 
+    levelCache.levelProgressCache.size + 
+    levelCache.levelInfoCache.size;
+
+  if (cacheAge > CACHE_TTL_MS || totalCacheSize > MAX_CACHE_SIZE) {
+    console.log(`🗑️ Resetting level calculation cache (age: ${Math.round(cacheAge/1000)}s, size: ${totalCacheSize})`);
+    levelCache = {
+      xpRequiredCache: new Map(),
+      levelProgressCache: new Map(),
+      levelInfoCache: new Map(),
+      lastCacheReset: now,
+    };
+  }
+}
+
+// ========================================
 // CORE LEVEL CALCULATION FUNCTIONS
 // ========================================
 
 /**
- * Calculate XP required to reach a specific level
+ * Calculate XP required to reach a specific level (CACHED)
  * Uses progressive difficulty scaling: Linear → Quadratic → Exponential → Master
  * 
  * @param level Target level (1-based)
@@ -18,6 +62,13 @@ export function getXPRequiredForLevel(level: number): number {
   if (level === 1) return LEVEL_PROGRESSION.BASE_XP_LEVEL_1;
   if (level === 2) return LEVEL_PROGRESSION.BASE_XP_LEVEL_2;
 
+  // Check cache first
+  resetCacheIfNeeded();
+  const cached = levelCache.xpRequiredCache.get(level);
+  if (cached !== undefined) {
+    return cached;
+  }
+
   let totalXP = LEVEL_PROGRESSION.BASE_XP_LEVEL_2; // Start from level 2 base
   
   // Calculate XP for each level from 3 to target level
@@ -26,7 +77,12 @@ export function getXPRequiredForLevel(level: number): number {
     totalXP += xpForThisLevel;
   }
   
-  return Math.floor(totalXP);
+  const result = Math.floor(totalXP);
+  
+  // Cache the result
+  levelCache.xpRequiredCache.set(level, result);
+  
+  return result;
 }
 
 /**
@@ -179,7 +235,37 @@ export function getXPProgress(totalXP: number): {
   xpRequiredForCurrentLevel: number;
   xpRequiredForNextLevel: number;
 } {
+  // For progress calculations, we cache based on level rather than exact XP
+  // since progress changes frequently but level changes are less frequent
   const currentLevel = getCurrentLevel(totalXP);
+  
+  // Check cache for this level's progress structure
+  resetCacheIfNeeded();
+  const cacheKey = currentLevel;
+  let cachedProgress = levelCache.levelProgressCache.get(cacheKey);
+  
+  // If cached, just update the dynamic values
+  if (cachedProgress && cachedProgress.currentLevel === currentLevel) {
+    const xpRequiredForCurrentLevel = cachedProgress.xpRequiredForCurrentLevel;
+    const xpRequiredForNextLevel = cachedProgress.xpRequiredForNextLevel;
+    const xpInCurrentLevel = totalXP - xpRequiredForCurrentLevel;
+    const xpNeededForNextLevel = xpRequiredForNextLevel - xpRequiredForCurrentLevel;
+    const xpToNextLevel = xpRequiredForNextLevel - totalXP;
+    const xpProgress = xpNeededForNextLevel > 0 
+      ? Math.max(0, Math.min(100, (xpInCurrentLevel / xpNeededForNextLevel) * 100))
+      : 100;
+    
+    return {
+      currentLevel,
+      xpToNextLevel,
+      xpProgress,
+      xpInCurrentLevel,
+      xpRequiredForCurrentLevel,
+      xpRequiredForNextLevel,
+    };
+  }
+  
+  // Calculate fresh values
   const nextLevel = currentLevel + 1;
   
   const xpRequiredForCurrentLevel = getXPRequiredForLevel(currentLevel);
@@ -193,7 +279,7 @@ export function getXPProgress(totalXP: number): {
     ? Math.max(0, Math.min(100, (xpInCurrentLevel / xpNeededForNextLevel) * 100))
     : 100;
   
-  return {
+  const result = {
     currentLevel,
     xpToNextLevel: Math.max(0, xpToNextLevel),
     xpProgress: Math.floor(xpProgress),
@@ -201,6 +287,11 @@ export function getXPProgress(totalXP: number): {
     xpRequiredForCurrentLevel,
     xpRequiredForNextLevel,
   };
+  
+  // Cache the structure for this level (excluding dynamic values)
+  levelCache.levelProgressCache.set(cacheKey, result);
+  
+  return result;
 }
 
 // ========================================

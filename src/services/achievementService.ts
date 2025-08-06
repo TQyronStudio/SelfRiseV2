@@ -40,6 +40,148 @@ export interface AchievementUnlockResult {
 export class AchievementService {
 
   // ========================================
+  // BACKGROUND PROCESSING SYSTEM
+  // ========================================
+  
+  private static backgroundQueue: Array<{
+    id: string;
+    priority: 'high' | 'medium' | 'low';
+    task: () => Promise<void>;
+    addedAt: number;
+    retries: number;
+    maxRetries: number;
+  }> = [];
+  
+  private static isBackgroundProcessing = false;
+  private static backgroundProcessingInterval: NodeJS.Timeout | null = null;
+  private static readonly BACKGROUND_PROCESSING_INTERVAL = 2000; // 2 seconds
+  private static readonly MAX_BACKGROUND_TASKS_PER_CYCLE = 3;
+
+  /**
+   * Add task to background processing queue
+   */
+  private static addToBackgroundQueue(
+    id: string,
+    task: () => Promise<void>,
+    priority: 'high' | 'medium' | 'low' = 'medium',
+    maxRetries = 3
+  ): void {
+    // Remove existing task with same ID if exists
+    this.backgroundQueue = this.backgroundQueue.filter(item => item.id !== id);
+    
+    // Add new task
+    this.backgroundQueue.push({
+      id,
+      priority,
+      task,
+      addedAt: Date.now(),
+      retries: 0,
+      maxRetries,
+    });
+    
+    // Sort by priority (high -> medium -> low) and then by age
+    this.backgroundQueue.sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.addedAt - b.addedAt; // Older tasks first
+    });
+    
+    // Start background processing if not already running
+    this.startBackgroundProcessing();
+    
+    console.log(`📋 Added task to background queue: ${id} (priority: ${priority}, queue size: ${this.backgroundQueue.length})`);
+  }
+
+  /**
+   * Start background processing loop
+   */
+  private static startBackgroundProcessing(): void {
+    if (this.isBackgroundProcessing) return;
+    
+    this.isBackgroundProcessing = true;
+    this.backgroundProcessingInterval = setInterval(async () => {
+      await this.processBackgroundQueue();
+    }, this.BACKGROUND_PROCESSING_INTERVAL);
+    
+    console.log('🔄 Started background processing loop');
+  }
+
+  /**
+   * Process background queue
+   */
+  private static async processBackgroundQueue(): Promise<void> {
+    if (this.backgroundQueue.length === 0) {
+      this.stopBackgroundProcessing();
+      return;
+    }
+
+    const tasksToProcess = this.backgroundQueue.splice(0, this.MAX_BACKGROUND_TASKS_PER_CYCLE);
+    const failedTasks: typeof tasksToProcess = [];
+
+    for (const taskItem of tasksToProcess) {
+      try {
+        await taskItem.task();
+        console.log(`✅ Background task completed: ${taskItem.id}`);
+      } catch (error) {
+        console.error(`❌ Background task failed: ${taskItem.id}`, error);
+        
+        // Retry if under max retries
+        if (taskItem.retries < taskItem.maxRetries) {
+          taskItem.retries++;
+          failedTasks.push(taskItem);
+          console.log(`🔄 Retrying background task: ${taskItem.id} (attempt ${taskItem.retries}/${taskItem.maxRetries})`);
+        } else {
+          console.error(`💀 Background task exceeded max retries: ${taskItem.id}`);
+        }
+      }
+    }
+
+    // Re-add failed tasks for retry
+    this.backgroundQueue.unshift(...failedTasks);
+  }
+
+  /**
+   * Stop background processing loop
+   */
+  private static stopBackgroundProcessing(): void {
+    if (!this.isBackgroundProcessing) return;
+    
+    this.isBackgroundProcessing = false;
+    if (this.backgroundProcessingInterval) {
+      clearInterval(this.backgroundProcessingInterval);
+      this.backgroundProcessingInterval = null;
+    }
+    
+    console.log('⏸️ Stopped background processing loop');
+  }
+
+  /**
+   * Get background queue status for debugging
+   */
+  static getBackgroundQueueStatus(): {
+    queueSize: number;
+    isProcessing: boolean;
+    highPriorityTasks: number;
+    mediumPriorityTasks: number;
+    lowPriorityTasks: number;
+  } {
+    const tasksByPriority = {
+      high: this.backgroundQueue.filter(t => t.priority === 'high').length,
+      medium: this.backgroundQueue.filter(t => t.priority === 'medium').length,
+      low: this.backgroundQueue.filter(t => t.priority === 'low').length,
+    };
+
+    return {
+      queueSize: this.backgroundQueue.length,
+      isProcessing: this.isBackgroundProcessing,
+      highPriorityTasks: tasksByPriority.high,
+      mediumPriorityTasks: tasksByPriority.medium,
+      lowPriorityTasks: tasksByPriority.low,
+    };
+  }
+
+  // ========================================
   // CONDITION CHECKING SYSTEM
   // ========================================
 
@@ -325,17 +467,31 @@ export class AchievementService {
       if (relevantAchievements.length === 0) {
         return { unlocked: [], progress: [], xpAwarded: 0, leveledUp: false };
       }
+      
+      // Split achievements into critical (check immediately) and non-critical (background)
+      const { criticalAchievements, nonCriticalAchievements } = this.categorizeAchievementsByPriority(relevantAchievements);
+      
+      console.log(`🎯 Split achievements: ${criticalAchievements.length} critical, ${nonCriticalAchievements.length} non-critical`);
+      
+      // Schedule non-critical achievements for background processing
+      if (nonCriticalAchievements.length > 0) {
+        this.scheduleBackgroundAchievementCheck(nonCriticalAchievements, xpSource, amount, sourceId, metadata);
+      }
+      
+      // Process only critical achievements immediately
+      const achievementsToCheckNow = criticalAchievements;
 
       // Get current user achievements and stats
       const userAchievements = await AchievementStorage.getUserAchievements();
       const userStats = await GamificationService.getGamificationStats();
       
-      // Filter out already unlocked achievements
-      const lockedAchievements = relevantAchievements.filter(
+      // Filter out already unlocked achievements (only for critical achievements)
+      const lockedAchievements = achievementsToCheckNow.filter(
         achievement => !userAchievements.unlockedAchievements.includes(achievement.id)
       );
 
       if (lockedAchievements.length === 0) {
+        console.log('🔄 No critical achievements to process immediately');
         return { unlocked: [], progress: [], xpAwarded: 0, leveledUp: false };
       }
 
@@ -445,43 +601,364 @@ export class AchievementService {
   }
 
   /**
-   * Get achievements that might be triggered by specific XP source
+   * Categorize achievements by processing priority
+   */
+  private static categorizeAchievementsByPriority(achievements: Achievement[]): {
+    criticalAchievements: Achievement[];
+    nonCriticalAchievements: Achievement[];
+  } {
+    const criticalAchievements: Achievement[] = [];
+    const nonCriticalAchievements: Achievement[] = [];
+
+    for (const achievement of achievements) {
+      // Critical achievements (must be checked immediately for UI feedback)
+      if (this.isCriticalAchievement(achievement)) {
+        criticalAchievements.push(achievement);
+      } else {
+        nonCriticalAchievements.push(achievement);
+      }
+    }
+
+    return { criticalAchievements, nonCriticalAchievements };
+  }
+
+  /**
+   * Determine if achievement is critical (needs immediate checking)
+   */
+  private static isCriticalAchievement(achievement: Achievement): boolean {
+    // Level-based achievements are critical (immediate UI feedback needed)
+    if (achievement.condition.type === 'level') {
+      return true;
+    }
+
+    // High-frequency, low-value achievements can be background processed
+    if (achievement.rarity === AchievementRarity.COMMON && !achievement.isProgressive) {
+      return false;
+    }
+
+    // Streak-based achievements are critical (user needs immediate feedback)
+    if (achievement.condition.type === 'streak') {
+      return true;
+    }
+
+    // Count-based achievements with low targets can be background processed
+    if (achievement.condition.type === 'count' && 
+        typeof achievement.condition.target === 'number' && 
+        achievement.condition.target <= 10) {
+      return false;
+    }
+
+    // Default to critical for important achievements
+    return true;
+  }
+
+  /**
+   * Schedule background achievement check
+   */
+  private static scheduleBackgroundAchievementCheck(
+    achievements: Achievement[],
+    xpSource: XPSourceType,
+    amount: number,
+    sourceId?: string,
+    metadata?: Record<string, any>
+  ): void {
+    const taskId = `bg_achievement_check_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    this.addToBackgroundQueue(
+      taskId,
+      async () => {
+        await this.processBackgroundAchievements(achievements, xpSource, amount, sourceId, metadata);
+      },
+      'medium', // Non-critical achievements get medium priority
+      2 // Lower retry count for background tasks
+    );
+  }
+
+  /**
+   * Process achievements in background
+   */
+  private static async processBackgroundAchievements(
+    achievements: Achievement[],
+    xpSource: XPSourceType,
+    amount: number,
+    sourceId?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      console.log(`🔄 Processing ${achievements.length} background achievements for ${xpSource}`);
+      
+      const userAchievements = await AchievementStorage.getUserAchievements();
+      const userStats = await GamificationService.getGamificationStats();
+      
+      // Filter out already unlocked achievements
+      const lockedAchievements = achievements.filter(
+        achievement => !userAchievements.unlockedAchievements.includes(achievement.id)
+      );
+
+      if (lockedAchievements.length === 0) {
+        console.log('📝 No background achievements to process');
+        return;
+      }
+
+      // Process each achievement (similar to main logic but without immediate UI updates)
+      const evaluationResults: AchievementEvaluationResult[] = [];
+      const newlyUnlocked: Achievement[] = [];
+      let totalXPAwarded = 0;
+
+      for (const achievement of lockedAchievements) {
+        const conditionResult = await this.evaluateCondition(
+          achievement.condition,
+          userStats,
+          { xpSource, amount, sourceId, ...metadata }
+        );
+
+        const evaluationResult: AchievementEvaluationResult = {
+          achievementId: achievement.id,
+          isMet: conditionResult.isMet,
+          currentProgress: conditionResult.progress,
+          previousProgress: userAchievements.achievementProgress[achievement.id] || 0,
+          isNewlyUnlocked: conditionResult.isMet,
+          progressDelta: conditionResult.progress - (userAchievements.achievementProgress[achievement.id] || 0),
+          evaluatedAt: new Date(),
+          ...(conditionResult.nextMilestone !== undefined ? { nextMilestone: conditionResult.nextMilestone } : {})
+        };
+
+        evaluationResults.push(evaluationResult);
+
+        // If achievement is newly unlocked
+        if (conditionResult.isMet) {
+          newlyUnlocked.push(achievement);
+          totalXPAwarded += achievement.xpReward;
+          
+          // Store unlock event
+          await AchievementStorage.storeUnlockEvent(
+            achievement.id,
+            achievement,
+            xpSource,
+            { 
+              evaluationResult,
+              xpSource,
+              amount,
+              sourceId,
+              processedInBackground: true,
+              ...metadata 
+            }
+          );
+          
+          console.log(`🏆 Background achievement unlocked: ${achievement.name} (+${achievement.xpReward} XP)`);
+        } else if (evaluationResult.progressDelta > 0) {
+          // Store progress update
+          await AchievementStorage.storeProgressUpdate(
+            achievement.id,
+            conditionResult.progress,
+            xpSource,
+            {
+              xpSource,
+              amount,
+              sourceId,
+              processedInBackground: true,
+              ...metadata
+            }
+          );
+        }
+      }
+
+      // Update user achievements
+      if (newlyUnlocked.length > 0 || evaluationResults.some(r => r.progressDelta > 0)) {
+        await this.updateUserAchievements(newlyUnlocked, evaluationResults);
+      }
+
+      // Award XP for unlocked achievements
+      if (totalXPAwarded > 0) {
+        await GamificationService.addXP(totalXPAwarded, {
+          source: XPSourceType.ACHIEVEMENT_UNLOCK,
+          description: `Background unlocked ${newlyUnlocked.length} achievement(s)`,
+          skipNotification: true // Background achievements don't interrupt user
+        });
+      }
+
+      // Queue delayed notifications for background achievements
+      if (newlyUnlocked.length > 0) {
+        setTimeout(() => {
+          this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, false);
+        }, 3000); // 3-second delay for background notifications
+      }
+
+      console.log(`✅ Background processing complete: ${newlyUnlocked.length} unlocked, ${totalXPAwarded} XP awarded`);
+    } catch (error) {
+      console.error('AchievementService.processBackgroundAchievements error:', error);
+      throw error; // Re-throw for retry mechanism
+    }
+  }
+
+  // ========================================
+  // LAZY ACHIEVEMENT FILTERING SYSTEM
+  // ========================================
+
+  /**
+   * Optimized achievement relevance mapping for performance
+   * Pre-computed map reduces achievement checking from 42 to ~5-10 per action
+   */
+  private static achievementRelevanceMap: Map<XPSourceType, string[]> | null = null;
+  private static lastRelevanceMapUpdate = 0;
+  private static readonly RELEVANCE_MAP_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Build optimized relevance map for XP sources to achievement IDs
+   */
+  private static buildAchievementRelevanceMap(): Map<XPSourceType, string[]> {
+    const map = new Map<XPSourceType, string[]>();
+    
+    // Initialize empty arrays for all XP sources
+    for (const sourceType of Object.values(XPSourceType)) {
+      map.set(sourceType, []);
+    }
+
+    // Build relevance mapping for each achievement
+    for (const achievement of CORE_ACHIEVEMENTS) {
+      const relevantSources = this.getRelevantXPSources(achievement);
+      
+      for (const source of relevantSources) {
+        const existingIds = map.get(source) || [];
+        existingIds.push(achievement.id);
+        map.set(source, existingIds);
+      }
+    }
+
+    console.log(`🎯 Built achievement relevance map: ${map.size} XP sources mapped`);
+    
+    // Log mapping statistics for debugging
+    for (const [source, achievementIds] of map.entries()) {
+      if (achievementIds.length > 0) {
+        console.log(`   ${source}: ${achievementIds.length} relevant achievements`);
+      }
+    }
+    
+    return map;
+  }
+
+  /**
+   * Get XP sources that could trigger a specific achievement
+   */
+  private static getRelevantXPSources(achievement: Achievement): XPSourceType[] {
+    const sources = new Set<XPSourceType>();
+    
+    // Direct source mapping
+    if (this.isXPSourceType(achievement.condition.source)) {
+      sources.add(achievement.condition.source as XPSourceType);
+    }
+    
+    // Additional conditions for combination achievements
+    if (achievement.condition.additionalConditions) {
+      for (const condition of achievement.condition.additionalConditions) {
+        if (this.isXPSourceType(condition.source)) {
+          sources.add(condition.source as XPSourceType);
+        }
+      }
+    }
+    
+    // Category-based source mapping for broader relevance
+    switch (achievement.category) {
+      case AchievementCategory.HABITS:
+        sources.add(XPSourceType.HABIT_COMPLETION);
+        sources.add(XPSourceType.HABIT_BONUS);
+        sources.add(XPSourceType.HABIT_STREAK_MILESTONE);
+        break;
+        
+      case AchievementCategory.JOURNAL:
+        sources.add(XPSourceType.JOURNAL_ENTRY);
+        sources.add(XPSourceType.JOURNAL_BONUS);
+        sources.add(XPSourceType.JOURNAL_BONUS_MILESTONE);
+        sources.add(XPSourceType.JOURNAL_STREAK_MILESTONE);
+        break;
+        
+      case AchievementCategory.GOALS:
+        sources.add(XPSourceType.GOAL_PROGRESS);
+        sources.add(XPSourceType.GOAL_COMPLETION);
+        sources.add(XPSourceType.GOAL_MILESTONE);
+        break;
+        
+      case AchievementCategory.CONSISTENCY:
+        // Consistency achievements can be triggered by multiple sources
+        sources.add(XPSourceType.HABIT_COMPLETION);
+        sources.add(XPSourceType.JOURNAL_ENTRY);
+        sources.add(XPSourceType.GOAL_PROGRESS);
+        sources.add(XPSourceType.DAILY_LAUNCH);
+        break;
+        
+      case AchievementCategory.MASTERY:
+        // Mastery achievements often track overall progress
+        sources.add(XPSourceType.ACHIEVEMENT_UNLOCK);
+        sources.add(XPSourceType.RECOMMENDATION_FOLLOW);
+        sources.add(XPSourceType.WEEKLY_CHALLENGE);
+        // Also include all other sources for level-based achievements
+        for (const sourceType of Object.values(XPSourceType)) {
+          sources.add(sourceType);
+        }
+        break;
+        
+      case AchievementCategory.SPECIAL:
+        // Special achievements may have unique triggering conditions
+        for (const sourceType of Object.values(XPSourceType)) {
+          sources.add(sourceType);
+        }
+        break;
+    }
+    
+    return Array.from(sources);
+  }
+
+  /**
+   * Check if a string is a valid XPSourceType
+   */
+  private static isXPSourceType(source: string): boolean {
+    return Object.values(XPSourceType).includes(source as XPSourceType);
+  }
+
+  /**
+   * Get cached relevance map or build new one if expired
+   */
+  private static getAchievementRelevanceMap(): Map<XPSourceType, string[]> {
+    const now = Date.now();
+    
+    if (!this.achievementRelevanceMap || 
+        (now - this.lastRelevanceMapUpdate) > this.RELEVANCE_MAP_TTL) {
+      
+      this.achievementRelevanceMap = this.buildAchievementRelevanceMap();
+      this.lastRelevanceMapUpdate = now;
+    }
+    
+    return this.achievementRelevanceMap;
+  }
+
+  /**
+   * Get achievements that might be triggered by specific XP source (OPTIMIZED)
+   * This replaces the previous getRelevantAchievements method with much better performance
    */
   private static getRelevantAchievements(xpSource: XPSourceType): Achievement[] {
-    return CORE_ACHIEVEMENTS.filter(achievement => {
-      // Check if achievement's condition source matches or is related to XP source
-      if (achievement.condition.source === xpSource) {
-        return true;
+    try {
+      const relevanceMap = this.getAchievementRelevanceMap();
+      const relevantAchievementIds = relevanceMap.get(xpSource) || [];
+      
+      if (relevantAchievementIds.length === 0) {
+        return [];
       }
       
-      // Check additional conditions for combination achievements
-      if (achievement.condition.additionalConditions) {
-        return achievement.condition.additionalConditions.some(
-          condition => condition.source === xpSource
-        );
-      }
+      // Convert IDs back to achievement objects
+      const relevantAchievements = relevantAchievementIds
+        .map(id => CORE_ACHIEVEMENTS.find(a => a.id === id))
+        .filter((achievement): achievement is Achievement => achievement !== undefined);
       
-      // Check category-based relevance
-      switch (xpSource) {
-        case XPSourceType.HABIT_COMPLETION:
-        case XPSourceType.HABIT_BONUS:
-        case XPSourceType.HABIT_STREAK_MILESTONE:
-          return achievement.category === 'habits' || achievement.category === 'consistency';
-          
-        case XPSourceType.JOURNAL_ENTRY:
-        case XPSourceType.JOURNAL_BONUS:
-        case XPSourceType.JOURNAL_STREAK_MILESTONE:
-          return achievement.category === 'journal' || achievement.category === 'consistency';
-          
-        case XPSourceType.GOAL_PROGRESS:
-        case XPSourceType.GOAL_COMPLETION:
-        case XPSourceType.GOAL_MILESTONE:
-          return achievement.category === 'goals' || achievement.category === 'consistency';
-          
-        default:
-          return achievement.category === 'mastery' || achievement.category === 'consistency';
-      }
-    });
+      console.log(`🎯 Lazy filtering: ${xpSource} → ${relevantAchievements.length}/${CORE_ACHIEVEMENTS.length} achievements (${((relevantAchievements.length / CORE_ACHIEVEMENTS.length) * 100).toFixed(1)}% reduction)`);
+      
+      return relevantAchievements;
+      
+    } catch (error) {
+      console.error('AchievementService.getRelevantAchievements error:', error);
+      // Fallback to checking all achievements if optimization fails
+      console.warn('Falling back to checking all achievements due to error');
+      return CORE_ACHIEVEMENTS;
+    }
   }
 
   // ========================================

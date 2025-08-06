@@ -22,6 +22,28 @@ import {
 import { DateString } from '../types/common';
 import { formatDateToString, today } from '../utils/date';
 
+// ========================================
+// XP BATCHING SYSTEM INTERFACES
+// ========================================
+
+interface PendingXPBatch {
+  totalAmount: number;
+  sources: Map<XPSourceType, number>;
+  sourceIds: string[];
+  descriptions: string[];
+  metadata: Record<string, any>[];
+  firstActionTime: number;
+  lastActionTime: number;
+}
+
+interface BatchedXPResult extends XPTransactionResult {
+  batchedSources: Array<{
+    source: XPSourceType;
+    amount: number;
+    count: number;
+  }>;
+}
+
 // Storage keys for AsyncStorage
 const STORAGE_KEYS = {
   TOTAL_XP: 'gamification_total_xp',
@@ -90,6 +112,297 @@ interface LevelUpEvent {
  */
 export class GamificationService {
   
+  // ========================================
+  // XP BATCHING SYSTEM
+  // ========================================
+  
+  private static pendingBatch: PendingXPBatch | null = null;
+  private static batchTimeout: NodeJS.Timeout | null = null;
+  private static readonly BATCH_WINDOW_MS = 500; // 500ms batching window
+  private static readonly MAX_BATCH_SIZE = 20; // Maximum operations per batch
+  
+  /**
+   * Add XP with batching optimization (PUBLIC API)
+   * Batches multiple rapid XP additions within 500ms window for better performance
+   */
+  static async addXPWithBatching(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
+    try {
+      console.log(`⚡ Adding XP with batching: +${amount} from ${options.source}`);
+      
+      const now = Date.now();
+      const shouldBatch = this.shouldBatchXPAddition(amount, options, now);
+      
+      if (shouldBatch) {
+        return await this.addToBatch(amount, options, now);
+      } else {
+        // Execute immediately for time-sensitive operations
+        return await this.addXP(amount, options);
+      }
+    } catch (error) {
+      console.error('GamificationService.addXPWithBatching error:', error);
+      // Fallback to direct XP addition
+      return await this.addXP(amount, options);
+    }
+  }
+
+  /**
+   * Determine if XP addition should be batched
+   */
+  private static shouldBatchXPAddition(amount: number, options: XPAdditionOptions, now: number): boolean {
+    // Don't batch if explicitly disabled
+    if (options.metadata?.skipBatching === true) {
+      return false;
+    }
+    
+    // Don't batch critical operations
+    if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK || 
+        options.source === XPSourceType.WEEKLY_CHALLENGE) {
+      return false;
+    }
+    
+    // Don't batch if no pending batch exists and amount is large
+    if (!this.pendingBatch && amount >= 100) {
+      return false;
+    }
+    
+    // Don't batch negative amounts (subtraction)
+    if (amount < 0) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Add XP to pending batch
+   */
+  private static async addToBatch(amount: number, options: XPAdditionOptions, now: number): Promise<XPTransactionResult> {
+    try {
+      // Initialize batch if it doesn't exist
+      if (!this.pendingBatch) {
+        this.pendingBatch = {
+          totalAmount: 0,
+          sources: new Map<XPSourceType, number>(),
+          sourceIds: [],
+          descriptions: [],
+          metadata: [],
+          firstActionTime: now,
+          lastActionTime: now
+        };
+        
+        console.log(`🔥 Started new XP batch (${this.BATCH_WINDOW_MS}ms window)`);
+      }
+
+      // Add to batch
+      this.pendingBatch.totalAmount += amount;
+      this.pendingBatch.sources.set(
+        options.source, 
+        (this.pendingBatch.sources.get(options.source) || 0) + amount
+      );
+      
+      if (options.sourceId) {
+        this.pendingBatch.sourceIds.push(options.sourceId);
+      }
+      if (options.description) {
+        this.pendingBatch.descriptions.push(options.description);
+      }
+      if (options.metadata) {
+        this.pendingBatch.metadata.push(options.metadata);
+      }
+      
+      this.pendingBatch.lastActionTime = now;
+
+      console.log(`📦 Added to batch: +${amount} ${options.source} (batch total: ${this.pendingBatch.totalAmount})`);
+
+      // Clear existing timeout
+      if (this.batchTimeout) {
+        clearTimeout(this.batchTimeout);
+      }
+
+      // Check if batch should be committed immediately
+      if (this.shouldCommitBatch()) {
+        return await this.commitBatch();
+      }
+
+      // Set new timeout for batch commit
+      this.batchTimeout = setTimeout(() => {
+        this.commitBatch().catch(error => {
+          console.error('Batch commit timeout error:', error);
+        });
+      }, this.BATCH_WINDOW_MS);
+
+      // Return optimistic result (actual result will be processed in batch)
+      const totalXP = await this.getTotalXP();
+      return {
+        success: true,
+        xpGained: amount,
+        totalXP: totalXP + amount, // Optimistic total
+        previousLevel: getCurrentLevel(totalXP),
+        newLevel: getCurrentLevel(totalXP + amount),
+        leveledUp: false, // Will be determined in batch commit
+        milestoneReached: false,
+        transaction: {
+          id: `batch_pending_${now}`,
+          amount,
+          source: options.source,
+          description: options.description || this.getDefaultDescription(options.source),
+          date: today(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...(options.sourceId && { sourceId: options.sourceId })
+        }
+      };
+
+    } catch (error) {
+      console.error('GamificationService.addToBatch error:', error);
+      // Fallback to direct addition
+      return await this.addXP(amount, options);
+    }
+  }
+
+  /**
+   * Check if batch should be committed immediately
+   */
+  private static shouldCommitBatch(): boolean {
+    if (!this.pendingBatch) return false;
+    
+    // Commit if batch is too large
+    if (this.pendingBatch.sources.size >= this.MAX_BATCH_SIZE) {
+      console.log(`📊 Committing batch early: ${this.pendingBatch.sources.size} sources`);
+      return true;
+    }
+    
+    // Commit if total amount is very large
+    if (this.pendingBatch.totalAmount >= 500) {
+      console.log(`📊 Committing batch early: ${this.pendingBatch.totalAmount} total XP`);
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Commit pending batch
+   */
+  private static async commitBatch(): Promise<BatchedXPResult> {
+    try {
+      if (!this.pendingBatch) {
+        throw new Error('No pending batch to commit');
+      }
+
+      const batch = this.pendingBatch;
+      
+      // Clear batch and timeout
+      this.pendingBatch = null;
+      if (this.batchTimeout) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+      }
+
+      console.log(`🚀 Committing XP batch: ${batch.totalAmount} XP from ${batch.sources.size} sources`);
+
+      // Create batch options
+      const batchOptions: XPAdditionOptions = {
+        source: this.getDominantSource(batch.sources),
+        description: this.createBatchDescription(batch),
+        metadata: {
+          isBatch: true,
+          batchSize: batch.sources.size,
+          batchDuration: batch.lastActionTime - batch.firstActionTime,
+          batchSources: Array.from(batch.sources.entries())
+        }
+      };
+
+      // Execute batched XP addition
+      const result = await this.addXP(batch.totalAmount, batchOptions);
+
+      // Create batched result
+      const batchedResult: BatchedXPResult = {
+        ...result,
+        batchedSources: Array.from(batch.sources.entries()).map(([source, amount]) => ({
+          source,
+          amount,
+          count: 1 // Could be enhanced to track individual counts
+        }))
+      };
+
+      // Trigger batched XP animation
+      this.triggerBatchedXPAnimation(batchedResult);
+
+      console.log(`✅ Batch committed successfully: +${batch.totalAmount} XP`);
+      
+      return batchedResult;
+
+    } catch (error) {
+      console.error('GamificationService.commitBatch error:', error);
+      
+      // Return error result
+      const totalXP = await this.getTotalXP();
+      return {
+        success: false,
+        xpGained: 0,
+        totalXP,
+        previousLevel: getCurrentLevel(totalXP),
+        newLevel: getCurrentLevel(totalXP),
+        leveledUp: false,
+        milestoneReached: false,
+        error: error instanceof Error ? error.message : 'Batch commit failed',
+        batchedSources: []
+      };
+    }
+  }
+
+  /**
+   * Get the dominant source from batch (highest amount)
+   */
+  private static getDominantSource(sources: Map<XPSourceType, number>): XPSourceType {
+    let dominantSource = XPSourceType.HABIT_COMPLETION;
+    let maxAmount = 0;
+    
+    for (const [source, amount] of sources.entries()) {
+      if (amount > maxAmount) {
+        maxAmount = amount;
+        dominantSource = source;
+      }
+    }
+    
+    return dominantSource;
+  }
+
+  /**
+   * Create description for batched operations
+   */
+  private static createBatchDescription(batch: PendingXPBatch): string {
+    const sourceCount = batch.sources.size;
+    const totalAmount = batch.totalAmount;
+    
+    if (sourceCount === 1) {
+      const [source] = batch.sources.keys();
+      return `Batched ${source} (+${totalAmount} XP)`;
+    }
+    
+    return `Batched ${sourceCount} actions (+${totalAmount} XP total)`;
+  }
+
+  /**
+   * Trigger batched XP animation with summary
+   */
+  private static triggerBatchedXPAnimation(result: BatchedXPResult): void {
+    try {
+      DeviceEventEmitter.emit('xpBatchCommitted', {
+        totalAmount: result.xpGained,
+        sources: result.batchedSources,
+        leveledUp: result.leveledUp,
+        newLevel: result.newLevel,
+        timestamp: Date.now()
+      });
+      
+      console.log(`🎆 Batched XP animation triggered: +${result.xpGained} XP from ${result.batchedSources.length} sources`);
+    } catch (error) {
+      console.error('GamificationService.triggerBatchedXPAnimation error:', error);
+    }
+  }
+
   // ========================================
   // CORE XP MANAGEMENT
   // ========================================

@@ -622,11 +622,84 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ##### Sub-checkpoint 4.5.7.A: Performance Optimization ⚡
 **Goal**: Implement performance improvements for smooth user experience
-- [ ] Implement lazy achievement checking (only check relevant achievements per action)
-- [ ] Create XP batching system for rapid consecutive actions (combine within 500ms)
-- [ ] Add cached calculations for expensive operations (level requirements, achievement progress)
-- [ ] Implement background processing for non-critical achievement checks
-- [ ] Optimize AsyncStorage operations with batching and compression
+
+**ANALYSIS COMPLETE** - Current Performance Bottlenecks Identified:
+
+1. **Lazy Achievement Checking**: Currently checking all 42 achievements after every XP action
+   - `getRelevantAchievements()` only filters ~8-15 achievements per action
+   - Still evaluating complex conditions for each relevant achievement
+   - Need intelligent pre-filtering and condition caching
+
+2. **XP Batching**: Rapid consecutive actions cause multiple separate XP operations
+   - Each habit toggle triggers individual `addXP()` call with full achievement check
+   - Need 500ms batching window to combine multiple XP gains
+   - Should reduce UI updates and storage operations
+
+3. **Cached Calculations**: Expensive operations recalculated repeatedly
+   - Level requirements calculated every XP addition
+   - Achievement progress percentages recalculated on every evaluation
+   - Data snapshots regenerated for each achievement check
+
+4. **Background Processing**: All achievement checks run synchronously
+   - Non-critical achievements could be checked asynchronously
+   - Progressive achievement progress updates could be queued
+   - Batch achievement checking could run in background
+
+5. **AsyncStorage Optimization**: Multiple storage operations per action
+   - Separate saves for XP, transactions, daily tracking, achievement progress
+   - Could batch storage operations and use compression
+   - Need optimized storage keys and data structures
+
+**IMPLEMENTATION TASKS**:
+
+- [ ] **Lazy Achievement Filtering System**
+  - [ ] Create `AchievementRelevanceMap` for XP source → achievement mapping
+  - [ ] Implement condition pre-evaluation to skip impossible achievements
+  - [ ] Add achievement category-based filtering (habits → habits category only)
+  - [ ] Cache achievement evaluation results with TTL
+  - [ ] Reduce average achievement checks from 42 to ~5-10 per action
+
+- [ ] **XP Batching System** 
+  - [ ] Create `XPBatcher` class with 500ms debouncing window
+  - [ ] Implement batch collection and consolidation logic
+  - [ ] Add batch commit with single storage operation
+  - [ ] Update UI with batched total instead of individual amounts
+  - [ ] Handle edge cases (app backgrounding, rapid source changes)
+
+- [ ] **Calculation Caching System**
+  - [ ] Create `GamificationCache` with level calculation memoization
+  - [ ] Cache achievement progress snapshots with invalidation
+  - [ ] Implement smart cache warming for frequent operations
+  - [ ] Add cache size limits and automatic cleanup
+  - [ ] Cache `AchievementIntegration` data snapshot with TTL
+
+- [ ] **Background Processing Queue**
+  - [ ] Create `BackgroundAchievementProcessor` with priority queue
+  - [ ] Move non-critical achievement checks to background thread
+  - [ ] Implement progressive achievement batching (check 10 at a time)
+  - [ ] Add achievement check scheduling (daily batch, weekly full scan)
+  - [ ] Handle background → foreground sync and conflict resolution
+
+- [ ] **AsyncStorage Optimization**
+  - [ ] Create `BatchedStorageManager` for grouped operations
+  - [ ] Implement data compression for large achievement datasets
+  - [ ] Optimize storage key structure for better performance
+  - [ ] Add storage operation queuing and deduplication
+  - [ ] Implement storage size monitoring and automatic cleanup
+
+**PERFORMANCE TARGETS**:
+- 70-80% reduction in achievement checking overhead
+- 50-60% reduction in XP operation latency  
+- 40-50% reduction in AsyncStorage operations
+- Maintain 60fps UI performance during rapid XP actions
+- Reduce memory usage by 25-30% through efficient caching
+
+**TESTING STRATEGY**:
+- [ ] Benchmark current performance with 100+ rapid habit toggles
+- [ ] Profile memory usage during extended achievement checking
+- [ ] Test background processing reliability with app state changes
+- [ ] Validate cache hit rates and invalidation accuracy
+- [ ] Stress test storage batching with concurrent operations
 
 ##### Sub-checkpoint 4.5.7.B: Visual Polish & Animations ✨
 **Goal**: Perfect visual effects and user experience polish
