@@ -4,8 +4,10 @@ import {
   Animated, 
   StyleSheet, 
   Dimensions,
-  Easing 
+  Easing,
+  AccessibilityInfo 
 } from 'react-native';
+import { useI18n } from '../../hooks/useI18n';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -37,6 +39,7 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
   duration = 3000,
   onComplete,
 }) => {
+  const { t } = useI18n();
   const particleCount = getParticleCount(type, intensity);
   const particles = useRef<Particle[]>([]);
   const animationsRef = useRef<Animated.CompositeAnimation[]>([]);
@@ -207,12 +210,72 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
     });
   };
 
+  // Announce particle effects to screen readers when they start
+  useEffect(() => {
+    if (visible) {
+      let announcement: string;
+      switch (type) {
+        case 'level_up':
+          announcement = t('gamification.effects.level_up') || 'Level up celebration effects';
+          break;
+        case 'milestone':
+          announcement = t('gamification.effects.milestone') || 'Milestone achievement celebration effects';
+          break;
+        case 'achievement':
+          announcement = t('gamification.effects.achievement') || 'Achievement unlock celebration effects';
+          break;
+        case 'celebration':
+          announcement = t('gamification.effects.celebration') || 'General celebration effects';
+          break;
+        default:
+          announcement = t('gamification.effects.general') || 'Celebration effects';
+          break;
+      }
+      
+      // Only announce for high-intensity effects to avoid spam
+      if (intensity === 'high' || type === 'milestone') {
+        AccessibilityInfo.announceForAccessibility(announcement);
+      }
+    }
+  }, [visible, type, intensity, t]);
+
   if (!visible) {
     return null;
   }
 
+  const accessibilityLabel = (() => {
+    const typeLabel = (() => {
+      switch (type) {
+        case 'level_up':
+          return t('gamification.effects.level_up') || 'Level up celebration';
+        case 'milestone':
+          return t('gamification.effects.milestone') || 'Milestone achievement celebration';
+        case 'achievement':
+          return t('gamification.effects.achievement') || 'Achievement unlock celebration';
+        case 'celebration':
+          return t('gamification.effects.celebration') || 'General celebration';
+        default:
+          return t('gamification.effects.general') || 'Celebration effects';
+      }
+    })();
+    
+    return t('gamification.effects.accessibility_label', {
+      type: typeLabel,
+      intensity,
+      particleCount
+    }) || `${typeLabel} with ${intensity} intensity particle effects`;
+  })();
+
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View 
+      style={styles.container} 
+      pointerEvents="none"
+      accessible={true}
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityElementsHidden={true} // Hide individual particles from screen readers
+      importantForAccessibility="no-hide-descendants"
+    >
       {particles.current.map((particle) => (
         <Animated.View
           key={particle.id}

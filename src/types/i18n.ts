@@ -175,6 +175,16 @@ export interface TranslationKeys {
       reset: string;
       recover: string;
     };
+    celebration: {
+      daily_complete_announcement: string;
+      streak_milestone_announcement: string;
+      bonus_milestone_announcement: string;
+      daily_complete_modal: string;
+      streak_milestone_modal: string;
+      bonus_milestone_modal: string;
+      streak_badge_accessibility: string;
+      bonus_badge_accessibility: string;
+    };
   };
   
   // Goals screen
@@ -634,6 +644,10 @@ export interface TranslationKeys {
     continue: string;
     yes: string;
     no: string;
+    celebration: {
+      general_announcement: string;
+      modal: string;
+    };
   };
   
   // Days of week
@@ -669,6 +683,144 @@ export interface TranslationKeys {
       variant2: string;
       variant3: string;
       variant4: string;
+    };
+  };
+
+  // Gamification System
+  gamification: {
+    xp: {
+      label: string;
+      short: string;
+      gained: string;
+      lost: string;
+      total: string;
+      loading: string;
+      sources: {
+        habit_completion: string;
+        habit_bonus: string;
+        journal_entry: string;
+        journal_bonus: string;
+        goal_progress: string;
+        goal_completion: string;
+        habit_streak_milestone: string;
+        journal_streak_milestone: string;
+        achievement_unlock: string;
+        general_activity: string;
+        daily_engagement: string;
+      };
+      notification: {
+        message: string;
+        amount: string;
+      };
+      announcement: {
+        balanced: string;
+        decreased: string;
+        single: string;
+        multiple_same: string;
+        multiple_mixed: string;
+      };
+      popup: {
+        gained: string;
+        lost: string;
+        amount_label: string;
+      };
+    };
+    progress: {
+      level: string;
+      progress: string;
+      to_next_level: string;
+      xp_remaining: string;
+      loading: string;
+      accessibility: {
+        label: string;
+        hint: string;
+      };
+      badge: {
+        accessibility: string;
+      };
+      bar: {
+        accessibility: string;
+      };
+      milestone: {
+        accessibility: string;
+      };
+    };
+    levels: {
+      current: string;
+      next: string;
+      milestone: string;
+      rewards: string;
+      title: string;
+      description: string;
+    };
+    effects: {
+      level_up: string;
+      milestone: string;
+      achievement: string;
+      celebration: string;
+      general: string;
+      accessibility_label: string;
+    };
+    celebration: {
+      level_up_announcement: string;
+      level_up_modal: string;
+      level_up_section_accessibility: string;
+      level_badge_accessibility: string;
+      level_title_accessibility: string;
+      rewards_section_accessibility: string;
+      rewards_title: string;
+      reward_item_accessibility: string;
+      continue_button_accessibility: string;
+      continue_button_hint: string;
+      emoji: {
+        daily_complete: string;
+        streak_milestone: string;
+        bonus_milestone: string;
+        level_up: string;
+      };
+    };
+    achievement: {
+      unlocked: string;
+      locked: string;
+      progress: string;
+      xp_reward: string;
+      requirements: string;
+      unlock_condition: string;
+      announcement: {
+        unlocked: string;
+      };
+    };
+    sources: {
+      habit_completion: {
+        icon_description: string;
+      };
+      habit_bonus: {
+        icon_description: string;
+      };
+      journal_entry: {
+        icon_description: string;
+      };
+      journal_bonus: {
+        icon_description: string;
+      };
+      goal_progress: {
+        icon_description: string;
+      };
+      goal_completion: {
+        icon_description: string;
+      };
+      habit_streak_milestone: {
+        icon_description: string;
+      };
+      journal_streak_milestone: {
+        icon_description: string;
+      };
+      achievement_unlock: {
+        icon_description: string;
+      };
+      general_activity: {
+        icon_description: string;
+      };
     };
   };
 }

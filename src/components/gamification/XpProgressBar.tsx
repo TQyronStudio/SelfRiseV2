@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useLevel } from '../../contexts/GamificationContext';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
+import { useI18n } from '../../hooks/useI18n';
 // import { LEVEL_PROGRESSION } from '../../constants/gamification'; // Unused
 import { SafeLinearGradient } from '../common';
 
@@ -21,6 +22,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   height = 12,
   compactMode = false,
 }) => {
+  const { t } = useI18n();
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const { currentLevel, xpProgress, xpToNextLevel, getLevelInfo, isLevelMilestone, isLoading } = useLevel();
@@ -258,16 +260,25 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
     return (
       <View style={[getThemeStyles(), getSpacingStyles(), compactMode && styles.containerCompact]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading XP...</Text>
+          <Text style={styles.loadingText}>{t('gamification.progress.loading') || 'Loading XP...'}</Text>
         </View>
       </View>
     );
   }
 
   // Accessibility labels
-  const accessibilityLabel = `Experience level ${currentLevel}, ${levelInfo.title}. ${Math.round(xpProgress)} percent progress to level ${nextLevel}. ${formatNumber(xpToNextLevel)} experience points remaining.${isMilestone ? ' This is a milestone level.' : ''}`;
+  const accessibilityLabel = t('gamification.progress.accessibility.label', {
+    currentLevel,
+    levelTitle: levelInfo.title,
+    progress: Math.round(xpProgress),
+    nextLevel,
+    xpRemaining: formatNumber(xpToNextLevel),
+    isMilestone: isMilestone
+  }) || `Experience level ${currentLevel}, ${levelInfo.title}. ${Math.round(xpProgress)} percent progress to level ${nextLevel}. ${formatNumber(xpToNextLevel)} experience points remaining.${isMilestone ? ' This is a milestone level.' : ''}`;
   
-  const accessibilityHint = `Your current experience level and progress toward the next level. ${isMilestone ? 'You have reached a special milestone level with unique rewards.' : ''}`;
+  const accessibilityHint = t('gamification.progress.accessibility.hint', {
+    isMilestone: isMilestone
+  }) || `Your current experience level and progress toward the next level. ${isMilestone ? 'You have reached a special milestone level with unique rewards.' : ''}`;
 
   return (
     <View 
@@ -284,7 +295,11 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
           style={styles.trophyContainer}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={`Level ${currentLevel} badge, ${levelInfo.title}${isMilestone ? ', milestone level' : ''}`}
+          accessibilityLabel={t('gamification.progress.badge.accessibility', {
+            currentLevel,
+            levelTitle: levelInfo.title,
+            isMilestone: isMilestone
+          }) || `Level ${currentLevel} badge, ${levelInfo.title}${isMilestone ? ', milestone level' : ''}`}
         >
           {/* Circle Badge for Level Number */}
           <Animated.View 
@@ -340,7 +355,9 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
         style={styles.progressSection}
         accessible={true}
         accessibilityRole="progressbar"
-        accessibilityLabel={`Experience progress bar, ${Math.round(xpProgress)} percent complete`}
+        accessibilityLabel={t('gamification.progress.bar.accessibility', {
+          progress: Math.round(xpProgress)
+        }) || `Experience progress bar, ${Math.round(xpProgress)} percent complete`}
         accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
       >
         <View style={[styles.progressBar, { height }]}>
@@ -364,7 +381,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
             <View 
               style={[styles.milestoneIndicator, { height: height + 4 }]}
               accessible={true}
-              accessibilityLabel="Milestone level indicator"
+              accessibilityLabel={t('gamification.progress.milestone.accessibility') || "Milestone level indicator"}
             />
           )}
         </View>

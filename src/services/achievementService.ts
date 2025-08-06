@@ -102,7 +102,7 @@ export class AchievementService {
     this.isBackgroundProcessing = true;
     this.backgroundProcessingInterval = setInterval(async () => {
       await this.processBackgroundQueue();
-    }, this.BACKGROUND_PROCESSING_INTERVAL);
+    }, this.BACKGROUND_PROCESSING_INTERVAL) as unknown as NodeJS.Timeout;
     
     console.log('🔄 Started background processing loop');
   }

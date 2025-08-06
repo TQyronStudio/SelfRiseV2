@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  AccessibilityInfo,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
@@ -62,6 +63,28 @@ export default function CelebrationModal({
   // Enhanced celebration effects with better timing
   useEffect(() => {
     if (visible) {
+      // Announce celebration to screen readers
+      const celebrationAnnouncement = (() => {
+        switch (type) {
+          case 'daily_complete':
+            return t('journal.celebration.daily_complete_announcement') || 'Congratulations! You have completed your daily journal practice!';
+          case 'streak_milestone':
+            return t('journal.celebration.streak_milestone_announcement', { days: streakDays }) || `Amazing! You have reached a ${streakDays} day streak milestone!`;
+          case 'bonus_milestone':
+            return t('journal.celebration.bonus_milestone_announcement', { count: bonusCount || 0 }) || `Excellent! You have completed ${bonusCount || 0} bonus journal entries!`;
+          case 'level_up':
+            return t('gamification.celebration.level_up_announcement', { 
+              level: levelUpData?.newLevel,
+              title: levelUpData?.levelTitle,
+              isMilestone: levelUpData?.isMilestone
+            }) || `Congratulations! You have reached level ${levelUpData?.newLevel}${levelUpData?.isMilestone ? ', a milestone level' : ''}!`;
+          default:
+            return t('common.celebration.general_announcement') || 'Congratulations on your achievement!';
+        }
+      })();
+
+      AccessibilityInfo.announceForAccessibility(celebrationAnnouncement);
+
       // Delay particle effects slightly for better visual flow
       const particleDelay = setTimeout(() => {
         setShowParticles(true);
@@ -200,14 +223,41 @@ export default function CelebrationModal({
     }
   };
 
+  const modalAccessibilityLabel = (() => {
+    switch (type) {
+      case 'daily_complete':
+        return t('journal.celebration.daily_complete_modal') || 'Daily journal completion celebration';
+      case 'streak_milestone':
+        return t('journal.celebration.streak_milestone_modal', { days: streakDays }) || `${streakDays} day streak milestone celebration`;
+      case 'bonus_milestone':
+        return t('journal.celebration.bonus_milestone_modal', { count: bonusCount || 0 }) || `${bonusCount || 0} bonus entries celebration`;
+      case 'level_up':
+        return t('gamification.celebration.level_up_modal', { 
+          level: levelUpData?.newLevel,
+          isMilestone: levelUpData?.isMilestone
+        }) || `Level ${levelUpData?.newLevel} achievement${levelUpData?.isMilestone ? ' milestone' : ''} celebration`;
+      default:
+        return t('common.celebration.modal') || 'Achievement celebration';
+    }
+  })();
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      accessible={true}
+      accessibilityRole="alert"
+      accessibilityLabel={modalAccessibilityLabel}
+      accessibilityViewIsModal={true}
     >
-      <View style={styles.overlay}>
+      <View 
+        style={styles.overlay}
+        accessible={true}
+        accessibilityRole="none"
+        accessibilityElementsHidden={false}
+      >
         {/* Particle Effects */}
         <ParticleEffects
           visible={showParticles}
@@ -216,41 +266,151 @@ export default function CelebrationModal({
           duration={3000}
           onComplete={() => setShowParticles(false)}
         />
-        <View style={styles.modal}>
-          <Text style={styles.emoji}>{content.emoji}</Text>
+        <View 
+          style={styles.modal}
+          accessible={true}
+          accessibilityRole="alert"
+          accessibilityLabel={modalAccessibilityLabel}
+        >
+          <Text 
+            style={styles.emoji}
+            accessible={true}
+            accessibilityRole="image"
+            accessibilityLabel={t(`gamification.celebration.emoji.${type}`) || `${content.emoji} celebration emoji`}
+          >
+            {content.emoji}
+          </Text>
           
-          <Text style={styles.title}>{content.title}</Text>
+          <Text 
+            style={styles.title}
+            accessible={true}
+            accessibilityRole="header"
+          >
+            {content.title}
+          </Text>
           
-          <Text style={styles.message}>{content.message}</Text>
+          <Text 
+            style={styles.message}
+            accessible={true}
+            accessibilityRole="text"
+          >
+            {content.message}
+          </Text>
           
           {type === 'streak_milestone' && streakDays && (
-            <View style={styles.streakBadge}>
-              <Text style={styles.streakNumber}>{streakDays}</Text>
-              <Text style={styles.streakLabel}>DAY{streakDays !== 1 ? 'S' : ''}</Text>
+            <View 
+              style={styles.streakBadge}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={t('journal.celebration.streak_badge_accessibility', { days: streakDays }) || `${streakDays} day streak achievement badge`}
+            >
+              <Text 
+                style={styles.streakNumber}
+                importantForAccessibility="no"
+              >
+                {streakDays}
+              </Text>
+              <Text 
+                style={styles.streakLabel}
+                importantForAccessibility="no"
+              >
+                DAY{streakDays !== 1 ? 'S' : ''}
+              </Text>
             </View>
           )}
           
           {type === 'bonus_milestone' && bonusCount && (
-            <View style={styles.streakBadge}>
-              <Text style={styles.streakNumber}>{bonusCount}</Text>
-              <Text style={styles.streakLabel}>BONUS{bonusCount !== 1 ? 'ES' : ''}</Text>
+            <View 
+              style={styles.streakBadge}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={t('journal.celebration.bonus_badge_accessibility', { count: bonusCount }) || `${bonusCount} bonus ${bonusCount !== 1 ? 'entries' : 'entry'} achievement badge`}
+            >
+              <Text 
+                style={styles.streakNumber}
+                importantForAccessibility="no"
+              >
+                {bonusCount}
+              </Text>
+              <Text 
+                style={styles.streakLabel}
+                importantForAccessibility="no"
+              >
+                BONUS{bonusCount !== 1 ? 'ES' : ''}
+              </Text>
             </View>
           )}
           
           {type === 'level_up' && levelUpData && (
-            <View style={styles.levelUpContainer}>
-              <View style={[styles.streakBadge, levelUpData.isMilestone && styles.milestoneBadge]}>
-                <Text style={styles.streakNumber}>{levelUpData.newLevel}</Text>
-                <Text style={styles.streakLabel}>LEVEL</Text>
+            <View 
+              style={styles.levelUpContainer}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={t('gamification.celebration.level_up_section_accessibility', { 
+                level: levelUpData.newLevel,
+                title: levelUpData.levelTitle,
+                isMilestone: levelUpData.isMilestone
+              }) || `Level ${levelUpData.newLevel} achievement${levelUpData.isMilestone ? ' milestone' : ''} details`}
+            >
+              <View 
+                style={[styles.streakBadge, levelUpData.isMilestone && styles.milestoneBadge]}
+                accessible={true}
+                accessibilityRole="text"
+                accessibilityLabel={t('gamification.celebration.level_badge_accessibility', { 
+                  level: levelUpData.newLevel,
+                  isMilestone: levelUpData.isMilestone
+                }) || `Level ${levelUpData.newLevel}${levelUpData.isMilestone ? ' milestone' : ''} badge`}
+              >
+                <Text 
+                  style={styles.streakNumber}
+                  importantForAccessibility="no"
+                >
+                  {levelUpData.newLevel}
+                </Text>
+                <Text 
+                  style={styles.streakLabel}
+                  importantForAccessibility="no"
+                >
+                  LEVEL
+                </Text>
               </View>
               
-              <Text style={styles.levelTitle}>{levelUpData.levelTitle}</Text>
+              <Text 
+                style={styles.levelTitle}
+                accessible={true}
+                accessibilityRole="text"
+                accessibilityLabel={t('gamification.celebration.level_title_accessibility', { title: levelUpData.levelTitle }) || `Level title: ${levelUpData.levelTitle}`}
+              >
+                {levelUpData.levelTitle}
+              </Text>
               
               {levelUpData.rewards && levelUpData.rewards.length > 0 && (
-                <View style={styles.rewardsContainer}>
-                  <Text style={styles.rewardsTitle}>New Rewards:</Text>
+                <View 
+                  style={styles.rewardsContainer}
+                  accessible={true}
+                  accessibilityRole="list"
+                  accessibilityLabel={t('gamification.celebration.rewards_section_accessibility', { 
+                    count: levelUpData.rewards.length
+                  }) || `New rewards list with ${levelUpData.rewards.length} items`}
+                >
+                  <Text 
+                    style={styles.rewardsTitle}
+                    accessible={true}
+                    accessibilityRole="header"
+                  >
+                    {t('gamification.celebration.rewards_title') || 'New Rewards:'}
+                  </Text>
                   {levelUpData.rewards.map((reward, index) => (
-                    <Text key={index} style={styles.rewardItem}>
+                    <Text 
+                      key={index} 
+                      style={styles.rewardItem}
+                      accessible={true}
+                      accessibilityRole="text"
+                      accessibilityLabel={t('gamification.celebration.reward_item_accessibility', { 
+                        index: index + 1,
+                        reward
+                      }) || `Reward ${index + 1}: ${reward}`}
+                    >
                       • {reward}
                     </Text>
                   ))}
@@ -259,8 +419,18 @@ export default function CelebrationModal({
             </View>
           )}
           
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={onClose}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={t('gamification.celebration.continue_button_accessibility') || 'Continue and close celebration'}
+            accessibilityHint={t('gamification.celebration.continue_button_hint') || 'Tap to close this celebration and return to the app'}
+          >
+            <Text 
+              style={styles.buttonText}
+              accessible={false}
+            >
               {t('common.continue')}
             </Text>
           </TouchableOpacity>

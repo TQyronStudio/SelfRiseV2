@@ -176,6 +176,18 @@ const en: TranslationKeys = {
       reset: 'Reset Streak',
       recover: 'Recover with Ad',
     },
+    
+    // Celebration announcements for accessibility
+    celebration: {
+      daily_complete_announcement: 'Congratulations! You have completed your daily journal practice!',
+      streak_milestone_announcement: 'Amazing! You have reached a {{days}} day streak milestone!',
+      bonus_milestone_announcement: 'Excellent! You have completed {{count}} bonus journal entries!',
+      daily_complete_modal: 'Daily journal completion celebration',
+      streak_milestone_modal: '{{days}} day streak milestone celebration',
+      bonus_milestone_modal: '{{count}} bonus entries celebration',
+      streak_badge_accessibility: '{{days}} day streak achievement badge',
+      bonus_badge_accessibility: '{{count}} bonus {{#eq count 1}}entry{{else}}entries{{/eq}} achievement badge',
+    },
   },
   
   // Goals screen
@@ -669,8 +681,172 @@ const en: TranslationKeys = {
       signIn: 'Sign In',
     },
   },
+
+  // Gamification System
+  gamification: {
+    // XP System
+    xp: {
+      label: 'Experience Points',
+      short: 'XP',
+      gained: 'XP Gained',
+      lost: 'XP Lost',
+      total: 'Total XP',
+      loading: 'Loading XP...',
+      
+      // Sources
+      sources: {
+        habit_completion: 'Habit Completion',
+        habit_bonus: 'Habit Bonus',
+        journal_entry: 'Journal Entry',
+        journal_bonus: 'Journal Bonus', 
+        goal_progress: 'Goal Progress',
+        goal_completion: 'Goal Completion',
+        habit_streak_milestone: 'Habit Streak Milestone',
+        journal_streak_milestone: 'Journal Streak Milestone',
+        achievement_unlock: 'Achievement Unlock',
+        general_activity: 'Activity',
+        daily_engagement: 'Daily Engagement',
+      },
+      
+      // Notifications and Announcements
+      notification: {
+        message: 'Experience points notification: {{message}}',
+        amount: 'Experience points {{type}}: {{amount}}',
+      },
+      
+      announcement: {
+        balanced: 'No net experience points gained or lost from recent activities',
+        decreased: 'Lost {{xp}} experience points from recent activities',
+        single: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
+        multiple_same: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
+        multiple_mixed: 'Gained {{xp}} experience points from completing multiple activities',
+      },
+      
+      // Popup animations
+      popup: {
+        gained: 'Gained {{amount}} experience points from {{source}}',
+        lost: 'Lost {{amount}} experience points from {{source}}',
+        amount_label: '{{sign}} {{amount}} experience points',
+      },
+    },
+
+    // Progress and Levels
+    progress: {
+      level: 'Level',
+      progress: 'Progress',
+      to_next_level: 'to Level {{level}}',
+      xp_remaining: '{{xp}} XP remaining',
+      loading: 'Loading XP...',
+      
+      accessibility: {
+        label: 'Experience level {{currentLevel}}, {{levelTitle}}. {{progress}} percent progress to level {{nextLevel}}. {{xpRemaining}} experience points remaining.{{#isMilestone}} This is a milestone level.{{/isMilestone}}',
+        hint: 'Your current experience level and progress toward the next level.{{#isMilestone}} You have reached a special milestone level with unique rewards.{{/isMilestone}}',
+      },
+      
+      badge: {
+        accessibility: 'Level {{currentLevel}} badge, {{levelTitle}}{{#isMilestone}}, milestone level{{/isMilestone}}',
+      },
+      
+      bar: {
+        accessibility: 'Experience progress bar, {{progress}} percent complete',
+      },
+      
+      milestone: {
+        accessibility: 'Milestone level indicator',
+      },
+    },
+
+    // Level System
+    levels: {
+      current: 'Current Level',
+      next: 'Next Level',
+      milestone: 'Milestone Level',
+      rewards: 'Level Rewards',
+      title: 'Level Title',
+      description: 'Level Description',
+    },
+
+    // Effects and Celebrations
+    effects: {
+      level_up: 'Level up celebration',
+      milestone: 'Milestone achievement celebration',
+      achievement: 'Achievement unlock celebration',
+      celebration: 'General celebration',
+      general: 'Celebration effects',
+      accessibility_label: '{{type}} with {{intensity}} intensity particle effects',
+    },
+
+    // Celebration Modals
+    celebration: {
+      level_up_announcement: 'Congratulations! You have reached level {{level}}{{#isMilestone}}, a milestone level{{/isMilestone}}!',
+      level_up_modal: 'Level {{level}} achievement{{#isMilestone}} milestone{{/isMilestone}} celebration',
+      level_up_section_accessibility: 'Level {{level}} achievement{{#isMilestone}} milestone{{/isMilestone}} details',
+      level_badge_accessibility: 'Level {{level}}{{#isMilestone}} milestone{{/isMilestone}} badge',
+      level_title_accessibility: 'Level title: {{title}}',
+      rewards_section_accessibility: 'New rewards list with {{count}} items',
+      rewards_title: 'New Rewards:',
+      reward_item_accessibility: 'Reward {{index}}: {{reward}}',
+      continue_button_accessibility: 'Continue and close celebration',
+      continue_button_hint: 'Tap to close this celebration and return to the app',
+      
+      emoji: {
+        daily_complete: 'Party celebration emoji',
+        streak_milestone: 'Trophy celebration emoji',
+        bonus_milestone: 'Star celebration emoji',
+        level_up: 'Level up celebration emoji',
+      },
+    },
+
+    // Achievement System
+    achievement: {
+      unlocked: 'Achievement Unlocked!',
+      locked: 'Locked Achievement',
+      progress: 'Progress: {{current}}/{{target}}',
+      xp_reward: '+{{xp}} XP',
+      requirements: 'Requirements',
+      unlock_condition: 'Unlock Condition',
+      
+      announcement: {
+        unlocked: 'Achievement unlocked: {{name}}! You earned {{xp}} experience points.',
+      },
+    },
+
+    // Sources with icon descriptions for accessibility
+    sources: {
+      habit_completion: {
+        icon_description: 'Running person icon representing habit completion',
+      },
+      habit_bonus: {
+        icon_description: 'Running person icon representing habit bonus',
+      },
+      journal_entry: {
+        icon_description: 'Writing icon representing journal entry',
+      },
+      journal_bonus: {
+        icon_description: 'Writing icon representing journal bonus',
+      },
+      goal_progress: {
+        icon_description: 'Target icon representing goal progress',
+      },
+      goal_completion: {
+        icon_description: 'Target icon representing goal completion',
+      },
+      habit_streak_milestone: {
+        icon_description: 'Fire icon representing habit streak milestone',
+      },
+      journal_streak_milestone: {
+        icon_description: 'Fire icon representing journal streak milestone',
+      },
+      achievement_unlock: {
+        icon_description: 'Trophy icon representing achievement unlock',
+      },
+      general_activity: {
+        icon_description: 'Sparkles icon representing general activity',
+      },
+    },
+  },
   
-  // Common
+  // Common (enhanced with celebration support)
   common: {
     save: 'Save',
     saving: 'Saving...',
@@ -694,6 +870,12 @@ const en: TranslationKeys = {
     continue: 'Continue',
     yes: 'Yes',
     no: 'No',
+    
+    // Celebration support
+    celebration: {
+      general_announcement: 'Congratulations on your achievement!',
+      modal: 'Achievement celebration',
+    },
   },
   
   // Days of week

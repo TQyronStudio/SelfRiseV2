@@ -3,10 +3,12 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  Animated 
+  Animated,
+  AccessibilityInfo 
 } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
+import { useI18n } from '../../hooks/useI18n';
 
 // const { height: screenHeight } = Dimensions.get('window'); // Unused
 
@@ -25,6 +27,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   position = { x: 0, y: 0 },
   onAnimationComplete,
 }) => {
+  const { t } = useI18n();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -85,6 +88,53 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   };
 
   const sourceStyle = getSourceStyle();
+
+  // Generate accessibility announcement
+  const getAccessibilityAnnouncement = (): string => {
+    const sourceName = (() => {
+      switch (source) {
+        case XPSourceType.HABIT_COMPLETION:
+          return t('gamification.sources.habit_completion') || 'habit completion';
+        case XPSourceType.HABIT_BONUS:
+          return t('gamification.sources.habit_bonus') || 'habit bonus';
+        case XPSourceType.JOURNAL_ENTRY:
+          return t('gamification.sources.journal_entry') || 'journal entry';
+        case XPSourceType.JOURNAL_BONUS:
+          return t('gamification.sources.journal_bonus') || 'journal bonus';
+        case XPSourceType.GOAL_PROGRESS:
+          return t('gamification.sources.goal_progress') || 'goal progress';
+        case XPSourceType.GOAL_COMPLETION:
+          return t('gamification.sources.goal_completion') || 'goal completion';
+        case XPSourceType.HABIT_STREAK_MILESTONE:
+          return t('gamification.sources.habit_streak_milestone') || 'habit streak milestone';
+        case XPSourceType.JOURNAL_STREAK_MILESTONE:
+          return t('gamification.sources.journal_streak_milestone') || 'journal streak milestone';
+        case XPSourceType.ACHIEVEMENT_UNLOCK:
+          return t('gamification.sources.achievement_unlock') || 'achievement unlock';
+        default:
+          return t('gamification.sources.general_activity') || 'activity';
+      }
+    })();
+
+    if (amount >= 0) {
+      return t('gamification.xp.popup.gained', { amount, source: sourceName }) || 
+             `Gained ${amount} experience points from ${sourceName}`;
+    } else {
+      return t('gamification.xp.popup.lost', { amount: Math.abs(amount), source: sourceName }) || 
+             `Lost ${Math.abs(amount)} experience points from ${sourceName}`;
+    }
+  };
+
+  // Announce to screen readers when popup becomes visible
+  useEffect(() => {
+    if (visible) {
+      const announcement = getAccessibilityAnnouncement();
+      // Only announce for meaningful amounts (to avoid spam for small changes)
+      if (Math.abs(amount) >= 5) {
+        AccessibilityInfo.announceForAccessibility(announcement);
+      }
+    }
+  }, [visible, amount, source]);
 
   useEffect(() => {
     if (visible) {
@@ -149,6 +199,8 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     return null;
   }
 
+  const accessibilityLabel = getAccessibilityAnnouncement();
+
   return (
     <Animated.View
       style={[
@@ -164,10 +216,35 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
         },
       ]}
       pointerEvents="none"
+      accessible={true}
+      accessibilityRole="alert"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityLiveRegion="polite"
+      importantForAccessibility={Math.abs(amount) >= 5 ? "yes" : "no-hide-descendants"}
     >
-      <View style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]}>
-        <Text style={styles.icon}>{sourceStyle.icon}</Text>
-        <Text style={[styles.xpText, { color: sourceStyle.color }]}>
+      <View 
+        style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]}
+        accessible={true}
+        accessibilityRole="text"
+        accessibilityLabel={accessibilityLabel}
+      >
+        <Text 
+          style={styles.icon}
+          accessible={true}
+          accessibilityRole="image"
+          accessibilityLabel={t(`gamification.sources.${source}.icon_description`) || `${sourceStyle.icon} icon representing the activity type`}
+        >
+          {sourceStyle.icon}
+        </Text>
+        <Text 
+          style={[styles.xpText, { color: sourceStyle.color }]}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={t('gamification.xp.popup.amount_label', { 
+            amount: Math.abs(amount),
+            sign: amount >= 0 ? 'plus' : 'minus'
+          }) || `${amount >= 0 ? 'Plus' : 'Minus'} ${Math.abs(amount)} experience points`}
+        >
           {amount >= 0 ? '+' : ''}{amount} XP
         </Text>
       </View>

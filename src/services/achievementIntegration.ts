@@ -5,6 +5,7 @@ import { HabitStorage } from './storage/habitStorage';
 import { GratitudeStorage } from './storage/gratitudeStorage';
 import { GoalStorage } from './storage/goalStorage';
 import { DateString } from '../types/common';
+import { XPSourceType } from '../types/gamification';
 import { today, formatDateToString, subtractDays } from '../utils/date';
 
 /**
@@ -626,7 +627,7 @@ export class AchievementIntegration {
       
       // Count engagement transactions (placeholder logic)
       const engagementTransactions = transactions.filter(t => 
-        t.source === 'daily_engagement' && t.amount > 0
+        t.source === XPSourceType.DAILY_LAUNCH && t.amount > 0
       );
       
       // Filter by timeframe if specified  

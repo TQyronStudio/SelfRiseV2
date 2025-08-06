@@ -191,7 +191,7 @@ export class OptimizedStorage {
     this.isProcessing = true;
     this.processingInterval = setInterval(async () => {
       await this.processBatch();
-    }, this.BATCH_INTERVAL_MS);
+    }, this.BATCH_INTERVAL_MS) as unknown as NodeJS.Timeout;
   }
 
   /**
@@ -223,9 +223,9 @@ export class OptimizedStorage {
           
           try {
             const decompressed = value ? this.decompress(value) : { data: null };
-            operation.resolve(decompressed.data);
+            operation?.resolve(decompressed.data);
           } catch (error) {
-            operation.reject(error);
+            operation?.reject(error);
           }
         }
         
@@ -407,7 +407,9 @@ export class OptimizedStorage {
     
     let compressed = str;
     for (const [pattern, code] of replacements) {
-      compressed = compressed.split(pattern).join(code);
+      if (pattern) {
+        compressed = compressed.split(pattern).join(code);
+      }
     }
     
     return compressed;
@@ -431,7 +433,9 @@ export class OptimizedStorage {
     
     let decompressed = str;
     for (const [code, pattern] of replacements) {
-      decompressed = decompressed.split(code).join(pattern);
+      if (code) {
+        decompressed = decompressed.split(code).join(pattern);
+      }
     }
     
     return decompressed;

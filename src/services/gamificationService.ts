@@ -229,7 +229,7 @@ export class GamificationService {
         this.commitBatch().catch(error => {
           console.error('Batch commit timeout error:', error);
         });
-      }, this.BATCH_WINDOW_MS);
+      }, this.BATCH_WINDOW_MS) as unknown as NodeJS.Timeout;
 
       // Return optimistic result (actual result will be processed in batch)
       const totalXP = await this.getTotalXP();

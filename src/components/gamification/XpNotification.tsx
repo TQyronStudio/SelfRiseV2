@@ -5,10 +5,12 @@ import {
   StyleSheet, 
   Animated, 
   Dimensions,
-  Platform 
+  Platform,
+  AccessibilityInfo
 } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
+import { useI18n } from '../../hooks/useI18n';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -38,6 +40,7 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
   onAnimationComplete,
   onDismiss,
 }) => {
+  const { t } = useI18n();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -142,6 +145,58 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
         };
     }
   };
+
+  // ========================================
+  // ACCESSIBILITY SUPPORT
+  // ========================================
+
+  const generateAccessibilityAnnouncement = (data: BatchedNotification): string => {
+    const netXP = data.totalXP;
+    
+    if (netXP <= 0) {
+      if (netXP === 0) {
+        return t('gamification.xp.announcement.balanced', { xp: Math.abs(netXP) }) || `No net experience points gained or lost from recent activities`;
+      } else {
+        return t('gamification.xp.announcement.decreased', { xp: Math.abs(netXP) }) || `Lost ${Math.abs(netXP)} experience points from recent activities`;
+      }
+    }
+    
+    if (data.sources.length === 1) {
+      const source = data.sources[0];
+      const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
+      const sourceName = t(`gamification.sources.${source?.source}`, sourceInfo.name) || sourceInfo.name;
+      
+      if (source?.count === 1) {
+        return t('gamification.xp.announcement.single', { 
+          xp: netXP, 
+          source: sourceName.slice(0, -1),
+          count: 1
+        }) || `Gained ${netXP} experience points from completing 1 ${sourceName.slice(0, -1)}`;
+      } else {
+        return t('gamification.xp.announcement.multiple_same', {
+          xp: netXP,
+          count: source?.count || 0,
+          source: sourceName
+        }) || `Gained ${netXP} experience points from completing ${source?.count || 0} ${sourceName}`;
+      }
+    } else {
+      const positiveSourceCount = data.sources.filter(s => s.totalXP > 0).length;
+      return t('gamification.xp.announcement.multiple_mixed', {
+        xp: netXP,
+        sourceCount: positiveSourceCount
+      }) || `Gained ${netXP} experience points from completing multiple activities`;
+    }
+  };
+
+  // Announce to screen readers when XP is gained
+  useEffect(() => {
+    if (visible && batchedData) {
+      const announcement = generateAccessibilityAnnouncement(batchedData);
+      
+      // Use AccessibilityInfo to announce to screen readers
+      AccessibilityInfo.announceForAccessibility(announcement);
+    }
+  }, [visible, batchedData]);
 
   // ========================================
   // NOTIFICATION TEXT GENERATION
@@ -261,6 +316,7 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
   }
 
   const notificationText = generateNotificationText(batchedData);
+  const accessibilityLabel = generateAccessibilityAnnouncement(batchedData);
 
   return (
     <Animated.View
@@ -275,31 +331,61 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
         },
       ]}
       pointerEvents="none"
+      accessible={true}
+      accessibilityRole="alert"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityLiveRegion="assertive"
+      importantForAccessibility="yes"
     >
-      <View style={styles.notification}>
+      <View 
+        style={styles.notification}
+        accessible={true}
+        accessibilityRole="text"
+        accessibilityLabel={accessibilityLabel}
+      >
         {/* Notification Text */}
-        <Text style={styles.messageText} numberOfLines={2}>
+        <Text 
+          style={styles.messageText} 
+          numberOfLines={2}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={t('gamification.xp.notification.message', { message: notificationText }) || `Experience points notification: ${notificationText}`}
+        >
           {notificationText}
         </Text>
         
         {/* XP Amount */}
-        <View style={[
-          styles.xpContainer,
-          batchedData.totalXP < 0 && styles.xpContainerNegative,
-          batchedData.totalXP === 0 && styles.xpContainerNeutral
-        ]}>
-          <Text style={[
-            styles.xpLabel,
-            batchedData.totalXP < 0 && styles.xpLabelNegative,
-            batchedData.totalXP === 0 && styles.xpLabelNeutral
-          ]}>
+        <View 
+          style={[
+            styles.xpContainer,
+            batchedData.totalXP < 0 && styles.xpContainerNegative,
+            batchedData.totalXP === 0 && styles.xpContainerNeutral
+          ]}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={t('gamification.xp.notification.amount', { 
+            amount: batchedData.totalXP,
+            type: batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'
+          }) || `Experience points ${batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'}: ${Math.abs(batchedData.totalXP)}`}
+        >
+          <Text 
+            style={[
+              styles.xpLabel,
+              batchedData.totalXP < 0 && styles.xpLabelNegative,
+              batchedData.totalXP === 0 && styles.xpLabelNeutral
+            ]}
+            importantForAccessibility="no"
+          >
             {batchedData.totalXP > 0 ? '+' : ''}{batchedData.totalXP}
           </Text>
-          <Text style={[
-            styles.xpSuffix,
-            batchedData.totalXP < 0 && styles.xpSuffixNegative,
-            batchedData.totalXP === 0 && styles.xpSuffixNeutral
-          ]}>XP</Text>
+          <Text 
+            style={[
+              styles.xpSuffix,
+              batchedData.totalXP < 0 && styles.xpSuffixNegative,
+              batchedData.totalXP === 0 && styles.xpSuffixNeutral
+            ]}
+            importantForAccessibility="no"
+          >XP</Text>
         </View>
       </View>
     </Animated.View>

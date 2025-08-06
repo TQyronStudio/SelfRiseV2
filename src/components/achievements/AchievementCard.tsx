@@ -11,6 +11,8 @@ import {
   Achievement, 
   AchievementRarity,
 } from '@/src/types/gamification';
+import { useAccessibility, getHighContrastRarityColors, getHighContrastGlowColors } from '@/src/hooks/useAccessibility';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -19,23 +21,27 @@ interface AchievementCardProps {
   onPress?: () => void;
 }
 
-const getRarityColor = (rarity: AchievementRarity): string => {
+const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
+  const colors = getHighContrastRarityColors(isHighContrast);
+  
   switch (rarity) {
-    case AchievementRarity.COMMON: return '#9E9E9E';     // Silver/Gray
-    case AchievementRarity.RARE: return '#2196F3';       // Blue
-    case AchievementRarity.EPIC: return '#9C27B0';       // Purple
-    case AchievementRarity.LEGENDARY: return '#FFD700';  // Gold
-    default: return Colors.primary;
+    case AchievementRarity.COMMON: return colors.common;
+    case AchievementRarity.RARE: return colors.rare;
+    case AchievementRarity.EPIC: return colors.epic;
+    case AchievementRarity.LEGENDARY: return colors.legendary;
+    default: return isHighContrast ? '#000000' : Colors.primary;
   }
 };
 
-const getRarityGlow = (rarity: AchievementRarity): string => {
+const getRarityGlow = (rarity: AchievementRarity, isHighContrast: boolean): string => {
+  const glowColors = getHighContrastGlowColors(isHighContrast);
+  
   switch (rarity) {
-    case AchievementRarity.COMMON: return 'rgba(158, 158, 158, 0.2)';
-    case AchievementRarity.RARE: return 'rgba(33, 150, 243, 0.2)';
-    case AchievementRarity.EPIC: return 'rgba(156, 39, 176, 0.2)';
-    case AchievementRarity.LEGENDARY: return 'rgba(255, 215, 0, 0.3)';
-    default: return 'rgba(0, 122, 255, 0.2)';
+    case AchievementRarity.COMMON: return glowColors.common;
+    case AchievementRarity.RARE: return glowColors.rare;
+    case AchievementRarity.EPIC: return glowColors.epic;
+    case AchievementRarity.LEGENDARY: return glowColors.legendary;
+    default: return isHighContrast ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 122, 255, 0.2)';
   }
 };
 
@@ -45,8 +51,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   isUnlocked,
   onPress,
 }) => {
-  const rarityColor = getRarityColor(achievement.rarity);
-  const rarityGlow = getRarityGlow(achievement.rarity);
+  const { t } = useI18n();
+  const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
+  
+  const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
+  const rarityGlow = getRarityGlow(achievement.rarity, isHighContrastEnabled);
   const progress = achievement.isProgressive ? userProgress : (isUnlocked ? 100 : 0);
   
   // Animation states for micro-interactions
@@ -54,6 +63,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const [glowAnim] = useState(new Animated.Value(0));
   
   const handlePressIn = () => {
+    if (isReduceMotionEnabled) {
+      // Skip animations for reduce motion
+      return;
+    }
+    
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 0.95,
@@ -70,6 +84,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   };
   
   const handlePressOut = () => {
+    if (isReduceMotionEnabled) {
+      // Skip animations for reduce motion
+      return;
+    }
+    
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -90,10 +109,24 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     outputRange: ['rgba(0,0,0,0)', rarityGlow],
   });
   
+  // Accessibility label for the achievement card
+  const accessibilityLabel = t('achievements.card.accessibility_label', {
+    name: achievement.name,
+    rarity: t(`achievements.rarity.${achievement.rarity.toLowerCase()}`),
+    isUnlocked: isUnlocked,
+    progress: Math.round(progress),
+    description: achievement.description
+  }) || `${achievement.name}, ${achievement.rarity.toLowerCase()} rarity achievement, ${isUnlocked ? 'unlocked' : `${Math.round(progress)}% progress`}. ${achievement.description}`;
+
+  const accessibilityHint = t('achievements.card.accessibility_hint', {
+    isUnlocked: isUnlocked,
+    hasProgress: achievement.isProgressive
+  }) || `${isUnlocked ? 'Completed achievement' : 'In progress achievement'}. Tap for more details.`;
+
   return (
     <Animated.View
       style={[
-        { transform: [{ scale: scaleAnim }] },
+        { transform: isReduceMotionEnabled ? [] : [{ scale: scaleAnim }] },
         { 
           shadowColor: rarityColor,
           shadowOpacity: glowAnim.interpolate({
@@ -122,8 +155,8 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         disabled={!isUnlocked && !achievement.isProgressive}
         accessible={true}
         accessibilityRole="button"
-        accessibilityLabel={`${achievement.name}. ${isUnlocked ? 'Unlocked' : 'Locked'} ${achievement.rarity} achievement. ${achievement.xpReward} XP reward.`}
-        accessibilityHint={isUnlocked ? "Tap to view details" : "Complete requirements to unlock"}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
       >
       {/* Rarity indicator */}
       <View style={[styles.rarityIndicator, { backgroundColor: rarityColor }]} />
