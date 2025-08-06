@@ -692,6 +692,33 @@ export class GamificationService {
   }
 
   /**
+   * Clear all gamification data (for testing purposes)
+   */
+  static async clearAllData(): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.TOTAL_XP,
+        STORAGE_KEYS.TRANSACTIONS,
+        STORAGE_KEYS.LEVEL_DATA,
+        STORAGE_KEYS.CURRENT_BATCH,
+        STORAGE_KEYS.LAST_BATCH_TIME,
+      ]);
+      
+      // Reset internal state
+      this.currentBatch = [];
+      this.batchStartTime = 0;
+      if (this.batchTimeout) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+      }
+      
+      console.log('🗑️ All gamification data cleared');
+    } catch (error) {
+      console.error('GamificationService.clearAllData error:', error);
+    }
+  }
+
+  /**
    * Get comprehensive gamification statistics
    */
   static async getGamificationStats(): Promise<GamificationStats> {

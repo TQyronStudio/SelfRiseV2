@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'react-native',
-  setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
   testEnvironment: 'node',
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
@@ -13,7 +13,7 @@ module.exports = {
     '!src/**/__tests__/**',
     '!src/**/*.test.{ts,tsx}',
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@/src/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
