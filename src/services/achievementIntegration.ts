@@ -609,23 +609,25 @@ export class AchievementIntegration {
    */
   static async getAchievementsUnlockedCount(timeframe?: string): Promise<number> {
     try {
-      const { AchievementService } = await import('./achievementService');
-      const unlockedAchievements = await AchievementService.getUnlockedAchievements();
+      const { AchievementStorage } = await import('./achievementStorage');
+      const userAchievements = await AchievementStorage.getUserAchievements();
       
       if (!timeframe || timeframe === 'all_time') {
-        return unlockedAchievements.length;
+        return userAchievements.unlockedAchievements.length;
       }
       
-      // Filter by timeframe if specified
-      const filteredAchievements = this.filterByTimeframe(
-        unlockedAchievements.map(a => ({ 
-          date: formatDateToString(a.unlockedAt || new Date()),
-          unlockedAt: a.unlockedAt || new Date()
+      // For timeframe filtering, we need unlock events
+      const unlockEvents = await AchievementStorage.getUnlockEvents();
+      
+      const filteredEvents = this.filterByTimeframe(
+        unlockEvents.map(e => ({ 
+          date: formatDateToString(e.unlockedAt),
+          unlockedAt: e.unlockedAt
         })),
         timeframe
       );
       
-      return filteredAchievements.length;
+      return filteredEvents.length;
     } catch (error) {
       console.error('AchievementIntegration.getAchievementsUnlockedCount error:', error);
       return 0;
