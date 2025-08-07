@@ -6,7 +6,8 @@ import {
   ChallengeRequirement, 
   ChallengeProgress,
   XPSourceType,
-  AchievementCategory 
+  AchievementCategory,
+  ChallengeCompletionResult
 } from '../types/gamification';
 import { DateString } from '../types/common';
 import { formatDateToString, today, addDays, startOfWeek, endOfWeek, parseDate } from '../utils/date';
@@ -54,15 +55,6 @@ interface UserActivityProfile {
   lastChallengeCompletionDate?: DateString;
 }
 
-// Challenge completion result
-interface ChallengeCompletionResult {
-  challengeId: string;
-  completed: boolean;
-  xpEarned: number;
-  completedAt: Date;
-  achievementUnlocked?: string;
-  celebrationLevel: 'normal' | 'milestone' | 'epic';
-}
 
 /**
  * Weekly Challenge Service
@@ -600,7 +592,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.2, complexityBonus: 0.5, xpRewardMultiplier: 2.2 }
         ],
         minLevel: 1,
-        xpRewardBase: 200,
+        xpRewardBase: 50,
         tags: ['consistency', 'habits', 'daily']
       },
       {
@@ -624,7 +616,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 1.8, complexityBonus: 0.6, xpRewardMultiplier: 2.3 }
         ],
         minLevel: 3,
-        xpRewardBase: 250,
+        xpRewardBase: 60,
         tags: ['variety', 'exploration', 'habits']
       },
       {
@@ -648,7 +640,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.5, complexityBonus: 0.7, xpRewardMultiplier: 2.5 }
         ],
         minLevel: 2,
-        xpRewardBase: 180,
+        xpRewardBase: 45,
         tags: ['bonus', 'extra', 'dedication']
       },
 
@@ -674,7 +666,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 1.8, complexityBonus: 0.6, xpRewardMultiplier: 2.2 }
         ],
         minLevel: 1,
-        xpRewardBase: 220,
+        xpRewardBase: 55,
         tags: ['reflection', 'journal', 'quality']
       },
       {
@@ -698,7 +690,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.2, complexityBonus: 0.7, xpRewardMultiplier: 2.4 }
         ],
         minLevel: 2,
-        xpRewardBase: 190,
+        xpRewardBase: 45,
         tags: ['gratitude', 'abundance', 'bonus']
       },
 
@@ -724,7 +716,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.0, complexityBonus: 0.5, xpRewardMultiplier: 2.3 }
         ],
         minLevel: 1,
-        xpRewardBase: 240,
+        xpRewardBase: 60,
         tags: ['progress', 'goals', 'daily']
       },
       {
@@ -748,7 +740,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.5, complexityBonus: 0.8, xpRewardMultiplier: 2.8 }
         ],
         minLevel: 3,
-        xpRewardBase: 350,
+        xpRewardBase: 85,
         tags: ['completion', 'achievement', 'satisfaction']
       },
 
@@ -774,7 +766,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 1.8, complexityBonus: 0.9, xpRewardMultiplier: 2.6 }
         ],
         minLevel: 5,
-        xpRewardBase: 300,
+        xpRewardBase: 75,
         tags: ['consistency', 'balance', 'all-features']
       },
       {
@@ -798,7 +790,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 1.0, complexityBonus: 0.7, xpRewardMultiplier: 2.4 }
         ],
         minLevel: 2,
-        xpRewardBase: 280,
+        xpRewardBase: 70,
         tags: ['daily', 'streak', 'engagement']
       },
 
@@ -824,7 +816,7 @@ export class WeeklyChallengeService {
           { level: 5, difficultyMultiplier: 2.3, complexityBonus: 1.2, xpRewardMultiplier: 3.0 }
         ],
         minLevel: 8,
-        xpRewardBase: 400,
+        xpRewardBase: 100,
         tags: ['mastery', 'perfection', 'excellence']
       }
     ];

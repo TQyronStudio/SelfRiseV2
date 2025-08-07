@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -17,13 +17,13 @@ import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
 import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
-import { ChallengeSection, ChallengeDetailModal } from '@/src/components/challenges';
+import { ChallengeSection, ChallengeDetailModal, ChallengeCompletionModal } from '@/src/components/challenges';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useGamification } from '@/src/contexts/GamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
-import { XPSourceType, WeeklyChallenge } from '@/src/types/gamification';
+import { XPSourceType, WeeklyChallenge, ChallengeCompletionResult } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 
 export default function HomeScreen() {
@@ -35,6 +35,9 @@ export default function HomeScreen() {
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<WeeklyChallenge | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
+  const [showChallengeCompletion, setShowChallengeCompletion] = useState(false);
+  const [completionChallenge, setCompletionChallenge] = useState<WeeklyChallenge | null>(null);
+  const [completionResult, setCompletionResult] = useState<ChallengeCompletionResult | null>(null);
 
 
 
@@ -105,6 +108,32 @@ export default function HomeScreen() {
   const visibleComponents = getVisibleComponents();
   const isComponentVisible = (componentId: string) => 
     visibleComponents.some(c => c.id === componentId);
+
+  // Listen for challenge completion events
+  useEffect(() => {
+    const challengeCompletedListener = DeviceEventEmitter.addListener(
+      'challengeCompleted',
+      ({ challenge, result }: { 
+        challenge: WeeklyChallenge; 
+        result: ChallengeCompletionResult; 
+      }) => {
+        console.log('🎉 Challenge completed event received:', challenge.title, result.xpEarned, 'XP');
+        setCompletionChallenge(challenge);
+        setCompletionResult(result);
+        setShowChallengeCompletion(true);
+      }
+    );
+
+    return () => {
+      challengeCompletedListener.remove();
+    };
+  }, []);
+
+  const handleCloseChallengeCompletion = () => {
+    setShowChallengeCompletion(false);
+    setCompletionChallenge(null);
+    setCompletionResult(null);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -206,6 +235,14 @@ export default function HomeScreen() {
         } : null}
         visible={showChallengeDetail}
         onClose={handleCloseChallengeDetail}
+      />
+
+      {/* Challenge Completion Celebration Modal */}
+      <ChallengeCompletionModal
+        visible={showChallengeCompletion}
+        challenge={completionChallenge}
+        completionResult={completionResult}
+        onClose={handleCloseChallengeCompletion}
       />
     </SafeAreaView>
   );

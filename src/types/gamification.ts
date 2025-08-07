@@ -422,3 +422,15 @@ export interface BatchedXPNotification {
   timeWindow: number; // Milliseconds the batch was collected over
   timestamp: Date;
 }
+
+/**
+ * Challenge completion result
+ */
+export interface ChallengeCompletionResult {
+  challengeId: string;
+  completed: boolean;
+  xpEarned: number;
+  completedAt: Date;
+  achievementUnlocked?: string;
+  celebrationLevel: 'normal' | 'milestone' | 'epic';
+}
