@@ -57,6 +57,7 @@ i18n
     react: {
       useSuspense: false, // Avoid suspense for React Native
     },
+    returnObjects: true, // Allow returning objects for complex translations
   });
 
 export default i18n;
