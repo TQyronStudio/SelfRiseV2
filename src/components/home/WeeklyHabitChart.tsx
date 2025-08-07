@@ -218,6 +218,14 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
                                 backgroundColor: isToday(day.date) ? Colors.textSecondary : Colors.error,
                                 bottom: 0,
+                                // Always apply bottom border radius for missed section (it's always at bottom)
+                                borderBottomLeftRadius: Layout.borderRadius.sm,
+                                borderBottomRightRadius: Layout.borderRadius.sm,
+                                // Apply top border radius if this is the only section
+                                ...(day.scheduledCount === 0 && day.bonusCount === 0 ? {
+                                  borderTopLeftRadius: Layout.borderRadius.sm,
+                                  borderTopRightRadius: Layout.borderRadius.sm,
+                                } : {})
                               }
                             ]} 
                           />
@@ -232,6 +240,16 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
                                 backgroundColor: Colors.success,
                                 bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
+                                // Apply top border radius if this is the topmost section
+                                ...(day.bonusCount === 0 ? {
+                                  borderTopLeftRadius: Layout.borderRadius.sm,
+                                  borderTopRightRadius: Layout.borderRadius.sm,
+                                } : {}),
+                                // Apply bottom border radius if this is the bottommost section
+                                ...(day.actualMissedDays === 0 ? {
+                                  borderBottomLeftRadius: Layout.borderRadius.sm,
+                                  borderBottomRightRadius: Layout.borderRadius.sm,
+                                } : {})
                               }
                             ]} 
                           />
@@ -246,6 +264,9 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
                                 backgroundColor: Colors.gold,
                                 bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
+                                // Always apply top border radius for bonus section (it's always on top)
+                                borderTopLeftRadius: Layout.borderRadius.sm,
+                                borderTopRightRadius: Layout.borderRadius.sm,
                               }
                             ]} 
                           />
@@ -389,9 +410,9 @@ const styles = StyleSheet.create({
   },
   unifiedBar: {
     width: 24,
-    borderRadius: Layout.borderRadius.sm,
     position: 'relative',
-    overflow: 'hidden',
+    // Removed borderRadius - now applied individually to sections
+    // overflow: 'hidden', // Removed to allow individual section border radius
   },
   barSection: {
     width: 24,

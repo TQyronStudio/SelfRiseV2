@@ -216,6 +216,14 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
                                 backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
                                 bottom: 0,
+                                // Always apply bottom border radius for missed section (it's always at bottom)
+                                borderBottomLeftRadius: 2,
+                                borderBottomRightRadius: 2,
+                                // Apply top border radius if this is the only section
+                                ...(day.scheduledCount === 0 && day.bonusCount === 0 ? {
+                                  borderTopLeftRadius: 2,
+                                  borderTopRightRadius: 2,
+                                } : {})
                               }
                             ]} 
                           />
@@ -230,6 +238,16 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
                                 backgroundColor: Colors.success,
                                 bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
+                                // Apply top border radius if this is the topmost section
+                                ...(day.bonusCount === 0 ? {
+                                  borderTopLeftRadius: 2,
+                                  borderTopRightRadius: 2,
+                                } : {}),
+                                // Apply bottom border radius if this is the bottommost section
+                                ...(day.actualMissedDays === 0 ? {
+                                  borderBottomLeftRadius: 2,
+                                  borderBottomRightRadius: 2,
+                                } : {})
                               }
                             ]} 
                           />
@@ -244,6 +262,9 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                                 height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
                                 backgroundColor: Colors.gold,
                                 bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
+                                // Always apply top border radius for bonus section (it's always on top)
+                                borderTopLeftRadius: 2,
+                                borderTopRightRadius: 2,
                               }
                             ]} 
                           />
@@ -375,9 +396,9 @@ const styles = StyleSheet.create({
   },
   unifiedBar: {
     width: 8,
-    borderRadius: 2,
     position: 'relative',
-    overflow: 'hidden',
+    // Removed borderRadius - now applied individually to sections
+    // overflow: 'hidden', // Removed to allow individual section border radius
   },
   barSection: {
     width: 8,
