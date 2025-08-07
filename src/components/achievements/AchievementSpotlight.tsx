@@ -107,7 +107,10 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
       }).start();
     };
 
-    selectRandomAchievement();
+    // Add delay to ensure component is fully mounted before starting animations
+    const initTimeout = setTimeout(() => {
+      selectRandomAchievement();
+    }, 150);
 
     // Rotate spotlight every 30 seconds
     const interval = setInterval(() => {
@@ -120,7 +123,10 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
       });
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initTimeout);
+      clearInterval(interval);
+    };
   }, [unlockedAchievements, fadeAnim]);
 
   if (!spotlightAchievement) {

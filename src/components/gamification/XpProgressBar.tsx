@@ -35,23 +35,28 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   // Add subtle pulse animation for milestone levels
   useEffect(() => {
     if (isMilestone && !isLoading) {
-      const pulseAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.05,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      pulseAnimation.start();
+      // Add small delay to ensure component is fully mounted
+      const timeout = setTimeout(() => {
+        const pulseAnimation = Animated.loop(
+          Animated.sequence([
+            Animated.timing(pulseAnim, {
+              toValue: 1.05,
+              duration: 1500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(pulseAnim, {
+              toValue: 1,
+              duration: 1500,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+        pulseAnimation.start();
+      }, 100); // Small delay to ensure component is ready
       
-      return () => pulseAnimation.stop();
+      return () => {
+        clearTimeout(timeout);
+      };
     } else {
       pulseAnim.setValue(1);
       return undefined;
