@@ -120,16 +120,37 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
     };
   }, [monthData]);
 
-  const getBarHeightForCount = (count: number, totalForDay: number) => {
-    const maxHeight = 40; // Smaller bars for 30-day view
-    const baseHeight = 2;
-    if (totalForDay === 0) return baseHeight;
-    return Math.max(baseHeight, (count / totalForDay) * maxHeight);
+  // Dynamic Y-axis scaling
+  const maxTotalHabitsInPeriod = useMemo(() => {
+    return Math.max(...monthData.map(day => day.totalScheduled + day.bonusCount), 1);
+  }, [monthData]);
+
+  // Chart dimensions (smaller for 30-day view)
+  const CHART_HEIGHT = 80; // Smaller height for monthly view
+  const CHART_PADDING = 15; // Space for Y-axis labels
+
+  // Calculate Y-axis grid steps
+  const getYAxisSteps = (maxValue: number) => {
+    if (maxValue <= 5) return [1, 2, 3, 4, 5];
+    if (maxValue <= 10) return [2, 4, 6, 8, 10];
+    if (maxValue <= 20) return [5, 10, 15, 20];
+    if (maxValue <= 50) return [10, 20, 30, 40, 50];
+    return [25, 50, 75, 100];
   };
 
-  const maxHabitsPerDay = useMemo(() => {
-    return Math.max(...monthData.map(day => day.actualMissedDays + day.scheduledCount + day.bonusCount), 1);
-  }, [monthData]);
+  const yAxisSteps = useMemo(() => getYAxisSteps(maxTotalHabitsInPeriod), [maxTotalHabitsInPeriod]);
+
+  // Get bar height for entire day column (proportional to max in period)
+  const getDayColumnHeight = (dayTotal: number) => {
+    if (maxTotalHabitsInPeriod === 0) return 2;
+    return Math.max(2, (dayTotal / maxTotalHabitsInPeriod) * CHART_HEIGHT);
+  };
+
+  // Get section height within a day column (proportional to day total)
+  const getSectionHeight = (sectionCount: number, dayTotal: number, dayColumnHeight: number) => {
+    if (dayTotal === 0) return 0;
+    return (sectionCount / dayTotal) * dayColumnHeight;
+  };
 
   const actualDataPeriod = useMemo(() => {
     return monthData.length;
@@ -148,78 +169,106 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
         </Text>
       </View>
 
-      {/* Chart - Scrollable for 30 days */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.chartContainer}
-        contentContainerStyle={styles.chartContent}
-      >
-        {monthData.map((day) => (
-          <View key={day.date} style={styles.dayColumn}>
-            {/* Unified Stacked Bar */}
-            <View style={styles.barContainer}>
-              {(day.actualMissedDays > 0 || day.scheduledCount > 0 || day.bonusCount > 0) && (
-                <View style={[styles.unifiedBar, { height: 40 }]}>
-                  {/* Red/Gray section for missed tasks (bottom) - now using actualMissedDays */}
-                  {day.actualMissedDays > 0 && (
-                    <View 
-                      style={[
-                        styles.barSection,
-                        {
-                          height: getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                          backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
-                          bottom: 0,
-                        }
-                      ]} 
-                    />
-                  )}
+      {/* Chart with Y-axis - Scrollable for 30 days */}
+      <View style={[styles.chartContainer, { height: CHART_HEIGHT + 50 }]}>
+        <View style={styles.chartWrapper}>
+          {/* Y-axis grid lines and labels */}
+          <View style={styles.yAxisContainer}>
+            {yAxisSteps.map((step) => (
+              <View key={step} style={styles.yAxisStep}>
+                <Text style={styles.yAxisLabel}>{step}</Text>
+                <View 
+                  style={[
+                    styles.gridLine, 
+                    { 
+                      bottom: (step / maxTotalHabitsInPeriod) * CHART_HEIGHT,
+                      width: '100%'
+                    }
+                  ]} 
+                />
+              </View>
+            ))}
+          </View>
+
+          {/* Chart content - Scrollable */}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.scrollableChart}
+            contentContainerStyle={styles.chartContent}
+          >
+            {monthData.map((day) => {
+              const dayTotal = day.totalScheduled + day.bonusCount;
+              const dayColumnHeight = getDayColumnHeight(dayTotal);
+              
+              return (
+                <View key={day.date} style={styles.dayColumn}>
+                  {/* Unified Stacked Bar */}
+                  <View style={[styles.barContainer, { height: CHART_HEIGHT + CHART_PADDING }]}>
+                    {dayTotal > 0 && (
+                      <View style={[styles.unifiedBar, { height: dayColumnHeight }]}>
+                        {/* Red/Gray section for missed tasks (bottom) */}
+                        {day.actualMissedDays > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
+                                backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
+                                bottom: 0,
+                              }
+                            ]} 
+                          />
+                        )}
+                        
+                        {/* Green section for completed scheduled tasks (middle) */}
+                        {day.scheduledCount > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
+                                backgroundColor: Colors.success,
+                                bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
+                              }
+                            ]} 
+                          />
+                        )}
+                        
+                        {/* Gold section for bonus completions (top) */}
+                        {day.bonusCount > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
+                                backgroundColor: Colors.gold,
+                                bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
+                              }
+                            ]} 
+                          />
+                        )}
+                      </View>
+                    )}
+                    
+                    <View style={styles.barBase} />
+                  </View>
                   
-                  {/* Green section for completed scheduled tasks (middle) */}
-                  {day.scheduledCount > 0 && (
-                    <View 
-                      style={[
-                        styles.barSection,
-                        {
-                          height: getBarHeightForCount(day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                          backgroundColor: Colors.success,
-                          bottom: day.actualMissedDays > 0 ? getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount) : 0,
-                        }
-                      ]} 
-                    />
-                  )}
-                  
-                  {/* Gold section for bonus completions (top) */}
-                  {day.bonusCount > 0 && (
-                    <View 
-                      style={[
-                        styles.barSection,
-                        {
-                          height: getBarHeightForCount(day.bonusCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                          backgroundColor: Colors.gold,
-                          bottom: getBarHeightForCount(day.actualMissedDays + day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                        }
-                      ]} 
-                    />
+                  {/* Day number - show every 5 days or for today */}
+                  {(monthData.indexOf(day) % 5 === 0 || day.isToday) && (
+                    <Text style={[
+                      styles.dayLabel,
+                      day.isToday && styles.todayLabel
+                    ]}>
+                      {day.dayNumber}
+                    </Text>
                   )}
                 </View>
-              )}
-              
-              <View style={styles.barBase} />
-            </View>
-            
-            {/* Day number - show every 5 days or for today */}
-            {(monthData.indexOf(day) % 5 === 0 || day.isToday) && (
-              <Text style={[
-                styles.dayLabel,
-                day.isToday && styles.todayLabel
-              ]}>
-                {day.dayNumber}
-              </Text>
-            )}
-          </View>
-        ))}
-      </ScrollView>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
 
       {/* Legend */}
       <View style={styles.legend}>
@@ -270,11 +319,48 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chartContainer: {
-    height: 70,
     marginBottom: Layout.spacing.md,
+  },
+  chartWrapper: {
+    position: 'relative',
+    flex: 1,
+  },
+  yAxisContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 30, // Space for day labels
+    height: 80, // CHART_HEIGHT
+    zIndex: 1,
+  },
+  yAxisStep: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  yAxisLabel: {
+    position: 'absolute',
+    left: 4,
+    fontSize: 8,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 2,
+    zIndex: 2,
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 25, // Start after Y-axis labels
+    height: 1,
+    backgroundColor: Colors.border,
+    opacity: 0.5,
+  },
+  scrollableChart: {
+    flex: 1,
   },
   chartContent: {
     paddingHorizontal: Layout.spacing.xs,
+    paddingLeft: 30, // Space for Y-axis labels
   },
   dayColumn: {
     alignItems: 'center',
@@ -282,10 +368,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   barContainer: {
-    height: 50,
     justifyContent: 'flex-end',
     alignItems: 'center',
     width: 10,
+    position: 'relative',
   },
   unifiedBar: {
     width: 8,

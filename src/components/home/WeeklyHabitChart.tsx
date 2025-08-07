@@ -120,16 +120,37 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     };
   }, [weekData]);
 
-  const getBarHeightForCount = (count: number, totalForDay: number) => {
-    const maxHeight = 80;
-    const baseHeight = 4;
-    if (totalForDay === 0) return baseHeight;
-    return Math.max(baseHeight, (count / totalForDay) * maxHeight);
+  // Dynamic Y-axis scaling
+  const maxTotalHabitsInPeriod = useMemo(() => {
+    return Math.max(...weekData.map(day => day.totalScheduled + day.bonusCount), 1);
+  }, [weekData]);
+
+  // Chart dimensions
+  const CHART_HEIGHT = 120; // Increased height for better visualization
+  const CHART_PADDING = 20; // Space for Y-axis labels
+
+  // Calculate Y-axis grid steps
+  const getYAxisSteps = (maxValue: number) => {
+    if (maxValue <= 5) return [1, 2, 3, 4, 5];
+    if (maxValue <= 10) return [2, 4, 6, 8, 10];
+    if (maxValue <= 20) return [5, 10, 15, 20];
+    if (maxValue <= 50) return [10, 20, 30, 40, 50];
+    return [25, 50, 75, 100];
   };
 
-  const maxHabitsPerDay = useMemo(() => {
-    return Math.max(...weekData.map(day => day.actualMissedDays + day.scheduledCount + day.bonusCount), 1);
-  }, [weekData]);
+  const yAxisSteps = useMemo(() => getYAxisSteps(maxTotalHabitsInPeriod), [maxTotalHabitsInPeriod]);
+
+  // Get bar height for entire day column (proportional to max in period)
+  const getDayColumnHeight = (dayTotal: number) => {
+    if (maxTotalHabitsInPeriod === 0) return 4;
+    return Math.max(4, (dayTotal / maxTotalHabitsInPeriod) * CHART_HEIGHT);
+  };
+
+  // Get section height within a day column (proportional to day total)
+  const getSectionHeight = (sectionCount: number, dayTotal: number, dayColumnHeight: number) => {
+    if (dayTotal === 0) return 0;
+    return (sectionCount / dayTotal) * dayColumnHeight;
+  };
 
   const actualDataPeriod = useMemo(() => {
     return weekData.length;
@@ -155,85 +176,111 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
         </Text>
       </View>
 
-      {/* Chart */}
-      <View style={styles.chartContainer}>
-        <View style={styles.chartContent}>
-          {weekData.map((day) => (
-            <View key={day.date} style={styles.dayColumn}>
-              {/* Unified Stacked Bar */}
-              <View style={styles.barContainer}>
-                {(day.actualMissedDays > 0 || day.scheduledCount > 0 || day.bonusCount > 0) && (
-                  <View style={[styles.unifiedBar, { height: 80 }]}>
-                    {/* Red/Gray section for missed tasks (bottom) - now using actualMissedDays */}
-                    {day.actualMissedDays > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                            backgroundColor: isToday(day.date) ? Colors.textSecondary : Colors.error, // Gray for today, red for past
-                            bottom: 0,
-                          }
-                        ]} 
-                      />
-                    )}
-                    
-                    {/* Green section for completed scheduled tasks (middle) */}
-                    {day.scheduledCount > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                            backgroundColor: Colors.success,
-                            bottom: day.actualMissedDays > 0 ? getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount) : 0,
-                          }
-                        ]} 
-                      />
-                    )}
-                    
-                    {/* Gold section for bonus completions (top) */}
-                    {day.bonusCount > 0 && (
-                      <View 
-                        style={[
-                          styles.barSection,
-                          {
-                            height: getBarHeightForCount(day.bonusCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                            backgroundColor: Colors.gold,
-                            bottom: getBarHeightForCount(day.actualMissedDays + day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
-                          }
-                        ]} 
-                      />
-                    )}
-                  </View>
-                )}
-                
-                <View style={styles.barBase} />
+      {/* Chart with Y-axis */}
+      <View style={[styles.chartContainer, { height: CHART_HEIGHT + 60 }]}>
+        <View style={styles.chartWrapper}>
+          {/* Y-axis grid lines and labels */}
+          <View style={styles.yAxisContainer}>
+            {yAxisSteps.map((step) => (
+              <View key={step} style={styles.yAxisStep}>
+                <Text style={styles.yAxisLabel}>{step}</Text>
+                <View 
+                  style={[
+                    styles.gridLine, 
+                    { 
+                      bottom: (step / maxTotalHabitsInPeriod) * CHART_HEIGHT,
+                      width: '100%'
+                    }
+                  ]} 
+                />
               </View>
-              
-              {/* Day label */}
-              <Text style={[
-                styles.dayLabel,
-                day.isToday && styles.todayLabel
-              ]}>
-                {day.dayName}
-              </Text>
-              
-              {/* Day number */}
-              <Text style={[
-                styles.dayNumber,
-                day.isToday && styles.todayNumber
-              ]}>
-                {day.dayNumber}
-              </Text>
+            ))}
+          </View>
 
-              {/* Completion count */}
-              <Text style={styles.completionText}>
-                {day.scheduledCount}/{day.totalScheduled}
-                {day.bonusCount > 0 && ` +${day.bonusCount}`}
-              </Text>
-            </View>
-          ))}
+          {/* Chart content */}
+          <View style={styles.chartContent}>
+            {weekData.map((day) => {
+              const dayTotal = day.totalScheduled + day.bonusCount;
+              const dayColumnHeight = getDayColumnHeight(dayTotal);
+              
+              return (
+                <View key={day.date} style={styles.dayColumn}>
+                  {/* Unified Stacked Bar */}
+                  <View style={[styles.barContainer, { height: CHART_HEIGHT + CHART_PADDING }]}>
+                    {dayTotal > 0 && (
+                      <View style={[styles.unifiedBar, { height: dayColumnHeight }]}>
+                        {/* Red/Gray section for missed tasks (bottom) */}
+                        {day.actualMissedDays > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
+                                backgroundColor: isToday(day.date) ? Colors.textSecondary : Colors.error,
+                                bottom: 0,
+                              }
+                            ]} 
+                          />
+                        )}
+                        
+                        {/* Green section for completed scheduled tasks (middle) */}
+                        {day.scheduledCount > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
+                                backgroundColor: Colors.success,
+                                bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
+                              }
+                            ]} 
+                          />
+                        )}
+                        
+                        {/* Gold section for bonus completions (top) */}
+                        {day.bonusCount > 0 && (
+                          <View 
+                            style={[
+                              styles.barSection,
+                              {
+                                height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
+                                backgroundColor: Colors.gold,
+                                bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
+                              }
+                            ]} 
+                          />
+                        )}
+                      </View>
+                    )}
+                    
+                    <View style={styles.barBase} />
+                  </View>
+                  
+                  {/* Day label */}
+                  <Text style={[
+                    styles.dayLabel,
+                    day.isToday && styles.todayLabel
+                  ]}>
+                    {day.dayName}
+                  </Text>
+                  
+                  {/* Day number */}
+                  <Text style={[
+                    styles.dayNumber,
+                    day.isToday && styles.todayNumber
+                  ]}>
+                    {day.dayNumber}
+                  </Text>
+
+                  {/* Completion count */}
+                  <Text style={styles.completionText}>
+                    {day.scheduledCount}/{day.totalScheduled}
+                    {day.bonusCount > 0 && ` +${day.bonusCount}`}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
         </View>
       </View>
 
@@ -286,14 +333,48 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chartContainer: {
-    height: 140,
     marginBottom: Layout.spacing.md,
+  },
+  chartWrapper: {
+    position: 'relative',
+    flex: 1,
+  },
+  yAxisContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 40, // Space for day labels
+    height: 120, // CHART_HEIGHT
+    zIndex: 1,
+  },
+  yAxisStep: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  yAxisLabel: {
+    position: 'absolute',
+    left: 4,
+    fontSize: 10,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 2,
+    zIndex: 2,
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 30, // Start after Y-axis labels
+    height: 1,
+    backgroundColor: Colors.border,
+    opacity: 0.5,
   },
   chartContent: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     paddingHorizontal: Layout.spacing.xs,
+    paddingLeft: 35, // Space for Y-axis labels
   },
   dayColumn: {
     flex: 1,
@@ -301,10 +382,10 @@ const styles = StyleSheet.create({
     maxWidth: 50,
   },
   barContainer: {
-    height: 90,
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: Layout.spacing.xs,
+    position: 'relative',
   },
   unifiedBar: {
     width: 24,
