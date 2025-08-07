@@ -581,6 +581,7 @@ export default function AchievementsScreen() {
           🏆 Browse All
         </Text>
       </TouchableOpacity>
+      
     </View>
   );
 
@@ -624,6 +625,7 @@ export default function AchievementsScreen() {
       </View>
     );
   };
+
 
   const renderAchievementsMode = () => (
     <View>

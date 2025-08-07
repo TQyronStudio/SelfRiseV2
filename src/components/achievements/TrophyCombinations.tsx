@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Colors } from '@/src/constants/colors';
 import { Achievement, AchievementCategory, AchievementRarity, UserAchievements } from '@/src/types/gamification';
+import { TrophyCollectionCard3D } from './TrophyCollectionCard3D';
 
 interface TrophyCombinationsProps {
   userAchievements: UserAchievements;
@@ -124,91 +125,6 @@ const getRarityColor = (rarity: AchievementRarity): string => {
   }
 };
 
-const CollectionCard: React.FC<{
-  collection: TrophyCollection;
-  onPress?: () => void;
-}> = ({ collection, onPress }) => {
-  const rarityColor = getRarityColor(collection.rarity);
-  const progressPercentage = (collection.completedCount / collection.totalCount) * 100;
-  
-  return (
-    <TouchableOpacity
-      style={[
-        styles.collectionCard,
-        { borderLeftColor: rarityColor },
-        collection.isCompleted && styles.collectionCardCompleted
-      ]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      {/* Completion indicator */}
-      {collection.isCompleted && (
-        <View style={styles.completionBadge}>
-          <Text style={styles.completionText}>✓</Text>
-        </View>
-      )}
-      
-      {/* Collection header */}
-      <View style={styles.collectionHeader}>
-        <Text style={styles.collectionIcon}>{collection.icon}</Text>
-        <View style={styles.collectionInfo}>
-          <Text style={[
-            styles.collectionName,
-            collection.isCompleted && styles.completedText
-          ]}>
-            {collection.name}
-          </Text>
-          <View style={styles.collectionMeta}>
-            <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
-              <Text style={styles.rarityText}>
-                {collection.rarity.toUpperCase()}
-              </Text>
-            </View>
-            <Text style={styles.bonusXP}>+{collection.bonusXP} XP</Text>
-          </View>
-        </View>
-      </View>
-      
-      {/* Description */}
-      <Text style={styles.collectionDescription}>{collection.description}</Text>
-      
-      {/* Progress */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressText}>
-            {collection.completedCount}/{collection.totalCount} completed
-          </Text>
-          <Text style={styles.progressPercentage}>
-            {Math.round(progressPercentage)}%
-          </Text>
-        </View>
-        
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill,
-              { 
-                width: `${progressPercentage}%`,
-                backgroundColor: collection.isCompleted ? '#4CAF50' : rarityColor
-              }
-            ]} 
-          />
-        </View>
-      </View>
-      
-      {/* Collection status */}
-      <View style={styles.statusContainer}>
-        {collection.isCompleted ? (
-          <Text style={styles.statusCompleted}>🎉 Collection Complete!</Text>
-        ) : (
-          <Text style={styles.statusIncomplete}>
-            {collection.totalCount - collection.completedCount} more to go
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
   userAchievements,
@@ -284,7 +200,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
       {/* Collections list */}
       <View style={styles.collectionsContent}>
         {sortedCollections.map((collection) => (
-          <CollectionCard
+          <TrophyCollectionCard3D
             key={collection.id}
             collection={collection}
             onPress={() => onCollectionPress?.(collection)}
