@@ -272,11 +272,12 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const streak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
       
       // Migration: Add new properties if they don't exist
-      if (streak && (streak.debtDays === undefined || streak.isFrozen === undefined)) {
+      if (streak && (streak.debtDays === undefined || streak.isFrozen === undefined || streak.preserveCurrentStreak === undefined)) {
         const migratedStreak: GratitudeStreak = {
           ...streak,
           debtDays: streak.debtDays || 0,
           isFrozen: streak.isFrozen || false,
+          preserveCurrentStreak: streak.preserveCurrentStreak || false,
         };
         await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, migratedStreak);
         return migratedStreak;
@@ -290,6 +291,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         canRecoverWithAd: false,
         debtDays: 0,
         isFrozen: false,
+        preserveCurrentStreak: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -329,6 +331,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         canRecoverWithAd: false,
         debtDays: 0,
         isFrozen: false,
+        preserveCurrentStreak: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -415,6 +418,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           canRecoverWithAd: false,
           debtDays: 0,
           isFrozen: false,
+          preserveCurrentStreak: false,
           starCount,
           flameCount,
           crownCount,
@@ -426,8 +430,22 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update recovery logic for debt system
       const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
       
+      // CRITICAL FIX: Handle debt payment - preserve current streak if flag is set
+      let finalCurrentStreak: number;
+      if (savedStreak.preserveCurrentStreak) {
+        // Debt was just paid - preserve the streak value from before debt payment
+        finalCurrentStreak = savedStreak.currentStreak;
+        console.log(`[DEBUG] calculateAndUpdateStreak: Preserving streak ${finalCurrentStreak} after debt payment`);
+      } else if (isFrozen) {
+        // Normal frozen behavior - keep saved streak
+        finalCurrentStreak = savedStreak.currentStreak;
+      } else {
+        // Normal unfrozen behavior - recalculate streak
+        finalCurrentStreak = newCalculatedStreak;
+      }
+
       const updatedStreak: GratitudeStreak = {
-        currentStreak: isFrozen ? savedStreak.currentStreak : newCalculatedStreak, // Frozen streaks don't change, unfrozen recalculate
+        currentStreak: finalCurrentStreak,
         longestStreak,
         lastEntryDate,
         streakStartDate,
@@ -437,6 +455,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         starCount,
         flameCount,
         crownCount,
+        // Reset the preserve flag after using it
+        preserveCurrentStreak: false,
       };
       
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
@@ -898,7 +918,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         ...currentStreakInfo,
         debtDays: 0,           // Clear debt
         isFrozen: false,       // Unfreeze streak
-        canRecoverWithAd: false // No longer need recovery
+        canRecoverWithAd: false, // No longer need recovery
+        preserveCurrentStreak: true // Flag to preserve current streak instead of recalculating
       };
       
       // Save updated streak info

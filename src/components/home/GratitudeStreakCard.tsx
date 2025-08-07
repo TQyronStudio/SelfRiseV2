@@ -77,6 +77,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         canRecoverWithAd: false,
         debtDays: 0,
         isFrozen: false,
+        preserveCurrentStreak: false,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,

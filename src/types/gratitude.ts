@@ -18,6 +18,7 @@ export interface GratitudeStreak {
   // NEW: Debt tracking system
   debtDays: number; // 0-3, days of accumulated debt from missed days
   isFrozen: boolean; // true when debt > 0, streak neither grows nor resets
+  preserveCurrentStreak?: boolean; // true after debt payment to preserve streak instead of recalculating
   // Bonus milestone counters (mysterious badges)
   starCount: number; // ⭐ - times achieved 1 bonus gratitude in a day
   flameCount: number; // 🔥 - times achieved 5 bonus gratitudes in a day  
