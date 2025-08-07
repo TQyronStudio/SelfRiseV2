@@ -73,6 +73,21 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       // Parse date string to Date object for day operations
       const dateObj = parseDate(dateStr);
       
+      // Debug logging for today's data
+      if (today() === dateStr) {
+        console.log('🔍 Monthly30DayChart Debug for Today:', {
+          date: dateStr,
+          scheduledHabits: scheduledHabits.length,
+          scheduledCompletions: scheduledCount,
+          bonusCompletions: bonusCount,
+          coveredMissedDays,
+          actualMissedDays,
+          totalScheduled,
+          habitsOnDate: habitsOnDate.length,
+          isToday: today() === dateStr
+        });
+      }
+
       return {
         date: dateStr,
         dayName: formatDate(dateObj, 'dd').substring(0, 3), // Mon, Tue, etc.
@@ -105,11 +120,11 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
     };
   }, [monthData]);
 
-  const getBarHeightForCount = (count: number, maxCount: number) => {
+  const getBarHeightForCount = (count: number, totalForDay: number) => {
     const maxHeight = 40; // Smaller bars for 30-day view
     const baseHeight = 2;
-    if (maxCount === 0) return baseHeight;
-    return Math.max(baseHeight, (count / maxCount) * maxHeight);
+    if (totalForDay === 0) return baseHeight;
+    return Math.max(baseHeight, (count / totalForDay) * maxHeight);
   };
 
   const maxHabitsPerDay = useMemo(() => {
@@ -145,14 +160,14 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
             {/* Unified Stacked Bar */}
             <View style={styles.barContainer}>
               {(day.actualMissedDays > 0 || day.scheduledCount > 0 || day.bonusCount > 0) && (
-                <View style={[styles.unifiedBar, { height: getBarHeightForCount(day.actualMissedDays + day.scheduledCount + day.bonusCount, maxHabitsPerDay) }]}>
+                <View style={[styles.unifiedBar, { height: 40 }]}>
                   {/* Red/Gray section for missed tasks (bottom) - now using actualMissedDays */}
                   {day.actualMissedDays > 0 && (
                     <View 
                       style={[
                         styles.barSection,
                         {
-                          height: getBarHeightForCount(day.actualMissedDays, maxHabitsPerDay),
+                          height: getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount),
                           backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
                           bottom: 0,
                         }
@@ -166,9 +181,9 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                       style={[
                         styles.barSection,
                         {
-                          height: getBarHeightForCount(day.scheduledCount, maxHabitsPerDay),
+                          height: getBarHeightForCount(day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
                           backgroundColor: Colors.success,
-                          bottom: day.actualMissedDays > 0 ? getBarHeightForCount(day.actualMissedDays, maxHabitsPerDay) : 0,
+                          bottom: day.actualMissedDays > 0 ? getBarHeightForCount(day.actualMissedDays, day.actualMissedDays + day.scheduledCount + day.bonusCount) : 0,
                         }
                       ]} 
                     />
@@ -180,9 +195,9 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                       style={[
                         styles.barSection,
                         {
-                          height: getBarHeightForCount(day.bonusCount, maxHabitsPerDay),
+                          height: getBarHeightForCount(day.bonusCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
                           backgroundColor: Colors.gold,
-                          bottom: getBarHeightForCount(day.actualMissedDays + day.scheduledCount, maxHabitsPerDay),
+                          bottom: getBarHeightForCount(day.actualMissedDays + day.scheduledCount, day.actualMissedDays + day.scheduledCount + day.bonusCount),
                         }
                       ]} 
                     />
