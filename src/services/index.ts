@@ -5,4 +5,5 @@ export * from './achievementService';
 export * from './achievementStorage';
 export * from './achievementIntegration';
 export * from './levelCalculation';
+export * from './xpMultiplierService';
 export * from './storage';

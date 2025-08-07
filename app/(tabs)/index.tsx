@@ -15,6 +15,8 @@ import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedR
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
+import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
+import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
 import { ChallengeSection, ChallengeDetailModal } from '@/src/components/challenges';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
@@ -116,6 +118,13 @@ export default function HomeScreen() {
           <PremiumTrophyIcon size={32} />
         </TouchableOpacity>
         
+        {/* XP Multiplier Timer */}
+        <MultiplierCountdownTimer 
+          size="small" 
+          variant="light"
+          style={styles.headerTimer}
+        />
+        
         {/* Customization Button */}
         <TouchableOpacity 
           style={styles.customizeButton}
@@ -133,6 +142,10 @@ export default function HomeScreen() {
         {/* Conditionally rendered components based on user preferences */}
         {isComponentVisible('xpProgressBar') && (
           <XpProgressBar />
+        )}
+        
+        {isComponentVisible('xpMultiplier') && (
+          <XpMultiplierSection />
         )}
         
         {isComponentVisible('journalStreak') && (
@@ -213,6 +226,9 @@ const styles = StyleSheet.create({
   trophyButton: {
     padding: Layout.spacing.xs,
     borderRadius: Layout.borderRadius.md,
+  },
+  headerTimer: {
+    marginHorizontal: Layout.spacing.xs,
   },
   customizeButton: {
     padding: Layout.spacing.sm,

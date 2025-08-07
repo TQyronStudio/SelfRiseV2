@@ -1178,31 +1178,24 @@ export class GamificationService {
 
   /**
    * Get active XP multiplier information
+   * UPDATED: Now uses the comprehensive XPMultiplierService
    */
   static async getActiveXPMultiplier(): Promise<{
     isActive: boolean;
     multiplier: number;
-    endTime?: Date;
-    source?: string;
+    endTime?: Date | undefined;
+    source?: string | undefined;
   }> {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.XP_MULTIPLIER);
-      if (!stored) return { isActive: false, multiplier: 1 };
-
-      const data = JSON.parse(stored);
-      const endTime = new Date(data.endTime);
+      // Use the new XPMultiplierService for comprehensive multiplier management
+      const { XPMultiplierService } = await import('./xpMultiplierService');
+      const multiplierInfo = await XPMultiplierService.getActiveMultiplier();
       
-      if (endTime <= new Date()) {
-        // Multiplier has expired
-        await AsyncStorage.removeItem(STORAGE_KEYS.XP_MULTIPLIER);
-        return { isActive: false, multiplier: 1 };
-      }
-
       return {
-        isActive: true,
-        multiplier: data.multiplier,
-        endTime,
-        source: data.source,
+        isActive: multiplierInfo.isActive,
+        multiplier: multiplierInfo.multiplier,
+        endTime: multiplierInfo.expiresAt,
+        source: multiplierInfo.source,
       };
     } catch (error) {
       console.error('GamificationService.getActiveXPMultiplier error:', error);

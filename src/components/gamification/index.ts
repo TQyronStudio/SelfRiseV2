@@ -7,6 +7,11 @@ export { ParticleEffects } from './ParticleEffects';
 // XP Progress Components
 export { XpProgressBar } from './XpProgressBar';
 
+// XP Multiplier Components
+export { XpMultiplierIndicator } from './XpMultiplierIndicator';
+export { MultiplierCountdownTimer } from './MultiplierCountdownTimer';
+export { MultiplierActivationModal } from './MultiplierActivationModal';
+
 // Animation Context and Hooks
 export { 
   XpAnimationProvider, 
