@@ -85,6 +85,11 @@ export interface TranslationKeys {
       gratitude: string;
       habits: string;
       goals: string;
+      achievement: string;
+      level: string;
+      streak: string;
+      consistency: string;
+      growth: string;
     };
     // Personalized Recommendations
     recommendations: string;

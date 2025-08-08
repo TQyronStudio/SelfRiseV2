@@ -27,7 +27,7 @@ import { TrophyRoomStats } from '@/src/components/achievements/TrophyRoomStats';
 import { AchievementHistory } from '@/src/components/achievements/AchievementHistory';
 import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
-import { AchievementShareModal, MotivationalQuoteCard } from '@/src/components/social';
+import { AchievementShareModal } from '@/src/components/social';
 import { 
   Achievement, 
   UserAchievements, 
@@ -642,16 +642,6 @@ export default function AchievementsScreen() {
           }}
         />
         
-        {/* Motivational Quote */}
-        <MotivationalQuoteCard
-          category="achievement"
-          context={{ 
-            level: state.currentLevel,
-            achievements: overviewStats.unlockedCount 
-          }}
-          compact={false}
-          showActions={true}
-        />
       </View>
     );
   };

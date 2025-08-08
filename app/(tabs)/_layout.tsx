@@ -69,13 +69,6 @@ function TabLayoutContent() {
         }}
       />
       <Tabs.Screen
-        name="achievements"
-        options={{
-          title: t('tabs.achievements'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="trophy.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: t('tabs.settings'),

@@ -4,8 +4,9 @@ export interface MotivationalQuote {
   id: string;
   text: string;
   author?: string;
-  category: 'motivation' | 'gratitude' | 'habits' | 'goals';
+  category: 'motivation' | 'gratitude' | 'habits' | 'goals' | 'achievement' | 'level' | 'streak' | 'consistency' | 'growth';
   language: 'en' | 'de' | 'es';
+  context?: string; // For contextual selection
 }
 
 export const motivationalQuotes: MotivationalQuote[] = [
@@ -180,6 +181,112 @@ export const motivationalQuotes: MotivationalQuote[] = [
     category: 'goals',
     language: 'es',
   },
+
+  // Achievement - English
+  {
+    id: 'ach_en_1',
+    text: 'Every achievement is a step closer to the person you\'re becoming.',
+    category: 'achievement',
+    language: 'en',
+    context: 'general_unlock',
+  },
+  {
+    id: 'ach_en_2',
+    text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.',
+    author: 'Winston Churchill',
+    category: 'achievement',
+    language: 'en',
+    context: 'challenging_achievement',
+  },
+  {
+    id: 'ach_en_3',
+    text: 'The only impossible journey is the one you never begin.',
+    author: 'Tony Robbins',
+    category: 'achievement',
+    language: 'en',
+    context: 'first_achievement',
+  },
+
+  // Level - English
+  {
+    id: 'level_en_1',
+    text: 'Level up in life, one small step at a time.',
+    category: 'level',
+    language: 'en',
+    context: 'level_milestone',
+  },
+  {
+    id: 'level_en_2',
+    text: 'Growth begins at the end of your comfort zone.',
+    category: 'level',
+    language: 'en',
+    context: 'significant_level',
+  },
+  {
+    id: 'level_en_3',
+    text: 'You are not the same person you were yesterday, and that\'s beautiful.',
+    category: 'level',
+    language: 'en',
+    context: 'personal_growth',
+  },
+
+  // Streak - English
+  {
+    id: 'streak_en_1',
+    text: 'Consistency is the mother of mastery.',
+    category: 'streak',
+    language: 'en',
+    context: 'consistency_focus',
+  },
+  {
+    id: 'streak_en_2',
+    text: 'Small daily improvements lead to massive results over time.',
+    category: 'streak',
+    language: 'en',
+    context: 'daily_progress',
+  },
+
+  // Consistency - English
+  {
+    id: 'con_en_1',
+    text: 'Excellence is not an act, but a habit.',
+    author: 'Aristotle',
+    category: 'consistency',
+    language: 'en',
+    context: 'habit_excellence',
+  },
+  {
+    id: 'con_en_2',
+    text: 'The secret of getting ahead is getting started.',
+    author: 'Mark Twain',
+    category: 'consistency',
+    language: 'en',
+    context: 'momentum_building',
+  },
+
+  // Growth - English
+  {
+    id: 'grow_en_1',
+    text: 'Personal growth is not a destination, it\'s a way of traveling.',
+    category: 'growth',
+    language: 'en',
+    context: 'continuous_journey',
+  },
+  {
+    id: 'grow_en_2',
+    text: 'Be yourself; everyone else is already taken.',
+    author: 'Oscar Wilde',
+    category: 'growth',
+    language: 'en',
+    context: 'authentic_self',
+  },
+  {
+    id: 'grow_en_3',
+    text: 'Every step forward is progress worth celebrating.',
+    category: 'growth',
+    language: 'en',
+    context: 'general_motivation',
+  },
 ];
 
 /**
@@ -250,4 +357,54 @@ export function getRandomQuoteFromCategory(
     category: 'motivation' as const,
     language: 'en' as const
   };
+}
+
+/**
+ * Get contextual quote from category with context awareness
+ */
+export function getContextualQuote(
+  category: MotivationalQuote['category'],
+  context: Record<string, any> = {},
+  language: 'en' | 'de' | 'es' = 'en'
+): MotivationalQuote {
+  const categoryQuotes = getQuotesByCategory(category, language);
+  
+  if (categoryQuotes.length === 0) {
+    return getRandomQuoteFromCategory(category, language);
+  }
+
+  // Try to find context-specific quote first
+  if (context.context) {
+    const contextQuote = categoryQuotes.find(q => q.context === context.context);
+    if (contextQuote) {
+      return contextQuote;
+    }
+  }
+
+  // For level-based context
+  if (category === 'level' && context.level) {
+    const level = context.level as number;
+    if (level >= 25) {
+      const significantQuote = categoryQuotes.find(q => q.context === 'significant_level');
+      if (significantQuote) return significantQuote;
+    } else if (level === 1) {
+      const firstQuote = categoryQuotes.find(q => q.context === 'level_milestone');
+      if (firstQuote) return firstQuote;
+    }
+  }
+
+  // For achievement-based context
+  if (category === 'achievement' && context.achievements) {
+    const count = context.achievements as number;
+    if (count === 1) {
+      const firstQuote = categoryQuotes.find(q => q.context === 'first_achievement');
+      if (firstQuote) return firstQuote;
+    } else if (count >= 10) {
+      const challengingQuote = categoryQuotes.find(q => q.context === 'challenging_achievement');
+      if (challengingQuote) return challengingQuote;
+    }
+  }
+
+  // Fallback to random from category
+  return getRandomQuoteFromCategory(category, language);
 }

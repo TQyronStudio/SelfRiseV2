@@ -52,8 +52,8 @@ export default function HomeScreen() {
   };
 
   const handleViewAllChallenges = () => {
-    // TODO: Navigate to dedicated challenges screen or achievements tab
-    router.push('/(tabs)/achievements');
+    // Navigate to achievements screen via stack navigation
+    router.push('/achievements');
   };
 
   const handleCloseChallengeDetail = () => {
@@ -142,7 +142,7 @@ export default function HomeScreen() {
         {/* Trophy Room Button */}
         <TouchableOpacity 
           style={styles.trophyButton}
-          onPress={() => router.push('/(tabs)/achievements')}
+          onPress={() => router.push('/achievements')}
         >
           <PremiumTrophyIcon size={32} />
         </TouchableOpacity>

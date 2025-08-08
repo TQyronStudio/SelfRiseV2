@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Typography } from '@/src/constants';
-import { getDailyQuote, getRandomQuoteFromCategory, MotivationalQuote } from '@/src/data/motivationalQuotes';
+import { getDailyQuote, getRandomQuoteFromCategory, getContextualQuote, MotivationalQuote } from '@/src/data/motivationalQuotes';
 import { today } from '@/src/utils/date';
 
 export function DailyMotivationalQuote() {
@@ -20,7 +20,9 @@ export function DailyMotivationalQuote() {
 
   const handleRefreshQuote = () => {
     // Get a random quote from a random category for variety
-    const categories: MotivationalQuote['category'][] = ['motivation', 'gratitude', 'habits', 'goals'];
+    const categories: MotivationalQuote['category'][] = [
+      'motivation', 'gratitude', 'habits', 'goals', 'achievement', 'level', 'streak', 'consistency', 'growth'
+    ];
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
     if (randomCategory) {
       const newQuote = getRandomQuoteFromCategory(randomCategory, currentLanguage);
@@ -38,6 +40,16 @@ export function DailyMotivationalQuote() {
         return 'checkmark-circle';
       case 'goals':
         return 'flag';
+      case 'achievement':
+        return 'trophy';
+      case 'level':
+        return 'trending-up';
+      case 'streak':
+        return 'flame';
+      case 'consistency':
+        return 'checkmark-circle';
+      case 'growth':
+        return 'leaf';
       default:
         return 'star';
     }
@@ -53,6 +65,16 @@ export function DailyMotivationalQuote() {
         return Colors.secondary;
       case 'goals':
         return '#FF6B35';
+      case 'achievement':
+        return '#FFD700';
+      case 'level':
+        return '#3B82F6';
+      case 'streak':
+        return '#FF6B35';
+      case 'consistency':
+        return '#10B981';
+      case 'growth':
+        return '#8B5CF6';
       default:
         return Colors.primary;
     }

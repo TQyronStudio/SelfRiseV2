@@ -86,6 +86,11 @@ const en: TranslationKeys = {
       gratitude: 'Gratitude',
       habits: 'Habits',
       goals: 'Goals',
+      achievement: 'Achievement',
+      level: 'Level',
+      streak: 'Streak',
+      consistency: 'Consistency',
+      growth: 'Growth',
     },
     // Personalized Recommendations
     recommendations: 'For You',
