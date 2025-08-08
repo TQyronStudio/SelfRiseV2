@@ -27,6 +27,7 @@ import { TrophyRoomStats } from '@/src/components/achievements/TrophyRoomStats';
 import { AchievementHistory } from '@/src/components/achievements/AchievementHistory';
 import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
+import { AchievementShareModal, MotivationalQuoteCard } from '@/src/components/social';
 import { 
   Achievement, 
   UserAchievements, 
@@ -67,6 +68,10 @@ export default function AchievementsScreen() {
   
   // View mode state
   const [viewMode, setViewMode] = useState<'overview' | 'achievements'>('overview');
+  
+  // Social features state
+  const [selectedAchievementForShare, setSelectedAchievementForShare] = useState<Achievement | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
   
   
   // ========================================
@@ -285,8 +290,22 @@ export default function AchievementsScreen() {
 
 
   const handleAchievementPress = (achievement: Achievement) => {
-    // TODO: Open achievement detail modal (Sub-checkpoint 4.5.5.D)
-    console.log('Achievement pressed:', achievement.name);
+    // Check if achievement is unlocked for sharing
+    const isUnlocked = userAchievements?.unlockedAchievements.includes(achievement.id) || false;
+    
+    if (isUnlocked) {
+      // Open sharing modal for unlocked achievements
+      setSelectedAchievementForShare(achievement);
+      setShowShareModal(true);
+    } else {
+      // Show motivation for locked achievements
+      console.log('Achievement locked:', achievement.name);
+    }
+  };
+
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
+    setSelectedAchievementForShare(null);
   };
   
   // ========================================
@@ -622,6 +641,17 @@ export default function AchievementsScreen() {
             // TODO: Open collection detail modal
           }}
         />
+        
+        {/* Motivational Quote */}
+        <MotivationalQuoteCard
+          category="achievement"
+          context={{ 
+            level: state.currentLevel,
+            achievements: overviewStats.unlockedCount 
+          }}
+          compact={false}
+          showActions={true}
+        />
       </View>
     );
   };
@@ -683,6 +713,13 @@ export default function AchievementsScreen() {
           
           return null;
         }}
+      />
+      
+      {/* Achievement Sharing Modal */}
+      <AchievementShareModal
+        visible={showShareModal}
+        achievement={selectedAchievementForShare}
+        onClose={handleCloseShareModal}
       />
     </View>
   );

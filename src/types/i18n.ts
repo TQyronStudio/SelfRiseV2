@@ -811,6 +811,9 @@ export interface TranslationKeys {
       goal_completion: {
         icon_description: string;
       };
+      goal_milestone: {
+        icon_description: string;
+      };
       habit_streak_milestone: {
         icon_description: string;
       };
@@ -818,6 +821,9 @@ export interface TranslationKeys {
         icon_description: string;
       };
       achievement_unlock: {
+        icon_description: string;
+      };
+      weekly_challenge: {
         icon_description: string;
       };
       general_activity: {
