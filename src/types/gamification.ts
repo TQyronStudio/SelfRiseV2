@@ -434,3 +434,228 @@ export interface ChallengeCompletionResult {
   achievementUnlocked?: string;
   celebrationLevel: 'normal' | 'milestone' | 'epic';
 }
+
+// ========================================
+// MONTHLY CHALLENGE INTERFACES
+// ========================================
+
+/**
+ * Monthly challenge definition with baseline-driven personalization
+ */
+export interface MonthlyChallenge extends BaseEntity {
+  title: string;
+  description: string;
+  startDate: DateString; // 1st of month
+  endDate: DateString;   // Last day of month
+  
+  // Enhanced reward system
+  baseXPReward: number;     // Star-based: 500/750/1125/1688/2532
+  starLevel: 1 | 2 | 3 | 4 | 5;
+  category: AchievementCategory;
+  
+  // Enhanced requirements with baseline scaling
+  requirements: MonthlyChallengeRequirement[];
+  
+  // Baseline-driven generation metadata
+  userBaselineSnapshot: {
+    month: string;
+    analysisStartDate: DateString;
+    analysisEndDate: DateString;
+    dataQuality: 'minimal' | 'partial' | 'complete';
+    totalActiveDays: number;
+  };
+  
+  scalingFormula: string; // e.g., "baseline * 1.15"
+  isActive: boolean;
+  
+  // Generation context
+  generationReason: 'scheduled' | 'manual' | 'first_month' | 'retry';
+  categoryRotation: AchievementCategory[]; // Last 3 months for variety
+}
+
+/**
+ * Monthly challenge requirement with baseline context
+ */
+export interface MonthlyChallengeRequirement {
+  type: 'habits' | 'journal' | 'goals' | 'consistency';
+  target: number;           // Calculated from baseline
+  description: string;
+  trackingKey: string;
+  
+  // Baseline context
+  baselineValue: number;    // User's historical average
+  scalingMultiplier: number; // Applied scaling (1.05-1.25)
+  progressMilestones: number[]; // [25%, 50%, 75%] for celebrations
+  
+  // Progress tracking configuration
+  dailyTarget?: number;     // Optional daily breakdown
+  weeklyTarget?: number;    // Optional weekly milestone
+}
+
+/**
+ * Enhanced monthly challenge progress with weekly breakdown
+ */
+export interface MonthlyChallengeProgress extends ChallengeProgress {
+  // Enhanced weekly breakdown
+  weeklyProgress: {
+    week1: Record<string, number>;
+    week2: Record<string, number>; 
+    week3: Record<string, number>;
+    week4: Record<string, number>;
+    week5?: Record<string, number>; // For months with 31 days
+  };
+  
+  // Milestone celebrations
+  milestonesReached: {
+    25: { reached: boolean; timestamp?: Date; xpAwarded?: number };
+    50: { reached: boolean; timestamp?: Date; xpAwarded?: number };
+    75: { reached: boolean; timestamp?: Date; xpAwarded?: number };
+  };
+  
+  // Enhanced completion data
+  completionPercentage: number;
+  daysActive: number;
+  daysRemaining: number;
+  projectedCompletion: number; // Based on current pace
+  
+  // Streak data
+  currentStreak: number; // Consecutive months completed
+  longestStreak: number;
+  streakBonusEligible: boolean;
+  
+  // Performance tracking
+  dailyConsistency: number; // 0-1 score
+  weeklyConsistency: number; // 0-1 score
+  bestWeek: number; // Week with highest completion rate
+}
+
+/**
+ * Monthly challenge template for generation
+ */
+export interface MonthlyChallengeTemplate {
+  id: string;
+  category: AchievementCategory;
+  title: string;
+  description: string;
+  
+  // Baseline integration
+  baselineMetricKey: string; // Key from UserActivityBaseline
+  baselineMultiplierRange: [number, number]; // Min/max multipliers for scaling
+  
+  // Requirements template
+  requirementTemplates: Omit<MonthlyChallengeRequirement, 'target' | 'baselineValue' | 'scalingMultiplier'>[];
+  
+  // Difficulty scaling
+  starLevelRequirements: {
+    minLevel: number; // Minimum user level for this template
+    preferredDataQuality: ('minimal' | 'partial' | 'complete')[];
+  };
+  
+  // XP configuration  
+  baseXPReward: number; // Will be multiplied by star level
+  bonusXPConditions: string[]; // Descriptions of bonus XP opportunities
+  
+  // Template metadata
+  tags: string[];
+  priority: number; // Higher = more likely to be selected
+  cooldownMonths: number; // Months before this template can be used again
+  seasonality?: string[]; // Preferred months (e.g., ['01', '02'] for winter)
+}
+
+/**
+ * User star ratings per challenge category
+ */
+export interface UserChallengeRatings {
+  habits: number;      // 1-5 stars
+  journal: number;     // 1-5 stars  
+  goals: number;       // 1-5 stars
+  consistency: number; // 1-5 stars
+  
+  // Progression tracking
+  history: StarRatingHistoryEntry[];
+  lastUpdated: Date;
+}
+
+/**
+ * Star rating progression history
+ */
+export interface StarRatingHistoryEntry {
+  month: string; // "YYYY-MM"
+  category: AchievementCategory;
+  previousStars: number;
+  newStars: number;
+  challengeCompleted: boolean;
+  completionPercentage: number;
+  reason: 'success' | 'failure' | 'double_failure' | 'reset';
+  timestamp: Date;
+}
+
+/**
+ * Monthly challenge generation context
+ */
+export interface MonthlyChallengeGenerationContext {
+  month: string; // "YYYY-MM"
+  userId: string;
+  userBaseline: import('../services/userActivityTracker').UserActivityBaseline;
+  currentStarRatings: UserChallengeRatings;
+  recentCategoryHistory: AchievementCategory[]; // Last 3 months
+  isFirstMonth: boolean;
+  forceCategory?: AchievementCategory; // For manual generation
+  dryRun?: boolean; // For testing without persistence
+}
+
+/**
+ * Monthly challenge generation result
+ */
+export interface MonthlyChallengeGenerationResult {
+  challenge: MonthlyChallenge;
+  generationMetadata: {
+    selectedTemplate: string;
+    appliedStarLevel: number;
+    baselineUsed: number;
+    scalingApplied: number;
+    alternativesConsidered: string[];
+    generationTimeMs: number;
+    warnings: string[];
+  };
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Challenge category selection weights
+ */
+export interface CategorySelectionWeights {
+  category: AchievementCategory;
+  baseWeight: number;
+  userEngagementMultiplier: number;
+  recentUsagePenalty: number;
+  starLevelBonus: number;
+  dataQualityBonus: number;
+  finalWeight: number;
+}
+
+/**
+ * Monthly challenge completion result with enhanced rewards
+ */
+export interface MonthlyChallengeCompletionResult extends ChallengeCompletionResult {
+  // Enhanced reward calculation
+  baseXP: number;
+  bonusXP: number;
+  streakBonus: number;
+  perfectCompletionBonus: number;
+  totalXPEarned: number;
+  
+  // Star progression
+  oldStarLevel: number;
+  newStarLevel: number;
+  starLevelChanged: boolean;
+  
+  // Streak information
+  monthlyStreak: number;
+  streakMilestoneReached?: number;
+  
+  // Next month preparation
+  nextMonthEligible: boolean;
+  suggestedStarLevel: number;
+}
