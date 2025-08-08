@@ -6,4 +6,5 @@ export * from './achievementStorage';
 export * from './achievementIntegration';
 export * from './levelCalculation';
 export * from './xpMultiplierService';
+export * from './userActivityTracker';
 export * from './storage';
