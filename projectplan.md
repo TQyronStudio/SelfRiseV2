@@ -830,6 +830,194 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [ ] Create "Daily Heroes" anonymous showcase of interesting achievements
 - [ ] Test all social features ensure complete anonymity and data protection
 
+#### Checkpoint 4.5.8.5: Monthly Challenges Evolution 🗓️
+**Goal**: Transform weekly challenges into sophisticated monthly challenge system with personalized difficulty scaling
+
+##### Sub-checkpoint 4.5.8.5.A: Current System Analysis & Architecture Planning 🔍
+**Goal**: Analyze existing weekly challenge system and design monthly architecture
+- [ ] Analyze current WeeklyChallengeService architecture and data structures
+- [ ] Review existing challenge types (habits, journal, goals, consistency, mastery)
+- [ ] Document current XP reward system (150-400 XP range) for reference
+- [ ] Map existing challenge progress tracking mechanisms
+- [ ] Design new monthly challenge data schema with baseline tracking
+- [ ] Create technical architecture document for monthly system migration
+
+**Key Files to Analyze**: 
+- `/src/services/weeklyChallengeService.ts` - Current challenge logic (1,600+ lines)
+- `/src/components/challenges/` - All UI components to be updated
+- `/src/types/gamification.ts` - Challenge type definitions
+
+##### Sub-checkpoint 4.5.8.5.B: User Activity Baseline Tracking System 📊
+**Goal**: Implement comprehensive user behavior measurement system
+- [ ] Create UserActivityTracker service for monthly behavior analysis
+- [ ] Implement habit completion baseline tracking (daily averages, total counts)
+- [ ] Create journal entry baseline tracking (daily entries, bonus counts, content quality)
+- [ ] Add goal progress baseline tracking (progress frequency, completion rates, target values)
+- [ ] Implement consistency baseline tracking (streak lengths, app usage patterns)
+- [ ] Create baseline data storage with monthly aggregation and historical preservation
+- [ ] Add baseline calculation algorithms with 105-125% scaling formulas
+
+**Technical Implementation**:
+- Create `/src/services/userActivityTracker.ts` with monthly data collection
+- Implement baseline calculation: `baselineValue * (1.05 + (starLevel * 0.05))`
+- Add AsyncStorage schema: `monthly_baselines_YYYY_MM` with user activity metrics
+- Create data aggregation methods: `calculateMonthlyBaseline()`, `getHistoricalBaseline()`
+
+##### Sub-checkpoint 4.5.8.5.C: Monthly Challenge Generation Engine 🎯
+**Goal**: Create intelligent monthly challenge generation with personalized scaling
+- [ ] Design MonthylyChallengeService replacing WeeklyChallengeService
+- [ ] Create 4 challenge categories with personalized templates (Habits, Journal, Goals, Consistency)
+- [ ] Implement star-based difficulty scaling system (1-5 stars)
+- [ ] Add baseline-driven challenge parameter calculation (target values, thresholds)
+- [ ] Create random category selection algorithm ensuring variety
+- [ ] Implement first-month special handling for new users with minimal data
+- [ ] Add challenge generation scheduling for 1st of each month
+
+**Challenge Categories & Examples**:
+- **Habits**: Complete X habits (baseline * star_multiplier) 
+- **Journal**: Write X entries with Y bonus entries
+- **Goals**: Make progress on goals for X days or complete Y goals
+- **Consistency**: Maintain app usage or streaks for X days
+
+**Star System Scaling**:
+- 1★: baseline * 1.05 (505 XP)
+- 2★: baseline * 1.10 (750 XP) 
+- 3★: baseline * 1.15 (1,125 XP)
+- 4★: baseline * 1.20 (1,688 XP)
+- 5★: baseline * 1.25 (2,532 XP)
+
+##### Sub-checkpoint 4.5.8.5.D: Star Progression & Challenge Difficulty System ⭐
+**Goal**: Implement dynamic star rating progression based on performance
+- [ ] Create star progression logic (success → +1 star, failure → same star, 2x failure → -1 star)
+- [ ] Implement star rating storage per category (separate progression for each type)
+- [ ] Add star rating visual system with rarity colors (1★=Common, 2★=Rare, 3★=Epic, 4★=Legendary, 5★=Legendary+)
+- [ ] Create challenge difficulty calculation based on user's star level in selected category
+- [ ] Implement star rating history tracking for analytics
+- [ ] Add safeguards preventing star rating from going below 1 or above 5
+
+**Star Rating Storage Schema**:
+```typescript
+interface UserChallengeRatings {
+  habits: number; // 1-5
+  journal: number; // 1-5  
+  goals: number; // 1-5
+  consistency: number; // 1-5
+  history: StarRatingHistoryEntry[];
+}
+```
+
+##### Sub-checkpoint 4.5.8.5.E: Monthly Challenge Progress Tracking 📈
+**Goal**: Adapt existing progress tracking for monthly timeframes
+- [ ] Modify challenge progress tracking for 30-31 day duration instead of 7 days
+- [ ] Update progress validation logic to work with monthly goals
+- [ ] Implement monthly progress persistence and recovery
+- [ ] Create progress visualization for longer timeframes (weekly breakdowns within month)
+- [ ] Add progress milestone celebrations (25%, 50%, 75% monthly progress)
+- [ ] Integrate with existing XP event system for real-time progress updates
+
+**Progress Tracking Features**:
+- Daily progress snapshots for trend analysis
+- Weekly progress summaries within monthly challenge
+- Milestone detection and celebrations
+- Progress recovery after app reinstallation
+
+##### Sub-checkpoint 4.5.8.5.F: Enhanced XP Reward System 💰
+**Goal**: Implement star-based XP rewards with proper balancing
+- [ ] Replace current 150-400 XP range with star-based system (500-2532 XP)
+- [ ] Implement XP reward calculation based on star difficulty level
+- [ ] Add completion bonus XP for perfect monthly completion (100% achievement)
+- [ ] Create partial completion rewards (pro-rated XP for 70%+ completion)
+- [ ] Add streak bonus for consecutive monthly challenge completions
+- [ ] Integrate new XP rewards with existing gamification system balance
+
+**XP Reward Structure**:
+- Star-based base rewards: 500/750/1125/1688/2532 XP
+- Perfect completion bonus: +20% XP
+- Partial completion (70-99%): Pro-rated base reward
+- Monthly streak bonus: +100 XP per consecutive month
+
+##### Sub-checkpoint 4.5.8.5.G: Monthly Challenge UI Overhaul 🎨
+**Goal**: Transform weekly challenge UI components for monthly system
+- [ ] Update ChallengeSection for monthly display with new progress indicators
+- [ ] Redesign WeeklyChallengeCard as MonthlyChallengeCard with star rating display
+- [ ] Update ChallengeDetailModal with monthly timeline and milestone tracking
+- [ ] Add star rating visualization (1-5 stars with rarity colors)
+- [ ] Create monthly progress calendar view showing daily contributions
+- [ ] Implement completion celebration modal for monthly achievements
+- [ ] Update Home screen challenge integration with monthly context
+
+**UI Components to Transform**:
+- `ChallengeSection.tsx` → Monthly display format
+- `WeeklyChallengeCard.tsx` → `MonthlyChallengeCard.tsx` 
+- `ChallengeDetailModal.tsx` → Monthly timeline view
+- Add new `MonthlyProgressCalendar.tsx` component
+- Update challenge celebration animations for bigger rewards
+
+##### Sub-checkpoint 4.5.8.5.H: Automatic Monthly Challenge Generation ⚙️
+**Goal**: Implement automated monthly challenge creation and lifecycle
+- [ ] Create monthly challenge lifecycle management system
+- [ ] Implement automatic challenge generation on 1st of each month
+- [ ] Add challenge expiration and archiving for completed months
+- [ ] Create background process for challenge generation (app launch check)
+- [ ] Implement challenge preview system for upcoming month
+- [ ] Add manual challenge refresh capability for testing/debugging
+
+**Automation Features**:
+- Automatic generation trigger on first app launch of new month
+- Background challenge preparation (pre-calculate next month's challenge)
+- Grace period handling (late month start gets pro-rated targets)
+- Challenge archival system for completed months
+
+##### Sub-checkpoint 4.5.8.5.I: Data Migration & Legacy System Cleanup 🔄
+**Goal**: Migrate existing weekly challenge data and clean up old system
+- [ ] Create data migration script for existing weekly challenge progress
+- [ ] Archive historical weekly challenge data for reference
+- [ ] Remove or deprecate WeeklyChallengeService components safely
+- [ ] Update database schema version and migration handling
+- [ ] Test migration with various user states (active challenges, completed challenges)
+- [ ] Create rollback mechanism in case of migration issues
+
+**Migration Strategy**:
+- Preserve completed weekly challenges as historical achievements
+- Convert in-progress weekly challenges to appropriate monthly context
+- Archive old challenge data in separate storage keys
+- Implement gradual feature flag rollout for safe deployment
+
+##### Sub-checkpoint 4.5.8.5.J: Monthly Challenge System Testing 🧪
+**Goal**: Comprehensive testing of new monthly challenge system
+- [ ] Test baseline calculation accuracy across different user activity levels
+- [ ] Verify star progression logic works correctly (success/failure scenarios)
+- [ ] Test challenge generation for each category with various baselines
+- [ ] Test monthly progress tracking accuracy and persistence
+- [ ] Test XP reward calculation and integration with existing system
+- [ ] Test UI components with different star levels and challenge types
+- [ ] Test automatic monthly generation and lifecycle management
+- [ ] Test data migration and legacy system compatibility
+
+**Test Scenarios**:
+- New user (minimal baseline) → appropriate 1-star challenges
+- Power user (high baseline) → challenging 5-star targets
+- Mixed performance → proper star level adjustments
+- Month boundary testing → automatic generation timing
+- Progress tracking accuracy → daily/weekly/monthly aggregation
+
+**Key Success Criteria**:
+- Monthly challenges feel appropriately challenging but achievable
+- Star progression system provides clear advancement path
+- XP rewards feel proportional to effort and difficulty
+- UI clearly communicates monthly context and star system
+- System performs well with automatic monthly generation
+- Data migration completes without user experience disruption
+
+**Files to Create/Modify**:
+- `/src/services/monthlyyChallengeService.ts` - New core service (replace weekly)
+- `/src/services/userActivityTracker.ts` - New baseline tracking service
+- `/src/components/challenges/MonthlyChallengeCard.tsx` - Updated card component
+- `/src/components/challenges/MonthlyProgressCalendar.tsx` - New progress visualization
+- `/src/types/gamification.ts` - Updated types for monthly system
+- `/app/(tabs)/index.tsx` - Updated Home screen integration
+- `/src/locales/en/index.ts` - Updated translations for monthly context
+
 #### Checkpoint 4.5.9: Integration Testing & Launch Preparation
 **Goal**: Final integration testing and system validation
 
