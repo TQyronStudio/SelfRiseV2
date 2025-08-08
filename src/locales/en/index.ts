@@ -833,6 +833,9 @@ const en: TranslationKeys = {
       goal_completion: {
         icon_description: 'Target icon representing goal completion',
       },
+      goal_milestone: {
+        icon_description: 'Star icon representing goal milestone',
+      },
       habit_streak_milestone: {
         icon_description: 'Fire icon representing habit streak milestone',
       },
@@ -841,6 +844,9 @@ const en: TranslationKeys = {
       },
       achievement_unlock: {
         icon_description: 'Trophy icon representing achievement unlock',
+      },
+      weekly_challenge: {
+        icon_description: 'Trophy icon representing weekly challenge completion',
       },
       general_activity: {
         icon_description: 'Sparkles icon representing general activity',

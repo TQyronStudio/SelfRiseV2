@@ -944,9 +944,11 @@ export class GamificationService {
         };
       }
 
-      // Check rate limiting
+      // Check rate limiting (skip for goal completion - legitimate multiple rapid transactions)
       const timeSinceLastTransaction = Date.now() - dailyData.lastTransactionTime;
-      if (timeSinceLastTransaction < BALANCE_VALIDATION.MIN_TIME_BETWEEN_IDENTICAL_GAINS) {
+      const isGoalCompletion = source === XPSourceType.GOAL_COMPLETION;
+      
+      if (!isGoalCompletion && timeSinceLastTransaction < BALANCE_VALIDATION.MIN_TIME_BETWEEN_IDENTICAL_GAINS) {
         return {
           isValid: false,
           allowedAmount: 0,

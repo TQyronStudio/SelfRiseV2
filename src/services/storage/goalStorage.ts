@@ -17,8 +17,8 @@ interface GoalDailyXPData {
 
 export class GoalStorage implements EntityStorage<Goal> {
   // XP system enabled for goal actions
-  // DISABLED: XP is now handled in UI layer (GoalsScreen) for real-time updates
-  private static XP_ENABLED = false;
+  // ENABLED: XP is needed for weekly challenge tracking and gamification
+  private static XP_ENABLED = true;
   // Constants
   private static readonly MAX_DAILY_POSITIVE_XP_PER_GOAL = 3; // Max 3 positive XP per goal per day
   
@@ -277,7 +277,14 @@ export class GoalStorage implements EntityStorage<Goal> {
         this.subtractGoalProgressXPForSubtract(goal, input.value);
       } else {
         // Award XP for positive progress (add/set)
-        this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, updatedGoal.status === GoalStatus.COMPLETED);
+        const isCompleted = updatedGoal.status === GoalStatus.COMPLETED;
+        console.log(`🎯 Goal progress debug: ${goal.title}`);
+        console.log(`   Previous: ${previousCompletionPercentage}% (${goal.currentValue}/${goal.targetValue})`);
+        console.log(`   New: ${newCompletionPercentage}% (${updatedGoal.currentValue}/${goal.targetValue})`);
+        console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
+        console.log(`   isCompleted: ${isCompleted}`);
+        
+        this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, isCompleted);
       }
 
       return newProgress;
@@ -600,6 +607,8 @@ export class GoalStorage implements EntityStorage<Goal> {
     isCompleted: boolean
   ): Promise<void> {
     try {
+      console.log(`🎯 awardGoalProgressXP: ${goal.title}, isCompleted=${isCompleted}`);
+      
       // 1. Award progress XP (35 XP, max once per goal per day)
       await this.awardProgressXP(goal);
 
@@ -608,7 +617,10 @@ export class GoalStorage implements EntityStorage<Goal> {
 
       // 3. Award completion XP if goal was completed
       if (isCompleted) {
+        console.log(`🎉 Awarding completion XP for goal: ${goal.title}`);
         await this.awardCompletionXP(goal);
+      } else {
+        console.log(`⏸️ No completion XP - goal not completed (isCompleted=${isCompleted})`);
       }
     } catch (error) {
       console.error('Failed to award goal XP:', error);
@@ -677,6 +689,10 @@ export class GoalStorage implements EntityStorage<Goal> {
    */
   private async awardCompletionXP(goal: Goal): Promise<void> {
     try {
+      console.log(`🏁 awardCompletionXP called for: ${goal.title}`);
+      console.log(`   Target value: ${goal.targetValue}`);
+      console.log(`   XP_ENABLED: ${GoalStorage.XP_ENABLED}`);
+      
       // Determine XP amount based on goal target value
       const isBigGoal = goal.targetValue >= 1000;
       const xpAmount = isBigGoal ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
@@ -684,15 +700,40 @@ export class GoalStorage implements EntityStorage<Goal> {
         ? `Completed big goal (${goal.targetValue}): ${goal.title}` 
         : `Completed goal: ${goal.title}`;
 
+      console.log(`   isBigGoal: ${isBigGoal}, xpAmount: ${xpAmount}`);
+      console.log(`   About to call GamificationService.addXP...`);
+
       if (GoalStorage.XP_ENABLED) {
-        await GamificationService.addXP(xpAmount, {
-          source: XPSourceType.GOAL_COMPLETION,
-          sourceId: goal.id,
-          description,
-        });
+        console.log(`🚀 Calling GamificationService.addXP with ${xpAmount} XP...`);
+        try {
+          const result = await GamificationService.addXP(xpAmount, {
+            source: XPSourceType.GOAL_COMPLETION,
+            sourceId: goal.id,
+            description,
+          });
+          console.log(`✅ GamificationService.addXP result:`, result);
+          console.log(`✅ Successfully awarded ${xpAmount} completion XP`);
+          
+          // Trigger real-time UI update via DeviceEventEmitter
+          const { DeviceEventEmitter } = await import('react-native');
+          DeviceEventEmitter.emit('xpGained', {
+            amount: xpAmount,
+            source: XPSourceType.GOAL_COMPLETION,
+            description,
+            levelUp: result.leveledUp,
+            newLevel: result.newLevel
+          });
+          console.log(`📡 Emitted xpGained event for real-time UI update`);
+          
+        } catch (xpError) {
+          console.error(`❌ GamificationService.addXP failed:`, xpError);
+          throw xpError;
+        }
+      } else {
+        console.log(`❌ XP_ENABLED is false - not awarding XP`);
       }
     } catch (error) {
-      console.error('Failed to award completion XP:', error);
+      console.error('❌ Failed to award completion XP:', error);
     }
   }
 
