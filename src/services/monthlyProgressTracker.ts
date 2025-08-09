@@ -453,7 +453,7 @@ export class MonthlyProgressTracker {
   public static async saveProgressState(progress: MonthlyChallengeProgress): Promise<void> {
     try {
       // Update timestamp
-      progress.updatedAt = new Date();
+      (progress as any).updatedAt = new Date();
 
       // Save to storage
       await AsyncStorage.setItem(
@@ -558,12 +558,20 @@ export class MonthlyProgressTracker {
   // ========================================
 
   /**
-   * Get active monthly challenges (stub - will be implemented with MonthlyChallengeService integration)
+   * Get active monthly challenges - fully integrated with MonthlyChallengeService
    */
   private static async getActiveMonthlyChallenge(): Promise<MonthlyChallenge[]> {
     try {
-      // TODO: Integrate with MonthlyChallengeService.getActiveChallenge()
-      // For now, return empty array until integration is complete
+      // Import MonthlyChallengeService dynamically to avoid circular imports
+      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      
+      // Get current active challenge
+      const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
+      
+      if (currentChallenge && currentChallenge.isActive) {
+        return [currentChallenge];
+      }
+      
       return [];
     } catch (error) {
       console.error('MonthlyProgressTracker.getActiveMonthlyChallenge error:', error);
@@ -629,7 +637,7 @@ export class MonthlyProgressTracker {
     amount: number
   ): Promise<void> {
     try {
-      const now = today();
+      const now = new Date();
       const todayString = formatDateToString(now);
       const dayOfMonth = now.getDate();
       const weekNumber = this.calculateWeekNumber(now) as 1 | 2 | 3 | 4 | 5;
@@ -731,7 +739,7 @@ export class MonthlyProgressTracker {
     progress: MonthlyChallengeProgress
   ): Promise<void> {
     try {
-      const now = today();
+      const now = new Date();
       const currentWeekNumber = this.calculateWeekNumber(now);
       
       // Get or create weekly breakdown for current week
@@ -841,12 +849,12 @@ export class MonthlyProgressTracker {
 
           // Award XP bonus
           if (xpBonus > 0) {
-            await GamificationService.addXP(
-              xpBonus,
-              XPSourceType.WEEKLY_CHALLENGE_REWARD,
-              challengeId,
-              { milestone, type: 'monthly_challenge_milestone' }
-            );
+            await GamificationService.addXP(xpBonus, {
+              source: XPSourceType.WEEKLY_CHALLENGE,
+              sourceId: challengeId,
+              description: `Monthly challenge milestone ${milestone}%`,
+              metadata: { milestone, type: 'monthly_challenge_milestone' }
+            });
           }
 
           const result: MilestoneResult = {
@@ -966,18 +974,18 @@ export class MonthlyProgressTracker {
       progress.xpEarned = totalXP;
 
       // Award XP
-      await GamificationService.addXP(
-        totalXP,
-        XPSourceType.WEEKLY_CHALLENGE_REWARD,
-        challengeId,
-        { 
+      await GamificationService.addXP(totalXP, {
+        source: XPSourceType.WEEKLY_CHALLENGE,
+        sourceId: challengeId,
+        description: `Monthly challenge completed: ${challenge?.title}`,
+        metadata: { 
           type: 'monthly_challenge_completion',
           baseReward: baseXPReward,
           completionBonus,
           streakBonus,
           streak: progress.currentStreak
         }
-      );
+      });
 
       // Update star rating for this category
       const completionData = {
@@ -1080,13 +1088,31 @@ export class MonthlyProgressTracker {
   }
 
   /**
-   * Get daily XP transactions for analysis (stub - needs GamificationService integration)
+   * Get daily XP transactions for analysis - fully integrated with GamificationService
    */
   private static async getDailyXPTransactions(dateString: DateString): Promise<any[]> {
     try {
-      // TODO: Integrate with GamificationService to get daily transactions
-      // For now, return empty array until integration is complete
-      return [];
+      // Import GamificationService dynamically to avoid circular imports
+      const { GamificationService } = await import('./gamificationService');
+      
+      // Get all XP transactions for the specific date
+      const transactions = await GamificationService.getTransactionsByDateRange(dateString, dateString);
+      
+      if (!transactions || transactions.length === 0) {
+        return [];
+      }
+      
+      // Return transactions with all necessary properties for analysis
+      return transactions.map(transaction => ({
+        id: transaction.id,
+        amount: transaction.amount,
+        source: transaction.source,
+        sourceId: transaction.sourceId,
+        description: transaction.description,
+        date: transaction.date,
+        timestamp: transaction.createdAt?.getTime() || Date.now(),
+        metadata: {}
+      }));
     } catch (error) {
       console.error('MonthlyProgressTracker.getDailyXPTransactions error:', error);
       return [];
@@ -1128,35 +1154,321 @@ export class MonthlyProgressTracker {
   }
 
   // ========================================
-  // PLACEHOLDER METHODS FOR FUTURE PHASES
+  // INTEGRATION METHODS - FULLY IMPLEMENTED
   // ========================================
 
   /**
-   * Get requirements for a challenge (placeholder - needs MonthlyChallengeService integration)
+   * Get requirements for a challenge - fully integrated with MonthlyChallengeService
    */
   private static async getRequirementsForChallenge(challengeId: string): Promise<MonthlyChallengeRequirement[]> {
-    // TODO: Integrate with MonthlyChallengeService
-    return [];
+    try {
+      // Get the challenge object which contains requirements
+      const challenge = await this.getChallengeById(challengeId);
+      
+      if (!challenge) {
+        console.warn(`Challenge ${challengeId} not found, cannot retrieve requirements`);
+        return [];
+      }
+      
+      // Return the requirements array from the challenge
+      return challenge.requirements || [];
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getRequirementsForChallenge error:', error);
+      return [];
+    }
   }
 
   /**
-   * Get challenge by ID (placeholder - needs MonthlyChallengeService integration)
+   * Get challenge by ID - fully integrated with MonthlyChallengeService
    */
   private static async getChallengeById(challengeId: string): Promise<MonthlyChallenge | null> {
-    // TODO: Integrate with MonthlyChallengeService
-    return null;
+    try {
+      // Import MonthlyChallengeService dynamically to avoid circular imports
+      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      
+      // First try to get current challenge
+      const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
+      if (currentChallenge && currentChallenge.id === challengeId) {
+        return currentChallenge;
+      }
+      
+      // If not current challenge, search through recent challenges
+      // Extract month from challengeId if possible or use current month
+      const currentMonth = formatDateToString(today()).substring(0, 7); // YYYY-MM
+      const challengeForMonth = await MonthlyChallengeService.getChallengeForMonth(currentMonth);
+      
+      if (challengeForMonth && challengeForMonth.id === challengeId) {
+        return challengeForMonth;
+      }
+      
+      // Try previous month as fallback
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const lastMonthString = formatDateToString(lastMonth).substring(0, 7);
+      const lastMonthChallenge = await MonthlyChallengeService.getChallengeForMonth(lastMonthString);
+      
+      if (lastMonthChallenge && lastMonthChallenge.id === challengeId) {
+        return lastMonthChallenge;
+      }
+      
+      console.warn(`Challenge with ID ${challengeId} not found`);
+      return null;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getChallengeById error:', error);
+      return null;
+    }
   }
 
   /**
-   * Additional placeholder methods for weekly breakdown operations
+   * Weekly breakdown operations - fully implemented
    */
-  private static async getWeeklyBreakdown(challengeId: string, weekNumber: number): Promise<WeeklyBreakdown | null> { return null; }
-  private static async initializeWeeklyBreakdown(challengeId: string, weekNumber: number): Promise<WeeklyBreakdown> { throw new Error('Not implemented'); }
-  private static async getWeeklySnapshots(challengeId: string, weekNumber: number): Promise<DailyProgressSnapshot[]> { return []; }
-  private static calculateWeeklyCompletionPercentage(breakdown: WeeklyBreakdown): number { return 0; }
-  private static async calculateWeeklyConsistency(challengeId: string): Promise<number> { return 0; }
-  private static getBestWeekPerformance(progress: MonthlyChallengeProgress): number { return 0; }
-  private static async saveWeeklyBreakdown(breakdown: WeeklyBreakdown): Promise<void> {}
-  private static async updateChallengeStreak(challengeId: string, completed: boolean): Promise<void> {}
-  private static async archiveCompletedChallenge(challenge: MonthlyChallenge, progress: MonthlyChallengeProgress): Promise<void> {}
+  
+  /**
+   * Get weekly breakdown data from storage
+   */
+  private static async getWeeklyBreakdown(challengeId: string, weekNumber: number): Promise<WeeklyBreakdown | null> {
+    try {
+      const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_${challengeId}_week${weekNumber}`;
+      const stored = await AsyncStorage.getItem(key);
+      
+      if (!stored) return null;
+      
+      return JSON.parse(stored) as WeeklyBreakdown;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getWeeklyBreakdown error:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Initialize weekly breakdown for a new week
+   */
+  private static async initializeWeeklyBreakdown(challengeId: string, weekNumber: number): Promise<WeeklyBreakdown> {
+    try {
+      const challenge = await this.getChallengeById(challengeId);
+      if (!challenge) {
+        throw new Error(`Challenge ${challengeId} not found for weekly breakdown initialization`);
+      }
+      
+      // Calculate week date range
+      const startDate = parseDate(challenge.startDate);
+      const weekStartDay = (weekNumber - 1) * 7 + 1;
+      const weekStart = addDays(startDate, weekStartDay - 1);
+      const weekEnd = addDays(weekStart, 6);
+      
+      // Initialize empty weekly breakdown
+      const breakdown: WeeklyBreakdown = {
+        weekNumber: weekNumber as 1 | 2 | 3 | 4 | 5,
+        startDate: formatDateToString(weekStart),
+        endDate: formatDateToString(weekEnd),
+        weeklyProgress: {},
+        weeklyTarget: {},
+        completionPercentage: 0,
+        daysActive: 0,
+        perfectDays: 0,
+        bestDay: null,
+        isCurrentWeek: this.calculateWeekNumber(today()) === weekNumber,
+        isCompleted: false
+      };
+      
+      // Initialize progress tracking for each requirement
+      for (const requirement of challenge.requirements) {
+        breakdown.weeklyProgress[requirement.trackingKey] = 0;
+        breakdown.weeklyTarget[requirement.trackingKey] = Math.ceil(requirement.target / 4); // Rough weekly target
+      }
+      
+      await this.saveWeeklyBreakdown(breakdown);
+      return breakdown;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.initializeWeeklyBreakdown error:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get all daily snapshots for a specific week
+   */
+  private static async getWeeklySnapshots(challengeId: string, weekNumber: number): Promise<DailyProgressSnapshot[]> {
+    try {
+      const challenge = await this.getChallengeById(challengeId);
+      if (!challenge) return [];
+      
+      // Calculate week date range
+      const startDate = parseDate(challenge.startDate);
+      const weekStartDay = (weekNumber - 1) * 7 + 1;
+      const weekStart = addDays(startDate, weekStartDay - 1);
+      const weekEnd = addDays(weekStart, 6);
+      
+      const snapshots: DailyProgressSnapshot[] = [];
+      
+      // Collect snapshots for each day of the week
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const currentDay = addDays(weekStart, dayOffset);
+        const dateString = formatDateToString(currentDay);
+        
+        const snapshot = await this.getDailySnapshot(challengeId, dateString);
+        if (snapshot && snapshot.weekNumber === weekNumber) {
+          snapshots.push(snapshot);
+        }
+      }
+      
+      return snapshots.sort((a, b) => a.date.localeCompare(b.date));
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getWeeklySnapshots error:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Calculate weekly completion percentage based on weekly targets
+   */
+  private static calculateWeeklyCompletionPercentage(breakdown: WeeklyBreakdown): number {
+    try {
+      if (Object.keys(breakdown.weeklyTarget).length === 0) return 0;
+      
+      let totalWeight = 0;
+      let completedWeight = 0;
+      
+      for (const [trackingKey, target] of Object.entries(breakdown.weeklyTarget)) {
+        const progress = breakdown.weeklyProgress[trackingKey] || 0;
+        const completionRatio = Math.min(progress / target, 1);
+        
+        totalWeight += 1;
+        completedWeight += completionRatio;
+      }
+      
+      return Math.round((completedWeight / totalWeight) * 100);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateWeeklyCompletionPercentage error:', error);
+      return 0;
+    }
+  }
+  
+  /**
+   * Calculate weekly consistency across all weeks
+   */
+  private static async calculateWeeklyConsistency(challengeId: string): Promise<number> {
+    try {
+      const challenge = await this.getChallengeById(challengeId);
+      if (!challenge) return 0;
+      
+      // Get number of weeks in the month
+      const totalWeeks = this.isMonthWith31Days(challenge.startDate) ? 5 : 4;
+      let consistentWeeks = 0;
+      
+      // Check each week for consistency (>50% completion)
+      for (let week = 1; week <= totalWeeks; week++) {
+        const breakdown = await this.getWeeklyBreakdown(challengeId, week);
+        if (breakdown && breakdown.completionPercentage >= 50) {
+          consistentWeeks++;
+        }
+      }
+      
+      return Math.round((consistentWeeks / totalWeeks) * 100) / 100;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateWeeklyConsistency error:', error);
+      return 0;
+    }
+  }
+  
+  /**
+   * Get best week performance from progress data
+   */
+  private static getBestWeekPerformance(progress: MonthlyChallengeProgress): number {
+    try {
+      const weeks = ['week1', 'week2', 'week3', 'week4', 'week5'] as const;
+      let bestPerformance = 0;
+      
+      for (const weekKey of weeks) {
+        const weekData = progress.weeklyProgress[weekKey];
+        if (weekData && Object.keys(weekData).length > 0) {
+          // Calculate week performance based on progress values
+          const weekTotal = Object.values(weekData).reduce((sum, val) => sum + val, 0);
+          if (weekTotal > bestPerformance) {
+            bestPerformance = weekTotal;
+          }
+        }
+      }
+      
+      return bestPerformance;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getBestWeekPerformance error:', error);
+      return 0;
+    }
+  }
+  
+  /**
+   * Save weekly breakdown to storage
+   */
+  private static async saveWeeklyBreakdown(breakdown: WeeklyBreakdown): Promise<void> {
+    try {
+      const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_weekly_${breakdown.weekNumber}`;
+      await AsyncStorage.setItem(key, JSON.stringify(breakdown));
+    } catch (error) {
+      console.error('MonthlyProgressTracker.saveWeeklyBreakdown error:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Update challenge streak data
+   */
+  private static async updateChallengeStreak(challengeId: string, completed: boolean): Promise<void> {
+    try {
+      // Import EnhancedXPRewardEngine for streak management
+      const { EnhancedXPRewardEngine } = await import('./enhancedXPRewardEngine');
+      
+      const challenge = await this.getChallengeById(challengeId);
+      if (!challenge) return;
+      
+      // Update monthly streak through EnhancedXPRewardEngine
+      await EnhancedXPRewardEngine.updateMonthlyStreak(
+        challenge.category,
+        completed,
+        challenge.starLevel
+      );
+      
+      console.log(`📈 Challenge streak updated: ${challengeId}, completed: ${completed}`);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.updateChallengeStreak error:', error);
+      // Don't throw - streak updates are not critical for core functionality
+    }
+  }
+  
+  /**
+   * Archive completed challenge for historical reference
+   */
+  private static async archiveCompletedChallenge(
+    challenge: MonthlyChallenge, 
+    progress: MonthlyChallengeProgress
+  ): Promise<void> {
+    try {
+      const archiveData = {
+        challenge,
+        progress,
+        archivedAt: new Date(),
+        completionStatus: 'completed',
+        finalStats: {
+          completionPercentage: progress.completionPercentage,
+          daysActive: progress.daysActive,
+          xpEarned: progress.xpEarned,
+          streakAtCompletion: progress.currentStreak,
+          weeklyConsistency: progress.weeklyConsistency
+        }
+      };
+      
+      // Save to archive storage
+      const archiveKey = `monthly_challenge_archive_${challenge.id}`;
+      await AsyncStorage.setItem(archiveKey, JSON.stringify(archiveData));
+      
+      // Import MonthlyChallengeService for archival
+      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      await MonthlyChallengeService.archiveCompletedChallenge(challenge.id);
+      
+      console.log(`🗃️ Challenge archived: ${challenge.title}`);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.archiveCompletedChallenge error:', error);
+      // Don't throw - archival is not critical for core functionality
+    }
+  }
 }
