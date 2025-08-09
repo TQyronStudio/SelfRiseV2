@@ -12,6 +12,17 @@ export { XpMultiplierIndicator } from './XpMultiplierIndicator';
 export { MultiplierCountdownTimer } from './MultiplierCountdownTimer';
 export { MultiplierActivationModal } from './MultiplierActivationModal';
 
+// Star Rating & Challenge Difficulty Components
+export { StarRatingDisplay } from './StarRatingDisplay';
+export { StarProgressIndicator } from './StarProgressIndicator';
+export { 
+  StarRatingBadge, 
+  CompactStarBadge, 
+  CategoryStarBadge, 
+  MultiplierStarBadge,
+  StarRatingGrid 
+} from './StarRatingBadge';
+
 // Animation Context and Hooks
 export { 
   XpAnimationProvider, 

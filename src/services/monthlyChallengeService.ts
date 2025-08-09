@@ -3,6 +3,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserActivityTracker, UserActivityBaseline } from './userActivityTracker';
+import { StarRatingService, ChallengeCompletionData } from './starRatingService';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
 import { 
   MonthlyChallenge, 
@@ -618,194 +619,52 @@ export class MonthlyChallengeService {
     return Math.max(scaledValue, starLevel); // At least match star level as minimum
   }
 
-  /**
-   * Get default star ratings for new users
-   */
-  private static getDefaultStarRatings(): UserChallengeRatings {
-    return {
-      habits: 1,
-      journal: 1,
-      goals: 1,
-      consistency: 1,
-      history: [],
-      lastUpdated: new Date()
-    };
-  }
+  // Note: getDefaultStarRatings method removed - StarRatingService handles default values internally
 
   /**
-   * Get or create user star ratings from storage
+   * Get current user star ratings using StarRatingService
    */
   static async getUserStarRatings(): Promise<UserChallengeRatings> {
-    try {
-      const stored = await AsyncStorage.getItem(this.RATINGS_STORAGE_KEY);
-      if (stored) {
-        const ratings: UserChallengeRatings = JSON.parse(stored);
-        // Ensure all categories have valid ratings (1-5)
-        ratings.habits = Math.max(1, Math.min(5, ratings.habits || 1));
-        ratings.journal = Math.max(1, Math.min(5, ratings.journal || 1));
-        ratings.goals = Math.max(1, Math.min(5, ratings.goals || 1));
-        ratings.consistency = Math.max(1, Math.min(5, ratings.consistency || 1));
-        return ratings;
-      }
-    } catch (error) {
-      console.error('Failed to load user star ratings:', error);
-    }
-
-    // Return default ratings for new users
-    const defaultRatings = this.getDefaultStarRatings();
-    await this.saveUserStarRatings(defaultRatings);
-    return defaultRatings;
+    return await StarRatingService.getCurrentStarRatings();
   }
 
-  /**
-   * Save user star ratings to storage
-   */
-  private static async saveUserStarRatings(ratings: UserChallengeRatings): Promise<void> {
-    try {
-      ratings.lastUpdated = new Date();
-      await AsyncStorage.setItem(this.RATINGS_STORAGE_KEY, JSON.stringify(ratings));
-    } catch (error) {
-      console.error('Failed to save user star ratings:', error);
-      throw error;
-    }
-  }
+  // Note: saveUserStarRatings method removed - StarRatingService handles storage internally
 
   /**
-   * Update star rating for a category based on challenge completion
-   * 
-   * Star Progression Rules:
-   * - ✅ Challenge Completed (≥100%) → +1 Star (max 5)
-   * - 📊 Challenge Failed (<70%) → Same Star Level  
-   * - ❌ Challenge Failed 2 months consecutively → -1 Star (min 1)
-   * - 🎯 Challenge 70-99% completed → Same Star Level
+   * Update star rating for a category based on challenge completion using StarRatingService
    */
   static async updateStarRatings(
     category: AchievementCategory, 
     completionPercentage: number,
     month: string = formatDateToString(new Date()).substring(0, 7)
   ): Promise<StarRatingHistoryEntry> {
-    const ratings = await this.getUserStarRatings();
-    
-    // Map category to rating key
-    const categoryKey = category.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
-    const previousStars = ratings[categoryKey] || 1;
-    let newStars = previousStars;
-    let reason: StarRatingHistoryEntry['reason'] = 'success';
-
-    // Check completion percentage and apply progression rules
-    if (completionPercentage >= 100) {
-      // Perfect completion: increase by 1 star (max 5)
-      newStars = Math.min(5, previousStars + 1);
-      reason = 'success';
-    } else if (completionPercentage >= 70) {
-      // Partial completion: maintain same star level
-      newStars = previousStars;
-      reason = 'success';
-    } else {
-      // Failed completion: check for consecutive failures
-      const recentFailures = this.countRecentFailures(ratings.history, category, month);
-      
-      if (recentFailures >= 2) {
-        // Two consecutive failures: decrease by 1 star (min 1)
-        newStars = Math.max(1, previousStars - 1);
-        reason = 'double_failure';
-      } else {
-        // Single failure: maintain same star level
-        newStars = previousStars;
-        reason = 'failure';
-      }
-    }
-
-    // Create history entry
-    const historyEntry: StarRatingHistoryEntry = {
-      month,
+    // Create challenge completion data for StarRatingService
+    const completionData: ChallengeCompletionData = {
+      challengeId: `monthly_${month}_${category}`,
       category,
-      previousStars,
-      newStars,
-      challengeCompleted: completionPercentage >= 70,
       completionPercentage,
-      reason,
-      timestamp: new Date()
+      month,
+      wasCompleted: completionPercentage >= 70,
+      targetValue: 100, // Placeholder, will be filled by actual challenge data
+      actualValue: completionPercentage
     };
 
-    // Update ratings and save
-    ratings[categoryKey] = newStars;
-    ratings.history.push(historyEntry);
-    
-    // Keep only last 12 months of history
-    ratings.history = ratings.history
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 12);
-
-    await this.saveUserStarRatings(ratings);
-    
-    return historyEntry;
+    return await StarRatingService.updateStarRatingForCompletion(completionData);
   }
 
-  /**
-   * Count recent consecutive failures for a category
-   */
-  private static countRecentFailures(
-    history: StarRatingHistoryEntry[], 
-    category: AchievementCategory, 
-    currentMonth: string
-  ): number {
-    // Get history for this category, sorted by month descending
-    const categoryHistory = history
-      .filter(entry => entry.category === category)
-      .sort((a, b) => b.month.localeCompare(a.month));
+  // Note: countRecentFailures method removed - StarRatingService handles failure tracking internally
 
-    let consecutiveFailures = 0;
-    
-    // Count consecutive months with failures (completion < 70%)
-    for (const entry of categoryHistory) {
-      if (entry.month >= currentMonth) continue; // Skip current/future months
-      
-      if (entry.completionPercentage < 70) {
-        consecutiveFailures++;
-      } else {
-        break; // Stop at first non-failure
-      }
-    }
-
-    return consecutiveFailures;
-  }
+  // Note: getStarLevelForCategory method removed - use StarRatingService.getCurrentStarRatings() directly
 
   /**
-   * Get star level for a specific category
-   */
-  static async getStarLevelForCategory(category: AchievementCategory): Promise<number> {
-    const ratings = await this.getUserStarRatings();
-    const categoryKey = category.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
-    return ratings[categoryKey] || 1;
-  }
-
-  /**
-   * Reset star ratings for a category (admin/debug function)
+   * Reset star ratings for a category using StarRatingService
    */
   static async resetStarRating(category: AchievementCategory, newRating: 1 | 2 | 3 | 4 | 5): Promise<void> {
-    const ratings = await this.getUserStarRatings();
-    const categoryKey = category.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
-    
-    const historyEntry: StarRatingHistoryEntry = {
-      month: formatDateToString(new Date()).substring(0, 7),
-      category,
-      previousStars: ratings[categoryKey] || 1,
-      newStars: newRating,
-      challengeCompleted: false,
-      completionPercentage: 0,
-      reason: 'reset',
-      timestamp: new Date()
-    };
-
-    ratings[categoryKey] = newRating;
-    ratings.history.push(historyEntry);
-    
-    await this.saveUserStarRatings(ratings);
+    await StarRatingService.resetCategoryStarRating(category, newRating);
   }
 
   /**
-   * Get star rating statistics and progression analytics
+   * Get star rating statistics and progression analytics using StarRatingService
    */
   static async getStarRatingStats(): Promise<{
     currentRatings: UserChallengeRatings;
@@ -814,37 +673,16 @@ export class MonthlyChallengeService {
     totalRegressions: number;
     monthlyTrend: 'improving' | 'stable' | 'declining';
   }> {
+    // Get data from both services to maintain compatibility
     const ratings = await this.getUserStarRatings();
-    
-    const currentLevels = [ratings.habits, ratings.journal, ratings.goals, ratings.consistency];
-    const averageStarLevel = currentLevels.reduce((sum, level) => sum + level, 0) / currentLevels.length;
-    
-    const progressions = ratings.history.filter(entry => entry.newStars > entry.previousStars).length;
-    const regressions = ratings.history.filter(entry => entry.newStars < entry.previousStars).length;
-    
-    // Determine trend based on last 3 months
-    const recentHistory = ratings.history
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 6); // Last 6 entries (max 3 months if all categories)
-    
-    const recentProgressions = recentHistory.filter(entry => entry.newStars > entry.previousStars).length;
-    const recentRegressions = recentHistory.filter(entry => entry.newStars < entry.previousStars).length;
-    
-    let monthlyTrend: 'improving' | 'stable' | 'declining';
-    if (recentProgressions > recentRegressions) {
-      monthlyTrend = 'improving';
-    } else if (recentRegressions > recentProgressions) {
-      monthlyTrend = 'declining';
-    } else {
-      monthlyTrend = 'stable';
-    }
+    const analysis = await StarRatingService.generateStarRatingAnalysis();
 
     return {
       currentRatings: ratings,
-      averageStarLevel: Math.round(averageStarLevel * 100) / 100,
-      totalProgressions: progressions,
-      totalRegressions: regressions,
-      monthlyTrend
+      averageStarLevel: analysis.overallRating,
+      totalProgressions: analysis.totalCompletions,
+      totalRegressions: analysis.totalFailures,
+      monthlyTrend: analysis.recentTrend
     };
   }
 
@@ -1919,8 +1757,10 @@ export class MonthlyChallengeService {
       warnings.push(...categorySelection.warnings);
       alternatives.push(...categorySelection.alternativeCategories.map(cat => `category:${cat}`));
 
-      // Get star level for selected category
-      const starLevel = await this.getStarLevelForCategory(categorySelection.selectedCategory);
+      // Get star level for selected category using StarRatingService
+      const currentRatings = await StarRatingService.getCurrentStarRatings();
+      const categoryKey = categorySelection.selectedCategory.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
+      const starLevel = currentRatings[categoryKey] || 1;
 
       // Select template within category
       const templateSelection = this.selectTemplateForCategory(
