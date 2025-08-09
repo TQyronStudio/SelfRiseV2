@@ -11,5 +11,7 @@ export * from './achievementStorage';
 export * from './achievementIntegration';
 export * from './levelCalculation';
 export * from './xpMultiplierService';
+export * from './enhancedXPRewardEngine';
+export * from './enhancedXPRewardOptimizer';
 export * from './userActivityTracker';
 export * from './storage';
