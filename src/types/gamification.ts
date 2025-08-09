@@ -646,6 +646,12 @@ export interface MonthlyChallengeCompletionResult extends ChallengeCompletionRes
   perfectCompletionBonus: number;
   totalXPEarned: number;
   
+  // Completion statistics
+  completionPercentage: number;
+  requirementsCompleted: number;
+  activeDays: number;
+  milestonesReached: number;
+  
   // Star progression
   oldStarLevel: number;
   newStarLevel: number;

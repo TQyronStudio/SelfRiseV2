@@ -17,13 +17,21 @@ import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
 import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
-import { ChallengeSection, ChallengeDetailModal, ChallengeCompletionModal } from '@/src/components/challenges';
+import { 
+  MonthlyChallengeSection,
+  MonthlyChallengeDetailModal, 
+  MonthlyChallengeCompletionModal 
+} from '@/src/components/challenges';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useGamification } from '@/src/contexts/GamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
-import { XPSourceType, WeeklyChallenge, ChallengeCompletionResult } from '@/src/types/gamification';
+import { 
+  XPSourceType, 
+  MonthlyChallenge, 
+  MonthlyChallengeCompletionResult 
+} from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 
 export default function HomeScreen() {
@@ -33,11 +41,11 @@ export default function HomeScreen() {
   const { addXP, subtractXP } = useGamification();
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
-  const [selectedChallenge, setSelectedChallenge] = useState<WeeklyChallenge | null>(null);
+  const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
   const [showChallengeCompletion, setShowChallengeCompletion] = useState(false);
-  const [completionChallenge, setCompletionChallenge] = useState<WeeklyChallenge | null>(null);
-  const [completionResult, setCompletionResult] = useState<ChallengeCompletionResult | null>(null);
+  const [completionChallenge, setCompletionChallenge] = useState<MonthlyChallenge | null>(null);
+  const [completionResult, setCompletionResult] = useState<MonthlyChallengeCompletionResult | null>(null);
 
 
 
@@ -46,7 +54,7 @@ export default function HomeScreen() {
     router.push('/(tabs)/journal');
   };
 
-  const handleChallengePress = (challenge: WeeklyChallenge) => {
+  const handleChallengePress = (challenge: MonthlyChallenge) => {
     setSelectedChallenge(challenge);
     setShowChallengeDetail(true);
   };
@@ -114,8 +122,8 @@ export default function HomeScreen() {
     const challengeCompletedListener = DeviceEventEmitter.addListener(
       'challengeCompleted',
       ({ challenge, result }: { 
-        challenge: WeeklyChallenge; 
-        result: ChallengeCompletionResult; 
+        challenge: MonthlyChallenge; 
+        result: MonthlyChallengeCompletionResult; 
       }) => {
         console.log('🎉 Challenge completed event received:', challenge.title, result.xpEarned, 'XP');
         setCompletionChallenge(challenge);
@@ -186,7 +194,7 @@ export default function HomeScreen() {
         )}
 
         {isComponentVisible('weeklyChallenges') && (
-          <ChallengeSection 
+          <MonthlyChallengeSection 
             onChallengePress={handleChallengePress}
             onViewAllPress={handleViewAllChallenges}
           />
@@ -223,22 +231,38 @@ export default function HomeScreen() {
         onClose={() => setShowCustomizationModal(false)}
       />
 
-      {/* Challenge Detail Modal */}
-      <ChallengeDetailModal
+      {/* Monthly Challenge Detail Modal */}
+      <MonthlyChallengeDetailModal
         challenge={selectedChallenge}
         progress={selectedChallenge ? { 
           challengeId: selectedChallenge.id,
           userId: 'local_user',
           progress: {},
           isCompleted: false,
+          completionPercentage: 0,
+          daysActive: 0,
+          daysRemaining: 0,
+          projectedCompletion: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          streakBonusEligible: false,
+          weeklyProgress: { week1: {}, week2: {}, week3: {}, week4: {} },
+          milestonesReached: {
+            25: { reached: false },
+            50: { reached: false },
+            75: { reached: false }
+          },
+          dailyConsistency: 0,
+          weeklyConsistency: 0,
+          bestWeek: 1,
           xpEarned: 0
         } : null}
         visible={showChallengeDetail}
         onClose={handleCloseChallengeDetail}
       />
 
-      {/* Challenge Completion Celebration Modal */}
-      <ChallengeCompletionModal
+      {/* Monthly Challenge Completion Celebration Modal */}
+      <MonthlyChallengeCompletionModal
         visible={showChallengeCompletion}
         challenge={completionChallenge}
         completionResult={completionResult}
