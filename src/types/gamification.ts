@@ -665,3 +665,70 @@ export interface MonthlyChallengeCompletionResult extends ChallengeCompletionRes
   nextMonthEligible: boolean;
   suggestedStarLevel: number;
 }
+
+// ========================================
+// MONTHLY CHALLENGE LIFECYCLE TYPES
+// ========================================
+
+/**
+ * Challenge lifecycle state definitions for state management
+ */
+export enum ChallengeLifecycleState {
+  // Planning phase
+  PREVIEW_GENERATION = 'preview_generation',      // 25th day: Preview next month
+  AWAITING_MONTH_START = 'awaiting_month_start',  // Preview exists, waiting for 1st
+  
+  // Active phase  
+  GENERATION_NEEDED = 'generation_needed',        // 1st day: Need to generate
+  GENERATING = 'generating',                      // Currently generating
+  ACTIVE = 'active',                              // Challenge active and tracking
+  GRACE_PERIOD = 'grace_period',                  // Late start (after 1st day)
+  
+  // Completion phase
+  COMPLETING = 'completing',                      // Month end processing
+  COMPLETED = 'completed',                        // Successfully completed
+  FAILED = 'failed',                              // User did not complete
+  ARCHIVED = 'archived',                          // Moved to history
+  
+  // Error states
+  ERROR = 'error',                                // Generation or processing error
+  RECOVERY = 'recovery'                           // Attempting error recovery
+}
+
+/**
+ * Lifecycle event types for hooks and notifications
+ */
+export enum ChallengeLifecycleEvent {
+  PREVIEW_GENERATED = 'preview_generated',
+  CHALLENGE_GENERATED = 'challenge_generated',
+  CHALLENGE_ACTIVATED = 'challenge_activated',
+  GRACE_PERIOD_STARTED = 'grace_period_started',
+  MILESTONE_REACHED = 'milestone_reached',
+  CHALLENGE_COMPLETED = 'challenge_completed',
+  CHALLENGE_FAILED = 'challenge_failed',
+  CHALLENGE_ARCHIVED = 'challenge_archived',
+  ERROR_OCCURRED = 'error_occurred',
+  RECOVERY_COMPLETED = 'recovery_completed'
+}
+
+/**
+ * Challenge preview for next month preparation
+ */
+export interface ChallengePreviewData {
+  id: string;
+  month: string; // YYYY-MM format
+  category: AchievementCategory;
+  templateId: string;
+  title: string;
+  description: string;
+  estimatedStarLevel: 1 | 2 | 3 | 4 | 5;
+  estimatedXPReward: number;
+  baselineSnapshot: {
+    totalActiveDays: number;
+    dataQuality: 'minimal' | 'partial' | 'complete';
+    generatedAt: Date;
+  };
+  isReady: boolean;
+  generatedAt: Date;
+  expires: Date; // Will be replaced if not used by month start
+}

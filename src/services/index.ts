@@ -14,4 +14,6 @@ export * from './xpMultiplierService';
 export * from './enhancedXPRewardEngine';
 export * from './enhancedXPRewardOptimizer';
 export * from './userActivityTracker';
+export * from './monthlyChallengeLifecycleManager';
+export * from './appInitializationService';
 export * from './storage';

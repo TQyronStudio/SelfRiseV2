@@ -954,14 +954,14 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 *Implementation details moved to implementation-history.md*
 
-##### Sub-checkpoint 4.5.8.5.H: Automatic Monthly Challenge Generation ⚙️
+##### Sub-checkpoint 4.5.8.5.H: Automatic Monthly Challenge Generation ⚙️ ✅ COMPLETED
 **Goal**: Implement automated monthly challenge creation and lifecycle
-- [ ] Create monthly challenge lifecycle management system
-- [ ] Implement automatic challenge generation on 1st of each month
-- [ ] Add challenge expiration and archiving for completed months
-- [ ] Create background process for challenge generation (app launch check)
-- [ ] Implement challenge preview system for upcoming month
-- [ ] Add manual challenge refresh capability for testing/debugging
+- [x] Create monthly challenge lifecycle management system
+- [x] Implement automatic challenge generation on 1st of each month
+- [x] Add challenge expiration and archiving for completed months
+- [x] Create background process for challenge generation (app launch check)
+- [x] Implement challenge preview system for upcoming month
+- [x] Add manual challenge refresh capability for testing/debugging
 
 **Automation Features**:
 - Automatic generation trigger on first app launch of new month
