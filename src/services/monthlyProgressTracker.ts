@@ -850,7 +850,7 @@ export class MonthlyProgressTracker {
           // Award XP bonus
           if (xpBonus > 0) {
             await GamificationService.addXP(xpBonus, {
-              source: XPSourceType.WEEKLY_CHALLENGE,
+              source: XPSourceType.MONTHLY_CHALLENGE,
               sourceId: challengeId,
               description: `Monthly challenge milestone ${milestone}%`,
               metadata: { milestone, type: 'monthly_challenge_milestone' }
@@ -975,7 +975,7 @@ export class MonthlyProgressTracker {
 
       // Award XP
       await GamificationService.addXP(totalXP, {
-        source: XPSourceType.WEEKLY_CHALLENGE,
+        source: XPSourceType.MONTHLY_CHALLENGE,
         sourceId: challengeId,
         description: `Monthly challenge completed: ${challenge?.title}`,
         metadata: { 

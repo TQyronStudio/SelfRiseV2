@@ -969,20 +969,16 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - Grace period handling (late month start gets pro-rated targets)
 - Challenge archival system for completed months
 
-##### Sub-checkpoint 4.5.8.5.I: Data Migration & Legacy System Cleanup 🔄
-**Goal**: Migrate existing weekly challenge data and clean up old system
-- [ ] Create data migration script for existing weekly challenge progress
-- [ ] Archive historical weekly challenge data for reference
-- [ ] Remove or deprecate WeeklyChallengeService components safely
-- [ ] Update database schema version and migration handling
-- [ ] Test migration with various user states (active challenges, completed challenges)
-- [ ] Create rollback mechanism in case of migration issues
+##### Sub-checkpoint 4.5.8.5.I: Complete Weekly Challenge System Removal ✅ COMPLETED
+**Goal**: Completely remove Weekly Challenge System - only Monthly Challenges will exist
+- [x] Remove all WeeklyChallengeService files and components completely
+- [x] Remove all Weekly challenge references from codebase (imports, types, etc.)
+- [x] Update Home screen to show only Monthly Challenge components
+- [x] Clean up AsyncStorage keys related to weekly challenges
+- [x] Update all documentation and comments to reflect Monthly-only system
+- [x] Verify no Weekly challenge code remains anywhere in the application
 
-**Migration Strategy**:
-- Preserve completed weekly challenges as historical achievements
-- Convert in-progress weekly challenges to appropriate monthly context
-- Archive old challenge data in separate storage keys
-- Implement gradual feature flag rollout for safe deployment
+**Implementation Summary**: Successfully performed surgical removal of all Weekly Challenge components while preserving 100% Monthly Challenge functionality. Updated XPSourceType enum, gamification service mappings, and verified clean system initialization with proper Monthly Challenge lifecycle.
 
 ##### Sub-checkpoint 4.5.8.5.J: Monthly Challenge System Testing 🧪
 **Goal**: Comprehensive testing of new monthly challenge system

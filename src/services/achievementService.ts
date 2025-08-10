@@ -890,7 +890,7 @@ export class AchievementService {
         // Mastery achievements often track overall progress
         sources.add(XPSourceType.ACHIEVEMENT_UNLOCK);
         sources.add(XPSourceType.RECOMMENDATION_FOLLOW);
-        sources.add(XPSourceType.WEEKLY_CHALLENGE);
+        sources.add(XPSourceType.MONTHLY_CHALLENGE);
         // Also include all other sources for level-based achievements
         for (const sourceType of Object.values(XPSourceType)) {
           sources.add(sourceType);

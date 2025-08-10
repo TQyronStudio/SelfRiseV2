@@ -1,6 +1,5 @@
 // Export all services
 export * from './gamificationService';
-export * from './weeklyChallengeService';
 export * from './monthlyChallengeService';
 export * from './monthlyProgressTracker';
 export * from './monthlyProgressIntegration';
@@ -16,4 +15,5 @@ export * from './enhancedXPRewardOptimizer';
 export * from './userActivityTracker';
 export * from './monthlyChallengeLifecycleManager';
 export * from './appInitializationService';
+export * from './weeklyChallengeCleanupService';
 export * from './storage';

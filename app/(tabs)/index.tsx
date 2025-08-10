@@ -193,7 +193,7 @@ export default function HomeScreen() {
           <QuickActionButtons onHabitToggle={handleHabitToggle} />
         )}
 
-        {isComponentVisible('weeklyChallenges') && (
+        {isComponentVisible('monthlyChallenges') && (
           <MonthlyChallengeSection 
             onChallengePress={handleChallengePress}
             onViewAllPress={handleViewAllChallenges}

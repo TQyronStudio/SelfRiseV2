@@ -68,13 +68,13 @@ export const XP_REWARDS = {
     UNLOCK_LEGENDARY: 500,      // Unlocking legendary achievement
   },
 
-  // Weekly Challenge System
-  WEEKLY_CHALLENGES: {
-    EASY_CHALLENGE: 150,        // Completing easy weekly challenge
-    MEDIUM_CHALLENGE: 250,      // Completing medium weekly challenge
-    HARD_CHALLENGE: 400,        // Completing hard weekly challenge
-    EXPERT_CHALLENGE: 600,      // Completing expert weekly challenge
-    MASTER_CHALLENGE: 1000,     // Completing master weekly challenge
+  // Monthly Challenge System
+  MONTHLY_CHALLENGES: {
+    ONE_STAR: 500,      // 1★ Monthly challenge
+    TWO_STAR: 750,      // 2★ Monthly challenge
+    THREE_STAR: 1125,   // 3★ Monthly challenge
+    FOUR_STAR: 1556,    // 4★ Monthly challenge
+    FIVE_STAR: 2532,    // 5★ Monthly challenge
   },
 
   // Special Event Bonuses
@@ -208,10 +208,10 @@ export const XP_SOURCES = {
     requirements: ['achievement conditions must be met'],
   },
 
-  [XPSourceType.WEEKLY_CHALLENGE]: {
-    baseAmount: XP_REWARDS.WEEKLY_CHALLENGES.EASY_CHALLENGE,
-    description: 'Completed weekly challenge',
-    dailyLimit: 1000, // Max one challenge completion per day
+  [XPSourceType.MONTHLY_CHALLENGE]: {
+    baseAmount: XP_REWARDS.MONTHLY_CHALLENGES.ONE_STAR,
+    description: 'Completed monthly challenge',
+    dailyLimit: 3000, // Max one challenge completion per day
     requirements: ['all challenge requirements must be met'],
   },
 
@@ -339,7 +339,7 @@ export const NOTIFICATION_BATCHING = {
   // Priority levels for different XP sources
   NOTIFICATION_PRIORITIES: {
     [XPSourceType.ACHIEVEMENT_UNLOCK]: 'high',
-    [XPSourceType.WEEKLY_CHALLENGE]: 'high',
+    [XPSourceType.MONTHLY_CHALLENGE]: 'high',
     [XPSourceType.JOURNAL_BONUS_MILESTONE]: 'high', // ⭐🔥👑 milestones are exciting!
     [XPSourceType.GOAL_COMPLETION]: 'medium',
     [XPSourceType.HABIT_STREAK_MILESTONE]: 'medium',

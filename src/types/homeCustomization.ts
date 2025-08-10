@@ -48,8 +48,8 @@ export const defaultHomeComponents: HomeScreenComponent[] = [
     configurable: true,
   },
   {
-    id: 'weeklyChallenges',
-    name: 'Weekly Challenges',
+    id: 'monthlyChallenges',
+    name: 'Monthly Challenges',
     visible: true,
     order: 4,
     configurable: true,

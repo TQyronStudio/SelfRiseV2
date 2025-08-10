@@ -258,7 +258,7 @@ export class EnhancedXPRewardEngine {
       
       // Award XP through gamification system
       const xpResult = await GamificationService.addXP(rewardResult.totalXPAwarded, {
-        source: XPSourceType.WEEKLY_CHALLENGE, // TODO: Add MONTHLY_CHALLENGE to XPSourceType enum
+        source: XPSourceType.MONTHLY_CHALLENGE,
         sourceId: challenge.id,
         description: `Monthly challenge completed: ${challenge.title}`,
         metadata: {
@@ -581,7 +581,7 @@ export class EnhancedXPRewardEngine {
       }
       
       // Star level validation with stricter limits
-      const expectedForStar = this.STAR_BASE_REWARDS[starLevel];
+      const expectedForStar = this.STAR_BASE_REWARDS[starLevel as keyof typeof this.STAR_BASE_REWARDS];
       const bonusPercentage = ((totalXP - expectedForStar) / expectedForStar) * 100;
       
       if (bonusPercentage > 80) { // Stricter limit

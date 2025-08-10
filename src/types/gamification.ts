@@ -22,7 +22,7 @@ export enum XPSourceType {
   DAILY_LAUNCH = 'daily_launch',
   RECOMMENDATION_FOLLOW = 'recommendation_follow',
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
-  WEEKLY_CHALLENGE = 'weekly_challenge',
+  MONTHLY_CHALLENGE = 'monthly_challenge',
   XP_MULTIPLIER_BONUS = 'xp_multiplier_bonus',
 }
 
@@ -57,7 +57,6 @@ export enum NotificationType {
   LEVEL_UP = 'level_up',
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
   STREAK_MILESTONE = 'streak_milestone',
-  WEEKLY_CHALLENGE = 'weekly_challenge',
   XP_MULTIPLIER_ACTIVE = 'xp_multiplier_active',
 }
 
@@ -322,37 +321,11 @@ export interface BatchEvaluationOptions {
 }
 
 // ========================================
-// WEEKLY CHALLENGE INTERFACES
+// CHALLENGE SYSTEM INTERFACES (MONTHLY ONLY)
 // ========================================
 
 /**
- * Weekly challenge definition
- */
-export interface WeeklyChallenge extends BaseEntity {
-  title: string;
-  description: string;
-  startDate: DateString;
-  endDate: DateString;
-  xpReward: number;
-  difficultyLevel: 1 | 2 | 3 | 4 | 5;
-  category: AchievementCategory;
-  requirements: ChallengeRequirement[];
-  isActive: boolean;
-  participantCount?: number;
-}
-
-/**
- * Requirement for completing a weekly challenge
- */
-export interface ChallengeRequirement {
-  type: 'habits' | 'journal' | 'goals' | 'mixed';
-  target: number;
-  description: string;
-  trackingKey: string; // How to track progress
-}
-
-/**
- * User's progress on a weekly challenge
+ * Base progress tracking for challenges
  */
 export interface ChallengeProgress {
   challengeId: string;
@@ -517,6 +490,7 @@ export interface MonthlyChallengeProgress extends ChallengeProgress {
   daysActive: number;
   daysRemaining: number;
   projectedCompletion: number; // Based on current pace
+  activeDays: string[]; // Array of DateString for days with activity
   
   // Streak data
   currentStreak: number; // Consecutive months completed
@@ -527,6 +501,10 @@ export interface MonthlyChallengeProgress extends ChallengeProgress {
   dailyConsistency: number; // 0-1 score
   weeklyConsistency: number; // 0-1 score
   bestWeek: number; // Week with highest completion rate
+  
+  // Timestamps
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**

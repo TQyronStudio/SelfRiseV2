@@ -4,7 +4,6 @@
 
 import { DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
-import { WeeklyChallengeService } from './weeklyChallengeService';
 import { XPSourceType } from '../types/gamification';
 
 // ========================================
@@ -39,7 +38,6 @@ interface BatchedXPEvent {
  */
 interface IntegrationConfig {
   enableMonthlyTracking: boolean;
-  enableWeeklyTracking: boolean;
   enableBatching: boolean;
   batchingWindowMs: number;
   maxBatchSize: number;
@@ -63,7 +61,6 @@ export class MonthlyProgressIntegration {
   // Configuration
   private static config: IntegrationConfig = {
     enableMonthlyTracking: true,
-    enableWeeklyTracking: true,
     enableBatching: true,
     batchingWindowMs: 250, // 250ms batching window for performance
     maxBatchSize: 50,      // Max 50 events per batch
@@ -338,15 +335,6 @@ export class MonthlyProgressIntegration {
         );
       }
 
-      // Update weekly progress tracking (if enabled) - maintain backward compatibility
-      if (this.config.enableWeeklyTracking) {
-        await WeeklyChallengeService.updateChallengeProgress(
-          source,
-          amount,
-          sourceId,
-          metadata
-        );
-      }
 
       this.debugLog(`✅ Processed XP event: +${amount} from ${source}`);
 

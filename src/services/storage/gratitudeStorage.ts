@@ -1257,7 +1257,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // ========================================
 
   /**
-   * Get entries for a specific date (for WeeklyChallengeService compatibility)
+   * Get entries for a specific date
    */
   async getEntriesForDate(date: DateString): Promise<Gratitude[]> {
     try {
@@ -1269,7 +1269,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Get entries in a date range (for WeeklyChallengeService compatibility)
+   * Get entries in a date range
    */
   async getEntriesInRange(startDate: Date, endDate: Date): Promise<Gratitude[]> {
     try {

@@ -155,8 +155,7 @@ export class GamificationService {
     }
     
     // Don't batch critical operations
-    if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK || 
-        options.source === XPSourceType.WEEKLY_CHALLENGE) {
+    if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK) {
       return false;
     }
     
@@ -546,19 +545,6 @@ export class GamificationService {
         // Non-blocking error - XP was still awarded successfully
       }
 
-      // Update weekly challenge progress after XP action (non-blocking)
-      try {
-        const { WeeklyChallengeService } = await import('./weeklyChallengeService');
-        await WeeklyChallengeService.updateChallengeProgress(
-          options.source,
-          finalAmount,
-          options.sourceId,
-          options.metadata
-        );
-      } catch (error) {
-        console.error('Weekly challenge progress update failed:', error);
-        // Non-blocking error - XP was still awarded successfully
-      }
 
       // Return comprehensive result
       const result: XPTransactionResult = {
@@ -981,7 +967,7 @@ export class GamificationService {
       [XPSourceType.DAILY_LAUNCH]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
       [XPSourceType.RECOMMENDATION_FOLLOW]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
       [XPSourceType.ACHIEVEMENT_UNLOCK]: null, // No daily limit
-      [XPSourceType.WEEKLY_CHALLENGE]: null, // No daily limit
+      [XPSourceType.MONTHLY_CHALLENGE]: null, // No daily limit (one per month)
       [XPSourceType.XP_MULTIPLIER_BONUS]: null, // No daily limit
     };
 
@@ -1169,7 +1155,7 @@ export class GamificationService {
       [XPSourceType.DAILY_LAUNCH]: 0,
       [XPSourceType.RECOMMENDATION_FOLLOW]: 0,
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 0,
-      [XPSourceType.WEEKLY_CHALLENGE]: 0,
+      [XPSourceType.MONTHLY_CHALLENGE]: 0,
       [XPSourceType.XP_MULTIPLIER_BONUS]: 0,
     };
   }
@@ -1300,7 +1286,7 @@ export class GamificationService {
       [XPSourceType.DAILY_LAUNCH]: 'Launched app for first time today',
       [XPSourceType.RECOMMENDATION_FOLLOW]: 'Followed recommendation',
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 'Unlocked achievement',
-      [XPSourceType.WEEKLY_CHALLENGE]: 'Completed weekly challenge',
+      [XPSourceType.MONTHLY_CHALLENGE]: 'Completed monthly challenge',
       [XPSourceType.XP_MULTIPLIER_BONUS]: 'XP multiplier bonus applied',
     };
     return descriptions[source];
