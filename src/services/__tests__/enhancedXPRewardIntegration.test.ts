@@ -57,6 +57,7 @@ describe('Enhanced XP Reward System Integration', () => {
       }
     ],
     isActive: true,
+    categoryRotation: [],
     createdAt: new Date('2025-08-01'),
     updatedAt: new Date('2025-08-01')
   });
@@ -88,7 +89,8 @@ describe('Enhanced XP Reward System Integration', () => {
     streakBonusEligible: true,
     dailyConsistency: 0.90,
     weeklyConsistency: 0.88,
-    bestWeek: 1
+    bestWeek: 1,
+    activeDays: ['2025-08-01', '2025-08-02', '2025-08-03', '2025-08-04', '2025-08-05']
   });
 
   test('should calculate XP reward using Enhanced XP Reward Engine directly', async () => {

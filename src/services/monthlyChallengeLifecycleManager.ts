@@ -155,7 +155,7 @@ export class MonthlyChallengeLifecycleManager {
     try {
       const currentStatus = await this.getLifecycleStatus();
       const today = new Date();
-      const currentMonth = formatDateToString(today).substring(0, 7);
+      const currentMonth = today().substring(0, 7);
       
       this.log(`Current lifecycle state: ${currentStatus.currentState}`);
       this.log(`Current month: ${currentMonth}`);
@@ -287,7 +287,8 @@ export class MonthlyChallengeLifecycleManager {
     
     try {
       // Calculate pro-rating factor (reduce targets based on days missed)
-      const daysInMonth = new Date(parseInt(month.split('-')[0]), parseInt(month.split('-')[1]), 0).getDate();
+      const monthParts = month.split('-');
+      const daysInMonth = new Date(parseInt(monthParts[0]!), parseInt(monthParts[1]!), 0).getDate();
       const remainingDays = daysInMonth - dayOfMonth + 1;
       const proRatingFactor = remainingDays / daysInMonth;
       
@@ -362,7 +363,7 @@ export class MonthlyChallengeLifecycleManager {
     const today = new Date();
     if (today.getDate() < 25) return;
     
-    const nextMonth = (addDays(formatDateToString(today), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
     
     try {
       const existingPreview = await this.getPreviewForMonth(nextMonth);
@@ -416,7 +417,8 @@ export class MonthlyChallengeLifecycleManager {
       }
       
       // Estimate star level
-      const categoryRating = starRatings[selectedCategory] || 1;
+      const categoryKey = selectedCategory.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
+      const categoryRating = starRatings[categoryKey] || 1;
       
       // Create preview
       const preview: ChallengePreviewData = {
@@ -475,7 +477,7 @@ export class MonthlyChallengeLifecycleManager {
     
     this.backgroundTaskId = setInterval(async () => {
       await this.performBackgroundTasks();
-    }, this.config.backgroundTaskInterval);
+    }, this.config.backgroundTaskInterval) as any;
     
     this.log('Background task scheduler started', {
       interval: this.config.backgroundTaskInterval
@@ -859,7 +861,7 @@ export class MonthlyChallengeLifecycleManager {
    */
   static async forcePreviewGeneration(): Promise<ChallengePreviewData> {
     const today = new Date();
-    const nextMonth = (addDays(formatDateToString(today), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
     return await this.generatePreview(nextMonth);
   }
   
@@ -877,7 +879,7 @@ export class MonthlyChallengeLifecycleManager {
     const status = await this.getLifecycleStatus();
     const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
     const today = new Date();
-    const nextMonth = (addDays(formatDateToString(today), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
     const preview = await this.getPreviewForMonth(nextMonth);
     
     return {

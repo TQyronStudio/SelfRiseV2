@@ -461,8 +461,8 @@ export interface MonthlyChallengeRequirement {
   progressMilestones: number[]; // [25%, 50%, 75%] for celebrations
   
   // Progress tracking configuration
-  dailyTarget?: number;     // Optional daily breakdown
-  weeklyTarget?: number;    // Optional weekly milestone
+  dailyTarget?: number | undefined;     // Optional daily breakdown
+  weeklyTarget?: number | undefined;    // Optional weekly milestone
 }
 
 /**

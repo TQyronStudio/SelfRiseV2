@@ -95,7 +95,7 @@ const createMockXPTransaction = (source: XPSourceType, amount = 25) => ({
   source,
   sourceId: 'habit_123',
   description: 'Habit completion',
-  date: formatDateToString(today()),
+  date: today(),
   createdAt: new Date(),
   metadata: {}
 });
@@ -356,7 +356,7 @@ describe('MonthlyProgressTracker Integration Tests', () => {
       
       const snapshotData = JSON.parse(snapshotCall[1]);
       expect(snapshotData).toEqual(expect.objectContaining({
-        date: formatDateToString(today()),
+        date: today(),
         challengeId: 'test_challenge_2025_01',
         isTripleFeatureDay: true, // All 3 features used
         isPerfectDay: true, // Daily minimums met
@@ -366,7 +366,7 @@ describe('MonthlyProgressTracker Integration Tests', () => {
     });
 
     it('should update weekly breakdown correctly', async () => {
-      const currentWeek = Math.ceil(today().getDate() / 7);
+      const currentWeek = Math.ceil(new Date(today()).getDate() / 7);
       
       await MonthlyProgressTracker.updateMonthlyProgress(
         XPSourceType.HABIT_COMPLETION,
@@ -421,7 +421,7 @@ describe('MonthlyProgressTracker Integration Tests', () => {
     });
 
     it('should persist snapshot data correctly', async () => {
-      const todayString = formatDateToString(today());
+      const todayString = today();
       
       // First update
       await MonthlyProgressTracker.updateMonthlyProgress(

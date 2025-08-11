@@ -85,6 +85,7 @@ describe('EnhancedXPRewardEngine', () => {
       }
     ],
     isActive: true,
+    categoryRotation: [],
     createdAt: new Date('2025-08-01'),
     updatedAt: new Date('2025-08-01'),
     ...overrides
@@ -123,6 +124,7 @@ describe('EnhancedXPRewardEngine', () => {
     dailyConsistency: 0.95,
     weeklyConsistency: 0.92,
     bestWeek: 1,
+    activeDays: ['2025-08-01', '2025-08-02', '2025-08-03', '2025-08-04', '2025-08-05'],
     // createdAt and updatedAt not in MonthlyChallengeProgress interface
     ...overrides
   });

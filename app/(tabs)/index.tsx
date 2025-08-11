@@ -255,6 +255,7 @@ export default function HomeScreen() {
           dailyConsistency: 0,
           weeklyConsistency: 0,
           bestWeek: 1,
+          activeDays: [],
           xpEarned: 0
         } : null}
         visible={showChallengeDetail}

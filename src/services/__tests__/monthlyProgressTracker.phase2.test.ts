@@ -102,60 +102,17 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
         progressMilestones: [11, 23, 34] // 25%, 50%, 75% of 45
       }
     ],
-    userBaseline: {
-      month: '2024-07',
-      userId: 'user123',
-      avgDailyHabitCompletions: 1.3,
-      avgDailyBonusHabits: 0.2,
-      avgHabitVariety: 2.1,
-      longestHabitStreak: 12,
-      totalHabitCompletions: 39,
-      avgDailyJournalEntries: 3.2,
-      avgDailyBonusEntries: 0.8,
-      avgEntryLength: 156,
-      journalConsistencyDays: 28,
-      totalJournalEntries: 95,
-      avgDailyGoalProgress: 0.6,
-      totalGoalProgressDays: 18,
-      goalsCompleted: 2,
-      avgGoalTargetValue: 500,
-      goalConsistencyDays: 15,
-      appUsageDays: 30,
-      tripleFeatureDays: 22,
-      perfectDays: 18,
-      longestEngagementStreak: 14,
-      generatedAt: new Date('2024-07-31'),
-      dataQuality: 'complete',
-      isFirstMonth: false
-    },
     userBaselineSnapshot: {
       month: '2024-08',
-      userId: 'user123',
-      avgDailyHabitCompletions: 1.3,
-      avgDailyBonusHabits: 0.2,
-      avgHabitVariety: 2.1,
-      longestHabitStreak: 12,
-      totalHabitCompletions: 39,
-      avgDailyJournalEntries: 3.2,
-      avgDailyBonusEntries: 0.8,
-      avgEntryLength: 156,
-      journalConsistencyDays: 28,
-      totalJournalEntries: 95,
-      avgDailyGoalProgress: 0.6,
-      totalGoalProgressDays: 18,
-      goalsCompleted: 2,
-      avgGoalTargetValue: 500,
-      goalConsistencyDays: 15,
-      appUsageDays: 30,
-      tripleFeatureDays: 22,
-      perfectDays: 18,
-      longestEngagementStreak: 14,
-      generatedAt: new Date('2024-07-31'),
+      analysisStartDate: '2024-07-01',
+      analysisEndDate: '2024-07-31',
       dataQuality: 'complete',
-      isFirstMonth: false
+      totalActiveDays: 30
     },
     scalingFormula: 'baseline � 1.15',
     isActive: true,
+    categoryRotation: [],
+    generationReason: 'scheduled' as const,
     createdAt: new Date('2024-08-01'),
     updatedAt: new Date('2024-08-01')
   };
@@ -329,7 +286,7 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
       const saveCall = mockedAsyncStorage.setItem.mock.calls
         .find(call => call[0].includes('monthly_challenge_progress_challenge_202408'));
       
-      const savedProgress = JSON.parse(saveCall?.[1] || '{}');
+      const savedProgress = JSON.parse((saveCall?.[1] as string) || '{}');
       expect(savedProgress.progress.scheduled_habit_completions).toBe(23);
       expect(savedProgress.completionPercentage).toBeGreaterThanOrEqual(50);
     });
@@ -355,7 +312,7 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
         .filter(call => call[0].includes('monthly_challenge_progress_challenge_202408'));
 
       if (saveCalls.length > 0) {
-        const savedProgress = JSON.parse(saveCalls[0][1]);
+        const savedProgress = JSON.parse(saveCalls[0][1] as string);
         expect(savedProgress.progress.scheduled_habit_completions).toBe(0);
       }
     });
@@ -380,7 +337,7 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
       const saveCall = mockedAsyncStorage.setItem.mock.calls
         .find(call => call[0].includes('monthly_challenge_progress_challenge_202408'));
       
-      const savedProgress = JSON.parse(saveCall?.[1] || '{}');
+      const savedProgress = JSON.parse((saveCall?.[1] as string) || '{}');
       expect(savedProgress.daysActive).toBe(1);
       expect(savedProgress.daysRemaining).toBeLessThanOrEqual(31);
       expect(savedProgress.activeDays).toContain(today());
@@ -467,13 +424,13 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
         // Verify: XP bonus is within expected range (with multipliers)
         const { GamificationService } = require('../gamificationService');
         const xpCall = GamificationService.addXP.mock.calls.find(
-          call => call[1]?.description?.includes(`milestone ${testCase.milestone}%`)
+          (call: any) => call[1]?.description?.includes(`milestone ${testCase.milestone}%`)
         );
 
         if (xpCall) {
-          const awardedXP = xpCall[0];
-          expect(awardedXP).toBeGreaterThanOrEqual(testCase.expectedRange[0]);
-          expect(awardedXP).toBeLessThanOrEqual(testCase.expectedRange[1]);
+          const awardedXP = xpCall[0] as number;
+          expect(awardedXP).toBeGreaterThanOrEqual(testCase.expectedRange[0]!);
+          expect(awardedXP).toBeLessThanOrEqual(testCase.expectedRange[1]!);
         }
       }
     });
@@ -507,10 +464,10 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
 
       // Verify: No milestone celebration event for 25% (already reached)
       const milestoneEvents = mockedDeviceEventEmitter.emit.mock.calls
-        .filter(call => call[0] === 'monthly_milestone_reached');
+        .filter((call: any) => call[0] === 'monthly_milestone_reached');
       
       const duplicate25Events = milestoneEvents.filter(
-        call => call[1]?.milestone === 25
+        (call: any) => call[1]?.milestone === 25
       );
       
       expect(duplicate25Events.length).toBe(0);
@@ -570,8 +527,8 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
         const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, partialProgress);
 
         // Verify: Pro-rated bonus is within expected range
-        expect(result.completionBonus).toBeGreaterThanOrEqual(testCase.expectedBonusRange[0]);
-        expect(result.completionBonus).toBeLessThanOrEqual(testCase.expectedBonusRange[1]);
+        expect(result.completionBonus).toBeGreaterThanOrEqual(testCase.expectedBonusRange[0]!);
+        expect(result.completionBonus).toBeLessThanOrEqual(testCase.expectedBonusRange[1]!);
         expect(result.bonusBreakdown.completionBonus?.type).toBe('partial');
       }
     });
@@ -705,8 +662,8 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
       results.push(await EnhancedXPRewardOptimizer.calculateOptimizedXPReward(challenge, progress));
 
       // Verify: All results are identical (cached)
-      expect(results[0].totalXPAwarded).toBe(results[1].totalXPAwarded);
-      expect(results[1].totalXPAwarded).toBe(results[2].totalXPAwarded);
+      expect(results[0]!.totalXPAwarded).toBe(results[1]!.totalXPAwarded);
+      expect(results[1]!.totalXPAwarded).toBe(results[2]!.totalXPAwarded);
 
       // Verify: Cache statistics show hits
       const stats = EnhancedXPRewardOptimizer.getCacheStats();

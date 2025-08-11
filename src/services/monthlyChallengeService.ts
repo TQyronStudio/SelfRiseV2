@@ -973,7 +973,7 @@ export class MonthlyChallengeService {
     xpReward: number;
     generationWarnings: string[];
     dataQualityUsed: 'complete' | 'partial' | 'minimal' | 'fallback';
-    recommendedDifficulty?: 'easier' | 'harder';
+    recommendedDifficulty?: 'easier' | 'harder' | undefined;
   } {
     const warnings: string[] = [];
     let dataQualityUsed: 'complete' | 'partial' | 'minimal' | 'fallback';
@@ -1418,7 +1418,7 @@ export class MonthlyChallengeService {
 
     // Validate top choice meets minimum requirements
     const topChoice = categoryWeights[0];
-    if (topChoice.finalWeight <= 0) {
+    if (!topChoice || topChoice.finalWeight <= 0) {
       warnings.push('All categories have zero weight, falling back to habits category');
       return {
         selectedCategory: AchievementCategory.HABITS,
@@ -1561,7 +1561,7 @@ export class MonthlyChallengeService {
     let totalPenalty = 0;
     for (let i = 0; i < Math.min(recentCategoryHistory.length, penalties.length); i++) {
       if (recentCategoryHistory[i] === category) {
-        totalPenalty += penalties[i];
+        totalPenalty += penalties[i]!;
       }
     }
     
@@ -1576,7 +1576,7 @@ export class MonthlyChallengeService {
     starRatings: UserChallengeRatings
   ): number {
     const categoryKey = category.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
-    const starLevel = starRatings[categoryKey] || 1;
+    const starLevel = (starRatings[categoryKey] || 1) as 1 | 2 | 3 | 4 | 5;
     
     // Prefer categories with 2-4 stars (room for growth but not too easy)
     const starBonus = {
@@ -1760,7 +1760,7 @@ export class MonthlyChallengeService {
       // Get star level for selected category using StarRatingService
       const currentRatings = await StarRatingService.getCurrentStarRatings();
       const categoryKey = categorySelection.selectedCategory.toLowerCase() as keyof Omit<UserChallengeRatings, 'history' | 'lastUpdated'>;
-      const starLevel = currentRatings[categoryKey] || 1;
+      const starLevel = (currentRatings[categoryKey] || 1) as 1 | 2 | 3 | 4 | 5;
 
       // Select template within category
       const templateSelection = this.selectTemplateForCategory(
@@ -1934,6 +1934,9 @@ export class MonthlyChallengeService {
    */
   private static async generateFallbackChallenge(userId: string, month: string): Promise<MonthlyChallenge> {
     const template = this.HABITS_TEMPLATES[0]; // Use first habits template as fallback
+    if (!template) {
+      throw new Error('No fallback template available');
+    }
     const requirements = this.createFirstMonthRequirements(template, 1);
     
     const monthDate = new Date(month + '-01');
@@ -1942,8 +1945,8 @@ export class MonthlyChallengeService {
 
     return {
       id: generateUUID(),
-      title: `🔧 Fallback: ${template.title}`,
-      description: `${template.description}\n\n⚠️ This is a simplified challenge due to generation issues.`,
+      title: `🔧 Fallback: ${template!.title}`,
+      description: `${template!.description}\n\n⚠️ This is a simplified challenge due to generation issues.`,
       startDate,
       endDate,
       baseXPReward: 300,
@@ -2040,7 +2043,7 @@ export class MonthlyChallengeService {
   }> {
     try {
       const today = new Date();
-      const currentMonth = formatDateToString(today).substring(0, 7);
+      const currentMonth = today().substring(0, 7);
       
       // Only generate on the 1st of the month
       if (today.getDate() !== 1) {

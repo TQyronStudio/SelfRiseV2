@@ -531,7 +531,7 @@ export class StarRatingService {
 
       // Add history entry for reset
       const historyEntry: StarRatingHistoryEntry = {
-        month: formatDateToString(today()).substring(0, 7),
+        month: today().substring(0, 7),
         category,
         previousStars: previousLevel,
         newStars: currentRatings[categoryKey],

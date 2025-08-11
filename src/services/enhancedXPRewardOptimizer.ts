@@ -50,8 +50,8 @@ interface ValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
-  correctedChallenge?: MonthlyChallenge;
-  correctedProgress?: MonthlyChallengeProgress;
+  correctedChallenge?: MonthlyChallenge | undefined;
+  correctedProgress?: MonthlyChallengeProgress | undefined;
 }
 
 // ========================================
