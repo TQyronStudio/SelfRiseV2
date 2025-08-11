@@ -109,6 +109,9 @@ export class MonthlyProgressTracker {
 
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
+  
+  // Concurrency control to prevent race conditions
+  private static updateQueues = new Map<string, Promise<void>>();
 
   // Event names for DeviceEventEmitter
   private static readonly EVENTS = {
@@ -153,9 +156,38 @@ export class MonthlyProgressTracker {
   }
 
   /**
-   * Process progress update for a specific challenge with batching optimization
+   * Process progress update for a specific challenge with sequential queue processing
    */
   private static async processProgressUpdate(
+    challenge: MonthlyChallenge,
+    source: XPSourceType,
+    amount: number,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    // Ensure sequential processing using promise chaining
+    const queueKey = `progress_${challenge.id}`;
+    
+    // Chain this update to the existing queue
+    const previousPromise = this.updateQueues.get(queueKey) || Promise.resolve();
+    
+    const currentPromise = previousPromise
+      .then(() => this.executeAtomicProgressUpdate(challenge, source, amount, metadata))
+      .catch((error) => {
+        console.error(`Error in progress update queue for ${challenge.id}:`, error);
+        // Don't let one failed update break the queue
+      });
+    
+    // Update the queue with current promise
+    this.updateQueues.set(queueKey, currentPromise);
+    
+    // Wait for this update to complete
+    await currentPromise;
+  }
+  
+  /**
+   * Execute atomic progress update (internal method)
+   */
+  private static async executeAtomicProgressUpdate(
     challenge: MonthlyChallenge,
     source: XPSourceType,
     amount: number,
@@ -168,17 +200,19 @@ export class MonthlyProgressTracker {
         return; // This XP source doesn't contribute to this challenge
       }
 
-      // Get current progress
+      // Get current progress (always fetch fresh to avoid stale cache during concurrent updates)
+      this.clearProgressCache(challenge.id); // Clear cache to ensure fresh read
       const currentProgress = await this.getChallengeProgress(challenge.id);
       if (!currentProgress) {
         console.warn(`No progress found for challenge ${challenge.id}`);
         return;
       }
 
-      // Calculate progress increments
+      // Calculate progress increments and apply atomically
       let progressUpdated = false;
       const previousProgress = { ...currentProgress.progress };
       
+      // Apply all increments atomically
       for (const requirement of relevantRequirements) {
         const incrementValue = this.calculateProgressIncrement(
           requirement,
@@ -188,11 +222,13 @@ export class MonthlyProgressTracker {
         );
 
         if (incrementValue > 0) {
-          currentProgress.progress[requirement.trackingKey] = 
-            (currentProgress.progress[requirement.trackingKey] || 0) + incrementValue;
+          // Atomic increment: always read the current value fresh from storage-backed progress object
+          const currentValue = currentProgress.progress[requirement.trackingKey] || 0;
+          const newValue = currentValue + incrementValue;
+          currentProgress.progress[requirement.trackingKey] = newValue;
           progressUpdated = true;
 
-          console.log(`📊 Challenge "${challenge.title}": ${requirement.trackingKey} +${incrementValue} (${currentProgress.progress[requirement.trackingKey]}/${requirement.target})`);
+          console.log(`📊 Challenge "${challenge.title}": ${requirement.trackingKey} +${incrementValue} (${newValue}/${requirement.target})`);
         }
       }
 
@@ -204,7 +240,7 @@ export class MonthlyProgressTracker {
         );
 
         // Update days active and remaining
-        const todayString = formatDateToString(today());
+        const todayString = today();
         if (!currentProgress.activeDays.includes(todayString)) {
           currentProgress.activeDays.push(todayString);
           currentProgress.daysActive = currentProgress.activeDays.length;
@@ -562,8 +598,8 @@ export class MonthlyProgressTracker {
    */
   private static async getActiveMonthlyChallenge(): Promise<MonthlyChallenge[]> {
     try {
-      // Import MonthlyChallengeService dynamically to avoid circular imports
-      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      // Import MonthlyChallengeService 
+      const { MonthlyChallengeService } = require('./monthlyChallengeService');
       
       // Get current active challenge
       const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
@@ -607,7 +643,7 @@ export class MonthlyProgressTracker {
     amount: number
   ): Promise<void> {
     try {
-      const todayString = formatDateToString(today());
+      const todayString = today();
       
       // Check if snapshot already exists for today
       const existingSnapshot = await this.getDailySnapshot(challengeId, todayString);
@@ -768,10 +804,12 @@ export class MonthlyProgressTracker {
         weeklyBreakdown.daysActive = weekSnapshots.length;
         weeklyBreakdown.perfectDays = weekSnapshots.filter(s => s.isPerfectDay).length;
         
-        // Find best day this week
-        const bestSnapshot = weekSnapshots.reduce((best, current) => 
-          current.progressPercentage > (best?.progressPercentage || 0) ? current : best
-        );
+        // Find best day this week (with fallback for empty array)
+        const bestSnapshot = weekSnapshots.length > 0 
+          ? weekSnapshots.reduce((best, current) => 
+              current.progressPercentage > (best?.progressPercentage || 0) ? current : best
+            )
+          : null;
         
         if (bestSnapshot) {
           weeklyBreakdown.bestDay = {
@@ -1092,8 +1130,8 @@ export class MonthlyProgressTracker {
    */
   private static async getDailyXPTransactions(dateString: DateString): Promise<any[]> {
     try {
-      // Import GamificationService dynamically to avoid circular imports
-      const { GamificationService } = await import('./gamificationService');
+      // Import GamificationService using require for Jest compatibility
+      const { GamificationService } = require('./gamificationService');
       
       // Get all XP transactions for the specific date
       const transactions = await GamificationService.getTransactionsByDateRange(dateString, dateString);
@@ -1183,8 +1221,8 @@ export class MonthlyProgressTracker {
    */
   private static async getChallengeById(challengeId: string): Promise<MonthlyChallenge | null> {
     try {
-      // Import MonthlyChallengeService dynamically to avoid circular imports
-      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      // Import MonthlyChallengeService using require for Jest compatibility
+      const { MonthlyChallengeService } = require('./monthlyChallengeService');
       
       // First try to get current challenge
       const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
@@ -1194,7 +1232,7 @@ export class MonthlyProgressTracker {
       
       // If not current challenge, search through recent challenges
       // Extract month from challengeId if possible or use current month
-      const currentMonth = formatDateToString(today()).substring(0, 7); // YYYY-MM
+      const currentMonth = today().substring(0, 7); // YYYY-MM
       const challengeForMonth = await MonthlyChallengeService.getChallengeForMonth(currentMonth);
       
       if (challengeForMonth && challengeForMonth.id === challengeId) {
@@ -1267,7 +1305,7 @@ export class MonthlyProgressTracker {
         daysActive: 0,
         perfectDays: 0,
         bestDay: null,
-        isCurrentWeek: this.calculateWeekNumber(today()) === weekNumber,
+        isCurrentWeek: this.calculateWeekNumber(new Date()) === weekNumber,
         isCompleted: false
       };
       
@@ -1415,8 +1453,8 @@ export class MonthlyProgressTracker {
    */
   private static async updateChallengeStreak(challengeId: string, completed: boolean): Promise<void> {
     try {
-      // Import EnhancedXPRewardEngine for streak management
-      const { EnhancedXPRewardEngine } = await import('./enhancedXPRewardEngine');
+      // Import EnhancedXPRewardEngine using require for Jest compatibility
+      const { EnhancedXPRewardEngine } = require('./enhancedXPRewardEngine');
       
       const challenge = await this.getChallengeById(challengeId);
       if (!challenge) return;
@@ -1461,8 +1499,8 @@ export class MonthlyProgressTracker {
       const archiveKey = `monthly_challenge_archive_${challenge.id}`;
       await AsyncStorage.setItem(archiveKey, JSON.stringify(archiveData));
       
-      // Import MonthlyChallengeService for archival
-      const { MonthlyChallengeService } = await import('./monthlyChallengeService');
+      // Import MonthlyChallengeService using require for Jest compatibility
+      const { MonthlyChallengeService } = require('./monthlyChallengeService');
       await MonthlyChallengeService.archiveCompletedChallenge(challenge.id);
       
       console.log(`🗃️ Challenge archived: ${challenge.title}`);
