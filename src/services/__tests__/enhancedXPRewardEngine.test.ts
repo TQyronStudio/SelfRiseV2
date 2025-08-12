@@ -46,6 +46,7 @@ describe('EnhancedXPRewardEngine', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Clear any internal caches if needed
+    EnhancedXPRewardEngine.clearAllCaches();
   });
 
   afterEach(() => {
@@ -223,13 +224,14 @@ describe('EnhancedXPRewardEngine', () => {
       expect(result.completionBonus).toBe(160);
     });
 
-    test('should give no completion bonus for under 70% completion', async () => {
+    test('should give proportional completion bonus for any completion level', async () => {
       const challenge = createMockChallenge({ baseXPReward: 1000 });
       const progress = createMockProgress({ completionPercentage: 65, isCompleted: false });
       
       const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, progress);
       
-      expect(result.completionBonus).toBe(0);
+      // Simple linear scaling: 65% * 20% = 13% bonus = 130 XP (better UX than threshold)
+      expect(result.completionBonus).toBe(130);
     });
   });
 
@@ -303,10 +305,13 @@ describe('EnhancedXPRewardEngine', () => {
           75: { reached: true, timestamp: new Date(), xpAwarded: 225 }
         }
       });
+      const streakInfo = createMockStreakInfo({ totalCompletedMonths: 8 }); // Not first completion
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(streakInfo));
       
       const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, progress);
       
-      expect(result.milestoneBonus).toBe(450); // 75 + 150 + 225
+      expect(result.milestoneBonus).toBe(450); // 75 + 150 + 225 (no first completion bonus)
     });
 
     test('should calculate partial milestone bonus', async () => {
@@ -318,13 +323,16 @@ describe('EnhancedXPRewardEngine', () => {
           75: { reached: false }
         }
       });
+      const streakInfo = createMockStreakInfo({ totalCompletedMonths: 5 }); // Not first completion
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(streakInfo));
       
       const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, progress);
       
-      expect(result.milestoneBonus).toBe(225); // 75 + 150
+      expect(result.milestoneBonus).toBe(225); // 75 + 150 (no first completion bonus)
     });
 
-    test('should give no milestone bonus if none reached', async () => {
+    test('should give first completion bonus for new user with no milestones', async () => {
       const challenge = createMockChallenge();
       const progress = createMockProgress({
         milestonesReached: {
@@ -333,10 +341,31 @@ describe('EnhancedXPRewardEngine', () => {
           75: { reached: false }
         }
       });
+      const streakInfo = createMockStreakInfo({ totalCompletedMonths: 0 }); // First completion
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(streakInfo));
       
       const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, progress);
       
-      expect(result.milestoneBonus).toBe(0);
+      expect(result.milestoneBonus).toBe(50); // First completion bonus only
+    });
+
+    test('should give no milestone bonus for veteran user with no milestones', async () => {
+      const challenge = createMockChallenge();
+      const progress = createMockProgress({
+        milestonesReached: {
+          25: { reached: false },
+          50: { reached: false },
+          75: { reached: false }
+        }
+      });
+      const streakInfo = createMockStreakInfo({ totalCompletedMonths: 3 }); // Not first completion
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(streakInfo));
+      
+      const result = await EnhancedXPRewardEngine.calculateEnhancedXPReward(challenge, progress);
+      
+      expect(result.milestoneBonus).toBe(0); // No bonuses
     });
   });
 

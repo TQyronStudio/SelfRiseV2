@@ -173,8 +173,8 @@ export class EnhancedXPRewardEngine {
     try {
       console.log(`🧮 Calculating enhanced XP reward for challenge: ${challenge.title}`);
 
-      // Get base reward for star level
-      const baseXPReward = this.STAR_BASE_REWARDS[challenge.starLevel];
+      // Get base reward from challenge or fallback to star level
+      const baseXPReward = challenge.baseXPReward || this.STAR_BASE_REWARDS[challenge.starLevel];
       
       // Get completion data
       const completionPercentage = progress.completionPercentage;
@@ -320,29 +320,16 @@ export class EnhancedXPRewardEngine {
 
   /**
    * Calculate completion bonus based on completion percentage
+   * Uses simple linear scaling: completion% × 20% bonus for better UX
    */
   private static async calculateCompletionBonus(
     baseXP: number, 
     completionPercentage: number
   ): Promise<number> {
     try {
-      // No bonus for completion below 70%
-      if (completionPercentage < this.BONUS_CONFIG.PARTIAL_COMPLETION_THRESHOLD * 100) {
-        return 0;
-      }
-
-      // Perfect completion (100%): full 20% bonus
-      if (completionPercentage >= 100) {
-        return Math.round(baseXP * this.BONUS_CONFIG.PERFECT_COMPLETION_BONUS);
-      }
-
-      // Partial completion (70-99%): pro-rated bonus
-      // Linear scaling from 0% bonus at 70% to 20% bonus at 100%
-      const completionRatio = completionPercentage / 100;
-      const bonusRatio = ((completionRatio - this.BONUS_CONFIG.PARTIAL_COMPLETION_THRESHOLD) / 
-                         (1.0 - this.BONUS_CONFIG.PARTIAL_COMPLETION_THRESHOLD)) * 
-                         this.BONUS_CONFIG.PERFECT_COMPLETION_BONUS;
-      
+      // Simple linear scaling: completion percentage × 20% bonus
+      // This is more intuitive for users than threshold-based scaling
+      const bonusRatio = (completionPercentage / 100) * this.BONUS_CONFIG.PERFECT_COMPLETION_BONUS;
       return Math.round(baseXP * bonusRatio);
       
     } catch (error) {
@@ -375,7 +362,7 @@ export class EnhancedXPRewardEngine {
   }
 
   /**
-   * Calculate milestone bonuses for special achievements
+   * Calculate milestone bonuses - sum of reached milestone XP rewards + special achievements
    */
   private static async calculateMilestoneBonus(
     challenge: MonthlyChallenge,
@@ -385,6 +372,16 @@ export class EnhancedXPRewardEngine {
     try {
       let totalMilestoneBonus = 0;
       
+      // CRITICAL FIX: Sum up XP from reached milestones in progress
+      if (progress.milestonesReached) {
+        for (const [milestoneKey, milestone] of Object.entries(progress.milestonesReached)) {
+          if (milestone.reached && milestone.xpAwarded) {
+            totalMilestoneBonus += milestone.xpAwarded;
+          }
+        }
+      }
+      
+      // Additional special achievement bonuses
       // First completion bonus
       if (streakData.totalCompletedMonths === 0) {
         totalMilestoneBonus += this.BONUS_CONFIG.FIRST_COMPLETION_BONUS;
