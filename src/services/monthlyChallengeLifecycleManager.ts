@@ -578,6 +578,10 @@ export class MonthlyChallengeLifecycleManager {
           ...error,
           timestamp: new Date(error.timestamp)
         }));
+        // CRITICAL FIX: Parse lastBackgroundCheck as Date object for proper test compatibility
+        if (status.metrics && status.metrics.lastBackgroundCheck) {
+          status.metrics.lastBackgroundCheck = new Date(status.metrics.lastBackgroundCheck);
+        }
         return status;
       }
       
@@ -732,14 +736,26 @@ export class MonthlyChallengeLifecycleManager {
   
   /**
    * Register app state change listener
+   * CRITICAL FIX: Defensive check for test environment compatibility
    */
   private static registerAppStateListener(): void {
-    this.appStateSubscription = AppState.addEventListener('change', async (nextAppState) => {
-      if (nextAppState === 'active') {
-        this.log('App became active, performing lifecycle check');
-        await this.performStartupLifecycleCheck();
+    try {
+      // Defensive check for AppState availability (important for Jest tests)
+      if (!AppState || typeof AppState.addEventListener !== 'function') {
+        this.log('AppState not available - skipping listener registration (likely test environment)');
+        return;
       }
-    });
+
+      this.appStateSubscription = AppState.addEventListener('change', async (nextAppState) => {
+        if (nextAppState === 'active') {
+          this.log('App became active, performing lifecycle check');
+          await this.performStartupLifecycleCheck();
+        }
+      });
+      
+    } catch (error) {
+      this.log(`Failed to register AppState listener: ${error}. Continuing without app state monitoring.`);
+    }
   }
   
   /**
@@ -878,14 +894,15 @@ export class MonthlyChallengeLifecycleManager {
     const status = await this.getLifecycleStatus();
     const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
     const today = new Date();
-    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
+    const nextMonthDate = addDays(today, 31);
+    const nextMonth = formatDateToString(nextMonthDate).substring(0, 7); // YYYY-MM format
     const preview = await this.getPreviewForMonth(nextMonth);
     
     return {
       health: status.metrics.systemHealth,
       lastCheck: status.metrics.lastBackgroundCheck,
       errors: status.errors.length,
-      uptime: Date.now() - (this.isInitialized ? status.lastStateChange.getTime() : 0),
+      uptime: new Date().getTime() - (this.isInitialized ? status.lastStateChange.getTime() : 0),
       activeChallenge: !!currentChallenge,
       previewReady: !!preview && !this.isPreviewExpired(preview)
     };

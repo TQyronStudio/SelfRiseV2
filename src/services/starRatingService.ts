@@ -129,7 +129,7 @@ export class StarRatingService {
   public static async getCurrentStarRatings(): Promise<UserChallengeRatings> {
     try {
       // Check cache first
-      if (this.starRatingsCache && Date.now() - this.cacheTimestamp < this.CACHE_TTL) {
+      if (this.starRatingsCache && new Date().getTime() - this.cacheTimestamp < this.CACHE_TTL) {
         return this.starRatingsCache;
       }
 
@@ -142,7 +142,7 @@ export class StarRatingService {
         
         // Update cache
         this.starRatingsCache = normalizedRatings;
-        this.cacheTimestamp = Date.now();
+        this.cacheTimestamp = new Date().getTime();
         
         return normalizedRatings;
       } else {
@@ -649,7 +649,7 @@ export class StarRatingService {
       
       // Update cache
       this.starRatingsCache = ratings;
-      this.cacheTimestamp = Date.now();
+      this.cacheTimestamp = new Date().getTime();
     } catch (error) {
       console.error('Error saving star ratings:', error);
       throw error;
