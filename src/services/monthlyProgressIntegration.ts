@@ -55,7 +55,7 @@ export class MonthlyProgressIntegration {
   private static levelUpSubscription: EmitterSubscription | null = null;
 
   // Performance optimization
-  private static batchingTimer: NodeJS.Timeout | null = null;
+  private static batchingTimer: number | null = null;
   private static pendingEvents: XPGainedEvent[] = [];
   
   // Configuration
@@ -219,7 +219,7 @@ export class MonthlyProgressIntegration {
 
         const individualEvent: XPGainedEvent = {
           amount: estimatedAmount,
-          source,
+          source: source || XPSourceType.HABIT_COMPLETION,
           sourceId,
           timestamp: event.batchTimestamp,
           metadata: { fromBatch: true, originalBatchSize: event.eventCount }

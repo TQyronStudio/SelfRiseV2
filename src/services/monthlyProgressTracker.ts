@@ -42,6 +42,7 @@ export interface DailyProgressSnapshot {
  * Weekly breakdown within monthly challenge
  */
 export interface WeeklyBreakdown {
+  challengeId: string;                         // Challenge this breakdown belongs to
   weekNumber: 1 | 2 | 3 | 4 | 5;
   startDate: DateString;
   endDate: DateString;
@@ -254,11 +255,11 @@ export class MonthlyProgressTracker {
           currentProgress
         );
 
-        // Update weekly breakdown
-        await this.updateWeeklyBreakdown(challenge.id, currentProgress);
-
-        // Create daily snapshot
+        // Create daily snapshot FIRST (weekly breakdown needs it)
         await this.createDailySnapshot(challenge.id, currentProgress, source, amount);
+
+        // Update weekly breakdown (requires daily snapshot to exist)
+        await this.updateWeeklyBreakdown(challenge.id, currentProgress);
 
         // Check for milestone achievements
         const milestoneResults = await this.checkMilestoneProgress(challenge.id, currentProgress);
@@ -518,15 +519,12 @@ export class MonthlyProgressTracker {
       const initialProgress: MonthlyChallengeProgress = {
         challengeId: challenge.id,
         userId: 'current_user', // TODO: Get from authentication context
-        progress: {},
+        progress: challenge.requirements.reduce((acc, req) => {
+          acc[req.trackingKey] = 0;
+          return acc;
+        }, {} as Record<string, number>),
         isCompleted: false,
         xpEarned: 0,
-        
-        // Initialize progress tracking for each requirement
-        ...challenge.requirements.reduce((acc, req) => {
-          acc.progress[req.trackingKey] = 0;
-          return acc;
-        }, {} as any),
 
         // Enhanced monthly properties
         weeklyProgress: {
@@ -785,10 +783,9 @@ export class MonthlyProgressTracker {
         weeklyBreakdown = await this.initializeWeeklyBreakdown(challengeId, currentWeekNumber);
       }
 
-      // Update weekly progress
-      const todayString = formatDateToString(now);
+      // Update weekly progress - use current today() for consistency with snapshot creation
+      const todayString = today();
       const todaySnapshot = await this.getDailySnapshot(challengeId, todayString);
-      
       if (todaySnapshot) {
         // Update weekly progress based on today's contributions
         for (const [trackingKey, contribution] of Object.entries(todaySnapshot.dailyContributions)) {
@@ -1141,7 +1138,7 @@ export class MonthlyProgressTracker {
       }
       
       // Return transactions with all necessary properties for analysis
-      return transactions.map(transaction => ({
+      return transactions.map((transaction: any) => ({
         id: transaction.id,
         amount: transaction.amount,
         source: transaction.source,
@@ -1291,11 +1288,12 @@ export class MonthlyProgressTracker {
       // Calculate week date range
       const startDate = parseDate(challenge.startDate);
       const weekStartDay = (weekNumber - 1) * 7 + 1;
-      const weekStart = addDays(startDate, weekStartDay - 1);
-      const weekEnd = addDays(weekStart, 6);
+      const weekStart = addDays(startDate, weekStartDay - 1) as Date;
+      const weekEnd = addDays(weekStart, 6) as Date;
       
       // Initialize empty weekly breakdown
       const breakdown: WeeklyBreakdown = {
+        challengeId,
         weekNumber: weekNumber as 1 | 2 | 3 | 4 | 5,
         startDate: formatDateToString(weekStart),
         endDate: formatDateToString(weekEnd),
@@ -1315,7 +1313,7 @@ export class MonthlyProgressTracker {
         breakdown.weeklyTarget[requirement.trackingKey] = Math.ceil(requirement.target / 4); // Rough weekly target
       }
       
-      await this.saveWeeklyBreakdown(breakdown);
+      // Note: Don't save here - let updateWeeklyBreakdown save after updating progress
       return breakdown;
     } catch (error) {
       console.error('MonthlyProgressTracker.initializeWeeklyBreakdown error:', error);
@@ -1334,14 +1332,14 @@ export class MonthlyProgressTracker {
       // Calculate week date range
       const startDate = parseDate(challenge.startDate);
       const weekStartDay = (weekNumber - 1) * 7 + 1;
-      const weekStart = addDays(startDate, weekStartDay - 1);
-      const weekEnd = addDays(weekStart, 6);
+      const weekStart = addDays(startDate, weekStartDay - 1) as Date;
+      const weekEnd = addDays(weekStart, 6) as Date;
       
       const snapshots: DailyProgressSnapshot[] = [];
       
       // Collect snapshots for each day of the week
       for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-        const currentDay = addDays(weekStart, dayOffset);
+        const currentDay = addDays(weekStart, dayOffset) as Date;
         const dateString = formatDateToString(currentDay);
         
         const snapshot = await this.getDailySnapshot(challengeId, dateString);
@@ -1440,7 +1438,7 @@ export class MonthlyProgressTracker {
    */
   private static async saveWeeklyBreakdown(breakdown: WeeklyBreakdown): Promise<void> {
     try {
-      const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_weekly_${breakdown.weekNumber}`;
+      const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_${breakdown.challengeId}_week${breakdown.weekNumber}`;
       await AsyncStorage.setItem(key, JSON.stringify(breakdown));
     } catch (error) {
       console.error('MonthlyProgressTracker.saveWeeklyBreakdown error:', error);

@@ -154,7 +154,6 @@ export class MonthlyChallengeLifecycleManager {
     
     try {
       const currentStatus = await this.getLifecycleStatus();
-      const today = new Date();
       const currentMonth = today().substring(0, 7);
       
       this.log(`Current lifecycle state: ${currentStatus.currentState}`);
@@ -172,7 +171,7 @@ export class MonthlyChallengeLifecycleManager {
       }
       
       // Check for preview generation needs (25th+ day)
-      if (today.getDate() >= 25) {
+      if (new Date().getDate() >= 25) {
         await this.checkAndGeneratePreview();
       }
       
@@ -363,7 +362,7 @@ export class MonthlyChallengeLifecycleManager {
     const today = new Date();
     if (today.getDate() < 25) return;
     
-    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
     
     try {
       const existingPreview = await this.getPreviewForMonth(nextMonth);
@@ -861,7 +860,7 @@ export class MonthlyChallengeLifecycleManager {
    */
   static async forcePreviewGeneration(): Promise<ChallengePreviewData> {
     const today = new Date();
-    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
     return await this.generatePreview(nextMonth);
   }
   
@@ -879,7 +878,7 @@ export class MonthlyChallengeLifecycleManager {
     const status = await this.getLifecycleStatus();
     const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
     const today = new Date();
-    const nextMonth = (addDays(today(), 31) as string).substring(0, 7);
+    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
     const preview = await this.getPreviewForMonth(nextMonth);
     
     return {

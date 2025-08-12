@@ -1303,6 +1303,24 @@ export class MonthlyChallengeService {
         difficulty: 'Comprehensive but achievable - introduces all app features gradually',
         timeCommitment: '15-20 minutes daily across habits, journal, and goals',
         successRate: '70%+ completion rate with balanced daily engagement'
+      },
+      
+      [AchievementCategory.MASTERY]: {
+        difficulty: 'Advanced challenge - requires mastery of all app features',
+        timeCommitment: '20-30 minutes daily with deep engagement across all areas',
+        successRate: '60%+ completion rate for experienced users'
+      },
+      
+      [AchievementCategory.SOCIAL]: {
+        difficulty: 'Community-focused - emphasizes sharing and social engagement',
+        timeCommitment: '10-15 minutes daily plus community interaction',
+        successRate: '75%+ completion rate with social features'
+      },
+      
+      [AchievementCategory.SPECIAL]: {
+        difficulty: 'Event-based challenge - unique seasonal or themed content',
+        timeCommitment: 'Variable based on event type and timing',
+        successRate: '65%+ completion rate during special events'
       }
     };
 
@@ -2042,11 +2060,11 @@ export class MonthlyChallengeService {
     error?: string;
   }> {
     try {
-      const today = new Date();
+      const todayDate = new Date();
       const currentMonth = today().substring(0, 7);
       
       // Only generate on the 1st of the month
-      if (today.getDate() !== 1) {
+      if (todayDate.getDate() !== 1) {
         return {
           challengeGenerated: false,
           month: currentMonth
