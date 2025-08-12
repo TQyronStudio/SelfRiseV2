@@ -486,7 +486,7 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
       ];
 
       for (const testCase of starTestCases) {
-        const challenge = { ...mockChallenge, starLevel: testCase.starLevel };
+        const challenge = { ...mockChallenge, starLevel: testCase.starLevel, baseXPReward: testCase.expectedXP };
         const progress = { ...initialProgress, completionPercentage: 100 };
 
         // Test: Calculate reward
@@ -515,9 +515,9 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
       const challenge = { ...mockChallenge, starLevel: 3 as const }; // 1125 base XP
       
       const partialCompletionCases = [
-        { completion: 70, expectedBonusRange: [0, 45] },    // Minimal bonus at 70%
-        { completion: 85, expectedBonusRange: [67, 113] },   // Mid-range bonus
-        { completion: 99, expectedBonusRange: [202, 224] }   // Near-full bonus at 99%
+        { completion: 70, expectedBonusRange: [157, 158] },    // Linear: 1125 * 0.70 * 0.20 = 157.5
+        { completion: 85, expectedBonusRange: [191, 192] },    // Linear: 1125 * 0.85 * 0.20 = 191.25  
+        { completion: 99, expectedBonusRange: [222, 223] }     // Linear: 1125 * 0.99 * 0.20 = 222.75
       ];
 
       for (const testCase of partialCompletionCases) {
