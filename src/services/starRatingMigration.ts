@@ -256,7 +256,7 @@ export class StarRatingMigration {
     return {
       isCompleted,
       hasLegacyData,
-      legacyDataPreview
+      ...(legacyDataPreview && { legacyDataPreview })
     };
   }
 

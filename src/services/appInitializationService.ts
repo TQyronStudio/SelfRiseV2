@@ -239,8 +239,8 @@ export class AppInitializationService {
       // Test basic functionality - get transactions for last day
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const today = new Date();
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      const todayStr = today.toISOString().split('T')[0];
+      const yesterdayStr = yesterday.toISOString().split('T')[0]!;
+      const todayStr = today.toISOString().split('T')[0]!;
       await GamificationService.getTransactionsByDateRange(yesterdayStr, todayStr);
       this.log('GamificationService initialized successfully');
     } catch (error) {
@@ -405,7 +405,7 @@ export class AppInitializationService {
             await serviceConfig.initializer();
             
             status.initialized = true;
-            status.error = undefined;
+            delete status.error;
             status.initializationTime = Date.now() - startTime;
             
             this.log(`Service retry successful: ${serviceConfig.name} (attempt ${attempt})`);

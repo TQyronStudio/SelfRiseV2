@@ -16,7 +16,8 @@ import {
   AchievementCategory,
   ChallengeLifecycleState,
   ChallengeLifecycleEvent,
-  ChallengePreviewData
+  ChallengePreviewData,
+  UserChallengeRatings
 } from '../types/gamification';
 import { DateString } from '../types/common';
 import { formatDateToString, today, addDays, parseDate, subtractDays } from '../utils/date';
@@ -427,8 +428,8 @@ export class MonthlyChallengeLifecycleManager {
         templateId: selectedTemplate.id,
         title: selectedTemplate.title,
         description: selectedTemplate.description,
-        estimatedStarLevel: categoryRating,
-        estimatedXPReward: MonthlyChallengeService.getXPRewardForStarLevel(categoryRating),
+        estimatedStarLevel: categoryRating as 1 | 2 | 3 | 4 | 5,
+        estimatedXPReward: MonthlyChallengeService.getXPRewardForStarLevel(categoryRating as 1 | 2 | 3 | 4 | 5),
         baselineSnapshot: {
           totalActiveDays: baseline.totalActiveDays,
           dataQuality: baseline.dataQuality,
@@ -546,7 +547,7 @@ export class MonthlyChallengeLifecycleManager {
           {
             state: newState,
             timestamp: new Date(),
-            metadata
+            ...(metadata && { metadata })
           }
         ].slice(-20) // Keep last 20 state changes
       };
@@ -894,7 +895,7 @@ export class MonthlyChallengeLifecycleManager {
     const status = await this.getLifecycleStatus();
     const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
     const today = new Date();
-    const nextMonthDate = addDays(today, 31);
+    const nextMonthDate = addDays(today, 31) as Date;
     const nextMonth = formatDateToString(nextMonthDate).substring(0, 7); // YYYY-MM format
     const preview = await this.getPreviewForMonth(nextMonth);
     

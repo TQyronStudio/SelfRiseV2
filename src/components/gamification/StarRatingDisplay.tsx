@@ -90,7 +90,7 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
   // Get star display info
   const starInfo = StarRatingService.getStarDisplayInfo(starLevel);
   const multipliers = StarRatingService.getStarMultipliers();
-  const multiplier = multipliers[starLevel];
+  const multiplier = multipliers[starLevel as 1 | 2 | 3 | 4 | 5];
 
   // Size configurations
   const sizeConfigs = {

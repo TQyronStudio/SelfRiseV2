@@ -127,7 +127,7 @@ const STORAGE_KEYS = {
 export class UserActivityTracker {
   
   // Star scaling configuration
-  private static readonly STAR_SCALING: Record<number, StarScalingConfig> = {
+  private static readonly STAR_SCALING: { [K in 1 | 2 | 3 | 4 | 5]: StarScalingConfig } = {
     1: { starLevel: 1, scalingMultiplier: 1.05, description: 'Easy (+5%)' },
     2: { starLevel: 2, scalingMultiplier: 1.10, description: 'Medium (+10%)' },
     3: { starLevel: 3, scalingMultiplier: 1.15, description: 'Hard (+15%)' },
@@ -158,7 +158,7 @@ export class UserActivityTracker {
       // Set default analysis period (last 30 days)
       const endDate = options.analysisEndDate || today();
       const startDate = options.analysisStartDate || 
-        formatDateToString(addDays(parseDate(endDate), -30));
+        formatDateToString(addDays(new Date(endDate), -30) as Date);
       
       const userId = options.userId || 'local_user';
       const currentMonth = endDate.substring(0, 7); // "YYYY-MM"
@@ -361,7 +361,7 @@ export class UserActivityTracker {
         summaries.push(summary);
         
         // Move to next day
-        currentDate = formatDateToString(addDays(parseDate(currentDate), 1));
+        currentDate = formatDateToString(addDays(new Date(currentDate), 1) as Date);
       }
       
       console.log(`📊 Gathered ${summaries.length} daily summaries`);
@@ -606,7 +606,7 @@ export class UserActivityTracker {
   private static createMinimalBaseline(userId: string): UserActivityBaseline {
     const currentMonth = today().substring(0, 7);
     const todayDate = today();
-    const thirtyDaysAgo = formatDateToString(addDays(parseDate(todayDate), -30));
+    const thirtyDaysAgo = formatDateToString(addDays(new Date(todayDate), -30) as Date);
     
     return {
       month: currentMonth,

@@ -26,7 +26,7 @@ export interface StarProgressionRules {
   consecutiveFailuresForDemotion: number; // 2 consecutive failures = -1 star
   maxStarLevel: number;           // Maximum 5 stars
   minStarLevel: number;           // Minimum 1 star
-  starMultipliers: Record<number, number>; // Star level to difficulty multiplier
+  starMultipliers: { [K in 1 | 2 | 3 | 4 | 5]: number }; // Star level to difficulty multiplier
 }
 
 /**
@@ -325,7 +325,7 @@ export class StarRatingService {
         targetValue,
         rarityColor: starInfo.color,
         confidenceLevel,
-        recommendedAdjustment
+        ...(recommendedAdjustment && { recommendedAdjustment })
       };
 
       // Emit event for analytics
@@ -453,7 +453,7 @@ export class StarRatingService {
       const monthsActive = new Set(fullHistory.map(entry => entry.month)).size;
       
       // Find last activity
-      const lastActivity = fullHistory.length > 0 
+      const lastActivity = fullHistory.length > 0 && fullHistory[0]?.timestamp
         ? new Date(fullHistory[0].timestamp) 
         : null;
 

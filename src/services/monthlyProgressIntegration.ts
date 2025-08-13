@@ -220,7 +220,7 @@ export class MonthlyProgressIntegration {
         const individualEvent: XPGainedEvent = {
           amount: estimatedAmount,
           source: source || XPSourceType.HABIT_COMPLETION,
-          sourceId,
+          ...(sourceId && { sourceId }),
           timestamp: event.batchTimestamp,
           metadata: { fromBatch: true, originalBatchSize: event.eventCount }
         };
