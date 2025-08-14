@@ -1777,3 +1777,161 @@ Comprehensive debt recovery system that allows users to "rescue their streak" wh
 ✅ Production-ready architecture  
 
 *This specification serves as the expected behavior baseline for comprehensive testing validation.*
+
+---
+
+## 🚨 CRITICAL DEBT SYSTEM BUGS IDENTIFIED - REPAIR PLAN
+
+### **ISSUE ANALYSIS FROM USER TESTING**
+Po prvním uživatelském testování byly identifikovány 4 kritické chyby v debt recovery systému, které musí být opraveny před zahájením komprehensivního testování.
+
+---
+
+### **BUG #1: DEBT PROGRESS NOT PERSISTED** ❌
+**🔍 PROBLEM**: 
+- User watches 1 ad to pay 1 day of 3-day debt
+- Next day app forgets about the 1 paid day  
+- System sees 4+ days total → triggers auto-reset to streak 0
+- **Log Evidence**: `remainingDebt after payment: 2` (should be 0 after 2 ads)
+
+**🎯 ROOT CAUSE**: 
+- `payDebtWithAds()` method doesn't properly persist partial debt payments
+- Debt calculation doesn't account for previously watched ads
+- Storage system loses track of incremental debt reduction
+
+**🔧 REPAIR PLAN**:
+- [ ] **Fix payDebtWithAds()**: Properly decrement debt days incrementally
+- [ ] **Add debt payment tracking**: Store individual ad payments with timestamps
+- [ ] **Update calculateDebt()**: Account for previously paid debt days
+- [ ] **Validate persistence**: Test debt payment survives app restart/navigation
+
+---
+
+### **BUG #2: PHANTOM DEBT AFTER AUTO-RESET** ❌
+**🔍 PROBLEM**:
+- System auto-resets streak to 0 after 4+ days
+- BUT debt warning still appears in My Journal
+- User cannot write entries despite streak = 0 and debt = 0
+- Modal says "pay debt" but there's nothing to pay
+
+**🎯 ROOT CAUSE**:
+- Auto-reset clears streak but doesn't clear debt tracking flags
+- `GratitudeInput.tsx` debt checking logic inconsistent with reset state
+- Modal system not synchronized with auto-reset conditions
+
+**🔧 REPAIR PLAN**:
+- [ ] **Fix auto-reset logic**: Clear ALL debt-related flags when streak resets
+- [ ] **Update GratitudeInput**: Allow entry creation when streak = 0 (no debt possible)
+- [ ] **Synchronize modals**: Don't show debt modals when auto-reset occurred
+- [ ] **Validate state consistency**: Test auto-reset clears all debt indicators
+
+---
+
+### **BUG #3: FAKE ENTRIES CORRUPTION STREAK** ❌
+**🔍 PROBLEM**:
+- Debt 2 days → watch 2 ads → streak should stay 6
+- ACTUAL: Streak becomes 8 (incorrectly incremented)
+- My Journal graph shows GOLDEN bars (bonus entry styling) for missed days
+- **Log Evidence**: Force reset creating fake entries instead of proper debt clearance
+
+**🎯 ROOT CAUSE**:
+- `executeForceResetDebt()` creates fake entries that corrupt streak calculation
+- Fake entries show as golden bars (bonus styling) in graph
+- System counts fake entries toward streak progression
+
+**🔧 REPAIR PLAN**:
+- [ ] **Remove fake entry creation**: Don't create artificial gratitude entries
+- [ ] **Fix debt clearance**: Clear debt flags without touching entry history
+- [ ] **Preserve streak accuracy**: Keep original streak number unchanged
+- [ ] **Fix graph visualization**: Missed days should remain empty, not golden
+- [ ] **Validate streak integrity**: Test debt payment doesn't increment streak
+
+---
+
+### **BUG #4: EXCESSIVE MODAL SPAM** ❌
+**🔍 PROBLEM**:
+- User sees 2-3 modals in sequence during debt payment
+- Modals ask repetitive questions with old "pay debt" terminology
+- No congratulations modal after successful debt clearance
+- Poor user experience with modal overload
+
+**🎯 ROOT CAUSE**:
+- Multiple modal states triggering simultaneously
+- Error handling modals stacking on top of each other
+- Missing success modal for completion celebration
+- Modal state management not properly coordinated
+
+**🔧 REPAIR PLAN**:
+- [ ] **Streamline modal flow**: Show maximum 1 modal at a time
+- [ ] **Update terminology**: Replace "pay debt" with "rescue streak" in all modals
+- [ ] **Add success modal**: Congratulations modal after complete debt clearance
+- [ ] **Improve modal coordination**: Prevent modal stacking and spam
+- [ ] **Validate user flow**: Test smooth modal experience without repetition
+
+---
+
+### **🔧 REPAIR SEQUENCE PLAN**
+
+#### **PHASE 1: Core Logic Fixes** 🧮
+1. **Fix debt persistence** (BUG #1)
+   - Update `payDebtWithAds()` to properly decrement debt
+   - Add debt payment tracking to storage
+   - Test incremental debt reduction
+
+2. **Fix auto-reset state** (BUG #2)  
+   - Clear all debt flags during auto-reset
+   - Update entry creation logic consistency
+   - Test auto-reset removes all debt indicators
+
+3. **Remove fake entry corruption** (BUG #3)
+   - Eliminate fake entry creation in force reset
+   - Preserve streak accuracy during debt clearance
+   - Fix graph visualization for missed days
+
+#### **PHASE 2: User Experience Polish** 🎨
+4. **Streamline modal system** (BUG #4)
+   - Implement single modal flow
+   - Update all terminology to "rescue streak"
+   - Add success celebration modal
+   - Test smooth user experience
+
+#### **PHASE 3: Validation Testing** ✅
+5. **Complete system validation**
+   - Test all repair fixes work correctly
+   - Validate debt system matches specification
+   - Confirm no regressions introduced
+
+---
+
+### **🎯 REPAIR SUCCESS CRITERIA**
+
+**BUG #1 FIXED**:
+✅ Partial debt payments persist across app sessions  
+✅ 3-day debt → 1 ad → 2-day debt (remembered next day)  
+✅ Auto-reset only triggers after legitimate 4+ missed days  
+
+**BUG #2 FIXED**:  
+✅ Auto-reset completely clears debt system  
+✅ No phantom debt warnings after streak reset  
+✅ Entry creation works normally after auto-reset  
+
+**BUG #3 FIXED**:
+✅ Debt payment preserves exact original streak number  
+✅ No fake entries created during debt clearance  
+✅ Graph shows empty spaces for missed days (not golden bars)  
+
+**BUG #4 FIXED**:
+✅ Maximum 1 modal shown at a time during debt flow  
+✅ All modals use "rescue streak" terminology  
+✅ Success modal celebrates debt clearance completion  
+✅ Smooth user experience without modal spam  
+
+**OVERALL SYSTEM INTEGRITY**:
+✅ Debt system behaves exactly as specified  
+✅ Cross-screen synchronization works correctly  
+✅ State persistence maintained across app lifecycle  
+✅ Ready for comprehensive testing execution  
+
+---
+
+*Repair implementation begins immediately to fix critical debt system bugs before testing phase.*
