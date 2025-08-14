@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
-import { useGamification } from '@/src/contexts/GamificationContext';
+import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { AchievementService } from '@/src/services/achievementService';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
@@ -44,7 +44,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function AchievementsScreen() {
   const { t } = useI18n();
-  const { state } = useGamification();
+  const { state } = useOptimizedGamification();
   
   // ========================================
   // STATE MANAGEMENT

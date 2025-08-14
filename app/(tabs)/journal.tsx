@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { useGamification } from '@/src/contexts/GamificationContext';
+import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
 import { useLevelUpCelebrations } from '@/src/hooks/useLevelUpCelebrations';
 import { today } from '@/src/utils/date';
 import { Colors, Layout } from '@/src/constants';
@@ -19,7 +19,7 @@ export default function JournalScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
-  const { checkForRecentLevelUps, getLevelInfo } = useGamification();
+  const { checkForRecentLevelUps, getLevelInfo } = useOptimizedGamification();
   const { celebrationState, checkAndTriggerLevelUpCelebration, hideCelebration } = useLevelUpCelebrations();
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<View>(null);
