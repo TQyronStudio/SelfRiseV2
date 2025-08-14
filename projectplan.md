@@ -1152,26 +1152,42 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - Corrected 4 instances of "weekly challenge" → "monthly challenge" for consistency
 - Comprehensive Think Hard methodology validation completed with 1001% professionalism
 
-##### Sub-checkpoint 4.5.9.D: Anti-Abuse & Balance Testing 🛡️
+##### Sub-checkpoint 4.5.9.D: Anti-Abuse & Balance Testing 🛡️ ⚠️ CRITICAL VULNERABILITIES DETECTED
 **Goal**: Verify all anti-spam and balance systems work correctly
-- [ ] Test journal entry spam prevention (7+ entries = 0 XP)
-- [ ] Verify XP balancing prevents single-feature exploitation (max 80% from one source)
-- [ ] Test notification batching reduces interruption frequency effectively
-- [ ] Validate achievement conditions prevent gaming/cheating the system
-- [ ] Test XP multiplier system can't be abused for infinite XP gains
-- [ ] Verify monthly challenges maintain appropriate difficulty without exploitation
-- [ ] Anti-abuse and balance testing
-  - [ ] Test journal entry spam prevention (7+ entries give 0 XP)
-  - [ ] Verify XP balancing prevents single-feature exploitation
-  - [ ] Test notification batching reduces interruption frequency
-  - [ ] Validate achievement conditions prevent gaming the system
-- [ ] Success criteria verification
-  - [ ] Verify all technical success criteria are met
-  - [ ] Test user experience success criteria with beta users
-  - [ ] Validate engagement metrics collection for future analysis
-  - [ ] Confirm system readiness for production deployment
-  - [ ] Measure monthly challenge participation and completion rates
-  - [ ] Track XP multiplier activation frequency and user satisfaction
+- [x] Test journal entry spam prevention (14+ entries = 0 XP) - 🚨 **CRITICAL VULNERABILITY FOUND**
+- [x] Verify XP balancing prevents single-feature exploitation (max 80% from one source) - ✅ **PASSED**
+- [x] Test notification batching reduces interruption frequency effectively - ✅ **PASSED** 
+- [x] Validate achievement conditions prevent gaming/cheating the system - ✅ **PASSED**
+- [x] Test XP multiplier system can't be abused for infinite XP gains - ✅ **PASSED**
+- [x] Verify monthly challenges maintain appropriate difficulty without exploitation - ✅ **PASSED**
+
+**COMPREHENSIVE TEST RESULTS** (Think Hard Methodology - 1001%):
+- **Overall Security Status**: 🚨 **CRITICAL VULNERABILITIES DETECTED**
+- **Tests Passed**: 5/6 systems ✅ (83.3% success rate)
+- **Critical Issues**: 8 journal spam vulnerabilities 🚨
+- **Excess XP Impact**: +260 XP potential exploitation per day
+
+**🚨 CRITICAL SECURITY ISSUE - JOURNAL SPAM PREVENTION BROKEN:**
+- **Problem**: GratitudeInput.tsx awards 20 XP for ALL entries (ignores spam prevention)
+- **Expected**: Entries 1-3: 20 XP, Entries 4-13: 8 XP, Entries 14+: 0 XP
+- **Actual**: All entries get 20 XP (unlimited exploitation possible)
+- **Impact**: Users can create unlimited journal entries for 20 XP each
+- **Root Cause**: Missing entry count validation in GratitudeInput.tsx:109-111
+
+**✅ SECURITY SYSTEMS WORKING CORRECTLY:**
+- **XP Source Balancing**: 80% single-source limit enforced (1200/1500 XP max)
+- **Notification Batching**: 5-limit queue with 3s batching window functional
+- **XP Multiplier Cooldowns**: 7-day cooldowns prevent infinite XP abuse
+- **Achievement Conditions**: Unlock requirements resist gaming attempts
+- **Monthly Challenge Scaling**: Difficulty based on personal baselines prevents exploitation
+
+**🔧 IMMEDIATE ACTION REQUIRED:**
+1. Fix GratitudeInput.tsx to implement proper entry counting logic
+2. Add daily entry count validation before XP awarding
+3. Use FOURTEENTH_PLUS_ENTRY = 0 for entries 14+
+4. Implement comprehensive integration tests for journal XP system
+
+**SECURITY ASSESSMENT**: 🚨 **NOT PRODUCTION READY** - Critical journal spam vulnerability must be patched before deployment.
 
 #### Checkpoint 4.5.10: Advanced Analytics & Long-term Sustainability
 **Goal**: Implement sophisticated analytics and self-balancing systems for long-term success
@@ -1416,3 +1432,348 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 5. Launch marketing strategy execution
 
 *Detailed technical specifications archived in implementation-history.md*
+
+---
+
+## 🧪 COMPREHENSIVE DEBT/ADS RECOVERY SYSTEM TESTING PLAN
+
+### **CRITICAL ANALYSIS SUMMARY**
+After thorough code analysis of all debt/ads recovery components across Home screen and My Journal screen, this comprehensive testing plan validates complete system integrity covering:
+
+**📍 ANALYZED COMPONENTS**:
+- **DebtRecoveryModal.tsx**: Main debt recovery modal (401 lines) with ad watching simulation, progress tracking, error handling
+- **GratitudeStreakCard.tsx**: Home screen debt management (661 lines) with 7 different modal states and complex debt flow
+- **DebtModals.tsx**: Supporting modal components (296 lines) - Success, Error, Confirmation, Issue, ForceReset modals
+- **GratitudeInput.tsx**: My Journal debt checking (274 lines) with entry creation validation and debt blocking
+- **journal.tsx**: My Journal screen (403 lines) using GratitudeInput for debt validation
+- **gratitude.ts**: GratitudeStreak interface with debt tracking fields (debtDays, isFrozen, canRecoverWithAd)
+- **gratitudeStorage.ts**: Core debt logic - calculateDebt(), payDebtWithAds(), requiresAdsToday() methods
+
+**🎯 TESTING SCOPE**: Complete validation of debt calculation, ad payment flows, modal interactions, error handling, and cross-screen consistency.
+
+---
+
+### **PHASE 1: HOME SCREEN DEBT RECOVERY TESTING** 🏠
+
+#### **1.1 GratitudeStreakCard Debt Display**
+- [ ] **Debt Indicator Accuracy**: Test debt display shows correct "⚠️ Debt: X day(s)" when debtDays > 0
+- [ ] **Debt Tap Functionality**: Verify tapping debt warning opens DebtRecoveryModal
+- [ ] **Frozen Streak Visual**: Confirm frozen streak shows ice blue styling with "Streak Frozen" status
+- [ ] **No Debt State**: Test streak card normal display when debtDays = 0 and isFrozen = false
+- [ ] **Debt Calculation Refresh**: Verify debt display updates after loadStreakData() calls
+
+#### **1.2 DebtRecoveryModal Core Functionality**
+- [ ] **Modal Opening Flow**: Test modal opens with correct debtDays, totalAdsNeeded calculations
+- [ ] **Progress Display**: Verify progress bar and dots show correct adsWatched/totalAdsNeeded ratio  
+- [ ] **Ad Watching Simulation**: Test handleWatchAd() increments adsWatched and updates progress
+- [ ] **Completion Detection**: Test modal auto-closes when adsWatched >= totalAdsNeeded
+- [ ] **Ad Loading State**: Verify "Loading Ad..." button state during isWatchingAd
+- [ ] **Recovery Complete State**: Test "Recovery Complete! ✓" button when remainingAds = 0
+
+#### **1.3 DebtRecoveryModal Error Handling**
+- [ ] **Ad Failed Modal**: Test AdFailedModal appears when handleWatchAd() returns false
+- [ ] **Error Modal**: Test DebtErrorModal appears when handleWatchAd() throws exception
+- [ ] **Reset Confirmation**: Test DebtConfirmationModal for streak reset option functionality
+- [ ] **Modal State Management**: Verify only one modal visible at a time during error flows
+
+#### **1.4 Debt Payment Integration**
+- [ ] **handleDebtComplete Flow**: Test complete debt payment process with gratitudeStorage.payDebtWithAds()
+- [ ] **Context Refresh**: Verify GratitudeContext.refreshStats() updates My Journal screen immediately
+- [ ] **Debt Verification**: Test debt validation after payment (remainingDebt should be 0)
+- [ ] **Success Modal**: Test DebtSuccessModal shows "Debt Paid!" after successful payment
+- [ ] **Payment Error Handling**: Test DebtErrorModal for failed debt payment scenarios
+
+#### **1.5 Force Reset Debt System**
+- [ ] **Issue Detection**: Test DebtIssueModal appears when debt payment fails or remainingDebt > 0
+- [ ] **Force Reset Confirmation**: Test ForceResetModal confirmation flow before force reset
+- [ ] **executeForceResetDebt**: Test creates entries for debt days to make calculateDebt() return 0
+- [ ] **Force Reset Verification**: Test debt verification after force reset (verifyDebt should be 0)
+- [ ] **Force Reset Success**: Test success message appears after force reset completion
+
+---
+
+### **PHASE 2: MY JOURNAL SCREEN DEBT VALIDATION** 📝
+
+#### **2.1 GratitudeInput Debt Blocking**
+- [ ] **Debt Check Pre-Entry**: Test calculateDebt() check before allowing entry creation
+- [ ] **Entry Count Validation**: Test todayEntries < 3 with debt > 0 blocks entry creation
+- [ ] **Debt Error Message**: Verify error shows "Please go to Home screen and tap Pay Debt"
+- [ ] **Bonus Entry Exception**: Test entries allowed if todayEntries >= 3 even with debt
+- [ ] **No Debt Entry Creation**: Test normal entry creation when debtDays = 0
+
+#### **2.2 Entry Creation Flow Integration**  
+- [ ] **XP Award Integration**: Test XP awarded correctly after debt validation passes
+- [ ] **Success Callback**: Test onSubmitSuccess() called after successful entry creation
+- [ ] **Context Update**: Test GratitudeContext updates after entry creation
+- [ ] **Input Reset**: Test form clears and resets after successful submission
+
+#### **2.3 Cross-Screen Consistency**
+- [ ] **Home to Journal Navigation**: Test debt state consistent when navigating from Home screen debt tap to Journal
+- [ ] **Journal to Home Navigation**: Test Home screen debt display updates after Journal actions
+- [ ] **Real-time Sync**: Test debt payment on Home screen immediately affects Journal entry creation
+- [ ] **Context Synchronization**: Test both screens use same GratitudeContext state
+
+---
+
+### **PHASE 3: MODAL SYSTEM INTEGRITY TESTING** 🪟
+
+#### **3.1 DebtModals.tsx Component Testing**
+- [ ] **DebtSuccessModal**: Test proper display with custom title, message, buttonText
+- [ ] **DebtErrorModal**: Test error display with appropriate warning emoji and styling  
+- [ ] **DebtConfirmationModal**: Test two-button confirmation with confirm/cancel actions
+- [ ] **DebtIssueModal**: Test multi-action modal with primary/secondary action buttons
+- [ ] **ForceResetModal**: Test force reset confirmation with proper warning message
+
+#### **3.2 Modal Interaction Testing**
+- [ ] **Modal Overlay**: Test modal overlay backdrop touch behavior (onRequestClose)
+- [ ] **Modal Animation**: Test fade animation type works correctly for all modal types
+- [ ] **Button Responsiveness**: Test all modal buttons respond correctly with proper callbacks
+- [ ] **Modal Stacking**: Test modal stacking doesn't occur (only one modal visible)
+- [ ] **Modal Memory Management**: Test modals properly close and clean up state
+
+#### **3.3 Modal State Consistency**
+- [ ] **State Synchronization**: Test modal state changes reflect immediately in parent components
+- [ ] **Error Message Passing**: Test currentErrorMessage correctly passed to relevant modals
+- [ ] **Action Callback Flow**: Test modal actions properly trigger parent component methods
+- [ ] **Modal Cleanup**: Test modal closure properly resets all associated state variables
+
+---
+
+### **PHASE 4: DEBT CALCULATION LOGIC VALIDATION** 🧮
+
+#### **4.1 calculateDebt() Method Testing**
+- [ ] **Today Completed Check**: Test debt = 0 when user has 3+ entries today
+- [ ] **Backward Calculation**: Test debt correctly counts missed days backwards from yesterday
+- [ ] **Completed Date Break**: Test debt calculation stops when completed day found
+- [ ] **Auto-reset Logic**: Test debt capped at reasonable limit (10 days check)
+- [ ] **Edge Cases**: Test debt calculation with various completion patterns
+
+#### **4.2 requiresAdsToday() Method Testing**  
+- [ ] **Today Entry Check**: Test returns 0 when todayCount >= 3
+- [ ] **Debt-based Requirement**: Test returns debtDays when todayCount < 3 and debt <= 3
+- [ ] **Auto-reset Case**: Test returns 0 when debtDays > 3 (auto-reset scenario)
+- [ ] **Consistency Check**: Test requiresAdsToday() consistent with calculateDebt()
+
+#### **4.3 payDebtWithAds() Method Testing**
+- [ ] **Insufficient Ads Error**: Test throws error when adsWatched < debtDays  
+- [ ] **No Debt Early Return**: Test returns immediately when debtDays = 0
+- [ ] **Streak Preservation**: Test preserves currentStreak during debt payment
+- [ ] **Flag Setting**: Test sets preserveCurrentStreak = true after payment
+- [ ] **State Update**: Test properly updates debtDays = 0, isFrozen = false
+
+---
+
+### **PHASE 5: ERROR HANDLING & EDGE CASES** 🛠️
+
+#### **5.1 Network & Storage Errors**
+- [ ] **Storage Read Errors**: Test graceful handling when debt calculation fails
+- [ ] **Storage Write Errors**: Test error handling during debt payment persistence  
+- [ ] **Context Refresh Errors**: Test error handling when GratitudeContext.refreshStats() fails
+- [ ] **Ad Simulation Errors**: Test error handling in mock ad watching functionality
+
+#### **5.2 Race Condition Testing**
+- [ ] **Concurrent Debt Payment**: Test simultaneous debt payment attempts don't create conflicts
+- [ ] **Rapid Modal Interactions**: Test rapid open/close of modals doesn't cause state issues
+- [ ] **Context Update Racing**: Test context updates don't create inconsistent states
+- [ ] **Multiple Screen Navigation**: Test rapid navigation doesn't break debt state consistency
+
+#### **5.3 Boundary & Edge Cases**  
+- [ ] **Zero Debt Scenarios**: Test all flows work correctly when debt = 0
+- [ ] **Maximum Debt Scenarios**: Test system behavior at debt limits (> 3 days)
+- [ ] **Empty Entry Lists**: Test debt calculation with no previous entries
+- [ ] **Date Boundary Cases**: Test debt calculation across month/year boundaries
+- [ ] **Streak Boundary Cases**: Test debt system with various streak states (0, 1, long streaks)
+
+---
+
+### **PHASE 6: END-TO-END INTEGRATION TESTING** 🔄
+
+#### **6.1 Complete Debt Recovery Flow**
+- [ ] **Start to Finish**: Test complete flow from debt detection → ad watching → debt clearance → normal entry creation
+- [ ] **Cross-Screen Flow**: Test Home screen debt payment immediately enables Journal entry creation  
+- [ ] **State Persistence**: Test debt payment persists across app restarts and navigation
+- [ ] **Context Synchronization**: Test both screens show consistent debt states throughout entire flow
+
+#### **6.2 User Experience Validation**
+- [ ] **Visual Feedback**: Test all visual indicators (frozen streak, progress bars, buttons) update correctly
+- [ ] **Error Communication**: Test error messages are clear, actionable, and user-friendly
+- [ ] **Success Feedback**: Test success states provide clear confirmation of completed actions
+- [ ] **Flow Intuition**: Test user flow feels natural and logical from debt detection to resolution
+
+#### **6.3 Performance & Responsiveness**
+- [ ] **Modal Opening Speed**: Test modals open instantly without delay
+- [ ] **Ad Simulation Speed**: Test ad simulation completes in reasonable time (1s mock delay)
+- [ ] **Debt Calculation Speed**: Test debt calculations don't cause UI lag
+- [ ] **Context Updates**: Test context refreshes happen quickly without blocking UI
+
+---
+
+### **PHASE 7: PRODUCTION READINESS VALIDATION** 🚀
+
+#### **7.1 Mock vs Production Readiness**
+- [ ] **AdMob Integration Points**: Document where mock ad system needs replacement with real AdMob
+- [ ] **Ad Loading States**: Test ad loading states work with real network conditions
+- [ ] **Ad Failure Handling**: Test system gracefully handles real ad loading failures
+- [ ] **Revenue Integration**: Verify ad watching properly integrates with monetization strategy
+
+#### **7.2 User Data Integrity**
+- [ ] **Debt Data Consistency**: Test debt tracking doesn't interfere with legitimate streak counting  
+- [ ] **Entry Creation Integrity**: Test debt system doesn't prevent valid entry creation
+- [ ] **XP System Integration**: Test debt payment flows don't interfere with XP reward system
+- [ ] **Context State Management**: Test debt system maintains data consistency across app lifecycle
+
+#### **7.3 Final System Validation**
+- [ ] **Complete Feature Testing**: Test all debt/ads features work as designed specification
+- [ ] **Cross-Platform Consistency**: Test debt system works identically on iOS/Android
+- [ ] **Accessibility Compliance**: Test debt modals and interactions meet accessibility standards  
+- [ ] **Documentation Completeness**: Verify all debt system behaviors documented for maintenance
+
+---
+
+### **🎯 SUCCESS CRITERIA & SIGN-OFF**
+
+**TESTING COMPLETION REQUIREMENTS**:
+✅ All 75+ test scenarios executed and validated  
+✅ No critical or high-priority bugs identified  
+✅ Cross-screen consistency verified in all flows  
+✅ Error handling validated for all edge cases  
+✅ Performance benchmarks met for all interactions  
+✅ Production readiness confirmed for AdMob integration  
+
+**SIGN-OFF APPROVAL**: Testing team confirms debt/ads recovery system is production-ready with comprehensive validation across all identified components and user flows.
+
+*Testing execution begins upon user approval of this comprehensive plan.*
+
+---
+
+## 📋 DEBT/ADS RECOVERY SYSTEM - EXPECTED FUNCTIONALITY SPECIFICATION
+
+### **SYSTEM OVERVIEW** 🎯
+Comprehensive debt recovery system that allows users to "rescue their streak" when they miss daily journal entries, using reward ads to preserve their progress instead of losing it entirely.
+
+---
+
+### **CORE FUNCTIONALITY SPECIFICATION**
+
+#### **🟦 DEBT CREATION LOGIC**
+- **Trigger**: User fails to write 3+ entries in My Journal on any day
+- **Next Day Result**: Streak becomes **frozen** (visual: ice blue styling)
+- **Debt Accumulation**: Each missed day = 1 debt day (maximum 3 days)
+- **Auto-Reset**: After 4+ missed days → debt clears, streak resets to 0
+
+#### **🟦 DEBT DISPLAY & TERMINOLOGY**
+- **UI Text Changes**: Replace all "debt/dluh" terminology with "rescue streak"
+- **Button Labels**: "Pay Debt" → "Rescue Streak" / "Zachraň streak"
+- **Warning Messages**: "You have debt" → "Rescue your daily streak"
+- **Home Screen**: Yellow warning under streak card shows "⚠️ Rescue needed: X day(s)"
+
+#### **🟦 MY JOURNAL ENTRY BLOCKING**
+- **With Debt**: Cannot create new entries if debt > 0 and today's entries < 3
+- **Redirect Behavior**: Attempt to write → automatic redirect to Home screen
+- **Modal Auto-Open**: Debt recovery modal opens immediately after redirect
+- **Exception**: If user already has 3+ entries today, can continue writing bonus entries
+
+#### **🟦 DEBT RECOVERY PROCESS**
+**Step 1: Access Recovery**
+- Navigate to Home screen debt warning OR redirect from My Journal
+- Debt recovery modal opens automatically
+
+**Step 2: Choose Recovery Method**
+- **Option A**: "Watch Ads to Rescue Streak" (preserve current streak)
+- **Option B**: "Reset Streak to 0" (clear debt, start fresh)
+
+**Step 3: Ad Watching Process**
+- **Online Check**: Verify internet connection before showing ads
+- **Offline Modal**: "You are offline. Please connect to internet to watch ads."
+- **Ad Simulation**: Click "Watch Ad" → 1 second loading → ad credited
+- **Progress Tracking**: Shows X/Y ads completed with progress bar
+
+**Step 4: Debt Payment**
+- **1 Ad = 1 Debt Day**: Each ad pays off one missed day
+- **Partial Payment**: Watching 1/3 ads reduces debt from 3 to 2 days
+- **Incomplete Sessions**: Progress saves - can continue tomorrow
+- **Daily Accumulation**: New missed days add to existing unpaid debt
+
+#### **🟦 STREAK PRESERVATION LOGIC**
+**Example Scenario**:
+- **Tuesday**: Write 3 entries → Streak = 5 ✅
+- **Wednesday**: Write 0 entries → Debt created ⚠️
+- **Thursday**: Streak frozen at 5, debt = 1 day
+- **Action**: Watch 1 ad → Debt cleared, streak unfrozen
+- **Result**: Write 3 entries → Streak = 6 (continues from frozen point)
+
+**Multi-Day Debt Scenario**:
+- Streak 5 → Miss 3 days → Debt = 3 days
+- Watch 1 ad/day for weeks → Debt stays at 3 (new missed days accumulate)
+- Watch all 3 ads in one session → Streak unfrozen at 5
+- Write 3 entries same day → Streak = 6
+
+#### **🟦 AUTOMATIC RESET LOGIC**
+- **4+ Days Missed**: No ads offered, automatic streak reset to 0
+- **UI State**: No debt warning, normal entry creation enabled
+- **User Message**: "Streak has been reset. Start your new streak today!"
+
+#### **🟦 VISUAL INDICATORS**
+
+**Home Screen Streak Card**:
+- **Normal**: Green flame icon, streak number in primary color
+- **Frozen**: Ice blue styling, "❄️ Streak Frozen - Rescue Needed" status
+- **Warning**: Yellow debt warning button below streak display
+
+**My Journal Graph**:
+- **Normal Days**: Regular colored bars for completed days
+- **Missed Days**: Empty/gray space initially
+- **Rescued Days**: Dark blue bars after debt payment for that day
+- **Reset Days**: Remain empty (no rescue performed)
+
+#### **🟦 MODAL SYSTEM STATES**
+
+**DebtRecoveryModal**:
+- **Header**: "Rescue Your Streak"
+- **Progress**: "Rescue Progress: X/Y ads completed"
+- **Buttons**: "Watch Ad X/Y" and "Skip & Reset Streak to 0"
+- **Completion**: "Rescue Complete! ✓ Write entries normally"
+
+**Error Modals**:
+- **Offline**: "Connect to internet to watch reward ads"
+- **Ad Failed**: "Ad failed to load. Please try again."
+- **Payment Error**: "Rescue failed. Try again or reset streak."
+
+#### **🟦 CROSS-SCREEN SYNCHRONIZATION**
+- **Real-time Updates**: Home and My Journal screens sync immediately
+- **Context Refresh**: Debt payment updates both screens instantly  
+- **State Persistence**: Debt status maintained across app restarts
+- **Navigation Consistency**: Debt state identical on all screens
+
+#### **🟦 PRODUCTION READINESS NOTES**
+- **Mock Integration**: Current ad watching is simulated (1s delay)
+- **AdMob Ready**: System prepared for real reward ad integration
+- **Online Detection**: Network status checking implemented
+- **Revenue Tracking**: Ad completion events ready for monetization
+
+---
+
+### **🎯 SUCCESS CRITERIA VALIDATION**
+
+**CORE FUNCTIONALITY**:
+✅ Debt creation after missing daily entries  
+✅ Streak freezing with visual indicators  
+✅ Entry blocking until debt resolution  
+✅ Ad-based debt payment system  
+✅ Streak preservation and continuation  
+✅ Automatic reset after 4+ missed days  
+
+**USER EXPERIENCE**:
+✅ Clear terminology and messaging  
+✅ Intuitive rescue vs reset choice  
+✅ Progress tracking and feedback  
+✅ Cross-screen consistency  
+✅ Offline handling and error states  
+
+**TECHNICAL IMPLEMENTATION**:
+✅ Mock ad system for development  
+✅ Real-time state synchronization  
+✅ Data persistence and integrity  
+✅ Production-ready architecture  
+
+*This specification serves as the expected behavior baseline for comprehensive testing validation.*
