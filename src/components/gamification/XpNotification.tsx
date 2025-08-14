@@ -34,7 +34,7 @@ interface BatchedNotification {
   timestamp: number;
 }
 
-export const XpNotification: React.FC<XpNotificationProps> = ({
+export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   visible,
   xpGains,
   onAnimationComplete,
@@ -46,6 +46,9 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   
   const [batchedData, setBatchedData] = useState<BatchedNotification | null>(null);
+  
+  // Performance optimization: Detect if we should use reduced motion for many notifications
+  const shouldUseReducedMotion = xpGains.length > 3;
 
   // ========================================
   // BATCHING LOGIC
@@ -259,38 +262,58 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
       translateYAnim.setValue(-50);
       scaleAnim.setValue(0.9);
 
+      // Performance optimization: Use faster, simpler animations when many notifications
+      const animationDuration = shouldUseReducedMotion ? 150 : 300;
+      const springConfig = shouldUseReducedMotion 
+        ? { tension: 150, friction: 10 } // Faster, less bouncy
+        : { tension: 100, friction: 8 };  // Normal smooth animation
+
       // Slide down and fade in
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 300,
+          duration: animationDuration,
           useNativeDriver: true,
         }),
-        Animated.spring(translateYAnim, {
-          toValue: 0,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
+        shouldUseReducedMotion 
+          ? Animated.timing(translateYAnim, {
+              toValue: 0,
+              duration: animationDuration,
+              useNativeDriver: true,
+            })
+          : Animated.spring(translateYAnim, {
+              toValue: 0,
+              ...springConfig,
+              useNativeDriver: true,
+            }),
+        shouldUseReducedMotion
+          ? Animated.timing(scaleAnim, {
+              toValue: 1,
+              duration: animationDuration,
+              useNativeDriver: true,
+            })
+          : Animated.spring(scaleAnim, {
+              toValue: 1,
+              ...springConfig,
+              useNativeDriver: true,
+            }),
       ]).start();
 
-      // Auto-dismiss after 3 seconds
+      // Performance optimization: Shorter display time when many notifications
+      const dismissDelay = shouldUseReducedMotion ? 2000 : 3000;
+      const dismissDuration = shouldUseReducedMotion ? 150 : 250;
+
+      // Auto-dismiss 
       const dismissTimer = setTimeout(() => {
         Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 0,
-            duration: 250,
+            duration: dismissDuration,
             useNativeDriver: true,
           }),
           Animated.timing(translateYAnim, {
             toValue: -30,
-            duration: 250,
+            duration: dismissDuration,
             useNativeDriver: true,
           }),
         ]).start(({ finished }) => {
@@ -298,14 +321,14 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
             onAnimationComplete();
           }
         });
-      }, 3000);
+      }, dismissDelay);
 
       return () => clearTimeout(dismissTimer);
     }
     
     // Return empty cleanup function for other cases
     return () => {};
-  }, [visible, batchedData, fadeAnim, translateYAnim, scaleAnim, onAnimationComplete]);
+  }, [visible, batchedData, fadeAnim, translateYAnim, scaleAnim, onAnimationComplete, shouldUseReducedMotion]);
 
   // ========================================
   // RENDER
@@ -390,7 +413,7 @@ export const XpNotification: React.FC<XpNotificationProps> = ({
       </View>
     </Animated.View>
   );
-};
+});
 
 // ========================================
 // STYLES
