@@ -13,7 +13,7 @@ import { QuickActionButtons } from '@/src/components/home/QuickActionButtons';
 import { DailyMotivationalQuote } from '@/src/components/home/DailyMotivationalQuote';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
-import { XpProgressBar } from '@/src/components/gamification/XpProgressBar';
+import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedXpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
 import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
@@ -24,7 +24,7 @@ import {
 } from '@/src/components/challenges';
 import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
-import { useGamification } from '@/src/contexts/GamificationContext';
+import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
 import { 
@@ -38,7 +38,7 @@ export default function HomeScreen() {
   // const { t } = useI18n(); // Unused for now
   const router = useRouter();
   const { actions, state: habitsState } = useHabits();
-  const { addXP, subtractXP } = useGamification();
+  const { addXP, subtractXP } = useOptimizedGamification();
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
@@ -178,7 +178,7 @@ export default function HomeScreen() {
       >
         {/* Conditionally rendered components based on user preferences */}
         {isComponentVisible('xpProgressBar') && (
-          <XpProgressBar />
+          <OptimizedXpProgressBar />
         )}
         
         {isComponentVisible('xpMultiplier') && (

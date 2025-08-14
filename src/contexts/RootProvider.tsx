@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { AppProvider } from './AppContext';
-import { GamificationProvider } from './GamificationContext';
+import { OptimizedGamificationProvider } from './OptimizedGamificationContext';
 import { XpAnimationProvider } from './XpAnimationContext';
 import { XpAnimationContainer } from '../components/gamification/XpAnimationContainer';
 import { HabitsProvider } from './HabitsContext';
@@ -16,7 +16,7 @@ interface RootProviderProps {
 export function RootProvider({ children }: RootProviderProps) {
   return (
     <AppProvider>
-      <GamificationProvider>
+      <OptimizedGamificationProvider>
         <XpAnimationProvider>
           <HabitsProvider>
             <GratitudeProvider>
@@ -32,7 +32,7 @@ export function RootProvider({ children }: RootProviderProps) {
             </GratitudeProvider>
           </HabitsProvider>
         </XpAnimationProvider>
-      </GamificationProvider>
+      </OptimizedGamificationProvider>
     </AppProvider>
   );
 }
