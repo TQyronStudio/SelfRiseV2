@@ -348,9 +348,27 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
         if (debounceTimeoutRef.current) {
           clearTimeout(debounceTimeoutRef.current);
         }
-        debounceTimeoutRef.current = setTimeout(() => {
-          // Background stats refresh only if needed
+        debounceTimeoutRef.current = setTimeout(async () => {
+          // CRITICAL: Background stats refresh to ensure data consistency
           console.log(`🔄 DEBOUNCED background sync after ${DEBOUNCE_DELAY_MS}ms`);
+          try {
+            const actualStats = await AtomicGamificationService.getGamificationStats();
+            
+            // Verify optimistic update was correct
+            if (Math.abs(actualStats.totalXP - state.totalXP) > 1) {
+              console.log(`🔧 Correcting background drift: ${state.totalXP} → ${actualStats.totalXP}`);
+              dispatch({
+                type: 'UPDATE_STATS',
+                payload: {
+                  totalXP: actualStats.totalXP,
+                  multiplierActive: actualStats.multiplierActive,
+                  multiplierEndTime: actualStats.multiplierEndTime,
+                }
+              });
+            }
+          } catch (backgroundError) {
+            console.warn('Background sync failed:', backgroundError);
+          }
         }, DEBOUNCE_DELAY_MS);
       }
       

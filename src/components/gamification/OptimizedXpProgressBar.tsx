@@ -13,8 +13,8 @@
  * - Smart memoization for complex calculations
  */
 
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useOptimizedLevel } from '../../contexts/OptimizedGamificationContext';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
@@ -32,6 +32,8 @@ interface OptimizedXpProgressBarProps {
 
 const ANIMATION_THROTTLE_MS = 16; // 60fps = 16.67ms between frames
 const PROGRESS_CACHE_THRESHOLD = 0.1; // Only animate if progress changed by >0.1%
+const REDUCED_MOTION_DURATION = 100; // Faster animations for reduced motion
+const NORMAL_ANIMATION_DURATION = 500; // Normal animation duration
 
 export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = React.memo(({
   animated = true,
@@ -43,7 +45,17 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 }) => {
   console.log('🎯 OptimizedXpProgressBar render');
   
+  // Accessibility - Reduced motion support
+  const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
+  const lastProgressRef = useRef(0);
+  const animationThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const { t } = useI18n();
+  
+  // Check for reduced motion preference
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotionEnabled);
+  }, []);
   
   // CRITICAL: Use optimized hooks for real-time updates
   const { 
@@ -276,7 +288,8 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     }
 
     const updateProgress = () => {
-      if (!animated || isLoading) {
+      // Check for reduced motion preference
+      if (!animated || isLoading || reducedMotionEnabled) {
         progressAnim.setValue(xpProgress);
         return;
       }
@@ -296,18 +309,21 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
       console.log(`🎯 Animating progress: ${currentProgress.toFixed(1)}% → ${xpProgress.toFixed(1)}%`);
 
-      // Choose animation type based on performance mode
-      const animationConfig = effectivePerformanceMode === 'performance' 
+      // Choose animation type based on performance mode and accessibility
+      const duration = reducedMotionEnabled ? REDUCED_MOTION_DURATION : 
+                      effectivePerformanceMode === 'performance' ? 200 : NORMAL_ANIMATION_DURATION;
+      
+      const animationConfig = effectivePerformanceMode === 'performance' || reducedMotionEnabled
         ? {
-            // Fast, simple timing animation for performance
+            // Fast, simple timing animation for performance or reduced motion
             animation: Animated.timing(progressAnim, {
               toValue: xpProgress,
-              duration: 200,
+              duration,
               useNativeDriver: false, // Progress width requires layout thread
             })
           }
         : {
-            // Smooth spring animation for quality
+            // Smooth spring animation for quality (when motion is preferred)
             animation: Animated.spring(progressAnim, {
               toValue: xpProgress,
               tension: 100,
@@ -323,12 +339,24 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       });
     };
 
-    // Throttle updates for smooth performance
-    animationTimeoutRef.current = setTimeout(updateProgress, ANIMATION_THROTTLE_MS);
+    // CRITICAL: Throttle updates for frame drop prevention
+    if (animationThrottleRef.current) {
+      clearTimeout(animationThrottleRef.current);
+    }
+    
+    // Advanced throttling based on progress change rate
+    const progressChangeRate = Math.abs(xpProgress - lastProgressRef.current);
+    const throttleDelay = progressChangeRate > 5 ? ANIMATION_THROTTLE_MS * 2 : ANIMATION_THROTTLE_MS;
+    
+    lastProgressRef.current = xpProgress;
+    animationThrottleRef.current = setTimeout(updateProgress, throttleDelay);
 
     return () => {
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);
+      }
+      if (animationThrottleRef.current) {
+        clearTimeout(animationThrottleRef.current);
       }
     };
   }, [xpProgress, animated, isLoading, updateSequence, effectivePerformanceMode, progressCache.cacheTime]);
