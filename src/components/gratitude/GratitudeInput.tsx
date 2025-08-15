@@ -94,25 +94,17 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         console.log(`[DEBUG] GratitudeInput: Streak = 0, debt = 0. Allowing entry creation (post-reset state)`);
         // Allow entry creation - no debt after reset
       } else if (authoritative_debt > 0) {
-        // Check how many entries user has today  
-        const allGratitudes = await gratitudeStorage.getAll();
-        const todayEntries = allGratitudes.filter(g => g.date === today()).length;
+        // STRICT DEBT BLOCKING: No entries allowed when debt exists
+        console.log(`[DEBUG] GratitudeInput: Blocking entry due to debt. Authoritative debt: ${authoritative_debt}, Calculated debt: ${calculatedDebt}`);
         
-        if (todayEntries < 3) {
-          // User hasn't completed daily requirement - must rescue streak first
-          console.log(`[DEBUG] GratitudeInput: Blocking entry. Authoritative debt: ${authoritative_debt}, Calculated debt: ${calculatedDebt}`);
-          
-          // CONSISTENCY WARNING: Log discrepancy for debugging
-          if (authoritative_debt !== calculatedDebt) {
-            console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_debt}, calculated=${calculatedDebt}`);
-          }
-          
-          setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing your daily entries.`);
-          setShowError(true);
-          return;
+        // CONSISTENCY WARNING: Log discrepancy for debugging
+        if (authoritative_debt !== calculatedDebt) {
+          console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_debt}, calculated=${calculatedDebt}`);
         }
-        // If user has 3+ entries today, allow bonus entries even with debt
-        console.log(`[DEBUG] GratitudeInput: Allowing bonus entry despite debt. Today entries: ${todayEntries}`);
+        
+        setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing any entries.`);
+        setShowError(true);
+        return;
       }
       
       const newEntry = await actions.createGratitude({
