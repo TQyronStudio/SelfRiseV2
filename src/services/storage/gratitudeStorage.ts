@@ -1,4 +1,4 @@
-import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput } from '../../types/gratitude';
+import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, DebtPayment, DebtHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -272,12 +272,20 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const streak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
       
       // Migration: Add new properties if they don't exist
-      if (streak && (streak.debtDays === undefined || streak.isFrozen === undefined || streak.preserveCurrentStreak === undefined)) {
+      if (streak && (
+        streak.debtDays === undefined || 
+        streak.isFrozen === undefined || 
+        streak.preserveCurrentStreak === undefined ||
+        streak.debtPayments === undefined ||
+        streak.debtHistory === undefined
+      )) {
         const migratedStreak: GratitudeStreak = {
           ...streak,
           debtDays: streak.debtDays || 0,
           isFrozen: streak.isFrozen || false,
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
+          debtPayments: streak.debtPayments || [],
+          debtHistory: streak.debtHistory || [],
         };
         await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, migratedStreak);
         return migratedStreak;
@@ -292,6 +300,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         debtDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
+        debtPayments: [],
+        debtHistory: [],
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -332,6 +342,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         debtDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
+        debtPayments: [],
+        debtHistory: [],
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -419,6 +431,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           debtDays: 0,
           isFrozen: false,
           preserveCurrentStreak: false,
+          debtPayments: [],
+          debtHistory: [],
           starCount,
           flameCount,
           crownCount,
@@ -455,6 +469,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         starCount,
         flameCount,
         crownCount,
+        // Preserve existing debt tracking data
+        debtPayments: savedStreak.debtPayments || [],
+        debtHistory: savedStreak.debtHistory || [],
         // Reset the preserve flag after using it
         preserveCurrentStreak: false,
       };
@@ -780,9 +797,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // NEW: Debt tracking methods for 3-day recovery system
   
   /**
-   * Calculate debt days (consecutive days without 3+ entries from yesterday backwards)
-   * Returns actual number of missed days (can be > 3 for auto-reset detection)
-   * CRITICAL FIX: If user completed today, debt is automatically 0
+   * ENHANCED: Calculate effective debt days accounting for ad payments
+   * Returns actual outstanding debt after subtracting paid debt via ads
+   * CRITICAL FIX: Tracks individual debt payments per missed day
    */
   async calculateDebt(): Promise<number> {
     try {
@@ -796,7 +813,45 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         return 0;
       }
       
-      let debtDays = 0;
+      // Get raw missed days (same as before)
+      const rawMissedDays = await this.calculateRawMissedDays();
+      
+      // Get current debt payment tracking
+      const currentStreak = await this.getStreak();
+      const paidDays = new Set<DateString>();
+      
+      // Count all days that have been fully paid via ads
+      currentStreak.debtPayments.forEach(payment => {
+        if (payment.isComplete) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+      
+      // Calculate which missed days are still unpaid
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
+      
+      const effectiveDebt = unpaidMissedDays.length;
+      
+      console.log(`[DEBUG] calculateDebt: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveDebt=${effectiveDebt}`);
+      
+      return effectiveDebt;
+    } catch (error) {
+      console.error('[DEBUG] calculateDebt error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * HELPER: Calculate raw missed days without considering ad payments
+   * Returns actual number of consecutive missed days from yesterday backwards
+   */
+  private async calculateRawMissedDays(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+      
+      let missedDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday
       
       // Check backwards until we find a completed day or reach reasonable limit
@@ -804,26 +859,43 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         if (completedDates.includes(checkDate)) {
           break; // Found a completed day, no more debt from earlier days
         }
-        debtDays++;
+        missedDays++;
         checkDate = subtractDays(checkDate, 1);
       }
       
-      return debtDays;
+      return missedDays;
     } catch (error) {
       return 0;
     }
   }
 
   /**
-   * Calculate debt days excluding today (for auto-reset decision)
+   * HELPER: Get list of missed dates from today backwards
+   */
+  private getMissedDatesFromToday(missedDayCount: number): DateString[] {
+    const currentDate = today();
+    const missedDates: DateString[] = [];
+    
+    for (let i = 1; i <= missedDayCount; i++) {
+      const missedDate = subtractDays(currentDate, i);
+      missedDates.push(missedDate);
+    }
+    
+    return missedDates;
+  }
+
+  /**
+   * ENHANCED: Calculate effective debt days excluding today (for auto-reset decision)
    * This prevents auto-reset when user completes today after missing previous days
+   * Now accounts for ad payments made for previous days
    */
   async calculateDebtExcludingToday(): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
       
-      let debtDays = 0;
+      // Get raw missed days excluding today
+      let rawMissedDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday (skip today)
       
       // Check backwards until we find a completed day or reach reasonable limit
@@ -831,12 +903,32 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         if (completedDates.includes(checkDate)) {
           break; // Found a completed day, no more debt from earlier days
         }
-        debtDays++;
+        rawMissedDays++;
         checkDate = subtractDays(checkDate, 1);
       }
       
-      return debtDays;
+      // Get current debt payment tracking
+      const currentStreak = await this.getStreak();
+      const paidDays = new Set<DateString>();
+      
+      // Count all days that have been fully paid via ads (excluding today)
+      currentStreak.debtPayments.forEach(payment => {
+        if (payment.isComplete && payment.missedDate !== currentDate) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+      
+      // Calculate which missed days are still unpaid (excluding today)
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date) && date !== currentDate);
+      
+      const effectiveDebt = unpaidMissedDays.length;
+      
+      console.log(`[DEBUG] calculateDebtExcludingToday: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveDebt=${effectiveDebt}`);
+      
+      return effectiveDebt;
     } catch (error) {
+      console.error('[DEBUG] calculateDebtExcludingToday error:', error);
       return 0;
     }
   }
@@ -854,9 +946,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Calculate how many ads user needs to watch to pay debt only
+   * ENHANCED: Calculate how many ads user needs to watch to pay outstanding debt
    * After debt is paid, user can write entries normally without ads
-   * CRITICAL FIX: If user has 3+ entries today, no ads needed
+   * CRITICAL FIX: Accounts for already paid debt via previous ad sessions
    */
   async requiresAdsToday(): Promise<number> {
     try {
@@ -869,67 +961,247 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         return 0;
       }
       
-      const debtDays = await this.calculateDebt();
+      const effectiveDebt = await this.calculateDebt(); // Now accounts for payments
       
       // If debt > 3, automatic reset (handled elsewhere)
-      if (debtDays > 3) return 0;
+      if (effectiveDebt > 3) return 0;
       
-      // Only need ads to pay off debt
-      // After debt is paid, entries can be written normally
-      return debtDays;
+      // Return effective unpaid debt (each ad pays 1 day)
+      return effectiveDebt;
     } catch (error) {
       return 0;
     }
   }
 
   /**
-   * Pay off debt by watching ads - clears debt without creating fake entries
-   * CRITICAL FIX: Preserves current streak instead of incrementing it
+   * ENHANCED: Pay off debt with incremental ad tracking
+   * Supports partial payments that persist across sessions
+   * CRITICAL FIX: Tracks individual ad payments per missed day
    */
-  async payDebtWithAds(adsWatched: number): Promise<void> {
+  async payDebtWithAds(adsToApply: number): Promise<void> {
     try {
-      console.log(`[DEBUG] payDebtWithAds: adsWatched=${adsWatched}`);
+      console.log(`[DEBUG] payDebtWithAds: adsToApply=${adsToApply}`);
       
-      const debtDays = await this.calculateDebt();
-      console.log(`[DEBUG] payDebtWithAds: debtDays=${debtDays}`);
+      const currentStreakInfo = await this.getStreak();
+      const currentDebt = await this.calculateDebt();
       
-      if (adsWatched < debtDays) {
-        const errorMsg = `Not enough ads watched. Need ${debtDays}, got ${adsWatched}`;
-        console.error(`[DEBUG] payDebtWithAds: ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
+      console.log(`[DEBUG] payDebtWithAds: currentDebt=${currentDebt}, existing payments=${currentStreakInfo.debtPayments.length}`);
       
-      // CRITICAL FIX: Check if debt is already 0
-      if (debtDays === 0) {
+      if (currentDebt === 0) {
         console.log(`[DEBUG] payDebtWithAds: No debt to pay, returning early`);
         return; // No debt to pay
       }
 
-      // CRITICAL FIX: Instead of creating fake entries, simply clear the debt
-      // This preserves the current streak without incrementing it
-      console.log(`[DEBUG] payDebtWithAds: Clearing debt without creating fake entries`);
-      
-      // Get current streak to preserve it
-      const currentStreakInfo = await this.getStreak();
-      console.log(`[DEBUG] payDebtWithAds: Current streak before payment: ${currentStreakInfo.currentStreak}`);
-      
-      // Clear debt by updating streak info - preserve current streak but unfreeze it
+      if (adsToApply <= 0) {
+        throw new Error(`Invalid number of ads: ${adsToApply}`);
+      }
+
+      // Get the list of unpaid missed days
+      const unpaidMissedDays = await this.getUnpaidMissedDays();
+      console.log(`[DEBUG] payDebtWithAds: unpaidMissedDays=${JSON.stringify(unpaidMissedDays)}`);
+
+      if (adsToApply > unpaidMissedDays.length) {
+        console.log(`[DEBUG] payDebtWithAds: More ads than needed. Required: ${unpaidMissedDays.length}, provided: ${adsToApply}`);
+        // Allow overpayment, just use what's needed
+      }
+
+      // Apply ads to unpaid days (1 ad = 1 day cleared)
+      const updatedPayments = [...currentStreakInfo.debtPayments];
+      const newHistoryEntries = [...currentStreakInfo.debtHistory];
+      let adsApplied = 0;
+
+      for (let i = 0; i < Math.min(adsToApply, unpaidMissedDays.length); i++) {
+        const missedDate = unpaidMissedDays[i]!; // Safe: index is within array bounds
+        
+        // Find existing payment for this date or create new one
+        const existingPaymentIndex = updatedPayments.findIndex(p => p.missedDate === missedDate);
+        
+        if (existingPaymentIndex >= 0) {
+          // Update existing payment (though for this system 1 ad = complete)
+          updatedPayments[existingPaymentIndex] = {
+            ...updatedPayments[existingPaymentIndex],
+            missedDate, // Ensure missedDate is properly set
+            adsWatched: 1,
+            isComplete: true,
+            paymentTimestamp: new Date(),
+          };
+        } else {
+          // Create new payment
+          const newPayment: DebtPayment = {
+            missedDate,
+            adsWatched: 1, // 1 ad per day according to spec
+            paymentTimestamp: new Date(),
+            isComplete: true,
+          };
+          updatedPayments.push(newPayment);
+        }
+        
+        adsApplied++;
+        
+        // Add to audit trail
+        const historyEntry: DebtHistoryEntry = {
+          action: 'payment',
+          timestamp: new Date(),
+          debtBefore: currentDebt,
+          debtAfter: currentDebt - adsApplied,
+          details: `Paid 1 ad for missed day ${missedDate}`,
+          missedDates: [missedDate],
+          adsInvolved: 1,
+        };
+        newHistoryEntries.push(historyEntry);
+      }
+
+      // Calculate new effective debt
+      const newDebt = await this.calculateDebtWithPayments(updatedPayments);
+      console.log(`[DEBUG] payDebtWithAds: newDebt=${newDebt} after applying ${adsApplied} ads`);
+
+      // Update streak info with new payment data
       const updatedStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
-        debtDays: 0,           // Clear debt
-        isFrozen: false,       // Unfreeze streak
-        canRecoverWithAd: false, // No longer need recovery
-        preserveCurrentStreak: true // Flag to preserve current streak instead of recalculating
+        debtDays: newDebt, // Update to new effective debt
+        isFrozen: newDebt > 0, // Unfreeze only if all debt is paid
+        canRecoverWithAd: newDebt > 0 && newDebt <= 3,
+        preserveCurrentStreak: newDebt === 0, // Preserve streak only when fully paid
+        debtPayments: updatedPayments,
+        debtHistory: newHistoryEntries,
       };
       
       // Save updated streak info
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreakInfo);
-      console.log(`[DEBUG] payDebtWithAds: Successfully cleared debt. Streak preserved at ${updatedStreakInfo.currentStreak}`);
+      
+      console.log(`[DEBUG] payDebtWithAds: Successfully applied ${adsApplied} ads. New debt: ${newDebt}`);
       
     } catch (error) {
       console.error(`[DEBUG] payDebtWithAds: Error occurred:`, error);
-      // Re-throw original error with more context instead of generic StorageError
       throw new Error(`Failed to pay debt with ads: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * PUBLIC: Get list of unpaid missed days (exposed for component use)
+   */
+  async getUnpaidMissedDays(): Promise<DateString[]> {
+    try {
+      const rawMissedDays = await this.calculateRawMissedDays();
+      const currentStreak = await this.getStreak();
+      const paidDays = new Set<DateString>();
+      
+      // Get all fully paid days
+      currentStreak.debtPayments.forEach(payment => {
+        if (payment.isComplete) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+      
+      // Filter out paid days
+      const allMissedDays = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidDays = allMissedDays.filter(date => !paidDays.has(date));
+      
+      return unpaidDays;
+    } catch (error) {
+      console.error('[DEBUG] getUnpaidMissedDays error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * HELPER: Calculate debt with given payment data (for testing new debt levels)
+   */
+  private async calculateDebtWithPayments(payments: DebtPayment[]): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+      
+      // If user completed today, debt is automatically 0
+      if (completedDates.includes(currentDate)) {
+        return 0;
+      }
+      
+      // Get raw missed days
+      const rawMissedDays = await this.calculateRawMissedDays();
+      const paidDays = new Set<DateString>();
+      
+      // Count all days that have been fully paid via ads
+      payments.forEach(payment => {
+        if (payment.isComplete) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+      
+      // Calculate which missed days are still unpaid
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
+      
+      return unpaidMissedDays.length;
+    } catch (error) {
+      console.error('[DEBUG] calculateDebtWithPayments error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * NEW: Apply single ad payment (called after each successful ad watch)
+   * This method should be called incrementally as user watches ads one by one
+   */
+  async applySingleAdPayment(): Promise<{ remainingDebt: number; isFullyPaid: boolean }> {
+    try {
+      console.log(`[DEBUG] applySingleAdPayment: Starting single ad application`);
+      
+      const currentDebt = await this.calculateDebt();
+      
+      if (currentDebt === 0) {
+        console.log(`[DEBUG] applySingleAdPayment: No debt to pay`);
+        return { remainingDebt: 0, isFullyPaid: true };
+      }
+
+      // Apply 1 ad to the debt
+      await this.payDebtWithAds(1);
+      
+      // Calculate new debt after payment
+      const newDebt = await this.calculateDebt();
+      const isFullyPaid = newDebt === 0;
+      
+      console.log(`[DEBUG] applySingleAdPayment: Applied 1 ad. Remaining debt: ${newDebt}, Fully paid: ${isFullyPaid}`);
+      
+      return { remainingDebt: newDebt, isFullyPaid };
+    } catch (error) {
+      console.error(`[DEBUG] applySingleAdPayment error:`, error);
+      throw new Error(`Failed to apply single ad payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * NEW: Get debt payment progress for UI display
+   */
+  async getDebtPaymentProgress(): Promise<{
+    totalMissedDays: number;
+    paidDays: number;
+    unpaidDays: number;
+    paidDates: DateString[];
+    unpaidDates: DateString[];
+  }> {
+    try {
+      const totalMissedDays = await this.calculateRawMissedDays();
+      const unpaidDates = await this.getUnpaidMissedDays();
+      const allMissedDates = this.getMissedDatesFromToday(totalMissedDays);
+      const paidDates = allMissedDates.filter(date => !unpaidDates.includes(date));
+      
+      return {
+        totalMissedDays,
+        paidDays: paidDates.length,
+        unpaidDays: unpaidDates.length,
+        paidDates,
+        unpaidDates,
+      };
+    } catch (error) {
+      console.error(`[DEBUG] getDebtPaymentProgress error:`, error);
+      return {
+        totalMissedDays: 0,
+        paidDays: 0,
+        unpaidDays: 0,
+        paidDates: [],
+        unpaidDates: [],
+      };
     }
   }
 

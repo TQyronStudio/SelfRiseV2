@@ -15,14 +15,35 @@ export interface GratitudeStreak {
   lastEntryDate: DateString | null;
   streakStartDate: DateString | null;
   canRecoverWithAd: boolean; // true if user can recover broken streak with ad
-  // NEW: Debt tracking system
+  // ENHANCED: Debt tracking system with payment persistence
   debtDays: number; // 0-3, days of accumulated debt from missed days
   isFrozen: boolean; // true when debt > 0, streak neither grows nor resets
   preserveCurrentStreak?: boolean; // true after debt payment to preserve streak instead of recalculating
+  debtPayments: DebtPayment[]; // NEW: Track individual ad payments per missed day
+  debtHistory: DebtHistoryEntry[]; // NEW: Audit trail for debugging debt issues
   // Bonus milestone counters (mysterious badges)
   starCount: number; // ⭐ - times achieved 1 bonus gratitude in a day
   flameCount: number; // 🔥 - times achieved 5 bonus gratitudes in a day  
   crownCount: number; // 👑 - times achieved 10 bonus gratitudes in a day
+}
+
+// NEW: Individual debt payment tracking
+export interface DebtPayment {
+  missedDate: DateString; // Which specific missed day was paid for
+  adsWatched: number; // How many ads watched for this specific day (1 ad = 1 day cleared)
+  paymentTimestamp: Date; // When the payment was made
+  isComplete: boolean; // Whether this missed day is fully paid (1 ad = complete)
+}
+
+// NEW: Comprehensive audit trail for debt system debugging
+export interface DebtHistoryEntry {
+  action: 'payment' | 'accumulation' | 'auto_reset' | 'manual_reset' | 'force_reset';
+  timestamp: Date;
+  debtBefore: number; // Debt days before action
+  debtAfter: number; // Debt days after action
+  details: string; // Human-readable description of what happened
+  missedDates?: DateString[]; // Which dates were involved
+  adsInvolved?: number; // How many ads were involved in this action
 }
 
 export interface DailyGratitudeStats {

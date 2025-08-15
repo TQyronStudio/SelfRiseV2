@@ -13,7 +13,8 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { useGratitude } from '../../contexts/GratitudeContext';
 import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
-import { GratitudeStreak } from '../../types/gratitude';
+import { GratitudeStreak, DebtHistoryEntry } from '../../types/gratitude';
+import { BaseStorage, STORAGE_KEYS } from '../../services/storage/base';
 import { StreakSharingModal } from './StreakSharingModal';
 import DebtRecoveryModal from '../gratitude/DebtRecoveryModal';
 import {
@@ -78,6 +79,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         debtDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
+        debtPayments: [],
+        debtHistory: [],
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -122,26 +125,35 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     // Simuluje úspěšné zhlédnutí reklamy pro testovací účely
     // V produkci nahradit skutečnou AdMob implementací
     
-    // Simulace loading času reklamy
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Automaticky úspěšné zhlédnutí reklamy pro testing
-    setAdsWatched(prev => prev + 1);
-    return true; // Vždy úspěšné pro testování
+    try {
+      // Simulace loading času reklamy
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // ENHANCED: Apply single ad payment immediately after successful ad watch
+      const paymentResult = await gratitudeStorage.applySingleAdPayment();
+      console.log(`[DEBUG] handleWatchAd: Payment result`, paymentResult);
+      
+      // Update local state to reflect the payment
+      setAdsWatched(prev => prev + 1);
+      
+      // If fully paid, update total needed (for UI consistency)
+      if (paymentResult.isFullyPaid) {
+        setTotalAdsNeeded(adsWatched + 1);
+      }
+      
+      return true; // Successful ad watch and payment
+    } catch (error) {
+      console.error(`[DEBUG] handleWatchAd: Error applying ad payment:`, error);
+      return false; // Failed to apply payment
+    }
   };
 
   const handleDebtComplete = async () => {
     try {
-      console.log(`[DEBUG] handleDebtComplete: adsWatched=${adsWatched}, totalAdsNeeded=${totalAdsNeeded}`);
+      console.log(`[DEBUG] handleDebtComplete: Starting debt completion verification`);
       
-      // CRITICAL FIX: Use totalAdsNeeded instead of adsWatched due to React state timing
-      // When this function is called, all ads should be watched (verified by DebtRecoveryModal)
-      const actualAdsWatched = totalAdsNeeded;
-      console.log(`[DEBUG] handleDebtComplete: Using actualAdsWatched=${actualAdsWatched}`);
-      
-      // Pay debt with correct number of ads
-      await gratitudeStorage.payDebtWithAds(actualAdsWatched);
-      console.log(`[DEBUG] payDebtWithAds completed successfully`);
+      // ENHANCED: Debt payments are now applied incrementally in handleWatchAd()
+      // This function just verifies completion and refreshes UI state
       
       // Close modal and reset state BEFORE reloading data
       setShowDebtModal(false);
@@ -156,9 +168,9 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       await actions.refreshStats();
       console.log(`[DEBUG] GratitudeContext refreshStats completed`);
       
-      // Double-check if debt was actually cleared
+      // Verify debt was actually cleared (should be 0 due to incremental payments)
       const remainingDebt = await gratitudeStorage.calculateDebt();
-      console.log(`[DEBUG] remainingDebt after payment: ${remainingDebt}`);
+      console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
       
       if (remainingDebt > 0) {
         setCurrentErrorMessage(`There seems to be an issue with debt payment. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`);
@@ -169,8 +181,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       // Show success message
       setShowDebtPaidModal(true);
     } catch (error) {
-      console.error('Failed to complete debt payment:', error);
-      setCurrentErrorMessage(`Failed to pay debt: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`);
+      console.error('Failed to complete debt verification:', error);
+      setCurrentErrorMessage(`Failed to verify debt completion: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`);
       setShowDebtErrorModal(true);
     }
   };
@@ -181,36 +193,42 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
 
   const executeForceResetDebt = async () => {
     try {
-      console.log(`[DEBUG] executeForceResetDebt: Starting force reset`);
+      console.log(`[DEBUG] executeForceResetDebt: Starting clean force reset`);
       
-      // CRITICAL FIX: Create actual entries to clear debt
-      // calculateDebt() analyzes real entries, not just streak object
-      const currentDebt = await gratitudeStorage.calculateDebt();
-      console.log(`[DEBUG] executeForceResetDebt: Current debt=${currentDebt}`);
+      // ENHANCED: Clean debt reset without creating fake entries
+      // Simply clear all debt tracking data and unfreeze streak
+      const currentStreakInfo = await gratitudeStorage.getStreak();
+      console.log(`[DEBUG] executeForceResetDebt: Current debt=${currentStreakInfo.debtDays}`);
       
-      if (currentDebt > 0) {
-        // Force create entries for debt days to make calculateDebt() return 0
-        const { today, subtractDays } = await import('@/src/utils/date');
-        const currentDate = today();
-        
-        for (let i = 1; i <= currentDebt; i++) {
-          const debtDate = subtractDays(currentDate, i);
-          console.log(`[DEBUG] executeForceResetDebt: Creating force entries for ${debtDate}`);
-          
-          // Create 3 force reset entries for each debt day
-          for (let j = 1; j <= 3; j++) {
-            await gratitudeStorage.create({
-              content: `Force reset - Recovery ${i}.${j}`,
-              date: debtDate,
-              type: 'gratitude',
-            });
-          }
-        }
-      }
+      // Create history entry for force reset
+      const historyEntry: DebtHistoryEntry = {
+        action: 'force_reset',
+        timestamp: new Date(),
+        debtBefore: currentStreakInfo.debtDays,
+        debtAfter: 0,
+        details: 'Force reset - All debt cleared without ads',
+        missedDates: [], // Will be populated with actual unpaid dates
+        adsInvolved: 0,
+      };
+
+      // Clear all debt tracking data
+      const resetStreakInfo: GratitudeStreak = {
+        ...currentStreakInfo,
+        debtDays: 0,               // Clear debt completely
+        isFrozen: false,           // Unfreeze streak
+        canRecoverWithAd: false,   // No longer need recovery
+        debtPayments: [],          // Clear payment history
+        debtHistory: [...currentStreakInfo.debtHistory, historyEntry], // Keep audit trail
+        preserveCurrentStreak: false, // Normal calculation from now
+      };
       
-      // Recalculate streak after force reset
+      // Save updated streak info
+      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreakInfo);
+      console.log(`[DEBUG] executeForceResetDebt: Debt force reset completed`);
+      
+      // Recalculate streak to ensure consistency
       await gratitudeStorage.calculateAndUpdateStreak();
-      console.log(`[DEBUG] executeForceResetDebt: Recalculated streak`);
+      console.log(`[DEBUG] executeForceResetDebt: Streak recalculated`);
       
       // Verify debt is now 0
       const verifyDebt = await gratitudeStorage.calculateDebt();
@@ -221,6 +239,9 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       setAdsWatched(0);
       setTotalAdsNeeded(0);
       await loadStreakData();
+      
+      // Refresh context
+      await actions.refreshStats();
       
       // Show success message
       setCurrentErrorMessage('Your debt has been reset. You can now write entries normally.');
