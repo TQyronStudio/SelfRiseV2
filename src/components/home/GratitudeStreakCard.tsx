@@ -81,6 +81,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         preserveCurrentStreak: false,
         debtPayments: [],
         debtHistory: [],
+        autoResetTimestamp: null,
+        autoResetReason: null,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -219,6 +221,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         canRecoverWithAd: false,   // No longer need recovery
         debtPayments: [],          // Clear payment history
         debtHistory: [...currentStreakInfo.debtHistory, historyEntry], // Keep audit trail
+        autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark force reset
+        autoResetReason: 'Force reset by user action',
         preserveCurrentStreak: false, // Normal calculation from now
       };
       

@@ -19,8 +19,11 @@ export interface GratitudeStreak {
   debtDays: number; // 0-3, days of accumulated debt from missed days
   isFrozen: boolean; // true when debt > 0, streak neither grows nor resets
   preserveCurrentStreak?: boolean; // true after debt payment to preserve streak instead of recalculating
-  debtPayments: DebtPayment[]; // NEW: Track individual ad payments per missed day
-  debtHistory: DebtHistoryEntry[]; // NEW: Audit trail for debugging debt issues
+  debtPayments: DebtPayment[]; // Track individual ad payments per missed day
+  debtHistory: DebtHistoryEntry[]; // Audit trail for debugging debt issues
+  // CRITICAL FIX BUG #2: Auto-reset state tracking to prevent phantom debt
+  autoResetTimestamp: Date | null; // When auto-reset occurred (24h validity)
+  autoResetReason: string | null; // Why auto-reset happened (debugging)
   // Bonus milestone counters (mysterious badges)
   starCount: number; // ⭐ - times achieved 1 bonus gratitude in a day
   flameCount: number; // 🔥 - times achieved 5 bonus gratitudes in a day  

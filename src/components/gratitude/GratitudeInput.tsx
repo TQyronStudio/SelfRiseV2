@@ -82,20 +82,37 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
     try {
       setIsSubmitting(true);
       
-      // CHECK FOR DEBT: Block only if user has <3 entries today AND has debt
-      const debtDays = await gratitudeStorage.calculateDebt();
-      if (debtDays > 0) {
-        // Check how many entries user has today
+      // ENHANCED DEBT CHECK with BUG #2 FIX: Multi-source validation to prevent phantom debt
+      const currentStreak = await gratitudeStorage.getStreak();
+      const calculatedDebt = await gratitudeStorage.calculateDebt();
+      
+      // PRIMARY SOURCE: Use streak.debtDays as authoritative (respects auto-reset)
+      const authoritative_debt = currentStreak.debtDays;
+      
+      // SAFETY CHECK: If current streak = 0, no debt should exist (auto-reset case)
+      if (currentStreak.currentStreak === 0 && authoritative_debt === 0) {
+        console.log(`[DEBUG] GratitudeInput: Streak = 0, debt = 0. Allowing entry creation (post-reset state)`);
+        // Allow entry creation - no debt after reset
+      } else if (authoritative_debt > 0) {
+        // Check how many entries user has today  
         const allGratitudes = await gratitudeStorage.getAll();
         const todayEntries = allGratitudes.filter(g => g.date === today()).length;
         
         if (todayEntries < 3) {
           // User hasn't completed daily requirement - must pay debt first
-          setErrorMessage(`You have ${debtDays} day${debtDays > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Pay Debt" to watch ads before writing your daily entries.`);
+          console.log(`[DEBUG] GratitudeInput: Blocking entry. Authoritative debt: ${authoritative_debt}, Calculated debt: ${calculatedDebt}`);
+          
+          // CONSISTENCY WARNING: Log discrepancy for debugging
+          if (authoritative_debt !== calculatedDebt) {
+            console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_debt}, calculated=${calculatedDebt}`);
+          }
+          
+          setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing your daily entries.`);
           setShowError(true);
           return;
         }
         // If user has 3+ entries today, allow bonus entries even with debt
+        console.log(`[DEBUG] GratitudeInput: Allowing bonus entry despite debt. Today entries: ${todayEntries}`);
       }
       
       const newEntry = await actions.createGratitude({

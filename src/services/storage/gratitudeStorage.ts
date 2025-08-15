@@ -271,13 +271,15 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     try {
       const streak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
       
-      // Migration: Add new properties if they don't exist
+      // Migration: Add new properties if they don't exist (including Bug #2 fix fields)
       if (streak && (
         streak.debtDays === undefined || 
         streak.isFrozen === undefined || 
         streak.preserveCurrentStreak === undefined ||
         streak.debtPayments === undefined ||
-        streak.debtHistory === undefined
+        streak.debtHistory === undefined ||
+        streak.autoResetTimestamp === undefined ||
+        streak.autoResetReason === undefined
       )) {
         const migratedStreak: GratitudeStreak = {
           ...streak,
@@ -286,6 +288,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
           debtPayments: streak.debtPayments || [],
           debtHistory: streak.debtHistory || [],
+          autoResetTimestamp: streak.autoResetTimestamp || null,
+          autoResetReason: streak.autoResetReason || null,
         };
         await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, migratedStreak);
         return migratedStreak;
@@ -302,6 +306,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreak: false,
         debtPayments: [],
         debtHistory: [],
+        autoResetTimestamp: null,
+        autoResetReason: null,
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -344,6 +350,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreak: false,
         debtPayments: [],
         debtHistory: [],
+        autoResetTimestamp: new Date(), // CRITICAL: Mark manual reset timestamp
+        autoResetReason: 'Manual reset by user',
         starCount: 0,
         flameCount: 0,
         crownCount: 0,
@@ -433,6 +441,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           preserveCurrentStreak: false,
           debtPayments: [],
           debtHistory: [],
+          autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark auto-reset
+          autoResetReason: `Auto-reset after ${debtExcludingToday} days debt`,
           starCount,
           flameCount,
           crownCount,
@@ -472,6 +482,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Preserve existing debt tracking data
         debtPayments: savedStreak.debtPayments || [],
         debtHistory: savedStreak.debtHistory || [],
+        // Preserve existing auto-reset tracking (don't overwrite)
+        autoResetTimestamp: savedStreak.autoResetTimestamp || null,
+        autoResetReason: savedStreak.autoResetReason || null,
         // Reset the preserve flag after using it
         preserveCurrentStreak: false,
       };
@@ -798,26 +811,45 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   
   /**
    * ENHANCED: Calculate effective debt days accounting for ad payments
-   * Returns actual outstanding debt after subtracting paid debt via ads
-   * CRITICAL FIX: Tracks individual debt payments per missed day
+   * CRITICAL BUG #2 FIX: Respects auto-reset state to prevent phantom debt
+   * Returns 0 if recent auto-reset occurred, preventing inconsistency issues
    */
   async calculateDebt(): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
+      const currentStreak = await this.getStreak();
+      
+      // CRITICAL BUG #2 FIX: Check for recent auto-reset first
+      if (currentStreak.autoResetTimestamp) {
+        const resetTime = new Date(currentStreak.autoResetTimestamp);
+        const now = new Date();
+        const hoursSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60 * 60);
+        
+        // If auto-reset occurred within 24 hours, debt is definitively 0
+        if (hoursSinceReset < 24) {
+          console.log(`[DEBUG] calculateDebt: Auto-reset ${hoursSinceReset.toFixed(1)}h ago. Debt = 0 (phantom debt prevention)`);
+          return 0;
+        } else {
+          // Clear old auto-reset timestamp to prevent perpetual 0 debt
+          console.log(`[DEBUG] calculateDebt: Clearing old auto-reset timestamp (${hoursSinceReset.toFixed(1)}h ago)`);
+          await this.clearAutoResetTimestamp();
+        }
+      }
       
       // CRITICAL FIX: If user completed today, debt is automatically 0
-      // This maintains logical consistency - if user has 3+ entries today,
-      // it means they either had no debt or already paid it
       if (completedDates.includes(currentDate)) {
         return 0;
       }
       
-      // Get raw missed days (same as before)
-      const rawMissedDays = await this.calculateRawMissedDays();
+      // SAFETY CHECK: Use streak.debtDays as authoritative source if available
+      if (currentStreak.debtDays !== undefined && currentStreak.debtDays === 0) {
+        console.log(`[DEBUG] calculateDebt: streak.debtDays = 0, using authoritative source`);
+        return 0;
+      }
       
-      // Get current debt payment tracking
-      const currentStreak = await this.getStreak();
+      // Normal debt calculation logic
+      const rawMissedDays = await this.calculateRawMissedDays();
       const paidDays = new Set<DateString>();
       
       // Count all days that have been fully paid via ads
@@ -830,8 +862,14 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Calculate which missed days are still unpaid
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
       const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
-      
       const effectiveDebt = unpaidMissedDays.length;
+      
+      // CONSISTENCY VALIDATION: Warn if discrepancy detected
+      if (currentStreak.debtDays !== effectiveDebt) {
+        console.warn(`[DEBUG] calculateDebt: Discrepancy detected! streak.debtDays=${currentStreak.debtDays}, calculated=${effectiveDebt}`);
+        console.warn(`[DEBUG] Missed dates:`, missedDates);
+        console.warn(`[DEBUG] Paid dates:`, Array.from(paidDays));
+      }
       
       console.log(`[DEBUG] calculateDebt: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveDebt=${effectiveDebt}`);
       
@@ -839,6 +877,23 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     } catch (error) {
       console.error('[DEBUG] calculateDebt error:', error);
       return 0;
+    }
+  }
+
+  /**
+   * HELPER: Clear old auto-reset timestamp to prevent perpetual 0 debt
+   */
+  private async clearAutoResetTimestamp(): Promise<void> {
+    try {
+      const currentStreak = await this.getStreak();
+      const updatedStreak: GratitudeStreak = {
+        ...currentStreak,
+        autoResetTimestamp: null,
+        autoResetReason: null,
+      };
+      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
+    } catch (error) {
+      console.error('[DEBUG] clearAutoResetTimestamp error:', error);
     }
   }
 
