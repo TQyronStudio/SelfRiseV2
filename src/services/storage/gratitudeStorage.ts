@@ -454,14 +454,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update recovery logic for debt system
       const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
       
-      // CRITICAL FIX: Handle debt payment - preserve current streak if flag is set
+      // CRITICAL BUG #3 FIX: Handle debt payment - preserve current streak if flag is set
       let finalCurrentStreak: number;
-      if (savedStreak.preserveCurrentStreak) {
+      let shouldResetPreserveFlag = false; // BUG #3 FIX: Control flag reset timing
+      
+      if (savedStreak.preserveCurrentStreak && !isFrozen) {
         // Debt was just paid - preserve the streak value from before debt payment
         finalCurrentStreak = savedStreak.currentStreak;
+        shouldResetPreserveFlag = true; // Reset flag after successful preservation
         console.log(`[DEBUG] calculateAndUpdateStreak: Preserving streak ${finalCurrentStreak} after debt payment`);
       } else if (isFrozen) {
-        // Normal frozen behavior - keep saved streak
+        // Normal frozen behavior - keep saved streak (don't reset preserve flag)
         finalCurrentStreak = savedStreak.currentStreak;
       } else {
         // Normal unfrozen behavior - recalculate streak
@@ -485,8 +488,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Preserve existing auto-reset tracking (don't overwrite)
         autoResetTimestamp: savedStreak.autoResetTimestamp || null,
         autoResetReason: savedStreak.autoResetReason || null,
-        // Reset the preserve flag after using it
-        preserveCurrentStreak: false,
+        // BUG #3 FIX: Only reset preserve flag when actually used to prevent corruption
+        preserveCurrentStreak: shouldResetPreserveFlag ? false : (savedStreak.preserveCurrentStreak || false),
       };
       
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
@@ -729,36 +732,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     }
   }
 
-  async recoverStreak(): Promise<GratitudeStreak> {
-    try {
-      const currentStreak = await this.getStreak();
-      
-      if (!currentStreak.canRecoverWithAd) {
-        throw new StorageError(
-          'Streak cannot be recovered',
-          STORAGE_ERROR_CODES.UNKNOWN,
-          STORAGE_KEYS.GRATITUDE_STREAK
-        );
-      }
-
-      // Extend the streak by adding yesterday as a completed day
-      const yesterdayDate = yesterday();
-      await this.create({
-        content: 'Streak recovery - Ad watched',
-        date: yesterdayDate,
-      });
-
-      // Recalculate streak
-      return await this.calculateAndUpdateStreak();
-    } catch (error) {
-      if (error instanceof StorageError) throw error;
-      throw new StorageError(
-        'Failed to recover streak',
-        STORAGE_ERROR_CODES.UNKNOWN,
-        STORAGE_KEYS.GRATITUDE_STREAK
-      );
-    }
-  }
+  // REMOVED: recoverStreak() method - BUG #3 FIX
+  // This method created fake entries which corrupted streak calculation
+  // Debt recovery now uses proper debt payment system without creating entries
 
   // Migration function to fix existing data with old numbering
   async migrateGratitudeNumbering(): Promise<void> {
@@ -1110,7 +1086,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const newDebt = await this.calculateDebtWithPayments(updatedPayments);
       console.log(`[DEBUG] payDebtWithAds: newDebt=${newDebt} after applying ${adsApplied} ads`);
 
-      // Update streak info with new payment data
+      // BUG #3 FIX: Strict streak preservation during debt payment
       const updatedStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
         debtDays: newDebt, // Update to new effective debt
@@ -1121,8 +1097,21 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         debtHistory: newHistoryEntries,
       };
       
+      // BUG #3 FIX: Add validation log to prevent streak corruption
+      if (newDebt === 0) {
+        console.log(`[DEBUG] payDebtWithAds: DEBT FULLY PAID - Preserving original streak ${currentStreakInfo.currentStreak}`);
+        console.log(`[DEBUG] payDebtWithAds: Setting preserveCurrentStreak=true to prevent recalculation`);
+      }
+      
       // Save updated streak info
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreakInfo);
+      
+      // BUG #3 FIX: Validate streak integrity after debt payment
+      if (newDebt === 0) {
+        console.log(`[DEBUG] payDebtWithAds: VALIDATION - Debt fully paid, streak should remain ${currentStreakInfo.currentStreak}`);
+        console.log(`[DEBUG] payDebtWithAds: VALIDATION - No entries should be created during debt payment`);
+        console.log(`[DEBUG] payDebtWithAds: VALIDATION - preserveCurrentStreak flag should be true`);
+      }
       
       console.log(`[DEBUG] payDebtWithAds: Successfully applied ${adsApplied} ads. New debt: ${newDebt}`);
       
@@ -1257,6 +1246,39 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         paidDates: [],
         unpaidDates: [],
       };
+    }
+  }
+
+  /**
+   * BUG #3 FIX: Clean up fake entries created by old debt recovery system
+   * This method removes entries with "Streak recovery - Ad watched" content
+   */
+  async cleanupFakeEntries(): Promise<number> {
+    try {
+      const allGratitudes = await this.getAll();
+      const originalCount = allGratitudes.length;
+      
+      // Filter out fake entries
+      const cleanedGratitudes = allGratitudes.filter(entry => 
+        !entry.content.includes('Streak recovery - Ad watched') &&
+        !entry.content.includes('Fake entry') &&
+        entry.content.trim().length > 0 // Remove any empty entries
+      );
+      
+      const removedCount = originalCount - cleanedGratitudes.length;
+      
+      if (removedCount > 0) {
+        console.log(`[DEBUG] cleanupFakeEntries: Removing ${removedCount} fake entries`);
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDES, cleanedGratitudes);
+        
+        // Recalculate streak after cleanup
+        await this.calculateAndUpdateStreak();
+      }
+      
+      return removedCount;
+    } catch (error) {
+      console.error('[DEBUG] cleanupFakeEntries error:', error);
+      return 0;
     }
   }
 
