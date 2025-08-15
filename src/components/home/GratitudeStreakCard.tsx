@@ -37,6 +37,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
+  const [issueRetryCount, setIssueRetryCount] = useState(0);
 
   // BUG #4 FIX: Central Modal State Management - replace 10 modal states with 1
   enum DebtModalType {
@@ -44,8 +45,6 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     DEBT_RECOVERY = 'debt_recovery',
     SUCCESS = 'success',
     ERROR = 'error', 
-    ISSUE = 'issue',
-    FORCE_RESET_CONFIRM = 'force_reset_confirm',
     CONGRATULATIONS = 'congratulations',
   }
 
@@ -92,23 +91,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     });
   };
 
-  const showIssueModal = (title: string, message: string, onTryAgain: () => void, onForceReset: () => void) => {
-    showModal({
-      type: DebtModalType.ISSUE,
-      title,
-      message,
-      primaryText: 'Try Again',
-      secondaryText: 'Force Reset Streak',
-      onPrimaryAction: () => {
-        closeModal();
-        onTryAgain();
-      },
-      onSecondaryAction: () => {
-        closeModal();
-        onForceReset();
-      },
-    });
-  };
+  // REMOVED: showIssueModal - no longer needed with progressive error handling
 
   const showCongratulationsModal = () => {
     showModal({
@@ -265,30 +248,35 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       showCongratulationsModal();
     } catch (error) {
       console.error('Failed to complete debt verification:', error);
-      // BUG #4 FIX: Use coordinated modal flow for errors
-      showIssueModal(
-        'Streak Rescue Error',
-        `Failed to verify streak rescue completion: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`,
-        () => setShowDebtModal(true), // Try again  
-        handleForceResetDebt          // Force reset
-      );
+      
+      // IMPROVED: Progressive error handling - try again first, force reset after 2 failures
+      if (issueRetryCount < 2) {
+        setIssueRetryCount(prev => prev + 1);
+        showErrorModal(
+          'Technical Issue', 
+          `We encountered a technical issue while completing your streak rescue (attempt ${issueRetryCount + 1}/2). Please try again.`
+        );
+      } else {
+        // After 2 failures, automatically fix it with apology
+        console.log(`[DEBUG] Auto-fixing after 2 failed attempts`);
+        try {
+          await executeForceResetDebt();
+          showSuccessModal(
+            'Issue Resolved', 
+            'We apologize for the technical issue. Your streak has been successfully rescued and you can now continue writing entries normally.'
+          );
+        } catch (autoFixError) {
+          console.error('Auto-fix failed after retries:', autoFixError);
+          showErrorModal('Critical Error', 'We encountered a critical technical issue. Please restart the app. Your data is safe.');
+        }
+        setIssueRetryCount(0); // Reset for future issues
+      }
     }
   };
   
   const handleForceResetDebt = async () => {
-    // BUG #4 FIX: Use coordinated modal flow for force reset confirmation
-    showModal({
-      type: DebtModalType.FORCE_RESET_CONFIRM,
-      title: 'Force Reset Streak?',
-      message: 'This will clear your debt without watching ads. Your streak will continue normally. Continue?',
-      primaryText: 'Cancel',
-      secondaryText: 'Reset Debt',
-      onPrimaryAction: closeModal,
-      onSecondaryAction: () => {
-        closeModal();
-        executeForceResetDebt();
-      },
-    });
+    // IMPROVED: Direct execution with apology message - no user choice needed
+    await executeForceResetDebt();
   };
 
   const executeForceResetDebt = async () => {
@@ -344,8 +332,8 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       // Refresh context
       await actions.refreshStats();
       
-      // Show success message with congratulations
-      showSuccessModal('Debt Reset Complete', 'Your debt has been reset. You can now write entries normally.');
+      // Show success message with apology
+      showSuccessModal('Issue Resolved', 'We apologize for the technical issue. Your streak has been successfully rescued and you can continue writing entries normally.');
       
     } catch (error) {
       console.error('Failed to reset debt:', error);
@@ -517,30 +505,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         />
       )}
 
-      {currentModal.type === DebtModalType.ISSUE && (
-        <DebtIssueModal
-          visible={true}
-          onClose={closeModal}
-          onPrimaryAction={currentModal.onPrimaryAction || closeModal}
-          onSecondaryAction={currentModal.onSecondaryAction || closeModal}
-          title={currentModal.title || 'Issue Detected'}
-          message={currentModal.message || 'There seems to be an issue. Choose how to proceed.'}
-          primaryActionText={currentModal.primaryText || 'Try Again'}
-          secondaryActionText={currentModal.secondaryText || 'Force Reset'}
-        />
-      )}
-
-      {currentModal.type === DebtModalType.FORCE_RESET_CONFIRM && (
-        <ForceResetModal
-          visible={true}
-          onClose={currentModal.onPrimaryAction || closeModal}
-          onConfirm={currentModal.onSecondaryAction || closeModal}
-          title={currentModal.title || 'Force Reset Debt'}
-          message={currentModal.message || 'This will clear your debt without watching ads. Your streak will continue normally. Continue?'}
-          confirmText={currentModal.secondaryText || 'Reset Debt'}
-          cancelText={currentModal.primaryText || 'Cancel'}
-        />
-      )}
+      {/* REMOVED: DebtIssueModal and ForceResetModal - replaced with progressive error handling */}
 
       {currentModal.type === DebtModalType.CONGRATULATIONS && (
         <DebtSuccessModal
