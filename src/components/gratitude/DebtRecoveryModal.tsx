@@ -256,16 +256,16 @@ export default function DebtRecoveryModal({
 
   const getDebtMessage = () => {
     if (debtDays === 1) {
-      return `You missed 1 day. Watch ${totalAdsNeeded} ad to pay your debt, then write entries normally.`;
+      return `You missed 1 day. Watch ${totalAdsNeeded} ad to rescue your streak, then write entries normally.`;
     }
-    return `You missed ${debtDays} days. Watch ${totalAdsNeeded} ads to pay your debt, then write entries normally.`;
+    return `You missed ${debtDays} days. Watch ${totalAdsNeeded} ads to rescue your streak, then write entries normally.`;
   };
 
   const getProgressMessage = () => {
     if (remainingAds === 0) {
-      return 'Debt paid! Go to Journal to write entries normally.';
+      return 'Streak rescued! Go to Journal to write entries normally.';
     }
-    return `Paying debt: ${adsWatched + 1}/${totalAdsNeeded}`;
+    return `Rescuing streak: ${adsWatched + 1}/${totalAdsNeeded}`;
   };
 
   return (
@@ -313,24 +313,26 @@ export default function DebtRecoveryModal({
 
             {/* Progress Dots */}
             <View style={styles.dotsContainer}>
-              {Array.from({ length: totalAdsNeeded }, (_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    index < adsWatched && styles.completedDot,
-                    index === adsWatched && styles.currentDot,
-                  ]}
-                >
-                  {index < adsWatched ? (
+              {Array.from({ length: totalAdsNeeded }, (_, index) => {
+                const dotStyle = [
+                  styles.dot,
+                  index < adsWatched && styles.completedDot,
+                  index === adsWatched && styles.currentDot,
+                ];
+                
+                return React.createElement(View, {
+                  key: `dot-${index}`,
+                  style: dotStyle
+                }, 
+                  index < adsWatched ? (
                     <IconSymbol name="checkmark" size={12} color={Colors.white} />
                   ) : index === adsWatched ? (
                     <Text style={styles.dotNumber}>{index + 1}</Text>
                   ) : (
                     <Text style={styles.dotNumber}>{index + 1}</Text>
-                  )}
-                </View>
-              ))}
+                  )
+                );
+              })}
             </View>
 
             <Text style={styles.progressMessage}>{getProgressMessage()}</Text>
@@ -371,7 +373,7 @@ export default function DebtRecoveryModal({
           <View style={styles.infoCard}>
             <IconSymbol name="info.circle" size={20} color={Colors.textSecondary} />
             <Text style={styles.infoText}>
-              First pay your debt by watching ads. After debt is paid, you can write journal entries normally without watching more ads.
+              First rescue your streak by watching ads. After your streak is rescued, you can write journal entries normally without watching more ads.
             </Text>
           </View>
         </View>
@@ -393,7 +395,7 @@ export default function DebtRecoveryModal({
         onClose={() => setShowResetConfirmation(false)}
         onConfirm={handleResetStreak}
         title="Reset Streak?"
-        message="This will permanently reset your current streak to 0. You can start fresh without paying debt. This action cannot be undone."
+        message="This will permanently reset your current streak to 0. You can start fresh without rescuing your streak. This action cannot be undone."
         confirmText="Reset to 0"
         cancelText="Cancel"
       />

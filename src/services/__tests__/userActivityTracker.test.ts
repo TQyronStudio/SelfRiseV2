@@ -90,7 +90,7 @@ describe('UserActivityTracker', () => {
 
     test('handles date range correctly', async () => {
       const endDate = today();
-      const startDate = formatDateToString(addDays(parseDate(endDate), -30));
+      const startDate = formatDateToString(addDays(parseDate(endDate), -30) as Date);
 
       const baseline = await UserActivityTracker.calculateMonthlyBaseline({
         analysisStartDate: startDate,
@@ -169,9 +169,6 @@ describe('UserActivityTracker', () => {
 
     test('handles null/undefined values safely', async () => {
       const baseline = await UserActivityTracker.calculateMonthlyBaseline({
-        userId: undefined,
-        analysisStartDate: undefined,
-        analysisEndDate: undefined,
         ignoreCachedData: true
       });
 
@@ -229,7 +226,7 @@ describe('UserActivityTracker', () => {
         dataQuality: 'complete',
         isFirstMonth: false,
         totalActiveDays: 25,
-        analysisStartDate: formatDateToString(addDays(parseDate(today()), -30)),
+        analysisStartDate: formatDateToString(addDays(parseDate(today()), -30) as Date),
         analysisEndDate: today()
       };
 

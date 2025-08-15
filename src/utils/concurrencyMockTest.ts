@@ -268,7 +268,7 @@ export class MockConcurrencyValidationTest {
     const sharedData = {
       totalXP: 0,
       level: 1,
-      transactions: [],
+      transactions: [] as Array<{id: string, amount: number, timestamp: number}>,
       achievements: new Set()
     };
 
@@ -383,7 +383,7 @@ export class MockConcurrencyValidationTest {
       return {
         success: false,
         duration: endTime - startTime,
-        error: error.message || 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }

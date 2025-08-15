@@ -2879,4 +2879,86 @@ async cleanupFakeEntries(): Promise<number> {
 
 ---
 
+#### Bug #4: Excessive Modal Spam - Complete Resolution ✅
+
+**Problem**: User experienced 2-3 modals in sequence during debt payment, causing modal overload and poor UX. Old "pay debt" terminology was inconsistent.
+
+**Root Cause Analysis**:
+- **10 Independent Modal States**: Each modal type had separate useState without coordination
+- **Simultaneous Triggers**: Multiple modals could be triggered from same function (e.g., handleDebtComplete)  
+- **Chain Reactions**: One modal closing would trigger another, creating cascading effects
+- **No Success Celebration**: Missing congratulations modal after debt clearance
+- **Inconsistent Terminology**: Mixed "pay debt" and "rescue streak" language
+
+**Technical Solution Architecture**:
+
+✅ **Central Modal State Management**
+```typescript
+// BEFORE: 10 separate modal states
+const [showNoDebtModal, setShowNoDebtModal] = useState(false);
+const [showDebtIssueModal, setShowDebtIssueModal] = useState(false);
+// ... 8 more modal states
+
+// AFTER: Single coordinated state
+enum DebtModalType {
+  NONE = 'none',
+  SUCCESS = 'success', 
+  ERROR = 'error',
+  ISSUE = 'issue',
+  CONGRATULATIONS = 'congratulations',
+}
+
+const [currentModal, setCurrentModal] = useState<ModalConfig>({ type: DebtModalType.NONE });
+```
+
+✅ **Modal Helper Functions**
+```typescript
+const showSuccessModal = (title: string, message: string) => {
+  showModal({
+    type: DebtModalType.SUCCESS,
+    title, message,
+    onPrimaryAction: closeModal,
+  });
+};
+
+const showCongratulationsModal = () => {
+  showModal({
+    type: DebtModalType.CONGRATULATIONS,
+    title: '🎉 Streak Rescued!',
+    message: 'Congratulations! Your streak has been successfully rescued.',
+  });
+};
+```
+
+✅ **Coordinated JSX Rendering**
+```typescript
+// Single modal system with conditional rendering
+{currentModal.type === DebtModalType.SUCCESS && (
+  <DebtSuccessModal visible={true} /* ... */ />
+)}
+{currentModal.type === DebtModalType.CONGRATULATIONS && (
+  <DebtSuccessModal visible={true} /* ... */ />
+)}
+```
+
+✅ **Terminology Standardization**
+- "Watch X ads to pay your debt" → "Watch X ads to rescue your streak"
+- "Debt paid!" → "Streak rescued!"
+- "Paying debt: X/Y" → "Rescuing streak: X/Y"
+- "Tap to recover" → "Tap to rescue streak"
+
+**File Modifications Summary**:
+- **`/src/components/home/GratitudeStreakCard.tsx`**: Central modal state management, helper functions
+- **`/src/components/gratitude/DebtRecoveryModal.tsx`**: Terminology updates, progress messages
+- **`/src/components/gratitude/GratitudeInput.tsx`**: Error message terminology
+
+**Validation Results**:
+✅ **Single Modal Guarantee**: Only 1 modal visible at any time  
+✅ **Smooth User Flow**: Clear action paths without repetition
+✅ **Success Celebration**: Beautiful congratulations modal for completion
+✅ **Consistent Terminology**: All "rescue streak" language across modals
+✅ **No Modal Stacking**: Coordination prevents overlapping modals
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*

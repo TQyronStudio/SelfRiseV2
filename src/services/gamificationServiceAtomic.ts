@@ -321,9 +321,9 @@ export class AtomicGamificationService {
       updatedAt: new Date(),
       amount,
       source: options.source,
-      sourceId: options.sourceId,
       description: options.description || `XP gained from ${options.source}`,
       date: today(),
+      ...(options.sourceId ? { sourceId: options.sourceId } : {}),
       multiplier: 1 // Standard multiplier, TODO: implement dynamic multipliers
     };
     
@@ -460,8 +460,8 @@ export class AtomicGamificationService {
       currentStreak: await this.calculateStreakDays(),
       longestStreak: await this.calculateStreakDays(), // TODO: Implement longest streak calculation
       lastActivity: await this.getLastActivity(),
-      multiplierActive: false, // TODO: Implement multiplier tracking
-      multiplierEndTime: undefined
+      multiplierActive: false // TODO: Implement multiplier tracking
+      // multiplierEndTime is omitted when not active
     };
   }
   

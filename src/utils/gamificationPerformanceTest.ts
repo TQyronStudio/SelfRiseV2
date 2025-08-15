@@ -37,7 +37,7 @@ export class GamificationPerformanceTest {
   static async runFullTestSuite(): Promise<PerformanceTestResults> {
     console.log('🎯 STARTING COMPREHENSIVE GAMIFICATION PERFORMANCE TEST SUITE');
     console.log('📅 Target: <50ms for all core operations (Think Hard methodology)');
-    console.log('=' * 80);
+    console.log('='.repeat(80));
 
     PerformanceProfiler.clearResults();
 
@@ -190,7 +190,7 @@ export class GamificationPerformanceTest {
           }
         } catch (error) {
           // Non-blocking for performance test
-          return { unlocked: [], progress: [], xpAwarded: 0, error: error.message };
+          return { unlocked: [], progress: [], xpAwarded: 0, error: error instanceof Error ? error.message : String(error) };
         }
       },
       10, // 10 samples (achievement checks can be expensive)

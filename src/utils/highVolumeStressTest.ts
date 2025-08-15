@@ -209,11 +209,11 @@ export class HighVolumeStressTest {
         }
 
       } catch (error) {
-        errors.push(`Memory pressure operation ${i} failed: ${error.message}`);
+        errors.push(`Memory pressure operation ${i} failed: ${error instanceof Error ? error.message : String(error)}`);
         operations.push({
           success: false,
           duration: 0,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }
@@ -280,11 +280,11 @@ export class HighVolumeStressTest {
         }
 
       } catch (error) {
-        errors.push(`Storage saturation operation ${i} failed: ${error.message}`);
+        errors.push(`Storage saturation operation ${i} failed: ${error instanceof Error ? error.message : String(error)}`);
         operations.push({
           success: false,
           duration: 0,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }
@@ -324,11 +324,11 @@ export class HighVolumeStressTest {
         operations.push(result);
 
       } catch (error) {
-        errors.push(`Achievement flood operation ${i} failed: ${error.message}`);
+        errors.push(`Achievement flood operation ${i} failed: ${error instanceof Error ? error.message : String(error)}`);
         operations.push({
           success: false,
           duration: 0,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }
@@ -375,7 +375,7 @@ export class HighVolumeStressTest {
       return {
         success: false,
         duration: performance.now() - start,
-        error: error.message || 'Unknown error'
+        error: error instanceof Error ? error.message : String(error) || 'Unknown error'
       };
     }
   }
@@ -430,7 +430,7 @@ export class HighVolumeStressTest {
       return {
         success: false,
         duration: performance.now() - start,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }
@@ -478,7 +478,7 @@ export class HighVolumeStressTest {
       return {
         success: false,
         duration: performance.now() - start,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }
@@ -534,7 +534,7 @@ export class HighVolumeStressTest {
    */
   private static getRandomXPSource(): string {
     const sources = ['HABIT_COMPLETION', 'JOURNAL_ENTRY', 'GOAL_PROGRESS', 'ACHIEVEMENT_UNLOCK'];
-    return sources[Math.floor(Math.random() * sources.length)];
+    return sources[Math.floor(Math.random() * sources.length)]!;
   }
 
   /**

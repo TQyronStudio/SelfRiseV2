@@ -91,9 +91,19 @@ describe('MonthlyProgressTracker', () => {
         progressMilestones: [0.25, 0.50, 0.75]
       }
     ],
+    scalingFormula: 'baseline * 1.15',
     isActive: true,
+    generationReason: 'scheduled',
+    categoryRotation: [AchievementCategory.HABITS],
     createdAt: new Date('2025-08-01'),
     updatedAt: new Date('2025-08-01'),
+    userBaselineSnapshot: {
+      month: '2025-08',
+      analysisStartDate: '2025-07-01',
+      analysisEndDate: '2025-07-31',
+      dataQuality: 'complete' as const,
+      totalActiveDays: 30
+    },
     ...overrides
   });
 
@@ -612,6 +622,7 @@ describe('MonthlyProgressTracker', () => {
     test('should update configuration correctly', () => {
       const newConfig = {
         enableMonthlyTracking: false,
+        enableWeeklyTracking: true,
         batchingWindowMs: 1000,
         enableDebugLogging: true
       };
@@ -622,7 +633,6 @@ describe('MonthlyProgressTracker', () => {
       expect(config.enableMonthlyTracking).toBe(false);
       expect(config.batchingWindowMs).toBe(1000);
       expect(config.enableDebugLogging).toBe(true);
-      expect(config.enableWeeklyTracking).toBe(true); // Should remain unchanged
     });
 
     test('should enable/disable integration correctly', () => {

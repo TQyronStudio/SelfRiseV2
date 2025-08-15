@@ -486,7 +486,7 @@ export class ProductionMonitoringTestRunner {
       const consistencyTests = {
         allSucceeded: healthResults.every(result => result.overallHealthScore >= 0),
         consistentScores: healthResults.every(result => 
-          Math.abs(result.overallHealthScore - healthResults[0].overallHealthScore) <= 10
+          Math.abs(result.overallHealthScore - healthResults[0]!.overallHealthScore) <= 10
         ),
         allHaveTimestamp: healthResults.every(result => result.timestamp instanceof Date),
         allHaveMetrics: healthResults.every(result => 

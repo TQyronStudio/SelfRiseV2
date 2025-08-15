@@ -312,7 +312,10 @@ describe('Monthly Challenge System - Phase 2: Progress Tracking & XP Integration
         .filter(call => call[0].includes('monthly_challenge_progress_challenge_202408'));
 
       if (saveCalls.length > 0) {
-        const savedProgress = JSON.parse(saveCalls[0][1] as string);
+        // TypeScript fix: ensure array access is safe
+        const saveCall = saveCalls[0];
+        expect(saveCall).toBeDefined();
+        const savedProgress = JSON.parse(saveCall![1] as string);
         expect(savedProgress.progress.scheduled_habit_completions).toBe(0);
       }
     });

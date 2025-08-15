@@ -13,6 +13,8 @@
  * 6. Transaction integrity under high concurrency
  */
 
+import { XPSourceType } from '../types/gamification';
+
 interface ConcurrencyTestResult {
   testName: string;
   concurrentOperations: number;
@@ -178,7 +180,7 @@ export class ConcurrencyValidationTest {
         
         // All level calculations for same XP should return identical results
         if (successfulResults.length > 1) {
-          const firstResult = successfulResults[0].result;
+          const firstResult = successfulResults[0]!.result;
           const allConsistent = successfulResults.every(op => 
             op.result.level === firstResult.level && 
             Math.abs(op.result.progress - firstResult.progress) < 0.01
@@ -265,7 +267,7 @@ export class ConcurrencyValidationTest {
                 );
               }
             } catch (error) {
-              throw new Error(`Achievement check failed: ${error.message}`);
+              throw new Error(`Achievement check failed: ${error instanceof Error ? error.message : String(error)}`);
             }
           }
         )
@@ -346,7 +348,7 @@ export class ConcurrencyValidationTest {
                   () => GamificationService.getGamificationStats(),
                   () => GamificationService.getAllTransactions()
                 ];
-                const randomOperation = operations[Math.floor(Math.random() * operations.length)];
+                const randomOperation = operations[Math.floor(Math.random() * operations.length)]!;
                 return await randomOperation();
               }
             )
@@ -446,7 +448,7 @@ export class ConcurrencyValidationTest {
         endTime,
         duration: endTime - startTime,
         success: false,
-        error: error.message || 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -467,9 +469,9 @@ export class ConcurrencyValidationTest {
   /**
    * Helper: Get random XP source
    */
-  private static getRandomXPSource(): string {
-    const sources = ['HABIT_COMPLETION', 'JOURNAL_ENTRY', 'GOAL_PROGRESS', 'ACHIEVEMENT_UNLOCK'];
-    return sources[Math.floor(Math.random() * sources.length)];
+  private static getRandomXPSource(): XPSourceType {
+    const sources: XPSourceType[] = [XPSourceType.HABIT_COMPLETION, XPSourceType.JOURNAL_ENTRY, XPSourceType.GOAL_PROGRESS, XPSourceType.ACHIEVEMENT_UNLOCK];
+    return sources[Math.floor(Math.random() * sources.length)]!;
   }
 
   /**

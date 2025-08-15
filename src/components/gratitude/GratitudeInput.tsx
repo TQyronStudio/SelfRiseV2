@@ -99,7 +99,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         const todayEntries = allGratitudes.filter(g => g.date === today()).length;
         
         if (todayEntries < 3) {
-          // User hasn't completed daily requirement - must pay debt first
+          // User hasn't completed daily requirement - must rescue streak first
           console.log(`[DEBUG] GratitudeInput: Blocking entry. Authoritative debt: ${authoritative_debt}, Calculated debt: ${calculatedDebt}`);
           
           // CONSISTENCY WARNING: Log discrepancy for debugging

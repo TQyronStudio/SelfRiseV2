@@ -642,8 +642,8 @@ export class ProductionMonitoringService {
     if (this.healthMetricsHistory.length < 2) return 0;
     
     const recent = this.healthMetricsHistory.slice(-2);
-    const timeDiff = recent[1].timestamp.getTime() - recent[0].timestamp.getTime();
-    const opsDiff = recent[1].atomicStorage.totalOperations - recent[0].atomicStorage.totalOperations;
+    const timeDiff = recent[1]!.timestamp.getTime() - recent[0]!.timestamp.getTime();
+    const opsDiff = recent[1]!.atomicStorage.totalOperations - recent[0]!.atomicStorage.totalOperations;
     
     return timeDiff > 0 ? (opsDiff / timeDiff) * 1000 : 0;
   }

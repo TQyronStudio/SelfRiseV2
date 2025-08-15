@@ -139,7 +139,7 @@ export class MemoryValidationTest {
         }
         
       } catch (error) {
-        console.warn(`   Operation ${i} failed: ${error.message}`);
+        console.warn(`   Operation ${i} failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
@@ -237,7 +237,7 @@ export class MemoryValidationTest {
         }
         
       } catch (error) {
-        console.warn(`   Cache operation ${i} failed: ${error.message}`);
+        console.warn(`   Cache operation ${i} failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
@@ -322,7 +322,7 @@ export class MemoryValidationTest {
         await new Promise(resolve => setTimeout(resolve, 200)); // 200ms between operations
         
       } catch (error) {
-        console.warn(`   Long-term operation ${iterations} failed: ${error.message}`);
+        console.warn(`   Long-term operation ${iterations} failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
@@ -524,8 +524,8 @@ export class MemoryValidationTest {
       return { trend: 'INSUFFICIENT_DATA', growthRate: 0 };
     }
     
-    const firstSnapshot = snapshots[0];
-    const lastSnapshot = snapshots[snapshots.length - 1];
+    const firstSnapshot = snapshots[0]!;
+    const lastSnapshot = snapshots[snapshots.length - 1]!;
     const timeDelta = (lastSnapshot.timestamp - firstSnapshot.timestamp) / 1000 / 60; // minutes
     const memoryDelta = (lastSnapshot.heapUsed - firstSnapshot.heapUsed) / 1024 / 1024; // MB
     

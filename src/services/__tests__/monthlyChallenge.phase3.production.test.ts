@@ -302,10 +302,14 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       // Assert - filter to only the completion record (not reset record)
       const completionHistory = history.filter(entry => entry.reason === 'success');
       expect(completionHistory).toHaveLength(1);
-      expect(completionHistory[0].category).toBe(AchievementCategory.HABITS);
-      expect(completionHistory[0].previousStars).toBe(2);
-      expect(completionHistory[0].newStars).toBe(3);
-      expect(completionHistory[0].reason).toBe('success');
+      
+      // TypeScript fix: ensure array is not empty before accessing
+      const completionEntry = completionHistory[0];
+      expect(completionEntry).toBeDefined();
+      expect(completionEntry!.category).toBe(AchievementCategory.HABITS);
+      expect(completionEntry!.previousStars).toBe(2);
+      expect(completionEntry!.newStars).toBe(3);
+      expect(completionEntry!.reason).toBe('success');
     });
 
     test(' A10. Star rating analysis generation', async () => {
@@ -652,8 +656,8 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       expect(currentDate.getDate()).toBe(12);
       
       // Test month transition detection  
-      const previousMonth = '2025-07';
-      const currentMonth = '2025-08';
+      const previousMonth: string = '2025-07';
+      const currentMonth: string = '2025-08';
       expect(previousMonth !== currentMonth).toBe(true);
       
       // Test grace period day range (1-7)

@@ -122,7 +122,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     const transactionsByDate = new Map<string, XPTransaction[]>();
     
     for (let day = 0; day < totalDays; day++) {
-      const dateString = formatDateToString(addDays(parseDate(startDate), day));
+      const baseDate = parseDate(startDate);
+      const targetDate = addDays(baseDate, day);
+      const dateString = formatDateToString(targetDate as Date);
       const currentDate = parseDate(dateString);
       const dayTransactions: XPTransaction[] = [];
       
@@ -152,7 +154,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
           description: 'Habit completion',
           date: dateString,
           createdAt: currentDate,
-          metadata: {}
+          updatedAt: currentDate
         });
       }
       
@@ -175,7 +177,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
             description: 'Bonus habit completion',
             date: dateString,
             createdAt: currentDate,
-            metadata: {}
+            updatedAt: currentDate
           });
         }
       }
@@ -203,7 +205,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
           description: 'Journal entry',
           date: dateString,
           createdAt: currentDate,
-          metadata: { length: content.length }
+          updatedAt: currentDate
         });
       }
       
@@ -227,7 +229,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
             description: 'Bonus journal entry',
             date: dateString,
             createdAt: currentDate,
-            metadata: { length: content.length }
+            updatedAt: currentDate
           });
         }
       }
@@ -245,7 +247,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
           description: 'Goal progress',
           date: dateString,
           createdAt: currentDate,
-          metadata: {}
+          updatedAt: currentDate
         });
       }
       
@@ -474,6 +476,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     test('should select appropriate templates for user data quality', async () => {
       // Test with minimal baseline (new user)
       const minimalBaseline: UserActivityBaseline = {
+        userId: 'test_user_123',
+        appUsageDays: 3,
+        generatedAt: new Date('2025-08-31'),
         month: '2025-08',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
@@ -604,8 +609,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         '2025-08'
       );
 
-      expect(result.newRating).toBe(3);
-      expect(result.change).toBe(1);
+      expect(result.newStars).toBe(3);
+      expect(result.newStars - result.previousStars).toBe(1);
       expect(result.reason).toBe('challenge_success');
 
       console.log('✅ Star Progression: Success → +1★ advancement verified');
@@ -640,6 +645,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     test('should scale requirements appropriately for minimal baseline users', () => {
       const minimalBaseline: UserActivityBaseline = {
         month: '2025-08',
+        userId: 'test_user',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
         dataQuality: 'minimal',
@@ -666,10 +672,12 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 2,
         longestEngagementStreak: 3,
         balanceScore: 0.2,
+        appUsageDays: 3,
+        generatedAt: new Date(),
         goalsCompleted: 0
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0];
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
       const challengeParams = MonthlyChallengeService.generateChallengeParameters(
         habitsTemplate,
         minimalBaseline,
@@ -679,8 +687,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
 
       expect(challengeParams.dataQualityUsed).toBe('fallback');
       expect(challengeParams.xpReward).toBeLessThanOrEqual(500); // Should be easier first-month XP
-      expect(challengeParams.requirements[0].target).toBeGreaterThan(0);
-      expect(challengeParams.requirements[0].target).toBeLessThan(50); // Achievable for new user
+      expect(challengeParams.requirements[0]!.target).toBeGreaterThan(0);
+      expect(challengeParams.requirements[0]!.target).toBeLessThan(50); // Achievable for new user
       
       console.log('✅ Minimal Baseline: New users get achievable 1★ challenges with fallback parameters');
     });
@@ -688,6 +696,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     test('should scale requirements appropriately for complete baseline users', () => {
       const completeBaseline: UserActivityBaseline = {
         month: '2025-08',
+        userId: 'test_user',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
         dataQuality: 'complete',
@@ -714,10 +723,12 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 18,
         longestEngagementStreak: 25,
         balanceScore: 0.85,
+        appUsageDays: 28,
+        generatedAt: new Date(),
         goalsCompleted: 4
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0];
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
       const challengeParams = MonthlyChallengeService.generateChallengeParameters(
         habitsTemplate,
         completeBaseline,
@@ -727,8 +738,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
 
       expect(challengeParams.dataQualityUsed).toBe('complete');
       expect(challengeParams.xpReward).toBe(2532); // Full 5★ XP
-      expect(challengeParams.requirements[0].target).toBeGreaterThan(100); // Challenging target
-      expect(challengeParams.requirements[0].scalingMultiplier).toBeCloseTo(1.25); // 5★ scaling
+      expect(challengeParams.requirements[0]!.target).toBeGreaterThan(100); // Challenging target
+      expect(challengeParams.requirements[0]!.scalingMultiplier).toBeCloseTo(1.25); // 5★ scaling
       
       console.log('✅ Complete Baseline: Power users get challenging 5★ targets with full XP rewards');
     });
@@ -736,6 +747,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     test('should handle baseline × daysInMonth × starMultiplier calculations correctly', () => {
       const testBaseline: UserActivityBaseline = {
         month: '2025-08',
+        userId: 'test_user',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
         dataQuality: 'partial',
@@ -762,10 +774,12 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 5,
         longestEngagementStreak: 12,
         balanceScore: 0.65,
+        appUsageDays: 15,
+        generatedAt: new Date(),
         goalsCompleted: 2
       };
 
-      const journalTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.JOURNAL)[0];
+      const journalTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.JOURNAL)[0]!;
       const calculation = MonthlyChallengeService.calculateTargetFromBaseline(
         journalTemplate,
         testBaseline,
@@ -790,6 +804,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
       // Test with very low baseline values
       const lowBaseline: UserActivityBaseline = {
         month: '2025-08',
+        userId: 'test_user',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
         dataQuality: 'minimal',
@@ -816,10 +831,12 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 1,
         longestEngagementStreak: 2,
         balanceScore: 0.1,
+        appUsageDays: 2,
+        generatedAt: new Date(),
         goalsCompleted: 0
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0];
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
       const calculation = MonthlyChallengeService.calculateTargetFromBaseline(
         habitsTemplate,
         lowBaseline,
@@ -838,6 +855,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     test('should validate baseline data quality before challenge generation', () => {
       const invalidBaseline: UserActivityBaseline = {
         month: '2025-08',
+        userId: 'test_user',
         analysisStartDate: '2025-08-01',
         analysisEndDate: '2025-08-31',
         dataQuality: 'minimal',
@@ -864,6 +882,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 0,
         longestEngagementStreak: 1,
         balanceScore: 0,
+        appUsageDays: 1,
+        generatedAt: new Date(),
         goalsCompleted: 0
       };
 

@@ -55,9 +55,9 @@ export class AchievementLoadTest {
     const conditionTypes: Array<MockAchievement['condition']['type']> = ['COUNT', 'TOTAL', 'CONSECUTIVE', 'MILESTONE'];
     
     for (let i = 0; i < totalCount; i++) {
-      const category = categories[Math.floor(Math.random() * categories.length)];
-      const rarity = rarities[Math.floor(Math.random() * rarities.length)];
-      const conditionType = conditionTypes[Math.floor(Math.random() * conditionTypes.length)];
+      const category = categories[Math.floor(Math.random() * categories.length)]!;
+      const rarity = rarities[Math.floor(Math.random() * rarities.length)]!;
+      const conditionType = conditionTypes[Math.floor(Math.random() * conditionTypes.length)]!;
       const target = Math.floor(Math.random() * 1000) + 1;
       const isUnlocked = Math.random() < unlockedPercentage;
       
@@ -72,7 +72,7 @@ export class AchievementLoadTest {
           current: isUnlocked ? target : Math.floor(Math.random() * target)
         },
         unlocked: isUnlocked,
-        unlockedAt: isUnlocked ? new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000) : undefined,
+        ...(isUnlocked ? { unlockedAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000) } : {}),
         xpReward: Math.floor(Math.random() * 100) + 10,
         rarity
       };
@@ -334,8 +334,8 @@ export class AchievementLoadTest {
       // Verify data integrity
       const integrityCheck = deserialized.length === achievements.length &&
                            deserialized.every((a: MockAchievement, i: number) => 
-                             a.id === achievements[i].id && 
-                             a.unlocked === achievements[i].unlocked
+                             a.id === achievements[i]!.id && 
+                             a.unlocked === achievements[i]!.unlocked
                            );
       
       const totalTime = deserializationTime - startTime;
@@ -401,13 +401,13 @@ export class AchievementLoadTest {
       // Run operations multiple times to test memory accumulation
       for (let cycle = 0; cycle < 10; cycle++) {
         for (let opIndex = 0; opIndex < operations.length; opIndex++) {
-          const operation = operations[opIndex];
+          const operation = operations[opIndex]!;
           const result = operation();
           
           // Force some operations to retain references (simulate real usage)
           if (opIndex % 2 === 0) {
             // Simulate keeping some results in memory temporarily  
-            let tempResult = result;
+            let tempResult: any = result;
             setTimeout(() => {
               // Release reference after delay
               tempResult = null;

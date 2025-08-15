@@ -68,13 +68,13 @@ jest.mock('../monthlyProgressTracker', () => ({
 // Complete mock of MonthlyChallengeService to avoid lifecycle issues
 jest.mock('../monthlyChallengeService', () => ({
   MonthlyChallengeService: {
-    getXPRewardForStarLevel: jest.fn().mockImplementation((starLevel) => {
-      const rewards = { 1: 500, 2: 750, 3: 1125, 4: 1688, 5: 2532 };
+    getXPRewardForStarLevel: jest.fn().mockImplementation((starLevel: number) => {
+      const rewards: Record<number, number> = { 1: 500, 2: 750, 3: 1125, 4: 1688, 5: 2532 };
       return rewards[starLevel] || 500;
     }),
-    applyStarScaling: jest.fn().mockImplementation((baselineValue, starLevel) => {
-      const multipliers = { 1: 1.05, 2: 1.10, 3: 1.15, 4: 1.20, 5: 1.25 };
-      const scaledValue = Math.ceil(baselineValue * multipliers[starLevel]);
+    applyStarScaling: jest.fn().mockImplementation((baselineValue: number, starLevel: number) => {
+      const multipliers: Record<number, number> = { 1: 1.05, 2: 1.10, 3: 1.15, 4: 1.20, 5: 1.25 };
+      const scaledValue = Math.ceil(baselineValue * (multipliers[starLevel] || 1.05));
       return Math.max(scaledValue, starLevel);
     }),
     getCurrentChallenge: jest.fn(),

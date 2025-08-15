@@ -38,15 +38,88 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
 
-  // Modal states for debt recovery system
-  const [showNoDebtModal, setShowNoDebtModal] = useState(false);
-  const [showNotEnoughAdsModal, setShowNotEnoughAdsModal] = useState(false);
-  const [showDebtIssueModal, setShowDebtIssueModal] = useState(false);
-  const [showDebtPaidModal, setShowDebtPaidModal] = useState(false);
-  const [showDebtErrorModal, setShowDebtErrorModal] = useState(false);
-  const [showForceResetModal, setShowForceResetModal] = useState(false);
-  const [currentErrorMessage, setCurrentErrorMessage] = useState('');
+  // BUG #4 FIX: Central Modal State Management - replace 10 modal states with 1
+  enum DebtModalType {
+    NONE = 'none',
+    DEBT_RECOVERY = 'debt_recovery',
+    SUCCESS = 'success',
+    ERROR = 'error', 
+    ISSUE = 'issue',
+    FORCE_RESET_CONFIRM = 'force_reset_confirm',
+    CONGRATULATIONS = 'congratulations',
+  }
+
+  interface ModalConfig {
+    type: DebtModalType;
+    title?: string;
+    message?: string;
+    primaryText?: string;
+    secondaryText?: string;
+    onPrimaryAction?: () => void;
+    onSecondaryAction?: () => void;
+  }
+
+  const [currentModal, setCurrentModal] = useState<ModalConfig>({ type: DebtModalType.NONE });
   
+  // BUG #4 FIX: Modal helper functions for coordinated flow
+  const showModal = (config: ModalConfig) => {
+    console.log(`[DEBUG] Modal: Showing ${config.type}`);
+    setCurrentModal(config);
+  };
+
+  const closeModal = () => {
+    console.log(`[DEBUG] Modal: Closing ${currentModal.type}`);
+    setCurrentModal({ type: DebtModalType.NONE });
+  };
+
+  const showSuccessModal = (title: string, message: string) => {
+    showModal({
+      type: DebtModalType.SUCCESS,
+      title,
+      message,
+      primaryText: 'OK',
+      onPrimaryAction: closeModal,
+    });
+  };
+
+  const showErrorModal = (title: string, message: string) => {
+    showModal({
+      type: DebtModalType.ERROR,
+      title,
+      message,
+      primaryText: 'OK',
+      onPrimaryAction: closeModal,
+    });
+  };
+
+  const showIssueModal = (title: string, message: string, onTryAgain: () => void, onForceReset: () => void) => {
+    showModal({
+      type: DebtModalType.ISSUE,
+      title,
+      message,
+      primaryText: 'Try Again',
+      secondaryText: 'Force Reset Streak',
+      onPrimaryAction: () => {
+        closeModal();
+        onTryAgain();
+      },
+      onSecondaryAction: () => {
+        closeModal();
+        onForceReset();
+      },
+    });
+  };
+
+  const showCongratulationsModal = () => {
+    showModal({
+      type: DebtModalType.CONGRATULATIONS,
+      title: '🎉 Streak Rescued!',
+      message: 'Congratulations! Your streak has been successfully rescued. You can now write journal entries normally.',
+      primaryText: 'Continue',
+      onPrimaryAction: closeModal,
+    });
+  };
+
   
 
   useEffect(() => {
@@ -113,9 +186,9 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
     const adsNeeded = await gratitudeStorage.requiresAdsToday();
     setTotalAdsNeeded(adsNeeded);
     
-    // If no ads needed, debt might already be paid
+    // BUG #4 FIX: Use coordinated modal flow
     if (adsNeeded === 0) {
-      setShowNoDebtModal(true);
+      showSuccessModal('No Debt', 'Your streak appears to be already rescued. Refreshing your streak data...');
       return;
     }
     
@@ -175,22 +248,44 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
       
       if (remainingDebt > 0) {
-        setCurrentErrorMessage(`There seems to be an issue with debt payment. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`);
-        setShowDebtIssueModal(true);
+        // BUG #4 FIX: Use coordinated modal flow instead of multiple modals
+        showIssueModal(
+          'Streak Rescue Issue',
+          `There seems to be an issue with streak rescue. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`,
+          () => setShowDebtModal(true), // Try again
+          handleForceResetDebt          // Force reset
+        );
         return;
       }
       
-      // Show success message
-      setShowDebtPaidModal(true);
+      // BUG #4 FIX: Show congratulations modal instead of generic success
+      showCongratulationsModal();
     } catch (error) {
       console.error('Failed to complete debt verification:', error);
-      setCurrentErrorMessage(`Failed to verify debt completion: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`);
-      setShowDebtErrorModal(true);
+      // BUG #4 FIX: Use coordinated modal flow for errors
+      showIssueModal(
+        'Streak Rescue Error',
+        `Failed to verify streak rescue completion: ${error instanceof Error ? error.message : 'Unknown error'}. Would you like to force reset your debt?`,
+        () => setShowDebtModal(true), // Try again  
+        handleForceResetDebt          // Force reset
+      );
     }
   };
   
   const handleForceResetDebt = async () => {
-    setShowForceResetModal(true);
+    // BUG #4 FIX: Use coordinated modal flow for force reset confirmation
+    showModal({
+      type: DebtModalType.FORCE_RESET_CONFIRM,
+      title: 'Force Reset Streak?',
+      message: 'This will clear your debt without watching ads. Your streak will continue normally. Continue?',
+      primaryText: 'Cancel',
+      secondaryText: 'Reset Debt',
+      onPrimaryAction: closeModal,
+      onSecondaryAction: () => {
+        closeModal();
+        executeForceResetDebt();
+      },
+    });
   };
 
   const executeForceResetDebt = async () => {
@@ -238,8 +333,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       const verifyDebt = await gratitudeStorage.calculateDebt();
       console.log(`[DEBUG] executeForceResetDebt: Verification debt=${verifyDebt}`);
       
-      // Close modal and reload data
-      setShowForceResetModal(false);
+      // BUG #4 FIX: Clean up and show success using coordinated flow
       setAdsWatched(0);
       setTotalAdsNeeded(0);
       await loadStreakData();
@@ -247,14 +341,13 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       // Refresh context
       await actions.refreshStats();
       
-      // Show success message
-      setCurrentErrorMessage('Your debt has been reset. You can now write entries normally.');
-      setShowDebtPaidModal(true);
+      // Show success message with congratulations
+      showSuccessModal('Debt Reset Complete', 'Your debt has been reset. You can now write entries normally.');
       
     } catch (error) {
       console.error('Failed to reset debt:', error);
-      setCurrentErrorMessage('Failed to reset debt. Please contact support.');
-      setShowDebtErrorModal(true);
+      // BUG #4 FIX: Use coordinated modal flow for errors
+      showErrorModal('Reset Failed', 'Failed to reset debt. Please contact support.');
     }
   };
 
@@ -364,7 +457,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         <TouchableOpacity style={styles.debtContainer} onPress={handleDebtPress}>
           <Ionicons name="warning" size={16} color={Colors.warning} />
           <Text style={styles.debtText}>
-            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - Tap to recover
+            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - Tap to rescue streak
           </Text>
         </TouchableOpacity>
       ) : streakData.canRecoverWithAd ? (
@@ -400,86 +493,61 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
         }}
       />
 
-      {/* No Debt Modal */}
-      <DebtSuccessModal
-        visible={showNoDebtModal}
-        onClose={() => {
-          setShowNoDebtModal(false);
-          loadStreakData();
-        }}
-        title="No Debt"
-        message="Your debt appears to be already paid. Refreshing your streak data..."
-        buttonText="OK"
-      />
+      {/* BUG #4 FIX: Central Modal System - replaces all 6 separate modals above */}
+      {currentModal.type === DebtModalType.SUCCESS && (
+        <DebtSuccessModal
+          visible={true}
+          onClose={currentModal.onPrimaryAction || closeModal}
+          title={currentModal.title || 'Success!'}
+          message={currentModal.message || 'Operation completed successfully.'}
+          buttonText={currentModal.primaryText || 'OK'}
+        />
+      )}
 
+      {currentModal.type === DebtModalType.ERROR && (
+        <DebtErrorModal
+          visible={true}
+          onClose={currentModal.onPrimaryAction || closeModal}
+          title={currentModal.title || 'Error'}
+          message={currentModal.message || 'Something went wrong. Please try again.'}
+          buttonText={currentModal.primaryText || 'OK'}
+        />
+      )}
 
-      {/* Not Enough Ads Modal */}
-      <DebtErrorModal
-        visible={showNotEnoughAdsModal}
-        onClose={() => setShowNotEnoughAdsModal(false)}
-        title="Not Enough Ads"
-        message={`You need to watch ${totalAdsNeeded - adsWatched} more ad${totalAdsNeeded - adsWatched > 1 ? 's' : ''} to pay your debt.`}
-        buttonText="OK"
-      />
+      {currentModal.type === DebtModalType.ISSUE && (
+        <DebtIssueModal
+          visible={true}
+          onClose={closeModal}
+          onPrimaryAction={currentModal.onPrimaryAction || closeModal}
+          onSecondaryAction={currentModal.onSecondaryAction || closeModal}
+          title={currentModal.title || 'Issue Detected'}
+          message={currentModal.message || 'There seems to be an issue. Choose how to proceed.'}
+          primaryActionText={currentModal.primaryText || 'Try Again'}
+          secondaryActionText={currentModal.secondaryText || 'Force Reset'}
+        />
+      )}
 
-      {/* Debt Payment Issue Modal */}
-      <DebtIssueModal
-        visible={showDebtIssueModal}
-        onClose={() => setShowDebtIssueModal(false)}
-        onPrimaryAction={() => {
-          setShowDebtIssueModal(false);
-          setShowDebtModal(true);
-        }}
-        onSecondaryAction={() => {
-          setShowDebtIssueModal(false);
-          handleForceResetDebt();
-        }}
-        title="Debt Payment Issue"
-        message={currentErrorMessage}
-        primaryActionText="Try Again"
-        secondaryActionText="Force Reset Debt"
-      />
+      {currentModal.type === DebtModalType.FORCE_RESET_CONFIRM && (
+        <ForceResetModal
+          visible={true}
+          onClose={currentModal.onPrimaryAction || closeModal}
+          onConfirm={currentModal.onSecondaryAction || closeModal}
+          title={currentModal.title || 'Force Reset Debt'}
+          message={currentModal.message || 'This will clear your debt without watching ads. Your streak will continue normally. Continue?'}
+          confirmText={currentModal.secondaryText || 'Reset Debt'}
+          cancelText={currentModal.primaryText || 'Cancel'}
+        />
+      )}
 
-      {/* Debt Paid Success Modal */}
-      <DebtSuccessModal
-        visible={showDebtPaidModal}
-        onClose={() => setShowDebtPaidModal(false)}
-        title="Debt Paid!"
-        message={currentErrorMessage || 'Your debt has been cleared. You can now write journal entries normally and your streak will continue.'}
-        buttonText="OK"
-      />
-
-      {/* Debt Payment Error Modal */}
-      <DebtIssueModal
-        visible={showDebtErrorModal}
-        onClose={() => setShowDebtErrorModal(false)}
-        onPrimaryAction={() => {
-          setShowDebtErrorModal(false);
-          setShowDebtModal(true);
-        }}
-        onSecondaryAction={() => {
-          setShowDebtErrorModal(false);
-          handleForceResetDebt();
-        }}
-        title="Debt Payment Error"
-        message={currentErrorMessage}
-        primaryActionText="Try Again"
-        secondaryActionText="Force Reset Debt"
-      />
-
-      {/* Force Reset Debt Confirmation Modal */}
-      <ForceResetModal
-        visible={showForceResetModal}
-        onClose={() => setShowForceResetModal(false)}
-        onConfirm={() => {
-          setShowForceResetModal(false);
-          executeForceResetDebt();
-        }}
-        title="Force Reset Debt"
-        message="This will clear your debt without watching ads. Your streak will continue normally. Continue?"
-        confirmText="Reset Debt"
-        cancelText="Cancel"
-      />
+      {currentModal.type === DebtModalType.CONGRATULATIONS && (
+        <DebtSuccessModal
+          visible={true}
+          onClose={currentModal.onPrimaryAction || closeModal}
+          title={currentModal.title || '🎉 Congratulations!'}
+          message={currentModal.message || 'Your debt has been cleared successfully!'}
+          buttonText={currentModal.primaryText || 'Continue'}
+        />
+      )}
     </TouchableOpacity>
   );
 }

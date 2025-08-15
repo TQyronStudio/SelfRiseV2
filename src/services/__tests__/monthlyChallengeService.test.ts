@@ -453,7 +453,11 @@ describe('MonthlyChallengeService - Comprehensive Scenario Testing', () => {
 
       expect(categorySelection.selectedCategory).toBeDefined();
       expect(categorySelection.categoryWeights.length).toBe(4); // 4 available categories
-      expect(categorySelection.categoryWeights[0].finalWeight).toBeGreaterThan(0);
+      
+      // TypeScript fix: ensure array is not empty before accessing
+      const firstCategoryWeight = categorySelection.categoryWeights[0];
+      expect(firstCategoryWeight).toBeDefined();
+      expect(firstCategoryWeight!.finalWeight).toBeGreaterThan(0);
       expect(categorySelection.selectionReason).toContain('weight');
     });
   });
