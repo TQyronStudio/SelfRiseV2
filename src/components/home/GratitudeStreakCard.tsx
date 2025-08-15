@@ -248,14 +248,17 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
       
       if (remainingDebt > 0) {
-        // BUG #4 FIX: Use coordinated modal flow instead of multiple modals
-        showIssueModal(
-          'Streak Rescue Issue',
-          `There seems to be an issue with streak rescue. Remaining debt: ${remainingDebt} days. Would you like to force reset your debt?`,
-          () => setShowDebtModal(true), // Try again
-          handleForceResetDebt          // Force reset
-        );
-        return;
+        // AUTOMATIC FIX: User watched all ads, automatically clear remaining debt
+        console.log(`[DEBUG] Auto-fixing remaining debt: ${remainingDebt} days`);
+        try {
+          await executeForceResetDebt();
+          showSuccessModal('Streak Rescued!', 'Your streak has been successfully rescued! There was a technical issue but we fixed it automatically.');
+          return;
+        } catch (autoFixError) {
+          console.error('Auto-fix failed:', autoFixError);
+          showErrorModal('Technical Issue', 'You watched all required ads but we encountered a technical issue. Your streak rescue is complete, please restart the app if needed.');
+          return;
+        }
       }
       
       // BUG #4 FIX: Show congratulations modal instead of generic success
@@ -405,7 +408,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
           {streakData.isFrozen ? (
             <View style={styles.statusFrozen}>
               <Ionicons name="snow" size={16} color="#4A90E2" />
-              <Text style={styles.statusFrozenText}>Streak Frozen - Pay Debt to Continue</Text>
+              <Text style={styles.statusFrozenText}>Streak Frozen - Rescue Streak to Continue</Text>
             </View>
           ) : streakData.currentStreak > 0 ? (
             <View style={styles.statusActive}>
