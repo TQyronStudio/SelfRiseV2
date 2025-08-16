@@ -209,18 +209,8 @@ export function GoalsScreen() {
       const previousGoal = progressGoal;
       const newProgress = await actions.addProgress(data);
       
-      // Award real-time XP for basic progress entry (milestones/completion handled by storage)
-      if (newProgress && previousGoal && data.progressType !== 'subtract') {
-        const xpAmount = XP_REWARDS.GOALS.PROGRESS_ENTRY;
-        const description = `Added progress to goal: ${previousGoal.title}`;
-        
-        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for goal progress`);
-        await addXP(xpAmount, { 
-          source: XPSourceType.GOAL_PROGRESS, 
-          description,
-          sourceId: previousGoal.id 
-        });
-      }
+      // XP is now handled entirely by GoalStorage.awardGoalProgressXP - no dual system
+      console.log(`✅ Goal progress added successfully - XP handled by storage layer`);
       
       handleCloseProgressModal();
       

@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from 'react-native';
 import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, WarmUpPayment, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
@@ -9,8 +10,8 @@ import { XP_REWARDS } from '../../constants/gamification';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
   // XP system enabled for journal entries
-  // DISABLED: XP is now handled in UI layer (GratitudeInput) for real-time updates
-  private static XP_ENABLED = false;
+  // ENABLED: Restored XP handling with animation triggers
+  private static XP_ENABLED = true;
   
   // Gratitude CRUD operations
   async getAll(): Promise<Gratitude[]> {
@@ -1373,6 +1374,28 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           description: descriptions.join(' + '),
           sourceId: `journal_batch_${date}_${entryPosition}`,
         });
+
+        // ADDITIONAL FIX: Trigger XP animation (fallback in case GamificationService doesn't trigger)
+        try {
+          const eventData = {
+            amount: totalXP,
+            source: xpSourceType,
+            position: { x: 50, y: 130 }, // Default position
+            timestamp: Date.now(),
+          };
+
+          DeviceEventEmitter.emit('xpGained', eventData);
+          DeviceEventEmitter.emit('xpSmartNotification', {
+            amount: totalXP,
+            source: xpSourceType,
+            timestamp: Date.now(),
+          });
+
+          const sign = totalXP >= 0 ? '+' : '';
+          console.log(`✨ Journal XP Animation triggered: ${sign}${totalXP} XP from ${xpSourceType}`);
+        } catch (animationError) {
+          console.error('Journal XP Animation trigger error:', animationError);
+        }
       }
 
     } catch (error) {

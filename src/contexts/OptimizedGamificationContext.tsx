@@ -14,6 +14,7 @@
  */
 
 import React, { createContext, useContext, useCallback, useEffect, useReducer, useMemo, useRef } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import { AtomicGamificationService, AtomicXPAdditionOptions, AtomicXPTransactionResult } from '../services/gamificationServiceAtomic';
 import { GamificationStats, XPSourceType, XPTransaction } from '../types/gamification';
 import { getCurrentLevel, getXPProgress, getLevelInfo } from '../services/levelCalculation';
@@ -312,6 +313,28 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
       
       if (result.success) {
         console.log(`⚡ OPTIMIZED addXP: ${amount} XP, atomic operation time: ${result.atomicOperationTime.toFixed(2)}ms`);
+        
+        // STEP 2.5: Trigger XP animation (FIX: Missing animation triggers)
+        try {
+          const eventData = {
+            amount,
+            source: options.source,
+            position: { x: 50, y: 130 }, // Default position
+            timestamp: Date.now(),
+          };
+
+          DeviceEventEmitter.emit('xpGained', eventData);
+          DeviceEventEmitter.emit('xpSmartNotification', {
+            amount,
+            source: options.source,
+            timestamp: Date.now(),
+          });
+
+          const sign = amount >= 0 ? '+' : '';
+          console.log(`✨ XP Animation triggered: ${sign}${amount} XP from ${options.source}`);
+        } catch (animationError) {
+          console.error('XP Animation trigger error:', animationError);
+        }
         
         // STEP 3: Correct any discrepancy between optimistic and actual result
         if (result.totalXP !== optimisticTotalXP) {

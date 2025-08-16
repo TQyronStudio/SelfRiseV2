@@ -58,27 +58,8 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
       
       const completion = await actions.toggleCompletion(habit.id, date, isBonus);
       
-      // Handle XP changes based on completion state
-      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
-      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
-      
-      if (completion && !currentCompletion) {
-        // Habit was completed - award XP
-        const description = isBonus ? 
-          `Completed bonus habit: ${habit.name}` : 
-          `Completed scheduled habit: ${habit.name}`;
-
-        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for ${xpSource}`);
-        await addXP(xpAmount, { source: xpSource, description });
-      } else if (!completion && currentCompletion) {
-        // Habit was uncompleted - deduct XP
-        const description = isBonus ? 
-          `Uncompleted bonus habit: ${habit.name}` : 
-          `Uncompleted scheduled habit: ${habit.name}`;
-
-        console.log(`🚀 Real-time XP: Deducting ${xpAmount} XP for ${xpSource}`);
-        await subtractXP(xpAmount, { source: xpSource, description });
-      }
+      // XP is now handled entirely by HabitStorage - no dual system
+      console.log(`✅ Habit completion toggled successfully - XP handled by storage layer`);
       
       // Brief animation delay
       setTimeout(() => {

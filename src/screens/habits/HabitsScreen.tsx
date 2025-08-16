@@ -167,29 +167,8 @@ export function HabitsScreen() {
       const currentCompletion = completions.find(c => c.habitId === habitId && c.date === date);
       const completion = await actions.toggleCompletion(habitId, date, isBonus);
       
-      const habit = habits.find(h => h.id === habitId);
-      if (habit) {
-        const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
-        const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
-        
-        if (completion && !currentCompletion) {
-          // Habit was completed - award XP
-          const description = isBonus ? 
-            `Completed bonus habit: ${habit.name}` : 
-            `Completed scheduled habit: ${habit.name}`;
-
-          console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for ${xpSource}`);
-          await addXP(xpAmount, { source: xpSource, description });
-        } else if (!completion && currentCompletion) {
-          // Habit was uncompleted - deduct XP
-          const description = isBonus ? 
-            `Uncompleted bonus habit: ${habit.name}` : 
-            `Uncompleted scheduled habit: ${habit.name}`;
-
-          console.log(`🚀 Real-time XP: Deducting ${xpAmount} XP for ${xpSource}`);
-          await subtractXP(xpAmount, { source: xpSource, description });
-        }
-      }
+      // XP is now handled entirely by HabitStorage - no dual system
+      console.log(`✅ Habit completion toggled successfully - XP handled by storage layer`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to toggle completion');
       setShowError(true);

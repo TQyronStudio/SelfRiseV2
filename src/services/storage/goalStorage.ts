@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from 'react-native';
 import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats, GoalTimelineStatus } from '../../types/goal';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
@@ -648,6 +649,28 @@ export class GoalStorage implements EntityStorage<Goal> {
         sourceId: goal.id,
         description: `Added progress to goal: ${goal.title}`,
         });
+
+        // FIX: Trigger XP animation for goal progress
+        try {
+          const eventData = {
+            amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
+            source: XPSourceType.GOAL_PROGRESS,
+            position: { x: 50, y: 130 }, // Default position
+            timestamp: Date.now(),
+          };
+
+          DeviceEventEmitter.emit('xpGained', eventData);
+          DeviceEventEmitter.emit('xpSmartNotification', {
+            amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
+            source: XPSourceType.GOAL_PROGRESS,
+            timestamp: Date.now(),
+          });
+
+          const sign = XP_REWARDS.GOALS.PROGRESS_ENTRY >= 0 ? '+' : '';
+          console.log(`✨ Goal Progress XP Animation triggered: ${sign}${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP from GOAL_PROGRESS`);
+        } catch (animationError) {
+          console.error('Goal Progress XP Animation trigger error:', animationError);
+        }
       }
       
       // Update tracking (positive XP)
@@ -677,6 +700,28 @@ export class GoalStorage implements EntityStorage<Goal> {
             sourceId: goal.id,
             description: `Reached ${milestone.name} completion for goal: ${goal.title}`,
           });
+
+          // FIX: Trigger XP animation for goal milestone
+          try {
+            const eventData = {
+              amount: milestone.xp,
+              source: XPSourceType.GOAL_MILESTONE,
+              position: { x: 50, y: 130 }, // Default position
+              timestamp: Date.now(),
+            };
+
+            DeviceEventEmitter.emit('xpGained', eventData);
+            DeviceEventEmitter.emit('xpSmartNotification', {
+              amount: milestone.xp,
+              source: XPSourceType.GOAL_MILESTONE,
+              timestamp: Date.now(),
+            });
+
+            const sign = milestone.xp >= 0 ? '+' : '';
+            console.log(`✨ Goal Milestone XP Animation triggered: ${sign}${milestone.xp} XP from GOAL_MILESTONE`);
+          } catch (animationError) {
+            console.error('Goal Milestone XP Animation trigger error:', animationError);
+          }
         }
       }
     } catch (error) {
@@ -753,6 +798,28 @@ export class GoalStorage implements EntityStorage<Goal> {
             sourceId: goal.id,
             description: `Removed negative progress from goal: ${goal.title} (+${deletedProgress.value})`,
           });
+
+          // FIX: Trigger XP animation for goal progress restoration
+          try {
+            const eventData = {
+              amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
+              source: XPSourceType.GOAL_PROGRESS,
+              position: { x: 50, y: 130 }, // Default position
+              timestamp: Date.now(),
+            };
+
+            DeviceEventEmitter.emit('xpGained', eventData);
+            DeviceEventEmitter.emit('xpSmartNotification', {
+              amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
+              source: XPSourceType.GOAL_PROGRESS,
+              timestamp: Date.now(),
+            });
+
+            const sign = XP_REWARDS.GOALS.PROGRESS_ENTRY >= 0 ? '+' : '';
+            console.log(`✨ Goal Progress Restoration XP Animation triggered: ${sign}${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP from GOAL_PROGRESS`);
+          } catch (animationError) {
+            console.error('Goal Progress Restoration XP Animation trigger error:', animationError);
+          }
         }
         
         // Update tracking (positive XP from deleting negative)

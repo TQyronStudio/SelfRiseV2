@@ -127,7 +127,7 @@ export class GamificationService {
    */
   private static async addXPDirectly(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
     // This is the core XP addition logic without batching
-    return await this.performXPAddition(amount, options);
+    return await GamificationService.performXPAddition(amount, options);
   }
 
   /**
@@ -139,18 +139,18 @@ export class GamificationService {
       console.log(`⚡ Adding XP with batching: +${amount} from ${options.source}`);
       
       const now = Date.now();
-      const shouldBatch = this.shouldBatchXPAddition(amount, options, now);
+      const shouldBatch = GamificationService.shouldBatchXPAddition(amount, options, now);
       
       if (shouldBatch) {
-        return await this.addToBatch(amount, options, now);
+        return await GamificationService.addToBatch(amount, options, now);
       } else {
         // Execute immediately for time-sensitive operations
-        return await this.addXPDirectly(amount, options);
+        return await GamificationService.addXPDirectly(amount, options);
       }
     } catch (error) {
       console.error('GamificationService.addXPWithBatching error:', error);
       // Fallback to direct XP addition
-      return await this.addXPDirectly(amount, options);
+      return await GamificationService.addXPDirectly(amount, options);
     }
   }
 
@@ -323,12 +323,13 @@ export class GamificationService {
           isBatch: true,
           batchSize: batch.sources.size,
           batchDuration: batch.lastActionTime - batch.firstActionTime,
-          batchSources: Array.from(batch.sources.entries())
+          batchSources: Array.from(batch.sources.entries()),
+          skipBatching: true // CRITICAL: Prevent infinite loop in batch commit
         }
       };
 
-      // Execute batched XP addition
-      const result = await this.addXP(batch.totalAmount, batchOptions);
+      // Execute batched XP addition - use performXPAddition directly to avoid batching loop
+      const result = await GamificationService.performXPAddition(batch.totalAmount, batchOptions);
 
       // Create batched result
       const batchedResult: BatchedXPResult = {
@@ -434,14 +435,14 @@ export class GamificationService {
       
       if (skipBatching) {
         console.log(`🚀 Adding XP immediately (skipBatching=true): +${amount} from ${options.source}`);
-        return await this.performXPAddition(amount, options);
+        return await GamificationService.performXPAddition(amount, options);
       } else {
         // Use batching for normal operations
         return await this.addXPWithBatching(amount, options);
       }
     } catch (error) {
       console.error('GamificationService.addXP error:', error);
-      return await this.performXPAddition(amount, options);
+      return await GamificationService.performXPAddition(amount, options);
     }
   }
 
@@ -560,15 +561,15 @@ export class GamificationService {
         }
 
         // Store level-up event in history
-        await this.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);
+        await GamificationService.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);
       }
 
       // Handle notifications and animations (if not skipped)
       if (!options.skipNotification) {
-        await this.queueXPNotification(transaction, leveledUp, milestoneReached);
+        await GamificationService.queueXPNotification(transaction, leveledUp, milestoneReached);
         
         // Trigger XP popup animation via event system
-        this.triggerXPAnimation(finalAmount, options.source, options.metadata?.position);
+        GamificationService.triggerXPAnimation(finalAmount, options.source, options.metadata?.position);
       }
 
       // Check for achievement unlocks after XP action
@@ -694,7 +695,7 @@ export class GamificationService {
 
       // Trigger visual feedback for XP loss (red/negative animation)
       if (!options.skipNotification) {
-        this.triggerXPAnimation(-amount, options.source, options.metadata?.position);
+        GamificationService.triggerXPAnimation(-amount, options.source, options.metadata?.position);
       }
 
       return {

@@ -21,8 +21,8 @@ export const XpAnimationContainer: React.FC<XpAnimationContainerProps> = ({ chil
     <View style={styles.container}>
       {children}
       
-      {/* Render smart notification (top-level, non-disruptive) - DISABLED to fix duplicates */}
-      {false && isAnimationEnabled && (
+      {/* Render smart notification (top-level, non-disruptive) */}
+      {isAnimationEnabled && (
         <XpNotification
           visible={isNotificationVisible}
           xpGains={pendingNotifications.map(notification => ({

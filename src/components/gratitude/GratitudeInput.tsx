@@ -124,20 +124,9 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         type: inputType,
       });
 
-      // Award real-time XP for journal entry (streaks/milestones handled by storage)
+      // XP is now handled entirely by GratitudeStorage - no dual system
       if (newEntry) {
-        const xpAmount = inputType === 'self-praise' ? 
-          XP_REWARDS.JOURNAL.FIRST_ENTRY : // Same reward for self-praise as regular entries
-          XP_REWARDS.JOURNAL.FIRST_ENTRY;
-        const xpSource = inputType === 'self-praise' ? 
-          XPSourceType.JOURNAL_ENTRY : 
-          XPSourceType.JOURNAL_ENTRY;
-        const description = inputType === 'self-praise' ? 
-          'Added self-praise entry' : 
-          'Added gratitude entry';
-
-        console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for journal entry`);
-        await addXP(xpAmount, { source: xpSource, description });
+        console.log(`✅ Journal entry added successfully - XP handled by storage layer`);
       }
 
       setGratitudeText('');

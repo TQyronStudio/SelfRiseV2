@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from 'react-native';
 import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';
@@ -419,6 +420,28 @@ export class HabitStorage implements EntityStorage<Habit> {
         description
       });
 
+      // FIX: Trigger XP animation (fallback in case GamificationService doesn't trigger)
+      try {
+        const eventData = {
+          amount: xpAmount,
+          source: xpSource,
+          position: { x: 50, y: 130 }, // Default position
+          timestamp: Date.now(),
+        };
+
+        DeviceEventEmitter.emit('xpGained', eventData);
+        DeviceEventEmitter.emit('xpSmartNotification', {
+          amount: xpAmount,
+          source: xpSource,
+          timestamp: Date.now(),
+        });
+
+        const sign = xpAmount >= 0 ? '+' : '';
+        console.log(`✨ Habit XP Animation triggered: ${sign}${xpAmount} XP from ${xpSource}`);
+      } catch (animationError) {
+        console.error('Habit XP Animation trigger error:', animationError);
+      }
+
       if (result.success) {
         console.log(`✅ XP successfully awarded: ${result.xpGained} XP (${result.totalXP} total)`);
         
@@ -551,6 +574,28 @@ export class HabitStorage implements EntityStorage<Habit> {
         sourceId: habitId,
         description: `Reached ${milestone}-day streak for habit: ${habit.name}`
       });
+
+      // FIX: Trigger XP animation for streak milestone
+      try {
+        const eventData = {
+          amount: xpAmount,
+          source: XPSourceType.HABIT_STREAK_MILESTONE,
+          position: { x: 50, y: 130 }, // Default position
+          timestamp: Date.now(),
+        };
+
+        DeviceEventEmitter.emit('xpGained', eventData);
+        DeviceEventEmitter.emit('xpSmartNotification', {
+          amount: xpAmount,
+          source: XPSourceType.HABIT_STREAK_MILESTONE,
+          timestamp: Date.now(),
+        });
+
+        const sign = xpAmount >= 0 ? '+' : '';
+        console.log(`✨ Habit Streak Milestone XP Animation triggered: ${sign}${xpAmount} XP from HABIT_STREAK_MILESTONE`);
+      } catch (animationError) {
+        console.error('Habit Streak Milestone XP Animation trigger error:', animationError);
+      }
 
     } catch (error) {
       console.error('Error awarding streak milestone XP:', error);
