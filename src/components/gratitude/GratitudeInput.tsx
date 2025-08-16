@@ -15,12 +15,14 @@ import { ErrorModal } from '@/src/components/common';
 import { gratitudeStorage } from '@/src/services/storage/gratitudeStorage';
 import { XPSourceType } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
+import { Router } from 'expo-router';
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
   onCancel?: () => void; // funkce pro zavření formuláře
   isBonus?: boolean; // true if this is a bonus gratitude (already have 3+)
   inputType?: 'gratitude' | 'self-praise';
+  router?: Router; // For automatic navigation to Home screen on debt
 }
 
 // Rotační placeholdery pro Vděčnost
@@ -51,7 +53,7 @@ const SELF_PRAISE_PLACEHOLDERS = [
   "What did you do today that was just for you?"
 ];
 
-export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude' }: GratitudeInputProps) {
+export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude', router }: GratitudeInputProps) {
   const { t } = useI18n();
   const { actions } = useGratitude();
   const { addXP } = useOptimizedGamification();
@@ -102,9 +104,18 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
           console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_debt}, calculated=${calculatedDebt}`);
         }
         
-        setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing any entries.`);
-        setShowError(true);
-        return;
+        // 🚀 SPECIFICATION COMPLIANCE: Automatic redirect to Home screen with modal auto-open
+        if (router) {
+          console.log(`[DEBUG] GratitudeInput: Auto-redirecting to Home screen for debt recovery`);
+          // Navigate to Home screen with flag to auto-open debt recovery modal
+          router.push({ pathname: '/(tabs)', params: { openDebtModal: 'true' } });
+          return;
+        } else {
+          // Fallback: Show error message if router not available
+          setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing any entries.`);
+          setShowError(true);
+          return;
+        }
       }
       
       const newEntry = await actions.createGratitude({

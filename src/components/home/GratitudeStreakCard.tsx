@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -28,7 +28,12 @@ interface JournalStreakCardProps {
   onPress?: () => void;
 }
 
-export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
+// 🚀 REF INTERFACE: For auto-opening debt modal from external triggers
+export interface JournalStreakCardRef {
+  triggerDebtModal: () => void;
+}
+
+export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakCardProps>(({ onPress }, ref) => {
   const { t } = useI18n();
   const { actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
@@ -38,6 +43,16 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
   const [issueRetryCount, setIssueRetryCount] = useState(0);
+  
+  // 🚀 IMPERATIVE HANDLE: Expose triggerDebtModal method to parent component
+  useImperativeHandle(ref, () => ({
+    triggerDebtModal: () => {
+      console.log('[DEBUG] JournalStreakCard: triggerDebtModal called from external trigger');
+      // Simulate debt press to open modal by calling the existing handler
+      const mockEvent = { stopPropagation: () => {} };
+      handleDebtPress(mockEvent);
+    }
+  }), []);
 
   // BUG #4 FIX: Central Modal State Management - replace 10 modal states with 1
   enum DebtModalType {
@@ -518,7 +533,7 @@ export function JournalStreakCard({ onPress }: JournalStreakCardProps) {
       )}
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

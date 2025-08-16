@@ -230,6 +230,7 @@ export default function JournalScreen() {
               onCancel={() => setShowInput(false)}
               isBonus={isComplete}
               inputType={inputType}
+              router={router}
             />
           </View>
         )}

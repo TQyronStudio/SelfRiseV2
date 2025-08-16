@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +22,7 @@ import {
   MonthlyChallengeDetailModal, 
   MonthlyChallengeCompletionModal 
 } from '@/src/components/challenges';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
@@ -37,6 +37,7 @@ import { XP_REWARDS } from '@/src/constants/gamification';
 export default function HomeScreen() {
   // const { t } = useI18n(); // Unused for now
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
   const { addXP, subtractXP } = useOptimizedGamification();
   const { state: customizationState } = useHomeCustomization();
@@ -46,6 +47,22 @@ export default function HomeScreen() {
   const [showChallengeCompletion, setShowChallengeCompletion] = useState(false);
   const [completionChallenge, setCompletionChallenge] = useState<MonthlyChallenge | null>(null);
   const [completionResult, setCompletionResult] = useState<MonthlyChallengeCompletionResult | null>(null);
+  
+  // 🚀 DEBT RECOVERY AUTO-MODAL: Reference to JournalStreakCard for auto-opening debt modal
+  const journalStreakCardRef = useRef<any>(null);
+  
+  // 🚀 SPECIFICATION COMPLIANCE: Auto-open debt recovery modal on redirect from My Journal
+  useEffect(() => {
+    if (params.openDebtModal === 'true' && journalStreakCardRef.current) {
+      console.log('[DEBUG] HomeScreen: Auto-opening debt recovery modal from My Journal redirect');
+      // Trigger debt modal opening on JournalStreakCard component
+      setTimeout(() => {
+        if (journalStreakCardRef.current?.triggerDebtModal) {
+          journalStreakCardRef.current.triggerDebtModal();
+        }
+      }, 100); // Small delay to ensure component is mounted
+    }
+  }, [params.openDebtModal]);
 
 
 
@@ -186,7 +203,10 @@ export default function HomeScreen() {
         )}
         
         {isComponentVisible('journalStreak') && (
-          <JournalStreakCard onPress={handleStreakPress} />
+          <JournalStreakCard 
+            ref={journalStreakCardRef}
+            onPress={handleStreakPress} 
+          />
         )}
         
         {isComponentVisible('quickActions') && (
