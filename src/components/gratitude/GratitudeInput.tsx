@@ -86,22 +86,22 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       
       // ENHANCED DEBT CHECK with BUG #2 FIX: Multi-source validation to prevent phantom debt
       const currentStreak = await gratitudeStorage.getStreak();
-      const calculatedDebt = await gratitudeStorage.calculateDebt();
+      const calculatedFrozenDays = await gratitudeStorage.calculateFrozenDays();
       
       // PRIMARY SOURCE: Use streak.debtDays as authoritative (respects auto-reset)
-      const authoritative_debt = currentStreak.debtDays;
+      const authoritative_frozenDays = currentStreak.frozenDays;
       
       // SAFETY CHECK: If current streak = 0, no debt should exist (auto-reset case)
-      if (currentStreak.currentStreak === 0 && authoritative_debt === 0) {
+      if (currentStreak.currentStreak === 0 && authoritative_frozenDays === 0) {
         console.log(`[DEBUG] GratitudeInput: Streak = 0, debt = 0. Allowing entry creation (post-reset state)`);
         // Allow entry creation - no debt after reset
-      } else if (authoritative_debt > 0) {
+      } else if (authoritative_frozenDays > 0) {
         // STRICT DEBT BLOCKING: No entries allowed when debt exists
-        console.log(`[DEBUG] GratitudeInput: Blocking entry due to debt. Authoritative debt: ${authoritative_debt}, Calculated debt: ${calculatedDebt}`);
+        console.log(`[DEBUG] GratitudeInput: Blocking entry due to debt. Authoritative debt: ${authoritative_frozenDays}, Calculated debt: ${calculatedFrozenDays}`);
         
         // CONSISTENCY WARNING: Log discrepancy for debugging
-        if (authoritative_debt !== calculatedDebt) {
-          console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_debt}, calculated=${calculatedDebt}`);
+        if (authoritative_frozenDays !== calculatedFrozenDays) {
+          console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_frozenDays}, calculated=${calculatedFrozenDays}`);
         }
         
         // 🚀 SPECIFICATION COMPLIANCE: Automatic redirect to Home screen with modal auto-open
@@ -112,7 +112,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
           return;
         } else {
           // Fallback: Show error message if router not available
-          setErrorMessage(`You have ${authoritative_debt} day${authoritative_debt > 1 ? 's' : ''} of debt. Please go to Home screen and tap "Rescue Streak" to watch ads before writing any entries.`);
+          setErrorMessage(`Your streak is frozen for ${authoritative_frozenDays} day${authoritative_frozenDays > 1 ? 's' : ''}. Warm it up on the Home screen first, then continue journaling! 🔥`);
           setShowError(true);
           return;
         }

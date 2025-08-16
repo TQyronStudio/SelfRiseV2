@@ -15,12 +15,12 @@ export interface GratitudeStreak {
   lastEntryDate: DateString | null;
   streakStartDate: DateString | null;
   canRecoverWithAd: boolean; // true if user can recover broken streak with ad
-  // ENHANCED: Debt tracking system with payment persistence
-  debtDays: number; // 0-3, days of accumulated debt from missed days
-  isFrozen: boolean; // true when debt > 0, streak neither grows nor resets
-  preserveCurrentStreak?: boolean; // true after debt payment to preserve streak instead of recalculating
-  debtPayments: DebtPayment[]; // Track individual ad payments per missed day
-  debtHistory: DebtHistoryEntry[]; // Audit trail for debugging debt issues
+  // ENHANCED: Frozen streak tracking system with warm up payment persistence
+  frozenDays: number; // 0-3, days of accumulated missed days that froze the streak
+  isFrozen: boolean; // true when frozenDays > 0, streak neither grows nor resets
+  preserveCurrentStreak?: boolean; // true after warm up payment to preserve streak instead of recalculating
+  warmUpPayments: WarmUpPayment[]; // Track individual ad payments per missed day
+  warmUpHistory: WarmUpHistoryEntry[]; // Audit trail for debugging warm up issues
   // CRITICAL FIX BUG #2: Auto-reset state tracking to prevent phantom debt
   autoResetTimestamp: Date | null; // When auto-reset occurred (24h validity)
   autoResetReason: string | null; // Why auto-reset happened (debugging)
@@ -30,20 +30,20 @@ export interface GratitudeStreak {
   crownCount: number; // 👑 - times achieved 10 bonus gratitudes in a day
 }
 
-// NEW: Individual debt payment tracking
-export interface DebtPayment {
-  missedDate: DateString; // Which specific missed day was paid for
+// NEW: Individual warm up payment tracking
+export interface WarmUpPayment {
+  missedDate: DateString; // Which specific missed day was warmed up
   adsWatched: number; // How many ads watched for this specific day (1 ad = 1 day cleared)
-  paymentTimestamp: Date; // When the payment was made
-  isComplete: boolean; // Whether this missed day is fully paid (1 ad = complete)
+  paymentTimestamp: Date; // When the warm up was made
+  isComplete: boolean; // Whether this missed day is fully warmed up (1 ad = complete)
 }
 
-// NEW: Comprehensive audit trail for debt system debugging
-export interface DebtHistoryEntry {
-  action: 'payment' | 'accumulation' | 'auto_reset' | 'manual_reset' | 'force_reset';
+// NEW: Comprehensive audit trail for warm up system debugging
+export interface WarmUpHistoryEntry {
+  action: 'warm_up' | 'accumulation' | 'auto_reset' | 'manual_reset' | 'quick_warm_up';
   timestamp: Date;
-  debtBefore: number; // Debt days before action
-  debtAfter: number; // Debt days after action
+  frozenDaysBefore: number; // Frozen days before action
+  frozenDaysAfter: number; // Frozen days after action
   details: string; // Human-readable description of what happened
   missedDates?: DateString[]; // Which dates were involved
   adsInvolved?: number; // How many ads were involved in this action

@@ -15,7 +15,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 const { width: screenWidth } = Dimensions.get('window');
 
 // Specialized modal components following CelebrationModal pattern
-interface DebtModalProps {
+interface WarmUpModalProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
@@ -23,14 +23,14 @@ interface DebtModalProps {
   buttonText?: string;
 }
 
-interface DebtConfirmationModalProps extends DebtModalProps {
+interface WarmUpConfirmationModalProps extends WarmUpModalProps {
   onConfirm: () => void;
   confirmText?: string;
   cancelText?: string;
 }
 
 // AdFailedModal Component
-function AdFailedModal({ visible, onClose, title, message, buttonText }: DebtModalProps) {
+function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
   return (
     <Modal
       visible={visible}
@@ -54,8 +54,8 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: DebtMod
   );
 }
 
-// DebtErrorModal Component  
-function DebtErrorModal({ visible, onClose, title, message, buttonText }: DebtModalProps) {
+// WarmUpErrorModal Component  
+function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
   return (
     <Modal
       visible={visible}
@@ -79,8 +79,8 @@ function DebtErrorModal({ visible, onClose, title, message, buttonText }: DebtMo
   );
 }
 
-// DebtConfirmationModal Component
-function DebtConfirmationModal({ 
+// WarmUpConfirmationModal Component
+function WarmUpConfirmationModal({ 
   visible, 
   onClose, 
   onConfirm,
@@ -88,7 +88,7 @@ function DebtConfirmationModal({
   message, 
   confirmText,
   cancelText 
-}: DebtConfirmationModalProps) {
+}: WarmUpConfirmationModalProps) {
   return (
     <Modal
       visible={visible}
@@ -99,7 +99,7 @@ function DebtConfirmationModal({
       <View style={modalStyles.overlay}>
         <View style={modalStyles.modal}>
           <Text style={modalStyles.emoji}>🔄</Text>
-          <Text style={modalStyles.title}>{title || 'Watch Ad to Pay Debt'}</Text>
+          <Text style={modalStyles.title}>{title || 'Watch Ad to Warm Up Streak'}</Text>
           <Text style={modalStyles.message}>
             {message || 'This would show a real advertisement. Continue with ad simulation?'}
           </Text>
@@ -190,10 +190,10 @@ const modalStyles = StyleSheet.create({
   },
 });
 
-interface DebtRecoveryModalProps {
+interface StreakWarmUpModalProps {
   visible: boolean;
   onClose: () => void;
-  debtDays: number;
+  frozenDays: number;
   adsWatched: number;
   totalAdsNeeded: number;
   onWatchAd: () => Promise<boolean>; // Returns true if ad was successfully watched
@@ -201,16 +201,16 @@ interface DebtRecoveryModalProps {
   onResetStreak?: () => void; // Called when user chooses to reset streak instead of watching ads
 }
 
-export default function DebtRecoveryModal({
+export default function StreakWarmUpModal({
   visible,
   onClose,
-  debtDays,
+  frozenDays,
   adsWatched,
   totalAdsNeeded,
   onWatchAd,
   onComplete,
   onResetStreak,
-}: DebtRecoveryModalProps) {
+}: StreakWarmUpModalProps) {
   const { t } = useI18n();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
@@ -231,7 +231,7 @@ export default function DebtRecoveryModal({
         const newAdsWatched = adsWatched + 1;
         
         if (newAdsWatched >= totalAdsNeeded) {
-          // All ads watched, recovery complete
+          // All ads watched, warm up complete
           setTimeout(() => {
             onComplete();
             onClose();
@@ -254,18 +254,18 @@ export default function DebtRecoveryModal({
     }
   };
 
-  const getDebtMessage = () => {
-    if (debtDays === 1) {
-      return `You missed 1 day. Watch ${totalAdsNeeded} ad to rescue your streak, then write entries normally.`;
+  const getFrozenMessage = () => {
+    if (frozenDays === 1) {
+      return `Your streak has been frozen for 1 day. Watch ${totalAdsNeeded} ad to warm it up, then continue journaling freely! ❄️➡️🔥`;
     }
-    return `You missed ${debtDays} days. Watch ${totalAdsNeeded} ads to rescue your streak, then write entries normally.`;
+    return `Your streak has been frozen for ${frozenDays} days. Watch ${totalAdsNeeded} ads to warm it up, then continue journaling freely! ❄️➡️🔥`;
   };
 
   const getProgressMessage = () => {
     if (remainingAds === 0) {
-      return 'Streak rescued! Go to Journal to write entries normally.';
+      return 'Streak warmed up! Go to Journal and continue your journey! ✨';
     }
-    return `Rescuing streak: ${adsWatched + 1}/${totalAdsNeeded}`;
+    return `Warming up: ${adsWatched + 1}/${totalAdsNeeded} 🔥`;
   };
 
   return (
@@ -280,21 +280,21 @@ export default function DebtRecoveryModal({
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <IconSymbol name="xmark" size={24} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Streak Recovery</Text>
+          <Text style={styles.title}>Warm Up Your Streak</Text>
           <View style={styles.placeholder} />
         </View>
 
         <View style={styles.content}>
-          {/* Debt Status */}
-          <View style={styles.debtCard}>
-            <Text style={styles.debtEmoji}>⚠️</Text>
-            <Text style={styles.debtTitle}>Missed Days</Text>
-            <Text style={styles.debtMessage}>{getDebtMessage()}</Text>
+          {/* Frozen Status */}
+          <View style={styles.frozenCard}>
+            <Text style={styles.frozenEmoji}>❄️</Text>
+            <Text style={styles.frozenTitle}>Frozen Days</Text>
+            <Text style={styles.frozenMessage}>{getFrozenMessage()}</Text>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressCard}>
-            <Text style={styles.progressTitle}>Recovery Progress</Text>
+            <Text style={styles.progressTitle}>Warming Progress</Text>
             
             {/* Progress Bar */}
             <View style={styles.progressBarContainer}>
@@ -351,8 +351,8 @@ export default function DebtRecoveryModal({
               {isWatchingAd 
                 ? 'Loading Ad...' 
                 : remainingAds <= 0 
-                  ? 'Recovery Complete! ✓' 
-                  : `Watch Ad ${adsWatched + 1}/${totalAdsNeeded}`
+                  ? 'Warm Up Complete! ✓' 
+                  : `Warm Up (${adsWatched + 1}/${totalAdsNeeded})`
               }
             </Text>
           </TouchableOpacity>
@@ -364,7 +364,7 @@ export default function DebtRecoveryModal({
               onPress={() => setShowResetConfirmation(true)}
             >
               <Text style={styles.resetButtonText}>
-                Skip Ads & Reset Streak to 0
+                Start Fresh
               </Text>
             </TouchableOpacity>
           )}
@@ -373,7 +373,7 @@ export default function DebtRecoveryModal({
           <View style={styles.infoCard}>
             <IconSymbol name="info.circle" size={20} color={Colors.textSecondary} />
             <Text style={styles.infoText}>
-              First rescue your streak by watching ads. After your streak is rescued, you can write journal entries normally without watching more ads.
+              First warm up your frozen streak by watching ads. After your streak is warmed up, you can write journal entries normally without watching more ads.
             </Text>
           </View>
         </View>
@@ -385,18 +385,18 @@ export default function DebtRecoveryModal({
         onClose={() => setShowAdFailedModal(false)}
       />
       
-      <DebtErrorModal
+      <WarmUpErrorModal
         visible={showErrorModal}
         onClose={() => setShowErrorModal(false)}
       />
 
-      <DebtConfirmationModal
+      <WarmUpConfirmationModal
         visible={showResetConfirmation}
         onClose={() => setShowResetConfirmation(false)}
         onConfirm={handleResetStreak}
-        title="Reset Streak?"
-        message="This will permanently reset your current streak to 0. You can start fresh without rescuing your streak. This action cannot be undone."
-        confirmText="Reset to 0"
+        title="Start Fresh?"
+        message="⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone."
+        confirmText="Start Fresh"
         cancelText="Cancel"
       />
     </Modal>
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Layout.spacing.md,
   },
-  debtCard: {
+  frozenCard: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: Layout.spacing.lg,
@@ -443,17 +443,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  debtEmoji: {
+  frozenEmoji: {
     fontSize: 48,
     marginBottom: Layout.spacing.sm,
   },
-  debtTitle: {
+  frozenTitle: {
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     color: Colors.warning,
     marginBottom: Layout.spacing.xs,
   },
-  debtMessage: {
+  frozenMessage: {
     fontSize: Fonts.sizes.md,
     color: Colors.textSecondary,
     textAlign: 'center',

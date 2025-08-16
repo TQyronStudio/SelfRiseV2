@@ -35,8 +35,8 @@ interface MultiActionModalProps extends BaseModalProps {
   secondaryActionText?: string;
 }
 
-// DebtSuccessModal - for successful debt payments and no debt messages
-export function DebtSuccessModal({ 
+// WarmUpSuccessModal - for successful warm up payments and no frozen days messages
+export function WarmUpSuccessModal({ 
   visible, 
   onClose, 
   title, 
@@ -66,8 +66,8 @@ export function DebtSuccessModal({
   );
 }
 
-// DebtErrorModal - for debt payment errors and issues
-export function DebtErrorModal({ 
+// WarmUpErrorModal - for warm up payment errors and issues
+export function WarmUpErrorModal({ 
   visible, 
   onClose, 
   title, 
@@ -97,8 +97,8 @@ export function DebtErrorModal({
   );
 }
 
-// DebtConfirmationModal - for ad watching confirmations and simple confirmations
-export function DebtConfirmationModal({ 
+// WarmUpConfirmationModal - for ad watching confirmations and simple confirmations
+export function WarmUpConfirmationModal({ 
   visible, 
   onClose, 
   onConfirm,
@@ -140,8 +140,8 @@ export function DebtConfirmationModal({
   );
 }
 
-// DebtIssueModal - for debt payment issues with multiple action options
-export function DebtIssueModal({ 
+// WarmUpIssueModal - for warm up payment issues with multiple action options
+export function WarmUpIssueModal({ 
   visible, 
   onClose,
   onPrimaryAction,
@@ -175,7 +175,7 @@ export function DebtIssueModal({
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onSecondaryAction}>
-              <Text style={styles.buttonText}>{secondaryActionText || 'Force Reset'}</Text>
+              <Text style={styles.buttonText}>{secondaryActionText || 'Quick Warm Up'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -184,8 +184,8 @@ export function DebtIssueModal({
   );
 }
 
-// ForceResetModal - for force reset debt confirmations
-export function ForceResetModal({ 
+// QuickWarmUpModal - for quick warm up confirmations
+export function QuickWarmUpModal({ 
   visible, 
   onClose, 
   onConfirm,
@@ -204,9 +204,9 @@ export function ForceResetModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🔄</Text>
-          <Text style={styles.title}>{title || 'Force Reset Debt'}</Text>
+          <Text style={styles.title}>{title || 'Quick Warm Up'}</Text>
           <Text style={styles.message}>
-            {message || 'This will clear your debt without watching ads. Your streak will continue normally. Continue?'}
+            {message || 'This will warm up your frozen streak without watching ads. Your streak will continue normally. Continue?'}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
@@ -218,7 +218,7 @@ export function ForceResetModal({
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onConfirm}>
-              <Text style={styles.buttonText}>{confirmText || 'Reset Debt'}</Text>
+              <Text style={styles.buttonText}>{confirmText || 'Warm Up'}</Text>
             </TouchableOpacity>
           </View>
         </View>

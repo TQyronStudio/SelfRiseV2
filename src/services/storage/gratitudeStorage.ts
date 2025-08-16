@@ -1,4 +1,4 @@
-import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, DebtPayment, DebtHistoryEntry } from '../../types/gratitude';
+import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, WarmUpPayment, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -273,21 +273,21 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // Migration: Add new properties if they don't exist (including Bug #2 fix fields)
       if (streak && (
-        streak.debtDays === undefined || 
+        streak.frozenDays === undefined || 
         streak.isFrozen === undefined || 
         streak.preserveCurrentStreak === undefined ||
-        streak.debtPayments === undefined ||
-        streak.debtHistory === undefined ||
+        streak.warmUpPayments === undefined ||
+        streak.warmUpHistory === undefined ||
         streak.autoResetTimestamp === undefined ||
         streak.autoResetReason === undefined
       )) {
         const migratedStreak: GratitudeStreak = {
           ...streak,
-          debtDays: streak.debtDays || 0,
+          frozenDays: streak.frozenDays || 0,
           isFrozen: streak.isFrozen || false,
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
-          debtPayments: streak.debtPayments || [],
-          debtHistory: streak.debtHistory || [],
+          warmUpPayments: streak.warmUpPayments || [],
+          warmUpHistory: streak.warmUpHistory || [],
           autoResetTimestamp: streak.autoResetTimestamp || null,
           autoResetReason: streak.autoResetReason || null,
         };
@@ -301,11 +301,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
-        debtDays: 0,
+        frozenDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
-        debtPayments: [],
-        debtHistory: [],
+        warmUpPayments: [],
+        warmUpHistory: [],
         autoResetTimestamp: null,
         autoResetReason: null,
         starCount: 0,
@@ -345,11 +345,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
-        debtDays: 0,
+        frozenDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
-        debtPayments: [],
-        debtHistory: [],
+        warmUpPayments: [],
+        warmUpHistory: [],
         autoResetTimestamp: new Date(), // CRITICAL: Mark manual reset timestamp
         autoResetReason: 'Manual reset by user',
         starCount: 0,
@@ -391,8 +391,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
       
       // NEW: Calculate debt and freeze status first
-      const debtDays = await this.calculateDebt();
-      const isFrozen = debtDays > 0;
+      const frozenDays = await this.calculateFrozenDays();
+      const isFrozen = frozenDays > 0;
       
       // Determine last entry date and streak start
       let lastEntryDate: DateString | null = null;
@@ -420,7 +420,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       }
       
       // Calculate debt excluding today for auto-reset decision
-      const debtExcludingToday = await this.calculateDebtExcludingToday();
+      const debtExcludingToday = await this.calculateFrozenDaysExcludingToday();
       
       // Auto-reset if debt exceeds 3 days (excluding today)
       if (debtExcludingToday > 3) {
@@ -436,11 +436,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           lastEntryDate: newLastEntryDate,
           streakStartDate: newStreakStartDate,
           canRecoverWithAd: false,
-          debtDays: 0,
+          frozenDays: 0,
           isFrozen: false,
           preserveCurrentStreak: false,
-          debtPayments: [],
-          debtHistory: [],
+          warmUpPayments: [],
+          warmUpHistory: [],
           autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark auto-reset
           autoResetReason: `Auto-reset after ${debtExcludingToday} days debt`,
           starCount,
@@ -452,17 +452,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       }
       
       // Update recovery logic for debt system
-      const canRecoverWithAd = debtDays > 0 && debtDays <= 3;
+      const canRecoverWithAd = frozenDays > 0 && frozenDays <= 3;
       
-      // CRITICAL BUG #3 FIX: Handle debt payment - preserve current streak if flag is set
+      // CRITICAL BUG #3 FIX: Handle warm up payment - preserve current streak if flag is set
       let finalCurrentStreak: number;
       let shouldResetPreserveFlag = false; // BUG #3 FIX: Control flag reset timing
       
       if (savedStreak.preserveCurrentStreak && !isFrozen) {
-        // Debt was just paid - preserve the streak value from before debt payment
+        // Debt was just paid - preserve the streak value from before warm up payment
         finalCurrentStreak = savedStreak.currentStreak;
         shouldResetPreserveFlag = true; // Reset flag after successful preservation
-        console.log(`[DEBUG] calculateAndUpdateStreak: Preserving streak ${finalCurrentStreak} after debt payment`);
+        console.log(`[DEBUG] calculateAndUpdateStreak: Preserving streak ${finalCurrentStreak} after warm up payment`);
       } else if (isFrozen) {
         // Normal frozen behavior - keep saved streak (don't reset preserve flag)
         finalCurrentStreak = savedStreak.currentStreak;
@@ -477,14 +477,14 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         lastEntryDate,
         streakStartDate,
         canRecoverWithAd,
-        debtDays,
+        frozenDays,
         isFrozen,
         starCount,
         flameCount,
         crownCount,
         // Preserve existing debt tracking data
-        debtPayments: savedStreak.debtPayments || [],
-        debtHistory: savedStreak.debtHistory || [],
+        warmUpPayments: savedStreak.warmUpPayments || [],
+        warmUpHistory: savedStreak.warmUpHistory || [],
         // Preserve existing auto-reset tracking (don't overwrite)
         autoResetTimestamp: savedStreak.autoResetTimestamp || null,
         autoResetReason: savedStreak.autoResetReason || null,
@@ -734,7 +734,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
 
   // REMOVED: recoverStreak() method - BUG #3 FIX
   // This method created fake entries which corrupted streak calculation
-  // Debt recovery now uses proper debt payment system without creating entries
+  // Debt recovery now uses proper warm up payment system without creating entries
 
   // Migration function to fix existing data with old numbering
   async migrateGratitudeNumbering(): Promise<void> {
@@ -786,11 +786,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // NEW: Debt tracking methods for 3-day recovery system
   
   /**
-   * ENHANCED: Calculate effective debt days accounting for ad payments
-   * CRITICAL BUG #2 FIX: Respects auto-reset state to prevent phantom debt
+   * ENHANCED: Calculate effective frozen days accounting for warm up payments
+   * CRITICAL BUG #2 FIX: Respects auto-reset state to prevent phantom frozen days
    * Returns 0 if recent auto-reset occurred, preventing inconsistency issues
    */
-  async calculateDebt(): Promise<number> {
+  async calculateFrozenDays(): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
@@ -804,7 +804,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         
         // If auto-reset occurred within 24 hours, debt is definitively 0
         if (hoursSinceReset < 24) {
-          console.log(`[DEBUG] calculateDebt: Auto-reset ${hoursSinceReset.toFixed(1)}h ago. Debt = 0 (phantom debt prevention)`);
+          console.log(`[DEBUG] calculateDebt: Auto-reset ${hoursSinceReset.toFixed(1)}h ago. Frozen days = 0 (phantom frozen days prevention)`);
           return 0;
         } else {
           // Clear old auto-reset timestamp to prevent perpetual 0 debt
@@ -818,9 +818,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         return 0;
       }
       
-      // SAFETY CHECK: Use streak.debtDays as authoritative source if available
-      if (currentStreak.debtDays !== undefined && currentStreak.debtDays === 0) {
-        console.log(`[DEBUG] calculateDebt: streak.debtDays = 0, using authoritative source`);
+      // SAFETY CHECK: Use streak.frozenDays as authoritative source if available
+      if (currentStreak.frozenDays !== undefined && currentStreak.frozenDays === 0) {
+        console.log(`[DEBUG] calculateDebt: streak.frozenDays = 0, using authoritative source`);
         return 0;
       }
       
@@ -829,7 +829,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const paidDays = new Set<DateString>();
       
       // Count all days that have been fully paid via ads
-      currentStreak.debtPayments.forEach(payment => {
+      currentStreak.warmUpPayments.forEach(payment => {
         if (payment.isComplete) {
           paidDays.add(payment.missedDate);
         }
@@ -838,18 +838,18 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Calculate which missed days are still unpaid
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
       const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
-      const effectiveDebt = unpaidMissedDays.length;
+      const effectiveFrozenDays = unpaidMissedDays.length;
       
       // CONSISTENCY VALIDATION: Warn if discrepancy detected
-      if (currentStreak.debtDays !== effectiveDebt) {
-        console.warn(`[DEBUG] calculateDebt: Discrepancy detected! streak.debtDays=${currentStreak.debtDays}, calculated=${effectiveDebt}`);
+      if (currentStreak.frozenDays !== effectiveFrozenDays) {
+        console.warn(`[DEBUG] calculateDebt: Discrepancy detected! streak.frozenDays=${currentStreak.frozenDays}, calculated=${effectiveFrozenDays}`);
         console.warn(`[DEBUG] Missed dates:`, missedDates);
         console.warn(`[DEBUG] Paid dates:`, Array.from(paidDays));
       }
       
-      console.log(`[DEBUG] calculateDebt: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveDebt=${effectiveDebt}`);
+      console.log(`[DEBUG] calculateDebt: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveFrozenDays=${effectiveFrozenDays}`);
       
-      return effectiveDebt;
+      return effectiveFrozenDays;
     } catch (error) {
       console.error('[DEBUG] calculateDebt error:', error);
       return 0;
@@ -920,7 +920,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
    * This prevents auto-reset when user completes today after missing previous days
    * Now accounts for ad payments made for previous days
    */
-  async calculateDebtExcludingToday(): Promise<number> {
+  async calculateFrozenDaysExcludingToday(): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
@@ -938,12 +938,12 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         checkDate = subtractDays(checkDate, 1);
       }
       
-      // Get current debt payment tracking
+      // Get current warm up payment tracking
       const currentStreak = await this.getStreak();
       const paidDays = new Set<DateString>();
       
       // Count all days that have been fully paid via ads (excluding today)
-      currentStreak.debtPayments.forEach(payment => {
+      currentStreak.warmUpPayments.forEach(payment => {
         if (payment.isComplete && payment.missedDate !== currentDate) {
           paidDays.add(payment.missedDate);
         }
@@ -953,13 +953,13 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
       const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date) && date !== currentDate);
       
-      const effectiveDebt = unpaidMissedDays.length;
+      const effectiveFrozenDays = unpaidMissedDays.length;
       
-      console.log(`[DEBUG] calculateDebtExcludingToday: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveDebt=${effectiveDebt}`);
+      console.log(`[DEBUG] calculateFrozenDaysExcludingToday: rawMissedDays=${rawMissedDays}, paidDays=${paidDays.size}, effectiveFrozenDays=${effectiveFrozenDays}`);
       
-      return effectiveDebt;
+      return effectiveFrozenDays;
     } catch (error) {
-      console.error('[DEBUG] calculateDebtExcludingToday error:', error);
+      console.error('[DEBUG] calculateFrozenDaysExcludingToday error:', error);
       return 0;
     }
   }
@@ -969,19 +969,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
    */
   async canRecoverDebt(): Promise<boolean> {
     try {
-      const debtDays = await this.calculateDebt();
-      return debtDays > 0 && debtDays <= 3;
+      const frozenDays = await this.calculateFrozenDays();
+      return frozenDays > 0 && frozenDays <= 3;
     } catch (error) {
       return false;
     }
   }
 
   /**
-   * ENHANCED: Calculate how many ads user needs to watch to pay outstanding debt
-   * After debt is paid, user can write entries normally without ads
+   * ENHANCED: Calculate how many ads user needs to watch to pay outstanding frozen days
+   * After streak is warmed up, user can write entries normally without ads
    * CRITICAL FIX: Accounts for already paid debt via previous ad sessions
    */
-  async requiresAdsToday(): Promise<number> {
+  async adsNeededToWarmUp(): Promise<number> {
     try {
       const currentDate = today();
       const todayCount = await this.countByDate(currentDate);
@@ -992,35 +992,35 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         return 0;
       }
       
-      const effectiveDebt = await this.calculateDebt(); // Now accounts for payments
+      const effectiveFrozenDays = await this.calculateFrozenDays(); // Now accounts for payments
       
       // If debt > 3, automatic reset (handled elsewhere)
-      if (effectiveDebt > 3) return 0;
+      if (effectiveFrozenDays > 3) return 0;
       
       // Return effective unpaid debt (each ad pays 1 day)
-      return effectiveDebt;
+      return effectiveFrozenDays;
     } catch (error) {
       return 0;
     }
   }
 
   /**
-   * ENHANCED: Pay off debt with incremental ad tracking
+   * ENHANCED: Warm up frozen streak with incremental ad tracking
    * Supports partial payments that persist across sessions
    * CRITICAL FIX: Tracks individual ad payments per missed day
    */
-  async payDebtWithAds(adsToApply: number): Promise<void> {
+  async warmUpStreakWithAds(adsToApply: number): Promise<void> {
     try {
-      console.log(`[DEBUG] payDebtWithAds: adsToApply=${adsToApply}`);
+      console.log(`[DEBUG] warmUpStreakWithAds: adsToApply=${adsToApply}`);
       
       const currentStreakInfo = await this.getStreak();
-      const currentDebt = await this.calculateDebt();
+      const currentFrozenDays = await this.calculateFrozenDays();
       
-      console.log(`[DEBUG] payDebtWithAds: currentDebt=${currentDebt}, existing payments=${currentStreakInfo.debtPayments.length}`);
+      console.log(`[DEBUG] warmUpStreakWithAds: currentFrozenDays=${currentFrozenDays}, existing payments=${currentStreakInfo.warmUpPayments.length}`);
       
-      if (currentDebt === 0) {
-        console.log(`[DEBUG] payDebtWithAds: No debt to pay, returning early`);
-        return; // No debt to pay
+      if (currentFrozenDays === 0) {
+        console.log(`[DEBUG] warmUpStreakWithAds: No frozen days to warm up, returning early`);
+        return; // No frozen days to warm up
       }
 
       if (adsToApply <= 0) {
@@ -1029,16 +1029,16 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
 
       // Get the list of unpaid missed days
       const unpaidMissedDays = await this.getUnpaidMissedDays();
-      console.log(`[DEBUG] payDebtWithAds: unpaidMissedDays=${JSON.stringify(unpaidMissedDays)}`);
+      console.log(`[DEBUG] warmUpStreakWithAds: unpaidMissedDays=${JSON.stringify(unpaidMissedDays)}`);
 
       if (adsToApply > unpaidMissedDays.length) {
-        console.log(`[DEBUG] payDebtWithAds: More ads than needed. Required: ${unpaidMissedDays.length}, provided: ${adsToApply}`);
+        console.log(`[DEBUG] warmUpStreakWithAds: More ads than needed. Required: ${unpaidMissedDays.length}, provided: ${adsToApply}`);
         // Allow overpayment, just use what's needed
       }
 
       // Apply ads to unpaid days (1 ad = 1 day cleared)
-      const updatedPayments = [...currentStreakInfo.debtPayments];
-      const newHistoryEntries = [...currentStreakInfo.debtHistory];
+      const updatedPayments = [...currentStreakInfo.warmUpPayments];
+      const newHistoryEntries = [...currentStreakInfo.warmUpHistory];
       let adsApplied = 0;
 
       for (let i = 0; i < Math.min(adsToApply, unpaidMissedDays.length); i++) {
@@ -1058,7 +1058,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           };
         } else {
           // Create new payment
-          const newPayment: DebtPayment = {
+          const newPayment: WarmUpPayment = {
             missedDate,
             adsWatched: 1, // 1 ad per day according to spec
             paymentTimestamp: new Date(),
@@ -1070,11 +1070,11 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         adsApplied++;
         
         // Add to audit trail
-        const historyEntry: DebtHistoryEntry = {
-          action: 'payment',
+        const historyEntry: WarmUpHistoryEntry = {
+          action: 'warm_up',
           timestamp: new Date(),
-          debtBefore: currentDebt,
-          debtAfter: currentDebt - adsApplied,
+          frozenDaysBefore: currentFrozenDays,
+          frozenDaysAfter: currentFrozenDays - adsApplied,
           details: `Paid 1 ad for missed day ${missedDate}`,
           missedDates: [missedDate],
           adsInvolved: 1,
@@ -1083,41 +1083,41 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       }
 
       // Calculate new effective debt
-      const newDebt = await this.calculateDebtWithPayments(updatedPayments);
-      console.log(`[DEBUG] payDebtWithAds: newDebt=${newDebt} after applying ${adsApplied} ads`);
+      const newFrozenDays = await this.calculateFrozenDaysWithPayments(updatedPayments);
+      console.log(`[DEBUG] warmUpStreakWithAds: newFrozenDays=${newFrozenDays} after applying ${adsApplied} ads`);
 
-      // BUG #3 FIX: Strict streak preservation during debt payment
+      // BUG #3 FIX: Strict streak preservation during warm up payment
       const updatedStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
-        debtDays: newDebt, // Update to new effective debt
-        isFrozen: newDebt > 0, // Unfreeze only if all debt is paid
-        canRecoverWithAd: newDebt > 0 && newDebt <= 3,
-        preserveCurrentStreak: newDebt === 0, // Preserve streak only when fully paid
-        debtPayments: updatedPayments,
-        debtHistory: newHistoryEntries,
+        frozenDays: newFrozenDays, // Update to new effective debt
+        isFrozen: newFrozenDays > 0, // Unfreeze only if all streak is warmed up
+        canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= 3,
+        preserveCurrentStreak: newFrozenDays === 0, // Preserve streak only when fully paid
+        warmUpPayments: updatedPayments,
+        warmUpHistory: newHistoryEntries,
       };
       
       // BUG #3 FIX: Add validation log to prevent streak corruption
-      if (newDebt === 0) {
-        console.log(`[DEBUG] payDebtWithAds: DEBT FULLY PAID - Preserving original streak ${currentStreakInfo.currentStreak}`);
-        console.log(`[DEBUG] payDebtWithAds: Setting preserveCurrentStreak=true to prevent recalculation`);
+      if (newFrozenDays === 0) {
+        console.log(`[DEBUG] warmUpStreakWithAds: STREAK FULLY WARMED UP - Preserving original streak ${currentStreakInfo.currentStreak}`);
+        console.log(`[DEBUG] warmUpStreakWithAds: Setting preserveCurrentStreak=true to prevent recalculation`);
       }
       
       // Save updated streak info
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreakInfo);
       
-      // BUG #3 FIX: Validate streak integrity after debt payment
-      if (newDebt === 0) {
-        console.log(`[DEBUG] payDebtWithAds: VALIDATION - Debt fully paid, streak should remain ${currentStreakInfo.currentStreak}`);
-        console.log(`[DEBUG] payDebtWithAds: VALIDATION - No entries should be created during debt payment`);
-        console.log(`[DEBUG] payDebtWithAds: VALIDATION - preserveCurrentStreak flag should be true`);
+      // BUG #3 FIX: Validate streak integrity after warm up payment
+      if (newFrozenDays === 0) {
+        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - Debt fully paid, streak should remain ${currentStreakInfo.currentStreak}`);
+        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - No entries should be created during warm up payment`);
+        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - preserveCurrentStreak flag should be true`);
       }
       
-      console.log(`[DEBUG] payDebtWithAds: Successfully applied ${adsApplied} ads. New debt: ${newDebt}`);
+      console.log(`[DEBUG] warmUpStreakWithAds: Successfully applied ${adsApplied} ads. New debt: ${newFrozenDays}`);
       
     } catch (error) {
-      console.error(`[DEBUG] payDebtWithAds: Error occurred:`, error);
-      throw new Error(`Failed to pay debt with ads: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(`[DEBUG] warmUpStreakWithAds: Error occurred:`, error);
+      throw new Error(`Failed to pay frozen streak with ads: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -1131,7 +1131,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const paidDays = new Set<DateString>();
       
       // Get all fully paid days
-      currentStreak.debtPayments.forEach(payment => {
+      currentStreak.warmUpPayments.forEach(payment => {
         if (payment.isComplete) {
           paidDays.add(payment.missedDate);
         }
@@ -1149,9 +1149,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * HELPER: Calculate debt with given payment data (for testing new debt levels)
+   * HELPER: Calculate frozen streak with given payment data (for testing new debt levels)
    */
-  private async calculateDebtWithPayments(payments: DebtPayment[]): Promise<number> {
+  private async calculateFrozenDaysWithPayments(payments: WarmUpPayment[]): Promise<number> {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
@@ -1178,7 +1178,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       return unpaidMissedDays.length;
     } catch (error) {
-      console.error('[DEBUG] calculateDebtWithPayments error:', error);
+      console.error('[DEBUG] calculateFrozenDaysWithPayments error:', error);
       return 0;
     }
   }
@@ -1187,37 +1187,37 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
    * NEW: Apply single ad payment (called after each successful ad watch)
    * This method should be called incrementally as user watches ads one by one
    */
-  async applySingleAdPayment(): Promise<{ remainingDebt: number; isFullyPaid: boolean }> {
+  async applySingleWarmUpPayment(): Promise<{ remainingFrozenDays: number; isFullyWarmed: boolean }> {
     try {
-      console.log(`[DEBUG] applySingleAdPayment: Starting single ad application`);
+      console.log(`[DEBUG] applySingleWarmUpPayment: Starting single ad application`);
       
-      const currentDebt = await this.calculateDebt();
+      const currentFrozenDays = await this.calculateFrozenDays();
       
-      if (currentDebt === 0) {
-        console.log(`[DEBUG] applySingleAdPayment: No debt to pay`);
-        return { remainingDebt: 0, isFullyPaid: true };
+      if (currentFrozenDays === 0) {
+        console.log(`[DEBUG] applySingleWarmUpPayment: No frozen days to warm up`);
+        return { remainingFrozenDays: 0, isFullyWarmed: true };
       }
 
       // Apply 1 ad to the debt
-      await this.payDebtWithAds(1);
+      await this.warmUpStreakWithAds(1);
       
       // Calculate new debt after payment
-      const newDebt = await this.calculateDebt();
-      const isFullyPaid = newDebt === 0;
+      const newFrozenDays = await this.calculateFrozenDays();
+      const isFullyWarmed = newFrozenDays === 0;
       
-      console.log(`[DEBUG] applySingleAdPayment: Applied 1 ad. Remaining debt: ${newDebt}, Fully paid: ${isFullyPaid}`);
+      console.log(`[DEBUG] applySingleWarmUpPayment: Applied 1 ad. Remaining debt: ${newFrozenDays}, Fully paid: ${isFullyWarmed}`);
       
-      return { remainingDebt: newDebt, isFullyPaid };
+      return { remainingFrozenDays: newFrozenDays, isFullyWarmed };
     } catch (error) {
-      console.error(`[DEBUG] applySingleAdPayment error:`, error);
+      console.error(`[DEBUG] applySingleWarmUpPayment error:`, error);
       throw new Error(`Failed to apply single ad payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
-   * NEW: Get debt payment progress for UI display
+   * NEW: Get warm up payment progress for UI display
    */
-  async getDebtPaymentProgress(): Promise<{
+  async getWarmUpPaymentProgress(): Promise<{
     totalMissedDays: number;
     paidDays: number;
     unpaidDays: number;
@@ -1238,7 +1238,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         unpaidDates,
       };
     } catch (error) {
-      console.error(`[DEBUG] getDebtPaymentProgress error:`, error);
+      console.error(`[DEBUG] getWarmUpPaymentProgress error:`, error);
       return {
         totalMissedDays: 0,
         paidDays: 0,

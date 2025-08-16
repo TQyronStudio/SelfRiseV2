@@ -13,16 +13,16 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { useGratitude } from '../../contexts/GratitudeContext';
 import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
-import { GratitudeStreak, DebtHistoryEntry } from '../../types/gratitude';
+import { GratitudeStreak, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS } from '../../services/storage/base';
 import { StreakSharingModal } from './StreakSharingModal';
-import DebtRecoveryModal from '../gratitude/DebtRecoveryModal';
+import StreakWarmUpModal from '../gratitude/StreakWarmUpModal';
 import {
-  DebtSuccessModal,
-  DebtErrorModal,
-  DebtIssueModal,
-  ForceResetModal,
-} from '../gratitude/DebtModals';
+  WarmUpSuccessModal,
+  WarmUpErrorModal,
+  WarmUpIssueModal,
+  QuickWarmUpModal,
+} from '../gratitude/WarmUpModals';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -147,11 +147,11 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         lastEntryDate: null,
         streakStartDate: null,
         canRecoverWithAd: false,
-        debtDays: 0,
+        frozenDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
-        debtPayments: [],
-        debtHistory: [],
+        warmUpPayments: [],
+        warmUpHistory: [],
         autoResetTimestamp: null,
         autoResetReason: null,
         starCount: 0,
@@ -181,7 +181,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     setAdsWatched(0);
     
     // Calculate total ads needed (fresh calculation)
-    const adsNeeded = await gratitudeStorage.requiresAdsToday();
+    const adsNeeded = await gratitudeStorage.adsNeededToWarmUp();
     setTotalAdsNeeded(adsNeeded);
     
     // BUG #4 FIX: Use coordinated modal flow
@@ -203,14 +203,14 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // ENHANCED: Apply single ad payment immediately after successful ad watch
-      const paymentResult = await gratitudeStorage.applySingleAdPayment();
+      const paymentResult = await gratitudeStorage.applySingleWarmUpPayment();
       console.log(`[DEBUG] handleWatchAd: Payment result`, paymentResult);
       
       // Update local state to reflect the payment
       setAdsWatched(prev => prev + 1);
       
       // If fully paid, update total needed (for UI consistency)
-      if (paymentResult.isFullyPaid) {
+      if (paymentResult.isFullyWarmed) {
         setTotalAdsNeeded(adsWatched + 1);
       }
       
@@ -242,7 +242,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       console.log(`[DEBUG] GratitudeContext refreshStats completed`);
       
       // Verify debt was actually cleared (should be 0 due to incremental payments)
-      const remainingDebt = await gratitudeStorage.calculateDebt();
+      const remainingDebt = await gratitudeStorage.calculateFrozenDays();
       console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
       
       if (remainingDebt > 0) {
@@ -301,14 +301,14 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       // ENHANCED: Clean debt reset without creating fake entries
       // Simply clear all debt tracking data and unfreeze streak
       const currentStreakInfo = await gratitudeStorage.getStreak();
-      console.log(`[DEBUG] executeForceResetDebt: Current debt=${currentStreakInfo.debtDays}`);
+      console.log(`[DEBUG] executeForceResetDebt: Current frozen days=${currentStreakInfo.frozenDays}`);
       
       // Create history entry for force reset
-      const historyEntry: DebtHistoryEntry = {
-        action: 'force_reset',
+      const historyEntry: WarmUpHistoryEntry = {
+        action: 'quick_warm_up',
         timestamp: new Date(),
-        debtBefore: currentStreakInfo.debtDays,
-        debtAfter: 0,
+        frozenDaysBefore: currentStreakInfo.frozenDays,
+        frozenDaysAfter: 0,
         details: 'Force reset - All debt cleared without ads',
         missedDates: [], // Will be populated with actual unpaid dates
         adsInvolved: 0,
@@ -317,11 +317,11 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       // Clear all debt tracking data
       const resetStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
-        debtDays: 0,               // Clear debt completely
+        frozenDays: 0,               // Clear frozen days completely
         isFrozen: false,           // Unfreeze streak
         canRecoverWithAd: false,   // No longer need recovery
-        debtPayments: [],          // Clear payment history
-        debtHistory: [...currentStreakInfo.debtHistory, historyEntry], // Keep audit trail
+        warmUpPayments: [],          // Clear payment history
+        warmUpHistory: [...currentStreakInfo.warmUpHistory, historyEntry], // Keep audit trail
         autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark force reset
         autoResetReason: 'Force reset by user action',
         preserveCurrentStreak: false, // Normal calculation from now
@@ -336,7 +336,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       console.log(`[DEBUG] executeForceResetDebt: Streak recalculated`);
       
       // Verify debt is now 0
-      const verifyDebt = await gratitudeStorage.calculateDebt();
+      const verifyDebt = await gratitudeStorage.calculateFrozenDays();
       console.log(`[DEBUG] executeForceResetDebt: Verification debt=${verifyDebt}`);
       
       // BUG #4 FIX: Clean up and show success using coordinated flow
@@ -411,7 +411,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
           {streakData.isFrozen ? (
             <View style={styles.statusFrozen}>
               <Ionicons name="snow" size={16} color="#4A90E2" />
-              <Text style={styles.statusFrozenText}>Streak Frozen - Rescue Streak to Continue</Text>
+              <Text style={styles.statusFrozenText}>Streak Frozen - Warm Up to Continue ❄️🔥</Text>
             </View>
           ) : streakData.currentStreak > 0 ? (
             <View style={styles.statusActive}>
@@ -459,11 +459,11 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       </View>
 
       {/* Debt warning or recovery option */}
-      {streakData.debtDays > 0 ? (
-        <TouchableOpacity style={styles.debtContainer} onPress={handleDebtPress}>
+      {streakData.frozenDays > 0 ? (
+        <TouchableOpacity style={styles.frozenContainer} onPress={handleDebtPress}>
           <Ionicons name="warning" size={16} color={Colors.warning} />
-          <Text style={styles.debtText}>
-            ⚠️ Debt: {streakData.debtDays} day{streakData.debtDays !== 1 ? 's' : ''} - Tap to rescue streak
+          <Text style={styles.frozenText}>
+            ❄️ Streak Frozen: {streakData.frozenDays} day{streakData.frozenDays !== 1 ? 's' : ''} - Tap to warm up
           </Text>
         </TouchableOpacity>
       ) : streakData.canRecoverWithAd ? (
@@ -481,10 +481,10 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       />
       
       {/* Debt Recovery Modal */}
-      <DebtRecoveryModal
+      <StreakWarmUpModal
         visible={showDebtModal}
         onClose={() => setShowDebtModal(false)}
-        debtDays={streakData.debtDays}
+        frozenDays={streakData.frozenDays}
         adsWatched={adsWatched}
         totalAdsNeeded={totalAdsNeeded}
         onWatchAd={handleWatchAd}
@@ -501,7 +501,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
 
       {/* BUG #4 FIX: Central Modal System - replaces all 6 separate modals above */}
       {currentModal.type === DebtModalType.SUCCESS && (
-        <DebtSuccessModal
+        <WarmUpSuccessModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
           title={currentModal.title || 'Success!'}
@@ -511,7 +511,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       )}
 
       {currentModal.type === DebtModalType.ERROR && (
-        <DebtErrorModal
+        <WarmUpErrorModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
           title={currentModal.title || 'Error'}
@@ -523,7 +523,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       {/* REMOVED: DebtIssueModal and ForceResetModal - replaced with progressive error handling */}
 
       {currentModal.type === DebtModalType.CONGRATULATIONS && (
-        <DebtSuccessModal
+        <WarmUpSuccessModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
           title={currentModal.title || '🎉 Congratulations!'}
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     color: Colors.warning,
     marginLeft: 6,
   },
-  debtContainer: {
+  frozenContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.warningLight,
     borderRadius: 8,
   },
-  debtText: {
+  frozenText: {
     fontSize: 12,
     fontFamily: Fonts.medium,
     color: Colors.warning,
