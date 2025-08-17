@@ -284,9 +284,59 @@ export class GoalStorage implements EntityStorage<Goal> {
         console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
         console.log(`   isCompleted: ${isCompleted}`);
         
-        // XP rewards now handled via GamificationService integration in UI layer
-        // MIGRATION: Goal XP logic moved to enhanced GamificationService for consistency
-        console.log(`✅ Goal progress updated - XP will be handled by enhanced GamificationService (${previousCompletionPercentage}% → ${newCompletionPercentage}%, completed: ${isCompleted})`);
+        // Award XP via enhanced GamificationService with centralized validation
+        try {
+          if (isCompleted) {
+            // Goal completion XP
+            const isBigGoal = goal.targetValue >= 1000;
+            const completionXP = isBigGoal ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
+            
+            const completionResult = await GamificationService.addXP(completionXP, {
+              source: XPSourceType.GOAL_COMPLETION,
+              description: `Completed goal: ${goal.title}`,
+              metadata: { goalId: goal.id, goalValue: goal.targetValue, isBigGoal }
+            });
+            
+            if (completionResult.success) {
+              console.log(`🎯 Goal completion XP: +${completionResult.xpGained} XP for "${goal.title}" (${isBigGoal ? 'big goal' : 'regular goal'})`);
+            }
+          }
+          
+          // Goal progress XP (with daily limits per goal)
+          const progressResult = await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+            source: XPSourceType.GOAL_PROGRESS,
+            description: `Progress on goal: ${goal.title}`,
+            metadata: { goalId: goal.id, progressValue: input.value, progressType: input.progressType }
+          });
+          
+          if (progressResult.success) {
+            console.log(`🎯 Goal progress XP: +${progressResult.xpGained} XP for "${goal.title}" progress`);
+          } else {
+            console.log(`ℹ️ Goal progress XP limited: ${progressResult.error} for goal "${goal.title}"`);
+          }
+          
+          // Check for milestone XP
+          const milestones = [25, 50, 75];
+          for (const milestone of milestones) {
+            if (previousCompletionPercentage < milestone && newCompletionPercentage >= milestone) {
+              const milestoneXP = milestone === 25 ? XP_REWARDS.GOALS.MILESTONE_25_PERCENT :
+                                 milestone === 50 ? XP_REWARDS.GOALS.MILESTONE_50_PERCENT :
+                                 XP_REWARDS.GOALS.MILESTONE_75_PERCENT;
+              
+              const milestoneResult = await GamificationService.addXP(milestoneXP, {
+                source: XPSourceType.GOAL_MILESTONE,
+                description: `${milestone}% milestone: ${goal.title}`,
+                metadata: { goalId: goal.id, milestone, previousPercentage: previousCompletionPercentage, newPercentage: newCompletionPercentage }
+              });
+              
+              if (milestoneResult.success) {
+                console.log(`🎯 Goal milestone XP: +${milestoneResult.xpGained} XP for ${milestone}% milestone on "${goal.title}"`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to award goal XP:', error);
+        }
       }
 
       return newProgress;

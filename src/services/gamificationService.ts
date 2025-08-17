@@ -138,6 +138,10 @@ interface DailyXPData {
   xpBySource: Record<XPSourceType, number>;
   transactionCount: number;
   lastTransactionTime: number;
+  
+  // Anti-spam tracking
+  journalEntryCount: number; // Count of journal entries today
+  goalTransactions: Record<string, number>; // goalId -> transaction count for goal anti-spam
 }
 
 // Level-up event tracking
@@ -560,7 +564,7 @@ export class GamificationService {
       
       if (!options.skipLimits && !isTestEnvironment) {
         console.log(`🔍 Validating XP addition: ${amount} from ${options.source}`);
-        const validationResult = await this.validateXPAddition(amount, options.source);
+        const validationResult = await this.validateXPAddition(amount, options.source, options);
         console.log(`📊 Validation result:`, validationResult);
         
         if (!validationResult.isValid) {
@@ -615,8 +619,8 @@ export class GamificationService {
       // Save transaction
       await this.saveTransaction(transaction);
 
-      // Update tracking data
-      await this.updateDailyXPTracking(finalAmount, options.source);
+      // Update tracking data with anti-spam tracking
+      await this.updateDailyXPTracking(finalAmount, options.source, options.sourceId);
       await this.updateXPBySource(options.source, finalAmount);
       await this.updateLastActivity();
 
@@ -766,7 +770,7 @@ export class GamificationService {
       await this.updateXPBySource(options.source, -amount);
       
       // Update daily XP tracking (reduce daily limits)
-      await this.updateDailyXPTracking(-amount, options.source);
+      await this.updateDailyXPTracking(-amount, options.source, options.sourceId);
       
       // Log the subtraction
       console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
@@ -1179,9 +1183,78 @@ export class GamificationService {
    */
   private static async validateXPAddition(
     amount: number, 
-    source: XPSourceType
+    source: XPSourceType,
+    options?: XPAdditionOptions
   ): Promise<{ isValid: boolean; allowedAmount: number; reason?: string }> {
     try {
+      // ========================================
+      // JOURNAL ANTI-SPAM VALIDATION (Priority #1)
+      // ========================================
+      
+      // Check journal entry anti-spam rules FIRST (before other limits)
+      if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+        const currentJournalEntries = await this.getDailyJournalEntryCount();
+        const entryPosition = currentJournalEntries + 1; // Next entry position (1-based)
+        
+        console.log(`🔍 Journal anti-spam check: entry position ${entryPosition} for ${amount} XP`);
+        
+        const journalValidation = this.getJournalXPByPosition(entryPosition, amount);
+        
+        if (!journalValidation.isValid) {
+          // Entry 14+ blocked by anti-spam
+          console.log(`🚫 Journal entry ${entryPosition} blocked by anti-spam rule`);
+          return {
+            isValid: false,
+            allowedAmount: 0,
+            reason: journalValidation.reason
+          };
+        } else if (journalValidation.allowedAmount !== amount) {
+          // XP amount corrected based on position
+          console.log(`📝 Journal XP corrected: ${amount} → ${journalValidation.allowedAmount}`);
+          return {
+            isValid: true,
+            allowedAmount: journalValidation.allowedAmount,
+            reason: journalValidation.reason
+          };
+        }
+        
+        // Journal validation passed, continue with normal checks using corrected amount
+        amount = journalValidation.allowedAmount;
+        console.log(`✅ Journal anti-spam passed: entry ${entryPosition} gets ${amount} XP`);
+      }
+
+      // ========================================
+      // GOAL ANTI-SPAM VALIDATION
+      // ========================================
+      
+      // Check goal anti-spam rules: max 3 positive XP transactions per goal per day
+      if (amount > 0 && options?.sourceId && (
+        source === XPSourceType.GOAL_PROGRESS || 
+        source === XPSourceType.GOAL_COMPLETION || 
+        source === XPSourceType.GOAL_MILESTONE
+      )) {
+        const dailyData = await this.getDailyXPData();
+        const currentGoalTransactions = dailyData.goalTransactions[options.sourceId] || 0;
+        const MAX_GOAL_TRANSACTIONS_PER_DAY = 3; // Migrated from GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL
+        
+        console.log(`🔍 Goal anti-spam check: goal ${options.sourceId} has ${currentGoalTransactions}/${MAX_GOAL_TRANSACTIONS_PER_DAY} transactions today`);
+        
+        if (currentGoalTransactions >= MAX_GOAL_TRANSACTIONS_PER_DAY) {
+          console.log(`🚫 Goal ${options.sourceId} has reached daily XP limit (${MAX_GOAL_TRANSACTIONS_PER_DAY} transactions per day)`);
+          return {
+            isValid: false,
+            allowedAmount: 0,
+            reason: `Goal has reached daily XP limit (${MAX_GOAL_TRANSACTIONS_PER_DAY} positive XP transactions per day)`
+          };
+        }
+        
+        console.log(`✅ Goal anti-spam passed: goal ${options.sourceId} can receive ${amount} XP (transaction ${currentGoalTransactions + 1}/${MAX_GOAL_TRANSACTIONS_PER_DAY})`);
+      }
+
+      // ========================================
+      // STANDARD XP VALIDATION
+      // ========================================
+
       // Check maximum single transaction
       if (amount > BALANCE_VALIDATION.MAX_SINGLE_TRANSACTION_XP) {
         return {
@@ -1191,43 +1264,44 @@ export class GamificationService {
         };
       }
 
-      // Check daily limits
+      // Get adjusted daily limits (accounts for XP multiplier)
+      const adjustedLimits = await this.getAdjustedDailyLimits();
       const dailyData = await this.getDailyXPData();
       const currentDailyTotal = dailyData.totalXP;
       const currentSourceTotal = dailyData.xpBySource[source] || 0;
 
-      // Check total daily limit
-      if (currentDailyTotal + amount > DAILY_XP_LIMITS.TOTAL_DAILY_MAX) {
-        const allowedAmount = Math.max(0, DAILY_XP_LIMITS.TOTAL_DAILY_MAX - currentDailyTotal);
+      // Check total daily limit (adjusted for multiplier)
+      if (currentDailyTotal + amount > adjustedLimits.totalDaily) {
+        const allowedAmount = Math.max(0, adjustedLimits.totalDaily - currentDailyTotal);
         if (allowedAmount === 0) {
           return {
             isValid: false,
             allowedAmount: 0,
-            reason: 'Daily XP limit reached'
+            reason: `Daily XP limit reached (${adjustedLimits.totalDaily} XP with current multiplier)`
           };
         }
         return {
           isValid: true,
           allowedAmount,
-          reason: `Amount reduced to daily limit`
+          reason: `Amount reduced to daily limit (${adjustedLimits.totalDaily} with multiplier)`
         };
       }
 
-      // Check source-specific limits
-      const sourceLimit = this.getSourceDailyLimit(source);
+      // Check source-specific limits (adjusted for multiplier)
+      const sourceLimit = adjustedLimits.sourceLimit(source);
       if (sourceLimit && currentSourceTotal + amount > sourceLimit) {
         const allowedAmount = Math.max(0, sourceLimit - currentSourceTotal);
         if (allowedAmount === 0) {
           return {
             isValid: false,
             allowedAmount: 0,
-            reason: `Daily limit for ${source} reached`
+            reason: `Daily limit for ${source} reached (${sourceLimit} XP with current multiplier)`
           };
         }
         return {
           isValid: true,
           allowedAmount,
-          reason: `Amount reduced to source limit`
+          reason: `Amount reduced to source limit (${sourceLimit} with multiplier)`
         };
       }
 
@@ -1274,6 +1348,120 @@ export class GamificationService {
     };
 
     return sourceMap[source] || null;
+  }
+
+  /**
+   * Get adjusted daily limits based on active XP multiplier
+   * When 2x multiplier is active, daily limits should also be 2x for fair gameplay
+   */
+  private static async getAdjustedDailyLimits(): Promise<{
+    totalDaily: number;
+    sourceLimit: (source: XPSourceType) => number | null;
+  }> {
+    try {
+      const multiplierData = await this.getActiveXPMultiplier();
+      const multiplier = multiplierData.isActive ? multiplierData.multiplier : 1;
+      
+      console.log(`📊 XP Multiplier adjustment: ${multiplier}x (active: ${multiplierData.isActive})`);
+      
+      // Calculate adjusted limits
+      const adjustedTotalDaily = Math.floor(DAILY_XP_LIMITS.TOTAL_DAILY_MAX * multiplier);
+      
+      const adjustedSourceLimit = (source: XPSourceType): number | null => {
+        const baseLimit = this.getSourceDailyLimit(source);
+        return baseLimit ? Math.floor(baseLimit * multiplier) : null;
+      };
+      
+      if (multiplier > 1) {
+        console.log(`⚡ Daily limits adjusted for ${multiplier}x multiplier:`);
+        console.log(`  Total daily: ${DAILY_XP_LIMITS.TOTAL_DAILY_MAX} → ${adjustedTotalDaily}`);
+        console.log(`  Habits: ${DAILY_XP_LIMITS.HABITS_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.HABITS_MAX_DAILY * multiplier)}`);
+        console.log(`  Journal: ${DAILY_XP_LIMITS.JOURNAL_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.JOURNAL_MAX_DAILY * multiplier)}`);
+        console.log(`  Goals: ${DAILY_XP_LIMITS.GOALS_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.GOALS_MAX_DAILY * multiplier)}`);
+      }
+      
+      return {
+        totalDaily: adjustedTotalDaily,
+        sourceLimit: adjustedSourceLimit
+      };
+    } catch (error) {
+      console.error('GamificationService.getAdjustedDailyLimits error:', error);
+      // Fallback to standard limits
+      return {
+        totalDaily: DAILY_XP_LIMITS.TOTAL_DAILY_MAX,
+        sourceLimit: this.getSourceDailyLimit.bind(this)
+      };
+    }
+  }
+
+  // ========================================
+  // JOURNAL ANTI-SPAM LOGIC
+  // ========================================
+
+  /**
+   * Get number of journal entries created today for anti-spam validation
+   */
+  private static async getDailyJournalEntryCount(): Promise<number> {
+    try {
+      const dailyData = await this.getDailyXPData();
+      
+      console.log(`📊 Journal entries today: ${dailyData.journalEntryCount}`);
+      return dailyData.journalEntryCount;
+    } catch (error) {
+      console.error('GamificationService.getDailyJournalEntryCount error:', error);
+      return 0; // Conservative fallback
+    }
+  }
+
+  /**
+   * Calculate correct XP amount for journal entry based on daily position
+   * Implements "entries 14+ = 0 XP" anti-spam logic
+   */
+  private static getJournalXPByPosition(entryPosition: number, requestedAmount: number): { 
+    allowedAmount: number; 
+    reason: string;
+    isValid: boolean;
+  } {
+    console.log(`🔍 Journal XP validation: entry position ${entryPosition}, requested ${requestedAmount} XP`);
+    
+    // Anti-spam logic: entries 14+ get 0 XP
+    if (entryPosition >= 14) {
+      return {
+        allowedAmount: 0,
+        reason: `Journal entry ${entryPosition} blocked by anti-spam rule (entries 14+ = 0 XP)`,
+        isValid: false
+      };
+    }
+    
+    // Determine expected XP based on position
+    let expectedXP: number;
+    if (entryPosition <= 3) {
+      // First 3 entries: 20 XP each
+      expectedXP = XP_REWARDS.JOURNAL.FIRST_ENTRY; // 20 XP
+    } else if (entryPosition <= 13) {
+      // Entries 4-13: 8 XP each (bonus entries)
+      expectedXP = XP_REWARDS.JOURNAL.BONUS_ENTRY; // 8 XP
+    } else {
+      // This should never happen due to above check, but safety fallback
+      expectedXP = XP_REWARDS.JOURNAL.FOURTEENTH_PLUS_ENTRY; // 0 XP
+    }
+    
+    // Validate requested amount matches expected amount
+    if (requestedAmount === expectedXP) {
+      console.log(`✅ Journal XP validated: entry ${entryPosition} should get ${expectedXP} XP`);
+      return {
+        allowedAmount: expectedXP,
+        reason: `Journal entry ${entryPosition} validated for ${expectedXP} XP`,
+        isValid: true
+      };
+    } else {
+      console.log(`⚠️ Journal XP mismatch: entry ${entryPosition} requested ${requestedAmount} XP, expected ${expectedXP} XP`);
+      return {
+        allowedAmount: expectedXP,
+        reason: `Journal entry ${entryPosition} XP corrected from ${requestedAmount} to ${expectedXP}`,
+        isValid: true // Still valid, just corrected
+      };
+    }
   }
 
   // ========================================
@@ -1353,9 +1541,13 @@ export class GamificationService {
   // ========================================
 
   /**
-   * Update daily XP tracking data
+   * Update daily XP tracking data with anti-spam tracking
    */
-  private static async updateDailyXPTracking(amount: number, source: XPSourceType): Promise<void> {
+  private static async updateDailyXPTracking(
+    amount: number, 
+    source: XPSourceType, 
+    goalId?: string
+  ): Promise<void> {
     try {
       const dailyData = await this.getDailyXPData();
       
@@ -1366,6 +1558,26 @@ export class GamificationService {
       // Only increment transaction count for positive XP (additions), not for negative XP (subtractions)
       if (amount > 0) {
         dailyData.transactionCount += 1;
+        
+        // ========================================
+        // ANTI-SPAM TRACKING
+        // ========================================
+        
+        // Track journal entries for anti-spam (entries 14+ = 0 XP)
+        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+          dailyData.journalEntryCount += 1;
+          console.log(`📊 Journal entry tracked: ${dailyData.journalEntryCount} entries today`);
+        }
+        
+        // Track goal transactions for anti-spam (3x/day per goal)
+        if (goalId && (
+          source === XPSourceType.GOAL_PROGRESS || 
+          source === XPSourceType.GOAL_COMPLETION || 
+          source === XPSourceType.GOAL_MILESTONE
+        )) {
+          dailyData.goalTransactions[goalId] = (dailyData.goalTransactions[goalId] || 0) + 1;
+          console.log(`🎯 Goal XP tracked: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
+        }
       }
       
       dailyData.lastTransactionTime = Date.now();
@@ -1410,6 +1622,10 @@ export class GamificationService {
       xpBySource: this.createEmptyXPBySource(),
       transactionCount: 0,
       lastTransactionTime: 0,
+      
+      // Anti-spam tracking
+      journalEntryCount: 0,
+      goalTransactions: {},
     };
   }
 

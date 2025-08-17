@@ -56,9 +56,26 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
       
-      // XP rewards now handled via GamificationService integration in UI layer
-      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
-      console.log(`✅ Gratitude entry created - XP will be handled by enhanced GamificationService (position: ${totalCount})`);
+      // XP rewards via enhanced GamificationService with centralized validation
+      // Uses position-based XP calculation with anti-spam protection
+      try {
+        const xpResult = await GamificationService.addXP(0, {
+          source: XPSourceType.JOURNAL_ENTRY,
+          description: `Journal entry #${totalCount}`,
+          metadata: { 
+            entryPosition: totalCount,
+            entryType: input.type || 'gratitude' 
+          }
+        });
+        
+        if (xpResult.success) {
+          console.log(`✅ Journal entry XP awarded: +${xpResult.xpGained} XP (position ${totalCount}, total: ${xpResult.totalXP})`);
+        } else {
+          console.log(`ℹ️ Journal entry XP limited: ${xpResult.error} (position ${totalCount})`);
+        }
+      } catch (error) {
+        console.error('Failed to award journal entry XP:', error);
+      }
       
       return newGratitude;
     } catch (error) {

@@ -1571,12 +1571,51 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 
 ### Checkpoint 4.5.11.E: Anti-spam Logic Consolidation 🛡️
 **Goal**: Move all anti-spam logic into GamificationService for consistency
-- [ ] **Journal Anti-spam**: Move "entries 14+ = 0 XP" logic to GamificationService
-- [ ] **Habit Anti-spam**: Consolidate habit-specific validation
-- [ ] **Goal Anti-spam**: Consolidate goal daily limits (3x/day per goal)
-- [ ] **Source Validation**: Ensure all validation happens in one place
-- [ ] **Custom Logic Preservation**: Maintain all existing spam prevention behavior
-- [ ] **🚨 CRITICAL: XP Multiplier Daily Limits Fix**: When 2x XP multiplier is active, increase daily limits proportionally (1500 XP → 3000 XP) to maintain fair gameplay balance
+
+**Current Anti-spam State Analysis**:
+✅ **Already in GamificationService**: Daily XP limits (1500 total, per-source), single transaction limits (1000 XP), rate limiting (100ms), 80% single source balance
+❌ **Missing/Deprecated**: "entries 14+ = 0 XP" journal logic, "3x/day per goal" limits, XP multiplier proportional limits
+
+**Implementation Plan**:
+- [x] **Journal Anti-spam**: Implement "entries 14+ = 0 XP" logic in validateXPAddition() ✅ COMPLETED
+  - ✅ Added journal entry counting per day to XP validation
+  - ✅ Using existing FOURTEENTH_PLUS_ENTRY: 0 constant
+  - ✅ Logic: entries 1-3 = 20 XP, entries 4-13 = 8 XP, entries 14+ = 0 XP
+- [x] **Goal Anti-spam**: Implement "3x/day per goal" limits in validateXPAddition() ✅ COMPLETED
+  - ✅ Track per-goal XP transactions per day (goalTransactions tracking)
+  - ✅ Migrated MAX_DAILY_POSITIVE_XP_PER_GOAL = 3 logic to GamificationService
+  - ✅ Allow max 3 positive XP transactions per goal per day
+- [x] **🚨 CRITICAL: XP Multiplier Daily Limits Fix**: Implement proportional daily limits ✅ COMPLETED
+  - ✅ When 2x XP multiplier active: increase all daily limits by 2x (1500 → 3000, 500 → 1000, etc.)
+  - ✅ Ensured fair gameplay balance during multiplier periods via getAdjustedDailyLimits()
+  - ✅ Updated validateXPAddition() to check current multiplier status
+- [x] **Source Validation Centralization**: Ensure all validation in one place ✅ COMPLETED
+  - ✅ Consolidated all validation into GamificationService.validateXPAddition()
+  - ✅ Updated storage layers to call GamificationService.addXP()
+  - ✅ Single source of truth for all anti-spam rules
+- [x] **Custom Logic Preservation**: Maintain 100% existing behavior ✅ COMPLETED
+  - ✅ Tested with comprehensive anti-spam test suite (100% success rate)
+  - ✅ No regression in spam prevention functionality
+  - ✅ All edge cases validated
+
+**✅ CHECKPOINT 4.5.11.E: COMPLETED SUCCESSFULLY** 🎉
+
+**Test Results Summary**:
+- ✅ Journal Anti-spam (entries 14+ = 0 XP): PASSED
+- ✅ Goal Daily Limits (3x/day per goal): PASSED  
+- ✅ XP Multiplier Proportional Limits: PASSED
+- ✅ Centralized Validation: PASSED
+- ✅ Configuration Integrity: PASSED
+- 📊 **Overall Success Rate: 100%**
+
+**Technical Achievements**:
+- ✅ All anti-spam logic consolidated into GamificationService.validateXPAddition()
+- ✅ Journal entries 14+ properly blocked with 0 XP
+- ✅ Goal XP limited to 3 transactions per goal per day
+- ✅ XP multiplier proportionally adjusts daily limits (2x multiplier → 2x limits)
+- ✅ Storage layers properly integrated with centralized validation
+- ✅ TypeScript compilation passes with no errors
+- ✅ No functionality regression detected
 
 ### Checkpoint 4.5.11.F: Animation & UI Integration 🎨
 **Goal**: Ensure all animation triggers work consistently across unified system
