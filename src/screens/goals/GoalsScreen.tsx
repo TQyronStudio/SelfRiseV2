@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
 import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
-import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
+import { useEnhancedGamification } from '@/src/hooks/useEnhancedGamification';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
 export function GoalsScreen() {
   const { t } = useI18n();
   const { goals, isLoading, actions } = useGoalsData();
-  const { addXP } = useOptimizedGamification();
+  const { addXP } = useEnhancedGamification();
   const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);

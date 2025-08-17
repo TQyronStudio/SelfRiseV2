@@ -16,7 +16,7 @@
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo } from 'react-native';
 import { Colors } from '../../constants/colors';
-import { useOptimizedLevel } from '../../contexts/OptimizedGamificationContext';
+import { useEnhancedLevel } from '../../hooks/useEnhancedGamification';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { useI18n } from '../../hooks/useI18n';
 import { SafeLinearGradient } from '../common';
@@ -57,7 +57,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotionEnabled);
   }, []);
   
-  // CRITICAL: Use optimized hooks for real-time updates
+  // CRITICAL: Use enhanced hooks for real-time updates (migrated from OptimizedGamificationContext)
   const { 
     currentLevel, 
     xpProgress, 
@@ -67,7 +67,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     isLoading,
     progressCache,
     updateSequence 
-  } = useOptimizedLevel();
+  } = useEnhancedLevel();
   
   const { state: customizationState } = useHomeCustomization();
   

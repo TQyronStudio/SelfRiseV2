@@ -11,7 +11,7 @@ import {
   HabitListWithCompletion 
 } from '@/src/components/habits';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
-import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
+import { useEnhancedGamification } from '@/src/hooks/useEnhancedGamification';
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
 export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
-  const { addXP, subtractXP } = useOptimizedGamification();
+  const { addXP, subtractXP } = useEnhancedGamification();
   const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);
