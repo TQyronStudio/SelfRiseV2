@@ -85,6 +85,52 @@ export interface XPAdditionOptions {
   metadata?: Record<string, any>;
 }
 
+// ========================================
+// OPTIMISTIC UPDATES SYSTEM INTERFACES
+// ========================================
+
+// Real-time UI feedback callback for optimistic updates
+export interface OptimisticUpdateCallback {
+  (optimisticTotalXP: number, optimisticLevel: number): void;
+}
+
+// Enhanced XP addition options with optimistic updates support
+export interface OptimizedXPAdditionOptions extends XPAdditionOptions {
+  enableOptimistic?: boolean;
+  onOptimisticUpdate?: OptimisticUpdateCallback;
+  onBackgroundComplete?: (actualResult: XPTransactionResult) => void;
+  position?: { x: number; y: number }; // For animation positioning
+}
+
+// Enhanced XP transaction result with performance metrics
+export interface OptimizedXPTransactionResult extends XPTransactionResult {
+  operationTime: number; // Total operation time in ms
+  optimisticUpdateTime?: number | undefined; // Time for optimistic update in ms
+  backgroundSyncTime?: number | undefined; // Time for background sync in ms
+  wasOptimistic: boolean; // Whether optimistic update was used
+  correctionApplied?: boolean | undefined; // Whether correction was needed
+}
+
+// Performance metrics tracking
+interface PerformanceMetrics {
+  operationCount: number;
+  totalOperationTime: number;
+  averageOperationTime: number;
+  optimisticUpdateCount: number;
+  backgroundSyncCount: number;
+  correctionCount: number;
+  lastOperationTime: number;
+  cacheHitRate: number;
+}
+
+// Debounced background sync state
+interface BackgroundSyncState {
+  pendingOperations: number;
+  lastSyncTime: number;
+  syncInProgress: boolean;
+  debounceTimeout?: NodeJS.Timeout | undefined;
+}
+
 // Daily XP tracking
 interface DailyXPData {
   date: DateString;
@@ -120,6 +166,41 @@ export class GamificationService {
   private static batchTimeout: NodeJS.Timeout | null = null;
   private static readonly BATCH_WINDOW_MS = 500; // 500ms batching window
   private static readonly MAX_BATCH_SIZE = 20; // Maximum operations per batch
+
+  // ========================================
+  // OPTIMISTIC UPDATES & PERFORMANCE SYSTEM
+  // ========================================
+  
+  // Performance constants (aligned with OptimizedGamificationContext)
+  private static readonly CACHE_VALIDITY_MS = 100; // 100ms cache for smooth animations
+  private static readonly DEBOUNCE_DELAY_MS = 50; // 50ms debounce for batch updates
+  private static readonly MAX_OPTIMISTIC_OPERATIONS = 10; // Max concurrent optimistic operations
+  
+  // Performance metrics tracking
+  private static performanceMetrics: PerformanceMetrics = {
+    operationCount: 0,
+    totalOperationTime: 0,
+    averageOperationTime: 0,
+    optimisticUpdateCount: 0,
+    backgroundSyncCount: 0,
+    correctionCount: 0,
+    lastOperationTime: 0,
+    cacheHitRate: 0,
+  };
+  
+  // Background sync state
+  private static backgroundSyncState: BackgroundSyncState = {
+    pendingOperations: 0,
+    lastSyncTime: 0,
+    syncInProgress: false,
+  };
+  
+  // Cached XP total for optimistic updates (thread-safe with timestamp)
+  private static cachedXPData: {
+    totalXP: number;
+    timestamp: number;
+    level: number;
+  } | null = null;
   
   /**
    * Add XP directly without batching (used for fallbacks and internal operations)
@@ -720,6 +801,176 @@ export class GamificationService {
         leveledUp: false,
         milestoneReached: false,
         error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  // ========================================
+  // OPTIMISTIC UPDATES SYSTEM
+  // ========================================
+
+  /**
+   * Add XP with optimistic updates for real-time UI feedback (60fps performance)
+   * 
+   * This method implements the performance patterns from OptimizedGamificationContext:
+   * 1. Immediate UI update (optimistic)
+   * 2. Background XP operation
+   * 3. Correction if needed
+   * 4. Debounced background sync
+   * 
+   * @param amount Amount of XP to add
+   * @param options Enhanced XP addition configuration with optimistic updates
+   * @returns Enhanced transaction result with performance metrics
+   */
+  static async addXPOptimized(amount: number, options: OptimizedXPAdditionOptions): Promise<OptimizedXPTransactionResult> {
+    const startTime = performance.now();
+    let optimisticUpdateTime: number | undefined;
+    let backgroundSyncTime: number | undefined;
+    let wasOptimistic = false;
+    let correctionApplied = false;
+    let optimisticTotalXP: number | undefined; // Declare in outer scope for error handling
+
+    try {
+      this.performanceMetrics.operationCount++;
+      
+      // STEP 1: Immediate optimistic UI update (if enabled)
+      if (options.enableOptimistic !== false) { // Default to true
+        const optimisticStart = performance.now();
+        
+        // Get cached or current XP total for optimistic calculation
+        const currentXP = await this.getCachedTotalXP();
+        optimisticTotalXP = currentXP + amount;
+        const optimisticLevel = getCurrentLevel(optimisticTotalXP);
+        
+        // Trigger immediate UI callback
+        if (options.onOptimisticUpdate) {
+          options.onOptimisticUpdate(optimisticTotalXP, optimisticLevel);
+        }
+        
+        // Update cached data for future optimistic operations
+        this.updateCachedXPData(optimisticTotalXP, optimisticLevel);
+        
+        optimisticUpdateTime = performance.now() - optimisticStart;
+        wasOptimistic = true;
+        this.performanceMetrics.optimisticUpdateCount++;
+        
+        console.log(`⚡ OPTIMISTIC UPDATE: ${currentXP} + ${amount} = ${optimisticTotalXP} XP (${optimisticUpdateTime.toFixed(2)}ms)`);
+      }
+
+      // STEP 2: Trigger immediate XP animation
+      if (!options.skipNotification) {
+        this.triggerXPAnimation(amount, options.source, options.position);
+      }
+
+      // STEP 3: Background XP operation with full validation
+      const backgroundStart = performance.now();
+      const actualResult = await this.performXPAddition(amount, options);
+      backgroundSyncTime = performance.now() - backgroundStart;
+      
+      if (!actualResult.success) {
+        // STEP 3a: Revert optimistic update on failure
+        if (wasOptimistic && optimisticTotalXP !== undefined) {
+          const revertedXP = optimisticTotalXP - amount;
+          const revertedLevel = getCurrentLevel(revertedXP);
+          
+          if (options.onOptimisticUpdate) {
+            options.onOptimisticUpdate(revertedXP, revertedLevel);
+          }
+          
+          this.updateCachedXPData(revertedXP, revertedLevel);
+          console.log(`🔄 Reverted optimistic update due to failure: ${optimisticTotalXP} → ${revertedXP}`);
+        }
+        
+        // Return failure result with performance metrics
+        const totalTime = performance.now() - startTime;
+        this.updatePerformanceMetrics(totalTime);
+        
+        return {
+          ...actualResult,
+          operationTime: totalTime,
+          optimisticUpdateTime,
+          backgroundSyncTime,
+          wasOptimistic,
+          correctionApplied: false,
+        };
+      }
+
+      // STEP 4: Check if correction is needed
+      if (wasOptimistic && optimisticTotalXP !== undefined && actualResult.totalXP !== optimisticTotalXP) {
+        console.log(`🔧 Optimistic correction needed: ${optimisticTotalXP} → ${actualResult.totalXP}`);
+        
+        const correctedLevel = getCurrentLevel(actualResult.totalXP);
+        if (options.onOptimisticUpdate) {
+          options.onOptimisticUpdate(actualResult.totalXP, correctedLevel);
+        }
+        
+        this.updateCachedXPData(actualResult.totalXP, correctedLevel);
+        correctionApplied = true;
+        this.performanceMetrics.correctionCount++;
+      }
+
+      // STEP 5: Schedule debounced background sync for consistency verification
+      this.scheduleBackgroundSync();
+
+      // STEP 6: Handle background completion callback
+      if (options.onBackgroundComplete) {
+        // Use setTimeout to ensure callback is non-blocking
+        setTimeout(() => {
+          if (options.onBackgroundComplete) {
+            options.onBackgroundComplete(actualResult);
+          }
+        }, 0);
+      }
+
+      // STEP 7: Calculate final performance metrics
+      const totalTime = performance.now() - startTime;
+      this.updatePerformanceMetrics(totalTime);
+      
+      console.log(`✅ OPTIMIZED XP operation completed: ${totalTime.toFixed(2)}ms total (optimistic: ${optimisticUpdateTime?.toFixed(2)}ms, background: ${backgroundSyncTime.toFixed(2)}ms)`);
+
+      return {
+        ...actualResult,
+        operationTime: totalTime,
+        optimisticUpdateTime,
+        backgroundSyncTime,
+        wasOptimistic,
+        correctionApplied,
+      };
+
+    } catch (error) {
+      console.error('GamificationService.addXPOptimized error:', error);
+      
+      // Revert optimistic update on error
+      if (wasOptimistic && optimisticTotalXP !== undefined) {
+        const revertedXP = optimisticTotalXP - amount;
+        const revertedLevel = getCurrentLevel(revertedXP);
+        
+        if (options.onOptimisticUpdate) {
+          options.onOptimisticUpdate(revertedXP, revertedLevel);
+        }
+        
+        this.updateCachedXPData(revertedXP, revertedLevel);
+      }
+
+      const totalTime = performance.now() - startTime;
+      this.updatePerformanceMetrics(totalTime);
+
+      // Return error result with performance metrics
+      const currentXP = await this.getTotalXP();
+      return {
+        success: false,
+        xpGained: 0,
+        totalXP: currentXP,
+        previousLevel: getCurrentLevel(currentXP),
+        newLevel: getCurrentLevel(currentXP),
+        leveledUp: false,
+        milestoneReached: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        operationTime: totalTime,
+        optimisticUpdateTime,
+        backgroundSyncTime,
+        wasOptimistic,
+        correctionApplied: false,
       };
     }
   }
@@ -1478,10 +1729,173 @@ export class GamificationService {
         lastTransaction: transactions[transactions.length - 1],
         multiplier,
         timestamp: new Date().toISOString(),
+        performanceMetrics: this.performanceMetrics,
+        backgroundSyncState: this.backgroundSyncState,
+        cachedXPData: this.cachedXPData,
       };
     } catch (error) {
       console.error('GamificationService.getDebugInfo error:', error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
+  }
+
+  // ========================================
+  // OPTIMISTIC UPDATES UTILITY METHODS
+  // ========================================
+
+  /**
+   * Get cached total XP with automatic cache validity checking
+   * Provides 100ms cache for smooth 60fps animations
+   */
+  private static async getCachedTotalXP(): Promise<number> {
+    const now = Date.now();
+    
+    // Check if cached data is valid (within 100ms)
+    if (this.cachedXPData && (now - this.cachedXPData.timestamp) < this.CACHE_VALIDITY_MS) {
+      console.log(`💾 Cache hit: ${this.cachedXPData.totalXP} XP (age: ${now - this.cachedXPData.timestamp}ms)`);
+      return this.cachedXPData.totalXP;
+    }
+    
+    // Cache miss - fetch fresh data
+    console.log(`💾 Cache miss: fetching fresh XP data`);
+    const totalXP = await this.getTotalXP();
+    const level = getCurrentLevel(totalXP);
+    
+    this.updateCachedXPData(totalXP, level);
+    return totalXP;
+  }
+
+  /**
+   * Update cached XP data with thread-safe timestamp
+   */
+  private static updateCachedXPData(totalXP: number, level: number): void {
+    this.cachedXPData = {
+      totalXP,
+      level,
+      timestamp: Date.now(),
+    };
+    
+    console.log(`💾 Cache updated: ${totalXP} XP, level ${level}`);
+  }
+
+  /**
+   * Schedule debounced background sync for data consistency verification
+   * Implements 50ms debounce pattern from OptimizedGamificationContext
+   */
+  private static scheduleBackgroundSync(): void {
+    // Clear existing timeout
+    if (this.backgroundSyncState.debounceTimeout) {
+      clearTimeout(this.backgroundSyncState.debounceTimeout);
+    }
+    
+    // Increment pending operations
+    this.backgroundSyncState.pendingOperations++;
+    
+    // Schedule new debounced sync
+    this.backgroundSyncState.debounceTimeout = setTimeout(async () => {
+      await this.executeBackgroundSync();
+    }, this.DEBOUNCE_DELAY_MS) as unknown as NodeJS.Timeout;
+    
+    console.log(`🔄 Background sync scheduled (${this.backgroundSyncState.pendingOperations} pending ops)`);
+  }
+
+  /**
+   * Execute background sync to verify data consistency
+   */
+  private static async executeBackgroundSync(): Promise<void> {
+    if (this.backgroundSyncState.syncInProgress) {
+      console.log(`🔄 Background sync already in progress, skipping`);
+      return;
+    }
+    
+    try {
+      this.backgroundSyncState.syncInProgress = true;
+      this.backgroundSyncState.lastSyncTime = Date.now();
+      
+      console.log(`🔄 EXECUTING background sync (${this.backgroundSyncState.pendingOperations} operations)`);
+      
+      // Verify cached XP data against storage
+      const actualTotalXP = await this.getTotalXP();
+      const actualLevel = getCurrentLevel(actualTotalXP);
+      
+      if (this.cachedXPData) {
+        const drift = Math.abs(actualTotalXP - this.cachedXPData.totalXP);
+        
+        if (drift > 1) { // Allow 1 XP tolerance for floating point precision
+          console.log(`🔧 Background sync detected drift: cached=${this.cachedXPData.totalXP}, actual=${actualTotalXP} (drift=${drift})`);
+          this.updateCachedXPData(actualTotalXP, actualLevel);
+          this.performanceMetrics.correctionCount++;
+        } else {
+          console.log(`✅ Background sync: data consistent (drift=${drift})`);
+        }
+      }
+      
+      // Reset pending operations counter
+      this.backgroundSyncState.pendingOperations = 0;
+      this.performanceMetrics.backgroundSyncCount++;
+      
+    } catch (error) {
+      console.error('GamificationService.executeBackgroundSync error:', error);
+    } finally {
+      this.backgroundSyncState.syncInProgress = false;
+      this.backgroundSyncState.debounceTimeout = undefined as NodeJS.Timeout | undefined;
+    }
+  }
+
+  /**
+   * Update performance metrics with operation timing
+   */
+  private static updatePerformanceMetrics(operationTime: number): void {
+    this.performanceMetrics.totalOperationTime += operationTime;
+    this.performanceMetrics.averageOperationTime = 
+      this.performanceMetrics.totalOperationTime / this.performanceMetrics.operationCount;
+    this.performanceMetrics.lastOperationTime = operationTime;
+    
+    // Calculate cache hit rate
+    const totalCacheRequests = this.performanceMetrics.operationCount;
+    const cacheHits = totalCacheRequests - this.performanceMetrics.correctionCount;
+    this.performanceMetrics.cacheHitRate = totalCacheRequests > 0 ? cacheHits / totalCacheRequests : 0;
+    
+    console.log(`📊 Performance metrics updated: avg=${this.performanceMetrics.averageOperationTime.toFixed(2)}ms, cache hit rate=${(this.performanceMetrics.cacheHitRate * 100).toFixed(1)}%`);
+  }
+
+  /**
+   * Get current performance metrics for monitoring and debugging
+   */
+  static getPerformanceMetrics(): PerformanceMetrics {
+    return { ...this.performanceMetrics };
+  }
+
+  /**
+   * Reset performance metrics (for testing purposes)
+   */
+  static resetPerformanceMetrics(): void {
+    this.performanceMetrics = {
+      operationCount: 0,
+      totalOperationTime: 0,
+      averageOperationTime: 0,
+      optimisticUpdateCount: 0,
+      backgroundSyncCount: 0,
+      correctionCount: 0,
+      lastOperationTime: 0,
+      cacheHitRate: 0,
+    };
+    
+    console.log('📊 Performance metrics reset');
+  }
+
+  /**
+   * Clear all cached data (useful for testing and memory management)
+   */
+  static clearCache(): void {
+    this.cachedXPData = null;
+    this.backgroundSyncState.pendingOperations = 0;
+    
+    if (this.backgroundSyncState.debounceTimeout) {
+      clearTimeout(this.backgroundSyncState.debounceTimeout);
+      this.backgroundSyncState.debounceTimeout = undefined as NodeJS.Timeout | undefined;
+    }
+    
+    console.log('💾 All cache data cleared');
   }
 }
