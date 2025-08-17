@@ -283,8 +283,8 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
         type: 'UPDATE_STATS',
         payload: {
           totalXP: stats.totalXP,
-          multiplierActive: false, // TODO: Implement multiplier in atomic service
-          multiplierEndTime: undefined,
+          multiplierActive: stats.multiplierActive || false,
+          multiplierEndTime: stats.multiplierEndTime,
         }
       });
     } catch (error) {
