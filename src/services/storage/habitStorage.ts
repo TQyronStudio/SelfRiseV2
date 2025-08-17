@@ -1,4 +1,3 @@
-import { DeviceEventEmitter } from 'react-native';
 import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';

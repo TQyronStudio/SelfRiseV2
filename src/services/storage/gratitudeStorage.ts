@@ -1,4 +1,3 @@
-import { DeviceEventEmitter } from 'react-native';
 import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, WarmUpPayment, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';

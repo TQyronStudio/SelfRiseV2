@@ -1,4 +1,3 @@
-import { DeviceEventEmitter } from 'react-native';
 import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats, GoalTimelineStatus } from '../../types/goal';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
