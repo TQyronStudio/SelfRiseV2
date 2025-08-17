@@ -170,6 +170,9 @@ export class GamificationService {
   private static batchTimeout: NodeJS.Timeout | null = null;
   private static readonly BATCH_WINDOW_MS = 500; // 500ms batching window
   private static readonly MAX_BATCH_SIZE = 20; // Maximum operations per batch
+  
+  // Thread-safe operation queue to prevent race conditions
+  private static operationQueue: Promise<any> = Promise.resolve();
 
   // ========================================
   // OPTIMISTIC UPDATES & PERFORMANCE SYSTEM
@@ -539,26 +542,42 @@ export class GamificationService {
    * @returns Transaction result with level changes
    */
   private static async performXPAddition(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
-    try {
-      // Input validation
-      if (amount <= 0) {
-        const totalXP = await this.getTotalXP();
-        return {
-          success: false,
-          xpGained: 0,
-          totalXP,
-          previousLevel: getCurrentLevel(totalXP),
-          newLevel: getCurrentLevel(totalXP),
-          leveledUp: false,
-          milestoneReached: false,
-          error: 'XP amount must be positive'
-        };
-      }
+    // Queue this operation to prevent race conditions
+    return new Promise((resolve, reject) => {
+      this.operationQueue = this.operationQueue.then(async () => {
+        try {
+          // Input validation
+          if (amount <= 0) {
+            const totalXP = await this.getTotalXP();
+            return {
+              success: false,
+              xpGained: 0,
+              totalXP,
+              previousLevel: getCurrentLevel(totalXP),
+              newLevel: getCurrentLevel(totalXP),
+              leveledUp: false,
+              milestoneReached: false,
+              error: 'XP amount must be positive'
+            };
+          }
 
-      // Get current state
-      const previousTotalXP = await this.getTotalXP();
-      const previousLevel = getCurrentLevel(previousTotalXP);
-      
+          // Get current state (thread-safe within queue)
+          const previousTotalXP = await this.getTotalXP();
+          const previousLevel = getCurrentLevel(previousTotalXP);
+
+          return await this.performXPAdditionInternal(amount, options, previousTotalXP, previousLevel);
+        } catch (error) {
+          throw error;
+        }
+      }).then(resolve).catch(reject);
+    });
+  }
+
+  /**
+   * Internal XP addition logic (called within operationQueue)
+   */
+  private static async performXPAdditionInternal(amount: number, options: XPAdditionOptions, previousTotalXP: number, previousLevel: number): Promise<XPTransactionResult> {
+    try {
       // Apply anti-spam and balance validation
       const isTestEnvironment = typeof jest !== 'undefined' || process.env.NODE_ENV === 'test';
       
@@ -610,7 +629,7 @@ export class GamificationService {
         transaction.multiplier = multiplierData.multiplier;
       }
 
-      // Update total XP
+      // Update total XP (thread-safe within queue)
       const newTotalXP = previousTotalXP + finalAmount;
       console.log(`💰 Updating total XP: ${previousTotalXP} + ${finalAmount} = ${newTotalXP}`);
       await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
@@ -679,7 +698,6 @@ export class GamificationService {
         console.error('Achievement check after XP action failed:', error);
         // Non-blocking error - XP was still awarded successfully
       }
-
 
       // Return comprehensive result
       const result: XPTransactionResult = {
@@ -987,8 +1005,8 @@ export class GamificationService {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_XP);
       if (!stored) return 0;
       
-      const parsed = parseInt(stored, 10);
-      // Safety check: if parseInt returns NaN, default to 0
+      const parsed = parseFloat(stored);
+      // Safety check: if parseFloat returns NaN, default to 0
       return isNaN(parsed) ? 0 : parsed;
     } catch (error) {
       console.error('GamificationService.getTotalXP error:', error);

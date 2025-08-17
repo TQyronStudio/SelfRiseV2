@@ -15,7 +15,7 @@
 
 import React, { createContext, useContext, useCallback, useEffect, useReducer, useMemo, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
-import { AtomicGamificationService, AtomicXPAdditionOptions, AtomicXPTransactionResult } from '../services/gamificationServiceAtomic';
+import { GamificationService, XPAdditionOptions, XPTransactionResult } from '../services/gamificationService';
 import { GamificationStats, XPSourceType, XPTransaction } from '../types/gamification';
 import { getCurrentLevel, getXPProgress, getLevelInfo } from '../services/levelCalculation';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
@@ -72,8 +72,8 @@ interface OptimizedGamificationContextValue {
   state: OptimizedGamificationState;
   
   // Optimized core actions
-  addXP: (amount: number, options: AtomicXPAdditionOptions) => Promise<AtomicXPTransactionResult>;
-  subtractXP: (amount: number, options: AtomicXPAdditionOptions) => Promise<AtomicXPTransactionResult>;
+  addXP: (amount: number, options: XPAdditionOptions) => Promise<XPTransactionResult>;
+  subtractXP: (amount: number, options: XPAdditionOptions) => Promise<XPTransactionResult>;
   refreshStats: () => Promise<void>;
   resetData: () => Promise<void>;
   
@@ -275,7 +275,7 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
       console.log(`🔄 OPTIMIZED refreshStats called - reducing frequency for performance`);
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      const stats = await AtomicGamificationService.getGamificationStats();
+      const stats = await GamificationService.getGamificationStats();
       
       console.log(`📊 OPTIMIZED refreshStats data: totalXP=${stats.totalXP}`);
       
@@ -295,7 +295,7 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
   }, []);
 
   // CRITICAL: Optimized addXP with immediate UI updates
-  const addXP = useCallback(async (amount: number, options: AtomicXPAdditionOptions): Promise<AtomicXPTransactionResult> => {
+  const addXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
     try {
       updateCountRef.current += 1;
       
@@ -309,10 +309,10 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
       });
       
       // STEP 2: Atomic XP addition in background
-      const result = await AtomicGamificationService.addXP(amount, options);
+      const result = await GamificationService.addXP(amount, options);
       
       if (result.success) {
-        console.log(`⚡ OPTIMIZED addXP: ${amount} XP, atomic operation time: ${result.atomicOperationTime.toFixed(2)}ms`);
+        console.log(`⚡ OPTIMIZED addXP: ${amount} XP successfully added`);
         
         // STEP 2.5: Trigger XP animation (FIX: Missing animation triggers)
         try {
@@ -375,7 +375,7 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
           // CRITICAL: Background stats refresh to ensure data consistency
           console.log(`🔄 DEBOUNCED background sync after ${DEBOUNCE_DELAY_MS}ms`);
           try {
-            const actualStats = await AtomicGamificationService.getGamificationStats();
+            const actualStats = await GamificationService.getGamificationStats();
             
             // Verify optimistic update was correct
             if (Math.abs(actualStats.totalXP - state.totalXP) > 1) {
@@ -416,17 +416,13 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
         newLevel: state.currentLevel,
         leveledUp: false,
         milestoneReached: false,
-        error: errorMessage,
-        atomicOperationTime: 0,
-        wasRetried: false,
-        operationId: '',
-        raceConditionsPrevented: 0
+        error: errorMessage
       };
     }
   }, [state.totalXP, state.currentLevel, state.shownLevelUps]);
 
   // Simplified subtractXP with same optimization pattern
-  const subtractXP = useCallback(async (amount: number, options: AtomicXPAdditionOptions): Promise<AtomicXPTransactionResult> => {
+  const subtractXP = useCallback(async (amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> => {
     // Same optimization pattern as addXP but for subtraction
     // Implementation would follow same immediate UI + background sync pattern
     console.log(`⚡ OPTIMIZED subtractXP: ${amount} XP`);
@@ -440,15 +436,15 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
   // ========================================
 
   const getFullStats = useCallback(async (): Promise<GamificationStats> => {
-    return await AtomicGamificationService.getGamificationStats();
+    return await GamificationService.getGamificationStats();
   }, []);
 
   const getTransactions = useCallback(async (): Promise<XPTransaction[]> => {
-    return await AtomicGamificationService.getAllTransactions();
+    return await GamificationService.getAllTransactions();
   }, []);
 
   const getXPBySource = useCallback(async (): Promise<Record<XPSourceType, number>> => {
-    return await AtomicGamificationService.getXPBySource();
+    return await GamificationService.getXPBySource();
   }, []);
 
   const resetData = useCallback(async (): Promise<void> => {
@@ -499,7 +495,7 @@ export const OptimizedGamificationProvider: React.FC<OptimizedGamificationProvid
   useEffect(() => {
     const initializeOptimizedGamification = async () => {
       try {
-        await AtomicGamificationService.initialize();
+        // GamificationService doesn't need explicit initialization
         await refreshStats();
         dispatch({ type: 'SET_INITIALIZED', payload: true });
         console.log('⚡ OptimizedGamificationContext initialized successfully');
