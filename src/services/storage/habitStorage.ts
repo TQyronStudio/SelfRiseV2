@@ -221,10 +221,9 @@ export class HabitStorage implements EntityStorage<Habit> {
       completions.push(newCompletion);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);
       
-      // Add XP rewards immediately for instant UI feedback - only if enabled
-      if (HabitStorage.XP_ENABLED) {
-        await this.awardHabitCompletionXP(habitId, isBonus);
-      }
+      // XP rewards now handled via GamificationService integration in UI layer
+      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+      console.log(`✅ Habit completion created - XP will be handled by enhanced GamificationService`);
       
       return newCompletion;
     } catch (error) {
@@ -289,10 +288,9 @@ export class HabitStorage implements EntityStorage<Habit> {
       const filteredCompletions = completions.filter(completion => completion.id !== id);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, filteredCompletions);
       
-      // Subtract XP for the removed completion immediately for instant UI feedback (only if XP is enabled)
-      if (HabitStorage.XP_ENABLED && habit) {
-        await this.awardHabitUncompleteXP(completionToDelete.habitId, completionToDelete.isBonus || false);
-      }
+      // XP subtraction now handled via GamificationService integration in UI layer
+      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+      console.log(`✅ Habit completion deleted - XP subtraction will be handled by enhanced GamificationService`);
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(
@@ -372,134 +370,57 @@ export class HabitStorage implements EntityStorage<Habit> {
   // ========================================
 
   /**
-   * Award XP for habit completion asynchronously (non-blocking)
+   * DEPRECATED: Award XP for habit completion asynchronously (non-blocking)
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
+   * This method is kept for backward compatibility but no longer used
    * @param habitId ID of completed habit
    * @param isBonus Whether this is a bonus completion
    */
   private awardHabitCompletionXPAsync(habitId: string, isBonus: boolean): void {
-    console.log(`🚀 DEBUG: awardHabitCompletionXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
-    // Award basic XP immediately for instant UI feedback
-    this.awardHabitCompletionXP(habitId, isBonus).catch(error => {
-      console.error('Error awarding immediate XP:', error);
-    });
+    console.log(`🚨 DEPRECATED: awardHabitCompletionXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
+    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
     
-    // Defer streak milestone checks to next tick (these are heavier operations)
-    setTimeout(async () => {
-      try {
-        await this.checkAndAwardStreakMilestones(habitId);
-      } catch (error) {
-        console.error('Background streak milestone processing error:', error);
-      }
-    }, 0);
+    // XP handling now performed via enhanced GamificationService integration in UI layer
+    // This preserves the method signature for any remaining references but delegates to new system
   }
 
   /**
-   * Award XP for habit completion
+   * DEPRECATED: Award XP for habit completion
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
+   * This method is kept for backward compatibility but should not be used
    * @param habitId ID of completed habit
    * @param isBonus Whether this is a bonus completion
    */
   private async awardHabitCompletionXP(habitId: string, isBonus: boolean): Promise<void> {
-    try {
-      console.log(`💰 Attempting to award XP for habit ${habitId}, isBonus: ${isBonus}`);
-      const habit = await this.getById(habitId);
-      if (!habit) {
-        console.log(`❌ Habit ${habitId} not found, no XP awarded`);
-        return;
-      }
-
-      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
-      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
-      const description = isBonus ? 
-        `Completed bonus habit: ${habit.name}` : 
-        `Completed scheduled habit: ${habit.name}`;
-
-      console.log(`💰 Awarding ${xpAmount} XP for ${xpSource}: ${description}`);
-      const result = await GamificationService.addXP(xpAmount, {
-        source: xpSource,
-        sourceId: habitId,
-        description
-      });
-
-      // FIX: Trigger XP animation (fallback in case GamificationService doesn't trigger)
-      try {
-        const eventData = {
-          amount: xpAmount,
-          source: xpSource,
-          position: { x: 50, y: 130 }, // Default position
-          timestamp: Date.now(),
-        };
-
-        DeviceEventEmitter.emit('xpGained', eventData);
-        DeviceEventEmitter.emit('xpSmartNotification', {
-          amount: xpAmount,
-          source: xpSource,
-          timestamp: Date.now(),
-        });
-
-        const sign = xpAmount >= 0 ? '+' : '';
-        console.log(`✨ Habit XP Animation triggered: ${sign}${xpAmount} XP from ${xpSource}`);
-      } catch (animationError) {
-        console.error('Habit XP Animation trigger error:', animationError);
-      }
-
-      if (result.success) {
-        console.log(`✅ XP successfully awarded: ${result.xpGained} XP (${result.totalXP} total)`);
-        
-        // Check streak milestones on background (don't block UI)
-        setTimeout(async () => {
-          try {
-            await this.checkAndAwardStreakMilestones(habitId);
-          } catch (error) {
-            console.error('Background streak milestone processing error:', error);
-          }
-        }, 0);
-      } else {
-        console.log(`❌ XP award failed: ${result.error}`);
-      }
-
-    } catch (error) {
-      console.error('Error awarding habit completion XP:', error);
-      // Don't throw error - XP is bonus functionality
-    }
+    console.log(`🚨 DEPRECATED: awardHabitCompletionXP called for habit ${habitId}, isBonus: ${isBonus}`);
+    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
+    
+    // XP handling now performed via enhanced GamificationService integration in UI layer
+    // This preserves the method signature for any remaining references but delegates to new system
   }
 
   /**
-   * Subtract XP for habit un-completion asynchronously (non-blocking)
+   * DEPRECATED: Subtract XP for habit un-completion asynchronously (non-blocking)
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    * @param habitId ID of un-completed habit  
    * @param isBonus Whether this was a bonus completion
    */
   private awardHabitUncompleteXPAsync(habitId: string, isBonus: boolean): void {
-    // Subtract XP immediately for instant UI feedback
-    this.awardHabitUncompleteXP(habitId, isBonus).catch(error => {
-      console.error('Error subtracting habit XP:', error);
-    });
+    console.log(`🚨 DEPRECATED: awardHabitUncompleteXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
+    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
   }
 
   /**
-   * Subtract XP for habit un-completion
+   * DEPRECATED: Subtract XP for habit un-completion
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    * @param habitId ID of un-completed habit
    * @param isBonus Whether this was a bonus completion
    */
   private async awardHabitUncompleteXP(habitId: string, isBonus: boolean): Promise<void> {
-    try {
-      const habit = await this.getById(habitId);
-      if (!habit) return;
-
-      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
-      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
-
-      await GamificationService.subtractXP(xpAmount, {
-        source: xpSource,
-        sourceId: habitId,
-        description: isBonus ? 
-          `Removed bonus habit completion: ${habit.name}` : 
-          `Removed scheduled habit completion: ${habit.name}`
-      });
-
-    } catch (error) {
-      console.error('Error subtracting habit completion XP:', error);
-      // Don't throw error - XP is bonus functionality
-    }
+    console.log(`🚨 DEPRECATED: awardHabitUncompleteXP called for habit ${habitId}, isBonus: ${isBonus}`);
+    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
   }
 
   /**
@@ -521,9 +442,9 @@ export class HabitStorage implements EntityStorage<Habit> {
       
       for (const milestone of milestones) {
         if (currentStreak >= milestone && previousStreak < milestone) {
-          // We've just achieved this milestone
-          await this.awardStreakMilestoneXP(habitId, milestone);
-          break; // Only award one milestone per completion
+          // MIGRATION: Streak milestone XP now handled via enhanced GamificationService integration in UI layer
+          console.log(`🏆 Streak milestone ${milestone} reached for habit ${habitId} - XP will be handled by enhanced GamificationService`);
+          break; // Only detect one milestone per completion
         }
       }
 
@@ -534,73 +455,16 @@ export class HabitStorage implements EntityStorage<Habit> {
   }
 
   /**
-   * Award XP for reaching a streak milestone
+   * DEPRECATED: Award XP for reaching a streak milestone
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
+   * Streak milestones should be handled via enhanced GamificationService integration
    * @param habitId ID of the habit
    * @param milestone Streak milestone reached
    */
   private async awardStreakMilestoneXP(habitId: string, milestone: number): Promise<void> {
-    try {
-      // Lazy import gamification modules
-      const { GamificationService } = await import('../gamificationService');
-      const { XPSourceType } = await import('../../types/gamification');
-      const { XP_REWARDS } = await import('../../constants/gamification');
-
-      const habit = await this.getById(habitId);
-      if (!habit) return;
-
-      let xpAmount: number;
-      switch (milestone) {
-        case 7:
-          xpAmount = XP_REWARDS.HABIT.STREAK_7_DAYS;
-          break;
-        case 14:
-          xpAmount = XP_REWARDS.HABIT.STREAK_14_DAYS;
-          break;
-        case 30:
-          xpAmount = XP_REWARDS.HABIT.STREAK_30_DAYS;
-          break;
-        case 50:
-          xpAmount = XP_REWARDS.HABIT.STREAK_50_DAYS;
-          break;
-        case 100:
-          xpAmount = XP_REWARDS.HABIT.STREAK_100_DAYS;
-          break;
-        default:
-          xpAmount = XP_REWARDS.HABIT.STREAK_100_DAYS; // For 100+ streaks
-      }
-
-      await GamificationService.addXP(xpAmount, {
-        source: XPSourceType.HABIT_STREAK_MILESTONE,
-        sourceId: habitId,
-        description: `Reached ${milestone}-day streak for habit: ${habit.name}`
-      });
-
-      // FIX: Trigger XP animation for streak milestone
-      try {
-        const eventData = {
-          amount: xpAmount,
-          source: XPSourceType.HABIT_STREAK_MILESTONE,
-          position: { x: 50, y: 130 }, // Default position
-          timestamp: Date.now(),
-        };
-
-        DeviceEventEmitter.emit('xpGained', eventData);
-        DeviceEventEmitter.emit('xpSmartNotification', {
-          amount: xpAmount,
-          source: XPSourceType.HABIT_STREAK_MILESTONE,
-          timestamp: Date.now(),
-        });
-
-        const sign = xpAmount >= 0 ? '+' : '';
-        console.log(`✨ Habit Streak Milestone XP Animation triggered: ${sign}${xpAmount} XP from HABIT_STREAK_MILESTONE`);
-      } catch (animationError) {
-        console.error('Habit Streak Milestone XP Animation trigger error:', animationError);
-      }
-
-    } catch (error) {
-      console.error('Error awarding streak milestone XP:', error);
-      // Don't throw error - XP is bonus functionality
-    }
+    console.log(`🚨 DEPRECATED: awardStreakMilestoneXP called for habit ${habitId}, milestone ${milestone}`);
+    console.log(`📝 MIGRATION: Streak milestone XP moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with streak milestone detection`);
   }
 
   /**

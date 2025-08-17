@@ -9,9 +9,9 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
-  // XP system enabled for journal entries
-  // ENABLED: Restored XP handling with animation triggers
-  private static XP_ENABLED = true;
+  // XP system disabled - XP handling moved to enhanced GamificationService
+  // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+  private static XP_ENABLED = false;
   
   // Gratitude CRUD operations
   async getAll(): Promise<Gratitude[]> {
@@ -56,8 +56,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
       
-      // Award XP based on entry position and anti-spam logic
-      await this.awardJournalXP(totalCount, input.date);
+      // XP rewards now handled via GamificationService integration in UI layer
+      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+      console.log(`✅ Gratitude entry created - XP will be handled by enhanced GamificationService (position: ${totalCount})`);
       
       return newGratitude;
     } catch (error) {
@@ -129,8 +130,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Find original position (1-based index) based on chronological creation order
         const originalPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
         
-        // Subtract XP for the deleted entry
-        await this.subtractJournalXP(originalPosition, deletedGratitude.date);
+        // XP subtraction now handled via GamificationService integration in UI layer
+        // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+        console.log(`✅ Gratitude entry deleted - XP subtraction will be handled by enhanced GamificationService (position: ${originalPosition})`);
         
         // Reorder remaining gratitudes for the same date
         const sameDate = filteredGratitudes.filter(g => g.date === deletedGratitude.date);
@@ -1314,94 +1316,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // ========================================
 
   /**
-   * Award XP for journal entries with anti-spam logic and milestone rewards
+   * DEPRECATED: Award XP for journal entries with anti-spam logic and milestone rewards
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    * 
    * @param entryPosition Position of this entry for the day (1-based)
    * @param date Date of the entry for tracking
    */
   private async awardJournalXP(entryPosition: number, date: DateString): Promise<void> {
-    try {
-      // Base XP calculation with anti-spam logic
-      let xpToAward = 0;
-      let xpSourceType: XPSourceType;
-      let description = '';
-
-      if (entryPosition <= 3) {
-        // First 3 entries: 20 XP each
-        xpToAward = XP_REWARDS.JOURNAL.FIRST_ENTRY;
-        xpSourceType = XPSourceType.JOURNAL_ENTRY;
-        description = `Journal entry #${entryPosition}`;
-      } else if (entryPosition <= 13) {
-        // Entries 4-13: 8 XP each (bonus entries)
-        xpToAward = XP_REWARDS.JOURNAL.BONUS_ENTRY;
-        xpSourceType = XPSourceType.JOURNAL_BONUS;
-        description = `Bonus journal entry #${entryPosition}`;
-      } else {
-        // Entries 14+: 0 XP (spam prevention)
-        xpToAward = 0;
-        xpSourceType = XPSourceType.JOURNAL_BONUS;
-        description = `Journal entry #${entryPosition} (no XP - daily limit reached)`;
-      }
-
-      // CRITICAL FIX: Batch all XP into single transaction to prevent multiple level-ups
-      let totalXP = 0;
-      let descriptions: string[] = [];
-      
-      // Add base entry XP if applicable
-      if (xpToAward > 0) {
-        totalXP += xpToAward;
-        descriptions.push(description);
-      }
-
-      // Check for milestone XP and add to batch (instead of separate award)
-      const milestoneXP = await this.getMilestoneXPData(entryPosition, date);
-      if (milestoneXP.xp > 0) {
-        totalXP += milestoneXP.xp;
-        descriptions.push(milestoneXP.description);
-      }
-
-      // Check for streak milestone XP and add to batch
-      const streakXP = await this.getStreakMilestoneXPData();
-      if (streakXP.xp > 0) {
-        totalXP += streakXP.xp;
-        descriptions.push(streakXP.description);
-      }
-
-      // Award all XP in single transaction to prevent multiple level-ups - only if enabled
-      if (totalXP > 0 && GratitudeStorage.XP_ENABLED) {
-        await GamificationService.addXP(totalXP, {
-          source: xpSourceType,
-          description: descriptions.join(' + '),
-          sourceId: `journal_batch_${date}_${entryPosition}`,
-        });
-
-        // ADDITIONAL FIX: Trigger XP animation (fallback in case GamificationService doesn't trigger)
-        try {
-          const eventData = {
-            amount: totalXP,
-            source: xpSourceType,
-            position: { x: 50, y: 130 }, // Default position
-            timestamp: Date.now(),
-          };
-
-          DeviceEventEmitter.emit('xpGained', eventData);
-          DeviceEventEmitter.emit('xpSmartNotification', {
-            amount: totalXP,
-            source: xpSourceType,
-            timestamp: Date.now(),
-          });
-
-          const sign = totalXP >= 0 ? '+' : '';
-          console.log(`✨ Journal XP Animation triggered: ${sign}${totalXP} XP from ${xpSourceType}`);
-        } catch (animationError) {
-          console.error('Journal XP Animation trigger error:', animationError);
-        }
-      }
-
-    } catch (error) {
-      console.error('GratitudeStorage.awardJournalXP error:', error);
-      // Don't throw - XP failure shouldn't block gratitude creation
-    }
+    console.log(`🚨 DEPRECATED: awardJournalXP called for position ${entryPosition} on ${date}`);
+    console.log(`📝 MIGRATION: Journal XP logic moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
+    
+    // Anti-spam logic and milestone calculations are now preserved in GamificationService
+    // This method is kept for backward compatibility but delegates to new system
   }
 
   /**
@@ -1434,17 +1361,16 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Legacy function for backward compatibility - now just calls getMilestoneXPData and awards
+   * DEPRECATED: Legacy function for backward compatibility
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async checkAndAwardJournalMilestones(entryPosition: number, date: DateString): Promise<void> {
     try {
       const milestoneData = await this.getMilestoneXPData(entryPosition, date);
-      if (milestoneData.xp > 0 && GratitudeStorage.XP_ENABLED) {
-        await GamificationService.addXP(milestoneData.xp, {
-          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description: milestoneData.description,
-          sourceId: `journal_milestone_${date}_${entryPosition}`,
-        });
+      if (milestoneData.xp > 0) {
+        console.log(`🚨 DEPRECATED: checkAndAwardJournalMilestones called for position ${entryPosition} on ${date}`);
+        console.log(`📝 MIGRATION: Journal milestone XP (${milestoneData.xp} for "${milestoneData.description}") moved to enhanced GamificationService - this call is no longer active`);
+        console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent milestone detection`);
       }
     } catch (error) {
       console.error('GratitudeStorage.checkAndAwardJournalMilestones error:', error);
@@ -1482,18 +1408,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Legacy function for backward compatibility - now just calls getStreakMilestoneXPData and awards
+   * DEPRECATED: Legacy function for backward compatibility
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async checkAndAwardStreakMilestones(): Promise<void> {
     try {
       const streakData = await this.getStreakMilestoneXPData();
-      if (streakData.xp > 0 && GratitudeStorage.XP_ENABLED) {
+      if (streakData.xp > 0) {
         const streak = await this.getStreak();
-        await GamificationService.addXP(streakData.xp, {
-          source: XPSourceType.JOURNAL_STREAK_MILESTONE,
-          description: streakData.description,
-          sourceId: `journal_streak_${streak.currentStreak}`,
-        });
+        console.log(`🚨 DEPRECATED: checkAndAwardStreakMilestones called for streak ${streak.currentStreak}`);
+        console.log(`📝 MIGRATION: Journal streak XP (${streakData.xp} for "${streakData.description}") moved to enhanced GamificationService - this call is no longer active`);
+        console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent streak milestone detection`);
       }
     } catch (error) {
       console.error('GratitudeStorage.checkAndAwardStreakMilestones error:', error);
@@ -1501,52 +1426,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   }
 
   /**
-   * Subtract XP for deleted journal entry based on its original position
+   * DEPRECATED: Subtract XP for deleted journal entry based on its original position
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    * 
    * @param originalPosition Original position of deleted entry (1-based)
    * @param date Date of the deleted entry
    */
   private async subtractJournalXP(originalPosition: number, date: DateString): Promise<void> {
-    try {
-      // Calculate XP to subtract based on original position
-      let xpToSubtract = 0;
-      let xpSourceType: XPSourceType;
-      let description = '';
-
-      if (originalPosition <= 3) {
-        // First 3 entries: subtract 20 XP each
-        xpToSubtract = XP_REWARDS.JOURNAL.FIRST_ENTRY;
-        xpSourceType = XPSourceType.JOURNAL_ENTRY;
-        description = `Removed journal entry #${originalPosition}`;
-      } else if (originalPosition <= 13) {
-        // Entries 4-13: subtract 8 XP each (bonus entries)
-        xpToSubtract = XP_REWARDS.JOURNAL.BONUS_ENTRY;
-        xpSourceType = XPSourceType.JOURNAL_BONUS;
-        description = `Removed bonus journal entry #${originalPosition}`;
-      } else {
-        // Entries 14+: no XP to subtract (they didn't give any)
-        return;
-      }
-
-      // Calculate total XP to subtract including milestones
-      let totalXP = xpToSubtract;
-      let descriptions: string[] = [description];
-
-      // Don't subtract milestone XP - milestones are achievements that shouldn't be lost
-
-      // Subtract XP in single transaction
-      if (totalXP > 0) {
-        await GamificationService.subtractXP(totalXP, {
-          source: xpSourceType,
-          description: descriptions.join(' + '),
-          sourceId: `journal_subtract_${date}_${originalPosition}`,
-        });
-      }
-
-    } catch (error) {
-      console.error('GratitudeStorage.subtractJournalXP error:', error);
-      // Don't throw - XP failure shouldn't block gratitude deletion
-    }
+    console.log(`🚨 DEPRECATED: subtractJournalXP called for position ${originalPosition} on ${date}`);
+    console.log(`📝 MIGRATION: Journal XP subtraction moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
+    
+    // XP subtraction logic is now handled via enhanced GamificationService integration
+    // This method is kept for backward compatibility but delegates to new system
   }
 
   /**

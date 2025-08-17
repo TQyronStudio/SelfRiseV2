@@ -17,9 +17,9 @@ interface GoalDailyXPData {
 }
 
 export class GoalStorage implements EntityStorage<Goal> {
-  // XP system enabled for goal actions
-  // ENABLED: XP is needed for weekly challenge tracking and gamification
-  private static XP_ENABLED = true;
+  // XP system disabled - XP handling moved to enhanced GamificationService
+  // MIGRATION: XP logic moved to enhanced GamificationService for consistency
+  private static XP_ENABLED = false;
   // Constants
   private static readonly MAX_DAILY_POSITIVE_XP_PER_GOAL = 3; // Max 3 positive XP per goal per day
   
@@ -272,12 +272,11 @@ export class GoalStorage implements EntityStorage<Goal> {
         completedDate: updatedGoal.completedDate || undefined
       });
 
-      // Award/subtract XP based on progress type asynchronously to prevent UI lag
+      // MIGRATION: All XP logic moved to enhanced GamificationService integration in UI layer
       if (input.progressType === 'subtract') {
-        // Subtract XP for negative progress
-        this.subtractGoalProgressXPForSubtract(goal, input.value);
+        console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value}) - XP will be handled by enhanced GamificationService`);
       } else {
-        // Award XP for positive progress (add/set)
+        // Positive progress (add/set)
         const isCompleted = updatedGoal.status === GoalStatus.COMPLETED;
         console.log(`🎯 Goal progress debug: ${goal.title}`);
         console.log(`   Previous: ${previousCompletionPercentage}% (${goal.currentValue}/${goal.targetValue})`);
@@ -285,7 +284,9 @@ export class GoalStorage implements EntityStorage<Goal> {
         console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
         console.log(`   isCompleted: ${isCompleted}`);
         
-        this.awardGoalProgressXP(goal, previousCompletionPercentage, newCompletionPercentage, isCompleted);
+        // XP rewards now handled via GamificationService integration in UI layer
+        // MIGRATION: Goal XP logic moved to enhanced GamificationService for consistency
+        console.log(`✅ Goal progress updated - XP will be handled by enhanced GamificationService (${previousCompletionPercentage}% → ${newCompletionPercentage}%, completed: ${isCompleted})`);
       }
 
       return newProgress;
@@ -349,12 +350,12 @@ export class GoalStorage implements EntityStorage<Goal> {
         );
       }
 
-      // Get goal info for XP calculation
+      // Get goal info for logging  
       const goal = await this.getById(progressToDelete.goalId);
       
-      // Subtract XP for deleted progress entry before removing it
+      // MIGRATION: XP subtraction for deleted progress now handled via enhanced GamificationService in UI layer
       if (goal) {
-        await this.subtractGoalProgressXP(goal, progressToDelete);
+        console.log(`🗑️ Goal progress deleted: ${goal.title} (${progressToDelete.progressType}: ${progressToDelete.value}) - XP adjustment will be handled by enhanced GamificationService`);
       }
 
       const filteredProgress = progress.filter(p => p.id !== id);
@@ -378,12 +379,10 @@ export class GoalStorage implements EntityStorage<Goal> {
       const progressToDelete = progress.filter(p => p.goalId === goalId);
       const filteredProgress = progress.filter(p => p.goalId !== goalId);
       
-      // Subtract XP for each deleted progress entry (apply same logic as individual deleteProgress)
+      // MIGRATION: XP subtraction for bulk deleted progress now handled via enhanced GamificationService in UI layer
       const goal = await this.getById(goalId);
       if (goal) {
-        for (const deletedProgress of progressToDelete) {
-          await this.subtractGoalProgressXP(goal, deletedProgress);
-        }
+        console.log(`🗑️ Bulk goal progress deletion: ${goal.title} (${progressToDelete.length} entries) - XP adjustments will be handled by enhanced GamificationService`);
       }
       
       await BaseStorage.set(STORAGE_KEYS.GOAL_PROGRESS, filteredProgress);
@@ -598,8 +597,8 @@ export class GoalStorage implements EntityStorage<Goal> {
   // ========================================
 
   /**
-   * Award XP for goal progress, milestones, and completions
-   * Runs asynchronously to prevent UI lag
+   * DEPRECATED: Award XP for goal progress, milestones, and completions
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async awardGoalProgressXP(
     goal: Goal, 
@@ -607,261 +606,59 @@ export class GoalStorage implements EntityStorage<Goal> {
     newPercentage: number, 
     isCompleted: boolean
   ): Promise<void> {
-    try {
-      console.log(`🎯 awardGoalProgressXP: ${goal.title}, isCompleted=${isCompleted}`);
-      
-      // 1. Award progress XP (35 XP, max once per goal per day)
-      await this.awardProgressXP(goal);
-
-      // 2. Check for milestone XP (25%, 50%, 75%)
-      await this.awardMilestoneXP(goal, previousPercentage, newPercentage);
-
-      // 3. Award completion XP if goal was completed
-      if (isCompleted) {
-        console.log(`🎉 Awarding completion XP for goal: ${goal.title}`);
-        await this.awardCompletionXP(goal);
-      } else {
-        console.log(`⏸️ No completion XP - goal not completed (isCompleted=${isCompleted})`);
-      }
-    } catch (error) {
-      console.error('Failed to award goal XP:', error);
-      // Don't throw error - XP is enhancement, shouldn't break core functionality
-    }
+    console.log(`🚨 DEPRECATED: awardGoalProgressXP called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal XP logic moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
   }
 
   /**
-   * Award XP for goal progress (35 XP, max 3 times per goal per day)
+   * DEPRECATED: Award XP for goal progress
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async awardProgressXP(goal: Goal): Promise<void> {
-    try {
-      // Check daily limit first
-      const canReceiveXP = await this.canGoalReceivePositiveXP(goal.id);
-      
-      if (!canReceiveXP) {
-        console.log(`🚫 Goal ${goal.title} has reached daily XP limit (${GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL}/day)`);
-        return;
-      }
-
-      // Award XP - only if enabled
-      if (GoalStorage.XP_ENABLED) {
-        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-        source: XPSourceType.GOAL_PROGRESS,
-        sourceId: goal.id,
-        description: `Added progress to goal: ${goal.title}`,
-        });
-
-        // FIX: Trigger XP animation for goal progress
-        try {
-          const eventData = {
-            amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
-            source: XPSourceType.GOAL_PROGRESS,
-            position: { x: 50, y: 130 }, // Default position
-            timestamp: Date.now(),
-          };
-
-          DeviceEventEmitter.emit('xpGained', eventData);
-          DeviceEventEmitter.emit('xpSmartNotification', {
-            amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
-            source: XPSourceType.GOAL_PROGRESS,
-            timestamp: Date.now(),
-          });
-
-          const sign = XP_REWARDS.GOALS.PROGRESS_ENTRY >= 0 ? '+' : '';
-          console.log(`✨ Goal Progress XP Animation triggered: ${sign}${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP from GOAL_PROGRESS`);
-        } catch (animationError) {
-          console.error('Goal Progress XP Animation trigger error:', animationError);
-        }
-      }
-      
-      // Update tracking (positive XP)
-      await this.updateGoalDailyXPTracking(goal.id, true);
-      
-    } catch (error) {
-      console.error('Failed to award progress XP:', error);
-    }
+    console.log(`🚨 DEPRECATED: awardProgressXP called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal progress XP moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with daily limit tracking`);
   }
 
   /**
-   * Award XP for reaching goal milestones (25%, 50%, 75%)
+   * DEPRECATED: Award XP for goal milestones
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async awardMilestoneXP(goal: Goal, previousPercentage: number, newPercentage: number): Promise<void> {
-    try {
-      const milestones = [
-        { threshold: 25, xp: XP_REWARDS.GOALS.MILESTONE_25_PERCENT, name: '25%' },
-        { threshold: 50, xp: XP_REWARDS.GOALS.MILESTONE_50_PERCENT, name: '50%' },
-        { threshold: 75, xp: XP_REWARDS.GOALS.MILESTONE_75_PERCENT, name: '75%' },
-      ];
-
-      for (const milestone of milestones) {
-        // Check if we crossed this milestone
-        if (previousPercentage < milestone.threshold && newPercentage >= milestone.threshold && GoalStorage.XP_ENABLED) {
-          await GamificationService.addXP(milestone.xp, {
-            source: XPSourceType.GOAL_MILESTONE,
-            sourceId: goal.id,
-            description: `Reached ${milestone.name} completion for goal: ${goal.title}`,
-          });
-
-          // FIX: Trigger XP animation for goal milestone
-          try {
-            const eventData = {
-              amount: milestone.xp,
-              source: XPSourceType.GOAL_MILESTONE,
-              position: { x: 50, y: 130 }, // Default position
-              timestamp: Date.now(),
-            };
-
-            DeviceEventEmitter.emit('xpGained', eventData);
-            DeviceEventEmitter.emit('xpSmartNotification', {
-              amount: milestone.xp,
-              source: XPSourceType.GOAL_MILESTONE,
-              timestamp: Date.now(),
-            });
-
-            const sign = milestone.xp >= 0 ? '+' : '';
-            console.log(`✨ Goal Milestone XP Animation triggered: ${sign}${milestone.xp} XP from GOAL_MILESTONE`);
-          } catch (animationError) {
-            console.error('Goal Milestone XP Animation trigger error:', animationError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to award milestone XP:', error);
-    }
+    console.log(`🚨 DEPRECATED: awardMilestoneXP called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal milestone XP moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with milestone detection`);
   }
 
   /**
-   * Award XP for goal completion (250 XP basic, 350 XP for big goals)
+   * DEPRECATED: Award XP for goal completion
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async awardCompletionXP(goal: Goal): Promise<void> {
-    try {
-      console.log(`🏁 awardCompletionXP called for: ${goal.title}`);
-      console.log(`   Target value: ${goal.targetValue}`);
-      console.log(`   XP_ENABLED: ${GoalStorage.XP_ENABLED}`);
-      
-      // Determine XP amount based on goal target value
-      const isBigGoal = goal.targetValue >= 1000;
-      const xpAmount = isBigGoal ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
-      const description = isBigGoal 
-        ? `Completed big goal (${goal.targetValue}): ${goal.title}` 
-        : `Completed goal: ${goal.title}`;
-
-      console.log(`   isBigGoal: ${isBigGoal}, xpAmount: ${xpAmount}`);
-      console.log(`   About to call GamificationService.addXP...`);
-
-      if (GoalStorage.XP_ENABLED) {
-        console.log(`🚀 Calling GamificationService.addXP with ${xpAmount} XP...`);
-        try {
-          const result = await GamificationService.addXP(xpAmount, {
-            source: XPSourceType.GOAL_COMPLETION,
-            sourceId: goal.id,
-            description,
-          });
-          console.log(`✅ GamificationService.addXP result:`, result);
-          console.log(`✅ Successfully awarded ${xpAmount} completion XP`);
-          
-          // Trigger real-time UI update via DeviceEventEmitter
-          const { DeviceEventEmitter } = await import('react-native');
-          DeviceEventEmitter.emit('xpGained', {
-            amount: xpAmount,
-            source: XPSourceType.GOAL_COMPLETION,
-            description,
-            levelUp: result.leveledUp,
-            newLevel: result.newLevel
-          });
-          console.log(`📡 Emitted xpGained event for real-time UI update`);
-          
-        } catch (xpError) {
-          console.error(`❌ GamificationService.addXP failed:`, xpError);
-          throw xpError;
-        }
-      } else {
-        console.log(`❌ XP_ENABLED is false - not awarding XP`);
-      }
-    } catch (error) {
-      console.error('❌ Failed to award completion XP:', error);
-    }
+    console.log(`🚨 DEPRECATED: awardCompletionXP called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal completion XP moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with big goal detection`);
   }
 
   /**
-   * Handle XP for deleted goal progress entry based on progress type
-   * ADD/SET progress deletion: subtract XP and reduce daily limit
-   * SUBTRACT progress deletion: add XP back and increase available daily limit
+   * DEPRECATED: Handle XP for deleted goal progress entry
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async subtractGoalProgressXP(goal: Goal, deletedProgress: GoalProgress): Promise<void> {
-    try {
-      if (deletedProgress.progressType === 'subtract') {
-        // Deleting a SUBTRACT progress should ADD XP back (reverse the previous subtraction)
-        // This also reduces daily negative count, effectively increasing available positive XP slots
-        if (GoalStorage.XP_ENABLED) {
-          await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-            source: XPSourceType.GOAL_PROGRESS,
-            sourceId: goal.id,
-            description: `Removed negative progress from goal: ${goal.title} (+${deletedProgress.value})`,
-          });
-
-          // FIX: Trigger XP animation for goal progress restoration
-          try {
-            const eventData = {
-              amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
-              source: XPSourceType.GOAL_PROGRESS,
-              position: { x: 50, y: 130 }, // Default position
-              timestamp: Date.now(),
-            };
-
-            DeviceEventEmitter.emit('xpGained', eventData);
-            DeviceEventEmitter.emit('xpSmartNotification', {
-              amount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
-              source: XPSourceType.GOAL_PROGRESS,
-              timestamp: Date.now(),
-            });
-
-            const sign = XP_REWARDS.GOALS.PROGRESS_ENTRY >= 0 ? '+' : '';
-            console.log(`✨ Goal Progress Restoration XP Animation triggered: ${sign}${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP from GOAL_PROGRESS`);
-          } catch (animationError) {
-            console.error('Goal Progress Restoration XP Animation trigger error:', animationError);
-          }
-        }
-        
-        // Update tracking (positive XP from deleting negative)
-        await this.updateGoalDailyXPTracking(goal.id, true);
-        
-      } else {
-        // Deleting an ADD/SET progress should SUBTRACT XP (reverse the previous addition)
-        // This also reduces daily positive count, allowing more positive XP in the future
-        await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-          source: XPSourceType.GOAL_PROGRESS,
-          sourceId: goal.id,
-          description: `Removed progress from goal: ${goal.title} (-${deletedProgress.value})`,
-        });
-        
-        // Update tracking (negative XP from deleting positive)
-        await this.updateGoalDailyXPTracking(goal.id, false);
-      }
-    } catch (error) {
-      console.error('Failed to handle goal progress deletion XP:', error);
-      // Don't throw - XP failure shouldn't block goal deletion
-    }
+    console.log(`🚨 DEPRECATED: subtractGoalProgressXP called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal progress deletion XP (${deletedProgress.progressType}: ${deletedProgress.value}) moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
   }
 
   /**
-   * Subtract XP for "subtract" progress type and update tracking
+   * DEPRECATED: Subtract XP for "subtract" progress type
+   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
    */
   private async subtractGoalProgressXPForSubtract(goal: Goal, subtractValue: number): Promise<void> {
-    try {
-      // Subtract XP for negative progress
-      await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
-        source: XPSourceType.GOAL_PROGRESS,
-        sourceId: goal.id,
-        description: `Subtracted progress from goal: ${goal.title} (-${subtractValue})`,
-      });
-      
-      // Update tracking (negative XP operation - this reduces daily limit for positive XP)
-      await this.updateGoalDailyXPTracking(goal.id, false);
-      
-    } catch (error) {
-      console.error('Failed to subtract XP for goal subtract:', error);
-      // Don't throw - XP failure shouldn't block goal operations
-    }
+    console.log(`🚨 DEPRECATED: subtractGoalProgressXPForSubtract called for goal ${goal.title}`);
+    console.log(`📝 MIGRATION: Goal subtract XP (-${subtractValue}) moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
   }
 
   // ========================================
@@ -869,94 +666,44 @@ export class GoalStorage implements EntityStorage<Goal> {
   // ========================================
 
   /**
-   * Get today's XP tracking data for a specific goal
+   * DEPRECATED: Get today's XP tracking data for a specific goal
+   * MIGRATION: XP tracking moved to enhanced GamificationService for consistency
    */
   private async getGoalDailyXPData(goalId: string): Promise<GoalDailyXPData> {
-    try {
-      const todayString = today();
-      const allTrackingData = await BaseStorage.get<GoalDailyXPData[]>(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING) || [];
-      
-      // Find today's data for this goal
-      let goalData = allTrackingData.find(data => data.date === todayString && data.goalId === goalId);
-      
-      if (!goalData) {
-        // Create new tracking data for this goal today
-        goalData = {
-          date: todayString,
-          goalId,
-          positiveXPCount: 0,
-          negativeXPCount: 0,
-        };
-        allTrackingData.push(goalData);
-        await BaseStorage.set(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING, allTrackingData);
-      }
-      
-      return goalData;
-    } catch (error) {
-      console.error('Failed to get goal daily XP data:', error);
-      // Return default data on error
-      return {
-        date: today(),
-        goalId,
-        positiveXPCount: 0,
-        negativeXPCount: 0,
-      };
-    }
+    console.log(`🚨 DEPRECATED: getGoalDailyXPData called for goal ${goalId}`);
+    console.log(`📝 MIGRATION: Daily XP data tracking moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with built-in daily limit tracking`);
+    
+    // Return default data for backward compatibility
+    return {
+      date: today(),
+      goalId,
+      positiveXPCount: 0,
+      negativeXPCount: 0,
+    };
   }
 
   /**
-   * Update daily XP tracking for a goal
+   * DEPRECATED: Update daily XP tracking for a goal
+   * MIGRATION: XP tracking moved to enhanced GamificationService for consistency
    */
   private async updateGoalDailyXPTracking(goalId: string, isPositiveXP: boolean): Promise<void> {
-    try {
-      const todayString = today();
-      const allTrackingData = await BaseStorage.get<GoalDailyXPData[]>(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING) || [];
-      
-      // Find or create today's data for this goal
-      let goalDataIndex = allTrackingData.findIndex(data => data.date === todayString && data.goalId === goalId);
-      
-      if (goalDataIndex === -1) {
-        // Create new tracking data
-        allTrackingData.push({
-          date: todayString,
-          goalId,
-          positiveXPCount: isPositiveXP ? 1 : 0,
-          negativeXPCount: isPositiveXP ? 0 : 1,
-        });
-      } else {
-        // Update existing data
-        const existingData = allTrackingData[goalDataIndex];
-        if (existingData) {
-          if (isPositiveXP) {
-            existingData.positiveXPCount += 1;
-          } else {
-            existingData.negativeXPCount += 1;
-          }
-        }
-      }
-      
-      await BaseStorage.set(STORAGE_KEYS.GOAL_DAILY_XP_TRACKING, allTrackingData);
-    } catch (error) {
-      console.error('Failed to update goal daily XP tracking:', error);
-    }
+    console.log(`🚨 DEPRECATED: updateGoalDailyXPTracking called for goal ${goalId}`);
+    console.log(`📝 MIGRATION: Daily XP tracking (${isPositiveXP ? 'positive' : 'negative'}) moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with built-in daily limit tracking`);
   }
 
   /**
-   * Check if goal can receive positive XP today (within daily limit)
+   * DEPRECATED: Check if goal can receive positive XP today
+   * MIGRATION: XP limit checking moved to enhanced GamificationService for consistency
    */
   private async canGoalReceivePositiveXP(goalId: string): Promise<boolean> {
-    try {
-      const dailyData = await this.getGoalDailyXPData(goalId);
-      
-      // Calculate effective positive XP count (positive XP - negative XP)
-      // Negative XP reduces the limit, allowing more positive XP
-      const effectivePositiveCount = Math.max(0, dailyData.positiveXPCount - dailyData.negativeXPCount);
-      
-      return effectivePositiveCount < GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL;
-    } catch (error) {
-      console.error('Failed to check goal XP limit:', error);
-      return false; // Conservative approach - deny on error
-    }
+    console.log(`🚨 DEPRECATED: canGoalReceivePositiveXP called for goal ${goalId}`);
+    console.log(`📝 MIGRATION: Daily XP limit checking moved to enhanced GamificationService - this call is no longer active`);
+    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with built-in daily limit checking`);
+    
+    // Return true for backward compatibility (limits handled by GamificationService)
+    return true;
   }
 
   // ========================================
