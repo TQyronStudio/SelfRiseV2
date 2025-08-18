@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { useEnhancedGamification } from '@/src/hooks/useEnhancedGamification';
+// useEnhancedGamification removed - XP handled by gratitudeStorage
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { today } from '@/src/utils/date';
 import { ErrorModal } from '@/src/components/common';
@@ -56,7 +56,7 @@ const SELF_PRAISE_PLACEHOLDERS = [
 export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude', router }: GratitudeInputProps) {
   const { t } = useI18n();
   const { actions } = useGratitude();
-  const { addXP } = useEnhancedGamification();
+  // addXP removed - XP handled by gratitudeStorage
   const [gratitudeText, setGratitudeText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);

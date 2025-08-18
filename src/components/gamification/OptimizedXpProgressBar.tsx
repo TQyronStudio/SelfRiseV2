@@ -14,9 +14,10 @@
  */
 
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter } from 'react-native';
 import { Colors } from '../../constants/colors';
-import { useEnhancedLevel } from '../../hooks/useEnhancedGamification';
+import { GamificationService } from '../../services/gamificationService';
+import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone } from '../../services/levelCalculation';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { useI18n } from '../../hooks/useI18n';
 import { SafeLinearGradient } from '../common';
@@ -57,17 +58,58 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotionEnabled);
   }, []);
   
-  // CRITICAL: Use enhanced hooks for real-time updates (migrated from OptimizedGamificationContext)
+  // CRITICAL: Direct GamificationService integration for real-time updates (unified system)
+  const [gamificationState, setGamificationState] = useState({
+    totalXP: 0,
+    currentLevel: 1,
+    xpProgress: 0,
+    xpToNextLevel: 0,
+    isLoading: true,
+    updateSequence: 0,
+  });
+
+  // Real-time XP data fetching and event listening
+  const fetchGamificationData = useCallback(async () => {
+    try {
+      const stats = await GamificationService.getGamificationStats();
+      
+      setGamificationState(prev => ({
+        totalXP: stats.totalXP,
+        currentLevel: stats.currentLevel,
+        xpProgress: stats.xpProgress,
+        xpToNextLevel: stats.xpToNextLevel,
+        isLoading: false,
+        updateSequence: prev.updateSequence + 1,
+      }));
+    } catch (error) {
+      console.error('OptimizedXpProgressBar: Failed to fetch gamification data:', error);
+      setGamificationState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
+  // Listen for XP updates from GamificationService
+  useEffect(() => {
+    // Initial data fetch
+    fetchGamificationData();
+
+    // Listen for real-time XP changes
+    const subscription = DeviceEventEmitter.addListener('xpGained', fetchGamificationData);
+    
+    return () => subscription.remove();
+  }, [fetchGamificationData]);
+
+  // Memoized utility functions
+  const levelInfo = useMemo(() => getLevelInfo(gamificationState.currentLevel), [gamificationState.currentLevel]);
+  const isMilestone = useMemo(() => isLevelMilestone(gamificationState.currentLevel), [gamificationState.currentLevel]);
+
+  // Destructure for component usage
   const { 
     currentLevel, 
     xpProgress, 
     xpToNextLevel, 
-    getLevelInfo, 
-    isLevelMilestone, 
     isLoading,
-    progressCache,
     updateSequence 
-  } = useEnhancedLevel();
+  } = gamificationState;
   
   const { state: customizationState } = useHomeCustomization();
   
@@ -85,14 +127,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // CACHED CALCULATIONS (Memoized for Performance)
   // ========================================
 
-  // Level info with caching
-  const levelInfo = useMemo(() => {
-    return getLevelInfo(currentLevel);
-  }, [currentLevel, getLevelInfo]);
-
-  const isMilestone = useMemo(() => {
-    return isLevelMilestone(currentLevel);
-  }, [currentLevel, isLevelMilestone]);
+  // levelInfo and isMilestone already defined above with GamificationService data
 
   // Screen dimensions with caching
   const screenMetrics = useMemo(() => {
@@ -302,7 +337,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       
       const progressDiff = Math.abs(xpProgress - currentProgress);
       
-      if (progressDiff < PROGRESS_CACHE_THRESHOLD && progressCache.cacheTime > 0) {
+      if (progressDiff < PROGRESS_CACHE_THRESHOLD) {
         console.log(`⚡ Skipping small progress change: ${progressDiff.toFixed(2)}%`);
         return;
       }
@@ -359,7 +394,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
         clearTimeout(animationThrottleRef.current);
       }
     };
-  }, [xpProgress, animated, isLoading, updateSequence, effectivePerformanceMode, progressCache.cacheTime]);
+  }, [xpProgress, animated, isLoading, updateSequence, effectivePerformanceMode]);
 
   // ========================================
   // OPTIMIZED RENDER HELPERS

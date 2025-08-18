@@ -11,11 +11,11 @@ import {
   HabitListWithCompletion 
 } from '@/src/components/habits';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
-import { useEnhancedGamification } from '@/src/hooks/useEnhancedGamification';
+// useEnhancedGamification removed - XP handled by habitStorage
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
-import { XPSourceType } from '@/src/types/gamification';
+// XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '@/src/constants/gamification';
 
 // Tento styl zajistí, že se hlavní kontejner obrazovky roztáhne na celou výšku
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
 export function HabitsScreen() {
   const { t } = useI18n();
   const { habits, completions, isLoading, actions } = useHabitsData();
-  const { addXP, subtractXP } = useEnhancedGamification();
+  // addXP/subtractXP removed - XP handled by habitStorage
   const params = useLocalSearchParams();
   
   const [isEditMode, setIsEditMode] = useState(false);

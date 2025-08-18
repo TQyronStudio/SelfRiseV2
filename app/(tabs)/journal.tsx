@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
+// useOptimizedGamification removed - components use GamificationService directly
+import { GamificationService } from '@/src/services/gamificationService';
+import { getLevelInfo } from '@/src/services/levelCalculation';
 import { useLevelUpCelebrations } from '@/src/hooks/useLevelUpCelebrations';
 import { today } from '@/src/utils/date';
 import { Colors, Layout } from '@/src/constants';
@@ -19,7 +21,6 @@ export default function JournalScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
-  const { checkForRecentLevelUps, getLevelInfo } = useOptimizedGamification();
   const { celebrationState, checkAndTriggerLevelUpCelebration, hideCelebration } = useLevelUpCelebrations();
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<View>(null);
@@ -130,37 +131,39 @@ export default function JournalScreen() {
     // Check for level-ups after all other celebrations
     setTimeout(async () => {
       try {
-        const recentLevelUps = await checkForRecentLevelUps();
+        const recentLevelUps = await GamificationService.getRecentLevelUps();
         if (recentLevelUps.length > 0) {
           // Get the most recent level-up
           const latestLevelUp = recentLevelUps[0];
-          const levelInfo = getLevelInfo(latestLevelUp.newLevel);
+          if (latestLevelUp) {
+            const levelInfo = getLevelInfo(latestLevelUp.newLevel);
           
-          // Create level-up celebration data
-          const levelUpResult = {
-            success: true,
-            xpGained: 0, // Not needed for celebration
-            totalXP: latestLevelUp.totalXPAtLevelUp,
-            previousLevel: latestLevelUp.previousLevel,
-            newLevel: latestLevelUp.newLevel,
-            leveledUp: true,
-            milestoneReached: latestLevelUp.isMilestone,
-            levelUpInfo: {
-              newLevelTitle: levelInfo.title,
-              newLevelDescription: levelInfo.description || '',
-              ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
-              isMilestone: latestLevelUp.isMilestone,
-            },
-          };
+            // Create level-up celebration data
+            const levelUpResult = {
+              success: true,
+              xpGained: 0, // Not needed for celebration
+              totalXP: latestLevelUp.totalXPAtLevelUp,
+              previousLevel: latestLevelUp.previousLevel,
+              newLevel: latestLevelUp.newLevel,
+              leveledUp: true,
+              milestoneReached: latestLevelUp.isMilestone,
+              levelUpInfo: {
+                newLevelTitle: levelInfo.title,
+                newLevelDescription: levelInfo.description || '',
+                ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
+                isMilestone: latestLevelUp.isMilestone,
+              },
+            };
           
-          // Trigger level-up celebration
-          checkAndTriggerLevelUpCelebration(levelUpResult);
+            // Trigger level-up celebration
+            checkAndTriggerLevelUpCelebration(levelUpResult);
+          }
         }
       } catch (error) {
         console.error('Failed to check for level-ups:', error);
       }
     }, 2000); // Check after other celebrations have had time to show
-  }, [currentCount, t, checkForRecentLevelUps, getLevelInfo, checkAndTriggerLevelUpCelebration]);
+  }, [currentCount, t, checkAndTriggerLevelUpCelebration]);
 
   return (
     <SafeAreaView style={styles.container}>

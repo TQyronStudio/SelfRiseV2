@@ -16,7 +16,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
-import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
+// useOptimizedGamification removed - components use GamificationService directly
+import { GamificationService } from '@/src/services/gamificationService';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { AchievementService } from '@/src/services/achievementService';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
@@ -44,7 +45,6 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function AchievementsScreen() {
   const { t } = useI18n();
-  const { state } = useOptimizedGamification();
   
   // ========================================
   // STATE MANAGEMENT
@@ -52,6 +52,7 @@ export default function AchievementsScreen() {
   
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
   const [achievementStats, setAchievementStats] = useState<AchievementStats | null>(null);
+  const [currentLevel, setCurrentLevel] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,14 +87,16 @@ export default function AchievementsScreen() {
       
       setError(null);
       
-      // Load user achievements and statistics in parallel
-      const [userData, statsData] = await Promise.all([
+      // Load user achievements, statistics and gamification stats in parallel
+      const [userData, statsData, gamificationData] = await Promise.all([
         AchievementStorage.getUserAchievements(),
         AchievementService.getAchievementStats(),
+        GamificationService.getGamificationStats(),
       ]);
       
       setUserAchievements(userData);
       setAchievementStats(statsData);
+      setCurrentLevel(gamificationData.currentLevel);
       
     } catch (err) {
       console.error('Failed to load achievement data:', err);
@@ -614,7 +617,7 @@ export default function AchievementsScreen() {
           stats={achievementStats}
           totalAchievements={CORE_ACHIEVEMENTS.length}
           unlockedCount={overviewStats.unlockedCount}
-          userLevel={state.currentLevel}
+          userLevel={currentLevel}
           userAchievements={userAchievements}
         />
         

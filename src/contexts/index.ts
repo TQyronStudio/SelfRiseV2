@@ -3,8 +3,7 @@ export * from './HabitsContext';
 export * from './GratitudeContext';
 export * from './GoalsContext';
 export * from './HomeCustomizationContext';
-// GamificationContext removed - using OptimizedGamificationContext only
-export * from './OptimizedGamificationContext';
+// GamificationContext and OptimizedGamificationContext removed - components use GamificationService directly
 export { 
   AchievementProvider, 
   useAchievements as useAchievementSystem, 

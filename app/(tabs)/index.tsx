@@ -24,7 +24,8 @@ import {
 } from '@/src/components/challenges';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
-import { useOptimizedGamification } from '@/src/contexts/OptimizedGamificationContext';
+// useOptimizedGamification removed - components use GamificationService directly
+import { GamificationService } from '@/src/services/gamificationService';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
 import { 
@@ -39,7 +40,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
-  const { addXP, subtractXP } = useOptimizedGamification();
   const { state: customizationState } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
@@ -103,7 +103,7 @@ export default function HomeScreen() {
             `Completed scheduled habit: ${habit.name}`;
 
           console.log(`🚀 Real-time XP: Awarding ${xpAmount} XP for ${xpSource}`);
-          await addXP(xpAmount, { source: xpSource, description });
+          await GamificationService.addXP(xpAmount, { source: xpSource, description });
         } else {
           // Habit was uncompleted - deduct XP
           const description = isBonus ? 
@@ -111,7 +111,7 @@ export default function HomeScreen() {
             `Uncompleted scheduled habit: ${habit.name}`;
 
           console.log(`🚀 Real-time XP: Deducting ${xpAmount} XP for ${xpSource}`);
-          await subtractXP(xpAmount, { source: xpSource, description });
+          await GamificationService.subtractXP(xpAmount, { source: xpSource, description });
         }
       }
     } catch (error) {

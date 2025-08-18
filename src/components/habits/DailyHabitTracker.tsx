@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHabitsData } from '../../hooks/useHabitsData';
-import { useEnhancedGamification } from '../../hooks/useEnhancedGamification';
+// useEnhancedGamification removed - XP handled by habitStorage
 import { Colors } from '../../constants/colors';
 import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../utils/date';
 import { Habit, HabitCompletion } from '../../types/habit';
-import { XPSourceType } from '../../types/gamification';
+// XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '../../constants/gamification';
 
 interface DailyHabitTrackerProps {
@@ -24,7 +24,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   date = formatDateToString(new Date()) 
 }) => {
   const { habits, completions, actions, isLoading } = useHabitsData();
-  const { addXP, subtractXP } = useEnhancedGamification();
+  // addXP/subtractXP removed - XP handled by habitStorage
   const [completingHabit, setCompletingHabit] = useState<string | null>(null);
   
   // Filter active habits for the current date
