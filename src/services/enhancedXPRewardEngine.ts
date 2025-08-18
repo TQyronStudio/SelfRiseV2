@@ -279,15 +279,6 @@ export class EnhancedXPRewardEngine {
       // Save reward to history
       await this.saveXPRewardToHistory(rewardResult);
       
-      // Emit enhanced XP award event
-      DeviceEventEmitter.emit('enhanced_xp_awarded', {
-        challenge,
-        progress,
-        rewardResult,
-        xpResult,
-        timestamp: Date.now()
-      });
-
       console.log(`🎉 Enhanced XP awarded: ${rewardResult.totalXPAwarded} XP (${rewardResult.rewardTier} tier)`);
       
       return { 
