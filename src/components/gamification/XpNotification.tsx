@@ -120,11 +120,23 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           name: 'journal entries',
           color: '#2196F3',
         };
+      case XPSourceType.JOURNAL_BONUS_MILESTONE:
+        return {
+          icon: '⭐',
+          name: 'journal milestones',
+          color: '#2196F3',
+        };
       case XPSourceType.GOAL_PROGRESS:
       case XPSourceType.GOAL_COMPLETION:
         return {
           icon: '🎯',
           name: 'goals',
+          color: '#FF9800',
+        };
+      case XPSourceType.GOAL_MILESTONE:
+        return {
+          icon: '🎯',
+          name: 'goal milestones',
           color: '#FF9800',
         };
       case XPSourceType.HABIT_STREAK_MILESTONE:
@@ -139,6 +151,30 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           icon: '🏆',
           name: 'achievements',
           color: '#FFD700',
+        };
+      case XPSourceType.MONTHLY_CHALLENGE:
+        return {
+          icon: '📅',
+          name: 'monthly challenges',
+          color: '#673AB7',
+        };
+      case XPSourceType.XP_MULTIPLIER_BONUS:
+        return {
+          icon: '⚡',
+          name: 'multiplier bonuses',
+          color: '#E91E63',
+        };
+      case XPSourceType.DAILY_LAUNCH:
+        return {
+          icon: '🌅',
+          name: 'daily launches',
+          color: '#00BCD4',
+        };
+      case XPSourceType.RECOMMENDATION_FOLLOW:
+        return {
+          icon: '💡',
+          name: 'recommendations',
+          color: '#8BC34A',
         };
       default:
         return {
@@ -167,14 +203,15 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     if (data.sources.length === 1) {
       const source = data.sources[0];
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-      const sourceName = t(`gamification.sources.${source?.source}`, sourceInfo.name) || sourceInfo.name;
+      const sourceName = (t(`gamification.sources.${source?.source}`) || sourceInfo.name || 'activities').toString();
       
       if (source?.count === 1) {
+        const singularSource = sourceName && sourceName.length > 1 ? sourceName.slice(0, -1) : sourceName;
         return t('gamification.xp.announcement.single', { 
           xp: netXP, 
-          source: sourceName.slice(0, -1),
+          source: singularSource,
           count: 1
-        }) || `Gained ${netXP} experience points from completing 1 ${sourceName.slice(0, -1)}`;
+        }) || `Gained ${netXP} experience points from completing 1 ${singularSource}`;
       } else {
         return t('gamification.xp.announcement.multiple_same', {
           xp: netXP,
@@ -224,7 +261,8 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
       
       if (source?.count === 1) {
-        return `${sourceInfo.icon} ${sourceInfo.name.slice(0, -1)} completed`;
+        const singularName = sourceInfo.name && sourceInfo.name.length > 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name;
+        return `${sourceInfo.icon} ${singularName} completed`;
       } else {
         return `${sourceInfo.icon} ${source?.count || 0} ${sourceInfo.name} completed`;
       }
@@ -235,7 +273,10 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         .map(source => {
           const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
           const count = source?.count || 0;
-          return `${count} ${count === 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name}`;
+          const sourceName = count === 1 && sourceInfo.name && sourceInfo.name.length > 1 
+            ? sourceInfo.name.slice(0, -1) 
+            : sourceInfo.name;
+          return `${count} ${sourceName}`;
         });
       
       if (sourceTexts.length === 0) {

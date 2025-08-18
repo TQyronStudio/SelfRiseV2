@@ -78,6 +78,42 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           icon: '🏆',
           shadowColor: '#FFD700',
         };
+      case XPSourceType.JOURNAL_BONUS_MILESTONE:
+        return {
+          color: '#2196F3',
+          icon: '⭐',
+          shadowColor: '#2196F3',
+        };
+      case XPSourceType.GOAL_MILESTONE:
+        return {
+          color: '#FF9800',
+          icon: '🎯',
+          shadowColor: '#FF9800',
+        };
+      case XPSourceType.MONTHLY_CHALLENGE:
+        return {
+          color: '#673AB7',
+          icon: '📅',
+          shadowColor: '#673AB7',
+        };
+      case XPSourceType.XP_MULTIPLIER_BONUS:
+        return {
+          color: '#E91E63',
+          icon: '⚡',
+          shadowColor: '#E91E63',
+        };
+      case XPSourceType.DAILY_LAUNCH:
+        return {
+          color: '#00BCD4',
+          icon: '🌅',
+          shadowColor: '#00BCD4',
+        };
+      case XPSourceType.RECOMMENDATION_FOLLOW:
+        return {
+          color: '#8BC34A',
+          icon: '💡',
+          shadowColor: '#8BC34A',
+        };
       default:
         return {
           color: Colors.primary,
@@ -111,17 +147,32 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           return t('gamification.sources.journal_streak_milestone') || 'journal streak milestone';
         case XPSourceType.ACHIEVEMENT_UNLOCK:
           return t('gamification.sources.achievement_unlock') || 'achievement unlock';
+        case XPSourceType.JOURNAL_BONUS_MILESTONE:
+          return t('gamification.sources.journal_bonus_milestone') || 'journal milestone';
+        case XPSourceType.GOAL_MILESTONE:
+          return t('gamification.sources.goal_milestone') || 'goal milestone';
+        case XPSourceType.MONTHLY_CHALLENGE:
+          return t('gamification.sources.monthly_challenge') || 'monthly challenge';
+        case XPSourceType.XP_MULTIPLIER_BONUS:
+          return t('gamification.sources.xp_multiplier_bonus') || 'multiplier bonus';
+        case XPSourceType.DAILY_LAUNCH:
+          return t('gamification.sources.daily_launch') || 'daily launch';
+        case XPSourceType.RECOMMENDATION_FOLLOW:
+          return t('gamification.sources.recommendation_follow') || 'recommendation follow';
         default:
           return t('gamification.sources.general_activity') || 'activity';
       }
     })();
 
+    // Ensure sourceName is always a string to prevent .slice() errors
+    const safeSourceName = (sourceName || 'activity').toString();
+
     if (amount >= 0) {
-      return t('gamification.xp.popup.gained', { amount, source: sourceName }) || 
-             `Gained ${amount} experience points from ${sourceName}`;
+      return t('gamification.xp.popup.gained', { amount, source: safeSourceName }) || 
+             `Gained ${amount} experience points from ${safeSourceName}`;
     } else {
-      return t('gamification.xp.popup.lost', { amount: Math.abs(amount), source: sourceName }) || 
-             `Lost ${Math.abs(amount)} experience points from ${sourceName}`;
+      return t('gamification.xp.popup.lost', { amount: Math.abs(amount), source: safeSourceName }) || 
+             `Lost ${Math.abs(amount)} experience points from ${safeSourceName}`;
     }
   };
 
