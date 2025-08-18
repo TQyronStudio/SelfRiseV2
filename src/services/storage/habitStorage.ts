@@ -2,15 +2,8 @@ import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';
 import { DateString } from '../../types/common';
-// Gamification imports for XP system
-import { GamificationService } from '../gamificationService';
-import { XPSourceType } from '../../types/gamification';
-import { XP_REWARDS } from '../../constants/gamification';
 
 export class HabitStorage implements EntityStorage<Habit> {
-  // XP system enabled for habit completions
-  // DISABLED: XP is now handled in UI layer (Home screen) for real-time updates
-  private static XP_ENABLED = false;
   // Habit CRUD operations
   async getAll(): Promise<Habit[]> {
     try {
@@ -220,9 +213,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       completions.push(newCompletion);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);
       
-      // XP rewards now handled via GamificationService integration in UI layer
-      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
-      console.log(`✅ Habit completion created - XP will be handled by enhanced GamificationService`);
+      console.log(`✅ Habit completion created`);
       
       return newCompletion;
     } catch (error) {
@@ -287,9 +278,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       const filteredCompletions = completions.filter(completion => completion.id !== id);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, filteredCompletions);
       
-      // XP subtraction now handled via GamificationService integration in UI layer
-      // MIGRATION: XP logic moved to enhanced GamificationService for consistency
-      console.log(`✅ Habit completion deleted - XP subtraction will be handled by enhanced GamificationService`);
+      console.log(`✅ Habit completion deleted`);
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(
@@ -365,65 +354,12 @@ export class HabitStorage implements EntityStorage<Habit> {
   }
 
   // ========================================
-  // XP SYSTEM INTEGRATION
+  // STREAK MANAGEMENT
   // ========================================
 
-  /**
-   * DEPRECATED: Award XP for habit completion asynchronously (non-blocking)
-   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
-   * This method is kept for backward compatibility but no longer used
-   * @param habitId ID of completed habit
-   * @param isBonus Whether this is a bonus completion
-   */
-  private awardHabitCompletionXPAsync(habitId: string, isBonus: boolean): void {
-    console.log(`🚨 DEPRECATED: awardHabitCompletionXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
-    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
-    
-    // XP handling now performed via enhanced GamificationService integration in UI layer
-    // This preserves the method signature for any remaining references but delegates to new system
-  }
 
   /**
-   * DEPRECATED: Award XP for habit completion
-   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
-   * This method is kept for backward compatibility but should not be used
-   * @param habitId ID of completed habit
-   * @param isBonus Whether this is a bonus completion
-   */
-  private async awardHabitCompletionXP(habitId: string, isBonus: boolean): Promise<void> {
-    console.log(`🚨 DEPRECATED: awardHabitCompletionXP called for habit ${habitId}, isBonus: ${isBonus}`);
-    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
-    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
-    
-    // XP handling now performed via enhanced GamificationService integration in UI layer
-    // This preserves the method signature for any remaining references but delegates to new system
-  }
-
-  /**
-   * DEPRECATED: Subtract XP for habit un-completion asynchronously (non-blocking)
-   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
-   * @param habitId ID of un-completed habit  
-   * @param isBonus Whether this was a bonus completion
-   */
-  private awardHabitUncompleteXPAsync(habitId: string, isBonus: boolean): void {
-    console.log(`🚨 DEPRECATED: awardHabitUncompleteXPAsync called for habit ${habitId}, isBonus: ${isBonus}`);
-    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
-  }
-
-  /**
-   * DEPRECATED: Subtract XP for habit un-completion
-   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
-   * @param habitId ID of un-completed habit
-   * @param isBonus Whether this was a bonus completion
-   */
-  private async awardHabitUncompleteXP(habitId: string, isBonus: boolean): Promise<void> {
-    console.log(`🚨 DEPRECATED: awardHabitUncompleteXP called for habit ${habitId}, isBonus: ${isBonus}`);
-    console.log(`📝 MIGRATION: XP logic moved to enhanced GamificationService - this call is no longer active`);
-    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration in UI layer for consistent XP handling`);
-  }
-
-  /**
-   * Check for streak milestones and award bonus XP
+   * Check for streak milestones and log achievements
    * @param habitId ID of the habit to check streaks for
    */
   private async checkAndAwardStreakMilestones(habitId: string): Promise<void> {
@@ -441,8 +377,7 @@ export class HabitStorage implements EntityStorage<Habit> {
       
       for (const milestone of milestones) {
         if (currentStreak >= milestone && previousStreak < milestone) {
-          // MIGRATION: Streak milestone XP now handled via enhanced GamificationService integration in UI layer
-          console.log(`🏆 Streak milestone ${milestone} reached for habit ${habitId} - XP will be handled by enhanced GamificationService`);
+          console.log(`🏆 Streak milestone ${milestone} reached for habit ${habitId}`);
           break; // Only detect one milestone per completion
         }
       }
@@ -453,18 +388,6 @@ export class HabitStorage implements EntityStorage<Habit> {
     }
   }
 
-  /**
-   * DEPRECATED: Award XP for reaching a streak milestone
-   * MIGRATION: XP logic moved to enhanced GamificationService for consistency
-   * Streak milestones should be handled via enhanced GamificationService integration
-   * @param habitId ID of the habit
-   * @param milestone Streak milestone reached
-   */
-  private async awardStreakMilestoneXP(habitId: string, milestone: number): Promise<void> {
-    console.log(`🚨 DEPRECATED: awardStreakMilestoneXP called for habit ${habitId}, milestone ${milestone}`);
-    console.log(`📝 MIGRATION: Streak milestone XP moved to enhanced GamificationService - this call is no longer active`);
-    console.log(`💡 USE INSTEAD: Enhanced GamificationService integration with streak milestone detection`);
-  }
 
   /**
    * Calculate current streak for a habit (public method)
@@ -623,22 +546,6 @@ export class HabitStorage implements EntityStorage<Habit> {
   // DEBUG & TESTING UTILITIES
   // ========================================
 
-  /**
-   * Enable or disable XP operations (for testing/debugging)
-   * @param enabled Whether XP operations should be enabled
-   */
-  static setXPEnabled(enabled: boolean): void {
-    HabitStorage.XP_ENABLED = enabled;
-    console.log(`HabitStorage XP operations ${enabled ? 'ENABLED' : 'DISABLED'}`);
-  }
-
-  /**
-   * Get current XP enabled status
-   * @returns Whether XP operations are currently enabled
-   */
-  static isXPEnabled(): boolean {
-    return HabitStorage.XP_ENABLED;
-  }
 
   // ========================================
   // WEEKLY CHALLENGE SUPPORT METHODS
