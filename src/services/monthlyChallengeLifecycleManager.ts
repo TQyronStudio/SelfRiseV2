@@ -7,7 +7,6 @@ import { DeviceEventEmitter, AppState, NativeEventSubscription } from 'react-nat
 import { MonthlyChallengeService } from './monthlyChallengeService';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
 import { UserActivityTracker } from './userActivityTracker';
-import { EnhancedXPRewardEngine } from './enhancedXPRewardEngine';
 import { StarRatingService } from './starRatingService';
 import { GamificationService } from './gamificationService';
 import { 

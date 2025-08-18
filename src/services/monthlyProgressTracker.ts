@@ -1451,14 +1451,11 @@ export class MonthlyProgressTracker {
    */
   private static async updateChallengeStreak(challengeId: string, completed: boolean): Promise<void> {
     try {
-      // Import EnhancedXPRewardEngine using require for Jest compatibility
-      const { EnhancedXPRewardEngine } = require('./enhancedXPRewardEngine');
-      
       const challenge = await this.getChallengeById(challengeId);
       if (!challenge) return;
       
-      // Update monthly streak through EnhancedXPRewardEngine
-      await EnhancedXPRewardEngine.updateMonthlyStreak(
+      // Update monthly streak through GamificationService
+      await GamificationService.updateMonthlyStreak(
         challenge.category,
         completed,
         challenge.starLevel

@@ -5,7 +5,10 @@ import {
   XPTransaction, 
   XPSourceType, 
   GamificationStats,
-  BatchedXPNotification 
+  BatchedXPNotification,
+  MonthlyChallenge,
+  MonthlyChallengeProgress,
+  AchievementCategory
 } from '../types/gamification';
 import { 
   XP_REWARDS, 
@@ -154,6 +157,103 @@ interface LevelUpEvent {
   totalXPAtLevelUp: number;
   triggerSource: XPSourceType;
   isMilestone: boolean;
+}
+
+// ========================================
+// ENHANCED XP REWARD INTERFACES (Migrated)
+// ========================================
+
+/**
+ * Enhanced XP calculation result with detailed breakdown (migrated from enhancedXPRewardEngine)
+ */
+export interface EnhancedXPRewardResult {
+  challengeId: string;
+  starLevel: 1 | 2 | 3 | 4 | 5;
+  
+  // Base calculation
+  baseXPReward: number;
+  completionPercentage: number;
+  
+  // Bonus calculations
+  completionBonus: number;         // 20% for 100%, pro-rated for 70-99%
+  streakBonus: number;            // +100 XP per consecutive month
+  milestoneBonus: number;         // Additional milestone bonuses
+  
+  // Final calculation
+  totalXPAwarded: number;
+  
+  // Metadata  
+  bonusBreakdown: EnhancedXPBonusBreakdown;
+  rewardTier: 'standard' | 'excellent' | 'perfect' | 'legendary';
+  calculatedAt: Date;
+  
+  // Validation
+  isBalanced: boolean;
+  balanceNotes?: string[];
+}
+
+/**
+ * Detailed bonus breakdown for transparency (migrated from enhancedXPRewardEngine)
+ */
+export interface EnhancedXPBonusBreakdown {
+  baseReward: {
+    amount: number;
+    starLevel: number;
+    description: string;
+  };
+  
+  completionBonus?: {
+    amount: number;
+    percentage: number;
+    type: 'perfect' | 'partial';
+    description: string;
+  };
+  
+  streakBonus?: {
+    amount: number;
+    streakLength: number;
+    description: string;
+  };
+  
+  milestoneBonus?: {
+    amount: number;
+    milestones: string[];
+    description: string;
+  };
+  
+  totalBonuses: number;
+  bonusPercentage: number; // Percentage of base reward
+}
+
+/**
+ * Monthly streak data for bonus calculations (migrated from enhancedXPRewardEngine)
+ */
+export interface EnhancedMonthlyStreakData {
+  currentStreak: number;           // Consecutive completed months
+  longestStreak: number;           // All-time longest streak
+  totalCompletedMonths: number;    // Total months completed ever
+  lastCompletionMonth: string;     // "YYYY-MM" format
+  streakBonusEligible: boolean;    // Whether eligible for streak bonus
+  
+  // Streak history (last 12 months)
+  recentHistory: Array<{
+    month: string;
+    completed: boolean;
+    completionPercentage: number;
+    starLevel: number;
+  }>;
+}
+
+/**
+ * XP balance validation result (migrated from enhancedXPRewardEngine)
+ */
+export interface EnhancedXPBalanceValidation {
+  isBalanced: boolean;
+  totalXP: number;
+  comparedToWeeklyAverage: number;    // How much vs avg weekly XP
+  comparedToMonthlyBaseline: number;   // How much vs expected monthly XP
+  warnings: string[];
+  recommendations: string[];
 }
 
 /**
@@ -2207,4 +2307,613 @@ export class GamificationService {
       storageHealth
     ].join('\n');
   }
+
+  // ========================================
+  // ENHANCED XP REWARD ENGINE - INTEGRATED
+  // ========================================
+
+  /**
+   * Calculate enhanced XP reward for monthly challenges (migrated from enhancedXPRewardEngine)
+   * Provides sophisticated star-based calculation with completion, streak, and milestone bonuses
+   */
+  static async calculateEnhancedXPReward(
+    challenge: MonthlyChallenge,
+    progress: MonthlyChallengeProgress
+  ): Promise<EnhancedXPRewardResult> {
+    try {
+      console.log(`🔧 Calculating enhanced XP reward for challenge ${challenge.id}`);
+      
+      // Get base reward from challenge or fallback to star level
+      const baseXPReward = challenge.baseXPReward || this.ENHANCED_STAR_BASE_REWARDS[challenge.starLevel];
+      
+      // Get completion data
+      const completionPercentage = progress.completionPercentage;
+      
+      // Calculate completion bonus
+      const completionBonus = await this.calculateEnhancedCompletionBonus(baseXPReward, completionPercentage);
+      
+      // Get streak data and calculate streak bonus
+      const streakData = await this.getEnhancedMonthlyStreakData(challenge.category);
+      const streakBonus = this.calculateEnhancedStreakBonus(streakData);
+      
+      // Calculate milestone bonuses
+      const milestoneBonus = await this.calculateEnhancedMilestoneBonus(challenge, progress, streakData);
+      
+      // Calculate total before validation
+      const preliminaryTotal = baseXPReward + completionBonus + streakBonus + milestoneBonus;
+      const totalXPAwarded = this.validateAndCapEnhancedReward(baseXPReward, preliminaryTotal);
+      
+      // Generate bonus breakdown
+      const bonusBreakdown = await this.generateEnhancedBonusBreakdown(
+        baseXPReward, challenge.starLevel, completionPercentage, completionBonus,
+        streakBonus, streakData, milestoneBonus
+      );
+      
+      // Determine reward tier
+      const rewardTier = this.determineEnhancedRewardTier(totalXPAwarded, baseXPReward);
+      
+      // Validate XP balance
+      const balanceValidation = await this.validateEnhancedXPBalance(totalXPAwarded, challenge.starLevel);
+      
+      const result: EnhancedXPRewardResult = {
+        challengeId: challenge.id,
+        starLevel: challenge.starLevel,
+        baseXPReward,
+        completionPercentage,
+        completionBonus,
+        streakBonus,
+        milestoneBonus,
+        totalXPAwarded,
+        bonusBreakdown,
+        rewardTier,
+        calculatedAt: new Date(),
+        isBalanced: balanceValidation.isBalanced,
+        balanceNotes: balanceValidation.warnings
+      };
+      
+      console.log(`✅ Enhanced XP calculation complete: ${totalXPAwarded} XP (base: ${baseXPReward})`);
+      return result;
+      
+    } catch (error) {
+      console.error('Enhanced XP calculation failed:', error);
+      return await this.getFallbackEnhancedXPReward(challenge, progress);
+    }
+  }
+
+  /**
+   * Award monthly completion with enhanced XP calculation (migrated from enhancedXPRewardEngine)
+   * Complete workflow for awarding XP when monthly challenge is completed
+   */
+  static async awardMonthlyCompletion(
+    challenge: MonthlyChallenge,
+    progress: MonthlyChallengeProgress
+  ): Promise<{ success: boolean; xpResult: any; rewardResult: EnhancedXPRewardResult; totalXPAwarded: number; bonusBreakdown: EnhancedXPBonusBreakdown }> {
+    try {
+      // Calculate enhanced reward
+      const rewardResult = await this.calculateEnhancedXPReward(challenge, progress);
+      
+      // Award XP through unified gamification system
+      const xpResult = await this.addXP(rewardResult.totalXPAwarded, {
+        source: XPSourceType.MONTHLY_CHALLENGE,
+        sourceId: challenge.id,
+        description: `Monthly challenge completed: ${challenge.title}`,
+        metadata: {
+          challengeCategory: challenge.category,
+          starLevel: challenge.starLevel,
+          completionPercentage: progress.completionPercentage,
+          bonusBreakdown: rewardResult.bonusBreakdown
+        }
+      });
+      
+      // Save reward to history
+      await this.saveEnhancedXPRewardToHistory(rewardResult);
+      
+      console.log(`🎉 Monthly challenge XP awarded: ${rewardResult.totalXPAwarded} XP`);
+      
+      return {
+        success: true,
+        xpResult,
+        rewardResult,
+        totalXPAwarded: rewardResult.totalXPAwarded,
+        bonusBreakdown: rewardResult.bonusBreakdown
+      };
+      
+    } catch (error) {
+      console.error('Monthly completion XP award failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update monthly streak data for category (migrated from enhancedXPRewardEngine)
+   * KRITICKÁ METODA - používá monthlyProgressTracker.ts:1461-1465
+   */
+  static async updateMonthlyStreak(
+    category: AchievementCategory,
+    completed: boolean,
+    starLevel?: number
+  ): Promise<void> {
+    try {
+      const currentMonth = formatDateToString(new Date()).substring(0, 7); // YYYY-MM
+      const streakData = await this.getEnhancedMonthlyStreakData(category);
+      
+      // Check if this month was already processed
+      const existingEntry = streakData.recentHistory.find(entry => entry.month === currentMonth);
+      if (existingEntry && existingEntry.completed === completed) {
+        console.log(`Monthly streak for ${category} already updated for ${currentMonth}`);
+        return;
+      }
+      
+      // Update or add current month entry
+      const updatedHistory = streakData.recentHistory.filter(entry => entry.month !== currentMonth);
+      updatedHistory.push({
+        month: currentMonth,
+        completed,
+        completionPercentage: completed ? 100 : 0,
+        starLevel: starLevel || 1
+      });
+      
+      // Sort by month and keep last 12
+      updatedHistory.sort((a, b) => a.month.localeCompare(b.month));
+      const recentHistory = updatedHistory.slice(-12);
+      
+      // Recalculate streak
+      let currentStreak = 0;
+      let longestStreak = streakData.longestStreak;
+      
+      // Count current streak from most recent backwards
+      for (let i = recentHistory.length - 1; i >= 0; i--) {
+        if (recentHistory[i]?.completed) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+      
+      // Update longest streak if necessary
+      if (currentStreak > longestStreak) {
+        longestStreak = currentStreak;
+      }
+      
+      const updatedStreakData: EnhancedMonthlyStreakData = {
+        currentStreak,
+        longestStreak,
+        totalCompletedMonths: recentHistory.filter(entry => entry.completed).length,
+        lastCompletionMonth: completed ? currentMonth : streakData.lastCompletionMonth,
+        streakBonusEligible: currentStreak > 0,
+        recentHistory
+      };
+      
+      // Save updated streak data
+      await AsyncStorage.setItem(
+        `${this.ENHANCED_STORAGE_KEYS.STREAK_DATA}_${category}`,
+        JSON.stringify(updatedStreakData)
+      );
+      
+      // Clear cache
+      this.enhancedStreakCache.delete(`streak_${category}`);
+      
+      console.log(`📊 Monthly streak updated for ${category}: ${currentStreak} months`);
+      
+    } catch (error) {
+      console.error('Update monthly streak failed:', error);
+      throw error;
+    }
+  }
+
+  // ========================================
+  // ENHANCED XP HELPER METHODS (Private)
+  // ========================================
+
+  /**
+   * Calculate completion bonus based on percentage (migrated from enhancedXPRewardEngine)
+   */
+  private static async calculateEnhancedCompletionBonus(
+    baseXP: number, 
+    completionPercentage: number
+  ): Promise<number> {
+    try {
+      if (completionPercentage < this.ENHANCED_BONUS_CONFIG.PARTIAL_COMPLETION_THRESHOLD * 100) {
+        return 0; // No bonus for < 70% completion
+      }
+      
+      // Pro-rated bonus: 0-20% based on completion percentage
+      // This is more intuitive for users than threshold-based scaling
+      const bonusRatio = (completionPercentage / 100) * this.ENHANCED_BONUS_CONFIG.PERFECT_COMPLETION_BONUS;
+      return Math.round(baseXP * bonusRatio);
+      
+    } catch (error) {
+      console.error('GamificationService.calculateEnhancedCompletionBonus error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate streak bonus (migrated from enhancedXPRewardEngine)
+   */
+  private static calculateEnhancedStreakBonus(streakData: EnhancedMonthlyStreakData): number {
+    try {
+      if (!streakData.streakBonusEligible || streakData.currentStreak === 0) {
+        return 0;
+      }
+
+      // Linear scaling: 100 XP per consecutive month, capped at 500 XP
+      const bonusAmount = Math.min(
+        streakData.currentStreak * this.ENHANCED_BONUS_CONFIG.STREAK_BONUS_PER_MONTH,
+        this.ENHANCED_BONUS_CONFIG.MAX_STREAK_BONUS
+      );
+
+      return bonusAmount;
+      
+    } catch (error) {
+      console.error('GamificationService.calculateEnhancedStreakBonus error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get monthly streak data for category with caching (migrated from enhancedXPRewardEngine)
+   */
+  private static async getEnhancedMonthlyStreakData(category: AchievementCategory): Promise<EnhancedMonthlyStreakData> {
+    try {
+      const cacheKey = `streak_${category}`;
+      
+      // Check cache first
+      const cached = this.enhancedStreakCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < this.ENHANCED_CACHE_TTL) {
+        return cached.data;
+      }
+      
+      // Load from storage
+      const stored = await AsyncStorage.getItem(`${this.ENHANCED_STORAGE_KEYS.STREAK_DATA}_${category}`);
+      
+      let streakData: EnhancedMonthlyStreakData;
+      
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        streakData = {
+          ...parsed,
+          // Ensure data integrity
+          currentStreak: parsed.currentStreak || 0,
+          longestStreak: parsed.longestStreak || 0,
+          totalCompletedMonths: parsed.totalCompletedMonths || 0,
+          lastCompletionMonth: parsed.lastCompletionMonth || '',
+          streakBonusEligible: (parsed.currentStreak || 0) > 0,
+          recentHistory: parsed.recentHistory || []
+        };
+      } else {
+        // Initialize empty streak data
+        streakData = {
+          currentStreak: 0,
+          longestStreak: 0,
+          totalCompletedMonths: 0,
+          lastCompletionMonth: '',
+          streakBonusEligible: false,
+          recentHistory: []
+        };
+      }
+      
+      // Cache the result
+      this.enhancedStreakCache.set(cacheKey, {
+        data: streakData,
+        timestamp: Date.now()
+      });
+      
+      return streakData;
+      
+    } catch (error) {
+      console.error('GamificationService.getEnhancedMonthlyStreakData error:', error);
+      // Return safe default
+      return {
+        currentStreak: 0,
+        longestStreak: 0,
+        totalCompletedMonths: 0,
+        lastCompletionMonth: '',
+        streakBonusEligible: false,
+        recentHistory: []
+      };
+    }
+  }
+
+  /**
+   * Calculate milestone bonuses (migrated from enhancedXPRewardEngine)
+   */
+  private static async calculateEnhancedMilestoneBonus(
+    challenge: MonthlyChallenge,
+    progress: MonthlyChallengeProgress,
+    streakData: EnhancedMonthlyStreakData
+  ): Promise<number> {
+    try {
+      let totalMilestoneBonus = 0;
+      
+      // First completion bonus
+      if (streakData.totalCompletedMonths === 0) {
+        totalMilestoneBonus += this.ENHANCED_BONUS_CONFIG.FIRST_COMPLETION_BONUS;
+      }
+      
+      // Category mastery bonus (3 perfect months in same category)
+      const categoryPerfectCount = await this.getEnhancedCategoryPerfectMonthsCount(challenge.category);
+      if (categoryPerfectCount >= 2 && progress.completionPercentage >= 100) {
+        totalMilestoneBonus += this.ENHANCED_BONUS_CONFIG.CATEGORY_MASTERY_BONUS;
+      }
+      
+      // Perfect quarter bonus (3 consecutive perfect months)
+      if (streakData.currentStreak >= 2 && 
+          this.hasEnhancedRecentPerfectCompletions(streakData, 2) && 
+          progress.completionPercentage >= 100) {
+        totalMilestoneBonus += this.ENHANCED_BONUS_CONFIG.PERFECT_QUARTER_BONUS;
+      }
+      
+      return totalMilestoneBonus;
+      
+    } catch (error) {
+      console.error('GamificationService.calculateEnhancedMilestoneBonus error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Validate and cap total reward (migrated from enhancedXPRewardEngine)
+   */
+  private static validateAndCapEnhancedReward(baseXP: number, totalXP: number): number {
+    try {
+      const maxAllowedXP = Math.round(baseXP * this.ENHANCED_BONUS_CONFIG.MAX_TOTAL_MULTIPLIER);
+      
+      if (totalXP > maxAllowedXP) {
+        console.warn(`Enhanced XP reward capped: ${totalXP} -> ${maxAllowedXP} (base: ${baseXP})`);
+        return maxAllowedXP;
+      }
+      
+      return totalXP;
+      
+    } catch (error) {
+      console.error('GamificationService.validateAndCapEnhancedReward error:', error);
+      return baseXP; // Safe fallback
+    }
+  }
+
+  /**
+   * Generate detailed bonus breakdown (migrated from enhancedXPRewardEngine)
+   */
+  private static async generateEnhancedBonusBreakdown(
+    baseXPReward: number,
+    starLevel: number,
+    completionPercentage: number,
+    completionBonus: number,
+    streakBonus: number,
+    streakData: EnhancedMonthlyStreakData,
+    milestoneBonus: number
+  ): Promise<EnhancedXPBonusBreakdown> {
+    const totalBonuses = completionBonus + streakBonus + milestoneBonus;
+    const bonusPercentage = baseXPReward > 0 ? (totalBonuses / baseXPReward) * 100 : 0;
+    
+    return {
+      baseReward: {
+        amount: baseXPReward,
+        starLevel,
+        description: `${starLevel}★ monthly challenge base reward`
+      },
+      
+      ...(completionPercentage >= this.ENHANCED_BONUS_CONFIG.PARTIAL_COMPLETION_THRESHOLD * 100 && {
+        completionBonus: {
+          amount: completionBonus,
+          percentage: completionPercentage,
+          type: completionPercentage >= 100 ? 'perfect' : 'partial',
+          description: completionPercentage >= 100 
+            ? `Perfect completion bonus (${this.ENHANCED_BONUS_CONFIG.PERFECT_COMPLETION_BONUS * 100}%)`
+            : `Partial completion bonus (${completionPercentage}%)`
+        }
+      }),
+      
+      ...(streakBonus > 0 && {
+        streakBonus: {
+          amount: streakBonus,
+          streakLength: streakData.currentStreak,
+          description: `${streakData.currentStreak}-month streak (+${this.ENHANCED_BONUS_CONFIG.STREAK_BONUS_PER_MONTH} XP/month)`
+        }
+      }),
+      
+      ...(milestoneBonus > 0 && {
+        milestoneBonus: {
+          amount: milestoneBonus,
+          milestones: ['Special achievement bonus'],
+          description: 'Milestone achievement bonus'
+        }
+      }),
+      
+      totalBonuses,
+      bonusPercentage
+    };
+  }
+
+  /**
+   * Determine reward tier based on total vs base XP (migrated from enhancedXPRewardEngine)
+   */
+  private static determineEnhancedRewardTier(totalXP: number, baseXP: number): 'standard' | 'excellent' | 'perfect' | 'legendary' {
+    const multiplier = totalXP / baseXP;
+    
+    if (multiplier >= 1.6) return 'legendary';
+    if (multiplier >= 1.4) return 'perfect';
+    if (multiplier >= 1.2) return 'excellent';
+    return 'standard';
+  }
+
+  /**
+   * Validate XP balance against user's current XP and historical patterns (migrated from enhancedXPRewardEngine)
+   */
+  private static async validateEnhancedXPBalance(totalXP: number, starLevel: number): Promise<EnhancedXPBalanceValidation> {
+    try {
+      const warnings: string[] = [];
+      const recommendations: string[] = [];
+      
+      // Get current user XP for context
+      const currentUserXP = await this.getTotalXP();
+      
+      // Basic validation against star level expectations
+      const expectedForStar = this.ENHANCED_STAR_BASE_REWARDS[starLevel as keyof typeof this.ENHANCED_STAR_BASE_REWARDS];
+      const bonusPercentage = ((totalXP - expectedForStar) / expectedForStar) * 100;
+      
+      const bonusLimit = 80; // 80% bonus is reasonable
+      if (bonusPercentage > bonusLimit) {
+        warnings.push(`Bonus percentage (${bonusPercentage.toFixed(1)}%) exceeds recommended limit`);
+        recommendations.push('Consider adjusting bonus calculation parameters');
+      }
+      
+      // Validate against maximum total multiplier
+      if (totalXP > expectedForStar * this.ENHANCED_BONUS_CONFIG.MAX_TOTAL_MULTIPLIER) {
+        warnings.push(`Total XP exceeds maximum allowed multiplier of ${this.ENHANCED_BONUS_CONFIG.MAX_TOTAL_MULTIPLIER}x`);
+      }
+      
+      return {
+        isBalanced: warnings.length === 0,
+        totalXP,
+        comparedToWeeklyAverage: 0, // Simplified for integration
+        comparedToMonthlyBaseline: 0, // Simplified for integration
+        warnings,
+        recommendations
+      };
+      
+    } catch (error) {
+      console.error('Enhanced XP balance validation failed:', error);
+      return {
+        isBalanced: true, // Fail safe
+        totalXP,
+        comparedToWeeklyAverage: 0,
+        comparedToMonthlyBaseline: 0,
+        warnings: [],
+        recommendations: []
+      };
+    }
+  }
+
+  /**
+   * Get fallback XP reward when calculation fails (migrated from enhancedXPRewardEngine)
+   */
+  private static async getFallbackEnhancedXPReward(
+    challenge: MonthlyChallenge,
+    progress: MonthlyChallengeProgress
+  ): Promise<EnhancedXPRewardResult> {
+    const baseXP = this.ENHANCED_STAR_BASE_REWARDS[challenge.starLevel];
+    
+    return {
+      challengeId: challenge.id,
+      starLevel: challenge.starLevel,
+      baseXPReward: baseXP,
+      completionPercentage: progress.completionPercentage,
+      completionBonus: 0,
+      streakBonus: 0,
+      milestoneBonus: 0,
+      totalXPAwarded: baseXP,
+      bonusBreakdown: {
+        baseReward: {
+          amount: baseXP,
+          starLevel: challenge.starLevel,
+          description: `${challenge.starLevel}★ fallback reward`
+        },
+        totalBonuses: 0,
+        bonusPercentage: 0
+      },
+      rewardTier: 'standard',
+      calculatedAt: new Date(),
+      isBalanced: true,
+      balanceNotes: ['Fallback calculation used']
+    };
+  }
+
+  /**
+   * Save XP reward to history for analytics (migrated from enhancedXPRewardEngine)
+   */
+  private static async saveEnhancedXPRewardToHistory(rewardResult: EnhancedXPRewardResult): Promise<void> {
+    try {
+      // Load existing history
+      const historyKey = this.ENHANCED_STORAGE_KEYS.XP_HISTORY;
+      const stored = await AsyncStorage.getItem(historyKey);
+      const history = stored ? JSON.parse(stored) : [];
+      
+      // Add new entry
+      history.push({
+        ...rewardResult,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Keep only last 50 entries for performance
+      const trimmedHistory = history.slice(-50);
+      
+      // Save back to storage
+      await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
+      
+    } catch (error) {
+      console.error('Save enhanced XP reward to history failed:', error);
+      // Don't throw - this is not critical
+    }
+  }
+
+  /**
+   * Get count of perfect months for category (migrated from enhancedXPRewardEngine)
+   */
+  private static async getEnhancedCategoryPerfectMonthsCount(category: AchievementCategory): Promise<number> {
+    try {
+      const streakData = await this.getEnhancedMonthlyStreakData(category);
+      return streakData.recentHistory.filter(entry => entry.completionPercentage >= 100).length;
+    } catch (error) {
+      console.error('Get enhanced category perfect months count failed:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Check if has recent perfect completions (migrated from enhancedXPRewardEngine)
+   */
+  private static hasEnhancedRecentPerfectCompletions(streakData: EnhancedMonthlyStreakData, count: number): boolean {
+    try {
+      if (streakData.recentHistory.length < count) return false;
+      
+      // Check last 'count' entries for perfect completion
+      const recentEntries = streakData.recentHistory.slice(-count);
+      return recentEntries.every(entry => entry.completionPercentage >= 100);
+      
+    } catch (error) {
+      console.error('Check enhanced recent perfect completions failed:', error);
+      return false;
+    }
+  }
+
+  // Star-based base XP rewards (migrated from enhancedXPRewardEngine)
+  private static readonly ENHANCED_STAR_BASE_REWARDS = {
+    1: 500,   // 1★ Easy
+    2: 750,   // 2★ Medium
+    3: 1125,  // 3★ Hard
+    4: 1556,  // 4★ Expert
+    5: 2532   // 5★ Master
+  } as const;
+
+  // Enhanced bonus configuration (migrated from enhancedXPRewardEngine)
+  private static readonly ENHANCED_BONUS_CONFIG = {
+    // Completion bonuses
+    PERFECT_COMPLETION_BONUS: 0.20,      // 20% bonus for 100% completion
+    PARTIAL_COMPLETION_THRESHOLD: 0.70,  // 70% minimum for partial rewards
+    
+    // Streak bonuses
+    STREAK_BONUS_PER_MONTH: 100,         // 100 XP per consecutive month
+    MAX_STREAK_BONUS: 500,               // Maximum streak bonus
+    
+    // Milestone bonuses
+    FIRST_COMPLETION_BONUS: 150,         // First-time completion bonus
+    CATEGORY_MASTERY_BONUS: 200,         // 3 perfect months in same category
+    PERFECT_QUARTER_BONUS: 250,          // 3 consecutive perfect months
+    
+    // Validation limits
+    MAX_TOTAL_MULTIPLIER: 1.8,           // Maximum total reward multiplier
+  } as const;
+
+  // Enhanced storage keys (migrated from enhancedXPRewardEngine)
+  private static readonly ENHANCED_STORAGE_KEYS = {
+    STREAK_DATA: 'monthly_challenge_streaks',
+    XP_HISTORY: 'monthly_xp_reward_history',
+    BALANCE_CACHE: 'xp_balance_validation_cache'
+  } as const;
+
+  // Performance caching for enhanced XP calculations
+  private static enhancedStreakCache = new Map<string, { data: EnhancedMonthlyStreakData; timestamp: number }>();
+  private static readonly ENHANCED_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 }

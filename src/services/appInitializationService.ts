@@ -6,7 +6,6 @@ import { GamificationService } from './gamificationService';
 import { UserActivityTracker } from './userActivityTracker';
 import { StarRatingService } from './starRatingService';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
-import { EnhancedXPRewardEngine } from './enhancedXPRewardEngine';
 
 // ========================================
 // INTERFACES & TYPES
@@ -192,14 +191,6 @@ export class AppInitializationService {
         timeout: 2000
       });
       
-      // Enhanced XP reward engine (depends on gamification)
-      services.push({
-        name: 'EnhancedXPRewardEngine',
-        initializer: () => this.initializeEnhancedXPRewardEngine(),
-        dependsOn: ['GamificationService'],
-        optional: false,
-        timeout: 2000
-      });
       
       // Monthly progress tracker (depends on gamification)
       services.push({
@@ -214,7 +205,7 @@ export class AppInitializationService {
       services.push({
         name: 'MonthlyChallengeLifecycleManager',
         initializer: () => this.initializeMonthlyChallengeLifecycleManager(),
-        dependsOn: ['UserActivityTracker', 'StarRatingService', 'EnhancedXPRewardEngine', 'MonthlyProgressTracker'],
+        dependsOn: ['UserActivityTracker', 'StarRatingService', 'MonthlyProgressTracker'],
         optional: false,
         timeout: 8000
       });
@@ -283,21 +274,6 @@ export class AppInitializationService {
     }
   }
   
-  /**
-   * Initialize EnhancedXPRewardEngine
-   */
-  private static async initializeEnhancedXPRewardEngine(): Promise<void> {
-    this.log('Initializing EnhancedXPRewardEngine');
-    
-    try {
-      // EnhancedXPRewardEngine doesn't need explicit initialization
-      // Just validate it's accessible and properly imported
-      this.log('EnhancedXPRewardEngine initialized successfully');
-    } catch (error) {
-      this.log('EnhancedXPRewardEngine initialization failed:', error);
-      throw error;
-    }
-  }
   
   /**
    * Initialize MonthlyProgressTracker
