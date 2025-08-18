@@ -1,8 +1,8 @@
 /**
  * Production Monitoring Service for Race Condition Detection
  * 
- * ⚠️ DEPRECATED: This file uses AtomicGamificationService which has been unified into GamificationService
- * XP System Unification Phase 4.5.11 - Legacy monitoring utilities
+ * ✅ UPDATED: Now uses unified GamificationService (Phase 4.5.11.REDUX)
+ * XP System Unification Phase 4.5.11.REDUX - Production monitoring utilities
  * 
  * CRITICAL: Real-time monitoring for production environment
  * Think Hard methodology - comprehensive production observability
@@ -17,7 +17,7 @@
  */
 
 import { AtomicStorage } from './atomicStorage';
-import { AtomicGamificationService } from './gamificationServiceAtomic';
+import { GamificationService } from './gamificationService';
 import { PerformanceProfiler } from '../utils/performanceProfiler';
 
 // Production monitoring data types
@@ -220,7 +220,7 @@ export class ProductionMonitoringService {
       const atomicMetrics = AtomicStorage.getPerformanceMetrics();
       
       // Get gamification service health  
-      const raceConditionStats = await AtomicGamificationService.getRaceConditionStats();
+      const raceConditionStats = await GamificationService.getRaceConditionStats();
       
       // Calculate system performance metrics
       const systemMetrics = await this.getSystemPerformanceMetrics();
@@ -474,7 +474,7 @@ export class ProductionMonitoringService {
   static async generateProductionHealthReport(): Promise<string> {
     const latestHealth = await this.performHealthCheck();
     const atomicHealthReport = AtomicStorage.generateHealthReport();
-    const gamificationHealthReport = await AtomicGamificationService.generateProductionHealthReport();
+    const gamificationHealthReport = await GamificationService.generateProductionHealthReport();
     
     const uptime = this.isInitialized ? Date.now() - this.monitoringStartTime : 0;
     const uptimeHours = (uptime / (1000 * 60 * 60)).toFixed(1);

@@ -2132,4 +2132,79 @@ export class GamificationService {
     
     console.log('💾 All cache data cleared');
   }
+
+  // ========================================
+  // PRODUCTION MONITORING & HEALTH CHECK
+  // ========================================
+  // Integrated from AtomicGamificationService for production monitoring
+
+  /**
+   * Get race condition statistics for production monitoring
+   */
+  static async getRaceConditionStats(): Promise<{
+    totalOperations: number;
+    raceConditionsPrevented: number;
+    concurrentOperationDetected: boolean;
+    recommendations: string[];
+  }> {
+    const { AtomicStorage } = await import('./atomicStorage');
+    
+    // Local storage key for operation counter (previously in AtomicGamificationService)
+    const OPERATION_COUNTER_KEY = 'gamification_operation_counter_atomic';
+    
+    const operationCountResult = await AtomicStorage.atomicRead(
+      OPERATION_COUNTER_KEY,
+      0,
+      (value) => parseInt(value, 10)
+    );
+    
+    const storageMetrics = AtomicStorage.getPerformanceMetrics();
+    const raceConditionCheck = AtomicStorage.detectPotentialRaceConditions();
+    
+    const recommendations: string[] = [];
+    
+    if (storageMetrics.activeLocksCount > 5) {
+      recommendations.push('High lock contention detected - consider operation batching');
+    }
+    
+    if (storageMetrics.successRate < 0.95) {
+      recommendations.push('Low success rate - investigate storage operation failures');
+    }
+    
+    if (raceConditionCheck.suspiciousPatterns.length > 0) {
+      recommendations.push('Suspicious concurrency patterns detected - review operation timing');
+    }
+    
+    return {
+      totalOperations: operationCountResult.value,
+      raceConditionsPrevented: storageMetrics.totalOperations - operationCountResult.value,
+      concurrentOperationDetected: storageMetrics.activeLocksCount > 0,
+      recommendations
+    };
+  }
+
+  /**
+   * Generate production health report
+   */
+  static async generateProductionHealthReport(): Promise<string> {
+    const { AtomicStorage } = await import('./atomicStorage');
+    
+    const raceConditionStats = await this.getRaceConditionStats();
+    const storageHealth = AtomicStorage.generateHealthReport();
+    
+    return [
+      '⚡ Unified Gamification Service - Production Health Report',
+      '==========================================================',
+      '',
+      'Race Condition Protection:',
+      `  Total Operations: ${raceConditionStats.totalOperations}`,
+      `  Race Conditions Prevented: ${raceConditionStats.raceConditionsPrevented}`,
+      `  Concurrent Operations Active: ${raceConditionStats.concurrentOperationDetected ? 'YES' : 'NO'}`,
+      '',
+      'Recommendations:',
+      ...raceConditionStats.recommendations.map(r => `  - ${r}`),
+      '',
+      storageHealth
+    ].join('\n');
+  }
 }

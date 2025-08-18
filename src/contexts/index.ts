@@ -3,7 +3,7 @@ export * from './HabitsContext';
 export * from './GratitudeContext';
 export * from './GoalsContext';
 export * from './HomeCustomizationContext';
-export * from './GamificationContext';
+// GamificationContext removed - using OptimizedGamificationContext only
 export * from './OptimizedGamificationContext';
 export { 
   AchievementProvider, 

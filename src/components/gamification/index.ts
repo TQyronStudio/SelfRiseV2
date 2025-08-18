@@ -5,7 +5,7 @@ export { XpAnimationContainer } from './XpAnimationContainer';
 export { ParticleEffects } from './ParticleEffects';
 
 // XP Progress Components
-export { XpProgressBar } from './XpProgressBar';
+// XpProgressBar removed - using OptimizedXpProgressBar only
 
 // XP Multiplier Components
 export { XpMultiplierIndicator } from './XpMultiplierIndicator';

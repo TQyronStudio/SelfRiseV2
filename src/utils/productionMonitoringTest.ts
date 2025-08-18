@@ -1,8 +1,8 @@
 /**
  * Production Monitoring Test Suite
  * 
- * ⚠️ DEPRECATED: This file uses AtomicGamificationService which has been unified into GamificationService
- * XP System Unification Phase 4.5.11 - Legacy monitoring utilities
+ * ✅ UPDATED: Now uses unified GamificationService (Phase 4.5.11.REDUX)
+ * XP System Unification Phase 4.5.11.REDUX - Production test utilities
  * 
  * CRITICAL: Comprehensive testing for production monitoring system
  * Think Hard methodology - bulletproof monitoring validation
@@ -17,7 +17,7 @@
  */
 
 import { ProductionMonitoringService } from '../services/productionMonitoring';
-import { AtomicGamificationService } from '../services/gamificationServiceAtomic';
+import { GamificationService } from '../services/gamificationService';
 import { AtomicStorage } from '../services/atomicStorage';
 import { XPSourceType } from '../types/gamification';
 
@@ -132,11 +132,10 @@ export class ProductionMonitoringTestRunner {
       
       // Simulate concurrent XP additions that would cause race conditions
       const concurrentPromises = Array.from({ length: 20 }, (_, i) =>
-        AtomicGamificationService.addXP(10, {
+        GamificationService.addXP(10, {
           source: XPSourceType.HABIT_COMPLETION,
           sourceId: `test-habit-${i}`,
-          description: 'Race condition test',
-          operationId: `race_test_${i}_${Date.now()}`
+          description: 'Race condition test'
         })
       );
       
@@ -147,12 +146,12 @@ export class ProductionMonitoringTestRunner {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if race conditions were detected/prevented
-      const raceConditionStats = await AtomicGamificationService.getRaceConditionStats();
+      const raceConditionStats = await GamificationService.getRaceConditionStats();
       
-      const expectedPreventions = results.filter(r => r.raceConditionsPrevented > 0).length;
+      // Check if monitoring detected concurrent operations
       const actualPreventions = raceConditionStats.raceConditionsPrevented;
       
-      const test1Passed = actualPreventions >= 0; // At least some race conditions should be prevented
+      const test1Passed = actualPreventions >= 0 && raceConditionStats.totalOperations >= 20; // At least some operations should be tracked
       
       this.results.push({
         testName: 'Race Condition Detection - Concurrent Operations',
@@ -544,7 +543,7 @@ export class ProductionMonitoringTestRunner {
       
       // Perform operations that could cause memory leaks
       for (let i = 0; i < 10; i++) {
-        await AtomicGamificationService.addXP(1, {
+        await GamificationService.addXP(1, {
           source: XPSourceType.HABIT_COMPLETION,
           sourceId: `memory-test-${i}`,
           description: 'Memory leak test'
@@ -603,7 +602,7 @@ export class ProductionMonitoringTestRunner {
     try {
       // Measure baseline operation performance
       const baselineStart = performance.now();
-      await AtomicGamificationService.addXP(10, {
+      await GamificationService.addXP(10, {
         source: XPSourceType.HABIT_COMPLETION,
         sourceId: 'overhead-test',
         description: 'Baseline performance test'
@@ -612,7 +611,7 @@ export class ProductionMonitoringTestRunner {
       
       // Measure with full monitoring
       const monitoredStart = performance.now();
-      await AtomicGamificationService.addXP(10, {
+      await GamificationService.addXP(10, {
         source: XPSourceType.HABIT_COMPLETION,
         sourceId: 'overhead-test-monitored',
         description: 'Monitored performance test'
@@ -666,8 +665,7 @@ export class ProductionMonitoringTestRunner {
     // Initialize atomic storage
     AtomicStorage.initialize();
     
-    // Initialize atomic gamification service
-    await AtomicGamificationService.initialize();
+    // GamificationService initialization not needed (auto-initialized)
     
     // Initialize production monitoring
     await ProductionMonitoringService.initialize({
@@ -697,7 +695,7 @@ export class ProductionMonitoringTestRunner {
     
     try {
       await ProductionMonitoringService.shutdown();
-      await AtomicGamificationService.shutdown();
+      // GamificationService shutdown not needed (handles cleanup internally)
       AtomicStorage.shutdown();
       
       console.log('✅ Test environment cleaned up');
