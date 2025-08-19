@@ -67,104 +67,6 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       console.log(`✅ Journal entry created (position: ${totalCount}, +${xpAmount} XP)`);
       
-      // ========================================
-      // BONUS MILESTONE SYSTEM
-      // ========================================
-      
-      // Award bonus milestone XP for special positions
-      const milestonesAwarded: ('star' | 'flame' | 'crown')[] = [];
-      let totalBonusXP = 0;
-      
-      if (totalCount === 4) {
-        // ⭐ First Bonus Milestone (4th entry)
-        const bonusXP = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
-        await GamificationService.addXP(bonusXP, { 
-          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description: "⭐ First Bonus Milestone achieved!",
-          sourceId: newGratitude.id,
-          metadata: { milestoneType: 'star', position: 4 }
-        });
-        milestonesAwarded.push('star');
-        totalBonusXP += bonusXP;
-        console.log(`⭐ First Bonus Milestone achieved: +${bonusXP} XP`);
-        
-        // Emit event for UI celebration
-        DeviceEventEmitter.emit('bonusMilestoneAchieved', {
-          type: 'star',
-          position: 4,
-          xpAwarded: bonusXP,
-          entryId: newGratitude.id,
-          date: input.date,
-          emoji: '⭐',
-          title: 'First Bonus Milestone!',
-          message: "Amazing! You've written your 4th journal entry today."
-        });
-      }
-      
-      if (totalCount === 8) {
-        // 🔥 Fifth Bonus Milestone (8th entry)
-        const bonusXP = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
-        await GamificationService.addXP(bonusXP, { 
-          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description: "🔥 Fifth Bonus Milestone achieved!",
-          sourceId: newGratitude.id,
-          metadata: { milestoneType: 'flame', position: 8 }
-        });
-        milestonesAwarded.push('flame');
-        totalBonusXP += bonusXP;
-        console.log(`🔥 Fifth Bonus Milestone achieved: +${bonusXP} XP`);
-        
-        // Emit event for UI celebration
-        DeviceEventEmitter.emit('bonusMilestoneAchieved', {
-          type: 'flame',
-          position: 8,
-          xpAwarded: bonusXP,
-          entryId: newGratitude.id,
-          date: input.date,
-          emoji: '🔥',
-          title: 'Fifth Bonus Milestone!',
-          message: "Incredible! You're on fire with 8 journal entries today!"
-        });
-      }
-      
-      if (totalCount === 13) {
-        // 👑 Tenth Bonus Milestone (13th entry)
-        const bonusXP = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
-        await GamificationService.addXP(bonusXP, { 
-          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description: "👑 Tenth Bonus Milestone achieved!",
-          sourceId: newGratitude.id,
-          metadata: { milestoneType: 'crown', position: 13 }
-        });
-        milestonesAwarded.push('crown');
-        totalBonusXP += bonusXP;
-        console.log(`👑 Tenth Bonus Milestone achieved: +${bonusXP} XP`);
-        
-        // Emit event for UI celebration
-        DeviceEventEmitter.emit('bonusMilestoneAchieved', {
-          type: 'crown',
-          position: 13,
-          xpAwarded: bonusXP,
-          entryId: newGratitude.id,
-          date: input.date,
-          emoji: '👑',
-          title: 'Tenth Bonus Milestone!',
-          message: "Legendary! You've achieved the ultimate journal milestone!"
-        });
-      }
-      
-      // Store milestone information in the gratitude object if any were earned
-      if (milestonesAwarded.length > 0) {
-        newGratitude.milestonesAwarded = milestonesAwarded;
-        // Update the gratitude in storage with milestone info
-        const gratitudeIndex = gratitudes.findIndex(g => g.id === newGratitude.id);
-        if (gratitudeIndex !== -1) {
-          gratitudes[gratitudeIndex] = newGratitude;
-          await BaseStorage.set(STORAGE_KEYS.GRATITUDES, gratitudes);
-        }
-        
-        console.log(`🎉 Total XP awarded: ${xpAmount} (entry) + ${totalBonusXP} (milestones) = ${xpAmount + totalBonusXP} XP`);
-      }
       
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
@@ -309,11 +211,14 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         const currentDayEntries = gratitudes.filter(g => g.date === deletedGratitude.date);
         const currentCount = currentDayEntries.length;
         const newCount = currentCount - 1; // After deletion
+        const currentBonusCount = Math.max(0, currentCount - 3);
+        const newBonusCount = Math.max(0, newCount - 3);
         
-        console.log(`🔍 Milestone reversal check: ${currentCount} → ${newCount} entries on ${deletedGratitude.date}`);
+        console.log(`🔍 Milestone reversal check: ${currentCount} → ${newCount} entries (${currentBonusCount} → ${newBonusCount} bonus)`);
         
         // Handle milestone reversal if any milestones are lost
-        await this.handleMilestoneReversal(currentCount, newCount, deletedGratitude.date);
+        await this.handleBonusMilestoneReversal(currentBonusCount, newBonusCount, deletedGratitude.date);
+        
         
         // Reorder remaining gratitudes for the same date
         const sameDate = filteredGratitudes.filter(g => g.date === deletedGratitude.date);
@@ -861,21 +766,39 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     }
   }
 
-  // Increment milestone counter based on specific milestone reached
+  // Increment milestone counter based on specific milestone reached and award XP
   async incrementMilestoneCounter(milestoneType: number): Promise<void> {
     try {
       const currentStreak = await this.getStreak();
       let starCount = currentStreak.starCount;
       let flameCount = currentStreak.flameCount;
       let crownCount = currentStreak.crownCount;
+      let xpAwarded = 0;
+      let milestoneDescription = '';
 
-      // Increment only the specific milestone reached
+      // Increment only the specific milestone reached and award XP
       if (milestoneType === 1) {
         starCount++;
+        xpAwarded = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
+        milestoneDescription = "⭐ First Bonus Milestone achieved!";
       } else if (milestoneType === 5) {
         flameCount++;
+        xpAwarded = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
+        milestoneDescription = "🔥 Fifth Bonus Milestone achieved!";
       } else if (milestoneType === 10) {
         crownCount++;
+        xpAwarded = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
+        milestoneDescription = "👑 Tenth Bonus Milestone achieved!";
+      }
+
+      // Award XP for the milestone
+      if (xpAwarded > 0) {
+        await GamificationService.addXP(xpAwarded, { 
+          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+          description: milestoneDescription,
+          metadata: { milestoneType, bonusCount: milestoneType }
+        });
+        console.log(`✨ ${milestoneDescription} +${xpAwarded} XP`);
       }
 
       const updatedStreak: GratitudeStreak = {
@@ -1619,79 +1542,88 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
   // ========================================
 
   /**
-   * Handle milestone reversal when entries are deleted
-   * Subtracts XP for lost milestones when entry count drops below milestone thresholds
+   * Handle bonus milestone reversal when entries are deleted
+   * Subtracts XP and decrements milestone counters when bonus count drops below milestone thresholds
    */
-  private async handleMilestoneReversal(
-    fromCount: number, 
-    toCount: number, 
+  private async handleBonusMilestoneReversal(
+    fromBonusCount: number, 
+    toBonusCount: number, 
     date: DateString
   ): Promise<void> {
     try {
       let totalReversedXP = 0;
       const milestonesLost: string[] = [];
+      let starCountDelta = 0;
+      let flameCountDelta = 0;
+      let crownCountDelta = 0;
 
-      // Lost ⭐ milestone (had 4+, now have 3 or fewer)
-      if (fromCount >= 4 && toCount < 4) {
+      // Lost ⭐ milestone (had 1+ bonus, now have 0 bonus)
+      if (fromBonusCount >= 1 && toBonusCount < 1) {
         const lostXP = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
         await GamificationService.subtractXP(lostXP, {
           source: XPSourceType.JOURNAL_BONUS_MILESTONE,
           description: "⭐ Lost: First Bonus Milestone",
-          metadata: { milestoneType: 'star_lost', date, fromCount, toCount }
+          metadata: { milestoneType: 'star_lost', date, fromBonusCount, toBonusCount }
         });
         totalReversedXP += lostXP;
         milestonesLost.push('⭐ First Bonus');
-        console.log(`⭐ Milestone lost: -${lostXP} XP (${fromCount} → ${toCount} entries)`);
+        starCountDelta = -1;
+        console.log(`⭐ Milestone lost: -${lostXP} XP (${fromBonusCount} → ${toBonusCount} bonus entries)`);
       }
 
-      // Lost 🔥 milestone (had 8+, now have 7 or fewer)
-      if (fromCount >= 8 && toCount < 8) {
+      // Lost 🔥 milestone (had 5+ bonus, now have 4 or fewer)
+      if (fromBonusCount >= 5 && toBonusCount < 5) {
         const lostXP = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
         await GamificationService.subtractXP(lostXP, {
           source: XPSourceType.JOURNAL_BONUS_MILESTONE,
           description: "🔥 Lost: Fifth Bonus Milestone",
-          metadata: { milestoneType: 'flame_lost', date, fromCount, toCount }
+          metadata: { milestoneType: 'flame_lost', date, fromBonusCount, toBonusCount }
         });
         totalReversedXP += lostXP;
         milestonesLost.push('🔥 Fifth Bonus');
-        console.log(`🔥 Milestone lost: -${lostXP} XP (${fromCount} → ${toCount} entries)`);
+        flameCountDelta = -1;
+        console.log(`🔥 Milestone lost: -${lostXP} XP (${fromBonusCount} → ${toBonusCount} bonus entries)`);
       }
 
-      // Lost 👑 milestone (had 13+, now have 12 or fewer) 
-      if (fromCount >= 13 && toCount < 13) {
+      // Lost 👑 milestone (had 10+ bonus, now have 9 or fewer) 
+      if (fromBonusCount >= 10 && toBonusCount < 10) {
         const lostXP = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
         await GamificationService.subtractXP(lostXP, {
           source: XPSourceType.JOURNAL_BONUS_MILESTONE,
           description: "👑 Lost: Tenth Bonus Milestone",
-          metadata: { milestoneType: 'crown_lost', date, fromCount, toCount }
+          metadata: { milestoneType: 'crown_lost', date, fromBonusCount, toBonusCount }
         });
         totalReversedXP += lostXP;
         milestonesLost.push('👑 Tenth Bonus');
-        console.log(`👑 Milestone lost: -${lostXP} XP (${fromCount} → ${toCount} entries)`);
+        crownCountDelta = -1;
+        console.log(`👑 Milestone lost: -${lostXP} XP (${fromBonusCount} → ${toBonusCount} bonus entries)`);
+      }
+
+      // Update milestone counters if any were lost
+      if (starCountDelta !== 0 || flameCountDelta !== 0 || crownCountDelta !== 0) {
+        const currentStreak = await this.getStreak();
+        const updatedStreak: GratitudeStreak = {
+          ...currentStreak,
+          starCount: Math.max(0, currentStreak.starCount + starCountDelta),
+          flameCount: Math.max(0, currentStreak.flameCount + flameCountDelta),
+          crownCount: Math.max(0, currentStreak.crownCount + crownCountDelta),
+        };
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
       }
 
       // Summary log if any milestones were lost
       if (milestonesLost.length > 0) {
         console.log(`💔 Total milestone XP lost: -${totalReversedXP} XP (${milestonesLost.join(', ')} milestones)`);
-        
-        // Emit event for UI notification of lost milestones
-        DeviceEventEmitter.emit('bonusMilestoneReversed', {
-          milestonesLost,
-          xpLost: totalReversedXP,
-          date,
-          fromCount,
-          toCount,
-          message: `Lost ${milestonesLost.join(', ')} milestone${milestonesLost.length > 1 ? 's' : ''} (-${totalReversedXP} XP)`
-        });
       } else {
-        console.log(`✅ No milestones lost: ${fromCount} → ${toCount} entries`);
+        console.log(`✅ No milestones lost: ${fromBonusCount} → ${toBonusCount} bonus entries`);
       }
 
     } catch (error) {
-      console.error('GratitudeStorage.handleMilestoneReversal error:', error);
+      console.error('GratitudeStorage.handleBonusMilestoneReversal error:', error);
       // Don't throw - milestone reversal failure shouldn't break deletion
     }
   }
+
 }
 
 // Singleton instance

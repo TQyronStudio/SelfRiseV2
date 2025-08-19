@@ -30,6 +30,7 @@ export default function JournalScreen() {
   const [celebrationType, setCelebrationType] = useState<'daily_complete' | 'streak_milestone' | 'bonus_milestone' | 'level_up'>('daily_complete');
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
   const [bonusMilestone, setBonusMilestone] = useState<number | null>(null);
+  const [bonusXpAmount, setBonusXpAmount] = useState<number | null>(null);
   
   // Race condition prevention for level up checks
   const [levelUpCheckPending, setLevelUpCheckPending] = useState(false);
@@ -59,7 +60,9 @@ export default function JournalScreen() {
       if (nextModal.type === 'bonus' || nextModal.type === 'bonus_milestone') {
         // Show bonus milestone modal
         const bonusCount = nextModal.data.bonusCount || nextModal.data.position;
+        const xpAmount = nextModal.data.xpAmount || 0;
         setBonusMilestone(bonusCount);
+        setBonusXpAmount(xpAmount);
         setCelebrationType('bonus_milestone');
         setShowCelebration(true);
         
@@ -182,12 +185,20 @@ export default function JournalScreen() {
       
       // Check if this is a new milestone (1st, 5th, 10th bonus of the day)
       if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
-        console.log(`🎯 Bonus milestone ${bonusCount} reached - adding to modal queue`);
+        // Calculate XP amount based on bonus milestone
+        const xpAmount = bonusCount === 1 ? 25 : bonusCount === 5 ? 50 : 100; // From XP_REWARDS constants
+        const milestone = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
+        
+        console.log(`🎯 Bonus milestone ${bonusCount} reached (+${xpAmount} XP) - adding to modal queue`);
         
         // Add bonus modal to queue instead of showing directly
         setModalQueue(prev => [...prev, {
           type: 'bonus',
-          data: { bonusCount }
+          data: { 
+            bonusCount, 
+            xpAmount,
+            emoji: milestone 
+          }
         }]);
       }
     }
@@ -254,32 +265,6 @@ export default function JournalScreen() {
     }
   }, [currentCount, t, checkAndTriggerLevelUpCelebration, showCelebration, celebrationState.visible, levelUpCheckPending]);
 
-  // Bonus milestone event listeners
-  useEffect(() => {
-    const bonusMilestoneListener = DeviceEventEmitter.addListener('bonusMilestoneAchieved', (milestone) => {
-      console.log(`🎉 Bonus milestone achieved:`, milestone);
-      
-      // Set milestone data for celebration modal
-      setBonusMilestone(milestone.position);
-      setCelebrationType('bonus_milestone');
-      
-      // Add to modal queue
-      setModalQueue(prev => [...prev, { 
-        type: 'bonus_milestone', 
-        data: milestone 
-      }]);
-    });
-
-    const bonusReversalListener = DeviceEventEmitter.addListener('bonusMilestoneReversed', (reversal) => {
-      console.log(`💔 Bonus milestone lost:`, reversal);
-      // Could show a subtle notification for milestone loss
-    });
-
-    return () => {
-      bonusMilestoneListener.remove();
-      bonusReversalListener.remove();
-    };
-  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -410,6 +395,7 @@ export default function JournalScreen() {
           console.log('🎭 Bonus modal closed - processing next in queue');
           setShowCelebration(false);
           setBonusMilestone(null);
+          setBonusXpAmount(null);
           
           // Process next modal in queue after a short delay
           setTimeout(() => {
@@ -419,6 +405,7 @@ export default function JournalScreen() {
         type={celebrationType}
         streakDays={milestoneStreak || undefined}
         bonusCount={bonusMilestone || undefined}
+        xpAmount={bonusXpAmount || undefined}
         title={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_title`) || t('journal.streakMilestone_generic_title') : undefined}
         message={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(milestoneStreak)) : undefined}
       />

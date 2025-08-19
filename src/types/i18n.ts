@@ -155,8 +155,8 @@ export interface TranslationKeys {
     currentStreak: string;
     longestStreak: string;
     history: string;
-    // --- NEW UNIVERSAL MILESTONE SYSTEM ---
-    // Pro bonusové záznamy
+    // --- BONUS MILESTONE SYSTEM ---
+    // Bonus count milestones: 1st, 5th, 10th bonus entries
     bonusMilestone1_title: string;
     bonusMilestone1_text: string;
     bonusMilestone5_title: string;
@@ -707,6 +707,7 @@ export interface TranslationKeys {
         habit_bonus: string;
         journal_entry: string;
         journal_bonus: string;
+        journal_bonus_milestone: string;
         goal_progress: string;
         goal_completion: string;
         habit_streak_milestone: string;
@@ -808,6 +809,9 @@ export interface TranslationKeys {
         icon_description: string;
       };
       journal_bonus: {
+        icon_description: string;
+      };
+      journal_bonus_milestone: {
         icon_description: string;
       };
       goal_progress: {

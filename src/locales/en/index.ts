@@ -156,14 +156,14 @@ const en: TranslationKeys = {
     currentStreak: 'Current Streak',
     longestStreak: 'Longest Streak',
     history: 'History',
-    // --- NEW UNIVERSAL TEXTS ---
-    // Pro bonusové záznamy
-    bonusMilestone1_title: 'One Step Further! ✨',
-    bonusMilestone1_text: 'First bonus entry! Great work, keep it up.',
-    bonusMilestone5_title: 'Nice Combo! 🔥',
-    bonusMilestone5_text: 'Five bonus entries! That\'s great!',
-    bonusMilestone10_title: 'Incredible Milestone! 🏆',
-    bonusMilestone10_text: '10 bonus entries! You must be having an amazing day!',
+    // --- BONUS MILESTONE SYSTEM ---
+    // Bonus count milestones: 1st, 5th, 10th bonus entries
+    bonusMilestone1_title: 'First Bonus Entry! ⭐',
+    bonusMilestone1_text: 'Amazing! You\'ve written your first bonus entry today! Keep going!',
+    bonusMilestone5_title: 'Fifth Bonus Entry! 🔥',
+    bonusMilestone5_text: 'Incredible! You\'ve written 5 bonus entries today. You\'re on fire!',
+    bonusMilestone10_title: 'Tenth Bonus Entry! 👑',
+    bonusMilestone10_text: 'Legendary! You\'ve written 10 bonus entries today. You are a journaling champion!',
     // Pro hlavní 'SelfRise Streak'
     streakMilestone_generic_title: 'Another Milestone! 🎯',
     streakMilestone_generic_text: 'Congratulations on reaching {{days}} days in a row!',
@@ -705,7 +705,8 @@ const en: TranslationKeys = {
         habit_completion: 'Habit Completion',
         habit_bonus: 'Habit Bonus',
         journal_entry: 'Journal Entry',
-        journal_bonus: 'Journal Bonus', 
+        journal_bonus: 'Journal Bonus',
+        journal_bonus_milestone: 'Journal Bonus Milestone', 
         goal_progress: 'Goal Progress',
         goal_completion: 'Goal Completion',
         habit_streak_milestone: 'Habit Streak Milestone',
@@ -831,6 +832,9 @@ const en: TranslationKeys = {
       },
       journal_bonus: {
         icon_description: 'Writing icon representing journal bonus',
+      },
+      journal_bonus_milestone: {
+        icon_description: 'Star icon representing journal bonus milestone achievement',
       },
       goal_progress: {
         icon_description: 'Target icon representing goal progress',

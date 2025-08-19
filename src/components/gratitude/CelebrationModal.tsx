@@ -23,6 +23,7 @@ interface CelebrationModalProps {
   message?: string | undefined;
   streakDays?: number | undefined;
   bonusCount?: number | undefined;
+  xpAmount?: number | undefined; // XP amount for bonus milestones
   // Level-up specific props
   levelUpData?: {
     previousLevel: number;
@@ -44,6 +45,7 @@ export default function CelebrationModal({
   message,
   streakDays,
   bonusCount,
+  xpAmount,
   levelUpData,
   disableXpAnimations = false,
 }: CelebrationModalProps) {
@@ -159,15 +161,15 @@ export default function CelebrationModal({
           emoji: '🏆',
         };
       case 'bonus_milestone':
-        // Correct milestone emoji mapping: 4⭐, 8🔥, 13👑
-        const bonusEmoji = bonusCount === 4 ? '⭐' : bonusCount === 8 ? '🔥' : '👑';
-        const bonusCountSafe = bonusCount || 4; // Fallback to 4 if null
-        const milestoneNames = { 4: 'First', 8: 'Fifth', 13: 'Tenth' };
-        const milestoneName = milestoneNames[bonusCountSafe as keyof typeof milestoneNames] || 'Ultimate';
+        // Bonus count system: 1st⭐, 5th🔥, 10th👑
+        const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
+        const bonusCountSafe = bonusCount || 1; // Fallback to 1 if null
+        const milestoneNames = { 1: 'First', 5: 'Fifth', 10: 'Tenth' };
+        const milestoneName = milestoneNames[bonusCountSafe as keyof typeof milestoneNames] || 'Bonus';
         
         return {
-          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `${milestoneName} Bonus Milestone!`,
-          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `Amazing! You've written your ${bonusCountSafe}${bonusCountSafe === 4 ? 'th' : bonusCountSafe === 8 ? 'th' : 'th'} journal entry today!`,
+          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `${milestoneName} Bonus Entry!`,
+          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `Amazing! You've written ${bonusCountSafe} bonus ${bonusCountSafe === 1 ? 'entry' : 'entries'} today!`,
           emoji: bonusEmoji,
         };
       case 'level_up':
@@ -342,6 +344,14 @@ export default function CelebrationModal({
               >
                 BONUS{bonusCount !== 1 ? 'ES' : ''}
               </Text>
+            </View>
+          )}
+
+          {/* XP amount display for bonus milestones */}
+          {type === 'bonus_milestone' && xpAmount && (
+            <View style={styles.xpBadge}>
+              <Text style={styles.xpLabel}>XP Earned</Text>
+              <Text style={styles.xpAmount}>+{xpAmount}</Text>
             </View>
           )}
           
@@ -562,5 +572,34 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
     marginBottom: 2,
+  },
+  // XP Badge styles
+  xpBadge: {
+    backgroundColor: '#4CAF50', // Green background for XP
+    borderRadius: 12,
+    paddingVertical: Layout.spacing.sm,
+    paddingHorizontal: Layout.spacing.md,
+    alignItems: 'center',
+    marginTop: Layout.spacing.md,
+    marginBottom: Layout.spacing.md,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  xpLabel: {
+    fontSize: Fonts.sizes.sm,
+    fontWeight: 'bold',
+    color: Colors.white,
+    marginBottom: 2,
+  },
+  xpAmount: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: 'bold',
+    color: Colors.white,
   },
 });
