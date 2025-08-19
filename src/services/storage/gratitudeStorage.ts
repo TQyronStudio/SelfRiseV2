@@ -3,6 +3,9 @@ import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_C
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
 import { calculateStreak, calculateCurrentStreak, calculateContinuingStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
   
@@ -119,7 +122,43 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Find original position (1-based index) based on chronological creation order
         const originalPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
         
-        console.log(`✅ Gratitude entry deleted (position: ${originalPosition})`);
+        // Subtract XP for deleted gratitude entry
+        const isBonus = originalPosition > 3;
+        let xpAmount: number;
+        let xpSource: XPSourceType;
+        
+        if (originalPosition === 1) {
+          xpAmount = XP_REWARDS.JOURNAL.FIRST_ENTRY;
+          xpSource = XPSourceType.JOURNAL_ENTRY;
+        } else if (originalPosition === 2) {
+          xpAmount = XP_REWARDS.JOURNAL.SECOND_ENTRY;
+          xpSource = XPSourceType.JOURNAL_ENTRY;
+        } else if (originalPosition === 3) {
+          xpAmount = XP_REWARDS.JOURNAL.THIRD_ENTRY;
+          xpSource = XPSourceType.JOURNAL_ENTRY;
+        } else if (originalPosition >= 4 && originalPosition <= 13) {
+          xpAmount = XP_REWARDS.JOURNAL.BONUS_ENTRY;
+          xpSource = XPSourceType.JOURNAL_BONUS;
+        } else {
+          // Position 14+ had 0 XP, so no need to subtract
+          xpAmount = 0;
+          xpSource = XPSourceType.JOURNAL_ENTRY;
+        }
+        
+        if (xpAmount > 0) {
+          const description = isBonus ? 
+            `Deleted bonus journal entry (position ${originalPosition})` : 
+            `Deleted journal entry (position ${originalPosition})`;
+          
+          await GamificationService.subtractXP(xpAmount, { 
+            source: xpSource, 
+            description 
+          });
+          
+          console.log(`✅ Gratitude entry deleted (position: ${originalPosition}, -${xpAmount} XP)`);
+        } else {
+          console.log(`✅ Gratitude entry deleted (position: ${originalPosition}, 0 XP change)`);
+        }
         
         // Reorder remaining gratitudes for the same date
         const sameDate = filteredGratitudes.filter(g => g.date === deletedGratitude.date);

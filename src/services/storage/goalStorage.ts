@@ -3,6 +3,9 @@ import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_C
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
 import { today } from '../../utils/date';
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 
 export class GoalStorage implements EntityStorage<Goal> {
@@ -256,7 +259,24 @@ export class GoalStorage implements EntityStorage<Goal> {
         completedDate: updatedGoal.completedDate || undefined
       });
 
-      if (input.progressType === 'subtract') {
+      // Handle XP for goal progress
+      if (input.progressType === 'subtract' && input.value > 0) {
+        // Subtract XP for negative progress
+        await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+          source: XPSourceType.GOAL_PROGRESS,
+          description: `Goal negative progress: ${goal.title} (-${input.value})`,
+          sourceId: input.goalId
+        });
+        console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value}, -${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
+      } else if (input.progressType === 'add' && input.value > 0) {
+        // Award XP for positive progress
+        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+          source: XPSourceType.GOAL_PROGRESS,
+          description: `Goal progress: ${goal.title} (+${input.value})`,
+          sourceId: input.goalId
+        });
+        console.log(`🎯 Goal positive progress: ${goal.title} (+${input.value}, +${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
+      } else if (input.progressType === 'subtract') {
         console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value})`);
       } else {
         // Positive progress (add/set)
@@ -330,11 +350,34 @@ export class GoalStorage implements EntityStorage<Goal> {
         );
       }
 
-      // Get goal info for logging  
+      // Get goal info for logging and XP calculation
       const goal = await this.getById(progressToDelete.goalId);
       
       if (goal) {
         console.log(`🗑️ Goal progress deleted: ${goal.title} (${progressToDelete.progressType}: ${progressToDelete.value})`);
+        
+        // Handle XP for deleted progress
+        const progressValue = progressToDelete.value;
+        const progressType = progressToDelete.progressType;
+        
+        if (progressType === 'add' && progressValue > 0) {
+          // Reverse the XP that was given for positive progress
+          await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+            source: XPSourceType.GOAL_PROGRESS,
+            description: `Deleted goal progress: ${goal.title} (-${progressValue})`,
+            sourceId: progressToDelete.goalId
+          });
+          console.log(`🔻 Subtracted ${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP for deleted positive progress`);
+        } else if (progressType === 'subtract' && progressValue > 0) {
+          // When deleting a subtract operation, we should give back XP  
+          await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+            source: XPSourceType.GOAL_PROGRESS,
+            description: `Reversed goal subtraction: ${goal.title} (+${progressValue})`,
+            sourceId: progressToDelete.goalId
+          });
+          console.log(`🔺 Added ${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP for reversing negative progress`);
+        }
+        // Note: 'set' type is more complex and would require calculating the net change
       }
 
       const filteredProgress = progress.filter(p => p.id !== id);

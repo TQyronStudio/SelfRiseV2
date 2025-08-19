@@ -2,6 +2,9 @@ import { Habit, HabitCompletion, CreateHabitInput } from '../../types/habit';
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createHabit, createHabitCompletion, updateEntityTimestamp } from '../../utils/data';
 import { DateString } from '../../types/common';
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 
 export class HabitStorage implements EntityStorage<Habit> {
   // Habit CRUD operations
@@ -213,7 +216,21 @@ export class HabitStorage implements EntityStorage<Habit> {
       completions.push(newCompletion);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, completions);
       
-      console.log(`✅ Habit completion created`);
+      // Award XP for habit completion
+      const habit = await this.getById(habitId);
+      const xpAmount = isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+      const xpSource = isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+      const description = isBonus ? 
+        `Completed bonus habit: ${habit?.name || 'Unknown'}` : 
+        `Completed scheduled habit: ${habit?.name || 'Unknown'}`;
+      
+      await GamificationService.addXP(xpAmount, { 
+        source: xpSource, 
+        description,
+        sourceId: habitId 
+      });
+      
+      console.log(`✅ Habit completion created (+${xpAmount} XP)`);
       
       return newCompletion;
     } catch (error) {
@@ -278,7 +295,20 @@ export class HabitStorage implements EntityStorage<Habit> {
       const filteredCompletions = completions.filter(completion => completion.id !== id);
       await BaseStorage.set(STORAGE_KEYS.HABIT_COMPLETIONS, filteredCompletions);
       
-      console.log(`✅ Habit completion deleted`);
+      // Subtract XP for habit deletion
+      const xpAmount = completionToDelete.isBonus ? XP_REWARDS.HABIT.BONUS_COMPLETION : XP_REWARDS.HABIT.SCHEDULED_COMPLETION;
+      const xpSource = completionToDelete.isBonus ? XPSourceType.HABIT_BONUS : XPSourceType.HABIT_COMPLETION;
+      const description = completionToDelete.isBonus ? 
+        `Uncompleted bonus habit: ${habit?.name || 'Unknown'}` : 
+        `Uncompleted scheduled habit: ${habit?.name || 'Unknown'}`;
+      
+      await GamificationService.subtractXP(xpAmount, { 
+        source: xpSource, 
+        description,
+        sourceId: completionToDelete.habitId 
+      });
+      
+      console.log(`✅ Habit completion deleted (-${xpAmount} XP)`);
     } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError(
