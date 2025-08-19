@@ -367,10 +367,10 @@ Position 3: 20 XP (XPSourceType.JOURNAL_ENTRY)
 Position 4-13: 8 XP each (XPSourceType.JOURNAL_BONUS)
 Position 14+: 0 XP (ANTI-SPAM RULE)
 
-// Bonus milestones (on top of entry XP)
-Entry #4 (first bonus): +25 XP
-Entry #8 (fifth bonus): +50 XP
-Entry #13 (tenth bonus): +100 XP
+// Bonus milestones (on top of entry XP) - REQUIRES IMPLEMENTATION
+Entry #4 (first bonus): +25 XP (⭐ First Bonus Milestone - MISSING)
+Entry #8 (fifth bonus): +50 XP (🔥 Fifth Bonus Milestone - MISSING)  
+Entry #13 (tenth bonus): +100 XP (👑 Tenth Bonus Milestone - MISSING)
 
 // Streak milestones
 7 days: 75 XP, 21 days: 100 XP, 30 days: 150 XP, 100 days: 250 XP, 365 days: 500 XP
@@ -854,6 +854,257 @@ Storage Operation → GamificationService.addXP/subtractXP() → Counter Update 
 ---
 
 **CRITICAL TAKEAWAY**: Journal XP system requires perfect synchronization between storage operations and daily counter tracking. Any desynchronization causes position miscalculation and wrong XP rewards.
+
+---
+
+## Journal Bonus Milestone System
+
+### 🚨 MISSING CRITICAL FEATURE
+
+**STATUS**: **NOT IMPLEMENTED** - Bonus milestone rewards are defined but not awarded
+
+### 1. REQUIRED BONUS MILESTONE IMPLEMENTATION
+
+#### Milestone Definitions (Currently Missing)
+```typescript
+// REQUIRED: Additional XP on top of basic entry XP
+Entry #4 (4th journal entry): +8 XP (basic) + 25 XP (⭐ milestone) = 33 XP total
+Entry #8 (8th journal entry): +8 XP (basic) + 50 XP (🔥 milestone) = 58 XP total  
+Entry #13 (13th journal entry): +8 XP (basic) + 100 XP (👑 milestone) = 108 XP total
+```
+
+#### Implementation Location: `gratitudeStorage.create()`
+```typescript
+async create(input: CreateGratitudeInput): Promise<Gratitude> {
+  // ... existing basic XP logic
+  
+  // ✅ REQUIRED: Add bonus milestone XP awards
+  if (totalCount === 4) {
+    await GamificationService.addXP(XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE, { 
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "⭐ First Bonus Milestone achieved!",
+      sourceId: newGratitude.id,
+      metadata: { milestoneType: 'star', position: 4 }
+    });
+    console.log(`⭐ Bonus milestone achieved: +${XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE} XP`);
+  }
+  
+  if (totalCount === 8) {
+    await GamificationService.addXP(XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE, { 
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "🔥 Fifth Bonus Milestone achieved!",
+      sourceId: newGratitude.id,
+      metadata: { milestoneType: 'flame', position: 8 }
+    });
+    console.log(`🔥 Bonus milestone achieved: +${XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE} XP`);
+  }
+  
+  if (totalCount === 13) {
+    await GamificationService.addXP(XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, { 
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "👑 Tenth Bonus Milestone achieved!",
+      sourceId: newGratitude.id,
+      metadata: { milestoneType: 'crown', position: 13 }
+    });
+    console.log(`👑 Bonus milestone achieved: +${XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE} XP`);
+  }
+}
+```
+
+### 2. REQUIRED REVERSAL LOGIC - CRITICAL
+
+#### Problem: Milestone Loss on Deletion
+```typescript
+// User Scenario:
+1. Create 8 entries → Gets ⭐(25 XP) + 🔥(50 XP) = 75 bonus XP
+2. Delete entry #5 → Now has 7 entries → LOSES 🔥 milestone
+3. REQUIRED: Must subtract -50 XP for lost 🔥 milestone
+```
+
+#### Implementation Location: `gratitudeStorage.delete()`
+```typescript
+async delete(id: string): Promise<void> {
+  const gratitudes = await this.getAll();
+  const deletedGratitude = gratitudes.find(g => g.id === id);
+  
+  // Calculate current milestone count BEFORE deletion
+  const currentDayEntries = gratitudes.filter(g => g.date === deletedGratitude.date);
+  const currentCount = currentDayEntries.length;
+  const newCount = currentCount - 1; // After deletion
+  
+  // ... existing basic XP reversal logic
+  
+  // ✅ REQUIRED: Bonus milestone reversal logic
+  await this.handleMilestoneReversal(currentCount, newCount, deletedGratitude.date);
+}
+
+private async handleMilestoneReversal(fromCount: number, toCount: number, date: DateString): Promise<void> {
+  // Lost ⭐ milestone (had 4+, now have 3-)
+  if (fromCount >= 4 && toCount < 4) {
+    await GamificationService.subtractXP(XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE, {
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "⭐ Lost: First Bonus Milestone",
+      metadata: { milestoneType: 'star_lost', date }
+    });
+    console.log(`⭐ Milestone lost: -${XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE} XP`);
+  }
+  
+  // Lost 🔥 milestone (had 8+, now have 7-)
+  if (fromCount >= 8 && toCount < 8) {
+    await GamificationService.subtractXP(XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE, {
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "🔥 Lost: Fifth Bonus Milestone",
+      metadata: { milestoneType: 'flame_lost', date }
+    });
+    console.log(`🔥 Milestone lost: -${XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE} XP`);
+  }
+  
+  // Lost 👑 milestone (had 13+, now have 12-)
+  if (fromCount >= 13 && toCount < 13) {
+    await GamificationService.subtractXP(XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, {
+      source: XPSourceType.JOURNAL_BONUS_MILESTONE,
+      description: "👑 Lost: Tenth Bonus Milestone",  
+      metadata: { milestoneType: 'crown_lost', date }
+    });
+    console.log(`👑 Milestone lost: -${XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE} XP`);
+  }
+}
+```
+
+### 3. CELEBRATION MODAL INTEGRATION
+
+#### Required Modal Enhancements
+```typescript
+// REQUIRED: Show bonus milestone XP in celebration modals
+// Location: Journal celebration system
+
+// When 4th entry created:
+showCelebrationModal({
+  type: 'bonus_milestone',
+  emoji: '⭐',
+  title: 'First Bonus Milestone!',
+  message: `Amazing! You've written your 4th journal entry today.`,
+  xpAwarded: 8 + 25, // basic + bonus
+  breakdown: [
+    { source: 'Journal Entry', amount: 8 },
+    { source: '⭐ Bonus Milestone', amount: 25, isHighlight: true }
+  ]
+});
+
+// When 8th entry created:
+showCelebrationModal({
+  type: 'bonus_milestone',
+  emoji: '🔥',
+  title: 'Fifth Bonus Milestone!',
+  message: `Incredible! You're on fire with 8 journal entries today!`,
+  xpAwarded: 8 + 50,
+  breakdown: [
+    { source: 'Journal Entry', amount: 8 },
+    { source: '🔥 Bonus Milestone', amount: 50, isHighlight: true }
+  ]
+});
+
+// When 13th entry created:
+showCelebrationModal({
+  type: 'bonus_milestone', 
+  emoji: '👑',
+  title: 'Tenth Bonus Milestone!',
+  message: `Legendary! You've achieved the ultimate journal milestone!`,
+  xpAwarded: 8 + 100,
+  breakdown: [
+    { source: 'Journal Entry', amount: 8 },
+    { source: '👑 Bonus Milestone', amount: 100, isHighlight: true }
+  ]
+});
+```
+
+### 4. TESTING REQUIREMENTS
+
+#### Mandatory Test Scenarios
+```typescript
+describe('Journal Bonus Milestones', () => {
+  it('should award milestone bonuses at correct positions', async () => {
+    // Test milestone awards
+    const entry4 = await gratitudeStorage.create(createInput); // Position 4
+    expect(totalXP).toHaveIncreased(8 + 25); // Basic + milestone XP
+    
+    const entry8 = await gratitudeStorage.create(createInput); // Position 8  
+    expect(totalXP).toHaveIncreased(8 + 50); // Basic + milestone XP
+    
+    const entry13 = await gratitudeStorage.create(createInput); // Position 13
+    expect(totalXP).toHaveIncreased(8 + 100); // Basic + milestone XP
+  });
+  
+  it('should reverse milestone XP on deletion', async () => {
+    // Create 8 entries (gets ⭐ + 🔥 bonuses)
+    // Delete entry to go back to 7 entries
+    // Should lose 🔥 bonus but keep ⭐ bonus
+    await gratitudeStorage.delete(entry8.id);
+    expect(totalXP).toHaveDecreased(8 + 50); // Basic + lost milestone XP
+  });
+});
+```
+
+### 5. ARCHITECTURAL REQUIREMENTS
+
+#### Data Storage Enhancement
+```typescript
+// REQUIRED: Enhanced gratitude tracking
+interface Gratitude extends BaseEntity {
+  // ... existing fields
+  milestonesAwarded?: string[]; // Track which milestones this entry earned
+}
+
+// Example:
+const gratitude4 = {
+  // ... other fields
+  milestonesAwarded: ['star'] // Earned ⭐ milestone
+};
+
+const gratitude8 = {
+  // ... other fields  
+  milestonesAwarded: ['flame'] // Earned 🔥 milestone
+};
+```
+
+#### Event System Integration
+```typescript
+// REQUIRED: Emit milestone events for UI
+DeviceEventEmitter.emit('bonusMilestoneAchieved', {
+  type: 'star' | 'flame' | 'crown',
+  position: 4 | 8 | 13,
+  xpAwarded: 25 | 50 | 100,
+  entryId: string
+});
+
+DeviceEventEmitter.emit('bonusMilestoneLost', {
+  type: 'star' | 'flame' | 'crown', 
+  xpLost: 25 | 50 | 100,
+  reason: 'entry_deletion'
+});
+```
+
+### 6. IMPLEMENTATION PRIORITY
+
+#### Critical Missing Features (High Priority)
+1. **Basic milestone awards** in `gratitudeStorage.create()` ⚠️ CRITICAL
+2. **Milestone reversal logic** in `gratitudeStorage.delete()` ⚠️ CRITICAL  
+3. **Celebration modal integration** for milestone announcements 🎉 HIGH
+4. **Enhanced XP breakdown display** in modals 📊 MEDIUM
+
+#### User Experience Impact
+```typescript
+// Current (Broken) Experience:
+User creates 13 entries → Gets only 20+20+20+8+8+8+8+8+8+8 = 156 XP ❌
+
+// Required (Correct) Experience:  
+User creates 13 entries → Gets 156 XP + 25 XP (⭐) + 50 XP (🔥) + 100 XP (👑) = 331 XP ✅
+Difference: 175 XP missing per day with heavy journal usage!
+```
+
+---
+
+**IMPLEMENTATION STATUS**: 🚨 **MISSING CRITICAL FEATURE** - Bonus milestones defined but not implemented. Users missing significant XP rewards and milestone celebrations.
 
 ---
 

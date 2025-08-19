@@ -159,11 +159,15 @@ export default function CelebrationModal({
           emoji: '🏆',
         };
       case 'bonus_milestone':
-        const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
-        const bonusCountSafe = bonusCount || 1; // Fallback to 1 if null
+        // Correct milestone emoji mapping: 4⭐, 8🔥, 13👑
+        const bonusEmoji = bonusCount === 4 ? '⭐' : bonusCount === 8 ? '🔥' : '👑';
+        const bonusCountSafe = bonusCount || 4; // Fallback to 4 if null
+        const milestoneNames = { 4: 'First', 8: 'Fifth', 13: 'Tenth' };
+        const milestoneName = milestoneNames[bonusCountSafe as keyof typeof milestoneNames] || 'Ultimate';
+        
         return {
-          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `Bonus Milestone ${bonusEmoji}`,
-          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `You've reached ${bonusCountSafe} bonus entries today!`,
+          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `${milestoneName} Bonus Milestone!`,
+          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `Amazing! You've written your ${bonusCountSafe}${bonusCountSafe === 4 ? 'th' : bonusCountSafe === 8 ? 'th' : 'th'} journal entry today!`,
           emoji: bonusEmoji,
         };
       case 'level_up':

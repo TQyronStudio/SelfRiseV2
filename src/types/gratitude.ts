@@ -8,6 +8,7 @@ export interface Gratitude extends BaseEntity {
   type: 'gratitude' | 'self-praise'; // typ záznamu
   mood?: number; // optional mood rating (1-5)
   xpAwarded?: number; // XP amount awarded when this gratitude was created (for accurate deletion)
+  milestonesAwarded?: ('star' | 'flame' | 'crown')[]; // Track which bonus milestones this entry earned
 }
 
 export interface GratitudeStreak {

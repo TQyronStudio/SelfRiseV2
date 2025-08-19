@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -37,7 +37,7 @@ export default function JournalScreen() {
   
   // Modal queue system to prevent overlapping modals
   const [modalQueue, setModalQueue] = useState<Array<{
-    type: 'bonus' | 'level_up';
+    type: 'bonus' | 'level_up' | 'bonus_milestone';
     data: any;
   }>>([]);
   const [isProcessingModalQueue, setIsProcessingModalQueue] = useState(false);
@@ -56,15 +56,18 @@ export default function JournalScreen() {
       // Remove processed modal from queue
       setModalQueue(prev => prev.slice(1));
       
-      if (nextModal.type === 'bonus') {
+      if (nextModal.type === 'bonus' || nextModal.type === 'bonus_milestone') {
         // Show bonus milestone modal
-        setBonusMilestone(nextModal.data.bonusCount);
+        const bonusCount = nextModal.data.bonusCount || nextModal.data.position;
+        setBonusMilestone(bonusCount);
         setCelebrationType('bonus_milestone');
         setShowCelebration(true);
         
+        console.log(`🎉 Showing bonus milestone modal for position ${bonusCount} (${nextModal.data.emoji})`);
+        
         // Process milestone counter increment
         setTimeout(async () => {
-          await actions.incrementMilestoneCounter(nextModal.data.bonusCount);
+          await actions.incrementMilestoneCounter(bonusCount);
           await actions.refreshStats();
         }, 100);
         
@@ -250,6 +253,33 @@ export default function JournalScreen() {
       console.log('⏸️ Skipping level-up check - already pending or modal visible');
     }
   }, [currentCount, t, checkAndTriggerLevelUpCelebration, showCelebration, celebrationState.visible, levelUpCheckPending]);
+
+  // Bonus milestone event listeners
+  useEffect(() => {
+    const bonusMilestoneListener = DeviceEventEmitter.addListener('bonusMilestoneAchieved', (milestone) => {
+      console.log(`🎉 Bonus milestone achieved:`, milestone);
+      
+      // Set milestone data for celebration modal
+      setBonusMilestone(milestone.position);
+      setCelebrationType('bonus_milestone');
+      
+      // Add to modal queue
+      setModalQueue(prev => [...prev, { 
+        type: 'bonus_milestone', 
+        data: milestone 
+      }]);
+    });
+
+    const bonusReversalListener = DeviceEventEmitter.addListener('bonusMilestoneReversed', (reversal) => {
+      console.log(`💔 Bonus milestone lost:`, reversal);
+      // Could show a subtle notification for milestone loss
+    });
+
+    return () => {
+      bonusMilestoneListener.remove();
+      bonusReversalListener.remove();
+    };
+  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {
