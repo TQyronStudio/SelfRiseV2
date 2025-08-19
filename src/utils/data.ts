@@ -119,7 +119,8 @@ export const getHabitIconName = (icon: HabitIcon): string => {
 export const createGratitude = (
   input: CreateGratitudeInput,
   order: number,
-  isBonus: boolean = false
+  isBonus: boolean = false,
+  xpAwarded?: number
 ): Gratitude => {
   const gratitude: Gratitude = {
     ...createBaseEntity(),
@@ -132,6 +133,11 @@ export const createGratitude = (
   
   if (input.mood !== undefined) {
     gratitude.mood = input.mood;
+  }
+  
+  // Store XP amount awarded for accurate deletion
+  if (xpAwarded !== undefined) {
+    gratitude.xpAwarded = xpAwarded;
   }
   
   return gratitude;

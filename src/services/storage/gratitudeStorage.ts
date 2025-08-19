@@ -44,10 +44,27 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const isBonus = totalCount > 3; // 4th+ gratitude is bonus
       const order = getNextGratitudeOrder(gratitudes, input.date);
       
-      const newGratitude = createGratitude(input, order, isBonus);
+      // Calculate XP amount before creating gratitude object
+      const xpAmount = this.getXPForJournalEntry(totalCount);
+      const xpSource = isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+      const description = isBonus ? 
+        `Bonus journal entry #${totalCount}` : 
+        `Journal entry #${totalCount}`;
+      
+      // Create gratitude with XP amount stored for accurate deletion
+      const newGratitude = createGratitude(input, order, isBonus, xpAmount);
       
       gratitudes.push(newGratitude);
       await BaseStorage.set(STORAGE_KEYS.GRATITUDES, gratitudes);
+      
+      // Award XP for journal entry
+      await GamificationService.addXP(xpAmount, { 
+        source: xpSource, 
+        description,
+        sourceId: newGratitude.id 
+      });
+      
+      console.log(`✅ Journal entry created (position: ${totalCount}, +${xpAmount} XP)`);
       
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
@@ -59,6 +76,24 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         STORAGE_ERROR_CODES.UNKNOWN,
         STORAGE_KEYS.GRATITUDES
       );
+    }
+  }
+
+  /**
+   * Get XP amount for journal entry based on daily position
+   * Anti-spam protection: Entries 14+ receive 0 XP
+   */
+  private getXPForJournalEntry(position: number): number {
+    switch (position) {
+      case 1: return XP_REWARDS.JOURNAL.FIRST_ENTRY;   // 20 XP
+      case 2: return XP_REWARDS.JOURNAL.SECOND_ENTRY;  // 20 XP
+      case 3: return XP_REWARDS.JOURNAL.THIRD_ENTRY;   // 20 XP
+      default: 
+        if (position >= 4 && position <= 13) {
+          return XP_REWARDS.JOURNAL.BONUS_ENTRY;  // 8 XP (4th-13th entries)
+        } else {
+          return XP_REWARDS.JOURNAL.FOURTEENTH_PLUS_ENTRY;  // 0 XP (14+ entries - anti-spam)
+        }
     }
   }
 
@@ -108,56 +143,62 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         );
       }
 
-      // Calculate XP to subtract BEFORE deletion and reordering
+      // Calculate XP to subtract using stored xpAwarded value or fallback
       const deletedGratitude = gratitudes.find(g => g.id === id);
       if (deletedGratitude) {
-        // Get all entries for this date to determine true position (not based on order field)
-        const sameDateEntries = gratitudes
-          .filter(g => g.date === deletedGratitude.date)
-          .sort((a, b) => {
-            // Sort by creation time to get true chronological order
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          });
-        
-        // Find original position (1-based index) based on chronological creation order
-        const originalPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
-        
-        // Subtract XP for deleted gratitude entry
-        const isBonus = originalPosition > 3;
         let xpAmount: number;
         let xpSource: XPSourceType;
+        let description: string;
         
-        if (originalPosition === 1) {
-          xpAmount = XP_REWARDS.JOURNAL.FIRST_ENTRY;
-          xpSource = XPSourceType.JOURNAL_ENTRY;
-        } else if (originalPosition === 2) {
-          xpAmount = XP_REWARDS.JOURNAL.SECOND_ENTRY;
-          xpSource = XPSourceType.JOURNAL_ENTRY;
-        } else if (originalPosition === 3) {
-          xpAmount = XP_REWARDS.JOURNAL.THIRD_ENTRY;
-          xpSource = XPSourceType.JOURNAL_ENTRY;
-        } else if (originalPosition >= 4 && originalPosition <= 13) {
-          xpAmount = XP_REWARDS.JOURNAL.BONUS_ENTRY;
-          xpSource = XPSourceType.JOURNAL_BONUS;
+        // Use stored XP amount if available (new entries), otherwise fallback to calculation
+        if (deletedGratitude.xpAwarded !== undefined) {
+          // Use stored XP value - guaranteed accurate
+          xpAmount = deletedGratitude.xpAwarded;
+          xpSource = deletedGratitude.isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+          description = `Deleted journal entry (-${xpAmount} XP stored)`;
+          
+          console.log(`✅ Using stored XP value for deletion: ${xpAmount} XP`);
         } else {
-          // Position 14+ had 0 XP, so no need to subtract
-          xpAmount = 0;
-          xpSource = XPSourceType.JOURNAL_ENTRY;
+          // Legacy fallback: try to calculate position (may be inaccurate)
+          console.log(`⚠️ Legacy entry detected - attempting position calculation`);
+          
+          const sameDateEntries = gratitudes
+            .filter(g => g.date === deletedGratitude.date)
+            .sort((a, b) => {
+              return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            });
+          
+          const calculatedPosition = sameDateEntries.findIndex(g => g.id === id) + 1;
+          
+          if (calculatedPosition === 1) {
+            xpAmount = XP_REWARDS.JOURNAL.FIRST_ENTRY;
+            xpSource = XPSourceType.JOURNAL_ENTRY;
+          } else if (calculatedPosition === 2) {
+            xpAmount = XP_REWARDS.JOURNAL.SECOND_ENTRY;
+            xpSource = XPSourceType.JOURNAL_ENTRY;
+          } else if (calculatedPosition === 3) {
+            xpAmount = XP_REWARDS.JOURNAL.THIRD_ENTRY;
+            xpSource = XPSourceType.JOURNAL_ENTRY;
+          } else if (calculatedPosition >= 4 && calculatedPosition <= 13) {
+            xpAmount = XP_REWARDS.JOURNAL.BONUS_ENTRY;
+            xpSource = XPSourceType.JOURNAL_BONUS;
+          } else {
+            xpAmount = 0;
+            xpSource = XPSourceType.JOURNAL_ENTRY;
+          }
+          
+          description = `Deleted legacy entry (calculated position ${calculatedPosition})`;
         }
         
         if (xpAmount > 0) {
-          const description = isBonus ? 
-            `Deleted bonus journal entry (position ${originalPosition})` : 
-            `Deleted journal entry (position ${originalPosition})`;
-          
           await GamificationService.subtractXP(xpAmount, { 
             source: xpSource, 
             description 
           });
           
-          console.log(`✅ Gratitude entry deleted (position: ${originalPosition}, -${xpAmount} XP)`);
+          console.log(`🗑️ Journal entry deleted (-${xpAmount} XP)`);
         } else {
-          console.log(`✅ Gratitude entry deleted (position: ${originalPosition}, 0 XP change)`);
+          console.log(`🗑️ Journal entry deleted (0 XP change)`);
         }
         
         // Reorder remaining gratitudes for the same date

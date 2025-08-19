@@ -31,6 +31,70 @@ export default function JournalScreen() {
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
   const [bonusMilestone, setBonusMilestone] = useState<number | null>(null);
   
+  // Race condition prevention for level up checks
+  const [levelUpCheckPending, setLevelUpCheckPending] = useState(false);
+  const levelUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Modal queue system to prevent overlapping modals
+  const [modalQueue, setModalQueue] = useState<Array<{
+    type: 'bonus' | 'level_up';
+    data: any;
+  }>>([]);
+  const [isProcessingModalQueue, setIsProcessingModalQueue] = useState(false);
+  
+  // Process modal queue to prevent overlapping modals
+  const processModalQueue = useCallback(async () => {
+    if (isProcessingModalQueue || modalQueue.length === 0) return;
+    if (showCelebration || celebrationState.visible) return; // Don't process if modal is showing
+    
+    setIsProcessingModalQueue(true);
+    
+    const nextModal = modalQueue[0];
+    if (nextModal) {
+      console.log(`🎭 Processing modal queue: ${nextModal.type}`, nextModal.data);
+      
+      // Remove processed modal from queue
+      setModalQueue(prev => prev.slice(1));
+      
+      if (nextModal.type === 'bonus') {
+        // Show bonus milestone modal
+        setBonusMilestone(nextModal.data.bonusCount);
+        setCelebrationType('bonus_milestone');
+        setShowCelebration(true);
+        
+        // Process milestone counter increment
+        setTimeout(async () => {
+          await actions.incrementMilestoneCounter(nextModal.data.bonusCount);
+          await actions.refreshStats();
+        }, 100);
+        
+      } else if (nextModal.type === 'level_up') {
+        // Show level up modal
+        checkAndTriggerLevelUpCelebration(nextModal.data);
+        
+        // Mark as shown with error handling
+        const success = await GamificationService.markLevelUpAsShown(nextModal.data.levelUpId);
+        if (!success) {
+          console.warn(`⚠️ Failed to mark level-up as shown: ${nextModal.data.levelUpId}`);
+        }
+      }
+    }
+    
+    setIsProcessingModalQueue(false);
+  }, [modalQueue, isProcessingModalQueue, showCelebration, celebrationState.visible, actions, checkAndTriggerLevelUpCelebration]);
+  
+  // Process modal queue when conditions are right
+  useEffect(() => {
+    processModalQueue();
+  }, [processModalQueue]);
+  
+  // Debug: Monitor modal queue changes
+  useEffect(() => {
+    if (modalQueue.length > 0) {
+      console.log(`📋 Modal queue updated: ${modalQueue.length} items - [${modalQueue.map(m => m.type).join(', ')}]`);
+    }
+  }, [modalQueue]);
+  
   const todayDate = today();
   const [todaysGratitudes, setTodaysGratitudes] = useState(actions.getGratitudesByDate(todayDate));
   const currentCount = todaysGratitudes.length;
@@ -115,55 +179,87 @@ export default function JournalScreen() {
       
       // Check if this is a new milestone (1st, 5th, 10th bonus of the day)
       if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
-        // Show beautiful celebration modal for specific milestones
-        setBonusMilestone(bonusCount);
-        setCelebrationType('bonus_milestone');
-        setShowCelebration(true);
+        console.log(`🎯 Bonus milestone ${bonusCount} reached - adding to modal queue`);
         
-        // Immediately increment the appropriate milestone counter
-        setTimeout(async () => {
-          await actions.incrementMilestoneCounter(bonusCount);
-          await actions.refreshStats(); // Refresh to show updated counts
-        }, 100); // Small delay to ensure gratitude is saved first
+        // Add bonus modal to queue instead of showing directly
+        setModalQueue(prev => [...prev, {
+          type: 'bonus',
+          data: { bonusCount }
+        }]);
       }
     }
 
-    // Check for level-ups after all other celebrations
-    setTimeout(async () => {
-      try {
-        const recentLevelUps = await GamificationService.getRecentLevelUps();
-        if (recentLevelUps.length > 0) {
-          // Get the most recent level-up
-          const latestLevelUp = recentLevelUps[0];
-          if (latestLevelUp) {
-            const levelInfo = getLevelInfo(latestLevelUp.newLevel);
+    // Debounced level-up check to prevent race conditions
+    // Clear previous timeout if it exists
+    if (levelUpTimeoutRef.current) {
+      clearTimeout(levelUpTimeoutRef.current);
+    }
+    
+    // Only proceed if not already checking and no modals are visible
+    if (!levelUpCheckPending && !showCelebration && !celebrationState.visible) {
+      levelUpTimeoutRef.current = setTimeout(async () => {
+        try {
+          setLevelUpCheckPending(true);
+          console.log('🔍 Starting debounced level-up check...');
           
-            // Create level-up celebration data
-            const levelUpResult = {
-              success: true,
-              xpGained: 0, // Not needed for celebration
-              totalXP: latestLevelUp.totalXPAtLevelUp,
-              previousLevel: latestLevelUp.previousLevel,
-              newLevel: latestLevelUp.newLevel,
-              leveledUp: true,
-              milestoneReached: latestLevelUp.isMilestone,
-              levelUpInfo: {
-                newLevelTitle: levelInfo.title,
-                newLevelDescription: levelInfo.description || '',
-                ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
-                isMilestone: latestLevelUp.isMilestone,
-              },
-            };
-          
-            // Trigger level-up celebration
-            checkAndTriggerLevelUpCelebration(levelUpResult);
+          const recentLevelUps = await GamificationService.getRecentLevelUps();
+          if (recentLevelUps.length > 0) {
+            // Get the most recent level-up that hasn't been shown
+            const latestLevelUp = recentLevelUps[0];
+            if (latestLevelUp) {
+              console.log(`🎉 Found unshown level-up: Level ${latestLevelUp.newLevel} (${latestLevelUp.id.slice(-6)})`);
+              const levelInfo = getLevelInfo(latestLevelUp.newLevel);
+              
+              // Create level-up celebration data
+              const levelUpResult = {
+                success: true,
+                xpGained: 0, // Not needed for celebration
+                totalXP: latestLevelUp.totalXPAtLevelUp,
+                previousLevel: latestLevelUp.previousLevel,
+                newLevel: latestLevelUp.newLevel,
+                leveledUp: true,
+                milestoneReached: latestLevelUp.isMilestone,
+                levelUpInfo: {
+                  newLevelTitle: levelInfo.title,
+                  newLevelDescription: levelInfo.description || '',
+                  ...(levelInfo.rewards && { rewards: levelInfo.rewards }),
+                  isMilestone: latestLevelUp.isMilestone,
+                },
+                levelUpId: latestLevelUp.id, // Add level up ID for tracking
+              };
+              
+              console.log(`🏆 Level-up found - adding to modal queue: Level ${latestLevelUp.newLevel}`);
+              
+              // Add level up modal to queue instead of showing directly
+              setModalQueue(prev => [...prev, {
+                type: 'level_up',
+                data: levelUpResult
+              }]);
+            }
+          } else {
+            console.log('ℹ️ No unshown level-ups found');
           }
+        } catch (error) {
+          console.error('❌ Failed to check for level-ups:', error);
+        } finally {
+          setLevelUpCheckPending(false);
+          levelUpTimeoutRef.current = null;
         }
-      } catch (error) {
-        console.error('Failed to check for level-ups:', error);
+      }, 2500); // Slightly longer delay to ensure other celebrations finish
+    } else {
+      console.log('⏸️ Skipping level-up check - already pending or modal visible');
+    }
+  }, [currentCount, t, checkAndTriggerLevelUpCelebration, showCelebration, celebrationState.visible, levelUpCheckPending]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (levelUpTimeoutRef.current) {
+        clearTimeout(levelUpTimeoutRef.current);
+        levelUpTimeoutRef.current = null;
       }
-    }, 2000); // Check after other celebrations have had time to show
-  }, [currentCount, t, checkAndTriggerLevelUpCelebration]);
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -281,8 +377,14 @@ export default function JournalScreen() {
       <CelebrationModal
         visible={showCelebration}
         onClose={() => {
+          console.log('🎭 Bonus modal closed - processing next in queue');
           setShowCelebration(false);
           setBonusMilestone(null);
+          
+          // Process next modal in queue after a short delay
+          setTimeout(() => {
+            processModalQueue();
+          }, 500);
         }}
         type={celebrationType}
         streakDays={milestoneStreak || undefined}
@@ -294,7 +396,15 @@ export default function JournalScreen() {
       {/* Level-up celebration modal */}
       <CelebrationModal
         visible={celebrationState.visible}
-        onClose={hideCelebration}
+        onClose={() => {
+          console.log('🎭 Level-up modal closed - processing next in queue');
+          hideCelebration();
+          
+          // Process next modal in queue after a short delay
+          setTimeout(() => {
+            processModalQueue();
+          }, 500);
+        }}
         type="level_up"
         levelUpData={celebrationState.levelUpData}
       />

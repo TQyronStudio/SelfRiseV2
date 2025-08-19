@@ -7,6 +7,7 @@ export interface Gratitude extends BaseEntity {
   order: number; // order within the day (1, 2, 3, 4+)
   type: 'gratitude' | 'self-praise'; // typ záznamu
   mood?: number; // optional mood rating (1-5)
+  xpAwarded?: number; // XP amount awarded when this gratitude was created (for accurate deletion)
 }
 
 export interface GratitudeStreak {

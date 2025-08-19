@@ -157,6 +157,7 @@ interface LevelUpEvent {
   totalXPAtLevelUp: number;
   triggerSource: XPSourceType;
   isMilestone: boolean;
+  shown?: boolean; // Track if level up modal has been displayed
 }
 
 // ========================================
@@ -1306,40 +1307,15 @@ export class GamificationService {
   ): Promise<{ isValid: boolean; allowedAmount: number; reason?: string }> {
     try {
       // ========================================
-      // JOURNAL ANTI-SPAM VALIDATION (Priority #1)
+      // JOURNAL ANTI-SPAM VALIDATION - REMOVED FOR SYNCHRONIZATION
       // ========================================
       
-      // Check journal entry anti-spam rules FIRST (before other limits)
-      if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-        const currentJournalEntries = await this.getDailyJournalEntryCount();
-        const entryPosition = currentJournalEntries + 1; // Next entry position (1-based)
-        
-        console.log(`🔍 Journal anti-spam check: entry position ${entryPosition} for ${amount} XP`);
-        
-        const journalValidation = this.getJournalXPByPosition(entryPosition, amount);
-        
-        if (!journalValidation.isValid) {
-          // Entry 14+ blocked by anti-spam
-          console.log(`🚫 Journal entry ${entryPosition} blocked by anti-spam rule`);
-          return {
-            isValid: false,
-            allowedAmount: 0,
-            reason: journalValidation.reason
-          };
-        } else if (journalValidation.allowedAmount !== amount) {
-          // XP amount corrected based on position
-          console.log(`📝 Journal XP corrected: ${amount} → ${journalValidation.allowedAmount}`);
-          return {
-            isValid: true,
-            allowedAmount: journalValidation.allowedAmount,
-            reason: journalValidation.reason
-          };
-        }
-        
-        // Journal validation passed, continue with normal checks using corrected amount
-        amount = journalValidation.allowedAmount;
-        console.log(`✅ Journal anti-spam passed: entry ${entryPosition} gets ${amount} XP`);
-      }
+      // REMOVED: Duplicitní validace způsobovala desynchronizaci mezi journalEntryCount a storage
+      // XP amount je už správně vypočítaný v gratitudeStorage.getXPForJournalEntry()
+      // na základě skutečné pozice ze storage, včetně anti-spam limit (pozice 14+)
+      console.log(`🔍 Journal XP validation delegated to storage layer (${amount} XP from ${source})`);
+      
+      // Trust the amount calculated by storage layer - no correction needed
 
       // ========================================
       // GOAL ANTI-SPAM VALIDATION
@@ -1517,70 +1493,16 @@ export class GamificationService {
   // ========================================
 
   /**
-   * Get number of journal entries created today for anti-spam validation
+   * DEPRECATED: Get number of journal entries created today for anti-spam validation
+   * REMOVED: Caused desynchronization issues with storage layer position calculation
+   * XP validation now handled entirely by gratitudeStorage.getXPForJournalEntry()
    */
-  private static async getDailyJournalEntryCount(): Promise<number> {
-    try {
-      const dailyData = await this.getDailyXPData();
-      
-      console.log(`📊 Journal entries today: ${dailyData.journalEntryCount}`);
-      return dailyData.journalEntryCount;
-    } catch (error) {
-      console.error('GamificationService.getDailyJournalEntryCount error:', error);
-      return 0; // Conservative fallback
-    }
-  }
 
   /**
-   * Calculate correct XP amount for journal entry based on daily position
-   * Implements "entries 14+ = 0 XP" anti-spam logic
+   * DEPRECATED: Calculate correct XP amount for journal entry based on daily position
+   * REMOVED: Duplicated logic already implemented in gratitudeStorage.getXPForJournalEntry()
+   * Caused synchronization issues when counter desynchronized from real storage data
    */
-  private static getJournalXPByPosition(entryPosition: number, requestedAmount: number): { 
-    allowedAmount: number; 
-    reason: string;
-    isValid: boolean;
-  } {
-    console.log(`🔍 Journal XP validation: entry position ${entryPosition}, requested ${requestedAmount} XP`);
-    
-    // Anti-spam logic: entries 14+ get 0 XP
-    if (entryPosition >= 14) {
-      return {
-        allowedAmount: 0,
-        reason: `Journal entry ${entryPosition} blocked by anti-spam rule (entries 14+ = 0 XP)`,
-        isValid: false
-      };
-    }
-    
-    // Determine expected XP based on position
-    let expectedXP: number;
-    if (entryPosition <= 3) {
-      // First 3 entries: 20 XP each
-      expectedXP = XP_REWARDS.JOURNAL.FIRST_ENTRY; // 20 XP
-    } else if (entryPosition <= 13) {
-      // Entries 4-13: 8 XP each (bonus entries)
-      expectedXP = XP_REWARDS.JOURNAL.BONUS_ENTRY; // 8 XP
-    } else {
-      // This should never happen due to above check, but safety fallback
-      expectedXP = XP_REWARDS.JOURNAL.FOURTEENTH_PLUS_ENTRY; // 0 XP
-    }
-    
-    // Validate requested amount matches expected amount
-    if (requestedAmount === expectedXP) {
-      console.log(`✅ Journal XP validated: entry ${entryPosition} should get ${expectedXP} XP`);
-      return {
-        allowedAmount: expectedXP,
-        reason: `Journal entry ${entryPosition} validated for ${expectedXP} XP`,
-        isValid: true
-      };
-    } else {
-      console.log(`⚠️ Journal XP mismatch: entry ${entryPosition} requested ${requestedAmount} XP, expected ${expectedXP} XP`);
-      return {
-        allowedAmount: expectedXP,
-        reason: `Journal entry ${entryPosition} XP corrected from ${requestedAmount} to ${expectedXP}`,
-        isValid: true // Still valid, just corrected
-      };
-    }
-  }
 
   // ========================================
   // LEVEL-UP EVENT TRACKING
@@ -1605,6 +1527,7 @@ export class GamificationService {
         totalXPAtLevelUp: totalXP,
         triggerSource,
         isMilestone: isLevelMilestone(newLevel),
+        shown: false, // Track if modal has been shown to user
       };
 
       const levelUpHistory = await this.getLevelUpHistory();
@@ -1622,7 +1545,7 @@ export class GamificationService {
   }
 
   /**
-   * Get level-up history
+   * Get level-up history with legacy data migration
    */
   static async getLevelUpHistory(): Promise<LevelUpEvent[]> {
     try {
@@ -1630,11 +1553,35 @@ export class GamificationService {
       if (!stored) return [];
 
       const events = JSON.parse(stored);
-      // Convert date strings back to Date objects
-      return events.map((event: any) => ({
-        ...event,
-        timestamp: new Date(event.timestamp),
-      }));
+      let migrationNeeded = false;
+      
+      // Convert date strings back to Date objects and migrate legacy data
+      const migratedEvents = events.map((event: any) => {
+        // Check if event is missing the 'shown' property (legacy data)
+        if (event.shown === undefined) {
+          migrationNeeded = true;
+          // Mark legacy level ups as already shown to prevent spam
+          console.log(`🔄 Migrating legacy level up: Level ${event.newLevel} → shown: true`);
+          return {
+            ...event,
+            timestamp: new Date(event.timestamp),
+            shown: true, // Legacy events should be considered already shown
+          };
+        }
+        
+        return {
+          ...event,
+          timestamp: new Date(event.timestamp),
+        };
+      });
+      
+      // Save migrated data back to storage if migration was needed
+      if (migrationNeeded) {
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(migratedEvents));
+        console.log('✅ Legacy level up data migrated successfully');
+      }
+      
+      return migratedEvents;
     } catch (error) {
       console.error('GamificationService.getLevelUpHistory error:', error);
       return [];
@@ -1642,15 +1589,148 @@ export class GamificationService {
   }
 
   /**
-   * Get recent level-ups (last N events)
+   * Get recent level-ups (last N events) that haven't been shown yet
+   * Includes fallback in-memory tracking for AsyncStorage failures
    */
   static async getRecentLevelUps(count: number = 5): Promise<LevelUpEvent[]> {
     try {
       const history = await this.getLevelUpHistory();
-      return history.slice(-count).reverse(); // Most recent first
+      
+      // Filter unshown level ups with fallback mechanism
+      const unshownLevelUps = history.filter(event => {
+        // Check both storage-based 'shown' flag and in-memory failed tracking
+        const isShownInStorage = event.shown === true;
+        const isTrackedAsFailed = this.isLevelUpTrackedAsFailed(event.id);
+        
+        // If it's shown in storage OR tracked as failed in memory, don't show it
+        return !isShownInStorage && !isTrackedAsFailed;
+      });
+      
+      const result = unshownLevelUps.slice(-count).reverse(); // Most recent first
+      
+      console.log(`📊 getRecentLevelUps: ${result.length} unshown level ups found`);
+      if (result.length > 0) {
+        console.log(`📋 Unshown level ups: ${result.map(e => `Level ${e.newLevel} (${e.id.slice(-6)})`).join(', ')}`);
+      }
+      
+      return result;
     } catch (error) {
       console.error('GamificationService.getRecentLevelUps error:', error);
       return [];
+    }
+  }
+
+  /**
+   * Mark a level-up event as shown to prevent repeated modal displays
+   * Includes robust error handling and retry mechanism
+   */
+  static async markLevelUpAsShown(levelUpId: string): Promise<boolean> {
+    const maxRetries = 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        const history = await this.getLevelUpHistory();
+        const eventIndex = history.findIndex(event => event.id === levelUpId);
+        
+        if (eventIndex === -1 || !history[eventIndex]) {
+          console.warn(`⚠️ Level-up event not found: ${levelUpId}`);
+          return false;
+        }
+        
+        // Mark as shown
+        history[eventIndex]!.shown = true;
+        
+        // Attempt to save with error handling
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(history));
+        console.log(`✅ Level-up marked as shown: ${levelUpId} (attempt ${attempt + 1})`);
+        return true;
+        
+      } catch (error) {
+        attempt++;
+        console.error(`❌ markLevelUpAsShown attempt ${attempt}/${maxRetries} failed:`, error);
+        
+        if (attempt === maxRetries) {
+          console.error(`🚨 CRITICAL: Failed to mark level-up as shown after ${maxRetries} attempts: ${levelUpId}`);
+          // Create fallback mechanism - store failed IDs for in-memory tracking
+          this.addToFailedLevelUpTracking(levelUpId);
+          return false;
+        }
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * In-memory tracking for level-ups that failed to be marked as shown
+   * Fallback mechanism when AsyncStorage fails
+   */
+  private static failedLevelUpIds: Set<string> = new Set();
+  
+  private static addToFailedLevelUpTracking(levelUpId: string): void {
+    this.failedLevelUpIds.add(levelUpId);
+    console.log(`📝 Added to in-memory failed tracking: ${levelUpId}`);
+  }
+  
+  private static isLevelUpTrackedAsFailed(levelUpId: string): boolean {
+    return this.failedLevelUpIds.has(levelUpId);
+  }
+  
+  /**
+   * Debug utility: Clear all failed level up tracking
+   * Useful for testing and troubleshooting
+   */
+  static clearFailedLevelUpTracking(): void {
+    const count = this.failedLevelUpIds.size;
+    this.failedLevelUpIds.clear();
+    console.log(`🧹 Cleared ${count} failed level up tracking entries`);
+  }
+  
+  /**
+   * Debug utility: Get current level up status for troubleshooting
+   */
+  static async debugLevelUpStatus(): Promise<{
+    totalHistory: number;
+    unshownCount: number;
+    failedTrackingCount: number;
+    recentLevelUps: Array<{
+      id: string;
+      level: number;
+      shown: boolean;
+      failedTracked: boolean;
+    }>;
+  }> {
+    try {
+      const history = await this.getLevelUpHistory();
+      const unshownLevelUps = history.filter(event => {
+        const isShownInStorage = event.shown === true;
+        const isTrackedAsFailed = this.isLevelUpTrackedAsFailed(event.id);
+        return !isShownInStorage && !isTrackedAsFailed;
+      });
+      
+      return {
+        totalHistory: history.length,
+        unshownCount: unshownLevelUps.length,
+        failedTrackingCount: this.failedLevelUpIds.size,
+        recentLevelUps: history.slice(-10).map(event => ({
+          id: event.id.slice(-6),
+          level: event.newLevel,
+          shown: event.shown ?? false,
+          failedTracked: this.isLevelUpTrackedAsFailed(event.id)
+        }))
+      };
+    } catch (error) {
+      console.error('debugLevelUpStatus error:', error);
+      return {
+        totalHistory: 0,
+        unshownCount: 0,
+        failedTrackingCount: this.failedLevelUpIds.size,
+        recentLevelUps: []
+      };
     }
   }
 
@@ -1673,12 +1753,12 @@ export class GamificationService {
       dailyData.totalXP = Math.max(0, dailyData.totalXP + amount);
       dailyData.xpBySource[source] = Math.max(0, (dailyData.xpBySource[source] || 0) + amount);
       
-      // Only increment transaction count for positive XP (additions), not for negative XP (subtractions)
+      // Handle transaction counting and anti-spam tracking for both positive and negative XP
       if (amount > 0) {
         dailyData.transactionCount += 1;
         
         // ========================================
-        // ANTI-SPAM TRACKING
+        // ANTI-SPAM TRACKING - INCREASE COUNTERS
         // ========================================
         
         // Track journal entries for anti-spam (entries 14+ = 0 XP)
@@ -1695,6 +1775,29 @@ export class GamificationService {
         )) {
           dailyData.goalTransactions[goalId] = (dailyData.goalTransactions[goalId] || 0) + 1;
           console.log(`🎯 Goal XP tracked: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
+        }
+      } else if (amount < 0) {
+        // Decrease transaction count for negative XP (subtractions)
+        dailyData.transactionCount = Math.max(0, dailyData.transactionCount - 1);
+        
+        // ========================================
+        // ANTI-SPAM TRACKING - DECREASE COUNTERS
+        // ========================================
+        
+        // Track journal entry deletions (reduce counter)
+        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+          dailyData.journalEntryCount = Math.max(0, dailyData.journalEntryCount - 1);
+          console.log(`📊 Journal entry removed: ${dailyData.journalEntryCount} entries today`);
+        }
+        
+        // Track goal transaction deletions
+        if (goalId && (
+          source === XPSourceType.GOAL_PROGRESS || 
+          source === XPSourceType.GOAL_COMPLETION || 
+          source === XPSourceType.GOAL_MILESTONE
+        )) {
+          dailyData.goalTransactions[goalId] = Math.max(0, (dailyData.goalTransactions[goalId] || 0) - 1);
+          console.log(`🎯 Goal XP removed: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
         }
       }
       

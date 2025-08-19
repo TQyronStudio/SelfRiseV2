@@ -93,9 +93,14 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     fetchGamificationData();
 
     // Listen for real-time XP changes
-    const subscription = DeviceEventEmitter.addListener('xpGained', fetchGamificationData);
+    const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', fetchGamificationData);
+    // Listen for level up events to refresh progress bar
+    const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', fetchGamificationData);
     
-    return () => subscription.remove();
+    return () => {
+      xpGainedSubscription.remove();
+      levelUpSubscription.remove();
+    };
   }, [fetchGamificationData]);
 
   // Memoized utility functions
