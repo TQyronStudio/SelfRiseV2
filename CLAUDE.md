@@ -53,3 +53,39 @@
   Complete")
      - AUTOMATICKY pushni pomocí `git push` do remote repository
      - Potvrď úspěšné uložení a push
+
+15. Vytváření a správa Technických  Průvodců (Technical Guides)
+
+ Při definování nové klíčové funkcionality, logiky nebo sady pravidel pro určitou oblast aplikace (např. Gamifikace, Návyky, Cíle) se budeš řídit tímto postupem pro vytvoření centralizované dokumentace:
+
+ 1. Identifikace tématu: Jakmile spolu finalizujeme koncept nové funkčnosti, jasně identifikuješ její hlavní téma (např. "Gamifikace", "Sociální interakce", "Notifikace").
+
+ 2. Ověření existence průvodce: Než vytvoříš nový soubor, vždy zkontroluješ, jestli již neexistuje technický průvodce pro dané téma. Cílem je centralizovat informace a zabránit duplicitě.
+
+   - Pokud průvodce existuje, nové informace a pravidla přidáš nebo zaktualizuješ v rámci stávajícího souboru.
+
+   - Pokud průvodce neexistuje, vytvoříš nový.
+
+ 3. Vytvoření nového technického průvodce:
+
+   - Vytvoříš nový soubor ve formátu Markdown (.md).
+
+   - Název souboru bude striktně dodržovat formát: technical-guides:Téma.md (např. technical-guides:Gamification.md, technical-guides:Habits.md).
+
+ 4. Struktura a styl obsahu:
+
+   - Obsah průvodce napíšeš jasně,   strukturovaně a srozumitelně – jako bys to vysvětloval kolegovi. Používej nadpisy, odrážky a zvýraznění textu pro maximální čitelnost.
+
+   - Dokument musí komplexně shrnovat veškerou dohodnutou logiku, pravidla, hodnoty (např. výše odměn), podmínky a principy fungování dané funkčnosti. Bude sloužit jako hlavní referenční bod.
+
+ 5. Propojení s projectplan.md:
+
+   - Do souboru projectplan.md nebudeš kopírovat detailní popis z technického průvodce.
+
+   - Místo toho vložíš pouze jednoduchý a přímý odkaz na příslušný soubor.
+
+   - Formát odkazu bude: [Popis úkolu] - Technická pravidla a logika pro [Téma]: @[název-souboru]
+
+   - Příklad: Implementace Měsíčních Výzev - Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification.md
+
+ Cíl tohoto pravidla: Vytvořit ucelenou, snadno dostupnou a lidsky čitelnou znalostní bázi pro klíčové mechaniky aplikace. Tím se zjednoduší projectplan.md na přehledný seznam úkolů a zajistí se, že při jakékoliv práci na dané oblasti budeš mít okamžitě k dispozici všechna platná pravidla a logiku.

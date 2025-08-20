@@ -233,6 +233,15 @@ export class AppInitializationService {
       const yesterdayStr = yesterday.toISOString().split('T')[0]!;
       const todayStr = today.toISOString().split('T')[0]!;
       await GamificationService.getTransactionsByDateRange(yesterdayStr, todayStr);
+      
+      // Check and auto-activate inactive user boost if needed
+      const { XPMultiplierService } = require('./xpMultiplierService');
+      const boostResult = await XPMultiplierService.checkAndActivateInactiveUserBoost();
+      
+      if (boostResult?.success) {
+        this.log(`🎯 Inactive user boost activated: ${boostResult.multiplier?.description}`);
+      }
+      
       this.log('GamificationService initialized successfully');
     } catch (error) {
       this.log('GamificationService validation failed:', error);

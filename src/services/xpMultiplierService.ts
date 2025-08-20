@@ -61,7 +61,7 @@ export interface ActiveMultiplierInfo {
   multiplier: number;
   activatedAt?: Date;
   expiresAt?: Date;
-  source: 'harmony_streak' | 'weekly_challenge' | 'achievement' | 'special_event';
+  source: 'harmony_streak' | 'weekly_challenge' | 'achievement' | 'special_event' | 'inactive_user_return';
   timeRemaining?: number; // Milliseconds
   description?: string;
 }
@@ -556,6 +556,8 @@ export class XPMultiplierService {
         return `Achievement Bonus: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
       case 'special_event':
         return `Special Event: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+      case 'inactive_user_return':
+        return `Welcome Back! ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
       default:
         return `${multiplierData.multiplier}x XP Multiplier (${hoursLeft}h remaining)`;
     }
@@ -873,6 +875,178 @@ export class XPMultiplierService {
     } catch (error) {
       console.error('XPMultiplierService.getDebugInfo error:', error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ========================================
+  // INACTIVE USER RE-ENGAGEMENT SYSTEM
+  // ========================================
+
+  /**
+   * Check if user has been inactive for 4+ days and should receive 2x XP boost
+   */
+  static async checkInactiveUserStatus(): Promise<{
+    isInactive: boolean;
+    daysSinceLastActivity: number;
+    shouldActivateBoost: boolean;
+    lastActivityDate: string;
+  }> {
+    try {
+      // Import GamificationService for last activity check
+      const { GamificationService } = require('./gamificationService');
+      
+      const lastActivityDate = await GamificationService.getLastActivity();
+      const today = formatDateToString(new Date());
+      
+      // Calculate days since last activity
+      const lastActivity = new Date(lastActivityDate);
+      const currentDate = new Date(today);
+      const timeDiff = currentDate.getTime() - lastActivity.getTime();
+      const daysSinceLastActivity = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      
+      const isInactive = daysSinceLastActivity >= 4;
+      
+      console.log(`🔍 Inactive user check: ${daysSinceLastActivity} days since last activity (${lastActivityDate})`);
+      
+      // Check if boost should be activated (inactive + no current multiplier)
+      const currentMultiplier = await this.getActiveMultiplier();
+      const shouldActivateBoost = isInactive && !currentMultiplier.isActive;
+      
+      return {
+        isInactive,
+        daysSinceLastActivity,
+        shouldActivateBoost,
+        lastActivityDate,
+      };
+    } catch (error) {
+      console.error('XPMultiplierService.checkInactiveUserStatus error:', error);
+      return {
+        isInactive: false,
+        daysSinceLastActivity: 0,
+        shouldActivateBoost: false,
+        lastActivityDate: formatDateToString(new Date()),
+      };
+    }
+  }
+
+  /**
+   * Activate 2x XP boost for inactive user returning to app
+   */
+  static async activateInactiveUserBoost(): Promise<MultiplierActivationResult> {
+    try {
+      console.log('🚀 Attempting to activate Inactive User Comeback Boost...');
+      
+      // Check if multiplier is already active
+      const currentMultiplier = await this.getActiveMultiplier();
+      if (currentMultiplier.isActive) {
+        return {
+          success: false,
+          error: 'Multiplier already active',
+          reason: `${currentMultiplier.source} multiplier is already running`,
+        };
+      }
+
+      // Check inactive user status
+      const inactiveStatus = await this.checkInactiveUserStatus();
+      if (!inactiveStatus.shouldActivateBoost) {
+        const reason = inactiveStatus.isInactive 
+          ? 'User is inactive but multiplier already active'
+          : `User is not inactive (${inactiveStatus.daysSinceLastActivity} days since last activity, need 4+)`;
+        
+        return {
+          success: false,
+          error: 'Cannot activate inactive user boost',
+          reason,
+        };
+      }
+      
+      // Create multiplier (48 hours = 2 days duration)
+      const BOOST_DURATION_HOURS = 48;
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + (BOOST_DURATION_HOURS * 60 * 60 * 1000));
+      
+      const multiplier: XPMultiplier = {
+        id: `inactive_return_${Date.now()}`,
+        multiplier: 2.0, // 2x XP
+        activatedAt: now,
+        expiresAt,
+        source: 'inactive_user_return',
+        duration: BOOST_DURATION_HOURS,
+        isActive: true,
+        metadata: {
+          daysSinceLastActivity: inactiveStatus.daysSinceLastActivity,
+          lastActivityDate: inactiveStatus.lastActivityDate,
+          activationReason: 'Inactive user comeback boost',
+        }
+      };
+      
+      // Store active multiplier
+      await AsyncStorage.setItem(
+        MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER,
+        JSON.stringify(multiplier)
+      );
+      
+      // Award bonus XP for comeback (25 XP bonus)
+      const bonusXP = 25;
+      const { GamificationService } = require('./gamificationService');
+      
+      await GamificationService.addXP(bonusXP, {
+        source: 'XP_MULTIPLIER_BONUS' as any,
+        sourceId: multiplier.id,
+        description: `Comeback bonus: ${inactiveStatus.daysSinceLastActivity} days away`,
+        skipLimits: true,
+        metadata: {
+          type: 'inactive_user_return_bonus',
+          daysSinceLastActivity: inactiveStatus.daysSinceLastActivity,
+        }
+      });
+      
+      // Record activation in history
+      await this.recordMultiplierActivation(multiplier, bonusXP);
+      
+      console.log(`✅ Inactive User Comeback Boost activated: 2x XP for ${BOOST_DURATION_HOURS} hours`);
+      console.log(`💎 Comeback bonus awarded: +${bonusXP} XP (${inactiveStatus.daysSinceLastActivity} days away)`);
+      
+      return {
+        success: true,
+        multiplier: {
+          isActive: true,
+          multiplier: multiplier.multiplier,
+          activatedAt: multiplier.activatedAt,
+          expiresAt: multiplier.expiresAt,
+          source: multiplier.source,
+          timeRemaining: expiresAt.getTime() - now.getTime(),
+          description: `Welcome back! 2x XP for ${BOOST_DURATION_HOURS} hours`,
+        },
+        xpBonusAwarded: bonusXP,
+      };
+      
+    } catch (error) {
+      console.error('XPMultiplierService.activateInactiveUserBoost error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Check and auto-activate inactive user boost on app launch
+   * This should be called from app initialization
+   */
+  static async checkAndActivateInactiveUserBoost(): Promise<MultiplierActivationResult | null> {
+    try {
+      const inactiveStatus = await this.checkInactiveUserStatus();
+      
+      if (inactiveStatus.shouldActivateBoost) {
+        console.log(`🎯 Auto-activating inactive user boost: ${inactiveStatus.daysSinceLastActivity} days away`);
+        return await this.activateInactiveUserBoost();
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('XPMultiplierService.checkAndActivateInactiveUserBoost error:', error);
+      return null;
     }
   }
 }
