@@ -89,3 +89,13 @@
    - Příklad: Implementace Měsíčních Výzev - Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification.md
 
  Cíl tohoto pravidla: Vytvořit ucelenou, snadno dostupnou a lidsky čitelnou znalostní bázi pro klíčové mechaniky aplikace. Tím se zjednoduší projectplan.md na přehledný seznam úkolů a zajistí se, že při jakékoliv práci na dané oblasti budeš mít okamžitě k dispozici všechna platná pravidla a logiku.
+
+16. Povinné Použití Průvodce Před Zahájením Práce
+
+ 1. Konzultace před akcí: Před zahájením jakéhokoliv úkolu (úprava, oprava, rozšíření), který se týká již existující funkčnosti, jsi povinen nejprve aktivně vyhledat a prostudovat relevantní technický průvodce. Je to tvůj první krok.
+
+ 2. Identifikace tématu: Pokud je úkol "Opravit chybu v odměnách za návyky", automaticky identifikuješ klíčová slova "odměny" a "návyky" a vyhledáš soubory technical-guides:Gamification.md a technical-guides:Habits.md.
+
+ 3. Soulad s pravidly: Veškerý kód, který napíšeš nebo upravíš, musí být v naprostém souladu s logikou, hodnotami a principy definovanými v tomto průvodci. Průvodce je nadřazený tvým předchozím znalostem o projektu.
+
+ 4. Řešení nejasností: Pokud je zadání v rozporu s technickým průvodcem nebo pokud průvodce nepokrývá daný specifický případ, jsi povinen na to upozornit. Navrhneš aktualizaci průvodce a teprve po jejím odsouhlasení začneš implementovat změny v kódu.

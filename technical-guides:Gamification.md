@@ -12,8 +12,7 @@
 6. [Reversal Logic (Minus XP)](#reversal-logic-minus-xp)
 7. [Journal XP Tracking](#journal-xp-tracking--anti-spam-system)
 8. [Journal Bonus Milestone System](#journal-bonus-milestone-system)
-9. [Frozen Streak System](#frozen-streak-system-journal-completion-protection)
-10. [Architecture Enforcement](#architecture-enforcement)
+9. [Architecture Enforcement](#architecture-enforcement)
 11. [Event System](#event-system)
 12. [Performance Requirements](#performance-requirements)
 13. [Testing & Validation](#testing--validation)
@@ -483,67 +482,6 @@ User creates 13 entries → Gets only 20+20+20+8+8+8+8+8+8+8 = 156 XP ❌
 User creates 13 entries → Gets 156 XP + 25 XP (⭐) + 50 XP (🔥) + 100 XP (👑) = 331 XP ✅
 Difference: 175 XP missing per day with heavy journal usage!
 ```
-
----
-
-## Frozen Streak System (Journal Completion Protection)
-
-### ✅ FULLY IMPLEMENTED
-
-### System Overview
-Frozen Streak protects user journal streaks from complete loss when they miss daily requirements. Instead of resetting to 0, streaks become "frozen" and can be "warmed up" through ad-watching.
-
-### Basic Rules
-```typescript
-DAILY_REQUIREMENT: 3+ journal entries = complete day
-INCOMPLETE_DAY: 0-2 entries = debt accumulation  
-MAX_DEBT_DAYS: 3 days (auto-reset after 3+ days)
-RECOVERY_METHOD: 1 ad per missed day
-```
-
-### Debt Tracking System
-```typescript
-interface GratitudeStreak {
-  frozenDays: number;      // 0-3, accumulated missed days
-  isFrozen: boolean;       // true when frozenDays > 0
-  canRecoverWithAd: boolean; // true if frozenDays 1-3
-  warmUpPayments: WarmUpPayment[]; // Track ad payments
-  autoResetTimestamp: Date | null; // Auto-reset protection
-  autoResetReason: string | null;  // Reset reason tracking
-}
-```
-
-### User Interface Behavior
-```typescript
-// Normal State
-streakNumber: "15" (standard color)
-streakLabel: "days"  
-status: "🔥 Streak Active"
-
-// Frozen State  
-streakNumber: "15" (ice blue color ❄️)
-streakLabel: "frozen"
-status: "❄️ Streak Frozen: 2 days - Tap to warm up"
-warning: "❄️ Streak Frozen: 2 day(s) - Tap to warm up"
-```
-
-### Ad-Based Recovery System
-```typescript
-Modal: "Warm Up Your Streak"
-- Shows current debt: "Frozen for X days"  
-- Progress bar: ads watched vs needed
-- "Watch Ad" button for each missed day
-- 1 ad = 1 day debt cleared
-- Success: "🎉 Streak Rescued!"
-```
-
-### Implementation Status
-**✅ FULLY IMPLEMENTED** - Frozen streak system is complete and functional with:
-- Debt calculation with payment tracking
-- Ad-based recovery system (testing mock - needs real AdMob)
-- Auto-reset protection against phantom debt
-- UI indicators across Home and Journal screens
-- Progressive error handling with auto-fix mechanisms
 
 ---
 

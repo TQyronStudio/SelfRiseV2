@@ -13,7 +13,8 @@
 7. [Accessibility Standards](#accessibility-standards)
 8. [Configuration Management](#configuration-management)
 9. [Technical Stack & Architecture](#technical-stack--architecture)
-10. [Frozen Streak System](#frozen-streak-system)
+10. [My Journal System](#my-journal-system)
+11. [Gamification System](#gamification-system)
 
 ---
 
@@ -334,6 +335,12 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 - **Risk**: Competition from existing apps
 - **Mitigation**: Focus on unique features and superior user experience
+
+---
+
+## My Journal System
+
+**Technická pravidla a logika pro My Journal**: @technical-guides:My-Journal.md
 
 ---
 
