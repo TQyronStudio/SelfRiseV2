@@ -7,7 +7,6 @@ import {
   Easing,
   AccessibilityInfo 
 } from 'react-native';
-import { useI18n } from '../../hooks/useI18n';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -39,254 +38,149 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
   duration = 3000,
   onComplete,
 }) => {
-  const { t } = useI18n();
-  const particleCount = getParticleCount(type, intensity);
-  const particles = useRef<Particle[]>([]);
-  const animationsRef = useRef<Animated.CompositeAnimation[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
 
   // Get default colors based on type
-  const getDefaultColors = (): string[] => {
+  const getDefaultColors = () => {
     switch (type) {
       case 'level_up':
-        return ['#4CAF50', '#8BC34A', '#CDDC39'];
+        return ['#4CAF50', '#8BC34A', '#CDDC39', '#FFC107'];
       case 'milestone':
-        return ['#FFD700', '#FFA500', '#FF8C00'];
+        return ['#FF9800', '#FF5722', '#F44336', '#E91E63'];
       case 'achievement':
-        return ['#9C27B0', '#E91E63', '#F44336'];
-      case 'celebration':
-        return ['#2196F3', '#03A9F4', '#00BCD4'];
+        return ['#9C27B0', '#673AB7', '#3F51B5', '#2196F3'];
       default:
-        return ['#4CAF50', '#2196F3', '#FF9800'];
+        return ['#FFC107', '#FF9800', '#FF5722', '#4CAF50'];
     }
   };
 
-  const particleColors = colors || getDefaultColors();
+  const effectColors = colors || getDefaultColors();
 
-  // Initialize particles
-  useEffect(() => {
-    if (visible) {
-      particles.current = createParticles(particleCount, particleColors);
-      startAnimation();
-    } else {
-      stopAnimations();
-    }
+  // Create a single particle
+  const createParticle = (index: number): Particle => {
+    // Start at center (0, 0) and use relative movements
+    const horizontalSpread = (Math.random() - 0.5) * screenWidth * 0.6; // Random horizontal spread
 
-    return () => {
-      stopAnimations();
-    };
-  }, [visible, particleCount]);
-
-  const createParticles = (count: number, colors: string[]): Particle[] => {
-    return Array.from({ length: count }, (_, index) => ({
-      id: `particle_${index}`,
-      x: new Animated.Value(screenWidth / 2),
-      y: new Animated.Value(screenHeight / 2),
+    return {
+      id: `particle-${index}`,
+      x: new Animated.Value(horizontalSpread), // Start with horizontal spread
+      y: new Animated.Value(0), // Start at center
       opacity: new Animated.Value(0),
       scale: new Animated.Value(0),
       rotation: new Animated.Value(0),
-      color: colors[Math.floor(Math.random() * colors.length)] || '#FFD700',
+      color: effectColors[Math.floor(Math.random() * effectColors.length)],
       shape: getRandomShape(),
-    }));
+    };
   };
 
   const getRandomShape = (): 'circle' | 'star' | 'square' => {
     const shapes: ('circle' | 'star' | 'square')[] = ['circle', 'star', 'square'];
-    return shapes[Math.floor(Math.random() * shapes.length)] || 'circle';
+    return shapes[Math.floor(Math.random() * shapes.length)];
   };
 
-  const startAnimation = () => {
-    stopAnimations(); // Clear any existing animations
-
-    const animations = particles.current.map((particle, index) => {
-      // Improved stagger timing for better visual flow
-      const delay = (index * 40) % 250;
-      
-      // More dynamic initial positioning based on type
-      const angle = (Math.PI * 2 * index) / particles.current.length;
-      const startRadius = type === 'milestone' ? 30 : 20;
-      
-      // Enhanced final positioning with better distribution
-      const endX = Math.random() * (screenWidth * 0.8) + screenWidth * 0.1;
-      const endY = Math.random() * (screenHeight * 0.4) + screenHeight * 0.3;
-      
-      // Set initial position with slight randomization
-      const initialOffsetX = (Math.random() - 0.5) * 40;
-      const initialOffsetY = (Math.random() - 0.5) * 40;
-      particle.x.setValue(screenWidth / 2 + Math.cos(angle) * startRadius + initialOffsetX);
-      particle.y.setValue(screenHeight / 2 + Math.sin(angle) * startRadius + initialOffsetY);
-      
-      return Animated.sequence([
-        // Delay before starting
-        Animated.delay(delay),
-        
-        // Enhanced particle lifecycle animation
-        Animated.parallel([
-          // Smooth fade in with bounce
-          Animated.timing(particle.opacity, {
-            toValue: 0.9,
-            duration: 300,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: false,
-          }),
-          
-          // Spring scale up for more life
-          Animated.spring(particle.scale, {
-            toValue: type === 'milestone' ? 1.3 : 1.0,
-            damping: 12,
-            mass: 1,
-            stiffness: 400,
-            useNativeDriver: false,
-          }),
-        ]),
-        
-        // Enhanced movement and fade out
-        Animated.parallel([
-          // Smooth curved movement
-          Animated.timing(particle.x, {
-            toValue: endX,
-            duration: duration - 500,
-            easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
-            useNativeDriver: false,
-          }),
-          
-          // Physics-based gravity with bounce
-          Animated.timing(particle.y, {
-            toValue: endY,
-            duration: duration - 500,
-            easing: Easing.bezier(0.55, 0.055, 0.675, 0.19),
-            useNativeDriver: false,
-          }),
-          
-          // Smooth continuous rotation
-          Animated.timing(particle.rotation, {
-            toValue: (360 + Math.random() * 180) * (Math.random() > 0.5 ? 1 : -1),
-            duration: duration - 300,
-            easing: Easing.linear,
-            useNativeDriver: false,
-          }),
-          
-          // Gradual fade out
-          Animated.timing(particle.opacity, {
-            toValue: 0,
-            duration: 1000,
-            delay: duration - 1200,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: false,
-          }),
-          
-          // Final scale down with slight bounce
-          Animated.timing(particle.scale, {
-            toValue: 0.2,
-            duration: 600,
-            delay: duration - 800,
-            easing: Easing.in(Easing.back(1.2)),
-            useNativeDriver: false,
-          }),
-        ]),
-      ]);
-    });
-
-    // Start all animations
-    const compositeAnimation = Animated.parallel(animations);
-    animationsRef.current = [compositeAnimation];
-    
-    compositeAnimation.start(({ finished }) => {
-      if (finished && onComplete) {
-        onComplete();
-      }
-    });
-  };
-
-  const stopAnimations = () => {
-    animationsRef.current.forEach(animation => {
-      animation.stop();
-    });
-    animationsRef.current = [];
-    
-    // Reset particles
-    particles.current.forEach(particle => {
-      particle.opacity.setValue(0);
-      particle.scale.setValue(0);
-    });
-  };
-
-  // Announce particle effects to screen readers when they start
+  // Create particles array
   useEffect(() => {
-    if (visible) {
-      let announcement: string;
-      switch (type) {
-        case 'level_up':
-          announcement = t('gamification.effects.level_up') || 'Level up celebration effects';
-          break;
-        case 'milestone':
-          announcement = t('gamification.effects.milestone') || 'Milestone achievement celebration effects';
-          break;
-        case 'achievement':
-          announcement = t('gamification.effects.achievement') || 'Achievement unlock celebration effects';
-          break;
-        case 'celebration':
-          announcement = t('gamification.effects.celebration') || 'General celebration effects';
-          break;
-        default:
-          announcement = t('gamification.effects.general') || 'Celebration effects';
-          break;
-      }
-      
-      // Only announce for high-intensity effects to avoid spam
-      if (intensity === 'high' || type === 'milestone') {
-        AccessibilityInfo.announceForAccessibility(announcement);
-      }
+    if (!visible) {
+      return;
     }
-  }, [visible, type, intensity, t]);
+
+    // Create particles
+    const particleCount = getParticleCount(intensity);
+    particlesRef.current = Array.from({ length: particleCount }, (_, index) => 
+      createParticle(index)
+    );
+
+    // Use setTimeout to defer animation start after render
+    const animationTimeout = setTimeout(() => {
+      // Start animation
+      const animations = particlesRef.current.map((particle, index) => {
+        const delay = index * 50; // Stagger animation
+        
+        return Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            // Fade in and scale up
+            Animated.timing(particle.opacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.spring(particle.scale, {
+              toValue: 1,
+              tension: 100,
+              friction: 8,
+              useNativeDriver: true,
+            }),
+            // Move upward (relative movement from center)
+            Animated.timing(particle.y, {
+              toValue: -150, // Move up 150 pixels from center
+              duration: duration * 0.6,
+              easing: Easing.out(Easing.quad),
+              useNativeDriver: true,
+            }),
+            // Rotate
+            Animated.timing(particle.rotation, {
+              toValue: 360,
+              duration: duration,
+              easing: Easing.linear,
+              useNativeDriver: true,
+            }),
+          ]),
+          // Fade out and fall
+          Animated.parallel([
+            Animated.timing(particle.opacity, {
+              toValue: 0,
+              duration: duration * 0.4,
+              useNativeDriver: true,
+            }),
+            Animated.timing(particle.y, {
+              toValue: 300, // Fall down 300 pixels from the upward position
+              duration: duration * 0.4,
+              easing: Easing.in(Easing.quad),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]);
+      });
+
+      // Start all animations
+      Animated.parallel(animations).start(() => {
+        if (onComplete) {
+          onComplete();
+        }
+      });
+    }, 0);
+
+    // Announce for accessibility (defer this too)
+    if (intensity === 'high' || type === 'milestone') {
+      setTimeout(() => {
+        const announcement = `${type} celebration with ${intensity} intensity particle effects`;
+        AccessibilityInfo.announceForAccessibility(announcement);
+      }, 100);
+    }
+
+    return () => {
+      clearTimeout(animationTimeout);
+    };
+  }, [visible, intensity, type, duration, onComplete]);
 
   if (!visible) {
     return null;
   }
 
-  const accessibilityLabel = (() => {
-    const typeLabel = (() => {
-      switch (type) {
-        case 'level_up':
-          return t('gamification.effects.level_up') || 'Level up celebration';
-        case 'milestone':
-          return t('gamification.effects.milestone') || 'Milestone achievement celebration';
-        case 'achievement':
-          return t('gamification.effects.achievement') || 'Achievement unlock celebration';
-        case 'celebration':
-          return t('gamification.effects.celebration') || 'General celebration';
-        default:
-          return t('gamification.effects.general') || 'Celebration effects';
-      }
-    })();
-    
-    return t('gamification.effects.accessibility_label', {
-      type: typeLabel,
-      intensity,
-      particleCount
-    }) || `${typeLabel} with ${intensity} intensity particle effects`;
-  })();
-
   return (
-    <View 
-      style={styles.container} 
-      pointerEvents="none"
-      accessible={true}
-      accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityElementsHidden={true} // Hide individual particles from screen readers
-      importantForAccessibility="no-hide-descendants"
-    >
-      {particles.current.map((particle) => (
+    <View style={styles.container} pointerEvents="none">
+      {particlesRef.current.map((particle) => (
         <Animated.View
           key={particle.id}
           style={[
             styles.particle,
             getParticleStyle(particle.shape),
             {
-              left: particle.x,
-              top: particle.y,
               opacity: particle.opacity,
               transform: [
+                { translateX: particle.x },
+                { translateY: particle.y },
                 { scale: particle.scale },
                 { 
                   rotate: particle.rotation.interpolate({
@@ -305,57 +199,43 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
 };
 
 // Helper functions
-function getParticleCount(type: string, intensity: string): number {
-  const baseCount = {
-    level_up: 18,
-    milestone: 35,
-    achievement: 25,
-    celebration: 40,
+function getParticleCount(intensity: 'low' | 'medium' | 'high'): number {
+  const counts = {
+    low: 15,
+    medium: 25,
+    high: 35,
   };
-
-  const intensityMultiplier = {
-    low: 0.6,
-    medium: 1,
-    high: 1.8,
-  };
-
-  return Math.floor((baseCount[type as keyof typeof baseCount] || 25) * intensityMultiplier[intensity as keyof typeof intensityMultiplier]);
+  return counts[intensity];
 }
 
 function getParticleStyle(shape: 'circle' | 'star' | 'square') {
-  const baseStyle = {
-    width: 10,
-    height: 10,
-  };
-
+  const baseSize = 8;
+  
   switch (shape) {
     case 'circle':
       return {
-        ...baseStyle,
-        width: 12,
-        height: 12,
-        borderRadius: 6,
+        width: baseSize,
+        height: baseSize,
+        borderRadius: baseSize / 2,
       };
     case 'star':
       return {
-        ...baseStyle,
-        width: 14,
-        height: 14,
-        // Enhanced star shape with better visual impact
+        width: baseSize * 1.2,
+        height: baseSize * 1.2,
+        // Star shape approximation using border radius (removed transform to avoid conflicts)
         borderRadius: 2,
-        transform: [{ rotate: '45deg' }],
       };
     case 'square':
       return {
-        ...baseStyle,
-        width: 10,
-        height: 10,
-        borderRadius: 2,
+        width: baseSize,
+        height: baseSize,
+        borderRadius: 1,
       };
     default:
       return {
-        ...baseStyle,
-        borderRadius: 5,
+        width: baseSize,
+        height: baseSize,
+        borderRadius: baseSize / 2,
       };
   }
 }
@@ -367,7 +247,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   particle: {
     position: 'absolute',

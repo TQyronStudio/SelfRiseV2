@@ -190,6 +190,7 @@ const en: TranslationKeys = {
       daily_complete_modal: 'Daily journal completion celebration',
       streak_milestone_modal: '{{days}} day streak milestone celebration',
       bonus_milestone_modal: '{{count}} bonus entries celebration',
+      epic_crown_modal: 'Epic royal crown celebration for 10th bonus milestone achievement',
       streak_badge_accessibility: '{{days}} day streak achievement badge',
       bonus_badge_accessibility: '{{count}} bonus {{#eq count 1}}entry{{else}}entries{{/eq}} achievement badge',
     },

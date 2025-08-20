@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Dimensions,
   AccessibilityInfo,
+  Animated,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
-import { ParticleEffects } from '../gamification/ParticleEffects';
 import { useXpFeedback } from '../../contexts/XpAnimationContext';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -60,7 +60,8 @@ export default function CelebrationModal({
     triggerHapticFeedback = xpFeedback.triggerHapticFeedback;
     playSoundEffect = xpFeedback.playSoundEffect;
   }
-  const [showParticles, setShowParticles] = useState(false);
+  
+
 
   // Enhanced celebration effects with better timing
   useEffect(() => {
@@ -73,6 +74,10 @@ export default function CelebrationModal({
           case 'streak_milestone':
             return t('journal.celebration.streak_milestone_announcement', { days: streakDays }) || `Amazing! You have reached a ${streakDays} day streak milestone!`;
           case 'bonus_milestone':
+            // Epic crown celebration announcement for 10th bonus
+            if (bonusCount === 10) {
+              return t('journal.celebration.epic_crown_announcement') || 'Legendary achievement! You have reached the ultimate 10th bonus milestone with royal crown celebration!';
+            }
             return t('journal.celebration.bonus_milestone_announcement', { count: bonusCount || 0 }) || `Excellent! You have completed ${bonusCount || 0} bonus journal entries!`;
           case 'level_up':
             return t('gamification.celebration.level_up_announcement', { 
@@ -87,10 +92,7 @@ export default function CelebrationModal({
 
       AccessibilityInfo.announceForAccessibility(celebrationAnnouncement);
 
-      // Delay particle effects slightly for better visual flow
-      const particleDelay = setTimeout(() => {
-        setShowParticles(true);
-      }, 200);
+
       
       // Trigger haptic feedback based on celebration type with proper timing
       const triggerEffects = async () => {
@@ -120,8 +122,24 @@ export default function CelebrationModal({
             if (playSoundEffect) await playSoundEffect('milestone');
             break;
           case 'bonus_milestone':
-            if (triggerHapticFeedback) await triggerHapticFeedback('light');
-            if (playSoundEffect) await playSoundEffect('xp_gain');
+            // Epic crown celebration (10th bonus) gets enhanced haptic feedback
+            if (bonusCount === 10) {
+              // Royal crown celebration - triple haptic burst
+              if (triggerHapticFeedback) {
+                await triggerHapticFeedback('heavy');
+                setTimeout(async () => {
+                  if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+                }, 200);
+                setTimeout(async () => {
+                  if (triggerHapticFeedback) await triggerHapticFeedback('medium');
+                }, 400);
+              }
+              if (playSoundEffect) await playSoundEffect('milestone');
+            } else {
+              // Standard bonus celebrations
+              if (triggerHapticFeedback) await triggerHapticFeedback('light');
+              if (playSoundEffect) await playSoundEffect('xp_gain');
+            }
             break;
           default:
             if (triggerHapticFeedback) await triggerHapticFeedback('light');
@@ -130,12 +148,7 @@ export default function CelebrationModal({
       };
 
       triggerEffects();
-      
-      return () => {
-        clearTimeout(particleDelay);
-      };
     } else {
-      setShowParticles(false);
       return undefined;
     }
   }, [visible, type, levelUpData?.isMilestone, streakDays, triggerHapticFeedback, playSoundEffect]);
@@ -204,30 +217,6 @@ export default function CelebrationModal({
     emoji: getDefaultContent().emoji,
   };
 
-  // Get particle effect type based on celebration type
-  const getParticleType = (): 'level_up' | 'milestone' | 'achievement' | 'celebration' => {
-    switch (type) {
-      case 'level_up':
-        return levelUpData?.isMilestone ? 'milestone' : 'level_up';
-      case 'streak_milestone':
-        return 'milestone';
-      case 'bonus_milestone':
-        return 'achievement';
-      default:
-        return 'celebration';
-    }
-  };
-
-  const getParticleIntensity = (): 'low' | 'medium' | 'high' => {
-    switch (type) {
-      case 'level_up':
-        return levelUpData?.isMilestone ? 'high' : 'medium';
-      case 'streak_milestone':
-        return (streakDays && streakDays >= 100) ? 'high' : 'medium';
-      default:
-        return 'low';
-    }
-  };
 
   const modalAccessibilityLabel = (() => {
     switch (type) {
@@ -236,6 +225,10 @@ export default function CelebrationModal({
       case 'streak_milestone':
         return t('journal.celebration.streak_milestone_modal', { days: streakDays }) || `${streakDays} day streak milestone celebration`;
       case 'bonus_milestone':
+        // Epic crown celebration modal accessibility
+        if (bonusCount === 10) {
+          return t('journal.celebration.epic_crown_modal') || 'Epic royal crown celebration for 10th bonus milestone achievement';
+        }
         return t('journal.celebration.bonus_milestone_modal', { count: bonusCount || 0 }) || `${bonusCount || 0} bonus entries celebration`;
       case 'level_up':
         return t('gamification.celebration.level_up_modal', { 
@@ -264,22 +257,21 @@ export default function CelebrationModal({
         accessibilityRole="none"
         accessibilityElementsHidden={false}
       >
-        {/* Particle Effects */}
-        <ParticleEffects
-          visible={showParticles}
-          type={getParticleType()}
-          intensity={getParticleIntensity()}
-          duration={3000}
-          onComplete={() => setShowParticles(false)}
-        />
+        
         <View 
-          style={styles.modal}
+          style={[
+            styles.modal,
+            type === 'bonus_milestone' && bonusCount === 10 && styles.epicModal, // Epic royal styling for 10th bonus
+          ]}
           accessible={true}
           accessibilityRole="alert"
           accessibilityLabel={modalAccessibilityLabel}
         >
           <Text 
-            style={styles.emoji}
+            style={[
+              styles.emoji,
+              type === 'bonus_milestone' && bonusCount === 10 && styles.epicEmoji, // Epic crown animation
+            ]}
             accessible={true}
             accessibilityRole="image"
             accessibilityLabel={t(`gamification.celebration.emoji.${type}`) || `${content.emoji} celebration emoji`}
@@ -288,7 +280,10 @@ export default function CelebrationModal({
           </Text>
           
           <Text 
-            style={styles.title}
+            style={[
+              styles.title,
+              type === 'bonus_milestone' && bonusCount === 10 && styles.epicTitle, // Epic royal title
+            ]}
             accessible={true}
             accessibilityRole="header"
           >
@@ -296,7 +291,10 @@ export default function CelebrationModal({
           </Text>
           
           <Text 
-            style={styles.message}
+            style={[
+              styles.message,
+              type === 'bonus_milestone' && bonusCount === 10 && styles.epicMessage, // Epic royal message
+            ]}
             accessible={true}
             accessibilityRole="text"
           >
@@ -327,19 +325,28 @@ export default function CelebrationModal({
           
           {type === 'bonus_milestone' && bonusCount && (
             <View 
-              style={styles.streakBadge}
+              style={[
+                styles.streakBadge,
+                bonusCount === 10 && styles.epicBadge, // Epic royal badge for crown achievement
+              ]}
               accessible={true}
               accessibilityRole="text"
               accessibilityLabel={t('journal.celebration.bonus_badge_accessibility', { count: bonusCount }) || `${bonusCount} bonus ${bonusCount !== 1 ? 'entries' : 'entry'} achievement badge`}
             >
               <Text 
-                style={styles.streakNumber}
+                style={[
+                  styles.streakNumber,
+                  bonusCount === 10 && styles.epicBadgeNumber, // Epic styling for crown number
+                ]}
                 importantForAccessibility="no"
               >
                 {bonusCount}
               </Text>
               <Text 
-                style={styles.streakLabel}
+                style={[
+                  styles.streakLabel,
+                  bonusCount === 10 && styles.epicBadgeLabel, // Epic styling for crown label
+                ]}
                 importantForAccessibility="no"
               >
                 BONUS{bonusCount !== 1 ? 'ES' : ''}
@@ -349,9 +356,18 @@ export default function CelebrationModal({
 
           {/* XP amount display for bonus milestones */}
           {type === 'bonus_milestone' && xpAmount && (
-            <View style={styles.xpBadge}>
-              <Text style={styles.xpLabel}>XP Earned</Text>
-              <Text style={styles.xpAmount}>+{xpAmount}</Text>
+            <View style={[
+              styles.xpBadge,
+              bonusCount === 10 && styles.epicXpBadge, // Epic royal XP badge for crown
+            ]}>
+              <Text style={[
+                styles.xpLabel,
+                bonusCount === 10 && styles.epicXpLabel, // Epic XP label styling
+              ]}>XP Earned</Text>
+              <Text style={[
+                styles.xpAmount,
+                bonusCount === 10 && styles.epicXpAmount, // Epic XP amount styling
+              ]}>+{xpAmount}</Text>
             </View>
           )}
           
@@ -601,5 +617,131 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     color: Colors.white,
+  },
+  
+  // 🎉 EPIC CROWN CELEBRATION STYLES FOR 10TH BONUS (bonusCount === 10) 🎉
+  epicModal: {
+    backgroundColor: Colors.white,
+    borderRadius: 24, // More rounded for premium feel
+    paddingVertical: Layout.spacing.xl * 1.5,
+    paddingHorizontal: Layout.spacing.lg,
+    alignItems: 'center',
+    maxWidth: screenWidth * 0.9, // Slightly wider for epic impact
+    width: '100%',
+    borderWidth: 3,
+    borderColor: '#FFD700', // Royal golden border
+    shadowColor: '#FFD700', // Golden shadow
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 20, // Enhanced elevation for premium feel
+  },
+  
+  epicEmoji: {
+    fontSize: 80, // Larger crown emoji for epic celebration
+    marginBottom: Layout.spacing.lg,
+    textShadowColor: '#FFD700',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  
+  epicTitle: {
+    fontSize: Fonts.sizes.xxl || 28,
+    fontWeight: 'bold',
+    color: '#B8860B', // Darker gold for readability
+    textAlign: 'center',
+    marginBottom: Layout.spacing.md,
+    textShadowColor: 'rgba(255, 215, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  
+  epicMessage: {
+    fontSize: Fonts.sizes.lg,
+    color: '#DAA520', // Royal gold text
+    textAlign: 'center',
+    lineHeight: 26,
+    marginBottom: Layout.spacing.xl,
+    fontWeight: '600',
+  },
+  
+  epicBadge: {
+    backgroundColor: '#FFD700', // Pure gold background
+    borderRadius: 60,
+    paddingVertical: Layout.spacing.lg,
+    paddingHorizontal: Layout.spacing.xl,
+    alignItems: 'center',
+    marginBottom: Layout.spacing.xl,
+    borderWidth: 2,
+    borderColor: '#FFA500', // Orange gold border
+    shadowColor: '#FFD700',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  
+  epicBadgeNumber: {
+    fontSize: 42, // Larger number for epic badge
+    fontWeight: 'bold',
+    color: '#8B4513', // Dark brown for contrast on gold
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  
+  epicBadgeLabel: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: '#8B4513', // Dark brown for contrast on gold
+    letterSpacing: 2,
+    textShadowColor: 'rgba(255, 255, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  
+  epicXpBadge: {
+    backgroundColor: '#FFD700', // Royal gold XP badge
+    borderRadius: 16,
+    paddingVertical: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.lg,
+    alignItems: 'center',
+    marginTop: Layout.spacing.md,
+    marginBottom: Layout.spacing.lg,
+    borderWidth: 2,
+    borderColor: '#FFA500',
+    shadowColor: '#FFD700',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  
+  epicXpLabel: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
+    color: '#8B4513', // Dark brown for contrast
+    marginBottom: 4,
+    textShadowColor: 'rgba(255, 255, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  
+  epicXpAmount: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: 'bold',
+    color: '#8B4513', // Dark brown for contrast
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 });
