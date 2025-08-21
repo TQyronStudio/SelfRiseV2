@@ -1216,13 +1216,12 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 **STATUS**: ✅ **100% PRODUCTION READY** - Complete inactive user re-engagement system with auto-detection, 2x XP boost, doubled limits, countdown UI, and comprehensive testing.
 
 ##### Sub-checkpoint 4.5.10.C: Long-term Engagement Mechanics 🚀
-**Goal**: Design systems to maintain engagement beyond initial gamification novelty
-- [ ] Design "Prestige System" for users reaching Level 100 (reset with bonuses)
-- [ ] Create "Legacy Achievements" that unlock after specific time periods
-- [ ] Implement "Mentor Mode" for high-level users to earn XP by helping others
-- [ ] Add seasonal events with exclusive achievements and limited-time XP bonuses
-- [ ] Create "Achievement Archaeology" - rediscover and celebrate old achievements
-- [ ] Design "Mastery Paths" - specialized progression routes for different interests
+**Goal**: Legacy Achievements system to celebrate long-term user loyalty
+- [ ] Create "Legacy Achievements" that unlock after specific time periods (6 months, 1 year, 2 years of app usage)
+- [ ] Design celebration system for long-term loyalty milestones
+- [ ] Implement automatic detection of user registration anniversary dates
+- [ ] Create exclusive celebration modals and animations for legacy milestones
+- [ ] Add special XP bonuses for reaching loyalty milestones (increasing rewards over time)
 
 ##### Sub-checkpoint 4.5.10.D: Predictive Retention System 🔮
 **Goal**: Proactively identify and re-engage users at risk of churning

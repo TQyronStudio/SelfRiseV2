@@ -15,6 +15,7 @@
 9. [Technical Stack & Architecture](#technical-stack--architecture)
 10. [My Journal System](#my-journal-system)
 11. [Gamification System](#gamification-system)
+12. [Achievements System](#achievements-system)
 
 ---
 
@@ -347,6 +348,12 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 ## Gamification System
 
 **Technická pravidla a logika pro Gamifikaci**: @technical-guides:Gamification.md
+
+---
+
+## Achievements System
+
+**Technická pravidla a logika pro všechny Achievements**: @technical-guides:Achievements.md
 
 ---
 
