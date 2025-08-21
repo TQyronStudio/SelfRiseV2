@@ -7,6 +7,7 @@ import { GoalStorage } from './storage/goalStorage';
 import { DateString } from '../types/common';
 import { XPSourceType } from '../types/gamification';
 import { today, formatDateToString, subtractDays } from '../utils/date';
+import { LoyaltyService } from './loyaltyService';
 
 /**
  * Integration layer providing real data to AchievementService
@@ -806,6 +807,27 @@ export class AchievementIntegration {
   }
 
   // ========================================
+  // LOYALTY SYSTEM INTEGRATION - Sub-checkpoint 4.5.10.C
+  // ========================================
+
+  /**
+   * Get total active days from loyalty system
+   * Used for loyalty achievements tracking cumulative engagement
+   */
+  static async getLoyaltyTotalActiveDays(timeframe?: string): Promise<number> {
+    try {
+      const loyaltyData = await LoyaltyService.getLoyaltyData();
+      
+      // Loyalty achievements always track total active days regardless of timeframe
+      // as they measure cumulative long-term engagement
+      return loyaltyData.totalActiveDays;
+    } catch (error) {
+      console.error('AchievementIntegration.getLoyaltyTotalActiveDays error:', error);
+      return 0;
+    }
+  }
+
+  // ========================================
   // UTILITY METHODS
   // ========================================
 
@@ -946,6 +968,9 @@ export class AchievementIntegration {
         case 'comeback_activities':
           return await this.getComebackActivitiesCount(timeframe);
           
+        case 'loyalty_total_active_days':
+          return await this.getLoyaltyTotalActiveDays(timeframe);
+          
         case 'user_level':
           // This is handled directly in AchievementService via GamificationStats
           return 0;
@@ -1015,6 +1040,9 @@ export class AchievementIntegration {
         maxDailyFeatureCombo: await this.getDailyFeatureCombo(),
         consecutiveAppUsageDays: await this.getConsecutiveAppUsageDays(),
         recommendationsFollowed: await this.getRecommendationsFollowedCount(),
+        
+        // Loyalty system
+        loyaltyTotalActiveDays: await this.getLoyaltyTotalActiveDays(),
         
         // Timestamp for cache invalidation
         snapshotTimestamp: Date.now()

@@ -1,13 +1,13 @@
-// Core Achievement Catalog - Sub-checkpoint 4.5.6.D
-// Complete Achievement Catalog (42 Total Achievements) 📜
+// Complete Achievement Catalog - Sub-checkpoint 4.5.10.C
+// Complete Achievement Catalog (52 Total Achievements) 📜
 
 import { Achievement, AchievementCategory, AchievementRarity } from '../types/gamification';
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';
 
 /**
- * Complete catalog of 42 achievements for SelfRise V2
+ * Complete catalog of 52 achievements for SelfRise V2
  * Organized by category with balanced progression and long-term engagement
- * Categories: Habits (8), Journal (8), Goals (7), Consistency (8), Mastery (9), Special (4)
+ * Categories: Habits (8), Journal (8), Goals (7), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
  */
 export const CORE_ACHIEVEMENTS: Achievement[] = [
   
@@ -979,6 +979,220 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     isSecret: true,
     createdAt: new Date('2025-08-04'),
     updatedAt: new Date('2025-08-04')
+  },
+
+  // ========================================
+  // LOYALTY ACHIEVEMENTS (10 achievements) - Sub-checkpoint 4.5.10.C
+  // ========================================
+
+  {
+    id: 'loyalty-first-week',
+    name: 'First Week',
+    description: '7 aktivních dní celkem - začátek vaší věrnostní cesty',
+    icon: '🌱',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.COMMON,
+    xpReward: 75,
+    condition: {
+      type: 'count',
+      target: 7,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-two-weeks-strong',
+    name: 'Two Weeks Strong',
+    description: '14 aktivních dní celkem - vaše oddanost roste',
+    icon: '💪',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: 100,
+    condition: {
+      type: 'count',
+      target: 14,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-three-weeks-committed',
+    name: 'Three Weeks Committed',
+    description: '21 aktivních dní celkem - jste oddaný svému růstu',
+    icon: '🔥',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: 125,
+    condition: {
+      type: 'count',
+      target: 21,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-month-explorer',
+    name: 'Month Explorer',
+    description: '30 aktivních dní celkem - objevujete svůj potenciál',
+    icon: '🗺️',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 150,
+    condition: {
+      type: 'count',
+      target: 30,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-two-month-veteran',
+    name: 'Two Month Veteran',
+    description: '60 aktivních dní celkem - jste zkušený v osobním růstu',
+    icon: '⚔️',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 200,
+    condition: {
+      type: 'count',
+      target: 60,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-century-user',
+    name: 'Century User',
+    description: '100 aktivních dní celkem - jste mezi elitou uživatelů',
+    icon: '💯',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 300,
+    condition: {
+      type: 'count',
+      target: 100,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-half-year-hero',
+    name: 'Half Year Hero',
+    description: '183 aktivních dní celkem - váš závazek je legendární',
+    icon: '🦸‍♀️',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 500,
+    condition: {
+      type: 'count',
+      target: 183,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-year-legend',
+    name: 'Year Legend',
+    description: '365 aktivních dní celkem - dosáhli jste legendárního statusu',
+    icon: '👑',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 1000,
+    condition: {
+      type: 'count',
+      target: 365,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-ultimate-veteran',
+    name: 'Ultimate Veteran',
+    description: '500 aktivních dní celkem - vaše oddanost je nepřekonatelná',
+    icon: '🏅',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 1500,
+    condition: {
+      type: 'count',
+      target: 500,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
+  },
+
+  {
+    id: 'loyalty-master',
+    name: 'Loyalty Master',
+    description: '1000 aktivních dní celkem - dosáhli jste ultimátní věrnosti',
+    icon: '🏆',
+    category: AchievementCategory.SPECIAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 2000,
+    condition: {
+      type: 'count',
+      target: 1000,
+      source: 'loyalty_total_active_days',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: true,
+    createdAt: new Date('2025-08-21'),
+    updatedAt: new Date('2025-08-21')
   }
 ];
 

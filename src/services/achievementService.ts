@@ -1309,6 +1309,33 @@ export class AchievementService {
   }
 
   /**
+   * Check loyalty achievements after milestone reached - Sub-checkpoint 4.5.10.C
+   * Called from AppInitializationService after loyalty tracking detects milestones
+   */
+  static async checkLoyaltyAchievements(milestonesReached: number[] = []): Promise<AchievementUnlockResult> {
+    try {
+      console.log('🏆 Checking loyalty achievements for milestones:', milestonesReached);
+      
+      // Get all loyalty achievements
+      const loyaltyAchievements = CORE_ACHIEVEMENTS.filter(a => 
+        a.condition.source === 'loyalty_total_active_days'
+      );
+      
+      console.log(`Found ${loyaltyAchievements.length} loyalty achievements to check`);
+      
+      // Run batch check specifically for loyalty achievements
+      return await this.runBatchAchievementCheck({
+        achievementIds: loyaltyAchievements.map(a => a.id),
+        forceUpdate: true
+      });
+      
+    } catch (error) {
+      console.error('AchievementService.checkLoyaltyAchievements error:', error);
+      return { unlocked: [], progress: [], xpAwarded: 0, leveledUp: false };
+    }
+  }
+
+  /**
    * Reset all achievement data (for testing/development)
    */
   static async resetAllAchievementData(): Promise<void> {

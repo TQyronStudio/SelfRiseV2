@@ -8,6 +8,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { XPMultiplierService } from '../services/xpMultiplierService';
 import { GamificationService } from '../services/gamificationService';
+import { XPSourceType } from '../types/gamification';
 import { formatDateToString, subtractDays } from '../utils/date';
 
 /**
@@ -23,7 +24,9 @@ export class InactiveUserBoostTester {
     
     try {
       // Simulate last activity 5 days ago
-      const fiveDaysAgo = formatDateToString(subtractDays(new Date(), 5) as Date);
+      const fiveDaysAgoDate = new Date();
+      fiveDaysAgoDate.setDate(fiveDaysAgoDate.getDate() - 5);
+      const fiveDaysAgo = formatDateToString(fiveDaysAgoDate);
       await AsyncStorage.setItem('gamification_last_activity', fiveDaysAgo);
       
       // Check inactive status
@@ -59,7 +62,9 @@ export class InactiveUserBoostTester {
       await AsyncStorage.removeItem('xp_multiplier_active');
       
       // Simulate last activity 5 days ago
-      const fiveDaysAgo = formatDateToString(subtractDays(new Date(), 5) as Date);
+      const fiveDaysAgoDate = new Date();
+      fiveDaysAgoDate.setDate(fiveDaysAgoDate.getDate() - 5);
+      const fiveDaysAgo = formatDateToString(fiveDaysAgoDate);
       await AsyncStorage.setItem('gamification_last_activity', fiveDaysAgo);
       
       // Try to activate boost
@@ -114,7 +119,7 @@ export class InactiveUserBoostTester {
       // Add some XP (should be doubled)
       const testXP = 50;
       const result = await GamificationService.addXP(testXP, {
-        source: 'JOURNAL_ENTRY',
+        source: XPSourceType.JOURNAL_ENTRY,
         description: 'Test XP during boost period'
       });
       

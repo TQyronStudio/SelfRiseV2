@@ -68,14 +68,14 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
       opacity: new Animated.Value(0),
       scale: new Animated.Value(0),
       rotation: new Animated.Value(0),
-      color: effectColors[Math.floor(Math.random() * effectColors.length)],
-      shape: getRandomShape(),
+      color: effectColors[Math.floor(Math.random() * effectColors.length)] || '#FFC107',
+      shape: getRandomShape() || 'circle',
     };
   };
 
   const getRandomShape = (): 'circle' | 'star' | 'square' => {
     const shapes: ('circle' | 'star' | 'square')[] = ['circle', 'star', 'square'];
-    return shapes[Math.floor(Math.random() * shapes.length)];
+    return shapes[Math.floor(Math.random() * shapes.length)] || 'circle';
   };
 
   // Create particles array

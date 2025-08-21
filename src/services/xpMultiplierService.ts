@@ -967,6 +967,8 @@ export class XPMultiplierService {
       
       const multiplier: XPMultiplier = {
         id: `inactive_return_${Date.now()}`,
+        createdAt: now,
+        updatedAt: now,
         multiplier: 2.0, // 2x XP
         activatedAt: now,
         expiresAt,
@@ -1002,7 +1004,7 @@ export class XPMultiplierService {
       });
       
       // Record activation in history
-      await this.recordMultiplierActivation(multiplier, bonusXP);
+      await this.recordMultiplierActivation(multiplier, 0, bonusXP);
       
       console.log(`✅ Inactive User Comeback Boost activated: 2x XP for ${BOOST_DURATION_HOURS} hours`);
       console.log(`💎 Comeback bonus awarded: +${bonusXP} XP (${inactiveStatus.daysSinceLastActivity} days away)`);

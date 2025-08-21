@@ -24,6 +24,9 @@ export enum XPSourceType {
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
   MONTHLY_CHALLENGE = 'monthly_challenge',
   XP_MULTIPLIER_BONUS = 'xp_multiplier_bonus',
+  LOYALTY_MILESTONE = 'loyalty_milestone',
+  DAILY_ACTIVITY = 'daily_activity',
+  INACTIVE_USER_RETURN = 'inactive_user_return',
 }
 
 /**
@@ -58,6 +61,17 @@ export enum NotificationType {
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
   STREAK_MILESTONE = 'streak_milestone',
   XP_MULTIPLIER_ACTIVE = 'xp_multiplier_active',
+}
+
+/**
+ * Loyalty levels for long-term user engagement classification
+ */
+export enum LoyaltyLevel {
+  NEWCOMER = 'newcomer',      // 0-29 days
+  EXPLORER = 'explorer',      // 30-99 days  
+  VETERAN = 'veteran',        // 100-364 days
+  LEGEND = 'legend',          // 365-999 days
+  MASTER = 'master'           // 1000+ days
 }
 
 // ========================================
@@ -321,6 +335,53 @@ export interface BatchEvaluationOptions {
 }
 
 // ========================================
+// LOYALTY SYSTEM INTERFACES
+// ========================================
+
+/**
+ * Core loyalty tracking data structure
+ */
+export interface LoyaltyTracking {
+  totalActiveDays: number;           // Cumulative count of unique active days
+  lastActiveDate: DateString;        // Last recorded active date (YYYY-MM-DD)
+  registrationDate: DateString;      // Initial app registration date
+  longestActiveStreak: number;       // Best consecutive streak (for comparison)
+  currentActiveStreak: number;       // Current consecutive days (separate tracking)
+  loyaltyLevel: LoyaltyLevel;        // Current user loyalty classification
+}
+
+/**
+ * Loyalty progress calculation result
+ */
+export interface LoyaltyProgress {
+  isComplete: boolean;               // Has user reached maximum loyalty (1000 days)?
+  nextTarget: number | null;         // Next milestone target (null if complete)
+  progress: number;                  // Progress percentage to next milestone (0-100)
+  daysRemaining: number;             // Days needed to reach next milestone
+}
+
+/**
+ * Display information for loyalty levels
+ */
+export interface LoyaltyLevelDisplay {
+  name: string;                      // Display name (e.g., "Explorer")
+  icon: string;                      // Emoji icon
+  color: string;                     // Hex color code
+  description: string;               // Short description
+}
+
+/**
+ * Loyalty achievement milestone definition
+ */
+export interface LoyaltyMilestone {
+  days: number;                      // Active days required
+  name: string;                      // Achievement name
+  xpReward: number;                  // XP reward amount
+  rarity: AchievementRarity;         // Achievement rarity level
+  isSecret: boolean;                 // Whether achievement is hidden until unlocked
+}
+
+// ========================================
 // CHALLENGE SYSTEM INTERFACES (MONTHLY ONLY)
 // ========================================
 
@@ -348,8 +409,9 @@ export interface XPMultiplier extends BaseEntity {
   duration: number; // Duration in hours
   activatedAt: Date;
   expiresAt: Date;
-  source: 'harmony_streak' | 'weekly_challenge' | 'achievement' | 'special_event';
+  source: 'harmony_streak' | 'weekly_challenge' | 'achievement' | 'special_event' | 'inactive_user_return';
   isActive: boolean;
+  metadata?: Record<string, any>; // Optional metadata for additional context
 }
 
 /**

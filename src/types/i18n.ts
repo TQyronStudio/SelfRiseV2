@@ -187,6 +187,7 @@ export interface TranslationKeys {
       daily_complete_modal: string;
       streak_milestone_modal: string;
       bonus_milestone_modal: string;
+      epic_crown_modal: string;
       streak_badge_accessibility: string;
       bonus_badge_accessibility: string;
     };

@@ -6,6 +6,7 @@ import { GamificationService } from './gamificationService';
 import { UserActivityTracker } from './userActivityTracker';
 import { StarRatingService } from './starRatingService';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
+import { LoyaltyService } from './loyaltyService';
 
 // ========================================
 // INTERFACES & TYPES
@@ -240,6 +241,33 @@ export class AppInitializationService {
       
       if (boostResult?.success) {
         this.log(`🎯 Inactive user boost activated: ${boostResult.multiplier?.description}`);
+      }
+      
+      // Track daily activity for loyalty system
+      const loyaltyResult = await LoyaltyService.trackDailyActivity();
+      if (loyaltyResult.isNewActiveDay) {
+        this.log(`🏆 New active day recorded: ${loyaltyResult.milestonesReached.length} milestones reached`);
+        
+        if (loyaltyResult.loyaltyLevelChanged) {
+          this.log(`🎖️ Loyalty level changed: ${loyaltyResult.oldLevel} → ${loyaltyResult.newLevel}`);
+        }
+        
+        // Log milestone achievements for debugging
+        if (loyaltyResult.milestonesReached.length > 0) {
+          const milestoneNames = loyaltyResult.milestonesReached.map(m => m.name);
+          this.log(`🎉 Loyalty milestones reached: ${milestoneNames.join(', ')}`);
+          
+          // Check loyalty achievements after milestones reached
+          const { AchievementService } = require('./achievementService');
+          const achievementResult = await AchievementService.checkLoyaltyAchievements(
+            loyaltyResult.milestonesReached.map(m => m.days)
+          );
+          
+          if (achievementResult.unlocked.length > 0) {
+            const unlockedNames = achievementResult.unlocked.map((a: any) => a.name);
+            this.log(`🏅 Loyalty achievements unlocked: ${unlockedNames.join(', ')} (+${achievementResult.xpAwarded} XP)`);
+          }
+        }
       }
       
       this.log('GamificationService initialized successfully');

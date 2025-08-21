@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Colors } from '@/src/constants/colors';
 import { AchievementStats, AchievementRarity, AchievementCategory } from '@/src/types/gamification';
+import { LoyaltyProgressCard } from './LoyaltyProgressCard';
 
 interface TrophyRoomStatsProps {
   stats: AchievementStats;
@@ -145,6 +146,9 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
         <Text style={styles.headerTitle}>🏆 Trophy Room</Text>
         <Text style={styles.headerSubtitle}>Your Personal Hall of Fame</Text>
       </View>
+
+      {/* Loyalty Progress Card - Sub-checkpoint 4.5.10.C */}
+      <LoyaltyProgressCard />
 
       {/* Primary Stats Row */}
       <View style={styles.primaryStatsRow}>
