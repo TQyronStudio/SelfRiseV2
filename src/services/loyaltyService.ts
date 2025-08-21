@@ -17,7 +17,8 @@ import { today, formatDateToString, subtractDays } from '../utils/date';
  * Manages long-term user engagement through cumulative active day tracking
  */
 export class LoyaltyService {
-  private static readonly STORAGE_KEY = 'loyalty_tracking_data';
+  private static readonly STORAGE_KEY = 'gamification_loyalty_data';
+  private static readonly OLD_STORAGE_KEY = 'loyalty_tracking_data'; // For migration
   
   // Loyalty milestones (matching technical-guides:Achievements.md exactly)
   static readonly LOYALTY_MILESTONES: LoyaltyMilestone[] = [
@@ -42,7 +43,23 @@ export class LoyaltyService {
    */
   static async getLoyaltyData(): Promise<LoyaltyTracking> {
     try {
-      const data = await AsyncStorage.getItem(this.STORAGE_KEY);
+      // Try to get data from new storage key first
+      let data = await AsyncStorage.getItem(this.STORAGE_KEY);
+      
+      // If no data in new key, check old key for migration
+      if (!data) {
+        const oldData = await AsyncStorage.getItem(this.OLD_STORAGE_KEY);
+        if (oldData) {
+          console.log('🔄 Migrating loyalty data from old storage key to new key');
+          // Migrate data to new key
+          await AsyncStorage.setItem(this.STORAGE_KEY, oldData);
+          // Remove old data
+          await AsyncStorage.removeItem(this.OLD_STORAGE_KEY);
+          data = oldData;
+          console.log('✅ Loyalty data migration completed');
+        }
+      }
+      
       if (data) {
         const parsed = JSON.parse(data) as LoyaltyTracking;
         return {
@@ -341,6 +358,8 @@ export class LoyaltyService {
   static async resetLoyaltyData(): Promise<void> {
     try {
       await AsyncStorage.removeItem(this.STORAGE_KEY);
+      // Also remove old storage key if it exists (cleanup)
+      await AsyncStorage.removeItem(this.OLD_STORAGE_KEY);
       console.log('🧪 Loyalty data reset for testing');
     } catch (error) {
       console.error('LoyaltyService.resetLoyaltyData error:', error);
