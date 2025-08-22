@@ -1544,8 +1544,14 @@ achievementsCount: achievements.unlockedAchievements, // Direct count of unlocke
 **Task 1.2: Implement Achievement Celebration Modal**
 - Create: `src/components/achievements/AchievementCelebrationModal.tsx`
 - Features: Achievement display, XP animation, rarity-based styling
+- **Color Theming**: Modal background, borders, and effects must match achievement rarity colors:
+  - **Common**: Gray/Silver theme (#9E9E9E)
+  - **Rare**: Blue theme (#2196F3) 
+  - **Epic**: Purple theme (#9C27B0)
+  - **Legendary**: Gold theme (#FFD700)
+- **Visual Effects**: Particle effects and animations should use rarity-specific colors
 - Integration: Hook into existing `achievementUnlocked` events
-- Test: Verify modal displays on achievement unlock
+- Test: Verify modal displays with correct rarity colors for each achievement type
 
 **Task 1.3: Create Celebration Queue System**
 - Location: `src/contexts/AchievementContext.tsx`

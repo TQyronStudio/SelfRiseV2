@@ -212,25 +212,23 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         </View>
       </View>
       
-      {/* Progress bar for progressive achievements */}
-      {achievement.isProgressive && (
-        <View style={styles.progressContainer}>
-          <View style={styles.progressTrack}>
-            <View 
-              style={[
-                styles.progressFill,
-                { 
-                  width: `${progress}%`,
-                  backgroundColor: isUnlocked ? rarityColor : Colors.gray
-                }
-              ]} 
-            />
-          </View>
-          <Text style={[styles.progressText, !isUnlocked && styles.textLocked]}>
-            {Math.round(progress)}%
-          </Text>
+      {/* Progress bar for all achievements */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressTrack}>
+          <View 
+            style={[
+              styles.progressFill,
+              { 
+                width: `${progress}%`,
+                backgroundColor: isUnlocked ? rarityColor : Colors.gray
+              }
+            ]} 
+          />
         </View>
-      )}
+        <Text style={[styles.progressText, !isUnlocked && styles.textLocked]}>
+          {Math.round(progress)}%
+        </Text>
+      </View>
       
       {/* Locked overlay */}
       {!isUnlocked && (
@@ -322,10 +320,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   progressContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    marginTop: 8,
     paddingHorizontal: 8,
     paddingBottom: 4,
     flexDirection: 'row',

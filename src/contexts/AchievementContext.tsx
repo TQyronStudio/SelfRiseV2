@@ -12,6 +12,7 @@ import {
 import { AchievementService, AchievementUnlockResult } from '../services/achievementService';
 import { AchievementStorage } from '../services/achievementStorage';
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
+import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
 
 // Achievement context state interface
 interface AchievementContextState {
@@ -38,6 +39,11 @@ interface AchievementContextState {
   selectedCategory: AchievementCategory | undefined;
   selectedRarity: AchievementRarity | undefined;
   showOnlyUnlocked: boolean;
+  
+  // Celebration system
+  celebrationQueue: Array<{ achievement: Achievement; xpAwarded: number }>;
+  showingCelebration: boolean;
+  currentCelebrationIndex: number;
 }
 
 // Achievement context actions interface
@@ -63,6 +69,11 @@ interface AchievementContextActions {
   // Statistics
   getStatsByCategory: () => Record<AchievementCategory, { unlocked: number; total: number }>;
   getStatsByRarity: () => Record<AchievementRarity, { unlocked: number; total: number }>;
+  
+  // Celebration system
+  addToCelebrationQueue: (achievement: Achievement, xpAwarded: number) => void;
+  showNextCelebration: () => void;
+  closeCelebrationModal: () => void;
 }
 
 // Combined context interface
@@ -101,6 +112,11 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | undefined>();
   const [selectedRarity, setSelectedRarity] = useState<AchievementRarity | undefined>();
   const [showOnlyUnlocked, setShowOnlyUnlocked] = useState(false);
+  
+  // Celebration system states
+  const [celebrationQueue, setCelebrationQueue] = useState<Array<{ achievement: Achievement; xpAwarded: number }>>([]);
+  const [showingCelebration, setShowingCelebration] = useState(false);
+  const [currentCelebrationIndex, setCurrentCelebrationIndex] = useState(-1);
 
   // Derived state
   const allAchievements = CORE_ACHIEVEMENTS;
@@ -264,6 +280,55 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   }, [allAchievements, userAchievements.unlockedAchievements]);
 
   // ========================================
+  // CELEBRATION QUEUE SYSTEM
+  // ========================================
+
+  /**
+   * Add achievement to celebration queue
+   */
+  const addToCelebrationQueue = useCallback((achievement: Achievement, xpAwarded: number) => {
+    setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
+  }, []);
+
+  /**
+   * Show next celebration from queue
+   */
+  const showNextCelebration = useCallback(() => {
+    if (!showingCelebration && celebrationQueue.length > 0) {
+      setShowingCelebration(true);
+      setCurrentCelebrationIndex(0);
+    }
+  }, [showingCelebration, celebrationQueue.length]);
+
+  /**
+   * Close current celebration modal and show next in queue
+   */
+  const closeCelebrationModal = useCallback(() => {
+    setShowingCelebration(false);
+    
+    // Remove the first item from queue
+    setCelebrationQueue(prev => prev.slice(1));
+    
+    // Show next celebration after 2 second delay
+    setTimeout(() => {
+      setCelebrationQueue(currentQueue => {
+        if (currentQueue.length > 0) {
+          setShowingCelebration(true);
+          setCurrentCelebrationIndex(0);
+        }
+        return currentQueue;
+      });
+    }, 2000); // 2-second interval as specified in project plan
+  }, []);
+
+  // Auto-trigger next celebration when queue is updated
+  useEffect(() => {
+    if (!showingCelebration && celebrationQueue.length > 0) {
+      showNextCelebration();
+    }
+  }, [celebrationQueue.length, showingCelebration, showNextCelebration]);
+
+  // ========================================
   // EVENT LISTENERS
   // ========================================
 
@@ -287,6 +352,9 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
         
         setRecentUnlocks(prev => [unlockEvent, ...prev.slice(0, 9)]); // Keep last 10
         
+        // Add to celebration queue
+        addToCelebrationQueue(eventData.achievement, eventData.xpAwarded);
+        
         // Refresh achievements data
         refreshAchievements();
       }
@@ -297,6 +365,12 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       'multipleAchievementsUnlocked',
       (eventData: { count: number; totalXP: number; achievements: Achievement[] }) => {
         console.log(`🎉 Multiple achievements unlocked: ${eventData.count} achievements`);
+        
+        // Add all achievements to celebration queue
+        eventData.achievements.forEach(achievement => {
+          addToCelebrationQueue(achievement, achievement.xpReward);
+        });
+        
         refreshAchievements();
       }
     );
@@ -337,6 +411,11 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     selectedRarity,
     showOnlyUnlocked,
     
+    // Celebration system state
+    celebrationQueue,
+    showingCelebration,
+    currentCelebrationIndex,
+    
     // Actions
     refreshAchievements,
     checkAllAchievements,
@@ -349,12 +428,25 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     getAchievementsByCategory,
     getAchievementsByRarity,
     getStatsByCategory,
-    getStatsByRarity
+    getStatsByRarity,
+    
+    // Celebration system actions
+    addToCelebrationQueue,
+    showNextCelebration,
+    closeCelebrationModal
   };
 
   return (
     <AchievementContext.Provider value={contextValue}>
       {children}
+      
+      {/* Achievement Celebration Modal */}
+      <AchievementCelebrationModal
+        visible={showingCelebration && celebrationQueue.length > 0}
+        onClose={closeCelebrationModal}
+        achievement={celebrationQueue.length > 0 && celebrationQueue[0] ? celebrationQueue[0].achievement : null}
+        xpAwarded={celebrationQueue.length > 0 && celebrationQueue[0] ? celebrationQueue[0].xpAwarded : 0}
+      />
     </AchievementContext.Provider>
   );
 };

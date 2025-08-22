@@ -367,7 +367,7 @@ export class SocialSharingService {
       const daysActive = await this.calculateDaysActive();
       
       return {
-        achievementsCount: Math.floor(achievements.completionRate * achievements.totalAchievements),
+        achievementsCount: achievements.unlockedAchievements,
         level: getCurrentLevel(stats.totalXP),
         daysActive,
         categoryProgress: {
