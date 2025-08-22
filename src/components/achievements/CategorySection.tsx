@@ -8,6 +8,7 @@ import {
 import { Colors } from '@/src/constants/colors';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, AchievementCategory, UserAchievements } from '@/src/types/gamification';
+import { UserStats } from '@/src/utils/achievementPreviewUtils';
 
 interface CategorySectionProps {
   category: AchievementCategory;
@@ -15,6 +16,8 @@ interface CategorySectionProps {
   achievements: Achievement[];
   userAchievements: UserAchievements;
   onAchievementPress: (achievement: Achievement) => void;
+  userStats?: UserStats | undefined; // For achievement preview system
+  showPreview?: boolean; // Enable preview functionality
 }
 
 const getCategoryIcon = (category: AchievementCategory): string => {
@@ -49,6 +52,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   achievements,
   userAchievements,
   onAchievementPress,
+  userStats,
+  showPreview = true,
 }) => {
   if (achievements.length === 0) {
     return null;
@@ -119,6 +124,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
                     userProgress={userProgress}
                     isUnlocked={isUnlocked}
                     onPress={() => onAchievementPress(achievement)}
+                    userStats={userStats}
+                    showPreview={showPreview}
                   />
                 </View>
               );

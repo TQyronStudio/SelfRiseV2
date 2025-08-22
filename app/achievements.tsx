@@ -29,6 +29,8 @@ import { AchievementHistory } from '@/src/components/achievements/AchievementHis
 import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
 import { AchievementShareModal } from '@/src/components/social';
+import { UserStatsCollector } from '@/src/utils/userStatsCollector';
+import { UserStats } from '@/src/utils/achievementPreviewUtils';
 import { 
   Achievement, 
   UserAchievements, 
@@ -53,6 +55,7 @@ export default function AchievementsScreen() {
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
   const [achievementStats, setAchievementStats] = useState<AchievementStats | null>(null);
   const [currentLevel, setCurrentLevel] = useState<number>(1);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,16 +90,18 @@ export default function AchievementsScreen() {
       
       setError(null);
       
-      // Load user achievements, statistics and gamification stats in parallel
-      const [userData, statsData, gamificationData] = await Promise.all([
+      // Load user achievements, statistics, gamification stats, and user stats in parallel
+      const [userData, statsData, gamificationData, userStatsData] = await Promise.all([
         AchievementStorage.getUserAchievements(),
         AchievementService.getAchievementStats(),
         GamificationService.getGamificationStats(),
+        UserStatsCollector.collectUserStats(),
       ]);
       
       setUserAchievements(userData);
       setAchievementStats(statsData);
       setCurrentLevel(gamificationData.currentLevel);
+      setUserStats(userStatsData);
       
     } catch (err) {
       console.error('Failed to load achievement data:', err);
@@ -525,6 +530,8 @@ export default function AchievementsScreen() {
         achievements={achievements}
         userAchievements={userAchievements}
         onAchievementPress={handleAchievementPress}
+        userStats={userStats || undefined}
+        showPreview={true}
       />
     ));
   };
@@ -555,6 +562,8 @@ export default function AchievementsScreen() {
                     userProgress={userProgress}
                     isUnlocked={isUnlocked}
                     onPress={() => handleAchievementPress(achievement)}
+                    userStats={userStats || undefined}
+                    showPreview={true}
                   />
                 </View>
               );

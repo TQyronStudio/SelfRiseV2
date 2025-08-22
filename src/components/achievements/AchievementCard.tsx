@@ -13,12 +13,21 @@ import {
 } from '@/src/types/gamification';
 import { useAccessibility, getHighContrastRarityColors, getHighContrastGlowColors } from '@/src/hooks/useAccessibility';
 import { useI18n } from '@/src/hooks/useI18n';
+import { 
+  generateProgressHint, 
+  generateCompletionInfo, 
+  generateSmartTooltip,
+  UserStats 
+} from '@/src/utils/achievementPreviewUtils';
+import { AchievementTooltip } from './AchievementTooltip';
 
 interface AchievementCardProps {
   achievement: Achievement;
   userProgress?: number;
   isUnlocked: boolean;
   onPress?: () => void;
+  userStats?: UserStats | undefined; // For preview system
+  showPreview?: boolean; // Enable preview functionality
 }
 
 const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
@@ -50,6 +59,8 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   userProgress = 0,
   isUnlocked,
   onPress,
+  userStats,
+  showPreview = true,
 }) => {
   const { t } = useI18n();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
@@ -61,6 +72,22 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   // Animation states for micro-interactions
   const [scaleAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
+  
+  // Preview system states
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  // Generate preview data if enabled and userStats provided
+  const progressHint = showPreview && userStats && !isUnlocked 
+    ? generateProgressHint(achievement, userStats) 
+    : undefined;
+    
+  const completionInfo = showPreview && userStats && isUnlocked 
+    ? generateCompletionInfo(achievement, userStats) 
+    : undefined;
+    
+  const smartTooltip = showPreview && userStats 
+    ? generateSmartTooltip(achievement, progress) 
+    : undefined;
   
   const handlePressIn = () => {
     if (isReduceMotionEnabled) {
@@ -109,6 +136,15 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     outputRange: ['rgba(0,0,0,0)', rarityGlow],
   });
   
+  // Enhanced tap handler for preview system
+  const handleCardPress = () => {
+    if (showPreview && userStats) {
+      setShowTooltip(true);
+    } else if (onPress) {
+      onPress();
+    }
+  };
+  
   // Accessibility label for the achievement card
   const status = isUnlocked 
     ? 'unlocked' 
@@ -127,6 +163,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     `${isUnlocked ? 'Completed achievement' : 'In progress achievement'}. Tap for more details.`;
 
   return (
+    <>
     <Animated.View
       style={[
         { 
@@ -156,10 +193,10 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             backgroundColor: isUnlocked ? rarityGlow : Colors.white,
           },
         ]}
-        onPress={onPress}
+        onPress={handleCardPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={!isUnlocked && !achievement.isProgressive}
+        disabled={false} // Always allow tap for preview
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
@@ -191,6 +228,29 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         >
           {achievement.name}
         </Text>
+        
+        {/* Progress hint for locked achievements */}
+        {!isUnlocked && progressHint && (
+          <Text 
+            style={[
+              styles.progressHintText,
+              { color: rarityColor + '80' }
+            ]}
+            numberOfLines={1}
+          >
+            {progressHint.progressText}
+          </Text>
+        )}
+        
+        {/* Completion info for unlocked achievements */}
+        {isUnlocked && completionInfo && (
+          <Text 
+            style={styles.completionText}
+            numberOfLines={1}
+          >
+            ✅ {completionInfo.accomplishment}
+          </Text>
+        )}
         
         <View style={styles.bottomRow}>
           <Text 
@@ -239,6 +299,20 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
       </TouchableOpacity>
       </Animated.View>
     </Animated.View>
+    
+    {/* Achievement Preview Tooltip */}
+    {showPreview && userStats && (
+      <AchievementTooltip
+        visible={showTooltip}
+        onClose={() => setShowTooltip(false)}
+        achievement={achievement}
+        isUnlocked={isUnlocked}
+        progressHint={progressHint}
+        completionInfo={completionInfo}
+        smartTooltip={smartTooltip}
+      />
+    )}
+  </>
   );
 };
 
@@ -357,5 +431,22 @@ const styles = StyleSheet.create({
   lockedIcon: {
     fontSize: 20,
     opacity: 0.6,
+  },
+  
+  // Preview system styles
+  progressHintText: {
+    fontSize: 9,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 2,
+    lineHeight: 12,
+  },
+  completionText: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginTop: 2,
+    lineHeight: 12,
   },
 });

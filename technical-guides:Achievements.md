@@ -934,3 +934,741 @@ Collectors → Meta achievements (Trophy Collector, Trophy Master)
 ---
 
 *This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of loyalty achievements (Sub-checkpoint 4.5.10.C) with the existing 42 achievements creates a robust 52-achievement ecosystem designed for sustained user engagement.*
+
+---
+
+## Achievement Preview System 👁️
+
+### 🎯 Core Concept
+
+The Achievement Preview System transforms locked achievements from mysterious placeholders into motivational progress indicators. Every achievement (locked or unlocked) shows clear completion requirements and current progress, creating transparency and motivation for users.
+
+### Fundamental Requirements
+
+**ALL achievements MUST implement:**
+- ✅ **Progress Hints**: Clear progress indicators for locked achievements  
+- ✅ **Completion Requirements**: Detailed requirements for unlocking
+- ✅ **Smart Tooltips**: Context-aware tips and motivation
+- ✅ **Visual Progress**: Progress bars showing current advancement
+- ✅ **Next Milestone**: Clear indication of next achievable goal
+
+### Achievement Display Modes
+
+#### **Locked Achievement Display**
+```typescript
+interface LockedAchievementDisplay {
+  // Progress indication
+  progressHint: string;           // "Complete 50 habits (32/50)"
+  progressPercentage: number;     // 64%
+  progressBar: boolean;          // Always visible (dimmed style)
+  
+  // Requirement display
+  requirement: string;           // "Complete 1000 habits total"
+  category: AchievementCategory; // Habits, Journal, Goals, etc.
+  actionHint: string;           // "Keep completing daily habits!"
+  
+  // Motivation
+  motivationalTip: string;      // "You're doing great! Just 18 more to go!"
+  estimatedTime?: string;       // "~18 days at current pace"
+  difficultyLevel: 'Easy' | 'Medium' | 'Hard' | 'Legendary';
+}
+```
+
+#### **Unlocked Achievement Display**
+```typescript
+interface UnlockedAchievementDisplay {
+  // Completion information
+  completedRequirement: string;  // "Completed 1000 habits total"
+  completionDate: string;       // "Unlocked on March 15, 2024"
+  progressAtCompletion: string; // "Achieved in 143 active days"
+  
+  // Achievement details
+  xpEarned: number;            // 500 XP
+  celebrationReplay: boolean;  // Option to replay celebration
+  shareFunction: boolean;      // Social sharing capability
+}
+```
+
+### Progress Hint Generation
+
+#### **Habit Category Examples**
+```typescript
+const generateHabitProgressHints = (achievement: Achievement, userStats: UserStats): string => {
+  switch (achievement.id) {
+    case 'first_steps':
+      return userStats.habitsCreated === 0 
+        ? "Create your first habit to begin!" 
+        : "✅ First habit created!";
+        
+    case 'century_club':
+      return `Complete 100 habits (${userStats.totalHabitCompletions}/100)`;
+      
+    case 'consistency_king':
+      return `Complete 1000 habits (${userStats.totalHabitCompletions}/1000)`;
+      
+    case 'habit_streak_champion':
+      const currentStreak = userStats.longestHabitStreak;
+      return `Achieve 21-day streak (current best: ${currentStreak} days)`;
+      
+    case 'multi_tasker':
+      return `Complete 5 different habits in one day (best: ${userStats.maxHabitsInOneDay})`;
+  }
+};
+```
+
+#### **Journal Category Examples**
+```typescript
+const generateJournalProgressHints = (achievement: Achievement, userStats: UserStats): string => {
+  switch (achievement.id) {
+    case 'first_reflection':
+      return userStats.journalEntries === 0
+        ? "Write your first gratitude entry!"
+        : "✅ First reflection completed!";
+        
+    case 'journal_enthusiast':
+      return `Write 100 journal entries (${userStats.totalJournalEntries}/100)`;
+      
+    case 'grateful_heart':
+      return `Maintain 7-day streak (current: ${userStats.currentJournalStreak} days)`;
+      
+    case 'eternal_gratitude':
+      return `Achieve 100-day streak (best: ${userStats.longestJournalStreak} days)`;
+      
+    case 'bonus_seeker':
+      return `Write 50 bonus entries (${userStats.bonusJournalEntries}/50)`;
+  }
+};
+```
+
+#### **Goals Category Examples**
+```typescript
+const generateGoalProgressHints = (achievement: Achievement, userStats: UserStats): string => {
+  switch (achievement.id) {
+    case 'first_vision':
+      return userStats.goalsCreated === 0
+        ? "Set your first goal to start!"
+        : "✅ First goal set!";
+        
+    case 'goal_getter':
+      return userStats.completedGoals === 0
+        ? "Complete your first goal!"
+        : "✅ First goal completed!";
+        
+    case 'achievement_unlocked':
+      return `Complete 10 goals (${userStats.completedGoals}/10)`;
+      
+    case 'ambitious':
+      return userStats.hasLargeGoal
+        ? "✅ Ambitious goal set!"
+        : "Set a goal with target ≥1000";
+        
+    case 'progress_tracker':
+      return `Progress on goals 7 days straight (${userStats.goalProgressStreak}/7)`;
+  }
+};
+```
+
+### Smart Tooltip System
+
+#### **Context-Aware Tips**
+```typescript
+interface SmartTooltip {
+  primaryTip: string;           // Main guidance
+  motivationalMessage: string;  // Encouragement
+  actionAdvice: string;        // Specific next steps
+  estimatedEffort?: string;    // Time/effort estimate
+}
+
+const generateSmartTooltip = (achievement: Achievement, progress: number): SmartTooltip => {
+  const progressLevel = getProgressLevel(progress);
+  
+  return {
+    primaryTip: getPrimaryTip(achievement, progressLevel),
+    motivationalMessage: getMotivationalMessage(progressLevel),
+    actionAdvice: getActionAdvice(achievement, progressLevel),
+    estimatedEffort: getEffortEstimate(achievement, progress)
+  };
+};
+
+const getProgressLevel = (progress: number): 'starting' | 'building' | 'advancing' | 'nearly_there' => {
+  if (progress < 10) return 'starting';
+  if (progress < 50) return 'building';
+  if (progress < 85) return 'advancing';
+  return 'nearly_there';
+};
+
+const getMotivationalMessage = (level: string): string => {
+  const messages = {
+    starting: "Every journey begins with a single step! 🌱",
+    building: "You're building great momentum! 💪",
+    advancing: "Excellent progress - keep it up! 🚀",
+    nearly_there: "So close to unlocking this achievement! 🎯"
+  };
+  return messages[level];
+};
+```
+
+### Next Achievement Suggestion
+
+#### **Proximity-Based Suggestions**
+```typescript
+interface NextAchievementSuggestion {
+  achievement: Achievement;
+  progressPercentage: number;
+  estimatedDays: number;
+  motivationalText: string;
+  priorityLevel: 'high' | 'medium' | 'low';
+}
+
+const getNextAchievementSuggestions = (userStats: UserStats): NextAchievementSuggestion[] => {
+  const allAchievements = CORE_ACHIEVEMENTS.filter(a => !isUnlocked(a.id));
+  
+  return allAchievements
+    .map(achievement => ({
+      achievement,
+      progressPercentage: calculateProgress(achievement, userStats),
+      estimatedDays: estimateCompletionTime(achievement, userStats),
+      motivationalText: generateMotivationalText(achievement, userStats),
+      priorityLevel: determinePriority(achievement, userStats)
+    }))
+    .sort((a, b) => b.progressPercentage - a.progressPercentage)
+    .slice(0, 3); // Top 3 suggestions
+};
+```
+
+#### **Trophy Room Highlight**
+```typescript
+// Next Achievement Spotlight in Trophy Room
+interface AchievementSpotlight {
+  title: "🎯 NEXT TO UNLOCK";
+  achievement: Achievement;
+  progressText: string;        // "Marathon Runner (634/1000)"
+  motivationText: string;      // "💪 Just 366 more habits to go!"
+  timeEstimate: string;        // "~4 months at current pace"
+  actionButton: string;        // "View Details"
+}
+```
+
+### Visual Design Requirements
+
+#### **Progress Bar Styling**
+```typescript
+interface ProgressBarStyles {
+  // Locked achievements
+  locked: {
+    trackColor: '#E0E0E0';      // Light gray track
+    fillColor: 'rgba(rarity, 0.3)';  // Dimmed rarity color
+    height: 4;
+    borderRadius: 2;
+    opacity: 0.7;
+  };
+  
+  // Unlocked achievements  
+  unlocked: {
+    trackColor: '#E0E0E0';
+    fillColor: 'rarity_color';   // Full rarity color
+    height: 4;
+    borderRadius: 2;
+    opacity: 1.0;
+  };
+}
+```
+
+#### **Tooltip Modal Design**
+```typescript
+interface TooltipModalStyles {
+  container: {
+    maxWidth: '85%';
+    backgroundColor: Colors.white;
+    borderRadius: 16;
+    padding: 20;
+    borderWidth: 2;
+    borderColor: 'achievement_rarity_color';
+  };
+  
+  header: {
+    flexDirection: 'row';
+    alignItems: 'center';
+    marginBottom: 16;
+  };
+  
+  progressSection: {
+    marginVertical: 12;
+    padding: 12;
+    backgroundColor: Colors.backgroundSecondary;
+    borderRadius: 8;
+  };
+}
+```
+
+---
+
+## Achievement Celebration Modal System 🎊
+
+### 🌟 Core Concept
+
+Every achievement unlock triggers a celebration modal with rarity-based theming. The celebration system creates memorable moments that reinforce positive behavior and motivate continued engagement.
+
+### Mandatory Celebration Features
+
+**ALL achievement celebrations MUST include:**
+- ✅ **Rarity-based color theming** - Every modal styled by achievement rarity
+- ✅ **Achievement information** - Icon, name, description, XP reward
+- ✅ **Completion details** - What the user accomplished to unlock it
+- ✅ **Haptic feedback** - Rarity-appropriate vibration intensity
+- ✅ **Sound effects** - Audio celebration matching rarity level
+- ✅ **Queue system** - Multiple achievements display sequentially
+
+### Rarity-Based Color Theming System
+
+#### **Rarity Color Specifications**
+```typescript
+interface RarityColorTheme {
+  // Primary colors (MANDATORY)
+  primary: string;        // Main theme color
+  secondary: string;      // Supporting color
+  accent: string;         // Highlight color
+  
+  // UI elements
+  background: string;     // Modal background tint
+  border: string;         // Modal border color
+  shadow: string;         // Shadow color
+  text: string;          // Primary text color
+  
+  // Effects
+  glow: string;          // Glow effect color
+  particle: string;      // Particle effect color
+}
+
+const RARITY_COLOR_THEMES: Record<AchievementRarity, RarityColorTheme> = {
+  [AchievementRarity.COMMON]: {
+    primary: '#9E9E9E',      // Gray
+    secondary: '#BDBDBD',    // Light gray
+    accent: '#757575',       // Dark gray
+    background: 'rgba(158, 158, 158, 0.1)',
+    border: '#9E9E9E',
+    shadow: 'rgba(158, 158, 158, 0.3)',
+    text: '#424242',
+    glow: 'rgba(158, 158, 158, 0.5)',
+    particle: '#E0E0E0'
+  },
+  
+  [AchievementRarity.RARE]: {
+    primary: '#2196F3',      // Blue
+    secondary: '#64B5F6',    // Light blue
+    accent: '#1976D2',       // Dark blue
+    background: 'rgba(33, 150, 243, 0.1)',
+    border: '#2196F3',
+    shadow: 'rgba(33, 150, 243, 0.4)',
+    text: '#1565C0',
+    glow: 'rgba(33, 150, 243, 0.6)',
+    particle: '#BBDEFB'
+  },
+  
+  [AchievementRarity.EPIC]: {
+    primary: '#9C27B0',      // Purple
+    secondary: '#BA68C8',    // Light purple
+    accent: '#7B1FA2',       // Dark purple
+    background: 'rgba(156, 39, 176, 0.1)',
+    border: '#9C27B0',
+    shadow: 'rgba(156, 39, 176, 0.4)',
+    text: '#6A1B9A',
+    glow: 'rgba(156, 39, 176, 0.6)',
+    particle: '#E1BEE7'
+  },
+  
+  [AchievementRarity.LEGENDARY]: {
+    primary: '#FFD700',      // Gold
+    secondary: '#FFEB3B',    // Yellow
+    accent: '#FFA000',       // Orange gold
+    background: 'rgba(255, 215, 0, 0.15)',
+    border: '#FFD700',
+    shadow: 'rgba(255, 215, 0, 0.5)',
+    text: '#F57C00',
+    glow: 'rgba(255, 215, 0, 0.8)',
+    particle: '#FFF8E1'
+  }
+};
+```
+
+### Celebration Modal Components
+
+#### **Modal Structure**
+```typescript
+interface AchievementCelebrationModal {
+  // Core information
+  achievement: Achievement;
+  xpAwarded: number;
+  
+  // Visual elements
+  rarityTheme: RarityColorTheme;
+  celebrationIcon: string;        // Large achievement icon
+  rarityBadge: RarityBadge;      // Colored rarity indicator
+  
+  // Content sections
+  header: CelebrationHeader;      // Title with rarity theming
+  achievementDetails: AchievementDetails; // Name, description
+  completionInfo: CompletionInfo; // What user accomplished
+  xpReward: XPRewardDisplay;     // XP amount with animation
+  
+  // Interactive elements
+  continueButton: ThemedButton;   // Rarity-colored continue button
+  shareButton?: ShareButton;      // Optional social sharing
+  replayButton?: ReplayButton;    // Optional celebration replay
+}
+```
+
+#### **Celebration Header**
+```typescript
+interface CelebrationHeader {
+  title: string;                 // "Achievement Unlocked!" | "Rare Achievement!" | etc.
+  titleColor: string;           // Rarity theme color
+  icon: string;                 // Rarity-specific emoji (🏆💎🌟👑)
+  backgroundGlow: string;       // Subtle glow effect
+}
+
+const getCelebrationTitle = (rarity: AchievementRarity): string => {
+  const titles = {
+    [AchievementRarity.COMMON]: "Achievement Unlocked! 🏆",
+    [AchievementRarity.RARE]: "Rare Achievement! 💎", 
+    [AchievementRarity.EPIC]: "Epic Achievement! 🌟",
+    [AchievementRarity.LEGENDARY]: "Legendary Achievement! 👑"
+  };
+  return titles[rarity];
+};
+```
+
+#### **Completion Information Display**
+```typescript
+interface CompletionInfo {
+  // What the user accomplished
+  accomplishment: string;        // "Completed 100 habits total"
+  timeFrame: string;            // "Achieved in 143 days"
+  category: string;             // "Habits Category"
+  
+  // Context information
+  difficultyLevel: string;      // "Challenging achievement"
+  percentileRank?: string;      // "Top 15% of users"
+  streakInfo?: string;          // For streak-based achievements
+}
+
+const generateCompletionInfo = (achievement: Achievement, userStats: UserStats): CompletionInfo => {
+  return {
+    accomplishment: getAccomplishmentText(achievement),
+    timeFrame: calculateTimeFrame(achievement, userStats),
+    category: `${achievement.category} Category`,
+    difficultyLevel: getDifficultyLevel(achievement.rarity),
+    percentileRank: getPercentileRank(achievement),
+    streakInfo: getStreakInfo(achievement, userStats)
+  };
+};
+
+const getAccomplishmentText = (achievement: Achievement): string => {
+  const accomplishments = {
+    'first_steps': "Created your first habit",
+    'century_club': "Completed 100 habits total", 
+    'consistency_king': "Completed 1000 habits total",
+    'journal_enthusiast': "Wrote 100 journal entries",
+    'eternal_gratitude': "Maintained 100-day journal streak",
+    'achievement_unlocked': "Completed 10 goals",
+    // ... all 52 achievements
+  };
+  return accomplishments[achievement.id] || "Completed achievement requirements";
+};
+```
+
+### Haptic Feedback System
+
+#### **Rarity-Based Haptic Intensity**
+```typescript
+interface HapticFeedbackPattern {
+  intensity: 'light' | 'medium' | 'heavy';
+  pattern: 'single' | 'double' | 'triple';
+  duration: number;
+  interval?: number;            // For multi-pulse patterns
+}
+
+const RARITY_HAPTIC_PATTERNS: Record<AchievementRarity, HapticFeedbackPattern> = {
+  [AchievementRarity.COMMON]: {
+    intensity: 'light',
+    pattern: 'single',
+    duration: 100
+  },
+  
+  [AchievementRarity.RARE]: {
+    intensity: 'medium', 
+    pattern: 'single',
+    duration: 150
+  },
+  
+  [AchievementRarity.EPIC]: {
+    intensity: 'heavy',
+    pattern: 'double',
+    duration: 200,
+    interval: 150
+  },
+  
+  [AchievementRarity.LEGENDARY]: {
+    intensity: 'heavy',
+    pattern: 'triple', 
+    duration: 250,
+    interval: 200
+  }
+};
+```
+
+### Sound Effects System
+
+#### **Rarity-Based Audio Cues**
+```typescript
+interface SoundEffect {
+  audioFile: string;
+  volume: number;
+  pitch?: number;
+  reverb?: boolean;
+}
+
+const RARITY_SOUND_EFFECTS: Record<AchievementRarity, SoundEffect> = {
+  [AchievementRarity.COMMON]: {
+    audioFile: 'achievement_common.mp3',
+    volume: 0.6
+  },
+  
+  [AchievementRarity.RARE]: {
+    audioFile: 'achievement_rare.mp3', 
+    volume: 0.7,
+    pitch: 1.1
+  },
+  
+  [AchievementRarity.EPIC]: {
+    audioFile: 'achievement_epic.mp3',
+    volume: 0.8,
+    pitch: 1.2,
+    reverb: true
+  },
+  
+  [AchievementRarity.LEGENDARY]: {
+    audioFile: 'achievement_legendary.mp3',
+    volume: 0.9,
+    pitch: 1.3,
+    reverb: true
+  }
+};
+```
+
+### Queue Management System
+
+#### **Sequential Modal Display**
+```typescript
+interface CelebrationQueue {
+  celebrations: CelebrationModal[];
+  currentIndex: number;
+  isDisplaying: boolean;
+  intervalDelay: number;         // 2000ms between modals
+}
+
+const manageCelebrationQueue = async (queue: CelebrationQueue): Promise<void> => {
+  if (queue.isDisplaying || queue.celebrations.length === 0) return;
+  
+  queue.isDisplaying = true;
+  
+  for (let i = 0; i < queue.celebrations.length; i++) {
+    queue.currentIndex = i;
+    
+    // Display current celebration
+    await displayCelebrationModal(queue.celebrations[i]);
+    
+    // Wait for user to close modal
+    await waitForModalClose();
+    
+    // 2-second interval before next modal (if not last)
+    if (i < queue.celebrations.length - 1) {
+      await sleep(2000);
+    }
+  }
+  
+  // Clear queue and reset state
+  queue.celebrations = [];
+  queue.currentIndex = -1;
+  queue.isDisplaying = false;
+};
+```
+
+### Animation System
+
+#### **Entrance Animations**
+```typescript
+interface CelebrationAnimation {
+  entrance: AnimationConfig;
+  content: AnimationConfig; 
+  exit: AnimationConfig;
+}
+
+const getCelebrationAnimation = (rarity: AchievementRarity): CelebrationAnimation => {
+  const baseAnimation = {
+    entrance: {
+      type: 'spring',
+      tension: 100,
+      friction: 8,
+      duration: 400
+    },
+    content: {
+      type: 'sequential',
+      delay: 200,
+      stagger: 100
+    },
+    exit: {
+      type: 'timing',
+      duration: 300,
+      easing: 'easeOut'
+    }
+  };
+  
+  // Enhanced animations for higher rarities
+  if (rarity === AchievementRarity.LEGENDARY) {
+    return {
+      ...baseAnimation,
+      entrance: {
+        ...baseAnimation.entrance,
+        tension: 150,
+        withParticles: true,
+        glowEffect: true
+      }
+    };
+  }
+  
+  return baseAnimation;
+};
+```
+
+### Accessibility Requirements
+
+#### **Screen Reader Support**
+```typescript
+interface AccessibilityFeatures {
+  announcements: ScreenReaderAnnouncement[];
+  focusManagement: FocusManager;
+  highContrast: HighContrastSupport;
+  reduceMotion: MotionPreferences;
+}
+
+const generateAccessibilityAnnouncement = (achievement: Achievement, xp: number): string => {
+  return `Achievement unlocked: ${achievement.name}! ${achievement.rarity} rarity achievement earned ${xp} XP. ${achievement.description}`;
+};
+
+const getHighContrastColors = (rarity: AchievementRarity): RarityColorTheme => {
+  // High contrast versions of rarity colors for accessibility
+  const highContrastThemes = {
+    [AchievementRarity.COMMON]: { primary: '#000000', background: '#FFFFFF' },
+    [AchievementRarity.RARE]: { primary: '#0000FF', background: '#FFFFFF' },
+    [AchievementRarity.EPIC]: { primary: '#800080', background: '#FFFFFF' },
+    [AchievementRarity.LEGENDARY]: { primary: '#FF8C00', background: '#000000' }
+  };
+  
+  return highContrastThemes[rarity];
+};
+```
+
+---
+
+## Implementation Standards 🛠️
+
+### Component File Structure
+
+#### **Required Files**
+```typescript
+// Core preview system
+src/components/achievements/AchievementPreview.tsx       // Preview modal/tooltip
+src/components/achievements/ProgressHintDisplay.tsx     // Progress hints
+src/components/achievements/NextAchievementCard.tsx     // Suggestion card
+
+// Enhanced AchievementCard
+src/components/achievements/AchievementCard.tsx         // Updated with preview
+src/components/achievements/AchievementTooltip.tsx      // Smart tooltips
+
+// Celebration system  
+src/components/achievements/AchievementCelebrationModal.tsx  // Main celebration
+src/components/achievements/CelebrationQueue.tsx            // Queue management
+
+// Utilities
+src/utils/achievementPreviewUtils.ts                    // Progress calculations
+src/utils/celebrationThemeUtils.ts                     // Rarity theming
+```
+
+#### **Integration Requirements**
+```typescript
+// Must integrate with existing systems:
+- AchievementContext.tsx      // State management
+- AchievementService.ts       // Achievement logic
+- GamificationService.ts      // XP and stats
+- useAccessibility.ts         // Accessibility features
+- XpAnimationContext.tsx      // Haptic/sound effects
+```
+
+### Testing Requirements
+
+#### **Preview System Tests**
+```typescript
+describe('Achievement Preview System', () => {
+  it('should show progress hints for locked achievements', () => {
+    // Test progress hint generation
+  });
+  
+  it('should display completion requirements clearly', () => {
+    // Test requirement text accuracy
+  });
+  
+  it('should show completion info for unlocked achievements', () => {
+    // Test accomplished requirements display
+  });
+  
+  it('should suggest next achievable goals', () => {
+    // Test next achievement algorithm
+  });
+});
+```
+
+#### **Celebration System Tests**
+```typescript
+describe('Achievement Celebration System', () => {
+  it('should apply correct rarity theming', () => {
+    // Test color theme application
+  });
+  
+  it('should manage celebration queue properly', () => {
+    // Test sequential modal display
+  });
+  
+  it('should trigger appropriate haptic feedback', () => {
+    // Test rarity-based haptics
+  });
+  
+  it('should support accessibility features', () => {
+    // Test screen reader and high contrast
+  });
+});
+```
+
+---
+
+## Success Metrics 📊
+
+### User Engagement Targets
+- **Achievement Interaction**: 40% increase in achievement card taps
+- **Preview Usage**: 60% of users engage with preview tooltips
+- **Next Achievement Focus**: 25% increase in targeted achievement pursuit
+- **Celebration Satisfaction**: 95% positive feedback on celebration experience
+
+### Technical Performance
+- **Preview Load Time**: <100ms for tooltip display
+- **Celebration Display**: <200ms from trigger to modal
+- **Queue Processing**: <50ms between celebrations
+- **Memory Usage**: <2MB additional memory footprint
+
+---
+
+**GOLDEN RULE**: *"Every achievement tells a story - show the journey, celebrate the victory, inspire the next step"*
+
+---
+
+*This Achievement Preview and Celebration system creates a comprehensive achievement experience where users understand requirements, track progress transparently, and celebrate victories with memorable, rarity-appropriate ceremonies.*
