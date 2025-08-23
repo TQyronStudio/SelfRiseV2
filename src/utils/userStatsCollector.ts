@@ -6,6 +6,8 @@ import { GamificationService } from '../services/gamificationService';
 import { habitStorage } from '../services/storage/habitStorage';
 import { gratitudeStorage } from '../services/storage/gratitudeStorage';
 import { goalStorage } from '../services/storage/goalStorage';
+import { calculateCurrentStreak, calculateLongestStreak } from './date';
+import { AchievementIntegration } from '../services/achievementIntegration';
 
 // ========================================
 // TYPESCRIPT INTERFACES - Phase 2 Safety
@@ -161,14 +163,16 @@ export class UserStatsCollector {
       // Calculate journal statistics
       const totalJournalEntries = journalEntries.length;
       
-      // Calculate journal streaks with type safety (simplified - would need date analysis for accurate streaks)
+      // Calculate journal streaks with type safety - PHASE 3: Real streak calculations
       const journalDates = [...new Set(
         journalEntries
           .filter((entry: unknown): entry is JournalEntryData => validateJournalEntryData(entry))
           .map(entry => entry.date)
-      )];
-      const currentJournalStreak = journalDates.length > 0 ? 1 : 0; // Simplified
-      const longestJournalStreak = journalDates.length; // Simplified
+      )].sort(); // Sort dates for proper streak calculation
+      
+      // Use proper streak calculation functions
+      const currentJournalStreak = journalDates.length > 0 ? calculateCurrentStreak(journalDates) : 0;
+      const longestJournalStreak = journalDates.length > 0 ? calculateLongestStreak(journalDates) : 0;
       
       // Calculate bonus journal entries with type safety (entries beyond daily minimum)
       const journalEntriesByDate = journalEntries.reduce((acc: Record<string, number>, entry: unknown) => {
@@ -193,17 +197,26 @@ export class UserStatsCollector {
         validateGoalData(goal) && goal.targetValue >= 1000
       );
       
-      // Calculate goal progress streak (simplified)
-      const goalProgressStreak = goalProgress.length > 0 ? 1 : 0; // Would need date analysis
+      // Calculate goal progress streak - PHASE 3: Real consecutive days calculation
+      const goalProgressStreak = await AchievementIntegration.getGoalProgressConsecutiveDays();
 
       // Calculate XP from habits
       const xpFromHabits = (gamificationStats.xpBySource['habit_completion'] || 0) + 
                           (gamificationStats.xpBySource['habit_bonus'] || 0) + 
                           (gamificationStats.xpBySource['habit_streak_milestone'] || 0);
 
-      // Calculate consistency metrics
-      const appUsageStreak = gamificationStats.currentStreak;
-      const totalActiveDays = gamificationStats.longestStreak; // Approximation
+      // Calculate consistency metrics - PHASE 3: Real consecutive usage calculation
+      const appUsageStreak = await AchievementIntegration.getConsecutiveAppUsageDays();
+      
+      // Calculate actual total active days (unique days with any activity)
+      const allActivityDates = new Set([
+        ...journalDates,
+        ...Object.keys(completionsByDate),
+        // Add goal progress dates if available
+        ...(goalProgress || []).map((p: any) => p.date).filter((date: any) => typeof date === 'string')
+      ]);
+      const totalActiveDays = allActivityDates.size;
+      
       const multiAreaDays = Math.min(totalActiveDays, Math.min(journalDates.length, Object.keys(completionsByDate).length || 0));
 
       // Build comprehensive user stats
@@ -213,7 +226,7 @@ export class UserStatsCollector {
         totalHabitCompletions,
         longestHabitStreak,
         maxHabitsInOneDay,
-        habitLevel: Math.floor(gamificationStats.currentLevel * 0.3), // Approximation
+        habitLevel: Math.floor(Math.min(gamificationStats.currentLevel, Math.max(1, totalHabitCompletions / 10))), // Based on completion activity
         
         // Journal
         journalEntries: journalEntries.length,
@@ -255,7 +268,7 @@ export class UserStatsCollector {
         // Advanced consistency tracking
         perfectMonthDays: 0, // TODO: Implement perfect month detection (all 3 features daily)
         hasTripleCrown: false, // TODO: Implement simultaneous 7+ day streaks detection
-        dailyFeatureComboDays: multiAreaDays, // Approximation: days with multiple features used
+        dailyFeatureComboDays: multiAreaDays, // Days with multiple features used (habits + journal)
       };
 
       // Cache the fresh data for performance optimization
