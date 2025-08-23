@@ -44,6 +44,16 @@ export interface UserStats {
   // Activity
   totalActiveDays: number;
   recommendationsFollowed: number;
+  
+  // Special achievements tracking
+  samedayHabitCreationCompletions: number;  // lightning-start
+  activeHabitsSimultaneous: number;         // seven-wonder
+  comebackActivities: number;               // persistence-pays
+  
+  // Advanced consistency tracking
+  perfectMonthDays: number;                 // perfect-month
+  hasTripleCrown: boolean;                  // triple-crown
+  dailyFeatureComboDays: number;            // balance-master
 }
 
 export interface ProgressHint {
@@ -409,6 +419,25 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
         actionHint: "You're becoming a dedicated user!"
       };
       
+    case 'perfect-month':
+      const perfectDays = Math.min(userStats.perfectMonthDays, 28);
+      return {
+        progressText: `Perfect month days (${perfectDays}/28)`,
+        progressPercentage: (perfectDays / 28) * 100,
+        isCompleted: perfectDays >= 28,
+        requirementText: "Complete activities in all 3 areas for 28+ days in a month",
+        actionHint: "Use habits, journal, and goals every day this month!"
+      };
+      
+    case 'triple-crown':
+      return {
+        progressText: userStats.hasTripleCrown ? "✅ Triple Crown achieved!" : "Maintain 7+ day streaks in all areas simultaneously",
+        progressPercentage: userStats.hasTripleCrown ? 100 : 0,
+        isCompleted: userStats.hasTripleCrown,
+        requirementText: "Maintain 7+ day streaks in habits, journal, and goals simultaneously",
+        actionHint: "Build consistent streaks across all three features!"
+      };
+      
     default:
       return getDefaultProgressHint(achievement);
   }
@@ -476,14 +505,196 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "You're a true trophy master!"
       };
       
+    case 'recommendation-master':
+      const recs = Math.min(userStats.recommendationsFollowed, 20);
+      return {
+        progressText: `Follow recommendations (${recs}/20)`,
+        progressPercentage: (recs / 20) * 100,
+        isCompleted: recs >= 20,
+        requirementText: "Follow 20 personalized recommendations",
+        actionHint: "Check the For You section for personalized tips!",
+        estimatedDays: Math.ceil((20 - recs) / 2) // Assuming 2 recommendations per day
+      };
+      
+    case 'balance-master':
+      const comboDays = Math.min(userStats.dailyFeatureComboDays, 10);
+      return {
+        progressText: `All-feature days (${comboDays}/10)`,
+        progressPercentage: (comboDays / 10) * 100,
+        isCompleted: comboDays >= 10,
+        requirementText: "Use all 3 features (habits, journal, goals) in a single day 10 times",
+        actionHint: "Try to use habits, journal, and goals all in one day!",
+        estimatedDays: Math.max(0, 10 - comboDays)
+      };
+      
     default:
       return getDefaultProgressHint(achievement);
   }
 };
 
 const generateSpecialProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
-  // For special achievements, provide generic hints
-  return getDefaultProgressHint(achievement);
+  switch (achievement.id) {
+    case 'lightning-start':
+      const sameDay = Math.min(userStats.samedayHabitCreationCompletions, 3);
+      return {
+        progressText: `Same-day habit creation & completion (${sameDay}/3)`,
+        progressPercentage: (sameDay / 3) * 100,
+        isCompleted: sameDay >= 3,
+        requirementText: "Create and complete a habit on the same day 3 times",
+        actionHint: "Create a habit and complete it immediately today!",
+        estimatedDays: Math.max(0, 3 - sameDay)
+      };
+      
+    case 'seven-wonder':
+      const activeHabits = Math.min(userStats.activeHabitsSimultaneous, 7);
+      return {
+        progressText: `Active habits simultaneously (${activeHabits}/7)`,
+        progressPercentage: (activeHabits / 7) * 100,
+        isCompleted: activeHabits >= 7,
+        requirementText: "Have 7 or more active habits at the same time",
+        actionHint: "Create more habits to reach the 7-habit milestone!"
+      };
+      
+    case 'persistence-pays':
+      const comeback = Math.min(userStats.comebackActivities, 7);
+      return {
+        progressText: `Comeback activities completed (${comeback}/7)`,
+        progressPercentage: (comeback / 7) * 100,
+        isCompleted: comeback >= 7,
+        requirementText: "Resume after 3+ day break and complete 7 activities",
+        actionHint: "Complete more activities after returning from a break!"
+      };
+      
+    case 'legendary-master':
+      const goals = Math.min(userStats.completedGoals, 10);
+      const habits = Math.min(userStats.totalHabitCompletions, 500);
+      const entries = Math.min(userStats.totalJournalEntries, 365);
+      const goalsProgress = (goals / 10) * 100;
+      const habitsProgress = (habits / 500) * 100;
+      const entriesProgress = (entries / 365) * 100;
+      const overallProgress = (goalsProgress + habitsProgress + entriesProgress) / 3;
+      return {
+        progressText: `Ultimate mastery: Goals ${goals}/10, Habits ${habits}/500, Entries ${entries}/365`,
+        progressPercentage: overallProgress,
+        isCompleted: goals >= 10 && habits >= 500 && entries >= 365,
+        requirementText: "Complete 10 goals + 500 habits + 365 journal entries",
+        actionHint: "Master all areas of SelfRise for legendary status!"
+      };
+    
+    // Loyalty achievements
+    case 'loyalty-first-week':
+      const days7 = Math.min(userStats.totalActiveDays, 7);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/7)`,
+        progressPercentage: (days7 / 7) * 100,
+        isCompleted: userStats.totalActiveDays >= 7,
+        requirementText: "Be active for 7 days total",
+        actionHint: "Use the app daily to build your streak!",
+        estimatedDays: Math.max(0, 7 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-two-weeks-strong':
+      const days14 = Math.min(userStats.totalActiveDays, 14);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/14)`,
+        progressPercentage: (days14 / 14) * 100,
+        isCompleted: userStats.totalActiveDays >= 14,
+        requirementText: "Be active for 14 days total",
+        actionHint: "Your dedication is growing stronger!",
+        estimatedDays: Math.max(0, 14 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-three-weeks-committed':
+      const days21 = Math.min(userStats.totalActiveDays, 21);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/21)`,
+        progressPercentage: (days21 / 21) * 100,
+        isCompleted: userStats.totalActiveDays >= 21,
+        requirementText: "Be active for 21 days total",
+        actionHint: "You're truly committed to your growth!",
+        estimatedDays: Math.max(0, 21 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-month-explorer':
+      const days30 = Math.min(userStats.totalActiveDays, 30);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/30)`,
+        progressPercentage: (days30 / 30) * 100,
+        isCompleted: userStats.totalActiveDays >= 30,
+        requirementText: "Be active for 30 days total",
+        actionHint: "Explore your potential with daily consistency!",
+        estimatedDays: Math.max(0, 30 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-two-month-veteran':
+      const days60 = Math.min(userStats.totalActiveDays, 60);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/60)`,
+        progressPercentage: (days60 / 60) * 100,
+        isCompleted: userStats.totalActiveDays >= 60,
+        requirementText: "Be active for 60 days total",
+        actionHint: "You're becoming a veteran in personal growth!",
+        estimatedDays: Math.max(0, 60 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-century-user':
+      const days100 = Math.min(userStats.totalActiveDays, 100);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/100)`,
+        progressPercentage: (days100 / 100) * 100,
+        isCompleted: userStats.totalActiveDays >= 100,
+        requirementText: "Be active for 100 days total",
+        actionHint: "Join the elite ranks of century users!",
+        estimatedDays: Math.max(0, 100 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-half-year-hero':
+      const days183 = Math.min(userStats.totalActiveDays, 183);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/183)`,
+        progressPercentage: (days183 / 183) * 100,
+        isCompleted: userStats.totalActiveDays >= 183,
+        requirementText: "Be active for 183 days total (half year)",
+        actionHint: "Your commitment is legendary!",
+        estimatedDays: Math.max(0, 183 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-year-legend':
+      const days365 = Math.min(userStats.totalActiveDays, 365);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/365)`,
+        progressPercentage: (days365 / 365) * 100,
+        isCompleted: userStats.totalActiveDays >= 365,
+        requirementText: "Be active for 365 days total (full year)",
+        actionHint: "Legendary status achieved through dedication!",
+        estimatedDays: Math.max(0, 365 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-ultimate-veteran':
+      const days500 = Math.min(userStats.totalActiveDays, 500);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/500)`,
+        progressPercentage: (days500 / 500) * 100,
+        isCompleted: userStats.totalActiveDays >= 500,
+        requirementText: "Be active for 500 days total",
+        actionHint: "Your dedication is unmatched!",
+        estimatedDays: Math.max(0, 500 - userStats.totalActiveDays)
+      };
+      
+    case 'loyalty-master':
+      const days1000 = Math.min(userStats.totalActiveDays, 1000);
+      return {
+        progressText: `Total active days (${userStats.totalActiveDays}/1000)`,
+        progressPercentage: (days1000 / 1000) * 100,
+        isCompleted: userStats.totalActiveDays >= 1000,
+        requirementText: "Be active for 1000 days total (ultimate loyalty)",
+        actionHint: "You have achieved ultimate loyalty mastery!",
+        estimatedDays: Math.max(0, 1000 - userStats.totalActiveDays)
+      };
+      
+    default:
+      return getDefaultProgressHint(achievement);
+  }
 };
 
 // ========================================
@@ -535,7 +746,43 @@ const getAccomplishmentText = (achievement: Achievement): string => {
     'ambitious': "Set ambitious goal (≥1000 target)",
     'progress-tracker': "Made progress 7 days straight",
     
-    // Add more as needed...
+    // Consistency
+    'weekly-warrior': "Maintained 7-day habit streak", 
+    'monthly-master': "Achieved 30-day habit streak",
+    'hundred-days': "Reached 100 days of consistency",
+    'journal-streaker': "Achieved 21-day journal streak",
+    'daily-visitor': "Used app for 7 consecutive days",
+    'dedicated-user': "Used app for 30 consecutive days",
+    'perfect-month': "Completed all 3 features for 28+ days in a month",
+    'triple-crown': "Maintained 7+ day streaks in all areas simultaneously",
+    
+    // Mastery
+    'level-up': "Reached level 10",
+    'selfrise-expert': "Reached level 25", 
+    'selfrise-master': "Reached level 50",
+    'ultimate-selfrise-legend': "Reached level 100",
+    'trophy-collector-basic': "Unlocked 10 achievements",
+    'trophy-collector-master': "Unlocked 25 achievements",
+    'recommendation-master': "Followed 20 personalized recommendations",
+    'balance-master': "Used all 3 features in a single day 10 times",
+    
+    // Special
+    'lightning-start': "Created and completed habit same day 3 times",
+    'seven-wonder': "Had 7+ active habits simultaneously",
+    'persistence-pays': "Completed 7 activities after 3+ day break",
+    'legendary-master': "Achieved mastery in all areas (10 goals + 500 habits + 365 entries)",
+    
+    // Loyalty
+    'loyalty-first-week': "Stayed active for 7 days total",
+    'loyalty-two-weeks-strong': "Stayed active for 14 days total", 
+    'loyalty-three-weeks-committed': "Stayed active for 21 days total",
+    'loyalty-month-explorer': "Stayed active for 30 days total",
+    'loyalty-two-month-veteran': "Stayed active for 60 days total",
+    'loyalty-century-user': "Stayed active for 100 days total",
+    'loyalty-half-year-hero': "Stayed active for 183 days total",
+    'loyalty-year-legend': "Stayed active for 365 days total",
+    'loyalty-ultimate-veteran': "Stayed active for 500 days total",
+    'loyalty-master': "Achieved ultimate loyalty with 1000 active days"
   };
   
   return accomplishments[achievement.id] || "Completed achievement requirements";

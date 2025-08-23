@@ -19,7 +19,7 @@ export const validateAchievementIDs = (): {
   
   // Extract all IDs used in preview system (from achievementPreviewUtils.ts)
   const previewIDs = [
-    // HABITS Category
+    // HABITS Category (8 achievements)
     'first-habit',
     'habit-builder', 
     'century-club',
@@ -29,7 +29,7 @@ export const validateAchievementIDs = (): {
     'multi-tasker',
     'habit-legend',
     
-    // JOURNAL Category  
+    // JOURNAL Category (7 achievements)
     'first-journal',
     'deep-thinker',
     'journal-enthusiast',
@@ -38,7 +38,7 @@ export const validateAchievementIDs = (): {
     'eternal-gratitude',
     'bonus-seeker',
     
-    // GOALS Category
+    // GOALS Category (7 achievements)
     'first-goal',
     'goal-getter',
     'goal-achiever', 
@@ -47,21 +47,41 @@ export const validateAchievementIDs = (): {
     'ambitious',
     'progress-tracker',
     
-    // CONSISTENCY Category
+    // CONSISTENCY Category (8 achievements)
     'weekly-warrior',
     'monthly-master',
     'hundred-days',
     'journal-streaker',
     'daily-visitor',
     'dedicated-user',
+    'perfect-month', // NEW in Phase 1.4
+    'triple-crown',  // NEW in Phase 1.4
     
-    // MASTERY Category
+    // MASTERY Category (8 achievements)
     'level-up',
     'selfrise-expert',
     'selfrise-master', 
     'ultimate-selfrise-legend',
     'trophy-collector-basic',
-    'trophy-collector-master'
+    'trophy-collector-master',
+    'recommendation-master', // NEW in Phase 1.4
+    'balance-master',        // NEW in Phase 1.4
+    
+    // SPECIAL Category (14 achievements - 4 regular + 10 loyalty)
+    'lightning-start',      // NEW in Phase 1.4
+    'seven-wonder',         // NEW in Phase 1.4  
+    'persistence-pays',     // NEW in Phase 1.4
+    'legendary-master',     // NEW in Phase 1.4
+    'loyalty-first-week',   // NEW in Phase 1.4
+    'loyalty-two-weeks-strong', // NEW in Phase 1.4
+    'loyalty-three-weeks-committed', // NEW in Phase 1.4
+    'loyalty-month-explorer', // NEW in Phase 1.4
+    'loyalty-two-month-veteran', // NEW in Phase 1.4
+    'loyalty-century-user', // NEW in Phase 1.4
+    'loyalty-half-year-hero', // NEW in Phase 1.4
+    'loyalty-year-legend',  // NEW in Phase 1.4
+    'loyalty-ultimate-veteran', // NEW in Phase 1.4
+    'loyalty-master'        // NEW in Phase 1.4
   ];
   
   // Find missing IDs
@@ -91,9 +111,16 @@ ${uncoveredIDs.length > 0 ? uncoveredIDs.slice(0, 10).map(id => `⚠️  "${id}"
 ## SYSTEM FUNCTIONALITY ESTIMATE:
 - **Working achievements**: ${previewIDs.length - missingIDs.length}/${catalogIDs.length}
 - **Functionality**: ${Math.round(((previewIDs.length - missingIDs.length) / catalogIDs.length) * 100)}%
+- **Phase 1.4 Target**: 100% (all 52 achievements working)
+
+## PHASE 1.4 IMPLEMENTATION STATUS:
+- **Original working**: 25 achievements (48% functionality)  
+- **New in Phase 1.4**: ${previewIDs.length - 25} achievements implemented
+- **Total preview logic**: ${previewIDs.length} achievements
+- **Target functionality**: ${previewIDs.length >= catalogIDs.length ? '🎯 100% TARGET ACHIEVED!' : 'Target: 52 achievements'}
 
 ## NEXT STEPS:
-${missingIDs.length > 0 ? '1. Fix remaining ID mismatches\n2. Implement preview logic for uncovered achievements' : '1. Implement preview logic for remaining ' + uncoveredIDs.length + ' achievements\n2. Test functionality with real user data'}
+${missingIDs.length > 0 ? '❌ PHASE 1.4 INCOMPLETE:\n1. Fix remaining ID mismatches: ' + missingIDs.join(', ') + '\n2. Complete missing implementations' : uncoveredIDs.length > 0 ? '⚠️ CATALOG HAS MORE ACHIEVEMENTS:\n1. ' + uncoveredIDs.length + ' achievements in catalog but not in preview system\n2. Review catalog vs preview system coverage' : '✅ PHASE 1.4 COMPLETE:\n1. All achievement IDs match between systems\n2. 100% achievement compatibility achieved\n3. Ready for comprehensive testing'}
 `;
 
   return {

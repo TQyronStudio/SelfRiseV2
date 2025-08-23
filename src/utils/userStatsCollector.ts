@@ -128,6 +128,16 @@ export class UserStatsCollector {
         // Activity
         totalActiveDays,
         recommendationsFollowed: 0, // Would need tracking
+        
+        // Special achievements tracking
+        samedayHabitCreationCompletions: 0, // TODO: Implement same-day habit creation+completion tracking
+        activeHabitsSimultaneous: habits.filter((habit: any) => habit.isActive !== false).length,
+        comebackActivities: 0, // TODO: Implement comeback after break tracking
+        
+        // Advanced consistency tracking
+        perfectMonthDays: 0, // TODO: Implement perfect month detection (all 3 features daily)
+        hasTripleCrown: false, // TODO: Implement simultaneous 7+ day streaks detection
+        dailyFeatureComboDays: multiAreaDays, // Approximation: days with multiple features used
       };
 
       return userStats;
@@ -159,6 +169,16 @@ export class UserStatsCollector {
         multiAreaDays: 0,
         totalActiveDays: 0,
         recommendationsFollowed: 0,
+        
+        // Special achievements tracking (defaults)
+        samedayHabitCreationCompletions: 0,
+        activeHabitsSimultaneous: 0,
+        comebackActivities: 0,
+        
+        // Advanced consistency tracking (defaults)
+        perfectMonthDays: 0,
+        hasTripleCrown: false,
+        dailyFeatureComboDays: 0,
       };
     }
   }
