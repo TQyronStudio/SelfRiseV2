@@ -99,7 +99,7 @@ export const generateProgressHint = (achievement: Achievement, userStats: UserSt
 
 const generateHabitProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
   switch (achievement.id) {
-    case 'first_steps':
+    case 'first-habit':
       return {
         progressText: userStats.habitsCreated === 0 ? "Create your first habit to begin!" : "✅ First habit created!",
         progressPercentage: userStats.habitsCreated > 0 ? 100 : 0,
@@ -108,7 +108,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         actionHint: "Go to Habits tab and create your first habit!"
       };
       
-    case 'habit_builder':
+    case 'habit-builder':
       const created = Math.min(userStats.habitsCreated, 5);
       return {
         progressText: `Create 5 habits (${created}/5)`,
@@ -119,7 +119,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         estimatedDays: Math.max(0, 5 - created)
       };
       
-    case 'century_club':
+    case 'century-club':
       const completed = Math.min(userStats.totalHabitCompletions, 100);
       return {
         progressText: `Complete 100 habits (${completed}/100)`,
@@ -130,7 +130,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         estimatedDays: Math.ceil((100 - completed) / 2) // Assuming 2 habits per day
       };
       
-    case 'consistency_king':
+    case 'consistency-king':
       const total = Math.min(userStats.totalHabitCompletions, 1000);
       return {
         progressText: `Complete 1000 habits (${total}/1000)`,
@@ -141,7 +141,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         estimatedDays: Math.ceil((1000 - total) / 3) // Assuming 3 habits per day
       };
       
-    case 'habit_streak_champion':
+    case 'streak-champion':
       const streak = Math.min(userStats.longestHabitStreak, 21);
       return {
         progressText: `Achieve 21-day streak (best: ${userStats.longestHabitStreak} days)`,
@@ -152,7 +152,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         estimatedDays: Math.max(0, 21 - userStats.longestHabitStreak)
       };
       
-    case 'century_streak':
+    case 'century-streak':
       const longStreak = Math.min(userStats.longestHabitStreak, 75);
       return {
         progressText: `Achieve 75-day streak (best: ${userStats.longestHabitStreak} days)`,
@@ -163,7 +163,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         estimatedDays: Math.max(0, 75 - userStats.longestHabitStreak)
       };
       
-    case 'multi_tasker':
+    case 'multi-tasker':
       const maxInDay = Math.min(userStats.maxHabitsInOneDay, 5);
       return {
         progressText: `Complete 5 habits in one day (best: ${userStats.maxHabitsInOneDay})`,
@@ -173,7 +173,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
         actionHint: "Challenge yourself with multiple habits today!"
       };
       
-    case 'habit_legend':
+    case 'habit-legend':
       const levelProgress = userStats.currentLevel >= 50 && (userStats.xpFromHabits / userStats.totalXP) >= 0.5;
       return {
         progressText: `Reach Level 50 with 50%+ XP from habits (Level ${userStats.currentLevel}, ${Math.round((userStats.xpFromHabits / userStats.totalXP) * 100)}% habit XP)`,
@@ -190,7 +190,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
 
 const generateJournalProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
   switch (achievement.id) {
-    case 'first_reflection':
+    case 'first-journal':
       return {
         progressText: userStats.journalEntries === 0 ? "Write your first gratitude entry!" : "✅ First reflection completed!",
         progressPercentage: userStats.journalEntries > 0 ? 100 : 0,
@@ -199,7 +199,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Go to Journal tab and write your first entry!"
       };
       
-    case 'deep_thinker':
+    case 'deep-thinker':
       return {
         progressText: "Write a journal entry with at least 200 characters",
         progressPercentage: 0, // Would need to track character counts
@@ -208,7 +208,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Express yourself fully in your next journal entry!"
       };
       
-    case 'journal_enthusiast':
+    case 'journal-enthusiast':
       const entries = Math.min(userStats.totalJournalEntries, 100);
       return {
         progressText: `Write 100 journal entries (${entries}/100)`,
@@ -219,7 +219,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         estimatedDays: Math.ceil((100 - entries) / 1) // 1 entry per day
       };
       
-    case 'grateful_heart':
+    case 'grateful-heart':
       const currentStreak = Math.min(userStats.currentJournalStreak, 7);
       return {
         progressText: `Maintain 7-day streak (current: ${userStats.currentJournalStreak} days)`,
@@ -230,7 +230,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         estimatedDays: Math.max(0, 7 - userStats.currentJournalStreak)
       };
       
-    case 'gratitude_guardian':
+    case 'journal-streaker':
       const streak21 = Math.min(userStats.longestJournalStreak, 21);
       return {
         progressText: `Achieve 21-day streak (best: ${userStats.longestJournalStreak} days)`,
@@ -241,7 +241,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         estimatedDays: Math.max(0, 21 - userStats.longestJournalStreak)
       };
       
-    case 'gratitude_guru':
+    case 'gratitude-guru':
       const streak30 = Math.min(userStats.longestJournalStreak, 30);
       return {
         progressText: `Achieve 30-day streak (best: ${userStats.longestJournalStreak} days)`,
@@ -252,7 +252,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         estimatedDays: Math.max(0, 30 - userStats.longestJournalStreak)
       };
       
-    case 'eternal_gratitude':
+    case 'eternal-gratitude':
       const streak100 = Math.min(userStats.longestJournalStreak, 100);
       return {
         progressText: `Achieve 100-day streak (best: ${userStats.longestJournalStreak} days)`,
@@ -263,7 +263,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         estimatedDays: Math.max(0, 100 - userStats.longestJournalStreak)
       };
       
-    case 'bonus_seeker':
+    case 'bonus-seeker':
       const bonusEntries = Math.min(userStats.bonusJournalEntries, 50);
       return {
         progressText: `Write 50 bonus entries (${bonusEntries}/50)`,
@@ -281,7 +281,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
 
 const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
   switch (achievement.id) {
-    case 'first_vision':
+    case 'first-goal':
       return {
         progressText: userStats.goalsCreated === 0 ? "Set your first goal to start!" : "✅ First goal set!",
         progressPercentage: userStats.goalsCreated > 0 ? 100 : 0,
@@ -290,7 +290,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
         actionHint: "Go to Goals tab and create your first goal!"
       };
       
-    case 'goal_getter':
+    case 'goal-getter':
       return {
         progressText: userStats.completedGoals === 0 ? "Complete your first goal!" : "✅ First goal completed!",
         progressPercentage: userStats.completedGoals > 0 ? 100 : 0,
@@ -299,7 +299,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
         actionHint: "Finish one of your goals to unlock this!"
       };
       
-    case 'dream_fulfiller':
+    case 'goal-achiever':
       const completed3 = Math.min(userStats.completedGoals, 3);
       return {
         progressText: `Complete 3 goals (${completed3}/3)`,
@@ -310,7 +310,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
         estimatedDays: (3 - completed3) * 30 // Rough estimate
       };
       
-    case 'goal_champion':
+    case 'goal-champion':
       const completed5 = Math.min(userStats.completedGoals, 5);
       return {
         progressText: `Complete 5 goals (${completed5}/5)`,
@@ -321,7 +321,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
         estimatedDays: (5 - completed5) * 30
       };
       
-    case 'achievement_unlocked':
+    case 'achievement-unlocked':
       const completed10 = Math.min(userStats.completedGoals, 10);
       return {
         progressText: `Complete 10 goals (${completed10}/10)`,
@@ -341,7 +341,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
         actionHint: "Dream big with an ambitious goal!"
       };
       
-    case 'progress_tracker':
+    case 'progress-tracker':
       const progressStreak = Math.min(userStats.goalProgressStreak, 7);
       return {
         progressText: `Make progress 7 days straight (${progressStreak}/7)`,
@@ -359,7 +359,7 @@ const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats
 
 const generateConsistencyProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
   switch (achievement.id) {
-    case 'weekly_warrior':
+    case 'weekly-warrior':
       const weekStreak = Math.min(userStats.longestHabitStreak, 7);
       return {
         progressText: `Maintain 7-day streak (best: ${userStats.longestHabitStreak} days)`,
@@ -369,7 +369,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
         actionHint: "Focus on consistency with one habit!"
       };
       
-    case 'monthly_master':
+    case 'monthly-master':
       const monthStreak = Math.min(userStats.longestHabitStreak, 30);
       return {
         progressText: `Achieve 30-day streak (best: ${userStats.longestHabitStreak} days)`,
@@ -379,7 +379,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
         actionHint: "You're building incredible consistency!"
       };
       
-    case 'centurion':
+    case 'hundred-days':
       const centStreak = Math.min(userStats.longestHabitStreak, 100);
       return {
         progressText: `Reach 100 days consistency (best: ${userStats.longestHabitStreak} days)`,
@@ -389,7 +389,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
         actionHint: "Legendary consistency achievement!"
       };
       
-    case 'daily_visitor':
+    case 'daily-visitor':
       const appStreak = Math.min(userStats.appUsageStreak, 7);
       return {
         progressText: `Use app 7 days straight (${appStreak}/7)`,
@@ -399,7 +399,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
         actionHint: "Open the app daily!"
       };
       
-    case 'dedicated_user':
+    case 'dedicated-user':
       const appStreak30 = Math.min(userStats.appUsageStreak, 30);
       return {
         progressText: `Use app 30 days straight (${appStreak30}/30)`,
@@ -416,7 +416,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
 
 const generateMasteryProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
   switch (achievement.id) {
-    case 'level_up':
+    case 'level-up':
       const level10 = Math.min(userStats.currentLevel, 10);
       return {
         progressText: `Reach level 10 (current: Level ${userStats.currentLevel})`,
@@ -426,7 +426,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Earn more XP to level up!"
       };
       
-    case 'selfrise_expert':
+    case 'selfrise-expert':
       const level25 = Math.min(userStats.currentLevel, 25);
       return {
         progressText: `Reach level 25 (current: Level ${userStats.currentLevel})`,
@@ -436,7 +436,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "You're becoming a SelfRise expert!"
       };
       
-    case 'selfrise_master':
+    case 'selfrise-master':
       const level50 = Math.min(userStats.currentLevel, 50);
       return {
         progressText: `Reach level 50 (current: Level ${userStats.currentLevel})`,
@@ -446,7 +446,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Master level achievement awaits!"
       };
       
-    case 'ultimate_selfrise_legend':
+    case 'ultimate-selfrise-legend':
       const level100 = Math.min(userStats.currentLevel, 100);
       return {
         progressText: `Reach level 100 (current: Level ${userStats.currentLevel})`,
@@ -456,7 +456,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Ultimate legend status - incredible!"
       };
       
-    case 'trophy_collector':
+    case 'trophy-collector-basic':
       const achievements10 = Math.min(userStats.unlockedAchievements, 10);
       return {
         progressText: `Unlock 10 achievements (${achievements10}/10)`,
@@ -466,7 +466,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: "Keep unlocking achievements!"
       };
       
-    case 'trophy_master':
+    case 'trophy-collector-master':
       const achievements25 = Math.min(userStats.unlockedAchievements, 25);
       return {
         progressText: `Unlock 25 achievements (${achievements25}/25)`,
@@ -507,33 +507,33 @@ export const generateCompletionInfo = (achievement: Achievement, userStats: User
 const getAccomplishmentText = (achievement: Achievement): string => {
   const accomplishments: Record<string, string> = {
     // Habits
-    'first_steps': "Created your first habit",
-    'habit_builder': "Created 5 different habits", 
-    'century_club': "Completed 100 habits total",
-    'consistency_king': "Completed 1000 habits total",
-    'habit_streak_champion': "Achieved 21-day habit streak",
-    'century_streak': "Maintained 75-day habit streak",
-    'multi_tasker': "Completed 5 habits in one day",
-    'habit_legend': "Reached Level 50 with 50%+ habit XP",
+    'first-habit': "Created your first habit",
+    'habit-builder': "Created 5 different habits", 
+    'century-club': "Completed 100 habits total",
+    'consistency-king': "Completed 1000 habits total",
+    'streak-champion': "Achieved 21-day habit streak",
+    'century-streak': "Maintained 75-day habit streak",
+    'multi-tasker': "Completed 5 habits in one day",
+    'habit-legend': "Reached Level 50 with 50%+ habit XP",
     
     // Journal
-    'first_reflection': "Wrote your first journal entry",
-    'deep_thinker': "Wrote detailed 200+ character entry",
-    'journal_enthusiast': "Wrote 100 journal entries",
-    'grateful_heart': "Maintained 7-day journal streak",
-    'gratitude_guardian': "Achieved 21-day journal streak", 
-    'gratitude_guru': "Maintained 30-day journal streak",
-    'eternal_gratitude': "Achieved 100-day journal streak",
-    'bonus_seeker': "Wrote 50 bonus journal entries",
+    'first-journal': "Wrote your first journal entry",
+    'deep-thinker': "Wrote detailed 200+ character entry",
+    'journal-enthusiast': "Wrote 100 journal entries",
+    'grateful-heart': "Maintained 7-day journal streak",
+    'journal-streaker': "Achieved 21-day journal streak", 
+    'gratitude-guru': "Maintained 30-day journal streak",
+    'eternal-gratitude': "Achieved 100-day journal streak",
+    'bonus-seeker': "Wrote 50 bonus journal entries",
     
     // Goals
-    'first_vision': "Set your first goal",
-    'goal_getter': "Completed your first goal",
-    'dream_fulfiller': "Completed 3 goals",
-    'goal_champion': "Completed 5 goals",
-    'achievement_unlocked': "Completed 10 goals",
+    'first-goal': "Set your first goal",
+    'goal-getter': "Completed your first goal",
+    'goal-achiever': "Completed 3 goals",
+    'goal-champion': "Completed 5 goals",
+    'achievement-unlocked': "Completed 10 goals",
     'ambitious': "Set ambitious goal (≥1000 target)",
-    'progress_tracker': "Made progress 7 days straight",
+    'progress-tracker': "Made progress 7 days straight",
     
     // Add more as needed...
   };
