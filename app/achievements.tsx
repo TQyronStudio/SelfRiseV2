@@ -79,7 +79,7 @@ export default function AchievementsScreen() {
   
   
   // ========================================
-  // DATA LOADING
+  // DATA LOADING - Performance Optimized
   // ========================================
   
   const loadAchievementData = async (force: boolean = false) => {
@@ -90,18 +90,19 @@ export default function AchievementsScreen() {
       
       setError(null);
       
-      // Load user achievements, statistics, gamification stats, and user stats in parallel
-      const [userData, statsData, gamificationData, userStatsData] = await Promise.all([
+      // Load essential data first (excluding userStats for performance - lazy loaded when needed)
+      const [userData, statsData, gamificationData] = await Promise.all([
         AchievementStorage.getUserAchievements(),
         AchievementService.getAchievementStats(),
         GamificationService.getGamificationStats(),
-        UserStatsCollector.collectUserStats(),
       ]);
       
       setUserAchievements(userData);
       setAchievementStats(statsData);
       setCurrentLevel(gamificationData.currentLevel);
-      setUserStats(userStatsData);
+      
+      // UserStats are now lazy loaded - only when needed for preview system
+      // This improves Trophy Room initial loading performance significantly
       
     } catch (err) {
       console.error('Failed to load achievement data:', err);
@@ -109,6 +110,28 @@ export default function AchievementsScreen() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+  
+  /**
+   * Lazy loads userStats only when needed for preview system
+   * Uses cached data when available for optimal performance
+   */
+  const loadUserStatsOnDemand = async () => {
+    // Skip if already loaded and data is recent
+    if (userStats) {
+      console.log('UserStats already loaded, skipping lazy load');
+      return;
+    }
+    
+    try {
+      console.log('Lazy loading UserStats for preview system...');
+      const userStatsData = await UserStatsCollector.collectUserStats();
+      setUserStats(userStatsData);
+      console.log('UserStats lazy loaded successfully');
+    } catch (error) {
+      console.error('Failed to lazy load userStats:', error);
+      // Don't throw error - preview system is optional
     }
   };
   
@@ -123,6 +146,14 @@ export default function AchievementsScreen() {
       loadAchievementData(false);
     }, [])
   );
+  
+  // Lazy load userStats when switching to achievements mode where preview system is used
+  useEffect(() => {
+    if (viewMode === 'achievements' && !userStats) {
+      console.log('Switching to achievements mode, triggering userStats lazy load');
+      loadUserStatsOnDemand();
+    }
+  }, [viewMode, userStats]);
   
   // ========================================
   // COMPUTED DATA
@@ -294,10 +325,23 @@ export default function AchievementsScreen() {
   const handleRefresh = () => {
     setIsRefreshing(true);
     loadAchievementData(false);
+    
+    // If userStats are loaded, force refresh them too (clear cache)
+    if (userStats && viewMode === 'achievements') {
+      console.log('Refreshing userStats cache due to pull-to-refresh');
+      UserStatsCollector.clearCache();
+      loadUserStatsOnDemand();
+    }
   };
 
 
-  const handleAchievementPress = (achievement: Achievement) => {
+  const handleAchievementPress = async (achievement: Achievement) => {
+    // Lazy load userStats if not available for preview system
+    if (!userStats) {
+      console.log('Achievement pressed, lazy loading userStats for preview...');
+      await loadUserStatsOnDemand();
+    }
+    
     // Check if achievement is unlocked for sharing
     const isUnlocked = userAchievements?.unlockedAchievements.includes(achievement.id) || false;
     
@@ -306,8 +350,8 @@ export default function AchievementsScreen() {
       setSelectedAchievementForShare(achievement);
       setShowShareModal(true);
     } else {
-      // Show motivation for locked achievements
-      console.log('Achievement locked:', achievement.name);
+      // Preview system will show progress hints for locked achievements
+      console.log('Achievement locked - preview system active:', achievement.name);
     }
   };
 

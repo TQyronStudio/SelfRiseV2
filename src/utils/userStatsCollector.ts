@@ -7,13 +7,117 @@ import { habitStorage } from '../services/storage/habitStorage';
 import { gratitudeStorage } from '../services/storage/gratitudeStorage';
 import { goalStorage } from '../services/storage/goalStorage';
 
+// ========================================
+// TYPESCRIPT INTERFACES - Phase 2 Safety
+// ========================================
+
+interface HabitData {
+  id: string;
+  streak?: number;
+  isActive?: boolean;
+  name?: string;
+  // Add other habit properties as needed
+}
+
+interface HabitCompletionData {
+  id: string;
+  date: string;
+  habitId: string;
+  // Add other completion properties as needed
+}
+
+interface JournalEntryData {
+  id: string;
+  date: string;
+  content?: string;
+  // Add other journal properties as needed
+}
+
+interface GoalData {
+  id: string;
+  currentValue: number;
+  targetValue: number;
+  isCompleted?: boolean;
+  // Add other goal properties as needed
+}
+
+// ========================================
+// VALIDATION GUARDS - Phase 2 Safety
+// ========================================
+
+const validateHabitData = (habit: unknown): habit is HabitData => {
+  if (typeof habit !== 'object' || habit === null) return false;
+  const h = habit as any;
+  return (
+    typeof h.id === 'string' &&
+    (h.streak === undefined || typeof h.streak === 'number') &&
+    (h.isActive === undefined || typeof h.isActive === 'boolean')
+  );
+};
+
+const validateHabitCompletionData = (completion: unknown): completion is HabitCompletionData => {
+  if (typeof completion !== 'object' || completion === null) return false;
+  const c = completion as any;
+  return (
+    typeof c.id === 'string' &&
+    typeof c.date === 'string' &&
+    typeof c.habitId === 'string'
+  );
+};
+
+const validateJournalEntryData = (entry: unknown): entry is JournalEntryData => {
+  if (typeof entry !== 'object' || entry === null) return false;
+  const e = entry as any;
+  return (
+    typeof e.id === 'string' &&
+    typeof e.date === 'string'
+  );
+};
+
+const validateGoalData = (goal: unknown): goal is GoalData => {
+  if (typeof goal !== 'object' || goal === null) return false;
+  const g = goal as any;
+  return (
+    typeof g.id === 'string' &&
+    typeof g.currentValue === 'number' &&
+    typeof g.targetValue === 'number'
+  );
+};
+
 export class UserStatsCollector {
+  // ========================================
+  // PERFORMANCE CACHE - Phase 2 Optimization
+  // ========================================
+  
+  private static cachedStats: { data: UserStats; timestamp: number } | null = null;
+  private static readonly CACHE_DURATION = 60000; // 60 seconds cache
+  
+  /**
+   * Checks if cached data is still valid
+   * @returns boolean indicating if cache is valid
+   */
+  private static isCacheValid(): boolean {
+    if (!this.cachedStats) return false;
+    const now = Date.now();
+    return (now - this.cachedStats.timestamp) < this.CACHE_DURATION;
+  }
+  
   /**
    * Collects comprehensive user statistics for Achievement Preview System
+   * Uses 60-second cache for performance optimization
+   * @param forceRefresh - Skip cache and force fresh data collection
    * @returns UserStats object with all relevant user progress data
    */
-  static async collectUserStats(): Promise<UserStats> {
+  static async collectUserStats(forceRefresh: boolean = false): Promise<UserStats> {
     try {
+      // Return cached data if valid and not forcing refresh
+      if (!forceRefresh && this.isCacheValid()) {
+        console.log('UserStatsCollector: Using cached data');
+        return this.cachedStats!.data;
+      }
+      
+      console.log('UserStatsCollector: Collecting fresh data...');
+      
       // Collect data from all services in parallel for performance
       const [
         gamificationStats,
@@ -35,18 +139,20 @@ export class UserStatsCollector {
       const habitsCreated = habits.length;
       const totalHabitCompletions = habitCompletions.length;
       
-      // Calculate longest habit streak
+      // Calculate longest habit streak with type safety
       let longestHabitStreak = 0;
-      habits.forEach((habit: any) => {
-        if (habit.streak && habit.streak > longestHabitStreak) {
+      habits.forEach((habit: unknown) => {
+        if (validateHabitData(habit) && habit.streak && habit.streak > longestHabitStreak) {
           longestHabitStreak = habit.streak;
         }
       });
       
-      // Calculate max habits in one day
-      const completionsByDate = habitCompletions.reduce((acc: Record<string, number>, completion: any) => {
-        const date = completion.date;
-        acc[date] = (acc[date] || 0) + 1;
+      // Calculate max habits in one day with type safety
+      const completionsByDate = habitCompletions.reduce((acc: Record<string, number>, completion: unknown) => {
+        if (validateHabitCompletionData(completion)) {
+          const date = completion.date;
+          acc[date] = (acc[date] || 0) + 1;
+        }
         return acc;
       }, {} as Record<string, number>);
       
@@ -55,27 +161,37 @@ export class UserStatsCollector {
       // Calculate journal statistics
       const totalJournalEntries = journalEntries.length;
       
-      // Calculate journal streaks (simplified - would need date analysis for accurate streaks)
-      const journalDates = [...new Set(journalEntries.map((entry: any) => entry.date))];
+      // Calculate journal streaks with type safety (simplified - would need date analysis for accurate streaks)
+      const journalDates = [...new Set(
+        journalEntries
+          .filter((entry: unknown): entry is JournalEntryData => validateJournalEntryData(entry))
+          .map(entry => entry.date)
+      )];
       const currentJournalStreak = journalDates.length > 0 ? 1 : 0; // Simplified
       const longestJournalStreak = journalDates.length; // Simplified
       
-      // Calculate bonus journal entries (entries beyond daily minimum)
-      const journalEntriesByDate = journalEntries.reduce((acc: Record<string, number>, entry: any) => {
-        const date = entry.date;
-        acc[date] = (acc[date] || 0) + 1;
+      // Calculate bonus journal entries with type safety (entries beyond daily minimum)
+      const journalEntriesByDate = journalEntries.reduce((acc: Record<string, number>, entry: unknown) => {
+        if (validateJournalEntryData(entry)) {
+          const date = entry.date;
+          acc[date] = (acc[date] || 0) + 1;
+        }
         return acc;
       }, {} as Record<string, number>);
       
       const bonusJournalEntries = Object.values(journalEntriesByDate)
         .reduce((total: number, dailyCount: number) => total + Math.max(0, dailyCount - 3), 0);
 
-      // Calculate goal statistics
+      // Calculate goal statistics with type safety
       const goalsCreated = goals.length;
-      const completedGoals = goals.filter((goal: any) => goal.currentValue >= goal.targetValue).length;
+      const completedGoals = goals.filter((goal: unknown): goal is GoalData => 
+        validateGoalData(goal) && goal.currentValue >= goal.targetValue
+      ).length;
       
-      // Check for ambitious goals (≥1000 target)
-      const hasLargeGoal = goals.some((goal: any) => goal.targetValue >= 1000);
+      // Check for ambitious goals (≥1000 target) with type safety
+      const hasLargeGoal = goals.some((goal: unknown): goal is GoalData => 
+        validateGoalData(goal) && goal.targetValue >= 1000
+      );
       
       // Calculate goal progress streak (simplified)
       const goalProgressStreak = goalProgress.length > 0 ? 1 : 0; // Would need date analysis
@@ -131,7 +247,9 @@ export class UserStatsCollector {
         
         // Special achievements tracking
         samedayHabitCreationCompletions: 0, // TODO: Implement same-day habit creation+completion tracking
-        activeHabitsSimultaneous: habits.filter((habit: any) => habit.isActive !== false).length,
+        activeHabitsSimultaneous: habits.filter((habit: unknown): habit is HabitData => 
+          validateHabitData(habit) && habit.isActive !== false
+        ).length,
         comebackActivities: 0, // TODO: Implement comeback after break tracking
         
         // Advanced consistency tracking
@@ -140,6 +258,13 @@ export class UserStatsCollector {
         dailyFeatureComboDays: multiAreaDays, // Approximation: days with multiple features used
       };
 
+      // Cache the fresh data for performance optimization
+      this.cachedStats = {
+        data: userStats,
+        timestamp: Date.now()
+      };
+      
+      console.log('UserStatsCollector: Data cached successfully');
       return userStats;
     } catch (error) {
       console.error('UserStatsCollector.collectUserStats error:', error);
@@ -184,11 +309,57 @@ export class UserStatsCollector {
   }
 
   /**
+   * Clears the cache - useful for development and testing
+   * @static
+   */
+  static clearCache(): void {
+    this.cachedStats = null;
+    console.log('UserStatsCollector: Cache cleared');
+  }
+  
+  /**
+   * Gets cache info for debugging
+   * @returns Cache status information
+   */
+  static getCacheInfo(): { hasCache: boolean; age?: number; isValid?: boolean } {
+    if (!this.cachedStats) {
+      return { hasCache: false };
+    }
+    
+    const age = Date.now() - this.cachedStats.timestamp;
+    return {
+      hasCache: true,
+      age,
+      isValid: age < this.CACHE_DURATION
+    };
+  }
+
+  /**
    * Collects lightweight user stats for performance-critical scenarios
+   * Uses cached data if available, otherwise fetches only essential gamification data
    * @returns Partial UserStats with essential data only
    */
   static async collectLightweightStats(): Promise<Partial<UserStats>> {
     try {
+      // If we have valid cached data, extract lightweight stats from it
+      if (this.isCacheValid()) {
+        console.log('UserStatsCollector: Using cached data for lightweight stats');
+        const cached = this.cachedStats!.data;
+        return {
+          currentLevel: cached.currentLevel,
+          totalXP: cached.totalXP,
+          unlockedAchievements: cached.unlockedAchievements,
+          totalAchievements: cached.totalAchievements,
+          appUsageStreak: cached.appUsageStreak,
+          habitsCreated: cached.habitsCreated,
+          totalHabitCompletions: cached.totalHabitCompletions,
+          journalEntries: cached.journalEntries,
+          goalsCreated: cached.goalsCreated,
+        };
+      }
+      
+      // Otherwise fetch minimal gamification data only
+      console.log('UserStatsCollector: Fetching lightweight gamification data');
       const gamificationStats = await GamificationService.getGamificationStats();
       
       return {

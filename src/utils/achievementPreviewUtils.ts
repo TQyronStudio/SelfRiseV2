@@ -750,7 +750,6 @@ const getAccomplishmentText = (achievement: Achievement): string => {
     'weekly-warrior': "Maintained 7-day habit streak", 
     'monthly-master': "Achieved 30-day habit streak",
     'hundred-days': "Reached 100 days of consistency",
-    'journal-streaker': "Achieved 21-day journal streak",
     'daily-visitor': "Used app for 7 consecutive days",
     'dedicated-user': "Used app for 30 consecutive days",
     'perfect-month': "Completed all 3 features for 28+ days in a month",
