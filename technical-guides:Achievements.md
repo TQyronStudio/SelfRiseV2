@@ -1,888 +1,309 @@
-# SelfRise V2 Achievements System - Complete Technical Guide
+# SelfRise V2 Achievements System - Complete Guide
 
-*Comprehensive reference for all achievement systems including loyalty, streaks, and milestone rewards*
+*Úplný průvodce systémem odznáčků pro majitele i vývojáře*
+
+---
+
+# 📋 PŘEHLED VŠECH ACHIEVEMENTS - PRO MAJITELE
+
+*Kompletní katalog všech 52 achievements v SelfRise V2 aplikaci*
+
+## 🏃‍♂️ **HABITS - Návyky (8 achievements)**
+
+### **First Steps** 🌱 • 50 XP • Common
+**Co musí udělat**: Vytvořit svůj úplně první návyk
+**Výsledek**: Uživatel začne svou cestu ke zlepšování
+
+### **Habit Builder** 🏗️ • 100 XP • Rare  
+**Co musí udělat**: Vytvořit 5 různých návyků
+**Výsledek**: Uživatel diverzifikuje své osobní rozvoj
+
+### **Century Club** 💯 • 200 XP • Epic
+**Co musí udělat**: Dokončit 100 úkolů návyků
+**Výsledek**: Uživatel se připojí k elitním řadám konzistentních lidí
+
+### **Consistency King** 👑 • 500 XP • Legendary
+**Co musí udělat**: Dokončit 1000 úkolů návyků
+**Výsledek**: Uživatel se stává mistrem konzistence
+
+### **Habit Streak Champion** 🏆 • 200 XP • Epic
+**Co musí udělat**: Dosáhnout 21denní série s jakýmkoliv návykem
+**Výsledek**: Uživatel buduje trvalou změnu
+
+### **Century Streak** 📈 • 500 XP • Legendary
+**Co musí udělat**: Udržet 75denní sérii s jakýmkoliv návykem
+**Výsledek**: Uživatel se blíží k legendárnímu statusu
+
+### **Multi-Tasker** 🎯 • 100 XP • Rare
+**Co musí udělat**: Dokončit 5 různých návyků v jednom dni
+**Výsledek**: Uživatel ukazuje rozmanitý závazek
+
+### **Habit Legend** 🏆 • 500 XP • Legendary
+**Co musí udělat**: Dosáhnout Level 50 s XP převážně z aktivit návyků
+**Výsledek**: Uživatel dosahuje skutečného mistrováá
+
+---
+
+## 📝 **JOURNAL - Deník (8 achievements)**
+
+### **First Reflection** 🌱 • 50 XP • Common
+**Co musí udělat**: Napsat svůj první zápis do deníku vděčnosti
+**Výsledek**: Uživatel začne praktikovat mindfulness
+
+### **Deep Thinker** 🧠 • 100 XP • Rare
+**Co musí udělat**: Napsat zápis do deníku s alespoň 200 znaky
+**Výsledek**: Uživatel ukazuje svou zamyšlenost
+
+### **Journal Enthusiast** 📚 • 200 XP • Epic  
+**Co musí udělat**: Napsat 100 zápisů do deníku
+**Výsledek**: Uživatel buduje krásný návyk reflexe
+
+### **Grateful Heart** 💖 • 100 XP • Rare
+**Co musí udělat**: Udržet 7denní sérii psaní do deníku
+**Výsledek**: Konzistence buduje vděčnost
+
+### **Gratitude Guru** 🧘 • 200 XP • Epic
+**Co musí udělat**: Dosáhnout 30denní série psaní do deníku
+**Výsledek**: Uživatel se stává mistrem denní reflexe
+
+### **Eternal Gratitude** ♾️ • 500 XP • Legendary
+**Co musí udělat**: Udržet 100denní sérii deníku
+**Výsledek**: Praxe vděčnosti uživatele je legendární
+
+### **Bonus Seeker** ⭐ • 200 XP • Epic
+**Co musí udělat**: Napsat 50 bonusových zápisů do deníku
+**Výsledek**: Uživatel jde nad rámec své praxe vděčnosti
+
+---
+
+## 🎯 **GOALS - Cíle (6 achievements)**
+
+### **First Vision** 🔮 • 50 XP • Common
+**Co musí udělat**: Nastavit svůj první cíl
+**Výsledek**: Uživatel definuje, kam má jeho cesta vést
+
+### **Goal Getter** 🎯 • 100 XP • Rare
+**Co musí udělat**: Dokončit svůj první cíl
+**Výsledek**: Uživatel přeměňuje sny na realitu
+
+
+### **Goal Champion** 🏆 • 200 XP • Epic
+**Co musí udělat**: Dokončit 5 cílů
+**Výsledek**: Uživatel se stává mistrem dosahování
+
+### **Achievement Unlocked** 🔓 • 500 XP • Legendary
+**Co musí udělat**: Dokončit 10 cílů
+**Výsledek**: Uživatel je legendární dosahování cílů
+
+### **Ambitious** 💪 • 100 XP • Rare
+**Co musí udělat**: Nastavit cíl s hodnotou 1000 nebo více
+**Výsledek**: Uživatel sní ve velkém
+
+### **Progress Tracker** 📊 • 200 XP • Epic
+**Co musí udělat**: Dělat pokrok na cílech 7 po sobě jdoucích dní
+**Výsledek**: Konzistence vede k úspěchu
+
+---
+
+## 🔥 **CONSISTENCY - Konzistence (8 achievements)**
+
+### **Weekly Warrior** ⚔️ • 100 XP • Rare
+**Co musí udělat**: Udržet 7denní sérii v jakémkoliv návyku
+**Výsledek**: Uživatel prokázuje svou oddanost
+
+### **Monthly Master** 📅 • 200 XP • Epic
+**Co musí udělat**: Dosáhnout 30denní série
+**Výsledek**: Uživatel skutečně buduje trvalé návyky
+
+### **Centurion** 💯 • 500 XP • Legendary
+**Co musí udělat**: Dosáhnout 100 dní konzistence
+**Výsledek**: Uživatel se připojí k elitním řadám mistrů návyků
+
+### **Daily Visitor** 📱 • 100 XP • Rare
+**Co musí udělat**: Používat aplikaci 7 po sobě jdoucích dní
+**Výsledek**: Uživatel buduje zdravý návyk
+
+### **Dedicated User** 🎯 • 200 XP • Epic
+**Co musí udělat**: Používat aplikaci 30 po sobě jdoucích dní
+**Výsledek**: Závazek uživatele je inspirující
+
+### **Perfect Month** 🌟 • 500 XP • Legendary
+**Co musí udělat**: Dokončit aktivity ve všech 3 oblastech 28+ dní v měsíci
+**Výsledek**: Uživatel dosahuje dokonalé balance
+
+### **Triple Crown** 👑 • 500 XP • Legendary
+**Co musí udělat**: Udržet 7+ denní série v návycích, deníku i cílech současně
+**Výsledek**: Uživatel dosahuje triple mastery
+
+### **Gratitude Guardian** 🛡️ • 100 XP • Rare
+**Co musí udělat**: Psát do deníku 21 po sobě jdoucích dní
+**Výsledek**: Uživatel chrání svou praxi vděčnosti
+
+---
+
+## 👑 **MASTERY - Mistrovství (9 achievements)**
+
+### **Dream Fulfiller** ⭐ • 200 XP • Epic
+**Co musí udělat**: Dokončit 3 cíle
+**Výsledek**: Uživatel přeměňuje sny na realitu
+
+### **Level Up** 🆙 • 100 XP • Rare
+**Co musí udělat**: Dosáhnout level 10
+**Výsledek**: Uživatel roste silnější
+
+### **SelfRise Expert** 🎓 • 200 XP • Epic
+**Co musí udělat**: Dosáhnout level 25
+**Výsledek**: Uživatel zvládl základy
+
+### **SelfRise Master** 🥇 • 500 XP • Legendary
+**Co musí udělat**: Dosáhnout level 50
+**Výsledek**: Uživatel je skutečným mistrem sebezdokonalování
+
+### **Ultimate SelfRise Legend** 🏆 • 500 XP • Legendary
+**Co musí udělat**: Dosáhnout level 100
+**Výsledek**: Uživatel dosáhl ultimátního mistrovaní
+
+### **Recommendation Master** 💡 • 200 XP • Epic
+**Co musí udělat**: Následovat 20 personalizovaných doporučení
+**Výsledek**: Uživatel aktivně využívá guidance
+
+### **Balance Master** ⚖️ • 200 XP • Epic
+**Co musí udělat**: Použít všechny 3 funkce v jednom dni 10x
+**Výsledek**: Uživatel dosahuje životní balance
+
+### **Trophy Collector** 🏅 • 100 XP • Rare
+**Co musí udělat**: Odemknout 10 achievements
+**Výsledek**: Uživatel buduje impozantní kolekci
+
+### **Trophy Master** 🏆 • 500 XP • Legendary
+**Co musí udělat**: Odemknout 25 achievements
+**Výsledek**: Trophy room uživatele je legendární
+
+---
+
+## ✨ **SPECIAL - Speciální (14 achievements včetně Loyalty)**
+
+### **Lightning Start** ⚡ • 100 XP • Rare
+**Co musí udělat**: Vytvořit a dokončit návyk ve stejný den 3x
+**Výsledek**: Uživatel jedná okamžitě
+
+### **Seven Wonder** 🌟 • 200 XP • Epic
+**Co musí udělat**: Mít 7 nebo více aktivních návyků současně
+**Výsledek**: Uživatel je mistr organizace
+
+### **Persistence Pays** 💪 • 200 XP • Epic
+**Co musí udělat**: Vrátit se po 3+ denní pauze a dokončit 7 aktivit
+**Výsledek**: Uživatel je comeback champion
+
+### **SelfRise Legend** 🏆 • 500 XP • Legendary
+**Co musí udělať**: Dosáhnout mistrovaní: 10 cílů + 500 návyků + 365 zápisů
+**Výsledek**: Uživatel dosahuje všestranného mistrovaní
+
+---
+
+## 🏆 **LOYALTY - Věrnost (10 achievements)**
+*Hodnotí celkový počet aktivních dní (s mezerami je to OK)*
+
+### **First Week** 🌱 • 75 XP • Common
+**Co musí udělat**: 7 aktivních dní celkem
+**Výsledek**: Začátek věrnostní cesty
+
+### **Two Weeks Strong** 💪 • 100 XP • Rare
+**Co musí udělat**: 14 aktivních dní celkem
+**Výsledek**: Oddanost roste
+
+### **Three Weeks Committed** 🔥 • 125 XP • Rare
+**Co musí udělat**: 21 aktivních dní celkem
+**Výsledek**: Oddaný svému růstu
+
+### **Month Explorer** 🗺️ • 150 XP • Epic
+**Co musí udělat**: 30 aktivních dní celkem
+**Výsledek**: Objevuje svůj potenciál
+
+### **Two Month Veteran** ⚔️ • 200 XP • Epic
+**Co musí udělat**: 60 aktivních dní celkem
+**Výsledek**: Zkušený v osobním růstu
+
+### **Century User** 💯 • 300 XP • Epic
+**Co musí udělat**: 100 aktivních dní celkem
+**Výsledek**: Mezi elitou uživatelů
+
+### **Half Year Hero** 🦸‍♀️ • 500 XP • Legendary
+**Co musí udělat**: 183 aktivních dní celkem
+**Výsledek**: Závazek je legendární
+
+### **Year Legend** 👑 • 1000 XP • Legendary
+**Co musí udělat**: 365 aktivních dní celkem
+**Výsledek**: Dosáhli legendárního statusu
+
+### **Ultimate Veteran** 🏅 • 1500 XP • Legendary
+**Co musí udělat**: 500 aktivních dní celkem
+**Výsledek**: Oddanost je nepřekonatelná
+
+### **Loyalty Master** 🏆 • 2000 XP • Legendary
+**Co musí udělat**: 1000 aktivních dní celkem
+**Výsledek**: Dosáhli ultimátní věrnosti
+
+---
+
+## 📊 **STATISTIKY PRO MAJITELE**
+
+### **Celkový Přehled**
+- **Celkem Achievements**: 52
+- **Celkové možné XP**: 18,625 XP
+- **Kategorie**: 6 (Habits: 8, Journal: 7, Goals: 6, Consistency: 8, Mastery: 9, Special: 14)
+
+### **Rozložení podle obtížnosti**
+- **Common (Běžné)**: 4 achievements • 50 XP každý
+- **Rare (Vzácné)**: 13 achievements • 100-125 XP každý  
+- **Epic (Epické)**: 18 achievements • 150-200 XP každý
+- **Legendary (Legendární)**: 17 achievements • 500-2000 XP každý
+
+### **Motivační strategie**
+- **Rychlé výhry**: Common achievements pro nové uživatele
+- **Střednědobé cíle**: Rare a Epic achievements pro pravidelné uživatele
+- **Elitní status**: Legendary achievements pro oddané uživatele
+- **Dlouhodobé uznání**: Loyalty achievements pro trvalý závazek
+
+---
+
+---
+
+# 🛠️ TECHNICKÁ DOKUMENTACE - PRO VÝVOJÁŘE
+
+*Kompletní technické specifikace a implementační guidelines*
 
 ## Table of Contents
 
-1. [Loyalty Achievements (New System)](#loyalty-achievements-new-system)
-2. [Existing Achievements (Current System)](#existing-achievements-current-system)
-3. [Loyalty System Architecture](#loyalty-system-architecture)
-4. [Achievement System Integration](#achievement-system-integration)
-5. [Trophy Room Integration](#trophy-room-integration)
-6. [Daily Activity Tracking](#daily-activity-tracking)
-7. [Achievement Evaluation Logic](#achievement-evaluation-logic)
-8. [User Experience Features](#user-experience-features)
-9. [Implementation Requirements](#implementation-requirements)
-10. [Testing & Validation](#testing--validation)
+1. [Achievement System Architecture](#achievement-system-architecture)
+2. [Achievement ID Standards](#achievement-id-standards)
+3. [Implementation Requirements](#implementation-requirements)
+4. [Preview System Integration](#preview-system-integration)
+5. [Celebration System](#celebration-system)
+6. [Testing & Validation](#testing--validation)
 
 ---
 
-## Loyalty Achievements (New System)
+## Achievement System Architecture
 
-### 🌟 **Early Loyalty Milestones**
+### 🚨 FUNDAMENTAL PRINCIPLE
+**Only GamificationService.addXP()/subtractXP() may handle XP operations. All other systems are FORBIDDEN from containing XP logic.**
 
-**First Week** • 75 XP • Common  
-— 7 aktivních dní celkem
+### Core Services
+- **GamificationService**: Central XP management and level progression
+- **XPMultiplierService**: Multiplier management (Harmony Streak, Inactive User Boost, etc.)
+- **AchievementService**: Achievement unlocking and XP rewards
+- **UserActivityTracker**: Analytics and user behavior tracking
 
-**Two Weeks Strong** • 100 XP • Rare  
-— 14 aktivních dní celkem
+### Complete Achievement System Overview
 
-**Three Weeks Committed** • 125 XP • Rare  
-— 21 aktivních dní celkem
-
-**Month Explorer** • 150 XP • Epic  
-— 30 aktivních dní celkem
-
-### 🚀 **Medium-term Loyalty Milestones**
-
-**Two Month Veteran** • 200 XP • Epic  
-— 60 aktivních dní celkem
-
-**Century User** • 300 XP • Epic  
-— 100 aktivních dní celkem
-
-### 🏆 **Long-term Loyalty Milestones**
-
-**Half Year Hero** • 500 XP • Legendary  
-— 183 aktivních dní celkem
-
-**Year Legend** • 1000 XP • Legendary  
-— 365 aktivních dní celkem
-
-**Ultimate Veteran** • 1500 XP • Legendary  
-— 500 aktivních dní celkem
-
-**Loyalty Master** • 2000 XP • Legendary  
-— 1000 aktivních dní celkem
-
----
-
-## Existing Achievements (Current System)
-
-*Complete catalog of 42 existing achievements currently implemented in the app*
-
-### 🏃‍♂️ **Habits Category** (8 achievements)
-
-**First Steps** • 50 XP • Common  
-— Create your very first habit
-
-**Habit Builder** • 100 XP • Rare  
-— Create 5 different habits to diversify development
-
-**Century Club** • 200 XP • Epic  
-— Complete 100 habit tasks
-
-**Consistency King** • 500 XP • Legendary  
-— Complete 1000 habit tasks
-
-**Habit Streak Champion** • 200 XP • Epic  
-— Achieve a 21-day streak with any single habit
-
-**Century Streak** • 500 XP • Legendary  
-— Maintain a 75-day streak with any habit
-
-**Multi-Tasker** • 100 XP • Rare  
-— Complete 5 different habits in a single day
-
-**Habit Legend** • 500 XP • Legendary • Secret  
-— Reach Level 50 with 50%+ XP from habit activities
-
-### 📝 **Journal Category** (8 achievements)
-
-**First Reflection** • 50 XP • Common  
-— Write your first gratitude journal entry
-
-**Deep Thinker** • 100 XP • Rare  
-— Write a journal entry with at least 200 characters
-
-**Journal Enthusiast** • 200 XP • Epic  
-— Write 100 journal entries
-
-**Grateful Heart** • 100 XP • Rare  
-— Maintain a 7-day journal writing streak
-
-**Gratitude Guardian** • 100 XP • Rare  
-— Write in your journal for 21 consecutive days
-
-**Gratitude Guru** • 200 XP • Epic  
-— Achieve a 30-day journal writing streak
-
-**Eternal Gratitude** • 500 XP • Legendary  
-— Maintain a 100-day journal streak
-
-**Bonus Seeker** • 200 XP • Epic  
-— Write 50 bonus journal entries
-
-### 🎯 **Goals Category** (7 achievements)
-
-**First Vision** • 50 XP • Common  
-— Set your first goal
-
-**Goal Getter** • 100 XP • Rare  
-— Complete your first goal
-
-**Dream Fulfiller** • 200 XP • Epic  
-— Complete 3 goals
-
-**Goal Champion** • 200 XP • Epic  
-— Complete 5 goals
-
-**Achievement Unlocked** • 500 XP • Legendary  
-— Complete 10 goals
-
-**Ambitious** • 100 XP • Rare  
-— Set a goal with target value of 1000 or more
-
-**Progress Tracker** • 200 XP • Epic  
-— Make progress on goals for 7 consecutive days
-
-### 🔥 **Consistency Category** (8 achievements)
-
-**Weekly Warrior** • 100 XP • Rare  
-— Maintain a 7-day streak in any habit
-
-**Monthly Master** • 200 XP • Epic  
-— Achieve a 30-day streak
-
-**Centurion** • 500 XP • Legendary  
-— Reach 100 days of consistency
-
-**Daily Visitor** • 100 XP • Rare  
-— Use the app for 7 consecutive days
-
-**Dedicated User** • 200 XP • Epic  
-— Use the app for 30 consecutive days
-
-**Perfect Month** • 500 XP • Legendary  
-— Complete activities in all 3 areas for 28+ days in any month
-
-**Triple Crown** • 500 XP • Legendary • Secret  
-— Maintain 7+ day streaks in habits, journal, and goals simultaneously
-
-### 👑 **Mastery Category** (9 achievements)
-
-**Level Up** • 100 XP • Rare  
-— Reach level 10
-
-**SelfRise Expert** • 200 XP • Epic  
-— Reach level 25
-
-**SelfRise Master** • 500 XP • Legendary  
-— Reach level 50
-
-**Ultimate SelfRise Legend** • 500 XP • Legendary • Secret  
-— Reach level 100
-
-**Recommendation Master** • 200 XP • Epic  
-— Follow 20 personalized recommendations
-
-**Balance Master** • 200 XP • Epic  
-— Use all 3 features in single day 10 times
-
-**Trophy Collector** • 100 XP • Rare  
-— Unlock 10 achievements
-
-**Trophy Master** • 500 XP • Legendary  
-— Unlock 25 achievements
-
-### ✨ **Special Category** (4 achievements)
-
-**Lightning Start** • 100 XP • Rare  
-— Create and complete a habit on the same day 3 times
-
-**Seven Wonder** • 200 XP • Epic  
-— Have 7 or more active habits at the same time
-
-**Persistence Pays** • 200 XP • Epic  
-— Resume activity after 3+ day break and complete 7 activities
-
-**SelfRise Legend** • 500 XP • Legendary • Secret  
-— Achieve mastery: 10 goals + 500 habits + 365 journal entries
-
----
-
-## Achievement System Integration
-
-### 🏆 Complete Achievement Architecture Overview
-
-The SelfRise V2 achievement system consists of **two complementary subsystems**:
-
-#### **Existing Achievement System (42 achievements)**
-- **Categories**: Habits, Journal, Goals, Consistency, Mastery, Special
-- **Types**: Activity-based, streak-based, count-based, level-based
-- **Implementation**: `achievementCatalog.ts` with `AchievementService`
-- **Tracking**: Real-time activity monitoring and milestone detection
-
-#### **Loyalty Achievement System (10 achievements - NEW)**
-- **Category**: Special (loyalty subcategory)
-- **Type**: Time-based (cumulative active days)
-- **Implementation**: Extension to existing system
-- **Tracking**: Daily active day accumulation (gaps allowed)
-
-### 🔄 System Relationships
-
-#### **Complementary, Not Competing**
-```typescript
-// User can earn both types simultaneously:
-Scenario: User with 100 active days over 6 months (with gaps)
-- Current System: May NOT earn "Dedicated User" (30 consecutive days)
-- Loyalty System: WILL earn "Century User" (100 total active days)
-- Result: Recognition for different commitment styles
-```
-
-#### **Shared Infrastructure**
-```typescript
-// Both systems utilize:
-- AchievementService for unlocking
-- GamificationService for XP rewards  
-- Trophy Room for display
-- Achievement notifications for celebrations
-- Progress tracking for user motivation
-```
-
-#### **Different User Motivations**
-```typescript
-// Achievement Types Serve Different Users:
-Streak Achievements → "I want perfect consistency" users
-Count Achievements → "I want to accumulate progress" users  
-Level Achievements → "I want overall growth" users
-Loyalty Achievements → "I want long-term recognition" users
-```
-
-### 📊 Achievement Statistics Summary
-
-```typescript
-interface CompleteAchievementStats {
-  // Existing System (Current)
-  existingAchievements: 42;
-  existingTotalXP: 8550; // 50-500 XP per achievement
-  existingCategories: 6; // Habits, Journal, Goals, Consistency, Mastery, Special
-  
-  // Loyalty System (New) 
-  loyaltyAchievements: 10;
-  loyaltyTotalXP: 10075; // 75-2000 XP per achievement  
-  loyaltyCategory: 1; // Special (loyalty subcategory)
-  
-  // Combined System
-  totalAchievements: 52;
-  totalPossibleXP: 18625;
-  totalCategories: 7; // 6 existing + loyalty
-}
-```
-
-### 🎯 Trophy Room Enhancement Strategy
-
-#### **Current Trophy Room Sections**
-- Achievement Grid (by category)
-- Statistics Overview  
-- Room Expansion System
-- Quality/Rarity Breakdown
-
-#### **New Loyalty Section Integration**
-- **Addition**: Dedicated "Loyalty Journey" card
-- **Enhancement**: Active days counter in stats
-- **Extension**: Progress tracking for loyalty milestones
-- **Complement**: Existing achievement tracking unchanged
-
----
-
-## Loyalty System Architecture
-
-### 🎯 Core Concept
-Loyalty achievements track cumulative active days regardless of gaps. Unlike streak achievements that require consecutive days, loyalty achievements celebrate long-term commitment with flexibility for natural usage patterns.
-
-### Core Data Structure
-```typescript
-interface LoyaltyTracking {
-  totalActiveDays: number;           // Cumulative count of unique active days
-  lastActiveDate: string;            // Last recorded active date (YYYY-MM-DD)
-  registrationDate: string;          // Initial app registration date
-  longestActiveStreak: number;       // Best consecutive streak (for comparison)
-  currentActiveStreak: number;       // Current consecutive days (separate tracking)
-  loyaltyLevel: LoyaltyLevel;        // Current user loyalty classification
-}
-
-enum LoyaltyLevel {
-  NEWCOMER = 'newcomer',      // 0-29 days
-  EXPLORER = 'explorer',      // 30-99 days  
-  VETERAN = 'veteran',        // 100-364 days
-  LEGEND = 'legend',          // 365-999 days
-  MASTER = 'master'           // 1000+ days
-}
-```
-
-### Achievement Categories
-- **Category**: `AchievementCategory.SPECIAL` (fits with "Limited time and unique achievements")
-- **Rarity Distribution**: Common (1), Rare (2), Epic (3), Legendary (4)
-- **Progressive**: All achievements are progressive (show progress bars)
-- **Secret**: Only "Loyalty Master" (1000 days) is secret until achieved
-
----
-
-## Trophy Room Integration
-
-### Complete Trophy Room Architecture
-
-The Trophy Room displays both existing achievements (42) and new loyalty achievements (10) in an integrated experience:
-
-#### **Main Achievement Grid**
-- **Category Filters**: Habits, Journal, Goals, Consistency, Mastery, Special
-- **Rarity Indicators**: Common, Rare, Epic, Legendary with color coding
-- **Progress Bars**: For progressive achievements (15 existing + 10 loyalty)
-- **Secret Achievement Placeholders**: 4 existing secret + 1 loyalty secret
-
-#### **Loyalty Progress Section** (New Addition)
-A dedicated section within the Trophy Room that provides:
-
-#### **Loyalty Progress Card**
-```typescript
-interface LoyaltyProgressDisplay {
-  title: "🏆 Loyalty Journey";
-  currentProgress: string;           // "87/1000 Active Days"
-  nextMilestone: {
-    name: string;                    // "Century User"
-    target: number;                  // 100
-    daysRemaining: number;           // 13
-    progressPercentage: number;      // 87%
-  };
-  loyaltyLevel: string;              // "Explorer"
-  unlockedCount: number;             // 6 out of 10 achievements
-}
-```
-
-#### **Achievement Grid Display** 
-```typescript
-// Each achievement (existing + loyalty) shows:
-- Achievement icon and name
-- Category badge (Habits/Journal/Goals/Consistency/Mastery/Special)
-- Unlock status (unlocked/locked/in-progress)
-- Progress bar (for progressive achievements)
-- XP reward and rarity indicator
-- Requirements/conditions to unlock
-- Secret placeholder for hidden achievements
-```
-
-#### **Enhanced Trophy Room Statistics** (Updated)
-```typescript
-interface CompleteAchievementStats {
-  // Overall Achievement Stats
-  totalAchievements: 52;                    // 42 existing + 10 loyalty
-  totalUnlocked: number;                    // User's unlocked count
-  totalXPEarned: number;                    // XP from all achievements
-  completionPercentage: number;             // Overall completion %
-  
-  // Category Breakdown
-  categoryStats: {
-    habits: { unlocked: number; total: 8; xpEarned: number; };
-    journal: { unlocked: number; total: 8; xpEarned: number; };
-    goals: { unlocked: number; total: 7; xpEarned: number; };
-    consistency: { unlocked: number; total: 8; xpEarned: number; };
-    mastery: { unlocked: number; total: 9; xpEarned: number; };
-    special: { unlocked: number; total: 4; xpEarned: number; };
-    loyalty: { unlocked: number; total: 10; xpEarned: number; };
-  };
-  
-  // Rarity Distribution
-  rarityStats: {
-    common: { unlocked: number; total: 4; };    // 3 existing + 1 loyalty
-    rare: { unlocked: number; total: 13; };     // 11 existing + 2 loyalty
-    epic: { unlocked: number; total: 18; };     // 15 existing + 3 loyalty  
-    legendary: { unlocked: number; total: 17; }; // 13 existing + 4 loyalty
-  };
-  
-  // Loyalty-Specific Stats (New)
-  loyaltyStats: {
-    totalActiveDays: number;                    // Primary loyalty metric
-    loyaltyLevel: LoyaltyLevel;                 // Current loyalty tier
-    daysToNextMilestone: number;                // Progress to next achievement
-    averageActiveDaysPerMonth: number;          // Consistency indicator
-  };
-}
-```
-
----
-
-## Achievement Tracking Systems
-
-### Existing Achievement Tracking (Current System)
-
-The existing 42 achievements are tracked through various systems:
-
-#### **Activity-Based Tracking**
-```typescript
-// Real-time monitoring of user actions:
-- Habit completions → HabitStorage + GamificationService
-- Journal entries → GratitudeStorage + GamificationService  
-- Goal progress → GoalStorage + GamificationService
-- App usage → AppInitializationService daily tracking
-- Feature combinations → Cross-system activity detection
-```
-
-#### **Milestone Detection**
-```typescript
-// Automatic achievement evaluation on:
-- XP level ups (Level 10, 25, 50, 100)
-- Count thresholds (1, 3, 5, 10, 50, 100, 500, 1000)
-- Streak milestones (7, 21, 30, 75, 100 days)
-- Achievement unlocks (10, 25 achievements earned)
-```
-
-### Loyalty Activity Tracking (New System)
-
-#### **Daily Activity Detection Logic**
-```typescript
-// Called once per day on first app launch
-const trackDailyActivity = async (): Promise<void> => {
-  const today = formatDateToString(new Date());
-  const loyaltyData = await getLoyaltyTrackingData();
-  
-  // Only increment if this is a new active day
-  if (loyaltyData.lastActiveDate !== today) {
-    loyaltyData.totalActiveDays += 1;
-    loyaltyData.lastActiveDate = today;
-    
-    // Update loyalty level if threshold crossed
-    loyaltyData.loyaltyLevel = calculateLoyaltyLevel(loyaltyData.totalActiveDays);
-    
-    await saveLoyaltyTrackingData(loyaltyData);
-    
-    // Check for new loyalty achievements
-    await evaluateLoyaltyAchievements(loyaltyData.totalActiveDays);
-  }
-};
-```
-
-### Storage Integration
-```typescript
-// Extends existing gamification storage
-interface GamificationData {
-  // ... existing fields
-  loyaltyTracking: LoyaltyTracking;
-}
-
-// Storage location: AsyncStorage key 'gamification_loyalty_data'
-const LOYALTY_STORAGE_KEY = 'gamification_loyalty_data';
-```
-
-### App Launch Integration
-```typescript
-// Add to existing app initialization
-AppInitializationService.initializeGamificationService() {
-  // ... existing initialization
-  
-  // Track daily activity for loyalty system
-  await trackDailyActivity();
-}
-```
-
----
-
-## Achievement Evaluation Logic
-
-### Existing Achievement Evaluation (Current System)
-
-#### **Real-Time Evaluation**
-```typescript
-// Achievements evaluated immediately when conditions are met:
-- AchievementService.evaluateAchievements() called after major actions
-- Batch evaluation runs every 24 hours for complex conditions  
-- Individual achievement cooldowns prevent spam checking
-- Failed evaluations have retry mechanism with exponential backoff
-```
-
-#### **Evaluation Triggers**
-```typescript
-// Achievement checks triggered by:
-- Habit completion/creation → Habit achievements
-- Journal entry creation → Journal achievements  
-- Goal progress/completion → Goal achievements
-- XP level progression → Mastery achievements
-- App usage patterns → Consistency achievements
-- Achievement unlocks → Meta achievements (Trophy Collector)
-```
-
-### Loyalty Milestone Detection (New System)
-```typescript
-const LOYALTY_MILESTONES = [7, 14, 21, 30, 60, 100, 183, 365, 500, 1000];
-
-const evaluateLoyaltyAchievements = async (totalActiveDays: number): Promise<void> => {
-  // Check if current total matches any milestone exactly
-  if (LOYALTY_MILESTONES.includes(totalActiveDays)) {
-    const achievement = findLoyaltyAchievementByTarget(totalActiveDays);
-    
-    if (achievement && !isAchievementUnlocked(achievement.id)) {
-      await AchievementService.unlockAchievement({
-        achievementId: achievement.id,
-        source: 'loyalty_milestone',
-        metadata: {
-          totalActiveDays,
-          loyaltyLevel: calculateLoyaltyLevel(totalActiveDays),
-          milestone: achievement.name
-        }
-      });
-    }
-  }
-};
-```
-
-### Progress Calculation
-```typescript
-const calculateLoyaltyProgress = (currentDays: number): LoyaltyProgress => {
-  // Find next uncompleted milestone
-  const nextMilestone = LOYALTY_MILESTONES.find(milestone => milestone > currentDays);
-  
-  if (!nextMilestone) {
-    return {
-      isComplete: true,
-      nextTarget: null,
-      progress: 100,
-      daysRemaining: 0
-    };
-  }
-  
-  const previousMilestone = LOYALTY_MILESTONES
-    .filter(m => m <= currentDays)
-    .pop() || 0;
-    
-  const progress = ((currentDays - previousMilestone) / (nextMilestone - previousMilestone)) * 100;
-  
-  return {
-    isComplete: false,
-    nextTarget: nextMilestone,
-    progress: Math.min(progress, 100),
-    daysRemaining: nextMilestone - currentDays
-  };
-};
-```
-
----
-
-## User Experience Features
-
-### Complete Achievement Experience
-
-#### **Achievement Unlocking Flow**
-```typescript
-// Universal achievement unlock experience:
-1. Condition met → Achievement evaluation triggered
-2. Achievement unlocked → Celebration modal displayed
-3. XP reward → Added to user total with animation
-4. Badge earned → Added to Trophy Room collection
-5. Progress updated → Next milestone progress shown
-6. Social sharing → Optional achievement screenshot
-```
-
-#### **Achievement Celebration System**
-```typescript
-// Celebration intensity based on rarity:
-- Common: Simple modal with icon + XP
-- Rare: Enhanced modal with animation + progress bar
-- Epic: Full-screen celebration with confetti + level context
-- Legendary: Premium animation with sound + special effects
-- Secret: Mystery reveal animation + exclusive badge design
-```
-
-#### **Progress Tracking Display**
-```typescript
-// Different progress types across achievement categories:
-- Count progress: "Complete 73/100 habits" (Century Club)
-- Streak progress: "Maintain 15/21 day streak" (Gratitude Guardian)  
-- Level progress: "Reach Level 8/10" (Level Up)
-- Multi-condition: Complex achievements with multiple requirements
-- Time-based: "Active for 87/100 days" (Loyalty: Century User)
-```
-
-### Loyalty Level Classification (New System)
-```typescript
-const calculateLoyaltyLevel = (totalActiveDays: number): LoyaltyLevel => {
-  if (totalActiveDays >= 1000) return LoyaltyLevel.MASTER;
-  if (totalActiveDays >= 365) return LoyaltyLevel.LEGEND;
-  if (totalActiveDays >= 100) return LoyaltyLevel.VETERAN;
-  if (totalActiveDays >= 30) return LoyaltyLevel.EXPLORER;
-  return LoyaltyLevel.NEWCOMER;
-};
-
-const getLoyaltyLevelDisplay = (level: LoyaltyLevel): LoyaltyLevelDisplay => {
-  const displays = {
-    [LoyaltyLevel.NEWCOMER]: {
-      name: "Newcomer",
-      icon: "🌱",
-      color: "#9E9E9E",
-      description: "Beginning your journey"
-    },
-    [LoyaltyLevel.EXPLORER]: {
-      name: "Explorer", 
-      icon: "🗺️",
-      color: "#2196F3",
-      description: "Discovering your potential"
-    },
-    [LoyaltyLevel.VETERAN]: {
-      name: "Veteran",
-      icon: "⚔️", 
-      color: "#9C27B0",
-      description: "Seasoned in growth"
-    },
-    [LoyaltyLevel.LEGEND]: {
-      name: "Legend",
-      icon: "👑",
-      color: "#FFD700", 
-      description: "Legendary commitment"
-    },
-    [LoyaltyLevel.MASTER]: {
-      name: "Loyalty Master",
-      icon: "🏆",
-      color: "#FF6B35",
-      description: "Ultimate dedication"
-    }
-  };
-  
-  return displays[level];
-};
-```
-
-### Celebration Modals
-```typescript
-interface LoyaltyCelebrationModal {
-  achievement: LoyaltyAchievement;
-  totalActiveDays: number;
-  loyaltyLevel: LoyaltyLevel;
-  isLevelUp: boolean;                // Did user advance loyalty level?
-  
-  // Display elements
-  celebrationIcon: string;           // Achievement icon (large)
-  title: string;                     // Achievement name
-  description: string;               // Personalized message
-  xpReward: number;                  // XP amount awarded
-  badge: string;                     // New badge earned
-  loyaltyMessage?: string;           // Special loyalty level message
-}
-```
-
-### Motivation Messaging
-```typescript
-const getLoyaltyMotivationMessage = (daysRemaining: number, nextMilestone: string): string => {
-  if (daysRemaining === 1) return `Just 1 more active day to unlock ${nextMilestone}!`;
-  if (daysRemaining <= 5) return `${daysRemaining} active days to ${nextMilestone} - so close!`;
-  if (daysRemaining <= 20) return `${nextMilestone} is within reach: ${daysRemaining} days to go!`;
-  if (daysRemaining <= 50) return `Building toward ${nextMilestone}: ${daysRemaining} active days remaining`;
-  return `Your loyalty journey continues toward ${nextMilestone}`;
-};
-```
-
----
-
-## Implementation Requirements
-
-### Existing Achievement System (Already Implemented)
-
-#### **Current Infrastructure**
-```typescript
-// Fully implemented components:
-- achievementCatalog.ts: Complete 42 achievement definitions
-- AchievementService: Achievement unlocking and management
-- Achievement evaluation: Real-time condition checking
-- Trophy Room: Full UI display and filtering
-- Achievement notifications: Celebration system
-- Progress tracking: Progressive achievement support
-```
-
-### Loyalty Achievement Integration (New Requirements)
-
-#### **Data Storage & Persistence**
-- **Storage Method**: AsyncStorage with dedicated loyalty data key
-- **Backup Strategy**: Include in existing gamification data export/import
-- **Migration**: Graceful handling for existing users (start from registration date estimate)
-
-### Performance Optimization
-- **Daily Check**: Single operation per day (cached result)
-- **Lazy Loading**: Loyalty section loads independently in Trophy Room
-- **Minimal Impact**: <50ms addition to app startup time
-- **Memory Usage**: <1KB additional storage per user
-
-### Integration Points
-```typescript
-// Required integrations:
-1. GamificationService.addXP() - for XP rewards
-2. AchievementService.unlockAchievement() - for achievement unlocks
-3. AppInitializationService - for daily tracking
-4. TrophyRoomStats component - for loyalty section
-5. Achievement notification system - for celebrations
-```
-
-### Error Handling
-```typescript
-// Graceful fallbacks:
-- Missing loyalty data → Initialize with safe defaults
-- Date parsing errors → Use current date as fallback  
-- Achievement unlock failures → Retry mechanism
-- Storage failures → Log error, continue normal operation
-```
-
----
-
-## Testing & Validation
-
-### Existing Achievement Testing (Current System)
-
-#### **Current Test Coverage**
-```typescript
-// Existing test scenarios for 42 achievements:
-- AchievementLogic.test.ts: Core achievement evaluation testing
-- Achievement unlock validation for all categories
-- Progress tracking accuracy for progressive achievements  
-- XP reward calculation verification
-- Secret achievement reveal testing
-- Trophy Room display and filtering tests
-```
-
-### Loyalty Achievement Testing (New Requirements)
-
-#### **Critical Test Scenarios**
-```typescript
-describe('Loyalty Achievement System', () => {
-  describe('Daily Activity Tracking', () => {
-    it('should increment active days only once per calendar day', async () => {
-      // Test multiple app launches on same day
-    });
-    
-    it('should handle date transitions correctly', async () => {
-      // Test midnight boundary conditions
-    });
-    
-    it('should preserve data across app restarts', async () => {
-      // Test data persistence
-    });
-  });
-  
-  describe('Achievement Evaluation', () => {
-    it('should unlock achievements at exact milestones', async () => {
-      // Test 7, 14, 21, 30, 60, 100, 183, 365, 500, 1000 day triggers
-    });
-    
-    it('should not unlock achievements twice', async () => {
-      // Test duplicate prevention
-    });
-    
-    it('should handle rapid milestone progression', async () => {
-      // Test when user reaches multiple milestones quickly
-    });
-  });
-  
-  describe('Progress Calculation', () => {
-    it('should calculate correct progress percentages', async () => {
-      // Test progress between milestones
-    });
-    
-    it('should identify next milestone correctly', async () => {
-      // Test next target identification
-    });
-  });
-  
-  describe('Loyalty Level Classification', () => {
-    it('should assign correct loyalty levels', async () => {
-      // Test level thresholds
-    });
-    
-    it('should handle level transitions', async () => {
-      // Test level-up notifications
-    });
-  });
-});
-```
-
-### Edge Cases Validation
-```typescript
-// Critical edge cases to test:
-1. App installed but never opened → 0 active days
-2. App used once then abandoned for months → 1 active day maintained
-3. Daily usage for exactly milestone days → achievement unlocks correctly
-4. Usage gaps and comeback patterns → cumulative counting works
-5. Clock changes/timezone shifts → date handling robust
-6. Data corruption scenarios → graceful recovery
-```
-
-### User Acceptance Testing
-```typescript
-// Test user scenarios:
-1. New user journey (0 → 30 days)
-2. Casual user with gaps (sporadic usage over months)
-3. Dedicated user (daily usage)
-4. Comeback user (long absence then return)
-5. Achievement collector (Trophy Room usage)
-```
-
----
-
-## Success Metrics & Analytics
-
-### Engagement Metrics
-- **Average Active Days**: Target 50+ days per user within 6 months
-- **Milestone Achievement Rate**: 80% reach "Month Explorer" (30 days)
-- **Long-term Retention**: 30% reach "Century User" (100 days)
-- **Elite Achievement**: 5% reach "Year Legend" (365 days)
-
-### Behavioral Impact
-- **Trophy Room Engagement**: Increased time spent in achievements section
-- **Return Behavior**: Higher comeback rate after usage gaps
-- **Feature Adoption**: Correlation between loyalty level and feature usage
-- **Churn Reduction**: Lower churn among loyalty achievement holders
-
-### User Satisfaction Indicators
-- **Positive Feedback**: User appreciation for loyalty recognition
-- **Achievement Screenshots**: Social sharing of loyalty milestones
-- **Support Requests**: Minimal confusion about loyalty vs streak achievements
-
----
-
-## Integration with Existing Systems
-
-### Separation from Streak Achievements
-```typescript
-// Clear distinction:
-Streak Achievements (existing):
-- Daily Visitor: 7 consecutive days
-- Dedicated User: 30 consecutive days
-- Perfect Month: 28+ consecutive days in month
-
-Loyalty Achievements (new):
-- Month Explorer: 30 total active days (gaps allowed)
-- Century User: 100 total active days (gaps allowed)  
-- Year Legend: 365 total active days (gaps allowed)
-```
-
-### Complementary Reward System
-```typescript
-// Users can earn both types:
-Scenario: User with 100 active days over 6 months
-- May NOT have: "Dedicated User" (due to gaps)
-- WILL have: "Century User" (total days achieved)
-- Result: Recognition for long-term commitment despite inconsistent usage
-```
-
-### Trophy Room Enhancement
-```typescript
-// Loyalty section enhances existing Trophy Room:
-- Adds new achievement category display
-- Provides alternative progression path
-- Increases Trophy Room engagement time
-- Offers achievements for different user types
-```
-
----
-
----
-
-## Complete Achievement System Summary
-
-### 🎯 Total System Overview
-
-**SelfRise V2 Complete Achievement Catalog: 52 Achievements**
+The SelfRise V2 achievement system consists of **52 achievements** across **6 categories**:
 
 #### **System Breakdown**
 - **Existing System**: 42 achievements (fully implemented)
 - **Loyalty System**: 10 achievements (Sub-checkpoint 4.5.10.C)
 - **Total Possible XP**: 18,625 XP from all achievements
-- **Categories**: 7 (Habits, Journal, Goals, Consistency, Mastery, Special, Loyalty)
+- **Categories**: 6 (Habits, Journal, Goals, Consistency, Mastery, Special)
 
 #### **User Experience Types**
 ```typescript
@@ -901,49 +322,288 @@ Collectors → Meta achievements (Trophy Collector, Trophy Master)
 - **Secret Rewards**: Hidden achievements for discovery motivation
 - **Long-term Recognition**: Loyalty achievements for sustained commitment
 
-### 🏆 Trophy Room Final Architecture
+---
 
+## Achievement ID Standards 🏷️
+
+### 🎯 Core Principle
+**ALL achievement IDs MUST follow the unified kebab-case format without exception. Every achievement in the system uses consistent, descriptive, and standardized identifiers.**
+
+### Mandatory ID Format Standards
+
+#### **Format: kebab-case (REQUIRED)**
 ```typescript
-// Complete Trophy Room Layout:
-- Main Grid: 52 achievements across 7 categories
-- Statistics: Overall completion, XP earned, category breakdown
-- Loyalty Section: Active days progress, loyalty level display
-- Room Expansions: 4 tiers unlocked by user level
-- Quality Display: Rarity distribution and progress tracking
-- Secret Reveals: 5 hidden achievements for ultimate challenges
+// ✅ CORRECT: All IDs use kebab-case format
+'first-habit'           // lowercase words, hyphens only  
+'century-club'          // descriptive, clear meaning
+'journal-enthusiast'    // category context included
+'selfrise-master'       // compound words hyphenated
+'trophy-collector-basic' // progression suffix included
+
+// ❌ FORBIDDEN: Any other format
+'firstHabit'           // camelCase - NOT ALLOWED
+'first_habit'          // snake_case - NOT ALLOWED  
+'FIRST_HABIT'          // SCREAMING_CASE - NOT ALLOWED
+'First-Habit'          // PascalCase - NOT ALLOWED
+'first habit'          // spaces - NOT ALLOWED
 ```
 
-### 📊 Implementation Impact
+#### **ID Pattern Analysis (52 Achievements)**
 
-#### **Development Scope**
-- **Current System**: ✅ Fully implemented (42 achievements)
-- **Loyalty Addition**: 🔄 Implementation required (10 achievements)
-- **Integration**: Seamless addition to existing architecture
-- **Testing**: Extension of current test coverage
+Based on analysis of all existing achievements in `achievementCatalog.ts`:
 
-#### **User Engagement Benefits**
-- **Increased Retention**: Long-term recognition reduces churn
-- **Flexible Commitment**: Accommodates different usage patterns
-- **Comprehensive Coverage**: Every user type has suitable achievements
-- **Motivation Diversity**: Multiple progression paths available
+**Basic Achievement IDs (Most Common)**
+```typescript
+// Single action achievements
+'first-habit'          // First + category
+'first-journal'        // First + category
+'first-goal'           // First + category
+
+// Count-based achievements  
+'century-club'         // Milestone name
+'habit-builder'        // Action + role
+'goal-getter'          // Action + role
+'journal-enthusiast'   // Category + personality
+
+// Streak achievements
+'streak-champion'      // Type + achievement
+'century-streak'       // Duration + type
+'grateful-heart'       // Descriptive + metaphor
+'weekly-warrior'       // Duration + metaphor
+```
+
+**Compound Achievement IDs (Advanced)**
+```typescript
+// Level-based achievements
+'level-up'             // Simple action
+'selfrise-expert'      // Brand + level
+'selfrise-master'      // Brand + level  
+'ultimate-selfrise-legend' // Intensity + brand + level
+
+// Complex achievements
+'recommendation-master' // Feature + level
+'trophy-collector-basic' // Role + progression suffix
+'trophy-collector-master' // Role + progression suffix
+'balance-master'       // Skill + level
+```
+
+**Category-Prefixed IDs (Special Categories)**
+```typescript
+// Loyalty achievement series (10 achievements)
+'loyalty-first-week'        // loyalty- prefix + milestone
+'loyalty-two-weeks-strong'  // loyalty- prefix + duration + modifier
+'loyalty-month-explorer'    // loyalty- prefix + duration + role
+'loyalty-year-legend'       // loyalty- prefix + duration + level
+'loyalty-master'           // loyalty- prefix + ultimate level
+```
+
+### Naming Convention Rules
+
+#### **1. Descriptive Clarity (MANDATORY)**
+```typescript
+// IDs MUST be self-explanatory
+'century-club'         // ✅ Clear: 100 completions milestone
+'eternal-gratitude'    // ✅ Clear: long-term journal commitment  
+'seven-wonder'         // ✅ Clear: 7 active habits simultaneously
+'lightning-start'      // ✅ Clear: fast action completion
+
+// Avoid cryptic abbreviations
+'cc-100'              // ❌ Unclear: what does 'cc' mean?
+'h-str-21'            // ❌ Cryptic: unclear abbreviations
+'ach-001'             // ❌ Generic: no semantic meaning
+```
+
+#### **2. Category Context (RECOMMENDED)**
+```typescript
+// Include category context when helpful
+'journal-enthusiast'   // ✅ Category clear from name
+'habit-legend'         // ✅ Category clear from name
+'goal-champion'        // ✅ Category clear from name
+'consistency-king'     // ✅ Category clear from name
+
+// Generic names need context
+'first-steps' → 'first-habit'     // ✅ Category context added
+'champion' → 'streak-champion'     // ✅ Type context added  
+'master' → 'selfrise-master'       // ✅ Brand context added
+```
+
+#### **3. Progression Suffixes (SYSTEMATIC)**
+```typescript
+// Use consistent progression suffixes for related achievements
+'trophy-collector-basic'    // Entry level
+'trophy-collector-master'   // Advanced level
+
+// Alternative progression patterns
+'loyalty-first-week'        // Time-based progression
+'loyalty-two-weeks-strong'  // Time + modifier
+'loyalty-month-explorer'    // Time + role evolution
+
+// Level-based progression  
+'selfrise-expert'          // Level 25
+'selfrise-master'          // Level 50
+'ultimate-selfrise-legend' // Level 100 (ultimate prefix)
+```
+
+### ID Validation Rules
+
+#### **Format Validation (AUTOMATED)**
+```typescript
+// Regex pattern for valid achievement IDs
+const ACHIEVEMENT_ID_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+
+const validateAchievementId = (id: string): boolean => {
+  // Required format checks
+  if (!ACHIEVEMENT_ID_PATTERN.test(id)) return false;
+  if (id.length < 3) return false;        // Minimum 3 characters
+  if (id.length > 50) return false;       // Maximum 50 characters
+  if (id.startsWith('-')) return false;   // Cannot start with hyphen
+  if (id.endsWith('-')) return false;     // Cannot end with hyphen
+  if (id.includes('--')) return false;    // No double hyphens
+  
+  return true;
+};
+
+// Examples of validation results:
+validateAchievementId('first-habit');           // ✅ true
+validateAchievementId('century-club');          // ✅ true  
+validateAchievementId('loyalty-master');        // ✅ true
+validateAchievementId('ultimate-selfrise-legend'); // ✅ true
+
+validateAchievementId('FirstHabit');            // ❌ false (camelCase)
+validateAchievementId('first_habit');           // ❌ false (snake_case)
+validateAchievementId('first--habit');          // ❌ false (double hyphen)
+validateAchievementId('-first-habit');          // ❌ false (starts with hyphen)
+```
+
+#### **Semantic Validation (MANUAL REVIEW)**
+```typescript
+// Required manual checks for new achievement IDs:
+1. ✅ Is the ID descriptive and self-explanatory?
+2. ✅ Does it avoid cryptic abbreviations?
+3. ✅ Is it consistent with similar achievement naming?
+4. ✅ Does it include appropriate category context?
+5. ✅ Does it follow progression patterns if part of a series?
+6. ✅ Is it unique across all 52 existing achievements?
+7. ✅ Would a new developer understand its purpose?
+```
+
+### Implementation Standards
+
+#### **Code References (MANDATORY)**
+```typescript
+// All achievement references MUST use ID constants
+// ✅ CORRECT: Use typed constants
+export const ACHIEVEMENT_IDS = {
+  FIRST_HABIT: 'first-habit' as const,
+  CENTURY_CLUB: 'century-club' as const,
+  JOURNAL_ENTHUSIAST: 'journal-enthusiast' as const,
+  SELFRISE_MASTER: 'selfrise-master' as const,
+  LOYALTY_YEAR_LEGEND: 'loyalty-year-legend' as const
+} as const;
+
+// ❌ FORBIDDEN: Hard-coded strings in logic
+if (achievementId === 'first-habit') { /* logic */ }           // Bad
+if (achievementId === ACHIEVEMENT_IDS.FIRST_HABIT) { /* logic */ } // Good
+```
+
+#### **Database/Storage Keys (CONSISTENT)**
+```typescript
+// Achievement IDs are used directly as storage keys
+AsyncStorage.setItem(`achievement_${achievementId}_unlocked`, 'true');
+AsyncStorage.setItem(`achievement_first-habit_progress`, '50');
+
+// Consistent with catalog IDs
+const achievement = CORE_ACHIEVEMENTS.find(a => a.id === 'first-habit');
+```
+
+#### **Documentation Standards (REQUIRED)**
+```typescript
+// All new achievements MUST include ID documentation
+interface Achievement {
+  id: string;                    // MUST follow kebab-case format
+  name: string;                  // Display name (can use any format)
+  description: string;           // User-facing description
+  // ... other fields
+}
+
+/**
+ * Achievement: First Steps
+ * ID: 'first-habit' (kebab-case format)
+ * Category: Habits
+ * Purpose: Onboarding milestone for new users
+ * Created: 2025-08-04
+ */
+```
+
+### Quality Assurance Checklist
+
+#### **Pre-Implementation Review (MANDATORY)**
+```typescript
+// Before adding any new achievement, verify:
+□ ID follows kebab-case format exactly
+□ ID is descriptive and self-explanatory  
+□ ID is unique across all existing achievements
+□ ID includes appropriate category/context
+□ ID follows established progression patterns
+□ ID passes automated validation regex
+□ ID has been manually reviewed by team
+□ ID documentation is complete
+□ ID constants are added to ACHIEVEMENT_IDS
+□ Tests include new achievement ID validation
+```
+
+#### **Existing Achievement Compliance (VERIFIED)**
+```typescript
+// ALL 52 existing achievements verified as compliant:
+✅ Habits Category (8 achievements): All kebab-case
+✅ Journal Category (8 achievements): All kebab-case  
+✅ Goals Category (7 achievements): All kebab-case
+✅ Consistency Category (8 achievements): All kebab-case
+✅ Mastery Category (9 achievements): All kebab-case
+✅ Special Category (14 achievements): All kebab-case
+
+// No exceptions, no legacy formats - 100% compliance achieved
+```
 
 ---
 
-**GOLDEN RULE**: *"Every action deserves recognition, every milestone celebrates growth, every user finds their path to achievement"*
+## Implementation Requirements
+
+### Data Storage & Persistence
+- **Storage Method**: AsyncStorage with dedicated achievement data keys
+- **Backup Strategy**: Include in existing gamification data export/import
+- **Migration**: Graceful handling for existing users
+
+### Performance Optimization
+- **Achievement Check**: Single operation per achievement evaluation
+- **Lazy Loading**: Achievement sections load independently
+- **Minimal Impact**: <50ms addition to achievement operations
+- **Memory Usage**: <2KB additional storage per user
+
+### Integration Points
+```typescript
+// Required integrations:
+1. GamificationService.addXP() - for XP rewards
+2. AchievementService.unlockAchievement() - for achievement unlocks
+3. AppInitializationService - for achievement evaluation
+4. TrophyRoomStats component - for achievement display
+5. Achievement notification system - for celebrations
+```
+
+### Error Handling
+```typescript
+// Graceful fallbacks:
+- Missing achievement data → Initialize with safe defaults
+- Achievement evaluation errors → Log error, continue normal operation  
+- Achievement unlock failures → Retry mechanism
+- Storage failures → Log error, continue normal operation
+```
 
 ---
 
-*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of loyalty achievements (Sub-checkpoint 4.5.10.C) with the existing 42 achievements creates a robust 52-achievement ecosystem designed for sustained user engagement.*
+## Preview System Integration
 
----
-
-## Achievement Preview System 👁️
-
-### 🎯 Core Concept
-
-The Achievement Preview System transforms locked achievements from mysterious placeholders into motivational progress indicators. Every achievement (locked or unlocked) shows clear completion requirements and current progress, creating transparency and motivation for users.
-
-### Fundamental Requirements
+### Achievement Preview System Requirements
 
 **ALL achievements MUST implement:**
 - ✅ **Progress Hints**: Clear progress indicators for locked achievements  
@@ -952,264 +612,37 @@ The Achievement Preview System transforms locked achievements from mysterious pl
 - ✅ **Visual Progress**: Progress bars showing current advancement
 - ✅ **Next Milestone**: Clear indication of next achievable goal
 
-### Achievement Display Modes
+### Implementation Checklist for New Achievements
 
-#### **Locked Achievement Display**
-```typescript
-interface LockedAchievementDisplay {
-  // Progress indication
-  progressHint: string;           // "Complete 50 habits (32/50)"
-  progressPercentage: number;     // 64%
-  progressBar: boolean;          // Always visible (dimmed style)
-  
-  // Requirement display
-  requirement: string;           // "Complete 1000 habits total"
-  category: AchievementCategory; // Habits, Journal, Goals, etc.
-  actionHint: string;           // "Keep completing daily habits!"
-  
-  // Motivation
-  motivationalTip: string;      // "You're doing great! Just 18 more to go!"
-  estimatedTime?: string;       // "~18 days at current pace"
-  difficultyLevel: 'Easy' | 'Medium' | 'Hard' | 'Legendary';
-}
-```
+When adding new achievement, MUST complete ALL steps:
 
-#### **Unlocked Achievement Display**
-```typescript
-interface UnlockedAchievementDisplay {
-  // Completion information
-  completedRequirement: string;  // "Completed 1000 habits total"
-  completionDate: string;       // "Unlocked on March 15, 2024"
-  progressAtCompletion: string; // "Achieved in 143 active days"
-  
-  // Achievement details
-  xpEarned: number;            // 500 XP
-  celebrationReplay: boolean;  // Option to replay celebration
-  shareFunction: boolean;      // Social sharing capability
-}
-```
+1. **[ ] achievementCatalog.ts**: Add with kebab-case ID
+2. **[ ] achievementPreviewUtils.ts**: Add progress hint logic:
+   ```typescript
+   case 'new-achievement-id':
+     return {
+       progressText: `Clear progress (${current}/${target})`,
+       progressPercentage: (current/target) * 100,
+       isCompleted: current >= target,
+       requirementText: "User-friendly requirement",
+       actionHint: "Specific action to take",
+       estimatedDays: Math.ceil((target-current) / dailyRate)
+     };
+   ```
+3. **[ ] technical-guides:Achievements.md**: Document progress examples
+4. **[ ] Testing**: Verify preview hints work correctly
 
-### Progress Hint Generation
-
-#### **Habit Category Examples**
-```typescript
-const generateHabitProgressHints = (achievement: Achievement, userStats: UserStats): string => {
-  switch (achievement.id) {
-    case 'first_steps':
-      return userStats.habitsCreated === 0 
-        ? "Create your first habit to begin!" 
-        : "✅ First habit created!";
-        
-    case 'century_club':
-      return `Complete 100 habits (${userStats.totalHabitCompletions}/100)`;
-      
-    case 'consistency_king':
-      return `Complete 1000 habits (${userStats.totalHabitCompletions}/1000)`;
-      
-    case 'habit_streak_champion':
-      const currentStreak = userStats.longestHabitStreak;
-      return `Achieve 21-day streak (current best: ${currentStreak} days)`;
-      
-    case 'multi_tasker':
-      return `Complete 5 different habits in one day (best: ${userStats.maxHabitsInOneDay})`;
-  }
-};
-```
-
-#### **Journal Category Examples**
-```typescript
-const generateJournalProgressHints = (achievement: Achievement, userStats: UserStats): string => {
-  switch (achievement.id) {
-    case 'first_reflection':
-      return userStats.journalEntries === 0
-        ? "Write your first gratitude entry!"
-        : "✅ First reflection completed!";
-        
-    case 'journal_enthusiast':
-      return `Write 100 journal entries (${userStats.totalJournalEntries}/100)`;
-      
-    case 'grateful_heart':
-      return `Maintain 7-day streak (current: ${userStats.currentJournalStreak} days)`;
-      
-    case 'eternal_gratitude':
-      return `Achieve 100-day streak (best: ${userStats.longestJournalStreak} days)`;
-      
-    case 'bonus_seeker':
-      return `Write 50 bonus entries (${userStats.bonusJournalEntries}/50)`;
-  }
-};
-```
-
-#### **Goals Category Examples**
-```typescript
-const generateGoalProgressHints = (achievement: Achievement, userStats: UserStats): string => {
-  switch (achievement.id) {
-    case 'first_vision':
-      return userStats.goalsCreated === 0
-        ? "Set your first goal to start!"
-        : "✅ First goal set!";
-        
-    case 'goal_getter':
-      return userStats.completedGoals === 0
-        ? "Complete your first goal!"
-        : "✅ First goal completed!";
-        
-    case 'achievement_unlocked':
-      return `Complete 10 goals (${userStats.completedGoals}/10)`;
-      
-    case 'ambitious':
-      return userStats.hasLargeGoal
-        ? "✅ Ambitious goal set!"
-        : "Set a goal with target ≥1000";
-        
-    case 'progress_tracker':
-      return `Progress on goals 7 days straight (${userStats.goalProgressStreak}/7)`;
-  }
-};
-```
-
-### Smart Tooltip System
-
-#### **Context-Aware Tips**
-```typescript
-interface SmartTooltip {
-  primaryTip: string;           // Main guidance
-  motivationalMessage: string;  // Encouragement
-  actionAdvice: string;        // Specific next steps
-  estimatedEffort?: string;    // Time/effort estimate
-}
-
-const generateSmartTooltip = (achievement: Achievement, progress: number): SmartTooltip => {
-  const progressLevel = getProgressLevel(progress);
-  
-  return {
-    primaryTip: getPrimaryTip(achievement, progressLevel),
-    motivationalMessage: getMotivationalMessage(progressLevel),
-    actionAdvice: getActionAdvice(achievement, progressLevel),
-    estimatedEffort: getEffortEstimate(achievement, progress)
-  };
-};
-
-const getProgressLevel = (progress: number): 'starting' | 'building' | 'advancing' | 'nearly_there' => {
-  if (progress < 10) return 'starting';
-  if (progress < 50) return 'building';
-  if (progress < 85) return 'advancing';
-  return 'nearly_there';
-};
-
-const getMotivationalMessage = (level: string): string => {
-  const messages = {
-    starting: "Every journey begins with a single step! 🌱",
-    building: "You're building great momentum! 💪",
-    advancing: "Excellent progress - keep it up! 🚀",
-    nearly_there: "So close to unlocking this achievement! 🎯"
-  };
-  return messages[level];
-};
-```
-
-### Next Achievement Suggestion
-
-#### **Proximity-Based Suggestions**
-```typescript
-interface NextAchievementSuggestion {
-  achievement: Achievement;
-  progressPercentage: number;
-  estimatedDays: number;
-  motivationalText: string;
-  priorityLevel: 'high' | 'medium' | 'low';
-}
-
-const getNextAchievementSuggestions = (userStats: UserStats): NextAchievementSuggestion[] => {
-  const allAchievements = CORE_ACHIEVEMENTS.filter(a => !isUnlocked(a.id));
-  
-  return allAchievements
-    .map(achievement => ({
-      achievement,
-      progressPercentage: calculateProgress(achievement, userStats),
-      estimatedDays: estimateCompletionTime(achievement, userStats),
-      motivationalText: generateMotivationalText(achievement, userStats),
-      priorityLevel: determinePriority(achievement, userStats)
-    }))
-    .sort((a, b) => b.progressPercentage - a.progressPercentage)
-    .slice(0, 3); // Top 3 suggestions
-};
-```
-
-#### **Trophy Room Highlight**
-```typescript
-// Next Achievement Spotlight in Trophy Room
-interface AchievementSpotlight {
-  title: "🎯 NEXT TO UNLOCK";
-  achievement: Achievement;
-  progressText: string;        // "Marathon Runner (634/1000)"
-  motivationText: string;      // "💪 Just 366 more habits to go!"
-  timeEstimate: string;        // "~4 months at current pace"
-  actionButton: string;        // "View Details"
-}
-```
-
-### Visual Design Requirements
-
-#### **Progress Bar Styling**
-```typescript
-interface ProgressBarStyles {
-  // Locked achievements
-  locked: {
-    trackColor: '#E0E0E0';      // Light gray track
-    fillColor: 'rgba(rarity, 0.3)';  // Dimmed rarity color
-    height: 4;
-    borderRadius: 2;
-    opacity: 0.7;
-  };
-  
-  // Unlocked achievements  
-  unlocked: {
-    trackColor: '#E0E0E0';
-    fillColor: 'rarity_color';   // Full rarity color
-    height: 4;
-    borderRadius: 2;
-    opacity: 1.0;
-  };
-}
-```
-
-#### **Tooltip Modal Design**
-```typescript
-interface TooltipModalStyles {
-  container: {
-    maxWidth: '85%';
-    backgroundColor: Colors.white;
-    borderRadius: 16;
-    padding: 20;
-    borderWidth: 2;
-    borderColor: 'achievement_rarity_color';
-  };
-  
-  header: {
-    flexDirection: 'row';
-    alignItems: 'center';
-    marginBottom: 16;
-  };
-  
-  progressSection: {
-    marginVertical: 12;
-    padding: 12;
-    backgroundColor: Colors.backgroundSecondary;
-    borderRadius: 8;
-  };
-}
-```
+### Quality Standards - Preview System
+- **Progress text**: Must show current/target format `"(75/100)"`
+- **Requirement text**: Must be user-friendly, no technical jargon
+- **Action hints**: Must provide specific guidance
+- **Estimated time**: Must calculate realistic completion estimates
 
 ---
 
-## Achievement Celebration Modal System 🎊
+## Celebration System
 
-### 🌟 Core Concept
-
-Every achievement unlock triggers a celebration modal with rarity-based theming. The celebration system creates memorable moments that reinforce positive behavior and motivate continued engagement.
-
-### Mandatory Celebration Features
+### Achievement Celebration Requirements
 
 **ALL achievement celebrations MUST include:**
 - ✅ **Rarity-based color theming** - Every modal styled by achievement rarity
@@ -1219,441 +652,71 @@ Every achievement unlock triggers a celebration modal with rarity-based theming.
 - ✅ **Sound effects** - Audio celebration matching rarity level
 - ✅ **Queue system** - Multiple achievements display sequentially
 
-### Rarity-Based Color Theming System
-
-#### **Rarity Color Specifications**
+### Rarity-Based XP & Theming
 ```typescript
-interface RarityColorTheme {
-  // Primary colors (MANDATORY)
-  primary: string;        // Main theme color
-  secondary: string;      // Supporting color
-  accent: string;         // Highlight color
-  
-  // UI elements
-  background: string;     // Modal background tint
-  border: string;         // Modal border color
-  shadow: string;         // Shadow color
-  text: string;          // Primary text color
-  
-  // Effects
-  glow: string;          // Glow effect color
-  particle: string;      // Particle effect color
-}
+// XP Rewards by Rarity
+COMMON: 50 XP      // Gray theme
+RARE: 100 XP       // Blue theme  
+EPIC: 200 XP       // Purple theme
+LEGENDARY: 500 XP  // Gold theme
 
-const RARITY_COLOR_THEMES: Record<AchievementRarity, RarityColorTheme> = {
-  [AchievementRarity.COMMON]: {
-    primary: '#9E9E9E',      // Gray
-    secondary: '#BDBDBD',    // Light gray
-    accent: '#757575',       // Dark gray
-    background: 'rgba(158, 158, 158, 0.1)',
-    border: '#9E9E9E',
-    shadow: 'rgba(158, 158, 158, 0.3)',
-    text: '#424242',
-    glow: 'rgba(158, 158, 158, 0.5)',
-    particle: '#E0E0E0'
-  },
-  
-  [AchievementRarity.RARE]: {
-    primary: '#2196F3',      // Blue
-    secondary: '#64B5F6',    // Light blue
-    accent: '#1976D2',       // Dark blue
-    background: 'rgba(33, 150, 243, 0.1)',
-    border: '#2196F3',
-    shadow: 'rgba(33, 150, 243, 0.4)',
-    text: '#1565C0',
-    glow: 'rgba(33, 150, 243, 0.6)',
-    particle: '#BBDEFB'
-  },
-  
-  [AchievementRarity.EPIC]: {
-    primary: '#9C27B0',      // Purple
-    secondary: '#BA68C8',    // Light purple
-    accent: '#7B1FA2',       // Dark purple
-    background: 'rgba(156, 39, 176, 0.1)',
-    border: '#9C27B0',
-    shadow: 'rgba(156, 39, 176, 0.4)',
-    text: '#6A1B9A',
-    glow: 'rgba(156, 39, 176, 0.6)',
-    particle: '#E1BEE7'
-  },
-  
-  [AchievementRarity.LEGENDARY]: {
-    primary: '#FFD700',      // Gold
-    secondary: '#FFEB3B',    // Yellow
-    accent: '#FFA000',       // Orange gold
-    background: 'rgba(255, 215, 0, 0.15)',
-    border: '#FFD700',
-    shadow: 'rgba(255, 215, 0, 0.5)',
-    text: '#F57C00',
-    glow: 'rgba(255, 215, 0, 0.8)',
-    particle: '#FFF8E1'
-  }
-};
-```
-
-### Celebration Modal Components
-
-#### **Modal Structure**
-```typescript
-interface AchievementCelebrationModal {
-  // Core information
-  achievement: Achievement;
-  xpAwarded: number;
-  
-  // Visual elements
-  rarityTheme: RarityColorTheme;
-  celebrationIcon: string;        // Large achievement icon
-  rarityBadge: RarityBadge;      // Colored rarity indicator
-  
-  // Content sections
-  header: CelebrationHeader;      // Title with rarity theming
-  achievementDetails: AchievementDetails; // Name, description
-  completionInfo: CompletionInfo; // What user accomplished
-  xpReward: XPRewardDisplay;     // XP amount with animation
-  
-  // Interactive elements
-  continueButton: ThemedButton;   // Rarity-colored continue button
-  shareButton?: ShareButton;      // Optional social sharing
-  replayButton?: ReplayButton;    // Optional celebration replay
-}
-```
-
-#### **Celebration Header**
-```typescript
-interface CelebrationHeader {
-  title: string;                 // "Achievement Unlocked!" | "Rare Achievement!" | etc.
-  titleColor: string;           // Rarity theme color
-  icon: string;                 // Rarity-specific emoji (🏆💎🌟👑)
-  backgroundGlow: string;       // Subtle glow effect
-}
-
-const getCelebrationTitle = (rarity: AchievementRarity): string => {
-  const titles = {
-    [AchievementRarity.COMMON]: "Achievement Unlocked! 🏆",
-    [AchievementRarity.RARE]: "Rare Achievement! 💎", 
-    [AchievementRarity.EPIC]: "Epic Achievement! 🌟",
-    [AchievementRarity.LEGENDARY]: "Legendary Achievement! 👑"
-  };
-  return titles[rarity];
-};
-```
-
-#### **Completion Information Display**
-```typescript
-interface CompletionInfo {
-  // What the user accomplished
-  accomplishment: string;        // "Completed 100 habits total"
-  timeFrame: string;            // "Achieved in 143 days"
-  category: string;             // "Habits Category"
-  
-  // Context information
-  difficultyLevel: string;      // "Challenging achievement"
-  percentileRank?: string;      // "Top 15% of users"
-  streakInfo?: string;          // For streak-based achievements
-}
-
-const generateCompletionInfo = (achievement: Achievement, userStats: UserStats): CompletionInfo => {
-  return {
-    accomplishment: getAccomplishmentText(achievement),
-    timeFrame: calculateTimeFrame(achievement, userStats),
-    category: `${achievement.category} Category`,
-    difficultyLevel: getDifficultyLevel(achievement.rarity),
-    percentileRank: getPercentileRank(achievement),
-    streakInfo: getStreakInfo(achievement, userStats)
-  };
-};
-
-const getAccomplishmentText = (achievement: Achievement): string => {
-  const accomplishments = {
-    'first_steps': "Created your first habit",
-    'century_club': "Completed 100 habits total", 
-    'consistency_king': "Completed 1000 habits total",
-    'journal_enthusiast': "Wrote 100 journal entries",
-    'eternal_gratitude': "Maintained 100-day journal streak",
-    'achievement_unlocked': "Completed 10 goals",
-    // ... all 52 achievements
-  };
-  return accomplishments[achievement.id] || "Completed achievement requirements";
-};
-```
-
-### Haptic Feedback System
-
-#### **Rarity-Based Haptic Intensity**
-```typescript
-interface HapticFeedbackPattern {
-  intensity: 'light' | 'medium' | 'heavy';
-  pattern: 'single' | 'double' | 'triple';
-  duration: number;
-  interval?: number;            // For multi-pulse patterns
-}
-
-const RARITY_HAPTIC_PATTERNS: Record<AchievementRarity, HapticFeedbackPattern> = {
-  [AchievementRarity.COMMON]: {
-    intensity: 'light',
-    pattern: 'single',
-    duration: 100
-  },
-  
-  [AchievementRarity.RARE]: {
-    intensity: 'medium', 
-    pattern: 'single',
-    duration: 150
-  },
-  
-  [AchievementRarity.EPIC]: {
-    intensity: 'heavy',
-    pattern: 'double',
-    duration: 200,
-    interval: 150
-  },
-  
-  [AchievementRarity.LEGENDARY]: {
-    intensity: 'heavy',
-    pattern: 'triple', 
-    duration: 250,
-    interval: 200
-  }
-};
-```
-
-### Sound Effects System
-
-#### **Rarity-Based Audio Cues**
-```typescript
-interface SoundEffect {
-  audioFile: string;
-  volume: number;
-  pitch?: number;
-  reverb?: boolean;
-}
-
-const RARITY_SOUND_EFFECTS: Record<AchievementRarity, SoundEffect> = {
-  [AchievementRarity.COMMON]: {
-    audioFile: 'achievement_common.mp3',
-    volume: 0.6
-  },
-  
-  [AchievementRarity.RARE]: {
-    audioFile: 'achievement_rare.mp3', 
-    volume: 0.7,
-    pitch: 1.1
-  },
-  
-  [AchievementRarity.EPIC]: {
-    audioFile: 'achievement_epic.mp3',
-    volume: 0.8,
-    pitch: 1.2,
-    reverb: true
-  },
-  
-  [AchievementRarity.LEGENDARY]: {
-    audioFile: 'achievement_legendary.mp3',
-    volume: 0.9,
-    pitch: 1.3,
-    reverb: true
-  }
-};
-```
-
-### Queue Management System
-
-#### **Sequential Modal Display**
-```typescript
-interface CelebrationQueue {
-  celebrations: CelebrationModal[];
-  currentIndex: number;
-  isDisplaying: boolean;
-  intervalDelay: number;         // 2000ms between modals
-}
-
-const manageCelebrationQueue = async (queue: CelebrationQueue): Promise<void> => {
-  if (queue.isDisplaying || queue.celebrations.length === 0) return;
-  
-  queue.isDisplaying = true;
-  
-  for (let i = 0; i < queue.celebrations.length; i++) {
-    queue.currentIndex = i;
-    
-    // Display current celebration
-    await displayCelebrationModal(queue.celebrations[i]);
-    
-    // Wait for user to close modal
-    await waitForModalClose();
-    
-    // 2-second interval before next modal (if not last)
-    if (i < queue.celebrations.length - 1) {
-      await sleep(2000);
-    }
-  }
-  
-  // Clear queue and reset state
-  queue.celebrations = [];
-  queue.currentIndex = -1;
-  queue.isDisplaying = false;
-};
-```
-
-### Animation System
-
-#### **Entrance Animations**
-```typescript
-interface CelebrationAnimation {
-  entrance: AnimationConfig;
-  content: AnimationConfig; 
-  exit: AnimationConfig;
-}
-
-const getCelebrationAnimation = (rarity: AchievementRarity): CelebrationAnimation => {
-  const baseAnimation = {
-    entrance: {
-      type: 'spring',
-      tension: 100,
-      friction: 8,
-      duration: 400
-    },
-    content: {
-      type: 'sequential',
-      delay: 200,
-      stagger: 100
-    },
-    exit: {
-      type: 'timing',
-      duration: 300,
-      easing: 'easeOut'
-    }
-  };
-  
-  // Enhanced animations for higher rarities
-  if (rarity === AchievementRarity.LEGENDARY) {
-    return {
-      ...baseAnimation,
-      entrance: {
-        ...baseAnimation.entrance,
-        tension: 150,
-        withParticles: true,
-        glowEffect: true
-      }
-    };
-  }
-  
-  return baseAnimation;
-};
-```
-
-### Accessibility Requirements
-
-#### **Screen Reader Support**
-```typescript
-interface AccessibilityFeatures {
-  announcements: ScreenReaderAnnouncement[];
-  focusManagement: FocusManager;
-  highContrast: HighContrastSupport;
-  reduceMotion: MotionPreferences;
-}
-
-const generateAccessibilityAnnouncement = (achievement: Achievement, xp: number): string => {
-  return `Achievement unlocked: ${achievement.name}! ${achievement.rarity} rarity achievement earned ${xp} XP. ${achievement.description}`;
-};
-
-const getHighContrastColors = (rarity: AchievementRarity): RarityColorTheme => {
-  // High contrast versions of rarity colors for accessibility
-  const highContrastThemes = {
-    [AchievementRarity.COMMON]: { primary: '#000000', background: '#FFFFFF' },
-    [AchievementRarity.RARE]: { primary: '#0000FF', background: '#FFFFFF' },
-    [AchievementRarity.EPIC]: { primary: '#800080', background: '#FFFFFF' },
-    [AchievementRarity.LEGENDARY]: { primary: '#FF8C00', background: '#000000' }
-  };
-  
-  return highContrastThemes[rarity];
-};
+// Special Loyalty XP (higher rewards)
+LOYALTY_COMMON: 75 XP
+LOYALTY_RARE: 100-125 XP
+LOYALTY_EPIC: 150-300 XP
+LOYALTY_LEGENDARY: 500-2000 XP
 ```
 
 ---
 
-## Implementation Standards 🛠️
+## Testing & Validation
 
-### Component File Structure
-
-#### **Required Files**
+### Critical Test Scenarios
 ```typescript
-// Core preview system
-src/components/achievements/AchievementPreview.tsx       // Preview modal/tooltip
-src/components/achievements/ProgressHintDisplay.tsx     // Progress hints
-src/components/achievements/NextAchievementCard.tsx     // Suggestion card
-
-// Enhanced AchievementCard
-src/components/achievements/AchievementCard.tsx         // Updated with preview
-src/components/achievements/AchievementTooltip.tsx      // Smart tooltips
-
-// Celebration system  
-src/components/achievements/AchievementCelebrationModal.tsx  // Main celebration
-src/components/achievements/CelebrationQueue.tsx            // Queue management
-
-// Utilities
-src/utils/achievementPreviewUtils.ts                    // Progress calculations
-src/utils/celebrationThemeUtils.ts                     // Rarity theming
+describe('Achievement System Complete Testing', () => {
+  describe('Achievement ID Compliance', () => {
+    it('should validate all 52 achievement IDs follow kebab-case', () => {
+      // Test ID format compliance
+    });
+  });
+  
+  describe('Preview System Integration', () => {
+    it('should show progress hints for all locked achievements', () => {
+      // Test progress hint generation for all 52 achievements
+    });
+    
+    it('should display completion requirements clearly', () => {
+      // Test requirement text accuracy for all categories
+    });
+  });
+  
+  describe('Achievement Unlocking', () => {
+    it('should unlock achievements with correct XP rewards', () => {
+      // Test XP reward consistency with catalog
+    });
+    
+    it('should trigger appropriate celebrations', () => {
+      // Test rarity-based celebration system
+    });
+  });
+})
 ```
 
-#### **Integration Requirements**
+### Edge Cases Validation
 ```typescript
-// Must integrate with existing systems:
-- AchievementContext.tsx      // State management
-- AchievementService.ts       // Achievement logic
-- GamificationService.ts      // XP and stats
-- useAccessibility.ts         // Accessibility features
-- XpAnimationContext.tsx      // Haptic/sound effects
-```
-
-### Testing Requirements
-
-#### **Preview System Tests**
-```typescript
-describe('Achievement Preview System', () => {
-  it('should show progress hints for locked achievements', () => {
-    // Test progress hint generation
-  });
-  
-  it('should display completion requirements clearly', () => {
-    // Test requirement text accuracy
-  });
-  
-  it('should show completion info for unlocked achievements', () => {
-    // Test accomplished requirements display
-  });
-  
-  it('should suggest next achievable goals', () => {
-    // Test next achievement algorithm
-  });
-});
-```
-
-#### **Celebration System Tests**
-```typescript
-describe('Achievement Celebration System', () => {
-  it('should apply correct rarity theming', () => {
-    // Test color theme application
-  });
-  
-  it('should manage celebration queue properly', () => {
-    // Test sequential modal display
-  });
-  
-  it('should trigger appropriate haptic feedback', () => {
-    // Test rarity-based haptics
-  });
-  
-  it('should support accessibility features', () => {
-    // Test screen reader and high contrast
-  });
-});
+// Critical edge cases to test:
+1. New user with 0 progress → First achievement previews work
+2. Long-term user with mixed progress → Accurate progress calculation
+3. Achievement unlock edge cases → Proper celebration and XP award
+4. Multiple simultaneous unlocks → Queue system works correctly
+5. Data corruption scenarios → Graceful recovery
 ```
 
 ---
 
-## Success Metrics 📊
+## Success Metrics & Analytics
 
-### User Engagement Targets
+### Engagement Metrics
 - **Achievement Interaction**: 40% increase in achievement card taps
 - **Preview Usage**: 60% of users engage with preview tooltips
 - **Next Achievement Focus**: 25% increase in targeted achievement pursuit
@@ -1661,8 +724,8 @@ describe('Achievement Celebration System', () => {
 
 ### Technical Performance
 - **Preview Load Time**: <100ms for tooltip display
+- **Achievement Evaluation**: <200ms for achievement check
 - **Celebration Display**: <200ms from trigger to modal
-- **Queue Processing**: <50ms between celebrations
 - **Memory Usage**: <2MB additional memory footprint
 
 ---
@@ -1671,4 +734,4 @@ describe('Achievement Celebration System', () => {
 
 ---
 
-*This Achievement Preview and Celebration system creates a comprehensive achievement experience where users understand requirements, track progress transparently, and celebrate victories with memorable, rarity-appropriate ceremonies.*
+*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of all 52 achievements creates a robust ecosystem designed for sustained user engagement.*
