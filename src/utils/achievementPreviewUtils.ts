@@ -2,6 +2,7 @@
 // Provides progress hints, requirements, and completion information for all achievements
 
 import { Achievement, AchievementRarity, AchievementCategory } from '../types/gamification';
+import { gratitudeStorage } from '../services/storage/gratitudeStorage';
 
 // ========================================
 // INTERFACES
@@ -81,6 +82,38 @@ export interface SmartTooltip {
 }
 
 // ========================================
+// HELPER FUNCTIONS
+// ========================================
+
+/**
+ * Helper function for deep-thinker achievement - checks if user has journal entries with ≥200 characters
+ */
+const checkDeepThinkingEntries = async (): Promise<{ hasDeepEntry: boolean; totalLongEntries: number; longestEntry: number }> => {
+  try {
+    const allEntries = await gratitudeStorage.getAll();
+    let totalLongEntries = 0;
+    let longestEntry = 0;
+    
+    for (const entry of allEntries) {
+      const contentLength = (entry.content || '').length;
+      longestEntry = Math.max(longestEntry, contentLength);
+      if (contentLength >= 200) {
+        totalLongEntries++;
+      }
+    }
+    
+    return {
+      hasDeepEntry: totalLongEntries > 0,
+      totalLongEntries,
+      longestEntry
+    };
+  } catch (error) {
+    console.error('Failed to check deep thinking entries:', error);
+    return { hasDeepEntry: false, totalLongEntries: 0, longestEntry: 0 };
+  }
+};
+
+// ========================================
 // PROGRESS HINT GENERATION
 // ========================================
 
@@ -90,6 +123,26 @@ export const generateProgressHint = (achievement: Achievement, userStats: UserSt
       return generateHabitProgressHint(achievement, userStats);
     case AchievementCategory.JOURNAL:
       return generateJournalProgressHint(achievement, userStats);
+    case AchievementCategory.GOALS:
+      return generateGoalProgressHint(achievement, userStats);
+    case AchievementCategory.CONSISTENCY:
+      return generateConsistencyProgressHint(achievement, userStats);
+    case AchievementCategory.MASTERY:
+      return generateMasteryProgressHint(achievement, userStats);
+    case AchievementCategory.SPECIAL:
+      return generateSpecialProgressHint(achievement, userStats);
+    default:
+      return getDefaultProgressHint(achievement);
+  }
+};
+
+// Asynchronous version for achievements that need async data
+export const generateProgressHintAsync = async (achievement: Achievement, userStats: UserStats): Promise<ProgressHint> => {
+  switch (achievement.category) {
+    case AchievementCategory.HABITS:
+      return generateHabitProgressHint(achievement, userStats);
+    case AchievementCategory.JOURNAL:
+      return await generateJournalProgressHintAsync(achievement, userStats);
     case AchievementCategory.GOALS:
       return generateGoalProgressHint(achievement, userStats);
     case AchievementCategory.CONSISTENCY:
@@ -133,7 +186,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
       const completed = Math.min(userStats.totalHabitCompletions, 100);
       return {
         progressText: `Complete 100 habits (${completed}/100)`,
-        progressPercentage: completed,
+        progressPercentage: (completed / 100) * 100,
         isCompleted: completed >= 100,
         requirementText: "Complete 100 habit tasks total",
         actionHint: "Keep completing your daily habits!",
@@ -144,7 +197,7 @@ const generateHabitProgressHint = (achievement: Achievement, userStats: UserStat
       const total = Math.min(userStats.totalHabitCompletions, 1000);
       return {
         progressText: `Complete 1000 habits (${total}/1000)`,
-        progressPercentage: total / 10, // Scale for display
+        progressPercentage: (total / 1000) * 100,
         isCompleted: total >= 1000,
         requirementText: "Complete 1000 habit tasks total",
         actionHint: "You're building amazing consistency!",
@@ -210,19 +263,20 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
       };
       
     case 'deep-thinker':
+      // Synchronous fallback - shows progress as pending async load
       return {
-        progressText: "Write a journal entry with at least 200 characters",
-        progressPercentage: 0, // Would need to track character counts
+        progressText: "Checking your thoughtful entries...",
+        progressPercentage: 0,
         isCompleted: false,
         requirementText: "Write a journal entry with at least 200 characters",
-        actionHint: "Express yourself fully in your next journal entry!"
+        actionHint: "Express yourself fully in your next journal entry! (Use async version for real progress)"
       };
       
     case 'journal-enthusiast':
       const entries = Math.min(userStats.totalJournalEntries, 100);
       return {
         progressText: `Write 100 journal entries (${entries}/100)`,
-        progressPercentage: entries,
+        progressPercentage: (entries / 100) * 100,
         isCompleted: entries >= 100,
         requirementText: "Write 100 journal entries total",
         actionHint: "Keep expressing gratitude daily!",
@@ -266,7 +320,7 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
       const streak100 = Math.min(userStats.longestJournalStreak, 100);
       return {
         progressText: `Achieve 100-day streak (best: ${userStats.longestJournalStreak} days)`,
-        progressPercentage: streak100,
+        progressPercentage: (streak100 / 100) * 100,
         isCompleted: userStats.longestJournalStreak >= 100,
         requirementText: "Maintain a 100-day journal streak",
         actionHint: "Incredible dedication to gratitude!",
@@ -286,6 +340,38 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
       
     default:
       return getDefaultProgressHint(achievement);
+  }
+};
+
+// Async version for journal achievements that need real-time data
+const generateJournalProgressHintAsync = async (achievement: Achievement, userStats: UserStats): Promise<ProgressHint> => {
+  switch (achievement.id) {
+    case 'first-journal':
+      return {
+        progressText: userStats.journalEntries === 0 ? "Write your first gratitude entry!" : "✅ First reflection completed!",
+        progressPercentage: userStats.journalEntries > 0 ? 100 : 0,
+        isCompleted: userStats.journalEntries > 0,
+        requirementText: "Write your first gratitude journal entry",
+        actionHint: "Go to Journal tab and write your first entry!"
+      };
+      
+    case 'deep-thinker':
+      const deepThinkingData = await checkDeepThinkingEntries();
+      return {
+        progressText: deepThinkingData.hasDeepEntry 
+          ? `✅ Deep thinking achieved! (${deepThinkingData.totalLongEntries} entries ≥200 chars)`
+          : `Write thoughtfully (longest: ${deepThinkingData.longestEntry} chars, need: 200+)`,
+        progressPercentage: deepThinkingData.hasDeepEntry ? 100 : Math.min((deepThinkingData.longestEntry / 200) * 100, 99),
+        isCompleted: deepThinkingData.hasDeepEntry,
+        requirementText: "Write a journal entry with at least 200 characters",
+        actionHint: deepThinkingData.hasDeepEntry 
+          ? "You've mastered thoughtful reflection!" 
+          : `Express yourself more fully! You need ${Math.max(0, 200 - deepThinkingData.longestEntry)} more characters.`
+      };
+      
+    default:
+      // For other journal achievements, use the sync version
+      return generateJournalProgressHint(achievement, userStats);
   }
 };
 
@@ -393,7 +479,7 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
       const centStreak = Math.min(userStats.longestHabitStreak, 100);
       return {
         progressText: `Reach 100 days consistency (best: ${userStats.longestHabitStreak} days)`,
-        progressPercentage: centStreak,
+        progressPercentage: (centStreak / 100) * 100,
         isCompleted: userStats.longestHabitStreak >= 100,
         requirementText: "Reach 100 days of consistency",
         actionHint: "Legendary consistency achievement!"
@@ -479,7 +565,7 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
       const level100 = Math.min(userStats.currentLevel, 100);
       return {
         progressText: `Reach level 100 (current: Level ${userStats.currentLevel})`,
-        progressPercentage: level100,
+        progressPercentage: (level100 / 100) * 100,
         isCompleted: userStats.currentLevel >= 100,
         requirementText: "Reach level 100",
         actionHint: "Ultimate legend status - incredible!"
