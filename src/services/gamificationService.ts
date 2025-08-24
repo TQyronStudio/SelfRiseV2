@@ -1521,6 +1521,24 @@ export class GamificationService {
     triggerSource: XPSourceType
   ): Promise<void> {
     try {
+      // CRITICAL: Prevent duplicate level-up storage from race conditions
+      const levelUpHistory = await this.getLevelUpHistory();
+      const now = Date.now();
+      
+      // Check for recent duplicate level-up (within last 2 seconds for same level transition)
+      const recentDuplicate = levelUpHistory.find(event => {
+        const timeDiff = now - event.timestamp.getTime();
+        return timeDiff < 2000 && // Within 2 seconds
+               event.previousLevel === previousLevel &&
+               event.newLevel === newLevel &&
+               event.totalXPAtLevelUp === totalXP;
+      });
+      
+      if (recentDuplicate) {
+        console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 2s)`);
+        return;
+      }
+
       const levelUpEvent: LevelUpEvent = {
         id: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date(),
@@ -1533,7 +1551,6 @@ export class GamificationService {
         shown: false, // Track if modal has been shown to user
       };
 
-      const levelUpHistory = await this.getLevelUpHistory();
       levelUpHistory.push(levelUpEvent);
 
       // Keep only last 100 level-up events for performance

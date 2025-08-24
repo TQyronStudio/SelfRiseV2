@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { DeviceEventEmitter } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { XPSourceType } from '../types/gamification';
+import CelebrationModal from '../components/gratitude/CelebrationModal';
 
 // ========================================
 // TYPES AND INTERFACES
@@ -22,6 +23,15 @@ interface XpGain {
   timestamp: number;
 }
 
+interface LevelUpModalData {
+  visible: boolean;
+  level: number;
+  title: string;
+  description?: string;
+  isMilestone: boolean;
+  timestamp: number;
+}
+
 interface XpAnimationState {
   activePopups: XpPopupData[];
   pendingNotifications: XpGain[];
@@ -30,6 +40,8 @@ interface XpAnimationState {
   isHapticsEnabled: boolean;
   isSoundEnabled: boolean;
   lastNotificationTime: number;
+  // Level-up celebration modal
+  levelUpModal: LevelUpModalData;
 }
 
 interface XpAnimationContextValue {
@@ -44,6 +56,10 @@ interface XpAnimationContextValue {
   // Smart notification system
   showSmartNotification: (amount: number, source: XPSourceType) => void;
   dismissNotification: () => void;
+  
+  // Level-up celebration modal
+  showLevelUpModal: (level: number, title: string, description?: string, isMilestone?: boolean) => void;
+  hideLevelUpModal: () => void;
   
   // Settings
   toggleAnimations: (enabled: boolean) => void;
@@ -78,6 +94,15 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     isHapticsEnabled: true,
     isSoundEnabled: true,
     lastNotificationTime: 0,
+    // Level-up celebration modal
+    levelUpModal: {
+      visible: false,
+      level: 0,
+      title: '',
+      description: '',
+      isMilestone: false,
+      timestamp: 0,
+    },
   });
 
   // Create a ref for the showXpPopup function to avoid dependency issues
@@ -256,6 +281,51 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     };
   }, []);
   
+  // ========================================
+  // LEVEL-UP MODAL MANAGEMENT (defined early for useEffect dependencies)
+  // ========================================
+
+  const showLevelUpModal = useCallback((level: number, title: string, description?: string, isMilestone: boolean = false) => {
+    console.log(`🎆 Showing level-up modal: Level ${level} (${title})`);
+    
+    setState(prev => ({
+      ...prev,
+      levelUpModal: {
+        visible: true,
+        level,
+        title,
+        description: description || '',
+        isMilestone,
+        timestamp: Date.now(),
+      },
+    }));
+    
+    // Trigger celebration effects (using direct Haptics calls to avoid dependency issues)
+    if (state.isHapticsEnabled) {
+      try {
+        if (isMilestone) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        } else {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+      } catch (error) {
+        console.log('Level-up haptic feedback not available:', error);
+      }
+    }
+  }, [state.isHapticsEnabled, state.isSoundEnabled]);
+
+  const hideLevelUpModal = useCallback(() => {
+    console.log(`💫 Hiding level-up modal`);
+    
+    setState(prev => ({
+      ...prev,
+      levelUpModal: {
+        ...prev.levelUpModal,
+        visible: false,
+      },
+    }));
+  }, []);
+  
   // Listen for global XP animation events from GamificationService
   useEffect(() => {
     const handleXPGained = (eventData: any) => {
@@ -273,7 +343,14 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     const handleLevelUp = (eventData: any) => {
       if (eventData && eventData.newLevel && eventData.levelTitle) {
         console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
-        // TODO: Implement global level-up celebration modal
+        
+        // IMPLEMENTED: Global level-up celebration modal
+        showLevelUpModal(
+          eventData.newLevel,
+          eventData.levelTitle,
+          eventData.levelDescription,
+          eventData.isMilestone || false
+        );
       }
     };
 
@@ -287,7 +364,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       smartNotificationSubscription?.remove();
       levelUpSubscription?.remove();
     };
-  }, [showSmartNotification]);
+  }, [showSmartNotification, showLevelUpModal]);
 
   // ========================================
   // ANIMATION MANAGEMENT
@@ -425,6 +502,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     }
   }, [state.isSoundEnabled, triggerHapticFeedback]);
 
+
   // ========================================
   // CONTEXT VALUE
   // ========================================
@@ -436,6 +514,10 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     clearAllPopups,
     showSmartNotification,
     dismissNotification,
+    // Level-up modal management
+    showLevelUpModal,
+    hideLevelUpModal,
+    // Settings and feedback
     toggleAnimations,
     toggleHaptics,
     toggleSounds,
@@ -446,6 +528,21 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   return (
     <XpAnimationContext.Provider value={contextValue}>
       {children}
+      
+      {/* Level-up Celebration Modal */}
+      <CelebrationModal
+        visible={state.levelUpModal.visible}
+        onClose={hideLevelUpModal}
+        type="level_up"
+        levelUpData={{
+          previousLevel: state.levelUpModal.level - 1,
+          newLevel: state.levelUpModal.level,
+          levelTitle: state.levelUpModal.title,
+          ...(state.levelUpModal.description && { levelDescription: state.levelUpModal.description }),
+          isMilestone: state.levelUpModal.isMilestone,
+        }}
+        disableXpAnimations={false} // Enable XP animation feedback
+      />
     </XpAnimationContext.Provider>
   );
 };
