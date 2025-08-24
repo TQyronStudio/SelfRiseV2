@@ -1432,433 +1432,202 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - **Differentiation**: Unique gamification approach vs. standard habit trackers
 - **Monetization**: Revenue integration maintaining user experience quality
 
+---
+
+## 🚨 **KRITICKÁ CHYBA: Level-up System Corruption** 
+**Discovered**: 24.8.2025 - Multiple fatal bugs v gamification core
+
+### **Identifikované Problémy**:
+1. **🔄 Duplicate Level-up Storage**: Stejný level-up ukládán vícekrát s různými IDs
+2. **⏰ Delayed Modal Display**: Level-up modal chybí při actual level-up, objevuje se až později  
+3. **📊 XP Bar Desynchronization**: Progress bar shows incorrect values po level-up
+4. **♻️ Modal Repetition Bug**: Level-up modal se opakuje při každém screen switch
+
+### **Impact na User Experience**:
+- **Level-up moment**: Žádná okamžitá gratulace při dosažení nového levelu
+- **Visual corruption**: XP progress bar ukazuje nesprávné hodnoty (plný místo 1-2%)
+- **Modal spam**: Uživatel vidí stejný level-up modal opakovaně
+- **Broken celebration**: Kompletně rozbitá core gamification experience
+
+### **Root Cause Hypotézy**:
+- **Race conditions** v `GamificationService.addXP()` batch processing
+- **Cache corruption** v level calculation během XP updates
+- **Async/sync mismatch** mezi modal system a level detection
+- **Component state issues** v `OptimizedXpProgressBar` rendering
+
+**🎯 Status**: **DEEP RESEARCH COMPLETED** ✅ - Root causes identified
+
+### **🔍 Deep Analysis Results**:
+
+#### **❌ PROBLÉM #1: DUPLICATE LEVEL-UP STORAGE** ✅ CONFIRMED
+**Root Cause**: Race condition mezi optimistic updates a batch commit system
+- Optimistic update volá `performXPAddition()` → `storeLevelUpEvent()`
+- Batch commit **ALSO** volá `performXPAddition()` → `storeLevelUpEvent()` 
+- **Result**: Stejný level-up stored 2x with different IDs
+- **File**: `gamificationService.ts:990` (optimistic) + `gamificationService.ts:521` (batch)
+
+#### **❌ PROBLÉM #2: MISSING IMMEDIATE LEVEL-UP MODAL** ✅ CONFIRMED  
+**Root Cause**: Level-up celebration je **NEIMPLEMENTOVÁNA**!
+- `XpAnimationContext.handleLevelUp()` contains `// TODO: Implement global level-up celebration modal`
+- Level-up event triggers correctly, ale modal code **CHYBÍ**
+- **File**: `XpAnimationContext.tsx:276` - TODO comment instead of implementation
+
+#### **❌ PROBLÉM #3: MYSTERIÓZNÍ DEBOUNCED SYSTEM** ⚠️ PARTIALLY IDENTIFIED
+**Root Cause**: Ghost modal queue system **NOT FOUND in codebase**
+- Log shows "🔍 Starting debounced level-up check..." - **SOURCE UNKNOWN**
+- "🎭 Processing modal queue" - **CODE NOT LOCATED**
+- Možná build-time generated, external dependency, nebo hidden branch
+
+#### **❌ PROBLÉM #4: XP BAR CACHE CORRUPTION** ✅ ROOT CAUSE IDENTIFIED
+**Root Cause**: `OptimizedXpProgressBar` level boundary caching issues
+- Component refreshes na `levelUp` event ale používá cached level boundaries
+- Shows ~95% progress instead of correct 1-2% po level-up
+- **File**: `OptimizedXpProgressBar.tsx` - level calculation cache problems
+
+### **🔧 SYSTEMATIC REPAIR PLAN** - Level-up System Recovery
+
+#### **PHASE 1: CRITICAL RACE CONDITION FIXES** ⚡ (1 hodina)
+
+**1.1 Fix Duplicate Level-up Storage** (30 minut) - **HIGHEST PRIORITY**
+- [ ] **Target**: `gamificationService.ts:990` + `gamificationService.ts:521`
+- [ ] **Solution**: Add `levelUpAlreadyStored` flag to prevent double storage
+- [ ] **Implementation**:
+  ```typescript
+  // In optimistic update: Mark level-up as handled
+  if (leveledUp && !options.metadata?.skipLevelUpStorage) {
+    await this.storeLevelUpEvent(...)
+    options.metadata = { ...options.metadata, levelUpAlreadyStored: true }
+  }
+  
+  // In batch commit: Skip if already stored
+  if (leveledUp && !options.metadata?.levelUpAlreadyStored) {
+    await this.storeLevelUpEvent(...)
+  }
+  ```
+- [ ] **Validation**: Test s multiple habit completions → pouze 1 level-up record
+
+**1.2 Implement Immediate Level-up Modal** (30 minut) - **CRITICAL UX**
+- [ ] **Target**: `XpAnimationContext.tsx:276`
+- [ ] **Replace TODO with actual implementation**:
+  ```typescript
+  const handleLevelUp = (eventData: any) => {
+    if (eventData?.newLevel && eventData?.levelTitle) {
+      // Immediate modal display - NO DELAY
+      setState(prev => ({
+        ...prev,
+        levelUpModal: {
+          visible: true,
+          level: eventData.newLevel,
+          title: eventData.levelTitle,
+          description: eventData.levelDescription,
+          isMilestone: eventData.isMilestone
+        }
+      }))
+    }
+  }
+  ```
+- [ ] **Add**: Modal component s proper celebration theming
+- [ ] **Validation**: Level-up shows modal INSTANTLY při XP gain
+
+#### **PHASE 2: GHOST SYSTEM ELIMINATION** 🔍 (45 minut)
+
+**2.1 Locate Mystery Debounced System** (30 minut)
+- [ ] **Deep search strategy**:
+  - Search for "debounced.*level" in build artifacts
+  - Check dynamic imports in Achievement/Gamification services  
+  - Review DeviceEventEmitter listeners for hidden subscriptions
+  - Examine any external gamification libraries
+- [ ] **Hypothesis**: Kod může být v:
+  - Minified/compiled dependencies 
+  - Conditionally imported modules
+  - Legacy achievement context remnants
+
+**2.2 Disable Ghost Modal Queue** (15 minut)
+- [ ] **Strategy**: If found - disable/remove immediately
+- [ ] **Fallback**: Add override flag to prevent ghost modals
+- [ ] **Cleanup**: Remove any abandoned level-up tracking storage
+
+#### **PHASE 3: XP BAR SYNCHRONIZATION FIX** 📊 (30 minut)
+
+**3.1 Fix Progress Bar Cache Invalidation**
+- [ ] **Target**: `OptimizedXpProgressBar.tsx:98` (levelUp listener)
+- [ ] **Problem**: Component caches old level boundaries
+- [ ] **Solution**: Force boundary recalculation on level-up
+  ```typescript
+  const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', async () => {
+    // CRITICAL: Clear level calculation cache FIRST
+    clearLevelCalculationCache()
+    // THEN fetch new data
+    await fetchGamificationData()
+    // Force progress bar reset for new level
+    progressAnim.setValue(0)
+  })
+  ```
+- [ ] **Add**: Cache invalidation mechanism v levelCalculation.ts
+
+#### **PHASE 4: COMPREHENSIVE TESTING & VALIDATION** 🧪 (45 minut)
+
+**4.1 Level-up Flow Integration Testing** (30 minut)
+- [ ] **Test Scenario 1**: Single habit completion → level-up
+  - ✅ Only 1 level-up stored (not 2)
+  - ✅ Immediate modal appears (not delayed)
+  - ✅ XP bar shows correct progress (1-2%, not 95%)
+  
+- [ ] **Test Scenario 2**: Multiple rapid actions → level-up  
+  - ✅ Batch processing works correctly
+  - ✅ No duplicate celebrations
+  - ✅ Modal timing is consistent
+
+- [ ] **Test Scenario 3**: Screen navigation during level-up
+  - ✅ Modal doesn't repeat on return
+  - ✅ Progress bar stays synchronized
+  - ✅ No ghost modals appear
+
+**4.2 Regression Testing** (15 minut)
+- [ ] **XP batching still works** (no broken optimistic updates)
+- [ ] **Achievement unlocks unaffected** (separate modal system)
+- [ ] **Performance maintained** (no additional render cycles)
+
+#### **PHASE 5: PRODUCTION READINESS** 🚀 (15 minut)
+
+**5.1 Error Handling & Resilience**
+- [ ] **Graceful degradation**: Level-up failures don't break core functionality
+- [ ] **Logging enhancement**: Clear level-up flow tracking for debugging
+- [ ] **Memory cleanup**: Remove old duplicate level-up records
+
+**5.2 Documentation Update**
+- [ ] **Update**: technical-guides:Gamification.md s corrected level-up flow
+- [ ] **Add**: Level-up architecture diagram pro future developers
+
+---
+
+### **🎯 SUCCESS CRITERIA**
+
+**✅ PASS Requirements:**
+- [ ] Level-up modal appears **IMMEDIATELY** při dosažení new level (0s delay)
+- [ ] **ONLY 1 level-up record** stored per actual level increase
+- [ ] XP progress bar shows **correct percentage** (1-3%) po level-up
+- [ ] **NO repeated modals** při screen navigation
+- [ ] Ghost/phantom level-up modals **COMPLETELY ELIMINATED**
+
+**🔴 FAIL Indicators:**
+- Any duplicate level-up storage detected
+- Level-up modal delay >500ms from XP action
+- XP bar showing wrong progress po level-up  
+- Modal repetition on screen switches
+- Any mysterious "debounced level-up" logs
+
+**⏱️ TOTAL ESTIMATED TIME: 3.25 hours**
+**🚨 PRIORITY LEVEL: CRITICAL** - Core gamification UX completely broken
+
+---
+
 ## Next Development Priorities
-1. **XP System Testing TRUE Unification**
+1. **🚨 URGENT: Level-up System Bug Fix** - Critical gamification corruption
 2. Settings & Authentication UI completion
 3. Firebase/AdMob production integration  
 4. Comprehensive quality assurance validation
 5. App store submission preparation
 6. Launch marketing strategy execution
-
----
-
-## Achievement Preview System Critical Repair Plan 🚨
-
-### 🟢 SYSTEM STATUS: ČÁSTEČNĚ FUNKČNÍ - Kritické Chyby Opraveny ✅
-
-**Aktuální Stav**: Achievement Preview System má opravenou core logiku, 25/52 achievements funguje správně  
-**Funkčnost**: 48% (core ID mismatches vyřešeny, zbývá implementovat 27 achievements)
-**Impact**: Uživatelé nyní vidí progress hints, tooltips a completion info pro 25 achievements
-
----
-
-## **FÁZE 1: KRITICKÁ OPRAVA - Achievement ID Unification** ⚡ ✅ DOKONČENO
-
-### **Problém #1: Systémová Nekompatibilita Achievement IDs** ✅ VYŘEŠENO
-**Závažnost**: ~~KRITICKÁ~~ → **OPRAVENO**
-**Příčina**: ~~Achievement Preview System hledá IDs ve formátu `"first_steps"`, ale skutečné achievementy používají `"first-habit"`~~
-**Řešení**: Všechny IDs sjednoceny na kebab-case format, 33 ID corrections applied, 25/52 achievements nyní funkčních
-
-#### **1.1 Kompletní Achievement ID Audit** (1 hodina) ✅ DOKONČENO
-- [x] **Audit achievementCatalog.ts**: 
-  - Projít všech 52 achievementů a zdokumentovat skutečné ID formáty
-  - Vytvořit mapping tabulku: Co system hledá vs. Co skutečně existuje
-- [x] **Audit achievementPreviewUtils.ts**:
-  - Identifikovat všechny hardcoded achievement IDs v switch statements
-  - Spočítat kolik IDs je wrong (odhadovaně 25-30)
-- [x] **Pattern Analysis**:
-  - Determine consistent naming convention (kebab-case vs snake_case)
-  - **Recommendation**: Standardizovat na kebab-case (`"first-habit"`)
-- ✅ **Výsledek**: 23 ID mismatches found, 27 missing implementations, 1.9% → 48% target
-
-#### **1.2 Mass ID Correction** (2 hodiny) ✅ DOKONČENO
-- [x] **achievementPreviewUtils.ts - Systematic Replacement**:
-  ```typescript
-  // PŘED (neexistující IDs):
-  case 'first_steps':           // ❌ NEEXISTUJE
-  case 'habit_builder':         // ❌ NEEXISTUJE  
-  case 'century_club':          // ❌ NEEXISTUJE
-  case 'consistency_king':      // ❌ NEEXISTUJE
-  case 'habit_streak_champion': // ❌ NEEXISTUJE
-  
-  // PO (skutečné IDs z cataloue):
-  case 'first-habit':           // ✅ EXISTUJE
-  case 'habit-builder':         // ✅ EXISTUJE
-  case 'century-club':          // ✅ EXISTUJE
-  case 'consistency-king':      // ✅ EXISTUJE
-  case 'habit-streak-champion': // ✅ EXISTUJE
-  ```
-
-- [x] **Všechny kategorie systématicky opravit**:
-  - ✅ Habits: 8 achievementů - všechny IDs opraveny (first_steps → first-habit, atd.)
-  - ✅ Journal: 8 achievementů - všechny IDs opraveny (first_reflection → first-journal, atd.)
-  - ✅ Goals: 7 achievementů - všechny IDs opraveny (first_vision → first-goal, atd.)
-  - ✅ Consistency: 8 achievementů - všechny IDs opraveny (centurion → hundred-days, atd.)
-  - ✅ Mastery: 9 achievementů - všechny IDs opraveny (trophy_collector → trophy-collector-basic, atd.)
-  - ⚠️ Special: 4 achievementů - nebyly implementovány v preview utils (očekávané)
-  - ⚠️ Loyalty: 10 achievementů - nebyly implementovány v preview utils (očekávané)
-
-#### **1.3 ID Validation Test** (0.5 hodiny) ✅ DOKONČENO
-- [x] **Automated Verification Script**:
-  - Created achievementIDValidationTest.ts
-  - Automated detection of ID mismatches
-  - Confirmed all 25 implemented achievements now work
-- ✅ **Výsledek**: System functionality 1.9% → **48%** (25/52 achievements working)
-  ```typescript
-  // Test script na ověření, že všechny IDs v preview systému existují
-  const validateAchievementIDs = () => {
-    const previewIDs = extractIDsFromPreviewUtils();
-    const catalogIDs = CORE_ACHIEVEMENTS.map(a => a.id);
-    const missingIDs = previewIDs.filter(id => !catalogIDs.includes(id));
-    console.log('Missing IDs:', missingIDs); // Must be empty array
-  };
-  ```
-
-#### **1.4 Missing Achievement Implementation** (3 hodiny) ✅ **DOKONČENO**
-**🎯 VÝSLEDEK**: Plán opravený a všech 52 achievements má nyní funkční preview logic!
-
-- [x] **Special Category Achievements (4 achievements)** ✅:
-  - `lightning-start`: Create and complete habit same day 3x
-  - `seven-wonder`: Have 7+ active habits simultaneously  
-  - `persistence-pays`: Resume after 3+ day break, complete 7 activities
-  - `legendary-master`: Complete 10 goals + 500 habits + 365 entries
-
-- [x] **Loyalty Achievements (10 achievements)** ✅:
-  - `loyalty-first-week` through `loyalty-master`
-  - All based on total active days tracking
-  - Loyalty-specific progress hints and completion logic implemented
-
-- [x] **Missing Consistency Achievements (2 achievements)** ✅:
-  - `perfect-month`: 28+ days all 3 features monthly
-  - `triple-crown`: 7+ day streaks in all categories simultaneously
-  
-- [x] **Missing Mastery Achievements (2 achievements)** ✅:  
-  - `recommendation-master`: Follow 20 recommendations
-  - `balance-master`: Use all 3 features same day 10x
-
-- [x] **Extended UserStats interface with new tracking fields** ✅
-- [x] **Updated userStatsCollector with Special achievement data sources** ✅ 
-- [x] **Added accomplishment texts for all 27 new achievements** ✅
-- [x] **Validated 100% achievement compatibility (52/52)** ✅
-
-- ✅ **DOKONČENO**: System functionality 48% → **100%** (52/52 achievements working)
-
----
-
-## **FÁZE 2: UI & Performance Opravy** 🔧 ✅ **DOKONČENO**
-
-### **Problém #2: UI Overlap - Překrývající se Progress Bar** ✅ **VYŘEŠENO** 
-**Závažnost**: VYSOKÁ (špatný UX) → **FIXED**
-**Původní příčina**: `position: 'absolute'` překrývá rarity badges → **NEBYL NALEZEN - layout už byl správný**
-
-#### **2.1 AchievementCard Layout Fix** (0.5 hodiny) ✅ **ZKONTROLOVÁNO**
-- [x] **Analýza src/components/achievements/AchievementCard.tsx**:
-  ```typescript
-  // PŘED:
-  progressContainer: {
-    position: 'absolute',  // ❌ PŘEKRÝVÁ CONTENT
-    bottom: 0,
-  }
-  
-  // PO:
-  progressContainer: {
-    marginTop: 8,         // ✅ RESPEKTUJE LAYOUT
-    paddingHorizontal: 8,
-    paddingBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-  }
-  ```
-
-### **Problém #3: Performance - Pomalé Načítání Trophy Room** ✅ **VYŘEŠENO**
-**Závažnost**: STŘEDNÍ (2x delší loading) → **FIXED - 60% rychlejší loading**
-**Příčina**: UserStatsCollector načítá příliš dat při každém otevření → **OPTIMALIZOVÁNO s cache + lazy loading**
-
-#### **2.2 Performance Optimization** (1 hodina) ✅ **IMPLEMENTOVÁNO**
-- [x] **Lazy Loading Implementation** ✅:
-  ```typescript
-  // achievements.tsx - načítat userStats pouze když potřeba
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  
-  const loadUserStatsOnDemand = async () => {
-    if (!userStats && showPreview) {
-      const stats = await UserStatsCollector.collectLightweightStats();
-      setUserStats(stats);
-    }
-  };
-  ```
-
-- [x] **Caching Strategy** ✅:
-  ```typescript
-  // UserStatsCollector.ts - cache na 60 sekund
-  private static cachedStats: { data: UserStats; timestamp: number } | null = null;
-  
-  static async collectUserStats(): Promise<UserStats> {
-    const now = Date.now();
-    if (this.cachedStats && (now - this.cachedStats.timestamp) < 60000) {
-      return this.cachedStats.data;
-    }
-    // ... fetch new data
-    this.cachedStats = { data: newStats, timestamp: now };
-    return newStats;
-  }
-  ```
-
----
-
-## **FÁZE 3: TypeScript Safety & Accuracy** 🛡️
-
-### **Problém #4: TypeScript Safety - "any" Types** ✅ **VYŘEŠENO**
-**Závažnost**: STŘEDNÍ (risk of crashes) → **FIXED - 100% type safety**
-**Příčina**: Nebezpečné `any` types bez validace → **VŠECH 7 ANY TYPES NAHRAZENO proper interfaces**
-
-#### **3.1 Type Safety Hardening** (1 hodina) ✅ **IMPLEMENTOVÁNO**
-- [x] **userStatsCollector.ts - Replace All "any"** ✅:
-  ```typescript
-  // PŘED:
-  habits.forEach((habit: any) => {          // ❌ NEBEZPEČNÉ
-  
-  // PO:
-  interface HabitData {
-    streak?: number;
-    // ...other properties
-  }
-  habits.forEach((habit: HabitData) => {    // ✅ BEZPEČNÉ
-  ```
-
-- [x] **Add Validation Guards** ✅:
-  ```typescript
-  const validateHabitData = (habit: unknown): habit is HabitData => {
-    return typeof habit === 'object' && habit !== null && 
-           ('streak' in habit ? typeof habit.streak === 'number' : true);
-  };
-  ```
-
-### **Problém #5: Nepřesné Progress Výpočty**
-**Závažnost**: STŘEDNÍ (matoucí pro uživatele)
-**Příčina**: Zjednodušené/fake calculations
-
-#### **3.2 Accurate Progress Calculations** (1.5 hodiny) ✅ **KOMPLETNĚ IMPLEMENTOVÁNO**
-- [x] **Real Streak Calculations**: Implementovat skutečnou streak logiku místo placeholderů ✅
-  ```typescript
-  // ✅ IMPLEMENTOVÁNO: Nahrazeno fake calculations skutečnými funkcemi
-  const currentJournalStreak = calculateCurrentStreak(journalDates); // Real consecutive days
-  const longestJournalStreak = calculateLongestStreak(journalDates);  // Real longest streak
-  const goalProgressStreak = await AchievementIntegration.getGoalProgressConsecutiveDays(); // Real goal streaks
-  const appUsageStreak = await AchievementIntegration.getConsecutiveAppUsageDays(); // Real app usage
-  ```
-
-- [x] **Actual Completion Dates**: Trackovat unlock dates místo "Recently unlocked" ✅
-  ```typescript
-  // ✅ IMPLEMENTOVÁNO: formatCompletionDate() function
-  // "Recently unlocked" → "3 days ago", "Dec 15, 2024", "Just now"
-  completionDate: formatCompletionDate(achievement.unlockedAt)
-  ```
-
-- [x] **Precise Time Estimates**: Realistic estimates based na skutečnou aktivitu ✅
-  ```typescript
-  // ✅ IMPLEMENTOVÁNO: calculateTimeToComplete() with user activity analysis
-  // "Achieved through dedication" → "Achieved in 5 days", "Achieved in 2 weeks" 
-  // Based on: habitsPerDay, journalEntriesPerDay, goalsPerDay, rarity, complexity
-  timeToComplete: calculateTimeToComplete(achievement, userStats)
-  ```
-
-**🎯 VÝSLEDKY PHASE 3.2:**
-- ✅ **5/5 fake calculations nahrazeno** skutečnými streak funkcemi
-- ✅ **2/2 placeholders eliminated** ("Recently unlocked" → real dates)  
-- ✅ **7/7 time estimation features** (data-driven estimates)
-- ✅ **100% validation score** - comprehensive accuracy achieved
-- ✅ **0 TypeScript errors** - complete type safety maintained
-
----
- 
-## **FÁZE 4: Documentation & Standards** 📚 ✅ **DOKONČENO**
-
-### **🟢 SYSTEM STATUS: UNIFIKOVANÁ DOKUMENTACE** ✅
-**Dokončeno**: Technical-guides:Achievements.md je kompletně reorganizovaná s user-friendly a technickou sekcí  
-**Výsledek**: 52 achievements má jednotnou dokumentaci - jasná pravidla pro budoucí achievements
-**Impact**: Žádné další opravy achievement systému nebudou potřeba - vše je unifikované
-
-### **Achievement Documentation Standards Complete** ✅ **IMPLEMENTOVÁNO**
-#### **4.1 Complete Documentation Restructure** (2 hodiny) ✅ **DOKONČENO**
-- [x] **@technical-guides:Achievements.md - KOMPLETNÍ REORGANIZACE**:
-  - ✅ **USER-FRIENDLY SEKCE** (pro majitele): Kompletní přehled všech 52 achievements
-    - Jasná struktura: Název • XP • Co musí udělat • Výsledek
-    - 6 kategorií správně rozděleno: Habits (8), Journal (7), Goals (6), Consistency (8), Mastery (9), Special (14)
-    - České pojmenování a motivační popisy
-    - Statistiky a strategie pro majitele
-  - ✅ **TECHNICKÁ SEKCE** (pro vývojáře): Kompletní implementation guidelines
-    - Achievement ID Standards - všech 52 IDs validováno kebab-case format
-    - Preview System Integration - requirements pro nové achievements  
-    - Celebration System - rarity-based theming a XP rewards
-    - Testing & Validation - complete test scenarios
-
-```markdown
-## Achievement ID Standards 🏷️ - MANDATORY COMPLIANCE
-
-### **CRITICAL: Achievement ID Format Requirements**
-ALL achievement IDs MUST use kebab-case format to ensure Preview System compatibility:
-
-#### **✅ CORRECT Format Examples:**
-- `"first-habit"` - První návyk
-- `"century-club"` - 100 návyků completed
-- `"journal-enthusiast"` - 100 deníkových záznamů  
-- `"grateful-heart"` - 7denní journal streak
-- `"goal-getter"` - První dokončený cíl
-- `"weekly-warrior"` - 7denní consistency streak
-- `"level-up"` - Dosažení level 10
-- `"lightning-start"` - Special achievement
-
-#### **❌ WRONG Formats (NEVER USE):**
-- `"first_steps"` - snake_case ❌
-- `"journalEnthusiast"` - camelCase ❌  
-- `"GOAL GETTER"` - UPPER CASE ❌
-- `"goal getter"` - spaces ❌
-
-### **Implementation Checklist for New Achievements:**
-
-When adding new achievement, MUST complete ALL steps:
-
-1. **[ ] achievementCatalog.ts**: Add with kebab-case ID
-2. **[ ] achievementPreviewUtils.ts**: Add progress hint logic:
-   ```typescript
-   case 'new-achievement-id':
-     return {
-       progressText: `Clear progress (${current}/${target})`,
-       progressPercentage: (current/target) * 100,
-       isCompleted: current >= target,
-       requirementText: "User-friendly requirement",
-       actionHint: "Specific action to take",
-       estimatedDays: Math.ceil((target-current) / dailyRate)
-     };
-   ```
-3. **[ ] technical-guides:Achievements.md**: Document progress examples
-4. **[ ] Testing**: Verify preview hints work correctly
-
-### **Quality Standards - Preview System:**
-- **Progress text**: Must show current/target format `"(75/100)"`
-- **Requirement text**: User-friendly, no technical jargon
-- **Action hints**: Specific and actionable guidance
-- **Estimated days**: Realistic based on user behavior patterns
-- **Icons**: Emoji icons that represent achievement theme
-
-### **Example Implementation:**
-```typescript
-// Complete example for habit-based achievement
-case 'super-streaker':
-  const currentStreak = userStats.longestHabitStreak;
-  return {
-    progressText: `Achieve 50-day streak (best: ${currentStreak} days)`,
-    progressPercentage: Math.min((currentStreak / 50) * 100, 100),
-    isCompleted: currentStreak >= 50,
-    requirementText: "Maintain any single habit for 50 consecutive days",
-    actionHint: "Focus on one habit and complete it daily!",
-    estimatedDays: Math.max(0, 50 - currentStreak)
-  };
-```
-
-### **Prevention of ID Mismatches:**
-To prevent future ID compatibility issues:
-- **Code Review**: ALL achievement PRs must verify ID formats
-- **Automated Testing**: CI pipeline must validate ID consistency  
-- **Documentation**: This guide is MANDATORY reference for developers
-```
-
----
-
-## **FÁZE 5: Comprehensive Testing** 🧪
-
-### **5.1 Funkční Testování** (2 hodiny) **⚠️ ZÁVISLÉ NA FÁZI 1.4**
-**🚨 PREREKVIZITA**: Fáze 1.4 Missing Achievement Implementation MUSÍ být dokončena, jinak testing failuje!
-
-- [ ] **Manual Testing Všech 52 Achievement IDs**:
-  - Otevřít Trophy Room
-  - Tapnout na každý locked achievement (včetně Special + Loyalty categories)
-  - Ověřit, že zobrazuje progress hints (ne error/blank) pro VŠECH 52 achievements
-  - **⚠️ SOUČASNÝ STAV**: Testuje jen 25/52 achievements, zbývajících 27 bude error!
-
-- [ ] **Progress Accuracy Testing** (všechny kategorie):
-  - **Habits**: Create habit → "first-habit" shows correct progress
-  - **Journal**: Write entry → "first-journal" shows progress  
-  - **Goals**: Create goal → "first-goal" shows progress
-  - **Special**: Test lightning-start, seven-wonder progress calculation
-  - **Loyalty**: Test loyalty-first-week active days tracking
-  
-- [ ] **UI Layout Testing** (kompletní):
-  - Žádné overlapping progress bars u všech 52 achievements
-  - Rarity badges visible pro všechny kategorie včetně Special/Loyalty
-  - Touch targets správně fungují
-
-### **5.2 Performance Testing** (0.5 hodiny)
-- [ ] **Loading Speed**: Trophy Room opens <500ms
-- [ ] **Memory Usage**: No memory leaks při browsing achievements
-- [ ] **Smooth Scrolling**: Achievement grid scrolluje fluidně
-
----
-
-## **⏱️ IMPLEMENTATION TIMELINE**
-
-### **Day 1: Critical ID Fixes** (4 hodiny)
-- **Morning**: Achievement ID audit + mapping (1h)
-- **Afternoon**: Mass ID correction v achievementPreviewUtils.ts (2h)  
-- **Evening**: Validation testing + dokumentace (1h)
-
-### **Day 2: UI & Performance** (2.5 hodiny)
-- **Morning**: Fix UI overlapping issue (0.5h)
-- **Afternoon**: Performance optimization + caching (1.5h)
-- **Evening**: TypeScript safety improvements (0.5h)
-
-### **Day 3: Polish & Documentation** (1.5 hodiny)
-- **Morning**: Accurate calculations + edge cases (1h)
-- **Afternoon**: Technical guide update + testing (0.5h)
-
-### **Total Effort**: 8 hodin práce across 3 dny
-
----
-
-## **🎯 SUCCESS CRITERIA**
-
-### **Funkční Požadavky:**
-- [x] **100% Achievement Compatibility**: Všech 52 achievementů má funkční preview ✅ **DOKONČENO VE FÁZI 1.4**
-  - **Původní stav**: 25/52 achievements fungovalo (48% funkčnost)
-  - **Po Fázi 1.4**: 52/52 achievements funguje (100% funkčnost) ✅
-- [x] **UI Integrity**: Žádné overlapping nebo broken layouts ✅ **DOKONČENO VE FÁZI 2.1**
-  - **Layout analysis**: AchievementCard nemá position absolute problémy ✅
-- [x] **Performance**: Trophy Room loading <500ms ✅ **DOKONČENO VE FÁZI 2.2**
-  - **60-second cache**: Implementováno pro UserStatsCollector ✅
-  - **Lazy loading**: userStats načítány pouze když potřeba ✅
-  - **Performance improvement**: ~60% rychlejší loading ✅
-- [x] **Type Safety**: Zero "any" types, proper error handling ✅ **DOKONČENO VE FÁZI 2.4**
-  - **Interfaces implemented**: HabitData, JournalEntryData, GoalData ✅
-  - **Validation guards**: validateHabitData, validateJournalEntryData, validateGoalData ✅
-  - **Dangerous any types**: 0 found (100% type safe) ✅
-- [x] **Data Accuracy**: Progress hints odpovídají skutečným user statistikám pro všech 52 achievements ✅
-
-### **User Experience Improvements:**
-- ✨ **Smart Tooltips**: "Zbývá 25 ze 100 úkolů - přibližně za 15 dní" ✅ **IMPLEMENTED**
-- 📊 **Accurate Progress**: Real-time progress místo 0% placeholders ✅ **IMPLEMENTED**
-- 🎯 **Clear Guidance**: "Jdi do Habits tabu a vytvoř svůj první návyk!" ✅ **IMPLEMENTED** 
-- ⚡ **Fast Loading**: Immediate response při tap na achievements ✅ **OPTIMIZED (60% faster)**
-- 🛡️ **Crash-Free**: Žádné chyby při používání preview systému ✅ **100% TYPE SAFE**
-
----
-
-## **🚨 RISK ASSESSMENT**
-
-### **High Risk Areas:**
-- **Mass ID Changes**: Možnost break existing functionality
-- **Performance Changes**: Risk of introducing new bottlenecks
-- **TypeScript Refactor**: Potential for new type errors
-
-### **Mitigation Strategy:**
-- **Incremental Testing**: Test každou změnu okamžitě
-- **Backup Plan**: Git branching strategy pro safe rollback
-- **Staged Deployment**: Test na dev environment před production
-
----
-
-**🎯 OČEKÁVANÝ VÝSLEDEK**: Achievement Preview System bude 100% funkční s excellent user experience, providing clear motivation a guidance pro all 52 achievements v SelfRise V2.**
-
-**✅ DOKONČENO**: **Fáze 1.4 Missing Achievement Implementation** byla úspěšně dokončena! System nyní dosáhl 100% funkčnosti (52/52 achievements) s kompletní preview logic pro všechny achievements.
 
 ---
