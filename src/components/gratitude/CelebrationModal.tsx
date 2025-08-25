@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
-import { useXpFeedback } from '../../contexts/XpAnimationContext';
+import { useXpFeedback } from '../../hooks/useXpFeedback';
 
 const { width: screenWidth } = Dimensions.get('window');
 

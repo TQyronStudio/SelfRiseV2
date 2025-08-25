@@ -28,6 +28,8 @@ export {
   XpAnimationProvider, 
   useXpAnimation, 
   useXpPopup, 
-  useXpFeedback,
   useXpNotification 
 } from '../../contexts/XpAnimationContext';
+
+// Feedback Hook (separate to prevent circular dependency)
+export { useXpFeedback } from '../../hooks/useXpFeedback';

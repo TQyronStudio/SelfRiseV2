@@ -703,19 +703,7 @@ export const useXpPopup = () => {
   };
 };
 
-/**
- * Hook for haptic and sound feedback
- */
-export const useXpFeedback = () => {
-  const { triggerHapticFeedback, playSoundEffect, state } = useXpAnimation();
-  
-  return {
-    triggerHapticFeedback,
-    playSoundEffect,
-    isHapticsEnabled: state.isHapticsEnabled,
-    isSoundEnabled: state.isSoundEnabled,
-  };
-};
+// useXpFeedback hook moved to src/hooks/useXpFeedback.ts to prevent circular dependency
 
 /**
  * Hook for smart notification system

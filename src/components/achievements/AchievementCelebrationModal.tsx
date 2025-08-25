@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
-import { useXpFeedback } from '@/src/contexts/XpAnimationContext';
+import { useXpFeedback } from '@/src/hooks/useXpFeedback';
 import { Achievement, AchievementRarity } from '@/src/types/gamification';
 import { useAccessibility, getHighContrastRarityColors } from '@/src/hooks/useAccessibility';
 

@@ -99,3 +99,10 @@
  3. Soulad s pravidly: Veškerý kód, který napíšeš nebo upravíš, musí být v naprostém souladu s logikou, hodnotami a principy definovanými v tomto průvodci. Průvodce je nadřazený tvým předchozím znalostem o projektu.
 
  4. Řešení nejasností: Pokud je zadání v rozporu s technickým průvodcem nebo pokud průvodce nepokrývá daný specifický případ, jsi povinen na to upozornit. Navrhneš aktualizaci průvodce a teprve po jejím odsouhlasení začneš implementovat změny v kódu.
+
+16. 🚨 SURGICAL CHANGES ONLY - "Nerozbij fungující systémy"
+    - PŘED každým úkolem: "Co aktuálně FUNGUJE a NESMÍ se pokazit?"
+    - ZMĚŇ pouze minimum potřebné k vyřešení problému
+    - TESTUJ po každé změně že funkční systémy stále fungují
+    - Pokud zjistíš že musíš měnit funkční kód → ZEPTEJ SE NEJDŘÍV
+    - Pokud něco přestane fungovat → OKAMŽITĚ zastav a diagnostikuj
