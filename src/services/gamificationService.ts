@@ -508,6 +508,7 @@ export class GamificationService {
       const batchOptions: XPAdditionOptions = {
         source: this.getDominantSource(batch.sources),
         description: this.createBatchDescription(batch),
+        skipNotification: true, // CRITICAL: Skip notifications in batch commit to prevent duplicate level-up modals
         metadata: {
           isBatch: true,
           batchSize: batch.sources.size,
@@ -1525,13 +1526,14 @@ export class GamificationService {
       const levelUpHistory = await this.getLevelUpHistory();
       const now = Date.now();
       
-      // Check for recent duplicate level-up (within last 2 seconds for same level transition)
+      // Check for recent duplicate level-up (within last 3 seconds for same level transition)
+      // NOTE: We check only level transition, not totalXP, because optimistic vs batch commits may have different XP totals
       const recentDuplicate = levelUpHistory.find(event => {
         const timeDiff = now - event.timestamp.getTime();
-        return timeDiff < 2000 && // Within 2 seconds
+        return timeDiff < 3000 && // Within 3 seconds (longer window for safety)
                event.previousLevel === previousLevel &&
                event.newLevel === newLevel &&
-               event.totalXPAtLevelUp === totalXP;
+               event.triggerSource === triggerSource; // Same trigger source adds extra validation
       });
       
       if (recentDuplicate) {
