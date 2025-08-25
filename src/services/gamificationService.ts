@@ -821,6 +821,17 @@ export class GamificationService {
       console.log(`💰 XP added: +${finalAmount} XP from ${options.source} (${previousTotalXP} → ${newTotalXP})`);
       if (leveledUp) {
         console.log(`🎉 Level up! ${previousLevel} → ${newLevel}`);
+        
+        // CRITICAL: Emit level-up event for modal celebration
+        const levelInfo = getLevelInfo(newLevel);
+        DeviceEventEmitter.emit('levelUp', {
+          newLevel,
+          previousLevel,
+          levelTitle: levelInfo.title,
+          levelDescription: levelInfo.description || '',
+          isMilestone: levelInfo.isMilestone,
+          timestamp: Date.now()
+        });
       }
       
       return result;

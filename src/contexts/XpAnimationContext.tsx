@@ -432,7 +432,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       if (eventData && eventData.totalAmount && eventData.sources && showXpPopupRef.current) {
         // Show batched XP popup with primary source
         const primarySource = eventData.sources[0]?.source || 'batch';
-        showXpPopupRef.current(eventData.totalAmount, primarySource, { x: 0, y: 0 });
+        showXpPopupRef.current(eventData.totalAmount, primarySource, { x: 50, y: 130 });
         
         // Also trigger smart notification for batched XP
         showSmartNotification(eventData.totalAmount, primarySource);
