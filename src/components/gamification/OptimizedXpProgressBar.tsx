@@ -17,7 +17,7 @@ import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react'
 import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { GamificationService } from '../../services/gamificationService';
-import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone } from '../../services/levelCalculation';
+import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLevelCalculationCache } from '../../services/levelCalculation';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { useI18n } from '../../hooks/useI18n';
 import { SafeLinearGradient } from '../common';
@@ -87,21 +87,49 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     }
   }, []);
 
+  // CRITICAL: Level-up specific data fetching with cache invalidation
+  const fetchGamificationDataWithCacheInvalidation = useCallback(async () => {
+    try {
+      console.log('🎯 OptimizedXpProgressBar: Level-up detected, clearing cache before data fetch');
+      
+      // STEP 1: Clear level calculation cache to prevent desynchronization
+      clearLevelCalculationCache();
+      
+      // STEP 2: Fetch fresh data with cleared cache
+      const stats = await GamificationService.getGamificationStats();
+      
+      setGamificationState(prev => ({
+        totalXP: stats.totalXP,
+        currentLevel: stats.currentLevel,
+        xpProgress: stats.xpProgress,
+        xpToNextLevel: stats.xpToNextLevel,
+        isLoading: false,
+        updateSequence: prev.updateSequence + 1,
+      }));
+      
+      console.log('✅ OptimizedXpProgressBar: Cache invalidation and data refresh complete');
+    } catch (error) {
+      console.error('OptimizedXpProgressBar: Failed to fetch gamification data with cache invalidation:', error);
+      setGamificationState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
   // Listen for XP updates from GamificationService
   useEffect(() => {
     // Initial data fetch
     fetchGamificationData();
 
-    // Listen for real-time XP changes
+    // Listen for real-time XP changes (normal cache behavior)
     const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', fetchGamificationData);
-    // Listen for level up events to refresh progress bar
-    const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', fetchGamificationData);
+    
+    // CRITICAL: Listen for level up events with cache invalidation
+    const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', fetchGamificationDataWithCacheInvalidation);
     
     return () => {
       xpGainedSubscription.remove();
       levelUpSubscription.remove();
     };
-  }, [fetchGamificationData]);
+  }, [fetchGamificationData, fetchGamificationDataWithCacheInvalidation]);
 
   // Memoized utility functions
   const levelInfo = useMemo(() => getLevelInfo(gamificationState.currentLevel), [gamificationState.currentLevel]);

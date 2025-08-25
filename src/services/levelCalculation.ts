@@ -46,6 +46,26 @@ function resetCacheIfNeeded(): void {
   }
 }
 
+/**
+ * CRITICAL: Force clear all level calculation caches
+ * Used after level-up events to prevent cache desynchronization
+ */
+export function clearLevelCalculationCache(): void {
+  const totalCacheSize = 
+    levelCache.xpRequiredCache.size + 
+    levelCache.levelProgressCache.size + 
+    levelCache.levelInfoCache.size;
+
+  console.log(`🚨 Force clearing level calculation cache (size: ${totalCacheSize}) - Level-up cache invalidation`);
+  
+  levelCache = {
+    xpRequiredCache: new Map(),
+    levelProgressCache: new Map(),
+    levelInfoCache: new Map(),
+    lastCacheReset: Date.now(),
+  };
+}
+
 // ========================================
 // CORE LEVEL CALCULATION FUNCTIONS
 // ========================================
