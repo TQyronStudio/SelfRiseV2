@@ -223,18 +223,18 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
         Animated.parallel([
           Animated.timing(translateYAnim, {
             toValue: -80,
-            duration: 1200,
+            duration: 800,
             useNativeDriver: true,
           }),
           Animated.timing(scaleAnim, {
             toValue: 0.8,
-            duration: 1200,
+            duration: 800,
             useNativeDriver: true,
           }),
           Animated.timing(fadeAnim, {
             toValue: 0,
-            duration: 900,
-            delay: 300,
+            duration: 600,
+            delay: 200,
             useNativeDriver: true,
           }),
         ]),

@@ -529,7 +529,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     // Auto-remove popup after animation completes
     setTimeout(() => {
       clearPopup(id);
-    }, 2000);
+    }, 1400);
   }, [state.isAnimationEnabled, state.isHapticsEnabled, state.isSoundEnabled]);
 
   // Update the ref whenever showXpPopup changes

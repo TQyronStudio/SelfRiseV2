@@ -866,6 +866,536 @@ const checkUnshownLevelUps = async () => {
 
 ---
 
+## Event-Driven Architecture Principles
+
+### 🚨 FUNDAMENTAL EVENT PRINCIPLE
+**Every XP operation MUST emit standardized events. Events enable decoupled, scalable gamification architecture across all app components.**
+
+### Standard Event Emission Patterns
+```typescript
+// MANDATORY EVENT SEQUENCE for all XP operations
+1. Individual operations → 'xpGained' (immediate UI feedback)
+2. Batched operations → 'xpBatchCommitted' (animation triggers)  
+3. Level detection → 'levelUp' (modal celebrations)
+4. Achievement triggers → 'achievementUnlocked' (rewards)
+
+// CONSISTENCY RULE: All events use unified data structures
+DeviceEventEmitter.emit('eventName', standardEventData)
+```
+
+### Event Emission Requirements
+```typescript
+// MANDATORY: GamificationService MUST emit events for:
+- addXP() operations → 'xpGained' + 'xpBatchCommitted' (if batched)
+- subtractXP() operations → 'xpGained' (negative amounts)
+- Level progression → 'levelUp' (with complete level data)
+- Achievement unlocks → 'achievementUnlocked' (with achievement data)
+
+// EVENT DATA CONSISTENCY: Same structure across all emitters
+const eventData = {
+  amount: number,
+  source: XPSourceType, 
+  timestamp: number,
+  // Additional context based on event type
+}
+```
+
+### Global Event Listening Pattern
+```typescript
+// STANDARD LISTENER SETUP (XpAnimationContext pattern):
+useEffect(() => {
+  const handleXPGained = (eventData: any) => {
+    // Process individual XP gain
+  };
+  
+  const handleBatchCommitted = (eventData: any) => {
+    // Process batched XP with animations
+  };
+  
+  const handleLevelUp = (eventData: any) => {
+    // Process level-up celebration
+  };
+
+  // Register listeners
+  const xpGainedSub = DeviceEventEmitter.addListener('xpGained', handleXPGained);
+  const batchSub = DeviceEventEmitter.addListener('xpBatchCommitted', handleBatchCommitted);
+  const levelUpSub = DeviceEventEmitter.addListener('levelUp', handleLevelUp);
+  
+  return () => {
+    // MANDATORY cleanup
+    xpGainedSub?.remove();
+    batchSub?.remove();
+    levelUpSub?.remove();
+  };
+}, []);
+```
+
+---
+
+## Animation Consistency Rules  
+
+### 🚨 FUNDAMENTAL ANIMATION PRINCIPLE
+**All XP popup animations MUST use identical timing, positioning, and behavior patterns regardless of XP source or amount (positive/negative).**
+
+### Standard Animation Parameters
+```typescript
+// UNIFIED TIMING CONSTANTS (XpPopupAnimation.tsx)
+BOUNCE_IN_DURATION: 300ms        // Fade + scale in
+SCALE_ADJUSTMENT: 100ms          // Brief pause at full scale  
+FLOAT_UP_DURATION: 800ms         // Translate + scale down
+FADE_OUT_DURATION: 600ms         // Opacity to 0
+FADE_OUT_DELAY: 200ms           // Delay before fade starts
+CLEANUP_TIMEOUT: 1400ms          // Popup removal (200ms buffer)
+
+// TOTAL ANIMATION TIME: 1200ms (400ms bounce + 800ms float)
+```
+
+### Standard Positioning & Coordinates
+```typescript
+// UNIFIED POPUP POSITIONING (all XP sources)
+DEFAULT_POSITION: { x: 50, y: 130 }  // Standard screen position
+Z_INDEX: 1000                         // Above all other content
+
+// TRANSFORMATION SEQUENCE:
+1. translateY: 0 → -80 (float up 80px)
+2. scale: 0.5 → 1.15 → 1.0 → 0.8 (bounce effect)
+3. opacity: 0 → 1 → 0 (fade in/out)
+4. translateX: position.x (horizontal offset)
+```
+
+### Visual Consistency Standards
+```typescript
+// POPUP STYLING CONSISTENCY
+background: 'rgba(255, 255, 255, 0.98)'  // Semi-transparent white
+borderRadius: 24px                        // Rounded corners
+shadowOffset: { width: 0, height: 4 }    // Drop shadow
+shadowOpacity: 0.25                      // Shadow transparency
+elevation: 8                             // Android shadow
+borderWidth: 1.5                         // Subtle border
+useNativeDriver: true                    // 60fps performance guarantee
+
+// COLOR CODING BY AMOUNT (not source):
+Positive amounts: Source-specific colors (habits=green, journal=blue, etc.)
+Negative amounts: '#F44336' (red) regardless of source
+```
+
+### Performance Requirements
+```typescript
+// ANIMATION PERFORMANCE GUARANTEES
+Target FPS: 60fps (16.67ms per frame)
+Native Driver: MANDATORY for all animations
+GPU Acceleration: REQUIRED for transform/opacity changes
+Memory Cleanup: Auto-remove after 1400ms timeout
+
+// ACCESSIBILITY INTEGRATION
+Screen Reader: Announce meaningful XP changes (≥5 XP)
+Haptic Feedback: Light impact for all XP gains
+Reduced Motion: Respect system accessibility settings
+```
+
+---
+
+## UI Component Communication Patterns
+
+### 🚨 FUNDAMENTAL COMMUNICATION PRINCIPLE
+**All gamification components MUST use standardized event-driven communication patterns. Direct component coupling is FORBIDDEN.**
+
+### Standard Hook Usage Pattern
+```typescript
+// MANDATORY HOOK INTEGRATION for gamification components
+const MyGamificationComponent = () => {
+  const { showXpPopup, state } = useXpAnimation();
+  const { showSmartNotification } = useXpNotification();
+  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+  
+  // REQUIRED: Event listener cleanup pattern
+  useEffect(() => {
+    const handleXPEvent = (eventData: any) => {
+      // Process XP event
+    };
+    
+    const subscription = DeviceEventEmitter.addListener('xpGained', handleXPEvent);
+    
+    return () => {
+      subscription?.remove(); // MANDATORY cleanup
+    };
+  }, []);
+};
+```
+
+### Component Lifecycle Integration Standards
+```typescript
+// STANDARD GAMIFICATION COMPONENT LIFECYCLE:
+1. useEffect(() => {}, [])     // Subscribe to events on mount
+2. Event handler functions     // Process gamification events  
+3. return () => {}            // Cleanup subscriptions on unmount
+4. Proper dependency arrays   // Prevent infinite re-renders
+
+// MEMORY LEAK PREVENTION PATTERN:
+useEffect(() => {
+  const subscriptions = [
+    DeviceEventEmitter.addListener('xpGained', handleXPGained),
+    DeviceEventEmitter.addListener('levelUp', handleLevelUp),
+  ];
+  
+  return () => {
+    subscriptions.forEach(sub => sub?.remove()); // Clean ALL subscriptions
+  };
+}, []); // Empty dependency array for mount/unmount only
+```
+
+### Modal Coordination Communication
+```typescript
+// PRIMARY MODAL COMMUNICATION (Journal, Habits, Goals screens)
+const ScreenSpecificComponent = () => {
+  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+  
+  const showPrimaryModal = () => {
+    notifyPrimaryModalStarted('journal'); // Coordinate with global system
+    setModalVisible(true);
+  };
+  
+  const hidePrimaryModal = () => {
+    notifyPrimaryModalEnded(); // Release coordination lock
+    setModalVisible(false);
+    // This triggers processing of queued secondary modals (level-ups)
+  };
+};
+
+// GLOBAL MODAL COMMUNICATION (Level-up, Achievement modals)
+// Handled automatically by XpAnimationContext - no manual intervention needed
+```
+
+### Event Handler Naming Conventions
+```typescript
+// STANDARD NAMING PATTERN for gamification event handlers:
+handleXPGained(eventData)           // Individual XP gains
+handleXPBatchCommitted(eventData)   // Batched XP operations  
+handleLevelUp(eventData)           // Level progression events
+handleAchievementUnlocked(eventData) // Achievement rewards
+handleModalCoordination(eventData)  // Modal priority management
+
+// EVENT HANDLER STRUCTURE:
+const handleXPGained = (eventData: any) => {
+  // 1. Validate event data
+  if (!eventData?.amount || !eventData?.source) return;
+  
+  // 2. Process event
+  showXpPopup(eventData.amount, eventData.source, eventData.position);
+  
+  // 3. Trigger feedback (haptics, sounds)
+  triggerHapticFeedback('light');
+};
+```
+
+---
+
+## Real-time UI Synchronization Patterns
+
+### 🚨 FUNDAMENTAL SYNCHRONIZATION PRINCIPLE  
+**All gamification UI updates MUST be real-time, cache-aware, and performant. Level-up events MUST invalidate relevant caches before UI refresh.**
+
+### Cache Invalidation Requirements
+```typescript
+// MANDATORY CACHE CLEARING for level-up events
+const handleLevelUp = (eventData: any) => {
+  // 1. Clear relevant caches BEFORE showing modal
+  clearUserLevelCache();           // Level display caches
+  clearXPProgressCache();          // Progress bar caches  
+  clearAchievementCache();         // Badge/trophy caches
+  
+  // 2. Trigger UI refresh
+  fetchUpdatedUserData();          // Re-fetch with fresh data
+  
+  // 3. Show celebration modal
+  showLevelUpModal(eventData);     // Display level-up celebration
+};
+
+// CACHE INVALIDATION TIMING:
+Event → clearCache() → fetchData() → updateUI() → showModal()
+```
+
+### Progressive UI Update Pattern
+```typescript
+// REAL-TIME PROGRESS BAR ANIMATION
+const updateXPProgress = (newXP: number, newLevel: number) => {
+  // 1. Optimistic UI update (immediate feedback)
+  setDisplayXP(newXP);
+  
+  // 2. Animate progress bar smoothly
+  Animated.timing(progressAnim, {
+    toValue: newXP / levelThreshold,
+    duration: 800,
+    useNativeDriver: false,        // Layout animations require false
+  }).start();
+  
+  // 3. Update level display when animation completes
+  setTimeout(() => {
+    setDisplayLevel(newLevel);
+  }, 800);
+};
+
+// PERFORMANCE GUARANTEE: <16.67ms per update (60fps)
+```
+
+### State Synchronization Rules  
+```typescript
+// UNIFIED STATE MANAGEMENT for gamification
+const GamificationComponent = () => {
+  // 1. Local state for UI reactivity
+  const [localXP, setLocalXP] = useState(0);
+  const [localLevel, setLocalLevel] = useState(1);
+  
+  // 2. Global context for coordination
+  const { state } = useXpAnimation();
+  
+  // 3. Sync local state with global events
+  useEffect(() => {
+    const handleXPChange = (eventData: any) => {
+      setLocalXP(prev => prev + eventData.amount); // Immediate local update
+      // Global state handled by XpAnimationContext
+    };
+    
+    const sub = DeviceEventEmitter.addListener('xpGained', handleXPChange);
+    return () => sub?.remove();
+  }, []);
+};
+```
+
+---
+
+## Standard Event Data Structures
+
+### 🚨 FUNDAMENTAL DATA PRINCIPLE
+**All gamification events MUST use consistent, typed data structures. Ad-hoc event data is FORBIDDEN.**
+
+### Core Event Data Types
+```typescript
+// STANDARD XP EVENT DATA STRUCTURE
+interface XPEventData {
+  amount: number;              // XP amount (positive or negative)
+  source: XPSourceType;        // Standardized source enum
+  timestamp: number;           // Event creation time
+  sourceId?: string;          // Optional: Related entity ID
+  description?: string;        // Optional: Human-readable description
+  metadata?: Record<string, any>; // Optional: Additional context
+}
+
+// LEVEL-UP EVENT DATA STRUCTURE  
+interface LevelUpEventData {
+  newLevel: number;           // User's new level
+  previousLevel: number;      // Previous level  
+  levelTitle: string;         // Level display name
+  levelDescription?: string;  // Optional level description
+  isMilestone: boolean;       // Special milestone level
+  timestamp: number;          // Event creation time
+  totalXP: number;           // User's total XP
+}
+
+// BATCH COMMITTED EVENT DATA STRUCTURE
+interface XPBatchEventData {
+  totalAmount: number;        // Sum of all XP in batch
+  sources: Array<{           // Breakdown by source
+    source: XPSourceType;
+    amount: number;
+    count: number;
+  }>;
+  leveledUp: boolean;        // Whether batch caused level-up
+  newLevel: number;          // Current level after batch
+  timestamp: number;         // Batch completion time
+}
+```
+
+### Event Validation Requirements
+```typescript
+// MANDATORY EVENT DATA VALIDATION
+const validateXPEventData = (eventData: any): boolean => {
+  return !!(
+    eventData &&
+    typeof eventData.amount === 'number' &&
+    eventData.source &&
+    Object.values(XPSourceType).includes(eventData.source) &&
+    typeof eventData.timestamp === 'number'
+  );
+};
+
+// USE VALIDATION in all event handlers:
+const handleXPGained = (eventData: any) => {
+  if (!validateXPEventData(eventData)) {
+    console.warn('Invalid XP event data:', eventData);
+    return; // FAIL GRACEFULLY
+  }
+  
+  // Process valid event
+  processXPGain(eventData);
+};
+```
+
+### Event Emission Standards
+```typescript
+// STANDARD EVENT EMISSION PATTERN (GamificationService)
+const emitXPEvent = (amount: number, source: XPSourceType, options?: any) => {
+  const eventData: XPEventData = {
+    amount,
+    source,
+    timestamp: Date.now(),
+    sourceId: options?.sourceId,
+    description: options?.description,
+    metadata: options?.metadata || {},
+  };
+  
+  // Emit standardized event
+  DeviceEventEmitter.emit('xpGained', eventData);
+  
+  // Log for debugging
+  console.log(`🎯 XP Event: ${amount} from ${source}`, eventData);
+};
+
+// FORBIDDEN: Custom or inconsistent event data
+// DeviceEventEmitter.emit('xpGained', { xp: 25, type: 'habit' }); ❌ WRONG
+```
+
+---
+
+## Error Recovery & Graceful Degradation
+
+### 🚨 FUNDAMENTAL ERROR PRINCIPLE
+**Gamification system failures MUST NOT break core app functionality. All XP operations MUST fail gracefully with proper error isolation.**
+
+### Error Isolation Patterns
+```typescript
+// MANDATORY ERROR BOUNDARY for gamification operations
+const performXPOperation = async (operation: () => Promise<void>) => {
+  try {
+    await operation();
+  } catch (error) {
+    // 1. Log error for debugging
+    console.error('XP operation failed:', error);
+    
+    // 2. Continue app functionality (DO NOT THROW)
+    // User can still use habits, journal, goals without XP
+    
+    // 3. Optional: Show user-friendly message
+    // showErrorMessage('XP tracking temporarily unavailable');
+  }
+};
+
+// ERROR-SAFE XP ADDITION EXAMPLE:
+const addHabitCompletionXP = async (habitId: string) => {
+  await performXPOperation(async () => {
+    await GamificationService.addXP(25, {
+      source: XPSourceType.HABIT_COMPLETION,
+      sourceId: habitId
+    });
+  });
+  
+  // Habit completion succeeds regardless of XP success/failure
+  await habitStorage.createCompletion(habitId);
+};
+```
+
+### Graceful Degradation Standards
+```typescript
+// FALLBACK BEHAVIOR when gamification fails:
+const GamificationComponent = () => {
+  const [isXPSystemHealthy, setIsXPSystemHealthy] = useState(true);
+  
+  useEffect(() => {
+    // Monitor XP system health
+    const healthCheck = async () => {
+      try {
+        await GamificationService.getCurrentXP(); // Test operation
+        setIsXPSystemHealthy(true);
+      } catch (error) {
+        setIsXPSystemHealthy(false);
+        console.warn('XP system unhealthy, showing degraded UI');
+      }
+    };
+    
+    healthCheck();
+    const interval = setInterval(healthCheck, 30000); // Check every 30s
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // CONDITIONAL RENDERING based on system health
+  return (
+    <View>
+      {isXPSystemHealthy ? (
+        <FullGamificationUI />  // Normal XP, levels, animations
+      ) : (
+        <MinimalUI />           // Basic functionality without XP features
+      )}
+    </View>
+  );
+};
+```
+
+### Diagnostic Logging Standards
+```typescript
+// COMPREHENSIVE ERROR LOGGING for gamification issues
+const logGamificationError = (error: any, context: string, data?: any) => {
+  console.error(`🚨 Gamification Error - ${context}:`, {
+    error: error.message || error,
+    stack: error.stack,
+    context,
+    data: data || {},
+    timestamp: new Date().toISOString(),
+    userAgent: 'SelfRise Mobile App'
+  });
+  
+  // Optional: Send to crash reporting service
+  // crashlytics().recordError(error);
+};
+
+// USAGE PATTERN:
+const handleXPOperation = async () => {
+  try {
+    await somXPOperation();
+  } catch (error) {
+    logGamificationError(error, 'XP Addition Failed', { 
+      operation: 'addXP',
+      source: 'HABIT_COMPLETION',
+      amount: 25 
+    });
+    
+    // Continue without throwing
+  }
+};
+```
+
+### Recovery Strategies
+```typescript
+// AUTOMATIC RECOVERY PATTERNS
+const XPSystemRecovery = {
+  // Strategy 1: Retry failed operations
+  retryWithBackoff: async (operation: () => Promise<void>, maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await operation();
+        return; // Success
+      } catch (error) {
+        if (attempt === maxRetries) {
+          logGamificationError(error, 'Max retries exceeded');
+          return; // Give up gracefully
+        }
+        
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+      }
+    }
+  },
+  
+  // Strategy 2: Queue failed operations for later
+  queueFailedOperation: (operation: () => Promise<void>) => {
+    // Implementation would store operation in AsyncStorage
+    // and retry during next app launch or network recovery
+  }
+};
+```
+
+---
+
 **GOLDEN RULE**: *"One gamification system, clear rules, zero exceptions, full reversibility"*
 
 ---
