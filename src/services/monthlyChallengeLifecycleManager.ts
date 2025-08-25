@@ -362,7 +362,7 @@ export class MonthlyChallengeLifecycleManager {
     const today = new Date();
     if (today.getDate() < 25) return;
     
-    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
+    const nextMonth = formatDateToString(addDays(today, 31) as Date).substring(0, 7);
     
     try {
       const existingPreview = await this.getPreviewForMonth(nextMonth);
@@ -876,7 +876,7 @@ export class MonthlyChallengeLifecycleManager {
    */
   static async forcePreviewGeneration(): Promise<ChallengePreviewData> {
     const today = new Date();
-    const nextMonth = (addDays(today, 31) as string).substring(0, 7);
+    const nextMonth = formatDateToString(addDays(today, 31) as Date).substring(0, 7);
     return await this.generatePreview(nextMonth);
   }
   
