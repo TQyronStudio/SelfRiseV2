@@ -426,6 +426,19 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     };
 
+    const handleBatchCommitted = (eventData: any) => {
+      console.log('🎆 XpAnimationContext: Received xpBatchCommitted event', eventData);
+      
+      if (eventData && eventData.totalAmount && eventData.sources && showXpPopupRef.current) {
+        // Show batched XP popup with primary source
+        const primarySource = eventData.sources[0]?.source || 'batch';
+        showXpPopupRef.current(eventData.totalAmount, primarySource, { x: 0, y: 0 });
+        
+        // Also trigger smart notification for batched XP
+        showSmartNotification(eventData.totalAmount, primarySource);
+      }
+    };
+
     const handleLevelUp = (eventData: any) => {
       if (eventData && eventData.newLevel && eventData.levelTitle) {
         console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
@@ -467,11 +480,13 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     // Add event listeners for React Native using DeviceEventEmitter
     const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', handleXPGained);
     const smartNotificationSubscription = DeviceEventEmitter.addListener('xpSmartNotification', handleSmartNotification);
+    const batchCommittedSubscription = DeviceEventEmitter.addListener('xpBatchCommitted', handleBatchCommitted);
     const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', handleLevelUp);
 
     return () => {
       xpGainedSubscription?.remove();
       smartNotificationSubscription?.remove();
+      batchCommittedSubscription?.remove();
       levelUpSubscription?.remove();
     };
   }, [showSmartNotification, showLevelUpModal]);
