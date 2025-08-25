@@ -606,6 +606,266 @@ Common: 50 XP, Rare: 100 XP, Epic: 200 XP, Legendary: 500 XP
 
 ---
 
+## Level-up Modal System - Global Celebration Architecture
+
+### 🎯 FUNDAMENTAL PRINCIPLE
+**Modal Priority System: Primary modaly (uživatelské akce) mají OKAMŽITOU PRIORITU. Secondary modaly (systémové celebrations) ČEKAJÍ až primary skončí.**
+
+### 🚫 ANTI-CONCURRENT MODAL RULE
+**NIKDY se nezobrazují 2 modaly současně! Primary modaly blokují secondary modaly dokud neskončí.**
+
+### Core Modal Priority Rules
+```typescript
+// PRIORITY SYSTEM - Modal Display Rules:
+1. PRIMARY MODALS (uživatelské akce): OKAMŽITÁ PRIORITA
+   - Journal: Daily complete, bonus milestones (⭐🔥👑), streak milestones
+   - Habit: Completion celebrations, streak achievements
+   - Goal: Milestone celebrations, completion rewards
+   - Achievement: User-triggered achievement unlocks
+
+2. SECONDARY MODALS (systémové): ČEKAJÍ na primary
+   - Level-up celebrations (zěravený XP způsobí level-up)
+   - XP multiplier activations 
+   - Background system notifications
+
+3. COORDINATION RULES:
+   - SINGLE: Pouze 1 modal vëděn aktivní
+   - QUEUING: Secondary modaly jdou do fronty
+   - SEQUENCE: Primary skončí → secondary se spustí
+   - GLOBAL: Řízený centrálně přes XpAnimationContext
+```
+
+### Screen-Specific vs Global Celebrations
+
+#### ✅ SCREEN-SPECIFIC (Journal.tsx)
+```typescript
+// Journal má vlastní modaly pro Journal-specific akce:
+- Daily completion (3 gratitude entries) → Journal modal
+- Streak milestones (7, 14, 30 days) → Journal modal  
+- Bonus milestones (⭐🔥👑 positions 4, 8, 13) → Journal modal
+
+// Modal queue system pro Journal celebrations
+const [modalQueue, setModalQueue] = useState<Array<{
+  type: 'bonus_milestone';
+  data: any;
+}>>([]);
+```
+
+#### ✅ GLOBAL (XpAnimationContext.tsx)
+```typescript
+// XpAnimationContext řídí globální level-up celebrations:
+- Level-up achievements → Global modal na jakémkoliv screenu
+- Level milestone rewards → Global modal
+- XP multiplier activations → Global modal
+
+// Centralized level-up handling
+const handleLevelUp = (eventData: any) => {
+  if (eventData?.newLevel && eventData?.levelTitle) {
+    showLevelUpModal(
+      eventData.newLevel,
+      eventData.levelTitle,
+      eventData.levelDescription,
+      eventData.isMilestone || false
+    );
+  }
+}
+```
+
+### User Experience Flow Examples
+
+#### Scenario 1: Journal Bonus Level-up (PRIORITY SYSTEM)
+```typescript
+// User na Journal screenu:
+1. Napíše 10. bonus gratitude entry → +8 XP (basic) + 100 XP (👑 milestone)
+2. Total +108 XP způsobí level-up 15 → 16
+
+3. MODAL COORDINATION:
+   a) 👑 Bonus milestone modal = PRIMARY → ZOBRAZÍ SE OKAMŽITĚ
+   b) 🎉 Level-up modal = SECONDARY → JDE DO FRONTY
+
+4. USER EXPERIENCE:
+   - ⚡ IMMEDIATE: "👑 Tenth Bonus Milestone! +100 XP" (primary modal)
+   - User closes bonus modal
+   - ⏱️ AFTER 300ms delay: "🎉 Level 16 achieved!" (secondary modal)
+   - ✅ RESULT: Perfect sequence, no concurrent modals
+```
+
+#### Scenario 2: Home Quick Action Level-up
+```typescript
+// User na Home screenu:
+1. Splní habit via Quick Actions → +25 XP
+2. 25 XP způsobí level-up 12 → 13
+3. USER VIDÍ:
+   a) Level-up modal: "🎉 Level 13 achieved!" (OKAMŽITĚ na Home screenu)
+4. Žádné Journal-specific modaly (není to Journal akce)
+```
+
+#### Scenario 3: Habits Screen Level-up
+```typescript
+// User na Habits screenu:
+1. Splní habit → +25 XP
+2. Způsobí level-up → XpAnimationContext triggers global modal
+3. USER VIDÍ:
+   a) Level-up modal na Habits screenu (ne až po návratu na jiný screen)
+```
+
+### Technical Implementation Architecture
+
+#### XpAnimationContext (Modal Coordination Center)
+```typescript
+// PRIORITY SYSTEM STATE
+const [state, setState] = useState({
+  modalCoordination: {
+    isPrimaryModalActive: false,
+    pendingSecondaryModals: [],
+    currentPrimaryModalType: null,
+  }
+});
+
+// COORDINATION FUNCTIONS
+const notifyPrimaryModalStarted = (type: 'journal' | 'habit' | 'goal') => {
+  setState(prev => ({
+    ...prev,
+    modalCoordination: {
+      ...prev.modalCoordination,
+      isPrimaryModalActive: true,
+      currentPrimaryModalType: type,
+    }
+  }));
+};
+
+const notifyPrimaryModalEnded = () => {
+  setState(prev => ({ ...prev, modalCoordination: { isPrimaryModalActive: false } }));
+  setTimeout(() => processSecondaryModals(), 300); // Process queue after delay
+};
+
+// PRIORITY-AWARE LEVEL-UP HANDLER
+const handleLevelUp = (eventData: any) => {
+  if (state.modalCoordination.isPrimaryModalActive) {
+    // ADD TO SECONDARY QUEUE
+    setState(prev => ({
+      ...prev,
+      modalCoordination: {
+        ...prev.modalCoordination,
+        pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
+          type: 'levelUp',
+          data: eventData,
+          timestamp: Date.now()
+        }]
+      }
+    }));
+  } else {
+    // SHOW IMMEDIATELY
+    showLevelUpModal(eventData.newLevel, eventData.levelTitle, ...);
+  }
+};
+```
+
+#### GamificationService (Level-up Event Trigger)
+```typescript
+// Po každém XP přidání zkontroluje level-up
+if (leveledUp) {
+  // Trigger global level-up event
+  DeviceEventEmitter.emit('levelUp', {
+    newLevel,
+    levelTitle: levelInfo.title,
+    levelDescription: levelInfo.description,
+    isMilestone: levelInfo.isMilestone
+  });
+}
+```
+
+#### Journal.tsx (Primary Modal Coordination)
+```typescript
+// COORDINATION INTEGRATION
+const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+
+// PRIMARY MODAL START - Notify coordination system
+if (newCount === 3) {
+  setCelebrationType('daily_complete');
+  notifyPrimaryModalStarted('journal'); // ⚡ COORDINATION
+  setShowCelebration(true);
+}
+
+if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
+  setBonusMilestone(bonusCount);
+  setCelebrationType('bonus_milestone');
+  notifyPrimaryModalStarted('journal'); // ⚡ COORDINATION
+  setShowCelebration(true);
+}
+
+// PRIMARY MODAL END - Release coordination lock
+<CelebrationModal
+  visible={showCelebration}
+  onClose={() => {
+    notifyPrimaryModalEnded(); // ⚡ COORDINATION - triggers secondary modals
+    setShowCelebration(false);
+    // Process next Journal modal in queue
+    setTimeout(() => processModalQueue(), 500);
+  }}
+/>
+
+// ❌ FORBIDDEN: Level-up detection v Journal.tsx
+// Level-up je handled globálně přes XpAnimationContext coordination
+```
+
+### Anti-Pattern Prevention
+
+#### ❌ FORBIDDEN: Duplicitní Level-up Detection
+```typescript
+// NIKDY nedělat v screen-specific komponentách:
+if (newXP > levelThreshold) {
+  showLevelUpModal(); // ❌ WRONG - causes duplicate modals
+}
+
+// Level-up detection POUZE v GamificationService!
+```
+
+#### ❌ FORBIDDEN: Screen-switching Modal Spam
+```typescript
+// NIKDY nedělat:
+const checkUnshownLevelUps = async () => {
+  // ❌ Causes modal spam on screen returns
+};
+
+// Level-up modal se zobrazí JEDNOU při level-up, ne při screen returns!
+```
+
+### Testing & Validation Scenarios
+
+```typescript
+// MANDATORY Priority System Test Cases:
+1. 🏆 Journal bonus causes level-up:
+   - Bonus milestone modal shows IMMEDIATELY (primary)
+   - Level-up modal WAITS in queue (secondary)
+   - User closes bonus modal → level-up modal shows after 300ms delay
+   - RESULT: Perfect sequence, no concurrent modals ✅
+
+2. ⚡ Home habit level-up (no competing primary):
+   - Level-up modal shows IMMEDIATELY
+   - No queue delay needed
+   - RESULT: Instant level-up celebration ✅
+
+3. 🔄 Screen switching during queued level-up:
+   - Journal bonus modal shows → user switches screen
+   - Modal closes → notifyPrimaryModalEnded() called
+   - Level-up modal from queue shows on new screen
+   - RESULT: Seamless cross-screen modal coordination ✅
+
+4. 📋 Multiple rapid primary modals:
+   - Daily complete + streak milestone + bonus milestone
+   - Each primary modal shows in Journal queue order
+   - Level-up modal waits until ALL primary modals finish
+   - RESULT: Proper priority respect ✅
+
+5. ❌ NO concurrent modals ever:
+   - state.modalCoordination.isPrimaryModalActive prevents secondary
+   - pendingSecondaryModals queue ensures proper sequencing
+   - RESULT: Single modal guarantee ✅
+```
+
+---
+
 **GOLDEN RULE**: *"One gamification system, clear rules, zero exceptions, full reversibility"*
 
 ---

@@ -42,6 +42,16 @@ interface XpAnimationState {
   lastNotificationTime: number;
   // Level-up celebration modal
   levelUpModal: LevelUpModalData;
+  // Modal coordination system for priority management
+  modalCoordination: {
+    isPrimaryModalActive: boolean;  // Journal, habit, goal specific modals
+    pendingSecondaryModals: Array<{
+      type: 'levelUp' | 'achievement' | 'multiplier';
+      data: any;
+      timestamp: number;
+    }>;
+    currentPrimaryModalType?: 'journal' | 'habit' | 'goal' | null;
+  };
 }
 
 interface XpAnimationContextValue {
@@ -60,6 +70,10 @@ interface XpAnimationContextValue {
   // Level-up celebration modal
   showLevelUpModal: (level: number, title: string, description?: string, isMilestone?: boolean) => void;
   hideLevelUpModal: () => void;
+  
+  // Modal coordination system
+  notifyPrimaryModalStarted: (type: 'journal' | 'habit' | 'goal') => void;
+  notifyPrimaryModalEnded: () => void;
   
   // Settings
   toggleAnimations: (enabled: boolean) => void;
@@ -102,6 +116,12 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       description: '',
       isMilestone: false,
       timestamp: 0,
+    },
+    // Modal coordination system
+    modalCoordination: {
+      isPrimaryModalActive: false,
+      pendingSecondaryModals: [],
+      currentPrimaryModalType: null,
     },
   });
 
@@ -314,6 +334,72 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     }
   }, [state.isHapticsEnabled, state.isSoundEnabled]);
 
+  // ========================================
+  // MODAL COORDINATION SYSTEM - Priority Management
+  // ========================================
+  
+  const notifyPrimaryModalStarted = useCallback((type: 'journal' | 'habit' | 'goal') => {
+    console.log(`🎯 Primary modal started: ${type}`);
+    setState(prev => ({
+      ...prev,
+      modalCoordination: {
+        ...prev.modalCoordination,
+        isPrimaryModalActive: true,
+        currentPrimaryModalType: type,
+      }
+    }));
+  }, []);
+  
+  const notifyPrimaryModalEnded = useCallback(() => {
+    console.log(`✅ Primary modal ended - processing secondary modals`);
+    setState(prev => ({
+      ...prev,
+      modalCoordination: {
+        ...prev.modalCoordination,
+        isPrimaryModalActive: false,
+        currentPrimaryModalType: null,
+      }
+    }));
+    
+    // Process any pending secondary modals after a short delay
+    setTimeout(() => {
+      processSecondaryModals();
+    }, 300);
+  }, []);
+  
+  const processSecondaryModals = useCallback(() => {
+    setState(prev => {
+      if (prev.modalCoordination.pendingSecondaryModals.length === 0) {
+        return prev;
+      }
+      
+      const nextModal = prev.modalCoordination.pendingSecondaryModals[0];
+      if (!nextModal) return prev;
+      
+      const remainingModals = prev.modalCoordination.pendingSecondaryModals.slice(1);
+      
+      console.log(`🎭 Processing secondary modal: ${nextModal.type}`);
+      
+      // Handle different types of secondary modals
+      if (nextModal.type === 'levelUp') {
+        showLevelUpModal(
+          nextModal.data.newLevel,
+          nextModal.data.levelTitle,
+          nextModal.data.levelDescription,
+          nextModal.data.isMilestone || false
+        );
+      }
+      
+      return {
+        ...prev,
+        modalCoordination: {
+          ...prev.modalCoordination,
+          pendingSecondaryModals: remainingModals,
+        }
+      };
+    });
+  }, [showLevelUpModal]);
+
   const hideLevelUpModal = useCallback(() => {
     console.log(`💫 Hiding level-up modal`);
     
@@ -344,13 +430,37 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       if (eventData && eventData.newLevel && eventData.levelTitle) {
         console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
         
-        // IMPLEMENTED: Global level-up celebration modal
-        showLevelUpModal(
-          eventData.newLevel,
-          eventData.levelTitle,
-          eventData.levelDescription,
-          eventData.isMilestone || false
-        );
+        // PRIORITY SYSTEM: Check if primary modal is active
+        if (state.modalCoordination.isPrimaryModalActive) {
+          console.log(`⏸️ Level-up modal queued - primary modal active (${state.modalCoordination.currentPrimaryModalType})`);
+          
+          // Add to secondary modal queue
+          setState(prev => ({
+            ...prev,
+            modalCoordination: {
+              ...prev.modalCoordination,
+              pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
+                type: 'levelUp',
+                data: {
+                  newLevel: eventData.newLevel,
+                  levelTitle: eventData.levelTitle,
+                  levelDescription: eventData.levelDescription,
+                  isMilestone: eventData.isMilestone || false
+                },
+                timestamp: Date.now()
+              }]
+            }
+          }));
+        } else {
+          // No primary modal active - show immediately
+          console.log(`⚡ Level-up modal showing immediately - no primary modal active`);
+          showLevelUpModal(
+            eventData.newLevel,
+            eventData.levelTitle,
+            eventData.levelDescription,
+            eventData.isMilestone || false
+          );
+        }
       }
     };
 
@@ -517,6 +627,9 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     // Level-up modal management
     showLevelUpModal,
     hideLevelUpModal,
+    // Modal coordination system
+    notifyPrimaryModalStarted,
+    notifyPrimaryModalEnded,
     // Settings and feedback
     toggleAnimations,
     toggleHaptics,
