@@ -903,19 +903,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
       
-      // CRITICAL BUG #2 FIX: Check for recent auto-reset first
+      // CRITICAL BUG FIX: Check for very recent auto-reset only (reduced from 24h to 1h)
       if (currentStreak.autoResetTimestamp) {
         const resetTime = new Date(currentStreak.autoResetTimestamp);
         const now = new Date();
         const hoursSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60 * 60);
         
-        // If auto-reset occurred within 24 hours, debt is definitively 0
-        if (hoursSinceReset < 24) {
-          console.log(`[DEBUG] calculateDebt: Auto-reset ${hoursSinceReset.toFixed(1)}h ago. Frozen days = 0 (phantom frozen days prevention)`);
+        // Only prevent phantom debt for very recent resets (within 1 hour)
+        if (hoursSinceReset < 1) {
+          console.log(`[DEBUG] calculateDebt: Very recent auto-reset ${hoursSinceReset.toFixed(1)}h ago. Frozen days = 0 (phantom frozen days prevention)`);
           return 0;
         } else {
           // Clear old auto-reset timestamp to prevent perpetual 0 debt
-          console.log(`[DEBUG] calculateDebt: Clearing old auto-reset timestamp (${hoursSinceReset.toFixed(1)}h ago)`);
+          console.log(`[DEBUG] calculateDebt: Clearing old auto-reset timestamp (${hoursSinceReset.toFixed(1)}h ago) - allowing normal debt calculation`);
           await this.clearAutoResetTimestamp();
         }
       }

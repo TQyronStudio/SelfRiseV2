@@ -140,24 +140,34 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       setStreak(streakData);
     } catch (error) {
       console.error('Failed to load streak data:', error);
-      // Set default streak data on error
-      setStreak({
-        currentStreak: 0,
-        longestStreak: 0,
-        lastEntryDate: null,
-        streakStartDate: null,
-        canRecoverWithAd: false,
-        frozenDays: 0,
-        isFrozen: false,
-        preserveCurrentStreak: false,
-        warmUpPayments: [],
-        warmUpHistory: [],
-        autoResetTimestamp: null,
-        autoResetReason: null,
-        starCount: 0,
-        flameCount: 0,
-        crownCount: 0,
-      });
+      
+      // CRITICAL BUG FIX: Try to preserve existing streak data instead of resetting to 0
+      try {
+        // Fallback: Load raw streak data without calculation to preserve user's streak
+        const rawStreakData = await gratitudeStorage.getStreak();
+        console.log('[DEBUG] Using fallback raw streak data to preserve user streak:', rawStreakData.currentStreak);
+        setStreak(rawStreakData);
+      } catch (fallbackError) {
+        console.error('Failed to load fallback streak data:', fallbackError);
+        // Only as last resort, set minimal default data
+        setStreak({
+          currentStreak: 0,
+          longestStreak: 0,
+          lastEntryDate: null,
+          streakStartDate: null,
+          canRecoverWithAd: false,
+          frozenDays: 0,
+          isFrozen: false,
+          preserveCurrentStreak: false,
+          warmUpPayments: [],
+          warmUpHistory: [],
+          autoResetTimestamp: null,
+          autoResetReason: null,
+          starCount: 0,
+          flameCount: 0,
+          crownCount: 0,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
