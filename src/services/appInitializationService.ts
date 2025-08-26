@@ -270,6 +270,15 @@ export class AppInitializationService {
         }
       }
       
+      // PRODUCTION READINESS: Cleanup duplicate level-up records for memory optimization
+      try {
+        await GamificationService.cleanupDuplicateLevelUpRecords();
+        this.log('✅ Level-up records cleanup completed successfully');
+      } catch (error) {
+        this.log('⚠️ Level-up records cleanup failed (non-critical):', error);
+        // Non-critical error - app continues to function normally
+      }
+      
       this.log('GamificationService initialized successfully');
     } catch (error) {
       this.log('GamificationService validation failed:', error);

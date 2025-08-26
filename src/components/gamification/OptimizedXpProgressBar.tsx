@@ -49,6 +49,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // Accessibility - Reduced motion support
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
   const lastProgressRef = useRef(0);
+  const currentProgressRef = useRef(0); // Track current animated progress value
   const animationThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { t } = useI18n();
@@ -151,6 +152,11 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const lastUpdateSequence = useRef(updateSequence);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Initialize current progress ref with initial xpProgress value
+  useEffect(() => {
+    currentProgressRef.current = xpProgress;
+  }, []);
 
   // Performance tracking
   const renderCountRef = useRef(0);
@@ -359,14 +365,13 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       // Check for reduced motion preference
       if (!animated || isLoading || reducedMotionEnabled) {
         progressAnim.setValue(xpProgress);
+        currentProgressRef.current = xpProgress; // Update ref when setting value directly
         return;
       }
 
       // Performance optimization: Skip small changes
-      // Use listener to get current value instead of private _value
-      let currentProgress = 0;
-      progressAnim.addListener(({ value }) => { currentProgress = value; });
-      progressAnim.removeAllListeners();
+      // Use ref to track current progress value (avoids listener warnings)
+      const currentProgress = currentProgressRef.current;
       
       const progressDiff = Math.abs(xpProgress - currentProgress);
       
@@ -402,6 +407,8 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
       animationConfig.animation.start((finished) => {
         if (finished) {
+          // Update current progress ref when animation completes
+          currentProgressRef.current = xpProgress;
           console.log(`✅ Progress animation completed: ${xpProgress.toFixed(1)}%`);
         }
       });

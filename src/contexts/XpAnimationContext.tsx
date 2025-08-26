@@ -306,31 +306,70 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // ========================================
 
   const showLevelUpModal = useCallback((level: number, title: string, description?: string, isMilestone: boolean = false) => {
-    console.log(`🎆 Showing level-up modal: Level ${level} (${title})`);
-    
-    setState(prev => ({
-      ...prev,
-      levelUpModal: {
-        visible: true,
-        level,
-        title,
-        description: description || '',
-        isMilestone,
-        timestamp: Date.now(),
-      },
-    }));
-    
-    // Trigger celebration effects (using direct Haptics calls to avoid dependency issues)
-    if (state.isHapticsEnabled) {
-      try {
-        if (isMilestone) {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-        } else {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      console.log(`🎆 Showing level-up modal: Level ${level} (${title})`);
+      
+      // ENHANCED LOGGING: Modal display tracking
+      console.log(`📊 Modal Flow Tracking:`, {
+        event: 'LEVEL_UP_MODAL_DISPLAY_START',
+        modalData: {
+          level,
+          title,
+          description: description || '',
+          isMilestone
+        },
+        haptics: state.isHapticsEnabled,
+        timestamp: Date.now()
+      });
+      
+      setState(prev => ({
+        ...prev,
+        levelUpModal: {
+          visible: true,
+          level,
+          title,
+          description: description || '',
+          isMilestone,
+          timestamp: Date.now(),
+        },
+      }));
+      
+      console.log(`✅ Level-up modal state updated successfully`);
+      
+      // Trigger celebration effects (using direct Haptics calls to avoid dependency issues)
+      if (state.isHapticsEnabled) {
+        try {
+          if (isMilestone) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            console.log(`🔥 Heavy haptic feedback triggered for milestone level ${level}`);
+          } else {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            console.log(`⚡ Medium haptic feedback triggered for level ${level}`);
+          }
+        } catch (error) {
+          console.log('Level-up haptic feedback not available:', error);
         }
-      } catch (error) {
-        console.log('Level-up haptic feedback not available:', error);
       }
+      
+      console.log(`📊 Modal Flow Tracking:`, {
+        event: 'LEVEL_UP_MODAL_DISPLAY_COMPLETE',
+        level,
+        success: true,
+        timestamp: Date.now()
+      });
+      
+    } catch (error) {
+      // GRACEFUL DEGRADATION: Modal display failure doesn't break app functionality
+      console.error('🚨 Level-up modal display failed, but XP and app functionality continues:', error);
+      console.log('📱 Level progression saved correctly, only celebration visual failed');
+      
+      // ENHANCED LOGGING: Error tracking
+      console.log(`📊 Modal Flow Tracking:`, {
+        event: 'LEVEL_UP_MODAL_DISPLAY_ERROR',
+        level,
+        error: error.message || error,
+        timestamp: Date.now()
+      });
     }
   }, [state.isHapticsEnabled, state.isSoundEnabled]);
 
@@ -368,36 +407,69 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   }, []);
   
   const processSecondaryModals = useCallback(() => {
-    setState(prev => {
-      if (prev.modalCoordination.pendingSecondaryModals.length === 0) {
-        return prev;
-      }
+    try {
+      setState(prev => {
+        if (prev.modalCoordination.pendingSecondaryModals.length === 0) {
+          return prev;
+        }
+        
+        const nextModal = prev.modalCoordination.pendingSecondaryModals[0];
+        if (!nextModal) return prev;
+        
+        const remainingModals = prev.modalCoordination.pendingSecondaryModals.slice(1);
+        
+        console.log(`🎭 Processing secondary modal: ${nextModal.type}`);
+        
+        // ENHANCED LOGGING: Secondary modal processing tracking
+        console.log(`📊 Modal Flow Tracking:`, {
+          event: 'SECONDARY_MODAL_PROCESSING',
+          modalType: nextModal.type,
+          modalData: nextModal.data,
+          remainingInQueue: remainingModals.length,
+          timestamp: Date.now()
+        });
+        
+        // Handle different types of secondary modals
+        if (nextModal.type === 'levelUp') {
+          console.log(`🚀 Processing queued level-up modal for Level ${nextModal.data.newLevel}`);
+          showLevelUpModal(
+            nextModal.data.newLevel,
+            nextModal.data.levelTitle,
+            nextModal.data.levelDescription,
+            nextModal.data.isMilestone || false
+          );
+          
+          console.log(`📊 Modal Flow Tracking:`, {
+            event: 'SECONDARY_MODAL_PROCESSED',
+            modalType: 'levelUp',
+            level: nextModal.data.newLevel,
+            success: true,
+            timestamp: Date.now()
+          });
+        }
+        
+        return {
+          ...prev,
+          modalCoordination: {
+            ...prev.modalCoordination,
+            pendingSecondaryModals: remainingModals,
+          }
+        };
+      });
+    } catch (error) {
+      // GRACEFUL DEGRADATION: Secondary modal processing failure doesn't break modal queue
+      console.error('🚨 Secondary modal processing failed, clearing queue to prevent infinite loops:', error);
+      console.log('📱 Primary modal functionality remains unaffected');
       
-      const nextModal = prev.modalCoordination.pendingSecondaryModals[0];
-      if (!nextModal) return prev;
-      
-      const remainingModals = prev.modalCoordination.pendingSecondaryModals.slice(1);
-      
-      console.log(`🎭 Processing secondary modal: ${nextModal.type}`);
-      
-      // Handle different types of secondary modals
-      if (nextModal.type === 'levelUp') {
-        showLevelUpModal(
-          nextModal.data.newLevel,
-          nextModal.data.levelTitle,
-          nextModal.data.levelDescription,
-          nextModal.data.isMilestone || false
-        );
-      }
-      
-      return {
+      // Clear the queue to prevent stuck state
+      setState(prev => ({
         ...prev,
         modalCoordination: {
           ...prev.modalCoordination,
-          pendingSecondaryModals: remainingModals,
+          pendingSecondaryModals: [],
         }
-      };
-    });
+      }));
+    }
   }, [showLevelUpModal]);
 
   const hideLevelUpModal = useCallback(() => {
@@ -440,40 +512,88 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     };
 
     const handleLevelUp = (eventData: any) => {
-      if (eventData && eventData.newLevel && eventData.levelTitle) {
-        console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
-        
-        // PRIORITY SYSTEM: Check if primary modal is active
-        if (state.modalCoordination.isPrimaryModalActive) {
-          console.log(`⏸️ Level-up modal queued - primary modal active (${state.modalCoordination.currentPrimaryModalType})`);
+      try {
+        if (eventData && eventData.newLevel && eventData.levelTitle) {
+          // ENHANCED LOGGING: Detailed modal coordination tracking
+          console.log(`📊 Modal Flow Tracking:`, {
+            event: 'LEVEL_UP_EVENT_RECEIVED',
+            eventData,
+            modalState: {
+              isPrimaryModalActive: state.modalCoordination.isPrimaryModalActive,
+              currentPrimaryModalType: state.modalCoordination.currentPrimaryModalType,
+              pendingSecondaryModals: state.modalCoordination.pendingSecondaryModals.length
+            },
+            timestamp: Date.now()
+          });
           
-          // Add to secondary modal queue
-          setState(prev => ({
-            ...prev,
-            modalCoordination: {
-              ...prev.modalCoordination,
-              pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
-                type: 'levelUp',
-                data: {
-                  newLevel: eventData.newLevel,
-                  levelTitle: eventData.levelTitle,
-                  levelDescription: eventData.levelDescription,
-                  isMilestone: eventData.isMilestone || false
-                },
-                timestamp: Date.now()
-              }]
-            }
-          }));
+          console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
+          
+          // PRIORITY SYSTEM: Check if primary modal is active
+          if (state.modalCoordination.isPrimaryModalActive) {
+            console.log(`⏸️ Level-up modal queued - primary modal active (${state.modalCoordination.currentPrimaryModalType})`);
+            
+            console.log(`📊 Modal Flow Tracking:`, {
+              event: 'LEVEL_UP_QUEUED',
+              reason: 'PRIMARY_MODAL_ACTIVE',
+              primaryModalType: state.modalCoordination.currentPrimaryModalType,
+              queueLength: state.modalCoordination.pendingSecondaryModals.length + 1,
+              timestamp: Date.now()
+            });
+            
+            // Add to secondary modal queue
+            setState(prev => ({
+              ...prev,
+              modalCoordination: {
+                ...prev.modalCoordination,
+                pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
+                  type: 'levelUp',
+                  data: {
+                    newLevel: eventData.newLevel,
+                    levelTitle: eventData.levelTitle,
+                    levelDescription: eventData.levelDescription,
+                    isMilestone: eventData.isMilestone || false
+                  },
+                  timestamp: Date.now()
+                }]
+              }
+            }));
+          } else {
+            // No primary modal active - show immediately
+            console.log(`⚡ Level-up modal showing immediately - no primary modal active`);
+            
+            console.log(`📊 Modal Flow Tracking:`, {
+              event: 'LEVEL_UP_IMMEDIATE_DISPLAY',
+              reason: 'NO_PRIMARY_MODAL_ACTIVE',
+              levelData: {
+                newLevel: eventData.newLevel,
+                title: eventData.levelTitle,
+                isMilestone: eventData.isMilestone
+              },
+              timestamp: Date.now()
+            });
+            
+            showLevelUpModal(
+              eventData.newLevel,
+              eventData.levelTitle,
+              eventData.levelDescription,
+              eventData.isMilestone || false
+            );
+          }
         } else {
-          // No primary modal active - show immediately
-          console.log(`⚡ Level-up modal showing immediately - no primary modal active`);
-          showLevelUpModal(
-            eventData.newLevel,
-            eventData.levelTitle,
-            eventData.levelDescription,
-            eventData.isMilestone || false
-          );
+          console.warn(`⚠️ Invalid level-up event data received:`, eventData);
         }
+      } catch (error) {
+        // GRACEFUL DEGRADATION: Level-up modal failure doesn't break core functionality
+        console.error('🚨 Level-up modal failed, but core functionality continues:', error);
+        console.log('📱 App remains fully functional - habits, journal, goals, and XP calculations unaffected');
+        
+        // ENHANCED LOGGING: Error tracking
+        console.log(`📊 Modal Flow Tracking:`, {
+          event: 'LEVEL_UP_MODAL_ERROR',
+          error: error.message || error,
+          eventData,
+          timestamp: Date.now()
+        });
       }
     };
 

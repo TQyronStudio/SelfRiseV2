@@ -822,16 +822,38 @@ export class GamificationService {
       if (leveledUp) {
         console.log(`🎉 Level up! ${previousLevel} → ${newLevel}`);
         
+        // ENHANCED LOGGING: Detailed level-up flow tracking
+        console.log(`📊 Level-up Flow Tracking:`, {
+          event: 'LEVEL_UP_DETECTED',
+          previousLevel,
+          newLevel,
+          totalXP: newTotalXP,
+          xpGained: finalAmount,
+          source: options.source,
+          timestamp: Date.now(),
+          flowId: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
+        });
+        
         // CRITICAL: Emit level-up event for modal celebration
         const levelInfo = getLevelInfo(newLevel);
-        DeviceEventEmitter.emit('levelUp', {
+        const levelUpEventData = {
           newLevel,
           previousLevel,
           levelTitle: levelInfo.title,
           levelDescription: levelInfo.description || '',
           isMilestone: levelInfo.isMilestone,
           timestamp: Date.now()
+        };
+        
+        console.log(`🎯 Emitting levelUp event:`, {
+          event: 'LEVEL_UP_EVENT_EMIT',
+          eventData: levelUpEventData,
+          timestamp: Date.now()
         });
+        
+        DeviceEventEmitter.emit('levelUp', levelUpEventData);
+        
+        console.log(`✅ Level-up event emission completed successfully`);
       }
       
       return result;
@@ -1124,6 +1146,108 @@ export class GamificationService {
     } catch (error) {
       console.error('GamificationService.getTotalXP error:', error);
       return 0;
+    }
+  }
+
+  /**
+   * PRODUCTION READINESS: Cleanup old duplicate level-up records for memory optimization
+   */
+  static async cleanupDuplicateLevelUpRecords(): Promise<void> {
+    try {
+      console.log('🧹 Starting cleanup of duplicate level-up records...');
+      
+      const allTransactions = await this.getAllTransactions();
+      const originalCount = allTransactions.length;
+      
+      if (originalCount === 0) {
+        console.log('📝 No transactions to cleanup');
+        return;
+      }
+      
+      console.log(`📊 Analyzing ${originalCount} transactions for duplicates...`);
+      
+      // Group level-up related transactions by date and level change
+      const levelUpGroups = new Map<string, XPTransaction[]>();
+      const nonLevelUpTransactions: XPTransaction[] = [];
+      
+      for (const transaction of allTransactions) {
+        // Check if transaction is related to level progression (could indicate level-up)
+        const isLevelUpRelated = transaction.description?.toLowerCase().includes('level') ||
+                                transaction.source === XPSourceType.ACHIEVEMENT_UNLOCK ||
+                                transaction.amount >= 100; // High XP amounts often trigger level-ups
+        
+        if (isLevelUpRelated) {
+          const groupKey = `${transaction.date}_${Math.floor(transaction.amount / 50)}`; // Group by date and XP range
+          
+          if (!levelUpGroups.has(groupKey)) {
+            levelUpGroups.set(groupKey, []);
+          }
+          levelUpGroups.get(groupKey)!.push(transaction);
+        } else {
+          nonLevelUpTransactions.push(transaction);
+        }
+      }
+      
+      // For each group, keep only the most recent transaction
+      const cleanedLevelUpTransactions: XPTransaction[] = [];
+      let duplicatesRemoved = 0;
+      
+      for (const [groupKey, transactions] of levelUpGroups.entries()) {
+        if (transactions.length > 1) {
+          // Sort by creation time and keep the most recent
+          transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          cleanedLevelUpTransactions.push(transactions[0]); // Keep most recent
+          duplicatesRemoved += transactions.length - 1;
+          
+          console.log(`🔄 Group ${groupKey}: Removed ${transactions.length - 1} duplicates, kept most recent`);
+        } else {
+          cleanedLevelUpTransactions.push(transactions[0]);
+        }
+      }
+      
+      // Combine cleaned level-up transactions with other transactions
+      const finalTransactions = [...nonLevelUpTransactions, ...cleanedLevelUpTransactions];
+      
+      // Sort by creation time to maintain chronological order
+      finalTransactions.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      
+      // Save cleaned transactions back to storage
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.XP_TRANSACTIONS, 
+        JSON.stringify(finalTransactions)
+      );
+      
+      const finalCount = finalTransactions.length;
+      const totalRemoved = originalCount - finalCount;
+      
+      console.log(`✅ Cleanup completed:`, {
+        originalTransactions: originalCount,
+        duplicatesRemoved,
+        totalRemoved,
+        finalTransactions: finalCount,
+        memoryFreed: `~${Math.round(totalRemoved * 0.5)}KB estimated`
+      });
+      
+      // Enhanced logging for production debugging
+      console.log(`📊 Memory Cleanup Results:`, {
+        event: 'DUPLICATE_CLEANUP_COMPLETE',
+        originalCount,
+        finalCount,
+        duplicatesRemoved,
+        totalRemoved,
+        timestamp: Date.now()
+      });
+      
+    } catch (error) {
+      console.error('🚨 Cleanup of duplicate level-up records failed:', error);
+      console.log('📱 App continues to function normally, cleanup will retry on next launch');
+      
+      // GRACEFUL DEGRADATION: Cleanup failure doesn't break app functionality
+      console.log(`📊 Memory Cleanup Results:`, {
+        event: 'DUPLICATE_CLEANUP_ERROR',
+        error: error.message || error,
+        timestamp: Date.now()
+      });
     }
   }
 

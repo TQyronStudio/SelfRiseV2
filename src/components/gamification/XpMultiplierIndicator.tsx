@@ -13,7 +13,7 @@
  * - Accessibility support and screen reader compatibility
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -91,6 +91,9 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
   const [progressAnim] = useState(new Animated.Value(0));
+  
+  // Animation refs for cleanup
+  const activeAnimationsRef = useRef<{ pulse?: any; glow?: any; progress?: any }>({});
   
   // ========================================
   // DATA LOADING & UPDATES
@@ -182,11 +185,32 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   // ========================================
   
   /**
+   * Stop all running animations
+   */
+  const stopAllAnimations = useCallback(() => {
+    if (activeAnimationsRef.current.pulse) {
+      activeAnimationsRef.current.pulse.stop();
+      activeAnimationsRef.current.pulse = undefined;
+    }
+    if (activeAnimationsRef.current.glow) {
+      activeAnimationsRef.current.glow.stop();
+      activeAnimationsRef.current.glow = undefined;
+    }
+    if (activeAnimationsRef.current.progress) {
+      activeAnimationsRef.current.progress.stop();
+      activeAnimationsRef.current.progress = undefined;
+    }
+  }, []);
+  
+  /**
    * Start animations for active multiplier
    */
   const startMultiplierAnimations = useCallback(() => {
+    // Stop any existing animations first
+    stopAllAnimations();
+    
     // Pulse animation for active multiplier
-    Animated.loop(
+    const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.1,
@@ -199,10 +223,12 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    pulseAnimation.start();
+    activeAnimationsRef.current.pulse = pulseAnimation;
     
     // Glow animation
-    Animated.loop(
+    const glowAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
           toValue: 1,
@@ -215,14 +241,19 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
           useNativeDriver: false,
         }),
       ])
-    ).start();
+    );
+    glowAnimation.start();
+    activeAnimationsRef.current.glow = glowAnimation;
   }, [pulseAnim, glowAnim]);
   
   /**
    * Start animations for ready-to-activate state
    */
   const startReadyAnimations = useCallback(() => {
-    Animated.loop(
+    // Stop any existing animations first
+    stopAllAnimations();
+    
+    const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.05,
@@ -235,8 +266,10 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, [pulseAnim]);
+    );
+    pulseAnimation.start();
+    activeAnimationsRef.current.pulse = pulseAnimation;
+  }, [pulseAnim, stopAllAnimations]);
   
   /**
    * Start progress animations
@@ -244,12 +277,26 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   const startProgressAnimations = useCallback((currentStreak: number) => {
     const progress = Math.min(currentStreak / 7, 1); // 7 days required for harmony streak
     
-    Animated.timing(progressAnim, {
+    // Stop existing progress animation if running
+    if (activeAnimationsRef.current.progress) {
+      activeAnimationsRef.current.progress.stop();
+    }
+    
+    const progressAnimation = Animated.timing(progressAnim, {
       toValue: progress,
       duration: 1000,
       useNativeDriver: false,
-    }).start();
+    });
+    progressAnimation.start();
+    activeAnimationsRef.current.progress = progressAnimation;
   }, [progressAnim]);
+  
+  // Cleanup animations on unmount
+  useEffect(() => {
+    return () => {
+      stopAllAnimations();
+    };
+  }, [stopAllAnimations]);
   
   // ========================================
   // HANDLERS

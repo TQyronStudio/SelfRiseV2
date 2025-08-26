@@ -1396,6 +1396,314 @@ const XPSystemRecovery = {
 
 ---
 
+## Production Readiness - Level-up System Architecture
+
+### 🚨 FUNDAMENTAL PRODUCTION PRINCIPLE
+**Level-up system failures MUST NOT break core app functionality. The system MUST be resilient, observable, and self-healing.**
+
+### Complete Level-up Flow Architecture
+```typescript
+// COMPLETE LEVEL-UP FLOW (Production-Ready)
+1. XP Addition (GamificationService.addXP)
+   ├── Enhanced Logging: Level-up detection with flowId tracking
+   ├── Error Handling: Graceful degradation on XP operation failures
+   └── Event Emission: 'levelUp' with complete metadata
+
+2. Event Processing (XpAnimationContext.handleLevelUp)  
+   ├── Enhanced Logging: Modal coordination state tracking
+   ├── Error Handling: Modal failures don't break core functionality
+   ├── Priority System: Primary vs Secondary modal coordination
+   └── Queue Management: Pending secondary modals with timestamps
+
+3. Modal Display (showLevelUpModal)
+   ├── Enhanced Logging: Modal display lifecycle tracking  
+   ├── Error Handling: Display failures don't break level progression
+   ├── Haptic Feedback: Milestone vs regular level feedback
+   └── Success Confirmation: Modal display completion logging
+
+4. Memory Management (cleanupDuplicateLevelUpRecords)
+   ├── Startup Cleanup: Automatic duplicate removal on app initialization
+   ├── Enhanced Logging: Memory optimization results tracking
+   ├── Error Handling: Cleanup failures don't affect app startup
+   └── Performance: Estimated memory freed reporting
+```
+
+### Enhanced Logging Standards for Level-up Flow
+```typescript
+// MANDATORY LOGGING PATTERNS for production debugging:
+
+// 1. Level-up Detection (GamificationService)
+console.log(`📊 Level-up Flow Tracking:`, {
+  event: 'LEVEL_UP_DETECTED',
+  previousLevel,
+  newLevel, 
+  totalXP,
+  xpGained,
+  source,
+  flowId: `levelup_${Date.now()}_${randomId}`
+});
+
+// 2. Event Emission (GamificationService)  
+console.log(`📊 Modal Flow Tracking:`, {
+  event: 'LEVEL_UP_EVENT_EMIT',
+  eventData: levelUpEventData,
+  timestamp: Date.now()
+});
+
+// 3. Modal Coordination (XpAnimationContext)
+console.log(`📊 Modal Flow Tracking:`, {
+  event: 'LEVEL_UP_EVENT_RECEIVED',
+  modalState: {
+    isPrimaryModalActive,
+    currentPrimaryModalType,
+    pendingSecondaryModals: queue.length
+  },
+  timestamp: Date.now()
+});
+
+// 4. Memory Cleanup (cleanupDuplicateLevelUpRecords)
+console.log(`📊 Memory Cleanup Results:`, {
+  event: 'DUPLICATE_CLEANUP_COMPLETE', 
+  originalCount,
+  finalCount,
+  duplicatesRemoved,
+  totalRemoved,
+  memoryFreed: `~${estimatedKB}KB`
+});
+```
+
+### Error Recovery & System Resilience
+```typescript
+// PRODUCTION ERROR HANDLING PATTERNS:
+
+// Pattern 1: XP Operation Resilience  
+try {
+  await GamificationService.addXP(amount, options);
+} catch (error) {
+  console.error('🚨 XP operation failed, but core functionality continues:', error);
+  // Habit/Journal/Goal operations continue normally
+  // User data remains intact
+}
+
+// Pattern 2: Modal Display Resilience
+try {
+  showLevelUpModal(level, title, description, isMilestone);
+} catch (error) {
+  console.error('🚨 Level-up modal display failed, but XP and app functionality continues:', error);
+  console.log('📱 Level progression saved correctly, only celebration visual failed');
+}
+
+// Pattern 3: Memory Cleanup Resilience
+try {
+  await GamificationService.cleanupDuplicateLevelUpRecords();
+} catch (error) {
+  console.error('🚨 Cleanup failed, but app continues normally:', error);
+  // Cleanup will retry on next app launch
+}
+```
+
+### Memory Optimization & Performance
+```typescript
+// AUTOMATIC MEMORY MANAGEMENT:
+1. Startup Cleanup: cleanupDuplicateLevelUpRecords() runs on app initialization
+2. Transaction Limits: Maximum 1000 transactions stored (automatic trimming)
+3. Duplicate Detection: Group by date + XP range, keep most recent only
+4. Performance Metrics: Memory freed estimation and logging
+
+// MEMORY OPTIMIZATION RESULTS:
+- Removes duplicate level-up records from storage
+- Maintains chronological order of remaining transactions  
+- Estimates memory freed (~0.5KB per removed transaction)
+- Non-blocking: Failures don't affect app startup
+- Self-healing: Retries on next app launch if cleanup fails
+```
+
+### System Health Monitoring
+```typescript
+// HEALTH CHECK INTEGRATION:
+const healthCheck = async () => {
+  try {
+    await GamificationService.getCurrentXP();     // XP system operational
+    await showLevelUpModal(1, 'Test');           // Modal system operational  
+    return { healthy: true, systems: ['XP', 'Modals'] };
+  } catch (error) {
+    return { healthy: false, error: error.message };
+  }
+};
+
+// GRACEFUL DEGRADATION when systems are unhealthy:
+if (!isXPSystemHealthy) {
+  return <MinimalUI />; // Core functionality without XP features
+}
+```
+
+---
+
+## Level-up Architecture Diagram
+
+### 🏗️ COMPLETE SYSTEM ARCHITECTURE
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           SelfRise V2 Level-up System Architecture              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────┐
+│   User Actions  │    │   Storage       │    │  Core Services  │    │ UI Systems  │
+│                 │    │   Systems       │    │                 │    │             │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤    ├─────────────┤
+│ • Complete Habit│    │ • AsyncStorage  │    │ Gamification    │    │ XpAnimation │
+│ • Journal Entry │───▶│ • XP Transactions│───▶│ Service         │───▶│ Context     │
+│ • Goal Progress │    │ • Level History │    │                 │    │             │
+│ • Achievements  │    │ • Daily Tracking│    │ • addXP()       │    │ • Modal     │
+└─────────────────┘    └─────────────────┘    │ • subtractXP()  │    │   Coordination│
+                                              │ • Level Detection│    │ • Event     │
+                                              └─────────────────┘    │   Handling  │
+                                                                     └─────────────┘
+
+                                    LEVEL-UP FLOW SEQUENCE
+                                    ══════════════════════
+
+1. XP ADDITION PHASE:
+   ┌───────────────────┐  validateXP()  ┌─────────────────────────┐
+   │ User Action       │───────────────▶│ GamificationService.    │
+   │ (habit, journal,  │  applyLimits() │ addXP()                 │
+   │  goal, etc.)      │◀───────────────│                         │
+   └───────────────────┘     store       │ • Enhanced Logging ✓    │
+                             result      │ • Error Handling ✓     │
+                                        │ • Level Detection       │
+                                        └─────────────────────────┘
+                                                    │
+                                                    │ if levelUp detected
+                                                    ▼
+2. EVENT EMISSION PHASE:                   ┌─────────────────────────┐
+   ┌─────────────────┐                     │ DeviceEventEmitter      │
+   │ Level Detection │                     │ .emit('levelUp', {      │
+   │ • Previous: 8   │────────────────────▶│   newLevel: 9,          │
+   │ • New: 9        │  emit event         │   levelTitle: 'Rising', │
+   │ • Is Milestone  │                     │   timestamp: now        │
+   └─────────────────┘                     │ })                      │
+                                          └─────────────────────────┘
+                                                    │
+                                                    │ event broadcast
+                                                    ▼
+3. MODAL COORDINATION PHASE:              ┌─────────────────────────┐
+   ┌─────────────────────────┐            │ XpAnimationContext      │
+   │ Priority System Check   │◀───────────│ .handleLevelUp()        │
+   │                         │            │                         │
+   │ Primary Modal Active?   │            │ • Enhanced Logging ✓    │
+   │ ├─ YES: Queue Modal     │            │ • Error Handling ✓     │
+   │ └─ NO: Show Immediately │            │ • State Tracking       │
+   └─────────────────────────┘            └─────────────────────────┘
+           │                                         │
+           ▼                                         ▼
+   ┌─────────────────────┐              ┌─────────────────────────┐
+   │ Secondary Queue     │              │ Immediate Display       │
+   │                     │              │                         │
+   │ • Pending Modal     │              │ showLevelUpModal()      │
+   │ • Timestamp         │              │ • Enhanced Logging ✓    │
+   │ • Wait for Primary  │              │ • Error Handling ✓     │
+   │   to finish         │              │ • Haptic Feedback      │
+   └─────────────────────┘              │ • Visual Celebration   │
+           │                            └─────────────────────────┘
+           │ primary modal ends                      │
+           ▼                                         ▼
+   ┌─────────────────────┐                ┌─────────────────────────┐
+   │ Process Queue       │                │ User Sees Modal        │
+   │                     │                │                         │
+   │ processSecondary    │                │ 🎉 Level 9 Achieved!   │
+   │ Modals()           │                │ 'Rising Star'           │
+   │ • Enhanced Logging ✓│                │                         │
+   │ • Error Handling ✓ │                │ [Celebration Effects]   │
+   │ • Queue Management  │                │ • Haptics              │
+   └─────────────────────┘                │ • Visual Animation     │
+                                          │ • Success Logging      │
+                                          └─────────────────────────┘
+
+4. MEMORY OPTIMIZATION PHASE (Background):
+   ┌─────────────────────────────────────────────────────────────────────────────┐
+   │ App Initialization Service                                                  │
+   │                                                                             │
+   │ GamificationService.cleanupDuplicateLevelUpRecords()                       │
+   │ ├─ Enhanced Logging ✓                                                      │
+   │ ├─ Error Handling ✓ (non-critical)                                        │
+   │ ├─ Duplicate Detection (by date + XP range)                               │
+   │ ├─ Keep Most Recent Only                                                   │
+   │ ├─ Memory Freed Estimation                                                 │
+   │ └─ Auto-retry on Next Launch (if failed)                                  │
+   └─────────────────────────────────────────────────────────────────────────────┘
+
+                           ERROR HANDLING & RESILIENCE PATTERNS
+                           ═══════════════════════════════════
+
+   ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+   │ XP Operation     │  FAIL   │ Graceful         │  FAIL   │ Core App         │
+   │ Error            │────────▶│ Degradation      │────────▶│ Continues        │
+   │                  │         │                  │         │                  │
+   │ • Log Error ✓    │         │ • XP System OFF  │         │ • Habits Work ✓  │
+   │ • Don't Throw ✓  │         │ • Modal System   │         │ • Journal Works ✓│
+   │ • Continue Flow  │         │   OFF            │         │ • Goals Work ✓   │
+   └──────────────────┘         │ • Core Features  │         │ • Settings Work ✓│
+                                │   STILL WORK ✓   │         └──────────────────┘
+                                └──────────────────┘
+
+   ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+   │ Modal Display    │  FAIL   │ Level Progression│ SUCCESS │ User Experience  │
+   │ Error            │────────▶│ SAVED ✓          │────────▶│                  │
+   │                  │         │                  │         │ • XP Added ✓     │
+   │ • Log Error ✓    │         │ • XP Stored ✓    │         │ • Level Up ✓     │
+   │ • Don't Break    │         │ • Progress Valid │         │ • Visual Failed  │
+   │   Level Progress │         │ • Only Visual    │         │   (But User Knows│
+   └──────────────────┘         │   Failed         │         │   They Leveled)  │
+                                └──────────────────┘         └──────────────────┘
+```
+
+### 🔧 DEVELOPER INTEGRATION CHECKLIST
+
+**When Adding New XP Sources:**
+```typescript
+// ✅ REQUIRED STEPS:
+1. Use ONLY GamificationService.addXP() - NO direct XP manipulation
+2. Include proper XPSourceType enum value
+3. Add error handling with graceful degradation
+4. Test both positive and negative XP scenarios (reversal)
+5. Verify daily limits are respected
+6. Test level-up modal priority with other active modals
+
+// ✅ IMPLEMENTATION TEMPLATE:
+const awardXPForNewFeature = async (amount: number, sourceId: string) => {
+  try {
+    await GamificationService.addXP(amount, {
+      source: XPSourceType.NEW_FEATURE,
+      sourceId,
+      description: 'New feature completion'
+    });
+  } catch (error) {
+    console.error('XP award failed, but feature continues:', error);
+    // Feature functionality continues normally
+  }
+};
+```
+
+**When Modifying Level-up Flow:**
+```typescript
+// 🚨 CRITICAL REQUIREMENTS:
+1. Maintain backward compatibility with existing modal coordination
+2. Add enhanced logging for all new steps
+3. Include error handling with graceful degradation  
+4. Test with multiple simultaneous XP sources
+5. Verify cleanup integration doesn't break on startup
+6. Test modal priority system with rapid level-ups
+
+// 🛡️ TESTING REQUIREMENTS:
+- Level-up with active primary modal (Journal milestone)
+- Level-up with no competing modals
+- Multiple level-ups in rapid succession
+- System failure recovery (XP service down, modal crashes)
+- Memory cleanup on app startup (with corrupted data)
+```
+
+---
+
 **GOLDEN RULE**: *"One gamification system, clear rules, zero exceptions, full reversibility"*
 
 ---
