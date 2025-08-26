@@ -42,28 +42,6 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       icon: 'fitness',
       color: '#FF6B6B',
     },
-    {
-      id: 'daily_steps',
-      title: t('goals.templates.dailySteps'),
-      description: t('goals.templates.dailyStepsDescription'),
-      category: GoalCategory.HEALTH,
-      unit: 'steps',
-      suggestedTargetValue: 10000,
-      tags: ['walking', 'fitness', 'daily'],
-      icon: 'walk',
-      color: '#FF6B6B',
-    },
-    {
-      id: 'water_intake',
-      title: t('goals.templates.waterIntake'),
-      description: t('goals.templates.waterIntakeDescription'),
-      category: GoalCategory.HEALTH,
-      unit: 'glasses',
-      suggestedTargetValue: 8,
-      tags: ['hydration', 'health', 'daily'],
-      icon: 'water',
-      color: '#FF6B6B',
-    },
 
     // Financial Templates
     {
@@ -158,17 +136,6 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       suggestedTargetValue: 365,
       tags: ['meditation', 'mindfulness', 'daily'],
       icon: 'leaf',
-      color: '#96CEB4',
-    },
-    {
-      id: 'journal_entries',
-      title: t('goals.templates.journalEntries'),
-      description: t('goals.templates.journalEntriesDescription'),
-      category: GoalCategory.PERSONAL,
-      unit: 'entries',
-      suggestedTargetValue: 100,
-      tags: ['journaling', 'reflection', 'personal'],
-      icon: 'journal',
       color: '#96CEB4',
     },
 

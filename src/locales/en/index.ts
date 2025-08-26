@@ -322,10 +322,6 @@ const en: TranslationKeys = {
       // Health Templates
       loseWeight: 'Lose Weight',
       loseWeightDescription: 'Set a target weight loss goal with healthy progress tracking.',
-      dailySteps: 'Daily Steps',
-      dailyStepsDescription: 'Track your daily step count to maintain an active lifestyle.',
-      waterIntake: 'Water Intake',
-      waterIntakeDescription: 'Monitor your daily water consumption for better hydration.',
       
       // Financial Templates
       saveMoney: 'Save Money',
@@ -350,8 +346,6 @@ const en: TranslationKeys = {
       // Personal Templates
       meditation: 'Daily Meditation',
       meditationDescription: 'Track minutes spent in daily meditation practice.',
-      journalEntries: 'Journal Entries',
-      journalEntriesDescription: 'Maintain a regular journaling habit.',
       
       // Other Templates
       artProjects: 'Art Projects',

@@ -307,10 +307,6 @@ export interface TranslationKeys {
       noTemplates: string;
       loseWeight: string;
       loseWeightDescription: string;
-      dailySteps: string;
-      dailyStepsDescription: string;
-      waterIntake: string;
-      waterIntakeDescription: string;
       saveMoney: string;
       saveMoneyDescription: string;
       payDebt: string;
@@ -327,8 +323,6 @@ export interface TranslationKeys {
       networkingDescription: string;
       meditation: string;
       meditationDescription: string;
-      journalEntries: string;
-      journalEntriesDescription: string;
       artProjects: string;
       artProjectsDescription: string;
       cookingRecipes: string;
