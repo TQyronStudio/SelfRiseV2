@@ -352,8 +352,13 @@ export class GamificationService {
       return false;
     }
     
-    // Don't batch critical operations
-    if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK) {
+    // Don't batch critical operations - ALL user-facing XP sources get immediate popups
+    if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK ||
+        options.source === XPSourceType.HABIT_COMPLETION ||
+        options.source === XPSourceType.HABIT_BONUS ||
+        options.source === XPSourceType.JOURNAL_ENTRY ||
+        options.source === XPSourceType.JOURNAL_BONUS ||
+        options.source === XPSourceType.GOAL_PROGRESS) {
       return false;
     }
     

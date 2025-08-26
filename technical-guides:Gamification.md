@@ -937,6 +937,38 @@ useEffect(() => {
 ### 🚨 FUNDAMENTAL ANIMATION PRINCIPLE
 **All XP popup animations MUST use identical timing, positioning, and behavior patterns regardless of XP source or amount (positive/negative).**
 
+### 🎯 IMMEDIATE ANIMATION REQUIREMENT
+**ALL XP popups MUST appear immediately without batching delays to ensure consistent user experience across all app sections.**
+
+```typescript
+// CRITICAL: All XP operations bypass batching for immediate feedback
+HABIT_COMPLETION: 25 XP     // IMMEDIATE popup (0ms delay)
+HABIT_BONUS: 15 XP          // IMMEDIATE popup (0ms delay)
+JOURNAL_ENTRY: 20 XP        // IMMEDIATE popup (0ms delay)
+JOURNAL_BONUS: 8 XP         // IMMEDIATE popup (0ms delay)
+GOAL_PROGRESS: 35 XP        // IMMEDIATE popup (0ms delay)
+ACHIEVEMENT_UNLOCK: 50+ XP  // IMMEDIATE popup (0ms delay)
+
+// Implementation: shouldBatchXPAddition() excludes ALL user-facing sources
+if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK ||
+    options.source === XPSourceType.HABIT_COMPLETION ||
+    options.source === XPSourceType.HABIT_BONUS ||
+    options.source === XPSourceType.JOURNAL_ENTRY ||
+    options.source === XPSourceType.JOURNAL_BONUS ||
+    options.source === XPSourceType.GOAL_PROGRESS) {
+  return false; // NO BATCHING - immediate popup for ALL sources
+}
+
+// Universal User Experience Consistency:
+✅ Complete habit     → IMMEDIATE +25 XP popup
+✅ Uncomplete habit   → IMMEDIATE -25 XP popup
+✅ Journal entry      → IMMEDIATE +20 XP popup  
+✅ Delete journal     → IMMEDIATE -20 XP popup
+✅ Goal progress      → IMMEDIATE +35 XP popup
+✅ Delete progress    → IMMEDIATE -35 XP popup
+// ALL operations have identical response time (0ms)
+```
+
 ### Standard Animation Parameters
 ```typescript
 // UNIFIED TIMING CONSTANTS (XpPopupAnimation.tsx)
