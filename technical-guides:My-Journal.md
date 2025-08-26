@@ -230,6 +230,102 @@ adLoadingStates: loading/ready/failed
 
 ---
 
+## ⚠️ CRITICAL IMPLEMENTATION WARNINGS
+
+### Architecture Pitfalls Prevention
+
+**🚨 DANGER ZONES - Implementation Traps:**
+
+#### 1. autoResetTimestamp Logic Trap
+```typescript
+// ❌ FATAL: Never block debt calculation for extended periods
+if (autoResetTimestamp && hoursSinceReset < 24) return 0; // BREAKS FROZEN STREAK
+
+// ✅ CORRECT: Only short-term phantom debt prevention  
+if (autoResetTimestamp && hoursSinceReset < 1) return 0; // Safe window
+```
+
+**Rule:** autoResetTimestamp = edge case handler only, NOT main logic controller
+
+#### 2. Exception Handling Data Loss
+```typescript
+// ❌ FATAL: Resetting user data on calculation errors
+catch (error) {
+  setStreak({ currentStreak: 0 }); // DESTROYS USER PROGRESS
+}
+
+// ✅ CORRECT: Preserve existing data in errors
+catch (error) {
+  const fallbackData = await getStreak(); // Preserve user streak
+  setStreak(fallbackData);
+}
+```
+
+**Rule:** Exception = preserve data, never default to 0
+
+#### 3. Early Return Logic Pollution
+```typescript
+// ❌ DANGER: Too many early returns bypass core logic
+if (condition1) return 0;
+if (condition2) return 0;  
+if (condition3) return 0;
+// Core frozen streak logic never reached!
+
+// ✅ CORRECT: Minimal early returns, core logic protected
+if (todayComplete) return 0; // Only obvious cases
+// Core debt calculation always runs
+```
+
+### 🧪 Mandatory Pre-Deploy Testing
+
+**These scenarios MUST pass before any deployment:**
+
+```typescript
+// CRITICAL: Frozen Streak Functionality Test
+describe('CRITICAL: Frozen Streak System', () => {
+  it('MUST: User with streak 15 → miss 1 day → shows frozen (NOT 0)', async () => {
+    // Setup: User has 15-day streak
+    // Action: Miss 1 day (0-2 entries)
+    // Expected: currentStreak=15, isFrozen=true, frozenDays=1
+    // FATAL IF: currentStreak=0 (indicates broken system)
+  });
+
+  it('MUST: Previous reset exists → miss day → still freezes', async () => {
+    // Setup: User had auto-reset weeks ago, now has streak 10
+    // Action: Miss 1 day
+    // Expected: Streak freezes (not resets again)
+    // FATAL IF: autoResetTimestamp blocks freezing
+  });
+
+  it('MUST: Calculation error → preserves user streak', async () => {
+    // Setup: User has streak 20
+    // Action: Force calculation error
+    // Expected: UI shows streak 20 (from fallback data)
+    // FATAL IF: UI shows streak 0
+  });
+});
+```
+
+### 🔍 Code Review Checklist
+
+**Before ANY merge touching frozen streak logic:**
+
+- [ ] **autoResetTimestamp prevention ≤ 1 hour** (never 24h+)
+- [ ] **calculateFrozenDays() core logic protected** from early returns  
+- [ ] **Exception handlers preserve user data** (no default to 0)
+- [ ] **Test: streak 15 + miss 1 day = frozen state** (not 0)
+- [ ] **Test: Previous reset + miss day = still freezes** (not permanent 0)
+
+### 🎯 Implementation Principles
+
+1. **Data Preservation First:** User streak values are sacred - never reset without explicit action
+2. **Minimal Early Returns:** Core debt calculation must run unless obviously unnecessary  
+3. **Edge Case Isolation:** Special cases (autoReset prevention) must not affect normal operation
+4. **Fallback Strategy:** Always attempt to preserve existing data during errors
+5. **Test-Driven Validation:** Critical user journeys must be tested before deployment
+
+---
+
 ## Testing & Validation
 
 ### Critical Test Scenarios
