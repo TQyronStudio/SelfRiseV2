@@ -221,6 +221,11 @@ const en: TranslationKeys = {
     save: 'Save',
     selectTargetDate: 'Select Target Date',
     
+    // Step-by-step date selection
+    selectYear: 'Select Year',
+    selectMonth: 'Select Month', 
+    selectDay: 'Select Day',
+    
     // Goal Analytics
     useTemplate: 'Use Template',
     stats: {

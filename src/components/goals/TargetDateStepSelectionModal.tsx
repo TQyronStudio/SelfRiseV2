@@ -16,16 +16,16 @@ import ErrorModal from '../common/ErrorModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Step-by-Step Modal specifications
+// Step-by-Step Modal specifications  
 const MODAL_SIZES = {
-  year: { width: SCREEN_WIDTH * 0.88, minHeight: 220 },    // Fixed width for 2×6 year grid (need ~324px)
-  month: { width: SCREEN_WIDTH * 0.75, minHeight: 250 },  // Medium for 3×4 month grid 
-  day: { width: SCREEN_WIDTH * 0.95, minHeight: 350 },    // Large for 7×variable day grid (need ~372px)
+  year: { width: SCREEN_WIDTH * 0.95, minHeight: 310 },    // 3×7 grid: 126px content + 170px padding = 296px + buffer
+  month: { width: SCREEN_WIDTH * 0.75, minHeight: 310 },  // 3×4 grid: 126px content + 170px padding = 296px + buffer
+  day: { width: SCREEN_WIDTH * 0.95, minHeight: 400 },    // 7×variable: 212px content + 170px padding = 382px + buffer
 };
 
 // Square specifications (blue/green squares)
-const SQUARE_SIZE = 44;        // Touch-friendly size
-const SQUARE_MARGIN = 4;       // White space between squares
+const SQUARE_SIZE = 40;        // Slightly smaller for better fit
+const SQUARE_MARGIN = 3;       // Reduced margin for more space
 const SQUARE_BORDER_RADIUS = 8; // Slightly rounded corners
 
 // Color specifications - Step-by-Step Modal
@@ -50,7 +50,7 @@ enum SelectionStep {
 
 // Grid layout configurations
 const GRID_CONFIGS = {
-  year: { columns: 6, rows: 2 },        // 2×6 grid for years
+  year: { columns: 7, rows: 3 },        // 3×7 grid for years (21 years total)
   month: { columns: 4, rows: 3 },       // 3×4 grid for months
   day: { columns: 7, rows: 'variable' } // 7×variable grid for days
 };
@@ -125,14 +125,14 @@ export function TargetDateStepSelectionModal({
     return new Date(year, month, 0).getDate();
   };
 
-  // Year range: Current year to +10 years
+  // Year range: Current year to +20 years (expanded range)
   const YEAR_MIN = new Date().getFullYear();
-  const YEAR_MAX = YEAR_MIN + 10;
+  const YEAR_MAX = YEAR_MIN + 20;
 
   // Data generation functions (simple approach)
   const generateYearOptions = (): number[] => {
     const years = [];
-    for (let i = 0; i <= 10; i++) {
+    for (let i = 0; i <= 20; i++) {
       years.push(YEAR_MIN + i);
     }
     return years;
@@ -147,8 +147,8 @@ export function TargetDateStepSelectionModal({
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
 
-  // Modal resize animation helper
-  const animateModalResize = (step: SelectionStep) => {
+  // Modal resize animation helper with step change callback
+  const animateModalResize = (step: SelectionStep, onStepChange?: () => void) => {
     const targetSize = MODAL_SIZES[step];
     
     // Fade out content
@@ -157,6 +157,11 @@ export function TargetDateStepSelectionModal({
       duration: CONTENT_FADE_DURATION,
       useNativeDriver: true,
     }).start(() => {
+      // Change step AFTER fade out, BEFORE resize - prevents blink
+      if (onStepChange) {
+        onStepChange();
+      }
+      
       // Resize modal
       Animated.parallel([
         Animated.timing(modalWidth, {
@@ -183,14 +188,16 @@ export function TargetDateStepSelectionModal({
   // Step selection handlers
   const handleYearSelect = (year: number) => {
     setSelectedYear(year);
-    setCurrentStep(SelectionStep.MONTH);
-    animateModalResize(SelectionStep.MONTH);
+    animateModalResize(SelectionStep.MONTH, () => {
+      setCurrentStep(SelectionStep.MONTH); // Step changes AFTER fade out - no blink
+    });
   };
 
   const handleMonthSelect = (month: number) => {
     setSelectedMonth(month);
-    setCurrentStep(SelectionStep.DAY);
-    animateModalResize(SelectionStep.DAY);
+    animateModalResize(SelectionStep.DAY, () => {
+      setCurrentStep(SelectionStep.DAY); // Step changes AFTER fade out - no blink
+    });
   };
 
   const handleDaySelect = (day: number) => {
@@ -218,12 +225,14 @@ export function TargetDateStepSelectionModal({
   const handleBackNavigation = () => {
     if (currentStep === SelectionStep.MONTH) {
       setSelectedMonth(null);
-      setCurrentStep(SelectionStep.YEAR);
-      animateModalResize(SelectionStep.YEAR);
+      animateModalResize(SelectionStep.YEAR, () => {
+        setCurrentStep(SelectionStep.YEAR); // Step changes AFTER fade out - no blink
+      });
     } else if (currentStep === SelectionStep.DAY) {
       setSelectedDay(null);
-      setCurrentStep(SelectionStep.MONTH);
-      animateModalResize(SelectionStep.MONTH);
+      animateModalResize(SelectionStep.MONTH, () => {
+        setCurrentStep(SelectionStep.MONTH); // Step changes AFTER fade out - no blink
+      });
     }
   };
 

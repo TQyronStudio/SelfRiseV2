@@ -6,7 +6,7 @@
 
 1. [Goals Architecture](#goals-architecture)
 2. [Goal Creation System](#goal-creation-system)
-3. [Target Date Calendar Wheel Modal](#target-date-calendar-wheel-modal)
+3. [Target Date Step-by-Step Selection Modal](#target-date-step-by-step-selection-modal)
 4. [Goal Progress Tracking](#goal-progress-tracking)
 5. [Goal Templates System](#goal-templates-system)
 6. [Goal Analytics & Statistics](#goal-analytics--statistics)
@@ -58,7 +58,7 @@ enum GoalStatus {
 1. **Template Selection** (Optional) - Choose from pre-defined templates
 2. **Basic Information** - Title, description, category
 3. **Target Configuration** - Target value, units, current value
-4. **Target Date Selection** - Use Calendar Wheel Modal (detailed below)
+4. **Target Date Selection** - Use Step-by-Step Selection Modal (detailed below)
 5. **Validation & Save** - Ensure all required fields are valid
 
 ### Required Fields
@@ -155,27 +155,27 @@ enum SelectionStep {
 ```typescript
 // Modal automatically resizes based on current step content
 MODAL_SIZING: {
-  // Step 1: Year Selection (smallest)
+  // Step 1: Year Selection (largest - expanded range)
   yearStep: {
-    width: '60%',        // Narrow for 2×6 year grid
+    width: '95%',        // Large width for 3×7 year grid (21 years: 2025-2045)
     height: 'auto',      // Height fits content exactly
-    minHeight: 200,      // Minimum modal height
+    minHeight: 310,      // Minimum modal height for larger grid
     controls: ['closeX'] // Only close X visible
   },
   
   // Step 2: Month Selection (medium)  
   monthStep: {
-    width: '75%',        // Wider for 3×4 month grid
+    width: '75%',        // Optimal for 3×4 month grid
     height: 'auto',      // Height fits content exactly
-    minHeight: 250,      // Accommodate 3 rows of months
+    minHeight: 310,      // Accommodate 3 rows of months
     controls: ['closeX', 'backArrow']  // Close X + Back arrow
   },
   
-  // Step 3: Day Selection (largest)
+  // Step 3: Day Selection (large)
   dayStep: {
-    width: '85%',        // Widest for variable×7 day grid
+    width: '95%',        // Large width for 7×variable day grid
     height: 'auto',      // Height fits content exactly
-    minHeight: 300,      // Accommodate full month calendar
+    minHeight: 400,      // Accommodate full month calendar (up to 5 rows)
     controls: ['closeX', 'backArrow']  // Close X + Back arrow
   }
 }
@@ -214,11 +214,11 @@ NAVIGATION_CONTROLS: {
 
 SQUARE_SPECIFICATIONS: {
   // Individual square design
-  width: 44,               // Touch-friendly size
-  height: 44,              // Square aspect ratio
+  width: 40,               // Touch-friendly size (optimized for fit)
+  height: 40,              // Square aspect ratio
   borderRadius: 8,         // Slightly rounded corners
-  marginHorizontal: 4,     // White space between squares
-  marginVertical: 4,       // White space between rows
+  marginHorizontal: 3,     // White space between squares (optimized)
+  marginVertical: 3,       // White space between rows (optimized)
   
   // Colors
   backgroundColor: '#2196F3',    // Blue background (unselected)
@@ -230,11 +230,11 @@ SQUARE_SPECIFICATIONS: {
 
 // Grid arrangements for each step
 GRID_ARRANGEMENTS: {
-  // Year grid: 2 rows × 6 columns (12 years: current + 11 future)
+  // Year grid: 3 rows × 7 columns (21 years: current + 20 future)
   years: {
-    columns: 6,
-    rows: 2,
-    totalItems: 12        // Current year + 11 future years
+    columns: 7,
+    rows: 3,
+    totalItems: 21        // Current year + 20 future years (expanded range)
   },
   
   // Month grid: 3 rows × 4 columns (12 months)
@@ -255,12 +255,12 @@ GRID_ARRANGEMENTS: {
 
 #### Grid Visual Examples
 ```typescript
-// Step 1: Year Selection (2×6 grid)
-// ┌─────────────────────────────────┐
-// │  2025  2026  2027  2028  2029   │
-// │  2030  2031  2032  2033  2034   │
-// │                                 │
-// └─────────────────────────────────┘
+// Step 1: Year Selection (3×7 grid)
+// ┌─────────────────────────────────────┐
+// │ 2025 2026 2027 2028 2029 2030 2031 │
+// │ 2032 2033 2034 2035 2036 2037 2038 │
+// │ 2039 2040 2041 2042 2043 2044 2045 │
+// └─────────────────────────────────────┘
 
 // Step 2: Month Selection (3×4 grid)
 // ┌─────────────────────────────────┐
@@ -283,16 +283,16 @@ GRID_ARRANGEMENTS: {
 
 #### Step 1: Year Selection
 ```typescript
-// Year range: Current year to +10 years (long-term goals)
+// Year range: Current year to +20 years (expanded long-term goals)
 const generateYearOptions = (): number[] => {
   const currentYear = new Date().getFullYear();
   const years = [];
   
-  for (let i = 0; i <= 10; i++) {
+  for (let i = 0; i <= 20; i++) {
     years.push(currentYear + i);
   }
   
-  return years; // [2025, 2026, 2027, ..., 2035]
+  return years; // [2025, 2026, 2027, ..., 2045]
 };
 
 // Year selection behavior
@@ -495,8 +495,12 @@ NAVIGATION_FLOW: {
 
 ### Animation & Transitions
 
-#### Step Transition Animations
+#### Anti-Blink Step Transition System
 ```typescript
+// 🚨 CRITICAL: Prevents visual "blinking" during step transitions
+// PROBLEM: If setCurrentStep() executes before animations, user sees new content in old modal size
+// SOLUTION: Step changes happen INSIDE animation callbacks, not before them
+
 ANIMATION_SPECIFICATIONS: {
   // Modal resize animation (smooth size changes)
   modalResize: {
@@ -505,12 +509,13 @@ ANIMATION_SPECIFICATIONS: {
     properties: ['width', 'height']  // Animate size changes
   },
   
-  // Content fade transitions
+  // Content fade transitions (ANTI-BLINK SYSTEM)
   contentTransition: {
-    fadeOut: 150,            // Current content fades out
-    fadeIn: 150,             // New content fades in  
-    delay: 75,               // Slight delay between fade out/in
-    overlap: false           // No content overlap during transition
+    fadeOut: 150,            // Current content fades out FIRST
+    stepChange: 0,           // setCurrentStep() called DURING fade-out callback
+    fadeIn: 150,             // New content fades in AFTER modal resize
+    totalDuration: 600,      // 150ms + 300ms + 150ms = smooth transition
+    overlap: false           // ZERO content overlap - eliminates blink
   },
   
   // Selection feedback
@@ -521,11 +526,27 @@ ANIMATION_SPECIFICATIONS: {
   }
 }
 
+// ANTI-BLINK SEQUENCE (Year → Month example):
+// 1. User taps year → Immediate visual feedback (green selection)
+// 2. → Fade out year grid (150ms) 
+// 3. → setCurrentStep(MONTH) called in fade-out callback (0ms - no blink!)
+// 4. → Modal resizes to month dimensions (300ms)
+// 5. → Fade in month grid (150ms)
+// 6. → User sees seamless transition without visual glitches
+
+// IMPLEMENTATION PATTERN:
+const handleYearSelect = (year: number) => {
+  setSelectedYear(year);
+  animateModalResize(SelectionStep.MONTH, () => {
+    setCurrentStep(SelectionStep.MONTH); // Called AFTER fade-out, prevents blink
+  });
+};
+
 // SMOOTH USER EXPERIENCE:
-// 1. User taps year → Year fades out, modal resizes, months fade in
-// 2. User taps month → Month fades out, modal resizes, days fade in
-// 3. User taps day → Instant completion (no fade needed, modal closes)
-// 4. Back arrow → Content fades, modal resizes, previous step fades in
+// ✅ No visual "blinking" or content flashing
+// ✅ Smooth step progression with perfect timing
+// ✅ Modal always correct size for displayed content
+// ✅ Professional, polished user interface
 ```
 
 ### Performance & Implementation Strategy
@@ -1057,7 +1078,7 @@ const migrateGoalData = async (version: number) => {
 
 ---
 
-**GOLDEN RULE**: *"Goals are specific, measurable targets with completion points - not daily recurring activities. The Calendar Wheel Modal provides intuitive date selection without keyboard input issues."*
+**GOLDEN RULE**: *"Goals are specific, measurable targets with completion points - not daily recurring activities. The Step-by-Step Selection Modal provides intuitive, progressive date selection with anti-blink animations and perfect modal sizing."*
 
 ---
 
