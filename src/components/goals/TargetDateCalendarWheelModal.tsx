@@ -9,34 +9,30 @@ import {
   Dimensions,
   Vibration,
 } from 'react-native';
-import { 
-  PanGestureHandler, 
-  GestureHandlerRootView,
-  State as GestureState
-} from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
-import { ErrorModal } from '../common/ErrorModal';
+import ErrorModal from '../common/ErrorModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Modal size specifications (1/3 screen height)
-const MODAL_HEIGHT = SCREEN_HEIGHT / 3;
+// Modal size specifications (85% screen height, 90% screen width)
+const MODAL_HEIGHT = SCREEN_HEIGHT * 0.85;
 const MODAL_WIDTH = SCREEN_WIDTH * 0.9;
 
-// Wheel specifications
-const WHEEL_SIZE = MODAL_WIDTH * 0.7;
+// Wheel specifications - enlarged to prevent number overlap
+const WHEEL_SIZE = MODAL_WIDTH * 0.8;
 const DAY_WHEEL_RADIUS = WHEEL_SIZE / 2;
-const MONTH_WHEEL_RADIUS = WHEEL_SIZE / 3;
-const YEAR_CENTER_SIZE = WHEEL_SIZE / 4;
+const MONTH_WHEEL_RADIUS = WHEEL_SIZE / 3.5;
+const YEAR_CENTER_SIZE = WHEEL_SIZE / 5;
 
-// Color specifications
+// Color specifications - updated per user feedback
 const SELECTED_COLOR = '#4CAF50';
-const UNSELECTED_COLOR = '#E0E0E0';
+const UNSELECTED_COLOR = '#2196F3'; // Changed from gray to blue
 const TEXT_SELECTED = '#FFFFFF';
-const TEXT_UNSELECTED = '#333333';
+const TEXT_UNSELECTED = '#FFFFFF';   // Changed to white on blue background
 const YEAR_BACKGROUND = '#F5F5F5';
 const ARROW_COLOR = '#666666';
 
@@ -51,21 +47,8 @@ const WHEEL_SNAP_FRICTION = 8;
 const YEAR_CHANGE_DURATION = 200;
 const YEAR_SCROLL_SENSITIVITY = 0.01; // Years per pixel scrolled
 
-// Gesture interfaces (from technical guide)
-interface WheelGesture {
-  onRotationStart: (startAngle: number) => void;
-  onRotationUpdate: (currentAngle: number, deltaAngle: number) => void;
-  onRotationEnd: (finalAngle: number, velocity: number) => void;
-  snapToPosition: (angle: number) => number;
-  getValueFromAngle: (angle: number) => number;
-}
-
-interface YearScrollGesture {
-  onScrollStart: (startY: number) => void;
-  onScrollUpdate: (deltaY: number) => void;
-  onScrollEnd: (velocity: number) => void;
-  getYearDelta: (scrollDistance: number) => number;
-}
+// Note: Advanced gesture interfaces removed for simplified version
+// Will be re-implemented with proper gesture library integration
 
 // Common errors (from technical guide)
 const COMMON_ERRORS = {
@@ -110,33 +93,9 @@ export function TargetDateCalendarWheelModal({
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Animation values
-  const dayWheelRotation = useRef(new Animated.Value(0)).current;
-  const monthWheelRotation = useRef(new Animated.Value(0)).current;
+  // Simplified animation values (only what's needed)
   const selectedDayScale = useRef(new Animated.Value(1)).current;
   const selectedMonthScale = useRef(new Animated.Value(1)).current;
-
-  // Gesture state tracking
-  const dayGestureState = useRef({
-    isActive: false,
-    startAngle: 0,
-    currentRotation: 0,
-    velocity: 0
-  }).current;
-
-  const monthGestureState = useRef({
-    isActive: false,
-    startAngle: 0,
-    currentRotation: 0,
-    velocity: 0
-  }).current;
-
-  const yearGestureState = useRef({
-    isActive: false,
-    startY: 0,
-    currentDelta: 0,
-    velocity: 0
-  }).current;
 
   // Initialize date values when modal opens
   useEffect(() => {
@@ -177,177 +136,8 @@ export function TargetDateCalendarWheelModal({
   const YEAR_MIN = new Date().getFullYear();
   const YEAR_MAX = YEAR_MIN + 10;
 
-  // Utility functions for gesture calculations
-  const calculateAngle = (x: number, y: number, centerX: number, centerY: number): number => {
-    return Math.atan2(y - centerY, x - centerX);
-  };
-
-  const normalizeAngle = (angle: number): number => {
-    return ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  };
-
-  // Day wheel gesture implementation (WheelGesture interface)
-  const dayWheelGesture: WheelGesture = {
-    onRotationStart: (startAngle: number) => {
-      dayGestureState.isActive = true;
-      dayGestureState.startAngle = startAngle;
-      dayGestureState.currentRotation = 0;
-    },
-
-    onRotationUpdate: (currentAngle: number, deltaAngle: number) => {
-      if (!dayGestureState.isActive) return;
-      
-      dayGestureState.currentRotation += deltaAngle;
-      
-      // Apply rotation to animated value
-      dayWheelRotation.setValue(dayGestureState.currentRotation);
-    },
-
-    onRotationEnd: (finalAngle: number, velocity: number) => {
-      if (!dayGestureState.isActive) return;
-      
-      dayGestureState.isActive = false;
-      dayGestureState.velocity = velocity;
-      
-      // Calculate target snap position
-      const maxDays = getDaysInMonth(selectedMonth, selectedYear);
-      const targetAngle = dayWheelGesture.snapToPosition(finalAngle);
-      const newDay = dayWheelGesture.getValueFromAngle(targetAngle);
-      
-      // Animate to snap position with physics
-      Animated.spring(dayWheelRotation, {
-        toValue: targetAngle,
-        tension: WHEEL_SNAP_TENSION,
-        friction: WHEEL_SNAP_FRICTION,
-        useNativeDriver: true,
-      }).start(() => {
-        if (newDay >= 1 && newDay <= maxDays) {
-          handleDaySelect(newDay);
-        }
-      });
-    },
-
-    snapToPosition: (angle: number): number => {
-      const maxDays = getDaysInMonth(selectedMonth, selectedYear);
-      const anglePerDay = (2 * Math.PI) / maxDays;
-      const snappedIndex = Math.round(angle / anglePerDay);
-      return snappedIndex * anglePerDay;
-    },
-
-    getValueFromAngle: (angle: number): number => {
-      const maxDays = getDaysInMonth(selectedMonth, selectedYear);
-      const anglePerDay = (2 * Math.PI) / maxDays;
-      const normalizedAngle = normalizeAngle(angle);
-      return Math.floor(normalizedAngle / anglePerDay) + 1;
-    }
-  };
-
-  // Month wheel gesture implementation (WheelGesture interface)
-  const monthWheelGesture: WheelGesture = {
-    onRotationStart: (startAngle: number) => {
-      monthGestureState.isActive = true;
-      monthGestureState.startAngle = startAngle;
-      monthGestureState.currentRotation = 0;
-    },
-
-    onRotationUpdate: (currentAngle: number, deltaAngle: number) => {
-      if (!monthGestureState.isActive) return;
-      
-      monthGestureState.currentRotation += deltaAngle;
-      
-      // Apply rotation to animated value
-      monthWheelRotation.setValue(monthGestureState.currentRotation);
-    },
-
-    onRotationEnd: (finalAngle: number, velocity: number) => {
-      if (!monthGestureState.isActive) return;
-      
-      monthGestureState.isActive = false;
-      monthGestureState.velocity = velocity;
-      
-      // Calculate target snap position
-      const targetAngle = monthWheelGesture.snapToPosition(finalAngle);
-      const newMonth = monthWheelGesture.getValueFromAngle(targetAngle);
-      
-      // Animate to snap position with physics
-      Animated.spring(monthWheelRotation, {
-        toValue: targetAngle,
-        tension: WHEEL_SNAP_TENSION,
-        friction: WHEEL_SNAP_FRICTION,
-        useNativeDriver: true,
-      }).start(() => {
-        if (newMonth >= 1 && newMonth <= 12) {
-          handleMonthSelect(newMonth);
-        }
-      });
-    },
-
-    snapToPosition: (angle: number): number => {
-      const anglePerMonth = (2 * Math.PI) / 12;
-      const snappedIndex = Math.round(angle / anglePerMonth);
-      return snappedIndex * anglePerMonth;
-    },
-
-    getValueFromAngle: (angle: number): number => {
-      const anglePerMonth = (2 * Math.PI) / 12;
-      const normalizedAngle = normalizeAngle(angle);
-      return Math.floor(normalizedAngle / anglePerMonth) + 1;
-    }
-  };
-
-  // Year scroll gesture implementation (YearScrollGesture interface)
-  const yearScrollGesture: YearScrollGesture = {
-    onScrollStart: (startY: number) => {
-      yearGestureState.isActive = true;
-      yearGestureState.startY = startY;
-      yearGestureState.currentDelta = 0;
-    },
-
-    onScrollUpdate: (deltaY: number) => {
-      if (!yearGestureState.isActive) return;
-      
-      yearGestureState.currentDelta = deltaY;
-      
-      // Calculate year delta using sensitivity
-      const yearDelta = yearScrollGesture.getYearDelta(deltaY);
-      
-      // Preview year change (visual feedback only)
-      if (Math.abs(yearDelta) >= 1) {
-        const newYear = selectedYear + Math.round(yearDelta);
-        if (newYear >= YEAR_MIN && newYear <= YEAR_MAX) {
-          // Visual preview without committing
-          setSelectedYear(newYear);
-        }
-      }
-    },
-
-    onScrollEnd: (velocity: number) => {
-      if (!yearGestureState.isActive) return;
-      
-      yearGestureState.isActive = false;
-      yearGestureState.velocity = velocity;
-      
-      // Calculate final year change with momentum
-      const momentumDelta = velocity * 0.1; // Momentum factor
-      const totalDelta = yearScrollGesture.getYearDelta(yearGestureState.currentDelta + momentumDelta);
-      const newYear = selectedYear + Math.round(totalDelta);
-      
-      // Animate to final year
-      const clampedYear = Math.max(YEAR_MIN, Math.min(YEAR_MAX, newYear));
-      
-      Animated.timing(new Animated.Value(selectedYear), {
-        toValue: clampedYear,
-        duration: YEAR_CHANGE_DURATION,
-        useNativeDriver: false,
-      }).start(() => {
-        handleYearChange(clampedYear);
-      });
-    },
-
-    getYearDelta: (scrollDistance: number): number => {
-      return scrollDistance * YEAR_SCROLL_SENSITIVITY;
-    }
-  };
+  // Note: Advanced gesture implementations removed for simplified version
+  // Basic wheel calculations will be re-implemented as needed
 
   // Handle day selection with animation
   const handleDaySelect = (day: number) => {
@@ -366,8 +156,8 @@ export function TargetDateCalendarWheelModal({
       }),
     ]).start();
     
-    // Haptic feedback
-    Vibration.vibrate(50);
+    // Note: Vibration disabled per user feedback
+    // Vibration.vibrate(50);
   };
 
   // Handle month selection with day validation
@@ -406,8 +196,8 @@ export function TargetDateCalendarWheelModal({
       }),
     ]).start();
     
-    // Haptic feedback
-    Vibration.vibrate(50);
+    // Note: Vibration disabled per user feedback
+    // Vibration.vibrate(50);
   };
 
   // Handle year selection with day validation
@@ -434,8 +224,8 @@ export function TargetDateCalendarWheelModal({
       });
     }
     
-    // Haptic feedback
-    Vibration.vibrate(50);
+    // Note: Vibration disabled per user feedback
+    // Vibration.vibrate(50);
   };
 
   // Enhanced error handling function
@@ -487,220 +277,110 @@ export function TargetDateCalendarWheelModal({
     }
   };
 
-  // Pan gesture handlers for wheels
-  const handleDayWheelGesture = (event: any) => {
-    const { nativeEvent } = event;
-    const { state, translationX, translationY, velocityX, velocityY } = nativeEvent;
-    
-    const centerX = WHEEL_SIZE / 2;
-    const centerY = WHEEL_SIZE / 2;
-    
-    const currentAngle = calculateAngle(
-      translationX + centerX,
-      translationY + centerY,
-      centerX,
-      centerY
-    );
-    
-    switch (state) {
-      case GestureState.BEGAN:
-        dayWheelGesture.onRotationStart(currentAngle);
-        break;
-        
-      case GestureState.ACTIVE:
-        const deltaAngle = currentAngle - dayGestureState.startAngle;
-        dayWheelGesture.onRotationUpdate(currentAngle, deltaAngle);
-        break;
-        
-      case GestureState.END:
-        const velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-        dayWheelGesture.onRotationEnd(currentAngle, velocity);
-        break;
-    }
-  };
+  // Simplified interaction handlers (without advanced gestures for now)
 
-  const handleMonthWheelGesture = (event: any) => {
-    const { nativeEvent } = event;
-    const { state, translationX, translationY, velocityX, velocityY } = nativeEvent;
-    
-    const centerX = WHEEL_SIZE / 2;
-    const centerY = WHEEL_SIZE / 2;
-    
-    const currentAngle = calculateAngle(
-      translationX + centerX,
-      translationY + centerY,
-      centerX,
-      centerY
-    );
-    
-    switch (state) {
-      case GestureState.BEGAN:
-        monthWheelGesture.onRotationStart(currentAngle);
-        break;
-        
-      case GestureState.ACTIVE:
-        const deltaAngle = currentAngle - monthGestureState.startAngle;
-        monthWheelGesture.onRotationUpdate(currentAngle, deltaAngle);
-        break;
-        
-      case GestureState.END:
-        const velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-        monthWheelGesture.onRotationEnd(currentAngle, velocity);
-        break;
-    }
-  };
-
-  const handleYearScrollGesture = (event: any) => {
-    const { nativeEvent } = event;
-    const { state, translationY, velocityY } = nativeEvent;
-    
-    switch (state) {
-      case GestureState.BEGAN:
-        yearScrollGesture.onScrollStart(translationY);
-        break;
-        
-      case GestureState.ACTIVE:
-        yearScrollGesture.onScrollUpdate(translationY);
-        break;
-        
-      case GestureState.END:
-        yearScrollGesture.onScrollEnd(velocityY);
-        break;
-    }
-  };
-
-  // Render day wheel (outer ring) with gesture handling
+  // Render day wheel (outer ring) - simplified version
   const renderDayWheel = () => {
     const maxDays = getDaysInMonth(selectedMonth, selectedYear);
     const days = Array.from({ length: maxDays }, (_, i) => i + 1);
     
     return (
-      <PanGestureHandler onHandlerStateChange={handleDayWheelGesture}>
-        <Animated.View style={[
-          styles.dayWheel, 
-          { 
-            transform: [{ 
-              rotate: dayWheelRotation.interpolate({
-                inputRange: [-Math.PI * 2, Math.PI * 2],
-                outputRange: ['-360deg', '360deg'],
-              })
-            }] 
-          }
-        ]}>
-          {days.map((day, index) => {
-            const angle = (index / maxDays) * 2 * Math.PI;
-            const x = DAY_WHEEL_RADIUS * 0.85 * Math.cos(angle - Math.PI / 2);
-            const y = DAY_WHEEL_RADIUS * 0.85 * Math.sin(angle - Math.PI / 2);
-            const isSelected = day === selectedDay;
-            
-            return (
-              <TouchableOpacity
-                key={day}
+      <View style={styles.dayWheel}>
+        {days.map((day, index) => {
+          const angle = (index / maxDays) * 2 * Math.PI;
+          const x = DAY_WHEEL_RADIUS * 0.85 * Math.cos(angle - Math.PI / 2);
+          const y = DAY_WHEEL_RADIUS * 0.85 * Math.sin(angle - Math.PI / 2);
+          const isSelected = day === selectedDay;
+          
+          return (
+            <TouchableOpacity
+              key={day}
+              style={[
+                styles.dayItem,
+                {
+                  left: WHEEL_SIZE / 2 + x - 20,
+                  top: WHEEL_SIZE / 2 + y - 20,
+                  backgroundColor: isSelected ? SELECTED_COLOR : UNSELECTED_COLOR,
+                },
+                isSelected && { transform: [{ scale: SELECTION_SCALE_FACTOR }] }
+              ]}
+              onPress={() => handleDaySelect(day)}
+            >
+              <Text
                 style={[
-                  styles.dayItem,
-                  {
-                    left: WHEEL_SIZE / 2 + x - 20,
-                    top: WHEEL_SIZE / 2 + y - 20,
-                    backgroundColor: isSelected ? SELECTED_COLOR : UNSELECTED_COLOR,
-                  },
-                  isSelected && { transform: [{ scale: selectedDayScale }] }
+                  styles.dayText,
+                  { color: isSelected ? TEXT_SELECTED : TEXT_UNSELECTED }
                 ]}
-                onPress={() => handleDaySelect(day)}
               >
-                <Animated.Text
-                  style={[
-                    styles.dayText,
-                    { color: isSelected ? TEXT_SELECTED : TEXT_UNSELECTED }
-                  ]}
-                >
-                  {day}
-                </Animated.Text>
-              </TouchableOpacity>
-            );
-          })}
-        </Animated.View>
-      </PanGestureHandler>
+                {day}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     );
   };
 
-  // Render month wheel (inner ring) with gesture handling
+  // Render month wheel (inner ring) - simplified version
   const renderMonthWheel = () => {
     return (
-      <PanGestureHandler onHandlerStateChange={handleMonthWheelGesture}>
-        <Animated.View style={[
-          styles.monthWheel, 
-          { 
-            transform: [{ 
-              rotate: monthWheelRotation.interpolate({
-                inputRange: [-Math.PI * 2, Math.PI * 2],
-                outputRange: ['-360deg', '360deg'],
-              })
-            }] 
-          }
-        ]}>
-          {MONTHS.map((month, index) => {
-            const monthNumber = index + 1;
-            const angle = (index / 12) * 2 * Math.PI;
-            const x = MONTH_WHEEL_RADIUS * 0.85 * Math.cos(angle - Math.PI / 2);
-            const y = MONTH_WHEEL_RADIUS * 0.85 * Math.sin(angle - Math.PI / 2);
-            const isSelected = monthNumber === selectedMonth;
-            
-            return (
-              <TouchableOpacity
-                key={month}
+      <View style={styles.monthWheel}>
+        {MONTHS.map((month, index) => {
+          const monthNumber = index + 1;
+          const angle = (index / 12) * 2 * Math.PI;
+          const x = MONTH_WHEEL_RADIUS * 0.85 * Math.cos(angle - Math.PI / 2);
+          const y = MONTH_WHEEL_RADIUS * 0.85 * Math.sin(angle - Math.PI / 2);
+          const isSelected = monthNumber === selectedMonth;
+          
+          return (
+            <TouchableOpacity
+              key={month}
+              style={[
+                styles.monthItem,
+                {
+                  left: WHEEL_SIZE / 2 + x - 25,
+                  top: WHEEL_SIZE / 2 + y - 20,
+                  backgroundColor: isSelected ? SELECTED_COLOR : UNSELECTED_COLOR,
+                },
+                isSelected && { transform: [{ scale: SELECTION_SCALE_FACTOR }] }
+              ]}
+              onPress={() => handleMonthSelect(monthNumber)}
+            >
+              <Text
                 style={[
-                  styles.monthItem,
-                  {
-                    left: WHEEL_SIZE / 2 + x - 25,
-                    top: WHEEL_SIZE / 2 + y - 20,
-                    backgroundColor: isSelected ? SELECTED_COLOR : UNSELECTED_COLOR,
-                  },
-                  isSelected && { transform: [{ scale: selectedMonthScale }] }
+                  styles.monthText,
+                  { color: isSelected ? TEXT_SELECTED : TEXT_UNSELECTED }
                 ]}
-                onPress={() => handleMonthSelect(monthNumber)}
               >
-                <Animated.Text
-                  style={[
-                    styles.monthText,
-                    { color: isSelected ? TEXT_SELECTED : TEXT_UNSELECTED }
-                  ]}
-                >
-                  {month}
-                </Animated.Text>
-              </TouchableOpacity>
-            );
-          })}
-        </Animated.View>
-      </PanGestureHandler>
+                {month}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     );
   };
 
-  // Render year selection (center) with scroll gesture
+  // Render year selection (center) - simplified version
   const renderYearSelection = () => {
     return (
-      <PanGestureHandler 
-        onHandlerStateChange={handleYearScrollGesture}
-        minPointers={1}
-        maxPointers={1}
-      >
-        <Animated.View style={styles.yearContainer}>
-          <TouchableOpacity
-            style={styles.yearArrow}
-            onPress={() => handleYearChange(selectedYear - 1)}
-          >
-            <Ionicons name="chevron-up" size={24} color={ARROW_COLOR} />
-          </TouchableOpacity>
-          
-          <Text style={styles.yearText}>{selectedYear}</Text>
-          
-          <TouchableOpacity
-            style={styles.yearArrow}
-            onPress={() => handleYearChange(selectedYear + 1)}
-          >
-            <Ionicons name="chevron-down" size={24} color={ARROW_COLOR} />
-          </TouchableOpacity>
-        </Animated.View>
-      </PanGestureHandler>
+      <View style={styles.yearContainer}>
+        <TouchableOpacity
+          style={styles.yearArrow}
+          onPress={() => handleYearChange(selectedYear + 1)}
+        >
+          <Ionicons name="chevron-up" size={24} color={ARROW_COLOR} />
+        </TouchableOpacity>
+        
+        <Text style={styles.yearText}>{selectedYear}</Text>
+        
+        <TouchableOpacity
+          style={styles.yearArrow}
+          onPress={() => handleYearChange(selectedYear - 1)}
+        >
+          <Ionicons name="chevron-down" size={24} color={ARROW_COLOR} />
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -772,7 +452,7 @@ const styles = StyleSheet.create({
     width: MODAL_WIDTH,
     height: MODAL_HEIGHT,
     backgroundColor: Colors.background,
-    borderRadius: 12,
+    borderRadius: 16,
     elevation: 10,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },

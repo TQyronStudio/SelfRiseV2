@@ -124,10 +124,11 @@ interface CalendarWheelModalProps {
 ### Visual Design Specifications
 
 #### Modal Layout
-- **Size**: 1/3 of screen height, centered horizontally and vertically
+- **Size**: 90% of screen width, 85% of screen height, centered horizontally and vertically
 - **Background**: Semi-transparent dark overlay (rgba(0,0,0,0.5))
-- **Modal Content**: White background with rounded corners (12px border radius)
+- **Modal Content**: White background with rounded corners (16px border radius)
 - **Shadow**: Elevation 10 (Android) / Shadow (iOS)
+- **Wheel Sizing**: Large enough to prevent number overlap, optimized for touch interaction
 
 #### Wheel Components Layout
 ```
@@ -152,11 +153,18 @@ interface CalendarWheelModalProps {
 ```typescript
 // Wheel Colors (using app theme colors)
 SELECTED_COLOR: '#4CAF50'     // Green for selected day/month
-UNSELECTED_COLOR: '#E0E0E0'   // Light gray for unselected
+UNSELECTED_COLOR: '#2196F3'   // Blue for unselected (system theme color)
 TEXT_SELECTED: '#FFFFFF'      // White text on selected
-TEXT_UNSELECTED: '#333333'    // Dark text on unselected
+TEXT_UNSELECTED: '#FFFFFF'    // White text on unselected blue background
 YEAR_BACKGROUND: '#F5F5F5'    // Light background for year section
 ARROW_COLOR: '#666666'        // Gray for year arrows
+```
+
+#### User Interaction Settings
+```typescript
+// Haptic feedback settings
+VIBRATION_ENABLED: false       // Disable vibrations for wheel interactions
+SELECTION_FEEDBACK: 'visual'   // Use visual feedback only (no haptic)
 ```
 
 ### Default Date Logic
@@ -259,9 +267,10 @@ const YEAR_MIN = new Date().getFullYear();
 const YEAR_MAX = YEAR_MIN + 10;
 
 // Year interaction methods:
-// 1. Arrow buttons (+/- 1 year)
-// 2. Scroll gesture (vertical swipe up/down)
+// 1. Arrow buttons: UP arrow increases year, DOWN arrow decreases year
+// 2. Scroll gesture (vertical swipe up/down) - DISABLED in simplified version  
 // 3. Direct value display
+// 4. Visual feedback only (no vibrations)
 
 const onYearChange = (newYear: number) => {
   // Validate year range
