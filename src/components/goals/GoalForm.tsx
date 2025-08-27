@@ -16,7 +16,7 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
-import { TargetDateCalendarWheelModal } from './TargetDateCalendarWheelModal';
+import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
 
 export type GoalFormData = {
   title: string;
@@ -155,7 +155,7 @@ export function GoalForm({
     submitGoal();
   };
 
-  // Handle date selection from Calendar Wheel Modal
+  // Handle date selection from Step-by-Step Selection Modal
   const handleDateSelect = (date: Date) => {
     // Convert Date to YYYY-MM-DD format for internal storage
     const year = date.getFullYear();
@@ -231,7 +231,7 @@ export function GoalForm({
         {/* Target Date */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
-          <Text style={styles.dateHint}>Tap to open calendar wheel selector</Text>
+          <Text style={styles.dateHint}>Tap to open step-by-step date selector</Text>
           <TouchableOpacity
             style={[styles.input, styles.dateSelector]}
             onPress={() => setShowDateModal(true)}
@@ -350,7 +350,7 @@ export function GoalForm({
         onContinueWithoutDate={handleContinueWithoutDate}
       />
 
-      <TargetDateCalendarWheelModal
+      <TargetDateStepSelectionModal
         visible={showDateModal}
         onClose={() => setShowDateModal(false)}
         onSelectDate={handleDateSelect}

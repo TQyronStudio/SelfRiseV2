@@ -88,10 +88,10 @@ interface CreateGoalInput {
 
 ---
 
-## Target Date Calendar Wheel Modal
+## Target Date Step-by-Step Selection Modal
 
 ### 🎯 FUNDAMENTAL UX PRINCIPLE
-**The Target Date Calendar Wheel Modal provides an intuitive, touch-friendly way to select dates without keyboard input issues or invalid date entries.**
+**The Target Date Modal provides a progressive, step-by-step date selection experience that adapts its size to content and guides users through Year → Month → Day selection without input errors.**
 
 ### Modal Architecture
 
@@ -99,7 +99,7 @@ interface CreateGoalInput {
 ```typescript
 // CRITICAL: Modal opens when user taps Target Date text field in Add Goal screen
 // The text field itself remains unchanged visually - same appearance as current
-// When user taps the field, instead of keyboard, the Calendar Wheel Modal opens
+// When user taps the field, instead of keyboard, the Step-by-Step Selection Modal opens
 
 <TouchableOpacity onPress={() => setShowDateModal(true)}>
   <Text style={styles.targetDateField}>
@@ -107,67 +107,257 @@ interface CreateGoalInput {
   </Text>
 </TouchableOpacity>
 
-// After modal confirms date selection, the formatted date appears in the text field
+// After user completes all 3 steps (Year → Month → Day), modal auto-closes
+// The formatted date appears in the text field automatically
 // User sees the completed goal creation form with selected date displayed
 ```
 
 #### Modal Structure
 ```typescript
-interface CalendarWheelModalProps {
+interface StepSelectionModalProps {
   visible: boolean;
   onClose: () => void;
   onSelectDate: (date: Date) => void;
   initialDate?: Date;        // Default: First day of month +2 from current
 }
+
+// Three-step flow states
+enum SelectionStep {
+  YEAR = 'year',           // First step: Select year
+  MONTH = 'month',         // Second step: Select month
+  DAY = 'day'             // Third step: Select day
+}
+```
+
+### Progressive Selection Flow
+
+#### Step-by-Step User Experience
+```typescript
+// COMPLETE USER JOURNEY:
+// 1. User taps Target Date field
+// 2. Modal opens showing YEAR selection (small modal size)
+// 3. User selects year → Years disappear, MONTHS appear (modal enlarges)
+// 4. User selects month → Months disappear, DAYS appear (modal enlarges again)  
+// 5. User selects day → Modal auto-closes, date appears in text field
+
+// NAVIGATION CONTROLS:
+// - Back Arrow (left center): Appears after year selection, allows going back to previous step
+// - Close X (top right corner): Always visible, cancels entire flow without changes
+// - Tap outside modal: Also cancels entire flow
+
+// AUTOMATIC PROGRESSION:
+// Each selection immediately advances to next step
+// If invalid date selected → Error shown immediately (no waiting for completion)
+// Final day selection completes entire flow instantly
+```
+
+#### Dynamic Modal Sizing & Navigation
+```typescript
+// Modal automatically resizes based on current step content
+MODAL_SIZING: {
+  // Step 1: Year Selection (smallest)
+  yearStep: {
+    width: '60%',        // Narrow for 2×6 year grid
+    height: 'auto',      // Height fits content exactly
+    minHeight: 200,      // Minimum modal height
+    controls: ['closeX'] // Only close X visible
+  },
+  
+  // Step 2: Month Selection (medium)  
+  monthStep: {
+    width: '75%',        // Wider for 3×4 month grid
+    height: 'auto',      // Height fits content exactly
+    minHeight: 250,      // Accommodate 3 rows of months
+    controls: ['closeX', 'backArrow']  // Close X + Back arrow
+  },
+  
+  // Step 3: Day Selection (largest)
+  dayStep: {
+    width: '85%',        // Widest for variable×7 day grid
+    height: 'auto',      // Height fits content exactly
+    minHeight: 300,      // Accommodate full month calendar
+    controls: ['closeX', 'backArrow']  // Close X + Back arrow
+  }
+}
+
+// POSITIONING & SIZING RULES:
+// - Always centered horizontally and vertically on screen
+// - Auto-size to content with padding, no fixed dimensions
+// - Must prevent content overlap at all screen sizes
+// - Smooth 300ms resize transitions between steps
+
+// NAVIGATION CONTROL POSITIONING:
+NAVIGATION_CONTROLS: {
+  closeX: {
+    position: 'top-right corner',
+    size: '24x24px',
+    color: '#666666',
+    touchTarget: '44x44px'    // Larger invisible touch area
+  },
+  
+  backArrow: {
+    position: 'left center of modal header',
+    size: '24x24px', 
+    color: '#2196F3',         // Theme blue
+    touchTarget: '44x44px',   // Larger invisible touch area
+    visibility: 'step 2+ only'  // Not shown in year selection
+  }
+}
 ```
 
 ### Visual Design Specifications
 
-#### Modal Layout
-- **Size**: 90% of screen width, 85% of screen height, centered horizontally and vertically
-- **Background**: Semi-transparent dark overlay (rgba(0,0,0,0.5))
-- **Modal Content**: White background with rounded corners (16px border radius)
-- **Shadow**: Elevation 10 (Android) / Shadow (iOS)
-- **Wheel Sizing**: Large enough to prevent number overlap, optimized for touch interaction
-
-#### Wheel Components Layout
-```
-┌─────────────────────────────────────┐
-│              Modal Title            │
-├─────────────────────────────────────┤
-│                                     │
-│     ┌─ Day Wheel (Outer Ring) ─┐    │
-│     │  ┌─ Month Wheel ─┐       │    │  
-│     │  │     YEAR      │       │    │
-│     │  │   ← 2025 →    │       │    │
-│     │  │  (scrollable) │       │    │
-│     │  └───────────────┘       │    │
-│     └─────────────────────────────┘    │
-│                                     │
-├─────────────────────────────────────┤
-│    [Cancel]        [OK]             │
-└─────────────────────────────────────┘
-```
-
-#### Color Specifications
+#### Square Grid Layout
 ```typescript
-// Wheel Colors (using app theme colors)
-SELECTED_COLOR: '#4CAF50'     // Green for selected day/month
-UNSELECTED_COLOR: '#2196F3'   // Blue for unselected (system theme color)
-TEXT_SELECTED: '#FFFFFF'      // White text on selected
-TEXT_UNSELECTED: '#FFFFFF'    // White text on unselected blue background
-YEAR_BACKGROUND: '#F5F5F5'    // Light background for year section
-ARROW_COLOR: '#666666'        // Gray for year arrows
+// FUNDAMENTAL DESIGN: Blue squares in grids, green when selected
+// NO circles, NO wheels - simple square grid arrangement
+
+SQUARE_SPECIFICATIONS: {
+  // Individual square design
+  width: 44,               // Touch-friendly size
+  height: 44,              // Square aspect ratio
+  borderRadius: 8,         // Slightly rounded corners
+  marginHorizontal: 4,     // White space between squares
+  marginVertical: 4,       // White space between rows
+  
+  // Colors
+  backgroundColor: '#2196F3',    // Blue background (unselected)
+  selectedColor: '#4CAF50',      // Green background (selected)
+  textColor: '#FFFFFF',          // White text on blue/green
+  fontSize: 16,                  // Clear readable text
+  fontWeight: 'medium'           // Medium font weight
+}
+
+// Grid arrangements for each step
+GRID_ARRANGEMENTS: {
+  // Year grid: 2 rows × 6 columns (12 years: current + 11 future)
+  years: {
+    columns: 6,
+    rows: 2,
+    totalItems: 12        // Current year + 11 future years
+  },
+  
+  // Month grid: 3 rows × 4 columns (12 months)
+  months: {
+    columns: 4,
+    rows: 3,
+    totalItems: 12        // Jan, Feb, ..., Dec
+  },
+  
+  // Day grid: Variable rows × 7 columns (calendar layout)
+  days: {
+    columns: 7,           // Standard week layout
+    rows: 'variable',     // 4-6 rows depending on month
+    totalItems: '28-31'   // Dynamic based on selected month/year
+  }
+}
 ```
 
-#### User Interaction Settings
+#### Grid Visual Examples
 ```typescript
-// Haptic feedback settings
-VIBRATION_ENABLED: false       // Disable vibrations for wheel interactions
-SELECTION_FEEDBACK: 'visual'   // Use visual feedback only (no haptic)
+// Step 1: Year Selection (2×6 grid)
+// ┌─────────────────────────────────┐
+// │  2025  2026  2027  2028  2029   │
+// │  2030  2031  2032  2033  2034   │
+// │                                 │
+// └─────────────────────────────────┘
+
+// Step 2: Month Selection (3×4 grid)
+// ┌─────────────────────────────────┐
+// │   1     2     3     4          │
+// │   5     6     7     8          │
+// │   9    10    11    12          │
+// └─────────────────────────────────┘
+
+// Step 3: Day Selection (Variable×7 grid)
+// ┌─────────────────────────────────┐
+// │  1   2   3   4   5   6   7     │
+// │  8   9  10  11  12  13  14     │
+// │ 15  16  17  18  19  20  21     │
+// │ 22  23  24  25  26  27  28     │
+// │ 29  30  31                     │
+// └─────────────────────────────────┘
 ```
 
-### Default Date Logic
+### Step-Specific Logic
+
+#### Step 1: Year Selection
+```typescript
+// Year range: Current year to +10 years (long-term goals)
+const generateYearOptions = (): number[] => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  
+  for (let i = 0; i <= 10; i++) {
+    years.push(currentYear + i);
+  }
+  
+  return years; // [2025, 2026, 2027, ..., 2035]
+};
+
+// Year selection behavior
+const onYearSelect = (selectedYear: number) => {
+  setYear(selectedYear);
+  setCurrentStep(SelectionStep.MONTH);  // Advance to month selection
+  
+  // Modal automatically resizes for month grid
+  animateModalResize('monthStep');
+};
+
+// VISUAL: 2×6 grid of blue squares, selected year turns green
+```
+
+#### Step 2: Month Selection  
+```typescript
+// Month options: Numbers 1-12 (not names)
+const generateMonthOptions = (): number[] => {
+  return Array.from({ length: 12 }, (_, i) => i + 1); // [1, 2, 3, ..., 12]
+};
+
+// Month selection behavior
+const onMonthSelect = (selectedMonth: number) => {
+  setMonth(selectedMonth);
+  setCurrentStep(SelectionStep.DAY);    // Advance to day selection
+  
+  // Generate day options based on selected year/month
+  const daysInMonth = getDaysInMonth(selectedMonth, year);
+  setDayOptions(Array.from({ length: daysInMonth }, (_, i) => i + 1));
+  
+  // Modal automatically resizes for day grid
+  animateModalResize('dayStep');
+};
+
+// VISUAL: 3×4 grid of blue squares, selected month turns green
+```
+
+#### Step 3: Day Selection
+```typescript
+// Day options: 1 to 28/29/30/31 (based on selected month/year)
+const generateDayOptions = (month: number, year: number): number[] => {
+  const daysInMonth = getDaysInMonth(month, year);
+  return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+};
+
+// Day selection behavior (FINAL STEP)
+const onDaySelect = (selectedDay: number) => {
+  setDay(selectedDay);
+  
+  // Create final date object
+  const selectedDate = new Date(year, month - 1, selectedDay);
+  
+  // Validate date is not in past
+  if (isValidFutureDate(selectedDate)) {
+    onSelectDate(selectedDate);  // Return selected date
+    setShowDateModal(false);     // Auto-close modal
+  } else {
+    showError("Selected date cannot be in the past");
+  }
+};
+
+// VISUAL: Variable×7 grid (calendar layout), selected day turns green
+```
+
+### Default Date Logic & Visual States
 
 #### Initial Date Calculation
 ```typescript
@@ -182,251 +372,197 @@ const getDefaultDate = (): Date => {
   return defaultDate;
 };
 
-// Examples:
-// Today: 26.8.2025 → Default: 1.10.2025
-// Today: 15.12.2025 → Default: 1.2.2026
-// Today: 31.1.2025 → Default: 1.3.2025
+// STEP INITIALIZATION:
+// Modal starts with Year step showing current year + 10 options (2025-2035)
+// Default selection: Year from defaultDate is pre-selected (GREEN)
+// All other years remain blue until user selects them
+// User can override by selecting different year
 ```
 
-### Wheel Interaction Logic
-
-#### 🔄 CRITICAL: Selection Order Flexibility
+#### Color State System
 ```typescript
-// FUNDAMENTAL REQUIREMENT: User can select in ANY ORDER and modal adapts
-// The system MUST work regardless of selection sequence:
-
-// Scenario A: Day First
-// 1. User picks day 31 (valid)
-// 2. User picks February → day AUTO-CHANGES to 28 (user sees this happen)
-// 3. User picks leap year → day wheel now shows 29 as option, keeps 28 selected
-
-// Scenario B: Month First  
-// 1. User picks February → day wheel shows 1-28 options
-// 2. User picks leap year → day wheel expands to show 1-29 options
-// 3. User picks day 29 (now valid)
-
-// Scenario C: Year First
-// 1. User picks leap year 2024 → system ready for leap year logic
-// 2. User picks February → day wheel shows 1-29 options (leap year aware)
-// 3. User picks day 29 (valid for leap February)
-
-// CRITICAL: All components update IMMEDIATELY when any selection changes
-// User always sees current valid options based on their selections so far
-
-// VISUAL FEEDBACK REQUIREMENTS:
-// ✅ Day wheel must show/hide options instantly when month/year changes
-// ✅ Selected day auto-adjusts with subtle animation (300ms) when invalid
-// ✅ Green highlight follows user selections immediately
-// ✅ Wheel rotation animations are smooth (60fps)
-// ✅ No loading states - all calculations are instant
-```
-
-#### Day Wheel (Outer Ring)
-```typescript
-// Dynamic day calculation based on selected month/year
-const getDaysInMonth = (month: number, year: number): number => {
-  return new Date(year, month, 0).getDate();
-};
-
-// Day validation when month changes
-const validateDayForMonth = (selectedDay: number, month: number, year: number): number => {
-  const maxDays = getDaysInMonth(month, year);
-  return selectedDay > maxDays ? maxDays : selectedDay;
-};
-
-// Example scenarios:
-// Selected: 31 January → User picks February → Auto-adjust to 28/29
-// Selected: 30 April → User picks May → Keeps 30 (valid)
-// Selected: 29 February (non-leap) → User picks leap year → Shows 29
-```
-
-#### Month Wheel (Inner Ring)
-```typescript
-// 12 months displayed in circular arrangement
-const MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-];
-
-// Month selection updates available days
-const onMonthSelected = (newMonth: number) => {
-  setSelectedMonth(newMonth);
+// VISUAL STATE MANAGEMENT:
+SQUARE_STATES: {
+  unselected: {
+    backgroundColor: '#2196F3',    // Blue (app theme color)
+    textColor: '#FFFFFF'           // White text
+  },
   
-  // Auto-adjust day if invalid for new month
-  const adjustedDay = validateDayForMonth(selectedDay, newMonth, selectedYear);
-  if (adjustedDay !== selectedDay) {
-    setSelectedDay(adjustedDay);
-  }
-};
-```
-
-#### Year Selection (Center)
-```typescript
-// Year range: Current year to +10 years (long-term goals)
-const YEAR_MIN = new Date().getFullYear();
-const YEAR_MAX = YEAR_MIN + 10;
-
-// Year interaction methods:
-// 1. Arrow buttons: UP arrow increases year, DOWN arrow decreases year
-// 2. Scroll gesture (vertical swipe up/down) - DISABLED in simplified version  
-// 3. Direct value display
-// 4. Visual feedback only (no vibrations)
-
-const onYearChange = (newYear: number) => {
-  // Validate year range
-  const clampedYear = Math.max(YEAR_MIN, Math.min(YEAR_MAX, newYear));
-  setSelectedYear(clampedYear);
+  selected: {
+    backgroundColor: '#4CAF50',    // Green (confirmation color)  
+    textColor: '#FFFFFF'           // White text
+  },
   
-  // Re-validate day for leap year changes
-  const adjustedDay = validateDayForMonth(selectedDay, selectedMonth, clampedYear);
-  if (adjustedDay !== selectedDay) {
-    setSelectedDay(adjustedDay);
-  }
-};
+  // Default pre-selected item starts as GREEN
+  // User can change selection → old GREEN becomes BLUE, new selection becomes GREEN
+}
 ```
 
 ### Leap Year Handling
 
-#### Leap Year Detection
+#### Dynamic Day Options & Validation
 ```typescript
+// Leap year detection (same as before)
 const isLeapYear = (year: number): boolean => {
   return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 };
 
 // February day calculation
-const getFebruaryDays = (year: number): number => {
-  return isLeapYear(year) ? 29 : 28;
-};
-```
-
-#### Dynamic Day Adjustment Examples
-```typescript
-// Scenario 1: Non-leap to leap year
-// User selected: 28 Feb 2025 → Changes year to 2024 → Day wheel now shows 29
-// User can select 29, which becomes valid
-
-// Scenario 2: Leap to non-leap year  
-// User selected: 29 Feb 2024 → Changes year to 2025 → Auto-adjust to 28 Feb 2025
-
-// Scenario 3: Month change with day overflow
-// User selected: 31 Jan 2025 → Changes to Feb → Auto-adjust to 28 Feb 2025
-// User selected: 31 May 2025 → Changes to Jun → Auto-adjust to 30 Jun 2025
-
-// COMPLETE INTERACTION SCENARIOS:
-// 📅 Scenario D: Complex selection sequence
-// 1. User starts with default: 1 Mar 2025
-// 2. User picks day 29 → (29 Mar 2025, valid)
-// 3. User picks February → Auto-adjust to 28 Feb 2025 (non-leap year)
-// 4. User picks leap year 2024 → Day wheel shows 29 option, stays at 28
-// 5. User can now pick 29 → Final: 29 Feb 2024
-
-// 📅 Scenario E: Month-first selection
-// 1. User picks February first → Day wheel shows 1-28 options
-// 2. User picks day 15 → (15 Feb, current year)
-// 3. User picks leap year → Day wheel expands to show day 29 option
-// 4. User can select 29 or keep 15 → Final: 15 Feb or 29 Feb (leap year)
-
-// 📅 Scenario F: Year boundary validation
-// 1. User picks current year → All months available
-// 2. User picks past month of current year → Modal shows validation error on confirm
-// 3. User must pick future month or future year to proceed
-```
-
-### Wheel Gesture Handling
-
-#### Touch Interaction Specifications
-```typescript
-// Day/Month wheel rotation
-interface WheelGesture {
-  onRotationStart: (startAngle: number) => void;
-  onRotationUpdate: (currentAngle: number, deltaAngle: number) => void;
-  onRotationEnd: (finalAngle: number, velocity: number) => void;
-  
-  // Snap to nearest valid position
-  snapToPosition: (angle: number) => number;
-  
-  // Calculate selected value from angle
-  getValueFromAngle: (angle: number) => number;
-}
-
-// Year scroll gesture (vertical)
-interface YearScrollGesture {
-  onScrollStart: (startY: number) => void;
-  onScrollUpdate: (deltaY: number) => void;
-  onScrollEnd: (velocity: number) => void;
-  
-  // Convert scroll distance to year change
-  getYearDelta: (scrollDistance: number) => number;
-}
-```
-
-#### Animation Specifications
-```typescript
-// Smooth wheel rotation animation
-WHEEL_ANIMATION_DURATION: 300ms
-WHEEL_SNAP_TENSION: 50
-WHEEL_SNAP_FRICTION: 8
-
-// Year transition animation
-YEAR_CHANGE_DURATION: 200ms
-YEAR_SCROLL_SENSITIVITY: 0.01    // Years per pixel scrolled
-
-// Selection highlight animation
-SELECTION_HIGHLIGHT_DURATION: 150ms
-SELECTION_SCALE_FACTOR: 1.1      // Slight scale up for selected item
-```
-
-### Modal Actions
-
-#### Button Behavior
-```typescript
-// Cancel Button
-const onCancel = () => {
-  // Restore original date if editing existing goal
-  // Close modal without applying changes
-  setShowDateModal(false);
+const getDaysInMonth = (month: number, year: number): number => {
+  if (month === 2) {
+    return isLeapYear(year) ? 29 : 28;  // Automatic leap year handling
+  }
+  return new Date(year, month, 0).getDate();
 };
 
-// OK Button
-const onConfirm = () => {
-  // Create Date object from selected values
-  const selectedDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
-  
-  // Validate date is not in past
+// AUTOMATIC LEAP YEAR INDICATION:
+// User naturally sees 29 days for February in leap years vs 28 in regular years
+// No special labeling needed - the available day options communicate leap year status
+// Example: User selects 2024 (leap) → February → sees days 1-29 available
+//          User selects 2025 (regular) → February → sees days 1-28 available
+
+// IMMEDIATE DATE VALIDATION:
+const validateDateSelection = (year: number, month: number, day: number): ValidationResult => {
+  const selectedDate = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   if (selectedDate < today) {
-    showError("Target date cannot be in the past");
-    return;
+    return {
+      valid: false,
+      error: "Selected date cannot be in the past",
+      showImmediately: true  // Error shown immediately, not at end of flow
+    };
   }
   
-  // Apply selected date
-  onSelectDate(selectedDate);
-  setShowDateModal(false);
+  return { valid: true };
 };
 
-// INTEGRATION WITH EXISTING GOAL CREATION FLOW:
-// The modal replaces the current text input field but maintains the same
-// data flow and validation. The parent component receives the selected
-// Date object and handles formatting for display.
+// CRITICAL: Day options are calculated when user reaches Step 3
+// User has already selected Year and Month, so day calculation is accurate
+// All displayed days are valid for the selected month/year combination
+// Past date validation occurs immediately upon day selection
 ```
 
-#### Date Format Display
-```typescript
-// Format selected date for display in text field
-const formatTargetDate = (date: Date): string => {
-  // Format: "DD.MM.YYYY" (European format)
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear().toString();
-  
-  return `${day}.${month}.${year}`;
-};
+### Back Navigation & Flow Control
 
-// Examples:
-// 1.10.2025 → "01.10.2025"
-// 15.12.2025 → "15.12.2025"
+#### Navigation Flow Logic
+```typescript
+// COMPREHENSIVE NAVIGATION SYSTEM:
+// Forward: Year → Month → Day → Auto-close
+// Backward: Any step can go back to previous step
+// Cancel: Close X or tap outside = cancel entire flow
+
+NAVIGATION_FLOW: {
+  // Step 1: Year Selection
+  yearStep: {
+    forward: 'Select year → advance to Month step',
+    backward: 'None (first step)',
+    cancel: 'Close X or tap outside → close modal'
+  },
+  
+  // Step 2: Month Selection  
+  monthStep: {
+    forward: 'Select month → advance to Day step',
+    backward: 'Back arrow → return to Year step (keep year selection)',
+    cancel: 'Close X or tap outside → close modal'
+  },
+  
+  // Step 3: Day Selection
+  dayStep: {
+    forward: 'Select day → auto-close modal + return date',
+    backward: 'Back arrow → return to Month step (keep year+month selection)',
+    cancel: 'Close X or tap outside → close modal'
+  }
+}
+
+// BACK NAVIGATION EXAMPLES:
+// Example A: User flow with back navigation
+// 1. Select year 2025 → Month step appears
+// 2. Select month 3 → Day step appears  
+// 3. User clicks back arrow → Month step (year 2025 still selected)
+// 4. Select month 2 → Day step appears (shows 28 days for February)
+// 5. Select day 15 → Modal closes, returns "15.02.2025"
+
+// Example B: Multi-level back navigation
+// 1. Select year 2024 → Month step
+// 2. Select month 2 → Day step (shows 29 days - leap year)
+// 3. Click back arrow → Month step (year 2024 still selected) 
+// 4. Click back arrow → Year step (can change year)
+// 5. Select year 2025 → Month step
+// 6. Select month 2 → Day step (shows 28 days - regular year)
+```
+
+### Animation & Transitions
+
+#### Step Transition Animations
+```typescript
+ANIMATION_SPECIFICATIONS: {
+  // Modal resize animation (smooth size changes)
+  modalResize: {
+    duration: 300,           // 300ms resize transition
+    easing: 'easeInOut',     // Smooth acceleration curve
+    properties: ['width', 'height']  // Animate size changes
+  },
+  
+  // Content fade transitions
+  contentTransition: {
+    fadeOut: 150,            // Current content fades out
+    fadeIn: 150,             // New content fades in  
+    delay: 75,               // Slight delay between fade out/in
+    overlap: false           // No content overlap during transition
+  },
+  
+  // Selection feedback
+  selectionFeedback: {
+    duration: 150,           // Quick color change animation
+    scaleEffect: 1.05,       // Slight scale up on tap
+    colorTransition: true    // Animate blue→green color change
+  }
+}
+
+// SMOOTH USER EXPERIENCE:
+// 1. User taps year → Year fades out, modal resizes, months fade in
+// 2. User taps month → Month fades out, modal resizes, days fade in
+// 3. User taps day → Instant completion (no fade needed, modal closes)
+// 4. Back arrow → Content fades, modal resizes, previous step fades in
+```
+
+### Performance & Implementation Strategy
+
+#### Simplicity Over Optimization
+```typescript
+// FUNDAMENTAL PERFORMANCE APPROACH: Simple and reliable over complex optimization
+
+PERFORMANCE_STRATEGY: {
+  // getDaysInMonth() calculation
+  approach: 'Calculate every time',           // No caching needed
+  reasoning: 'User selects date only once',   // Rare operation
+  implementation: 'Direct new Date() calls', // Standard JavaScript
+  
+  // Square component rendering
+  approach: 'Re-render all squares',          // No memoization
+  reasoning: 'Small grids, infrequent use',   // Not performance critical  
+  implementation: 'Standard React components', // No React.memo() wrapper
+  
+  // Modal state management
+  approach: 'Simple setState calls',          // No complex state optimization
+  reasoning: 'Clear code over micro-optimization', // Maintainability first
+  implementation: 'Direct state updates'     // Standard React patterns
+}
+
+// RATIONALE FOR SIMPLE APPROACH:
+// 1. Date selection is rare user action (not performance critical)
+// 2. Small data sets (12 years, 12 months, max 31 days)
+// 3. Modal appears briefly then disappears  
+// 4. Maintainability and bug prevention more important than micro-optimizations
+// 5. Simple code = easier debugging and future modifications
+
+// PERFORMANCE REQUIREMENTS STILL MET:
+// - 300ms animations remain smooth (handled by React Native animations)
+// - Instant user feedback on selections (no perceived delay)
+// - Memory usage minimal (no caching overhead)
+// - Code complexity low (fewer potential bugs)
 ```
 
 ---
