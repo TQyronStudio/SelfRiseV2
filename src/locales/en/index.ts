@@ -219,6 +219,7 @@ const en: TranslationKeys = {
     cancel: 'Cancel',
     delete: 'Delete',
     save: 'Save',
+    selectTargetDate: 'Select Target Date',
     
     // Goal Analytics
     useTemplate: 'Use Template',

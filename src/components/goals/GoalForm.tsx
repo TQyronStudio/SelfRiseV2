@@ -16,6 +16,7 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
+import { TargetDateCalendarWheelModal } from './TargetDateCalendarWheelModal';
 
 export type GoalFormData = {
   title: string;
@@ -54,7 +55,6 @@ export function GoalForm({
 }: GoalFormProps) {
   const { t } = useI18n();
   const scrollViewRef = useRef<ScrollView>(null);
-  const dateInputRef = useRef<TextInput>(null);
   
   const [formData, setFormData] = useState<GoalFormData>({
     title: initialData?.title || '',
@@ -70,6 +70,7 @@ export function GoalForm({
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showDateConfirmation, setShowDateConfirmation] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -133,45 +134,6 @@ export function GoalForm({
     }
   };
 
-  const handleDateChange = (text: string) => {
-    // Remove any non-numeric characters except dots
-    let cleanText = text.replace(/[^\d.]/g, '');
-    
-    // Apply DD.MM.YYYY format mask
-    if (cleanText.length >= 2 && !cleanText.includes('.')) {
-      cleanText = cleanText.substring(0, 2) + '.' + cleanText.substring(2);
-    }
-    if (cleanText.length >= 5 && cleanText.split('.').length === 2) {
-      const parts = cleanText.split('.');
-      if (parts[0] && parts[1]) {
-        cleanText = parts[0] + '.' + parts[1].substring(0, 2) + '.' + parts[1].substring(2);
-      }
-    }
-    
-    // Limit to DD.MM.YYYY format
-    if (cleanText.length > 10) {
-      cleanText = cleanText.substring(0, 10);
-    }
-    
-    // Convert DD.MM.YYYY to YYYY-MM-DD for internal storage
-    let dateString: DateString | undefined = undefined;
-    if (cleanText.length === 10 && cleanText.split('.').length === 3) {
-      const [day, month, year] = cleanText.split('.');
-      if (day && month && year && year.length === 4) {
-        // Validate the date
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        if (date.getFullYear() === parseInt(year) && date.getMonth() === parseInt(month) - 1 && date.getDate() === parseInt(day)) {
-          dateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` as DateString;
-        }
-      }
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      targetDate: dateString,
-      _displayDate: cleanText, // Store display format separately
-    }));
-  };
 
   const scrollToInput = (inputPosition: number) => {
     setTimeout(() => {
@@ -182,24 +144,35 @@ export function GoalForm({
     }, 100);
   };
 
-  const scrollToDateInput = () => {
-    // Scroll to Target Date field (now at position 200 after moving it up)
-    scrollToInput(200);
-    // Focus the date input after scrolling
-    setTimeout(() => {
-      dateInputRef.current?.focus();
-    }, 400);
-  };
-
   const handleAddDate = () => {
     setShowDateConfirmation(false);
-    scrollToDateInput();
+    setShowDateModal(true);
   };
 
   const handleContinueWithoutDate = () => {
     setShowDateConfirmation(false);
     // Proceed with goal creation without target date
     submitGoal();
+  };
+
+  // Handle date selection from Calendar Wheel Modal
+  const handleDateSelect = (date: Date) => {
+    // Convert Date to YYYY-MM-DD format for internal storage
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const dateString: DateString = `${year}-${month}-${day}` as DateString;
+    
+    // Convert to DD.MM.YYYY format for display
+    const displayDate = `${day}.${month}.${year}`;
+    
+    setFormData(prev => ({
+      ...prev,
+      targetDate: dateString,
+      _displayDate: displayDate,
+    }));
+    
+    setShowDateModal(false);
   };
 
   const categoryOptions = [
@@ -258,19 +231,19 @@ export function GoalForm({
         {/* Target Date */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
-          <Text style={styles.dateHint}>Format: DD.MM.YYYY (např. 31.12.2024)</Text>
-          <TextInput
-            ref={dateInputRef}
-            style={[styles.input]}
-            placeholder="DD.MM.YYYY"
-            placeholderTextColor={Colors.textSecondary}
-            value={formData._displayDate}
-            onChangeText={handleDateChange}
-            onFocus={() => scrollToInput(200)}
-            keyboardType="numeric"
-            editable={!isLoading}
-            maxLength={10}
-          />
+          <Text style={styles.dateHint}>Tap to open calendar wheel selector</Text>
+          <TouchableOpacity
+            style={[styles.input, styles.dateSelector]}
+            onPress={() => setShowDateModal(true)}
+            disabled={isLoading}
+          >
+            <Text style={[
+              styles.dateText, 
+              !formData._displayDate && styles.placeholderText
+            ]}>
+              {formData._displayDate || 'Select target date (optional)'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Unit */}
@@ -376,6 +349,13 @@ export function GoalForm({
         onAddDate={handleAddDate}
         onContinueWithoutDate={handleContinueWithoutDate}
       />
+
+      <TargetDateCalendarWheelModal
+        visible={showDateModal}
+        onClose={() => setShowDateModal(false)}
+        onSelectDate={handleDateSelect}
+        initialDate={formData.targetDate ? new Date(formData.targetDate) : undefined}
+      />
     </ScrollView>
   );
 }
@@ -423,6 +403,18 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: Colors.error,
+  },
+  dateSelector: {
+    justifyContent: 'center',
+    minHeight: 50,
+  },
+  dateText: {
+    fontSize: 16,
+    fontFamily: Fonts.regular,
+    color: Colors.text,
+  },
+  placeholderText: {
+    color: Colors.textSecondary,
   },
   errorText: {
     fontSize: 14,

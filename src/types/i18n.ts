@@ -216,6 +216,7 @@ export interface TranslationKeys {
     cancel: string;
     delete: string;
     save: string;
+    selectTargetDate: string;
     useTemplate: string;
     stats: {
       overview: string;
