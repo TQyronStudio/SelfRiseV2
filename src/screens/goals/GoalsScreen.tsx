@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -11,6 +11,8 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 // XPSourceType removed - XP handled by goalStorage
 import { XP_REWARDS } from '@/src/constants/gamification';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { goalStorage } from '@/src/services/storage/goalStorage';
 
 const styles = StyleSheet.create({
   container: {
@@ -115,6 +117,10 @@ export function GoalsScreen() {
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [templateData, setTemplateData] = useState<CreateGoalInput | undefined>();
 
+  // This useEffect is now disabled - goal completion detection moved to handleSubmitProgress
+  // for immediate priority over level-up modals
+  // useEffect(() => { ... }, [goals, completionModalVisible]);
+
   // Handle quick action from home screen
   useEffect(() => {
     if (params.quickAction === 'addGoal') {
@@ -214,17 +220,33 @@ export function GoalsScreen() {
       
       handleCloseProgressModal();
       
-      // Check if goal was completed by this progress
+      // Check if goal was completed by this progress - IMMEDIATE detection
       if (previousGoal) {
-        // Get fresh goal data immediately after state update
-        const updatedGoal = goals.find(g => g.id === previousGoal.id);
+        // Get fresh goal data from storage immediately 
+        const freshGoal = await goalStorage.getById(previousGoal.id);
         
-        if (updatedGoal && 
-            updatedGoal.status === GoalStatus.COMPLETED && 
+        if (freshGoal && 
+            freshGoal.status === GoalStatus.COMPLETED && 
             previousGoal.status !== GoalStatus.COMPLETED) {
-          // Goal was just completed, show celebration
-          setCompletedGoal(updatedGoal);
+          
+          console.log(`🎉 IMMEDIATE goal completion detected: ${freshGoal.title}`);
+          
+          // IMMEDIATELY show celebration modal to ensure priority
+          setCompletedGoal(freshGoal);
           setCompletionModalVisible(true);
+          
+          // Save to persistent storage to prevent re-showing
+          const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
+          const storedCelebrations = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
+          const shownCelebrations = new Set<string>(
+            storedCelebrations ? JSON.parse(storedCelebrations) : []
+          );
+          const celebrationKey = `${freshGoal.id}_${freshGoal.completedDate}`;
+          shownCelebrations.add(celebrationKey);
+          await AsyncStorage.setItem(
+            SHOWN_CELEBRATIONS_KEY, 
+            JSON.stringify(Array.from(shownCelebrations))
+          );
         }
       }
     } catch (error) {

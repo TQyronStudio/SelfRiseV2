@@ -428,6 +428,11 @@ export interface TranslationKeys {
       copied: string;
       copyError: string;
     };
+    
+    // Step-by-step date selection
+    selectYear: string;
+    selectMonth: string;
+    selectDay: string;
   };
   
   // Achievements screen
@@ -574,6 +579,13 @@ export interface TranslationKeys {
       sortButton: string;
       filterButton: string;
       viewDetails: string;
+    };
+    
+    // Celebration Modal
+    celebration: {
+      announcement: string;
+      continue_button: string;
+      continue_hint: string;
     };
   };
   

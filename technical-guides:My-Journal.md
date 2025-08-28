@@ -409,6 +409,76 @@ completionStatus: journal → gamification (for streak milestone XP)
 
 ---
 
+## Journal Modal Priority System
+
+### 🚨 CRITICAL: Journal Modals are Tier 1 Priority (Activity Modals)
+
+Journal celebrations represent immediate user actions and MUST have highest priority in the 3-tier modal system:
+
+```typescript
+// 3-TIER MODAL PRIORITY SYSTEM for Journal:
+1. ACTIVITY MODALS (Tier 1 - HIGHEST Priority - Journal is HERE)
+   ✅ Daily completion celebrations (3 gratitude entries)
+   ✅ Bonus milestone celebrations (⭐ 4th, 🔥 8th, 👑 13th entries)
+   ✅ Streak milestone celebrations (7, 14, 30, 100 days)
+   ✅ All Journal-specific celebrations
+
+2. ACHIEVEMENT MODALS (Tier 2 - Wait for Journal modals)
+   - Achievement unlocks triggered by journal activities
+
+3. LEVEL-UP MODALS (Tier 3 - Wait for Journal + Achievement modals)
+   - Level celebrations caused by journal XP
+```
+
+### Journal Modal Coordination Implementation
+```typescript
+// REQUIRED: Use Activity Modal methods (not Primary Modal methods)
+import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
+
+const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
+
+// On Journal celebration modal show:
+notifyActivityModalStarted('journal');  // ✅ CORRECT - Tier 1 priority
+setShowCelebration(true);
+
+// On Journal celebration modal close:
+notifyActivityModalEnded();  // ✅ Triggers Tier 2 & 3 processing
+setShowCelebration(false);
+
+// ❌ DEPRECATED - Do not use:
+// notifyPrimaryModalStarted() - Old 2-tier system
+// notifyPrimaryModalEnded()   - Old 2-tier system
+```
+
+### Modal Flow Priority Rules
+```typescript
+// SEQUENCE GUARANTEE for Journal actions:
+User writes journal entry →
+1. Journal celebration modal shows IMMEDIATELY (Tier 1)
+2. After user closes journal modal → Achievement modal (if any) shows (Tier 2)  
+3. After achievement modal closes → Level-up modal (if any) shows (Tier 3)
+
+// ANTI-FREEZE PROTECTION:
+- Each tier has independent error handling
+- Modal failures don't break core Journal functionality
+- Queue clearing prevents infinite loops
+- User can still write entries even if celebrations fail
+```
+
+### User Experience Impact
+```
+❌ OLD SYSTEM: Journal → Achievement → Level-up could freeze app
+✅ NEW SYSTEM: Perfect sequential display, no freezing
+
+Example flow:
+User completes 10th bonus entry → Journal 👑 modal (immediate) → 
+User closes modal → Achievement unlock modal (if earned) →
+User closes modal → Level-up modal (if caused by XP) →
+Perfect user experience with proper priority sequencing
+```
+
+---
+
 **GOLDEN RULE**: *"One journal system, clear completion rules, complete streak protection, separate from XP concerns"*
 
 ---

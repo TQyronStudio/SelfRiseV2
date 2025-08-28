@@ -218,6 +218,8 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
           ]);
           
           if (updatedGoal) {
+            console.log(`📋 Updating goal in context: ${updatedGoal.title}`);
+            console.log(`   Status: ${updatedGoal.status}, Completed: ${updatedGoal.completedDate}`);
             dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
             dispatch({ type: 'UPDATE_GOAL_STATS', payload: updatedStats });
           }

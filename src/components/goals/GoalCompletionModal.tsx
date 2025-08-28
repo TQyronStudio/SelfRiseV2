@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
 import { Goal } from '../../types/goal';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { Layout } from '../../constants/dimensions';
 import { useI18n } from '../../hooks/useI18n';
+import { useXpAnimation } from '../../contexts/XpAnimationContext';
+import { XP_REWARDS } from '../../constants/gamification';
 
 interface GoalCompletionModalProps {
   visible: boolean;
@@ -16,6 +18,19 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionModalProps) {
   const { t } = useI18n();
+  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+
+  // Modal priority coordination - goal completion is a PRIMARY modal
+  useEffect(() => {
+    if (visible) {
+      notifyPrimaryModalStarted('goal');
+    }
+  }, [visible, notifyPrimaryModalStarted]);
+
+  const handleClose = () => {
+    notifyPrimaryModalEnded(); // Release coordination lock to allow level-up modals
+    onClose();
+  };
 
   const getCelebrationEmoji = () => {
     // Different emojis based on goal category
@@ -69,6 +84,12 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
               {goal.currentValue} / {goal.targetValue} {goal.unit}
             </Text>
           </View>
+
+          {/* XP Reward Display */}
+          <View style={styles.xpRewardContainer}>
+            <Text style={styles.xpRewardText}>+{XP_REWARDS.GOALS.GOAL_COMPLETION} XP</Text>
+            <Text style={styles.xpRewardLabel}>Goal Completion Bonus</Text>
+          </View>
           
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
@@ -81,7 +102,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
             </View>
           </View>
           
-          <TouchableOpacity style={styles.button} onPress={onClose}>
+          <TouchableOpacity style={styles.button} onPress={handleClose}>
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -157,6 +178,28 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.success,
     textAlign: 'center',
+  },
+  xpRewardContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15', // 15% opacity
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30', // 30% opacity
+  },
+  xpRewardText: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  xpRewardLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: Colors.primary,
+    opacity: 0.8,
   },
   statsContainer: {
     flexDirection: 'row',

@@ -834,9 +834,74 @@ XP_REWARDS = {
   GOAL_MILESTONE_25: 50,      // 25% completion milestone
   GOAL_MILESTONE_50: 75,      // 50% completion milestone
   GOAL_MILESTONE_75: 100,     // 75% completion milestone
-  GOAL_COMPLETION: 200,       // Basic goal completion
+  GOAL_COMPLETION: 250,       // Goal completion (original amount restored)
   GOAL_COMPLETION_BIG: 350,   // Large goal completion (target ≥ 1000)
 };
+```
+
+### 🎉 Goal Completion Celebration System
+
+#### Completion Detection & XP Awarding
+```typescript
+// CRITICAL: Goal completion XP is awarded when goal reaches 100%+ for first time
+const justCompleted = isCompleted && !wasCompleted; // First-time completion only
+
+if (justCompleted) {
+  await GamificationService.addXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+    source: XPSourceType.GOAL_COMPLETION,
+    description: `🎉 Goal completed: ${goal.title}`,
+    sourceId: goal.id
+  });
+  console.log(`🏆 Goal completed: ${goal.title} (+250 XP)`);
+}
+```
+
+#### Reversible XP Logic
+```typescript
+// CRITICAL: When goal drops below 100%, completion XP is subtracted
+const shouldBeActive = !isCompleted && goal.status === GoalStatus.COMPLETED;
+
+if (shouldBeActive && wasCompleted) {
+  await GamificationService.subtractXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+    source: XPSourceType.GOAL_COMPLETION,
+    description: `📉 Goal dropped below completion: ${goal.title}`,
+    sourceId: goal.id
+  });
+  console.log(`📉 Goal completion reversed: ${goal.title} (-250 XP)`);
+}
+```
+
+#### Goal Completion Modal Integration
+```typescript
+// MODAL PRIORITY: Goal completion modal is PRIMARY (shows before level-up)
+export function GoalCompletionModal({ visible, goal, onClose }) {
+  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+
+  useEffect(() => {
+    if (visible) {
+      notifyPrimaryModalStarted('goal'); // Coordinate with level-up modals
+    }
+  }, [visible]);
+
+  const handleClose = () => {
+    notifyPrimaryModalEnded(); // Release lock to allow level-up modals
+    onClose();
+  };
+
+  // Modal displays: Goal info + "+250 XP" reward + completion stats
+}
+```
+
+#### User Experience Flow
+```typescript
+// COMPLETE GOAL COMPLETION FLOW:
+1. User adds progress that reaches/exceeds 100% → goalStorage.addProgress()
+2. Storage detects completion → Awards +250 XP via GamificationService
+3. XP popup animation appears immediately (via XpAnimationContext)
+4. Goal status updates to COMPLETED → GoalsScreen detects change
+5. PRIMARY goal completion modal shows with "+250 XP" display
+6. User closes modal → Modal coordination releases to show any level-up modal
+7. If progress later reduces below 100% → Subtracts -250 XP automatically
 ```
 
 ### XP Transaction Limits

@@ -1201,11 +1201,14 @@ export class GamificationService {
         if (transactions.length > 1) {
           // Sort by creation time and keep the most recent
           transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          cleanedLevelUpTransactions.push(transactions[0]); // Keep most recent
+          const mostRecent = transactions[0];
+          if (mostRecent) {
+            cleanedLevelUpTransactions.push(mostRecent); // Keep most recent
+          }
           duplicatesRemoved += transactions.length - 1;
           
           console.log(`🔄 Group ${groupKey}: Removed ${transactions.length - 1} duplicates, kept most recent`);
-        } else {
+        } else if (transactions[0]) {
           cleanedLevelUpTransactions.push(transactions[0]);
         }
       }
@@ -1244,13 +1247,13 @@ export class GamificationService {
       });
       
     } catch (error) {
-      console.error('🚨 Cleanup of duplicate level-up records failed:', error);
+      console.error('🚨 Cleanup of duplicate level-up records failed:', error instanceof Error ? error.message : String(error));
       console.log('📱 App continues to function normally, cleanup will retry on next launch');
       
       // GRACEFUL DEGRADATION: Cleanup failure doesn't break app functionality
       console.log(`📊 Memory Cleanup Results:`, {
         event: 'DUPLICATE_CLEANUP_ERROR',
-        error: error.message || error,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: Date.now()
       });
     }

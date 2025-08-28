@@ -629,6 +629,13 @@ const en: TranslationKeys = {
       copyError: 'Failed to copy achievement details.',
     },
     
+    // Celebration Modal
+    celebration: {
+      announcement: '{{rarity}} achievement unlocked: {{name}}! You earned {{xp}} experience points.',
+      continue_button: 'Continue',
+      continue_hint: 'Close achievement celebration and return to app',
+    },
+
     // Accessibility
     accessibility: {
       achievementCard: 'Achievement card for {{name}}',

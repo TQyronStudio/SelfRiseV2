@@ -23,7 +23,7 @@ export default function JournalScreen() {
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
   // GHOST SYSTEM REMOVED: Local level-up celebration system eliminado - XpAnimationContext handles this
-  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+  const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<View>(null);
   const [showInput, setShowInput] = useState(false);
@@ -63,8 +63,8 @@ export default function JournalScreen() {
         setBonusXpAmount(xpAmount);
         setCelebrationType('bonus_milestone');
         
-        // COORDINATION: Notify primary modal started
-        notifyPrimaryModalStarted('journal');
+        // COORDINATION: Notify activity modal started (Tier 1 priority)
+        notifyActivityModalStarted('journal');
         setShowCelebration(true);
         
         console.log(`🎉 Showing Journal bonus milestone modal for position ${bonusCount} (${nextModal.data.emoji})`);
@@ -155,8 +155,8 @@ export default function JournalScreen() {
     if (newCount === 3) {
       setCelebrationType('daily_complete');
       
-      // COORDINATION: Notify primary modal started
-      notifyPrimaryModalStarted('journal');
+      // COORDINATION: Notify activity modal started (Tier 1 priority)
+      notifyActivityModalStarted('journal');
       setShowCelebration(true);
       
       // Check for streak milestones after completing daily requirement
@@ -169,8 +169,8 @@ export default function JournalScreen() {
           setMilestoneStreak(currentStreak);
           setCelebrationType('streak_milestone');
           
-          // COORDINATION: Notify primary modal started
-          notifyPrimaryModalStarted('journal');
+          // COORDINATION: Notify activity modal started (Tier 1 priority)
+          notifyActivityModalStarted('journal');
           setShowCelebration(true);
         }
       }, 1000); // Delay to let daily celebration show first
@@ -324,8 +324,8 @@ export default function JournalScreen() {
         onClose={() => {
           console.log('🎭 Journal modal closed - processing next in queue');
           
-          // COORDINATION: Notify primary modal ended
-          notifyPrimaryModalEnded();
+          // COORDINATION: Notify activity modal ended (Tier 1 priority)
+          notifyActivityModalEnded();
           
           setShowCelebration(false);
           setBonusMilestone(null);

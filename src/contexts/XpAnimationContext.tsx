@@ -42,15 +42,27 @@ interface XpAnimationState {
   lastNotificationTime: number;
   // Level-up celebration modal
   levelUpModal: LevelUpModalData;
-  // Modal coordination system for priority management
+  // 3-Tier Modal coordination system for priority management
   modalCoordination: {
-    isPrimaryModalActive: boolean;  // Journal, habit, goal specific modals
-    pendingSecondaryModals: Array<{
-      type: 'levelUp' | 'achievement' | 'multiplier';
+    // Tier 1: Activity modals (immediate user actions)
+    isActivityModalActive: boolean;
+    currentActivityModalType?: 'journal' | 'habit' | 'goal' | null;
+    
+    // Tier 2: Achievement modals (wait for activity modals)
+    pendingAchievementModals: Array<{
+      type: 'achievement';
       data: any;
       timestamp: number;
     }>;
-    currentPrimaryModalType?: 'journal' | 'habit' | 'goal' | null;
+    isAchievementModalActive: boolean;
+    
+    // Tier 3: Level-up modals (wait for activity and achievement modals)
+    pendingLevelUpModals: Array<{
+      type: 'levelUp' | 'multiplier';
+      data: any;
+      timestamp: number;
+    }>;
+    isLevelUpModalActive: boolean;
   };
 }
 
@@ -71,7 +83,17 @@ interface XpAnimationContextValue {
   showLevelUpModal: (level: number, title: string, description?: string, isMilestone?: boolean) => void;
   hideLevelUpModal: () => void;
   
-  // Modal coordination system
+  // 3-Tier Modal coordination system
+  // Tier 1: Activity modals
+  notifyActivityModalStarted: (type: 'journal' | 'habit' | 'goal') => void;
+  notifyActivityModalEnded: () => void;
+  
+  // Tier 2: Achievement modals
+  notifyAchievementModalStarted: (type: 'achievement') => void;
+  notifyAchievementModalEnded: () => void;
+  
+  // Tier 3: Level-up modals (handled automatically)
+  // Legacy support (deprecated - use activity methods)
   notifyPrimaryModalStarted: (type: 'journal' | 'habit' | 'goal') => void;
   notifyPrimaryModalEnded: () => void;
   
@@ -117,11 +139,19 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       isMilestone: false,
       timestamp: 0,
     },
-    // Modal coordination system
+    // 3-Tier Modal coordination system
     modalCoordination: {
-      isPrimaryModalActive: false,
-      pendingSecondaryModals: [],
-      currentPrimaryModalType: null,
+      // Tier 1: Activity modals
+      isActivityModalActive: false,
+      currentActivityModalType: null,
+      
+      // Tier 2: Achievement modals
+      pendingAchievementModals: [],
+      isAchievementModalActive: false,
+      
+      // Tier 3: Level-up modals
+      pendingLevelUpModals: [],
+      isLevelUpModalActive: false,
     },
   });
 
@@ -360,14 +390,14 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       
     } catch (error) {
       // GRACEFUL DEGRADATION: Modal display failure doesn't break app functionality
-      console.error('🚨 Level-up modal display failed, but XP and app functionality continues:', error);
+      console.error('🚨 Level-up modal display failed, but XP and app functionality continues:', error instanceof Error ? error.message : String(error));
       console.log('📱 Level progression saved correctly, only celebration visual failed');
       
       // ENHANCED LOGGING: Error tracking
       console.log(`📊 Modal Flow Tracking:`, {
         event: 'LEVEL_UP_MODAL_DISPLAY_ERROR',
         level,
-        error: error.message || error,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: Date.now()
       });
     }
@@ -377,61 +407,169 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // MODAL COORDINATION SYSTEM - Priority Management
   // ========================================
   
-  const notifyPrimaryModalStarted = useCallback((type: 'journal' | 'habit' | 'goal') => {
-    console.log(`🎯 Primary modal started: ${type}`);
+  // ========================================
+  // 3-TIER MODAL COORDINATION SYSTEM
+  // ========================================
+  
+  // Tier 1: Activity modals (highest priority)
+  const notifyActivityModalStarted = useCallback((type: 'journal' | 'habit' | 'goal') => {
+    console.log(`🎯 Activity modal started (Tier 1): ${type}`);
     setState(prev => ({
       ...prev,
       modalCoordination: {
         ...prev.modalCoordination,
-        isPrimaryModalActive: true,
-        currentPrimaryModalType: type,
+        isActivityModalActive: true,
+        currentActivityModalType: type,
       }
     }));
   }, []);
   
-  const notifyPrimaryModalEnded = useCallback(() => {
-    console.log(`✅ Primary modal ended - processing secondary modals`);
+  const notifyActivityModalEnded = useCallback(() => {
+    console.log(`✅ Activity modal ended (Tier 1) - processing tier 2 achievement modals`);
     setState(prev => ({
       ...prev,
       modalCoordination: {
         ...prev.modalCoordination,
-        isPrimaryModalActive: false,
-        currentPrimaryModalType: null,
+        isActivityModalActive: false,
+        currentActivityModalType: null,
       }
     }));
     
-    // Process any pending secondary modals after a short delay
+    // Process tier 2 achievement modals after a short delay
     setTimeout(() => {
-      processSecondaryModals();
+      processAchievementModals();
     }, 300);
   }, []);
   
-  const processSecondaryModals = useCallback(() => {
+  // Tier 2: Achievement modals (second priority)
+  const notifyAchievementModalStarted = useCallback((type: 'achievement') => {
+    console.log(`🏆 Achievement modal started (Tier 2): ${type}`);
+    setState(prev => ({
+      ...prev,
+      modalCoordination: {
+        ...prev.modalCoordination,
+        isAchievementModalActive: true,
+      }
+    }));
+  }, []);
+  
+  const notifyAchievementModalEnded = useCallback(() => {
+    console.log(`✅ Achievement modal ended (Tier 2) - processing tier 3 level-up modals`);
+    setState(prev => ({
+      ...prev,
+      modalCoordination: {
+        ...prev.modalCoordination,
+        isAchievementModalActive: false,
+      }
+    }));
+    
+    // Process tier 3 level-up modals after a short delay
+    setTimeout(() => {
+      processLevelUpModals();
+    }, 300);
+  }, []);
+  
+  // Legacy support methods (deprecated but maintained for compatibility)
+  const notifyPrimaryModalStarted = useCallback((type: 'journal' | 'habit' | 'goal') => {
+    console.log(`⚠️ DEPRECATED: notifyPrimaryModalStarted called - redirecting to notifyActivityModalStarted`);
+    notifyActivityModalStarted(type);
+  }, [notifyActivityModalStarted]);
+  
+  const notifyPrimaryModalEnded = useCallback(() => {
+    console.log(`⚠️ DEPRECATED: notifyPrimaryModalEnded called - redirecting to notifyActivityModalEnded`);
+    notifyActivityModalEnded();
+  }, [notifyActivityModalEnded]);
+  
+  // ========================================
+  // 3-TIER MODAL PROCESSING FUNCTIONS
+  // ========================================
+  
+  // Process Tier 2: Achievement modals
+  const processAchievementModals = useCallback(() => {
     try {
       setState(prev => {
-        if (prev.modalCoordination.pendingSecondaryModals.length === 0) {
+        if (prev.modalCoordination.pendingAchievementModals.length === 0) {
           return prev;
         }
         
-        const nextModal = prev.modalCoordination.pendingSecondaryModals[0];
+        const nextModal = prev.modalCoordination.pendingAchievementModals[0];
         if (!nextModal) return prev;
         
-        const remainingModals = prev.modalCoordination.pendingSecondaryModals.slice(1);
+        const remainingModals = prev.modalCoordination.pendingAchievementModals.slice(1);
         
-        console.log(`🎭 Processing secondary modal: ${nextModal.type}`);
+        console.log(`🏆 Processing achievement modal (Tier 2): ${nextModal.type}`);
         
-        // ENHANCED LOGGING: Secondary modal processing tracking
+        // ENHANCED LOGGING: Achievement modal processing tracking
         console.log(`📊 Modal Flow Tracking:`, {
-          event: 'SECONDARY_MODAL_PROCESSING',
+          event: 'ACHIEVEMENT_MODAL_PROCESSING',
           modalType: nextModal.type,
           modalData: nextModal.data,
           remainingInQueue: remainingModals.length,
           timestamp: Date.now()
         });
         
-        // Handle different types of secondary modals
+        // Achievement modal processing would go here
+        // Note: Achievement modals are handled by AchievementService directly
+        // This function primarily manages the queue
+        
+        console.log(`📊 Modal Flow Tracking:`, {
+          event: 'ACHIEVEMENT_MODAL_PROCESSED',
+          modalType: 'achievement',
+          success: true,
+          timestamp: Date.now()
+        });
+        
+        return {
+          ...prev,
+          modalCoordination: {
+            ...prev.modalCoordination,
+            pendingAchievementModals: remainingModals,
+          }
+        };
+      });
+    } catch (error) {
+      // GRACEFUL DEGRADATION: Achievement modal processing failure doesn't break modal queue
+      console.error('🚨 Achievement modal processing failed, clearing queue to prevent infinite loops:', error instanceof Error ? error.message : String(error));
+      console.log('📱 Activity and level-up modal functionality remains unaffected');
+      
+      // Clear the queue to prevent stuck state
+      setState(prev => ({
+        ...prev,
+        modalCoordination: {
+          ...prev.modalCoordination,
+          pendingAchievementModals: [],
+        }
+      }));
+    }
+  }, []);
+
+  // Process Tier 3: Level-up modals
+  const processLevelUpModals = useCallback(() => {
+    try {
+      setState(prev => {
+        if (prev.modalCoordination.pendingLevelUpModals.length === 0) {
+          return prev;
+        }
+        
+        const nextModal = prev.modalCoordination.pendingLevelUpModals[0];
+        if (!nextModal) return prev;
+        
+        const remainingModals = prev.modalCoordination.pendingLevelUpModals.slice(1);
+        
+        console.log(`🚀 Processing level-up modal (Tier 3): ${nextModal.type}`);
+        
+        // ENHANCED LOGGING: Level-up modal processing tracking
+        console.log(`📊 Modal Flow Tracking:`, {
+          event: 'LEVEL_UP_MODAL_PROCESSING',
+          modalType: nextModal.type,
+          modalData: nextModal.data,
+          remainingInQueue: remainingModals.length,
+          timestamp: Date.now()
+        });
+        
+        // Handle different types of level-up modals
         if (nextModal.type === 'levelUp') {
-          console.log(`🚀 Processing queued level-up modal for Level ${nextModal.data.newLevel}`);
+          console.log(`🌟 Processing queued level-up modal for Level ${nextModal.data.newLevel}`);
           showLevelUpModal(
             nextModal.data.newLevel,
             nextModal.data.levelTitle,
@@ -440,7 +578,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
           );
           
           console.log(`📊 Modal Flow Tracking:`, {
-            event: 'SECONDARY_MODAL_PROCESSED',
+            event: 'LEVEL_UP_MODAL_PROCESSED',
             modalType: 'levelUp',
             level: nextModal.data.newLevel,
             success: true,
@@ -452,25 +590,31 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
           ...prev,
           modalCoordination: {
             ...prev.modalCoordination,
-            pendingSecondaryModals: remainingModals,
+            pendingLevelUpModals: remainingModals,
           }
         };
       });
     } catch (error) {
-      // GRACEFUL DEGRADATION: Secondary modal processing failure doesn't break modal queue
-      console.error('🚨 Secondary modal processing failed, clearing queue to prevent infinite loops:', error);
-      console.log('📱 Primary modal functionality remains unaffected');
+      // GRACEFUL DEGRADATION: Level-up modal processing failure doesn't break modal queue
+      console.error('🚨 Level-up modal processing failed, clearing queue to prevent infinite loops:', error instanceof Error ? error.message : String(error));
+      console.log('📱 Activity and achievement modal functionality remains unaffected');
       
       // Clear the queue to prevent stuck state
       setState(prev => ({
         ...prev,
         modalCoordination: {
           ...prev.modalCoordination,
-          pendingSecondaryModals: [],
+          pendingLevelUpModals: [],
         }
       }));
     }
   }, [showLevelUpModal]);
+
+  // Legacy function for backward compatibility (deprecated)
+  const processSecondaryModals = useCallback(() => {
+    console.log(`⚠️ DEPRECATED: processSecondaryModals called - redirecting to processLevelUpModals`);
+    processLevelUpModals();
+  }, [processLevelUpModals]);
 
   const hideLevelUpModal = useCallback(() => {
     console.log(`💫 Hiding level-up modal`);
@@ -514,38 +658,44 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     const handleLevelUp = (eventData: any) => {
       try {
         if (eventData && eventData.newLevel && eventData.levelTitle) {
-          // ENHANCED LOGGING: Detailed modal coordination tracking
+          // ENHANCED LOGGING: 3-tier modal coordination tracking
           console.log(`📊 Modal Flow Tracking:`, {
             event: 'LEVEL_UP_EVENT_RECEIVED',
             eventData,
             modalState: {
-              isPrimaryModalActive: state.modalCoordination.isPrimaryModalActive,
-              currentPrimaryModalType: state.modalCoordination.currentPrimaryModalType,
-              pendingSecondaryModals: state.modalCoordination.pendingSecondaryModals.length
+              isActivityModalActive: state.modalCoordination.isActivityModalActive,
+              currentActivityModalType: state.modalCoordination.currentActivityModalType,
+              isAchievementModalActive: state.modalCoordination.isAchievementModalActive,
+              pendingAchievementModals: state.modalCoordination.pendingAchievementModals.length,
+              pendingLevelUpModals: state.modalCoordination.pendingLevelUpModals.length
             },
             timestamp: Date.now()
           });
           
           console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
           
-          // PRIORITY SYSTEM: Check if primary modal is active
-          if (state.modalCoordination.isPrimaryModalActive) {
-            console.log(`⏸️ Level-up modal queued - primary modal active (${state.modalCoordination.currentPrimaryModalType})`);
+          // 3-TIER PRIORITY SYSTEM: Check if activity or achievement modals are active
+          if (state.modalCoordination.isActivityModalActive || state.modalCoordination.isAchievementModalActive) {
+            const activeModalType = state.modalCoordination.isActivityModalActive 
+              ? `Activity (${state.modalCoordination.currentActivityModalType})` 
+              : 'Achievement';
+            
+            console.log(`⏸️ Level-up modal queued - higher priority modal active: ${activeModalType}`);
             
             console.log(`📊 Modal Flow Tracking:`, {
               event: 'LEVEL_UP_QUEUED',
-              reason: 'PRIMARY_MODAL_ACTIVE',
-              primaryModalType: state.modalCoordination.currentPrimaryModalType,
-              queueLength: state.modalCoordination.pendingSecondaryModals.length + 1,
+              reason: 'HIGHER_PRIORITY_MODAL_ACTIVE',
+              activeModalType,
+              queueLength: state.modalCoordination.pendingLevelUpModals.length + 1,
               timestamp: Date.now()
             });
             
-            // Add to secondary modal queue
+            // Add to tier 3 level-up modal queue
             setState(prev => ({
               ...prev,
               modalCoordination: {
                 ...prev.modalCoordination,
-                pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
+                pendingLevelUpModals: [...prev.modalCoordination.pendingLevelUpModals, {
                   type: 'levelUp',
                   data: {
                     newLevel: eventData.newLevel,
@@ -558,12 +708,12 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
               }
             }));
           } else {
-            // No primary modal active - show immediately
-            console.log(`⚡ Level-up modal showing immediately - no primary modal active`);
+            // No higher priority modals active - show immediately
+            console.log(`⚡ Level-up modal showing immediately - no higher priority modals active`);
             
             console.log(`📊 Modal Flow Tracking:`, {
               event: 'LEVEL_UP_IMMEDIATE_DISPLAY',
-              reason: 'NO_PRIMARY_MODAL_ACTIVE',
+              reason: 'NO_HIGHER_PRIORITY_MODALS_ACTIVE',
               levelData: {
                 newLevel: eventData.newLevel,
                 title: eventData.levelTitle,
@@ -584,13 +734,13 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         }
       } catch (error) {
         // GRACEFUL DEGRADATION: Level-up modal failure doesn't break core functionality
-        console.error('🚨 Level-up modal failed, but core functionality continues:', error);
+        console.error('🚨 Level-up modal failed, but core functionality continues:', error instanceof Error ? error.message : String(error));
         console.log('📱 App remains fully functional - habits, journal, goals, and XP calculations unaffected');
         
         // ENHANCED LOGGING: Error tracking
         console.log(`📊 Modal Flow Tracking:`, {
           event: 'LEVEL_UP_MODAL_ERROR',
-          error: error.message || error,
+          error: error instanceof Error ? error.message : String(error),
           eventData,
           timestamp: Date.now()
         });
@@ -762,7 +912,12 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     // Level-up modal management
     showLevelUpModal,
     hideLevelUpModal,
-    // Modal coordination system
+    // 3-Tier Modal coordination system
+    notifyActivityModalStarted,
+    notifyActivityModalEnded,
+    notifyAchievementModalStarted,
+    notifyAchievementModalEnded,
+    // Legacy support (deprecated)
     notifyPrimaryModalStarted,
     notifyPrimaryModalEnded,
     // Settings and feedback

@@ -730,6 +730,49 @@ describe('Achievement System Complete Testing', () => {
 
 ---
 
+## Modal Priority Coordination System
+
+### 🚨 CRITICAL: 3-Tier Modal Priority System
+```typescript
+// 3-TIER MODAL PRIORITY SYSTEM - Prevents Application Freezing:
+1. ACTIVITY MODALS (1st Priority - Immediate User Actions): OKAMŽITÁ PRIORITA
+   - Journal: Daily complete, bonus milestones (⭐🔥👑), streak milestones
+   - Habit: Completion celebrations, streak achievements  
+   - Goal: Milestone celebrations, completion rewards
+   - Progress: Direct user action results (add/delete progress, complete/uncomplete habits)
+
+2. ACHIEVEMENT MODALS (2nd Priority - Achievement Unlocks): DRUHÁ PRIORITA
+   - Achievement unlocks triggered by user activities
+   - Rarity-based celebrations (Common, Rare, Epic, Legendary)
+   - Achievement milestone rewards
+   - THIS IS WHERE ACHIEVEMENT CELEBRATION MODALS BELONG
+
+3. LEVEL-UP MODALS (3rd Priority - System Celebrations): TŘETÍ PRIORITA
+   - Level-up celebrations (XP způsobí level-up)
+   - Level milestone rewards
+   - XP multiplier activations
+
+COORDINATION RULES:
+- SEQUENCE: Activity → Achievement → Level-up → Next queued item
+- NO CONCURRENT MODALS: Each tier waits for higher priority to complete
+- ERROR ISOLATION: Each tier has independent error handling to prevent app freeze
+```
+
+### Achievement Modal Integration
+```typescript
+// Achievement modals MUST use tier 2 priority coordination:
+const { notifySecondaryModalStarted, notifySecondaryModalEnded } = useXpAnimation();
+
+// On achievement unlock:
+notifySecondaryModalStarted('achievement');
+showAchievementCelebrationModal();
+
+// On modal close:
+notifySecondaryModalEnded();
+```
+
+---
+
 **GOLDEN RULE**: *"Every achievement tells a story - show the journey, celebrate the victory, inspire the next step"*
 
 ---

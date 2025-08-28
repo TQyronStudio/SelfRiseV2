@@ -65,6 +65,11 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   achievement,
   xpAwarded,
 }) => {
+  // Early return BEFORE any hooks to prevent React hooks rule violations
+  if (!achievement) {
+    return null;
+  }
+
   const { t } = useI18n();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   const { triggerHapticFeedback, playSoundEffect } = useXpFeedback();
@@ -72,9 +77,6 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   // Animation states
   const [scaleAnim] = useState(new Animated.Value(0));
   const [opacityAnim] = useState(new Animated.Value(0));
-
-  // Early return if no achievement
-  if (!achievement) return null;
 
   const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
   const rarityHaptic = getRarityHapticIntensity(achievement.rarity);

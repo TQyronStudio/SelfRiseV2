@@ -614,25 +614,32 @@ Common: 50 XP, Rare: 100 XP, Epic: 200 XP, Legendary: 500 XP
 ### 🚫 ANTI-CONCURRENT MODAL RULE
 **NIKDY se nezobrazují 2 modaly současně! Primary modaly blokují secondary modaly dokud neskončí.**
 
-### Core Modal Priority Rules
+### Core Modal Priority Rules - 3-Tier System
 ```typescript
-// PRIORITY SYSTEM - Modal Display Rules:
-1. PRIMARY MODALS (uživatelské akce): OKAMŽITÁ PRIORITA
+// 3-TIER MODAL PRIORITY SYSTEM - Modal Display Rules:
+1. ACTIVITY MODALS (1st Priority - Immediate User Actions): OKAMŽITÁ PRIORITA
    - Journal: Daily complete, bonus milestones (⭐🔥👑), streak milestones
-   - Habit: Completion celebrations, streak achievements
+   - Habit: Completion celebrations, streak achievements  
    - Goal: Milestone celebrations, completion rewards
-   - Achievement: User-triggered achievement unlocks
+   - Progress: Direct user action results (add/delete progress, complete/uncomplete habits)
 
-2. SECONDARY MODALS (systémové): ČEKAJÍ na primary
-   - Level-up celebrations (zěravený XP způsobí level-up)
+2. ACHIEVEMENT MODALS (2nd Priority - Achievement Unlocks): DRUHÁ PRIORITA
+   - Achievement unlocks triggered by user activities
+   - Rarity-based celebrations (Common, Rare, Epic, Legendary)
+   - Achievement milestone rewards
+
+3. LEVEL-UP MODALS (3rd Priority - System Celebrations): TŘETÍ PRIORITA
+   - Level-up celebrations (XP způsobí level-up)
+   - Level milestone rewards
    - XP multiplier activations 
    - Background system notifications
 
-3. COORDINATION RULES:
-   - SINGLE: Pouze 1 modal vëděn aktivní
-   - QUEUING: Secondary modaly jdou do fronty
-   - SEQUENCE: Primary skončí → secondary se spustí
-   - GLOBAL: Řízený centrálně přes XpAnimationContext
+4. COORDINATION RULES:
+   - SINGLE: Pouze 1 modal active at any time
+   - QUEUING: Lower priority modals wait in queue
+   - SEQUENCE: Activity → Achievement → Level-up → Next queued item
+   - GLOBAL: Řízený centrálně přes XpAnimationContext with 3-tier support
+   - ANTI-FREEZE: Each tier has independent error handling to prevent app freeze
 ```
 
 ### Screen-Specific vs Global Celebrations

@@ -227,8 +227,14 @@ export const updateGoalValue = (goal: Goal, value: number, progressType: 'add' |
 
   // Auto-complete goal if target reached
   if (newValue >= goal.targetValue && goal.status === GoalStatus.ACTIVE) {
+    console.log(`🏆 Goal completion detected: ${goal.title}`);
+    console.log(`   Progress: ${newValue}/${goal.targetValue} (${Math.round((newValue/goal.targetValue)*100)}%)`);
+    console.log(`   Status change: ${goal.status} → ${GoalStatus.COMPLETED}`);
+    
     updatedGoal.status = GoalStatus.COMPLETED;
     updatedGoal.completedDate = getCurrentDateString();
+    
+    console.log(`   Completed date set: ${updatedGoal.completedDate}`);
   }
 
   return updatedGoal;

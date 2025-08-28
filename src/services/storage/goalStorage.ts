@@ -278,15 +278,27 @@ export class GoalStorage implements EntityStorage<Goal> {
         console.log(`🎯 Goal positive progress: ${goal.title} (+${input.value}, +${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
       } else if (input.progressType === 'subtract') {
         console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value})`);
-      } else {
-        // Positive progress (add/set)
-        const isCompleted = updatedGoal.status === GoalStatus.COMPLETED;
-        console.log(`🎯 Goal progress debug: ${goal.title}`);
-        console.log(`   Previous: ${previousCompletionPercentage}% (${goal.currentValue}/${goal.targetValue})`);
-        console.log(`   New: ${newCompletionPercentage}% (${updatedGoal.currentValue}/${goal.targetValue})`);
-        console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
-        console.log(`   isCompleted: ${isCompleted}`);
-        
+      }
+
+      // ALWAYS check for goal completion (regardless of progress type)
+      const isCompleted = updatedGoal.status === GoalStatus.COMPLETED;
+      const wasCompleted = goal.status === GoalStatus.COMPLETED;
+      const justCompleted = isCompleted && !wasCompleted; // Goal just reached completion
+
+      console.log(`🎯 Goal completion check: ${goal.title}`);
+      console.log(`   Previous: ${previousCompletionPercentage}% (${goal.currentValue}/${goal.targetValue})`);
+      console.log(`   New: ${newCompletionPercentage}% (${updatedGoal.currentValue}/${goal.targetValue})`);
+      console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
+      console.log(`   isCompleted: ${isCompleted}, wasCompleted: ${wasCompleted}, justCompleted: ${justCompleted}`);
+
+      // Award +250 XP for goal completion
+      if (justCompleted) {
+        await GamificationService.addXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `🎉 Goal completed: ${goal.title}`,
+          sourceId: goal.id
+        });
+        console.log(`🏆 Goal completed: ${goal.title} (+${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
       }
 
       return newProgress;
@@ -442,9 +454,35 @@ export class GoalStorage implements EntityStorage<Goal> {
 
       // Update goal status if needed
       const isCompleted = currentValue >= goal.targetValue;
-      const status = isCompleted && goal.status === GoalStatus.ACTIVE 
-        ? GoalStatus.COMPLETED 
-        : goal.status;
+      const wasCompleted = goal.status === GoalStatus.COMPLETED;
+      const shouldBeCompleted = isCompleted && goal.status === GoalStatus.ACTIVE;
+      const shouldBeActive = !isCompleted && goal.status === GoalStatus.COMPLETED;
+
+      let status = goal.status;
+      if (shouldBeCompleted) {
+        status = GoalStatus.COMPLETED;
+      } else if (shouldBeActive) {
+        status = GoalStatus.ACTIVE;
+      }
+
+      // Handle XP for goal completion status changes during recalculation
+      if (shouldBeCompleted) {
+        // Goal just reached completion during recalculation
+        await GamificationService.addXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `🎉 Goal completed: ${goal.title}`,
+          sourceId: goal.id
+        });
+        console.log(`🏆 Goal completed during recalculation: ${goal.title} (+${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
+      } else if (shouldBeActive && wasCompleted) {
+        // Goal dropped below 100%, subtract completion XP
+        await GamificationService.subtractXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `📉 Goal dropped below completion: ${goal.title}`,
+          sourceId: goal.id
+        });
+        console.log(`📉 Goal completion reversed: ${goal.title} (-${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
+      }
 
       await this.update(goalId, { 
         currentValue,
