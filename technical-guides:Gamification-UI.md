@@ -14,6 +14,142 @@
 
 ---
 
+## 🏆 Level Overview - Home Screen Display
+
+**Levely zobrazované na Home screenu s jejich barvami a XP požadavky:**
+
+### ⚪ Grey (Common) - Levels 1-20
+```
+1 - Novice I - 100 XP - Grey
+2 - Novice II - 250 XP - Grey  
+3 - Novice III - 400 XP - Grey
+4 - Novice IV - 580 XP - Grey
+5 - Novice V - 800 XP - Grey
+6 - Beginner I - 1,060 XP - Grey
+7 - Beginner II - 1,370 XP - Grey
+8 - Beginner III - 1,740 XP - Grey
+9 - Beginner IV - 2,180 XP - Grey
+10 - Beginner V [MILESTONE] - 2,700 XP - Gold-Orange
+11 - Learner I - 3,300 XP - Grey
+12 - Learner II - 3,980 XP - Grey  
+13 - Learner III - 4,750 XP - Grey
+14 - Learner IV - 5,620 XP - Grey
+15 - Learner V - 6,620 XP - Grey
+16 - Apprentice I - 7,750 XP - Grey
+17 - Apprentice II - 9,020 XP - Grey
+18 - Apprentice III - 10,460 XP - Grey
+19 - Apprentice IV - 12,100 XP - Grey
+20 - Apprentice V - 13,970 XP - Grey
+```
+
+### 🔵 Blue (Rare) - Levels 21-40
+```
+21 - Adept I - 16,100 XP - Blue
+22 - Adept II - 18,530 XP - Blue
+23 - Adept III - 21,300 XP - Blue
+24 - Adept IV - 24,450 XP - Blue
+25 - Adept V [MILESTONE] - 28,040 XP - Gold-Orange
+26 - Seeker I - 32,100 XP - Blue
+27 - Seeker II - 36,770 XP - Blue
+28 - Seeker III - 42,120 XP - Blue
+29 - Seeker IV - 48,220 XP - Blue
+30 - Seeker V - 55,150 XP - Blue
+31 - Adventurer I - 63,000 XP - Blue
+32 - Adventurer II - 72,000 XP - Blue
+33 - Adventurer III - 82,000 XP - Blue
+34 - Adventurer IV - 93,500 XP - Blue
+35 - Adventurer V - 106,000 XP - Blue
+36 - Practitioner I - 120,000 XP - Blue
+37 - Practitioner II - 135,000 XP - Blue
+38 - Practitioner III - 152,000 XP - Blue
+39 - Practitioner IV - 170,000 XP - Blue
+40 - Practitioner V - 190,000 XP - Blue
+```
+
+### 🟣 Purple (Epic) - Levels 41-60
+```
+41 - Pathfinder I - 212,000 XP - Purple
+42 - Pathfinder II - 236,000 XP - Purple
+43 - Pathfinder III - 262,000 XP - Purple
+44 - Pathfinder IV - 290,000 XP - Purple
+45 - Pathfinder V - 320,000 XP - Purple
+46 - Specialist I - 352,000 XP - Purple
+47 - Specialist II - 387,000 XP - Purple
+48 - Specialist III - 425,000 XP - Purple
+49 - Specialist IV - 466,000 XP - Purple
+50 - Specialist V [MILESTONE] - 510,000 XP - Gold-Orange
+51 - Veteran I - 558,000 XP - Purple
+52 - Veteran II - 610,000 XP - Purple
+53 - Veteran III - 666,000 XP - Purple
+54 - Veteran IV - 726,000 XP - Purple
+55 - Veteran V - 791,000 XP - Purple
+56 - Expert I - 861,000 XP - Purple
+57 - Expert II - 937,000 XP - Purple
+58 - Expert III - 1,018,000 XP - Purple
+59 - Expert IV - 1,106,000 XP - Purple
+60 - Expert V - 1,200,000 XP - Purple
+```
+
+### 🟡 Gold (Legendary) - Levels 61-80
+```
+61 - Guardian I - 1,302,000 XP - Gold
+62 - Guardian II - 1,412,000 XP - Gold
+63 - Guardian III - 1,530,000 XP - Gold
+64 - Guardian IV - 1,657,000 XP - Gold
+65 - Guardian V - 1,794,000 XP - Gold
+66 - Warden I - 1,941,000 XP - Gold
+67 - Warden II - 2,099,000 XP - Gold
+68 - Warden III - 2,268,000 XP - Gold
+69 - Warden IV - 2,449,000 XP - Gold
+70 - Warden V - 2,643,000 XP - Gold
+71 - Challenger I - 2,850,000 XP - Gold
+72 - Challenger II - 3,071,000 XP - Gold
+73 - Challenger III - 3,307,000 XP - Gold
+74 - Challenger IV - 3,559,000 XP - Gold
+75 - Challenger V [MILESTONE] - 3,828,000 XP - Gold-Orange
+76 - Master I - 4,115,000 XP - Gold
+77 - Master II - 4,421,000 XP - Gold
+78 - Master III - 4,748,000 XP - Gold
+79 - Master IV - 5,096,000 XP - Gold
+80 - Master V - 5,467,000 XP - Gold
+```
+
+### 🔴 Red (Mythic/Exotic) - Levels 81-100
+```
+81 - Elite I - 5,862,000 XP - Red
+82 - Elite II - 6,283,000 XP - Red
+83 - Elite III - 6,732,000 XP - Red
+84 - Elite IV - 7,211,000 XP - Red
+85 - Elite V - 7,722,000 XP - Red
+86 - Champion I - 8,267,000 XP - Red
+87 - Champion II - 8,848,000 XP - Red
+88 - Champion III - 9,467,000 XP - Red
+89 - Champion IV - 10,126,000 XP - Red
+90 - Champion V - 10,827,000 XP - Red
+91 - Grandmaster I - 11,573,000 XP - Red
+92 - Grandmaster II - 12,367,000 XP - Red
+93 - Grandmaster III - 13,213,000 XP - Red
+94 - Grandmaster IV - 14,113,000 XP - Red
+95 - Grandmaster V - 15,071,000 XP - Red
+96 - Mythic I - 16,091,000 XP - Red
+97 - Mythic II - 17,176,000 XP - Red
+98 - Mythic III - 18,330,000 XP - Red
+99 - Mythic IV - 19,557,000 XP - Red
+100 - Mythic V [ULTIMATE MILESTONE] - 20,861,000 XP - Gold-Orange
+```
+
+### 🎨 Color System
+- **Grey (Common)**: #9E9E9E-#757575 (levels 1-20)
+- **Blue (Rare)**: #2196F3-#00BCD4 (levels 21-40)  
+- **Purple (Epic)**: #9C27B0-#673AB7 (levels 41-60)
+- **Gold (Legendary)**: #FFD700-#FFC107 (levels 61-80)
+- **Red (Mythic/Exotic)**: #F44336-#E91E63 (levels 81-100)
+- **Gold-Orange (Milestones)**: #FFD700-#FFA500 (MILESTONE levels: 10, 25, 50, 75, 100)
+
+**⚠️ NOTE**: XP values jsou přibližné kalkulace. Milestone levely VŽDY používají Gold-Orange efekt bez ohledu na jejich barevnou fázi.
+
+---
+
 ## Level-up Modal System - Global Celebration Architecture
 
 ### 🎯 FUNDAMENTAL PRINCIPLE

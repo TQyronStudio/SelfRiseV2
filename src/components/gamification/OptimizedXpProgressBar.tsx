@@ -241,11 +241,12 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // ========================================
 
   const progressColors = useMemo((): [string, string] => {
-    if (isMilestone) return ['#FFD700', '#FFA500'];
-    if (currentLevel >= 50) return ['#9C27B0', '#E91E63'];
-    if (currentLevel >= 25) return ['#2196F3', '#00BCD4'];
-    if (currentLevel >= 10) return ['#4CAF50', '#8BC34A'];
-    return [Colors.primary, Colors.primary];
+    if (isMilestone) return ['#FFD700', '#FFA500']; // Gold-Orange for milestones
+    if (currentLevel >= 81) return ['#F44336', '#E91E63']; // Red (Mythic/Exotic) 81-100
+    if (currentLevel >= 61) return ['#FFD700', '#FFC107']; // Gold (Legendary) 61-80
+    if (currentLevel >= 41) return ['#9C27B0', '#673AB7']; // Purple (Epic) 41-60
+    if (currentLevel >= 21) return ['#2196F3', '#00BCD4']; // Blue (Rare) 21-40
+    return ['#9E9E9E', '#757575']; // Grey (Common) 1-20
   }, [isMilestone, currentLevel]);
 
   const badgeColors = useMemo(() => {
@@ -256,31 +257,38 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
         border: '#DAA520',
       };
     }
-    if (currentLevel >= 50) {
+    if (currentLevel >= 81) {
       return {
-        background: ['#9C27B0', '#E91E63'] as [string, string],
+        background: ['#F44336', '#E91E63'] as [string, string], // Red (Mythic/Exotic)
+        text: '#FFFFFF',
+        border: '#D32F2F',
+      };
+    }
+    if (currentLevel >= 61) {
+      return {
+        background: ['#FFD700', '#FFC107'] as [string, string], // Gold (Legendary)
+        text: '#8B4513',
+        border: '#F57F17',
+      };
+    }
+    if (currentLevel >= 41) {
+      return {
+        background: ['#9C27B0', '#673AB7'] as [string, string], // Purple (Epic)
         text: '#FFFFFF',
         border: '#7B1FA2',
       };
     }
-    if (currentLevel >= 25) {
+    if (currentLevel >= 21) {
       return {
-        background: ['#2196F3', '#00BCD4'] as [string, string],
+        background: ['#2196F3', '#00BCD4'] as [string, string], // Blue (Rare)
         text: '#FFFFFF', 
         border: '#1976D2',
       };
     }
-    if (currentLevel >= 10) {
-      return {
-        background: ['#4CAF50', '#8BC34A'] as [string, string],
-        text: '#FFFFFF',
-        border: '#388E3C',
-      };
-    }
     return {
-      background: [Colors.primary, Colors.primary] as [string, string],
+      background: ['#9E9E9E', '#757575'] as [string, string], // Grey (Common)
       text: '#FFFFFF',
-      border: Colors.primary,
+      border: '#616161',
     };
   }, [isMilestone, currentLevel]);
 

@@ -248,7 +248,7 @@ export const LEVEL_PROGRESSION = {
   MASTER_MULTIPLIER: 1.05,     // Sustainable increase for masters
 
   // Milestone levels with special rewards
-  MILESTONE_LEVELS: [5, 10, 15, 20, 25, 30, 40, 50, 75, 100] as const,
+  MILESTONE_LEVELS: [10, 25, 50, 75, 100] as const,
 } as const;
 
 // ========================================

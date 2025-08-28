@@ -165,7 +165,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'habit-legend',
     name: 'Habit Legend',
-    description: 'Reach Level 50 with XP earned primarily from habit activities - true mastery',
+    description: 'Reach Level 50 "Specialist V" with XP earned primarily from habit activities - true mastery',
     icon: '🏆',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.LEGENDARY,
@@ -705,7 +705,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'level-up',
     name: 'Level Up',
-    description: 'Reach level 10 - you are growing stronger',
+    description: 'Reach level 10 "Beginner V" - you are growing stronger',
     icon: '⬆️',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.RARE,
@@ -726,7 +726,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'selfrise-expert',
     name: 'SelfRise Expert',
-    description: 'Reach level 25 - you have mastered the fundamentals',
+    description: 'Reach level 25 "Adept V" - you have mastered the fundamentals',
     icon: '🎓',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
@@ -747,7 +747,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'selfrise-master',
     name: 'SelfRise Master',
-    description: 'Reach level 50 - you are a true master of self-improvement',
+    description: 'Reach level 50 "Specialist V" - you are a true master of self-improvement',
     icon: '🏅',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.LEGENDARY,
@@ -852,7 +852,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'ultimate-selfrise-legend',
     name: 'Ultimate SelfRise Legend',
-    description: 'Reach level 100 - you have achieved the ultimate mastery of self-improvement',
+    description: 'Reach level 100 "Mythic V" - you have achieved the ultimate mastery of self-improvement',
     icon: '🌟',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.LEGENDARY,

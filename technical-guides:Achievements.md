@@ -39,8 +39,8 @@
 **Výsledek**: Uživatel ukazuje rozmanitý závazek
 
 ### **Habit Legend** 🏆 • 500 XP • Legendary
-**Co musí udělat**: Dosáhnout Level 50 s XP převážně z aktivit návyků
-**Výsledek**: Uživatel dosahuje skutečného mistrováá
+**Co musí udělat**: Dosáhnout Level 50 "Specialist V" s XP převážně z aktivit návyků
+**Výsledek**: Uživatel dosahuje skutečného mistrovství
 
 ---
 
@@ -148,20 +148,20 @@
 **Výsledek**: Uživatel přeměňuje sny na realitu
 
 ### **Level Up** 🆙 • 100 XP • Rare
-**Co musí udělat**: Dosáhnout level 10
+**Co musí udělat**: Dosáhnout level 10 "Beginner V"
 **Výsledek**: Uživatel roste silnější
 
 ### **SelfRise Expert** 🎓 • 200 XP • Epic
-**Co musí udělat**: Dosáhnout level 25
+**Co musí udělat**: Dosáhnout level 25 "Adept V"
 **Výsledek**: Uživatel zvládl základy
 
 ### **SelfRise Master** 🥇 • 500 XP • Legendary
-**Co musí udělat**: Dosáhnout level 50
+**Co musí udělat**: Dosáhnout level 50 "Specialist V"
 **Výsledek**: Uživatel je skutečným mistrem sebezdokonalování
 
 ### **Ultimate SelfRise Legend** 🏆 • 500 XP • Legendary
-**Co musí udělat**: Dosáhnout level 100
-**Výsledek**: Uživatel dosáhl ultimátního mistrovaní
+**Co musí udělat**: Dosáhnout level 100 "Mythic V"
+**Výsledek**: Uživatel dosáhl ultimátního mistrovství
 
 ### **Recommendation Master** 💡 • 200 XP • Epic
 **Co musí udělat**: Následovat 20 personalizovaných doporučení

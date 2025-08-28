@@ -349,48 +349,64 @@ export function getLevelInfo(level: number): LevelInfo {
 }
 
 /**
- * Get title for a level based on phase and number
+ * Get title for a level based on new rarity system
+ * Levels 1-20: Grey (Common), 21-40: Blue (Rare), 41-60: Purple (Epic), 61-80: Gold (Legendary), 81-100: Red (Mythic)
  */
 function getLevelTitle(level: number, phase: 'beginner' | 'intermediate' | 'advanced' | 'master'): string {
-  const titles = {
-    beginner: [
-      'Newcomer', 'Starter', 'Learner', 'Explorer', 'Discoverer',
-      'Seeker', 'Student', 'Apprentice', 'Novice', 'Beginner'
-    ],
-    intermediate: [
-      'Practitioner', 'Enthusiast', 'Regular', 'Committed', 'Dedicated',
-      'Focused', 'Determined', 'Persistent', 'Consistent', 'Reliable',
-      'Steadfast', 'Devoted', 'Experienced', 'Skilled', 'Intermediate'
-    ],
-    advanced: [
-      'Advanced', 'Expert', 'Specialist', 'Professional', 'Master',
-      'Veteran', 'Elite', 'Champion', 'Leader', 'Authority',
-      'Virtuoso', 'Genius', 'Prodigy', 'Legend', 'Hero',
-      'Grandmaster', 'Sage', 'Wizard', 'Guru', 'Sensei',
-      'Mentor', 'Guide', 'Teacher', 'Advanced', 'Elite'
-    ],
-    master: [
-      'Transcendent', 'Enlightened', 'Immortal', 'Divine', 'Cosmic',
-      'Universal', 'Infinite', 'Eternal', 'Supreme', 'Ultimate'
-    ]
+  // New level naming system based on rarity tiers
+  const levelTitleMap: Record<number, string> = {
+    // Grey (Common) - Levels 1-20
+    1: 'Novice I', 2: 'Novice II', 3: 'Novice III', 4: 'Novice IV', 5: 'Novice V',
+    6: 'Beginner I', 7: 'Beginner II', 8: 'Beginner III', 9: 'Beginner IV', 10: 'Beginner V',
+    11: 'Learner I', 12: 'Learner II', 13: 'Learner III', 14: 'Learner IV', 15: 'Learner V',
+    16: 'Apprentice I', 17: 'Apprentice II', 18: 'Apprentice III', 19: 'Apprentice IV', 20: 'Apprentice V',
+    
+    // Blue (Rare) - Levels 21-40
+    21: 'Adept I', 22: 'Adept II', 23: 'Adept III', 24: 'Adept IV', 25: 'Adept V',
+    26: 'Seeker I', 27: 'Seeker II', 28: 'Seeker III', 29: 'Seeker IV', 30: 'Seeker V',
+    31: 'Adventurer I', 32: 'Adventurer II', 33: 'Adventurer III', 34: 'Adventurer IV', 35: 'Adventurer V',
+    36: 'Practitioner I', 37: 'Practitioner II', 38: 'Practitioner III', 39: 'Practitioner IV', 40: 'Practitioner V',
+    
+    // Purple (Epic) - Levels 41-60
+    41: 'Pathfinder I', 42: 'Pathfinder II', 43: 'Pathfinder III', 44: 'Pathfinder IV', 45: 'Pathfinder V',
+    46: 'Specialist I', 47: 'Specialist II', 48: 'Specialist III', 49: 'Specialist IV', 50: 'Specialist V',
+    51: 'Veteran I', 52: 'Veteran II', 53: 'Veteran III', 54: 'Veteran IV', 55: 'Veteran V',
+    56: 'Expert I', 57: 'Expert II', 58: 'Expert III', 59: 'Expert IV', 60: 'Expert V',
+    
+    // Gold (Legendary) - Levels 61-80
+    61: 'Guardian I', 62: 'Guardian II', 63: 'Guardian III', 64: 'Guardian IV', 65: 'Guardian V',
+    66: 'Warden I', 67: 'Warden II', 68: 'Warden III', 69: 'Warden IV', 70: 'Warden V',
+    71: 'Challenger I', 72: 'Challenger II', 73: 'Challenger III', 74: 'Challenger IV', 75: 'Challenger V',
+    76: 'Master I', 77: 'Master II', 78: 'Master III', 79: 'Master IV', 80: 'Master V',
+    
+    // Red (Mythic/Exotic) - Levels 81-100
+    81: 'Elite I', 82: 'Elite II', 83: 'Elite III', 84: 'Elite IV', 85: 'Elite V',
+    86: 'Champion I', 87: 'Champion II', 88: 'Champion III', 89: 'Champion IV', 90: 'Champion V',
+    91: 'Grandmaster I', 92: 'Grandmaster II', 93: 'Grandmaster III', 94: 'Grandmaster IV', 95: 'Grandmaster V',
+    96: 'Mythic I', 97: 'Mythic II', 98: 'Mythic III', 99: 'Mythic IV', 100: 'Mythic V',
   };
   
-  const phaseIndex = Math.min(level - getPhaseStartLevel(phase), titles[phase].length - 1);
-  return titles[phase][Math.max(0, phaseIndex)] || `Level ${level}`;
+  return levelTitleMap[level] || `Level ${level}`;
 }
 
 /**
- * Get description for a level
+ * Get description for a level based on new rarity system
  */
 function getLevelDescription(level: number, phase: 'beginner' | 'intermediate' | 'advanced' | 'master'): string {
-  const descriptions = {
-    beginner: 'Building the foundation of your personal growth journey.',
-    intermediate: 'Developing consistency and deeper understanding of your habits.',
-    advanced: 'Mastering the art of self-improvement with advanced techniques.',
-    master: 'Transcending ordinary limits and inspiring others through your example.'
-  };
+  // Descriptions based on rarity tiers
+  if (level >= 1 && level <= 20) {
+    return 'Common tier - Building the foundation of your personal growth journey.';
+  } else if (level >= 21 && level <= 40) {
+    return 'Rare tier - Developing consistency and deeper understanding of your habits.';
+  } else if (level >= 41 && level <= 60) {
+    return 'Epic tier - Mastering the art of self-improvement with advanced techniques.';
+  } else if (level >= 61 && level <= 80) {
+    return 'Legendary tier - Achieving extraordinary growth and inspiring others.';
+  } else if (level >= 81 && level <= 100) {
+    return 'Mythic tier - Transcending ordinary limits and becoming a true master.';
+  }
   
-  return descriptions[phase];
+  return 'Continuing your journey of personal growth and self-improvement.';
 }
 
 /**
@@ -410,16 +426,11 @@ function getPhaseStartLevel(phase: 'beginner' | 'intermediate' | 'advanced' | 'm
  */
 function getMilestoneRewards(level: number): string[] {
   const rewards: Record<number, string[]> = {
-    5: ['Achievement Badge: First Steps', 'Bonus XP Multiplier (1 hour)'],
-    10: ['Achievement Badge: Committed', 'Custom Color Theme Unlock'],
-    15: ['Achievement Badge: Dedicated', 'Weekly Challenge Unlock'],
-    20: ['Achievement Badge: Consistent', 'Advanced Statistics Unlock'],
-    25: ['Achievement Badge: Experienced', 'Trophy Room Expansion'],
-    30: ['Achievement Badge: Skilled', 'Mentor Mode Unlock'],
-    40: ['Achievement Badge: Expert', 'Custom Achievement Creation'],
-    50: ['Achievement Badge: Master', 'Prestige System Access'],
-    75: ['Achievement Badge: Grandmaster', 'Legacy Features Unlock'],
-    100: ['Achievement Badge: Legend', 'Hall of Fame Entry', 'Ultimate Title Unlock'],
+    10: ['Achievement Badge: Beginner V', 'Custom Color Theme Unlock', 'Bonus XP Multiplier (1 hour)'],
+    25: ['Achievement Badge: Adept V', 'Trophy Room Expansion', 'Weekly Challenge Unlock'],
+    50: ['Achievement Badge: Specialist V', 'Prestige System Access', 'Advanced Statistics Unlock'],
+    75: ['Achievement Badge: Challenger V', 'Legacy Features Unlock', 'Mentor Mode Unlock'],
+    100: ['Achievement Badge: Mythic V Ultimate', 'Hall of Fame Entry', 'Ultimate Title Unlock', 'Custom Achievement Creation'],
   };
   
   return rewards[level] || [`Level ${level} Achievement Badge`];
