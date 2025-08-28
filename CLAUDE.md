@@ -94,7 +94,7 @@
 
  1. Konzultace před akcí: Před zahájením jakéhokoliv úkolu (úprava, oprava, rozšíření), který se týká již existující funkčnosti, jsi povinen nejprve aktivně vyhledat a prostudovat relevantní technický průvodce. Je to tvůj první krok.
 
- 2. Identifikace tématu: Pokud je úkol "Opravit chybu v odměnách za návyky", automaticky identifikuješ klíčová slova "odměny" a "návyky" a vyhledáš soubory technical-guides:Gamification.md a technical-guides:Habits.md.
+ 2. Identifikace tématu: Pokud je úkol "Opravit chybu v odměnách za návyky", automaticky identifikuješ klíčová slova "odměny" a "návyky" a vyhledáš soubory technical-guides:Gamification-Core.md a technical-guides:Habits.md.
 
  3. Soulad s pravidly: Veškerý kód, který napíšeš nebo upravíš, musí být v naprostém souladu s logikou, hodnotami a principy definovanými v tomto průvodci. Průvodce je nadřazený tvým předchozím znalostem o projektu.
 

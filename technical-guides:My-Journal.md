@@ -483,4 +483,4 @@ Perfect user experience with proper priority sequencing
 
 ---
 
-*This technical guide focuses exclusively on Journal business logic, daily requirements, and streak protection. For XP-related journal features, see @technical-guides:Gamification.md*
+*This technical guide focuses exclusively on Journal business logic, daily requirements, and streak protection. For XP-related journal features, see @technical-guides:Gamification-Core.md*

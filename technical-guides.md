@@ -347,7 +347,10 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ## Gamification System
 
-**Technická pravidla a logika pro Gamifikaci**: @technical-guides:Gamification.md
+**Technická pravidla a logika pro Gamifikaci**:
+- **XP systém, odměny, limity**: @technical-guides:Gamification-Core.md
+- **Animace, modaly, UI**: @technical-guides:Gamification-UI.md  
+- **Eventy, komunikace, architektura**: @technical-guides:Gamification-Events.md
 
 ---
 
