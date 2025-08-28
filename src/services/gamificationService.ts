@@ -1467,6 +1467,7 @@ export class GamificationService {
       
       // Check goal anti-spam rules: max 3 positive XP transactions per goal per day
       // NOTE: GOAL_COMPLETION excluded - it's a milestone achievement, not spam-able progress
+      
       if (amount > 0 && options?.sourceId && (
         source === XPSourceType.GOAL_PROGRESS || 
         source === XPSourceType.GOAL_MILESTONE
