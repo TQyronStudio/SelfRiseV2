@@ -1466,9 +1466,9 @@ export class GamificationService {
       // ========================================
       
       // Check goal anti-spam rules: max 3 positive XP transactions per goal per day
+      // NOTE: GOAL_COMPLETION excluded - it's a milestone achievement, not spam-able progress
       if (amount > 0 && options?.sourceId && (
         source === XPSourceType.GOAL_PROGRESS || 
-        source === XPSourceType.GOAL_COMPLETION || 
         source === XPSourceType.GOAL_MILESTONE
       )) {
         const dailyData = await this.getDailyXPData();
@@ -1576,7 +1576,7 @@ export class GamificationService {
       [XPSourceType.JOURNAL_BONUS_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
       [XPSourceType.JOURNAL_STREAK_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
       [XPSourceType.GOAL_PROGRESS]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
-      [XPSourceType.GOAL_COMPLETION]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
+      [XPSourceType.GOAL_COMPLETION]: null, // No daily limit - milestone achievement
       [XPSourceType.GOAL_MILESTONE]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
       [XPSourceType.DAILY_LAUNCH]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
       [XPSourceType.RECOMMENDATION_FOLLOW]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
@@ -1933,9 +1933,9 @@ export class GamificationService {
         }
         
         // Track goal transactions for anti-spam (3x/day per goal)
+        // NOTE: GOAL_COMPLETION excluded - milestone achievements don't count toward spam limit
         if (goalId && (
           source === XPSourceType.GOAL_PROGRESS || 
-          source === XPSourceType.GOAL_COMPLETION || 
           source === XPSourceType.GOAL_MILESTONE
         )) {
           dailyData.goalTransactions[goalId] = (dailyData.goalTransactions[goalId] || 0) + 1;
@@ -1956,9 +1956,9 @@ export class GamificationService {
         }
         
         // Track goal transaction deletions
+        // NOTE: GOAL_COMPLETION excluded - milestone achievements don't count toward spam limit  
         if (goalId && (
           source === XPSourceType.GOAL_PROGRESS || 
-          source === XPSourceType.GOAL_COMPLETION || 
           source === XPSourceType.GOAL_MILESTONE
         )) {
           dailyData.goalTransactions[goalId] = Math.max(0, (dailyData.goalTransactions[goalId] || 0) - 1);

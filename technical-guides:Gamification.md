@@ -75,6 +75,8 @@ XPSourceType.GOAL_MILESTONE:
 - 50% completion: 75 XP  
 - 75% completion: 100 XP
 - 100% completion: 200 XP
+
+XPSourceType.GOAL_COMPLETION: 250 XP     // Goal completed (NO daily limits - milestone achievement)
 ```
 
 ### System XP
@@ -92,14 +94,17 @@ XPSourceType.ACHIEVEMENT_UNLOCK: Variable // Based on rarity (50-500 XP)
 TOTAL_DAILY_MAX: 1500 XP                // Absolute daily maximum
 HABITS_MAX_DAILY: 500 XP                // From all habit activities
 JOURNAL_MAX_DAILY: 415 XP               // From all journal activities  
-GOALS_MAX_DAILY: 400 XP                 // From all goal activities
+GOALS_MAX_DAILY: 400 XP                 // From goal progress & milestones (GOAL_COMPLETION has NO limits)
 ENGAGEMENT_MAX_DAILY: 200 XP            // From launches, recommendations
 ```
 
 ### Transaction Limits
 ```typescript
-// Goals: Maximum 3 XP transactions per goal per day
+// Goals: Maximum 3 XP transactions per goal per day (PROGRESS and MILESTONE only)
 MAX_GOAL_TRANSACTIONS_PER_DAY = 3
+// 🚨 CRITICAL: GOAL_COMPLETION excluded from transaction limit
+//    - Goal completion is milestone achievement, not spammable progress
+//    - Users get 250 XP for completion regardless of daily progress count
 
 // Journal: Entry position 14+ = 0 XP (spam prevention)
 // Habits: No transaction limit (natural daily scheduling)
@@ -160,7 +165,7 @@ Base Limits (1x):                      With 2x Multiplier:
 TOTAL_DAILY_MAX: 1500 XP         →      3000 XP
 HABITS_MAX_DAILY: 500 XP         →      1000 XP  
 JOURNAL_MAX_DAILY: 415 XP        →      830 XP
-GOALS_MAX_DAILY: 400 XP          →      800 XP
+GOALS_MAX_DAILY: 400 XP          →      800 XP (GOAL_COMPLETION still unlimited)
 ENGAGEMENT_MAX_DAILY: 200 XP     →      400 XP
 
 // Transaction limits DO NOT scale (fairness)
