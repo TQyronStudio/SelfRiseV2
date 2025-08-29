@@ -242,16 +242,17 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // ========================================
 
   const progressColors = useMemo((): [string, string] => {
-    // Colors based on rarity tier, not milestone status
+    // Colors based on rarity tier - motivační progrese
     if (currentLevel >= 81) return ['#F44336', '#E91E63']; // Red (Mythic/Exotic) 81-100
     if (currentLevel >= 61) return ['#FFD700', '#FFC107']; // Gold (Legendary) 61-80
     if (currentLevel >= 41) return ['#9C27B0', '#673AB7']; // Purple (Epic) 41-60
     if (currentLevel >= 21) return ['#2196F3', '#00BCD4']; // Blue (Rare) 21-40
-    return ['#9E9E9E', '#757575']; // Grey (Common) 1-20
+    if (currentLevel >= 11) return ['#4CAF50', '#66BB6A']; // Green (Growing) 11-20
+    return ['#9E9E9E', '#757575']; // Grey (Beginner) 1-10
   }, [currentLevel]);
 
   const badgeColors = useMemo(() => {
-    // Badge colors based on rarity tier, not milestone status
+    // Badge colors based on rarity tier - motivační progrese
     if (currentLevel >= 81) {
       return {
         background: ['#F44336', '#E91E63'] as [string, string], // Red (Mythic/Exotic)
@@ -280,8 +281,15 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
         border: '#1976D2',
       };
     }
+    if (currentLevel >= 11) {
+      return {
+        background: ['#4CAF50', '#66BB6A'] as [string, string], // Green (Growing)
+        text: '#FFFFFF',
+        border: '#388E3C',
+      };
+    }
     return {
-      background: ['#9E9E9E', '#757575'] as [string, string], // Grey (Common)
+      background: ['#9E9E9E', '#757575'] as [string, string], // Grey (Beginner)
       text: '#FFFFFF',
       border: '#616161',
     };
@@ -292,12 +300,13 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // ========================================
 
   const rarityBorderColor = useMemo(() => {
-    // Decentní barevné ohraničení podle rarity úrovně
+    // Decentní barevné ohraničení podle rarity úrovně - motivační progrese
     if (currentLevel >= 81) return '#F44336'; // Red (Mythic/Exotic) 81-100
     if (currentLevel >= 61) return '#FFD700'; // Gold (Legendary) 61-80
     if (currentLevel >= 41) return '#9C27B0'; // Purple (Epic) 41-60
     if (currentLevel >= 21) return '#2196F3'; // Blue (Rare) 21-40
-    return '#9E9E9E'; // Grey (Common) 1-20
+    if (currentLevel >= 11) return '#4CAF50'; // Green (Growing) 11-20
+    return '#9E9E9E'; // Grey (Beginner) 1-10
   }, [currentLevel]);
 
   const levelRomanAndTitle = useMemo(() => {
