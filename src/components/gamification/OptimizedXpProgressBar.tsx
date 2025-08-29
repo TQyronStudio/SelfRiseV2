@@ -138,6 +138,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
   // Destructure for component usage
   const { 
+    totalXP,
     currentLevel, 
     xpProgress, 
     xpToNextLevel, 
@@ -577,10 +578,10 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
         {showXPText && !compactMode && (
           <View style={styles.xpTextContainer}>
             <Text style={[styles.xpText, { fontSize: fontSizes.xpText }]}>
-              Level {currentLevel} • {Math.round(xpProgress)}% to Level {currentLevel + 1}
+              Level {currentLevel} {Math.round(xpProgress)}% to level {currentLevel + 1}
             </Text>
             <Text style={[styles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}>
-              {formatNumber(xpToNextLevel)} XP to go
+              {formatNumber(totalXP)}/{formatNumber(totalXP + xpToNextLevel)} XP
             </Text>
           </View>
         )}
