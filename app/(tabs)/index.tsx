@@ -40,7 +40,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
-  const { state: customizationState } = useHomeCustomization();
+  const { state: customizationState, actions: customizationActions } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
@@ -103,6 +103,7 @@ export default function HomeScreen() {
       return []; // Show nothing while loading
     }
     
+    
     return customizationState.preferences.components
       .filter(component => component.visible)
       .sort((a, b) => a.order - b.order);
@@ -111,6 +112,48 @@ export default function HomeScreen() {
   const visibleComponents = getVisibleComponents();
   const isComponentVisible = (componentId: string) => 
     visibleComponents.some(c => c.id === componentId);
+
+  // Component rendering map for dynamic ordering
+  const renderComponent = (componentId: string) => {
+    switch (componentId) {
+      case 'xpProgressBar':
+        return <OptimizedXpProgressBar key={componentId} />;
+      case 'xpMultiplier':
+        return <XpMultiplierSection key={componentId} />;
+      case 'quickActions':
+        return <QuickActionButtons key={componentId} onHabitToggle={handleHabitToggle} />;
+      case 'journalStreak':
+        return (
+          <JournalStreakCard 
+            key={componentId}
+            ref={journalStreakCardRef}
+            onPress={handleStreakPress} 
+          />
+        );
+      case 'streakHistory':
+        return <StreakHistoryGraph key={componentId} />;
+      case 'monthlyChallenges':
+        return (
+          <MonthlyChallengeSection 
+            key={componentId}
+            onChallengePress={handleChallengePress}
+            onViewAllPress={handleViewAllChallenges}
+          />
+        );
+      case 'dailyQuote':
+        return <DailyMotivationalQuote key={componentId} />;
+      case 'habitStats':
+        return <HabitStatsDashboard key={componentId} />;
+      case 'recommendations':
+        return <PersonalizedRecommendations key={componentId} />;
+      case 'habitPerformance':
+        return <HabitPerformanceIndicators key={componentId} />;
+      case 'habitTrends':
+        return <HabitTrendAnalysis key={componentId} />;
+      default:
+        return null;
+    }
+  };
 
   // Listen for challenge completion events
   useEffect(() => {
@@ -171,56 +214,8 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Conditionally rendered components based on user preferences */}
-        {isComponentVisible('xpProgressBar') && (
-          <OptimizedXpProgressBar />
-        )}
-        
-        {isComponentVisible('xpMultiplier') && (
-          <XpMultiplierSection />
-        )}
-        
-        {isComponentVisible('journalStreak') && (
-          <JournalStreakCard 
-            ref={journalStreakCardRef}
-            onPress={handleStreakPress} 
-          />
-        )}
-        
-        {isComponentVisible('quickActions') && (
-          <QuickActionButtons onHabitToggle={handleHabitToggle} />
-        )}
-
-        {isComponentVisible('monthlyChallenges') && (
-          <MonthlyChallengeSection 
-            onChallengePress={handleChallengePress}
-            onViewAllPress={handleViewAllChallenges}
-          />
-        )}
-        
-        {isComponentVisible('dailyQuote') && (
-          <DailyMotivationalQuote />
-        )}
-        
-        {isComponentVisible('recommendations') && (
-          <PersonalizedRecommendations />
-        )}
-        
-        {isComponentVisible('streakHistory') && (
-          <StreakHistoryGraph />
-        )}
-        
-        {isComponentVisible('habitStats') && (
-          <HabitStatsDashboard />
-        )}
-        
-        {isComponentVisible('habitPerformance') && (
-          <HabitPerformanceIndicators />
-        )}
-        
-        {isComponentVisible('habitTrends') && (
-          <HabitTrendAnalysis />
-        )}
+        {/* Dynamic component rendering based on user order preferences */}
+        {visibleComponents.map(component => renderComponent(component.id))}
       </ScrollView>
 
       {/* Customization Modal */}

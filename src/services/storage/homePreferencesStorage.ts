@@ -10,9 +10,16 @@ class HomePreferencesStorage {
       if (stored) {
         const preferences = JSON.parse(stored);
         // Ensure all default components exist (for app updates)
+        // Use new order values from defaults but preserve user customizations (visibility)
         const mergedComponents = defaultHomePreferences.components.map(defaultComp => {
           const existingComp = preferences.components?.find((c: any) => c.id === defaultComp.id);
-          return existingComp || defaultComp;
+          if (existingComp) {
+            return {
+              ...defaultComp, // Use new order values from defaults
+              visible: existingComp.visible, // Preserve user visibility settings
+            };
+          }
+          return defaultComp;
         });
         
         return {
