@@ -736,8 +736,8 @@ const styles = StyleSheet.create({
   },
   xpTextContainer: {
     marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   xpText: {
