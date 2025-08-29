@@ -18,7 +18,7 @@
 
 **Levely zobrazované na Home screenu s jejich barvami a XP požadavky:**
 
-### ⚪ Grey (Common) - Levels 1-20
+### ⚪ Grey (Beginner) - Levels 1-10
 ```
 1 - Novice I - 100 XP - Grey
 2 - Novice II - 250 XP - Grey  
@@ -30,16 +30,20 @@
 8 - Beginner III - 1,740 XP - Grey
 9 - Beginner IV - 2,180 XP - Grey
 10 - Beginner V [MILESTONE] - 2,700 XP - Gold-Orange
-11 - Learner I - 3,300 XP - Grey
-12 - Learner II - 3,980 XP - Grey  
-13 - Learner III - 4,750 XP - Grey
-14 - Learner IV - 5,620 XP - Grey
-15 - Learner V - 6,620 XP - Grey
-16 - Apprentice I - 7,750 XP - Grey
-17 - Apprentice II - 9,020 XP - Grey
-18 - Apprentice III - 10,460 XP - Grey
-19 - Apprentice IV - 12,100 XP - Grey
-20 - Apprentice V - 13,970 XP - Grey
+```
+
+### 🟢 Green (Growing) - Levels 11-20
+```
+11 - Learner I - 3,300 XP - Green
+12 - Learner II - 3,980 XP - Green  
+13 - Learner III - 4,750 XP - Green
+14 - Learner IV - 5,620 XP - Green
+15 - Learner V - 6,620 XP - Green
+16 - Apprentice I - 7,750 XP - Green
+17 - Apprentice II - 9,020 XP - Green
+18 - Apprentice III - 10,460 XP - Green
+19 - Apprentice IV - 12,100 XP - Green
+20 - Apprentice V - 13,970 XP - Green
 ```
 
 ### 🔵 Blue (Rare) - Levels 21-40
@@ -138,13 +142,56 @@
 100 - Mythic V [ULTIMATE MILESTONE] - 20,861,000 XP - Gold-Orange
 ```
 
-### 🎨 Color System
-- **Grey (Common)**: #9E9E9E-#757575 (levels 1-20)
+### 🎨 Color System - 6-Tier Motivational Progression
+- **Grey (Beginner)**: #9E9E9E-#757575 (levels 1-10)
+- **Green (Growing)**: #4CAF50-#66BB6A (levels 11-20) ✨ **NEW**
 - **Blue (Rare)**: #2196F3-#00BCD4 (levels 21-40)  
 - **Purple (Epic)**: #9C27B0-#673AB7 (levels 41-60)
 - **Gold (Legendary)**: #FFD700-#FFC107 (levels 61-80)
 - **Red (Mythic/Exotic)**: #F44336-#E91E63 (levels 81-100)
 - **Gold-Orange (Milestones)**: #FFD700-#FFA500 (MILESTONE levels: 10, 25, 50, 75, 100)
+
+### 🔧 Components That Change Color Based on Level
+**All these UI elements dynamically adapt their colors based on the user's current level:**
+
+#### A) XP Progress Bar Component (`OptimizedXpProgressBar.tsx`)
+- **Border**: 2px border around entire component (`rarityBorderColor`)
+- **Roman numeral text**: Large serif numeral display
+- **Level title text**: Serif level name above numeral
+- **Progress bar gradient**: XP fill colors (`progressColors`)
+- **Level badge**: Gradient background and border (`badgeColors`)
+
+#### B) Other Level-Dependent Components (Future Implementation)
+- Achievement badges and cards
+- Habit completion celebrations
+- Goal milestone indicators
+- Profile level displays
+- Leaderboard level indicators
+- Any component displaying user progression
+
+#### C) Standard Implementation Pattern
+```typescript
+// Standard implementation pattern for level-based colors
+const getRarityColor = (currentLevel: number): string => {
+  if (currentLevel >= 81) return '#F44336'; // Red (Mythic)
+  if (currentLevel >= 61) return '#FFD700'; // Gold (Legendary) 
+  if (currentLevel >= 41) return '#9C27B0'; // Purple (Epic)
+  if (currentLevel >= 21) return '#2196F3'; // Blue (Rare)
+  if (currentLevel >= 11) return '#4CAF50'; // Green (Growing)
+  return '#9E9E9E'; // Grey (Beginner)
+};
+
+// Usage in components:
+borderColor: getRarityColor(currentLevel)
+```
+
+### 🌱 Motivational Design Logic
+- **Grey (1-10)**: First steps, learning basics
+- **Green (11-20)**: Growth phase, building momentum - users see progress faster!
+- **Blue (21-40)**: Established user, consistent progress
+- **Purple (41-60)**: Advanced user, mastering systems
+- **Gold (61-80)**: Expert level, exceptional dedication
+- **Red (81-100)**: Master level, ultimate achievement
 
 **⚠️ NOTE**: XP values jsou přibližné kalkulace. Milestone levely VŽDY používají Gold-Orange efekt bez ohledu na jejich barevnou fázi.
 
