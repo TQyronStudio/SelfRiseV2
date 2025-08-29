@@ -479,9 +479,12 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Calculate bonus milestone counters from actual data
       const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
       
-      // NEW: Calculate debt and freeze status first
+      // FROZEN STREAK FIX #3: Enhanced debt calculation with debug logging
       const frozenDays = await this.calculateFrozenDays();
       const isFrozen = frozenDays > 0;
+      
+      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: frozenDays=${frozenDays}, isFrozen=${isFrozen}, completedToday=${completedDates.includes(currentDate)}`);
+      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: currentStreak will be ${isFrozen ? 'preserved' : 'recalculated'}: ${isFrozen ? savedStreak.currentStreak : newCalculatedStreak}`);
       
       // Determine last entry date and streak start
       let lastEntryDate: DateString | null = null;
@@ -580,6 +583,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // BUG #3 FIX: Only reset preserve flag when actually used to prevent corruption
         preserveCurrentStreak: shouldResetPreserveFlag ? false : (savedStreak.preserveCurrentStreak || false),
       };
+      
+      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
       
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
       return updatedStreak;
@@ -903,19 +908,19 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
       
-      // CRITICAL BUG FIX: Check for very recent auto-reset only (reduced from 24h to 1h)
+      // FROZEN STREAK FIX #1: Ultra-short phantom debt prevention (5 minutes max)
       if (currentStreak.autoResetTimestamp) {
         const resetTime = new Date(currentStreak.autoResetTimestamp);
         const now = new Date();
-        const hoursSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60 * 60);
+        const minutesSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60);
         
-        // Only prevent phantom debt for very recent resets (within 1 hour)
-        if (hoursSinceReset < 1) {
-          console.log(`[DEBUG] calculateDebt: Very recent auto-reset ${hoursSinceReset.toFixed(1)}h ago. Frozen days = 0 (phantom frozen days prevention)`);
+        // Only prevent phantom debt for immediate resets (within 5 minutes)
+        if (minutesSinceReset < 5) {
+          console.log(`[DEBUG] calculateDebt: Very recent auto-reset ${minutesSinceReset.toFixed(1)} minutes ago. Frozen days = 0 (phantom frozen days prevention)`);
           return 0;
         } else {
           // Clear old auto-reset timestamp to prevent perpetual 0 debt
-          console.log(`[DEBUG] calculateDebt: Clearing old auto-reset timestamp (${hoursSinceReset.toFixed(1)}h ago) - allowing normal debt calculation`);
+          console.log(`[DEBUG] calculateDebt: Clearing old auto-reset timestamp (${minutesSinceReset.toFixed(1)} minutes ago) - allowing normal debt calculation`);
           await this.clearAutoResetTimestamp();
         }
       }
@@ -925,11 +930,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         return 0;
       }
       
-      // SAFETY CHECK: Use streak.frozenDays as authoritative source if available
-      if (currentStreak.frozenDays !== undefined && currentStreak.frozenDays === 0) {
-        console.log(`[DEBUG] calculateDebt: streak.frozenDays = 0, using authoritative source`);
-        return 0;
-      }
+      // FROZEN STREAK FIX #2: REMOVED problematic safety check that skipped debt calculation
+      // OLD BROKEN LOGIC: if (currentStreak.frozenDays === 0) return 0; 
+      // NEW LOGIC: Always calculate debt properly, don't rely on stale stored values
       
       // Normal debt calculation logic
       const rawMissedDays = await this.calculateRawMissedDays();
