@@ -14,7 +14,7 @@
  */
 
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { GamificationService } from '../../services/gamificationService';
 import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLevelCalculationCache } from '../../services/levelCalculation';
@@ -288,6 +288,37 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   }, [currentLevel]);
 
   // ========================================
+  // RARITY BORDER COLORS (Memoized)
+  // ========================================
+
+  const rarityBorderColor = useMemo(() => {
+    // Decentní barevné ohraničení podle rarity úrovně
+    if (currentLevel >= 81) return '#F44336'; // Red (Mythic/Exotic) 81-100
+    if (currentLevel >= 61) return '#FFD700'; // Gold (Legendary) 61-80
+    if (currentLevel >= 41) return '#9C27B0'; // Purple (Epic) 41-60
+    if (currentLevel >= 21) return '#2196F3'; // Blue (Rare) 21-40
+    return '#9E9E9E'; // Grey (Common) 1-20
+  }, [currentLevel]);
+
+  const levelRomanAndTitle = useMemo(() => {
+    // Extrahuj římskou číslici a základní název z levelInfo.title
+    const titleParts = levelInfo.title.match(/^(.+?)\s+([IVX]+)$/);
+    
+    if (titleParts) {
+      return {
+        baseName: titleParts[1], // např. "Beginner"
+        romanNumeral: titleParts[2] // např. "V"
+      };
+    }
+    
+    // Fallback pokud regex neodpovídá
+    return {
+      baseName: levelInfo.title,
+      romanNumeral: ''
+    };
+  }, [levelInfo.title]);
+
+  // ========================================
   // SIZE CALCULATIONS (Memoized)
   // ========================================
 
@@ -313,9 +344,9 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // OPTIMIZED ANIMATIONS (60fps Native Driver)
   // ========================================
 
-  // Milestone pulse animation with performance optimization
+  // Breathing pulse animation for all levels with performance optimization
   useEffect(() => {
-    if (!isMilestone || isLoading) {
+    if (isLoading) {
       pulseAnim.setValue(1);
       return;
     }
@@ -326,16 +357,17 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       return;
     }
 
+    // Breathing animation for all levels - slower and subtler for organic feel
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1500,
+          toValue: 1.04, // Subtler scale for breathing effect
+          duration: 2000, // Slower breathing rhythm
           useNativeDriver: true, // CRITICAL: Native thread
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1500,
+          duration: 2000, // Slower breathing rhythm
           useNativeDriver: true, // CRITICAL: Native thread
         }),
       ])
@@ -349,7 +381,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       clearTimeout(timeout);
       pulseAnimation.stop();
     };
-  }, [isMilestone, isLoading, pulseAnim, effectivePerformanceMode]);
+  }, [isLoading, pulseAnim, effectivePerformanceMode]);
 
   // CRITICAL: Optimized progress animation with native driver
   useEffect(() => {
@@ -496,15 +528,42 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
   return (
     <View 
-      style={[themeStyles, spacingStyles, compactMode && styles.containerCompact]}
+      style={[
+        themeStyles, 
+        spacingStyles, 
+        compactMode && styles.containerCompact,
+        { borderColor: rarityBorderColor, borderWidth: 2 }
+      ]}
       accessible={true}
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
     >
-      {/* Optimized Level Badge */}
+      {/* Level Title and Roman Numerals - Top Center */}
+      <View style={styles.rarityRomanContainer}>
+        <Text 
+          style={[
+            styles.levelTitleRomanStyle, 
+            { color: rarityBorderColor }
+          ]}
+        >
+          {levelRomanAndTitle.baseName}
+        </Text>
+        {levelRomanAndTitle.romanNumeral && (
+          <Text 
+            style={[
+              styles.rarityRomanText, 
+              { color: rarityBorderColor }
+            ]}
+          >
+            {levelRomanAndTitle.romanNumeral}
+          </Text>
+        )}
+      </View>
+
+      {/* Level Badge - Top Left Corner */}
       {showLevelBadge && (
-        <View style={styles.trophyContainer}>
+        <View style={styles.topLeftBadgeContainer}>
           <Animated.View 
             style={[
               styles.levelBadgeContainer,
@@ -530,27 +589,11 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
             </SafeLinearGradient>
             {isMilestone && <View style={styles.milestoneGlow} />}
           </Animated.View>
-          
-          {!compactMode && (
-            <SafeLinearGradient
-              colors={badgeColors.background}
-              style={StyleSheet.flatten([styles.titleBadgeGradient, { borderColor: badgeColors.border }])}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              suppressWarnings={true}
-              fallbackColor={badgeColors.background[0]}
-            >
-              <Text 
-                style={[styles.levelTitle, { color: badgeColors.text, fontSize: fontSizes.levelTitle }]} 
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {levelInfo.title}
-              </Text>
-            </SafeLinearGradient>
-          )}
         </View>
       )}
+
+      {/* Main Content Row */}
+      <View style={styles.mainContentRow}>
 
       {/* Optimized Progress Bar */}
       <View style={styles.progressSection}>
@@ -592,6 +635,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
           </Text>
         )}
       </View>
+      </View>
     </View>
   );
 }, (prevProps, nextProps) => {
@@ -618,11 +662,10 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: Colors.background,
     borderRadius: 16,
-    paddingVertical: 12,
+    paddingVertical: 4,
     paddingHorizontal: 16,
     marginHorizontal: 16,
     marginVertical: 8,
@@ -631,10 +674,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative', // Pro absolutní pozicování badge
   },
   containerCompact: {
-    paddingVertical: 8,
+    paddingVertical: 2,
     paddingHorizontal: 12,
+  },
+  
+  topLeftBadgeContainer: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    zIndex: 10,
+  },
+  
+  mainContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -752,6 +808,45 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 4,
     textAlign: 'center',
+  },
+  
+  // ========================================
+  // RARITY ROMAN NUMERALS STYLES
+  // ========================================
+  
+  rarityRomanContainer: {
+    alignItems: 'center',
+    paddingVertical: 0,
+    marginBottom: 2,
+    marginTop: 2,
+  },
+  
+  levelTitleRomanStyle: {
+    fontSize: 20,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Stejný serif font
+    letterSpacing: 2,
+    textAlign: 'center',
+    // Jemnější embossed efekt pro název
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  
+  rarityRomanText: {
+    fontSize: 32,
+    fontWeight: '900',
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Serif font pro římský styl
+    letterSpacing: 4,
+    textAlign: 'center',
+    // Embossed/vytesaný efekt - stín dolů a doprava pro hloubku
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
+    // Monumentální římský vzhled
+    textTransform: 'uppercase',
   },
 });
 
