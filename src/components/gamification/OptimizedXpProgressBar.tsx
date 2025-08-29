@@ -241,22 +241,16 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   // ========================================
 
   const progressColors = useMemo((): [string, string] => {
-    if (isMilestone) return ['#FFD700', '#FFA500']; // Gold-Orange for milestones
+    // Colors based on rarity tier, not milestone status
     if (currentLevel >= 81) return ['#F44336', '#E91E63']; // Red (Mythic/Exotic) 81-100
     if (currentLevel >= 61) return ['#FFD700', '#FFC107']; // Gold (Legendary) 61-80
     if (currentLevel >= 41) return ['#9C27B0', '#673AB7']; // Purple (Epic) 41-60
     if (currentLevel >= 21) return ['#2196F3', '#00BCD4']; // Blue (Rare) 21-40
     return ['#9E9E9E', '#757575']; // Grey (Common) 1-20
-  }, [isMilestone, currentLevel]);
+  }, [currentLevel]);
 
   const badgeColors = useMemo(() => {
-    if (isMilestone) {
-      return {
-        background: ['#FFD700', '#FFA500'] as [string, string],
-        text: '#8B4513',
-        border: '#DAA520',
-      };
-    }
+    // Badge colors based on rarity tier, not milestone status
     if (currentLevel >= 81) {
       return {
         background: ['#F44336', '#E91E63'] as [string, string], // Red (Mythic/Exotic)
@@ -290,7 +284,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       text: '#FFFFFF',
       border: '#616161',
     };
-  }, [isMilestone, currentLevel]);
+  }, [currentLevel]);
 
   // ========================================
   // SIZE CALCULATIONS (Memoized)
