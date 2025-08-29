@@ -111,8 +111,8 @@ export const HabitTrendAnalysis: React.FC = () => {
     }
 
     // Overall trend calculation
-    const recentAvg = ((weeks[2]?.completionRate || 0) + (weeks[3]?.completionRate || 0)) / 2;
-    const earlierAvg = ((weeks[0]?.completionRate || 0) + (weeks[1]?.completionRate || 0)) / 2;
+    const recentAvg = ((weeks[0]?.completionRate || 0) + (weeks[1]?.completionRate || 0)) / 2;
+    const earlierAvg = ((weeks[2]?.completionRate || 0) + (weeks[3]?.completionRate || 0)) / 2;
     const overallTrendChange = recentAvg - earlierAvg;
 
     let overallTrend: 'improving' | 'declining' | 'stable' = 'stable';

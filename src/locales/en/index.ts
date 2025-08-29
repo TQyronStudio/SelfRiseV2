@@ -43,7 +43,7 @@ const en: TranslationKeys = {
       weeklyChart: 'Weekly Habit Completion',
       monthlyOverview: 'Monthly Overview', 
       performanceIndicators: 'Performance',
-      trendAnalysis: 'Trends',
+      trendAnalysis: 'Trends - Habits',
       totalHabits: 'Total Habits',
       activeHabits: 'Active Habits',
       completedToday: 'Completed Today',
