@@ -685,20 +685,6 @@ export default function AchievementsScreen() {
           userAchievements={userAchievements}
         />
         
-        {/* Achievement Spotlight */}
-        <AchievementSpotlight
-          userAchievements={userAchievements}
-          allAchievements={CORE_ACHIEVEMENTS}
-          onAchievementPress={handleAchievementPress}
-        />
-        
-        {/* Achievement History */}
-        <AchievementHistory
-          userAchievements={userAchievements}
-          allAchievements={CORE_ACHIEVEMENTS}
-          onAchievementPress={handleAchievementPress}
-        />
-        
         {/* Trophy Collections */}
         <TrophyCombinations
           userAchievements={userAchievements}

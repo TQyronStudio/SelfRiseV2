@@ -118,21 +118,17 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
 
-  // Early return to prevent hooks rule violations
-  if (!achievement) {
-    return null;
-  }
-
-  const isUnlocked = userAchievements?.unlockedAchievements.includes(achievement.id) || false;
-  const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
-  const rarityEmoji = getRarityEmoji(achievement.rarity);
-  const categoryColor = getCategoryColor(achievement.category);
-  const categoryIcon = getCategoryIcon(achievement.category);
+  // Calculate values only if achievement exists
+  const isUnlocked = achievement ? (userAchievements?.unlockedAchievements.includes(achievement.id) || false) : false;
+  const rarityColor = achievement ? getRarityColor(achievement.rarity, isHighContrastEnabled) : Colors.primary;
+  const rarityEmoji = achievement ? getRarityEmoji(achievement.rarity) : '🏆';
+  const categoryColor = achievement ? getCategoryColor(achievement.category) : Colors.primary;
+  const categoryIcon = achievement ? getCategoryIcon(achievement.category) : 'medal' as keyof typeof Ionicons.glyphMap;
 
   // Load progress hint for locked achievements
   useEffect(() => {
     const loadProgressHint = async () => {
-      if (visible && !isUnlocked && userStats) {
+      if (visible && achievement && !isUnlocked && userStats) {
         try {
           setLoading(true);
           const hint = await generateProgressHintAsync(achievement, userStats);
@@ -148,11 +144,11 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     };
 
     loadProgressHint();
-  }, [visible, achievement.id, isUnlocked, userStats]);
+  }, [visible, achievement?.id, isUnlocked, userStats]);
 
   // Entrance animation
   useEffect(() => {
-    if (visible) {
+    if (visible && achievement) {
       if (!isReduceMotionEnabled) {
         fadeAnim.setValue(0);
         slideAnim.setValue(50);
@@ -182,10 +178,10 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       
       AccessibilityInfo.announceForAccessibility(announcement);
     }
-  }, [visible, achievement.name, achievement.rarity, isUnlocked, isReduceMotionEnabled]);
+  }, [visible, achievement?.name, achievement?.rarity, isUnlocked, isReduceMotionEnabled]);
 
   const handleSharePress = () => {
-    if (onSharePress && isUnlocked) {
+    if (onSharePress && achievement && isUnlocked) {
       onSharePress(achievement);
     }
   };
@@ -194,6 +190,22 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     opacity: fadeAnim,
     transform: [{ translateY: slideAnim }],
   };
+
+  // Return empty modal if no achievement
+  if (!achievement) {
+    return (
+      <Modal
+        visible={false}
+        transparent
+        animationType="fade"
+        onRequestClose={onClose}
+      >
+        <View />
+      </Modal>
+    );
+  }
+
+  // Debug removed
 
   return (
     <Modal
