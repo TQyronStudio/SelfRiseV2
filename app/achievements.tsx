@@ -244,12 +244,13 @@ export default function AchievementsScreen() {
         
         case 'rarity': {
           const rarityOrder = {
-            [AchievementRarity.COMMON]: 0,
-            [AchievementRarity.RARE]: 1,
-            [AchievementRarity.EPIC]: 2,
-            [AchievementRarity.LEGENDARY]: 3,
+            [AchievementRarity.COMMON]: 1,
+            [AchievementRarity.RARE]: 2,
+            [AchievementRarity.EPIC]: 3,
+            [AchievementRarity.LEGENDARY]: 4,
           };
-          return rarityOrder[b.rarity] - rarityOrder[a.rarity]; // Descending order
+          // 🎯 CRESCENDO EFFECT: Common first, Legendary last for escalating excitement
+          return rarityOrder[a.rarity] - rarityOrder[b.rarity]; // Ascending order
         }
         
         case 'unlock_date': {
@@ -272,26 +273,27 @@ export default function AchievementsScreen() {
         
         case 'category':
         default: {
+          // 🎭 CRESCENDO CATEGORY ORDER: Strategic progression from foundation to mastery
           const categoryOrder = {
-            [AchievementCategory.HABITS]: 0,
-            [AchievementCategory.JOURNAL]: 1,
-            [AchievementCategory.GOALS]: 2,
-            [AchievementCategory.CONSISTENCY]: 3,
-            [AchievementCategory.MASTERY]: 4,
-            [AchievementCategory.SPECIAL]: 5,
-            [AchievementCategory.SOCIAL]: 6,
+            [AchievementCategory.SPECIAL]: 1,      // Special achievements first (setup)
+            [AchievementCategory.JOURNAL]: 2,      // Personal growth (foundation)
+            [AchievementCategory.HABITS]: 3,       // Daily consistency (building)  
+            [AchievementCategory.GOALS]: 4,        // Concrete achievements (momentum)
+            [AchievementCategory.CONSISTENCY]: 5,  // Long-term dedication (climax)
+            [AchievementCategory.MASTERY]: 6,      // Ultimate mastery (finale)
+            [AchievementCategory.SOCIAL]: 7,       // Social achievements last
           };
           const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category];
           if (categoryDiff !== 0) return categoryDiff;
           
-          // Within same category, sort by rarity (descending)
+          // Within same category, sort by rarity (ASCENDING - crescendo within category)
           const rarityOrder = {
-            [AchievementRarity.COMMON]: 0,
-            [AchievementRarity.RARE]: 1,
-            [AchievementRarity.EPIC]: 2,
-            [AchievementRarity.LEGENDARY]: 3,
+            [AchievementRarity.COMMON]: 1,
+            [AchievementRarity.RARE]: 2,
+            [AchievementRarity.EPIC]: 3,
+            [AchievementRarity.LEGENDARY]: 4,
           };
-          return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+          return rarityOrder[a.rarity] - rarityOrder[b.rarity];
         }
       }
     });

@@ -269,6 +269,13 @@ export class UserStatsCollector {
         perfectMonthDays: 0, // TODO: Implement perfect month detection (all 3 features daily)
         hasTripleCrown: false, // TODO: Implement simultaneous 7+ day streaks detection
         dailyFeatureComboDays: multiAreaDays, // Days with multiple features used (habits + journal)
+        
+        // Journal Bonus Milestones (New for ⭐🔥👑 system)
+        starCount: 0, // TODO: Implement star milestone counting (1+ bonus per day)
+        flameCount: 0, // TODO: Implement flame milestone counting (5+ bonuses per day)
+        crownCount: 0, // TODO: Implement crown milestone counting (10+ bonuses per day)
+        bonusStreakDays: 0, // TODO: Implement bonus streak tracking (1+ bonus daily)
+        goldenBonusStreakDays: 0, // TODO: Implement golden bonus streak tracking (3+ bonuses daily)
       };
 
       // Cache the fresh data for performance optimization
@@ -317,6 +324,13 @@ export class UserStatsCollector {
         perfectMonthDays: 0,
         hasTripleCrown: false,
         dailyFeatureComboDays: 0,
+        
+        // Journal Bonus Milestones (defaults for error fallback)
+        starCount: 0,
+        flameCount: 0,
+        crownCount: 0,
+        bonusStreakDays: 0,
+        goldenBonusStreakDays: 0,
       };
     }
   }

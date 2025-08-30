@@ -72,21 +72,6 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       
       // Parse date string to Date object for day operations
       const dateObj = parseDate(dateStr);
-      
-      // Debug logging for today's data
-      if (today() === dateStr) {
-        console.log('🔍 WeeklyHabitChart Debug for Today:', {
-          date: dateStr,
-          scheduledHabits: scheduledHabits.length,
-          scheduledCompletions: scheduledCount,
-          bonusCompletions: bonusCount,
-          coveredMissedDays,
-          actualMissedDays,
-          totalScheduled,
-          habitsOnDate: habitsOnDate.length,
-          isToday: today() === dateStr
-        });
-      }
 
       return {
         date: dateStr,
@@ -129,13 +114,31 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
   const CHART_HEIGHT = 120; // Increased height for better visualization
   const CHART_PADDING = 20; // Space for Y-axis labels
 
-  // Calculate Y-axis grid steps
+  // Calculate Y-axis grid steps - Fixed to not exceed maxValue
   const getYAxisSteps = (maxValue: number) => {
-    if (maxValue <= 5) return [1, 2, 3, 4, 5];
-    if (maxValue <= 10) return [2, 4, 6, 8, 10];
-    if (maxValue <= 20) return [5, 10, 15, 20];
-    if (maxValue <= 50) return [10, 20, 30, 40, 50];
-    return [25, 50, 75, 100];
+    // Generate base steps but filter out values above maxValue
+    let steps: number[];
+    if (maxValue <= 5) {
+      steps = [1, 2, 3, 4, 5];
+    } else if (maxValue <= 10) {
+      steps = [2, 4, 6, 8, 10];
+    } else if (maxValue <= 20) {
+      steps = [5, 10, 15, 20];
+    } else if (maxValue <= 50) {
+      steps = [10, 20, 30, 40, 50];
+    } else {
+      steps = [25, 50, 75, 100];
+    }
+    
+    // Filter out steps that exceed maxValue and ensure maxValue is included
+    const filteredSteps = steps.filter(step => step <= maxValue);
+    
+    // Always include maxValue as the top step if it's not already there
+    if (!filteredSteps.includes(maxValue) && maxValue > 0) {
+      filteredSteps.push(maxValue);
+    }
+    
+    return filteredSteps.sort((a, b) => a - b);
   };
 
   const yAxisSteps = useMemo(() => getYAxisSteps(maxTotalHabitsInPeriod), [maxTotalHabitsInPeriod]);
@@ -179,23 +182,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       {/* Chart with Y-axis */}
       <View style={[styles.chartContainer, { height: CHART_HEIGHT + 60 }]}>
         <View style={styles.chartWrapper}>
-          {/* Y-axis grid lines and labels */}
-          <View style={styles.yAxisContainer}>
-            {yAxisSteps.map((step) => (
-              <View key={step} style={styles.yAxisStep}>
-                <Text style={styles.yAxisLabel}>{step}</Text>
-                <View 
-                  style={[
-                    styles.gridLine, 
-                    { 
-                      bottom: (step / maxTotalHabitsInPeriod) * CHART_HEIGHT,
-                      width: '100%'
-                    }
-                  ]} 
-                />
-              </View>
-            ))}
-          </View>
+          {/* No Y-axis labels or grid lines - clean chart */}
 
           {/* Chart content */}
           <View style={styles.chartContent}>
@@ -360,42 +347,14 @@ const styles = StyleSheet.create({
     position: 'relative',
     flex: 1,
   },
-  yAxisContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 40, // Space for day labels
-    height: 120, // CHART_HEIGHT
-    zIndex: 1,
-  },
-  yAxisStep: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
-  yAxisLabel: {
-    position: 'absolute',
-    left: 4,
-    fontSize: 10,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    backgroundColor: Colors.background,
-    paddingHorizontal: 2,
-    zIndex: 2,
-  },
-  gridLine: {
-    position: 'absolute',
-    left: 30, // Start after Y-axis labels
-    height: 1,
-    backgroundColor: Colors.border,
-    opacity: 0.5,
-  },
+  // Y-axis styles removed - no labels needed
+  // gridLine removed - no grid lines wanted
   chartContent: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     paddingHorizontal: Layout.spacing.xs,
-    paddingLeft: 35, // Space for Y-axis labels
+    // No left padding needed - no Y-axis labels
   },
   dayColumn: {
     flex: 1,

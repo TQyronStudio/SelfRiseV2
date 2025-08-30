@@ -44,7 +44,9 @@
 
 ---
 
-## 📝 **JOURNAL - Deník (8 achievements)**
+## 📝 **JOURNAL - Deník (31 achievements)**
+
+*Základní journaling achievements - denní praxe vděčnosti*
 
 ### **First Reflection** 🌱 • 50 XP • Common
 **Co musí udělat**: Napsat svůj první zápis do deníku vděčnosti
@@ -73,6 +75,118 @@
 ### **Bonus Seeker** ⭐ • 200 XP • Epic
 **Co musí udělat**: Napsat 50 bonusových zápisů do deníku
 **Výsledek**: Uživatel jde nad rámec své praxe vděčnosti
+
+---
+
+*Bonus achievements - rozšířená praxe vděčnosti s bonusovými záznamy*
+
+### **First Star** ⭐ • 50 XP • Common
+**Co musí udělat**: Získat hvězdičku (první bonusový zápis za den)
+**Výsledek**: Uživatel objevuje rozšířenou vděčnost
+
+### **Five Stars** ⭐ • 100 XP • Rare
+**Co musí udělat**: Získat hvězdičku celkem 5krát
+**Výsledek**: Pravidelné rozšiřování praxe vděčnosti
+
+### **Flame Achiever** 🔥 • 125 XP • Rare
+**Co musí udělat**: Získat plamínek (5 bonusů za jeden den) poprvé
+**Výsledek**: Den intenzivní vděčnosti a reflexe
+
+### **Bonus Week** ⭐ • 125 XP • Rare
+**Co musí udělat**: Alespoň 1 bonus každý den po dobu 7 dní v řadě
+**Výsledek**: Týden konzistentní rozšířené praxe
+
+### **Crown Royalty** 👑 • 150 XP • Epic
+**Co musí udělat**: Získat korunku (10 bonusů za jeden den) poprvé
+**Výsledek**: Vrcholný den reflexe s královským statusem
+
+### **Flame Collector** 🔥 • 200 XP • Epic
+**Co musí udělat**: Získat plamínek celkem 5krát
+**Výsledek**: Mistr intenzivních dní vděčnosti
+
+### **Golden Bonus Streak** ⭐ • 200 XP • Epic
+**Co musí udělat**: Alespoň 3 bonusy každý den po dobu 7 dní v řadě
+**Výsledek**: Týden hluboké a rozšířené reflexe
+
+### **Triple Crown Master** 👑 • 500 XP • Legendary
+**Co musí udělat**: Získat korunku celkem 3krát
+**Výsledek**: Legendární mistr královských dnů reflexe
+
+### **Bonus Century** 💯 • 750 XP • Legendary
+**Co musí udělat**: Napsat 200 bonusových zápisů celkem
+**Výsledek**: Vrcholný mistr rozšířené praxe vděčnosti
+
+---
+
+*Hvězdička Milestones - sbíraní hvězdiček za první bonusové záznamy*
+
+### **Star Beginner** ⭐ • 100 XP • Rare
+**Co musí udělat**: Získat hvězdičku celkem 10krát
+**Výsledek**: Začínající sběratel bonusových zážitků
+
+### **Star Collector** ⭐ • 150 XP • Epic
+**Co musí udělat**: Získat hvězdičku celkem 25krát
+**Výsledek**: Pravidelný rozšiřovatel praxe vděčnosti
+
+### **Star Master** ⭐ • 200 XP • Epic
+**Co musí udělat**: Získat hvězdičku celkem 50krát
+**Výsledek**: Mistr rozšířené denní reflexe
+
+### **Star Champion** ⭐ • 300 XP • Epic
+**Co musí udělat**: Získat hvězdičku celkem 100krát
+**Výsledek**: Šampion dlouhodobé rozšířené praxe
+
+### **Star Legend** ⭐ • 500 XP • Legendary
+**Co musí udělat**: Získat hvězdičku celkem 200krát
+**Výsledek**: Legendární mistr bonusových zážitků
+
+---
+
+*Plamínek Milestones - sbírání plamínků za intenzivní dny vděčnosti*
+
+### **Flame Starter** 🔥 • 150 XP • Epic
+**Co musí udělat**: Získat plamínek celkem 5krát
+**Výsledek**: Začínající mistr intenzivních dní
+
+### **Flame Accumulator** 🔥 • 200 XP • Epic
+**Co musí udělat**: Získat plamínek celkem 10krát
+**Výsledek**: Sběratel výjimečných dní vděčnosti
+
+### **Flame Master** 🔥 • 300 XP • Epic
+**Co musí udělat**: Získat plamínek celkem 25krát
+**Výsledek**: Mistr systematických intenzivních dní
+
+### **Flame Champion** 🔥 • 400 XP • Legendary
+**Co musí udělat**: Získat plamínek celkem 50krát
+**Výsledek**: Šampion hluboké denní reflexe
+
+### **Flame Legend** 🔥 • 750 XP • Legendary
+**Co musí udělat**: Získat plamínek celkem 100krát
+**Výsledek**: Legendární mistr intenzivní praxe vděčnosti
+
+---
+
+*Korunka Milestones - sbírání korunek za královské dny reflexe*
+
+### **Crown Achiever** 👑 • 200 XP • Epic
+**Co musí udělat**: Získat korunku celkem 3krát
+**Výsledek**: Dosáhne královských dnů reflexe
+
+### **Crown Collector** 👑 • 350 XP • Legendary
+**Co musí udělat**: Získat korunku celkem 5krát
+**Výsledek**: Sběratel královských zážitků vděčnosti
+
+### **Crown Master** 👑 • 500 XP • Legendary
+**Co musí udělat**: Získat korunku celkem 10krát
+**Výsledek**: Mistr královské úrovně reflexe
+
+### **Crown Champion** 👑 • 750 XP • Legendary
+**Co musí udělat**: Získat korunku celkem 25krát
+**Výsledek**: Šampion královských dnů vděčnosti
+
+### **Crown Emperor** 👑 • 1000 XP • Legendary
+**Co musí udělat**: Získat korunku celkem 50krát
+**Výsledek**: Císařský status v praxi hluboké reflexe
 
 ---
 
@@ -249,15 +363,15 @@
 ## 📊 **STATISTIKY PRO MAJITELE**
 
 ### **Celkový Přehled**
-- **Celkem Achievements**: 52
-- **Celkové možné XP**: 18,625 XP
-- **Kategorie**: 6 (Habits: 8, Journal: 7, Goals: 6, Consistency: 8, Mastery: 9, Special: 14)
+- **Celkem Achievements**: 76
+- **Celkové možné XP**: 26,675 XP
+- **Kategorie**: 6 (Habits: 8, Journal: 31, Goals: 6, Consistency: 8, Mastery: 9, Special: 14)
 
 ### **Rozložení podle obtížnosti**
-- **Common (Běžné)**: 4 achievements • 50 XP každý
-- **Rare (Vzácné)**: 13 achievements • 100-125 XP každý  
-- **Epic (Epické)**: 18 achievements • 150-200 XP každý
-- **Legendary (Legendární)**: 17 achievements • 500-2000 XP každý
+- **Common (Běžné)**: 5 achievements • 50 XP každý
+- **Rare (Vzácné)**: 17 achievements • 100-125 XP každý  
+- **Epic (Epické)**: 29 achievements • 150-300 XP každý
+- **Legendary (Legendární)**: 25 achievements • 350-2000 XP každý
 
 ### **Motivační strategie**
 - **Rychlé výhry**: Common achievements pro nové uživatele
@@ -727,6 +841,80 @@ describe('Achievement System Complete Testing', () => {
 - **Achievement Evaluation**: <200ms for achievement check
 - **Celebration Display**: <200ms from trigger to modal
 - **Memory Usage**: <2MB additional memory footprint
+
+---
+
+## Achievement Display Priority System
+
+### 🚨 CRITICAL: Achievement Display Order (Multiple Simultaneous Unlocks)
+
+**CRESCENDO PSYCHOLOGY PRINCIPLE**: Best achievements displayed LAST for maximum emotional impact
+
+```typescript
+// ACHIEVEMENT DISPLAY PRIORITY ORDER - Crescendo Effect:
+1. COMMON (50-75 XP) 🤍 - Warm-up celebration, builds excitement
+2. RARE (100-125 XP) 💙 - Escalating achievement, momentum building  
+3. EPIC (150-300 XP) 💜 - Major milestone, tension peaks
+4. LEGENDARY (500-2000 XP) 🏆 - ULTIMATE CLIMAX! Maximum celebration!
+
+PSYCHOLOGY RATIONALE:
+- Users experience ESCALATING JOY (crescendo effect)
+- Each achievement builds anticipation for the next
+- Legendary achievements become EPIC FINALE celebrations
+- Creates "achievement high" with sustained dopamine release
+```
+
+### Implementation Algorithm
+```typescript
+const sortAchievementsForDisplay = (achievements: Achievement[]): Achievement[] => {
+  return achievements.sort((a, b) => {
+    // 1. RARITY FIRST: Lower rarity displayed first (CRESCENDO EFFECT)
+    const rarityOrder = { 'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4 };
+    if (a.rarity !== b.rarity) {
+      return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+    }
+    
+    // 2. CATEGORY IMPORTANCE: Strategic category ordering
+    const categoryOrder = { 
+      'special': 1,      // Special achievements first (setup)
+      'journal': 2,      // Personal growth (foundation)
+      'habits': 3,       // Daily consistency (building)  
+      'goals': 4,        // Concrete achievements (momentum)
+      'consistency': 5,  // Long-term dedication (climax)
+      'mastery': 6       // Ultimate mastery (finale)
+    };
+    if (a.category !== b.category) {
+      return categoryOrder[a.category] - categoryOrder[b.category];
+    }
+    
+    // 3. XP VALUE: Higher XP within same rarity = later display
+    return a.xpReward - b.xpReward;
+  });
+};
+```
+
+### Display Rules
+- **Sequential Display**: Each achievement modal waits for previous to close
+- **Celebration Intensity**: Scales with rarity (Common: subtle → Legendary: explosive)
+- **Timing Control**: 2-second minimum between achievement celebrations
+- **User Control**: Allow "Skip All" for experienced users who want to continue
+
+### Practical Example
+```typescript
+// User simultaneously unlocks:
+const simultaneousAchievements = [
+  { id: 'selfrise-master', rarity: 'legendary', xp: 500 },     // 🏆
+  { id: 'first-habit', rarity: 'common', xp: 50 },            // 🤍  
+  { id: 'journal-enthusiast', rarity: 'epic', xp: 200 },      // 💜
+  { id: 'goal-getter', rarity: 'rare', xp: 100 }              // 💙
+];
+
+// DISPLAY ORDER (crescendo effect):
+// 1st: "First Habit" (COMMON, 50 XP) - Nice start! 🤍
+// 2nd: "Goal Getter" (RARE, 100 XP) - Getting better! 💙  
+// 3rd: "Journal Enthusiast" (EPIC, 200 XP) - Wow, amazing! 💜
+// 4th: "SelfRise Master" (LEGENDARY, 500 XP) - INCREDIBLE FINALE! 🏆🎉
+```
 
 ---
 

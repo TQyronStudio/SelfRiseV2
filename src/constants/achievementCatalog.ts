@@ -1,13 +1,14 @@
 // Complete Achievement Catalog - Sub-checkpoint 4.5.10.C
-// Complete Achievement Catalog (52 Total Achievements) 📜
+// Complete Achievement Catalog (76 Total Achievements) 📜
 
 import { Achievement, AchievementCategory, AchievementRarity } from '../types/gamification';
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';
 
 /**
- * Complete catalog of 52 achievements for SelfRise V2
+ * Complete catalog of 76 achievements for SelfRise V2
  * Organized by category with balanced progression and long-term engagement
- * Categories: Habits (8), Journal (8), Goals (7), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
+ * Categories: Habits (8), Journal (31), Goals (7), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
+ * Updated: 2025-08-30 - Added 24 new Journal Bonus achievements for ⭐🔥👑 milestones
  */
 export const CORE_ACHIEVEMENTS: Achievement[] = [
   
@@ -1193,6 +1194,523 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     isSecret: true,
     createdAt: new Date('2025-08-21'),
     updatedAt: new Date('2025-08-21')
+  },
+
+  // ========================================
+  // JOURNAL BONUS ACHIEVEMENTS (24 achievements)
+  // Added: 2025-08-30 - Complete bonus system for ⭐🔥👑 milestones
+  // ========================================
+
+  // --- BASIC BONUS ACHIEVEMENTS (9 achievements) ---
+
+  {
+    id: 'first-star',
+    name: 'First Star',
+    description: 'Získat hvězdičku (první bonusový zápis za den) - objevujete rozšířenou vděčnost',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.COMMON,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.COMMON], // 50 XP
+    condition: {
+      type: 'count',
+      target: 1,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'five-stars',
+    name: 'Five Stars',
+    description: 'Získat hvězdičku celkem 5krát - pravidelné rozšiřování praxe vděčnosti',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-achiever',
+    name: 'Flame Achiever',
+    description: 'Získat plamínek (5 bonusů za jeden den) poprvé - den intenzivní vděčnosti a reflexe',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: 125, // Custom XP for this milestone
+    condition: {
+      type: 'count',
+      target: 1,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'bonus-week',
+    name: 'Bonus Week',
+    description: 'Alespoň 1 bonus každý den po dobu 7 dní v řadě - týden konzistentní rozšířené praxe',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: 125, // Custom XP for this milestone
+    condition: {
+      type: 'streak',
+      target: 7,
+      source: 'journal_bonus_streak',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'crown-royalty',
+    name: 'Crown Royalty',
+    description: 'Získat korunku (10 bonusů za jeden den) poprvé - vrcholný den reflexe s královským statusem',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 150, // Custom XP for this milestone
+    condition: {
+      type: 'count',
+      target: 1,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-collector',
+    name: 'Flame Collector',
+    description: 'Získat plamínek celkem 5krát - mistr intenzivních dní vděčnosti',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'golden-bonus-streak',
+    name: 'Golden Bonus Streak',
+    description: 'Alespoň 3 bonusy každý den po dobu 7 dní v řadě - týden hluboké a rozšířené reflexe',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'streak',
+      target: 7,
+      source: 'journal_golden_bonus_streak',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'triple-crown-master',
+    name: 'Triple Crown Master',
+    description: 'Získat korunku celkem 3krát - legendární mistr královských dnů reflexe',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 3,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'bonus-century',
+    name: 'Bonus Century',
+    description: 'Napsat 200 bonusových zápisů celkem - vrcholný mistr rozšířené praxe vděčnosti',
+    icon: '💯',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 750, // Custom high XP for this ultimate milestone
+    condition: {
+      type: 'count',
+      target: 200,
+      source: 'journal_bonus_entries',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  // --- STAR MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+  {
+    id: 'star-beginner',
+    name: 'Star Beginner',
+    description: 'Získat hvězdičku celkem 10krát - začínající sběratel bonusových zážitků',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.RARE,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.RARE], // 100 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'star-collector',
+    name: 'Star Collector',
+    description: 'Získat hvězdičku celkem 25krát - pravidelný rozšiřovatel praxe vděčnosti',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 150, // Custom XP for this milestone
+    condition: {
+      type: 'count',
+      target: 25,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'star-master',
+    name: 'Star Master',
+    description: 'Získat hvězdičku celkem 50krát - mistr rozšířené denní reflexe',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 50,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'star-champion',
+    name: 'Star Champion',
+    description: 'Získat hvězdičku celkem 100krát - šampion dlouhodobé rozšířené praxe',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 300, // Higher XP for significant milestone
+    condition: {
+      type: 'count',
+      target: 100,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'star-legend',
+    name: 'Star Legend',
+    description: 'Získat hvězdičku celkem 200krát - legendární mistr bonusových zážitků',
+    icon: '⭐',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 200,
+      source: 'journal_star_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  // --- FLAME MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+  {
+    id: 'flame-starter',
+    name: 'Flame Starter',
+    description: 'Získat plamínek celkem 5krát - začínající mistr intenzivních dní',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 150, // Custom XP for this milestone
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-accumulator',
+    name: 'Flame Accumulator',
+    description: 'Získat plamínek celkem 10krát - sběratel výjimečných dní vděčnosti',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-master',
+    name: 'Flame Master',
+    description: 'Získat plamínek celkem 25krát - mistr systematických intenzivních dní',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: 300, // Higher XP for advanced milestone
+    condition: {
+      type: 'count',
+      target: 25,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-champion',
+    name: 'Flame Champion',
+    description: 'Získat plamínek celkem 50krát - šampion hluboké denní reflexe',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 400, // Custom high XP for this milestone
+    condition: {
+      type: 'count',
+      target: 50,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'flame-legend',
+    name: 'Flame Legend',
+    description: 'Získat plamínek celkem 100krát - legendární mistr intenzivní praxe vděčnosti',
+    icon: '🔥',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 750, // High XP for ultimate flame milestone
+    condition: {
+      type: 'count',
+      target: 100,
+      source: 'journal_flame_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  // --- CROWN MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+  {
+    id: 'crown-achiever',
+    name: 'Crown Achiever',
+    description: 'Získat korunku celkem 3krát - dosáhne královských dnů reflexe',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'count',
+      target: 3,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'crown-collector',
+    name: 'Crown Collector',
+    description: 'Získat korunku celkem 5krát - sběratel královských zážitků vděčnosti',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 350, // Custom XP for this rare milestone
+    condition: {
+      type: 'count',
+      target: 5,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'crown-master',
+    name: 'Crown Master',
+    description: 'Získat korunku celkem 10krát - mistr královské úrovně reflexe',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 10,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'crown-champion',
+    name: 'Crown Champion',
+    description: 'Získat korunku celkem 25krát - šampion královských dnů vděčnosti',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 750, // High XP for advanced crown milestone
+    condition: {
+      type: 'count',
+      target: 25,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
+  },
+
+  {
+    id: 'crown-emperor',
+    name: 'Crown Emperor',
+    description: 'Získat korunku celkem 50krát - císařský status v praxi hluboké reflexe',
+    icon: '👑',
+    category: AchievementCategory.JOURNAL,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: 1000, // Ultimate XP reward for the highest crown achievement
+    condition: {
+      type: 'count',
+      target: 50,
+      source: 'journal_crown_count',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: true,
+    isSecret: false,
+    createdAt: new Date('2025-08-30'),
+    updatedAt: new Date('2025-08-30')
   }
 ];
 

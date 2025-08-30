@@ -74,6 +74,9 @@ interface AchievementContextActions {
   addToCelebrationQueue: (achievement: Achievement, xpAwarded: number) => void;
   showNextCelebration: () => void;
   closeCelebrationModal: () => void;
+  
+  // Display sorting
+  sortAchievementsForDisplay: (achievements: Achievement[]) => Achievement[];
 }
 
 // Combined context interface
@@ -280,6 +283,47 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   }, [allAchievements, userAchievements.unlockedAchievements]);
 
   // ========================================
+  // ACHIEVEMENT DISPLAY SORTING (CRESCENDO PSYCHOLOGY)
+  // ========================================
+
+  /**
+   * Sort achievements for display using crescendo effect
+   * Lower rarity achievements displayed first, building to legendary finale
+   * Implementation based on technical-guides:Achievements.md
+   */
+  const sortAchievementsForDisplay = useCallback((achievements: Achievement[]): Achievement[] => {
+    return [...achievements].sort((a, b) => {
+      // 1. RARITY FIRST: Lower rarity displayed first (CRESCENDO EFFECT)
+      const rarityOrder = { 
+        [AchievementRarity.COMMON]: 1, 
+        [AchievementRarity.RARE]: 2, 
+        [AchievementRarity.EPIC]: 3, 
+        [AchievementRarity.LEGENDARY]: 4 
+      };
+      if (a.rarity !== b.rarity) {
+        return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+      }
+      
+      // 2. CATEGORY IMPORTANCE: Strategic category ordering
+      const categoryOrder = { 
+        [AchievementCategory.SPECIAL]: 1,      // Special achievements first (setup)
+        [AchievementCategory.JOURNAL]: 2,      // Personal growth (foundation)
+        [AchievementCategory.HABITS]: 3,       // Daily consistency (building)  
+        [AchievementCategory.GOALS]: 4,        // Concrete achievements (momentum)
+        [AchievementCategory.CONSISTENCY]: 5,  // Long-term dedication (climax)
+        [AchievementCategory.MASTERY]: 6,      // Ultimate mastery (finale)
+        [AchievementCategory.SOCIAL]: 7        // Social achievements last
+      };
+      if (a.category !== b.category) {
+        return categoryOrder[a.category] - categoryOrder[b.category];
+      }
+      
+      // 3. XP VALUE: Higher XP within same rarity = later display (crescendo within tier)
+      return a.xpReward - b.xpReward;
+    });
+  }, []);
+
+  // ========================================
   // CELEBRATION QUEUE SYSTEM
   // ========================================
 
@@ -366,8 +410,15 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       (eventData: { count: number; totalXP: number; achievements: Achievement[] }) => {
         console.log(`🎉 Multiple achievements unlocked: ${eventData.count} achievements`);
         
-        // Add all achievements to celebration queue
-        eventData.achievements.forEach(achievement => {
+        // 🎯 CRESCENDO EFFECT: Sort achievements from lowest to highest rarity
+        // This creates escalating joy - starting with common, building to legendary finale
+        const sortedAchievements = sortAchievementsForDisplay(eventData.achievements);
+        
+        console.log('🎭 Achievement display order (crescendo effect):', 
+          sortedAchievements.map(a => `${a.name} (${a.rarity.toUpperCase()}, ${a.xpReward} XP)`));
+        
+        // Add all achievements to celebration queue in crescendo order
+        sortedAchievements.forEach(achievement => {
           addToCelebrationQueue(achievement, achievement.xpReward);
         });
         
@@ -433,7 +484,10 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     // Celebration system actions
     addToCelebrationQueue,
     showNextCelebration,
-    closeCelebrationModal
+    closeCelebrationModal,
+    
+    // Display sorting
+    sortAchievementsForDisplay
   };
 
   return (

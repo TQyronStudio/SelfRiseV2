@@ -23,6 +23,13 @@ export interface UserStats {
   longestJournalStreak: number;
   bonusJournalEntries: number;
   
+  // Journal Bonus Milestones (New for ⭐🔥👑 system)
+  starCount: number;              // Number of ⭐ achieved (1+ bonus per day)
+  flameCount: number;             // Number of 🔥 achieved (5+ bonuses per day)
+  crownCount: number;             // Number of 👑 achieved (10+ bonuses per day)
+  bonusStreakDays: number;        // Current bonus streak (1+ bonus daily)
+  goldenBonusStreakDays: number;  // Current golden bonus streak (3+ bonuses daily)
+  
   // Goals
   goalsCreated: number;
   completedGoals: number;
@@ -336,6 +343,277 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         requirementText: "Write 50 bonus journal entries",
         actionHint: "Go beyond the daily minimum with bonus entries!",
         estimatedDays: Math.ceil((50 - bonusEntries) / 2) // Assuming 2 bonus per day
+      };
+
+    // ========================================
+    // NEW JOURNAL BONUS ACHIEVEMENTS (24 achievements)
+    // Added: 2025-08-30 - Complete ⭐🔥👑 milestone system
+    // ========================================
+
+    // --- BASIC BONUS ACHIEVEMENTS (9 achievements) ---
+
+    case 'first-star':
+      return {
+        progressText: userStats.starCount === 0 ? "Get your first ⭐ bonus milestone!" : "✅ First star earned!",
+        progressPercentage: userStats.starCount > 0 ? 100 : 0,
+        isCompleted: userStats.starCount > 0,
+        requirementText: "Write your first bonus journal entry to get a star",
+        actionHint: "Write 4+ journal entries today to earn your first ⭐!"
+      };
+
+    case 'five-stars':
+      const stars5 = Math.min(userStats.starCount, 5);
+      return {
+        progressText: `Earn 5 stars total (${stars5}/5)`,
+        progressPercentage: (stars5 / 5) * 100,
+        isCompleted: stars5 >= 5,
+        requirementText: "Earn ⭐ milestone 5 times total",
+        actionHint: "Keep writing bonus entries to earn more stars!",
+        estimatedDays: Math.max(0, 5 - stars5)
+      };
+
+    case 'flame-achiever':
+      return {
+        progressText: userStats.flameCount === 0 ? "Get your first 🔥 flame milestone!" : "✅ First flame earned!",
+        progressPercentage: userStats.flameCount > 0 ? 100 : 0,
+        isCompleted: userStats.flameCount > 0,
+        requirementText: "Write 5+ bonus entries in one day to earn a flame",
+        actionHint: "Challenge yourself with 8+ journal entries in one day!"
+      };
+
+    case 'bonus-week':
+      const bonusWeek = Math.min(userStats.bonusStreakDays, 7);
+      return {
+        progressText: `Bonus streak 7 days (${bonusWeek}/7)`,
+        progressPercentage: (bonusWeek / 7) * 100,
+        isCompleted: bonusWeek >= 7,
+        requirementText: "Write at least 1 bonus entry for 7 consecutive days",
+        actionHint: "Write 4+ entries daily to maintain your bonus streak!",
+        estimatedDays: Math.max(0, 7 - bonusWeek)
+      };
+
+    case 'crown-royalty':
+      return {
+        progressText: userStats.crownCount === 0 ? "Get your first 👑 crown milestone!" : "✅ First crown earned!",
+        progressPercentage: userStats.crownCount > 0 ? 100 : 0,
+        isCompleted: userStats.crownCount > 0,
+        requirementText: "Write 10+ bonus entries in one day to earn a crown",
+        actionHint: "Go for royal status with 13+ journal entries in one day!"
+      };
+
+    case 'flame-collector':
+      const flameCollector = Math.min(userStats.flameCount, 5);
+      return {
+        progressText: `Collect 5 flames total (${flameCollector}/5)`,
+        progressPercentage: (flameCollector / 5) * 100,
+        isCompleted: flameCollector >= 5,
+        requirementText: "Earn 🔥 milestone 5 times total",
+        actionHint: "Keep having intense gratitude days with 5+ bonus entries!",
+        estimatedDays: Math.max(0, 5 - flameCollector) * 7 // Rough estimate
+      };
+
+    case 'golden-bonus-streak':
+      const goldenStreak = Math.min(userStats.goldenBonusStreakDays, 7);
+      return {
+        progressText: `Golden bonus streak 7 days (${goldenStreak}/7)`,
+        progressPercentage: (goldenStreak / 7) * 100,
+        isCompleted: goldenStreak >= 7,
+        requirementText: "Write 3+ bonus entries daily for 7 consecutive days",
+        actionHint: "Write 6+ entries daily for the ultimate bonus streak!",
+        estimatedDays: Math.max(0, 7 - goldenStreak)
+      };
+
+    case 'triple-crown-master':
+      const tripleCrown = Math.min(userStats.crownCount, 3);
+      return {
+        progressText: `Earn 3 crowns total (${tripleCrown}/3)`,
+        progressPercentage: (tripleCrown / 3) * 100,
+        isCompleted: tripleCrown >= 3,
+        requirementText: "Earn 👑 milestone 3 times total",
+        actionHint: "Master the art of royal gratitude days!",
+        estimatedDays: Math.max(0, 3 - tripleCrown) * 30 // Rough estimate
+      };
+
+    case 'bonus-century':
+      const bonusCentury = Math.min(userStats.bonusJournalEntries, 200);
+      return {
+        progressText: `Write 200 bonus entries (${bonusCentury}/200)`,
+        progressPercentage: (bonusCentury / 200) * 100,
+        isCompleted: bonusCentury >= 200,
+        requirementText: "Write 200 bonus journal entries total",
+        actionHint: "Ultimate bonus mastery - keep writing beyond the minimum!",
+        estimatedDays: Math.ceil((200 - bonusCentury) / 2) // Assuming 2 bonus per day
+      };
+
+    // --- STAR MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+    case 'star-beginner':
+      const starBeginner = Math.min(userStats.starCount, 10);
+      return {
+        progressText: `Earn 10 stars total (${starBeginner}/10)`,
+        progressPercentage: (starBeginner / 10) * 100,
+        isCompleted: starBeginner >= 10,
+        requirementText: "Earn ⭐ milestone 10 times total",
+        actionHint: "Build your collection of bonus days!",
+        estimatedDays: Math.max(0, 10 - starBeginner)
+      };
+
+    case 'star-collector':
+      const starCollector = Math.min(userStats.starCount, 25);
+      return {
+        progressText: `Earn 25 stars total (${starCollector}/25)`,
+        progressPercentage: (starCollector / 25) * 100,
+        isCompleted: starCollector >= 25,
+        requirementText: "Earn ⭐ milestone 25 times total",
+        actionHint: "You're becoming a star collector!",
+        estimatedDays: Math.max(0, 25 - starCollector)
+      };
+
+    case 'star-master':
+      const starMaster = Math.min(userStats.starCount, 50);
+      return {
+        progressText: `Earn 50 stars total (${starMaster}/50)`,
+        progressPercentage: (starMaster / 50) * 100,
+        isCompleted: starMaster >= 50,
+        requirementText: "Earn ⭐ milestone 50 times total",
+        actionHint: "Master level star achievement!",
+        estimatedDays: Math.max(0, 50 - starMaster)
+      };
+
+    case 'star-champion':
+      const starChampion = Math.min(userStats.starCount, 100);
+      return {
+        progressText: `Earn 100 stars total (${starChampion}/100)`,
+        progressPercentage: (starChampion / 100) * 100,
+        isCompleted: starChampion >= 100,
+        requirementText: "Earn ⭐ milestone 100 times total",
+        actionHint: "Champion level dedication to bonus gratitude!",
+        estimatedDays: Math.max(0, 100 - starChampion)
+      };
+
+    case 'star-legend':
+      const starLegend = Math.min(userStats.starCount, 200);
+      return {
+        progressText: `Earn 200 stars total (${starLegend}/200)`,
+        progressPercentage: (starLegend / 200) * 100,
+        isCompleted: starLegend >= 200,
+        requirementText: "Earn ⭐ milestone 200 times total",
+        actionHint: "Legendary star collector status!",
+        estimatedDays: Math.max(0, 200 - starLegend)
+      };
+
+    // --- FLAME MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+    case 'flame-starter':
+      const flameStarter = Math.min(userStats.flameCount, 5);
+      return {
+        progressText: `Earn 5 flames total (${flameStarter}/5)`,
+        progressPercentage: (flameStarter / 5) * 100,
+        isCompleted: flameStarter >= 5,
+        requirementText: "Earn 🔥 milestone 5 times total",
+        actionHint: "Starting your flame collection!",
+        estimatedDays: Math.max(0, 5 - flameStarter) * 7
+      };
+
+    case 'flame-accumulator':
+      const flameAccumulator = Math.min(userStats.flameCount, 10);
+      return {
+        progressText: `Earn 10 flames total (${flameAccumulator}/10)`,
+        progressPercentage: (flameAccumulator / 10) * 100,
+        isCompleted: flameAccumulator >= 10,
+        requirementText: "Earn 🔥 milestone 10 times total",
+        actionHint: "Accumulating intense gratitude days!",
+        estimatedDays: Math.max(0, 10 - flameAccumulator) * 14
+      };
+
+    case 'flame-master':
+      const flameMaster = Math.min(userStats.flameCount, 25);
+      return {
+        progressText: `Earn 25 flames total (${flameMaster}/25)`,
+        progressPercentage: (flameMaster / 25) * 100,
+        isCompleted: flameMaster >= 25,
+        requirementText: "Earn 🔥 milestone 25 times total",
+        actionHint: "Master of systematic intense days!",
+        estimatedDays: Math.max(0, 25 - flameMaster) * 10
+      };
+
+    case 'flame-champion':
+      const flameChampion = Math.min(userStats.flameCount, 50);
+      return {
+        progressText: `Earn 50 flames total (${flameChampion}/50)`,
+        progressPercentage: (flameChampion / 50) * 100,
+        isCompleted: flameChampion >= 50,
+        requirementText: "Earn 🔥 milestone 50 times total",
+        actionHint: "Champion of deep daily reflection!",
+        estimatedDays: Math.max(0, 50 - flameChampion) * 7
+      };
+
+    case 'flame-legend':
+      const flameLegend = Math.min(userStats.flameCount, 100);
+      return {
+        progressText: `Earn 100 flames total (${flameLegend}/100)`,
+        progressPercentage: (flameLegend / 100) * 100,
+        isCompleted: flameLegend >= 100,
+        requirementText: "Earn 🔥 milestone 100 times total",
+        actionHint: "Legendary master of intense gratitude!",
+        estimatedDays: Math.max(0, 100 - flameLegend) * 4
+      };
+
+    // --- CROWN MILESTONE ACHIEVEMENTS (5 achievements) ---
+
+    case 'crown-achiever':
+      const crownAchiever = Math.min(userStats.crownCount, 3);
+      return {
+        progressText: `Earn 3 crowns total (${crownAchiever}/3)`,
+        progressPercentage: (crownAchiever / 3) * 100,
+        isCompleted: crownAchiever >= 3,
+        requirementText: "Earn 👑 milestone 3 times total",
+        actionHint: "Achieve royal reflection days!",
+        estimatedDays: Math.max(0, 3 - crownAchiever) * 60
+      };
+
+    case 'crown-collector':
+      const crownCollector = Math.min(userStats.crownCount, 5);
+      return {
+        progressText: `Earn 5 crowns total (${crownCollector}/5)`,
+        progressPercentage: (crownCollector / 5) * 100,
+        isCompleted: crownCollector >= 5,
+        requirementText: "Earn 👑 milestone 5 times total",
+        actionHint: "Collecting royal gratitude experiences!",
+        estimatedDays: Math.max(0, 5 - crownCollector) * 45
+      };
+
+    case 'crown-master':
+      const crownMaster = Math.min(userStats.crownCount, 10);
+      return {
+        progressText: `Earn 10 crowns total (${crownMaster}/10)`,
+        progressPercentage: (crownMaster / 10) * 100,
+        isCompleted: crownMaster >= 10,
+        requirementText: "Earn 👑 milestone 10 times total",
+        actionHint: "Master of royal-level reflection!",
+        estimatedDays: Math.max(0, 10 - crownMaster) * 30
+      };
+
+    case 'crown-champion':
+      const crownChampion = Math.min(userStats.crownCount, 25);
+      return {
+        progressText: `Earn 25 crowns total (${crownChampion}/25)`,
+        progressPercentage: (crownChampion / 25) * 100,
+        isCompleted: crownChampion >= 25,
+        requirementText: "Earn 👑 milestone 25 times total",
+        actionHint: "Champion of royal gratitude days!",
+        estimatedDays: Math.max(0, 25 - crownChampion) * 14
+      };
+
+    case 'crown-emperor':
+      const crownEmperor = Math.min(userStats.crownCount, 50);
+      return {
+        progressText: `Earn 50 crowns total (${crownEmperor}/50)`,
+        progressPercentage: (crownEmperor / 50) * 100,
+        isCompleted: crownEmperor >= 50,
+        requirementText: "Earn 👑 milestone 50 times total",
+        actionHint: "Imperial status in deep reflection practice!",
+        estimatedDays: Math.max(0, 50 - crownEmperor) * 7
       };
       
     default:
