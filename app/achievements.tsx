@@ -29,6 +29,7 @@ import { AchievementHistory } from '@/src/components/achievements/AchievementHis
 import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
 import { AchievementShareModal } from '@/src/components/social';
+import { AchievementDetailModal } from '@/src/components/achievements/AchievementDetailModal';
 import { UserStatsCollector } from '@/src/utils/userStatsCollector';
 import { UserStats } from '@/src/utils/achievementPreviewUtils';
 import { 
@@ -76,6 +77,10 @@ export default function AchievementsScreen() {
   // Social features state
   const [selectedAchievementForShare, setSelectedAchievementForShare] = useState<Achievement | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  
+  // Detail modal state
+  const [selectedAchievementForDetail, setSelectedAchievementForDetail] = useState<Achievement | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   
   
   // ========================================
@@ -344,22 +349,26 @@ export default function AchievementsScreen() {
       await loadUserStatsOnDemand();
     }
     
-    // Check if achievement is unlocked for sharing
-    const isUnlocked = userAchievements?.unlockedAchievements.includes(achievement.id) || false;
-    
-    if (isUnlocked) {
-      // Open sharing modal for unlocked achievements
-      setSelectedAchievementForShare(achievement);
-      setShowShareModal(true);
-    } else {
-      // Preview system will show progress hints for locked achievements
-      console.log('Achievement locked - preview system active:', achievement.name);
-    }
+    // Always open detail modal (works for both locked and unlocked achievements)
+    setSelectedAchievementForDetail(achievement);
+    setShowDetailModal(true);
+  };
+
+  const handleShareFromDetail = (achievement: Achievement) => {
+    // Close detail modal and open share modal
+    setShowDetailModal(false);
+    setSelectedAchievementForShare(achievement);
+    setShowShareModal(true);
   };
 
   const handleCloseShareModal = () => {
     setShowShareModal(false);
     setSelectedAchievementForShare(null);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedAchievementForDetail(null);
   };
   
   // ========================================
@@ -768,6 +777,15 @@ export default function AchievementsScreen() {
         visible={showShareModal}
         achievement={selectedAchievementForShare}
         onClose={handleCloseShareModal}
+      />
+
+      <AchievementDetailModal
+        visible={showDetailModal}
+        achievement={selectedAchievementForDetail}
+        userAchievements={userAchievements}
+        userStats={userStats || undefined}
+        onClose={handleCloseDetailModal}
+        onSharePress={handleShareFromDetail}
       />
     </View>
   );
