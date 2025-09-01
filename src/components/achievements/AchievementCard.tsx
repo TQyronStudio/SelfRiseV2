@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,15 +19,16 @@ import {
   generateSmartTooltip,
   UserStats 
 } from '@/src/utils/achievementPreviewUtils';
+import { AchievementService } from '@/src/services/achievementService';
 import { AchievementTooltip } from './AchievementTooltip';
 
 interface AchievementCardProps {
   achievement: Achievement;
-  userProgress?: number;
   isUnlocked: boolean;
   onPress?: () => void;
-  userStats?: UserStats | undefined; // For preview system
   showPreview?: boolean; // Enable preview functionality
+  realTimeProgress?: number | undefined; // Pre-calculated real-time progress
+  userStats?: UserStats; // Pre-loaded user stats for preview
 }
 
 const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
@@ -56,18 +57,24 @@ const getRarityGlow = (rarity: AchievementRarity, isHighContrast: boolean): stri
 
 export const AchievementCard: React.FC<AchievementCardProps> = ({
   achievement,
-  userProgress = 0,
   isUnlocked,
   onPress,
-  userStats,
   showPreview = true,
+  realTimeProgress,
+  userStats,
 }) => {
   const { t } = useI18n();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   
   const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
   const rarityGlow = getRarityGlow(achievement.rarity, isHighContrastEnabled);
-  const progress = achievement.isProgressive ? userProgress : (isUnlocked ? 100 : 0);
+  
+  // Use passed realTimeProgress or fallback to basic calculation
+  const progress = realTimeProgress !== undefined 
+    ? realTimeProgress 
+    : achievement.isProgressive 
+      ? 0 
+      : (isUnlocked ? 100 : 0);
   
   // Animation states for micro-interactions
   const [scaleAnim] = useState(new Animated.Value(1));
@@ -138,11 +145,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   
   // Enhanced tap handler for preview system
   const handleCardPress = () => {
-    if (showPreview && userStats) {
-      setShowTooltip(true);
-    } else if (onPress) {
+    // In Browse All mode, always open detail modal instead of tooltip
+    if (onPress) {
       onPress();
     }
+    // Note: Tooltip preview disabled in Browse All mode to avoid confusion
   };
   
   // Accessibility label for the achievement card

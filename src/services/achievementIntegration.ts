@@ -1058,24 +1058,98 @@ export class AchievementIntegration {
   // ========================================
 
   /**
-   * Get habit statistics - simple fallback implementation
+   * Get habit statistics - real implementation
    */
   private static async getHabitStats(habitId: string): Promise<any> {
-    return { currentStreak: 0, totalCompletions: 0, longestStreak: 0 };
+    try {
+      const habit = await this.habitStorage.getById(habitId);
+      if (!habit) {
+        return { currentStreak: 0, totalCompletions: 0, longestStreak: 0 };
+      }
+
+      const completions = await this.getHabitCompletions(habitId);
+      
+      // Calculate current streak
+      const sortedCompletions = completions
+        .filter(c => c.completed)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      let currentStreak = 0;
+      let currentDate = new Date();
+      
+      for (const completion of sortedCompletions) {
+        const completionDate = new Date(completion.date + 'T00:00:00');
+        const daysDiff = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === currentStreak) {
+          currentStreak++;
+          currentDate = completionDate;
+        } else {
+          break;
+        }
+      }
+      
+      // Calculate longest streak
+      let longestStreak = 0;
+      let tempStreak = 0;
+      let lastDate: Date | null = null;
+      
+      const ascendingCompletions = completions
+        .filter(c => c.completed)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      for (const completion of ascendingCompletions) {
+        const completionDate = new Date(completion.date + 'T00:00:00');
+        
+        if (lastDate) {
+          const daysDiff = Math.floor((completionDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysDiff === 1) {
+            tempStreak++;
+          } else {
+            tempStreak = 1;
+          }
+        } else {
+          tempStreak = 1;
+        }
+        
+        longestStreak = Math.max(longestStreak, tempStreak);
+        lastDate = completionDate;
+      }
+      
+      return {
+        currentStreak,
+        totalCompletions: completions.filter(c => c.completed).length,
+        longestStreak
+      };
+    } catch (error) {
+      console.error('AchievementIntegration.getHabitStats error:', error);
+      return { currentStreak: 0, totalCompletions: 0, longestStreak: 0 };
+    }
   }
 
   /**
-   * Get habit completions - simple fallback implementation  
+   * Get habit completions - real implementation  
    */
   private static async getHabitCompletions(habitId: string): Promise<any[]> {
-    return [];
+    try {
+      return await this.habitStorage.getCompletionsByHabitId(habitId);
+    } catch (error) {
+      console.error('AchievementIntegration.getHabitCompletions error:', error);
+      return [];
+    }
   }
 
   /**
-   * Get gratitude current streak - simple fallback implementation
+   * Get gratitude current streak - real implementation
    */
   private static async getGratitudeCurrentStreak(): Promise<number> {
-    return 0;
+    try {
+      const streak = await this.gratitudeStorage.getStreak();
+      return streak.currentStreak;
+    } catch (error) {
+      console.error('AchievementIntegration.getGratitudeCurrentStreak error:', error);
+      return 0;
+    }
   }
 
   /**
@@ -1087,9 +1161,14 @@ export class AchievementIntegration {
   }
 
   /**
-   * Get goal progress - simple fallback implementation
+   * Get goal progress - real implementation
    */
   private static async getGoalProgress(goalId: string): Promise<any[]> {
-    return [];
+    try {
+      return await this.goalStorage.getProgressByGoalId(goalId);
+    } catch (error) {
+      console.error('AchievementIntegration.getGoalProgress error:', error);
+      return [];
+    }
   }
 }

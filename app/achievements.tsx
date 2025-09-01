@@ -30,8 +30,6 @@ import { AchievementSpotlight } from '@/src/components/achievements/AchievementS
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
 import { AchievementShareModal } from '@/src/components/social';
 import { AchievementDetailModal } from '@/src/components/achievements/AchievementDetailModal';
-import { UserStatsCollector } from '@/src/utils/userStatsCollector';
-import { UserStats } from '@/src/utils/achievementPreviewUtils';
 import { 
   Achievement, 
   UserAchievements, 
@@ -56,10 +54,17 @@ export default function AchievementsScreen() {
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
   const [achievementStats, setAchievementStats] = useState<AchievementStats | null>(null);
   const [currentLevel, setCurrentLevel] = useState<number>(1);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Batch real-time data for performance
+  const [realTimeProgressMap, setRealTimeProgressMap] = useState<Record<string, number>>({});
+  const [batchUserStats, setBatchUserStats] = useState<any>(null);
+  const [batchDataTimestamp, setBatchDataTimestamp] = useState<number>(0);
+  
+  // Cache duration: 30 seconds
+  const BATCH_CACHE_DURATION = 30000;
   
   // Filter state
   const [filters, setFilters] = useState<FilterOptions>({
@@ -95,7 +100,7 @@ export default function AchievementsScreen() {
       
       setError(null);
       
-      // Load essential data first (excluding userStats for performance - lazy loaded when needed)
+      // Load essential data first
       const [userData, statsData, gamificationData] = await Promise.all([
         AchievementStorage.getUserAchievements(),
         AchievementService.getAchievementStats(),
@@ -106,9 +111,6 @@ export default function AchievementsScreen() {
       setAchievementStats(statsData);
       setCurrentLevel(gamificationData.currentLevel);
       
-      // UserStats are now lazy loaded - only when needed for preview system
-      // This improves Trophy Room initial loading performance significantly
-      
     } catch (err) {
       console.error('Failed to load achievement data:', err);
       setError(t('common.error'));
@@ -117,33 +119,100 @@ export default function AchievementsScreen() {
       setIsRefreshing(false);
     }
   };
-  
+
   /**
-   * Lazy loads userStats only when needed for preview system
-   * Uses cached data when available for optimal performance
+   * Load batch real-time data for all achievements with caching
+   * Called only when entering "Browse All" mode
    */
-  const loadUserStatsOnDemand = async () => {
-    // Skip if already loaded and data is recent
-    if (userStats) {
-      console.log('UserStats already loaded, skipping lazy load');
-      return;
-    }
-    
+  const loadBatchRealTimeData = async (forceRefresh: boolean = false) => {
     try {
-      console.log('Lazy loading UserStats for preview system...');
-      const userStatsData = await UserStatsCollector.collectUserStats();
-      setUserStats(userStatsData);
-      console.log('UserStats lazy loaded successfully');
+      // Check if cache is still valid
+      const now = Date.now();
+      const cacheAge = now - batchDataTimestamp;
+      
+      if (!forceRefresh && batchUserStats && cacheAge < BATCH_CACHE_DURATION) {
+        console.log('📦 Using cached batch real-time data');
+        return;
+      }
+      
+      console.log('🔄 Loading batch real-time data for achievements...');
+      
+      // Get both progress map and user stats in parallel
+      const [progressMap, userStats] = await Promise.all([
+        AchievementService.calculateAllProgressRealTime(),
+        AchievementService.getRealTimeUserStats()
+      ]);
+      
+      // Batch state updates to avoid multiple re-renders  
+      React.startTransition(() => {
+        setRealTimeProgressMap(progressMap);
+        
+        // Convert to UserStats format for preview system
+        setBatchUserStats({
+        habitsCreated: userStats.habitsCreated,
+        totalHabitCompletions: userStats.totalHabitCompletions,
+        longestHabitStreak: userStats.longestHabitStreak,
+        maxHabitsInOneDay: userStats.maxHabitsInOneDay,
+        habitLevel: 0,
+        journalEntries: userStats.journalEntries,
+        totalJournalEntries: userStats.totalJournalEntries,
+        currentJournalStreak: userStats.currentJournalStreak,
+        longestJournalStreak: userStats.longestJournalStreak,
+        bonusJournalEntries: userStats.bonusJournalEntries,
+        starCount: userStats.starCount,
+        flameCount: userStats.flameCount,
+        crownCount: userStats.crownCount,
+        bonusStreakDays: 0,
+        goldenBonusStreakDays: 0,
+        goalsCreated: userStats.goalsCreated,
+        completedGoals: userStats.goalsCompleted,
+        goalProgressStreak: 0,
+        hasLargeGoal: false,
+        currentLevel: userStats.currentLevel,
+        totalXP: userStats.totalXP,
+        xpFromHabits: userStats.xpFromHabits,
+        totalAchievements: 0,
+        unlockedAchievements: Object.values(userStats.progressMap).filter(p => p >= 100).length,
+        appUsageStreak: 0,
+        multiAreaDays: 0,
+        totalActiveDays: userStats.loyaltyTotalActiveDays,
+        recommendationsFollowed: 0,
+        samedayHabitCreationCompletions: 0,
+        activeHabitsSimultaneous: 0,
+        comebackActivities: 0,
+        perfectMonthDays: 0,
+        hasTripleCrown: userStats.crownCount >= 3,
+        dailyFeatureComboDays: 0,
+        });
+        
+        // Update cache timestamp
+        setBatchDataTimestamp(now);
+      }); // End React.startTransition
+      
+      console.log('✅ Batch real-time data loaded successfully');
+      
     } catch (error) {
-      console.error('Failed to lazy load userStats:', error);
-      // Don't throw error - preview system is optional
+      console.error('Failed to load batch real-time data:', error);
+      React.startTransition(() => {
+        setRealTimeProgressMap({});
+        setBatchUserStats(null);
+        setBatchDataTimestamp(0);
+      });
     }
   };
+  
   
   // Load data on component mount and when screen comes into focus
   useEffect(() => {
     loadAchievementData(true);
   }, []);
+  
+  // Load batch real-time data when switching to "Browse All" mode
+  useEffect(() => {
+    if (viewMode === 'achievements' && userAchievements) {
+      loadBatchRealTimeData();
+    }
+  }, [viewMode]); // Remove userAchievements to prevent interference with modal
   
   useFocusEffect(
     React.useCallback(() => {
@@ -152,13 +221,6 @@ export default function AchievementsScreen() {
     }, [])
   );
   
-  // Lazy load userStats when switching to achievements mode where preview system is used
-  useEffect(() => {
-    if (viewMode === 'achievements' && !userStats) {
-      console.log('Switching to achievements mode, triggering userStats lazy load');
-      loadUserStatsOnDemand();
-    }
-  }, [viewMode, userStats]);
   
   // ========================================
   // COMPUTED DATA
@@ -333,22 +395,14 @@ export default function AchievementsScreen() {
     setIsRefreshing(true);
     loadAchievementData(false);
     
-    // If userStats are loaded, force refresh them too (clear cache)
-    if (userStats && viewMode === 'achievements') {
-      console.log('Refreshing userStats cache due to pull-to-refresh');
-      UserStatsCollector.clearCache();
-      loadUserStatsOnDemand();
+    // Force refresh batch data if in achievements mode
+    if (viewMode === 'achievements') {
+      loadBatchRealTimeData(true); // Force refresh
     }
   };
 
 
-  const handleAchievementPress = async (achievement: Achievement) => {
-    // Lazy load userStats if not available for preview system
-    if (!userStats) {
-      console.log('Achievement pressed, lazy loading userStats for preview...');
-      await loadUserStatsOnDemand();
-    }
-    
+  const handleAchievementPress = (achievement: Achievement) => {
     // Always open detail modal (works for both locked and unlocked achievements)
     setSelectedAchievementForDetail(achievement);
     setShowDetailModal(true);
@@ -585,8 +639,9 @@ export default function AchievementsScreen() {
         achievements={achievements}
         userAchievements={userAchievements}
         onAchievementPress={handleAchievementPress}
-        userStats={userStats || undefined}
         showPreview={true}
+        realTimeProgressMap={realTimeProgressMap}
+        batchUserStats={batchUserStats}
       />
     ));
   };
@@ -594,7 +649,7 @@ export default function AchievementsScreen() {
   const renderGridView = () => {
     if (!userAchievements) return null;
 
-    const numColumns = Math.floor((Dimensions.get('window').width - 32) / 162);
+    const numColumns = Math.floor((Dimensions.get('window').width - 32) / 158); // 150 (card) + 8 (margins)
     const rows: Achievement[][] = [];
     
     // Group achievements into rows
@@ -608,17 +663,20 @@ export default function AchievementsScreen() {
           <View key={rowIndex} style={styles.achievementRow}>
             {row.map((achievement) => {
               const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
-              const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
               
               return (
                 <View key={achievement.id} style={styles.cardWrapper}>
                   <AchievementCard
                     achievement={achievement}
-                    userProgress={userProgress}
                     isUnlocked={isUnlocked}
                     onPress={() => handleAchievementPress(achievement)}
-                    userStats={userStats || undefined}
                     showPreview={true}
+                    {...(realTimeProgressMap[achievement.id] !== undefined && {
+                      realTimeProgress: realTimeProgressMap[achievement.id]
+                    })}
+                    {...(batchUserStats && {
+                      userStats: batchUserStats
+                    })}
                   />
                 </View>
               );
@@ -769,9 +827,10 @@ export default function AchievementsScreen() {
         visible={showDetailModal}
         achievement={selectedAchievementForDetail}
         userAchievements={userAchievements}
-        userStats={userStats || undefined}
         onClose={handleCloseDetailModal}
         onSharePress={handleShareFromDetail}
+        batchUserStats={batchUserStats}
+        realTimeProgress={selectedAchievementForDetail ? realTimeProgressMap[selectedAchievementForDetail.id] : undefined}
       />
     </View>
   );

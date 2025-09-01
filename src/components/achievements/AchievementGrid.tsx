@@ -16,7 +16,7 @@ interface AchievementGridProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = 150;
-const spacing = 12;
+const spacing = 8; // marginHorizontal: 4 * 2
 const numColumns = Math.floor((screenWidth - 32) / (cardWidth + spacing));
 
 export const AchievementGrid: React.FC<AchievementGridProps> = ({
@@ -26,13 +26,11 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
 }) => {
   const renderAchievementCard = ({ item: achievement }: { item: Achievement }) => {
     const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
-    const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
 
     return (
       <View style={styles.cardWrapper}>
         <AchievementCard
           achievement={achievement}
-          userProgress={userProgress}
           isUnlocked={isUnlocked}
           onPress={() => onAchievementPress?.(achievement)}
         />

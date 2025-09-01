@@ -201,11 +201,32 @@ export class AchievementService {
       // Get current value based on condition type and source
       switch (condition.type) {
         case 'count':
-          currentValue = await this.getCountValue(condition.source, condition.timeframe, additionalData);
+          // Handle XP source types
+          if (Object.values(XPSourceType).includes(condition.source as XPSourceType)) {
+            const xpSource = condition.source as XPSourceType;
+            const transactions = await GamificationService.getAllTransactions();
+            
+            // Filter by timeframe if specified
+            const filteredTransactions = this.filterTransactionsByTimeframe(transactions, condition.timeframe);
+            
+            // Count transactions from this source
+            currentValue = filteredTransactions.filter(t => t.source === xpSource && t.amount > 0).length;
+          } else {
+            // Handle custom sources using integration layer
+            const { AchievementIntegration } = await import('./achievementIntegration');
+            currentValue = await AchievementIntegration.getCountValueForAchievement(condition.source, condition.timeframe);
+          }
           break;
           
         case 'streak':
-          currentValue = await this.getStreakValue(condition.source, condition.timeframe, additionalData);
+          if (condition.source === XPSourceType.DAILY_LAUNCH) {
+            const stats = await GamificationService.getGamificationStats();
+            currentValue = stats.currentStreak;
+          } else {
+            // Handle custom sources using integration layer
+            const { AchievementIntegration } = await import('./achievementIntegration');
+            currentValue = await AchievementIntegration.getStreakValueForAchievement(condition.source, condition.timeframe);
+          }
           break;
           
         case 'value':
@@ -324,58 +345,6 @@ export class AchievementService {
   // VALUE EXTRACTION METHODS
   // ========================================
 
-  /**
-   * Get count value for achievement condition
-   */
-  private static async getCountValue(
-    source: XPSourceType | string,
-    timeframe?: string,
-    additionalData?: Record<string, any>
-  ): Promise<number> {
-    try {
-      // Handle XP source types
-      if (Object.values(XPSourceType).includes(source as XPSourceType)) {
-        const xpSource = source as XPSourceType;
-        const transactions = await GamificationService.getAllTransactions();
-        
-        // Filter by timeframe if specified
-        const filteredTransactions = this.filterTransactionsByTimeframe(transactions, timeframe);
-        
-        // Count transactions from this source
-        return filteredTransactions.filter(t => t.source === xpSource && t.amount > 0).length;
-      }
-
-      // Handle custom sources using integration layer
-      const { AchievementIntegration } = await import('./achievementIntegration');
-      return await AchievementIntegration.getCountValueForAchievement(source, timeframe);
-    } catch (error) {
-      console.error('AchievementService.getCountValue error:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * Get streak value for achievement condition
-   */
-  private static async getStreakValue(
-    source: XPSourceType | string,
-    timeframe?: string,
-    additionalData?: Record<string, any>
-  ): Promise<number> {
-    try {
-      if (source === XPSourceType.DAILY_LAUNCH) {
-        const stats = await GamificationService.getGamificationStats();
-        return stats.currentStreak;
-      }
-
-      // Handle custom sources using integration layer
-      const { AchievementIntegration } = await import('./achievementIntegration');
-      return await AchievementIntegration.getStreakValueForAchievement(source, timeframe);
-    } catch (error) {
-      console.error('AchievementService.getStreakValue error:', error);
-      return 0;
-    }
-  }
 
   /**
    * Get value metric for achievement condition
@@ -398,7 +367,9 @@ export class AchievementService {
             return await AchievementIntegration.getMaxGoalTargetValue(timeframe);
           }
         default:
-          return await this.getCountValue(source, timeframe, additionalData);
+          // Handle custom sources using integration layer
+          const { AchievementIntegration } = await import('./achievementIntegration');
+          return await AchievementIntegration.getCountValueForAchievement(source, timeframe);
       }
     } catch (error) {
       console.error('AchievementService.getValueMetric error:', error);
@@ -1333,6 +1304,220 @@ export class AchievementService {
       console.error('AchievementService.checkLoyaltyAchievements error:', error);
       return { unlocked: [], progress: [], xpAwarded: 0, leveledUp: false };
     }
+  }
+
+  // ========================================
+  // UNIFIED REAL-TIME PROGRESS SYSTEM
+  // ========================================
+
+  /**
+   * Calculate real-time progress for a specific achievement
+   * This replaces the cached UserStatsCollector for immediate accuracy
+   */
+  static async calculateRealTimeProgress(achievementId: string): Promise<number> {
+    try {
+      const achievement = this.getAchievementById(achievementId);
+      if (!achievement) {
+        console.warn(`Achievement not found: ${achievementId}`);
+        return 0;
+      }
+
+      // Check if already unlocked
+      const userAchievements = await AchievementStorage.getUserAchievements();
+      if (userAchievements.unlockedAchievements.includes(achievementId)) {
+        return 100; // Already unlocked
+      }
+
+      // Get current user stats for evaluation
+      const userStats = await GamificationService.getGamificationStats();
+      
+      // Evaluate condition to get current progress
+      const conditionResult = await this.evaluateCondition(
+        achievement.condition,
+        userStats
+      );
+
+      return Math.max(0, Math.min(100, conditionResult.progress));
+    } catch (error) {
+      console.error(`AchievementService.calculateRealTimeProgress error for ${achievementId}:`, error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate real-time progress for all achievements
+   * Optimized batch calculation for UI components that need multiple progress values
+   */
+  static async calculateAllProgressRealTime(): Promise<Record<string, number>> {
+    try {
+      const progressMap: Record<string, number> = {};
+      
+      // Get user data once for all calculations
+      const userAchievements = await AchievementStorage.getUserAchievements();
+      const userStats = await GamificationService.getGamificationStats();
+      
+      // Process all achievements
+      for (const achievement of CORE_ACHIEVEMENTS) {
+        if (userAchievements.unlockedAchievements.includes(achievement.id)) {
+          progressMap[achievement.id] = 100;
+        } else {
+          try {
+            const conditionResult = await this.evaluateCondition(
+              achievement.condition,
+              userStats
+            );
+            progressMap[achievement.id] = Math.max(0, Math.min(100, conditionResult.progress));
+          } catch (error) {
+            console.error(`Progress calculation error for ${achievement.id}:`, error);
+            progressMap[achievement.id] = 0;
+          }
+        }
+      }
+      
+      return progressMap;
+    } catch (error) {
+      console.error('AchievementService.calculateAllProgressRealTime error:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get comprehensive real-time user statistics
+   * Replaces UserStatsCollector with real-time data collection
+   */
+  static async getRealTimeUserStats(): Promise<{
+    habitsCreated: number;
+    totalHabitCompletions: number;
+    longestHabitStreak: number;
+    maxHabitsInOneDay: number;
+    journalEntries: number;
+    totalJournalEntries: number;
+    currentJournalStreak: number;
+    longestJournalStreak: number;
+    bonusJournalEntries: number;
+    starCount: number;
+    flameCount: number;
+    crownCount: number;
+    goalsCreated: number;
+    goalsCompleted: number;
+    currentLevel: number;
+    totalXP: number;
+    xpFromHabits: number;
+    loyaltyTotalActiveDays: number;
+    // Achievement-specific stats
+    progressMap: Record<string, number>;
+  }> {
+    try {
+      console.log('🔄 Collecting real-time user statistics...');
+
+      // Collect data from all sources in parallel
+      const [
+        userStats,
+        habitCreationCount,
+        totalHabitCompletions,
+        maxHabitStreak,
+        dailyHabitVariety,
+        totalJournalEntries,
+        journalStreak,
+        bonusJournalEntries,
+        gratitudeStreak,
+        goalCreationCount,
+        completedGoalsCount,
+        loyaltyTotalActiveDays,
+        progressMap
+      ] = await Promise.all([
+        GamificationService.getGamificationStats(),
+        this.getCountValue('habit_creation', 'all_time'),
+        this.getCountValue('habit_completions', 'all_time'),
+        this.getStreakValue('habit_streak'),
+        this.getCountValue('daily_habit_variety'),
+        this.getCountValue('journal_entries', 'all_time'),
+        this.getStreakValue('journal_streak'),
+        this.getCountValue('journal_bonus_entries'),
+        this.getGratitudeStreakInfo(),
+        this.getCountValue('goal_creation', 'all_time'),
+        this.getCountValue('completed_goals', 'all_time'),
+        this.getCountValue('loyalty_total_active_days'),
+        this.calculateAllProgressRealTime()
+      ]);
+
+      // Calculate habit XP ratio
+      const transactions = await GamificationService.getAllTransactions();
+      const habitXP = transactions
+        .filter(t => ['habit_completion', 'habit_bonus', 'habit_streak_milestone'].includes(t.source))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        habitsCreated: habitCreationCount,
+        totalHabitCompletions,
+        longestHabitStreak: maxHabitStreak,
+        maxHabitsInOneDay: dailyHabitVariety,
+        journalEntries: totalJournalEntries > 0 ? 1 : 0, // boolean-like
+        totalJournalEntries,
+        currentJournalStreak: gratitudeStreak.currentStreak,
+        longestJournalStreak: journalStreak,
+        bonusJournalEntries,
+        starCount: gratitudeStreak.starCount || 0,
+        flameCount: gratitudeStreak.flameCount || 0,
+        crownCount: gratitudeStreak.crownCount || 0,
+        goalsCreated: goalCreationCount,
+        goalsCompleted: completedGoalsCount,
+        currentLevel: userStats.currentLevel,
+        totalXP: userStats.totalXP,
+        xpFromHabits: habitXP,
+        loyaltyTotalActiveDays,
+        progressMap
+      };
+    } catch (error) {
+      console.error('AchievementService.getRealTimeUserStats error:', error);
+      
+      // Return safe defaults on error
+      return {
+        habitsCreated: 0,
+        totalHabitCompletions: 0,
+        longestHabitStreak: 0,
+        maxHabitsInOneDay: 0,
+        journalEntries: 0,
+        totalJournalEntries: 0,
+        currentJournalStreak: 0,
+        longestJournalStreak: 0,
+        bonusJournalEntries: 0,
+        starCount: 0,
+        flameCount: 0,
+        crownCount: 0,
+        goalsCreated: 0,
+        goalsCompleted: 0,
+        currentLevel: 0,
+        totalXP: 0,
+        xpFromHabits: 0,
+        loyaltyTotalActiveDays: 0,
+        progressMap: {}
+      };
+    }
+  }
+
+  /**
+   * Helper: Get count value using AchievementIntegration
+   */
+  private static async getCountValue(source: string, timeframe: string = 'all_time'): Promise<number> {
+    const { AchievementIntegration } = await import('./achievementIntegration');
+    return await AchievementIntegration.getCountValueForAchievement(source, timeframe);
+  }
+
+  /**
+   * Helper: Get streak value using AchievementIntegration
+   */
+  private static async getStreakValue(source: string): Promise<number> {
+    const { AchievementIntegration } = await import('./achievementIntegration');
+    return await AchievementIntegration.getStreakValueForAchievement(source);
+  }
+
+  /**
+   * Helper: Get gratitude streak info
+   */
+  private static async getGratitudeStreakInfo(): Promise<any> {
+    const { gratitudeStorage } = await import('./storage/gratitudeStorage');
+    return await gratitudeStorage.getStreak();
   }
 
   /**

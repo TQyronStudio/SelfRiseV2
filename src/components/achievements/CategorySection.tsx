@@ -16,8 +16,9 @@ interface CategorySectionProps {
   achievements: Achievement[];
   userAchievements: UserAchievements;
   onAchievementPress: (achievement: Achievement) => void;
-  userStats?: UserStats | undefined; // For achievement preview system
   showPreview?: boolean; // Enable preview functionality
+  realTimeProgressMap?: Record<string, number>; // Pre-calculated progress
+  batchUserStats?: any; // Pre-loaded user stats
 }
 
 const getCategoryIcon = (category: AchievementCategory): string => {
@@ -52,8 +53,9 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   achievements,
   userAchievements,
   onAchievementPress,
-  userStats,
   showPreview = true,
+  realTimeProgressMap,
+  batchUserStats,
 }) => {
   if (achievements.length === 0) {
     return null;
@@ -64,7 +66,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   ).length;
 
   const screenWidth = Dimensions.get('window').width;
-  const numColumns = Math.floor((screenWidth - 32) / 162); // card width + spacing
+  const numColumns = Math.floor((screenWidth - 32) / 158); // 150 (card) + 8 (margins)
   const categoryColor = getCategoryColor(category);
   const categoryIcon = getCategoryIcon(category);
 
@@ -115,17 +117,20 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
           <View key={rowIndex} style={styles.achievementRow}>
             {row.map((achievement) => {
               const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
-              const userProgress = userAchievements.achievementProgress[achievement.id] || 0;
               
               return (
                 <View key={achievement.id} style={styles.cardWrapper}>
                   <AchievementCard
                     achievement={achievement}
-                    userProgress={userProgress}
                     isUnlocked={isUnlocked}
                     onPress={() => onAchievementPress(achievement)}
-                    userStats={userStats}
                     showPreview={showPreview}
+                    {...(realTimeProgressMap?.[achievement.id] !== undefined && {
+                      realTimeProgress: realTimeProgressMap[achievement.id]
+                    })}
+                    {...(batchUserStats && {
+                      userStats: batchUserStats
+                    })}
                   />
                 </View>
               );

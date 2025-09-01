@@ -14,9 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/src/constants/colors';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { UserStats, ProgressHint, generateProgressHintAsync } from '@/src/utils/achievementPreviewUtils';
+import { AchievementService } from '@/src/services/achievementService';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // ========================================
 // INTERFACES
@@ -27,8 +28,9 @@ interface AchievementDetailModalProps {
   onClose: () => void;
   achievement: Achievement | null;
   userAchievements: UserAchievements | null;
-  userStats?: UserStats | undefined;
   onSharePress?: (achievement: Achievement) => void;
+  batchUserStats?: any; // Pre-loaded user stats for performance
+  realTimeProgress?: number; // Real-time progress from batch system
 }
 
 // ========================================
@@ -107,12 +109,13 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   onClose,
   achievement,
   userAchievements,
-  userStats,
   onSharePress,
+  batchUserStats,
+  realTimeProgress,
 }) => {
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   const [progressHint, setProgressHint] = useState<ProgressHint | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -125,51 +128,45 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   const categoryColor = achievement ? getCategoryColor(achievement.category) : Colors.primary;
   const categoryIcon = achievement ? getCategoryIcon(achievement.category) : 'medal' as keyof typeof Ionicons.glyphMap;
 
-  // Load progress hint for locked achievements
+  // Use pre-loaded batch user stats for performance
   useEffect(() => {
-    const loadProgressHint = async () => {
-      if (visible && achievement && !isUnlocked && userStats) {
-        try {
-          setLoading(true);
-          const hint = await generateProgressHintAsync(achievement, userStats);
-          setProgressHint(hint);
-        } catch (error) {
-          console.error('Failed to load progress hint:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setProgressHint(null);
-      }
-    };
+    if (visible && achievement) {
+      setUserStats(batchUserStats || null); // Use passed batch data
+    } else {
+      setProgressHint(null);
+      setUserStats(null);
+    }
+  }, [visible, achievement, batchUserStats]);
 
-    loadProgressHint();
-  }, [visible, achievement?.id, isUnlocked, userStats]);
+  // Calculate progress using SAME PATTERN as AchievementCard
+  const progress = realTimeProgress !== undefined 
+    ? realTimeProgress 
+    : achievement?.isProgressive 
+      ? 0 
+      : (isUnlocked ? 100 : 0);
+
+  // Generate progress hint synchronously for locked achievements
+  useEffect(() => {
+    if (visible && achievement && !isUnlocked) {
+      setProgressHint({
+        progressText: `${Math.round(progress)}% complete`,
+        progressPercentage: progress,
+        isCompleted: progress >= 100,
+        requirementText: achievement.description,
+        actionHint: 'Keep working towards this goal!',
+        estimatedDays: progress < 100 ? Math.ceil((100 - progress) / 10) : 0
+      });
+    } else {
+      setProgressHint(null);
+    }
+  }, [visible, achievement, isUnlocked, progress]);
 
   // Entrance animation
   useEffect(() => {
     if (visible && achievement) {
-      if (!isReduceMotionEnabled) {
-        fadeAnim.setValue(0);
-        slideAnim.setValue(50);
-
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 80,
-            friction: 8,
-          }),
-        ]).start();
-      } else {
-        fadeAnim.setValue(1);
-        slideAnim.setValue(0);
-      }
+      // Simple, reliable approach: always show modal immediately
+      fadeAnim.setValue(1);   // Fully visible
+      slideAnim.setValue(0);  // Correct position
 
       // Accessibility announcement
       const announcement = isUnlocked 
@@ -178,7 +175,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       
       AccessibilityInfo.announceForAccessibility(announcement);
     }
-  }, [visible, achievement?.name, achievement?.rarity, isUnlocked, isReduceMotionEnabled]);
+  }, [visible, achievement, isUnlocked, isReduceMotionEnabled]);
 
   const handleSharePress = () => {
     if (onSharePress && achievement && isUnlocked) {
@@ -187,7 +184,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   };
 
   const animatedStyle = {
-    opacity: fadeAnim,
+    opacity: achievement ? 1 : 0, // Fallback protection: always visible if achievement exists
     transform: [{ translateY: slideAnim }],
   };
 
@@ -205,8 +202,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     );
   }
 
-  // Debug removed
-
   return (
     <Modal
       visible={visible}
@@ -217,12 +212,13 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     >
       <View style={styles.overlay}>
         <Animated.View style={[styles.modalContainer, animatedStyle]}>
+          {/* ScrollView with fixed StyleSheet + Header */}
           <ScrollView 
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
+            {/* Modal Header */}
             <View style={[styles.header, { borderBottomColor: rarityColor }]}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -339,11 +335,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
               ) : (
                 /* Locked Achievement Content */
                 <View style={styles.lockedContent}>
-                  {loading ? (
-                    <View style={styles.loadingContainer}>
-                      <Text style={styles.loadingText}>Loading progress...</Text>
-                    </View>
-                  ) : progressHint ? (
+                  {progressHint ? (
                     <>
                       <View style={styles.progressSection}>
                         <Text style={styles.progressTitle}>Progress to Unlock</Text>
@@ -444,8 +436,8 @@ const styles = StyleSheet.create({
   },
 
   modalContainer: {
-    width: Math.min(screenWidth - 40, 400),
-    maxHeight: '90%',
+    width: screenWidth - 40,
+    maxHeight: '85%',
     backgroundColor: Colors.white,
     borderRadius: 16,
     overflow: 'hidden',
@@ -457,7 +449,10 @@ const styles = StyleSheet.create({
   },
 
   scrollView: {
-    flex: 1,
+    // Responsive solution instead of fixed values
+    minHeight: '20%', // 20% of modalContainer height
+    maxHeight: '80%', // 80% of modalContainer height
+    flexGrow: 1,      // Using flexGrow instead of flex: 1
   },
 
   scrollContent: {
@@ -553,7 +548,8 @@ const styles = StyleSheet.create({
   metaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    flexWrap: 'wrap',
+    marginBottom: 12,
   },
 
   rarityBadge: {
@@ -561,6 +557,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     marginRight: 8,
+    marginBottom: 4,
   },
 
   rarityText: {
@@ -576,6 +573,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     marginRight: 8,
+    marginBottom: 4,
   },
 
   categoryText: {
