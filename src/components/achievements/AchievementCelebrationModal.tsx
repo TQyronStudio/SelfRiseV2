@@ -65,7 +65,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   achievement,
   xpAwarded,
 }) => {
-  // Early return BEFORE any hooks to prevent React hooks rule violations
+  // Early return BEFORE any hooks - safe now because parent only renders with valid achievement
   if (!achievement) {
     return null;
   }

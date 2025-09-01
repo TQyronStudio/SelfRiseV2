@@ -13,6 +13,7 @@ import { AchievementService, AchievementUnlockResult } from '../services/achieve
 import { AchievementStorage } from '../services/achievementStorage';
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
 import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
+import { useXpAnimation } from './XpAnimationContext';
 
 // Achievement context state interface
 interface AchievementContextState {
@@ -95,6 +96,9 @@ interface AchievementProviderProps {
  * Manages achievement state and provides real-time updates
  */
 export const AchievementProvider: React.FC<AchievementProviderProps> = ({ children }) => {
+  // 3-Tier Modal Priority System coordination
+  const { notifyAchievementModalStarted, notifyAchievementModalEnded } = useXpAnimation();
+  
   // State management
   const [userAchievements, setUserAchievements] = useState<UserAchievements>({
     unlockedAchievements: [],
@@ -335,35 +339,33 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   }, []);
 
   /**
-   * Show next celebration from queue
+   * Show next celebration from queue with 3-Tier Modal Priority System coordination
    */
   const showNextCelebration = useCallback(() => {
     if (!showingCelebration && celebrationQueue.length > 0) {
+      console.log('🏆 Starting Achievement Celebration Modal (Tier 2)');
+      notifyAchievementModalStarted('achievement');
       setShowingCelebration(true);
       setCurrentCelebrationIndex(0);
     }
-  }, [showingCelebration, celebrationQueue.length]);
+  }, [showingCelebration, celebrationQueue.length, notifyAchievementModalStarted]);
 
   /**
-   * Close current celebration modal and show next in queue
+   * Close current celebration modal and show next in queue with 3-Tier Modal Priority System coordination
    */
   const closeCelebrationModal = useCallback(() => {
+    console.log('✅ Closing Achievement Celebration Modal (Tier 2)');
+    notifyAchievementModalEnded();
     setShowingCelebration(false);
     
     // Remove the first item from queue
     setCelebrationQueue(prev => prev.slice(1));
     
-    // Show next celebration after 2 second delay
+    // Show next celebration after 2 second delay (respects 3-Tier Modal Priority System)
     setTimeout(() => {
-      setCelebrationQueue(currentQueue => {
-        if (currentQueue.length > 0) {
-          setShowingCelebration(true);
-          setCurrentCelebrationIndex(0);
-        }
-        return currentQueue;
-      });
+      showNextCelebration();
     }, 2000); // 2-second interval as specified in project plan
-  }, []);
+  }, [notifyAchievementModalEnded, showNextCelebration]);
 
   // Auto-trigger next celebration when queue is updated
   useEffect(() => {
@@ -494,13 +496,15 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     <AchievementContext.Provider value={contextValue}>
       {children}
       
-      {/* Achievement Celebration Modal */}
-      <AchievementCelebrationModal
-        visible={showingCelebration && celebrationQueue.length > 0}
-        onClose={closeCelebrationModal}
-        achievement={celebrationQueue.length > 0 && celebrationQueue[0] ? celebrationQueue[0].achievement : null}
-        xpAwarded={celebrationQueue.length > 0 && celebrationQueue[0] ? celebrationQueue[0].xpAwarded : 0}
-      />
+      {/* Achievement Celebration Modal - Only render when valid data exists */}
+      {showingCelebration && celebrationQueue.length > 0 && celebrationQueue[0] && (
+        <AchievementCelebrationModal
+          visible={true}
+          onClose={closeCelebrationModal}
+          achievement={celebrationQueue[0].achievement}
+          xpAwarded={celebrationQueue[0].xpAwarded}
+        />
+      )}
     </AchievementContext.Provider>
   );
 };

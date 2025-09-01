@@ -45,28 +45,64 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const isBonus = totalCount > 3; // 4th+ gratitude is bonus
       const order = getNextGratitudeOrder(gratitudes, input.date);
       
-      // Calculate XP amount before creating gratitude object
-      const xpAmount = this.getXPForJournalEntry(totalCount);
+      // Calculate base XP amount
+      const baseXpAmount = this.getXPForJournalEntry(totalCount);
       const xpSource = isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+      
+      // Calculate milestone XP for bonuses (⭐🔥👑)
+      let milestoneXpAmount = 0;
+      let milestoneDescription = '';
+      if (isBonus) {
+        if (totalCount === 4) { // First bonus milestone ⭐
+          milestoneXpAmount = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
+          milestoneDescription = ' + ⭐ First Bonus Milestone';
+        } else if (totalCount === 8) { // Fifth bonus milestone 🔥
+          milestoneXpAmount = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
+          milestoneDescription = ' + 🔥 Fifth Bonus Milestone';
+        } else if (totalCount === 13) { // Tenth bonus milestone 👑
+          milestoneXpAmount = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
+          milestoneDescription = ' + 👑 Tenth Bonus Milestone';
+        }
+      }
+      
+      // Combine base XP + milestone XP for single transaction
+      const totalXpAmount = baseXpAmount + milestoneXpAmount;
       const description = isBonus ? 
-        `Bonus journal entry #${totalCount}` : 
+        `Bonus journal entry #${totalCount}${milestoneDescription}` : 
         `Journal entry #${totalCount}`;
       
-      // Create gratitude with XP amount stored for accurate deletion
-      const newGratitude = createGratitude(input, order, isBonus, xpAmount);
+      // Create gratitude with base XP amount stored for accurate deletion
+      const newGratitude = createGratitude(input, order, isBonus, baseXpAmount);
       
       gratitudes.push(newGratitude);
       await BaseStorage.set(STORAGE_KEYS.GRATITUDES, gratitudes);
       
-      // Award XP for journal entry
-      await GamificationService.addXP(xpAmount, { 
-        source: xpSource, 
+      // Award combined XP in single transaction (prevents double achievement processing)
+      await GamificationService.addXP(totalXpAmount, { 
+        source: milestoneXpAmount > 0 ? XPSourceType.JOURNAL_BONUS_MILESTONE : xpSource, 
         description,
-        sourceId: newGratitude.id 
+        sourceId: newGratitude.id,
+        metadata: { 
+          baseXp: baseXpAmount, 
+          milestoneXp: milestoneXpAmount,
+          entryPosition: totalCount 
+        }
       });
       
-      console.log(`✅ Journal entry created (position: ${totalCount}, +${xpAmount} XP)`);
+      console.log(`✅ Journal entry created (position: ${totalCount}, +${totalXpAmount} XP)${milestoneDescription}`);
       
+      // Update milestone counters if milestone was reached
+      if (milestoneXpAmount > 0) {
+        const currentStreak = await this.getStreak();
+        const updatedStreak = { ...currentStreak };
+        
+        if (totalCount === 4) updatedStreak.starCount += 1;
+        else if (totalCount === 8) updatedStreak.flameCount += 1;
+        else if (totalCount === 13) updatedStreak.crownCount += 1;
+        
+        await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
+        console.log(`✨ Milestone counter updated: ${totalCount === 4 ? 'starCount' : totalCount === 8 ? 'flameCount' : 'crownCount'}++`);
+      }
       
       // Update streak after adding new gratitude
       await this.calculateAndUpdateStreak();
@@ -771,56 +807,13 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     }
   }
 
-  // Increment milestone counter based on specific milestone reached and award XP
+  // DEPRECATED: Milestones are now processed directly in create() to prevent double achievement processing
+  // This function is kept for backward compatibility but should not be used
   async incrementMilestoneCounter(milestoneType: number): Promise<void> {
-    try {
-      const currentStreak = await this.getStreak();
-      let starCount = currentStreak.starCount;
-      let flameCount = currentStreak.flameCount;
-      let crownCount = currentStreak.crownCount;
-      let xpAwarded = 0;
-      let milestoneDescription = '';
-
-      // Increment only the specific milestone reached and award XP
-      if (milestoneType === 1) {
-        starCount++;
-        xpAwarded = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
-        milestoneDescription = "⭐ First Bonus Milestone achieved!";
-      } else if (milestoneType === 5) {
-        flameCount++;
-        xpAwarded = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
-        milestoneDescription = "🔥 Fifth Bonus Milestone achieved!";
-      } else if (milestoneType === 10) {
-        crownCount++;
-        xpAwarded = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
-        milestoneDescription = "👑 Tenth Bonus Milestone achieved!";
-      }
-
-      // Award XP for the milestone
-      if (xpAwarded > 0) {
-        await GamificationService.addXP(xpAwarded, { 
-          source: XPSourceType.JOURNAL_BONUS_MILESTONE,
-          description: milestoneDescription,
-          metadata: { milestoneType, bonusCount: milestoneType }
-        });
-        console.log(`✨ ${milestoneDescription} +${xpAwarded} XP`);
-      }
-
-      const updatedStreak: GratitudeStreak = {
-        ...currentStreak,
-        starCount,
-        flameCount,
-        crownCount,
-      };
-
-      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
-    } catch (error) {
-      throw new StorageError(
-        'Failed to increment milestone counter',
-        STORAGE_ERROR_CODES.UNKNOWN,
-        STORAGE_KEYS.GRATITUDE_STREAK
-      );
-    }
+    console.warn(`⚠️ incrementMilestoneCounter is DEPRECATED - milestones are now processed in create() for performance`);
+    // Function body commented out to prevent double processing
+    // Original logic moved to create() method for single XP transaction
+    return Promise.resolve();
   }
 
   // Check if current streak represents a milestone
