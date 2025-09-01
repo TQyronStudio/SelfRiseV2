@@ -961,6 +961,27 @@ notifySecondaryModalEnded();
 
 ---
 
+## Modal Architecture Standards
+
+### Achievement Modal Design Principles
+
+**Modal Architecture Choice:**
+- **Detail Modals**: Use `presentationStyle="pageSheet"` with `SafeAreaView` for professional slide-up experience
+- **Celebration Modals**: Use `transparent` overlay with fade animation for quick notifications
+- **Form Modals**: Use full-screen slide-up pattern consistent with system apps
+
+**ScrollView Guidelines:**
+- **Full-screen modals**: `flex: 1` is acceptable and recommended in `SafeAreaView`
+- **Overlay modals**: Use `flexGrow` with constraints to prevent rendering conflicts
+- **Always test**: Verify content visibility across different screen sizes and orientations
+
+**Consistency Rules:**
+- **AchievementDetailModal**: Full-screen slide-up (matches HabitModal/GoalModal pattern)
+- **AchievementCelebrationModal**: Overlay fade (matches CelebrationModal pattern)
+- **User Experience**: Maintain consistent modal behavior across similar functionality types
+
+---
+
 **GOLDEN RULE**: *"Every achievement tells a story - show the journey, celebrate the victory, inspire the next step"*
 
 ---

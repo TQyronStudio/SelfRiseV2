@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   AccessibilityInfo,
-  Animated,
+  SafeAreaView,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,7 +30,7 @@ interface AchievementDetailModalProps {
   userAchievements: UserAchievements | null;
   onSharePress?: (achievement: Achievement) => void;
   batchUserStats?: any; // Pre-loaded user stats for performance
-  realTimeProgress?: number; // Real-time progress from batch system
+  realTimeProgress?: number | undefined; // Real-time progress from batch system
 }
 
 // ========================================
@@ -116,10 +116,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   const [progressHint, setProgressHint] = useState<ProgressHint | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
-  
-  // Animation values
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(50));
 
   // Calculate values only if achievement exists
   const isUnlocked = achievement ? (userAchievements?.unlockedAchievements.includes(achievement.id) || false) : false;
@@ -161,13 +157,9 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     }
   }, [visible, achievement, isUnlocked, progress]);
 
-  // Entrance animation
+  // Accessibility announcement for screen readers
   useEffect(() => {
     if (visible && achievement) {
-      // Simple, reliable approach: always show modal immediately
-      fadeAnim.setValue(1);   // Fully visible
-      slideAnim.setValue(0);  // Correct position
-
       // Accessibility announcement
       const announcement = isUnlocked 
         ? `Achievement details: ${achievement.name}. This ${achievement.rarity} achievement is unlocked.`
@@ -175,17 +167,12 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       
       AccessibilityInfo.announceForAccessibility(announcement);
     }
-  }, [visible, achievement, isUnlocked, isReduceMotionEnabled]);
+  }, [visible, achievement, isUnlocked]);
 
   const handleSharePress = () => {
     if (onSharePress && achievement && isUnlocked) {
       onSharePress(achievement);
     }
-  };
-
-  const animatedStyle = {
-    opacity: achievement ? 1 : 0, // Fallback protection: always visible if achievement exists
-    transform: [{ translateY: slideAnim }],
   };
 
   // Return empty modal if no achievement
@@ -205,48 +192,46 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
-      statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <Animated.View style={[styles.modalContainer, animatedStyle]}>
-          {/* ScrollView with fixed StyleSheet + Header */}
-          <ScrollView 
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
+      <SafeAreaView style={styles.container}>
+        {/* Header - přesun z ScrollView */}
+        <View style={[styles.header, { borderBottomColor: rarityColor }]}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={onClose}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Close achievement details"
           >
-            {/* Modal Header */}
-            <View style={[styles.header, { borderBottomColor: rarityColor }]}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={onClose}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Close achievement details"
-              >
-                <Ionicons name="close" size={24} color={Colors.textSecondary} />
-              </TouchableOpacity>
-              
-              <Text style={styles.modalTitle}>
-                {isUnlocked ? 'Achievement Unlocked' : 'Achievement Details'}
-              </Text>
-              
-              {isUnlocked && onSharePress && (
-                <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={handleSharePress}
-                  accessible
-                  accessibilityRole="button"
-                  accessibilityLabel="Share achievement"
-                >
-                  <Ionicons name="share-outline" size={24} color={rarityColor} />
-                </TouchableOpacity>
-              )}
-            </View>
+            <Ionicons name="close" size={24} color={Colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <Text style={styles.modalTitle}>
+            {isUnlocked ? 'Achievement Unlocked' : 'Achievement Details'}
+          </Text>
+          
+          {isUnlocked && onSharePress && (
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={handleSharePress}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Share achievement"
+            >
+              <Ionicons name="share-outline" size={24} color={rarityColor} />
+            </TouchableOpacity>
+          )}
+        </View>
 
+        {/* Main Content ScrollView */}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
             {/* Achievement Card */}
             <View style={[styles.achievementCard, { borderLeftColor: rarityColor }]}>
               {/* Achievement Icon and Status */}
@@ -416,8 +401,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </Animated.View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -427,50 +411,39 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 // ========================================
 
 const styles = StyleSheet.create({
-  overlay: {
+  // Main container - full screen like HabitModal
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-
-  modalContainer: {
-    width: screenWidth - 40,
-    maxHeight: '85%',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: Colors.background,
   },
 
   scrollView: {
-    // Responsive solution instead of fixed values
-    minHeight: '20%', // 20% of modalContainer height
-    maxHeight: '80%', // 80% of modalContainer height
-    flexGrow: 1,      // Using flexGrow instead of flex: 1
+    flex: 1, // Now it's OK because we're in SafeAreaView, not overlay
   },
 
   scrollContent: {
     paddingBottom: 20,
   },
 
-  // Header
+  // Header - full screen style like HabitModal
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 2, // Keep rarity color border
     backgroundColor: Colors.backgroundSecondary,
+    minHeight: 60,
   },
 
   closeButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   modalTitle: {
@@ -479,11 +452,15 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 16,
   },
 
   shareButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Achievement Card
