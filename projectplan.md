@@ -895,7 +895,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 #### Checkpoint 4.5.8.5: Monthly Challenges Evolution 🗓️
 **Goal**: Transform weekly challenges into sophisticated monthly challenge system with personalized difficulty scaling
 
-**⚠️ IMPORTANT**: Before starting any work on this checkpoint, read `/MONTHLY_CHALLENGES_ARCHITECTURE.md` for complete technical specifications and implementation guidelines.
+**Technická pravidla a logika pro Monthly Challenges**: @technical-guides:Monthly-Challenges.md
 
 ##### Sub-checkpoint 4.5.8.5.A: Current System Analysis & Architecture Planning 🔍 ✅ COMPLETED
 **Goal**: Analyze existing weekly challenge system and design monthly architecture
