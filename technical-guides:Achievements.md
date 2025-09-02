@@ -980,6 +980,89 @@ notifySecondaryModalEnded();
 - **AchievementCelebrationModal**: Overlay fade (matches CelebrationModal pattern)
 - **User Experience**: Maintain consistent modal behavior across similar functionality types
 
+### Slide Animation Architecture Issue & Solution
+
+**🚨 CRITICAL MODAL ANIMATION BUG & FIX**
+
+**Problem Identified (2025-09-01):**
+- AchievementDetailModal displayed as "small ugly popup" instead of sliding up from bottom
+- After converting to slide-up architecture, modal closed instantly instead of sliding down smoothly  
+- HabitModal with identical configuration worked correctly
+
+**Root Cause Analysis:**
+```typescript
+// ❌ PROBLEM: Component re-rendering during slide animation
+export const AchievementDetailModal = ({ visible, achievement, ... }) => {
+  // Complex useEffect hooks that run on visible change
+  useEffect(() => {
+    if (!visible) {
+      // ⚠️ STATE RESETS CAUSE RE-RENDERS DURING ANIMATION
+      setProgressHint(null);
+      setUserStats(null);
+    }
+  }, [visible]);
+  
+  // Component always renders, even when not visible
+  return <Modal visible={visible}...>
+}
+
+// When user closes modal:
+// 1. visible changes to false
+// 2. useEffect hooks trigger immediately
+// 3. Component re-renders during native slide animation  
+// 4. Animation timing is disrupted → instant disappearance
+```
+
+**Final Solution Applied:**
+```typescript
+// ✅ SOLUTION: Guard clause pattern (same as working AchievementShareModal)
+export const AchievementDetailModal = ({ visible, achievement, ... }) => {
+  // Guard clause prevents rendering when not visible
+  if (!visible) {
+    return null; // Component unmounts → automatic state cleanup → no animation interference
+  }
+  
+  // Simplified useEffect hooks - no visible dependency needed
+  useEffect(() => {
+    setUserStats(batchUserStats || null);
+  }, [batchUserStats]);
+  
+  useEffect(() => {
+    if (!isUnlocked) {
+      setProgressHint({ /* progress data */ });
+    }
+  }, [isUnlocked, progress]);
+  
+  return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+}
+```
+
+**Architecture Comparison:**
+```typescript
+// ✅ WORKING: AchievementShareModal pattern
+if (!visible) return null;
+return <Modal visible={visible}...>
+
+// ❌ BROKEN: Always-rendering pattern  
+return <Modal visible={visible}...> // Re-renders during animation
+
+// ✅ FIXED: AchievementDetailModal now uses working pattern
+if (!visible) return null; 
+return <Modal visible={visible}...>
+```
+
+**Key Architecture Principles:**
+1. **Guard clause pattern** - prevent component rendering when not visible
+2. **Component unmounting** - automatic state cleanup without animation interference
+3. **Pattern consistency** - follow working modal implementations (AchievementShareModal)
+4. **No complex cleanup logic** - let React handle component lifecycle naturally
+
+**Prevention Guidelines:**
+- Always use guard clause `if (!visible) return null` for slide-up modals
+- Compare new modals with working reference implementations
+- Test slide animations on physical devices for accurate timing
+- Avoid complex useEffect cleanup during modal transitions
+
 ---
 
 **GOLDEN RULE**: *"Every achievement tells a story - show the journey, celebrate the victory, inspire the next step"*

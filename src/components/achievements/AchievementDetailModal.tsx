@@ -124,15 +124,10 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   const categoryColor = achievement ? getCategoryColor(achievement.category) : Colors.primary;
   const categoryIcon = achievement ? getCategoryIcon(achievement.category) : 'medal' as keyof typeof Ionicons.glyphMap;
 
-  // Use pre-loaded batch user stats for performance
+  // Initialize batch user stats - component only renders when visible
   useEffect(() => {
-    if (visible && achievement) {
-      setUserStats(batchUserStats || null); // Use passed batch data
-    } else {
-      setProgressHint(null);
-      setUserStats(null);
-    }
-  }, [visible, achievement, batchUserStats]);
+    setUserStats(batchUserStats || null);
+  }, [batchUserStats]);
 
   // Calculate progress using SAME PATTERN as AchievementCard
   const progress = realTimeProgress !== undefined 
@@ -141,39 +136,39 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       ? 0 
       : (isUnlocked ? 100 : 0);
 
-  // Generate progress hint synchronously for locked achievements
+  // Generate progress hint for locked achievements - component only renders when visible
   useEffect(() => {
-    if (visible && achievement && !isUnlocked) {
+    if (!isUnlocked) {
       setProgressHint({
         progressText: `${Math.round(progress)}% complete`,
         progressPercentage: progress,
         isCompleted: progress >= 100,
-        requirementText: achievement.description,
+        requirementText: achievement?.description || 'Achievement requirement',
         actionHint: 'Keep working towards this goal!',
         estimatedDays: progress < 100 ? Math.ceil((100 - progress) / 10) : 0
       });
-    } else {
-      setProgressHint(null);
     }
-  }, [visible, achievement, isUnlocked, progress]);
+  }, [isUnlocked, progress, achievement?.description]);
 
   // Accessibility announcement for screen readers
   useEffect(() => {
-    if (visible && achievement) {
-      // Accessibility announcement
-      const announcement = isUnlocked 
-        ? `Achievement details: ${achievement.name}. This ${achievement.rarity} achievement is unlocked.`
-        : `Achievement details: ${achievement.name}. This ${achievement.rarity} achievement is locked. Progress information available.`;
-      
-      AccessibilityInfo.announceForAccessibility(announcement);
-    }
-  }, [visible, achievement, isUnlocked]);
+    const announcement = isUnlocked 
+      ? `Achievement details: ${achievement?.name || 'Achievement'}. This ${achievement?.rarity || 'common'} achievement is unlocked.`
+      : `Achievement details: ${achievement?.name || 'Achievement'}. This ${achievement?.rarity || 'common'} achievement is locked. Progress information available.`;
+    
+    AccessibilityInfo.announceForAccessibility(announcement);
+  }, [achievement?.name, achievement?.rarity, isUnlocked]);
 
   const handleSharePress = () => {
     if (onSharePress && achievement && isUnlocked) {
       onSharePress(achievement);
     }
   };
+
+  // Return nothing if modal not visible - allows smooth slide animation
+  if (!visible) {
+    return null;
+  }
 
   // Return empty modal if no achievement
   if (!achievement) {
@@ -241,7 +236,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     styles.achievementIcon,
                     !isUnlocked && styles.achievementIconLocked
                   ]}>
-                    {achievement.icon}
+                    {achievement?.icon || '🏆'}
                   </Text>
                   {isUnlocked && (
                     <View style={[styles.statusBadge, { backgroundColor: rarityColor }]}>
@@ -255,31 +250,34 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     styles.achievementName,
                     !isUnlocked && styles.achievementNameLocked
                   ]}>
-                    {achievement.name}
+                    {achievement?.name || 'Achievement'}
                   </Text>
                   
                   <View style={styles.metaContainer}>
                     <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
                       <Text style={styles.rarityText}>
-                        {achievement.rarity.toUpperCase()}
+                        {achievement?.rarity?.toUpperCase() || 'COMMON'}
                       </Text>
                     </View>
                     
                     <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
                       <Ionicons name={categoryIcon} size={12} color={Colors.white} />
                       <Text style={styles.categoryText}>
-                        {achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1)}
+                        {achievement?.category ? 
+                          achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
+                          'Category'
+                        }
                       </Text>
                     </View>
                   </View>
                   
-                  <Text style={styles.xpReward}>+{achievement.xpReward} XP</Text>
+                  <Text style={styles.xpReward}>+{achievement?.xpReward || 50} XP</Text>
                 </View>
               </View>
 
               {/* Description */}
               <Text style={styles.description}>
-                {achievement.description}
+                {achievement?.description || 'Achievement description'}
               </Text>
 
               {/* Conditional Content */}
@@ -289,7 +287,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                   <View style={styles.completionInfo}>
                     <Ionicons name="checkmark-circle" size={20} color={rarityColor} />
                     <Text style={styles.completionText}>
-                      {formatUnlockDate(achievement)}
+                      {achievement ? formatUnlockDate(achievement) : 'Recently unlocked'}
                     </Text>
                   </View>
                   
@@ -300,19 +298,22 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Category:</Text>
                       <Text style={styles.detailValue}>
-                        {achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1)}
+                        {achievement?.category ? 
+                          achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
+                          'Category'
+                        }
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Rarity:</Text>
                       <Text style={[styles.detailValue, { color: rarityColor }]}>
-                        {achievement.rarity}
+                        {achievement?.rarity || 'common'}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>XP Reward:</Text>
                       <Text style={styles.detailValue}>
-                        {achievement.xpReward} points
+                        {achievement?.xpReward || 50} points
                       </Text>
                     </View>
                   </View>
@@ -375,31 +376,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
               )}
             </View>
 
-            {/* Action Buttons */}
-            <View style={styles.actionContainer}>
-              {isUnlocked && onSharePress && (
-                <TouchableOpacity
-                  style={[styles.shareActionButton, { backgroundColor: rarityColor }]}
-                  onPress={handleSharePress}
-                  accessible
-                  accessibilityRole="button"
-                  accessibilityLabel="Share this achievement"
-                >
-                  <Ionicons name="share-outline" size={20} color={Colors.white} />
-                  <Text style={styles.shareButtonText}>Share Achievement</Text>
-                </TouchableOpacity>
-              )}
-              
-              <TouchableOpacity
-                style={styles.closeActionButton}
-                onPress={onClose}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Close modal"
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
           </ScrollView>
       </SafeAreaView>
     </Modal>
