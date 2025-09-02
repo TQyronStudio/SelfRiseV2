@@ -1443,3 +1443,301 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 6. Launch marketing strategy execution
 
 ---
+
+## 🧪 Monthly Challenge System Testing Plan
+
+#### Checkpoint 9.10: Monthly Challenge System Testing 🗓️ PENDING
+**Goal**: Comprehensive functional testing of all 16 Monthly Challenge types to verify data tracking, progress calculation, UI components, and user experience
+**Technická pravidla a logika**: @technical-guides:Monthly-Challenges.md
+
+##### Sub-checkpoint 9.10.A: Core System Infrastructure Testing 🏗️
+**Goal**: Validate fundamental Monthly Challenge system components
+- [ ] Test MonthlyChallengeService challenge generation for all categories
+- [ ] Verify UserActivityTracker baseline calculation accuracy across all metrics
+- [ ] Test StarRatingService progression logic (1⭐→5⭐ system)
+- [ ] Validate MonthlyProgressTracker real-time progress updates
+- [ ] Test XP reward calculations (500-2,532 XP range) for all star levels
+- [ ] Verify milestone detection (25%, 50%, 75% progress) and XP bonuses
+- [ ] Test category rotation logic (avoid same category 2 months)
+- [ ] Validate first-month special handling for new users
+- [ ] Test automatic monthly generation (1st of month trigger)
+- [ ] Verify challenge archival and history management
+
+##### Sub-checkpoint 9.10.B: Habits Category Challenge Testing 🎯
+**Goal**: Test all 4 Habits category challenges with different star levels and user baselines
+
+###### 🎯 **1. Consistency Master Challenge**
+*"Complete scheduled habits consistently throughout the month"*
+- [ ] **1⭐ Testing**: Baseline 20 habits → Target 21 habits (+5%) → 500 XP reward
+- [ ] **3⭐ Testing**: Baseline 20 habits → Target 23 habits (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 20 habits → Target 25 habits (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `scheduled_habit_completions` increments correctly
+- [ ] **Progress Milestones**: Test 25%, 50%, 75% milestone detection and XP bonuses
+- [ ] **Real-time Updates**: Complete habit → immediate progress update in challenge UI
+- [ ] **Weekend Bonus**: Verify weekend consistency bonus (+50 XP) calculation
+- [ ] **Perfect Completion**: Test 100% completion → +20% completion bonus
+
+###### 🏃 **2. Variety Champion Challenge**
+*"Explore different habits each week to build diverse routine"*
+- [ ] **1⭐ Testing**: Baseline 4 unique/week → Target 4 unique/week (+5%) → 500 XP reward
+- [ ] **3⭐ Testing**: Baseline 4 unique/week → Target 5 unique/week (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 4 unique/week → Target 5 unique/week (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `unique_weekly_habits` counts different habits per week
+- [ ] **Weekly Targets**: Test weekly breakdown shows 5 habits per week target
+- [ ] **Category Balance**: Test category balance bonus (+100 XP) when achieved
+- [ ] **New Habit Discovery**: Verify new habit bonus (+25 XP per new habit)
+- [ ] **Weekly Variety Milestone**: Test +30 XP per week when variety target met
+
+###### 📈 **3. Streak Builder Challenge**
+*"Maintain consistent habit streaks throughout the month"*
+- [ ] **1⭐ Testing**: Baseline 10 days → Target 11 days (+5%) → 500 XP reward
+- [ ] **3⭐ Testing**: Baseline 10 days → Target 12 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 10 days → Target 13 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `habit_streak_days` tracks longest consecutive streak
+- [ ] **Streak Milestones**: Test +50 XP per 7-day streak milestone
+- [ ] **Multiple Habit Streaks**: Test +75 XP bonus for maintaining multiple streaks
+- [ ] **Perfect Month Streak**: Test +200 XP for perfect 30-day streak
+- [ ] **Streak Break Recovery**: Verify challenge adapts when streak breaks
+
+###### 🎯 **4. Bonus Hunter Challenge**
+*"Go beyond scheduled habits with bonus completions"*
+- [ ] **1⭐ Testing**: Baseline 8 bonus → Target 8 bonus (+5%) → 500 XP reward
+- [ ] **3⭐ Testing**: Baseline 8 bonus → Target 9 bonus (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 8 bonus → Target 10 bonus (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `bonus_habit_completions` counts only bonus habits
+- [ ] **Daily Bonus Achievement**: Test +15 XP per day with bonus habits
+- [ ] **Weekend Bonus Surge**: Test +100 XP for weekend bonus completions
+- [ ] **Consistency Bonus**: Test +10 XP per consistent week with bonus habits
+- [ ] **Anti-Spam Protection**: Verify bonus habits don't count towards scheduled quotas
+
+##### Sub-checkpoint 9.10.C: Journal Category Challenge Testing 📝
+**Goal**: Test all 4 Journal category challenges with quality metrics and bonus tracking
+
+###### 📚 **5. Reflection Expert Challenge**
+*"Write quality, thoughtful journal entries consistently"*
+- [ ] **1⭐ Testing**: Baseline 80 entries → Target 84 entries (+5%) → 500 XP reward
+- [ ] **3⭐ Testing**: Baseline 80 entries → Target 92 entries (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 80 entries → Target 100 entries (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `quality_journal_entries` counts entries ≥200 characters
+- [ ] **Length Bonus**: Test +20 XP per 500+ character entry
+- [ ] **Daily Reflection Streak**: Test +25 XP per consecutive day with entries
+- [ ] **Thoughtful Content Bonus**: Test +50 XP per week for quality entries
+- [ ] **Character Count Filter**: Verify only quality entries (200+ chars) count
+
+###### 🙏 **6. Gratitude Guru Challenge**
+*"Master both regular and bonus journal entries for gratitude practice"*
+- [ ] **1⭐ Testing**: Baseline 100 total → Target 105 total (+5%) → 550 XP reward
+- [ ] **3⭐ Testing**: Baseline 100 total → Target 115 total (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 100 total → Target 125 total (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `total_journal_entries_with_bonus` counts all entries
+- [ ] **Bonus Entry Achievement**: Test +30 XP per bonus entry beyond 3/day
+- [ ] **Gratitude Depth Bonus**: Test +40 XP per week for consistent entries
+- [ ] **Perfect Gratitude Day**: Test +15 XP per day with 5+ entries
+- [ ] **Regular vs Bonus Separation**: Verify correct categorization of entries
+
+###### ✍️ **7. Consistency Writer Challenge**
+*"Journal every single day to build unbreakable habit"*
+- [ ] **1⭐ Testing**: Baseline 25 days → Target 26 days (+5%) → 600 XP reward
+- [ ] **3⭐ Testing**: Baseline 25 days → Target 29 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 25 days → Target 30 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `daily_journal_streak` tracks consecutive days
+- [ ] **Perfect Daily Streak**: Test +100 XP per week of perfect journaling
+- [ ] **Never Miss Bonus**: Test +300 XP monthly bonus for no missed days
+- [ ] **Consistency Champion**: Test +50 XP per milestone (7, 14, 21, 30 days)
+- [ ] **Day Gap Handling**: Verify challenge accounts for missed days properly
+
+###### 🔍 **8. Depth Explorer Challenge**
+*"Write longer, detailed entries to deepen self-reflection"*
+- [ ] **1⭐ Testing**: Baseline 200 chars → Target 210 chars (+5%) → 575 XP reward
+- [ ] **3⭐ Testing**: Baseline 200 chars → Target 230 chars (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 200 chars → Target 250 chars (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `avg_entry_length` calculates running average correctly
+- [ ] **Long Entry Bonus**: Test +25 XP per 1000+ character entry
+- [ ] **Weekly Depth Achievement**: Test +75 XP for weekly average length goals
+- [ ] **Insight Discovery Bonus**: Test +100 XP for exceptional entries (>1500 chars)
+- [ ] **Average Length Calculation**: Verify average updates in real-time with new entries
+
+##### Sub-checkpoint 9.10.D: Goals Category Challenge Testing 🏆
+**Goal**: Test all 4 Goals category challenges with progress tracking and completion metrics
+
+###### 🎯 **9. Progress Champion Challenge**
+*"Make consistent daily progress towards your goals"*
+- [ ] **1⭐ Testing**: Baseline 20 days → Target 21 days (+5%) → 525 XP reward
+- [ ] **3⭐ Testing**: Baseline 20 days → Target 23 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 20 days → Target 25 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `goal_progress_days` counts days with any goal progress
+- [ ] **Daily Progress Achievement**: Test +20 XP per day with goal progress
+- [ ] **Weekly Consistency**: Test +50 XP per week with daily progress
+- [ ] **Perfect Progress Month**: Test +200 XP for 30 days of progress
+- [ ] **Multiple Goals Progress**: Verify progress on multiple goals counts properly
+
+###### 🏅 **10. Achievement Unlocked Challenge**
+*"Complete multiple goals throughout the month"*
+- [ ] **1⭐ Testing**: Baseline 2 completed → Target 2 completed (+5%) → 625 XP reward
+- [ ] **3⭐ Testing**: Baseline 2 completed → Target 3 completed (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 2 completed → Target 3 completed (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `goals_completed` increments on goal completion
+- [ ] **Goal Completion Bonus**: Test +100 XP per completed goal
+- [ ] **Multi-Goal Achievement**: Test +150 XP bonus for 3+ goals completed
+- [ ] **Big Goal Bonus**: Test +200 XP for goals with target value ≥1000
+- [ ] **Completion Timing**: Verify goals completed during challenge month count
+
+###### 📊 **11. Consistency Tracker Challenge**
+*"Work on goals consistently without missing days"*
+- [ ] **1⭐ Testing**: Baseline 12 streak → Target 13 streak (+5%) → 650 XP reward
+- [ ] **3⭐ Testing**: Baseline 12 streak → Target 14 streak (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 12 streak → Target 15 streak (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `goal_streak_days` tracks consecutive progress days
+- [ ] **Streak Milestone**: Test +75 XP per 7-day streak achieved
+- [ ] **Perfect Monthly Streak**: Test +250 XP for perfect 30-day streak
+- [ ] **Multi-Goal Streak**: Test +100 XP bonus for streaks on multiple goals
+- [ ] **Streak Break Recovery**: Verify challenge handles streak interruptions
+
+###### 💎 **12. Big Dreamer Challenge**
+*"Set and work on ambitious, high-value goals"*
+- [ ] **1⭐ Testing**: Baseline 1000 value → Target 1050 value (+5%) → 575 XP reward
+- [ ] **3⭐ Testing**: Baseline 1000 value → Target 1150 value (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 1000 value → Target 1250 value (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `high_value_goal_progress` tracks progress on goals ≥target value
+- [ ] **High-Value Goal Bonus**: Test +50 XP per 1000+ target value goal
+- [ ] **Ambition Bonus**: Test +100 XP for 5000+ target value goals
+- [ ] **Dream Achievement**: Test +300 XP for 10000+ target value goals
+- [ ] **Value Calculation**: Verify challenge uses highest goal values in tracking
+
+##### Sub-checkpoint 9.10.E: Consistency Category Challenge Testing ⚡
+**Goal**: Test all 4 Consistency category challenges with multi-feature integration
+
+###### 🎯 **13. Triple Master Challenge**
+*"Use all three features (habits, journal, goals) every day"*
+- [ ] **1⭐ Testing**: Baseline 15 days → Target 16 days (+5%) → 600 XP reward
+- [ ] **3⭐ Testing**: Baseline 15 days → Target 18 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 15 days → Target 19 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `triple_feature_days` counts days with habits+journal+goals
+- [ ] **Perfect Triple Day**: Test +30 XP per day using all 3 features
+- [ ] **Weekly Triple Achievement**: Test +100 XP per week of perfect triple days
+- [ ] **Monthly Triple Master**: Test +300 XP for perfect month achievement
+- [ ] **Feature Detection**: Verify all 3 features must be used on same day
+
+###### ⭐ **14. Perfect Month Challenge**
+*"Achieve daily minimums (1+ habits, 3+ journal entries) consistently"*
+- [ ] **1⭐ Testing**: Baseline 20 days → Target 21 days (+5%) → 675 XP reward
+- [ ] **3⭐ Testing**: Baseline 20 days → Target 23 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 20 days → Target 25 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `perfect_days` counts days meeting minimum requirements
+- [ ] **Perfect Day Achievement**: Test +50 XP per day meeting all minimums
+- [ ] **Perfect Week Bonus**: Test +200 XP per week of perfect days
+- [ ] **Flawless Month**: Test +500 XP for 100% perfect days
+- [ ] **Minimum Requirements**: Verify 1+ habit, 3+ journal entries definition
+
+###### 👑 **15. Engagement King Challenge**
+*"Earn XP every single day by staying active in the app"*
+- [ ] **1⭐ Testing**: Baseline 25 days → Target 26 days (+5%) → 525 XP reward
+- [ ] **3⭐ Testing**: Baseline 25 days → Target 29 days (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 25 days → Target 30 days (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `daily_xp_earned_days` counts days with any XP earned
+- [ ] **Daily Engagement**: Test +25 XP per day with XP earned
+- [ ] **Engagement Streak**: Test +50 XP per 7-day XP earning streak
+- [ ] **Never Miss**: Test +250 XP monthly bonus for daily XP earnings
+- [ ] **XP Source Tracking**: Verify any XP source counts for daily engagement
+
+###### ⚖️ **16. Balance Expert Challenge**
+*"Maintain balanced XP sources (no single source >60% of total)"*
+- [ ] **1⭐ Testing**: Baseline 0.60 score → Target 0.63 score (+5%) → 700 XP reward
+- [ ] **3⭐ Testing**: Baseline 0.60 score → Target 0.69 score (+15%) → 1,125 XP reward
+- [ ] **5⭐ Testing**: Baseline 0.60 score → Target 0.75 score (+25%) → 2,532 XP reward
+- [ ] **Tracking Validation**: Verify `balance_score` calculates XP source distribution correctly
+- [ ] **Perfect Balance Bonus**: Test +100 XP per week maintaining good balance
+- [ ] **Variety Champion**: Test +150 XP monthly for diverse XP sources
+- [ ] **Harmony Achievement**: Test +200 XP for exceptional balance (>0.80)
+- [ ] **Balance Calculation**: Verify no single source >60% rule enforcement
+
+##### Sub-checkpoint 9.10.F: UI Component & Modal Testing 🎨
+**Goal**: Test all Monthly Challenge UI components, modals, and user interactions
+
+###### **Challenge Display Components**
+- [ ] **MonthlyChallengeCard**: Test compact and full card layouts with progress display
+- [ ] **MonthlyChallengeSection**: Verify Home screen integration and challenge loading
+- [ ] **StarRatingDisplay**: Test 1-5 star visualization with correct colors and labels
+- [ ] **Progress Indicators**: Test real-time progress bar updates and milestone markers
+- [ ] **XP Badge Display**: Verify correct XP amounts shown for different star levels
+- [ ] **Category Icons**: Test all 4 category icons display correctly (🎯📝🏆⚡)
+- [ ] **Days Remaining**: Verify countdown shows correct days left in month
+- [ ] **Completion Status**: Test completed vs active challenge visual states
+
+###### **Challenge Detail Modal**
+- [ ] **Modal Opening**: Test challenge press → detail modal opens correctly
+- [ ] **Challenge Information**: Verify title, description, star level, XP reward displayed
+- [ ] **Progress Details**: Test individual requirement progress with targets and current values
+- [ ] **Weekly Breakdown**: Verify weekly progress calendar and daily snapshots
+- [ ] **Milestone Progress**: Test 25%, 50%, 75% milestone indicators and celebration states
+- [ ] **Bonus Information**: Display bonus XP conditions and achievement status
+- [ ] **Close Functionality**: Test modal close button and outside-press dismissal
+- [ ] **Scrolling**: Verify modal content scrolls properly on smaller screens
+
+###### **Monthly Progress Calendar**
+- [ ] **Calendar Layout**: Test calendar displays correct month with proper date grid
+- [ ] **Daily Progress Indicators**: Verify each day shows progress contribution amount
+- [ ] **Triple Feature Days**: Test special highlighting for days using all 3 features
+- [ ] **Perfect Days**: Verify days meeting minimum requirements have special styling
+- [ ] **Weekend Styling**: Test weekend days have different visual treatment
+- [ ] **Current Day Highlight**: Verify today is highlighted appropriately
+- [ ] **Progress Colors**: Test progress intensity colors reflect contribution amounts
+- [ ] **Empty Days**: Verify no-progress days display correctly
+
+###### **Challenge Completion Modal**
+- [ ] **Completion Trigger**: Test modal opens when challenge reaches 100%
+- [ ] **Success Celebration**: Verify celebration animation and congratulations message
+- [ ] **Final Statistics**: Display final completion percentage and time taken
+- [ ] **XP Award Summary**: Show base XP + completion bonus + milestone bonuses
+- [ ] **Star Progression**: Display current star level and next level preview
+- [ ] **Achievement Integration**: Show any achievements unlocked through completion
+- [ ] **Share Functionality**: Test challenge completion sharing capabilities
+- [ ] **Continue Button**: Verify modal dismissal and return to normal state
+
+##### Sub-checkpoint 9.10.G: Localization & Accessibility Testing 🌍
+**Goal**: Verify complete localization coverage and accessibility compliance
+
+###### **Missing Translation Keys Detection**
+- [ ] **Challenge Titles**: Verify all 16 challenge titles have translation keys
+- [ ] **Challenge Descriptions**: Test all challenge descriptions are localized
+- [ ] **Bonus Conditions**: Verify bonus XP condition descriptions are translated
+- [ ] **Progress Messages**: Test milestone and progress messages have translations
+- [ ] **Error Messages**: Verify challenge generation errors have proper translations
+- [ ] **Modal Content**: Test all modal titles, buttons, and content are localized
+- [ ] **Star Level Labels**: Verify star level names (Novice, Explorer, etc.) translated
+- [ ] **Category Names**: Test all category names have proper translations
+
+###### **Accessibility Compliance**
+- [ ] **Screen Reader Support**: Test VoiceOver/TalkBack announces challenge information correctly
+- [ ] **Button Accessibility**: Verify all interactive elements have proper accessibility labels
+- [ ] **Progress Announcements**: Test progress updates are announced to screen readers
+- [ ] **Modal Navigation**: Verify keyboard navigation works properly in challenge modals
+- [ ] **Color Contrast**: Test star level colors meet accessibility contrast requirements
+- [ ] **Focus Management**: Verify proper focus handling in challenge interactions
+- [ ] **Text Scaling**: Test challenge components work with large text sizes
+- [ ] **Reduced Motion**: Verify animations respect user's reduced motion preferences
+
+##### Sub-checkpoint 9.10.H: Performance & Edge Case Testing ⚡
+**Goal**: Test performance under various conditions and handle edge cases gracefully
+
+###### **Performance Testing**
+- [ ] **Challenge Generation Speed**: Verify generation completes under 2 seconds
+- [ ] **Progress Update Performance**: Test real-time updates don't cause UI lag
+- [ ] **Large Progress Values**: Test challenges with high target values (1000+ habits)
+- [ ] **Rapid Progress Updates**: Verify system handles multiple quick progress updates
+- [ ] **Memory Usage**: Test challenge system doesn't cause memory leaks
+- [ ] **Background Processing**: Verify challenge updates work when app is backgrounded
+- [ ] **Concurrent Updates**: Test multiple simultaneous progress updates
+- [ ] **Storage Performance**: Verify challenge data saving/loading is efficient
+
+###### **Edge Case Handling**
+- [ ] **No User Data**: Test new user with zero baseline gets appropriate challenges
+- [ ] **Corrupted Data**: Verify system recovers gracefully from corrupted challenge data
+- [ ] **Month Boundaries**: Test challenges handle month transitions properly
+- [ ] **Leap Year February**: Verify challenges work correctly in February of leap years
+- [ ] **Late Month Start**: Test user starting mid-month gets appropriate pro-rated targets
+- [ ] **System Clock Changes**: Verify challenges handle time zone and clock changes
+- [ ] **Storage Failure**: Test fallback behavior when AsyncStorage operations fail
+- [ ] **Network Issues**: Verify challenges work offline and sync when online
+
+---
