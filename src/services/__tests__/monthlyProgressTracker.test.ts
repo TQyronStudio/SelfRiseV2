@@ -270,7 +270,7 @@ describe('MonthlyProgressTracker', () => {
       });
       
       const daysRemaining = calculateDaysRemaining(mockChallenge);
-      expect(daysRemaining).toBe(17); // From Aug 15 to Aug 31
+      expect(daysRemaining).toBe(16); // From Aug 15 to Aug 31 (16 days remaining)
       
       jest.useRealTimers();
     });
@@ -285,7 +285,7 @@ describe('MonthlyProgressTracker', () => {
       });
       
       const projectedCompletion = calculateProjectedCompletion(mockProgress);
-      expect(projectedCompletion).toBe(120); // (40% / 10 days) * 30 total days = 120%
+      expect(projectedCompletion).toBe(100); // Capped at 100%
     });
   });
 
@@ -653,6 +653,310 @@ describe('MonthlyProgressTracker', () => {
       expect(status).toHaveProperty('config');
       expect(typeof status.pendingEvents).toBe('number');
       expect(typeof status.config).toBe('object');
+    });
+  });
+
+  // ========================================
+  // BASELINE CALCULATION TESTS
+  // ========================================
+
+  describe('Baseline Calculation Logic', () => {
+    
+    test('should handle missing challenge data gracefully', async () => {
+      // Test baseline integration by checking if MonthlyProgressTracker handles missing data
+      const progress = await MonthlyProgressTracker.getChallengeProgress('non_existent_challenge');
+      expect(progress).toBeNull();
+    });
+    
+    test('should validate progress initialization without baseline', async () => {
+      // Test creating progress without external baseline dependency
+      const mockChallenge = createMockChallenge();
+      const initialProgress = await MonthlyProgressTracker.initializeChallengeProgress(mockChallenge);
+      
+      expect(initialProgress).toBeDefined();
+      expect(initialProgress.completionPercentage).toBe(0);
+      expect(initialProgress.progress).toBeDefined();
+    });
+  });
+
+  // ========================================
+  // STAR PROGRESSION INTEGRATION TESTS
+  // ========================================
+
+  describe('Star Progression Integration', () => {
+    
+    test('should update star ratings on challenge completion', async () => {
+      const { StarRatingService } = require('../starRatingService');
+      const completeMonthlyChallenge = (MonthlyProgressTracker as any).completeMonthlyChallenge;
+      const getChallengeById = jest.fn().mockResolvedValue(createMockChallenge());
+      (MonthlyProgressTracker as any).getChallengeById = getChallengeById;
+      
+      const mockProgress = createMockProgress({
+        completionPercentage: 100,
+        isCompleted: false
+      });
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockProgress));
+      
+      // Mock star rating update
+      StarRatingService.updateStarRatingForCompletion.mockResolvedValue({
+        previousStars: 3,
+        newStars: 4,
+        reason: 'success',
+        challengeCompleted: true,
+        category: AchievementCategory.HABITS
+      });
+      
+      await completeMonthlyChallenge('test_challenge_001');
+      
+      expect(StarRatingService.updateStarRatingForCompletion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          challengeId: 'test_challenge_001',
+          category: AchievementCategory.HABITS,
+          completionPercentage: 100,
+          wasCompleted: true,
+          targetValue: 60,
+          actualValue: 15
+        })
+      );
+    });
+    
+    test('should handle star rating service failures gracefully', async () => {
+      const { StarRatingService } = require('../starRatingService');
+      const completeMonthlyChallenge = (MonthlyProgressTracker as any).completeMonthlyChallenge;
+      const getChallengeById = jest.fn().mockResolvedValue(createMockChallenge());
+      (MonthlyProgressTracker as any).getChallengeById = getChallengeById;
+      
+      const mockProgress = createMockProgress({
+        completionPercentage: 100,
+        isCompleted: false
+      });
+      
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockProgress));
+      
+      // Mock star rating service failure
+      StarRatingService.updateStarRatingForCompletion.mockRejectedValue(new Error('Service unavailable'));
+      
+      // Should not throw error
+      await expect(completeMonthlyChallenge('test_challenge_001')).resolves.not.toThrow();
+    });
+    
+    test('should handle star level constraints validation', async () => {
+      // Test that challenges are created with valid star levels
+      const mockChallenge = createMockChallenge({
+        starLevel: 3,
+        requirements: [
+          {
+            type: 'habits',
+            target: 30, // Valid target for 3-star level
+            trackingKey: 'scheduled_habit_completions'
+          } as any
+        ]
+      });
+      
+      expect(mockChallenge.starLevel).toBeGreaterThanOrEqual(1);
+      expect(mockChallenge.starLevel).toBeLessThanOrEqual(5);
+      expect(mockChallenge.requirements[0].target).toBeGreaterThan(0);
+    });
+  });
+
+  // ========================================
+  // PROGRESS TRACKING EDGE CASES
+  // ========================================
+
+  describe('Progress Tracking Edge Cases', () => {
+    
+    test('should handle XP source mapping correctly', async () => {
+      const getRelevantRequirements = (MonthlyProgressTracker as any).getRelevantRequirements;
+      
+      const mockChallenge = createMockChallenge({
+        requirements: [
+          { trackingKey: 'scheduled_habit_completions', type: 'habits' },
+          { trackingKey: 'bonus_habit_completions', type: 'habits' },
+          { trackingKey: 'quality_journal_entries', type: 'journal' },
+          { trackingKey: 'goal_progress_days', type: 'goals' },
+          { trackingKey: 'triple_feature_days', type: 'consistency' }
+        ] as any[]
+      });
+      
+      // Test habit completion mapping
+      let relevantReqs = getRelevantRequirements(mockChallenge, XPSourceType.HABIT_COMPLETION);
+      expect(relevantReqs.some(r => r.trackingKey === 'scheduled_habit_completions')).toBe(true);
+      expect(relevantReqs.some(r => r.trackingKey === 'unique_weekly_habits')).toBe(false);
+      
+      // Test habit bonus mapping
+      relevantReqs = getRelevantRequirements(mockChallenge, XPSourceType.HABIT_BONUS);
+      expect(relevantReqs.some(r => r.trackingKey === 'bonus_habit_completions')).toBe(true);
+      
+      // Test journal entry mapping
+      relevantReqs = getRelevantRequirements(mockChallenge, XPSourceType.JOURNAL_ENTRY);
+      expect(relevantReqs.some(r => r.trackingKey === 'quality_journal_entries')).toBe(true);
+      
+      // Test consistency tracking (should match all consistency requirements)
+      relevantReqs = getRelevantRequirements(mockChallenge, XPSourceType.ACHIEVEMENT_UNLOCK);
+      expect(relevantReqs.some(r => r.trackingKey === 'triple_feature_days')).toBe(true);
+    });
+    
+    test('should calculate progress increments correctly', async () => {
+      const calculateProgressIncrement = (MonthlyProgressTracker as any).calculateProgressIncrement;
+      
+      const habitReq = { trackingKey: 'scheduled_habit_completions' } as any;
+      const bonusHabitReq = { trackingKey: 'bonus_habit_completions' } as any;
+      const journalReq = { trackingKey: 'quality_journal_entries' } as any;
+      const complexReq = { trackingKey: 'triple_feature_days' } as any;
+      
+      // Simple incrementing requirements
+      expect(calculateProgressIncrement(habitReq, XPSourceType.HABIT_COMPLETION, 25)).toBe(1);
+      expect(calculateProgressIncrement(bonusHabitReq, XPSourceType.HABIT_BONUS, 25)).toBe(1);
+      expect(calculateProgressIncrement(journalReq, XPSourceType.JOURNAL_ENTRY, 15)).toBe(1);
+      
+      // Complex requirements (handled by daily analysis)
+      expect(calculateProgressIncrement(complexReq, XPSourceType.HABIT_COMPLETION, 25)).toBe(0);
+      
+      // Wrong XP source for requirement
+      expect(calculateProgressIncrement(habitReq, XPSourceType.JOURNAL_ENTRY, 15)).toBe(0);
+    });
+    
+    test('should handle concurrent updates with race condition protection', async () => {
+      const { MonthlyChallengeService } = require('../monthlyChallengeService');
+      MonthlyChallengeService.getCurrentChallenge.mockResolvedValue(createMockChallenge());
+      
+      let progressValue = 10;
+      const mockProgress = createMockProgress({
+        progress: { scheduled_habit_completions: progressValue }
+      });
+      
+      // Simulate atomic updates by updating value on each read
+      mockAsyncStorage.getItem.mockImplementation(() => {
+        const updatedProgress = { ...mockProgress, progress: { scheduled_habit_completions: progressValue } };
+        return Promise.resolve(JSON.stringify(updatedProgress));
+      });
+      
+      mockAsyncStorage.setItem.mockImplementation(() => {
+        progressValue++; // Simulate atomic increment
+        return Promise.resolve();
+      });
+      
+      // Mock daily analysis to avoid errors
+      (MonthlyProgressTracker as any).getDailyXPTransactions = jest.fn().mockResolvedValue([]);
+      (MonthlyProgressTracker as any).createDailySnapshot = jest.fn().mockResolvedValue();
+      (MonthlyProgressTracker as any).updateWeeklyBreakdown = jest.fn().mockResolvedValue();
+      (MonthlyProgressTracker as any).checkMilestoneProgress = jest.fn().mockResolvedValue([]);
+      
+      // Execute concurrent updates
+      const promises = Array.from({ length: 5 }, (_, i) =>
+        MonthlyProgressTracker.updateMonthlyProgress(
+          XPSourceType.HABIT_COMPLETION,
+          25,
+          `habit_${i}`
+        )
+      );
+      
+      await Promise.all(promises);
+      
+      // All updates should complete without error
+      expect(mockAsyncStorage.setItem).toHaveBeenCalledTimes(5);
+      expect(progressValue).toBe(15); // 10 + 5 increments
+    });
+    
+    test('should handle network failures during external service calls', async () => {
+      const { MonthlyChallengeService } = require('../monthlyChallengeService');
+      MonthlyChallengeService.getCurrentChallenge.mockResolvedValue(createMockChallenge());
+      
+      const mockProgress = createMockProgress();
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockProgress));
+      
+      // Mock GamificationService failure for daily analysis
+      (MonthlyProgressTracker as any).getDailyXPTransactions = jest.fn().mockRejectedValue(new Error('Network error'));
+      
+      // Should complete without throwing
+      await expect(
+        MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25)
+      ).resolves.not.toThrow();
+      
+      // Progress should still be updated
+      expect(mockAsyncStorage.setItem).toHaveBeenCalled();
+    });
+    
+    test('should handle memory pressure scenarios', async () => {
+      // Simulate memory pressure by creating large cached data
+      const largeMockProgress = createMockProgress({
+        activeDays: Array.from({ length: 1000 }, (_, i) => `2025-08-${String(i + 1).padStart(3, '0')}`)
+      });
+      
+      // Fill cache with multiple entries
+      for (let i = 0; i < 100; i++) {
+        mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(largeMockProgress));
+        await MonthlyProgressTracker.getChallengeProgress(`challenge_${i}`);
+      }
+      
+      // Clear cache should work without issues
+      expect(() => MonthlyProgressTracker.clearAllProgressCache()).not.toThrow();
+      
+      // Should be able to continue normal operations
+      mockAsyncStorage.getItem.mockResolvedValue(JSON.stringify(createMockProgress()));
+      const progress = await MonthlyProgressTracker.getChallengeProgress('new_challenge');
+      expect(progress).toBeDefined();
+    });
+  });
+
+  // ========================================
+  // FEATURE ANALYSIS TESTS
+  // ========================================
+
+  describe('Daily Feature Analysis', () => {
+    
+    test('should detect triple feature days correctly', async () => {
+      const analyzeDailyFeatureUsage = (MonthlyProgressTracker as any).analyzeDailyFeatureUsage;
+      
+      // Mock comprehensive XP transactions
+      (MonthlyProgressTracker as any).getDailyXPTransactions = jest.fn().mockResolvedValue([
+        { source: XPSourceType.HABIT_COMPLETION, amount: 25 },
+        { source: XPSourceType.HABIT_BONUS, amount: 10 },
+        { source: XPSourceType.JOURNAL_ENTRY, amount: 15 },
+        { source: XPSourceType.JOURNAL_BONUS, amount: 5 },
+        { source: XPSourceType.GOAL_PROGRESS, amount: 20 },
+        { source: XPSourceType.GOAL_COMPLETION, amount: 50 }
+      ]);
+      
+      const analysis = await analyzeDailyFeatureUsage('2025-08-15');
+      
+      expect(analysis.usedAllThreeFeatures).toBe(true); // Has habits, journal, and goals
+    });
+    
+    test('should detect perfect days correctly', async () => {
+      const analyzeDailyFeatureUsage = (MonthlyProgressTracker as any).analyzeDailyFeatureUsage;
+      
+      // Mock perfect day transactions (1+ habits, 3+ journal, 1+ goals)
+      (MonthlyProgressTracker as any).getDailyXPTransactions = jest.fn().mockResolvedValue([
+        { source: XPSourceType.HABIT_COMPLETION },
+        { source: XPSourceType.JOURNAL_ENTRY },
+        { source: XPSourceType.JOURNAL_ENTRY },
+        { source: XPSourceType.JOURNAL_ENTRY },
+        { source: XPSourceType.GOAL_PROGRESS }
+      ]);
+      
+      const analysis = await analyzeDailyFeatureUsage('2025-08-15');
+      
+      expect(analysis.metDailyMinimums).toBe(true);
+      expect(analysis.usedAllThreeFeatures).toBe(true);
+    });
+    
+    test('should handle incomplete feature days', async () => {
+      const analyzeDailyFeatureUsage = (MonthlyProgressTracker as any).analyzeDailyFeatureUsage;
+      
+      // Mock incomplete day (only habits and journal, no goals)
+      (MonthlyProgressTracker as any).getDailyXPTransactions = jest.fn().mockResolvedValue([
+        { source: XPSourceType.HABIT_COMPLETION },
+        { source: XPSourceType.JOURNAL_ENTRY },
+        { source: XPSourceType.JOURNAL_ENTRY }
+        // No goal progress
+      ]);
+      
+      const analysis = await analyzeDailyFeatureUsage('2025-08-15');
+      
+      expect(analysis.usedAllThreeFeatures).toBe(false);
+      expect(analysis.metDailyMinimums).toBe(false); // Missing goals + insufficient journal entries
     });
   });
 

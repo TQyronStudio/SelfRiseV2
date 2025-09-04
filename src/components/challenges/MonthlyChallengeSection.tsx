@@ -1,6 +1,6 @@
 // Monthly Challenge Section Component - Display monthly challenges on Home screen
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { MonthlyChallengeService } from '../../services/monthlyChallengeService';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { StarRatingService } from '../../services/starRatingService';
@@ -37,6 +37,40 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     loadMonthlyChallenge();
     loadUserStarRatings();
   }, []);
+
+  // Real-time progress updates listener
+  useEffect(() => {
+    if (!challenge) return;
+    
+    console.log(`🔄 Setting up real-time progress listener for challenge: ${challenge.id}`);
+    
+    const progressUpdateListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_progress_updated',
+      async (eventData: any) => {
+        console.log(`📈 Monthly progress update event received:`, eventData);
+        
+        // Only update if event is for our current challenge
+        if (eventData.challengeId === challenge.id) {
+          try {
+            // Refresh progress data
+            const updatedProgress = await MonthlyProgressTracker.getChallengeProgress(challenge.id);
+            if (updatedProgress) {
+              console.log(`✅ Real-time progress updated: ${updatedProgress.completionPercentage}%`);
+              setProgress(updatedProgress);
+            }
+          } catch (error) {
+            console.error('Failed to refresh progress on real-time update:', error);
+          }
+        }
+      }
+    );
+
+    // Cleanup listener on unmount or challenge change
+    return () => {
+      console.log(`🛑 Cleaning up progress listener for challenge: ${challenge.id}`);
+      progressUpdateListener.remove();
+    };
+  }, [challenge?.id]); // Re-setup listener when challenge changes
 
   const loadUserStarRatings = async () => {
     try {
@@ -261,24 +295,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.title}>Monthly Challenge</Text>
-          <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>
-              {monthName} • {Math.round(progress.completionPercentage)}% complete
-            </Text>
-            <StarRatingDisplay
-              category={challenge.category}
-              starLevel={challenge.starLevel}
-              size="small"
-              showLabel={false}
-            />
-          </View>
+          <Text style={styles.subtitle}>
+            {monthName} • {Math.round(progress.completionPercentage)}% complete
+          </Text>
         </View>
         
-        <View style={styles.headerRight}>
-          <Pressable style={styles.viewAllButton} onPress={handleViewAll}>
-            <Text style={styles.viewAllText}>View Details</Text>
-          </Pressable>
-        </View>
       </View>
 
       {/* Main Challenge Card */}
@@ -413,34 +434,15 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  headerRight: {
-    marginLeft: 16,
-  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
-  subtitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   subtitle: {
     fontSize: 14,
     color: '#6B7280',
-  },
-  viewAllButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-  },
-  viewAllText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151',
   },
   challengeScrollView: {
     marginBottom: 16,

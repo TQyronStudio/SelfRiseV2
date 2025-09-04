@@ -1354,7 +1354,7 @@ export class MonthlyChallengeService {
         scalingMultiplier: conservativeMultiplier,
         dailyTarget: reqTemplate.dailyTarget ? Math.ceil(target / 30) : undefined,
         weeklyTarget: reqTemplate.weeklyTarget ? Math.ceil(target / 4) : undefined,
-        description: `${reqTemplate.description} (Beginner-friendly target)`
+        description: reqTemplate.description
       };
 
       requirements.push(firstMonthRequirement);

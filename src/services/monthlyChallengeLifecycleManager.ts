@@ -85,8 +85,8 @@ export class MonthlyChallengeLifecycleManager {
   
   private static config: LifecycleManagerConfig = {
     enablePreviewGeneration: true,
-    enableGracePeriod: true,
-    gracePeriodDays: 7,
+    enableGracePeriod: false,
+    gracePeriodDays: 0,
     enableAutoArchival: true,
     archivalDelayDays: 3,
     errorRetryAttempts: 3,
@@ -205,15 +205,9 @@ export class MonthlyChallengeLifecycleManager {
         await this.setState(ChallengeLifecycleState.GENERATION_NEEDED);
         await this.generateChallengeFromPreview(preview);
         
-      } else if (dayOfMonth <= this.config.gracePeriodDays) {
-        // Grace period - generate with pro-rated targets
-        this.log(`Grace period start detected (day ${dayOfMonth})`);
-        await this.setState(ChallengeLifecycleState.GRACE_PERIOD);
-        await this.generateGracePeriodChallenge(newMonth, dayOfMonth, preview);
-        
       } else {
-        // Too late in month - skip this month, prepare for next
-        this.log(`Month too advanced (day ${dayOfMonth}), preparing for next month`);
+        // Not 1st day - skip this month, prepare for next
+        this.log(`Month started on day ${dayOfMonth}, skipping to next month (challenges only generate on day 1)`);
         await this.setState(ChallengeLifecycleState.AWAITING_MONTH_START);
         await this.checkAndGeneratePreview();
       }
@@ -274,80 +268,6 @@ export class MonthlyChallengeLifecycleManager {
     }
   }
   
-  /**
-   * Generate grace period challenge with pro-rated targets
-   */
-  private static async generateGracePeriodChallenge(
-    month: string, 
-    dayOfMonth: number, 
-    preview: ChallengePreviewData | null
-  ): Promise<void> {
-    this.log(`Generating grace period challenge for day ${dayOfMonth}`);
-    
-    try {
-      // Calculate pro-rating factor (reduce targets based on days missed)
-      const monthParts = month.split('-');
-      const daysInMonth = new Date(parseInt(monthParts[0]!), parseInt(monthParts[1]!), 0).getDate();
-      const remainingDays = daysInMonth - dayOfMonth + 1;
-      const proRatingFactor = remainingDays / daysInMonth;
-      
-      this.log(`Grace period pro-rating: ${Math.round(proRatingFactor * 100)}% (${remainingDays}/${daysInMonth} days)`);
-      
-      // Generate challenge with reduced targets
-      const result = await MonthlyChallengeService.generateChallengeForCurrentMonth();
-      
-      if (result.success && result.challenge) {
-        // Apply pro-rating to requirements
-        const adjustedChallenge = this.applyGracePeriodProRating(result.challenge, proRatingFactor);
-        
-        // Store adjusted challenge
-        await this.storeGracePeriodChallenge(adjustedChallenge);
-        
-        await this.setState(ChallengeLifecycleState.ACTIVE);
-        await this.emit(ChallengeLifecycleEvent.GRACE_PERIOD_STARTED, {
-          challengeId: adjustedChallenge.id,
-          proRatingFactor,
-          daysRemaining: remainingDays
-        });
-        
-        // Initialize progress tracking with grace period adjustment
-        await MonthlyProgressTracker.initializeChallengeProgress(adjustedChallenge);
-        
-        this.log('Grace period challenge generated successfully');
-        
-      } else {
-        throw new Error('Grace period challenge generation failed');
-      }
-      
-    } catch (error) {
-      console.error('Grace period challenge generation failed:', error);
-      await this.handleError('grace_period_generation', error as Error, { month, dayOfMonth });
-    }
-  }
-  
-  /**
-   * Apply pro-rating to challenge requirements for grace period
-   */
-  private static applyGracePeriodProRating(
-    challenge: MonthlyChallenge, 
-    proRatingFactor: number
-  ): MonthlyChallenge {
-    const adjustedRequirements = challenge.requirements.map(req => ({
-      ...req,
-      target: Math.ceil(req.target * proRatingFactor),
-      // Adjust milestones proportionally
-      progressMilestones: req.progressMilestones?.map(milestone => milestone * proRatingFactor)
-    }));
-    
-    return {
-      ...challenge,
-      requirements: adjustedRequirements,
-      title: `⚡ ${challenge.title} (Grace Period)`,
-      description: `${challenge.description}\n\n🚀 Started mid-month with adjusted targets to match remaining time.`,
-      scalingFormula: `grace_period_${challenge.scalingFormula}_${proRatingFactor.toFixed(2)}`,
-      generationReason: 'manual'
-    };
-  }
   
   // ===============================================
   // PREVIEW SYSTEM
@@ -707,9 +627,6 @@ export class MonthlyChallengeLifecycleManager {
         await this.generateChallengeFromPreview(metadata.preview || null);
         break;
         
-      case 'grace_period_generation':
-        await this.generateGracePeriodChallenge(metadata.month, metadata.dayOfMonth, null);
-        break;
         
       case 'preview_generation':
         await this.generatePreview(metadata.month);
@@ -919,13 +836,6 @@ export class MonthlyChallengeLifecycleManager {
     );
   }
   
-  private static async storeGracePeriodChallenge(challenge: MonthlyChallenge): Promise<void> {
-    // Store using MonthlyChallengeService's storage mechanism
-    const allChallenges = await AsyncStorage.getItem(MonthlyChallengeService['STORAGE_KEY']) || '[]';
-    const challenges = JSON.parse(allChallenges);
-    challenges.push(challenge);
-    await AsyncStorage.setItem(MonthlyChallengeService['STORAGE_KEY'], JSON.stringify(challenges));
-  }
   
   private static isPreviewExpired(preview: ChallengePreviewData): boolean {
     return new Date() > preview.expires;

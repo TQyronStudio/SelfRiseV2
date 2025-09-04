@@ -989,7 +989,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-first-week',
     name: 'First Week',
-    description: '7 aktivních dní celkem - začátek vaší věrnostní cesty',
+    description: '7 active days total - beginning of your loyalty journey',
     icon: '🌱',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.COMMON,
@@ -1010,7 +1010,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-two-weeks-strong',
     name: 'Two Weeks Strong',
-    description: '14 aktivních dní celkem - vaše oddanost roste',
+    description: '14 active days total - your dedication grows',
     icon: '💪',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
@@ -1031,7 +1031,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-three-weeks-committed',
     name: 'Three Weeks Committed',
-    description: '21 aktivních dní celkem - jste oddaný svému růstu',
+    description: '21 active days total - committed to your growth',
     icon: '🔥',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
@@ -1052,7 +1052,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-month-explorer',
     name: 'Month Explorer',
-    description: '30 aktivních dní celkem - objevujete svůj potenciál',
+    description: '30 active days total - exploring your potential',
     icon: '🗺️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1073,7 +1073,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-two-month-veteran',
     name: 'Two Month Veteran',
-    description: '60 aktivních dní celkem - jste zkušený v osobním růstu',
+    description: '60 active days total - experienced in personal growth',
     icon: '⚔️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1094,7 +1094,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-century-user',
     name: 'Century User',
-    description: '100 aktivních dní celkem - jste mezi elitou uživatelů',
+    description: '100 active days total - among the elite users',
     icon: '💯',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1115,7 +1115,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-half-year-hero',
     name: 'Half Year Hero',
-    description: '183 aktivních dní celkem - váš závazek je legendární',
+    description: '183 active days total - your commitment is legendary',
     icon: '🦸‍♀️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1136,7 +1136,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-year-legend',
     name: 'Year Legend',
-    description: '365 aktivních dní celkem - dosáhli jste legendárního statusu',
+    description: '365 active days total - you have reached legendary status',
     icon: '👑',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1157,7 +1157,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-ultimate-veteran',
     name: 'Ultimate Veteran',
-    description: '500 aktivních dní celkem - vaše oddanost je nepřekonatelná',
+    description: '500 active days total - your dedication is unmatched',
     icon: '🏅',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1178,7 +1178,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'loyalty-master',
     name: 'Loyalty Master',
-    description: '1000 aktivních dní celkem - dosáhli jste ultimátní věrnosti',
+    description: '1000 active days total - you have achieved ultimate loyalty',
     icon: '🏆',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1206,7 +1206,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'first-star',
     name: 'First Star',
-    description: 'Získat hvězdičku (první bonusový zápis za den) - objevujete rozšířenou vděčnost',
+    description: 'Get your first star (first bonus entry of the day) - discovering expanded gratitude',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.COMMON,
@@ -1227,7 +1227,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'five-stars',
     name: 'Five Stars',
-    description: 'Získat hvězdičku celkem 5krát - pravidelné rozšiřování praxe vděčnosti',
+    description: 'Get a star 5 times total - regular expansion of gratitude practice',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1248,7 +1248,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-achiever',
     name: 'Flame Achiever',
-    description: 'Získat plamínek (5 bonusů za jeden den) poprvé - den intenzivní vděčnosti a reflexe',
+    description: 'Get your first flame (5 bonuses in one day) - a day of intensive gratitude and reflection',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1269,7 +1269,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'bonus-week',
     name: 'Bonus Week',
-    description: 'Alespoň 1 bonus každý den po dobu 7 dní v řadě - týden konzistentní rozšířené praxe',
+    description: 'At least 1 bonus every day for 7 days in a row - a week of consistent expanded practice',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1290,7 +1290,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-royalty',
     name: 'Crown Royalty',
-    description: 'Získat korunku (10 bonusů za jeden den) poprvé - vrcholný den reflexe s královským statusem',
+    description: 'Get your first crown (10 bonuses in one day) - pinnacle day of reflection with royal status',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1311,7 +1311,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-collector',
     name: 'Flame Collector',
-    description: 'Získat plamínek celkem 5krát - mistr intenzivních dní vděčnosti',
+    description: 'Get flames 5 times total - master of intensive gratitude days',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1332,7 +1332,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'golden-bonus-streak',
     name: 'Golden Bonus Streak',
-    description: 'Alespoň 3 bonusy každý den po dobu 7 dní v řadě - týden hluboké a rozšířené reflexe',
+    description: 'At least 3 bonuses every day for 7 days in a row - a week of deep and expanded reflection',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1353,7 +1353,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'triple-crown-master',
     name: 'Triple Crown Master',
-    description: 'Získat korunku celkem 3krát - legendární mistr královských dnů reflexe',
+    description: 'Get crowns 3 times total - legendary master of royal reflection days',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1374,7 +1374,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'bonus-century',
     name: 'Bonus Century',
-    description: 'Napsat 200 bonusových zápisů celkem - vrcholný mistr rozšířené praxe vděčnosti',
+    description: 'Write 200 bonus entries total - ultimate master of expanded gratitude practice',
     icon: '💯',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1397,7 +1397,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'star-beginner',
     name: 'Star Beginner',
-    description: 'Získat hvězdičku celkem 10krát - začínající sběratel bonusových zážitků',
+    description: 'Get stars 10 times total - beginning collector of bonus experiences',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1418,7 +1418,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'star-collector',
     name: 'Star Collector',
-    description: 'Získat hvězdičku celkem 25krát - pravidelný rozšiřovatel praxe vděčnosti',
+    description: 'Get stars 25 times total - regular expander of gratitude practice',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1439,7 +1439,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'star-master',
     name: 'Star Master',
-    description: 'Získat hvězdičku celkem 50krát - mistr rozšířené denní reflexe',
+    description: 'Get stars 50 times total - master of expanded daily reflection',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1460,7 +1460,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'star-champion',
     name: 'Star Champion',
-    description: 'Získat hvězdičku celkem 100krát - šampion dlouhodobé rozšířené praxe',
+    description: 'Get stars 100 times total - champion of long-term expanded practice',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1481,7 +1481,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'star-legend',
     name: 'Star Legend',
-    description: 'Získat hvězdičku celkem 200krát - legendární mistr bonusových zážitků',
+    description: 'Get stars 200 times total - legendary master of bonus experiences',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1504,7 +1504,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-starter',
     name: 'Flame Starter',
-    description: 'Získat plamínek celkem 5krát - začínající mistr intenzivních dní',
+    description: 'Get flames 5 times total - beginning master of intensive days',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1525,7 +1525,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-accumulator',
     name: 'Flame Accumulator',
-    description: 'Získat plamínek celkem 10krát - sběratel výjimečných dní vděčnosti',
+    description: 'Get flames 10 times total - collector of exceptional gratitude days',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1546,7 +1546,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-master',
     name: 'Flame Master',
-    description: 'Získat plamínek celkem 25krát - mistr systematických intenzivních dní',
+    description: 'Get flames 25 times total - master of systematic intensive days',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1567,7 +1567,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-champion',
     name: 'Flame Champion',
-    description: 'Získat plamínek celkem 50krát - šampion hluboké denní reflexe',
+    description: 'Get flames 50 times total - champion of deep daily reflection',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1588,7 +1588,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'flame-legend',
     name: 'Flame Legend',
-    description: 'Získat plamínek celkem 100krát - legendární mistr intenzivní praxe vděčnosti',
+    description: 'Get flames 100 times total - legendary master of intensive gratitude practice',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1611,7 +1611,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-achiever',
     name: 'Crown Achiever',
-    description: 'Získat korunku celkem 3krát - dosáhne královských dnů reflexe',
+    description: 'Get crowns 3 times total - achieve royal reflection days',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1632,7 +1632,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-collector',
     name: 'Crown Collector',
-    description: 'Získat korunku celkem 5krát - sběratel královských zážitků vděčnosti',
+    description: 'Get crowns 5 times total - collector of royal gratitude experiences',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1653,7 +1653,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-master',
     name: 'Crown Master',
-    description: 'Získat korunku celkem 10krát - mistr královské úrovně reflexe',
+    description: 'Get crowns 10 times total - master of royal-level reflection',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1674,7 +1674,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-champion',
     name: 'Crown Champion',
-    description: 'Získat korunku celkem 25krát - šampion královských dnů vděčnosti',
+    description: 'Get crowns 25 times total - champion of royal gratitude days',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1695,7 +1695,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'crown-emperor',
     name: 'Crown Emperor',
-    description: 'Získat korunku celkem 50krát - císařský status v praxi hluboké reflexe',
+    description: 'Get crowns 50 times total - imperial status in deep reflection practice',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,

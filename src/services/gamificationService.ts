@@ -780,7 +780,7 @@ export class GamificationService {
         await GamificationService.queueXPNotification(transaction, leveledUp, milestoneReached);
         
         // Trigger XP popup animation via event system
-        GamificationService.triggerXPAnimation(finalAmount, options.source, options.metadata?.position);
+        GamificationService.triggerXPAnimation(finalAmount, options.source, options.sourceId, options.metadata, options.metadata?.position);
       }
 
       // Check for achievement unlocks after XP action
@@ -938,7 +938,7 @@ export class GamificationService {
 
       // Trigger visual feedback for XP loss (red/negative animation)
       if (!options.skipNotification) {
-        GamificationService.triggerXPAnimation(-amount, options.source, options.metadata?.position);
+        GamificationService.triggerXPAnimation(-amount, options.source, options.sourceId, options.metadata, options.metadata?.position);
       }
 
       return {
@@ -1021,7 +1021,7 @@ export class GamificationService {
 
       // STEP 2: Trigger immediate XP animation
       if (!options.skipNotification) {
-        this.triggerXPAnimation(amount, options.source, options.position);
+        this.triggerXPAnimation(amount, options.source, options.sourceId, options.metadata, options.position);
       }
 
       // STEP 3: Background XP operation with full validation
@@ -2150,6 +2150,8 @@ export class GamificationService {
   private static triggerXPAnimation(
     amount: number, 
     source: XPSourceType, 
+    sourceId?: string,
+    metadata?: Record<string, any>,
     position?: { x: number; y: number }
   ): void {
     try {
@@ -2157,6 +2159,8 @@ export class GamificationService {
       const eventData = {
         amount,
         source,
+        sourceId,
+        metadata,
         position: position || { x: 50, y: 130 }, // Default to better position
         timestamp: Date.now(),
       };

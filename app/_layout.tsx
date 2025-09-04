@@ -12,6 +12,9 @@ import '../src/config/i18n';
 import { RootProvider } from '../src/contexts';
 import { Colors } from '../src/constants/colors';
 
+// Initialize Monthly Progress Integration for challenge tracking
+import '../src/services';
+
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
   'Unable to get the view config for',

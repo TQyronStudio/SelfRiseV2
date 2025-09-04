@@ -2,6 +2,32 @@
 
 *Sofistikovaný systém měsíčních personalizovaných výzev s inteligentní 5-hvězdičkovou obtížností*
 
+## ⚠️ **KRITICKÉ PRINCIPY PRO DEBUGGING & DEVELOPMENT**
+
+### 🚨 **Interface Compatibility**
+- **VŽDY ověř interface shodu** mezi GamificationService ↔ MonthlyProgressIntegration  
+- **BatchedXPEvent format** se může změnit - testuj s real daty, ne mock objekty
+- **Console.log skutečná event data** při debugging interface issues
+
+### 🔄 **XP Direction Handling** 
+- **Pozor na záporné XP** (-10 XP při undo návyků) - `calculateProgressIncrement` musí respektovat znaménko
+- **NIKDY jen `if (amount > 0)`** - use `if (amount !== 0)` pro processing pozitivních i negativních hodnot
+- **Math.max(0, value)** - progress nikdy nesmí jít pod 0
+
+### 📡 **Real-time Updates**
+- **UI komponenty MUSÍ** poslouchat `DeviceEventEmitter.addListener('monthly_progress_updated')`
+- **Event cleanup** v useEffect return function - prevent memory leaks
+- **Challenge ID filtering** - update pouze relevantní challenge
+
+### 🌐 **i18n Coverage**  
+- **Každý nový XPSourceType** → přidat do `src/locales/en/index.ts`
+- **Testuj missing key warnings** v console.log - často přehlédnuto
+
+### 🔍 **Debug Logging Strategy**
+- **Comprehensive logging** v MonthlyProgressTracker klíčové pro diagnostiku
+- **Log real values**: amount, direction, challenge IDs, progress changes
+- **Structured debug tags**: `🔍 [DEBUG]`, `❌ [DEBUG]`, `✅ [DEBUG]` pro easy filtering
+
 ---
 
 ## 📋 **PŘEHLED VŠECH TYPŮ VÝZEV**

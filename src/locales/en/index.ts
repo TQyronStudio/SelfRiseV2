@@ -722,6 +722,7 @@ const en: TranslationKeys = {
         achievement_unlock: 'Achievement Unlock',
         general_activity: 'Activity',
         daily_engagement: 'Daily Engagement',
+        monthly_challenge: 'Monthly Challenge',
       },
       
       // Notifications and Announcements
@@ -867,6 +868,9 @@ const en: TranslationKeys = {
       },
       general_activity: {
         icon_description: 'Sparkles icon representing general activity',
+      },
+      monthly_challenge: {
+        icon_description: 'Calendar icon representing monthly challenge progress',
       },
     },
   },

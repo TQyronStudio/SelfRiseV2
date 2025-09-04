@@ -153,18 +153,6 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
           />
         </View>
 
-        {/* Milestone indicators */}
-        <View style={styles.compactMilestones}>
-          {getMilestoneProgress().map((milestone, index) => (
-            <View 
-              key={milestone.percentage}
-              style={[
-                styles.compactMilestone,
-                { backgroundColor: milestone.reached ? categoryColor : '#E5E7EB' }
-              ]}
-            />
-          ))}
-        </View>
       </Pressable>
     );
   }
@@ -213,111 +201,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         {/* Description */}
         <Text style={styles.description}>{challenge.description}</Text>
 
-        {/* Monthly Progress Summary */}
-        <View style={styles.monthlyProgressSection}>
-          <View style={styles.monthlyProgressHeader}>
-            <Text style={styles.monthlyProgressTitle}>Monthly Progress</Text>
-            <Text style={[styles.monthlyProgressPercent, { color: categoryColor }]}>
-              {Math.round(overallProgress)}%
-            </Text>
-          </View>
-          
-          <View style={styles.progressBar}>
-            <View 
-              style={[
-                styles.progressFill,
-                { 
-                  width: `${overallProgress}%`,
-                  backgroundColor: categoryColor
-                }
-              ]} 
-            />
-          </View>
 
-          <View style={styles.progressStats}>
-            <View style={styles.stat}>
-              <Text style={styles.statNumber}>{progress.daysActive}</Text>
-              <Text style={styles.statLabel}>Active Days</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statNumber}>{daysRemaining}</Text>
-              <Text style={styles.statLabel}>Days Left</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: categoryColor }]}>
-                {Math.round(progress.projectedCompletion)}%
-              </Text>
-              <Text style={styles.statLabel}>Projected</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Milestone Progress */}
-        <View style={styles.milestoneSection}>
-          <Text style={styles.milestoneTitle}>Milestone Progress</Text>
-          <View style={styles.milestoneTrack}>
-            {getMilestoneProgress().map((milestone, index) => (
-              <View key={milestone.percentage} style={styles.milestoneContainer}>
-                <View 
-                  style={[
-                    styles.milestoneMarker,
-                    { 
-                      backgroundColor: milestone.reached ? categoryColor : '#E5E7EB',
-                      borderColor: milestone.reached ? categoryColor : '#D1D5DB'
-                    }
-                  ]}
-                >
-                  {milestone.reached && <Text style={styles.milestoneCheck}>✓</Text>}
-                </View>
-                <Text style={[
-                  styles.milestoneLabel,
-                  { color: milestone.reached ? categoryColor : '#9CA3AF' }
-                ]}>
-                  {milestone.percentage}%
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Requirements Quick View */}
-        <View style={styles.requirementsQuickView}>
-          <Text style={styles.requirementsTitle}>
-            Requirements: {completedRequirements}/{totalRequirements} completed
-          </Text>
-          <View style={styles.requirementsList}>
-            {challenge.requirements.slice(0, 2).map((requirement, index) => {
-              const currentProgress = progress.progress[requirement.trackingKey] || 0;
-              const progressPercent = Math.min(100, (currentProgress / requirement.target) * 100);
-              const isRequirementCompleted = currentProgress >= requirement.target;
-
-              return (
-                <View key={index} style={styles.requirementQuick}>
-                  <Text style={[
-                    styles.requirementQuickIcon,
-                    { color: isRequirementCompleted ? categoryColor : '#9CA3AF' }
-                  ]}>
-                    {isRequirementCompleted ? '✓' : '○'}
-                  </Text>
-                  <Text style={styles.requirementQuickText} numberOfLines={1}>
-                    {requirement.description}
-                  </Text>
-                  <Text style={[
-                    styles.requirementQuickProgress,
-                    { color: isRequirementCompleted ? categoryColor : '#6B7280' }
-                  ]}>
-                    {Math.round(progressPercent)}%
-                  </Text>
-                </View>
-              );
-            })}
-            {challenge.requirements.length > 2 && (
-              <Text style={styles.moreRequirements}>
-                +{challenge.requirements.length - 2} more requirements...
-              </Text>
-            )}
-          </View>
-        </View>
 
         {/* Footer */}
         <View style={styles.footer}>
@@ -429,126 +313,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     lineHeight: 20,
   },
-  monthlyProgressSection: {
-    marginBottom: 18,
-  },
-  monthlyProgressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  monthlyProgressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  monthlyProgressPercent: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 5,
-  },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  milestoneSection: {
-    marginBottom: 18,
-  },
-  milestoneTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 10,
-  },
-  milestoneTrack: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  milestoneContainer: {
-    alignItems: 'center',
-  },
-  milestoneMarker: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  milestoneCheck: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  milestoneLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  requirementsQuickView: {
-    marginBottom: 16,
-  },
-  requirementsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  requirementsList: {
-    gap: 8,
-  },
-  requirementQuick: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  requirementQuickIcon: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    width: 20,
-  },
-  requirementQuickText: {
-    fontSize: 13,
-    color: '#4B5563',
-    flex: 1,
-  },
-  requirementQuickProgress: {
-    fontSize: 12,
-    fontWeight: '600',
-    minWidth: 40,
-    textAlign: 'right',
-  },
-  moreRequirements: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    marginTop: 4,
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -632,18 +396,6 @@ const styles = StyleSheet.create({
   compactProgressFill: {
     height: '100%',
     borderRadius: 2,
-  },
-  compactMilestones: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 2,
-  },
-  compactMilestone: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    flex: 1,
-    marginHorizontal: 1,
   },
 });
 

@@ -722,7 +722,6 @@ export enum ChallengeLifecycleState {
   GENERATION_NEEDED = 'generation_needed',        // 1st day: Need to generate
   GENERATING = 'generating',                      // Currently generating
   ACTIVE = 'active',                              // Challenge active and tracking
-  GRACE_PERIOD = 'grace_period',                  // Late start (after 1st day)
   
   // Completion phase
   COMPLETING = 'completing',                      // Month end processing

@@ -23,14 +23,18 @@ interface XPGainedEvent {
 }
 
 /**
- * Batched XP event for performance optimization
+ * Batched XP event for performance optimization (matches GamificationService format)
  */
 interface BatchedXPEvent {
   totalAmount: number;
-  sources: XPSourceType[];
-  sourceIds: string[];
-  batchTimestamp: number;
-  eventCount: number;
+  sources: Array<{
+    source: XPSourceType;
+    amount: number;
+    count: number;
+  }>;
+  leveledUp: boolean;
+  newLevel: number;
+  timestamp: number;
 }
 
 /**
@@ -207,22 +211,15 @@ export class MonthlyProgressIntegration {
         return;
       }
 
-      this.debugLog(`📦 Received batched XP event: ${event.totalAmount} XP from ${event.eventCount} events`);
+      this.debugLog(`📦 Received batched XP event: ${event.totalAmount} XP from ${event.sources.length} sources`);
 
       // Process each source in the batch
-      for (let i = 0; i < event.sources.length; i++) {
-        const source = event.sources[i];
-        const sourceId = event.sourceIds[i];
-        
-        // Estimate individual amount (distribute evenly)
-        const estimatedAmount = Math.round(event.totalAmount / event.sources.length);
-
+      for (const sourceInfo of event.sources) {
         const individualEvent: XPGainedEvent = {
-          amount: estimatedAmount,
-          source: source || XPSourceType.HABIT_COMPLETION,
-          ...(sourceId && { sourceId }),
-          timestamp: event.batchTimestamp,
-          metadata: { fromBatch: true, originalBatchSize: event.eventCount }
+          amount: sourceInfo.amount,
+          source: sourceInfo.source,
+          timestamp: event.timestamp,
+          metadata: { fromBatch: true, originalBatchSize: event.sources.length }
         };
 
         await this.processXPEvent(individualEvent);

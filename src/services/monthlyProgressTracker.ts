@@ -137,9 +137,14 @@ export class MonthlyProgressTracker {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
+      console.log(`🔍 [DEBUG] MonthlyProgressTracker.updateMonthlyProgress called with:`, { source, amount, sourceId, metadata });
+      
       // Get active monthly challenges
       const activeChallenges = await this.getActiveMonthlyChallenge();
+      console.log(`🔍 [DEBUG] Found ${activeChallenges.length} active challenges:`, activeChallenges.map(c => ({ id: c.id, title: c.title, isActive: c.isActive })));
+      
       if (activeChallenges.length === 0) {
+        console.log(`❌ [DEBUG] No active monthly challenges found - exiting updateMonthlyProgress`);
         return; // No active challenges to update
       }
 
@@ -147,6 +152,7 @@ export class MonthlyProgressTracker {
 
       // Process each active challenge
       for (const challenge of activeChallenges) {
+        console.log(`🔍 [DEBUG] Processing challenge: ${challenge.id} - ${challenge.title}`);
         await this.processProgressUpdate(challenge, source, amount, metadata);
       }
 
@@ -195,18 +201,32 @@ export class MonthlyProgressTracker {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
+      console.log(`🔍 [DEBUG] executeAtomicProgressUpdate - Challenge: ${challenge.title}, Source: ${source}, Amount: ${amount}`);
+      
       // Check if this source contributes to any challenge requirement
       const relevantRequirements = this.getRelevantRequirements(challenge, source);
+      console.log(`🔍 [DEBUG] Found ${relevantRequirements.length} relevant requirements:`, relevantRequirements.map(r => r.trackingKey));
+      
       if (relevantRequirements.length === 0) {
+        console.log(`❌ [DEBUG] No relevant requirements found for source ${source} - skipping`);
         return; // This XP source doesn't contribute to this challenge
       }
 
       // Get current progress (always fetch fresh to avoid stale cache during concurrent updates)
       this.clearProgressCache(challenge.id); // Clear cache to ensure fresh read
-      const currentProgress = await this.getChallengeProgress(challenge.id);
+      let currentProgress = await this.getChallengeProgress(challenge.id);
+      console.log(`🔍 [DEBUG] Current progress for ${challenge.id}:`, currentProgress ? 'FOUND' : 'NOT FOUND');
+      
       if (!currentProgress) {
-        console.warn(`No progress found for challenge ${challenge.id}`);
-        return;
+        console.warn(`❌ [DEBUG] No progress found for challenge ${challenge.id} - attempting to initialize...`);
+        
+        try {
+          currentProgress = await this.initializeChallengeProgress(challenge);
+          console.log(`✅ [DEBUG] Progress initialized for ${challenge.id}:`, currentProgress.progress);
+        } catch (initError) {
+          console.error(`❌ [DEBUG] Failed to initialize progress for ${challenge.id}:`, initError);
+          return;
+        }
       }
 
       // Calculate progress increments and apply atomically
@@ -222,14 +242,15 @@ export class MonthlyProgressTracker {
           metadata
         );
 
-        if (incrementValue > 0) {
-          // Atomic increment: always read the current value fresh from storage-backed progress object
+        if (incrementValue !== 0) {
+          // Atomic increment/decrement: always read the current value fresh from storage-backed progress object
           const currentValue = currentProgress.progress[requirement.trackingKey] || 0;
-          const newValue = currentValue + incrementValue;
+          const newValue = Math.max(0, currentValue + incrementValue); // Ensure progress never goes below 0
           currentProgress.progress[requirement.trackingKey] = newValue;
           progressUpdated = true;
 
-          console.log(`📊 Challenge "${challenge.title}": ${requirement.trackingKey} +${incrementValue} (${newValue}/${requirement.target})`);
+          const operation = incrementValue > 0 ? `+${incrementValue}` : `${incrementValue}`;
+          console.log(`📊 Challenge "${challenge.title}": ${requirement.trackingKey} ${operation} (${currentValue} → ${newValue}/${requirement.target})`);
         }
       }
 
@@ -309,29 +330,47 @@ export class MonthlyProgressTracker {
     challenge: MonthlyChallenge,
     source: XPSourceType
   ): MonthlyChallengeRequirement[] {
+    console.log(`🔍 [DEBUG] getRelevantRequirements - Challenge has ${challenge.requirements?.length || 0} requirements:`, 
+      challenge.requirements?.map(r => r.trackingKey) || []);
+    console.log(`🔍 [DEBUG] Looking for requirements that match XP source: ${source}`);
+    
     return challenge.requirements.filter(requirement => {
+      let matches = false;
+      
       switch (requirement.trackingKey) {
         case 'scheduled_habit_completions':
-          return source === XPSourceType.HABIT_COMPLETION;
+          matches = source === XPSourceType.HABIT_COMPLETION;
+          break;
         case 'bonus_habit_completions':
-          return source === XPSourceType.HABIT_BONUS;
+          matches = source === XPSourceType.HABIT_BONUS;
+          break;
         case 'unique_weekly_habits':
-          return source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS;
+          matches = source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS;
+          break;
         case 'quality_journal_entries':
-          return source === XPSourceType.JOURNAL_ENTRY;
+          matches = source === XPSourceType.JOURNAL_ENTRY;
+          break;
         case 'bonus_journal_entries':
-          return source === XPSourceType.JOURNAL_BONUS;
+          matches = source === XPSourceType.JOURNAL_BONUS;
+          break;
         case 'daily_goal_progress':
-          return source === XPSourceType.GOAL_PROGRESS;
+          matches = source === XPSourceType.GOAL_PROGRESS;
+          break;
         case 'goal_completions':
-          return source === XPSourceType.GOAL_COMPLETION;
+          matches = source === XPSourceType.GOAL_COMPLETION;
+          break;
         case 'triple_feature_days':
         case 'daily_engagement_streak':
         case 'perfect_days':
-          return true; // These require daily aggregation analysis
+          matches = true; // These require daily aggregation analysis
+          break;
         default:
-          return false;
+          matches = false;
+          break;
       }
+      
+      console.log(`🔍 [DEBUG] Requirement "${requirement.trackingKey}" matches source ${source}: ${matches ? 'YES' : 'NO'}`);
+      return matches;
     });
   }
 
@@ -344,28 +383,32 @@ export class MonthlyProgressTracker {
     amount: number,
     metadata?: Record<string, any>
   ): number {
+    // Determine increment/decrement direction based on XP amount
+    const direction = amount > 0 ? 1 : amount < 0 ? -1 : 0;
+    console.log(`🔍 [DEBUG] calculateProgressIncrement - Amount: ${amount}, Direction: ${direction}`);
+    
     switch (requirement.trackingKey) {
       case 'scheduled_habit_completions':
-        return source === XPSourceType.HABIT_COMPLETION ? 1 : 0;
+        return source === XPSourceType.HABIT_COMPLETION ? direction : 0;
         
       case 'bonus_habit_completions':
-        return source === XPSourceType.HABIT_BONUS ? 1 : 0;
+        return source === XPSourceType.HABIT_BONUS ? direction : 0;
         
       case 'unique_weekly_habits':
         // This requires special tracking - will be handled in daily aggregation
         return 0;
         
       case 'quality_journal_entries':
-        return source === XPSourceType.JOURNAL_ENTRY ? 1 : 0;
+        return source === XPSourceType.JOURNAL_ENTRY ? direction : 0;
         
       case 'bonus_journal_entries':
-        return source === XPSourceType.JOURNAL_BONUS ? 1 : 0;
+        return source === XPSourceType.JOURNAL_BONUS ? direction : 0;
         
       case 'daily_goal_progress':
-        return source === XPSourceType.GOAL_PROGRESS ? 1 : 0;
+        return source === XPSourceType.GOAL_PROGRESS ? direction : 0;
         
       case 'goal_completions':
-        return source === XPSourceType.GOAL_COMPLETION ? 1 : 0;
+        return source === XPSourceType.GOAL_COMPLETION ? direction : 0;
         
       case 'triple_feature_days':
       case 'daily_engagement_streak':
@@ -596,14 +639,25 @@ export class MonthlyProgressTracker {
    */
   private static async getActiveMonthlyChallenge(): Promise<MonthlyChallenge[]> {
     try {
+      console.log(`🔍 [DEBUG] getActiveMonthlyChallenge - Starting search for active challenges...`);
+      
       // Import MonthlyChallengeService 
       const { MonthlyChallengeService } = require('./monthlyChallengeService');
+      console.log(`🔍 [DEBUG] MonthlyChallengeService imported successfully`);
       
       // Get current active challenge
       const currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
+      console.log(`🔍 [DEBUG] MonthlyChallengeService.getCurrentChallenge() returned:`, currentChallenge ? 
+        { id: currentChallenge.id, title: currentChallenge.title, isActive: currentChallenge.isActive, startDate: currentChallenge.startDate, endDate: currentChallenge.endDate } : 
+        'null');
       
       if (currentChallenge && currentChallenge.isActive) {
+        console.log(`✅ [DEBUG] Found active challenge: ${currentChallenge.title} (${currentChallenge.id})`);
         return [currentChallenge];
+      } else if (currentChallenge && !currentChallenge.isActive) {
+        console.log(`❌ [DEBUG] Challenge found but not active: ${currentChallenge.title} (isActive: ${currentChallenge.isActive})`);
+      } else {
+        console.log(`❌ [DEBUG] No current challenge found`);
       }
       
       return [];
@@ -736,9 +790,9 @@ export class MonthlyProgressTracker {
       
       for (const requirement of relevantRequirements) {
         const increment = this.calculateProgressIncrement(requirement, source, amount);
-        if (increment > 0) {
-          snapshot.dailyContributions[requirement.trackingKey] = 
-            (snapshot.dailyContributions[requirement.trackingKey] || 0) + increment;
+        if (increment !== 0) {
+          const currentContribution = snapshot.dailyContributions[requirement.trackingKey] || 0;
+          snapshot.dailyContributions[requirement.trackingKey] = Math.max(0, currentContribution + increment);
         }
       }
 
