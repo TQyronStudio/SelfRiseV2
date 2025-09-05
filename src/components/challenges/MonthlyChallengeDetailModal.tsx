@@ -15,6 +15,7 @@ import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from 
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import MonthlyProgressCalendar from './MonthlyProgressCalendar';
+import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
 
 interface MonthlyChallengeDetailModalProps {
   challenge: MonthlyChallenge | null;
@@ -41,29 +42,60 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     setProgress(initialProgress);
   }, [initialProgress]);
 
+  // Fix "Beginner-friendly target" text in stored challenge data when modal opens
+  useEffect(() => {
+    if (visible && challenge) {
+      BeginnerTargetFixer.fixBeginnerTargetText().catch(console.error);
+    }
+  }, [visible, challenge?.id]);
+
   // Real-time progress updates listener
   useEffect(() => {
-    if (!challenge || !visible) return;
+    if (!challenge || !visible) {
+      console.log(`⏸️ [MODAL] Skipping listener setup - Challenge: ${!!challenge}, Visible: ${visible}`);
+      return;
+    }
     
     console.log(`🔄 [MODAL] Setting up real-time progress listener for challenge: ${challenge.id}`);
+    console.log(`🔄 [MODAL] Current progress state:`, {
+      completionPercentage: progress?.completionPercentage,
+      daysActive: progress?.daysActive,
+      progressKeys: Object.keys(progress?.progress || {})
+    });
     
     const progressUpdateListener: EmitterSubscription = DeviceEventEmitter.addListener(
       'monthly_progress_updated',
       async (eventData: any) => {
-        console.log(`📈 [MODAL] Monthly progress update event received:`, eventData);
+        console.log(`📈 [MODAL] Monthly progress update event received:`, {
+          eventChallengeId: eventData.challengeId,
+          modalChallengeId: challenge.id,
+          matches: eventData.challengeId === challenge.id,
+          eventData
+        });
         
         // Only update if event is for our current challenge
         if (eventData.challengeId === challenge.id) {
           try {
+            console.log(`🔄 [MODAL] Fetching updated progress for challenge: ${challenge.id}`);
             // Refresh progress data from MonthlyProgressTracker
             const updatedProgress = await MonthlyProgressTracker.getChallengeProgress(challenge.id);
             if (updatedProgress) {
-              console.log(`✅ [MODAL] Real-time progress updated: ${updatedProgress.completionPercentage}%`);
+              console.log(`✅ [MODAL] Real-time progress updated:`, {
+                oldPercentage: progress?.completionPercentage,
+                newPercentage: updatedProgress.completionPercentage,
+                oldDaysActive: progress?.daysActive,
+                newDaysActive: updatedProgress.daysActive,
+                progressChanged: JSON.stringify(progress?.progress) !== JSON.stringify(updatedProgress.progress)
+              });
               setProgress(updatedProgress);
+            } else {
+              console.warn(`⚠️ [MODAL] No updated progress found for challenge: ${challenge.id}`);
             }
           } catch (error) {
             console.error('[MODAL] Failed to refresh progress on real-time update:', error);
           }
+        } else {
+          console.log(`❌ [MODAL] Event for different challenge - ignoring`);
         }
       }
     );
@@ -73,9 +105,27 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       console.log(`🛑 [MODAL] Cleaning up progress listener for challenge: ${challenge.id}`);
       progressUpdateListener.remove();
     };
-  }, [challenge?.id, visible]); // Re-setup listener when challenge or visibility changes
+  }, [challenge?.id, visible, progress?.completionPercentage]); // Re-setup listener when challenge or visibility changes
 
   if (!challenge || !progress) return null;
+
+  // Clean up any "Beginner-friendly target" text from challenge requirements
+  const cleanedChallenge = {
+    ...challenge,
+    requirements: challenge.requirements.map(req => ({
+      ...req,
+      description: req.description
+        .replace(/\(?\s*beginner-?friendly\s+target\s*\)?/gi, '')
+        .replace(/\(?\s*beginner\s+friendly\s+target\s*\)?/gi, '')
+        .replace(/beginner-?friendly\s+target/gi, 'target')
+        .replace(/beginner\s+friendly\s+target/gi, 'target')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }))
+  };
+
+  // Use cleaned challenge for display
+  const displayChallenge = cleanedChallenge;
 
   const getCategoryColor = (category: AchievementCategory) => {
     switch (category) {
@@ -126,7 +176,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   };
 
   const getDaysRemaining = () => {
-    const endDate = new Date(challenge.endDate + 'T23:59:59');
+    const endDate = new Date(displayChallenge.endDate + 'T23:59:59');
     const now = new Date();
     const diffTime = endDate.getTime() - now.getTime();
     
@@ -136,8 +186,8 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   };
 
   const getTotalDays = () => {
-    const startDate = new Date(challenge.startDate);
-    const endDate = new Date(challenge.endDate);
+    const startDate = new Date(displayChallenge.startDate);
+    const endDate = new Date(displayChallenge.endDate);
     return Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   };
 
@@ -179,13 +229,13 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     return weeks;
   };
 
-  const categoryColor = getCategoryColor(challenge.category);
-  const starColor = getStarColor(challenge.starLevel);
+  const categoryColor = getCategoryColor(displayChallenge.category);
+  const starColor = getStarColor(displayChallenge.starLevel);
   const daysRemaining = getDaysRemaining();
   const totalDays = getTotalDays();
   const isCompleted = progress.isCompleted || progress.completionPercentage >= 100;
 
-  const completedRequirements = challenge.requirements.filter(req => 
+  const completedRequirements = displayChallenge.requirements.filter(req => 
     (progress.progress[req.trackingKey] || 0) >= req.target
   ).length;
 
@@ -212,7 +262,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       {/* Challenge Info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Challenge Description</Text>
-        <Text style={styles.description}>{challenge.description}</Text>
+        <Text style={styles.description}>{displayChallenge.description}</Text>
       </View>
 
       {/* Time Info */}
@@ -234,10 +284,10 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             </View>
           </View>
           <Text style={styles.timeDetails}>
-            {new Date(challenge.startDate).toLocaleDateString('en-US', {
+            {new Date(displayChallenge.startDate).toLocaleDateString('en-US', {
               month: 'long',
               day: 'numeric'
-            })} - {new Date(challenge.endDate).toLocaleDateString('en-US', {
+            })} - {new Date(displayChallenge.endDate).toLocaleDateString('en-US', {
               month: 'long',
               day: 'numeric',
               year: 'numeric'
@@ -254,7 +304,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       {/* Requirements Detail */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Requirements Progress</Text>
-        {challenge.requirements.map((requirement, index) => {
+        {displayChallenge.requirements.map((requirement, index) => {
           const currentProgress = progress.progress[requirement.trackingKey] || 0;
           const progressPercent = Math.min(100, (currentProgress / requirement.target) * 100);
           const isRequirementCompleted = currentProgress >= requirement.target;
@@ -348,7 +398,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const renderCalendarTab = () => (
     <View>
       <MonthlyProgressCalendar
-        challenge={challenge}
+        challenge={displayChallenge}
         progress={progress}
         compact={false}
       />
@@ -360,7 +410,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Tips for Success</Text>
         <View style={styles.tipsCard}>
-          {getMonthlyChallengeTips(challenge.category).map((tip, index) => (
+          {getMonthlyChallengeTips(displayChallenge.category).map((tip, index) => (
             <View key={index} style={styles.tip}>
               <Text style={styles.tipIcon}>💡</Text>
               <Text style={styles.tipText}>{tip}</Text>
@@ -375,7 +425,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         <View style={styles.strategyCard}>
           <Text style={styles.strategyText}>
             This is a <Text style={[styles.strategyHighlight, { color: starColor }]}>
-              {getStarRarity(challenge.starLevel)} ({challenge.starLevel}★)
+              {getStarRarity(displayChallenge.starLevel)} ({displayChallenge.starLevel}★)
             </Text> difficulty challenge designed to help you grow consistently.
           </Text>
           <Text style={styles.strategyText}>
@@ -393,7 +443,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
           </View>
           <View style={styles.rewardContent}>
             <Text style={styles.rewardTitle}>
-              {challenge.baseXPReward} Experience Points
+              {displayChallenge.baseXPReward} Experience Points
             </Text>
             <Text style={styles.rewardDescription}>
               Complete all requirements to earn this XP reward. Perfect completion (100%) earns bonus XP!
@@ -437,16 +487,16 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             </Pressable>
             
             <View style={styles.headerMain}>
-              <Text style={styles.categoryIcon}>{getCategoryIcon(challenge.category)}</Text>
+              <Text style={styles.categoryIcon}>{getCategoryIcon(displayChallenge.category)}</Text>
               <View style={styles.headerText}>
-                <Text style={styles.title}>{challenge.title}</Text>
+                <Text style={styles.title}>{displayChallenge.title}</Text>
                 <View style={styles.headerMeta}>
                   <Text style={styles.category}>
-                    {challenge.category.toUpperCase()}
+                    {displayChallenge.category.toUpperCase()}
                   </Text>
                   <StarRatingDisplay
-                    category={challenge.category}
-                    starLevel={challenge.starLevel}
+                    category={displayChallenge.category}
+                    starLevel={displayChallenge.starLevel}
                     size="medium"
                     showLabel={true}
                   />
@@ -457,7 +507,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             <View style={styles.headerBadges}>
               <View style={[styles.xpBadge, { backgroundColor: starColor + '20' }]}>
                 <Text style={[styles.xpText, { color: '#FFFFFF' }]}>
-                  +{challenge.baseXPReward} XP
+                  +{displayChallenge.baseXPReward} XP
                 </Text>
               </View>
               {isCompleted && (

@@ -1325,7 +1325,7 @@ export class MonthlyChallengeService {
     };
 
     return expectations[category] || {
-      difficulty: 'Beginner-friendly introduction to monthly challenges',
+      difficulty: 'Balanced monthly challenge',
       timeCommitment: '10-15 minutes daily',
       successRate: '75%+ completion rate expected'
     };
