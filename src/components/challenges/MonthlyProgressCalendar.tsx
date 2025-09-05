@@ -1,6 +1,6 @@
 // Monthly Progress Calendar Component
 // Visual calendar showing daily contributions and milestones for monthly challenges
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { 
   MonthlyChallenge, 
@@ -8,6 +8,7 @@ import {
   AchievementCategory 
 } from '../../types/gamification';
 import { addDays, parseDate, formatDateToString } from '../../utils/date';
+import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 
 interface MonthlyProgressCalendarProps {
   challenge: MonthlyChallenge;
@@ -20,13 +21,14 @@ interface DayData {
   dayNumber: number;
   weekNumber: number;
   contributions: Record<string, number>;
-  isTripleFeatureDay: boolean;
+  isGoodProgress: boolean;  // Replaced isTripleFeatureDay with isGoodProgress
   isPerfectDay: boolean;
   isMilestone: boolean;
   milestonePercentage?: number;
   hasActivity: boolean;
   isToday: boolean;
   isFuture: boolean;
+  adaptiveIntensity: 'none' | 'some' | 'good' | 'perfect'; // Added for easier debugging
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -36,6 +38,36 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   progress,
   compact = false
 }) => {
+  // Load real daily snapshots instead of using fake weekly estimates
+  const [dailySnapshots, setDailySnapshots] = useState<Record<string, any>>({});
+  const [isLoadingSnapshots, setIsLoadingSnapshots] = useState(true);
+
+  useEffect(() => {
+    const loadDailySnapshots = async () => {
+      try {
+        setIsLoadingSnapshots(true);
+        
+        // Get all snapshots and filter for this challenge
+        const allSnapshots = await (MonthlyProgressTracker as any).getAllSnapshots();
+        const challengeSnapshots = allSnapshots.filter((s: any) => s.challengeId === challenge.id);
+        
+        // Convert to date-indexed object for quick lookup
+        const snapshotsByDate: Record<string, any> = {};
+        challengeSnapshots.forEach((snapshot: any) => {
+          snapshotsByDate[snapshot.date] = snapshot;
+        });
+        
+        setDailySnapshots(snapshotsByDate);
+      } catch (error) {
+        console.error('MonthlyProgressCalendar: Failed to load daily snapshots:', error);
+        setDailySnapshots({});
+      } finally {
+        setIsLoadingSnapshots(false);
+      }
+    };
+
+    loadDailySnapshots();
+  }, [challenge.id]);
   const getCategoryColor = (category: AchievementCategory) => {
     switch (category) {
       case 'habits': return '#22C55E';
@@ -51,8 +83,38 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
 
   const categoryColor = getCategoryColor(challenge.category);
 
-  // Generate calendar data for the month
+  // Calculate daily targets based on challenge requirements for adaptive coloring
+  const calculateDailyTarget = useMemo(() => {
+    const startDate = parseDate(challenge.startDate);
+    const endDate = parseDate(challenge.endDate);
+    const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Calculate combined daily target from all requirements
+    const combinedDailyTarget = challenge.requirements.reduce((total, req) => {
+      return total + (req.target / totalDays);
+    }, 0);
+    
+    return combinedDailyTarget;
+  }, [challenge]);
+
+  // Adaptive activity intensity based on completion percentage of daily target
+  const getAdaptiveActivityIntensity = (actualContributions: Record<string, number>): 'none' | 'some' | 'good' | 'perfect' => {
+    const totalActualProgress = Object.values(actualContributions).reduce((sum, val) => sum + val, 0);
+    
+    if (totalActualProgress === 0) return 'none';
+    
+    const completionPercentage = totalActualProgress / calculateDailyTarget;
+    
+    if (completionPercentage >= 0.91) return 'perfect'; // 91%+ = Perfect Day
+    if (completionPercentage >= 0.51) return 'good';   // 51%+ = Good Progress  
+    if (completionPercentage >= 0.10) return 'some';   // 10%+ = Some Activity
+    return 'none'; // <10% = No meaningful activity
+  };
+
+  // Generate calendar data for the month using real daily snapshots
   const calendarData = useMemo(() => {
+    if (isLoadingSnapshots) return []; // Return empty while loading
+    
     const startDate = parseDate(challenge.startDate);
     const endDate = parseDate(challenge.endDate);
     const today = new Date();
@@ -70,21 +132,19 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         weekNumber++;
       }
 
-      // Get daily contributions from progress
-      const weekKey = `week${weekNumber}` as keyof typeof progress.weeklyProgress;
-      const weeklyData = progress.weeklyProgress[weekKey] || {};
-      const dailyContributions = Object.keys(weeklyData).reduce((acc, key) => {
-        // Calculate contribution for this specific day
-        const dailyValue = Math.floor((weeklyData[key] || 0) / 7); // Rough daily estimate
-        acc[key] = dailyValue;
-        return acc;
-      }, {} as Record<string, number>);
+      // Get REAL daily contributions from snapshots (not fake estimates!)
+      const dailySnapshot = dailySnapshots[dateString];
+      const dailyContributions = dailySnapshot?.dailyContributions || {};
 
-      // Determine activity levels
-      const totalContributions = Object.values(dailyContributions).reduce((sum, val) => sum + val, 0);
-      const hasActivity = totalContributions > 0;
-      const isTripleFeatureDay = Object.keys(dailyContributions).length >= 3;
-      const isPerfectDay = hasActivity && Object.values(dailyContributions).every(val => val > 0);
+      // Use adaptive activity intensity calculation
+      const adaptiveIntensity = getAdaptiveActivityIntensity(dailyContributions);
+      const hasActivity = adaptiveIntensity !== 'none';
+      
+      // Perfect Day is now based on meeting 100% of daily target
+      const isPerfectDay = adaptiveIntensity === 'perfect';
+      
+      // Replace "Triple Feature Day" with "Good Progress" (75%+ of target)
+      const isGoodProgress = adaptiveIntensity === 'good';
 
       // Check for milestone days
       const daysSinceStart = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -108,20 +168,21 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         dayNumber,
         weekNumber,
         contributions: dailyContributions,
-        isTripleFeatureDay,
+        isGoodProgress,  // Using isGoodProgress instead of isTripleFeatureDay
         isPerfectDay,
         isMilestone,
         ...(milestonePercentage !== undefined && { milestonePercentage }),
         hasActivity,
         isToday: dateString === formatDateToString(today),
-        isFuture: currentDate > today
+        isFuture: currentDate > today,
+        adaptiveIntensity // Include intensity for debugging
       });
 
       currentDate = new Date(addDays(currentDate, 1));
     }
 
     return days;
-  }, [challenge, progress]);
+  }, [challenge, progress, dailySnapshots, isLoadingSnapshots, calculateDailyTarget]);
 
   // Group days by weeks for better display
   const weekGroups = useMemo(() => {
@@ -143,16 +204,9 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     return weeks;
   }, [calendarData]);
 
-  const getActivityIntensity = (day: DayData): 'none' | 'low' | 'medium' | 'high' => {
-    if (!day.hasActivity) return 'none';
-    
-    const totalContributions = Object.values(day.contributions).reduce((sum, val) => sum + val, 0);
-    
-    if (day.isPerfectDay) return 'high';
-    if (day.isTripleFeatureDay) return 'medium';
-    if (totalContributions > 0) return 'low';
-    
-    return 'none';
+  // Use adaptive intensity directly from day data (replaced old fixed logic)
+  const getActivityIntensity = (day: DayData): 'none' | 'some' | 'good' | 'perfect' => {
+    return day.adaptiveIntensity;
   };
 
   const getDayStyle = (day: DayData) => {
@@ -174,15 +228,15 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     }
 
     switch (intensity) {
-      case 'high':
+      case 'perfect':
         baseStyles.push(styles.highActivityDay);
         baseStyles.push({ backgroundColor: categoryColor });
         break;
-      case 'medium':
+      case 'good':
         baseStyles.push(styles.mediumActivityDay);
         baseStyles.push({ backgroundColor: categoryColor + '80' });
         break;
-      case 'low':
+      case 'some':
         baseStyles.push(styles.lowActivityDay);
         baseStyles.push({ backgroundColor: categoryColor + '40' });
         break;
@@ -198,7 +252,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     if (day.isToday) return styles.todayDayText;
     
     const intensity = getActivityIntensity(day);
-    if (intensity === 'high' || intensity === 'medium') {
+    if (intensity === 'perfect' || intensity === 'good') {
       return styles.activeDayText;
     }
     
@@ -241,23 +295,23 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         </Text>
       </View>
 
-      {/* Legend */}
+      {/* Legend - Updated to reflect adaptive color system */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.noActivityDay]} />
-          <Text style={styles.legendText}>No Activity</Text>
+          <Text style={styles.legendText}>No Activity (&lt;10%)</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.lowActivityDay, { backgroundColor: categoryColor + '40' }]} />
-          <Text style={styles.legendText}>Some Activity</Text>
+          <Text style={styles.legendText}>Some Activity (10-50%)</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.mediumActivityDay, { backgroundColor: categoryColor + '80' }]} />
-          <Text style={styles.legendText}>Good Progress</Text>
+          <Text style={styles.legendText}>Good Progress (51-90%)</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.highActivityDay, { backgroundColor: categoryColor }]} />
-          <Text style={styles.legendText}>Perfect Day</Text>
+          <Text style={styles.legendText}>Perfect Day (91%+)</Text>
         </View>
       </View>
 
@@ -302,13 +356,17 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         ))}
       </View>
 
-      {/* Weekly summary */}
+      {/* Weekly summary - Updated to use real adaptive data */}
       <View style={styles.weeklySummary}>
         <Text style={styles.weeklySummaryTitle}>Weekly Breakdown</Text>
         {weekGroups.map((week, weekIndex) => {
           const weekDaysWithActivity = week.filter(day => day.hasActivity).length;
           const perfectDays = week.filter(day => day.isPerfectDay).length;
-          const weekProgress = (weekDaysWithActivity / week.length) * 100;
+          const goodDays = week.filter(day => day.isGoodProgress).length;
+          
+          // Calculate real weekly progress based on adaptive targets
+          const totalPossibleDays = week.length;
+          const weekProgress = (weekDaysWithActivity / totalPossibleDays) * 100;
 
           return (
             <View key={weekIndex} style={styles.weekSummaryRow}>
@@ -316,6 +374,9 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
               <View style={styles.weekSummaryStats}>
                 <Text style={styles.weekSummaryText}>
                   {weekDaysWithActivity}/{week.length} active
+                </Text>
+                <Text style={[styles.weekSummaryText, { color: categoryColor + '80' }]}>
+                  {goodDays} good
                 </Text>
                 <Text style={[styles.weekSummaryText, { color: categoryColor }]}>
                   {perfectDays} perfect

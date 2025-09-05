@@ -406,6 +406,8 @@ type TabType = 'overview' | 'calendar' | 'tips'; // 'progress' removed
 - Requirements Progress: `renderOverviewTab()` 
 - Weekly Breakdown: Remains only in Calendar tab via `MonthlyProgressCalendar`
 
+**Data Source**: Load daily snapshots directly from centralized storage, not weekly estimates
+
 ---
 
 *This document is continuously updated as new development patterns and guidelines are established in the SelfRise V2 project.*

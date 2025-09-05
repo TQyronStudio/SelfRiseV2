@@ -504,4 +504,100 @@ const CATEGORY_BASE_WEIGHTS = {
 
 ---
 
+## 📅 **CALENDAR COLOR ADAPTATION SYSTEM**
+
+### **🎨 Adaptive Visual Feedback (August 9, 2025)**
+
+**Problem Solved**: Calendar colors now adapt to challenge intensity and use real daily data instead of fake estimates.
+
+### **🔧 Technical Implementation**
+
+#### **Challenge-Adaptive Daily Targets**
+```typescript
+// Calculate daily target based on challenge requirements
+const dailyTarget = calculateDailyTarget(challenge.requirements);
+const completionPercentage = actualProgress / dailyTarget;
+
+// Adaptive color mapping - Final thresholds (User Optimized)
+if (completionPercentage >= 0.91) return 'perfect'; // 91%+ = Perfect Day
+if (completionPercentage >= 0.51) return 'good';   // 51-90% = Good Progress  
+if (completionPercentage >= 0.10) return 'some';   // 10-50% = Some Activity
+return 'none'; // <10% = No meaningful activity
+```
+
+### **🎯 Final Percentage Thresholds (User Optimized)**
+
+| Activity Level | Percentage Range | Visual Representation | Star Badge |
+|----------------|------------------|----------------------|------------|
+| **Perfect Day** | 91%+ | Full category color | ★ Gold star |
+| **Good Progress** | 51-90% | Category color + 80% opacity | None |
+| **Some Activity** | 10-50% | Category color + 40% opacity | None |
+| **No Activity** | <10% | Gray background (#F3F4F6) | None |
+
+### **🎭 Visual Legend Mapping**
+```
+🟢 Perfect Day (91%+) - Full intensity, star badge ★
+🟡 Good Progress (51-90%) - Medium intensity  
+🔹 Some Activity (10-50%) - Light intensity
+⚫ No Activity (<10%) - Gray background
+```
+
+### **📊 Example Challenge Scenarios**
+
+#### **Light Challenge Example**
+- **18 habits/30 days = 0.6 habits/day target**
+- 1 habit completed = 166% → **Perfect Day ★**
+- 0.5 habits = 83% → **Good Progress**
+- 0.1 habits = 17% → **Some Activity**
+
+#### **Intense Challenge Example**  
+- **90 habits/30 days = 3 habits/day target**
+- 3+ habits = 100%+ → **Perfect Day ★**
+- 2 habits = 67% → **Good Progress**  
+- 1 habit = 33% → **Some Activity**
+- 0 habits = 0% → **No Activity**
+
+### **🔄 Real Data Integration**
+
+**Data Source**: Daily snapshots loaded directly from MonthlyProgressTracker instead of fake weekly estimates
+
+```typescript
+// Load real daily snapshots (not fake estimates!)
+const dailySnapshot = dailySnapshots[dateString];
+const dailyContributions = dailySnapshot?.dailyContributions || {};
+```
+
+**Benefits**:
+- ✅ **Accurate representation** of actual daily progress
+- ✅ **Challenge-specific intensity** based on requirements
+- ✅ **Real-time calendar updates** when habits completed
+- ✅ **User-friendly thresholds** optimized for encouragement
+
+### **🎨 Color System Architecture**
+
+**Category Colors with Adaptive Opacity**:
+```typescript
+switch (intensity) {
+  case 'perfect':  // Full category color (100% opacity)
+    backgroundColor = categoryColor;
+    break;
+  case 'good':     // Medium intensity (80% opacity)  
+    backgroundColor = categoryColor + '80';
+    break;
+  case 'some':     // Light intensity (40% opacity)
+    backgroundColor = categoryColor + '40';
+    break;
+  default:         // No activity (gray)
+    backgroundColor = '#F3F4F6';
+}
+```
+
+**Category Color Mapping**:
+- 🟢 **Habits**: #22C55E (Green)
+- 🔵 **Journal**: #3B82F6 (Blue)  
+- 🟡 **Goals**: #F59E0B (Orange)
+- 🟣 **Consistency**: #8B5CF6 (Purple)
+
+---
+
 *Tato dokumentace je living document - aktualizuje se s rozšiřováním Monthly Challenge systému*
