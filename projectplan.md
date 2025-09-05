@@ -1796,3 +1796,84 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [x] **Zkontrolovat First Month systém** - ✅ OVĚŘENO: Funguje správně s fallback hodnotami pro nové uživatele
 
 ---
+
+## 🔥 MONTHLY CHALLENGE MODAL REVIVAL - Dead UI Fix (Sept 5, 2025)
+
+### **🚨 KRITICKÁ DIAGNÓZA - MRTVÝ MODAL**
+Modal je úplně nefunkční - zobrazí stará data při otevření a už se nikdy neaktualizuje. Všechny funkce jsou jen UI mockup bez backend propojení.
+
+### **PHASE 1: CORE DATA FIXES** 🎯
+- [ ] **🔴 MonthlyChallengeDetailModal - Real-time Updates**
+  - Přidat `DeviceEventEmitter.addListener('monthly_progress_updated')` 
+  - Refresh progress data při každém XP eventu (pozitivní i negativní)
+  - Cleanup listeners v useEffect return
+  - **KRITICKÉ: Real-time sync s Home screen data** - modal MUSÍ zobrazit stejné hodnoty jako home screen
+
+- [ ] **📊 Opravit aktivní dny počítání** 
+  - Aktuálně: "0 Active Days" místo skutečného počtu
+  - Fix: Správný výpočet z `progress.activeDays.length` 
+  - Ověřit že `activeDays` array se správně populuje
+
+- [ ] **📅 Daily Snapshots System - KRITICKÉ**
+  - Ověřit že `createDailySnapshot()` se volá při každém XP eventu (pozitivní i negativní)
+  - Fix persistentní ukládání denních snapshotů do AsyncStorage
+  - Implementovat `getDailySnapshots()` pro calendar komponent
+  - **POVINNÉ: Snapshot decrement support** - při undo návyku musí snapshot správně odečíst contribution
+
+### **PHASE 2: UI CLEANUP** 🧹
+- [ ] **🗑️ Vymazat nepotřebné sekce z Overview tabu:**
+  - Overall Progress (dubluje home screen) 
+  - Milestone Progress (dubluje home screen)
+  - Ponechat jen: Timeline, Challenge Description
+
+- [ ] **🗑️ Requirements Progress cleanup:**
+  - VYMAZAT: "(beginner-friendly target)" text
+  - VYMAZAT: "Your baseline: X • Scaling: Yx" info 
+  - PONECHAT jen: requirement description + progress numbers
+
+### **PHASE 3: WEEKLY BREAKDOWN RESURRECTION** 📈  
+- [ ] **📊 Weekly Progress Calculation Fix**
+  - Aktuálně: "No activity" všude i přes progress na home screen
+  - Fix: Správné mapování daily snapshots → weekly breakdown
+  - Implementovat `updateWeeklyBreakdown()` real-time updates
+
+- [ ] **📅 Calendar Tab Resurrection**
+  - Aktuálně: Všechny dny "No activity", žádná zelená políčka
+  - Fix: Použít reálná daily snapshot data místo odhadů `Math.floor(weeklyData / 7)`
+  - Implementovat color-coding podle contribution intensity
+
+### **PHASE 4: DATA ARCHITECTURE FIXES** 🏗️
+- [ ] **💾 Daily Snapshots Storage System**
+  - Storage key: `monthly_daily_snapshots_${challengeId}_${date}`
+  - Format: `{ date, contributions: {habit_completions: 2}, xpEarned: 20 }`
+  - Retention: Keep only current month + 1 previous month
+
+- [ ] **📈 Weekly Progress Aggregation** 
+  - Auto-calculate from daily snapshots
+  - Storage key: `monthly_weekly_breakdown_${challengeId}_week${N}`
+  - Real-time updates při každém progress eventu
+
+### **PHASE 5: TESTING & VALIDATION** ✅
+- [ ] **🧪 Complete User Journey Test:**
+  1. Open modal → aktuální data visible
+  2. Complete habit → modal updates real-time (if open)
+  3. **Undo habit → modal updates real-time (decrement)**
+  4. Calendar shows green day for today
+  5. Weekly breakdown shows contributions
+  6. Active days counter increments/decrements correctly
+
+- [ ] **📊 Data Consistency Check - KRITICKÉ:**
+  - **Home screen progress === Modal progress data** (POVINNÁ SHODA)
+  - Calendar activity === Weekly breakdown activity  
+  - Daily snapshots sum === Total progress
+  - **Undo test: Odšrtni návyk → progress klesne všude stejně (home + modal + calendar)**
+
+### **DEVELOPER NOTES** 📝
+- **Modal je momentálně pure UI mockup** - žádná backend integrace
+- **Calendar používá fake data estimation** - potřeba real daily snapshots
+- **Weekly breakdown je prázdný** - daily → weekly aggregation neexistuje
+- **Real-time updates chybí úplně** - static data load při modal open
+- **🚨 KRITICKÉ: Data consistency** - modal MUSÍ být v perfect sync s home screen
+- **⚙️ Undo support POVINNÝ** - všechny komponenty musí správně odečítat při záporném XP
+
+---

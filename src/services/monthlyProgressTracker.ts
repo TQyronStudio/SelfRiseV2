@@ -263,9 +263,13 @@ export class MonthlyProgressTracker {
 
         // Update days active and remaining
         const todayString = today();
+        console.log(`🔍 [DEBUG] Active days before update: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
         if (!currentProgress.activeDays.includes(todayString)) {
           currentProgress.activeDays.push(todayString);
           currentProgress.daysActive = currentProgress.activeDays.length;
+          console.log(`✅ [DEBUG] Added active day ${todayString}, new count: ${currentProgress.daysActive}`);
+        } else {
+          console.log(`ℹ️ [DEBUG] Day ${todayString} already in active days`);
         }
 
         // Update days remaining
@@ -315,6 +319,8 @@ export class MonthlyProgressTracker {
         if (currentProgress.completionPercentage >= 100 && !currentProgress.isCompleted) {
           await this.completeMonthlyChallenge(challenge.id);
         }
+      } else {
+        console.log(`⚠️ [DEBUG] Progress not updated - no changes to active days. Current active days: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
       }
 
     } catch (error) {

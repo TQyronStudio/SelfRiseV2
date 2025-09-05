@@ -28,6 +28,18 @@
 - **Log real values**: amount, direction, challenge IDs, progress changes
 - **Structured debug tags**: `🔍 [DEBUG]`, `❌ [DEBUG]`, `✅ [DEBUG]` pro easy filtering
 
+### 💀 **Dead Modal Syndrome**
+- **Modal komponenty MUSÍ** mít vlastní DeviceEventEmitter listeners pro real-time updates
+- **Static data loading** = mrtvé UI - data se načtou při otevření a nikdy neaktualizují
+- **Daily snapshots** se musí vytvářet a ukládat pro calendar/weekly views
+- **Weekly progress calculation** musí být based on real daily data, ne odhady
+
+### 🗑️ **UI Content Restrictions**
+- **NIKDY nezobrazovat baseline values** nebo scaling multipliers uživateli  
+- **VYMAZAT "beginner-friendly" labels** a podobné condescending texty
+- **DUBLOVANÉ progress indikátory** - milestone progress jen na home screen, ne v modalu
+- **Developer info nesmí leak** do user-facing UI (scaling, baselines, atd.)
+
 ---
 
 ## 📋 **PŘEHLED VŠECH TYPŮ VÝZEV**

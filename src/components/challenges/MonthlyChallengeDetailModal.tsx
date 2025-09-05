@@ -1,5 +1,5 @@
 // Monthly Challenge Detail Modal - Show detailed monthly challenge information and progress
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
+  DeviceEventEmitter,
+  EmitterSubscription,
 } from 'react-native';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
+import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import MonthlyProgressCalendar from './MonthlyProgressCalendar';
 
 interface MonthlyChallengeDetailModalProps {
@@ -26,11 +29,51 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = ({
   challenge,
-  progress,
+  progress: initialProgress,
   visible,
   onClose
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(initialProgress);
+
+  // Initialize progress state when props change
+  useEffect(() => {
+    setProgress(initialProgress);
+  }, [initialProgress]);
+
+  // Real-time progress updates listener
+  useEffect(() => {
+    if (!challenge || !visible) return;
+    
+    console.log(`🔄 [MODAL] Setting up real-time progress listener for challenge: ${challenge.id}`);
+    
+    const progressUpdateListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_progress_updated',
+      async (eventData: any) => {
+        console.log(`📈 [MODAL] Monthly progress update event received:`, eventData);
+        
+        // Only update if event is for our current challenge
+        if (eventData.challengeId === challenge.id) {
+          try {
+            // Refresh progress data from MonthlyProgressTracker
+            const updatedProgress = await MonthlyProgressTracker.getChallengeProgress(challenge.id);
+            if (updatedProgress) {
+              console.log(`✅ [MODAL] Real-time progress updated: ${updatedProgress.completionPercentage}%`);
+              setProgress(updatedProgress);
+            }
+          } catch (error) {
+            console.error('[MODAL] Failed to refresh progress on real-time update:', error);
+          }
+        }
+      }
+    );
+
+    // Cleanup listener on unmount or challenge/visibility change
+    return () => {
+      console.log(`🛑 [MODAL] Cleaning up progress listener for challenge: ${challenge.id}`);
+      progressUpdateListener.remove();
+    };
+  }, [challenge?.id, visible]); // Re-setup listener when challenge or visibility changes
 
   if (!challenge || !progress) return null;
 
@@ -203,91 +246,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         </View>
       </View>
 
-      {/* Overall Progress */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Overall Progress</Text>
-        <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressPercent}>
-              {Math.round(progress.completionPercentage)}%
-            </Text>
-            <Text style={styles.progressText}>
-              {completedRequirements} of {challenge.requirements.length} requirements completed
-            </Text>
-          </View>
-          
-          <View style={styles.progressBar}>
-            <View 
-              style={[
-                styles.progressFill,
-                { 
-                  width: `${progress.completionPercentage}%`,
-                  backgroundColor: categoryColor
-                }
-              ]} 
-            />
-          </View>
-
-          <View style={styles.progressStats}>
-            <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{Math.round(progress.projectedCompletion)}%</Text>
-              <Text style={styles.progressStatLabel}>Projected</Text>
-            </View>
-            <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{Math.round(progress.dailyConsistency * 100)}%</Text>
-              <Text style={styles.progressStatLabel}>Daily</Text>
-            </View>
-            <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{Math.round(progress.weeklyConsistency * 100)}%</Text>
-              <Text style={styles.progressStatLabel}>Weekly</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* Milestone Progress */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Milestone Progress</Text>
-        <View style={styles.milestoneCard}>
-          {getMilestoneProgress().map((milestone, index) => (
-            <View key={milestone.percentage} style={styles.milestoneItem}>
-              <View style={styles.milestoneLeft}>
-                <View 
-                  style={[
-                    styles.milestoneMarker,
-                    { 
-                      backgroundColor: milestone.reached ? categoryColor : '#E5E7EB',
-                      borderColor: milestone.reached ? categoryColor : '#D1D5DB'
-                    }
-                  ]}
-                >
-                  {milestone.reached && <Text style={styles.milestoneCheck}>✓</Text>}
-                </View>
-                <View>
-                  <Text style={[
-                    styles.milestoneLabel,
-                    { color: milestone.reached ? categoryColor : '#6B7280' }
-                  ]}>
-                    {milestone.percentage}% Milestone
-                  </Text>
-                  {milestone.reached && milestone.timestamp && (
-                    <Text style={styles.milestoneDate}>
-                      Reached on {new Date(milestone.timestamp).toLocaleDateString()}
-                    </Text>
-                  )}
-                </View>
-              </View>
-              {milestone.reached && milestone.xpAwarded > 0 && (
-                <View style={[styles.xpBadge, { backgroundColor: categoryColor + '20' }]}>
-                  <Text style={[styles.xpText, { color: categoryColor }]}>
-                    +{milestone.xpAwarded} XP
-                  </Text>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
-      </View>
     </View>
   );
 
@@ -333,13 +291,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                     </Text>
                   </View>
 
-                  {/* Baseline info */}
-                  <View style={styles.baselineInfo}>
-                    <Text style={styles.baselineText}>
-                      Your baseline: {requirement.baselineValue} • 
-                      Scaling: {requirement.scalingMultiplier}x ({Math.round((requirement.scalingMultiplier - 1) * 100)}% increase)
-                    </Text>
-                  </View>
                 </View>
               </View>
               
@@ -425,13 +376,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
           <Text style={styles.strategyText}>
             This is a <Text style={[styles.strategyHighlight, { color: starColor }]}>
               {getStarRarity(challenge.starLevel)} ({challenge.starLevel}★)
-            </Text> difficulty challenge based on your personal activity baseline.
-          </Text>
-          <Text style={styles.strategyText}>
-            Your targets are calculated from your past 30-day average with a{' '}
-            <Text style={styles.strategyHighlight}>
-              {Math.round(((challenge.requirements[0]?.scalingMultiplier || 1) - 1) * 100)}% increase
-            </Text> to match your current skill level.
+            </Text> difficulty challenge designed to help you grow consistently.
           </Text>
           <Text style={styles.strategyText}>
             Complete this challenge to advance to the next star level and unlock higher XP rewards!
@@ -912,16 +857,6 @@ const styles = StyleSheet.create({
   requirementPercent: {
     fontSize: 12,
     color: '#9CA3AF',
-  },
-  baselineInfo: {
-    backgroundColor: '#F9FAFB',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 8,
-  },
-  baselineText: {
-    fontSize: 12,
-    color: '#6B7280',
   },
   requirementProgressBar: {
     height: 8,
