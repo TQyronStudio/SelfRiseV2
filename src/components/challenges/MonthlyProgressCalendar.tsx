@@ -356,17 +356,33 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         ))}
       </View>
 
-      {/* Weekly summary - Updated to use real adaptive data */}
+      {/* Weekly summary - Enhanced with real progress calculation */}
       <View style={styles.weeklySummary}>
         <Text style={styles.weeklySummaryTitle}>Weekly Breakdown</Text>
         {weekGroups.map((week, weekIndex) => {
           const weekDaysWithActivity = week.filter(day => day.hasActivity).length;
           const perfectDays = week.filter(day => day.isPerfectDay).length;
           const goodDays = week.filter(day => day.isGoodProgress).length;
+          const someDays = week.filter(day => day.adaptiveIntensity === 'some').length;
           
-          // Calculate real weekly progress based on adaptive targets
-          const totalPossibleDays = week.length;
-          const weekProgress = (weekDaysWithActivity / totalPossibleDays) * 100;
+          // Calculate intelligent weekly target based on month structure
+          const startDate = parseDate(challenge.startDate);
+          const endDate = parseDate(challenge.endDate);
+          const monthTotalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          const weekDays = week.length;
+          
+          // Calculate combined monthly target from all requirements
+          const monthlyTarget = challenge.requirements.reduce((total, req) => total + req.target, 0);
+          const weeklyTarget = (monthlyTarget * weekDays) / monthTotalDays;
+          
+          // Sum actual contributions for the week
+          const weekActualProgress = week.reduce((sum, day) => {
+            const dailyContributions = day.contributions || {};
+            return sum + Object.values(dailyContributions).reduce((a, b) => a + b, 0);
+          }, 0);
+          
+          // Calculate true completion percentage (can exceed 100%)
+          const weekProgress = Math.round((weekActualProgress / weeklyTarget) * 100);
 
           return (
             <View key={weekIndex} style={styles.weekSummaryRow}>
@@ -375,6 +391,9 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
                 <Text style={styles.weekSummaryText}>
                   {weekDaysWithActivity}/{week.length} active
                 </Text>
+                <Text style={[styles.weekSummaryText, { color: categoryColor + '40' }]}>
+                  {someDays} some
+                </Text>
                 <Text style={[styles.weekSummaryText, { color: categoryColor + '80' }]}>
                   {goodDays} good
                 </Text>
@@ -382,7 +401,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
                   {perfectDays} perfect
                 </Text>
                 <Text style={styles.weekSummaryPercent}>
-                  {Math.round(weekProgress)}%
+                  {weekProgress}%
                 </Text>
               </View>
             </View>

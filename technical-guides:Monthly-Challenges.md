@@ -598,6 +598,60 @@ switch (intensity) {
 - 🟡 **Goals**: #F59E0B (Orange)
 - 🟣 **Consistency**: #8B5CF6 (Purple)
 
+### **📊 Weekly Breakdown Progress Calculation**
+
+**Problem Solved**: Weekly progress % now reflects actual goal completion instead of just "active days"
+
+#### **Intelligent Weekly Target Distribution**
+```typescript
+// Calculate week-specific target based on month structure
+const monthTotalDays = getDaysInMonth(challenge.startDate);
+const weekDays = week.length; // Usually 7, but first/last week might be partial
+const weeklyTarget = (monthlyTarget * weekDays) / monthTotalDays;
+
+// Example: 90 habits/month, 30 days total
+// Week 1 (7 days): 90 * 7/30 = 21 habits target  
+// Week 2 (7 days): 90 * 7/30 = 21 habits target
+// Week 5 (2 days): 90 * 2/30 = 6 habits target (partial week)
+```
+
+#### **Real Progress Percentage Calculation**
+```typescript
+// Sum actual contributions for the week
+const weekActualProgress = week.reduce((sum, day) => {
+  const dailyContributions = day.contributions || {};
+  return sum + Object.values(dailyContributions).reduce((a, b) => a + b, 0);
+}, 0);
+
+// Calculate true completion percentage (can exceed 100%)
+const weekProgress = Math.round((weekActualProgress / weeklyTarget) * 100);
+
+// Examples with 21 habits weekly target:
+// 10 habits completed = 48%
+// 21 habits completed = 100% 
+// 25 habits completed = 119%
+// 84 habits completed = 400% (if completed all month in first week)
+```
+
+#### **Enhanced Weekly Breakdown Display**
+```
+Week 1: 5/7 active | 2 some | 2 good | 1 perfect | 119%
+Week 2: 3/7 active | 1 some | 1 good | 1 perfect | 67%  
+Week 3: 7/7 active | 1 some | 3 good | 3 perfect | 156%
+```
+
+**Display Components**:
+- **Active Count**: `{activeDays}/{totalDays} active` - How many days had any activity
+- **Intensity Breakdown**: `{some} some | {good} good | {perfect} perfect` - Quality distribution  
+- **True Progress**: `{actualProgress}%` - Actual completion vs weekly target (no cap at 100%)
+
+#### **Benefits of New System**:
+- ✅ **Accurate progress tracking** - Reflects real goal completion, not just "was I active"
+- ✅ **Motivation for overachievers** - Can see 200%+ weeks when exceeding targets
+- ✅ **Proper week comparison** - Week with 7 "some" days shows lower % than week with 7 "perfect" days
+- ✅ **Partial week handling** - First/last weeks get proportional targets
+- ✅ **Visual feedback** - Color-coded intensity breakdown shows effort quality
+
 ---
 
 *Tato dokumentace je living document - aktualizuje se s rozšiřováním Monthly Challenge systému*
