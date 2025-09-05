@@ -21,7 +21,7 @@ interface MonthlyChallengeDetailModalProps {
   onClose: () => void;
 }
 
-type TabType = 'overview' | 'progress' | 'calendar' | 'tips';
+type TabType = 'overview' | 'calendar' | 'tips';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -165,20 +165,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     ];
   };
 
-  const getWeeklyBreakdown = () => {
-    const weeks = [
-      { name: 'Week 1', data: progress.weeklyProgress.week1 },
-      { name: 'Week 2', data: progress.weeklyProgress.week2 },
-      { name: 'Week 3', data: progress.weeklyProgress.week3 },
-      { name: 'Week 4', data: progress.weeklyProgress.week4 },
-    ];
-
-    if (progress.weeklyProgress.week5) {
-      weeks.push({ name: 'Week 5', data: progress.weeklyProgress.week5 });
-    }
-
-    return weeks;
-  };
 
   const categoryColor = getCategoryColor(displayChallenge.category);
   const starColor = getStarColor(displayChallenge.starLevel);
@@ -247,12 +233,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         </View>
       </View>
 
-    </View>
-  );
-
-  const renderProgressTab = () => (
-    <View>
-      {/* Requirements Detail */}
+      {/* Requirements Progress (moved from Progress tab) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Requirements Progress</Text>
         {displayChallenge.requirements.map((requirement, index) => {
@@ -311,40 +292,9 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         })}
       </View>
 
-      {/* Weekly Breakdown */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Weekly Breakdown</Text>
-        <View style={styles.weeklyCard}>
-          {getWeeklyBreakdown().map((week, index) => {
-            const weekTotal = Object.values(week.data).reduce((sum, val) => sum + (val || 0), 0);
-            const hasData = weekTotal > 0;
-
-            return (
-              <View key={week.name} style={styles.weeklyItem}>
-                <View style={styles.weeklyHeader}>
-                  <Text style={styles.weeklyName}>{week.name}</Text>
-                  <Text style={[
-                    styles.weeklyTotal,
-                    { color: hasData ? categoryColor : '#9CA3AF' }
-                  ]}>
-                    {weekTotal > 0 ? `${weekTotal} contributions` : 'No activity'}
-                  </Text>
-                </View>
-                <View style={styles.weeklyData}>
-                  {Object.entries(week.data).map(([key, value]) => (
-                    <View key={key} style={styles.weeklyDataItem}>
-                      <Text style={styles.weeklyDataKey}>{key.replace('_', ' ')}</Text>
-                      <Text style={styles.weeklyDataValue}>{value || 0}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      </View>
     </View>
   );
+
 
   const renderCalendarTab = () => (
     <View>
@@ -414,8 +364,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     switch (activeTab) {
       case 'overview':
         return renderOverviewTab();
-      case 'progress':
-        return renderProgressTab();
       case 'calendar':
         return renderCalendarTab();
       case 'tips':
@@ -478,7 +426,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             contentContainerStyle={styles.tabScrollContent}
           >
             {renderTabButton('overview', 'Overview')}
-            {renderTabButton('progress', 'Progress')}
             {renderTabButton('calendar', 'Calendar')}
             {renderTabButton('tips', 'Tips')}
           </ScrollView>
@@ -868,58 +815,6 @@ const styles = StyleSheet.create({
   requirementProgressFill: {
     height: '100%',
     borderRadius: 4,
-  },
-  weeklyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  weeklyItem: {
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  weeklyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  weeklyName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  weeklyTotal: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  weeklyData: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  weeklyDataItem: {
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  weeklyDataKey: {
-    fontSize: 10,
-    color: '#6B7280',
-    textTransform: 'capitalize',
-  },
-  weeklyDataValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
   },
   tipsCard: {
     backgroundColor: '#FFFFFF',

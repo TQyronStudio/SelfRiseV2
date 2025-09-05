@@ -360,4 +360,52 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 ---
 
+## Monthly Challenge Detail Modal UI Structure
+
+### Modal Tab Organization
+
+**Overview Tab**:
+- Challenge Description
+- Timeline (Active Days functionality)
+- Requirements Progress (moved from Progress tab)
+
+**Calendar Tab**:
+- MonthlyProgressCalendar component
+- Weekly Breakdown functionality
+
+**Tips Tab**:
+- Category-specific tips
+- Monthly strategy
+- Reward information
+
+### Removed Components
+
+**Progress Tab**: Completely eliminated due to UI duplication
+- ❌ Requirements Progress → moved to Overview
+- ❌ Weekly Breakdown → duplicated in Calendar
+
+### Design Principles
+
+**Avoid UI Duplication**:
+- Each feature should appear in only one logical location
+- Similar functionality should be consolidated, not duplicated
+
+**Information Hierarchy**:
+- Overview: High-level information and current progress
+- Calendar: Detailed daily/weekly tracking data  
+- Tips: Guidance and strategy information
+
+### Technical Implementation Notes
+
+**Tab Structure**:
+```typescript
+type TabType = 'overview' | 'calendar' | 'tips'; // 'progress' removed
+```
+
+**Component Reorganization**:
+- Requirements Progress: `renderOverviewTab()` 
+- Weekly Breakdown: Remains only in Calendar tab via `MonthlyProgressCalendar`
+
+---
+
 *This document is continuously updated as new development patterns and guidelines are established in the SelfRise V2 project.*

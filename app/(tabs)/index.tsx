@@ -33,6 +33,7 @@ import { today } from '@/src/utils/date';
 import { 
   XPSourceType, 
   MonthlyChallenge, 
+  MonthlyChallengeProgress,
   MonthlyChallengeCompletionResult 
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
