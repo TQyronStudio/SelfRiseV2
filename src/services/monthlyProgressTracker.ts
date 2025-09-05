@@ -101,12 +101,14 @@ export class MonthlyProgressTracker {
   private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private static readonly BATCH_WINDOW = 500; // 500ms batching window
   private static readonly MAX_SNAPSHOTS_PER_MONTH = 31; // One per day max
+  private static readonly SNAPSHOTS_CACHE_TTL = 10000; // 10 seconds for snapshots
 
   // Cache for performance
   private static progressCache = new Map<string, {
     data: MonthlyChallengeProgress;
     timestamp: number;
   }>();
+  private static snapshotsCache: { data: DailyProgressSnapshot[]; timestamp: number } | null = null;
 
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
@@ -261,16 +263,13 @@ export class MonthlyProgressTracker {
           currentProgress
         );
 
-        // Update days active and remaining
-        const todayString = today();
-        console.log(`🔍 [DEBUG] Active days before update: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
-        if (!currentProgress.activeDays.includes(todayString)) {
-          currentProgress.activeDays.push(todayString);
-          currentProgress.daysActive = currentProgress.activeDays.length;
-          console.log(`✅ [DEBUG] Added active day ${todayString}, new count: ${currentProgress.daysActive}`);
-        } else {
-          console.log(`ℹ️ [DEBUG] Day ${todayString} already in active days`);
-        }
+        // Create daily snapshot FIRST (so recalculateActiveDays can see today's progress)
+        await this.createDailySnapshot(challenge.id, currentProgress, source, amount);
+
+        // Recalculate active days dynamically based on actual progress (INCLUDING today's snapshot)
+        console.log(`🔍 [DEBUG] Active days before recalculation: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
+        await this.recalculateActiveDays(challenge.id, currentProgress);
+        console.log(`✅ [DEBUG] Active days after recalculation: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
 
         // Update days remaining
         currentProgress.daysRemaining = this.calculateDaysRemaining(challenge);
@@ -279,9 +278,6 @@ export class MonthlyProgressTracker {
         currentProgress.projectedCompletion = this.calculateProjectedCompletion(
           currentProgress
         );
-
-        // Create daily snapshot FIRST (weekly breakdown needs it)
-        await this.createDailySnapshot(challenge.id, currentProgress, source, amount);
 
         // Update weekly breakdown (requires daily snapshot to exist)
         await this.updateWeeklyBreakdown(challenge.id, currentProgress);
@@ -302,6 +298,9 @@ export class MonthlyProgressTracker {
           previousProgress,
           newProgress: currentProgress.progress,
           completionPercentage: currentProgress.completionPercentage,
+          daysActive: currentProgress.daysActive,
+          daysRemaining: currentProgress.daysRemaining,
+          activeDays: currentProgress.activeDays,
           milestones: milestoneResults,
           source,
           amount,
@@ -685,6 +684,45 @@ export class MonthlyProgressTracker {
    */
   public static clearAllProgressCache(): void {
     this.progressCache.clear();
+  }
+
+  /**
+   * Recalculate active days dynamically based on actual daily progress
+   */
+  private static async recalculateActiveDays(
+    challengeId: string, 
+    progress: MonthlyChallengeProgress
+  ): Promise<void> {
+    try {
+      // Get all daily snapshots for this challenge (using cached method)
+      const allSnapshots = await this.getAllSnapshots();
+      
+      // Filter snapshots for this challenge
+      const challengeSnapshots = allSnapshots.filter(s => s.challengeId === challengeId);
+      
+      // Find active days (days with any daily contributions > 0)
+      const activeDays: string[] = [];
+      
+      for (const snapshot of challengeSnapshots) {
+        const dailyContribs = Object.values(snapshot.dailyContributions || {});
+        const hasAnyProgress = dailyContribs.some(contrib => contrib > 0);
+        
+        if (hasAnyProgress) {
+          activeDays.push(snapshot.date);
+        }
+      }
+      
+      // Sort active days chronologically
+      activeDays.sort();
+      
+      // Update progress object
+      progress.activeDays = activeDays;
+      progress.daysActive = activeDays.length;
+      
+    } catch (error) {
+      console.error('MonthlyProgressTracker.recalculateActiveDays error:', error);
+      // Don't throw - active days calculation should not break main flow
+    }
   }
 
   // ========================================
@@ -1219,16 +1257,45 @@ export class MonthlyProgressTracker {
   // ========================================
 
   /**
-   * Get daily snapshot from storage
+   * Load all snapshots with caching for performance
+   */
+  private static async getAllSnapshots(): Promise<DailyProgressSnapshot[]> {
+    try {
+      // Check cache first
+      if (this.snapshotsCache && Date.now() - this.snapshotsCache.timestamp < this.SNAPSHOTS_CACHE_TTL) {
+        return this.snapshotsCache.data;
+      }
+      
+      // Load from storage
+      const stored = await AsyncStorage.getItem(this.STORAGE_KEYS.DAILY_SNAPSHOTS);
+      const allSnapshots: DailyProgressSnapshot[] = stored ? JSON.parse(stored) : [];
+      
+      // Update cache
+      this.snapshotsCache = {
+        data: allSnapshots,
+        timestamp: Date.now()
+      };
+      
+      return allSnapshots;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.getAllSnapshots error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get daily snapshot from storage (from centralized array with caching)
    */
   private static async getDailySnapshot(challengeId: string, date: DateString): Promise<DailyProgressSnapshot | null> {
     try {
-      const key = `${this.STORAGE_KEYS.DAILY_SNAPSHOTS}_${challengeId}_${date}`;
-      const stored = await AsyncStorage.getItem(key);
+      const allSnapshots = await this.getAllSnapshots();
       
-      if (!stored) return null;
+      // Find specific snapshot
+      const snapshot = allSnapshots.find(s => 
+        s.challengeId === challengeId && s.date === date
+      );
       
-      return JSON.parse(stored) as DailyProgressSnapshot;
+      return snapshot || null;
     } catch (error) {
       console.error('MonthlyProgressTracker.getDailySnapshot error:', error);
       return null;
@@ -1236,12 +1303,32 @@ export class MonthlyProgressTracker {
   }
 
   /**
-   * Save daily snapshot to storage
+   * Save daily snapshot to storage (centralized array strategy with cache invalidation)
    */
   private static async saveDailySnapshot(snapshot: DailyProgressSnapshot): Promise<void> {
     try {
-      const key = `${this.STORAGE_KEYS.DAILY_SNAPSHOTS}_${snapshot.challengeId}_${snapshot.date}`;
-      await AsyncStorage.setItem(key, JSON.stringify(snapshot));
+      // Load all existing snapshots
+      const allSnapshots = await this.getAllSnapshots();
+      
+      // Find and update existing snapshot or add new one
+      const existingIndex = allSnapshots.findIndex(s => 
+        s.challengeId === snapshot.challengeId && s.date === snapshot.date
+      );
+      
+      if (existingIndex >= 0) {
+        // Update existing snapshot
+        allSnapshots[existingIndex] = snapshot;
+      } else {
+        // Add new snapshot
+        allSnapshots.push(snapshot);
+      }
+      
+      // Save all snapshots back to storage
+      await AsyncStorage.setItem(this.STORAGE_KEYS.DAILY_SNAPSHOTS, JSON.stringify(allSnapshots));
+      
+      // CRITICAL: Invalidate cache after write to ensure consistency
+      this.snapshotsCache = null;
+      
     } catch (error) {
       console.error('MonthlyProgressTracker.saveDailySnapshot error:', error);
       throw error;
@@ -1382,7 +1469,7 @@ export class MonthlyProgressTracker {
   }
   
   /**
-   * Get all daily snapshots for a specific week
+   * Get all daily snapshots for a specific week (optimized - single array load)
    */
   private static async getWeeklySnapshots(challengeId: string, weekNumber: number): Promise<DailyProgressSnapshot[]> {
     try {
@@ -1395,20 +1482,21 @@ export class MonthlyProgressTracker {
       const weekStart = addDays(startDate, weekStartDay - 1) as Date;
       const weekEnd = addDays(weekStart, 6) as Date;
       
-      const snapshots: DailyProgressSnapshot[] = [];
+      // Load ALL snapshots ONCE (using cached method for better performance)
+      const allSnapshots = await this.getAllSnapshots();
       
-      // Collect snapshots for each day of the week
-      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-        const currentDay = addDays(weekStart, dayOffset) as Date;
-        const dateString = formatDateToString(currentDay);
-        
-        const snapshot = await this.getDailySnapshot(challengeId, dateString);
-        if (snapshot && snapshot.weekNumber === weekNumber) {
-          snapshots.push(snapshot);
+      // Filter snapshots for this challenge and week
+      const weekSnapshots = allSnapshots.filter(snapshot => {
+        if (snapshot.challengeId !== challengeId || snapshot.weekNumber !== weekNumber) {
+          return false;
         }
-      }
+        
+        // Double-check date is within week range
+        const snapshotDate = parseDate(snapshot.date);
+        return snapshotDate >= weekStart && snapshotDate <= weekEnd;
+      });
       
-      return snapshots.sort((a, b) => a.date.localeCompare(b.date));
+      return weekSnapshots.sort((a, b) => a.date.localeCompare(b.date));
     } catch (error) {
       console.error('MonthlyProgressTracker.getWeeklySnapshots error:', error);
       return [];

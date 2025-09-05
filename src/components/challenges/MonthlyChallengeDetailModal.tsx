@@ -8,12 +8,9 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
-  DeviceEventEmitter,
-  EmitterSubscription,
 } from 'react-native';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
-import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import MonthlyProgressCalendar from './MonthlyProgressCalendar';
 import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
 
@@ -49,63 +46,17 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     }
   }, [visible, challenge?.id]);
 
-  // Real-time progress updates listener
+  // Modal now receives real-time progress updates from parent (home screen)
+  // No need for separate listener - parent manages the real-time updates
   useEffect(() => {
-    if (!challenge || !visible) {
-      console.log(`⏸️ [MODAL] Skipping listener setup - Challenge: ${!!challenge}, Visible: ${visible}`);
-      return;
+    if (visible && progress) {
+      console.log(`🔄 [MODAL] Progress received from parent:`, {
+        completionPercentage: progress.completionPercentage,
+        daysActive: progress.daysActive,
+        progressKeys: Object.keys(progress.progress || {})
+      });
     }
-    
-    console.log(`🔄 [MODAL] Setting up real-time progress listener for challenge: ${challenge.id}`);
-    console.log(`🔄 [MODAL] Current progress state:`, {
-      completionPercentage: progress?.completionPercentage,
-      daysActive: progress?.daysActive,
-      progressKeys: Object.keys(progress?.progress || {})
-    });
-    
-    const progressUpdateListener: EmitterSubscription = DeviceEventEmitter.addListener(
-      'monthly_progress_updated',
-      async (eventData: any) => {
-        console.log(`📈 [MODAL] Monthly progress update event received:`, {
-          eventChallengeId: eventData.challengeId,
-          modalChallengeId: challenge.id,
-          matches: eventData.challengeId === challenge.id,
-          eventData
-        });
-        
-        // Only update if event is for our current challenge
-        if (eventData.challengeId === challenge.id) {
-          try {
-            console.log(`🔄 [MODAL] Fetching updated progress for challenge: ${challenge.id}`);
-            // Refresh progress data from MonthlyProgressTracker
-            const updatedProgress = await MonthlyProgressTracker.getChallengeProgress(challenge.id);
-            if (updatedProgress) {
-              console.log(`✅ [MODAL] Real-time progress updated:`, {
-                oldPercentage: progress?.completionPercentage,
-                newPercentage: updatedProgress.completionPercentage,
-                oldDaysActive: progress?.daysActive,
-                newDaysActive: updatedProgress.daysActive,
-                progressChanged: JSON.stringify(progress?.progress) !== JSON.stringify(updatedProgress.progress)
-              });
-              setProgress(updatedProgress);
-            } else {
-              console.warn(`⚠️ [MODAL] No updated progress found for challenge: ${challenge.id}`);
-            }
-          } catch (error) {
-            console.error('[MODAL] Failed to refresh progress on real-time update:', error);
-          }
-        } else {
-          console.log(`❌ [MODAL] Event for different challenge - ignoring`);
-        }
-      }
-    );
-
-    // Cleanup listener on unmount or challenge/visibility change
-    return () => {
-      console.log(`🛑 [MODAL] Cleaning up progress listener for challenge: ${challenge.id}`);
-      progressUpdateListener.remove();
-    };
-  }, [challenge?.id, visible, progress?.completionPercentage]); // Re-setup listener when challenge or visibility changes
+  }, [visible, progress?.completionPercentage, progress?.daysActive]);
 
   if (!challenge || !progress) return null;
 

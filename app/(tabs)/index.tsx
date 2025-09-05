@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -22,6 +22,8 @@ import {
   MonthlyChallengeDetailModal, 
   MonthlyChallengeCompletionModal 
 } from '@/src/components/challenges';
+import { MonthlyProgressTracker } from '@/src/services/monthlyProgressTracker';
+import { MonthlyProgressIntegration } from '@/src/services/monthlyProgressIntegration';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 // useOptimizedGamification removed - components use GamificationService directly
@@ -43,6 +45,7 @@ export default function HomeScreen() {
   const { state: customizationState, actions: customizationActions } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
+  const [selectedChallengeProgress, setSelectedChallengeProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
   const [showChallengeCompletion, setShowChallengeCompletion] = useState(false);
   const [completionChallenge, setCompletionChallenge] = useState<MonthlyChallenge | null>(null);
@@ -51,6 +54,25 @@ export default function HomeScreen() {
   // 🚀 DEBT RECOVERY AUTO-MODAL: Reference to JournalStreakCard for auto-opening debt modal
   const journalStreakCardRef = useRef<any>(null);
   
+  // 🚀 CRITICAL: Initialize Monthly Progress Integration immediately on app start
+  useEffect(() => {
+    const initializeMonthlyProgress = async () => {
+      try {
+        console.log('🔧 [HOME] Explicitly initializing MonthlyProgressIntegration...');
+        await MonthlyProgressIntegration.initialize();
+        console.log('✅ [HOME] MonthlyProgressIntegration initialized successfully!');
+        
+        // Log integration status for debugging
+        const status = MonthlyProgressIntegration.getStatus();
+        console.log('📊 [HOME] Integration status:', status);
+      } catch (error) {
+        console.error('❌ [HOME] Failed to initialize MonthlyProgressIntegration:', error);
+      }
+    };
+    
+    initializeMonthlyProgress();
+  }, []); // Run once on mount
+
   // 🚀 SPECIFICATION COMPLIANCE: Auto-open debt recovery modal on redirect from My Journal
   useEffect(() => {
     if (params.openDebtModal === 'true' && journalStreakCardRef.current) {
@@ -64,7 +86,59 @@ export default function HomeScreen() {
     }
   }, [params.openDebtModal]);
 
+  // Load progress for selected challenge and setup real-time updates
+  useEffect(() => {
+    let progressListener: EmitterSubscription | null = null;
 
+    const loadChallengeProgress = async () => {
+      if (selectedChallenge) {
+        try {
+          console.log(`🔄 [HOME] Loading progress for selected challenge: ${selectedChallenge.id}`);
+          const progress = await MonthlyProgressTracker.getChallengeProgress(selectedChallenge.id);
+          if (progress) {
+            console.log(`✅ [HOME] Selected challenge progress loaded:`, {
+              completionPercentage: progress.completionPercentage,
+              daysActive: progress.daysActive
+            });
+            setSelectedChallengeProgress(progress);
+          }
+        } catch (error) {
+          console.error('[HOME] Failed to load selected challenge progress:', error);
+        }
+      }
+    };
+
+    // Setup real-time listener for selected challenge
+    if (selectedChallenge) {
+      progressListener = DeviceEventEmitter.addListener(
+        'monthly_progress_updated',
+        async (eventData: any) => {
+          if (eventData.challengeId === selectedChallenge.id) {
+            try {
+              console.log(`📈 [HOME] Real-time update for selected challenge modal:`, eventData);
+              const updatedProgress = await MonthlyProgressTracker.getChallengeProgress(selectedChallenge.id);
+              if (updatedProgress) {
+                console.log(`✅ [HOME] Modal progress updated: ${updatedProgress.daysActive} active days`);
+                setSelectedChallengeProgress(updatedProgress);
+              }
+            } catch (error) {
+              console.error('[HOME] Failed to update selected challenge progress:', error);
+            }
+          }
+        }
+      );
+    }
+
+    // Load progress initially
+    loadChallengeProgress();
+
+    return () => {
+      if (progressListener) {
+        console.log(`🛑 [HOME] Cleaning up selected challenge progress listener`);
+        progressListener.remove();
+      }
+    };
+  }, [selectedChallenge?.id]);
 
   const handleStreakPress = () => {
     // Navigate to journal tab for now
@@ -84,6 +158,7 @@ export default function HomeScreen() {
   const handleCloseChallengeDetail = () => {
     setShowChallengeDetail(false);
     setSelectedChallenge(null);
+    setSelectedChallengeProgress(null);
   };
 
   const handleHabitToggle = async (habitId: string) => {
@@ -227,30 +302,7 @@ export default function HomeScreen() {
       {/* Monthly Challenge Detail Modal */}
       <MonthlyChallengeDetailModal
         challenge={selectedChallenge}
-        progress={selectedChallenge ? { 
-          challengeId: selectedChallenge.id,
-          userId: 'local_user',
-          progress: {},
-          isCompleted: false,
-          completionPercentage: 0,
-          daysActive: 0,
-          daysRemaining: 0,
-          projectedCompletion: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          streakBonusEligible: false,
-          weeklyProgress: { week1: {}, week2: {}, week3: {}, week4: {} },
-          milestonesReached: {
-            25: { reached: false },
-            50: { reached: false },
-            75: { reached: false }
-          },
-          dailyConsistency: 0,
-          weeklyConsistency: 0,
-          bestWeek: 1,
-          activeDays: [],
-          xpEarned: 0
-        } : null}
+        progress={selectedChallengeProgress}
         visible={showChallengeDetail}
         onClose={handleCloseChallengeDetail}
       />

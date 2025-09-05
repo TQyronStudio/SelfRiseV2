@@ -68,7 +68,7 @@ export class MonthlyProgressIntegration {
     enableBatching: true,
     batchingWindowMs: 250, // 250ms batching window for performance
     maxBatchSize: 50,      // Max 50 events per batch
-    enableDebugLogging: false
+    enableDebugLogging: true // ENABLE DEBUG LOGGING for troubleshooting
   };
 
   // Integration state
@@ -442,9 +442,9 @@ export class MonthlyProgressIntegration {
 // ========================================
 
 /**
- * Auto-initialize when module is imported (can be disabled)
+ * Auto-initialize when module is imported (DISABLED - using explicit init)
  */
-const AUTO_INIT = true;
+const AUTO_INIT = false;
 
 if (AUTO_INIT) {
   // Initialize after a small delay to ensure all services are ready
