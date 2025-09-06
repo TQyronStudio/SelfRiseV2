@@ -48,12 +48,7 @@ interface XpAnimationState {
     isActivityModalActive: boolean;
     currentActivityModalType?: 'journal' | 'habit' | 'goal' | null;
     
-    // Tier 2: Achievement modals (wait for activity modals)
-    pendingAchievementModals: Array<{
-      type: 'achievement';
-      data: any;
-      timestamp: number;
-    }>;
+    // Tier 2: Achievement modals (handled by AchievementContext)
     isAchievementModalActive: boolean;
     
     // Tier 3: Level-up modals (wait for activity and achievement modals)
@@ -145,8 +140,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       isActivityModalActive: false,
       currentActivityModalType: null,
       
-      // Tier 2: Achievement modals
-      pendingAchievementModals: [],
+      // Tier 2: Achievement modals (handled by AchievementContext)
       isAchievementModalActive: false,
       
       // Tier 3: Level-up modals
@@ -425,7 +419,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   }, []);
   
   const notifyActivityModalEnded = useCallback(() => {
-    console.log(`✅ Activity modal ended (Tier 1) - processing tier 2 achievement modals`);
+    console.log(`✅ Activity modal ended (Tier 1) - tier 2 achievement modals managed by AchievementContext`);
     setState(prev => ({
       ...prev,
       modalCoordination: {
@@ -435,10 +429,8 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     }));
     
-    // Process tier 2 achievement modals after a short delay
-    setTimeout(() => {
-      processAchievementModals();
-    }, 300);
+    // Achievement modals are now handled entirely by AchievementContext
+    // No need to process a separate achievement modal queue here
   }, []);
   
   // Tier 2: Achievement modals (second priority)
@@ -484,64 +476,8 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // 3-TIER MODAL PROCESSING FUNCTIONS
   // ========================================
   
-  // Process Tier 2: Achievement modals
-  const processAchievementModals = useCallback(() => {
-    try {
-      setState(prev => {
-        if (prev.modalCoordination.pendingAchievementModals.length === 0) {
-          return prev;
-        }
-        
-        const nextModal = prev.modalCoordination.pendingAchievementModals[0];
-        if (!nextModal) return prev;
-        
-        const remainingModals = prev.modalCoordination.pendingAchievementModals.slice(1);
-        
-        console.log(`🏆 Processing achievement modal (Tier 2): ${nextModal.type}`);
-        
-        // ENHANCED LOGGING: Achievement modal processing tracking
-        console.log(`📊 Modal Flow Tracking:`, {
-          event: 'ACHIEVEMENT_MODAL_PROCESSING',
-          modalType: nextModal.type,
-          modalData: nextModal.data,
-          remainingInQueue: remainingModals.length,
-          timestamp: Date.now()
-        });
-        
-        // Achievement modal processing would go here
-        // Note: Achievement modals are handled by AchievementService directly
-        // This function primarily manages the queue
-        
-        console.log(`📊 Modal Flow Tracking:`, {
-          event: 'ACHIEVEMENT_MODAL_PROCESSED',
-          modalType: 'achievement',
-          success: true,
-          timestamp: Date.now()
-        });
-        
-        return {
-          ...prev,
-          modalCoordination: {
-            ...prev.modalCoordination,
-            pendingAchievementModals: remainingModals,
-          }
-        };
-      });
-    } catch (error) {
-      // GRACEFUL DEGRADATION: Achievement modal processing failure doesn't break modal queue
-      console.error('🚨 Achievement modal processing failed, clearing queue to prevent infinite loops:', error instanceof Error ? error.message : String(error));
-      console.log('📱 Activity and level-up modal functionality remains unaffected');
-      
-      // Clear the queue to prevent stuck state
-      setState(prev => ({
-        ...prev,
-        modalCoordination: {
-          ...prev.modalCoordination,
-          pendingAchievementModals: [],
-        }
-      }));
-    }
-  }, []);
+  // Tier 2: Achievement modals are handled by AchievementContext
+  // No processing needed here - AchievementContext manages its own celebration queue
 
   // Process Tier 3: Level-up modals
   const processLevelUpModals = useCallback(() => {
@@ -666,7 +602,6 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
               isActivityModalActive: state.modalCoordination.isActivityModalActive,
               currentActivityModalType: state.modalCoordination.currentActivityModalType,
               isAchievementModalActive: state.modalCoordination.isAchievementModalActive,
-              pendingAchievementModals: state.modalCoordination.pendingAchievementModals.length,
               pendingLevelUpModals: state.modalCoordination.pendingLevelUpModals.length
             },
             timestamp: Date.now()

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput } from '../types/goal';
 import { goalStorage } from '../services/storage/goalStorage';
+import { AchievementService } from '../services/achievementService';
 
 export interface GoalsState {
   goals: Goal[];
@@ -153,6 +154,17 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       
       const newGoal = await goalStorage.create(input);
       dispatch({ type: 'ADD_GOAL', payload: newGoal });
+      
+      // ✅ Trigger achievement check after goal creation
+      // Run asynchronously to not block goal creation
+      setTimeout(async () => {
+        try {
+          console.log('🎯 Checking achievements after goal creation:', newGoal.title, 'targetValue:', newGoal.targetValue);
+          await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
+        } catch (achievementError) {
+          console.error('Failed to check achievements after goal creation:', achievementError);
+        }
+      }, 100);
       
       return newGoal;
     } catch (error) {

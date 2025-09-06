@@ -131,7 +131,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
   // Calculate progress using SAME PATTERN as AchievementCard
   const progress = realTimeProgress !== undefined 
-    ? realTimeProgress 
+    ? Number(realTimeProgress) || 0
     : achievement?.isProgressive 
       ? 0 
       : (isUnlocked ? 100 : 0);
@@ -183,6 +183,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       </Modal>
     );
   }
+
 
   return (
     <Modal
@@ -236,7 +237,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     styles.achievementIcon,
                     !isUnlocked && styles.achievementIconLocked
                   ]}>
-                    {achievement?.icon || '🏆'}
+                    {String(achievement?.icon || '🏆')}
                   </Text>
                   {isUnlocked && (
                     <View style={[styles.statusBadge, { backgroundColor: rarityColor }]}>
@@ -250,7 +251,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     styles.achievementName,
                     !isUnlocked && styles.achievementNameLocked
                   ]}>
-                    {achievement?.name || 'Achievement'}
+                    {String(achievement?.name || 'Achievement')}
                   </Text>
                   
                   <View style={styles.metaContainer}>
@@ -277,7 +278,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
               {/* Description */}
               <Text style={styles.description}>
-                {achievement?.description || 'Achievement description'}
+                {String(achievement?.description || 'Achievement description')}
               </Text>
 
               {/* Conditional Content */}
@@ -326,7 +327,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                       <View style={styles.progressSection}>
                         <Text style={styles.progressTitle}>Progress to Unlock</Text>
                         <Text style={styles.progressText}>
-                          {progressHint.progressText}
+                          {progressHint?.progressText || 'Progress loading...'}
                         </Text>
                         
                         <View style={styles.progressBarContainer}>
@@ -335,14 +336,14 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                               style={[
                                 styles.progressFill,
                                 { 
-                                  width: `${progressHint.progressPercentage}%`,
+                                  width: `${Number(progressHint?.progressPercentage || 0)}%`,
                                   backgroundColor: rarityColor
                                 }
                               ]} 
                             />
                           </View>
                           <Text style={styles.progressPercentage}>
-                            {Math.round(progressHint.progressPercentage)}%
+                            {Math.round(Number(progressHint?.progressPercentage || 0))}%
                           </Text>
                         </View>
                       </View>
@@ -352,12 +353,12 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                       <View style={styles.guidanceSection}>
                         <Text style={styles.guidanceTitle}>How to Unlock</Text>
                         <Text style={styles.requirementText}>
-                          {progressHint.requirementText}
+                          {progressHint?.requirementText || 'Achievement requirement'}
                         </Text>
                         <Text style={styles.actionHint}>
-                          💡 {progressHint.actionHint}
+                          💡 {progressHint?.actionHint || 'Keep working towards this goal!'}
                         </Text>
-                        {progressHint.estimatedDays && (
+                        {progressHint?.estimatedDays && progressHint.estimatedDays > 0 && (
                           <Text style={styles.estimatedTime}>
                             📅 Estimated: {progressHint.estimatedDays} days remaining
                           </Text>
