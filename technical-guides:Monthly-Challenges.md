@@ -248,7 +248,7 @@ useEffect(() => {
 
 ## 📋 **PŘEHLED VŠECH TYPŮ VÝZEV**
 
-### 🎯 **HABITS KATEGORIE (4 typy výzev)**
+### 🎯 **HABITS KATEGORIE (3 typy výzev)**
 
 #### **1. Consistency Master** 
 *"Dokončuj své plánované návyky konzistentně celý měsíc"*
@@ -260,15 +260,6 @@ useEffect(() => {
 - **4⭐ Expert**: 24 návyků za měsíc *(baseline 20 → +20%)*
 - **5⭐ Mistr**: 25 návyků za měsíc *(baseline 20 → +25%)*
 
-#### **2. Variety Champion**
-*"Objevuj různé návyky každý týden pro rozmanitou rutinu"*
-
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 4 různé návyky týdně *(baseline 4 → +5%)*
-- **2⭐ Střední**: 4 různé návyky týdně *(baseline 4 → +10%)*
-- **3⭐ Těžká**: 5 různých návyků týdně *(baseline 4 → +15%)*
-- **4⭐ Expert**: 5 různých návyků týdně *(baseline 4 → +20%)*
-- **5⭐ Mistr**: 5 různých návyků týdně *(baseline 4 → +25%)*
 
 #### **3. Streak Builder**
 *"Udržuj konzistentní streaky návyků po celý měsíc"*
@@ -292,17 +283,19 @@ useEffect(() => {
 
 ---
 
-### 📝 **JOURNAL KATEGORIE (4 typy výzev)**
+### 📝 **JOURNAL KATEGORIE (3 typy výzev)**
 
 #### **1. Reflection Expert**
-*"Piš kvalitní, promyšlené záznamy v deníku konzistentně"*
+*"Piš detailní záznamy (33+ znaků) pro prohloubení vděčnosti"*
 
 **Příklady obtížnosti:**
-- **1⭐ Snadná**: 85 kvalitních záznamů za měsíc *(baseline 80 → +5%)*
-- **2⭐ Střední**: 88 kvalitních záznamů za měsíc *(baseline 80 → +10%)*
-- **3⭐ Těžká**: 92 kvalitních záznamů za měsíc *(baseline 80 → +15%)*
-- **4⭐ Expert**: 96 kvalitních záznamů za měsíc *(baseline 80 → +20%)*
-- **5⭐ Mistr**: 100 kvalitních záznamů za měsíc *(baseline 80 → +25%)*
+- **1⭐ Snadná**: 85 detailních záznamů za měsíc *(baseline 80 → +5%)*
+- **2⭐ Střední**: 88 detailních záznamů za měsíc *(baseline 80 → +10%)*
+- **3⭐ Těžká**: 92 detailních záznamů za měsíc *(baseline 80 → +15%)*
+- **4⭐ Expert**: 96 detailních záznamů za měsíc *(baseline 80 → +20%)*
+- **5⭐ Mistr**: 100 detailních záznamů za měsíc *(baseline 80 → +25%)*
+
+**Měření kvality**: Záznamy s 33+ znaky se počítají jako "detailní"
 
 #### **2. Gratitude Guru**
 *"Zvládni běžné i bonus záznamy pro perfektní vděčnost"*
@@ -324,19 +317,10 @@ useEffect(() => {
 - **4⭐ Expert**: 30 dnů se záznamem za měsíc *(baseline 25 → +20%)*
 - **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(baseline 25 → +25%)*
 
-#### **4. Depth Explorer**
-*"Piš delší, detailnější záznamy pro prohloubení sebepoznání"*
-
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 210 znaků průměrně na záznam *(baseline 200 → +5%)*
-- **2⭐ Střední**: 220 znaků průměrně na záznam *(baseline 200 → +10%)*
-- **3⭐ Těžká**: 230 znaků průměrně na záznam *(baseline 200 → +15%)*
-- **4⭐ Expert**: 240 znaků průměrně na záznam *(baseline 200 → +20%)*
-- **5⭐ Mistr**: 250 znaků průměrně na záznam *(baseline 200 → +25%)*
 
 ---
 
-### 🏆 **GOALS KATEGORIE (4 typy výzev)**
+### 🏆 **GOALS KATEGORIE (2 typy výzev)**
 
 #### **1. Progress Champion**
 *"Dělej konzistentní denní pokrok směrem k cílům"*
@@ -358,25 +342,7 @@ useEffect(() => {
 - **4⭐ Expert**: 3 dokončené cíle za měsíc *(baseline 2 → +20%)*
 - **5⭐ Mistr**: 3 dokončené cíle za měsíc *(baseline 2 → +25%)*
 
-#### **3. Consistency Tracker**
-*"Pracuj na cílech konzistentně bez vynechání dnů"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 12denní streak pokroku na cílech *(baseline 12 → +5%)*
-- **2⭐ Střední**: 13denní streak pokroku na cílech *(baseline 12 → +10%)*
-- **3⭐ Těžká**: 14denní streak pokroku na cílech *(baseline 12 → +15%)*
-- **4⭐ Expert**: 15denní streak pokroku na cílech *(baseline 12 → +20%)*
-- **5⭐ Mistr**: 15denní streak pokroku na cílech *(baseline 12 → +25%)*
-
-#### **4. Big Dreamer**
-*"Vytvoř a pracuj na ambiciózních, vysokohodnotných cílech"*
-
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: Pokrok na cílech hodnoty 1050+ *(baseline 1000 → +5%)*
-- **2⭐ Střední**: Pokrok na cílech hodnoty 1100+ *(baseline 1000 → +10%)*
-- **3⭐ Těžká**: Pokrok na cílech hodnoty 1150+ *(baseline 1000 → +15%)*
-- **4⭐ Expert**: Pokrok na cílech hodnoty 1200+ *(baseline 1000 → +20%)*
-- **5⭐ Mistr**: Pokrok na cílech hodnoty 1250+ *(baseline 1000 → +25%)*
 
 ---
 
@@ -485,10 +451,10 @@ interface UserActivityBaseline {
 ```typescript
 // MonthlyChallengeService - hlavní logika generování
 class MonthlyChallengeService {
-  // 16 předpřipravených templates rozdělených do 4 kategorií
-  static HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
-  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy]; 
-  static GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
+  // 12 předpřipravených templates rozdělených do 4 kategorií
+  static HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy];
+  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy]; 
+  static GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [2 typy];
   static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
   
   // Star-based scaling system
