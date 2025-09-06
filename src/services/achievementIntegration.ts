@@ -318,6 +318,34 @@ export class AchievementIntegration {
   }
 
   /**
+   * Get count of completed goals with target value 1,000,000 or more
+   */
+  static async getGoalCompletionMillionPlus(timeframe?: string): Promise<number> {
+    try {
+      const goals = await this.goalStorage.getAll();
+      let millionPlusCompletedCount = 0;
+      
+      for (const goal of goals) {
+        if (goal.status === 'completed' && goal.targetValue && goal.targetValue >= 1000000) {
+          // Check if completion falls within timeframe
+          if (!timeframe || timeframe === 'all_time') {
+            millionPlusCompletedCount++;
+          } else if (goal.completedDate) {
+            if (this.isDateInTimeframe(goal.completedDate, timeframe)) {
+              millionPlusCompletedCount++;
+            }
+          }
+        }
+      }
+      
+      return millionPlusCompletedCount;
+    } catch (error) {
+      console.error('AchievementIntegration.getGoalCompletionMillionPlus error:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get maximum goal target value
    */
   static async getMaxGoalTargetValue(timeframe?: string): Promise<number> {
@@ -937,6 +965,9 @@ export class AchievementIntegration {
           
         case 'goal_target_value':
           return await this.getMaxGoalTargetValue(timeframe);
+          
+        case 'goal_completion_million_plus':
+          return await this.getGoalCompletionMillionPlus(timeframe);
           
         case 'goal_progress_consecutive_days':
           return await this.getGoalProgressConsecutiveDays(timeframe);

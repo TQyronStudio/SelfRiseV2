@@ -5,9 +5,9 @@ import { Achievement, AchievementCategory, AchievementRarity } from '../types/ga
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';
 
 /**
- * Complete catalog of 76 achievements for SelfRise V2
+ * Complete catalog of 78 achievements for SelfRise V2
  * Organized by category with balanced progression and long-term engagement
- * Categories: Habits (8), Journal (31), Goals (7), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
+ * Categories: Habits (8), Journal (31), Goals (8), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
  * Updated: 2025-08-30 - Added 24 new Journal Bonus achievements for ⭐🔥👑 milestones
  */
 export const CORE_ACHIEVEMENTS: Achievement[] = [
@@ -472,6 +472,48 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     isSecret: false,
     createdAt: new Date('2025-08-05'),
     updatedAt: new Date('2025-08-05')
+  },
+
+  {
+    id: 'mega-dreamer',
+    name: 'Mega Dreamer',
+    description: 'Set a goal with target value of 1,000,000 or more - you dream in millions',
+    icon: '🌟',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.EPIC,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
+    condition: {
+      type: 'value',
+      target: 1000000,
+      source: 'goal_target_value',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-09-06'),
+    updatedAt: new Date('2025-09-06')
+  },
+
+  {
+    id: 'million-achiever',
+    name: 'Million Achiever',
+    description: 'Complete a goal with target value of 1,000,000 or more - you turn massive dreams into reality',
+    icon: '💎',
+    category: AchievementCategory.GOALS,
+    rarity: AchievementRarity.LEGENDARY,
+    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
+    condition: {
+      type: 'count',
+      target: 1,
+      source: 'goal_completion_million_plus',
+      operator: 'gte',
+      timeframe: 'all_time'
+    },
+    isProgressive: false,
+    isSecret: false,
+    createdAt: new Date('2025-09-06'),
+    updatedAt: new Date('2025-09-06')
   },
 
   // ========================================

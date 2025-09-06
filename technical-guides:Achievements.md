@@ -6,7 +6,7 @@
 
 # 📋 PŘEHLED VŠECH ACHIEVEMENTS - PRO MAJITELE
 
-*Kompletní katalog všech 52 achievements v SelfRise V2 aplikaci*
+*Kompletní katalog všech 78 achievements v SelfRise V2 aplikaci*
 
 ## 🏃‍♂️ **HABITS - Návyky (8 achievements)**
 
@@ -190,7 +190,7 @@
 
 ---
 
-## 🎯 **GOALS - Cíle (6 achievements)**
+## 🎯 **GOALS - Cíle (8 achievements)**
 
 ### **First Vision** 🔮 • 50 XP • Common
 **Co musí udělat**: Nastavit svůj první cíl
@@ -200,22 +200,29 @@
 **Co musí udělat**: Dokončit svůj první cíl
 **Výsledek**: Uživatel přeměňuje sny na realitu
 
+### **Ambitious** 💪 • 100 XP • Rare
+**Co musí udělat**: Nastavit cíl s hodnotou 1000 nebo více
+**Výsledek**: Uživatel sní ve velkém
 
 ### **Goal Champion** 🏆 • 200 XP • Epic
 **Co musí udělat**: Dokončit 5 cílů
 **Výsledek**: Uživatel se stává mistrem dosahování
 
+### **Progress Tracker** 📊 • 200 XP • Epic
+**Co musí udělat**: Dělat pokrok na cílech 7 po sobě jdoucích dní
+**Výsledek**: Konzistence vede k úspěchu
+
+### **Mega Dreamer** 🌟 • 200 XP • Epic
+**Co musí udělat**: Nastavit cíl s hodnotou 1,000,000 nebo více
+**Výsledek**: Uživatel sní v milionech
+
 ### **Achievement Unlocked** 🔓 • 500 XP • Legendary
 **Co musí udělat**: Dokončit 10 cílů
 **Výsledek**: Uživatel je legendární dosahování cílů
 
-### **Ambitious** 💪 • 100 XP • Rare
-**Co musí udělat**: Nastavit cíl s hodnotou 1000 nebo více
-**Výsledek**: Uživatel sní ve velkém
-
-### **Progress Tracker** 📊 • 200 XP • Epic
-**Co musí udělat**: Dělat pokrok na cílech 7 po sobě jdoucích dní
-**Výsledek**: Konzistence vede k úspěchu
+### **Million Achiever** 💎 • 500 XP • Legendary
+**Co musí udělat**: Dokončit cíl s hodnotou 1,000,000 nebo více
+**Výsledek**: Uživatel přeměňuje masivní sny na realitu
 
 ---
 

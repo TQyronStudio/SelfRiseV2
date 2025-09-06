@@ -366,6 +366,11 @@ export class AchievementService {
             const { AchievementIntegration } = await import('./achievementIntegration');
             return await AchievementIntegration.getMaxGoalTargetValue(timeframe);
           }
+        case 'goal_completion_million_plus':
+          {
+            const { AchievementIntegration } = await import('./achievementIntegration');
+            return await AchievementIntegration.getGoalCompletionMillionPlus(timeframe);
+          }
         default:
           // Handle custom sources using integration layer
           const { AchievementIntegration } = await import('./achievementIntegration');
