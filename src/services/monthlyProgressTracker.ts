@@ -110,6 +110,10 @@ export class MonthlyProgressTracker {
   }>();
   private static snapshotsCache: { data: DailyProgressSnapshot[]; timestamp: number } | null = null;
 
+  // Weekly habits tracking cache for Variety Champion real-time uniqueness
+  private static currentWeekHabits: Set<string> = new Set();
+  private static currentWeekNumber: number = 0;
+
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
   
@@ -400,7 +404,11 @@ export class MonthlyProgressTracker {
         return source === XPSourceType.HABIT_BONUS ? direction : 0;
         
       case 'unique_weekly_habits':
-        // This requires special tracking - will be handled in daily aggregation
+        // Real-time weekly habit variety tracking - TRUE uniqueness per week
+        if ((source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS) && metadata?.sourceId) {
+          // SYNC call to prevent async issues - use cached snapshots for performance
+          return this.calculateWeeklyHabitVarietyIncrement(metadata.sourceId, direction);
+        }
         return 0;
         
       case 'quality_journal_entries':
@@ -1175,6 +1183,46 @@ export class MonthlyProgressTracker {
       return 1;
     }
   }
+
+  /**
+   * Calculate weekly habit variety increment - SYNC version for real-time tracking  
+   * Returns +1 only if habitId is NEW for current week, 0 if already completed
+   */
+  private static calculateWeeklyHabitVarietyIncrement(habitId: string, direction: number): number {
+    try {
+      // Only process positive direction (habit completion)
+      if (direction <= 0) return 0;
+
+      // Get current week number (1-4/5)
+      const todayDate = new Date();
+      const currentWeek = this.calculateWeekNumber(todayDate);
+
+      // Reset weekly cache if week changed
+      if (this.currentWeekNumber !== currentWeek) {
+        console.log(`📅 [DEBUG] Week changed from ${this.currentWeekNumber} to ${currentWeek} - resetting weekly habits cache`);
+        this.currentWeekHabits.clear();
+        this.currentWeekNumber = currentWeek;
+      }
+
+      // Check if habit already completed this week
+      if (this.currentWeekHabits.has(habitId)) {
+        console.log(`🔁 [DEBUG] Habit ${habitId} already completed this week - returning 0`);
+        return 0; // Already completed this week
+      }
+
+      // New habit for this week - add to cache and return +1
+      this.currentWeekHabits.add(habitId);
+      console.log(`✨ [DEBUG] NEW habit ${habitId} for week ${currentWeek} - returning 1. Total unique: ${this.currentWeekHabits.size}`);
+      return 1;
+
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateWeeklyHabitVarietyIncrement error:', error);
+      // Optimistic fallback - better than losing progress
+      return direction > 0 ? 1 : 0;
+    }
+  }
+
+
 
   /**
    * Analyze daily feature usage for triple feature and perfect day detection

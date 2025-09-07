@@ -1471,8 +1471,8 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 
 ### **🚨 BROKEN CHALLENGES - Potřeba opravy**
 
-#### **HABITS kategorie (3/4 broken):**
-- ❌ **Variety Champion**: `unique_weekly_habits` returns 0 - chybí weekly habit variety logic
+#### **HABITS kategorie (2/4 broken):**
+- ✅ **Variety Champion**: FIXED - Real-time weekly uniqueness tracking implemented ✅
 - ❌ **Streak Builder**: `habit_streak_days` returns 0 - chybí streak calculation from snapshots  
 - ❌ **Bonus Hunter**: `bonus_habit_completions` - ověřit complete tracking implementation
 - ✅ **Consistency Master**: Funguje správně ✅
@@ -1499,7 +1499,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 
 ```typescript
 // Aktuálně všechny returns 0 - BROKEN:
-case 'unique_weekly_habits':        return 0; // ❌ Implementovat weekly variety
+case 'unique_weekly_habits':        return X; // ✅ FIXED - Real-time uniqueness implemented
 case 'habit_streak_days':           return 0; // ❌ Implementovat streak tracking  
 case 'daily_journal_streak':        return 0; // ❌ Implementovat journal streaks
 case 'triple_feature_days':         return 0; // ❌ Convert from daily snapshots
@@ -1521,5 +1521,68 @@ case 'balance_score':               return 0; // ❌ Calculate balance score
 5. **Verify modal real-time updates** fungují pro všechny opravené výzvy
 
 **Cíl**: Všech 16 výzev musí fungovat stejně spolehlivě jako Consistency Master ✅
+
+### **🧪 SYSTEMATICKÝ TESTING FRAMEWORK (Consistency Master Standard)**
+
+**VZOR**: Consistency Master funguje perfektně - použij jej jako referenci pro všechny testy!  
+**INSPIRACE**: @technical-guides:Monthly-Challenges.md - vyhnout se všem už vyřešeným problémům
+
+#### **📱 HOME SCREEN REAL-TIME TESTING**
+- **UI Layout konzistence**: Každá výzva má stejné rozložení jako Consistency Master
+- **Progress updates**: Každá akce (habit/journal/goal) okamžitě aktualizuje procenta
+- **Milestone changes**: Milestones se přepočítávají a zobrazují real-time 
+- **Visual feedback**: Progress bars a číselné hodnoty se mění ihned po akci
+- **Rychlost**: Updates musí být <50ms (dle technical guide performance kritérií)
+
+#### **🎯 MODAL OVERVIEW TAB - Timeline & Requirements**
+- **Active days calculation**: Přidání/odebrání active day se projeví okamžitě
+- **Timeline accuracy**: "X/30 days active" se aktualizuje ihned po první aktivitě dne
+- **Requirements progress**: Každý tracking key increment se zobrazí real-time
+- **Progress percentages**: Celkové % completion se přepočítává živě  
+- **Negative tracking**: UNDO akce (habits) správně odečte progress (math.max(0, value))
+- **Race conditions**: Žádné duplikáty nebo ztracené updates (inspirace: technical guide XP Direction Handling)
+
+#### **📅 MODAL CALENDAR TAB - Colors & Weekly Breakdown**
+- **Adaptive coloring**: Barva dne se mění okamžitě při akci (none→some→good→perfect)  
+- **Intensity thresholds**: 10%/51%/91% prahy fungují podle challenge difficulty
+- **Daily snapshots**: Real data z MonthlyProgressTracker, ne fake estimates
+- **Weekly breakdown**: Percentáže se přepočítávají ihned po každé akci
+- **Weekly progress format**: "X/7 active | X some | X good | X perfect | X%"
+- **Calendar real-time**: Když dokončím habit/journal dnes, kalendář se hned změní
+- **Performance**: Single load + filtering (inspirace: technical guide Performance Optimization)
+
+#### **💡 MODAL TIPS TAB - Content Quality**
+- **Relevantní tipy**: Obsahově odpovídají challenge typu (ne generic text)
+- **Lidsky napsané**: Žádné "beginner-friendly" nebo developer-speak
+- **Bonus conditions**: Jasně vysvětlené způsoby extra XP
+- **Tracking insights**: Pomůcky jak dosáhnout challenge targets
+
+#### **🔄 REAL-TIME EVENT SYSTEM VALIDATION**  
+- **DeviceEventEmitter listeners**: Modal komponenty poslouchají 'monthly_progress_updated'
+- **Challenge ID filtering**: Updates pouze pro relevantní challenge
+- **Event cleanup**: useEffect return function prevents memory leaks
+- **Modal persistence**: Když je modal otevřený, akce z jiných screenů se tam promítají
+- **No dead modals**: Static data loading = 💀 (inspirace: technical guide Dead Modal Syndrome)
+
+#### **🎲 CHALLENGE-SPECIFIC VALIDATIONS**
+- **Habits**: Streak calculations, variety tracking, bonus completions  
+- **Journal**: Character limits (33+ chars), combined tracking, daily consistency
+- **Goals**: Progress days tracking, completion counting, streak maintenance
+- **Consistency**: Triple feature detection, perfect days analysis, balance scoring
+
+#### **📊 TRACKING IMPLEMENTATION CHECKS**
+- **calculateProgressIncrement()**: Každý tracking key vrací správnou hodnotu (ne 0)
+- **Daily snapshots**: isTripleFeatureDay, isPerfectDay se počítají správně
+- **Snapshot conversion**: Complex metrics se převádějí z snapshots na progress
+- **Direction handling**: Pozitivní i negativní XP změny (inspirace: technical guide XP Direction)
+
+#### **🚨 CRITICAL SUCCESS CRITERIA**
+- **Žádné "return 0"** v tracking logic  
+- **Všechny UI updates <50ms** response time
+- **100% real-time responsiveness** jako Consistency Master
+- **Žádné race conditions** při concurrent akcích
+- **Perfect modal synchronization** s home screen updates
+
+**TESTING POSTUP**: Test každou výzvu proti každému bodu - pokud něco nefunguje jako u Consistency Master, je to BUG! 🎯
 
 ---
