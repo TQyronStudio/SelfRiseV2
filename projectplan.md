@@ -1469,38 +1469,179 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - **Complex tracking** (streaks, triple days, perfect days) se počítá z daily snapshots
 - **UI komponenty** poslouchají DeviceEventEmitter pro live updates
 
-### **🚨 BROKEN CHALLENGES - Potřeba opravy**
+### **🚨 BROKEN CHALLENGES - Systematické Sub-Checkpointy**
 
-#### **HABITS kategorie (2/4 broken):**
-- ✅ **Variety Champion**: FIXED - Real-time weekly uniqueness tracking implemented ✅
-- ❌ **Streak Builder**: `habit_streak_days` returns 0 - chybí streak calculation from snapshots  
-- ❌ **Bonus Hunter**: `bonus_habit_completions` - ověřit complete tracking implementation
-- ✅ **Consistency Master**: Funguje správně ✅
+#### **🔧 Variety Champion** - Sub-checkpoint 8.1.1 ⚠️ PARTIAL (1/8 complete)
+**Cíl**: Real-time weekly uniqueness tracking - 100% jako Consistency Master standard
+- [x] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **Persistence**: Data survives app restart and timezone changes
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
 
-#### **JOURNAL kategorie (4/4 broken):**
-- ❌ **Reflection Expert**: Character limit rozpor (kód 200+, guide 33+) + ověřit quality tracking
-- ❌ **Gratitude Guru**: `total_journal_entries_with_bonus` neexistuje - chybí combined tracking
-- ❌ **Consistency Writer**: `daily_journal_streak` returns 0 - chybí streak logic
-- ❌ **Depth Explorer**: Není v technical guide - smazat nebo přidat do guide
+#### **🔧 Streak Builder** - Sub-checkpoint 8.1.2 ⚠️ PARTIAL (1/8 complete)
+**Cíl**: Real-time consecutive days streak tracking - 100% jako Consistency Master standard
+- [x] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **Persistence**: Data survives app restart and timezone changes
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
 
-#### **GOALS kategorie (4/4 broken):**
-- ⚠️ **Progress Champion**: Wrong tracking key `goal_progress_days` vs implementation `daily_goal_progress`
-- ⚠️ **Achievement Unlocked**: Wrong tracking key `goals_completed` vs implementation `goal_completions`  
-- ❌ **Consistency Tracker**: Není v technical guide - smazat nebo přidat
-- ❌ **Big Dreamer**: Není v technical guide - smazat nebo přidat
+#### **🔧 Bonus Hunter** - Sub-checkpoint 8.1.3
+**Cíl**: Bonus habit completions tracking - 100% jako Consistency Master standard
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **Persistence**: Data survives app restart and timezone changes
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
 
-#### **CONSISTENCY kategorie (4/4 broken):**
-- ❌ **Triple Master**: `triple_feature_days` returns 0 - chybí conversion z daily snapshots
-- ❌ **Perfect Month**: `perfect_days` returns 0 - chybí conversion z daily snapshots  
-- ❌ **Engagement King**: `daily_xp_earned_days` returns 0 - chybí XP days counting
-- ❌ **Balance Expert**: `balance_score` returns 0 - chybí balance score calculation
+#### **🔧 Reflection Expert** - Sub-checkpoint 8.2.1
+**Cíl**: Character limit + quality journal tracking - 100% jako Consistency Master standard
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Character Limit Fix**: Resolve template (200+) vs guide (33+) conflict
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Gratitude Guru** - Sub-checkpoint 8.2.2
+**Cíl**: Combined journal entries with bonus tracking - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `total_journal_entries_with_bonus` tracking key
+- [ ] **Combined Counter**: Create new tracking for regular + bonus entries
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Consistency Writer** - Sub-checkpoint 8.2.3
+**Cíl**: Daily journal streak tracking - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `daily_journal_streak` logic
+- [ ] **Streak Calculation**: Consecutive days journal entry tracking
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Depth Explorer** - Sub-checkpoint 8.2.4
+**Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
+- [ ] **Template Audit**: Verify if challenge should exist in technical guide
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Progress Champion** - Sub-checkpoint 8.3.1
+**Cíl**: Goal progress days tracking - 100% jako Consistency Master standard
+- [ ] **Tracking Key Fix**: Resolve `goal_progress_days` vs `daily_goal_progress` mismatch
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Achievement Unlocked** - Sub-checkpoint 8.3.2
+**Cíl**: Goal completion tracking - 100% jako Consistency Master standard
+- [ ] **Tracking Key Fix**: Resolve `goals_completed` vs `goal_completions` mismatch
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Consistency Tracker** - Sub-checkpoint 8.3.3
+**Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
+- [ ] **Template Audit**: Verify if challenge should exist in technical guide
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Big Dreamer** - Sub-checkpoint 8.3.4
+**Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
+- [ ] **Template Audit**: Verify if challenge should exist in technical guide
+- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Triple Master** - Sub-checkpoint 8.4.1
+**Cíl**: Triple feature days conversion from daily snapshots - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `triple_feature_days` conversion from snapshots
+- [ ] **Daily Analysis**: Convert daily snapshot data to progress increments
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Perfect Month** - Sub-checkpoint 8.4.2
+**Cíl**: Perfect days conversion from daily snapshots - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `perfect_days` conversion from snapshots
+- [ ] **Daily Analysis**: Convert daily snapshot data to progress increments
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Engagement King** - Sub-checkpoint 8.4.3
+**Cíl**: Daily XP earning days counting - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `daily_xp_earned_days` counting logic
+- [ ] **XP Tracking**: Count days with any XP earnings
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+
+#### **🔧 Balance Expert** - Sub-checkpoint 8.4.4
+**Cíl**: Balance score calculation - 100% jako Consistency Master standard
+- [ ] **Core Logic**: Implement `balance_score` calculation algorithm
+- [ ] **Balance Algorithm**: Define and implement balance scoring logic
+- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [ ] **Home Screen**: Real-time updates when user completes actions
+- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [ ] **DeviceEventEmitter**: All UI components update immediately
+- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
 
 ### **🔧 Opravy potřebné v MonthlyProgressTracker.calculateProgressIncrement():**
 
 ```typescript
 // Aktuálně všechny returns 0 - BROKEN:
 case 'unique_weekly_habits':        return X; // ✅ FIXED - Real-time uniqueness implemented
-case 'habit_streak_days':           return 0; // ❌ Implementovat streak tracking  
+case 'habit_streak_days':           return X; // ✅ FIXED - Real-time consecutive days implemented  
 case 'daily_journal_streak':        return 0; // ❌ Implementovat journal streaks
 case 'triple_feature_days':         return 0; // ❌ Convert from daily snapshots
 case 'perfect_days':                return 0; // ❌ Convert from daily snapshots

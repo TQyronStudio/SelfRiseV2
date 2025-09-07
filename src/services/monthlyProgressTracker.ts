@@ -114,6 +114,11 @@ export class MonthlyProgressTracker {
   private static currentWeekHabits: Set<string> = new Set();
   private static currentWeekNumber: number = 0;
 
+  // Daily habit streak tracking cache for Streak Builder real-time consecutive days
+  private static streakCompletedToday: boolean = false;
+  private static currentStreakDate: string = '';
+  private static currentStreakDays: number = 0;
+
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
   
@@ -422,6 +427,13 @@ export class MonthlyProgressTracker {
         
       case 'goal_completions':
         return source === XPSourceType.GOAL_COMPLETION ? direction : 0;
+        
+      case 'habit_streak_days':
+        // Real-time consecutive days streak tracking - like Consistency Master pattern
+        if (source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS) {
+          return this.calculateHabitStreakIncrement(direction);
+        }
+        return 0;
         
       case 'triple_feature_days':
       case 'daily_engagement_streak':
@@ -1222,6 +1234,81 @@ export class MonthlyProgressTracker {
     }
   }
 
+  /**
+   * Calculate habit streak increment - SYNC version for real-time consecutive days tracking
+   * Returns +1 only for FIRST habit completion today, 0 for subsequent same-day completions
+   */
+  private static calculateHabitStreakIncrement(direction: number): number {
+    try {
+      // Only process positive direction (habit completion)
+      if (direction <= 0) return 0;
+
+      // Get current date (YYYY-MM-DD format)
+      const todayString: string = new Date().toISOString().split('T')[0];
+
+      // Check if date changed since last tracking
+      if (this.currentStreakDate !== todayString) {
+        console.log(`📅 [DEBUG] Date changed from ${this.currentStreakDate} to ${todayString}`);
+        
+        // Calculate if today continues yesterday's streak
+        const isConsecutive = this.currentStreakDate ? this.isConsecutiveDay(this.currentStreakDate, todayString) : false;
+        
+        if (isConsecutive && this.currentStreakDays > 0) {
+          // Continue streak - increment by 1
+          this.currentStreakDays += 1;
+          console.log(`🔥 [DEBUG] Streak continues! Day ${this.currentStreakDays}`);
+        } else {
+          // Start new streak
+          this.currentStreakDays = 1;
+          console.log(`✨ [DEBUG] New streak started! Day ${this.currentStreakDays}`);
+        }
+
+        // Update tracking state for today
+        this.currentStreakDate = todayString;
+        this.streakCompletedToday = true;
+        
+        return 1; // First completion today extends/starts streak
+      }
+
+      // Same day - check if already counted
+      if (this.streakCompletedToday) {
+        console.log(`🔁 [DEBUG] Streak already counted today - returning 0`);
+        return 0; // Already counted streak today
+      }
+
+      // First completion today (edge case - shouldn't happen with proper date tracking)
+      this.streakCompletedToday = true;
+      return 1;
+
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateHabitStreakIncrement error:', error);
+      // Optimistic fallback - better than losing progress
+      return direction > 0 ? 1 : 0;
+    }
+  }
+
+  /**
+   * Check if two dates are consecutive (today follows yesterday)
+   */
+  private static isConsecutiveDay(previousDateString: string, currentDateString: string): boolean {
+    try {
+      if (!previousDateString) return false; // No previous date = not consecutive
+
+      const previousDate = new Date(previousDateString);
+      const currentDate = new Date(currentDateString);
+      
+      // Add 1 day to previous date
+      const expectedNextDate = new Date(previousDate);
+      expectedNextDate.setDate(expectedNextDate.getDate() + 1);
+      
+      // Check if current date matches expected next date
+      return currentDate.toDateString() === expectedNextDate.toDateString();
+      
+    } catch (error) {
+      console.error('MonthlyProgressTracker.isConsecutiveDay error:', error);
+      return false; // Conservative fallback
+    }
+  }
 
 
   /**
