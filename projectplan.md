@@ -1443,3 +1443,83 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 6. Launch marketing strategy execution
 
 ---
+
+## 🎯 **Monthly Challenge System - Oprava implementace**
+
+**Status**: **KRITICKÉ PROBLÉMY** ❌ - Většina výzev nefunguje kvůli chybějící tracking implementaci
+
+### **Jak má systém fungovat (vzor: Consistency Master ✅)**
+
+#### **Základní flow:**
+- **XP událost** → `MonthlyProgressIntegration.processXPEvent()`
+- **Progress calculation** → `MonthlyProgressTracker.calculateProgressIncrement()`  
+- **Daily snapshot** → Uložení denní aktivity + analýza (isTripleFeatureDay, isPerfectDay)
+- **Challenge progress update** → Aktualizace `progress[trackingKey]` 
+- **UI real-time update** → `DeviceEventEmitter.emit('monthly_progress_updated')`
+- **Modal zobrazení** → Real-time data via listeners
+
+#### **Modal funkcionalita (3 taby):**
+- **Overview**: Progress requirements, Weekly breakdown, Milestone progress  
+- **Calendar**: Adaptive coloring based on challenge intensity (10%/51%/91% thresholds)
+- **Tips**: Challenge-specific guidance and bonus conditions
+
+#### **Real-time propisování:**
+- **Každá akce** (habit completion, journal entry, goal progress) okamžitě aktualizuje progress
+- **Daily snapshots** ukládají denní příspěvky pro calendar a weekly views
+- **Complex tracking** (streaks, triple days, perfect days) se počítá z daily snapshots
+- **UI komponenty** poslouchají DeviceEventEmitter pro live updates
+
+### **🚨 BROKEN CHALLENGES - Potřeba opravy**
+
+#### **HABITS kategorie (3/4 broken):**
+- ❌ **Variety Champion**: `unique_weekly_habits` returns 0 - chybí weekly habit variety logic
+- ❌ **Streak Builder**: `habit_streak_days` returns 0 - chybí streak calculation from snapshots  
+- ❌ **Bonus Hunter**: `bonus_habit_completions` - ověřit complete tracking implementation
+- ✅ **Consistency Master**: Funguje správně ✅
+
+#### **JOURNAL kategorie (4/4 broken):**
+- ❌ **Reflection Expert**: Character limit rozpor (kód 200+, guide 33+) + ověřit quality tracking
+- ❌ **Gratitude Guru**: `total_journal_entries_with_bonus` neexistuje - chybí combined tracking
+- ❌ **Consistency Writer**: `daily_journal_streak` returns 0 - chybí streak logic
+- ❌ **Depth Explorer**: Není v technical guide - smazat nebo přidat do guide
+
+#### **GOALS kategorie (4/4 broken):**
+- ⚠️ **Progress Champion**: Wrong tracking key `goal_progress_days` vs implementation `daily_goal_progress`
+- ⚠️ **Achievement Unlocked**: Wrong tracking key `goals_completed` vs implementation `goal_completions`  
+- ❌ **Consistency Tracker**: Není v technical guide - smazat nebo přidat
+- ❌ **Big Dreamer**: Není v technical guide - smazat nebo přidat
+
+#### **CONSISTENCY kategorie (4/4 broken):**
+- ❌ **Triple Master**: `triple_feature_days` returns 0 - chybí conversion z daily snapshots
+- ❌ **Perfect Month**: `perfect_days` returns 0 - chybí conversion z daily snapshots  
+- ❌ **Engagement King**: `daily_xp_earned_days` returns 0 - chybí XP days counting
+- ❌ **Balance Expert**: `balance_score` returns 0 - chybí balance score calculation
+
+### **🔧 Opravy potřebné v MonthlyProgressTracker.calculateProgressIncrement():**
+
+```typescript
+// Aktuálně všechny returns 0 - BROKEN:
+case 'unique_weekly_habits':        return 0; // ❌ Implementovat weekly variety
+case 'habit_streak_days':           return 0; // ❌ Implementovat streak tracking  
+case 'daily_journal_streak':        return 0; // ❌ Implementovat journal streaks
+case 'triple_feature_days':         return 0; // ❌ Convert from daily snapshots
+case 'perfect_days':                return 0; // ❌ Convert from daily snapshots
+case 'daily_xp_earned_days':        return 0; // ❌ Count XP earning days
+case 'balance_score':               return 0; // ❌ Calculate balance score
+
+// Plus fix tracking key names:
+'goal_progress_days' → 'daily_goal_progress'
+'goals_completed' → 'goal_completions'  
+'total_journal_entries_with_bonus' → nový combined counter
+```
+
+### **📋 Action plan:**
+1. **Fix tracking keys mismatch** v GOALS templates
+2. **Implement complex tracking logic** pro streak/daily analysis výzvy
+3. **Sync technical guide** s actual templates (remove extras or document them)  
+4. **Test každou výzvu** po opravě s real user actions
+5. **Verify modal real-time updates** fungují pro všechny opravené výzvy
+
+**Cíl**: Všech 16 výzev musí fungovat stejně spolehlivě jako Consistency Master ✅
+
+---

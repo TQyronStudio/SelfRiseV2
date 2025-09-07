@@ -21,6 +21,8 @@ export interface GratitudeStreak {
   frozenDays: number; // 0-3, days of accumulated missed days that froze the streak
   isFrozen: boolean; // true when frozenDays > 0, streak neither grows nor resets
   preserveCurrentStreak?: boolean; // true after warm up payment to preserve streak instead of recalculating
+  preserveCurrentStreakUntil?: Date | null; // timestamp-based preserve flag - preserve streak until this time
+  streakBeforeFreeze?: number; // streak value before it got frozen - used for proper continuation after warm-up
   warmUpPayments: WarmUpPayment[]; // Track individual ad payments per missed day
   warmUpHistory: WarmUpHistoryEntry[]; // Audit trail for debugging warm up issues
   // CRITICAL FIX BUG #2: Auto-reset state tracking to prevent phantom debt

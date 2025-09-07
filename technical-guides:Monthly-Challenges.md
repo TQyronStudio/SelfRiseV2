@@ -392,8 +392,67 @@ useEffect(() => {
 
 ## 🎯 **CELKOVÉ PRINCIPY SYSTÉMU**
 
+### **📊 Baseline-Driven Personalization Process**
+
+**Klíčový princip**: Systém **NESPOUŠTÍ** výzvy okamžitě po registraci, ale nejprve **30 dní sleduje** uživatelovu aktivitu a teprve poté navrhuje personalizované výzvy.
+
+#### **🔍 30-denní analytický proces**
+1. **UserActivityTracker** sleduje každodenní aktivitu za posledních 30 dní
+2. **Počítá baseline metriky** pro všechny kategorie:
+   ```typescript
+   // Příklad baseline výpočtu
+   avgDailyHabitCompletions: 0.67 návyků/den = 20 návyků/měsíc
+   avgDailyJournalEntries: 3.2 záznamy/den = 96 záznamy/měsíc  
+   totalGoalProgressDays: 18 dnů s pokrokem = 18 dnů/měsíc
+   tripleFeatureDays: 12 dnů se všemi funkcemi = 12 dnů/měsíc
+   ```
+
+3. **Určuje kvalitu dat** podle activity thresholds:
+   ```typescript
+   QUALITY_THRESHOLDS = {
+     MINIMAL: 5,   // < 5 aktivních dnů
+     PARTIAL: 15,  // 5-15 aktivních dnů  
+     COMPLETE: 20  // 20+ aktivních dnů
+   }
+   ```
+
+#### **🎲 Challenge Generation Logic**
+```typescript
+if (dataQuality === 'minimal' || isFirstMonth) {
+  // FIRST MONTH TREATMENT
+  title = "🌱 First Month: Consistency Master"
+  target = fixedBeginnerTarget  // Extra konzervativní
+  starLevel = 1                // Vždy nejlehčí
+  xpReward = 400               // Pevná odměna
+  
+} else if (dataQuality === 'partial') {
+  // ČÁSTEČNÁ PERSONALIZACE  
+  title = "Consistency Master"
+  target = baseline * lightScaling    // Lehká personalizace
+  starLevel = 1-3                     // Omezený rozsah
+  
+} else {
+  // PLNÁ PERSONALIZACE
+  title = "Consistency Master" 
+  target = baseline * starMultiplier  // Plně personalizované
+  starLevel = 1-5                     // Celý rozsah hvězdičkové obtížnosti
+  xpReward = 500-2532                 // Progresivní XP systém
+}
+```
+
+#### **📅 Praktický příklad uživatelského journey**
+```
+Den 1-30:  Uživatel používá aplikace, systém analyzuje
+Den 31:    1. září - systém vyhodnotí baseline (např. 20 návyků/měsíc)  
+           → Vygeneruje "Consistency Master" 3⭐ = 23 návyků (baseline +15%)
+Den 32-61: Uživatel plní výzvu po celý září
+Den 62:    1. října - nová výzva na základě výsledků září
+```
+
+**Výsledek**: Každá výzva je **precizně nastavena** na uživatelovu skutečnou úroveň aktivity, ne na generické hodnoty.
+
 ### **🤖 Automatická personalizace**
-Systém měsíčních výzev je plně automatizován a personalizován na základě uživatelovy aktivity za posledních 30 dní. Aplikace analyzuje behavioral patterns a vytváří "baseline" (normál) pro každou kategorii aktivit.
+Na základě 30-denní analýzy systém automaticky vytváří personalizované výzvy přizpůsobené behavioral patterns každého uživatele.
 
 ### **⭐ 5-hvězdičková obtížnost**
 Každá výzva má 5 úrovní obtížnosti s progresivním XP systémem:

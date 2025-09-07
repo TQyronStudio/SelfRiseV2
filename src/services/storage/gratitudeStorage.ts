@@ -401,6 +401,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         streak.frozenDays === undefined || 
         streak.isFrozen === undefined || 
         streak.preserveCurrentStreak === undefined ||
+        streak.preserveCurrentStreakUntil === undefined ||
+        streak.streakBeforeFreeze === undefined ||
         streak.warmUpPayments === undefined ||
         streak.warmUpHistory === undefined ||
         streak.autoResetTimestamp === undefined ||
@@ -411,6 +413,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           frozenDays: streak.frozenDays || 0,
           isFrozen: streak.isFrozen || false,
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
+          preserveCurrentStreakUntil: streak.preserveCurrentStreakUntil || null,
+          streakBeforeFreeze: streak.streakBeforeFreeze || null,
           warmUpPayments: streak.warmUpPayments || [],
           warmUpHistory: streak.warmUpHistory || [],
           autoResetTimestamp: streak.autoResetTimestamp || null,
@@ -429,6 +433,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         frozenDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
+        preserveCurrentStreakUntil: null,
+        streakBeforeFreeze: null,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: null,
@@ -473,6 +479,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         frozenDays: 0,
         isFrozen: false,
         preserveCurrentStreak: false,
+        preserveCurrentStreakUntil: null,
+        streakBeforeFreeze: null,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: new Date(), // CRITICAL: Mark manual reset timestamp
@@ -567,6 +575,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           frozenDays: 0,
           isFrozen: false,
           preserveCurrentStreak: false,
+          preserveCurrentStreakUntil: null,
+          streakBeforeFreeze: null,
           warmUpPayments: [],
           warmUpHistory: [],
           autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark auto-reset
@@ -582,18 +592,32 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update recovery logic for debt system
       const canRecoverWithAd = frozenDays > 0 && frozenDays <= 3;
       
-      // CRITICAL BUG #3 FIX: Handle warm up payment - preserve current streak if flag is set
+      // IMPROVED BUG #3 FIX: Smart streak continuation after warm-up using pre-freeze memory
       let finalCurrentStreak: number;
-      let shouldResetPreserveFlag = false; // BUG #3 FIX: Control flag reset timing
+      let newStreakBeforeFreeze: number | null = savedStreak.streakBeforeFreeze;
+      const todayComplete = completedDates.includes(currentDate);
       
-      if (savedStreak.preserveCurrentStreak && !isFrozen) {
-        // Debt was just paid - preserve the streak value from before warm up payment
+      if (isFrozen) {
+        // When streak gets frozen, remember the current streak value
+        if (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined) {
+          newStreakBeforeFreeze = savedStreak.currentStreak;
+          console.log(`[DEBUG] calculateAndUpdateStreak: Storing streak before freeze: ${newStreakBeforeFreeze}`);
+        }
+        // Normal frozen behavior - keep saved streak
         finalCurrentStreak = savedStreak.currentStreak;
-        shouldResetPreserveFlag = true; // Reset flag after successful preservation
-        console.log(`[DEBUG] calculateAndUpdateStreak: Preserving streak ${finalCurrentStreak} after warm up payment`);
-      } else if (isFrozen) {
-        // Normal frozen behavior - keep saved streak (don't reset preserve flag)
-        finalCurrentStreak = savedStreak.currentStreak;
+      } else if (!isFrozen && savedStreak.streakBeforeFreeze !== null && savedStreak.streakBeforeFreeze !== undefined) {
+        // Just unfroze after warm-up - use pre-freeze streak + continue properly
+        if (todayComplete) {
+          // User completed today after warm-up, so continue the streak
+          finalCurrentStreak = savedStreak.streakBeforeFreeze + 1;
+          console.log(`[DEBUG] calculateAndUpdateStreak: Continuing streak after warm-up: ${savedStreak.streakBeforeFreeze} + 1 = ${finalCurrentStreak}`);
+        } else {
+          // User hasn't completed today yet, preserve pre-freeze streak
+          finalCurrentStreak = savedStreak.streakBeforeFreeze;
+          console.log(`[DEBUG] calculateAndUpdateStreak: Preserving pre-freeze streak: ${finalCurrentStreak} (today not complete yet)`);
+        }
+        // Clear the memory once we've used it (unless still frozen)
+        newStreakBeforeFreeze = null;
       } else {
         // Normal unfrozen behavior - recalculate streak
         finalCurrentStreak = newCalculatedStreak;
@@ -616,8 +640,10 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Preserve existing auto-reset tracking (don't overwrite)
         autoResetTimestamp: savedStreak.autoResetTimestamp || null,
         autoResetReason: savedStreak.autoResetReason || null,
-        // BUG #3 FIX: Only reset preserve flag when actually used to prevent corruption
-        preserveCurrentStreak: shouldResetPreserveFlag ? false : (savedStreak.preserveCurrentStreak || false),
+        // BUG #3 FIX: Preserve flags and streak memory system
+        preserveCurrentStreak: savedStreak.preserveCurrentStreak || false, // Keep for backward compatibility
+        preserveCurrentStreakUntil: savedStreak.preserveCurrentStreakUntil || null, // Old timestamp system
+        streakBeforeFreeze: newStreakBeforeFreeze, // NEW: Pre-freeze streak memory system
       };
       
       console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
@@ -1189,21 +1215,24 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const newFrozenDays = await this.calculateFrozenDaysWithPayments(updatedPayments);
       console.log(`[DEBUG] warmUpStreakWithAds: newFrozenDays=${newFrozenDays} after applying ${adsApplied} ads`);
 
-      // BUG #3 FIX: Strict streak preservation during warm up payment
+      // BUG #3 FIX: Simplified warm up payment - let calculateAndUpdateStreak handle the logic
       const updatedStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
         frozenDays: newFrozenDays, // Update to new effective debt
         isFrozen: newFrozenDays > 0, // Unfreeze only if all streak is warmed up
         canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= 3,
-        preserveCurrentStreak: newFrozenDays === 0, // Preserve streak only when fully paid
         warmUpPayments: updatedPayments,
         warmUpHistory: newHistoryEntries,
+        // Keep existing preserve system for backward compatibility (will be handled by calculateAndUpdateStreak)
+        preserveCurrentStreak: currentStreakInfo.preserveCurrentStreak || false,
+        preserveCurrentStreakUntil: currentStreakInfo.preserveCurrentStreakUntil || null,
+        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze || null,
       };
       
       // BUG #3 FIX: Add validation log to prevent streak corruption
       if (newFrozenDays === 0) {
-        console.log(`[DEBUG] warmUpStreakWithAds: STREAK FULLY WARMED UP - Preserving original streak ${currentStreakInfo.currentStreak}`);
-        console.log(`[DEBUG] warmUpStreakWithAds: Setting preserveCurrentStreak=true to prevent recalculation`);
+        console.log(`[DEBUG] warmUpStreakWithAds: STREAK FULLY WARMED UP - Original streak ${currentStreakInfo.currentStreak} will be continued by calculateAndUpdateStreak()`);
+        console.log(`[DEBUG] warmUpStreakWithAds: streakBeforeFreeze=${currentStreakInfo.streakBeforeFreeze} will be used for proper continuation`);
       }
       
       // Save updated streak info
