@@ -1471,7 +1471,9 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 
 ### **🚨 BROKEN CHALLENGES - Systematické Sub-Checkpointy**
 
-#### **🔧 Variety Champion** - Sub-checkpoint 8.1.1 ✅ COMPLETE (8/8 complete)
+**📊 Adaptivní systém**: Všechny výzvy používají **baseline personalizace** - targets se automaticky přizpůsobují uživatelovu skutečnému výkonu za posledních 30 dní pomocí UserActivityTracker + multiplier ranges (např. 1.10-1.35x). Žádné pevné hodnoty!
+
+#### **🔧 Variety Champion** - Sub-checkpoint 8.1.1 ✅ COMPLETE (9/9 complete)
 **Cíl**: Real-time weekly uniqueness tracking - 100% jako Consistency Master standard
 - [x] **Core Logic**: calculateProgressIncrement implemented correctly
 - [x] **Daily Snapshots**: Challenge data stored in daily snapshots  
@@ -1481,39 +1483,43 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [x] **Persistence**: Data survives app restart and timezone changes
 - [x] **DeviceEventEmitter**: All UI components update immediately
 - [x] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (avgHabitVariety + multiplier range)
 
-#### **🔧 Streak Builder** - Sub-checkpoint 8.1.2 ⚠️ PARTIAL (1/8 complete)
+#### **🔧 Streak Builder** - Sub-checkpoint 8.1.2 ✅ COMPLETE (9/9 complete)
 **Cíl**: Real-time consecutive days streak tracking - 100% jako Consistency Master standard
 - [x] **Core Logic**: calculateProgressIncrement implemented correctly
-- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
-- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
-- [ ] **Home Screen**: Real-time updates when user completes actions
-- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
-- [ ] **Persistence**: Data survives app restart and timezone changes
-- [ ] **DeviceEventEmitter**: All UI components update immediately
-- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [x] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [x] **Home Screen**: Real-time updates when user completes actions
+- [x] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [x] **Persistence**: Data survives app restart and timezone changes
+- [x] **DeviceEventEmitter**: All UI components update immediately
+- [x] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (longestHabitStreak + multiplier range)
 
-#### **🔧 Bonus Hunter** - Sub-checkpoint 8.1.3
+#### **🔧 Bonus Hunter** - Sub-checkpoint 8.1.3 ✅ COMPLETE (9/9 complete)
 **Cíl**: Bonus habit completions tracking - 100% jako Consistency Master standard
-- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
-- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
-- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
-- [ ] **Home Screen**: Real-time updates when user completes actions
-- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
-- [ ] **Persistence**: Data survives app restart and timezone changes
-- [ ] **DeviceEventEmitter**: All UI components update immediately
-- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Core Logic**: calculateProgressIncrement implemented correctly
+- [x] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [x] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [x] **Home Screen**: Real-time updates when user completes actions
+- [x] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [x] **Persistence**: Data survives app restart and timezone changes
+- [x] **DeviceEventEmitter**: All UI components update immediately
+- [x] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (avgDailyBonusHabits + multiplier range)
 
-#### **🔧 Reflection Expert** - Sub-checkpoint 8.2.1
+#### **🔧 Reflection Expert** - Sub-checkpoint 8.2.1 ✅ COMPLETE (9/9 complete)
 **Cíl**: Character limit + quality journal tracking - 100% jako Consistency Master standard
-- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
-- [ ] **Character Limit Fix**: Resolve template (200+) vs guide (33+) conflict
-- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
-- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
-- [ ] **Home Screen**: Real-time updates when user completes actions
-- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
-- [ ] **DeviceEventEmitter**: All UI components update immediately
-- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Core Logic**: calculateProgressIncrement implemented correctly
+- [x] **Character Limit Fix**: Resolve template (200+) vs guide (33+) conflict
+- [x] **Daily Snapshots**: Challenge data stored in daily snapshots  
+- [x] **Modal Calendar**: Progress displayed in calendar with correct coloring
+- [x] **Home Screen**: Real-time updates when user completes actions
+- [x] **Weekly Breakdown**: Challenge data included in weekly analysis
+- [x] **DeviceEventEmitter**: All UI components update immediately
+- [x] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [x] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (avgEntryLength + multiplier range)
 
 #### **🔧 Gratitude Guru** - Sub-checkpoint 8.2.2
 **Cíl**: Combined journal entries with bonus tracking - 100% jako Consistency Master standard
@@ -1525,6 +1531,8 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (totalJournalEntries + multiplier range)
 
 #### **🔧 Consistency Writer** - Sub-checkpoint 8.2.3
 **Cíl**: Daily journal streak tracking - 100% jako Consistency Master standard
@@ -1536,6 +1544,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Depth Explorer** - Sub-checkpoint 8.2.4
 **Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
@@ -1547,6 +1556,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Progress Champion** - Sub-checkpoint 8.3.1
 **Cíl**: Goal progress days tracking - 100% jako Consistency Master standard
@@ -1558,6 +1568,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Achievement Unlocked** - Sub-checkpoint 8.3.2
 **Cíl**: Goal completion tracking - 100% jako Consistency Master standard
@@ -1569,6 +1580,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Consistency Tracker** - Sub-checkpoint 8.3.3
 **Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
@@ -1580,6 +1592,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Big Dreamer** - Sub-checkpoint 8.3.4
 **Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
@@ -1591,6 +1604,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Triple Master** - Sub-checkpoint 8.4.1
 **Cíl**: Triple feature days conversion from daily snapshots - 100% jako Consistency Master standard
@@ -1602,6 +1616,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Perfect Month** - Sub-checkpoint 8.4.2
 **Cíl**: Perfect days conversion from daily snapshots - 100% jako Consistency Master standard
@@ -1613,6 +1628,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Engagement King** - Sub-checkpoint 8.4.3
 **Cíl**: Daily XP earning days counting - 100% jako Consistency Master standard
@@ -1624,6 +1640,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 #### **🔧 Balance Expert** - Sub-checkpoint 8.4.4
 **Cíl**: Balance score calculation - 100% jako Consistency Master standard
@@ -1635,6 +1652,7 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
 - [ ] **DeviceEventEmitter**: All UI components update immediately
 - [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
+- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 
 ### **🔧 Opravy potřebné v MonthlyProgressTracker.calculateProgressIncrement():**
 

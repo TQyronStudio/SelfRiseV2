@@ -417,7 +417,11 @@ export class MonthlyProgressTracker {
         return 0;
         
       case 'quality_journal_entries':
-        return source === XPSourceType.JOURNAL_ENTRY ? direction : 0;
+        // Only count journal entries with 33+ characters (quality entries)
+        if (source === XPSourceType.JOURNAL_ENTRY && metadata?.entryLength && metadata.entryLength >= 33) {
+          return direction;
+        }
+        return 0;
         
       case 'bonus_journal_entries':
         return source === XPSourceType.JOURNAL_BONUS ? direction : 0;

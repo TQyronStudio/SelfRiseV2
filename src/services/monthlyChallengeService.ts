@@ -176,7 +176,7 @@ export class MonthlyChallengeService {
       requirementTemplates: [
         {
           type: 'journal',
-          description: 'Write quality journal entries (200+ characters)',
+          description: 'Write quality journal entries (33+ characters)',
           trackingKey: 'quality_journal_entries',
           progressMilestones: [0.25, 0.50, 0.75],
           dailyTarget: 3

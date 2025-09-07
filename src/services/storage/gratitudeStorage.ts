@@ -85,7 +85,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         metadata: { 
           baseXp: baseXpAmount, 
           milestoneXp: milestoneXpAmount,
-          entryPosition: totalCount 
+          entryPosition: totalCount,
+          entryLength: newGratitude.content.length
         }
       });
       
