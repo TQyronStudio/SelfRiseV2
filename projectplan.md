@@ -1550,18 +1550,6 @@ All 21 TypeScript errors in the utils directory have been systematically resolve
 - [x] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
 - [x] **Technical Documentation**: Complete documentation in @technical-guides:Monthly-Challenges.md
 
-#### **🔧 Depth Explorer** - Sub-checkpoint 8.2.4
-**Cíl**: Technical guide alignment + functionality - 100% jako Consistency Master standard
-- [ ] **Template Audit**: Verify if challenge should exist in technical guide
-- [ ] **Core Logic**: calculateProgressIncrement implemented correctly
-- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
-- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
-- [ ] **Home Screen**: Real-time updates when user completes actions
-- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
-- [ ] **DeviceEventEmitter**: All UI components update immediately
-- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
-- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
-
 #### **🔧 Progress Champion** - Sub-checkpoint 8.3.1
 **Cíl**: Goal progress days tracking - 100% jako Consistency Master standard
 - [ ] **Tracking Key Fix**: Resolve `goal_progress_days` vs `daily_goal_progress` mismatch
