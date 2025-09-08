@@ -119,6 +119,15 @@ export class MonthlyProgressTracker {
   private static currentStreakDate: string = '';
   private static currentStreakDays: number = 0;
 
+  // Daily journal streak tracking cache for Consistency Writer real-time consecutive days
+  private static journalStreakCompletedToday: boolean = false;
+  private static currentJournalStreakDate: string = '';
+  private static currentJournalStreakDays: number = 0;
+  
+  // Journal entries counter for star-based daily requirements  
+  private static todayJournalEntriesCount: number = 0;
+  private static journalCountDate: string = '';
+
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
   
@@ -149,6 +158,11 @@ export class MonthlyProgressTracker {
   ): Promise<void> {
     try {
       console.log(`🔍 [DEBUG] MonthlyProgressTracker.updateMonthlyProgress called with:`, { source, amount, sourceId, metadata });
+      
+      // Update journal entries counter for star-based requirements (if positive amount)
+      if ((source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) && amount > 0) {
+        this.incrementTodayJournalCount();
+      }
       
       // Get active monthly challenges
       const activeChallenges = await this.getActiveMonthlyChallenge();
@@ -250,7 +264,8 @@ export class MonthlyProgressTracker {
           requirement,
           source,
           amount,
-          metadata
+          metadata,
+          challenge
         );
 
         if (incrementValue !== 0) {
@@ -367,6 +382,12 @@ export class MonthlyProgressTracker {
         case 'bonus_journal_entries':
           matches = source === XPSourceType.JOURNAL_BONUS;
           break;
+        case 'total_journal_entries_with_bonus':
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          break;
+        case 'daily_journal_streak':
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          break;
         case 'daily_goal_progress':
           matches = source === XPSourceType.GOAL_PROGRESS;
           break;
@@ -395,7 +416,8 @@ export class MonthlyProgressTracker {
     requirement: MonthlyChallengeRequirement,
     source: XPSourceType,
     amount: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    challenge?: MonthlyChallenge
   ): number {
     // Determine increment/decrement direction based on XP amount
     const direction = amount > 0 ? 1 : amount < 0 ? -1 : 0;
@@ -426,6 +448,10 @@ export class MonthlyProgressTracker {
       case 'bonus_journal_entries':
         return source === XPSourceType.JOURNAL_BONUS ? direction : 0;
         
+      case 'total_journal_entries_with_bonus':
+        // Combined counter: regular + bonus journal entries (all types)
+        return (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) ? direction : 0;
+        
       case 'daily_goal_progress':
         return source === XPSourceType.GOAL_PROGRESS ? direction : 0;
         
@@ -436,6 +462,13 @@ export class MonthlyProgressTracker {
         // Real-time consecutive days streak tracking - like Consistency Master pattern
         if (source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS) {
           return this.calculateHabitStreakIncrement(direction);
+        }
+        return 0;
+        
+      case 'daily_journal_streak':
+        // Real-time consecutive days journal streak tracking with star-based entry requirements
+        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+          return this.calculateJournalStreakIncrement(direction, challenge);
         }
         return 0;
         
@@ -1288,6 +1321,116 @@ export class MonthlyProgressTracker {
       console.error('MonthlyProgressTracker.calculateHabitStreakIncrement error:', error);
       // Optimistic fallback - better than losing progress
       return direction > 0 ? 1 : 0;
+    }
+  }
+
+  /**
+   * Calculate journal streak increment - SYNC version with star-based entry requirements
+   * Star Level determines daily journal entries needed: 1⭐=1 entry, 2⭐=2 entries, 5⭐=5 entries
+   * Returns +1 only when reaching required entries for the day, 0 otherwise
+   */
+  private static calculateJournalStreakIncrement(direction: number, challenge?: MonthlyChallenge): number {
+    try {
+      // Only process positive direction (journal entry completion)
+      if (direction <= 0) return 0;
+
+      // Get challenge star level (default to 1 if not available)
+      const starLevel = challenge?.starLevel || 1;
+      const requiredEntriesPerDay = starLevel; // 1⭐=1 entry, 2⭐=2 entries, 5⭐=5 entries
+      
+      console.log(`📝⭐ [DEBUG] Consistency Writer requires ${requiredEntriesPerDay} entries/day (${starLevel}⭐ level)`);
+
+      // Get current date (YYYY-MM-DD format)
+      const todayString: string = new Date().toISOString().split('T')[0];
+
+      // Count today's journal entries (synchronous count using transactions)
+      const todayJournalCount = this.countTodayJournalEntries(todayString);
+      console.log(`📝📊 [DEBUG] Today's journal entries so far: ${todayJournalCount}/${requiredEntriesPerDay}`);
+
+      // Check if we've reached the required number of entries
+      if (todayJournalCount < requiredEntriesPerDay) {
+        console.log(`📝⏳ [DEBUG] Not enough entries yet (${todayJournalCount}/${requiredEntriesPerDay}) - streak not counted today`);
+        return 0; // Not enough entries for star level requirement
+      }
+
+      // Check if date changed since last tracking
+      if (this.currentJournalStreakDate !== todayString) {
+        console.log(`📅 [DEBUG] Journal date changed from ${this.currentJournalStreakDate} to ${todayString}`);
+        
+        // Calculate if today continues yesterday's streak
+        const isConsecutive = this.currentJournalStreakDate ? this.isConsecutiveDay(this.currentJournalStreakDate, todayString) : false;
+        
+        if (isConsecutive && this.currentJournalStreakDays > 0) {
+          // Continue streak - increment by 1
+          this.currentJournalStreakDays += 1;
+          console.log(`📝🔥 [DEBUG] Journal streak continues! Day ${this.currentJournalStreakDays} (${requiredEntriesPerDay} entries achieved)`);
+        } else {
+          // Start new streak
+          this.currentJournalStreakDays = 1;
+          console.log(`📝✨ [DEBUG] New journal streak started! Day ${this.currentJournalStreakDays} (${requiredEntriesPerDay} entries achieved)`);
+        }
+
+        // Update tracking state for today
+        this.currentJournalStreakDate = todayString;
+        this.journalStreakCompletedToday = true;
+        
+        return 1; // First time reaching requirement today extends/starts streak
+      }
+
+      // Same day - check if already counted
+      if (this.journalStreakCompletedToday) {
+        console.log(`🔁 [DEBUG] Journal streak already counted today - returning 0`);
+        return 0; // Already counted streak today
+      }
+
+      // First time reaching requirement today
+      this.journalStreakCompletedToday = true;
+      console.log(`📝✅ [DEBUG] Reached ${requiredEntriesPerDay} entries requirement - streak +1`);
+      return 1;
+
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateJournalStreakIncrement error:', error);
+      // Conservative fallback - require at least 1 entry
+      return direction > 0 ? 1 : 0;
+    }
+  }
+
+  /**
+   * Count today's journal entries for star-based requirements (synchronous)
+   */
+  private static countTodayJournalEntries(todayString: string): number {
+    try {
+      // Reset counter if date changed
+      if (this.journalCountDate !== todayString) {
+        console.log(`📅 [DEBUG] Journal count date changed from ${this.journalCountDate} to ${todayString} - resetting counter`);
+        this.todayJournalEntriesCount = 0;
+        this.journalCountDate = todayString;
+      }
+      
+      return this.todayJournalEntriesCount;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.countTodayJournalEntries error:', error);
+      return 0; // Conservative fallback
+    }
+  }
+
+  /**
+   * Increment today's journal entries counter (called on each journal entry)
+   */
+  private static incrementTodayJournalCount(): void {
+    try {
+      const todayString = new Date().toISOString().split('T')[0];
+      
+      // Reset counter if date changed
+      if (this.journalCountDate !== todayString) {
+        this.todayJournalEntriesCount = 0;
+        this.journalCountDate = todayString;
+      }
+      
+      this.todayJournalEntriesCount += 1;
+      console.log(`📝🔢 [DEBUG] Journal entries today: ${this.todayJournalEntriesCount}`);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.incrementTodayJournalCount error:', error);
     }
   }
 

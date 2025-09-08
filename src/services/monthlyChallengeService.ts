@@ -697,7 +697,8 @@ export class MonthlyChallengeService {
     template: MonthlyChallengeTemplate,
     userBaseline: UserActivityBaseline,
     starLevel: 1 | 2 | 3 | 4 | 5,
-    fallbackValue: number = 10
+    fallbackValue: number = 10,
+    targetMonth?: string
   ): {
     target: number;
     baselineValue: number;
@@ -745,6 +746,27 @@ export class MonthlyChallengeService {
       warnings.push(`Calculated target ${target} below minimum ${minimumTarget}, using minimum`);
       target = minimumTarget;
       calculationMethod = 'minimum';
+    }
+
+    // Apply monthly limit for daily streak challenges (cannot exceed days in month)
+    if (this.isDailyStreakTrackingKey(template.requirementTemplates[0]?.trackingKey)) {
+      let daysInMonth: number;
+      
+      if (targetMonth) {
+        // Parse target month (format: "YYYY-MM") and calculate days in that specific month
+        const [year, month] = targetMonth.split('-').map(Number);
+        daysInMonth = new Date(year, month, 0).getDate(); // Last day of the month
+      } else {
+        // Fallback to current month if targetMonth not provided
+        const currentDate = new Date();
+        daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      }
+      
+      if (target > daysInMonth) {
+        const monthName = targetMonth ? `${targetMonth}` : 'current month';
+        warnings.push(`Daily streak target ${target} exceeds days in ${monthName} (${daysInMonth}), capping at ${daysInMonth}`);
+        target = daysInMonth;
+      }
     }
 
     return {
@@ -829,12 +851,29 @@ export class MonthlyChallengeService {
   }
 
   /**
+   * Check if tracking key represents daily streak counting (limited by days in month)
+   */
+  private static isDailyStreakTrackingKey(trackingKey?: string): boolean {
+    const dailyStreakKeys = [
+      'daily_journal_streak',
+      'habit_streak_days', 
+      'daily_goal_progress',
+      'daily_engagement_streak',
+      'triple_feature_days',
+      'perfect_days'
+    ];
+    
+    return trackingKey ? dailyStreakKeys.includes(trackingKey) : false;
+  }
+
+  /**
    * Create personalized challenge requirements from template and baseline data
    */
   static createPersonalizedRequirements(
     template: MonthlyChallengeTemplate,
     userBaseline: UserActivityBaseline,
-    starLevel: 1 | 2 | 3 | 4 | 5
+    starLevel: 1 | 2 | 3 | 4 | 5,
+    targetMonth?: string
   ): {
     requirements: MonthlyChallengeRequirement[];
     metadata: {
@@ -854,7 +893,8 @@ export class MonthlyChallengeService {
         template,
         userBaseline,
         starLevel,
-        this.getDefaultFallbackForRequirement(reqTemplate.type)
+        this.getDefaultFallbackForRequirement(reqTemplate.type),
+        targetMonth
       );
 
       if (calculation.calculationMethod === 'fallback') {
@@ -967,7 +1007,8 @@ export class MonthlyChallengeService {
     template: MonthlyChallengeTemplate,
     userBaseline: UserActivityBaseline | null,
     starLevel: 1 | 2 | 3 | 4 | 5,
-    isFirstMonth: boolean = false
+    isFirstMonth: boolean = false,
+    targetMonth?: string
   ): {
     requirements: MonthlyChallengeRequirement[];
     xpReward: number;
@@ -1010,7 +1051,7 @@ export class MonthlyChallengeService {
     }
 
     // Create personalized requirements from baseline
-    const personalizedReqs = this.createPersonalizedRequirements(template, userBaseline, starLevel);
+    const personalizedReqs = this.createPersonalizedRequirements(template, userBaseline, starLevel, targetMonth);
     warnings.push(...personalizedReqs.metadata.totalWarnings);
 
     // Adjust difficulty recommendation based on data quality
@@ -1795,7 +1836,8 @@ export class MonthlyChallengeService {
         templateSelection.selectedTemplate,
         context.userBaseline,
         starLevel,
-        context.isFirstMonth
+        context.isFirstMonth,
+        context.month
       );
       warnings.push(...challengeParams.generationWarnings);
 
@@ -1866,7 +1908,9 @@ export class MonthlyChallengeService {
     return {
       id: generateUUID(),
       title: template.title,
-      description: template.description,
+      description: template.id === 'journal_consistency_writer' 
+        ? `Journal every single day with ${starLevel} ${starLevel === 1 ? 'entry' : 'entries'} per day to build an unbreakable habit`
+        : template.description,
       startDate,
       endDate,
       baseXPReward: params.xpReward,

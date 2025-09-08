@@ -264,6 +264,8 @@ useEffect(() => {
 #### **3. Streak Builder**
 *"Udržuj konzistentní streaky návyků po celý měsíc"*
 
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
+
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 10denní streak *(baseline 10 → +5%)*
 - **2⭐ Střední**: 11denní streak *(baseline 10 → +10%)*
@@ -310,12 +312,19 @@ useEffect(() => {
 #### **3. Consistency Writer**
 *"Piš v deníku každý jednotlivý den pro neprolomitelný návyk"*
 
+**🆕 STAR-BASED ENTRY REQUIREMENTS (September 2025)**
+- **1⭐ Level**: 1 entry per day required for streak
+- **2⭐ Level**: 2 entries per day required for streak  
+- **3⭐ Level**: 3 entries per day required for streak
+- **4⭐ Level**: 4 entries per day required for streak
+- **5⭐ Level**: 5 entries per day required for streak
+
 **Příklady obtížnosti:**
-- **1⭐ Snadná**: 26 dnů se záznamem za měsíc *(baseline 25 → +5%)*
-- **2⭐ Střední**: 28 dnů se záznamem za měsíc *(baseline 25 → +10%)*
-- **3⭐ Těžká**: 29 dnů se záznamem za měsíc *(baseline 25 → +15%)*
-- **4⭐ Expert**: 30 dnů se záznamem za měsíc *(baseline 25 → +20%)*
-- **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(baseline 25 → +25%)*
+- **1⭐ Snadná**: 26 dnů se záznamem za měsíc *(1 entry/day, baseline 25 → +5%)*
+- **2⭐ Střední**: 28 dnů se záznamem za měsíc *(2 entries/day, baseline 25 → +10%)*
+- **3⭐ Těžká**: 29 dnů se záznamem za měsíc *(3 entries/day, baseline 25 → +15%)*
+- **4⭐ Expert**: 30 dnů se záznamem za měsíc *(4 entries/day, baseline 25 → +20%)*
+- **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(5 entries/day, baseline 25 → +25%)*
 
 
 ---
@@ -324,6 +333,8 @@ useEffect(() => {
 
 #### **1. Progress Champion**
 *"Dělej konzistentní denní pokrok směrem k cílům"*
+
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 21 dnů s pokrokem na cílech *(baseline 20 → +5%)*
@@ -351,6 +362,8 @@ useEffect(() => {
 #### **1. Triple Master**
 *"Používej všechny tři funkce (návyky, deník, cíle) každý den"*
 
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
+
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 16 dnů se všemi funkcemi *(baseline 15 → +5%)*
 - **2⭐ Střední**: 17 dnů se všemi funkcemi *(baseline 15 → +10%)*
@@ -361,6 +374,8 @@ useEffect(() => {
 #### **2. Perfect Month**
 *"Dosáhni denních minim (1+ návyk, 3+ záznamy) konzistentně"*
 
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
+
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 21 perfektních dnů za měsíc *(baseline 20 → +5%)*
 - **2⭐ Střední**: 22 perfektních dnů za měsíc *(baseline 20 → +10%)*
@@ -370,6 +385,8 @@ useEffect(() => {
 
 #### **3. Engagement King**
 *"Získej XP každý jednotlivý den zůstáváním aktivní v aplikaci"*
+
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 26 dnů s XP za měsíc *(baseline 25 → +5%)*
@@ -880,6 +897,144 @@ Week 3: 7/7 active | 1 some | 3 good | 3 perfect | 156%
 - ✅ **Proper week comparison** - Week with 7 "some" days shows lower % than week with 7 "perfect" days
 - ✅ **Partial week handling** - First/last weeks get proportional targets
 - ✅ **Visual feedback** - Color-coded intensity breakdown shows effort quality
+
+### **⭐ 9. Consistency Writer Star-Based Entry Requirements (September 2025)**
+
+**Problem**: Consistency Writer had uniform 1-entry-per-day requirement regardless of star level, making difficulty progression too shallow.
+
+**Solution**: Implemented star-based daily entry requirements where star level = entries required per day.
+
+#### **Technical Implementation**
+
+**Real-time Entry Counting System**:
+```typescript
+// Cache variables for tracking daily entries
+private static todayJournalEntriesCount: number = 0;
+private static journalCountDate: string = '';
+
+// Increment on each journal entry  
+if ((source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) && amount > 0) {
+  this.incrementTodayJournalCount();
+}
+```
+
+**Star-Based Streak Logic**:
+```typescript
+// Get challenge star level and calculate required entries
+const starLevel = challenge?.starLevel || 1;
+const requiredEntriesPerDay = starLevel; // 1⭐=1 entry, 5⭐=5 entries
+
+// Only count streak when daily requirement is met
+const todayJournalCount = this.countTodayJournalEntries(todayString);
+if (todayJournalCount < requiredEntriesPerDay) {
+  return 0; // Not enough entries for star level requirement
+}
+```
+
+**Dynamic Challenge Description**:
+```typescript
+// Update description based on star level when generating challenge
+description: template.id === 'journal_consistency_writer' 
+  ? `Journal every single day with ${starLevel} ${starLevel === 1 ? 'entry' : 'entries'} per day to build an unbreakable habit`
+  : template.description,
+```
+
+**Monthly Limit Safeguard**:
+```typescript
+// Prevent daily streak targets from exceeding days in month
+if (this.isDailyStreakTrackingKey(template.requirementTemplates[0]?.trackingKey)) {
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  
+  if (target > daysInMonth) {
+    warnings.push(`Daily streak target ${target} exceeds days in month (${daysInMonth}), capping at ${daysInMonth}`);
+    target = daysInMonth;
+  }
+}
+```
+
+#### **User Experience Examples**
+
+**1⭐ Consistency Writer (Beginner)**:
+- Target: 26 consecutive days
+- Daily requirement: 1 journal entry
+- Description: "Journal every single day with 1 entry per day..."
+
+**5⭐ Consistency Writer (Master)**:
+- Target: 30 consecutive days  
+- Daily requirement: 5 journal entries
+- Description: "Journal every single day with 5 entries per day..."
+
+#### **Benefits**
+
+- ✅ **True difficulty progression** - Each star level meaningfully harder
+- ✅ **Clear user communication** - Description shows exact requirements
+- ✅ **Real-time validation** - System counts entries and validates requirements
+- ✅ **Monthly boundary safety** - Cannot exceed calendar month limitations
+- ✅ **Cache-optimized** - Synchronous counting for performance
+
+#### **Files Modified**
+- `monthlyProgressTracker.ts` - Added star-based streak logic and entry counting
+- `monthlyChallengeService.ts` - Added dynamic description and monthly limit safeguard
+- `technical-guides:Monthly-Challenges.md` - Documentation update
+
+### **📅 10. Monthly Limit Safeguard System (September 2025)**
+
+**Problem**: Daily tracking challenges could theoretically generate targets exceeding calendar month limitations (e.g., 35 consecutive days in 30-day month).
+
+**Solution**: Implemented comprehensive monthly limit safeguard system with precise date calculation.
+
+#### **Technical Implementation**
+
+**Target Month Awareness**:
+```typescript
+// Pass target month through the entire chain
+generateChallengeParameters(template, userBaseline, starLevel, isFirstMonth, targetMonth)
+  → createPersonalizedRequirements(template, userBaseline, starLevel, targetMonth)  
+    → calculateTargetFromBaseline(template, userBaseline, starLevel, fallback, targetMonth)
+```
+
+**Precise Monthly Calculation**:
+```typescript
+// Support for February and leap years
+if (targetMonth) {
+  const [year, month] = targetMonth.split('-').map(Number);
+  daysInMonth = new Date(year, month, 0).getDate(); // Accurate for all months
+} else {
+  // Fallback to current month
+  const currentDate = new Date();
+  daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+}
+
+if (target > daysInMonth) {
+  warnings.push(`Daily streak target ${target} exceeds days in ${monthName} (${daysInMonth}), capping at ${daysInMonth}`);
+  target = daysInMonth;
+}
+```
+
+**Protected Tracking Keys**:
+- `daily_journal_streak` (Consistency Writer)
+- `habit_streak_days` (Streak Builder)  
+- `daily_goal_progress` (Progress Champion)
+- `daily_engagement_streak` (Engagement King)
+- `triple_feature_days` (Triple Master)
+- `perfect_days` (Perfect Month)
+
+#### **Monthly Limits by Calendar**
+- **February (non-leap)**: Max 28 days
+- **February (leap year)**: Max 29 days  
+- **April, June, September, November**: Max 30 days
+- **January, March, May, July, August, October, December**: Max 31 days
+
+#### **Benefits**
+- ✅ **Calendar compliance** - Never exceeds actual month duration
+- ✅ **Leap year support** - Correctly handles February 29th
+- ✅ **Automatic capping** - Targets reduced with warnings
+- ✅ **Cross-timezone safe** - Uses target month, not current date
+- ✅ **Challenge validity** - All daily challenges remain achievable
+
+#### **Files Modified**
+- `monthlyChallengeService.ts` - Added monthly limit logic and target month threading
+- `technical-guides:Monthly-Challenges.md` - Documentation with monthly limits marked
 
 ---
 
