@@ -302,7 +302,7 @@ export class MonthlyChallengeService {
         {
           type: 'goals',
           description: 'Make goal progress on target number of days',
-          trackingKey: 'goal_progress_days',
+          trackingKey: 'daily_goal_progress',
           progressMilestones: [0.25, 0.50, 0.75],
           dailyTarget: 1
         }
@@ -332,7 +332,7 @@ export class MonthlyChallengeService {
         {
           type: 'goals',
           description: 'Complete target number of goals',
-          trackingKey: 'goals_completed',
+          trackingKey: 'goal_completions',
           progressMilestones: [0.25, 0.50, 0.75]
         }
       ],
