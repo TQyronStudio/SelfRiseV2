@@ -319,13 +319,14 @@ useEffect(() => {
 - **4⭐ Level**: 4 entries per day required for streak
 - **5⭐ Level**: 5 entries per day required for streak
 
+**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
+
 **Příklady obtížnosti:**
 - **1⭐ Snadná**: 26 dnů se záznamem za měsíc *(1 entry/day, baseline 25 → +5%)*
 - **2⭐ Střední**: 28 dnů se záznamem za měsíc *(2 entries/day, baseline 25 → +10%)*
 - **3⭐ Těžká**: 29 dnů se záznamem za měsíc *(3 entries/day, baseline 25 → +15%)*
 - **4⭐ Expert**: 30 dnů se záznamem za měsíc *(4 entries/day, baseline 25 → +20%)*
 - **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(5 entries/day, baseline 25 → +25%)*
-
 
 ---
 
