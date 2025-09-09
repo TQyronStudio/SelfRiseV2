@@ -349,65 +349,6 @@ export class MonthlyChallengeService {
       tags: ['completion', 'achievement', 'success'],
       priority: 85,
       cooldownMonths: 3
-    },
-    {
-      id: 'goals_streak_maintainer',
-      category: AchievementCategory.GOALS,
-      title: 'Consistency Tracker',
-      description: 'Work on your goals consistently without missing days',
-      baselineMetricKey: 'longestGoalStreak',
-      baselineMultiplierRange: [1.20, 1.40],
-      requirementTemplates: [
-        {
-          type: 'goals',
-          description: 'Maintain consecutive goal progress days',
-          trackingKey: 'goal_streak_days',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 3,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 650,
-      bonusXPConditions: [
-        'Streak milestone (+75 XP per 7-day streak)',
-        'Perfect monthly streak (+250 XP)',
-        'Multi-goal streak (+100 XP bonus)'
-      ],
-      tags: ['streak', 'persistence', 'momentum'],
-      priority: 80,
-      cooldownMonths: 2
-    },
-    {
-      id: 'goals_big_dreamer',
-      category: AchievementCategory.GOALS,
-      title: 'Big Dreamer',
-      description: 'Set and work on ambitious, high-value goals',
-      baselineMetricKey: 'avgGoalTargetValue',
-      baselineMultiplierRange: [1.10, 1.30],
-      requirementTemplates: [
-        {
-          type: 'goals',
-          description: 'Work on goals with high target values',
-          trackingKey: 'high_value_goal_progress',
-          progressMilestones: [0.25, 0.50, 0.75]
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 575,
-      bonusXPConditions: [
-        'High-value goal bonus (+50 XP per 1000+ target)',
-        'Ambition bonus (+100 XP for 5000+ targets)',
-        'Dream achievement (+300 XP for 10000+ goals)'
-      ],
-      tags: ['ambitious', 'high-value', 'dreams'],
-      priority: 70,
-      cooldownMonths: 4
     }
   ];
 

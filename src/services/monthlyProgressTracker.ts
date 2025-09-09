@@ -295,6 +295,9 @@ export class MonthlyProgressTracker {
         await this.recalculateActiveDays(challenge.id, currentProgress);
         console.log(`✅ [DEBUG] Active days after recalculation: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
 
+        // Recalculate complex tracking keys (triple_feature_days, perfect_days, etc.)
+        await this.recalculateComplexTrackingKeys(challenge, currentProgress);
+
         // Update days remaining
         currentProgress.daysRemaining = this.calculateDaysRemaining(challenge);
 
@@ -779,6 +782,62 @@ export class MonthlyProgressTracker {
     } catch (error) {
       console.error('MonthlyProgressTracker.recalculateActiveDays error:', error);
       // Don't throw - active days calculation should not break main flow
+    }
+  }
+
+  /**
+   * Recalculate complex tracking keys that require daily snapshot analysis
+   */
+  private static async recalculateComplexTrackingKeys(
+    challenge: MonthlyChallenge,
+    progress: MonthlyChallengeProgress
+  ): Promise<void> {
+    try {
+      console.log(`🔍 [DEBUG] recalculateComplexTrackingKeys - Starting for challenge: ${challenge.title}`);
+      
+      // Get all daily snapshots for this challenge
+      const allSnapshots = await this.getAllSnapshots();
+      const challengeSnapshots = allSnapshots.filter(s => s.challengeId === challenge.id);
+      
+      console.log(`🔍 [DEBUG] Found ${challengeSnapshots.length} snapshots for challenge ${challenge.id}`);
+      
+      // Check each requirement to see if it needs complex daily analysis
+      for (const requirement of challenge.requirements) {
+        const trackingKey = requirement.trackingKey;
+        
+        switch (trackingKey) {
+          case 'triple_feature_days':
+            const tripleFeatureDays = challengeSnapshots.filter(s => s.isTripleFeatureDay === true).length;
+            const previousTripleCount = progress.progress[trackingKey] || 0;
+            progress.progress[trackingKey] = tripleFeatureDays;
+            console.log(`📊 Triple Feature Days: ${previousTripleCount} → ${tripleFeatureDays}`);
+            break;
+            
+          case 'perfect_days':
+            const perfectDays = challengeSnapshots.filter(s => s.isPerfectDay === true).length;
+            const previousPerfectCount = progress.progress[trackingKey] || 0;
+            progress.progress[trackingKey] = perfectDays;
+            console.log(`📊 Perfect Days: ${previousPerfectCount} → ${perfectDays}`);
+            break;
+            
+          case 'daily_engagement_streak':
+            // Count days with any XP earned (hasAppUsage equivalent)
+            const engagementDays = challengeSnapshots.filter(s => (s.xpEarnedToday || 0) > 0).length;
+            const previousEngagementCount = progress.progress[trackingKey] || 0;
+            progress.progress[trackingKey] = engagementDays;
+            console.log(`📊 Daily Engagement Days: ${previousEngagementCount} → ${engagementDays}`);
+            break;
+            
+          default:
+            // Skip non-complex tracking keys
+            break;
+        }
+      }
+      
+      console.log(`✅ [DEBUG] recalculateComplexTrackingKeys completed for ${challenge.title}`);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.recalculateComplexTrackingKeys error:', error);
+      // Don't throw - complex tracking calculation should not break main flow
     }
   }
 

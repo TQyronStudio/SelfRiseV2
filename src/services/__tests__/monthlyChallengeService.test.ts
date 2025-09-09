@@ -716,7 +716,7 @@ describe('MonthlyChallengeService Utilities', () => {
     
     expect(allTemplates[AchievementCategory.HABITS].length).toBe(4);
     expect(allTemplates[AchievementCategory.JOURNAL].length).toBe(4);
-    expect(allTemplates[AchievementCategory.GOALS].length).toBe(4);
+    expect(allTemplates[AchievementCategory.GOALS].length).toBe(2);
     expect(allTemplates[AchievementCategory.CONSISTENCY].length).toBe(4);
 
     const habitsTemplates = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS);
