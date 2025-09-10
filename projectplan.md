@@ -1638,17 +1638,57 @@ const metDailyMinimums = habitCount >= 1 && journalCount >= 3 && goalProgressCou
 const metDailyMinimums = habitCount >= 1 && journalCount >= 3; // Goals optional for perfect day
 ```
 
-#### **🔧 Engagement King** - Sub-checkpoint 8.4.3
-**Cíl**: Daily XP earning days counting - 100% jako Consistency Master standard
-- [ ] **Core Logic**: Implement `daily_xp_earned_days` counting logic
-- [ ] **XP Tracking**: Count days with any XP earnings
-- [ ] **Daily Snapshots**: Challenge data stored in daily snapshots  
-- [ ] **Modal Calendar**: Progress displayed in calendar with correct coloring
-- [ ] **Home Screen**: Real-time updates when user completes actions
-- [ ] **Weekly Breakdown**: Challenge data included in weekly analysis
-- [ ] **DeviceEventEmitter**: All UI components update immediately
-- [ ] **End-to-end Test**: Complete user scenario validated (multi-day testing)
-- [ ] **Adaptivní systém**: Targets přizpůsobeny baseline uživatele (baseline metrics + multiplier range)
+#### **🔧 XP Champion** - Sub-checkpoint 8.4.3 (REDESIGNED: Monthly Total XP Challenge)
+**Cíl**: Monthly total XP accumulation challenge - flexible engagement system respecting daily XP limits
+- [ ] **Concept Change**: Change from daily XP days counting to total monthly XP accumulation
+- [ ] **Template Update**: Change tracking key from `daily_xp_earned_days` to `monthly_xp_total`
+- [ ] **Baseline Metrics**: Add XP baseline metrics to UserActivityBaseline interface
+  - [ ] `avgDailyXP: number` - average daily XP over last 30 days
+  - [ ] `totalMonthlyXP: number` - total XP earned in baseline period
+  - [ ] `maxObservedDailyXP: number` - highest single day XP in baseline period
+- [ ] **Daily XP Limit Integration**: Research and implement daily XP cap considerations
+  - [ ] **Daily Limit Detection**: Identify current daily XP limits in GamificationService
+  - [ ] **5⭐ Cap Logic**: Ensure 5-star challenges are achievable within daily XP limits
+  - [ ] **Target Validation**: Validate that (target / days_in_month) ≤ daily_xp_limit
+  - [ ] **Fallback Logic**: If baseline suggests impossible target, cap at max_achievable_monthly_xp
+- [ ] **Comprehensive XP Sources**: Include ALL XP sources in tracking
+  - [ ] **Core Actions**: Habits, journal entries, goal progress, goal completions
+  - [ ] **Milestone XP**: Journal ⭐🔥👑 milestones, habit streaks, achievement unlocks
+  - [ ] **Bonus XP**: Variety bonuses, consistency bonuses, perfect day bonuses
+  - [ ] **Challenge XP**: Monthly challenge completion rewards
+  - [ ] **All XPSourceTypes**: Comprehensive integration with all existing XP sources
+- [ ] **Tracking Implementation**: Real-time monthly XP accumulation
+  - [ ] **Real-time Updates**: Update progress on every XP transaction
+  - [ ] **Running Total**: Track cumulative XP for current month
+  - [ ] **Efficient Storage**: Optimize storage for frequent updates
+- [ ] **Baseline Integration**: Adaptive system for XP-based challenges
+  - [ ] **extractBaselineMetric**: Add XP metrics to baseline mapping
+  - [ ] **Target Calculation**: Implement XP-based target calculation with daily limits
+  - [ ] **Multiplier Constraints**: Define appropriate multiplier range (1.10-1.30x)
+- [ ] **UI Integration**: Display and visualization
+  - [ ] **Progress Display**: Show XP progress vs target (e.g., "2,450 / 3,200 XP")
+  - [ ] **Daily Pace**: Show daily pace required to reach target
+  - [ ] **Modal Calendar**: XP heatmap visualization in calendar
+  - [ ] **Weekly Breakdown**: XP breakdown by sources and weeks
+- [ ] **Testing & Validation**: Comprehensive testing
+  - [ ] **Edge Cases**: Test with daily XP limits, zero baselines, extreme targets
+  - [ ] **Multi-Source**: Test XP accumulation from all sources
+  - [ ] **Daily Limit**: Test target capping against daily XP limits
+  - [ ] **Performance**: Test real-time updates with high XP frequency
+- [ ] **End-to-end Flow**: Complete user experience validation
+  - [ ] **Challenge Generation**: XP-based challenge creation from baseline
+  - [ ] **Progress Tracking**: Real-time XP accumulation during month
+  - [ ] **Completion**: XP challenge completion and rewards
+- [ ] **Documentation**: Technical documentation for XP challenge system
+  - [ ] **XP Limits**: Document daily XP limits and constraint logic
+  - [ ] **Baseline Metrics**: Document new XP baseline calculations
+  - [ ] **Target Logic**: Document XP target calculation with caps
+
+**⚠️ CRITICAL CONSTRAINTS**:
+- **Daily XP Limits**: Must respect existing daily XP caps to ensure 5⭐ challenges are achievable
+- **Comprehensive XP**: Count ALL XP sources including milestones, achievements, bonuses
+- **Target Validation**: Mathematical validation that monthly target ≤ (daily_limit × days_in_month)
+- **Baseline Accuracy**: XP baseline must reflect realistic user earning patterns
 
 #### **🔧 Balance Expert** - Sub-checkpoint 8.4.4
 **Cíl**: Balance score calculation - 100% jako Consistency Master standard
