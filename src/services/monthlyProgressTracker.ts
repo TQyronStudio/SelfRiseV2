@@ -1541,12 +1541,12 @@ export class MonthlyProgressTracker {
 
       const usedAllThreeFeatures = hasHabits && hasJournal && hasGoals;
 
-      // Check for daily minimums (1+ habits, 3+ journal entries, 1+ goal progress)
+      // Check for daily minimums (1+ habits, 3+ journal entries) - goals optional for perfect day
       const habitCount = dailyTransactions.filter(t => t.source === XPSourceType.HABIT_COMPLETION).length;
       const journalCount = dailyTransactions.filter(t => t.source === XPSourceType.JOURNAL_ENTRY).length;
       const goalProgressCount = dailyTransactions.filter(t => t.source === XPSourceType.GOAL_PROGRESS).length;
 
-      const metDailyMinimums = habitCount >= 1 && journalCount >= 3 && goalProgressCount >= 1;
+      const metDailyMinimums = habitCount >= 1 && journalCount >= 3; // Goals are optional for perfect day
 
       return {
         usedAllThreeFeatures,
