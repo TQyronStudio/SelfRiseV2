@@ -358,7 +358,7 @@ useEffect(() => {
 
 ---
 
-### ⚡ **CONSISTENCY KATEGORIE (4 typy výzev)**
+### ⚡ **CONSISTENCY KATEGORIE (5 typů výzev)**
 
 #### **1. Triple Master**
 *"Používej všechny tři funkce (návyky, deník, cíle) každý den"*
@@ -396,15 +396,29 @@ useEffect(() => {
 - **4⭐ Expert**: 30 dnů s XP za měsíc *(baseline 25 → +20%)*
 - **5⭐ Mistr**: 30 dnů s XP za měsíc *(baseline 25 → +25%)*
 
-#### **4. Balance Expert**  
-*"Udržuj vyvážené XP zdroje (žádný zdroj >60% celkem)"*
+#### **4. XP Champion**
+*"Nashromáždi více celkového XP během měsíce ze všech zdrojů"*
 
 **Příklady obtížnosti:**
-- **1⭐ Snadná**: Balance score 0.63+ *(baseline 0.60 → +5%)*
-- **2⭐ Střední**: Balance score 0.66+ *(baseline 0.60 → +10%)*
-- **3⭐ Těžká**: Balance score 0.69+ *(baseline 0.60 → +15%)*
+- **1⭐ Snadná**: 1610 celkového XP za měsíc *(baseline 1400 → +15%)*
+- **2⭐ Střední**: 1680 celkového XP za měsíc *(baseline 1400 → +20%)*
+- **3⭐ Těžká**: 1750 celkového XP za měsíc *(baseline 1400 → +25%)*
+- **4⭐ Expert**: 1820 celkového XP za měsíc *(baseline 1400 → +30%)*
+- **5⭐ Mistr**: 1890 celkového XP za měsíc *(baseline 1400 → +35%)*
+
+**🎯 VŠECHNY XP ZDROJE**: Počítá habits, journal, goals, achievementy, bonusy, milestones
+**⚡ DAILY XP LIMITS**: Respektuje denní XP limity - 5⭐ targets automaticky omezeny na dosažitelné
+
+#### **5. Balance Expert** 🚨 **EXPERT ONLY (4⭐+ Required)**
+*"Udržuj vyvážené XP zdroje (žádný zdroj >60% celkem)"*
+
+**⚠️ POKROČILÁ VÝZVA**: Vyžaduje minimálně **4⭐ consistency rating** pro unlock!
+
+**Příklady obtížnosti:**
 - **4⭐ Expert**: Balance score 0.72+ *(baseline 0.60 → +20%)*
-- **5⭐ Mistr**: Balance score 0.75+ *(baseline 0.60 → +25%)*
+- **5⭐ Mistr**: Balance score 0.84+ *(baseline 0.60 → +40%)*
+
+**🔒 OMEZENÍ PŘÍSTUPU**: 1⭐-3⭐ uživatelé tuto výzvu nevidí - systém ji automaticky filtruje podle star ratingu
 
 ---
 
@@ -528,11 +542,11 @@ interface UserActivityBaseline {
 ```typescript
 // MonthlyChallengeService - hlavní logika generování
 class MonthlyChallengeService {
-  // 12 předpřipravených templates rozdělených do 4 kategorií
+  // 13 předpřipravených templates rozdělených do 4 kategorií
   static HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy];
-  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy]; 
+  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy];
   static GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [2 typy];
-  static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
+  static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [5 typů];
   
   // Star-based scaling system
   static STAR_SCALING = {
