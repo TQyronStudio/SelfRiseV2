@@ -1640,12 +1640,12 @@ const metDailyMinimums = habitCount >= 1 && journalCount >= 3; // Goals optional
 
 #### **🔧 XP Champion** - Sub-checkpoint 8.4.3 (REDESIGNED: Monthly Total XP Challenge)
 **Cíl**: Monthly total XP accumulation challenge - flexible engagement system respecting daily XP limits
-- [ ] **Concept Change**: Change from daily XP days counting to total monthly XP accumulation
-- [ ] **Template Update**: Change tracking key from `daily_xp_earned_days` to `monthly_xp_total`
-- [ ] **Baseline Metrics**: Add XP baseline metrics to UserActivityBaseline interface
-  - [ ] `avgDailyXP: number` - average daily XP over last 30 days
-  - [ ] `totalMonthlyXP: number` - total XP earned in baseline period
-  - [ ] `maxObservedDailyXP: number` - highest single day XP in baseline period
+- [x] **Concept Change**: Change from daily XP days counting to total monthly XP accumulation
+- [x] **Template Update**: Change tracking key from `daily_xp_earned_days` to `monthly_xp_total`
+- [x] **Baseline Metrics**: Add XP baseline metrics to UserActivityBaseline interface
+  - [x] `avgDailyXP: number` - average daily XP over last 30 days
+  - [x] `totalMonthlyXP: number` - total XP earned in baseline period
+  - [x] `maxObservedDailyXP: number` - highest single day XP in baseline period
 - [ ] **Daily XP Limit Integration**: Research and implement daily XP cap considerations
   - [ ] **Daily Limit Detection**: Identify current daily XP limits in GamificationService
   - [ ] **5⭐ Cap Logic**: Ensure 5-star challenges are achievable within daily XP limits
@@ -1705,29 +1705,52 @@ const metDailyMinimums = habitCount >= 1 && journalCount >= 3; // Goals optional
 ### **🔧 Opravy potřebné v MonthlyProgressTracker.calculateProgressIncrement():**
 
 ```typescript
-// Aktuálně všechny returns 0 - BROKEN:
+// ✅ VŠECHNY TRACKING KEYS OPRAVENY (September 13, 2025):
 case 'unique_weekly_habits':        return X; // ✅ FIXED - Real-time uniqueness implemented
 case 'habit_streak_days':           return X; // ✅ FIXED - Real-time consecutive days implemented  
-case 'daily_journal_streak':        return 0; // ❌ Implementovat journal streaks
-case 'triple_feature_days':         return 0; // ❌ Convert from daily snapshots
-case 'perfect_days':                return 0; // ❌ Convert from daily snapshots
-case 'daily_xp_earned_days':        return 0; // ❌ Count XP earning days
-case 'balance_score':               return 0; // ❌ Calculate balance score
+case 'daily_journal_streak':        return X; // ✅ FIXED - Star-based journal streaks implemented
+case 'triple_feature_days':         return X; // ✅ FIXED - Complex tracking in recalculateComplexTrackingKeys()
+case 'perfect_days':                return X; // ✅ FIXED - Complex tracking in recalculateComplexTrackingKeys()
+case 'monthly_xp_total':            return X; // ✅ FIXED - Complex tracking + daily XP calculation corrected
+case 'balance_score':               return X; // ✅ FIXED - Complete balance score algorithm implemented
 
-// Plus fix tracking key names:
-'goal_progress_days' → 'daily_goal_progress'
-'goals_completed' → 'goal_completions'  
-'total_journal_entries_with_bonus' → nový combined counter
+// ✅ TRACKING KEY NAMES FIXED:
+'goal_progress_days' → 'daily_goal_progress' ✅ FIXED
+'goals_completed' → 'goal_completions' ✅ FIXED
+'total_journal_entries_with_bonus' → ✅ FIXED - combined counter implemented
 ```
 
-### **📋 Action plan:**
-1. **Fix tracking keys mismatch** v GOALS templates
-2. **Implement complex tracking logic** pro streak/daily analysis výzvy
-3. **Sync technical guide** s actual templates (remove extras or document them)  
-4. **Test každou výzvu** po opravě s real user actions
-5. **Verify modal real-time updates** fungují pro všechny opravené výzvy
+**🚀 CRITICAL FIXES COMPLETED (September 13, 2025):**
 
-**Cíl**: Všech 16 výzev musí fungovat stejně spolehlivě jako Consistency Master ✅
+1. **`balance_score` tracking** - Kompletní algoritmus pro vyvážené XP zdroje:
+   - Analyzuje všechny XP transakce za měsíc podle kategorií (habits, journal, goals, etc.)
+   - Vypočítává balance score 0.0-1.0 kde vyšší = lépe vyvážené
+   - Perfect balance (1.0) když žádný zdroj >50%, klesá až k 0.0 při 100% dominanci
+   - Integrováno v `recalculateComplexTrackingKeys()` s comprehensive loggingem
+
+2. **`monthly_xp_total` tracking** - Oprava denního XP počítání:
+   - PROBLÉM: `xpEarnedToday` v snapshots se nastavovalo jen na jednu transakci místo celkového denního XP
+   - ŘEŠENÍ: Nová `calculateTotalXPForDate()` metoda počítá celkové denní XP ze všech transakcí
+   - Opraveno v `createNewDailySnapshot()` i `updateExistingSnapshot()`
+   - Monthly XP total nyní správně sčítá skutečné denní XP z všech snapshots
+
+3. **`daily_journal_streak` tracking** - Ověřena kompletní implementace:
+   - ✅ Case existuje v `calculateProgressIncrement()` 
+   - ✅ `calculateJournalStreakIncrement()` metoda s full star-based logikou
+   - ✅ Real-time entry counting s `todayJournalEntriesCount` cache
+   - ✅ Consecutive days logika s proper date handling
+   - ✅ Star level requirements: 1⭐=1 entry/day až 5⭐=5 entries/day
+
+### **📋 Action plan:**
+1. ✅ **Fix tracking keys mismatch** v GOALS templates - COMPLETE
+2. ✅ **Implement complex tracking logic** pro streak/daily analysis výzvy - COMPLETE
+3. ✅ **Implement balance_score algorithm** pro Balance Expert výzvu - COMPLETE  
+4. ✅ **Fix monthly_xp_total calculation** pro XP Champion redesign - COMPLETE
+5. [ ] **Test každou výzvu** po opravě s real user actions
+6. [ ] **Verify modal real-time updates** fungují pro všechny opravené výzvy
+
+**🎯 STATUS**: Všechny BROKEN tracking keys opraveny! Nyní všech 12 výzev má funkční tracking logiku.
+**Cíl**: Všech 12 výzev musí fungovat stejně spolehlivě jako Consistency Master ✅
 
 ### **🧪 SYSTEMATICKÝ TESTING FRAMEWORK (Consistency Master Standard)**
 

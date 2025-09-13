@@ -723,6 +723,7 @@ export interface TranslationKeys {
         achievement_unlock: string;
         general_activity: string;
         daily_engagement: string;
+        monthly_challenge: string;
       };
       notification: {
         message: string;
@@ -841,6 +842,9 @@ export interface TranslationKeys {
         icon_description: string;
       };
       weekly_challenge: {
+        icon_description: string;
+      };
+      monthly_challenge: {
         icon_description: string;
       };
       general_activity: {

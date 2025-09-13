@@ -506,6 +506,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 2,
         longestEngagementStreak: 3,
         balanceScore: 0.3,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         goalsCompleted: 0
       };
 
@@ -672,6 +675,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 2,
         longestEngagementStreak: 3,
         balanceScore: 0.2,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         appUsageDays: 3,
         generatedAt: new Date(),
         goalsCompleted: 0
@@ -723,6 +729,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 18,
         longestEngagementStreak: 25,
         balanceScore: 0.85,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         appUsageDays: 28,
         generatedAt: new Date(),
         goalsCompleted: 4
@@ -774,6 +783,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 5,
         longestEngagementStreak: 12,
         balanceScore: 0.65,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         appUsageDays: 15,
         generatedAt: new Date(),
         goalsCompleted: 2
@@ -831,6 +843,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 1,
         longestEngagementStreak: 2,
         balanceScore: 0.1,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         appUsageDays: 2,
         generatedAt: new Date(),
         goalsCompleted: 0
@@ -882,6 +897,9 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         longestGoalStreak: 0,
         longestEngagementStreak: 1,
         balanceScore: 0,
+        avgDailyXP: 85,
+        totalMonthlyXP: 2550,
+        maxObservedDailyXP: 150,
         appUsageDays: 1,
         generatedAt: new Date(),
         goalsCompleted: 0

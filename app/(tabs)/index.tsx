@@ -270,9 +270,10 @@ export default function HomeScreen() {
         </TouchableOpacity>
         
         {/* XP Multiplier Timer */}
-        <MultiplierCountdownTimer 
-          size="small" 
+        <MultiplierCountdownTimer
+          size="small"
           variant="light"
+          showMultiplier={false}
           style={styles.headerTimer}
         />
         
@@ -326,19 +327,23 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Layout.spacing.md,
     paddingTop: Layout.spacing.xs,
     paddingBottom: Layout.spacing.xs,
   },
   trophyButton: {
+    flex: 1,
+    alignItems: 'flex-start',
     padding: Layout.spacing.xs,
     borderRadius: Layout.borderRadius.md,
   },
   headerTimer: {
-    marginHorizontal: Layout.spacing.xs,
+    // Centered item - no flex, will be naturally centered
   },
   customizeButton: {
+    flex: 1,
+    alignItems: 'flex-end',
     padding: Layout.spacing.sm,
     borderRadius: Layout.borderRadius.sm,
   },

@@ -50,6 +50,11 @@ export interface UserActivityBaseline {
   longestEngagementStreak: number;
   balanceScore: number; // 0-1, how balanced feature usage is
   
+  // XP metrics (for monthly total XP challenges)
+  avgDailyXP: number; // Average XP earned per day over analysis period
+  totalMonthlyXP: number; // Total XP earned during baseline month
+  maxObservedDailyXP: number; // Highest single day XP during analysis period
+  
   // Generation context
   generatedAt: Date;
   dataQuality: 'minimal' | 'partial' | 'complete'; // Based on data availability
@@ -417,6 +422,12 @@ export class UserActivityTracker {
       const appUsageDays = activeSummaries.length;
       const longestEngagementStreak = this.calculateLongestStreak(summaries, 'hasAppUsage');
       
+      // Calculate XP metrics
+      const totalXP = summaries.reduce((sum, s) => sum + s.earnedXP, 0);
+      const avgDailyXP = totalDays > 0 ? totalXP / totalDays : 0;
+      const maxObservedDailyXP = Math.max(...summaries.map(s => s.earnedXP), 0);
+      const totalMonthlyXP = totalXP;
+      
       // Calculate balance score (how evenly distributed XP sources are)
       const balanceScore = await this.calculateBalanceScore(context.analysisStartDate, context.analysisEndDate);
       
@@ -460,6 +471,11 @@ export class UserActivityTracker {
         perfectDays,
         longestEngagementStreak,
         balanceScore,
+        
+        // XP metrics (for monthly total XP challenges)
+        avgDailyXP,
+        totalMonthlyXP,
+        maxObservedDailyXP,
         
         // Generation context
         generatedAt: new Date(),
@@ -639,6 +655,11 @@ export class UserActivityTracker {
       perfectDays: 0,
       longestEngagementStreak: 0,
       balanceScore: 0.5,
+      
+      // Conservative XP defaults for new users
+      avgDailyXP: 50, // Conservative daily XP estimate
+      totalMonthlyXP: 0, // No historical data
+      maxObservedDailyXP: 0, // No historical data
       
       generatedAt: new Date(),
       dataQuality: 'minimal',

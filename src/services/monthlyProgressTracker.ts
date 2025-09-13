@@ -400,7 +400,8 @@ export class MonthlyProgressTracker {
         case 'triple_feature_days':
         case 'daily_engagement_streak':
         case 'perfect_days':
-          matches = true; // These require daily aggregation analysis
+        case 'monthly_xp_total':
+          matches = true; // These require daily aggregation analysis (all XP sources)
           break;
         default:
           matches = false;
@@ -478,6 +479,7 @@ export class MonthlyProgressTracker {
       case 'triple_feature_days':
       case 'daily_engagement_streak':
       case 'perfect_days':
+      case 'monthly_xp_total':
         // These require complex daily analysis - handled separately
         return 0;
         
@@ -828,6 +830,22 @@ export class MonthlyProgressTracker {
             console.log(`📊 Daily Engagement Days: ${previousEngagementCount} → ${engagementDays}`);
             break;
             
+          case 'monthly_xp_total':
+            // Sum all XP earned from daily snapshots for this challenge
+            const totalXP = challengeSnapshots.reduce((sum, s) => sum + (s.xpEarnedToday || 0), 0);
+            const previousXPTotal = progress.progress[trackingKey] || 0;
+            progress.progress[trackingKey] = totalXP;
+            console.log(`📊 Monthly XP Total: ${previousXPTotal} → ${totalXP}`);
+            break;
+            
+          case 'balance_score':
+            // Calculate XP source balance - balanced usage means no source >60% of total
+            const balanceScore = await this.calculateBalanceScore(challenge.id);
+            const previousBalanceScore = progress.progress[trackingKey] || 0;
+            progress.progress[trackingKey] = balanceScore;
+            console.log(`📊 Balance Score: ${previousBalanceScore.toFixed(2)} → ${balanceScore.toFixed(2)}`);
+            break;
+            
           default:
             // Skip non-complex tracking keys
             break;
@@ -905,6 +923,9 @@ export class MonthlyProgressTracker {
       // Analyze daily features usage
       const dailyAnalysis = await this.analyzeDailyFeatureUsage(todayString);
 
+      // Calculate total XP earned today from all transactions (not just this one)
+      const todayTotalXP = await this.calculateTotalXPForDate(todayString);
+
       // Create snapshot
       const snapshot: DailyProgressSnapshot = {
         date: todayString,
@@ -916,7 +937,7 @@ export class MonthlyProgressTracker {
         dayOfMonth,
         isTripleFeatureDay: dailyAnalysis.usedAllThreeFeatures,
         isPerfectDay: dailyAnalysis.metDailyMinimums,
-        xpEarnedToday: amount,
+        xpEarnedToday: todayTotalXP,
         timestamp: new Date()
       };
 
@@ -960,8 +981,8 @@ export class MonthlyProgressTracker {
       snapshot.cumulativeProgress = { ...progress.progress };
       snapshot.progressPercentage = progress.completionPercentage;
       
-      // Update XP earned today
-      snapshot.xpEarnedToday += amount;
+      // Recalculate total XP earned today from all transactions (not just increment)
+      snapshot.xpEarnedToday = await this.calculateTotalXPForDate(snapshot.date);
       
       // Re-analyze daily features (in case this update changes triple/perfect status)
       const dailyAnalysis = await this.analyzeDailyFeatureUsage(snapshot.date);
@@ -1340,7 +1361,7 @@ export class MonthlyProgressTracker {
       if (direction <= 0) return 0;
 
       // Get current date (YYYY-MM-DD format)
-      const todayString: string = new Date().toISOString().split('T')[0];
+      const todayString: string = new Date().toISOString().split('T')[0]!;
 
       // Check if date changed since last tracking
       if (this.currentStreakDate !== todayString) {
@@ -1400,7 +1421,7 @@ export class MonthlyProgressTracker {
       console.log(`📝⭐ [DEBUG] Consistency Writer requires ${requiredEntriesPerDay} entries/day (${starLevel}⭐ level)`);
 
       // Get current date (YYYY-MM-DD format)
-      const todayString: string = new Date().toISOString().split('T')[0];
+      const todayString: string = new Date().toISOString().split('T')[0]!;
 
       // Count today's journal entries (synchronous count using transactions)
       const todayJournalCount = this.countTodayJournalEntries(todayString);
@@ -1478,7 +1499,7 @@ export class MonthlyProgressTracker {
    */
   private static incrementTodayJournalCount(): void {
     try {
-      const todayString = new Date().toISOString().split('T')[0];
+      const todayString = new Date().toISOString().split('T')[0]!;
       
       // Reset counter if date changed
       if (this.journalCountDate !== todayString) {
@@ -1490,6 +1511,128 @@ export class MonthlyProgressTracker {
       console.log(`📝🔢 [DEBUG] Journal entries today: ${this.todayJournalEntriesCount}`);
     } catch (error) {
       console.error('MonthlyProgressTracker.incrementTodayJournalCount error:', error);
+    }
+  }
+
+  /**
+   * Calculate balance score for XP sources - balanced usage means no source >60% of total
+   * Returns a score between 0.0-1.0 where higher values indicate better balance
+   */
+  private static async calculateBalanceScore(challengeId: string): Promise<number> {
+    try {
+      console.log(`🔍 [DEBUG] calculateBalanceScore for challenge ${challengeId}`);
+      
+      // Get all daily snapshots for this challenge
+      const allSnapshots = await this.getAllSnapshots();
+      const challengeSnapshots = allSnapshots.filter(s => s.challengeId === challengeId);
+      
+      if (challengeSnapshots.length === 0) {
+        console.log(`🔍 [DEBUG] No snapshots found - returning default balance score 1.0`);
+        return 1.0; // Perfect balance when no data yet
+      }
+      
+      // Get all XP transactions for the entire month to analyze source balance
+      const startDate = challengeSnapshots[0]?.date;
+      const endDate = challengeSnapshots[challengeSnapshots.length - 1]?.date;
+      
+      if (!startDate || !endDate) {
+        console.log(`🔍 [DEBUG] No valid date range - returning default balance score 1.0`);
+        return 1.0;
+      }
+      
+      // Get XP transactions for the date range
+      const { GamificationService } = require('./gamificationService');
+      const transactions = await GamificationService.getTransactionsByDateRange(startDate, endDate);
+      
+      if (!transactions || transactions.length === 0) {
+        console.log(`🔍 [DEBUG] No XP transactions found - returning default balance score 1.0`);
+        return 1.0; // Perfect balance when no XP earned yet
+      }
+      
+      // Group XP by source category
+      const xpByCategory: Record<string, number> = {
+        habits: 0,
+        journal: 0,
+        goals: 0,
+        achievements: 0,
+        challenges: 0,
+        other: 0
+      };
+      
+      for (const transaction of transactions) {
+        const amount = Math.abs(transaction.amount); // Use absolute value for balance calculation
+        
+        switch (transaction.source) {
+          case 'habit_completion':
+          case 'habit_bonus':
+          case 'habit_streak':
+            xpByCategory.habits = (xpByCategory.habits || 0) + amount;
+            break;
+          case 'journal_entry':
+          case 'journal_bonus':
+          case 'journal_milestone':
+            xpByCategory.journal = (xpByCategory.journal || 0) + amount;
+            break;
+          case 'goal_progress':
+          case 'goal_completion':
+            xpByCategory.goals = (xpByCategory.goals || 0) + amount;
+            break;
+          case 'achievement':
+            xpByCategory.achievements = (xpByCategory.achievements || 0) + amount;
+            break;
+          case 'monthly_challenge':
+            xpByCategory.challenges = (xpByCategory.challenges || 0) + amount;
+            break;
+          default:
+            xpByCategory.other = (xpByCategory.other || 0) + amount;
+            break;
+        }
+      }
+      
+      // Calculate total XP and percentages
+      const totalXP = Object.values(xpByCategory).reduce((sum, amount) => sum + amount, 0);
+      
+      if (totalXP === 0) {
+        console.log(`🔍 [DEBUG] Total XP is 0 - returning default balance score 1.0`);
+        return 1.0; // Perfect balance when no XP earned
+      }
+      
+      // Find the highest percentage from any single source
+      let maxSourcePercentage = 0;
+      for (const [category, amount] of Object.entries(xpByCategory)) {
+        const percentage = amount / totalXP;
+        if (percentage > maxSourcePercentage) {
+          maxSourcePercentage = percentage;
+        }
+        console.log(`🔍 [DEBUG] ${category}: ${amount} XP (${(percentage * 100).toFixed(1)}%)`);
+      }
+      
+      // Calculate balance score based on how far the max source is from ideal 60% threshold
+      // Perfect balance (1.0) when max source ≤ 50%
+      // Good balance (0.75+) when max source ≤ 60%  
+      // Declining balance as max source approaches 100%
+      let balanceScore: number;
+      
+      if (maxSourcePercentage <= 0.50) {
+        balanceScore = 1.0; // Perfect balance
+      } else if (maxSourcePercentage <= 0.60) {
+        // Linear decline from 1.0 to 0.75 between 50%-60%
+        balanceScore = 1.0 - (maxSourcePercentage - 0.50) * 2.5; // 0.10 range = 0.25 score range
+      } else {
+        // Steeper decline from 0.75 to 0.0 between 60%-100%
+        balanceScore = 0.75 - (maxSourcePercentage - 0.60) * 1.875; // 0.40 range = 0.75 score range
+      }
+      
+      // Ensure score stays within bounds
+      balanceScore = Math.max(0.0, Math.min(1.0, balanceScore));
+      
+      console.log(`🔍 [DEBUG] Max source: ${(maxSourcePercentage * 100).toFixed(1)}%, Balance score: ${balanceScore.toFixed(3)}`);
+      
+      return Math.round(balanceScore * 1000) / 1000; // Round to 3 decimal places
+      
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateBalanceScore error:', error);
+      return 0.6; // Fallback to baseline balance score
     }
   }
 
@@ -1558,6 +1701,27 @@ export class MonthlyProgressTracker {
         usedAllThreeFeatures: false,
         metDailyMinimums: false
       };
+    }
+  }
+
+  /**
+   * Calculate total XP earned on a specific date from all transactions
+   */
+  private static async calculateTotalXPForDate(dateString: DateString): Promise<number> {
+    try {
+      const transactions = await this.getDailyXPTransactions(dateString);
+      
+      // Sum all positive XP amounts for the day (ignore negative XP for total calculation)
+      const totalXP = transactions
+        .filter(t => t.amount > 0) // Only count positive XP
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      console.log(`🔍 [DEBUG] Total XP for ${dateString}: ${totalXP} (from ${transactions.length} transactions)`);
+      
+      return totalXP;
+    } catch (error) {
+      console.error('MonthlyProgressTracker.calculateTotalXPForDate error:', error);
+      return 0; // Fallback to 0 XP
     }
   }
 

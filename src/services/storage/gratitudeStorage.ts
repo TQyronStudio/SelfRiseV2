@@ -415,7 +415,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           isFrozen: streak.isFrozen || false,
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
           preserveCurrentStreakUntil: streak.preserveCurrentStreakUntil || null,
-          streakBeforeFreeze: streak.streakBeforeFreeze || null,
+          streakBeforeFreeze: streak.streakBeforeFreeze || 0,
           warmUpPayments: streak.warmUpPayments || [],
           warmUpHistory: streak.warmUpHistory || [],
           autoResetTimestamp: streak.autoResetTimestamp || null,
@@ -435,7 +435,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         isFrozen: false,
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
-        streakBeforeFreeze: null,
+        streakBeforeFreeze: 0,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: null,
@@ -481,7 +481,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         isFrozen: false,
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
-        streakBeforeFreeze: null,
+        streakBeforeFreeze: 0,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: new Date(), // CRITICAL: Mark manual reset timestamp
@@ -577,7 +577,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           isFrozen: false,
           preserveCurrentStreak: false,
           preserveCurrentStreakUntil: null,
-          streakBeforeFreeze: null,
+          streakBeforeFreeze: 0,
           warmUpPayments: [],
           warmUpHistory: [],
           autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark auto-reset
@@ -595,7 +595,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // IMPROVED BUG #3 FIX: Smart streak continuation after warm-up using pre-freeze memory
       let finalCurrentStreak: number;
-      let newStreakBeforeFreeze: number | null = savedStreak.streakBeforeFreeze;
+      let newStreakBeforeFreeze: number | null = savedStreak.streakBeforeFreeze ?? null;
       const todayComplete = completedDates.includes(currentDate);
       
       if (isFrozen) {
@@ -644,7 +644,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // BUG #3 FIX: Preserve flags and streak memory system
         preserveCurrentStreak: savedStreak.preserveCurrentStreak || false, // Keep for backward compatibility
         preserveCurrentStreakUntil: savedStreak.preserveCurrentStreakUntil || null, // Old timestamp system
-        streakBeforeFreeze: newStreakBeforeFreeze, // NEW: Pre-freeze streak memory system
+        ...(newStreakBeforeFreeze !== null && { streakBeforeFreeze: newStreakBeforeFreeze }), // NEW: Pre-freeze streak memory system
       };
       
       console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
@@ -1227,7 +1227,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Keep existing preserve system for backward compatibility (will be handled by calculateAndUpdateStreak)
         preserveCurrentStreak: currentStreakInfo.preserveCurrentStreak || false,
         preserveCurrentStreakUntil: currentStreakInfo.preserveCurrentStreakUntil || null,
-        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze || null,
+        ...(currentStreakInfo.streakBeforeFreeze && { streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze }),
       };
       
       // BUG #3 FIX: Add validation log to prevent streak corruption

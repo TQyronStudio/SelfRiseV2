@@ -74,10 +74,10 @@ const getSizeConfig = (size: 'small' | 'medium' | 'large') => {
   switch (size) {
     case 'small':
       return {
-        containerSize: 60,
-        fontSize: 10,
-        multiplierFontSize: 12,
-        iconSize: 16,
+        containerSize: 70,
+        fontSize: 11,
+        multiplierFontSize: 13,
+        iconSize: 18,
       };
     case 'medium':
       return {

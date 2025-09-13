@@ -189,30 +189,46 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   // ========================================
   // RENDER HELPERS
   // ========================================
-  
+
+  /**
+   * Format time remaining for display
+   */
+  const formatTimeRemaining = () => {
+    if (!activeMultiplier?.isActive || !activeMultiplier.timeRemaining) {
+      return '';
+    }
+
+    const remaining = activeMultiplier.timeRemaining;
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+      return `(${hours}h${minutes > 0 ? ` ${minutes}m` : ''} remaining)`;
+    } else if (minutes > 0) {
+      return `(${minutes}m remaining)`;
+    } else {
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      return `(${seconds}s remaining)`;
+    }
+  };
+
   /**
    * Render active multiplier display
    */
   const renderActiveMultiplier = () => {
     if (!activeMultiplier?.isActive) return null;
-    
+
     return (
       <View style={styles.activeMultiplierContainer}>
-        <View style={styles.multiplierHeader}>
-          <MultiplierCountdownTimer
-            size="small"
-            variant="colored"
-            showProgressCircle={true}
-            showMultiplier={true}
-          />
-          <View style={styles.multiplierInfo}>
-            <Text style={styles.multiplierTitle}>2x XP Active!</Text>
-            <Text style={styles.multiplierSubtext}>
-              {activeMultiplier.source === 'harmony_streak' ? 'Harmony Streak Reward' : 'Multiplier Active'}
-            </Text>
-          </View>
+        <View style={styles.multiplierInfo}>
+          <Text style={styles.multiplierTitle}>
+            2x XP Active! {formatTimeRemaining()}
+          </Text>
+          <Text style={styles.multiplierSubtext}>
+            {activeMultiplier.source === 'harmony_streak' ? 'Harmony Streak Reward' : 'Multiplier Active'}
+          </Text>
         </View>
-        
+
         {!compact && (
           <Text style={styles.multiplierDescription}>
             All XP gains are doubled while this multiplier is active
@@ -284,10 +300,15 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
    */
   const shouldShowSection = () => {
     if (!visible) return false;
-    
-    return activeMultiplier?.isActive || 
-           (harmonyStreak?.canActivateMultiplier) ||
-           (harmonyStreak && harmonyStreak.currentStreak >= 3);
+
+    // Show section when:
+    // 1. Multiplier is NOT active AND harmony streak progress exists (show progress)
+    // 2. Multiplier IS active (show active multiplier info since header timer might not be visible to everyone)
+    return activeMultiplier?.isActive ||
+           (!activeMultiplier?.isActive && (
+             (harmonyStreak?.canActivateMultiplier) ||
+             (harmonyStreak && harmonyStreak.currentStreak >= 3)
+           ));
   };
   
   // ========================================

@@ -417,30 +417,30 @@ export class MonthlyChallengeService {
       cooldownMonths: 2
     },
     {
-      id: 'consistency_engagement_king',
+      id: 'consistency_xp_champion',
       category: AchievementCategory.CONSISTENCY,
-      title: 'Engagement King',
-      description: 'Earn XP every single day by staying active in the app',
-      baselineMetricKey: 'longestEngagementStreak',
-      baselineMultiplierRange: [1.10, 1.30],
+      title: 'XP Champion',
+      description: 'Accumulate total XP through consistent monthly engagement',
+      baselineMetricKey: 'avgDailyXP',
+      baselineMultiplierRange: [1.15, 1.35],
       requirementTemplates: [
         {
           type: 'consistency',
-          description: 'Earn XP through app engagement daily',
-          trackingKey: 'daily_xp_earned_days',
+          description: 'Accumulate XP through all app activities monthly',
+          trackingKey: 'monthly_xp_total',
           progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
+          dailyTarget: undefined // No daily target for monthly accumulation
         }
       ],
       starLevelRequirements: {
         minLevel: 1,
         preferredDataQuality: ['partial', 'complete']
       },
-      baseXPReward: 525,
+      baseXPReward: 675,
       bonusXPConditions: [
-        'Daily engagement (+25 XP per day)',
-        'Engagement streak (+50 XP per 7-day streak)',
-        'Never miss a day (+250 XP monthly bonus)'
+        'Milestone achievements (+50 XP per milestone)',
+        'Consistency bonuses (+100 XP per bonus)',
+        'Perfect month completion (+500 XP for reaching 100%)'
       ],
       tags: ['engagement', 'daily', 'active'],
       priority: 85,
@@ -696,7 +696,13 @@ export class MonthlyChallengeService {
       if (targetMonth) {
         // Parse target month (format: "YYYY-MM") and calculate days in that specific month
         const [year, month] = targetMonth.split('-').map(Number);
-        daysInMonth = new Date(year, month, 0).getDate(); // Last day of the month
+        if (year && month) {
+          daysInMonth = new Date(year, month, 0).getDate(); // Last day of the month
+        } else {
+          // Invalid format, fallback to current month
+          const currentDate = new Date();
+          daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+        }
       } else {
         // Fallback to current month if targetMonth not provided
         const currentDate = new Date();
@@ -753,7 +759,12 @@ export class MonthlyChallengeService {
       'tripleFeatureDays': 'tripleFeatureDays',
       'perfectDays': 'perfectDays',
       'longestEngagementStreak': 'longestEngagementStreak',
-      'balanceScore': 'balanceScore'
+      'balanceScore': 'balanceScore',
+      
+      // XP metrics (for monthly total XP challenges)
+      'avgDailyXP': 'avgDailyXP',
+      'totalMonthlyXP': 'totalMonthlyXP',
+      'maxObservedDailyXP': 'maxObservedDailyXP'
     };
 
     const mappedKey = metricMap[metricKey];
