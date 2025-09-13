@@ -401,6 +401,7 @@ export class MonthlyProgressTracker {
         case 'daily_engagement_streak':
         case 'perfect_days':
         case 'monthly_xp_total':
+        case 'balance_score':
           matches = true; // These require daily aggregation analysis (all XP sources)
           break;
         default:
@@ -480,6 +481,7 @@ export class MonthlyProgressTracker {
       case 'daily_engagement_streak':
       case 'perfect_days':
       case 'monthly_xp_total':
+      case 'balance_score':
         // These require complex daily analysis - handled separately
         return 0;
         
