@@ -1,5 +1,24 @@
 # SelfRise V2 - Project Plan
 
+## ✅ COMPLETED: Remove Dead Category Cases from UI Components
+
+Successfully cleaned up switch statements in UI components by removing dead category cases that are no longer valid after the AchievementCategory enum was updated.
+
+### Files Updated:
+- [x] `/src/components/challenges/MonthlyProgressCalendar.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor
+- [x] `/src/components/challenges/MonthlyChallengeDetailModal.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor and getCategoryIcon, removed 'mastery' from getMonthlyChallengeTips
+- [x] `/src/components/achievements/AchievementDetailModal.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor and getCategoryIcon
+
+### Remaining Valid Categories:
+Only these categories are now supported in the cleaned switch statements:
+- `habits` - '🎯' - #22C55E / #4CAF50
+- `journal` - '📝' - #3B82F6 / #2196F3
+- `goals` - '🏆' - #F59E0B / #FF9800
+- `consistency` - '⚡' - #8B5CF6 / #F44336
+- `default` case for fallback
+
+All changes maintain proper switch statement structure and functionality.
+
 ## 🚨 DŮLEŽITÉ - NEMAZAT 🚨
 
 ### Cílová kvalita - TOP světová úroveň:

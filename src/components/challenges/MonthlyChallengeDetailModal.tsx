@@ -84,9 +84,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       case 'journal': return '#3B82F6';
       case 'goals': return '#F59E0B';
       case 'consistency': return '#8B5CF6';
-      case 'mastery': return '#EF4444';
-      case 'social': return '#06B6D4';
-      case 'special': return '#EC4899';
       default: return '#6B7280';
     }
   };
@@ -119,9 +116,6 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       case 'journal': return '📝';
       case 'goals': return '🏆';
       case 'consistency': return '⚡';
-      case 'mastery': return '👑';
-      case 'social': return '👥';
-      case 'special': return '✨';
       default: return '📋';
     }
   };
@@ -473,14 +467,6 @@ const getMonthlyChallengeTips = (category: AchievementCategory): string[] => {
         'Set up reminders and notifications to maintain consistency',
         'Build streaks gradually - focus on not breaking the chain',
         'Plan for weekends and holidays to maintain your routine'
-      ];
-    case 'mastery':
-      return [
-        'Challenge yourself to exceed the minimum requirements',
-        'Focus on quality and depth rather than just quantity',
-        'Use this month to push your limits and discover new capabilities',
-        'Document your learning process and insights',
-        'Share your progress with others for accountability'
       ];
     default:
       return [

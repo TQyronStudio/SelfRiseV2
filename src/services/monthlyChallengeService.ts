@@ -487,12 +487,9 @@ export class MonthlyChallengeService {
   static getAllTemplates(): Record<AchievementCategory, MonthlyChallengeTemplate[]> {
     return {
       [AchievementCategory.HABITS]: [...this.HABITS_TEMPLATES],
-      [AchievementCategory.JOURNAL]: [...this.JOURNAL_TEMPLATES], 
+      [AchievementCategory.JOURNAL]: [...this.JOURNAL_TEMPLATES],
       [AchievementCategory.GOALS]: [...this.GOALS_TEMPLATES],
-      [AchievementCategory.CONSISTENCY]: [...this.CONSISTENCY_TEMPLATES],
-      [AchievementCategory.MASTERY]: [], // Reserved for future expansion
-      [AchievementCategory.SOCIAL]: [], // Reserved for future expansion
-      [AchievementCategory.SPECIAL]: [] // Reserved for special events
+      [AchievementCategory.CONSISTENCY]: [...this.CONSISTENCY_TEMPLATES]
     };
   }
 

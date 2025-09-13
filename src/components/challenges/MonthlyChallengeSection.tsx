@@ -6,6 +6,7 @@ import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { StarRatingService } from '../../services/starRatingService';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import MonthlyChallengeCard from './MonthlyChallengeCard';
+import MonthlyChallengeCompletionModal from './MonthlyChallengeCompletionModal';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 
 interface MonthlychallengeSectionProps {
@@ -28,10 +29,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     journal: 1,
     goals: 1,
     consistency: 1,
-    mastery: 1,
-    social: 1,
-    special: 1,
   });
+
+  // Completion modal state
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionResult, setCompletionResult] = useState<any>(null);
 
   useEffect(() => {
     loadMonthlyChallenge();
@@ -72,6 +74,32 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     };
   }, [challenge?.id]); // Re-setup listener when challenge changes
 
+  // Completion event listener
+  useEffect(() => {
+    const completionListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_challenge_completed',
+      (eventData: any) => {
+        console.log('🎉 Monthly challenge completed event received:', eventData);
+
+        // Show completion modal
+        setCompletionResult(eventData);
+        setShowCompletionModal(true);
+
+        // Refresh progress and star ratings
+        if (challenge && eventData.challengeId === challenge.id) {
+          loadUserStarRatings();
+          MonthlyProgressTracker.getChallengeProgress(challenge.id).then(updatedProgress => {
+            if (updatedProgress) setProgress(updatedProgress);
+          });
+        }
+      }
+    );
+
+    return () => {
+      completionListener.remove();
+    };
+  }, [challenge?.id]);
+
   const loadUserStarRatings = async () => {
     try {
       const ratingsData = await StarRatingService.getCurrentStarRatings();
@@ -80,9 +108,6 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         journal: ratingsData.journal,
         goals: ratingsData.goals,
         consistency: ratingsData.consistency,
-        mastery: 1, // Default value
-        social: 1, // Default value
-        special: 1, // Default value
       };
       setUserStarRatings(ratings);
     } catch (error) {
@@ -238,9 +263,6 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       case 'journal': return '#3B82F6';
       case 'goals': return '#F59E0B';
       case 'consistency': return '#8B5CF6';
-      case 'mastery': return '#EF4444';
-      case 'social': return '#06B6D4';
-      case 'special': return '#EC4899';
       default: return '#6B7280';
     }
   };
@@ -416,6 +438,17 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
           ))}
         </View>
       </View>
+
+      {/* Completion Modal */}
+      <MonthlyChallengeCompletionModal
+        visible={showCompletionModal}
+        challenge={challenge}
+        completionResult={completionResult}
+        onClose={() => {
+          setShowCompletionModal(false);
+          setCompletionResult(null);
+        }}
+      />
     </View>
   );
 };

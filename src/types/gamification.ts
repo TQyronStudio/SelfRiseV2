@@ -47,9 +47,6 @@ export enum AchievementCategory {
   JOURNAL = 'journal',
   GOALS = 'goals',
   CONSISTENCY = 'consistency',
-  MASTERY = 'mastery',
-  SOCIAL = 'social',
-  SPECIAL = 'special',
 }
 
 /**

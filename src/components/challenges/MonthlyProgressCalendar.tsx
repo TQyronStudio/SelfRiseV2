@@ -74,9 +74,6 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       case 'journal': return '#3B82F6';
       case 'goals': return '#F59E0B';
       case 'consistency': return '#8B5CF6';
-      case 'mastery': return '#EF4444';
-      case 'social': return '#06B6D4';
-      case 'special': return '#EC4899';
       default: return '#6B7280';
     }
   };

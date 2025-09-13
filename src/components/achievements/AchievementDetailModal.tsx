@@ -73,8 +73,6 @@ const getCategoryColor = (category: string): string => {
     case 'journal': return '#2196F3';
     case 'goals': return '#FF9800';
     case 'consistency': return '#F44336';
-    case 'mastery': return '#9C27B0';
-    case 'special': return '#FFD700';
     default: return Colors.primary;
   }
 };
@@ -85,8 +83,6 @@ const getCategoryIcon = (category: string): keyof typeof Ionicons.glyphMap => {
     case 'journal': return 'book';
     case 'goals': return 'flag';
     case 'consistency': return 'trending-up';
-    case 'mastery': return 'trophy';
-    case 'special': return 'star';
     default: return 'medal';
   }
 };
