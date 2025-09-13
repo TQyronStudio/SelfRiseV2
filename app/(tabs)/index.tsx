@@ -59,18 +59,26 @@ export default function HomeScreen() {
   useEffect(() => {
     const initializeMonthlyProgress = async () => {
       try {
+        // Check if already initialized to prevent warning logs
+        const status = MonthlyProgressIntegration.getStatus();
+        if (status.isInitialized) {
+          console.log('ℹ️ [HOME] MonthlyProgressIntegration already initialized, skipping...');
+          console.log('📊 [HOME] Integration status:', status);
+          return;
+        }
+
         console.log('🔧 [HOME] Explicitly initializing MonthlyProgressIntegration...');
         await MonthlyProgressIntegration.initialize();
         console.log('✅ [HOME] MonthlyProgressIntegration initialized successfully!');
-        
+
         // Log integration status for debugging
-        const status = MonthlyProgressIntegration.getStatus();
-        console.log('📊 [HOME] Integration status:', status);
+        const newStatus = MonthlyProgressIntegration.getStatus();
+        console.log('📊 [HOME] Integration status:', newStatus);
       } catch (error) {
         console.error('❌ [HOME] Failed to initialize MonthlyProgressIntegration:', error);
       }
     };
-    
+
     initializeMonthlyProgress();
   }, []); // Run once on mount
 

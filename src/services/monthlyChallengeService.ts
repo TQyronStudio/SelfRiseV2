@@ -716,6 +716,43 @@ export class MonthlyChallengeService {
       }
     }
 
+    // Apply XP limit validation for XP Champion challenges (monthly XP total must be achievable)
+    if (this.isXPTotalTrackingKey(template.requirementTemplates[0]?.trackingKey)) {
+      let daysInMonth: number;
+
+      if (targetMonth) {
+        // Parse target month (format: "YYYY-MM") and calculate days in that specific month
+        const [year, month] = targetMonth.split('-').map(Number);
+        if (year && month) {
+          daysInMonth = new Date(year, month, 0).getDate(); // Last day of the month
+        } else {
+          // Invalid format, fallback to current month
+          const currentDate = new Date();
+          daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+        }
+      } else {
+        // Fallback to current month if targetMonth not provided
+        const currentDate = new Date();
+        daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      }
+
+      // Calculate maximum achievable monthly XP based on daily XP limits
+      const TOTAL_DAILY_MAX = 1500; // From DAILY_XP_LIMITS.TOTAL_DAILY_MAX
+      const maxAchievableMonthlyXP = TOTAL_DAILY_MAX * daysInMonth;
+
+      if (target > maxAchievableMonthlyXP) {
+        const monthName = targetMonth ? `${targetMonth}` : 'current month';
+        warnings.push(`XP target ${target} exceeds achievable limit for ${monthName} (${maxAchievableMonthlyXP} XP in ${daysInMonth} days), capping at ${maxAchievableMonthlyXP}`);
+        target = maxAchievableMonthlyXP;
+      }
+
+      // Additional validation: Check if daily average is reasonable (warn if > 80% of daily limit)
+      const dailyAverageRequired = target / daysInMonth;
+      if (dailyAverageRequired > TOTAL_DAILY_MAX * 0.8) { // 80% of daily max is quite challenging
+        warnings.push(`XP target requires high daily average (${Math.round(dailyAverageRequired)} XP/day, ${Math.round((dailyAverageRequired/TOTAL_DAILY_MAX)*100)}% of daily limit)`);
+      }
+    }
+
     return {
       target,
       baselineValue,
@@ -808,14 +845,25 @@ export class MonthlyChallengeService {
   private static isDailyStreakTrackingKey(trackingKey?: string): boolean {
     const dailyStreakKeys = [
       'daily_journal_streak',
-      'habit_streak_days', 
+      'habit_streak_days',
       'daily_goal_progress',
       'daily_engagement_streak',
       'triple_feature_days',
       'perfect_days'
     ];
-    
+
     return trackingKey ? dailyStreakKeys.includes(trackingKey) : false;
+  }
+
+  /**
+   * Check if tracking key represents XP total tracking (limited by daily XP caps)
+   */
+  private static isXPTotalTrackingKey(trackingKey?: string): boolean {
+    const xpTotalKeys = [
+      'monthly_xp_total'
+    ];
+
+    return trackingKey ? xpTotalKeys.includes(trackingKey) : false;
   }
 
   /**
