@@ -410,4 +410,107 @@ type TabType = 'overview' | 'calendar' | 'tips'; // 'progress' removed
 
 ---
 
+## Modal Priority System - 4-Tier Architecture
+
+### Overview
+
+The XpAnimationContext implements a sophisticated 4-tier modal priority system to prevent modal conflicts and ensure proper celebration order. This system was implemented to resolve issues where multiple modals would try to display simultaneously, causing user confusion and blocking important completion celebrations.
+
+### 4-Tier Priority Hierarchy
+
+**Tier 1: Activity Modals (Highest Priority)**
+- **Types**: Journal, Habit, Goal completion modals
+- **Behavior**: Show immediately, block all other modals
+- **Rationale**: User-initiated actions take highest priority for immediate feedback
+
+**Tier 2: Monthly Challenge Completion Modals (High Priority)**
+- **Types**: Monthly challenge completion celebrations
+- **Behavior**: Show immediately if no Activity modals, block Achievement and Level-up modals
+- **Rationale**: Monthly achievements are significant milestones that deserve precedence over regular achievements
+
+**Tier 3: Achievement Modals (Medium Priority)**
+- **Types**: Achievement unlock celebrations (handled by AchievementContext)
+- **Behavior**: Show immediately if no Activity or Monthly Challenge modals active, block Level-up modals
+- **Rationale**: Achievement celebrations are important but secondary to completion events
+
+**Tier 4: Level-up Modals (Lowest Priority)**
+- **Types**: XP level-up and multiplier celebrations
+- **Behavior**: Only show when all higher priority modals are dismissed
+- **Rationale**: Level-ups are cumulative events that can wait for more immediate celebrations
+
+### Implementation Details
+
+**State Management**:
+```typescript
+modalCoordination: {
+  // Tier 1: Activity modals
+  isActivityModalActive: boolean;
+  currentActivityModalType?: 'journal' | 'habit' | 'goal' | null;
+
+  // Tier 2: Monthly Challenge Completion modals
+  isMonthlyChallengeModalActive: boolean;
+
+  // Tier 3: Achievement modals
+  isAchievementModalActive: boolean;
+
+  // Tier 4: Level-up modals
+  pendingLevelUpModals: Array<{...}>;
+  isLevelUpModalActive: boolean;
+}
+```
+
+**Priority Check Logic**:
+```typescript
+// Level-up modals check all higher priority tiers
+if (state.modalCoordination.isActivityModalActive ||
+    state.modalCoordination.isMonthlyChallengeModalActive ||
+    state.modalCoordination.isAchievementModalActive) {
+  // Queue level-up modal for later display
+  queueLevelUpModal(eventData);
+} else {
+  // Show level-up modal immediately
+  showLevelUpModal(eventData);
+}
+```
+
+### Integration Requirements
+
+**For Monthly Challenge Components**:
+- Call `notifyMonthlyChallengeModalStarted()` when showing completion modal
+- Call `notifyMonthlyChallengeModalEnded()` when modal is dismissed
+
+**For Achievement Components**:
+- Achievement modals automatically processed after Monthly Challenge modals complete
+
+**For Activity Components**:
+- Activity modals maintain highest priority and show immediately
+
+### Usage Example
+
+```typescript
+const { notifyMonthlyChallengeModalStarted, notifyMonthlyChallengeModalEnded } = useXpAnimation();
+
+// In MonthlyChallengeCompletionModal component
+useEffect(() => {
+  if (visible) {
+    notifyMonthlyChallengeModalStarted();
+  }
+  return () => {
+    if (!visible) {
+      notifyMonthlyChallengeModalEnded();
+    }
+  };
+}, [visible]);
+```
+
+### Resolution of Original Issues
+
+This 4-tier system specifically resolves:
+- ✅ Monthly challenge completion modals now show before level-up modals
+- ✅ Multiple haptic feedbacks resolved (proper modal sequencing)
+- ✅ Completed challenges remain accessible (separate fix in MonthlyChallengeService)
+- ✅ Modal conflicts eliminated through proper priority management
+
+---
+
 *This document is continuously updated as new development patterns and guidelines are established in the SelfRise V2 project.*

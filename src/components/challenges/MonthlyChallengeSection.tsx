@@ -120,13 +120,24 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Get current month's challenge
       let currentChallenge = await MonthlyChallengeService.getCurrentChallenge();
-      
-      // Generate if none exists
+
+      // If no active challenge found, check for completed challenges from this month
       if (!currentChallenge) {
-        console.log('🗓️ No monthly challenge found, generating new one...');
+        const currentMonth = new Date().toISOString().substring(0, 7);
+        console.log('🔍 No active monthly challenge found, checking for completed challenges...');
+        currentChallenge = await MonthlyChallengeService.getChallengeForMonthIncludingCompleted(currentMonth);
+
+        if (currentChallenge) {
+          console.log(`✅ Found completed monthly challenge: ${currentChallenge.title}`);
+        }
+      }
+
+      // Generate if none exists at all
+      if (!currentChallenge) {
+        console.log('🗓️ No monthly challenge found (active or completed), generating new one...');
         // Create generation context
         const currentMonth = new Date().toISOString().substring(0, 7);
         const context = {
@@ -144,7 +155,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
           recentCategoryHistory: [],
           isFirstMonth: true,
         };
-        
+
         const generationResult = await MonthlyChallengeService.generateMonthlyChallenge(context);
         if (generationResult.success) {
           currentChallenge = generationResult.challenge;

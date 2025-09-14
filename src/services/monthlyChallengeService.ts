@@ -2152,11 +2152,26 @@ export class MonthlyChallengeService {
   static async getChallengeForMonth(month: string): Promise<MonthlyChallenge | null> {
     try {
       const allChallenges = await this.getAllStoredChallenges();
-      return allChallenges.find(challenge => 
+      return allChallenges.find(challenge =>
         challenge.userBaselineSnapshot.month === month && challenge.isActive
       ) || null;
     } catch (error) {
       console.error(`Failed to get challenge for month ${month}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get challenge for a specific month, including completed/inactive challenges
+   */
+  static async getChallengeForMonthIncludingCompleted(month: string): Promise<MonthlyChallenge | null> {
+    try {
+      const allChallenges = await this.getAllStoredChallenges();
+      return allChallenges.find(challenge =>
+        challenge.userBaselineSnapshot.month === month
+      ) || null;
+    } catch (error) {
+      console.error(`Failed to get challenge (including completed) for month ${month}:`, error);
       return null;
     }
   }
