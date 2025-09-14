@@ -606,7 +606,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         }
         // Normal frozen behavior - keep saved streak
         finalCurrentStreak = savedStreak.currentStreak;
-      } else if (!isFrozen && savedStreak.streakBeforeFreeze !== null && savedStreak.streakBeforeFreeze !== undefined) {
+      } else if (!isFrozen && savedStreak.streakBeforeFreeze != null && typeof savedStreak.streakBeforeFreeze === 'number') {
         // Just unfroze after warm-up - use pre-freeze streak + continue properly
         if (todayComplete) {
           // User completed today after warm-up, so continue the streak
@@ -644,7 +644,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // BUG #3 FIX: Preserve flags and streak memory system
         preserveCurrentStreak: savedStreak.preserveCurrentStreak || false, // Keep for backward compatibility
         preserveCurrentStreakUntil: savedStreak.preserveCurrentStreakUntil || null, // Old timestamp system
-        ...(newStreakBeforeFreeze !== null && { streakBeforeFreeze: newStreakBeforeFreeze }), // NEW: Pre-freeze streak memory system
+        // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
+        streakBeforeFreeze: newStreakBeforeFreeze,
       };
       
       console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
@@ -1227,7 +1228,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         // Keep existing preserve system for backward compatibility (will be handled by calculateAndUpdateStreak)
         preserveCurrentStreak: currentStreakInfo.preserveCurrentStreak || false,
         preserveCurrentStreakUntil: currentStreakInfo.preserveCurrentStreakUntil || null,
-        ...(currentStreakInfo.streakBeforeFreeze && { streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze }),
+        // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
+        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze,
       };
       
       // BUG #3 FIX: Add validation log to prevent streak corruption
