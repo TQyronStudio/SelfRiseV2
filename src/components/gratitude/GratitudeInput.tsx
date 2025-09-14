@@ -25,7 +25,7 @@ interface GratitudeInputProps {
   router?: Router; // For automatic navigation to Home screen on debt
 }
 
-// Rotační placeholdery pro Vděčnost
+// Rotating placeholders for gratitude
 const GRATITUDE_PLACEHOLDERS = [
   "What made you smile today?",
   "Who are you thankful for right now?",
@@ -39,7 +39,7 @@ const GRATITUDE_PLACEHOLDERS = [
   "What simple pleasure did you enjoy?"
 ];
 
-// Rotační placeholdery pro Pochvalu
+// Rotating placeholders for self-praise
 const SELF_PRAISE_PLACEHOLDERS = [
   "What challenge did you overcome today?",
   "What's one thing you did well today?",

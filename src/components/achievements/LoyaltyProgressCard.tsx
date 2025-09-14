@@ -67,7 +67,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
   };
 
   const getMotivationMessage = () => {
-    if (!loyaltyProgress || !nextMilestone) return 'Pokračuj ve svém růstu!';
+    if (!loyaltyProgress || !nextMilestone) return 'Keep growing!';
     return LoyaltyService.getLoyaltyMotivationMessage(
       loyaltyProgress.daysRemaining, 
       nextMilestone.name

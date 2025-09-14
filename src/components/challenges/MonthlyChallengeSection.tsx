@@ -244,10 +244,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
           <Text style={styles.subtitle}>No active challenge</Text>
         </View>
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>🗓️ No monthly challenge available</Text>
-          <Pressable style={styles.generateButton} onPress={handleRefresh}>
-            <Text style={styles.generateButtonText}>Generate Challenge</Text>
-          </Pressable>
+          <Text style={styles.emptyText}>⏳ Challenge preparing</Text>
         </View>
       </View>
     );
@@ -691,18 +688,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  generateButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  generateButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+  trackingText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 
   // Compact styles
