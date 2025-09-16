@@ -204,7 +204,7 @@ All modals should follow the CelebrationModal pattern with:
 
 ### Examples of Correct Implementation
 - Gratitude completion celebrations (daily_complete, streak_milestone, bonus_milestone)
-- All future habit milestone celebrations
+- Habit milestone celebrations - pravidla a implementace: @technical-guides:Habits.md
 - Goal achievement notifications
 - App onboarding confirmations
 - Any significant user achievement or feedback
@@ -301,7 +301,7 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 #### User Experience Metrics
 - Daily active users retention
-- Habit completion rates
+- Habit completion rates - výpočet a logika: @technical-guides:Habits.md
 - Gratitude entry frequency
 - Goal achievement rates
 - User satisfaction scores

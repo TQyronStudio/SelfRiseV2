@@ -80,6 +80,7 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - ✅ Efficient state updates and component re-rendering optimization
 
 ### Phase 3: Habits Feature ✅ COMPLETED
+**Technická dokumentace**: @technical-guides:Habits.md
 
 #### Checkpoint 3.1: Habit Creation & Management
 - ✅ Habit creation with customizable scheduling (daily, weekly, custom intervals)
