@@ -1235,7 +1235,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreak: currentStreakInfo.preserveCurrentStreak || false,
         preserveCurrentStreakUntil: currentStreakInfo.preserveCurrentStreakUntil || null,
         // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
-        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze,
+        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze ?? null,
       };
       
       // BUG #3 FIX: Add validation log to prevent streak corruption

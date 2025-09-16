@@ -12,7 +12,6 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { useGratitude } from '../../contexts/GratitudeContext';
-import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
 import { GratitudeStreak, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS } from '../../services/storage/base';
 import { StreakSharingModal } from './StreakSharingModal';
@@ -35,7 +34,7 @@ export interface JournalStreakCardRef {
 
 export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakCardProps>(({ onPress }, ref) => {
   const { t } = useI18n();
-  const { actions } = useGratitude();
+  const { state, actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSharingModal, setShowSharingModal] = useState(false);
@@ -131,22 +130,27 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     }, [])
   );
 
+  // Update local streak state when context state changes
+  useEffect(() => {
+    if (state.streakInfo) {
+      setStreak(state.streakInfo);
+      setIsLoading(false);
+    }
+  }, [state.streakInfo]);
+
   const loadStreakData = async () => {
     try {
       setIsLoading(true);
       // Force recalculation to trigger auto-reset if needed
-      const streakData = await gratitudeStorage.calculateAndUpdateStreak();
-      
-      setStreak(streakData);
+      await actions.refreshStats();
     } catch (error) {
       console.error('Failed to load streak data:', error);
       
       // CRITICAL BUG FIX: Try to preserve existing streak data instead of resetting to 0
       try {
-        // Fallback: Load raw streak data without calculation to preserve user's streak
-        const rawStreakData = await gratitudeStorage.getStreak();
-        console.log('[DEBUG] Using fallback raw streak data to preserve user streak:', rawStreakData.currentStreak);
-        setStreak(rawStreakData);
+        // Fallback: Use existing streak data from context to preserve user's streak
+        console.log('[DEBUG] Using fallback streak data from context to preserve user streak:', state.streakInfo?.currentStreak);
+        setStreak(state.streakInfo);
       } catch (fallbackError) {
         console.error('Failed to load fallback streak data:', fallbackError);
         // Only as last resort, set minimal default data
@@ -174,7 +178,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   };
 
 
-  if (isLoading) {
+  if (isLoading || !streak) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -182,7 +186,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     );
   }
 
-  const streakData = streak!;
+  const streakData = streak;
 
   const handleDebtPress = async (e: any) => {
     e.stopPropagation();
@@ -191,7 +195,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     setAdsWatched(0);
     
     // Calculate total ads needed (fresh calculation)
-    const adsNeeded = await gratitudeStorage.adsNeededToWarmUp();
+    const adsNeeded = await actions.adsNeededToWarmUp();
     setTotalAdsNeeded(adsNeeded);
     
     // BUG #4 FIX: Use coordinated modal flow
@@ -213,7 +217,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // ENHANCED: Apply single ad payment immediately after successful ad watch
-      const paymentResult = await gratitudeStorage.applySingleWarmUpPayment();
+      const paymentResult = await actions.applySingleWarmUpPayment();
       console.log(`[DEBUG] handleWatchAd: Payment result`, paymentResult);
       
       // Update local state to reflect the payment
@@ -252,7 +256,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       console.log(`[DEBUG] GratitudeContext refreshStats completed`);
       
       // Verify debt was actually cleared (should be 0 due to incremental payments)
-      const remainingDebt = await gratitudeStorage.calculateFrozenDays();
+      const remainingDebt = await actions.calculateFrozenDays();
       console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
       
       if (remainingDebt > 0) {
@@ -310,9 +314,14 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       
       // ENHANCED: Clean debt reset without creating fake entries
       // Simply clear all debt tracking data and unfreeze streak
-      const currentStreakInfo = await gratitudeStorage.getStreak();
-      console.log(`[DEBUG] executeForceResetDebt: Current frozen days=${currentStreakInfo.frozenDays}`);
-      
+      const currentStreakInfo = state.streakInfo;
+      console.log(`[DEBUG] executeForceResetDebt: Current frozen days=${currentStreakInfo?.frozenDays}`);
+
+      if (!currentStreakInfo) {
+        console.error('[DEBUG] executeForceResetDebt: No streak info available');
+        return;
+      }
+
       // Create history entry for force reset
       const historyEntry: WarmUpHistoryEntry = {
         action: 'quick_warm_up',
@@ -342,11 +351,11 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       console.log(`[DEBUG] executeForceResetDebt: Debt force reset completed`);
       
       // Recalculate streak to ensure consistency
-      await gratitudeStorage.calculateAndUpdateStreak();
+      await actions.refreshStats();
       console.log(`[DEBUG] executeForceResetDebt: Streak recalculated`);
-      
+
       // Verify debt is now 0
-      const verifyDebt = await gratitudeStorage.calculateFrozenDays();
+      const verifyDebt = await actions.calculateFrozenDays();
       console.log(`[DEBUG] executeForceResetDebt: Verification debt=${verifyDebt}`);
       
       // BUG #4 FIX: Clean up and show success using coordinated flow
@@ -501,7 +510,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         onComplete={handleDebtComplete}
         onResetStreak={async () => {
           try {
-            await gratitudeStorage.resetStreak();
+            await actions.resetStreak();
             await loadStreakData();
           } catch (error) {
             console.error('Failed to reset streak:', error);

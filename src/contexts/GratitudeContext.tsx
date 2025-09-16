@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, UpdateGratitudeInput } from '../types/gratitude';
+import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, UpdateGratitudeInput, WarmUpPayment } from '../types/gratitude';
 import { gratitudeStorage } from '../services/storage/gratitudeStorage';
 import { DateString } from '../types/common';
 
@@ -24,6 +24,18 @@ export interface GratitudeContextType {
     incrementMilestoneCounter: (milestoneType: number) => Promise<void>;
     clearError: () => void;
     forceRefresh: () => Promise<void>;
+    // 🚨 FROZEN STREAK ACTIONS: Architecture completion for 100% clean implementation
+    adsNeededToWarmUp: () => Promise<number>;
+    applySingleWarmUpPayment: () => Promise<{ remainingFrozenDays: number; isFullyWarmed: boolean }>;
+    calculateFrozenDays: () => Promise<number>;
+    getWarmUpPaymentProgress: () => Promise<{
+      totalMissedDays: number;
+      paidDays: number;
+      unpaidDays: number;
+      paidDates: DateString[];
+      unpaidDates: DateString[];
+    }>;
+    resetStreak: () => Promise<void>;
   };
 }
 
@@ -218,6 +230,68 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
     await loadGratitudes();
   };
 
+  // 🚨 FROZEN STREAK ACTIONS IMPLEMENTATION: Complete architecture for clean UI integration
+  const adsNeededToWarmUp = async (): Promise<number> => {
+    try {
+      return await gratitudeStorage.adsNeededToWarmUp();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to calculate ads needed');
+      return 0;
+    }
+  };
+
+  const applySingleWarmUpPayment = async (): Promise<{ remainingFrozenDays: number; isFullyWarmed: boolean }> => {
+    try {
+      const result = await gratitudeStorage.applySingleWarmUpPayment();
+      // Refresh streak info after payment to update UI
+      await refreshStats();
+      return result;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to apply warm up payment');
+      return { remainingFrozenDays: 0, isFullyWarmed: false };
+    }
+  };
+
+  const calculateFrozenDays = async (): Promise<number> => {
+    try {
+      return await gratitudeStorage.calculateFrozenDays();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to calculate frozen days');
+      return 0;
+    }
+  };
+
+  const getWarmUpPaymentProgress = async (): Promise<{
+    totalMissedDays: number;
+    paidDays: number;
+    unpaidDays: number;
+    paidDates: DateString[];
+    unpaidDates: DateString[];
+  }> => {
+    try {
+      return await gratitudeStorage.getWarmUpPaymentProgress();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to get warm up progress');
+      return {
+        totalMissedDays: 0,
+        paidDays: 0,
+        unpaidDays: 0,
+        paidDates: [],
+        unpaidDates: [],
+      };
+    }
+  };
+
+  const resetStreak = async (): Promise<void> => {
+    try {
+      await gratitudeStorage.resetStreak();
+      // Refresh streak info after reset to update UI
+      await refreshStats();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to reset streak');
+    }
+  };
+
   useEffect(() => {
     loadGratitudes();
   }, []);
@@ -237,6 +311,12 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
           incrementMilestoneCounter,
           clearError,
           forceRefresh,
+          // 🚨 FROZEN STREAK ACTIONS: Complete architecture integration
+          adsNeededToWarmUp,
+          applySingleWarmUpPayment,
+          calculateFrozenDays,
+          getWarmUpPaymentProgress,
+          resetStreak,
         },
       }}
     >
