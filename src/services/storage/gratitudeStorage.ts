@@ -415,7 +415,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           isFrozen: streak.isFrozen || false,
           preserveCurrentStreak: streak.preserveCurrentStreak || false,
           preserveCurrentStreakUntil: streak.preserveCurrentStreakUntil || null,
-          streakBeforeFreeze: streak.streakBeforeFreeze || 0,
+          // 🚨 CRITICAL FIX: Don't auto-set to 0, preserve null until first freeze
+          streakBeforeFreeze: streak.streakBeforeFreeze ?? null,
           warmUpPayments: streak.warmUpPayments || [],
           warmUpHistory: streak.warmUpHistory || [],
           autoResetTimestamp: streak.autoResetTimestamp || null,
@@ -435,7 +436,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         isFrozen: false,
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
-        streakBeforeFreeze: 0,
+        // 🚨 CRITICAL FIX: Default to null, not 0 - preserves proper initialization
+        streakBeforeFreeze: null,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: null,
@@ -508,9 +510,13 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const completedDates = await this.getCompletedDates();
       const bonusDates = await this.getBonusDates();
       const currentDate = today();
-      
+
       // Get current saved streak for frozen streak handling
       const savedStreak = await this.getStreak();
+
+      // 🚨 CRITICAL FIX: Save original streak value BEFORE any recalculations
+      // This preserves the user's streak before it gets frozen/reset
+      const originalStreakValue = savedStreak.currentStreak;
       
       // Calculate continuing streak - shows current streak even if today isn't completed yet
       const newCalculatedStreak = calculateContinuingStreak(completedDates, currentDate);
@@ -599,10 +605,10 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const todayComplete = completedDates.includes(currentDate);
       
       if (isFrozen) {
-        // When streak gets frozen, remember the current streak value
+        // When streak gets frozen, remember the ORIGINAL streak value (before any recalculations)
         if (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined) {
-          newStreakBeforeFreeze = savedStreak.currentStreak;
-          console.log(`[DEBUG] calculateAndUpdateStreak: Storing streak before freeze: ${newStreakBeforeFreeze}`);
+          newStreakBeforeFreeze = originalStreakValue; // 🚨 FIX: Use original value, not current
+          console.log(`[DEBUG] calculateAndUpdateStreak: Storing ORIGINAL streak before freeze: ${newStreakBeforeFreeze} (was currentStreak: ${savedStreak.currentStreak})`);
         }
         // Normal frozen behavior - keep saved streak
         finalCurrentStreak = savedStreak.currentStreak;
