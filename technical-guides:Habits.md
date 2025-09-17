@@ -21,6 +21,72 @@
 ### 🚨 FUNDAMENTAL PRINCIPLE
 **Habits system respektuje creation date a time context ve všech výpočtech. Nikdy nepočítá s dny před vytvořením návyku.**
 
+### 🚨 SCHEDULED DAYS IMMUTABILITY PRINCIPLE
+**"MINULOST SE NEMĚNÍ" - Změny v scheduled days se aplikují pouze od dne změny dále, nikdy zpětně.**
+
+#### Historical Data Preservation Rules
+
+**Fundamental Rule**: Jakákoliv změna v `habit.scheduledDays` ovlivňuje pouze budoucí dny od okamžiku změny. Veškerá historická data, výpočty a UI zobrazení zůstávají v původním stavu.
+
+**Remove Scheduled Day Principle:**
+```typescript
+// Example: Odebírám pondělí ze scheduled days ve středu
+// ✅ CORRECT: Všechny pondělky v minulosti zůstávají scheduled days
+// ✅ CORRECT: Červená pole za minulé pondělky zůstávají červená
+// ✅ CORRECT: Zelené completions za minulé pondělky zůstávají zelené
+// ✅ CORRECT: Smart Bonus Conversions zůstávají zmražené v původním stavu
+// ✅ CORRECT: Completion rate procenta reflektují historical schedule
+```
+
+**Add Scheduled Day Principle:**
+```typescript
+// Example: Přidávám sobotu do scheduled days ve středu
+// ✅ CORRECT: Sobota se stává scheduled day od této soboty dále
+// ✅ CORRECT: Minulé soboty zůstávají non-scheduled (bonus days)
+// ✅ CORRECT: Completion rate počítá sobotu jako scheduled jen pro budoucnost
+```
+
+#### Completion Rate Calculation Principle
+
+**Time-Segmented Approach**: Completion rate respektuje kdy byly které dny scheduled, ne současný stav `habit.scheduledDays`.
+
+```typescript
+// ✅ CORRECT: Počítá completion rate s historical schedule awareness
+function calculateCompletionRate(habit: Habit, completions: HabitCompletion[]): number {
+  // Pro každý completion se používá schedule platný v ten den
+  // Ne současný habit.scheduledDays
+}
+
+// ❌ WRONG: Používá současný habit.scheduledDays pro všechnu historii
+function calculateCompletionRate(habit: Habit, completions: HabitCompletion[]): number {
+  const scheduledDaysCount = habit.scheduledDays.length; // Zpětné přepočítávání!
+}
+```
+
+#### Smart Bonus Conversion Immutability
+
+**Conversion State Freezing**: Bonus conversions se počítají v okamžiku jejich vzniku a následně se nemění.
+
+```typescript
+// ✅ PRINCIPLE: Conversion remains immutable
+// Bonus completion z úterý which covered missed pondělí:
+// - Zůstává green (makeup completion) i když odeberu pondělí ze scheduled
+// - Nevrací se na gold (bonus) status
+// - Zachovává historical context kdy byla conversion vytvořena
+```
+
+#### Cache Invalidation Principle
+
+**Content-Aware Invalidation**: Cache musí detekovat změny v obsahu habit objektů, ne jen jejich počet.
+
+```typescript
+// ✅ CORRECT: Cache invalidation includes habit content changes
+const cacheKey = includeHabitContentChanges(habits, completions);
+
+// ❌ WRONG: Cache ignoruje změny uvnitř habit objektů
+const cacheKey = `${habits.length}-${completions.length}`;
+```
+
 ### Core Data Models
 ```typescript
 // Core Habit Entity
