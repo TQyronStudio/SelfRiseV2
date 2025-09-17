@@ -47,6 +47,8 @@ export enum AchievementCategory {
   JOURNAL = 'journal',
   GOALS = 'goals',
   CONSISTENCY = 'consistency',
+  MASTERY = 'mastery',
+  SPECIAL = 'special',
 }
 
 /**
@@ -604,10 +606,12 @@ export interface MonthlyChallengeTemplate {
  */
 export interface UserChallengeRatings {
   habits: number;      // 1-5 stars
-  journal: number;     // 1-5 stars  
+  journal: number;     // 1-5 stars
   goals: number;       // 1-5 stars
   consistency: number; // 1-5 stars
-  
+  mastery: number;     // 1-5 stars
+  special: number;     // 1-5 stars
+
   // Progression tracking
   history: StarRatingHistoryEntry[];
   lastUpdated: Date;

@@ -862,7 +862,7 @@ export class AchievementService {
         sources.add(XPSourceType.DAILY_LAUNCH);
         break;
         
-      case AchievementCategory.MASTERY:
+      case AchievementCategory.CONSISTENCY:
         // Mastery achievements often track overall progress
         sources.add(XPSourceType.ACHIEVEMENT_UNLOCK);
         sources.add(XPSourceType.RECOMMENDATION_FOLLOW);
@@ -873,7 +873,7 @@ export class AchievementService {
         }
         break;
         
-      case AchievementCategory.SPECIAL:
+      case AchievementCategory.CONSISTENCY:
         // Special achievements may have unique triggering conditions
         for (const sourceType of Object.values(XPSourceType)) {
           sources.add(sourceType);

@@ -68,12 +68,11 @@ export const StarRatingBadge: React.FC<StarRatingBadgeProps> = ({
   const formatCategoryShort = (cat: AchievementCategory) => {
     const shortNames = {
       [AchievementCategory.HABITS]: 'H',
-      [AchievementCategory.JOURNAL]: 'J', 
+      [AchievementCategory.JOURNAL]: 'J',
       [AchievementCategory.GOALS]: 'G',
       [AchievementCategory.CONSISTENCY]: 'C',
       [AchievementCategory.MASTERY]: 'M',
-      [AchievementCategory.SOCIAL]: 'S',
-      [AchievementCategory.SPECIAL]: 'Sp',
+      [AchievementCategory.SPECIAL]: 'S',
     };
     return shortNames[cat] || cat.charAt(0).toUpperCase();
   };

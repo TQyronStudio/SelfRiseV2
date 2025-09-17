@@ -27,9 +27,6 @@ const getCategoryIcon = (category: AchievementCategory): string => {
     case AchievementCategory.JOURNAL: return '📝';
     case AchievementCategory.GOALS: return '🎯';
     case AchievementCategory.CONSISTENCY: return '⚔️';
-    case AchievementCategory.MASTERY: return '👑';
-    case AchievementCategory.SPECIAL: return '✨';
-    case AchievementCategory.SOCIAL: return '👥';
     default: return '🏆';
   }
 };
@@ -40,9 +37,6 @@ const getCategoryColor = (category: AchievementCategory): string => {
     case AchievementCategory.JOURNAL: return '#2196F3';
     case AchievementCategory.GOALS: return '#FF9800';
     case AchievementCategory.CONSISTENCY: return '#F44336';
-    case AchievementCategory.MASTERY: return '#9C27B0';
-    case AchievementCategory.SOCIAL: return '#00BCD4';
-    case AchievementCategory.SPECIAL: return '#FFD700';
     default: return Colors.primary;
   }
 };

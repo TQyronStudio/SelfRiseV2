@@ -111,7 +111,7 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
     requiredAchievements: ['early-bird', 'perfect-week', 'weekend-warrior'],
     bonusXP: 200,
     rarity: AchievementRarity.EPIC,
-    category: AchievementCategory.SPECIAL,
+    category: AchievementCategory.CONSISTENCY,
   },
 ];
 

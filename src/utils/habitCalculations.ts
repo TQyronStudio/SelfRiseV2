@@ -10,7 +10,7 @@ import { DateString } from '../types/common';
  * Key Features:
  * - Frequency-proportional bonus calculation (1x/week = +100%, 7x/week = +14%)
  * - Safe division handling (no zero division errors)
- * - 200% maximum completion rate cap
+ * - Real performance tracking (no artificial caps)
  * - Time-period agnostic (works with any date range)
  */
 
@@ -47,10 +47,9 @@ export function calculateHabitCompletionRate(
   const habitFrequencyPerWeek = habit.scheduledDays.length;
   const bonusRate = habitFrequencyPerWeek > 0 ? (bonusCompletions / habitFrequencyPerWeek) * 100 : 0;
   
-  // Calculate total completion rate with 200% cap
-  const uncappedRate = scheduledRate + bonusRate;
-  const totalCompletionRate = Math.min(uncappedRate, 200);
-  const isMaxedOut = uncappedRate > 200;
+  // Calculate total completion rate (no artificial cap)
+  const totalCompletionRate = scheduledRate + bonusRate;
+  const isMaxedOut = false; // No longer applicable - real performance matters
   
   return {
     scheduledRate: Math.round(scheduledRate * 10) / 10, // 1 decimal place
@@ -137,10 +136,10 @@ export function getCompletionRateMessage(
   
   // Established habits (14+ days) - Full analysis
   if (isEstablishedHabit) {
-    if (isMaxedOut) {
+    if (totalCompletionRate >= 200) {
       return {
-        title: '⭐ Maximum Performance',
-        description: `200%+ completion rate! Your dedication to ${habitName} is exceptional.`,
+        title: '⭐ Exceptional Performance',
+        description: `${Math.round(totalCompletionRate)}% completion rate! Your dedication to ${habitName} is extraordinary.`,
         tone: 'positive'
       };
     } else if (totalCompletionRate >= 120) {

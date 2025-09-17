@@ -489,9 +489,7 @@ export class MonthlyChallengeService {
       [AchievementCategory.HABITS]: [...this.HABITS_TEMPLATES],
       [AchievementCategory.JOURNAL]: [...this.JOURNAL_TEMPLATES],
       [AchievementCategory.GOALS]: [...this.GOALS_TEMPLATES],
-      [AchievementCategory.CONSISTENCY]: [...this.CONSISTENCY_TEMPLATES],
-      [AchievementCategory.MASTERY]: [], // No mastery challenge templates yet
-      [AchievementCategory.SPECIAL]: [], // No special challenge templates yet
+      [AchievementCategory.CONSISTENCY]: [...this.CONSISTENCY_TEMPLATES]
     };
   }
 
@@ -829,8 +827,6 @@ export class MonthlyChallengeService {
       [AchievementCategory.JOURNAL]: [30, 40, 50, 60, 70], // 30-70 entries/month
       [AchievementCategory.GOALS]: [10, 12, 15, 18, 20], // 10-20 goal progress days/month
       [AchievementCategory.CONSISTENCY]: [15, 18, 22, 25, 28], // 15-28 consistency days/month
-      [AchievementCategory.MASTERY]: [5, 8, 12, 15, 18], // Advanced users only
-      [AchievementCategory.SPECIAL]: [1, 2, 3, 4, 5], // Event-based
     };
 
     const minimums = categoryMinimums[template.category] || [5, 8, 12, 15, 18];
@@ -1198,12 +1194,6 @@ export class MonthlyChallengeService {
 
       [AchievementCategory.CONSISTENCY]:
         `Welcome to your comprehensive challenge! 🌟\n\n"${templateTitle}" introduces you to using multiple features of the app consistently. We've made it extra achievable so you can explore and find what works for you.`,
-
-      [AchievementCategory.MASTERY]:
-        `Welcome to your mastery journey! 👑\n\nYou're starting with "${templateTitle}" to develop well-rounded habits. This first month focuses on exploration and discovery.`,
-
-      [AchievementCategory.SPECIAL]:
-        `Welcome to a special challenge! ✨\n\n"${templateTitle}" is designed specifically for newcomers to provide a unique introduction experience.`
     };
 
     return categoryMessages[category] || `Welcome to your first monthly challenge: "${templateTitle}"! We're excited to have you on this journey of growth and achievement.`;
@@ -1245,16 +1235,24 @@ export class MonthlyChallengeService {
         '📅 Check your progress weekly to stay motivated',
         '🌟 Aim for perfect days but don\'t stress if you miss one'
       ],
-
-      [AchievementCategory.MASTERY]: [
+      
+      [AchievementCategory.CONSISTENCY]: [
         '🧠 Focus on understanding rather than just completing',
         '📊 Pay attention to your activity balance',
         '🎯 Quality over quantity in all activities',
         '📈 Track your improvement over time',
         '🏅 Mastery comes from consistent practice'
       ],
-
-      [AchievementCategory.SPECIAL]: [
+      
+      [AchievementCategory.GOALS]: [
+        '👥 Connect with other users when available',
+        '🤝 Share your experiences and learn from others',
+        '💬 Participate in community activities',
+        '🌟 Support others in their journeys',
+        '📱 Use social features to stay motivated'
+      ],
+      
+      [AchievementCategory.CONSISTENCY]: [
         '✨ This is a unique challenge designed just for you',
         '🎉 Take your time to explore and learn',
         '📱 Familiarize yourself with app features',
@@ -1332,17 +1330,23 @@ export class MonthlyChallengeService {
         timeCommitment: '15-20 minutes daily across habits, journal, and goals',
         successRate: '70%+ completion rate with balanced daily engagement'
       },
-
-      [AchievementCategory.MASTERY]: {
-        difficulty: 'Advanced challenges for experienced users',
-        timeCommitment: '20-30 minutes daily for comprehensive personal development',
-        successRate: '60%+ completion rate for advanced achievement challenges'
+      
+      [AchievementCategory.CONSISTENCY]: {
+        difficulty: 'Advanced challenge - requires mastery of all app features',
+        timeCommitment: '20-30 minutes daily with deep engagement across all areas',
+        successRate: '60%+ completion rate for experienced users'
       },
-
-      [AchievementCategory.SPECIAL]: {
-        difficulty: 'Unique and time-limited challenges',
-        timeCommitment: 'Variable based on specific challenge requirements',
-        successRate: '65%+ completion rate for special event achievements'
+      
+      [AchievementCategory.GOALS]: {
+        difficulty: 'Community-focused - emphasizes sharing and social engagement',
+        timeCommitment: '10-15 minutes daily plus community interaction',
+        successRate: '75%+ completion rate with social features'
+      },
+      
+      [AchievementCategory.CONSISTENCY]: {
+        difficulty: 'Event-based challenge - unique seasonal or themed content',
+        timeCommitment: 'Variable based on event type and timing',
+        successRate: '65%+ completion rate during special events'
       }
     };
 
@@ -1516,8 +1520,9 @@ export class MonthlyChallengeService {
       [AchievementCategory.JOURNAL]: 95,      // Core self-reflection
       [AchievementCategory.CONSISTENCY]: 90,  // Multi-feature engagement
       [AchievementCategory.GOALS]: 85,        // Achievement-focused
-      [AchievementCategory.MASTERY]: 70,      // Advanced users only
-      [AchievementCategory.SPECIAL]: 50,      // Event-based
+      [AchievementCategory.CONSISTENCY]: 70,      // Advanced users only
+      [AchievementCategory.GOALS]: 60,       // Future feature
+      [AchievementCategory.CONSISTENCY]: 50       // Event-based
     };
 
     const baseWeight = baseWeights[category] || 50;
@@ -1570,13 +1575,15 @@ export class MonthlyChallengeService {
       [AchievementCategory.GOALS]: (b) => 
         (b.totalGoalProgressDays * 0.6) + (b.goalsCompleted * 10 * 0.4),
       
-      [AchievementCategory.CONSISTENCY]: (b) =>
+      [AchievementCategory.CONSISTENCY]: (b) => 
         (b.tripleFeatureDays * 0.4) + (b.perfectDays * 0.4) + (b.totalActiveDays * 0.2),
-
-      [AchievementCategory.MASTERY]: (b) =>
+      
+      [AchievementCategory.CONSISTENCY]: (b) => 
         (b.balanceScore * 50) + (b.longestEngagementStreak * 2),
-
-      [AchievementCategory.SPECIAL]: () => 0  // Event-based, not engagement driven
+      
+      [AchievementCategory.GOALS]: () => 0, // Not implemented yet
+      
+      [AchievementCategory.CONSISTENCY]: () => 0  // Event-based, not engagement driven
     };
 
     const engagementScore = engagementMetrics[category]?.(userBaseline) || 0;
@@ -1642,8 +1649,9 @@ export class MonthlyChallengeService {
       [AchievementCategory.JOURNAL]: (b) => b.totalJournalEntries >= 20 && b.journalConsistencyDays >= 7,
       [AchievementCategory.GOALS]: (b) => b.totalGoalProgressDays >= 5 && b.goalsCompleted >= 1,
       [AchievementCategory.CONSISTENCY]: (b) => b.totalActiveDays >= 15 && b.tripleFeatureDays >= 3,
-      [AchievementCategory.MASTERY]: (b) => b.totalActiveDays >= 25 && b.balanceScore > 0.5,
-      [AchievementCategory.SPECIAL]: () => true,     // Always available
+      [AchievementCategory.CONSISTENCY]: (b) => b.totalActiveDays >= 25 && b.balanceScore > 0.5,
+      [AchievementCategory.GOALS]: () => false,    // Not implemented
+      [AchievementCategory.CONSISTENCY]: () => true     // Always available
     };
 
     const hasGoodData = dataRequirements[category]?.(userBaseline) || false;

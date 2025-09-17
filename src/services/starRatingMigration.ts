@@ -124,6 +124,8 @@ export class StarRatingMigration {
         journal: this.validateStarLevel(legacyData.journal, 'journal'),
         goals: this.validateStarLevel(legacyData.goals, 'goals'),
         consistency: this.validateStarLevel(legacyData.consistency, 'consistency'),
+        mastery: 1, // Default value for new category
+        special: 1, // Default value for new category
         history: [],
         lastUpdated: new Date()
       };

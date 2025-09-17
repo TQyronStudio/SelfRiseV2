@@ -1795,7 +1795,6 @@ export const ACHIEVEMENT_CATALOG_STATS = {
     [AchievementCategory.GOALS]: getAchievementsByCategory(AchievementCategory.GOALS).length,
     [AchievementCategory.CONSISTENCY]: getAchievementsByCategory(AchievementCategory.CONSISTENCY).length,
     [AchievementCategory.MASTERY]: getAchievementsByCategory(AchievementCategory.MASTERY).length,
-    [AchievementCategory.SOCIAL]: getAchievementsByCategory(AchievementCategory.SOCIAL).length,
     [AchievementCategory.SPECIAL]: getAchievementsByCategory(AchievementCategory.SPECIAL).length,
   },
   byRarity: {

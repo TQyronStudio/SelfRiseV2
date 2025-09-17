@@ -142,7 +142,6 @@ export class AchievementStorage {
         [AchievementCategory.GOALS]: 0,
         [AchievementCategory.CONSISTENCY]: 0,
         [AchievementCategory.MASTERY]: 0,
-        [AchievementCategory.SOCIAL]: 0,
         [AchievementCategory.SPECIAL]: 0,
       },
       progressHistory: [],
@@ -592,7 +591,6 @@ export class AchievementStorage {
           [AchievementCategory.GOALS]: 0,
           [AchievementCategory.CONSISTENCY]: 0,
           [AchievementCategory.MASTERY]: 0,
-          [AchievementCategory.SOCIAL]: 0,
           [AchievementCategory.SPECIAL]: 0,
         };
       }

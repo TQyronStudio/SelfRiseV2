@@ -375,7 +375,8 @@ export class SocialSharingService {
           journal: achievements.categoryBreakdown.journal?.unlocked || 0,
           goals: achievements.categoryBreakdown.goals?.unlocked || 0,
           consistency: achievements.categoryBreakdown.consistency?.unlocked || 0,
-          mastery: achievements.categoryBreakdown.mastery?.unlocked || 0
+          mastery: achievements.categoryBreakdown.mastery?.unlocked || 0,
+          special: achievements.categoryBreakdown.special?.unlocked || 0
         }
       };
 

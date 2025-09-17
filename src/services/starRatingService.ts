@@ -592,6 +592,8 @@ export class StarRatingService {
       journal: 1,
       goals: 1,
       consistency: 1,
+      mastery: 1,
+      special: 1,
       history: [],
       lastUpdated: new Date()
     };
@@ -610,8 +612,11 @@ export class StarRatingService {
         return 'goals';
       case AchievementCategory.CONSISTENCY:
         return 'consistency';
+      case AchievementCategory.MASTERY:
+        return 'mastery';
+      case AchievementCategory.SPECIAL:
+        return 'special';
       default:
-        // Categories like MASTERY, SOCIAL, SPECIAL are not supported in star rating system
         return null;
     }
   }
@@ -625,6 +630,8 @@ export class StarRatingService {
       journal: this.clampStarLevel(ratings.journal ?? 1),
       goals: this.clampStarLevel(ratings.goals ?? 1),
       consistency: this.clampStarLevel(ratings.consistency ?? 1),
+      mastery: this.clampStarLevel(ratings.mastery ?? 1),
+      special: this.clampStarLevel(ratings.special ?? 1),
       history: ratings.history ?? [],
       lastUpdated: ratings.lastUpdated ? new Date(ratings.lastUpdated) : new Date()
     };

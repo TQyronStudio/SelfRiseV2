@@ -106,7 +106,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     lastChecked: new Date().toISOString().split('T')[0] as string,
     totalXPFromAchievements: 0,
     rarityCount: { common: 0, rare: 0, epic: 0, legendary: 0 },
-    categoryProgress: { habits: 0, journal: 0, goals: 0, consistency: 0, mastery: 0, social: 0, special: 0 },
+    categoryProgress: { habits: 0, journal: 0, goals: 0, consistency: 0, mastery: 0, special: 0 },
     progressHistory: [],
     streakData: {}
   });
@@ -249,7 +249,6 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       goals: { unlocked: 0, total: 0 },
       consistency: { unlocked: 0, total: 0 },
       mastery: { unlocked: 0, total: 0 },
-      social: { unlocked: 0, total: 0 },
       special: { unlocked: 0, total: 0 }
     };
 
@@ -309,14 +308,13 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       }
       
       // 2. CATEGORY IMPORTANCE: Strategic category ordering
-      const categoryOrder = { 
+      const categoryOrder = {
         [AchievementCategory.SPECIAL]: 1,      // Special achievements first (setup)
         [AchievementCategory.JOURNAL]: 2,      // Personal growth (foundation)
-        [AchievementCategory.HABITS]: 3,       // Daily consistency (building)  
+        [AchievementCategory.HABITS]: 3,       // Daily consistency (building)
         [AchievementCategory.GOALS]: 4,        // Concrete achievements (momentum)
         [AchievementCategory.CONSISTENCY]: 5,  // Long-term dedication (climax)
         [AchievementCategory.MASTERY]: 6,      // Ultimate mastery (finale)
-        [AchievementCategory.SOCIAL]: 7        // Social achievements last
       };
       if (a.category !== b.category) {
         return categoryOrder[a.category] - categoryOrder[b.category];

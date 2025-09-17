@@ -29,6 +29,8 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     journal: 1,
     goals: 1,
     consistency: 1,
+    mastery: 1,
+    special: 1,
   });
 
   // Completion modal state
@@ -108,6 +110,8 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         journal: ratingsData.journal,
         goals: ratingsData.goals,
         consistency: ratingsData.consistency,
+        mastery: ratingsData.mastery || 1,
+        special: ratingsData.special || 1,
       };
       setUserStarRatings(ratings);
     } catch (error) {
@@ -149,6 +153,8 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
             journal: 1,
             goals: 1,
             consistency: 1,
+            mastery: 1,
+            special: 1,
             history: [],
             lastUpdated: new Date(),
           },

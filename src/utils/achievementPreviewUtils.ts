@@ -134,9 +134,9 @@ export const generateProgressHint = (achievement: Achievement, userStats: UserSt
       return generateGoalProgressHint(achievement, userStats);
     case AchievementCategory.CONSISTENCY:
       return generateConsistencyProgressHint(achievement, userStats);
-    case AchievementCategory.MASTERY:
+    case AchievementCategory.CONSISTENCY:
       return generateMasteryProgressHint(achievement, userStats);
-    case AchievementCategory.SPECIAL:
+    case AchievementCategory.CONSISTENCY:
       return generateSpecialProgressHint(achievement, userStats);
     default:
       return getDefaultProgressHint(achievement);
@@ -154,9 +154,9 @@ export const generateProgressHintAsync = async (achievement: Achievement, userSt
       return generateGoalProgressHint(achievement, userStats);
     case AchievementCategory.CONSISTENCY:
       return generateConsistencyProgressHint(achievement, userStats);
-    case AchievementCategory.MASTERY:
+    case AchievementCategory.CONSISTENCY:
       return generateMasteryProgressHint(achievement, userStats);
-    case AchievementCategory.SPECIAL:
+    case AchievementCategory.CONSISTENCY:
       return generateSpecialProgressHint(achievement, userStats);
     default:
       return getDefaultProgressHint(achievement);
@@ -1141,7 +1141,7 @@ const calculateTimeToComplete = (achievement: Achievement, userStats: UserStats)
       complexityMultiplier = achievement.condition.target > 14 ? 1.6 : 1.2;
       break;
       
-    case AchievementCategory.SOCIAL:
+    case AchievementCategory.GOALS:
       baseDays = engagementLevel === 'high' ? 5 : engagementLevel === 'medium' ? 12 : 25;
       complexityMultiplier = 1.1;
       break;
@@ -1268,12 +1268,11 @@ const getAccomplishmentText = (achievement: Achievement): string => {
 const getCategoryDisplayName = (category: AchievementCategory): string => {
   const names = {
     [AchievementCategory.HABITS]: "Habits Category",
-    [AchievementCategory.JOURNAL]: "Journal Category", 
+    [AchievementCategory.JOURNAL]: "Journal Category",
     [AchievementCategory.GOALS]: "Goals Category",
     [AchievementCategory.CONSISTENCY]: "Consistency Category",
     [AchievementCategory.MASTERY]: "Mastery Category",
     [AchievementCategory.SPECIAL]: "Special Category",
-    [AchievementCategory.SOCIAL]: "Social Category"
   };
   return names[category] || "Achievement Category";
 };
@@ -1347,12 +1346,6 @@ const getPrimaryTip = (achievement: Achievement, level: 'starting' | 'building' 
       building: "Making good use of special features!",
       advancing: "Unlocking special capabilities!",
       nearly_there: "Almost earned this special achievement!"
-    },
-    [AchievementCategory.SOCIAL]: {
-      starting: "Engage with social features",
-      building: "Building social connections!",
-      advancing: "Great social engagement!",
-      nearly_there: "Almost unlocked this social achievement!"
     }
   };
   
@@ -1377,7 +1370,6 @@ const getActionAdvice = (achievement: Achievement, level: 'starting' | 'building
     [AchievementCategory.CONSISTENCY]: "Maintain daily streaks",
     [AchievementCategory.MASTERY]: "Earn XP and level up",
     [AchievementCategory.SPECIAL]: "Explore all app features",
-    [AchievementCategory.SOCIAL]: "Engage with community features"
   };
   
   return advice[achievement.category] || "Keep using the app features";

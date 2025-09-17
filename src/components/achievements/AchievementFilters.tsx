@@ -32,8 +32,6 @@ const CATEGORIES = [
   { key: AchievementCategory.JOURNAL, label: 'Journal', icon: '📝' },
   { key: AchievementCategory.GOALS, label: 'Goals', icon: '🎯' },
   { key: AchievementCategory.CONSISTENCY, label: 'Consistency', icon: '⚔️' },
-  { key: AchievementCategory.MASTERY, label: 'Mastery', icon: '👑' },
-  { key: AchievementCategory.SPECIAL, label: 'Special', icon: '✨' },
 ];
 
 const RARITIES = [

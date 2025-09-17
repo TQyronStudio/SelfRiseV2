@@ -74,12 +74,6 @@ export const ACHIEVEMENT_CATEGORY_META: Record<AchievementCategory, {
     color: '#9C27B0',
     description: 'Become the best version of yourself',
   },
-  [AchievementCategory.SOCIAL]: {
-    name: 'Social',
-    icon: '👥',
-    color: '#00BCD4',
-    description: 'Connect and inspire others',
-  },
   [AchievementCategory.SPECIAL]: {
     name: 'Special',
     icon: '✨',

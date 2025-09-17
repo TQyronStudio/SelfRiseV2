@@ -56,7 +56,7 @@ interface HabitStats {
   currentStreak: number;             // consecutive days with completions
   longestStreak: number;             // best streak ever achieved
   totalCompletions: number;          // all completed days
-  completionRate: number;            // percentage with bonus calculation (0-200%)
+  completionRate: number;            // percentage with bonus calculation (unlimited)
   lastCompletedDate?: DateString;
 }
 ```
@@ -177,9 +177,8 @@ function calculateHabitCompletionRate(habit: Habit, completionData: HabitComplet
   const habitFrequencyPerWeek = habit.scheduledDays.length;
   const bonusRate = habitFrequencyPerWeek > 0 ? (bonusCompletions / habitFrequencyPerWeek) * 100 : 0;
 
-  // Total with 200% maximum cap
-  const uncappedRate = scheduledRate + bonusRate;
-  const totalCompletionRate = Math.min(uncappedRate, 200);
+  // Total completion rate (no artificial cap)
+  const totalCompletionRate = scheduledRate + bonusRate;
 
   return {
     scheduledRate: Math.round(scheduledRate * 10) / 10,
@@ -346,7 +345,7 @@ function getHabitAgeInfo(habit: Habit): HabitAgeInfo {
 "📈 Good Early Pattern - 75% completion. You're on the right track!"
 
 // ESTABLISHED HABITS (14+ days): Full analysis
-"⭐ Maximum Performance - 200%+ completion rate! Your dedication is exceptional."
+"⭐ Exceptional Performance - [real]% completion rate! Your dedication is extraordinary."
 "🏆 Outstanding Performance - 125% completion with bonus effort. Excellent consistency!"
 "✅ Strong Consistency - 85% completion rate. Well done maintaining [habit]!"
 "💪 Focus Opportunity - 45% completion. Try breaking it into smaller steps."

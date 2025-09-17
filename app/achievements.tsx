@@ -344,11 +344,10 @@ export default function AchievementsScreen() {
           const categoryOrder = {
             [AchievementCategory.SPECIAL]: 1,      // Special achievements first (setup)
             [AchievementCategory.JOURNAL]: 2,      // Personal growth (foundation)
-            [AchievementCategory.HABITS]: 3,       // Daily consistency (building)  
+            [AchievementCategory.HABITS]: 3,       // Daily consistency (building)
             [AchievementCategory.GOALS]: 4,        // Concrete achievements (momentum)
             [AchievementCategory.CONSISTENCY]: 5,  // Long-term dedication (climax)
             [AchievementCategory.MASTERY]: 6,      // Ultimate mastery (finale)
-            [AchievementCategory.SOCIAL]: 7,       // Social achievements last
           };
           const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category];
           if (categoryDiff !== 0) return categoryDiff;
@@ -847,7 +846,6 @@ const getCategoryColor = (category: AchievementCategory): string => {
     case AchievementCategory.GOALS: return '#FF9800';
     case AchievementCategory.CONSISTENCY: return '#F44336';
     case AchievementCategory.MASTERY: return '#9C27B0';
-    case AchievementCategory.SOCIAL: return '#00BCD4';
     case AchievementCategory.SPECIAL: return '#FFD700';
     default: return Colors.primary;
   }

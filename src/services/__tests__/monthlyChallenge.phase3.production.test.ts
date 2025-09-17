@@ -367,7 +367,7 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       // Test with unsupported category
       const completionData: ChallengeCompletionData = {
         challengeId: 'unsupported-test',
-        category: AchievementCategory.SOCIAL, // Not supported in star rating
+        category: AchievementCategory.GOALS, // Not supported in star rating
         completionPercentage: 100,
         month: '2025-08',
         wasCompleted: true,
