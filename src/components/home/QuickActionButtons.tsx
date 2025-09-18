@@ -6,6 +6,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Typography } from '@/src/constants';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { HabitColor, HabitIcon } from '@/src/types/common';
 
 interface QuickActionButtonsProps {
@@ -52,8 +53,9 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const todayDayOfWeek = getDayOfWeekFromDateString(todayString);
   
   // Filter habits scheduled for today that aren't completed yet
+  // IMMUTABILITY PRINCIPLE: Use historical schedule even for today
   const pendingTodayHabits = todayHabits.filter(habit => {
-    const isScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
+    const isScheduledToday = wasScheduledOnDate(habit, todayString, todayDayOfWeek);
     return isScheduledToday && !habit.isCompleted;
   }).slice(0, 3); // Limit to 3 for space
 

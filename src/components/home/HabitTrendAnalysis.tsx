@@ -5,6 +5,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo, getCompletionRateMessage } from '@/src/utils/habitCalculations';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 interface TrendItemProps {
   title: string;
@@ -76,7 +77,8 @@ export const HabitTrendAnalysis: React.FC = () => {
 
         relevantWeekDates.forEach(date => {
           const dayOfWeek = getDayOfWeekFromDateString(date);
-          const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+          // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
+          const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
           const habitsOnDate = getHabitsByDate(date);
           const habitOnDate = habitsOnDate.find(h => h.id === habit.id);
           
@@ -141,7 +143,8 @@ export const HabitTrendAnalysis: React.FC = () => {
       
       past28Days.forEach(date => {
         const dayOfWeek = getDayOfWeekFromDateString(date);
-        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
+        const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
         const habitsOnDate = getHabitsByDate(date);
         const habitOnDate = habitsOnDate.find(h => h.id === habit.id);
         

@@ -5,6 +5,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 interface PerformanceIndicatorProps {
   title: string;
@@ -64,7 +65,8 @@ const calculatePeriodCompletionRate = (
 
   relevantDates.forEach(date => {
     const dayOfWeek = getDayOfWeekFromDateString(date);
-    const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+    // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
+    const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
     const habitsOnDate = getHabitsByDate(date);
     const habitOnDate = habitsOnDate.find((h: any) => h.id === habit.id);
     

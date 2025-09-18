@@ -4,6 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
@@ -21,9 +22,10 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       const habitsOnDate = getHabitsByDate(dateStr);
       
       // Filter habits that existed on this date and are scheduled for this day
+      // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
       const scheduledHabits = activeHabits.filter(habit => {
         const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
-        return habit.scheduledDays.includes(dayOfWeek) && relevantDatesForHabit.length > 0;
+        return wasScheduledOnDate(habit, dateStr, dayOfWeek) && relevantDatesForHabit.length > 0;
       });
       
       // Count completions using Smart Bonus Conversion logic

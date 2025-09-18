@@ -4,6 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getPast30Days, formatDateForDisplay, today, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 interface StatCardProps {
   title: string;
@@ -53,9 +54,10 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       const habitsOnDate = getHabitsByDate(date);
       
       // Filter habits scheduled for this day AND that existed on this date
+      // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
       const scheduledHabits = activeHabits.filter(habit => {
         const relevantDates = getRelevantDatesForHabit(habit, [date]);
-        return habit.scheduledDays.includes(dayOfWeek) && relevantDates.length > 0;
+        return wasScheduledOnDate(habit, date, dayOfWeek) && relevantDates.length > 0;
       });
       
       const scheduledCompletions = habitsOnDate.filter(h => 
@@ -124,8 +126,9 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       const habitsOnDate = getHabitsByDate(dateStr);
       
       // Filter habits scheduled for this day
-      const scheduledHabits = activeHabits.filter(habit => 
-        habit.scheduledDays.includes(dayOfWeek)
+      // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
+      const scheduledHabits = activeHabits.filter(habit =>
+        wasScheduledOnDate(habit, dateStr, dayOfWeek)
       );
       
       const scheduledCompletions = habitsOnDate.filter(h => 

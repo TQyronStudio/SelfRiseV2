@@ -5,6 +5,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { calculateHabitCompletionRate } from '@/src/utils/habitCalculations';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 interface StatCardProps {
   title: string;
@@ -79,9 +80,10 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       const habitsOnDate = getHabitsByDate(date);
       
       // Filter habits scheduled for this day AND that existed on this date
+      // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
       const scheduledHabits = activeHabits.filter(habit => {
         const relevantDates = getRelevantDatesForHabit(habit, [date]);
-        return habit.scheduledDays.includes(dayOfWeek) && relevantDates.length > 0;
+        return wasScheduledOnDate(habit, date, dayOfWeek) && relevantDates.length > 0;
       });
       
       const scheduledCompletions = habitsOnDate.filter(h => 
@@ -138,7 +140,8 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       
       relevantYearDates.forEach(date => {
         const dayOfWeek = getDayOfWeekFromDateString(date);
-        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        // IMMUTABILITY PRINCIPLE: Use historical schedule for this specific date
+        const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
         const habitsOnDate = getHabitsByDate(date);
         const habitOnDate = habitsOnDate.find((h: any) => h.id === habit.id);
         
