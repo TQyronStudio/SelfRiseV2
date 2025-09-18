@@ -329,10 +329,17 @@ export function validateHabitTimeline(habit: Habit): {
 /**
  * Migrate existing habit data to new timeline format
  *
- * SAFE MIGRATION:
+ * SAFE MIGRATION APPROACH:
  * - Only adds timeline if not already present
  * - Preserves all existing data
- * - Creates timeline based on current schedule
+ * - ASSUMPTION: Current scheduledDays have been effective since creation
+ *
+ * ⚠️ LIMITATION: For habits that had schedule changes before timeline implementation,
+ * this migration cannot recover historical schedule changes. It assumes current
+ * schedule was always in effect since creation.
+ *
+ * This is the safest approach - alternative would be to not migrate automatically
+ * and require manual schedule change to enable timeline tracking.
  *
  * @param habit - Habit to migrate
  * @returns Migrated habit with timeline (if applicable)
@@ -343,7 +350,8 @@ export function migrateHabitToTimeline(habit: Habit): Habit {
     return habit;
   }
 
-  // Create timeline with current schedule as baseline
+  // CONSERVATIVE MIGRATION: Assume current schedule was effective since creation
+  // This preserves existing behavior and avoids changing historical data meaning
   const habitCreationDate = habit.createdAt instanceof Date
     ? formatDateToString(habit.createdAt)
     : formatDateToString(new Date(habit.createdAt));

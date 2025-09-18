@@ -28,7 +28,13 @@ export function useHabitsData() {
   // Helper to create content-aware hash for cache invalidation
   const getHabitsContentHash = (habits: Habit[]): string => {
     return habits
-      .map(h => `${h.id}-${h.scheduledDays.join(',')}-${h.updatedAt}`)
+      .map(h => {
+        // Include scheduleHistory in hash to detect timeline changes
+        const scheduleHistoryHash = h.scheduleHistory?.entries
+          ? JSON.stringify(h.scheduleHistory.entries)
+          : 'no-timeline';
+        return `${h.id}-${h.scheduledDays.join(',')}-${scheduleHistoryHash}-${h.updatedAt}`;
+      })
       .join('|');
   };
 
