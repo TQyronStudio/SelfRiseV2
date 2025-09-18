@@ -7,6 +7,7 @@ import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { formatDateToString, getDayOfWeek, parseDate } from '../../utils/date';
 import { DayOfWeek } from '../../types/common';
+import { wasScheduledOnDate } from '../../utils/habitImmutability';
 
 interface HabitCalendarViewProps {
   habit: Habit;
@@ -53,8 +54,10 @@ export function HabitCalendarView({
   
   const isScheduledDay = (day: number): boolean => {
     const date = new Date(year, month, day);
+    const dateString = formatDateToString(date);
     const dayOfWeek = getDayOfWeek(date);
-    return habit.scheduledDays.includes(dayOfWeek);
+    // IMMUTABILITY PRINCIPLE: Use historical scheduled days for calendar display
+    return wasScheduledOnDate(habit, dateString, dayOfWeek);
   };
 
   const isHabitExisting = (day: number): boolean => {

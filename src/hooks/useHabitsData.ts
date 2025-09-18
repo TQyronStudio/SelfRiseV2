@@ -4,6 +4,7 @@ import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
 import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today, parseDate, getWeekDates, getDayOfWeekFromDateString } from '../utils/date';
 import { calculateHabitCompletionRate } from '../utils/habitCalculations';
+import { wasScheduledOnDate } from '../utils/habitImmutability';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -24,26 +25,36 @@ export function useHabitsData() {
   const conversionCacheRef = useRef(new Map<string, HabitCompletion[]>());
   const lastDataHashRef = useRef('');
   
-  // Get completions with smart bonus conversion applied (STABLE CACHE)
+  // Helper to create content-aware hash for cache invalidation
+  const getHabitsContentHash = (habits: Habit[]): string => {
+    return habits
+      .map(h => `${h.id}-${h.scheduledDays.join(',')}-${h.updatedAt}`)
+      .join('|');
+  };
+
+  // Get completions with smart bonus conversion applied (IMMUTABLE CONVERSIONS)
   const getHabitCompletionsWithConversion = useCallback((habitId: string): HabitCompletion[] => {
-    // Lightweight hash - just count arrays length for performance on Android
-    const currentDataHash = `${state.habits.length}-${state.completions.length}`;
-    
-    // If data changed, clear cache
+    // IMMUTABLE CONVERSIONS: Cache invalidates when habit content changes, preserving historical context
+    // This implements the "MINULOST SE NEMĚNÍ" principle from technical guidelines
+
+    // CONTENT-AWARE CACHE INVALIDATION: Detect changes in habit scheduledDays
+    const habitsContentHash = getHabitsContentHash(state.habits);
+    const currentDataHash = `${habitsContentHash}-${state.completions.length}`;
+
+    // Clear cache when habit content changes (e.g., scheduledDays modifications)
     if (currentDataHash !== lastDataHashRef.current) {
       conversionCacheRef.current.clear();
       lastDataHashRef.current = currentDataHash;
     }
-    
-    // Check cache first
+
+    // Check cache first - preserves historical conversion results
     if (conversionCacheRef.current.has(habitId)) {
       return conversionCacheRef.current.get(habitId)!;
     }
     
-    // If not in cache, compute conversion
     const habit = state.habits.find(h => h.id === habitId);
     if (!habit) return [];
-    
+
     const rawCompletions = state.completions.filter(c => c.habitId === habitId);
     const convertedCompletions = applySmartBonusConversion(habit, rawCompletions);
     
@@ -118,7 +129,8 @@ export function useHabitsData() {
     
     relevantDates.forEach(date => {
       const dayOfWeek = getDayOfWeekFromDateString(date);
-      const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+      // IMMUTABILITY PRINCIPLE: Use historical scheduled days for each date
+      const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
       const completion = convertedCompletions.find(c => c.date === date);
       const isCompleted = completion?.completed || false;
       
@@ -135,10 +147,16 @@ export function useHabitsData() {
     });
 
     // Calculate completion rate using unified logic with frequency-proportional bonus
+    // IMMUTABILITY PRINCIPLE: Provide period dates for time-segmented calculation
+    const periodStartDate = relevantDates.length > 0 ? relevantDates[0] : formatDateToString(createdAt);
+    const periodEndDate = relevantDates.length > 0 ? relevantDates[relevantDates.length - 1] : today();
+
     const completionResult = calculateHabitCompletionRate(habit, {
       scheduledDays,
       completedScheduled,
-      bonusCompletions
+      bonusCompletions,
+      periodStartDate: periodStartDate as DateString,
+      periodEndDate: periodEndDate as DateString
     });
     const completionRate = completionResult.totalCompletionRate;
     
@@ -279,7 +297,8 @@ export function useHabitsData() {
       
       weekDates.forEach(date => {
         const dayOfWeek = getDayOfWeekFromDateString(date);
-        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
+        // IMMUTABILITY PRINCIPLE: Use historical scheduled days for each date
+        const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
         const completion = weekCompletions.find(c => c.date === date);
         
         if (isScheduled) {

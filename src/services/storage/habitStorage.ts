@@ -5,13 +5,37 @@ import { DateString } from '../../types/common';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
+import { createScheduleChangeEntry, migrateHabitToTimeline, needsTimelineMigration } from '../../utils/habitImmutability';
 
 export class HabitStorage implements EntityStorage<Habit> {
   // Habit CRUD operations
   async getAll(): Promise<Habit[]> {
     try {
       const habits = await BaseStorage.get<Habit[]>(STORAGE_KEYS.HABITS);
-      return habits || [];
+      const habitsArray = habits || [];
+
+      // AUTOMATIC MIGRATION: Migrate habits to timeline format if needed
+      let migratedHabits = habitsArray;
+      let migrationNeeded = false;
+
+      for (let i = 0; i < habitsArray.length; i++) {
+        const habit = habitsArray[i];
+        if (habit && needsTimelineMigration(habit)) {
+          if (!migrationNeeded) {
+            // Create copy only when first migration is needed
+            migratedHabits = [...habitsArray];
+            migrationNeeded = true;
+          }
+          migratedHabits[i] = migrateHabitToTimeline(habit!);
+        }
+      }
+
+      // Save migrated data if any migrations occurred
+      if (migrationNeeded) {
+        await BaseStorage.set(STORAGE_KEYS.HABITS, migratedHabits);
+      }
+
+      return migratedHabits;
     } catch (error) {
       throw new StorageError(
         'Failed to get all habits',
@@ -57,7 +81,7 @@ export class HabitStorage implements EntityStorage<Habit> {
     try {
       const habits = await this.getAll();
       const habitIndex = habits.findIndex(habit => habit.id === id);
-      
+
       if (habitIndex === -1) {
         throw new StorageError(
           `Habit with id ${id} not found`,
@@ -66,8 +90,31 @@ export class HabitStorage implements EntityStorage<Habit> {
         );
       }
 
+      const currentHabit = habits[habitIndex];
+
+      // Ensure habit exists (should never be undefined due to index check above)
+      if (!currentHabit) {
+        throw new StorageError(
+          `Habit with id ${id} not found in array`,
+          STORAGE_ERROR_CODES.NOT_FOUND,
+          STORAGE_KEYS.HABITS
+        );
+      }
+
+      // IMMUTABILITY PRINCIPLE: Handle scheduled days changes with history tracking
+      let updatedHabitWithHistory = currentHabit;
+
+      if (updates.scheduledDays &&
+          JSON.stringify(updates.scheduledDays) !== JSON.stringify(currentHabit.scheduledDays)) {
+        // ScheduledDays is changing - preserve history before update
+        updatedHabitWithHistory = createScheduleChangeEntry(
+          currentHabit,
+          updates.scheduledDays
+        );
+      }
+
       const updatedHabit = updateEntityTimestamp({
-        ...habits[habitIndex],
+        ...updatedHabitWithHistory,
         ...updates,
       } as Habit);
 

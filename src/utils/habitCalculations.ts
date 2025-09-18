@@ -1,5 +1,6 @@
 import { Habit } from '../types/habit';
 import { DateString } from '../types/common';
+import { getHabitFrequencyForDate, calculateAverageFrequencyForPeriod } from './habitImmutability';
 
 /**
  * Unified Habit Completion Rate Calculation Utility
@@ -18,6 +19,9 @@ export interface HabitCompletionData {
   scheduledDays: number;
   completedScheduled: number;
   bonusCompletions: number;
+  // IMMUTABILITY PRINCIPLE: Support for time-segmented calculation
+  periodStartDate?: DateString; // For historical frequency calculation
+  periodEndDate?: DateString;   // For historical frequency calculation
 }
 
 export interface HabitCompletionResult {
@@ -29,7 +33,11 @@ export interface HabitCompletionResult {
 
 /**
  * Calculate habit completion rate with frequency-proportional bonus logic
- * 
+ *
+ * IMMUTABILITY PRINCIPLE: Uses time-segmented approach for historical accuracy
+ * - For periods with date range, calculates average historical frequency
+ * - Fallback to current frequency if no date information provided
+ *
  * @param habit - The habit object containing schedule information
  * @param completionData - Completion statistics for the specific time period
  * @returns Completion rate calculation results
@@ -38,19 +46,33 @@ export function calculateHabitCompletionRate(
   habit: Habit,
   completionData: HabitCompletionData
 ): HabitCompletionResult {
-  const { scheduledDays, completedScheduled, bonusCompletions } = completionData;
-  
+  const { scheduledDays, completedScheduled, bonusCompletions, periodStartDate, periodEndDate } = completionData;
+
   // Calculate base scheduled completion rate
   const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-  
-  // Calculate frequency-proportional bonus rate
-  const habitFrequencyPerWeek = habit.scheduledDays.length;
+
+  // IMMUTABILITY: Calculate historical frequency for bonus rate
+  let habitFrequencyPerWeek: number;
+
+  if (periodStartDate && periodEndDate) {
+    // TIME-SEGMENTED APPROACH: Calculate average frequency for the period
+    // This respects historical scheduled days changes
+    habitFrequencyPerWeek = calculateAverageFrequencyForPeriod(habit, periodStartDate, periodEndDate);
+  } else if (periodStartDate) {
+    // Single date provided - use frequency for that specific date
+    habitFrequencyPerWeek = getHabitFrequencyForDate(habit, periodStartDate);
+  } else {
+    // FALLBACK: Use current frequency (backward compatibility)
+    habitFrequencyPerWeek = habit.scheduledDays.length;
+  }
+
+  // Calculate frequency-proportional bonus rate with historical context
   const bonusRate = habitFrequencyPerWeek > 0 ? (bonusCompletions / habitFrequencyPerWeek) * 100 : 0;
-  
+
   // Calculate total completion rate (no artificial cap)
   const totalCompletionRate = scheduledRate + bonusRate;
   const isMaxedOut = false; // No longer applicable - real performance matters
-  
+
   return {
     scheduledRate: Math.round(scheduledRate * 10) / 10, // 1 decimal place
     bonusRate: Math.round(bonusRate * 10) / 10,
@@ -58,6 +80,7 @@ export function calculateHabitCompletionRate(
     isMaxedOut
   };
 }
+
 
 /**
  * Determine if a habit is old enough for trend analysis

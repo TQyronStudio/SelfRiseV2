@@ -8,6 +8,16 @@ export interface Habit extends BaseEntity {
   isActive: boolean;
   description?: string;
   order: number; // For custom ordering in UI
+  // IMMUTABILITY PRINCIPLE: Historical schedule tracking (minimal invasive)
+  scheduleHistory?: ScheduleTimeline;
+}
+
+// ROBUST TIMELINE-BASED SCHEDULE TRACKING
+export interface ScheduleTimeline {
+  entries: Array<{
+    scheduledDays: DayOfWeek[];
+    effectiveFromDate: DateString;
+  }>;
 }
 
 export interface HabitCompletion extends BaseEntity {

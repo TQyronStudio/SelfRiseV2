@@ -5,6 +5,7 @@ import { DayOfWeek, DateString } from '../types/common';
 import { getPast7Days, getDayOfWeek, formatDateToString, getDayOfWeekFromDateString } from '../utils/date';
 import { goalStorage } from '../services/storage/goalStorage';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '../utils/habitCalculations';
+import { wasScheduledOnDate } from '../utils/habitImmutability';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -119,8 +120,9 @@ export class RecommendationEngine {
 
       relevantDates.forEach(date => {
         const dayOfWeek = getDayOfWeekFromDateString(date);
-        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
-        const recentCompletions = completions.filter(c => 
+        // IMMUTABILITY PRINCIPLE: Use historical scheduled days for each date
+        const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
+        const recentCompletions = completions.filter(c =>
           c.habitId === habit.id && c.date === date
         );
         const isCompleted = recentCompletions.length > 0;
@@ -187,8 +189,9 @@ export class RecommendationEngine {
 
       relevantDates.forEach(date => {
         const dayOfWeek = getDayOfWeekFromDateString(date);
-        const isScheduled = habit.scheduledDays.includes(dayOfWeek);
-        const recentCompletions = completions.filter(c => 
+        // IMMUTABILITY PRINCIPLE: Use historical scheduled days for each date
+        const isScheduled = wasScheduledOnDate(habit, date, dayOfWeek);
+        const recentCompletions = completions.filter(c =>
           c.habitId === habit.id && c.date === date
         );
         const isCompleted = recentCompletions.length > 0;
