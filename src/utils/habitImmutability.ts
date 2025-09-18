@@ -157,6 +157,26 @@ export function createScheduleChangeEntry(
   newScheduledDays: DayOfWeek[],
   changeDate?: DateString
 ): Habit {
+  // INPUT VALIDATION
+  if (!habit) {
+    throw new Error('Habit is required');
+  }
+
+  if (!newScheduledDays || !Array.isArray(newScheduledDays)) {
+    throw new Error('newScheduledDays must be an array');
+  }
+
+  if (newScheduledDays.length === 0) {
+    throw new Error('newScheduledDays cannot be empty');
+  }
+
+  // Validate day names
+  const validDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const invalidDays = newScheduledDays.filter(day => !validDays.includes(day));
+  if (invalidDays.length > 0) {
+    throw new Error(`Invalid day names: ${invalidDays.join(', ')}`);
+  }
+
   const effectiveDate = changeDate || formatDateToString(new Date());
 
   // Initialize timeline if it doesn't exist
