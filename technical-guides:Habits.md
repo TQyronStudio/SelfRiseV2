@@ -233,41 +233,54 @@ Blue dot: Covered missed day (isCovered = true) - shows underlying schedule
 ### 🚨 UNIFIED ALGORITHM
 **Single unified approach used across ALL components for consistent results.**
 
-### Frequency-Proportional Bonus Formula
+### Simple Intuitive Formula
 ```typescript
 function calculateHabitCompletionRate(habit: Habit, completionData: HabitCompletionData) {
-  // Base scheduled completion rate (0-100%)
+  // SIMPLE INTUITIVE SYSTEM: All completions / scheduled days
+  // This includes: scheduled completions + make-up completions + bonus completions
+  //
+  // IMMUTABILITY PRINCIPLE "MINULOST SE NEMĚNÍ":
+  // Input data (scheduledDays, completedScheduled, bonusCompletions) MUST be calculated
+  // with historical timeline awareness using wasScheduledOnDate() and Smart Bonus Conversion.
+  // This function only does the final math - historical accuracy is preserved in data layer.
+
+  const totalCompletions = completedScheduled + bonusCompletions;
+  const totalCompletionRate = scheduledDays > 0 ? (totalCompletions / scheduledDays) * 100 : 0;
+
+  // Calculate individual components for display purposes
   const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
-
-  // Frequency-proportional bonus rate
-  const habitFrequencyPerWeek = habit.scheduledDays.length;
-  const bonusRate = habitFrequencyPerWeek > 0 ? (bonusCompletions / habitFrequencyPerWeek) * 100 : 0;
-
-  // Total completion rate (no artificial cap)
-  const totalCompletionRate = scheduledRate + bonusRate;
+  const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 100 : 0;
 
   return {
     scheduledRate: Math.round(scheduledRate * 10) / 10,
     bonusRate: Math.round(bonusRate * 10) / 10,
     totalCompletionRate: Math.round(totalCompletionRate * 10) / 10,
-    isMaxedOut: uncappedRate > 200
+    isMaxedOut: totalCompletionRate > 120
   };
 }
 ```
 
-### Bonus Impact Examples
+### Simple Calculation Examples
 ```typescript
-// 1x per week habit with 1 bonus = +100% impact
-habitFrequency: 1 day/week
-bonusCompletions: 1
-bonusRate = (1 / 1) * 100 = 100%
+// Example 1: Perfect performance with bonus
+Scheduled days: 20
+Completed scheduled (including make-up): 20
+Bonus completions: 3
+Result: (20 + 3) / 20 × 100 = 115%
 
-// 7x per week habit with 1 bonus = +14% impact
-habitFrequency: 7 days/week
-bonusCompletions: 1
-bonusRate = (1 / 7) * 100 = 14.3%
+// Example 2: Good performance with some missed days
+Scheduled days: 23
+Completed scheduled (including make-up): 17
+Bonus completions: 4
+Result: (17 + 4) / 23 × 100 = 91.3%
 
-// This makes bonus feel appropriately valuable relative to habit frequency
+// Example 3: Perfect scheduled, no bonus
+Scheduled days: 15
+Completed scheduled: 15
+Bonus completions: 0
+Result: (15 + 0) / 15 × 100 = 100%
+
+// Key principle: 100% = perfect adherence, over 100% = exceptional effort
 ```
 
 ---

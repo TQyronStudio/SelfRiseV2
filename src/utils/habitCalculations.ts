@@ -3,23 +3,22 @@ import { DateString } from '../types/common';
 import { getHabitFrequencyForDate, calculateAverageFrequencyForPeriod } from './habitImmutability';
 
 /**
- * Unified Habit Completion Rate Calculation Utility
- * 
- * This utility provides consistent bonus completion calculation across all components
- * while preserving each component's original time period measurement.
- * 
+ * Simple Habit Completion Rate Calculation Utility
+ *
+ * This utility provides intuitive completion rate calculation across all components.
+ *
  * Key Features:
- * - Frequency-proportional bonus calculation (1x/week = +100%, 7x/week = +14%)
+ * - Simple formula: (scheduled + make-up + bonus) / total scheduled × 100
+ * - Intuitive results (100% = perfect, over 100% = exceptional)
  * - Safe division handling (no zero division errors)
- * - Real performance tracking (no artificial caps)
- * - Time-period agnostic (works with any date range)
+ * - Easy to understand for users
  */
 
 export interface HabitCompletionData {
   scheduledDays: number;
-  completedScheduled: number;
+  completedScheduled: number; // includes make-up completions
   bonusCompletions: number;
-  // IMMUTABILITY PRINCIPLE: Support for time-segmented calculation
+  // IMMUTABILITY PRINCIPLE: Support for time-segmented calculation (optional)
   periodStartDate?: DateString; // For historical frequency calculation
   periodEndDate?: DateString;   // For historical frequency calculation
 }
@@ -46,32 +45,24 @@ export function calculateHabitCompletionRate(
   habit: Habit,
   completionData: HabitCompletionData
 ): HabitCompletionResult {
-  const { scheduledDays, completedScheduled, bonusCompletions, periodStartDate, periodEndDate } = completionData;
+  const { scheduledDays, completedScheduled, bonusCompletions } = completionData;
 
-  // Calculate base scheduled completion rate
+  // SIMPLE INTUITIVE SYSTEM: All completions / scheduled days
+  // This includes: scheduled completions + make-up completions + bonus completions
+  //
+  // IMMUTABILITY PRINCIPLE "MINULOST SE NEMĚNÍ":
+  // Input data (scheduledDays, completedScheduled, bonusCompletions) MUST be calculated
+  // with historical timeline awareness using wasScheduledOnDate() and Smart Bonus Conversion.
+  // This function only does the final math - historical accuracy is preserved in data layer.
+  const totalCompletions = completedScheduled + bonusCompletions;
+  const totalCompletionRate = scheduledDays > 0 ? (totalCompletions / scheduledDays) * 100 : 0;
+
+  // Calculate individual components for display purposes
   const scheduledRate = scheduledDays > 0 ? (completedScheduled / scheduledDays) * 100 : 0;
+  const bonusRate = scheduledDays > 0 ? (bonusCompletions / scheduledDays) * 100 : 0;
 
-  // IMMUTABILITY: Calculate historical frequency for bonus rate
-  let habitFrequencyPerWeek: number;
-
-  if (periodStartDate && periodEndDate) {
-    // TIME-SEGMENTED APPROACH: Calculate average frequency for the period
-    // This respects historical scheduled days changes
-    habitFrequencyPerWeek = calculateAverageFrequencyForPeriod(habit, periodStartDate, periodEndDate);
-  } else if (periodStartDate) {
-    // Single date provided - use frequency for that specific date
-    habitFrequencyPerWeek = getHabitFrequencyForDate(habit, periodStartDate);
-  } else {
-    // FALLBACK: Use current frequency (backward compatibility)
-    habitFrequencyPerWeek = habit.scheduledDays.length;
-  }
-
-  // Calculate frequency-proportional bonus rate with historical context
-  const bonusRate = habitFrequencyPerWeek > 0 ? (bonusCompletions / habitFrequencyPerWeek) * 100 : 0;
-
-  // Calculate total completion rate (no artificial cap)
-  const totalCompletionRate = scheduledRate + bonusRate;
-  const isMaxedOut = false; // No longer applicable - real performance matters
+  // Check if performance is exceptional (over 120%)
+  const isMaxedOut = totalCompletionRate > 120;
 
   return {
     scheduledRate: Math.round(scheduledRate * 10) / 10, // 1 decimal place

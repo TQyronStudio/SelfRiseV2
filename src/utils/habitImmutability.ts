@@ -134,8 +134,9 @@ export function calculateAverageFrequencyForPeriod(
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  // Return average frequency per day (which represents days per week when scaled)
-  return dayCount > 0 ? totalFrequency / dayCount : 0;
+  // Return average frequency per week (scale from per day to per week)
+  const averageFrequencyPerDay = dayCount > 0 ? totalFrequency / dayCount : 0;
+  return averageFrequencyPerDay * 7; // Convert to frequency per week
 }
 
 /**
