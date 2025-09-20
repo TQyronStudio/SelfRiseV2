@@ -224,6 +224,126 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Key Features**: Smart bonus conversion logic, habit creation date respect, optimized recommendation engine
 **Architecture**: Real-time data updates with proper caching and performance monitoring
 
+### Phase 6.5: Contextual Help & User Guidance System 🤝
+
+**Goal**: Implement comprehensive contextual help system to guide users through complex features and reduce confusion while maintaining clean, uncluttered UI design.
+
+#### Checkpoint 6.5.1: Core HelpTooltip Component Design & Implementation 🛠️
+**Goal**: Create reusable, elegant help component with consistent design language
+
+##### Sub-checkpoint 6.5.1.A: HelpTooltip Component Architecture ⚙️
+- [ ] **Base Component Creation**: Design and implement `HelpTooltip.tsx` with TypeScript interfaces
+- [ ] **Visual Design**: Implement ❓ icon with consistent styling (size: 16px, color: secondary)
+- [ ] **Tooltip/Popover UI**: Create elegant popup with proper positioning, shadows, and animations
+- [ ] **Responsive Behavior**: Ensure proper display on different screen sizes and orientations
+- [ ] **Accessibility Support**: Add screen reader support, keyboard navigation, and high contrast mode
+
+##### Sub-checkpoint 6.5.1.B: Interactive Behavior & Animations 🎭
+- [ ] **Trigger Behavior**: Implement tap-to-show with close button (X) for user control
+- [ ] **Positioning Logic**: Smart positioning to avoid screen edges and content overlap
+- [ ] **Animation System**: Smooth fade-in/fade-out with spring animation (200ms duration)
+- [ ] **Multiple Tooltips**: Prevent multiple tooltips open simultaneously
+- [ ] **Performance Optimization**: Lazy loading and memory management for tooltip content
+
+**Technical Implementation Reference**:
+```typescript
+interface HelpTooltipProps {
+  helpKey: string;                    // Reference to i18n help text
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
+  maxWidth?: number;                  // Default 280px
+  iconSize?: number;                  // Default 16px
+  showOnMount?: boolean;             // For onboarding hints
+  variant?: 'default' | 'prominent'; // Styling variants
+}
+```
+
+#### Checkpoint 6.5.2: Help Content Management System 📚
+**Goal**: Establish scalable system for managing, translating, and updating help content
+
+##### Sub-checkpoint 6.5.2.A: Content Structure & i18n Preparation 🌍
+- [ ] **Localization Structure**: Extend existing i18n system with dedicated `help` namespace
+- [ ] **Content Organization**: Create hierarchical help text structure (screen.section.feature)
+- [ ] **English Content Implementation**: Complete help content in English only (initial version)
+- [ ] **Content Validation**: Add TypeScript type checking for help content completeness
+- [ ] **Content Updates**: Design system for easy content updates without app releases
+
+##### Sub-checkpoint 6.5.2.B: Help Content Creation & Quality Assurance 📝
+- [ ] **Content Writing Guidelines**: Establish tone, length (max 150 words), and clarity standards
+- [ ] **Visual Content Support**: Add support for inline icons, bullet points, and emphasis
+- [ ] **Content Review Process**: Implement content validation for accuracy and usefulness
+- [ ] **Version Control**: Track help content changes and user feedback integration
+- [ ] **A/B Testing Support**: Infrastructure for testing different help text variations
+
+**Content Structure Example**:
+```typescript
+// locales/en/help.ts
+export const help = {
+  habits: {
+    scheduling: {
+      title: "Habit Scheduling",
+      content: "Choose which days your habit should be active. Daily habits show every day, while custom scheduling lets you pick specific weekdays."
+    },
+    bonusConversion: {
+      title: "Bonus Conversion",
+      content: "Complete more than your daily goal to earn bonus XP! Extra completions convert to XP at 60% rate for sustainable motivation."
+    }
+  },
+  journal: {
+    selfRiseStreak: {
+      title: "SelfRise Streak",
+      content: "Your consecutive days of app engagement. Differs from Gratitude Streak - this tracks overall daily activity across all features."
+    }
+  }
+}
+```
+
+#### Checkpoint 6.5.3: Strategic Help Placement Deployment 📍
+**Goal**: Identify and implement help tooltips in the most impactful locations across the app
+
+##### Sub-checkpoint 6.5.3.A: Primary Feature Help Implementation 🎯
+- [ ] **Habits Screen**: Scheduling system, bonus conversion logic, streak explanations
+- [ ] **Journal Screen**: SelfRise Streak vs Gratitude Streak distinction, debt recovery system
+- [ ] **Goals Screen**: Prediction methods (linear/exponential), timeline check warnings, progress calculation
+- [ ] **Home Dashboard**: "For You" recommendations logic, XP progress bar, streak displays
+- [ ] **Achievement System**: Rarity categories, XP rewards, unlock conditions
+
+##### Sub-checkpoint 6.5.3.B: Advanced Feature Help Implementation ⚡
+- [ ] **Monthly Challenges**: Star difficulty system, progress tracking, completion rewards
+- [ ] **Settings Screen**: Feature explanations, notification types, data export options
+- [ ] **Gamification Features**: Level progression, XP multipliers, achievement categories
+- [ ] **Statistics Views**: Calculation methods, trend analysis, prediction accuracy
+- [ ] **Complex Modals**: Multi-step processes, form validations, data relationships
+
+**Strategic Placement Priorities**:
+1. **Critical Path Features** (habits creation, goal setting) - High priority
+2. **Complex Logic** (bonus conversion, predictions) - High priority
+3. **New User Onboarding** (first-time feature discovery) - Medium priority
+4. **Advanced Features** (achievements, statistics) - Medium priority
+5. **Settings & Preferences** (configuration options) - Low priority
+
+#### Checkpoint 6.5.4: User Experience Testing & Optimization 🧪
+**Goal**: Validate help system effectiveness and optimize based on user behavior data
+
+##### Sub-checkpoint 6.5.4.A: Help System Analytics & Metrics 📊
+- [ ] **Usage Tracking**: Implement analytics for help tooltip open rates and engagement
+- [ ] **Content Effectiveness**: Track which help content reduces user confusion/errors
+- [ ] **User Journey Analysis**: Identify help-seeking patterns and proactive placement opportunities
+- [ ] **Performance Monitoring**: Measure impact on app performance and loading times
+- [ ] **Accessibility Validation**: Test with screen readers and accessibility tools
+
+##### Sub-checkpoint 6.5.4.B: Iterative Improvement & Maintenance 🔄
+- [ ] **User Feedback Integration**: Collect and analyze user feedback on help content quality
+- [ ] **Content Gap Analysis**: Identify missing help opportunities through user behavior
+- [ ] **Help System Evolution**: Plan progressive disclosure and contextual help expansion
+- [ ] **Maintenance Workflow**: Establish process for keeping help content current with app updates
+- [ ] **Success Metrics Validation**: Measure reduction in user confusion and support requests
+
+**Success Metrics**:
+- **User Comprehension**: 85%+ users understand features after reading help
+- **Help Engagement**: 60%+ of new users interact with help tooltips
+- **Error Reduction**: 40% reduction in user mistakes in helped features
+- **Support Impact**: 50% reduction in user questions about helped features
+
 ### Phase 7: Settings & User Experience
 
 #### Checkpoint 7.1: Notification Settings
@@ -333,6 +453,88 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [ ] Release planning and rollout strategy
 - [ ] Marketing materials and user guides
 - [ ] Post-launch monitoring setup
+
+### Phase 11: Complete App Localization & Multi-language Support 🌍
+
+**Goal**: Implement comprehensive translation of entire application to German and Spanish, including all help content and contextual guidance.
+
+**Implementation Priority**: Post-launch enhancement (after core app stability)
+**Prerequisites**: Stable app release, user feedback collection, dedicated translation resources
+
+#### Checkpoint 11.1: Translation Infrastructure & Workflow Setup 🔧
+**Goal**: Establish professional translation workflow and quality assurance system
+
+##### Sub-checkpoint 11.1.A: Translation Management System 📋
+- [ ] **Translation Platform Setup**: Configure professional translation management platform (Crowdin/Lokalise)
+- [ ] **Content Audit**: Complete audit of all user-facing strings across the entire application
+- [ ] **Key Standardization**: Ensure consistent translation key naming and organization
+- [ ] **Translator Guidelines**: Create comprehensive style guide for German and Spanish translations
+- [ ] **Quality Assurance Process**: Establish review workflow with native speakers
+
+##### Sub-checkpoint 11.1.B: Cultural Adaptation & Localization 🏛️
+- [ ] **Cultural Context Research**: Research German and Spanish cultural preferences for productivity apps
+- [ ] **Regional Variations**: Decide on German (DE-DE) vs Austrian (DE-AT) and Spain (ES-ES) vs Latin America (ES-419)
+- [ ] **Currency & Date Formats**: Implement proper localization for numbers, dates, and formats
+- [ ] **Legal Compliance**: Ensure privacy policies and terms comply with German/Spanish regulations
+- [ ] **App Store Optimization**: Create localized app store listings and promotional materials
+
+#### Checkpoint 11.2: Complete Content Translation Implementation 📝
+**Goal**: Translate all application content with professional quality and cultural appropriateness
+
+##### Sub-checkpoint 11.2.A: Core Feature Translation 🎯
+- [ ] **Navigation & UI Elements**: Translate all buttons, labels, navigation items, and system messages
+- [ ] **Feature Content**: Complete translation of Habits, Journal, Goals, Achievement descriptions
+- [ ] **Gamification Elements**: Translate XP system, achievements, level names, and celebration messages
+- [ ] **Error Messages**: Translate all error messages, validation texts, and system notifications
+- [ ] **Onboarding Flow**: Complete translation of user onboarding and tutorial content
+
+##### Sub-checkpoint 11.2.B: Contextual Help & Guidance Translation 📚
+- [ ] **Help Tooltip Content**: Complete translation of all help content from Phase 6.5
+- [ ] **Recommendation Engine**: Translate "For You" recommendations and contextual advice
+- [ ] **Monthly Challenges**: Translate challenge descriptions, tips, and completion messages
+- [ ] **Statistics Explanations**: Translate all analytics descriptions and interpretation guides
+- [ ] **Settings Descriptions**: Translate all settings explanations and configuration help
+
+#### Checkpoint 11.3: Advanced Localization Features 🚀
+**Goal**: Implement sophisticated localization features beyond basic text translation
+
+##### Sub-checkpoint 11.3.A: Smart Language Detection & Switching 🔄
+- [ ] **Device Language Detection**: Automatically detect and set appropriate language on first launch
+- [ ] **Language Switching UI**: Implement elegant language selection interface in Settings
+- [ ] **Content Migration**: Handle language switching without data loss or UI corruption
+- [ ] **Fallback Handling**: Graceful fallback to English for missing translations
+- [ ] **Performance Optimization**: Lazy loading of translation bundles for app performance
+
+##### Sub-checkpoint 11.3.B: Localization Testing & Quality Assurance 🧪
+- [ ] **Automated Testing**: Create test suites to validate translation key coverage
+- [ ] **UI Layout Testing**: Test German and Spanish text expansion/contraction in all screens
+- [ ] **Cultural Testing**: Validate cultural appropriateness with native speaker testers
+- [ ] **Edge Case Testing**: Test app behavior with incomplete or missing translations
+- [ ] **Performance Impact Testing**: Measure localization impact on app startup and memory usage
+
+#### Checkpoint 11.4: Launch & Maintenance Strategy 📈
+**Goal**: Successfully launch multi-language versions and establish ongoing maintenance
+
+##### Sub-checkpoint 11.4.A: Multi-language Launch Preparation 🚀
+- [ ] **Regional App Store Setup**: Configure German and Spanish app store presence
+- [ ] **Marketing Localization**: Create region-specific marketing materials and campaigns
+- [ ] **Community Building**: Establish German and Spanish user communities and support channels
+- [ ] **Analytics Setup**: Configure language-specific analytics and user behavior tracking
+- [ ] **Support Documentation**: Create localized help documentation and FAQ resources
+
+##### Sub-checkpoint 11.4.B: Ongoing Translation Maintenance 🔄
+- [ ] **Update Workflow**: Establish process for translating new features and content updates
+- [ ] **Community Contributions**: Set up system for community-contributed translations and improvements
+- [ ] **Quality Monitoring**: Regular audits of translation quality and user feedback integration
+- [ ] **Seasonal Content**: Plan for holiday-specific content and regional celebrations
+- [ ] **Performance Monitoring**: Track usage patterns and engagement across different language versions
+
+**Success Metrics**:
+- **Translation Coverage**: 100% coverage of user-facing strings in German and Spanish
+- **Cultural Appropriateness**: 90%+ approval rating from native speaker testers
+- **User Adoption**: 25%+ increase in user base from German and Spanish markets
+- **App Store Performance**: 4.0+ star rating in German and Spanish app stores
+- **Content Consistency**: <5% discrepancy in feature understanding between languages
 
 ---
 
