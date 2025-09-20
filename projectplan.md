@@ -231,22 +231,16 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [ ] Streak milestone notifications
 - [ ] Achievement unlock notifications
 
-#### Checkpoint 7.2: User Authentication UI
-- [ ] User registration and login forms
-- [ ] Password reset functionality
-- [ ] Profile management interface
-
-#### Checkpoint 7.3: App Settings
+#### Checkpoint 7.2: App Settings
 - [ ] Theme selection and customization
 - [ ] Language preference settings
 - [ ] Data export and backup options
 
 ### Phase 8: External Service Integration Preparation
 
-#### Checkpoint 8.1: Firebase Integration Prep
-- [ ] Firebase project setup and configuration
-- [ ] Authentication service integration
-- [ ] Cloud storage preparation
+#### Checkpoint 8.1: Firebase Configuration Prep
+- [ ] Firebase project setup and configuration (for analytics and notifications only)
+- [ ] Cloud storage preparation (for app analytics and crash reporting)
 
 #### Checkpoint 8.2: AdMob Integration Prep
 - [ ] AdMob account setup and ad unit creation
