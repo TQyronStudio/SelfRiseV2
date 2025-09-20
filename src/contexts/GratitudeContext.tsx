@@ -243,8 +243,9 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
   const applySingleWarmUpPayment = async (): Promise<{ remainingFrozenDays: number; isFullyWarmed: boolean }> => {
     try {
       const result = await gratitudeStorage.applySingleWarmUpPayment();
-      // Refresh streak info after payment to update UI
-      await refreshStats();
+      // NOTE: No need to call refreshStats() here - applySingleWarmUpPayment() already updates streak internally
+      // This prevents duplicate calculateAndUpdateStreak() calls that could cause race conditions
+      console.log(`[DEBUG] GratitudeContext applySingleWarmUpPayment completed`);
       return result;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to apply warm up payment');

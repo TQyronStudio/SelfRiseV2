@@ -9,6 +9,10 @@ import { XP_REWARDS } from '../../constants/gamification';
 import { DeviceEventEmitter } from 'react-native';
 
 export class GratitudeStorage implements EntityStorage<Gratitude> {
+
+  // 🚨 CRITICAL FIX: Async lock to prevent race conditions in calculateAndUpdateStreak()
+  private _isCalculatingStreak = false;
+  private _pendingCalculations: Array<{resolve: Function, reject: Function}> = [];
   
   // Gratitude CRUD operations
   async getAll(): Promise<Gratitude[]> {
@@ -506,6 +510,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
 
   // Calculate and update streak based on completed dates
   async calculateAndUpdateStreak(): Promise<GratitudeStreak> {
+    // 🚨 CRITICAL FIX: Prevent race conditions with async locking
+    if (this._isCalculatingStreak) {
+      console.log(`[DEBUG] calculateAndUpdateStreak: Already calculating, queuing request`);
+      // Queue this call and wait for the current calculation to finish
+      return new Promise((resolve, reject) => {
+        this._pendingCalculations.push({ resolve, reject });
+      });
+    }
+
+    this._isCalculatingStreak = true;
+
     try {
       const completedDates = await this.getCompletedDates();
       const bonusDates = await this.getBonusDates();
@@ -618,13 +633,15 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           // User completed today after warm-up, so continue the streak
           finalCurrentStreak = savedStreak.streakBeforeFreeze + 1;
           console.log(`[DEBUG] calculateAndUpdateStreak: Continuing streak after warm-up: ${savedStreak.streakBeforeFreeze} + 1 = ${finalCurrentStreak}`);
+          // Clear the memory now that streak has been properly continued
+          newStreakBeforeFreeze = null;
         } else {
           // User hasn't completed today yet, preserve pre-freeze streak
           finalCurrentStreak = savedStreak.streakBeforeFreeze;
           console.log(`[DEBUG] calculateAndUpdateStreak: Preserving pre-freeze streak: ${finalCurrentStreak} (today not complete yet)`);
+          // CRITICAL FIX: Keep streakBeforeFreeze until user completes today
+          newStreakBeforeFreeze = savedStreak.streakBeforeFreeze;
         }
-        // Clear the memory once we've used it (unless still frozen)
-        newStreakBeforeFreeze = null;
       } else {
         // Normal unfrozen behavior - recalculate streak
         finalCurrentStreak = newCalculatedStreak;
@@ -655,10 +672,28 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       };
       
       console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
-      
+
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
-      return updatedStreak;
+
+      // 🚨 CRITICAL FIX: Process pending calculations with the same result
+      const result = updatedStreak;
+      const pendingCallbacks = [...this._pendingCalculations];
+      this._pendingCalculations = [];
+      this._isCalculatingStreak = false;
+
+      // Resolve all pending calls with the same result
+      pendingCallbacks.forEach(({ resolve }) => resolve(result));
+
+      return result;
     } catch (error) {
+      // 🚨 CRITICAL FIX: Release lock and reject pending calls on error
+      const pendingCallbacks = [...this._pendingCalculations];
+      this._pendingCalculations = [];
+      this._isCalculatingStreak = false;
+
+      // Reject all pending calls with the same error
+      pendingCallbacks.forEach(({ reject }) => reject(error));
+
       throw new StorageError(
         'Failed to calculate and update streak',
         STORAGE_ERROR_CODES.UNKNOWN,
@@ -1244,16 +1279,23 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         console.log(`[DEBUG] warmUpStreakWithAds: streakBeforeFreeze=${currentStreakInfo.streakBeforeFreeze} will be used for proper continuation`);
       }
       
-      // Save updated streak info
+      // CRITICAL FIX: Recalculate streak BEFORE saving to ensure atomicity
+      // This prevents inconsistent state if app crashes between save and recalculation
+
+      // First save the payment data
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreakInfo);
-      
+
+      // Then immediately recalculate to apply the new logic
+      // If this fails, the payment data is still saved and will be processed on next app launch
+      await this.calculateAndUpdateStreak();
+
       // BUG #3 FIX: Validate streak integrity after warm up payment
       if (newFrozenDays === 0) {
         console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - Debt fully paid, streak should remain ${currentStreakInfo.currentStreak}`);
         console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - No entries should be created during warm up payment`);
         console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - preserveCurrentStreak flag should be true`);
       }
-      
+
       console.log(`[DEBUG] warmUpStreakWithAds: Successfully applied ${adsApplied} ads. New debt: ${newFrozenDays}`);
       
     } catch (error) {

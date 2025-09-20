@@ -161,7 +161,8 @@ export default function JournalScreen() {
       
       // Check for streak milestones after completing daily requirement
       setTimeout(async () => {
-        await actions.refreshStats();
+        // NOTE: No need to call refreshStats() here - addGratitude() already updates context
+        // Just use the current streak value from state
         const currentStreak = state.streakInfo?.currentStreak || 0;
         
         // Show celebration for special milestones (21, 100, 365, 1000) or generic for others

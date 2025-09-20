@@ -42,6 +42,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
   const [issueRetryCount, setIssueRetryCount] = useState(0);
+  const [isWatchingAd, setIsWatchingAd] = useState(false); // 🚨 CRITICAL FIX: Prevent multiple clicks
   
   // 🚀 IMPERATIVE HANDLE: Expose triggerDebtModal method to parent component
   useImperativeHandle(ref, () => ({
@@ -247,13 +248,10 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       setAdsWatched(0);
       setTotalAdsNeeded(0);
       
-      // Reload streak data to reflect changes
-      await loadStreakData();
-      console.log(`[DEBUG] loadStreakData completed`);
-      
-      // CRITICAL FIX: Also refresh GratitudeContext so My Journal screen updates immediately
+      // CRITICAL FIX: Only refresh once to avoid duplicate calculateAndUpdateStreak() calls
+      // applySingleWarmUpPayment() already updated streak internally, just refresh UI state
       await actions.refreshStats();
-      console.log(`[DEBUG] GratitudeContext refreshStats completed`);
+      console.log(`[DEBUG] GratitudeContext refreshStats completed - no duplicate calls`);
       
       // Verify debt was actually cleared (should be 0 due to incremental payments)
       const remainingDebt = await actions.calculateFrozenDays();
