@@ -421,6 +421,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           preserveCurrentStreakUntil: streak.preserveCurrentStreakUntil || null,
           // 🚨 CRITICAL FIX: Don't auto-set to 0, preserve null until first freeze
           streakBeforeFreeze: streak.streakBeforeFreeze ?? null,
+          warmUpCompletedOn: (streak as any).warmUpCompletedOn ?? null,
           warmUpPayments: streak.warmUpPayments || [],
           warmUpHistory: streak.warmUpHistory || [],
           autoResetTimestamp: streak.autoResetTimestamp || null,
@@ -442,6 +443,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreakUntil: null,
         // 🚨 CRITICAL FIX: Default to null, not 0 - preserves proper initialization
         streakBeforeFreeze: null,
+        warmUpCompletedOn: null,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: null,
@@ -488,6 +490,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
         streakBeforeFreeze: 0,
+        warmUpCompletedOn: null,
         warmUpPayments: [],
         warmUpHistory: [],
         autoResetTimestamp: new Date(), // CRITICAL: Mark manual reset timestamp
@@ -599,6 +602,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           preserveCurrentStreak: false,
           preserveCurrentStreakUntil: null,
           streakBeforeFreeze: 0,
+          warmUpCompletedOn: null,
           warmUpPayments: [],
           warmUpHistory: [],
           autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark auto-reset
@@ -617,9 +621,15 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // IMPROVED BUG #3 FIX: Smart streak continuation after warm-up using pre-freeze memory
       let finalCurrentStreak: number;
       let newStreakBeforeFreeze: number | null = savedStreak.streakBeforeFreeze ?? null;
+      let newWarmUpCompletedOn: DateString | null = savedStreak.warmUpCompletedOn ?? null;
       const todayComplete = completedDates.includes(currentDate);
-      
-      if (isFrozen) {
+
+      // 🚨 CRITICAL FIX: Check if warm-up was already completed today - prevent multiple recalculation
+      if (savedStreak.warmUpCompletedOn === currentDate && todayComplete) {
+        // Warm-up was already processed today, use existing streak (no recalculation)
+        finalCurrentStreak = savedStreak.currentStreak;
+        console.log(`[DEBUG] calculateAndUpdateStreak: Warm-up already completed today, using existing streak: ${finalCurrentStreak}`);
+      } else if (isFrozen) {
         // When streak gets frozen, remember the ORIGINAL streak value (before any recalculations)
         if (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined) {
           newStreakBeforeFreeze = originalStreakValue; // 🚨 FIX: Use original value, not current
@@ -633,7 +643,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           // User completed today after warm-up, so continue the streak
           finalCurrentStreak = savedStreak.streakBeforeFreeze + 1;
           console.log(`[DEBUG] calculateAndUpdateStreak: Continuing streak after warm-up: ${savedStreak.streakBeforeFreeze} + 1 = ${finalCurrentStreak}`);
-          // Clear the memory now that streak has been properly continued
+          // Mark warm-up as completed today and clear the memory
+          newWarmUpCompletedOn = currentDate;
           newStreakBeforeFreeze = null;
         } else {
           // User hasn't completed today yet, preserve pre-freeze streak
@@ -669,9 +680,10 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         preserveCurrentStreakUntil: savedStreak.preserveCurrentStreakUntil || null, // Old timestamp system
         // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
         streakBeforeFreeze: newStreakBeforeFreeze,
+        warmUpCompletedOn: newWarmUpCompletedOn,
       };
       
-      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
+      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}, warmUpCompletedOn=${newWarmUpCompletedOn}`);
 
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
 

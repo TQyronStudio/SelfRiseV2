@@ -17,7 +17,7 @@ import { DayPicker } from './DayPicker';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
-import { ErrorModal } from '@/src/components/common';
+import { ErrorModal, HelpTooltip } from '@/src/components/common';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -162,7 +162,10 @@ export function HabitForm({
           </View>
 
           <View style={[styles.compactSection, styles.lastCompactSection]}>
-            <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
+            <View style={styles.labelWithHelp}>
+              <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
+              <HelpTooltip helpKey="habits.scheduling" />
+            </View>
             <DayPicker
               selectedDays={formData.scheduledDays}
               onDayToggle={handleDayToggle}
@@ -237,6 +240,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.semibold,
     color: Colors.text,
+    marginBottom: 8,
+  },
+  labelWithHelp: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   input: {

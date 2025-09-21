@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
+import { HelpTooltip } from '@/src/components/common';
 
 interface DailyGratitudeProgressProps {
   currentCount: number;
@@ -103,24 +104,43 @@ export default function DailyGratitudeProgress({
       {/* Streak Display */}
       {streakInfo && (
         <View style={styles.streakContainer}>
-          <View style={styles.streakItem}>
-            <Text style={[
-              styles.streakNumber,
-              streakInfo.isFrozen && styles.frozenStreakNumber
-            ]}>
-              {streakInfo.isFrozen ? '🧊 ' : ''}{streakInfo.currentStreak}
-            </Text>
-            <Text style={[
-              styles.streakLabel,
-              streakInfo.isFrozen && styles.frozenStreakLabel
-            ]}>
-              {streakInfo.isFrozen ? 'Frozen Streak' : t('journal.currentStreak')}
-            </Text>
-          </View>
-          <View style={styles.streakDivider} />
-          <View style={styles.streakItem}>
-            <Text style={styles.streakNumber}>{streakInfo.longestStreak}</Text>
-            <Text style={styles.streakLabel}>{t('journal.longestStreak')}</Text>
+          <View style={styles.streakHeaderRow}>
+            <View style={styles.streakContent}>
+              <View style={styles.streakItem}>
+                <View style={styles.streakNumberContainer}>
+                  <Text style={[
+                    styles.streakNumber,
+                    streakInfo.isFrozen && styles.frozenStreakNumber
+                  ]}>
+                    {streakInfo.isFrozen ? '🧊 ' : ''}{streakInfo.currentStreak}
+                  </Text>
+                  {streakInfo.isFrozen && (
+                    <HelpTooltip
+                      helpKey="journal.debtRecovery"
+                      iconSize={12}
+                      maxWidth={280}
+                    />
+                  )}
+                </View>
+                <Text style={[
+                  styles.streakLabel,
+                  streakInfo.isFrozen && styles.frozenStreakLabel
+                ]}>
+                  {streakInfo.isFrozen ? 'Frozen Streak' : t('journal.currentStreak')}
+                </Text>
+              </View>
+              <View style={styles.streakDivider} />
+              <View style={styles.streakItem}>
+                <Text style={styles.streakNumber}>{streakInfo.longestStreak}</Text>
+                <Text style={styles.streakLabel}>{t('journal.longestStreak')}</Text>
+              </View>
+            </View>
+            <HelpTooltip
+              helpKey="journal.selfRiseStreak"
+              iconSize={16}
+              maxWidth={300}
+              variant="prominent"
+            />
           </View>
         </View>
       )}
@@ -231,17 +251,31 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   streakContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginTop: Layout.spacing.md,
     paddingTop: Layout.spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
+  streakHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  streakContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
   streakItem: {
     alignItems: 'center',
     flex: 1,
+  },
+  streakNumberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
   streakNumber: {
     fontSize: Fonts.sizes.xl,

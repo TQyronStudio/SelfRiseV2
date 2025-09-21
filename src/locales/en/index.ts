@@ -926,7 +926,131 @@ const en: TranslationKeys = {
       sunday: 'Sun',
     },
   },
-  
+
+  // Help system
+  help: {
+    // Habits screen help
+    habits: {
+      scheduling: {
+        title: 'Habit Scheduling',
+        content: 'You\'re in control! Choose which days your habit should be active. Want daily motivation? Go for every day! Prefer weekdays only? You got it! Custom scheduling gives you the freedom to build habits that actually fit your life.'
+      },
+      bonusConversion: {
+        title: 'Bonus Conversion',
+        content: 'Going above and beyond? We love that energy! 🔥 When you complete more than your daily goal, those extra efforts turn into bonus XP. It\'s our way of celebrating your amazing dedication!'
+      },
+      streakTracking: {
+        title: 'Habit Streaks',
+        content: 'Build incredible streaks by completing your habits day after day! 📅 Watch your numbers grow and feel that momentum building. Plus, you\'ll unlock awesome achievements at major milestones!'
+      },
+      colorAndIcon: {
+        title: 'Habit Customization',
+        content: 'Make it yours! Pick colors and icons that speak to you. 🎨 When your habits look amazing, you\'ll actually want to check them off. It\'s like having a personal dashboard that motivates you every day!'
+      },
+      makeupFunction: {
+        title: 'Smart Make-up System',
+        content: 'Life happens, and we\'ve got your back! ✨ When you miss a scheduled day, any bonus completions you earn can automatically convert to "make-up" that day. Look for the golden checkmark ✓ in your calendar - it means you recovered a missed day with your extra effort!'
+      }
+    },
+
+    // Journal screen help
+    journal: {
+      gratitudeStreak: {
+        title: 'Gratitude Streak',
+        content: 'You\'re building something beautiful! ✨ Each day you write gratitude entries, your streak grows stronger. Just 3 entries daily keeps your momentum going and unlocks amazing celebration milestones!'
+      },
+      selfRiseStreak: {
+        title: 'SelfRise Streak',
+        content: 'This is your overall growth journey! 🌱 To keep your streak going, write at least 3 gratitude entries each day. This tracks your daily engagement across everything - habits, goals, and journal. It\'s the big picture of your awesome progress!'
+      },
+      bonusEntries: {
+        title: 'Bonus Entries',
+        content: 'Feeling extra grateful today? Go for it! 💫 Writing more than 3 entries earns you bonus XP and shows your incredible dedication. Plus, you\'ll unlock special celebration moments!'
+      },
+      debtRecovery: {
+        title: 'Streak Recovery',
+        content: 'Life happens, and that\'s totally okay! 💪 If you miss a day, watch a quick ad to recover up to 3 missed days. We believe in second chances and getting you back on track!'
+      }
+    },
+
+    // Goals screen help
+    goals: {
+      overview: {
+        title: 'Create Any Goal',
+        content: 'You can create absolutely any goal you want! 🎯 Just enter your custom units (books, miles, hours, pages, kilometers, etc.) and set your target amount. That\'s it - the app will track your progress!'
+      },
+      predictions: {
+        title: 'Smart Goal Predictions',
+        content: 'We\'re like your personal progress fortune teller! 🔮 Our smart system analyzes your patterns and gives you realistic timelines. No more guessing - you\'ll know exactly when you\'ll crush that goal!'
+      },
+      progressTracking: {
+        title: 'Track Your Journey',
+        content: 'Every step counts! 📈 Add your daily or weekly progress and watch your goal come to life. You can increase, decrease, or set exact amounts. Add notes to remember those proud moments!'
+      },
+      templates: {
+        title: 'Goal Templates',
+        content: 'Why start from scratch? We\'ve got you covered! 🎯 Choose from ready-made templates for popular goals and customize them to fit your unique journey. It\'s like having a head start!'
+      }
+    },
+
+    // Home dashboard help
+    home: {
+      recommendations: {
+        title: 'Your Personal Suggestions',
+        content: 'These are made just for you! ⭐ Based on your unique patterns and progress, we suggest ways to stay motivated and discover exciting new opportunities. It\'s like having a personal coach!'
+      },
+      xpSystem: {
+        title: 'Your XP Journey',
+        content: 'Level up your life! 🚀 Every habit, journal entry, and goal step earns you XP. Watch your progress bar fill up and celebrate each new level you reach. You\'re literally growing stronger every day!'
+      },
+      streakBadges: {
+        title: 'Your Streak Collection',
+        content: 'These badges tell your success story! 🏆 Different colors show how strong your streaks are, and special badges celebrate major milestones. Each one represents your amazing dedication!'
+      },
+      habitStatistics: {
+        title: 'Your Success Dashboard',
+        content: 'See how amazing you\'re doing! 📊 Get a complete picture of your habit success with completion rates, trends, and patterns. It\'s proof of your incredible consistency and growth!'
+      }
+    },
+
+    // Achievements help - removed standard gaming concepts
+    achievements: {
+      // Removed standard achievement concepts as they're intuitive to users
+    },
+
+    // Monthly challenges help
+    challenges: {
+      starDifficulty: {
+        title: 'Challenge Star Rating',
+        content: 'Ready for a challenge? ⭐ Pick your adventure level! 1-star challenges are perfect for getting started, while 5-star challenges are for the ultimate achievers. Higher stars mean bigger XP rewards and bragging rights!'
+      },
+      progressTracking: {
+        title: 'Watch Your Progress',
+        content: 'Stay motivated all month long! 📅 Track your daily wins and see weekly breakdowns that show exactly how you\'re crushing your challenge. You\'ll love watching your progress add up!'
+      },
+      completionRewards: {
+        title: 'Epic Completion Rewards',
+        content: 'Finish strong and get rewarded big time! 🎁 Complete monthly challenges for massive XP bonuses and exclusive achievements. The harder the challenge, the sweeter the victory celebration!'
+      }
+    },
+
+    // Gamification help
+    gamification: {
+      levelProgression: {
+        title: 'Your Level Journey',
+        content: 'You\'re on an epic 100-level adventure! 🎮 Each level gets more exciting as you grow stronger. Watch your rank evolve through 6 amazing color tiers from Grey all the way to legendary Red. Every level is a celebration of your progress!'
+      },
+      xpMultipliers: {
+        title: 'Double XP Power-Up',
+        content: 'Get ready for XP BOOST mode! ⚡ Achieve Harmony Streak (habits + journal + goals in one day) and unlock 24 hours of double XP! It\'s like finding a power-up that makes everything count twice!'
+      },
+      harmonyStreak: {
+        title: 'The Ultimate Daily Win',
+        content: 'This is where the magic happens! ✨ Complete your habits, write in your journal, AND make goal progress all in one day. Boom! You\'ve just unlocked 24 hours of 2x XP. It\'s the perfect day multiplied!'
+      }
+    }
+  },
+
   // Notifications
   notifications: {
     morning: {

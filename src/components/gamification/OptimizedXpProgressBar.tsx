@@ -20,7 +20,7 @@ import { GamificationService } from '../../services/gamificationService';
 import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLevelCalculationCache } from '../../services/levelCalculation';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { useI18n } from '../../hooks/useI18n';
-import { SafeLinearGradient } from '../common';
+import { SafeLinearGradient, HelpTooltip } from '../common';
 
 interface OptimizedXpProgressBarProps {
   animated?: boolean;
@@ -550,18 +550,26 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
     >
       {/* Level Title and Roman Numerals - Top Center */}
       <View style={styles.rarityRomanContainer}>
-        <Text 
-          style={[
-            styles.levelTitleRomanStyle, 
-            { color: rarityBorderColor }
-          ]}
-        >
-          {levelRomanAndTitle.baseName}
-        </Text>
-        {levelRomanAndTitle.romanNumeral && (
-          <Text 
+        <View style={styles.titleHeaderRow}>
+          <Text
             style={[
-              styles.rarityRomanText, 
+              styles.levelTitleRomanStyle,
+              { color: rarityBorderColor }
+            ]}
+          >
+            {levelRomanAndTitle.baseName}
+          </Text>
+          <HelpTooltip
+            helpKey="home.xpSystem"
+            iconSize={16}
+            maxWidth={300}
+            variant="prominent"
+          />
+        </View>
+        {levelRomanAndTitle.romanNumeral && (
+          <Text
+            style={[
+              styles.rarityRomanText,
               { color: rarityBorderColor }
             ]}
           >
@@ -828,6 +836,14 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     marginBottom: 2,
     marginTop: 2,
+  },
+
+  titleHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
   
   levelTitleRomanStyle: {

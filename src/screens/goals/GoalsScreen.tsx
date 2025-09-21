@@ -8,7 +8,7 @@ import { useGoalsData } from '@/src/hooks/useGoalsData';
 // useEnhancedGamification removed - XP handled by goalStorage
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
-import { ErrorModal } from '@/src/components/common';
+import { ErrorModal, HelpTooltip } from '@/src/components/common';
 // XPSourceType removed - XP handled by goalStorage
 import { XP_REWARDS } from '@/src/constants/gamification';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { Colors } from '@/src/constants/colors';
 import { useI18n } from '@/src/hooks/useI18n';
+import { HelpTooltip } from '@/src/components/common';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
 import { AchievementStorage } from '@/src/services/achievementStorage';
@@ -483,13 +484,15 @@ export default function AchievementsScreen() {
   );
   
   const renderCategoryBreakdown = () => (
-    <View 
+    <View
       style={styles.breakdownContainer}
       accessible={true}
       accessibilityRole="list"
       accessibilityLabel={t('achievements.stats.breakdown')}
     >
-      <Text style={styles.breakdownTitle}>{t('achievements.stats.breakdown')}</Text>
+      <View style={styles.breakdownTitleRow}>
+        <Text style={styles.breakdownTitle}>{t('achievements.stats.breakdown')}</Text>
+      </View>
       <View style={styles.categoryList}>
         {categoryStats.map((category) => {
           const progressPercentage = category.total > 0 ? (category.unlocked / category.total) * 100 : 0;
@@ -538,13 +541,15 @@ export default function AchievementsScreen() {
   );
   
   const renderRarityDistribution = () => (
-    <View 
+    <View
       style={styles.breakdownContainer}
       accessible={true}
       accessibilityRole="list"
       accessibilityLabel={t('achievements.stats.rarityDistribution')}
     >
-      <Text style={styles.breakdownTitle}>{t('achievements.stats.rarityDistribution')}</Text>
+      <View style={styles.breakdownTitleRow}>
+        <Text style={styles.breakdownTitle}>{t('achievements.stats.rarityDistribution')}</Text>
+      </View>
       <View style={styles.rarityList}>
         {rarityStats.map((rarity) => (
           <View 
@@ -1040,11 +1045,18 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   
+  breakdownTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
   breakdownTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 16,
+    flex: 1,
   },
   
   // Category Breakdown

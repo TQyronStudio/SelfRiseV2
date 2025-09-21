@@ -22,7 +22,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { formatDateToString, getDayOfWeek } from '@/src/utils/date';
 import { HabitCompletionButton } from './HabitCompletionButton';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
-import { ConfirmationModal } from '@/src/components/common';
+import { ConfirmationModal, HelpTooltip } from '@/src/components/common';
 
 interface HabitItemWithCompletionProps {
   habit: Habit;
@@ -233,8 +233,15 @@ export const HabitItemWithCompletion = React.memo(({
               {habit.name}
             </Text>
             {completion?.isBonus && (
-              <View style={styles.bonusLabel}>
-                <Text style={styles.bonusLabelText}>BONUS</Text>
+              <View style={styles.bonusLabelContainer}>
+                <View style={styles.bonusLabel}>
+                  <Text style={styles.bonusLabelText}>BONUS</Text>
+                </View>
+                <HelpTooltip
+                  helpKey="habits.bonusConversion"
+                  iconSize={12}
+                  maxWidth={260}
+                />
               </View>
             )}
           </View>
@@ -412,12 +419,17 @@ const styles = StyleSheet.create({
   completedName: {
     color: Colors.success,
   },
+  bonusLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 6,
+    gap: 4,
+  },
   bonusLabel: {
     backgroundColor: Colors.primary + '20',
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 6,
-    marginLeft: 6,
     alignSelf: 'flex-start',
   },
   bonusLabelText: {

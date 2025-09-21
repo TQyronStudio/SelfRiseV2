@@ -24,6 +24,7 @@ export interface GratitudeStreak {
   preserveCurrentStreakUntil?: Date | null; // timestamp-based preserve flag - preserve streak until this time
   // 🚨 CRITICAL FIX: Allow null values for proper initialization
   streakBeforeFreeze?: number | null; // streak value before it got frozen - used for proper continuation after warm-up
+  warmUpCompletedOn: DateString | null; // Date when warm-up was completed - prevents multiple recalculation
   warmUpPayments: WarmUpPayment[]; // Track individual ad payments per missed day
   warmUpHistory: WarmUpHistoryEntry[]; // Audit trail for debugging warm up issues
   // CRITICAL FIX BUG #2: Auto-reset state tracking to prevent phantom debt

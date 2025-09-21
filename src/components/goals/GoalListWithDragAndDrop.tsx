@@ -5,6 +5,7 @@ import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
 import { Colors } from '../../constants/colors';
 import { useI18n } from '../../hooks/useI18n';
+import { HelpTooltip } from '../common/HelpTooltip';
 
 interface GoalListWithDragAndDropProps {
   goals: Goal[];
@@ -131,7 +132,15 @@ export function GoalListWithDragAndDrop({
       {/* Active Goals Section - Conditional Drag & Drop */}
       {activeGoals.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Goals</Text>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Active Goals</Text>
+            <HelpTooltip
+              helpKey="goals.overview"
+              iconSize={14}
+              maxWidth={300}
+              variant="default"
+            />
+          </View>
           {isEditMode ? (
             <DraggableFlatList
               data={activeGoals}
@@ -187,11 +196,17 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
+    flex: 1,
   },
   goalItemContainer: {
     marginBottom: 12,

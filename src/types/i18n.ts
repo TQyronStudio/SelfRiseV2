@@ -852,6 +852,48 @@ export interface TranslationKeys {
       };
     };
   };
+
+  // Help system
+  help: {
+    habits: {
+      scheduling: { title: string; content: string; };
+      bonusConversion: { title: string; content: string; };
+      streakTracking: { title: string; content: string; };
+      colorAndIcon: { title: string; content: string; };
+      makeupFunction: { title: string; content: string; };
+    };
+    journal: {
+      gratitudeStreak: { title: string; content: string; };
+      selfRiseStreak: { title: string; content: string; };
+      bonusEntries: { title: string; content: string; };
+      debtRecovery: { title: string; content: string; };
+    };
+    goals: {
+      overview: { title: string; content: string; };
+      predictions: { title: string; content: string; };
+      progressTracking: { title: string; content: string; };
+      templates: { title: string; content: string; };
+    };
+    home: {
+      recommendations: { title: string; content: string; };
+      xpSystem: { title: string; content: string; };
+      streakBadges: { title: string; content: string; };
+      habitStatistics: { title: string; content: string; };
+    };
+    achievements: {
+      // Removed standard gaming concepts - achievements are intuitive
+    };
+    challenges: {
+      starDifficulty: { title: string; content: string; };
+      progressTracking: { title: string; content: string; };
+      completionRewards: { title: string; content: string; };
+    };
+    gamification: {
+      levelProgression: { title: string; content: string; };
+      xpMultipliers: { title: string; content: string; };
+      harmonyStreak: { title: string; content: string; };
+    };
+  };
 }
 
 // Extend i18next module for TypeScript support

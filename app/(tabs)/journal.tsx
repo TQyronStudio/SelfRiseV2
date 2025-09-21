@@ -16,6 +16,7 @@ import GratitudeInput from '@/src/components/gratitude/GratitudeInput';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
 import DailyGratitudeProgress from '@/src/components/gratitude/DailyGratitudeProgress';
 import CelebrationModal from '@/src/components/gratitude/CelebrationModal';
+import { HelpTooltip } from '@/src/components/common';
 
 export default function JournalScreen() {
   const { t } = useI18n();
@@ -229,21 +230,23 @@ export default function JournalScreen() {
           hasBonus={hasBonus}
         />
         
-        {/* Mysterious Badge Counters */}
+        {/* Badge Counters with Help */}
         {state.streakInfo && (
           <View style={styles.badgeContainer}>
-            <View style={styles.badgeRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeIcon}>⭐</Text>
-                <Text style={styles.badgeCount}>{state.streakInfo.starCount || 0}</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeIcon}>🔥</Text>
-                <Text style={styles.badgeCount}>{state.streakInfo.flameCount || 0}</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeIcon}>👑</Text>
-                <Text style={styles.badgeCount}>{state.streakInfo.crownCount || 0}</Text>
+            <View style={styles.badgeHeaderRow}>
+              <View style={styles.badgeRow}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeIcon}>⭐</Text>
+                  <Text style={styles.badgeCount}>{state.streakInfo.starCount || 0}</Text>
+                </View>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeIcon}>🔥</Text>
+                  <Text style={styles.badgeCount}>{state.streakInfo.flameCount || 0}</Text>
+                </View>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeIcon}>👑</Text>
+                  <Text style={styles.badgeCount}>{state.streakInfo.crownCount || 0}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -406,10 +409,16 @@ const styles = StyleSheet.create({
     marginVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.md,
   },
+  badgeHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   badgeRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flex: 1,
   },
   badge: {
     alignItems: 'center',

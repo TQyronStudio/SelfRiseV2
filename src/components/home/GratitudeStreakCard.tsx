@@ -164,6 +164,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
           frozenDays: 0,
           isFrozen: false,
           preserveCurrentStreak: false,
+          warmUpCompletedOn: null,
           warmUpPayments: [],
           warmUpHistory: [],
           autoResetTimestamp: null,

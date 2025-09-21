@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import { StarRatingService } from '../../services/starRatingService';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
+import { HelpTooltip } from '../common';
 
 interface MonthlyChallengeCardProps {
   challenge: MonthlyChallenge;
@@ -112,12 +113,19 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
               <Text style={styles.compactTitle} numberOfLines={1}>
                 {challenge.title}
               </Text>
-              <StarRatingDisplay
-                category={challenge.category}
-                starLevel={challenge.starLevel}
-                size="small"
-                showLabel={false}
-              />
+              <View style={styles.starDifficultyContainer}>
+                <StarRatingDisplay
+                  category={challenge.category}
+                  starLevel={challenge.starLevel}
+                  size="small"
+                  showLabel={false}
+                />
+                <HelpTooltip
+                  helpKey="challenges.starDifficulty"
+                  iconSize={12}
+                  maxWidth={280}
+                />
+              </View>
             </View>
             <View style={styles.compactMeta}>
               <Text style={[styles.compactXP, { color: starColor }]}>
@@ -168,12 +176,19 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
                 <Text style={[styles.category, { color: categoryColor }]}>
                   {challenge.category.toUpperCase()}
                 </Text>
-                <StarRatingDisplay
-                  category={challenge.category}
-                  starLevel={challenge.starLevel}
-                  size="medium"
-                  showLabel={true}
-                />
+                <View style={styles.starDifficultyContainer}>
+                  <StarRatingDisplay
+                    category={challenge.category}
+                    starLevel={challenge.starLevel}
+                    size="medium"
+                    showLabel={true}
+                  />
+                  <HelpTooltip
+                    helpKey="challenges.starDifficulty"
+                    iconSize={14}
+                    maxWidth={280}
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -360,6 +375,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1F2937',
     flex: 1,
+  },
+  starDifficultyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   compactMeta: {
     flexDirection: 'row',

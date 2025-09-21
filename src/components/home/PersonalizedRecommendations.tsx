@@ -8,6 +8,7 @@ import { useGoals } from '@/src/contexts/GoalsContext';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Layout, Typography } from '@/src/constants';
 import { RecommendationEngine, PersonalizedRecommendation } from '@/src/services/recommendationEngine';
+import { HelpTooltip } from '@/src/components/common';
 
 export function PersonalizedRecommendations() {
   const { t } = useI18n();
@@ -118,7 +119,15 @@ export function PersonalizedRecommendations() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('home.recommendations')}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{t('home.recommendations')}</Text>
+        <HelpTooltip
+          helpKey="home.recommendations"
+          iconSize={16}
+          maxWidth={300}
+          variant="prominent"
+        />
+      </View>
       
       <ScrollView 
         horizontal 
@@ -179,10 +188,16 @@ const styles = StyleSheet.create({
     marginHorizontal: Layout.spacing.md,
     marginBottom: Layout.spacing.md,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
   title: {
     ...Typography.subheading,
     color: Colors.text,
-    marginBottom: Layout.spacing.sm,
+    flex: 1,
   },
   scrollContent: {
     paddingRight: Layout.spacing.md,

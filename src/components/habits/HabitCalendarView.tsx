@@ -8,6 +8,7 @@ import { useHabitsData } from '../../hooks/useHabitsData';
 import { formatDateToString, getDayOfWeek, parseDate } from '../../utils/date';
 import { DayOfWeek } from '../../types/common';
 import { wasScheduledOnDate } from '../../utils/habitImmutability';
+import { HelpTooltip } from '../common/HelpTooltip';
 
 interface HabitCalendarViewProps {
   habit: Habit;
@@ -188,6 +189,12 @@ export function HabitCalendarView({
               <Text style={styles.legendCheckmark}>✓</Text>
             </View>
             <Text style={styles.legendText}>Makeup</Text>
+            <HelpTooltip
+              helpKey="habits.makeupFunction"
+              iconSize={12}
+              maxWidth={300}
+              variant="default"
+            />
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
@@ -331,6 +338,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
+    gap: 4,
   },
   legendDot: {
     width: 8,

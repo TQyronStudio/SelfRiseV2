@@ -5,6 +5,7 @@ import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
+import { HelpTooltip } from '@/src/components/common';
 
 interface GoalCompletionPredictionsProps {
   goal: Goal;
@@ -349,7 +350,15 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
       
       {/* Predictions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('goals.predictions.methods')}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t('goals.predictions.methods')}</Text>
+          <HelpTooltip
+            helpKey="goals.predictions"
+            iconSize={16}
+            maxWidth={320}
+            variant="prominent"
+          />
+        </View>
         {predictions.map((prediction, index) => (
           <View key={index} style={styles.predictionCard}>
             <View style={styles.predictionHeader}>
@@ -402,7 +411,9 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
 
       {/* Insights */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('goals.predictions.insights')}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t('goals.predictions.insights')}</Text>
+        </View>
         {insights.map((insight, index) => (
           <View key={index} style={[styles.insightCard, {
             borderLeftColor: insight.type === 'positive' ? Colors.success :
@@ -443,11 +454,17 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.xl,
     paddingHorizontal: Layout.spacing.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.md,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: Layout.spacing.md,
+    flex: 1,
   },
   predictionCard: {
     backgroundColor: Colors.backgroundSecondary,
