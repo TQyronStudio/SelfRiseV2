@@ -18,6 +18,7 @@
 12. [Achievements System](#achievements-system)
 13. [Screen Creation Guidelines](#screen-creation-guidelines)
 14. [Help Tooltip System](#help-tooltip-system)
+15. [Onboarding Tutorial System](#onboarding-tutorial-system)
 
 ---
 
@@ -803,6 +804,12 @@ This 4-tier system specifically resolves:
 ## Help Tooltip System
 
 **Technická pravidla a logika pro Help Tooltip systém**: @technical-guides:Help-Tooltips.md
+
+---
+
+## Onboarding Tutorial System
+
+**Technická pravidla a logika pro Onboarding Tutorial**: @technical-guides:Tutorial.md
 
 ---
 

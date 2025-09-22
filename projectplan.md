@@ -346,6 +346,203 @@ export const help = {
 - **Error Reduction**: 40% reduction in user mistakes in helped features
 - **Support Impact**: 50% reduction in user questions about helped features
 
+### Phase 6.6: Onboarding Tutorial System 🎓
+**Goal**: Implement comprehensive interactive onboarding tutorial that guides new users through the complete app experience, showcasing habits, journal, goals, XP system, and achievements with engaging spotlight effects and seamless integration.
+
+**Technical documentation**: @technical-guides:Tutorial.md
+
+#### Checkpoint 6.6.1: Tutorial Foundation & Infrastructure 🏗️
+**Goal**: Build core tutorial system architecture with overlay, spotlight effects, and state management
+
+**Core Infrastructure**:
+- [ ] **TutorialProvider Context**: State management for tutorial flow with 16-step progression
+- [ ] **TutorialOverlay Component**: Dark overlay system with React Native spotlight effects
+- [ ] **SpotlightEffect Component**: Animated spotlight with pulsing and progressive focus
+- [ ] **Tutorial State Management**: currentStep, isActive, userInteractionBlocked, completion tracking
+- [ ] **Tutorial Persistence**: AsyncStorage integration for resume/recovery functionality
+- [ ] **Skip & Navigation**: Skip button (top-right corner), Next button, interaction blocking
+
+**Technical Requirements**:
+- React Native native animations (useNativeDriver: true where possible)
+- Responsive design adaptation (tablet vs phone spotlight sizing)
+- Performance optimization for smooth 60fps animations
+- Proper z-index layering and pointer-events management
+
+**Animation Specifications**:
+```typescript
+const ANIMATIONS = {
+  overlayFadeIn: { duration: 300, easing: 'ease-out' },
+  spotlightTransition: { duration: 500, easing: 'ease-in-out' },
+  pulseAnimation: { duration: 1500, iterationCount: 'infinite' },
+  elementHighlight: { duration: 200, easing: 'ease-out' }
+};
+```
+
+#### Checkpoint 6.6.2: Achievement Integration Fix 🏆
+**Goal**: Fix missing achievement integration for habit creation and coordinate with tutorial flow
+
+**Critical Fix Required**:
+- [ ] **HabitsContext Achievement Integration**: Add missing `AchievementService.runBatchAchievementCheck()` to `createHabit()` method
+- [ ] **Verify Goals Achievement**: Confirm existing `AchievementService.runBatchAchievementCheck()` in `GoalsContext.createGoal()`
+- [ ] **Achievement Modal Coordination**: Tutorial waits for achievement modal completion before proceeding
+- [ ] **Modal Priority Integration**: Integrate with existing 4-tier modal priority system
+
+**Implementation Details**:
+```typescript
+// Fix required in HabitsContext.tsx createHabit method:
+const newHabit = await habitStorage.create(input);
+dispatch({ type: 'ADD_HABIT', payload: newHabit });
+
+// ADD THIS:
+setTimeout(async () => {
+  try {
+    await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
+  } catch (error) {
+    console.error('Failed to check achievements after habit creation:', error);
+  }
+}, 100);
+```
+
+**Expected Achievement Flow**:
+- Step 6: Create first habit → `first-habit` achievement modal → Tutorial continues
+- Step 12: Create first goal → `first-goal` achievement modal → Tutorial continues
+
+#### Checkpoint 6.6.3: Tutorial Flow Implementation (Steps 1-8) 📝
+**Goal**: Implement first half of tutorial flow from welcome to journal section
+
+**Tutorial Steps Implementation**:
+- [ ] **Step 1**: Welcome modal with motivation and tour introduction
+- [ ] **Step 2**: App overview with three main sections explanation
+- [ ] **Step 3**: Quick Actions spotlight and explanation
+- [ ] **Step 4**: Add Habit button spotlight and click interaction
+- [ ] **Step 5a-5e**: Progressive habit creation (name → color → icon → schedule → create)
+- [ ] **Step 6**: First habit achievement modal integration (automatic)
+- [ ] **Step 7**: Journal navigation spotlight (bottom tab)
+- [ ] **Step 8**: Journal actions explanation (gratitude + self-praise + streak info)
+
+**Form Interaction Logic**:
+- [ ] **Progressive Form Filling**: Next button appears after first character typed
+- [ ] **Validation States**: Friendly error messages with retry options
+- [ ] **Input Field Highlighting**: Clear visual focus on current required field
+- [ ] **Example Text Integration**: Contextual examples for each input type
+
+**Content Requirements**:
+- Motivational tone with emojis for visual appeal
+- Maximum 2-3 sentences per content block
+- Specific examples for habit names, goals, units
+- Clear action instructions ("Click", "Type", "Select")
+
+#### Checkpoint 6.6.4: Tutorial Flow Implementation (Steps 9-16) 🎯
+**Goal**: Complete second half of tutorial flow covering goals, XP system, and trophy room
+
+**Tutorial Steps Implementation**:
+- [ ] **Step 9**: Goals navigation spotlight (bottom tab)
+- [ ] **Step 10**: Add Goal button spotlight and click interaction
+- [ ] **Step 11a-11f**: Progressive goal creation (title → date → unit → value → category → create)
+- [ ] **Step 12**: First goal achievement modal integration (automatic)
+- [ ] **Step 13**: Home navigation spotlight (bottom tab)
+- [ ] **Step 14**: XP Progress bar explanation with motivational messaging
+- [ ] **Step 15**: Trophy Room spotlight with achievement preview
+- [ ] **Step 16**: Completion modal with journey start encouragement
+
+**Goal Creation Form Logic**:
+- [ ] **Date Picker Integration**: Target date selection with validation
+- [ ] **Custom Units Input**: Support for any unit type (books, miles, hours, etc.)
+- [ ] **Category Selection**: Integration with existing goal categories
+- [ ] **Value Input Validation**: Numeric input with reasonable limits
+
+**XP & Achievement Explanation**:
+- [ ] **XP System Overview**: Clear explanation of how XP is earned
+- [ ] **Level Progression**: Visual connection to current user level
+- [ ] **Achievement Preview**: Trophy Room content explanation
+
+#### Checkpoint 6.6.5: Content System & Localization 🌐
+**Goal**: Implement comprehensive content system with proper localization support and content guidelines
+
+**Content Management**:
+- [ ] **i18n Integration**: All tutorial content in `/src/locales/en/index.ts` under `tutorial` section
+- [ ] **Content Structure**: Organized by step number with title/content/button text separation
+- [ ] **Example Content**: Rich examples for habit names, goal titles, units, categories
+- [ ] **Error Messages**: User-friendly validation and error content
+- [ ] **Achievement Integration**: Coordinate with existing achievement modal content
+
+**Content Guidelines Implementation**:
+```typescript
+interface TutorialContent {
+  title: string;        // "Create Your First Habit" (2-4 words)
+  content: string;      // Explanation + examples + motivation (max 2-3 sentences)
+  button?: string;      // "Next", "Continue", "Let's Start!"
+  examples?: string[];  // ["Drink water", "Read 10 pages", "Meditate"]
+}
+```
+
+**Tone & Style Standards**:
+- [ ] **Motivational Language**: Positive, encouraging, transformation-focused
+- [ ] **Emoji Integration**: Relevant emojis for visual appeal and context
+- [ ] **Action-Oriented**: Clear instructions with specific user actions
+- [ ] **Beginner-Friendly**: Avoid technical jargon, use simple explanations
+
+#### Checkpoint 6.6.6: Advanced Features & Polish ✨
+**Goal**: Implement recovery logic, analytics, responsive design, and performance optimization
+
+**Recovery & Persistence**:
+- [ ] **Crash Recovery**: Resume tutorial from last completed step
+- [ ] **Session Management**: Handle app backgrounding and foregrounding
+- [ ] **Reset Functionality**: Option to restart tutorial from settings
+- [ ] **Completion Tracking**: Permanent storage of tutorial completion status
+
+**Analytics & Tracking**:
+- [ ] **Tutorial Metrics**: Step completion rates, time spent per step, skip rates
+- [ ] **User Behavior**: Track where users struggle or drop off
+- [ ] **Performance Monitoring**: Tutorial render times and animation performance
+- [ ] **A/B Testing Preparation**: Framework for testing different tutorial flows
+
+**Responsive Design & Performance**:
+- [ ] **Screen Size Adaptation**: Tablet vs phone spotlight sizing and positioning
+- [ ] **Animation Performance**: 60fps targeting with native driver usage
+- [ ] **Memory Management**: Efficient component mounting/unmounting
+- [ ] **Basic Accessibility**: Proper accessibility labels, reduced motion preferences, sufficient color contrast
+
+**Edge Cases & Error Handling**:
+- [ ] **Navigation Conflicts**: Handle deep links and notifications during tutorial
+- [ ] **Form Validation**: Graceful error handling with retry options
+- [ ] **Modal Conflicts**: Coordinate with level-up, achievement, and other modals
+- [ ] **Network Issues**: Handle offline scenarios gracefully
+
+#### Checkpoint 6.6.7: Testing & Quality Assurance 🧪
+**Goal**: Comprehensive testing of tutorial system across devices, scenarios, and user flows
+
+**Functional Testing**:
+- [ ] **Complete Tutorial Flow**: End-to-end testing of all 16 steps
+- [ ] **Achievement Integration**: Verify first-habit and first-goal achievements trigger correctly
+- [ ] **Form Validation**: Test all input fields with various edge cases
+- [ ] **Navigation Testing**: Verify all tab navigation works within tutorial context
+- [ ] **Skip & Resume**: Test tutorial skip and resume functionality
+
+**Cross-Platform Testing**:
+- [ ] **iOS Testing**: Complete tutorial on various iOS devices and screen sizes
+- [ ] **Android Testing**: Complete tutorial on various Android devices and screen sizes
+- [ ] **Tablet Support**: Verify responsive spotlight sizing and positioning
+- [ ] **Basic Accessibility Testing**: Proper labeling, reduced motion support, color contrast verification
+
+**Performance Testing**:
+- [ ] **Animation Performance**: Verify 60fps performance on budget devices
+- [ ] **Memory Usage**: Monitor memory consumption during tutorial
+- [ ] **Loading Times**: Ensure quick tutorial startup and transitions
+- [ ] **Battery Impact**: Verify minimal battery drain during tutorial
+
+**User Experience Testing**:
+- [ ] **New User Testing**: Test with users who have never used the app
+- [ ] **Usability Testing**: Verify tutorial effectively teaches app usage
+- [ ] **Content Clarity**: Ensure all explanations are clear and motivating
+- [ ] **Error Recovery**: Test user experience when errors occur
+
+**Success Metrics**:
+- Tutorial completion rate > 80%
+- User comprehension rate > 90% (verified through post-tutorial testing)
+- Performance: All animations maintain 60fps
+- Cross-platform compatibility (iOS/Android)
+
 ### Phase 7: Settings & User Experience
 
 #### Checkpoint 7.1: Notification Settings
