@@ -14,7 +14,9 @@
  */
 
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { GamificationService } from '../../services/gamificationService';
 import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLevelCalculationCache } from '../../services/levelCalculation';
@@ -653,6 +655,22 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
         )}
       </View>
       </View>
+
+      {/* Info Button - Top Right Corner */}
+      <TouchableOpacity
+        style={styles.infoButtonAbsolute}
+        onPress={() => router.push('/levels-overview')}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="View all levels"
+        accessibilityHint="Opens level overview screen"
+      >
+        <Ionicons
+          name="information-circle"
+          size={20}
+          color={rarityBorderColor}
+        />
+      </TouchableOpacity>
     </View>
   );
 }, (prevProps, nextProps) => {
@@ -844,6 +862,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginBottom: 4,
+  },
+
+
+  infoButtonAbsolute: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   
   levelTitleRomanStyle: {

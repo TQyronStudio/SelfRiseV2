@@ -59,6 +59,7 @@ export default function RootLayout() {
           <Stack.Screen name="journal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="habit-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="goal-stats" options={{ headerShown: false, presentation: 'card' }} />
+          <Stack.Screen name="levels-overview" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="light" translucent={true} />
