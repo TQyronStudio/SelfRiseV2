@@ -16,6 +16,8 @@
 10. [My Journal System](#my-journal-system)
 11. [Gamification System](#gamification-system)
 12. [Achievements System](#achievements-system)
+13. [Screen Creation Guidelines](#screen-creation-guidelines)
+14. [Help Tooltip System](#help-tooltip-system)
 
 ---
 
@@ -176,6 +178,291 @@ Before implementing new logic, ask:
 - Test with goals genuinely behind schedule (should show appropriate warnings)
 - Verify integration functionality remains correct
 - Always test the 3 core scenarios: new, short, and long entities
+
+---
+
+## Screen Creation Guidelines
+
+### App Design Culture Standards
+
+Při vytváření nových screenů v SelfRise V2 je **KRITICKÉ** dodržovat ustanovenou design kulturu aplikace. Tato pravidla zabraňují běžným problémům jako dvojité headery, špatné safe area handling, nebo nekonzistentní styling.
+
+### 1. Screen Types a Navigation Setup
+
+#### A) Tab Navigation Screens
+Pro screeny v `app/(tabs)/`:
+- **Header**: Automaticky poskytovaný tab navigation s `Colors.primary` background
+- **Safe Area**: Používej `SafeAreaView` standard pattern
+- **Structure**: Bez custom headerů
+
+```typescript
+// ✅ Správně pro tab screens
+export function TabScreen() {
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* content */}
+    </SafeAreaView>
+  );
+}
+```
+
+#### B) Modal/Stack Navigation Screens
+Pro screeny v main stack (goal-stats, habit-stats, levels-overview):
+- **Navigation**: Přidej do `app/_layout.tsx` s `headerShown: false`
+- **Header**: Custom header s proper safe area handling
+- **Safe Area**: Používej `useSafeAreaInsets()` nikoliv `SafeAreaView`
+
+```typescript
+// ✅ Přidat do app/_layout.tsx
+<Stack.Screen
+  name="new-screen"
+  options={{ headerShown: false, presentation: 'card' }}
+/>
+```
+
+### 2. Safe Area Handling Patterns
+
+#### ❌ ŠPATNĚ - Dvojitá Safe Area
+```typescript
+// Nikdy nepoužívej SafeAreaView pro modal screens s custom headerem
+return (
+  <SafeAreaView style={styles.container}>
+    <View style={styles.header}> {/* Dvojitý header! */}
+```
+
+#### ✅ SPRÁVNĚ - Modal Screen Pattern
+```typescript
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export function ModalScreen() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        {/* Header content */}
+      </View>
+      {/* Screen content */}
+    </View>
+  );
+}
+```
+
+### 3. Header Design Standards
+
+#### Standard Header Pattern
+```typescript
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: Colors.primary,  // VŽDY primary color
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  backButton: {
+    padding: 8,  // Konzistentní padding
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.white,  // VŽDY bílý text na primary background
+    textAlign: 'center',
+  },
+});
+```
+
+#### Back Button Standards
+```typescript
+<TouchableOpacity
+  style={styles.backButton}
+  onPress={() => router.back()}
+  accessible={true}
+  accessibilityRole="button"
+  accessibilityLabel="Go back"
+>
+  <Ionicons name="arrow-back" size={24} color={Colors.white} />
+</TouchableOpacity>
+```
+
+### 4. Color Scheme Standards
+
+#### Background Colors
+- **Main container**: `Colors.background`
+- **Header background**: `Colors.primary`
+- **Secondary containers**: `Colors.backgroundSecondary`
+
+#### Text Colors
+- **Header text**: `Colors.white` (na primary background)
+- **Main text**: `Colors.text`
+- **Secondary text**: `Colors.textSecondary`
+- **Header icons**: `Colors.white`
+
+### 5. Loading States Pattern
+
+```typescript
+if (isLoading) {
+  return (
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Loading...</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading content...</Text>
+      </View>
+    </View>
+  );
+}
+```
+
+### 6. Common Anti-Patterns to Avoid
+
+#### ❌ Double Header Problem
+- **Problém**: Tab navigation + custom header = dvojitý header
+- **Řešení**: Používej `headerShown: false` pro modal screens
+
+#### ❌ Wrong Safe Area Usage
+- **Problém**: `SafeAreaView` + custom header s `paddingTop: insets.top`
+- **Řešení**: Buď SafeAreaView (pro tab screens) NEBO useSafeAreaInsets (pro modal screens)
+
+#### ❌ Inconsistent Colors
+- **Problém**: Různé barvy headerů napříč aplikací
+- **Řešení**: VŽDY používej `Colors.primary` pro header background
+
+#### ❌ Wrong Text Colors
+- **Problém**: Černý text na dark background nebo bílý text na light background
+- **Řešení**: Používaj `Colors.white` pro text na `Colors.primary` background
+
+### 7. Screen Creation Checklist
+
+Před implementací nového screenu:
+
+**Navigation Setup:**
+- [ ] Přidán do správného layoutu (`app/_layout.tsx` nebo tab navigation)
+- [ ] Správná `headerShown` konfigurace
+- [ ] Presentation type nastaven (obvykle `'card'`)
+
+**Safe Area:**
+- [ ] Použitý správný pattern (SafeAreaView vs useSafeAreaInsets)
+- [ ] Žádné dvojité safe area handling
+- [ ] PaddingTop: insets.top pouze pro custom headers
+
+**Styling:**
+- [ ] Header má `Colors.primary` background
+- [ ] Header text má `Colors.white` color
+- [ ] Back button má bílou ikonu
+- [ ] Container má `Colors.background`
+
+**User Experience:**
+- [ ] Loading state implementovaný
+- [ ] Back navigation funguje správně
+- [ ] Accessibility labels přidány
+- [ ] Error states ošetřeny
+
+### 8. Screen Template
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors } from '@/src/constants/colors';
+import { useI18n } from '@/src/hooks/useI18n';
+
+export const NewScreen: React.FC = () => {
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Loading...</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading content...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Screen Title</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* Screen content */}
+
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: Colors.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.white,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+});
+```
+
+**Použití template**: Zkopíruj tento template a upravuj podle specifických potřeb screenu. Template garantuje konzistenci s app design culture.
 
 ---
 
@@ -510,6 +797,12 @@ This 4-tier system specifically resolves:
 - ✅ Multiple haptic feedbacks resolved (proper modal sequencing)
 - ✅ Completed challenges remain accessible (separate fix in MonthlyChallengeService)
 - ✅ Modal conflicts eliminated through proper priority management
+
+---
+
+## Help Tooltip System
+
+**Technická pravidla a logika pro Help Tooltip systém**: @technical-guides:Help-Tooltips.md
 
 ---
 
