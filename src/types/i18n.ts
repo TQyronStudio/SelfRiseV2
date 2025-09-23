@@ -853,6 +853,189 @@ export interface TranslationKeys {
     };
   };
 
+  // Tutorial System
+  tutorial: {
+    // General Tutorial UI
+    skip: string;
+    next: string;
+    continue: string;
+    getStarted: string;
+    finish: string;
+    progress: string;
+    loading: string;
+
+    // Tutorial Step Content
+    steps: {
+      welcome: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      habitName: {
+        title: string;
+        content: string;
+        placeholder: string;
+        examples: string[];
+        button: string;
+      };
+      habitColor: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      habitIcon: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      habitDays: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      habitComplete: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      journalIntro: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      gratitudeEntry: {
+        title: string;
+        content: string;
+        placeholder: string;
+        examples: string[];
+        button: string;
+      };
+      journalEncouragement: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      goalsIntro: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      goalTitle: {
+        title: string;
+        content: string;
+        placeholder: string;
+        examples: string[];
+        button: string;
+      };
+      goalUnit: {
+        title: string;
+        content: string;
+        placeholder: string;
+        examples: string[];
+        button: string;
+      };
+      goalTarget: {
+        title: string;
+        content: string;
+        placeholder: string;
+        button: string;
+      };
+      goalDate: {
+        title: string;
+        content: string;
+        placeholder: string;
+        button: string;
+      };
+      xpIntro: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      completion: {
+        title: string;
+        content: string;
+        button: string;
+      };
+    };
+
+    // Validation Messages
+    validation: {
+      habitName: {
+        required: string;
+        tooShort: string;
+        tooLong: string;
+      };
+      habitDays: {
+        required: string;
+      };
+      goalTitle: {
+        required: string;
+        tooShort: string;
+        tooLong: string;
+      };
+      goalUnit: {
+        required: string;
+        tooLong: string;
+      };
+      goalTarget: {
+        required: string;
+        tooLarge: string;
+      };
+      gratitudeEntry: {
+        required: string;
+        tooShort: string;
+      };
+    };
+
+    // Error Messages
+    errors: {
+      loadingFailed: string;
+      savingFailed: string;
+      habitCreationFailed: string;
+      goalCreationFailed: string;
+      journalEntryFailed: string;
+      genericError: string;
+      retry: string;
+    };
+
+    // Skip Confirmation
+    skipConfirmation: {
+      title: string;
+      message: string;
+      skip: string;
+      continue: string;
+    };
+
+    // Progress Messages
+    progress: {
+      creatingHabit: string;
+      creatingGoal: string;
+      savingEntry: string;
+      loading: string;
+    };
+
+    // Accessibility
+    accessibility: {
+      tutorialModal: string;
+      spotlightArea: string;
+      progressIndicator: string;
+      skipButton: string;
+      nextButton: string;
+      formField: string;
+      colorSelector: string;
+      iconSelector: string;
+      daySelector: string;
+    };
+
+    // Tutorial Recovery (for crash recovery)
+    recovery: {
+      title: string;
+      message: string;
+      continue: string;
+      restart: string;
+    };
+  };
+
   // Help system
   help: {
     habits: {

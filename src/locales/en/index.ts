@@ -1051,6 +1051,220 @@ const en: TranslationKeys = {
     }
   },
 
+  // Tutorial System
+  tutorial: {
+    // General Tutorial UI
+    skip: 'Skip Tutorial',
+    next: 'Next',
+    continue: 'Continue',
+    getStarted: 'Get Started',
+    finish: 'Finish Tutorial',
+    progress: 'Step {{current}} of {{total}}',
+    loading: 'Setting up your tutorial...',
+
+    // Tutorial Step Content
+    steps: {
+      // Step 1: Welcome & Foundation
+      welcome: {
+        title: 'Welcome to SelfRise! 🌟',
+        content: 'Get ready for an amazing journey of personal growth! We\'ll guide you through creating your first habit, writing in your journal, and setting a meaningful goal. By the end, you\'ll have everything you need to start building the life you want! ✨',
+        button: 'Let\'s Begin!',
+      },
+
+      // Step 2: Habit Name Input
+      habitName: {
+        title: 'Create Your First Habit 🌱',
+        content: 'Let\'s start with something you want to do every day! This could be reading, exercising, meditating, or anything that makes you feel good. What positive habit do you want to build?',
+        placeholder: 'e.g., Read for 10 minutes',
+        examples: ['Morning meditation', 'Daily walk', 'Drink 8 glasses of water', 'Write in gratitude journal', 'Do 20 push-ups'],
+        button: 'Great choice!',
+      },
+
+      // Step 3: Habit Color Selection
+      habitColor: {
+        title: 'Make It Yours! 🎨',
+        content: 'Pick a color that makes you excited! Every time you see this color, you\'ll think of your awesome new habit. Choose whatever feels right to you!',
+        button: 'Perfect!',
+      },
+
+      // Step 4: Habit Icon Selection
+      habitIcon: {
+        title: 'Choose Your Icon ✨',
+        content: 'Time to pick an icon that represents your habit! This visual will help you instantly recognize your habit and make it feel more personal. What speaks to you?',
+        button: 'Love it!',
+      },
+
+      // Step 5: Habit Schedule Days
+      habitDays: {
+        title: 'When Will You Do This? 📅',
+        content: 'You\'re in control! Choose which days work best for your lifestyle. Want to build momentum with daily practice? Or prefer weekdays only? Whatever you choose, we\'ll help you stick to it!',
+        button: 'Sounds good!',
+      },
+
+      // Step 6: Habit Creation Complete
+      habitComplete: {
+        title: 'Habit Created Successfully! 🎉',
+        content: 'Amazing! You\'ve just created your first habit. You can see it below with your chosen color and icon. Tomorrow, you\'ll be able to check it off and start building an incredible streak!',
+        button: 'What\'s next?',
+      },
+
+      // Step 7: Journal Introduction
+      journalIntro: {
+        title: 'Now Let\'s Try Journaling! 📝',
+        content: 'Journaling is one of the most powerful tools for personal growth. It helps you appreciate good things in your life and builds a positive mindset. Let\'s write your first gratitude entry!',
+        button: 'I\'m ready!',
+      },
+
+      // Step 8: First Gratitude Entry
+      gratitudeEntry: {
+        title: 'What Are You Grateful For? 🙏',
+        content: 'Think of something - big or small - that you appreciate in your life right now. It could be a person, experience, opportunity, or even something as simple as your morning coffee! ☕',
+        placeholder: 'I\'m grateful for...',
+        examples: ['My family\'s support', 'Having a roof over my head', 'The ability to learn new things', 'A sunny day', 'My health'],
+        button: 'Add this entry',
+      },
+
+      // Step 9: Journal Encouragement
+      journalEncouragement: {
+        title: 'You\'re A Natural! ⭐',
+        content: 'Beautiful entry! Writing 3 gratitude entries daily helps maintain your SelfRise streak and fills your mind with positivity. You can always add bonus entries for extra XP too!',
+        button: 'Got it!',
+      },
+
+      // Step 10: Goals Introduction
+      goalsIntro: {
+        title: 'Time To Set A Goal! 🎯',
+        content: 'Goals give your life direction and purpose. Whether it\'s saving money, reading books, losing weight, or learning a skill - we\'ll help you track progress and predict when you\'ll achieve it!',
+        button: 'Let\'s create one!',
+      },
+
+      // Step 11: Goal Title
+      goalTitle: {
+        title: 'What\'s Your Goal? 🏆',
+        content: 'Think of something meaningful you want to achieve. Make it specific and exciting! This should be something that would make you proud when you complete it.',
+        placeholder: 'e.g., Read 24 books this year',
+        examples: ['Save $5,000 for vacation', 'Learn Spanish fluently', 'Run a 5K marathon', 'Write a book', 'Learn guitar'],
+        button: 'That\'s a great goal!',
+      },
+
+      // Step 12: Goal Unit
+      goalUnit: {
+        title: 'How Will You Measure Progress? 📊',
+        content: 'What unit makes sense for tracking your goal? This helps us show your progress clearly and predict when you\'ll succeed!',
+        placeholder: 'e.g., books',
+        examples: ['books', 'dollars', 'pounds', 'hours', 'kilometers', 'pages', 'days'],
+        button: 'Perfect!',
+      },
+
+      // Step 13: Goal Target
+      goalTarget: {
+        title: 'What\'s Your Target Number? 🎯',
+        content: 'How many {{unit}} do you want to achieve? Make it challenging but realistic. You can always adjust this later as you learn more about your pace!',
+        placeholder: 'e.g., 24',
+        button: 'Sounds achievable!',
+      },
+
+      // Step 14: Goal Date (Optional)
+      goalDate: {
+        title: 'When Do You Want To Achieve This? 📅',
+        content: 'Setting a target date helps create urgency and allows us to give you smart predictions! Don\'t worry - this is optional and you can always change it later.',
+        placeholder: 'Select target date (optional)',
+        button: 'All set!',
+      },
+
+      // Step 15: XP System Introduction
+      xpIntro: {
+        title: 'You\'re Earning XP! ⚡',
+        content: 'Look at that! You\'ve already earned experience points for creating your habit and goal. Every action you take in SelfRise earns XP, helping you level up from Level 1 to Level 100. It\'s like a game, but for your real life! 🎮',
+        button: 'So cool!',
+      },
+
+      // Step 16: Tutorial Complete
+      completion: {
+        title: 'You\'re All Set To Rise! 🚀',
+        content: 'Congratulations! You\'ve created your first habit, written in your journal, and set a meaningful goal. You\'re now ready to start your incredible journey of personal growth. Check back daily to maintain streaks, earn XP, and unlock achievements! Welcome to the SelfRise community! 🌟',
+        button: 'Start My Journey!',
+      },
+    },
+
+    // Validation Messages
+    validation: {
+      habitName: {
+        required: 'Please enter a habit name to continue',
+        tooShort: 'Give your habit a more descriptive name (at least 2 characters)',
+        tooLong: 'Keep your habit name under 50 characters',
+      },
+      habitDays: {
+        required: 'Please select at least one day for your habit',
+      },
+      goalTitle: {
+        required: 'Please enter a goal title to continue',
+        tooShort: 'Give your goal a more descriptive title (at least 2 characters)',
+        tooLong: 'Keep your goal title under 100 characters',
+      },
+      goalUnit: {
+        required: 'Please specify a unit for measuring progress',
+        tooLong: 'Keep your unit under 20 characters',
+      },
+      goalTarget: {
+        required: 'Please enter a target value greater than 0',
+        tooLarge: 'Target value should be less than 1,000,000',
+      },
+      gratitudeEntry: {
+        required: 'Please write what you\'re grateful for',
+        tooShort: 'Share a bit more detail about what you\'re grateful for',
+      },
+    },
+
+    // Error Messages
+    errors: {
+      loadingFailed: 'Oops! Something went wrong loading the tutorial. Please try again.',
+      savingFailed: 'We couldn\'t save your progress. Please check your connection and try again.',
+      habitCreationFailed: 'We couldn\'t create your habit. Please try again.',
+      goalCreationFailed: 'We couldn\'t create your goal. Please try again.',
+      journalEntryFailed: 'We couldn\'t save your journal entry. Please try again.',
+      genericError: 'Something unexpected happened. Please try again.',
+      retry: 'Try Again',
+    },
+
+    // Skip Confirmation
+    skipConfirmation: {
+      title: 'Skip Tutorial?',
+      message: 'Are you sure you want to skip the tutorial? You can always access it later from the help section.',
+      skip: 'Yes, Skip',
+      continue: 'Continue Tutorial',
+    },
+
+    // Progress Messages
+    progress: {
+      creatingHabit: 'Creating your awesome habit...',
+      creatingGoal: 'Setting up your goal...',
+      savingEntry: 'Saving your gratitude entry...',
+      loading: 'Loading next step...',
+    },
+
+    // Accessibility
+    accessibility: {
+      tutorialModal: 'Tutorial step {{step}} of {{total}}: {{title}}',
+      spotlightArea: 'Tutorial spotlight highlighting {{target}}',
+      progressIndicator: 'Tutorial progress: {{progress}} percent complete',
+      skipButton: 'Skip tutorial and go to main app',
+      nextButton: 'Continue to next tutorial step',
+      formField: 'Tutorial input field for {{field}}',
+      colorSelector: 'Color selection for habit customization',
+      iconSelector: 'Icon selection for habit customization',
+      daySelector: 'Day selection for habit scheduling',
+    },
+
+    // Tutorial Recovery (for crash recovery)
+    recovery: {
+      title: 'Welcome Back! 👋',
+      message: 'Looks like you were in the middle of the tutorial. Would you like to continue where you left off or start fresh?',
+      continue: 'Continue Tutorial',
+      restart: 'Start Over',
+    },
+  },
+
   // Notifications
   notifications: {
     morning: {

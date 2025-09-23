@@ -15,6 +15,9 @@ import { Colors } from '../src/constants/colors';
 // Initialize Monthly Progress Integration for challenge tracking
 import '../src/services';
 
+// Tutorial System
+import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
+
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
   'Unable to get the view config for',
@@ -37,7 +40,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RootProvider>
-        <Stack>
+        <TutorialProvider>
+          <TutorialOverlay>
+            <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen 
             name="achievements" 
@@ -61,8 +66,10 @@ export default function RootLayout() {
           <Stack.Screen name="goal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="levels-overview" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="light" translucent={true} />
+            </Stack>
+            <StatusBar style="light" translucent={true} />
+          </TutorialOverlay>
+        </TutorialProvider>
       </RootProvider>
     </GestureHandlerRootView>
   );

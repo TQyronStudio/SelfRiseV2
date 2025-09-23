@@ -3,6 +3,7 @@ import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../t
 import { habitStorage } from '../services/storage/habitStorage';
 import { DateString } from '../types/common';
 import { HabitResetUtils } from '../utils/HabitResetUtils';
+import { AchievementService } from '../services/achievementService';
 
 export interface HabitsState {
   habits: Habit[];
@@ -135,10 +136,19 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const newHabit = await habitStorage.create(input);
       dispatch({ type: 'ADD_HABIT', payload: newHabit });
-      
+
+      // Check for achievements after habit creation
+      try {
+        console.log('🎯 Checking achievements after habit creation:', newHabit.name, 'color:', newHabit.color);
+        await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
+      } catch (achievementError) {
+        console.error('Failed to check achievements after habit creation:', achievementError);
+        // Don't throw - habit creation should succeed even if achievement check fails
+      }
+
       return newHabit;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create habit';
