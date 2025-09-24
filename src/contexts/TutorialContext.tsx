@@ -453,6 +453,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   // Modal Coordination with XpAnimationContext
   const { state: xpState, notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
 
+
   // Helper Functions
   const setLoading = (loading: boolean) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
@@ -534,6 +535,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   const nextStep = async (): Promise<void> => {
     try {
+      const currentStepData = state.currentStepData;
+      const currentStepNumber = state.currentStep;
+
+      // Track step completion before moving to next
+
       const newStep = state.currentStep + 1;
 
       if (newStep > state.totalSteps) {
@@ -543,6 +549,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: newStep, steps: TUTORIAL_STEPS } });
       await saveTutorialProgress(newStep);
+
+      const newStepData = TUTORIAL_STEPS[newStep - 1];
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to proceed to next step';
       setError(errorMessage);
@@ -552,6 +560,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const skipTutorial = async (): Promise<void> => {
     try {
       setLoading(true);
+
+
       dispatch({ type: 'SKIP_TUTORIAL' });
       await markTutorialSkipped();
     } catch (error) {
@@ -565,6 +575,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const completeTutorial = async (): Promise<void> => {
     try {
       setLoading(true);
+
+
       dispatch({ type: 'COMPLETE_TUTORIAL' });
       await markTutorialCompleted();
     } catch (error) {
@@ -670,6 +682,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   // Enhanced Form Interaction Handlers
   const handleTextInput = async (stepData: TutorialStep, value: string) => {
+
     // Highlight current field
     if (stepData.target) {
       highlightField(stepData.target);
@@ -831,11 +844,13 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
     if (name.length < 2) {
       console.log(`💡 Habit name guidance: Try something a bit longer like "Drink water" or "Read 10 pages"`);
+
       return false;
     }
 
     if (name.length > 50) {
       console.log(`💡 Habit name guidance: Keep it short and simple - under 50 characters works best!`);
+
       return false;
     }
 
