@@ -1,7 +1,30 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState, AppStateStatus } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useXpAnimation } from './XpAnimationContext';
+
+// Crash Recovery Interface
+export interface TutorialCrashLog {
+  timestamp: number;
+  error: string;
+  stack?: string;
+  step: number;
+  stepId: string;
+  userAgent: string;
+  appState: 'active' | 'background' | 'inactive';
+  memoryUsage?: number;
+  attempts: number;
+}
+
+export interface TutorialRecoveryState {
+  errorCount: number;
+  lastCrash?: TutorialCrashLog;
+  recoveryAttempts: number;
+  isInRecoveryMode: boolean;
+  fallbackEnabled: boolean;
+  recoveryTimestamp: number;
+}
 
 // Tutorial Step Interface
 export interface TutorialStep {
@@ -55,6 +78,7 @@ export interface TutorialContextType {
     showNextButton: (show: boolean) => void;
     handleStepAction: (action: string, value?: any) => Promise<void>;
     resetTutorial: () => Promise<void>;
+    clearCrashData: () => Promise<void>;
     // Visual Feedback & Highlighting
     highlightField: (fieldId: string) => void;
     clearFieldHighlight: () => void;
@@ -85,6 +109,11 @@ type TutorialAction =
 const TUTORIAL_STORAGE_KEY = 'onboarding_tutorial_completed';
 const TUTORIAL_STEP_KEY = 'onboarding_current_step';
 const TUTORIAL_SKIPPED_KEY = 'onboarding_tutorial_skipped';
+const TUTORIAL_SESSION_KEY = 'onboarding_tutorial_session';
+const TUTORIAL_SESSION_TIMESTAMP_KEY = 'onboarding_tutorial_timestamp';
+const TUTORIAL_CRASH_LOG_KEY = 'onboarding_tutorial_crash_log';
+const TUTORIAL_ERROR_COUNT_KEY = 'onboarding_tutorial_error_count';
+const TUTORIAL_RECOVERY_STATE_KEY = 'onboarding_tutorial_recovery_state';
 
 // Animation Specifications
 export const TUTORIAL_ANIMATIONS = {
@@ -511,6 +540,306 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Session Management Functions
+  const saveTutorialSession = async (tutorialState: TutorialState) => {
+    try {
+      const sessionData = {
+        state: {
+          isActive: tutorialState.isActive,
+          currentStep: tutorialState.currentStep,
+          totalSteps: tutorialState.totalSteps,
+          userInteractionBlocked: tutorialState.userInteractionBlocked,
+          showNext: tutorialState.showNext,
+          highlightedField: tutorialState.highlightedField,
+          fieldValidationStatus: tutorialState.fieldValidationStatus,
+          userFeedback: tutorialState.userFeedback,
+        },
+        timestamp: Date.now(),
+      };
+
+      await AsyncStorage.setItem(TUTORIAL_SESSION_KEY, JSON.stringify(sessionData));
+      await AsyncStorage.setItem(TUTORIAL_SESSION_TIMESTAMP_KEY, sessionData.timestamp.toString());
+
+      console.log('💾 Tutorial session saved for backgrounding recovery');
+    } catch (error) {
+      console.warn('Failed to save tutorial session:', error);
+    }
+  };
+
+  const restoreTutorialSession = async (): Promise<boolean> => {
+    try {
+      const sessionDataStr = await AsyncStorage.getItem(TUTORIAL_SESSION_KEY);
+      const timestampStr = await AsyncStorage.getItem(TUTORIAL_SESSION_TIMESTAMP_KEY);
+
+      if (!sessionDataStr || !timestampStr) {
+        return false;
+      }
+
+      const sessionData = JSON.parse(sessionDataStr);
+      const sessionAge = Date.now() - parseInt(timestampStr, 10);
+
+      // Session expires after 1 hour (3600000 ms) to avoid stale sessions
+      if (sessionAge > 3600000) {
+        console.log('🕐 Tutorial session expired, starting fresh');
+        await clearTutorialSession();
+        return false;
+      }
+
+      console.log('🔄 Restoring tutorial session from background');
+
+      // Restore tutorial state
+      dispatch({
+        type: 'START_TUTORIAL',
+        payload: { steps: TUTORIAL_STEPS }
+      });
+
+      dispatch({
+        type: 'SET_CURRENT_STEP',
+        payload: { stepNumber: sessionData.state.currentStep, steps: TUTORIAL_STEPS }
+      });
+
+      // Restore UI state
+      if (sessionData.state.highlightedField) {
+        dispatch({
+          type: 'HIGHLIGHT_FIELD',
+          payload: sessionData.state.highlightedField
+        });
+      }
+
+      if (sessionData.state.userFeedback) {
+        dispatch({
+          type: 'SHOW_USER_FEEDBACK',
+          payload: sessionData.state.userFeedback
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Failed to restore tutorial session:', error);
+      await clearTutorialSession();
+      return false;
+    }
+  };
+
+  const clearTutorialSession = async () => {
+    try {
+      await AsyncStorage.removeItem(TUTORIAL_SESSION_KEY);
+      await AsyncStorage.removeItem(TUTORIAL_SESSION_TIMESTAMP_KEY);
+    } catch (error) {
+      console.warn('Failed to clear tutorial session:', error);
+    }
+  };
+
+  // Crash Recovery System Functions
+  const logCrash = async (error: Error, context: { step: number; stepId: string; userAgent?: string }) => {
+    try {
+      const crashLog: TutorialCrashLog = {
+        timestamp: Date.now(),
+        error: error.message || 'Unknown error',
+        ...(error.stack && { stack: error.stack }),
+        step: context.step,
+        stepId: context.stepId,
+        userAgent: context.userAgent || 'Unknown',
+        appState: AppState.currentState === 'unknown' ? 'inactive' : AppState.currentState as 'active' | 'background' | 'inactive',
+        attempts: 1,
+      };
+
+      // Get existing crash logs
+      const existingLogs = await getCrashLogs();
+      const updatedLogs = [...existingLogs.slice(-9), crashLog]; // Keep last 10 crashes
+
+      await AsyncStorage.setItem(TUTORIAL_CRASH_LOG_KEY, JSON.stringify(updatedLogs));
+
+      // Update error count
+      const recoveryState = await getRecoveryState();
+      recoveryState.errorCount += 1;
+      recoveryState.lastCrash = crashLog;
+      recoveryState.recoveryTimestamp = Date.now();
+
+      await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
+
+      console.error('💥 Tutorial crash logged:', {
+        error: error.message,
+        step: context.step,
+        stepId: context.stepId
+      });
+    } catch (logError) {
+      console.error('Failed to log crash:', logError);
+    }
+  };
+
+  const getCrashLogs = async (): Promise<TutorialCrashLog[]> => {
+    try {
+      const logsStr = await AsyncStorage.getItem(TUTORIAL_CRASH_LOG_KEY);
+      return logsStr ? JSON.parse(logsStr) : [];
+    } catch (error) {
+      console.warn('Failed to get crash logs:', error);
+      return [];
+    }
+  };
+
+  const getRecoveryState = async (): Promise<TutorialRecoveryState> => {
+    try {
+      const stateStr = await AsyncStorage.getItem(TUTORIAL_RECOVERY_STATE_KEY);
+      if (stateStr) {
+        return JSON.parse(stateStr);
+      }
+    } catch (error) {
+      console.warn('Failed to get recovery state:', error);
+    }
+
+    // Default recovery state
+    return {
+      errorCount: 0,
+      recoveryAttempts: 0,
+      isInRecoveryMode: false,
+      fallbackEnabled: false,
+      recoveryTimestamp: Date.now(),
+    };
+  };
+
+  const attemptRecovery = async (error: Error): Promise<boolean> => {
+    try {
+      const recoveryState = await getRecoveryState();
+
+      // Increment recovery attempts
+      recoveryState.recoveryAttempts += 1;
+      recoveryState.isInRecoveryMode = true;
+      recoveryState.recoveryTimestamp = Date.now();
+
+      console.log(`🔧 Attempting tutorial recovery (attempt #${recoveryState.recoveryAttempts})`);
+
+      // Recovery strategy based on error count and type
+      if (recoveryState.errorCount < 3) {
+        // Low error count - try simple state reset
+        console.log('🔄 Simple state reset recovery');
+        dispatch({ type: 'SET_ERROR', payload: null });
+        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_INTERACTION_BLOCKED', payload: false });
+
+        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
+        return true;
+
+      } else if (recoveryState.errorCount < 6) {
+        // Medium error count - try session restoration from backup
+        console.log('🔄 Session restoration recovery');
+        const restored = await restoreTutorialSession();
+        if (restored) {
+          await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
+          return true;
+        }
+
+        // If session restoration fails, reset to safe step
+        console.log('🔄 Safe step reset recovery');
+        const safeStep = Math.max(1, state.currentStep - 2); // Go back 2 steps
+        dispatch({
+          type: 'SET_CURRENT_STEP',
+          payload: { stepNumber: safeStep, steps: TUTORIAL_STEPS }
+        });
+        await saveTutorialProgress(safeStep);
+        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
+        return true;
+
+      } else {
+        // High error count - enable fallback mode
+        console.log('⚠️ Enabling fallback mode due to repeated crashes');
+        recoveryState.fallbackEnabled = true;
+
+        // Reset tutorial to beginning with fallback mode
+        dispatch({ type: 'RESET_TUTORIAL' });
+        dispatch({
+          type: 'SHOW_USER_FEEDBACK',
+          payload: {
+            message: 'Tutorial experienced issues. Running in simplified mode.',
+            type: 'warning'
+          }
+        });
+
+        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
+        return true;
+      }
+    } catch (recoveryError) {
+      console.error('Recovery attempt failed:', recoveryError);
+      return false;
+    }
+  };
+
+  const clearCrashData = async () => {
+    try {
+      await AsyncStorage.removeItem(TUTORIAL_CRASH_LOG_KEY);
+      await AsyncStorage.removeItem(TUTORIAL_ERROR_COUNT_KEY);
+      await AsyncStorage.removeItem(TUTORIAL_RECOVERY_STATE_KEY);
+      console.log('🧹 Crash recovery data cleared');
+    } catch (error) {
+      console.warn('Failed to clear crash data:', error);
+    }
+  };
+
+  const validateTutorialState = (): boolean => {
+    try {
+      // Check for invalid state combinations
+      if (state.currentStep < 1 || state.currentStep > state.totalSteps) {
+        console.warn('⚠️ Invalid current step detected');
+        return false;
+      }
+
+      if (state.isCompleted && state.isSkipped) {
+        console.warn('⚠️ Invalid completion state detected');
+        return false;
+      }
+
+      if (state.isActive && (state.isCompleted || state.isSkipped)) {
+        console.warn('⚠️ Invalid active state detected');
+        return false;
+      }
+
+      if (state.currentStepData && state.currentStepData.id !== TUTORIAL_STEPS[state.currentStep - 1]?.id) {
+        console.warn('⚠️ Step data mismatch detected');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('State validation failed:', error);
+      return false;
+    }
+  };
+
+  const handleTutorialError = async (error: Error, context?: { action?: string; step?: number }) => {
+    console.error('🚨 Tutorial Error:', error);
+
+    // Log the crash
+    await logCrash(error, {
+      step: context?.step || state.currentStep,
+      stepId: state.currentStepData?.id || 'unknown',
+      userAgent: navigator.userAgent
+    });
+
+    // Validate current state
+    if (!validateTutorialState()) {
+      console.warn('⚠️ Invalid state detected, attempting recovery');
+      const recovered = await attemptRecovery(error);
+
+      if (!recovered) {
+        console.error('💥 Recovery failed, resetting tutorial');
+        dispatch({ type: 'RESET_TUTORIAL' });
+        dispatch({
+          type: 'SHOW_USER_FEEDBACK',
+          payload: {
+            message: 'Tutorial encountered an error and was reset.',
+            type: 'error'
+          }
+        });
+      }
+    } else {
+      // State is valid, try simple recovery
+      const recovered = await attemptRecovery(error);
+      if (!recovered) {
+        setError('Tutorial encountered an error. Please try again.');
+      }
+    }
+  };
+
   // Action Functions
   const startTutorial = async (): Promise<void> => {
     try {
@@ -526,8 +855,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
       await saveTutorialProgress(1);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to start tutorial';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to start tutorial'), {
+        action: 'startTutorial',
+        step: state.currentStep
+      });
     } finally {
       setLoading(false);
     }
@@ -552,8 +883,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       const newStepData = TUTORIAL_STEPS[newStep - 1];
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to proceed to next step';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to proceed to next step'), {
+        action: 'nextStep',
+        step: state.currentStep
+      });
     }
   };
 
@@ -561,12 +894,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
 
+      // Clear any saved session data
+      await clearTutorialSession();
 
       dispatch({ type: 'SKIP_TUTORIAL' });
       await markTutorialSkipped();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to skip tutorial';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to skip tutorial'), {
+        action: 'skipTutorial',
+        step: state.currentStep
+      });
     } finally {
       setLoading(false);
     }
@@ -576,12 +913,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
 
+      // Clear any saved session data
+      await clearTutorialSession();
 
       dispatch({ type: 'COMPLETE_TUTORIAL' });
       await markTutorialCompleted();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to complete tutorial';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to complete tutorial'), {
+        action: 'completeTutorial',
+        step: state.currentStep
+      });
     } finally {
       setLoading(false);
     }
@@ -602,8 +943,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
       dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to resume tutorial';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to resume tutorial'), {
+        action: 'resumeTutorial',
+        step: state.currentStep
+      });
     } finally {
       setLoading(false);
     }
@@ -617,8 +960,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
       dispatch({ type: 'RESET_TUTORIAL' });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to reset tutorial';
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to reset tutorial'), {
+        action: 'resetTutorial',
+        step: state.currentStep
+      });
     } finally {
       setLoading(false);
     }
@@ -674,9 +1019,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           console.warn(`⚠️ Unknown tutorial action: ${currentStepData.action}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to handle step action';
-      console.error('🚨 Tutorial step action failed:', errorMessage);
-      setError(errorMessage);
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to handle step action'), {
+        action: 'handleStepAction',
+        step: state.currentStep
+      });
     }
   };
 
@@ -868,18 +1214,6 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const validateGoalUnit = (unit: string) => {
-    if (!unit || unit.trim().length === 0) return false;
-
-    const commonUnits = ['books', 'pages', 'miles', 'kilometers', 'hours', 'minutes', 'workouts', 'days'];
-    const isCommonUnit = commonUnits.some(u => unit.toLowerCase().includes(u));
-
-    if (isCommonUnit) {
-      console.log(`✅ Great unit choice: "${unit}" - very clear and measurable!`);
-    }
-
-    return true;
-  };
 
   const validateGoalValue = (value: number) => {
     if (value <= 0) {
@@ -1058,6 +1392,57 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'HIDE_USER_FEEDBACK' });
   };
 
+  // App State Management for Backgrounding
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // App going to background - save session if tutorial is active
+      if (appState.current.match(/active/) && nextAppState === 'background') {
+        if (state.isActive && !state.isCompleted && !state.isSkipped) {
+          console.log('📱 App backgrounding - saving tutorial session');
+          saveTutorialSession(state);
+        }
+      }
+
+      // App coming from background - attempt session restoration
+      if (appState.current.match(/background/) && nextAppState === 'active') {
+        if (!state.isActive && !state.isCompleted && !state.isSkipped) {
+          console.log('📱 App foregrounding - checking for tutorial session');
+          restoreTutorialSession().then((restored) => {
+            if (restored) {
+              console.log('✅ Tutorial session restored successfully');
+            }
+          }).catch((error) => {
+            console.warn('Failed to restore tutorial session:', error);
+          });
+        }
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [state.isActive, state.isCompleted, state.isSkipped, state.currentStep]);
+
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      if (!state.isActive && !state.isCompleted && !state.isSkipped) {
+        const restored = await restoreTutorialSession();
+        if (restored) {
+          console.log('🔄 Existing tutorial session restored on app start');
+        }
+      }
+    };
+
+    checkExistingSession();
+  }, []); // Run only on mount
+
   return (
     <TutorialContext.Provider
       value={{
@@ -1072,6 +1457,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           showNextButton,
           handleStepAction,
           resetTutorial,
+          clearCrashData,
           // Visual Feedback & Highlighting
           highlightField,
           clearFieldHighlight,

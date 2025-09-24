@@ -666,6 +666,14 @@ const en: TranslationKeys = {
     version: 'Version',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
+    // Tutorial & Onboarding
+    tutorialReset: 'Reset Tutorial',
+    tutorialResetDescription: 'Clear tutorial progress and start from beginning',
+    tutorialResetConfirmTitle: 'Reset Tutorial?',
+    tutorialResetConfirmMessage: 'This will clear all tutorial progress and allow you to go through the tutorial again. This action cannot be undone.',
+    tutorialResetSuccess: 'Tutorial has been reset successfully! You can now start the tutorial again.',
+    cancel: 'Cancel',
+    reset: 'Reset',
   },
   
   // Auth screens
