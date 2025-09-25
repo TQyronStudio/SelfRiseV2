@@ -18,8 +18,20 @@ import { Fonts } from '@/src/constants/fonts';
 import { SpotlightEffect } from './SpotlightEffect';
 import { TutorialModal } from './TutorialModal';
 import { tutorialTargetManager, TargetElementInfo } from '@/src/utils/TutorialTargetHelper';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+import {
+  getContentBottomPosition,
+  getCardPadding,
+  getHorizontalMargin,
+  scaleFont,
+  getSkipButtonSize,
+  getButtonHeight,
+  getIconSize,
+  isTablet,
+  isLandscape,
+  getScreenSize,
+  ScreenSize,
+  getSafeAreaMultiplier
+} from '@/src/utils/responsive';
 
 interface TutorialOverlayProps {
   children: React.ReactNode;
@@ -180,7 +192,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           style={[
             styles.skipButtonContainer,
             {
-              top: insets.top + 10,
+              top: (insets.top * getSafeAreaMultiplier()) + (isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 8 : 10)),
               opacity: contentOpacity,
             },
           ]}
@@ -192,7 +204,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             accessibilityRole="button"
             accessibilityLabel="Skip tutorial"
           >
-            <Ionicons name="close" size={24} color={Colors.white} />
+            <Ionicons name="close" size={getIconSize(24)} color={Colors.white} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -230,7 +242,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   <Text style={styles.nextButtonText}>
                     {state.currentStepData.content.button || 'Next'}
                   </Text>
-                  <Ionicons name="arrow-forward" size={20} color={Colors.white} />
+                  <Ionicons name="arrow-forward" size={getIconSize(20)} color={Colors.white} />
                 </TouchableOpacity>
               )}
             </View>
@@ -273,72 +285,74 @@ const styles = StyleSheet.create({
   },
   skipButtonContainer: {
     position: 'absolute',
-    right: 16,
+    right: getHorizontalMargin(),
     zIndex: 10001,
   },
   skipButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: getSkipButtonSize(),
+    height: getSkipButtonSize(),
+    borderRadius: getSkipButtonSize() / 2,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: isTablet() ? 2 : 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   contentContainer: {
     position: 'absolute',
-    bottom: 100,
-    left: 16,
-    right: 16,
+    bottom: getContentBottomPosition(),
+    left: getHorizontalMargin(),
+    right: getHorizontalMargin(),
     zIndex: 10000,
   },
   contentCard: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
+    padding: getCardPadding(),
     shadowColor: Colors.black,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: isTablet() ? 0.35 : 0.3,
+    shadowRadius: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
+    elevation: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
   },
   title: {
-    fontSize: Fonts.sizes.xl,
+    fontSize: scaleFont(Fonts.sizes.xl),
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 10 : 12),
     textAlign: 'center',
+    lineHeight: scaleFont(Fonts.sizes.xl) * 1.3,
   },
   content: {
-    fontSize: Fonts.sizes.md,
+    fontSize: scaleFont(Fonts.sizes.md),
     color: Colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 12 : 14),
+    paddingHorizontal: isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
+    borderRadius: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
+    minHeight: getButtonHeight(),
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: isTablet() ? 6 : 4,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: isTablet() ? 12 : 8,
+    elevation: isTablet() ? 6 : 4,
   },
   nextButtonText: {
-    fontSize: Fonts.sizes.md,
+    fontSize: scaleFont(Fonts.sizes.md),
     fontWeight: '600',
     color: Colors.white,
     marginRight: 8,
@@ -354,7 +368,7 @@ const styles = StyleSheet.create({
     zIndex: 10002,
   },
   loadingText: {
-    fontSize: Fonts.sizes.md,
+    fontSize: scaleFont(Fonts.sizes.md),
     color: Colors.white,
     textAlign: 'center',
   },
