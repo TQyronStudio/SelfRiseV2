@@ -166,6 +166,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
         maxLength={200}
         editable={!isSubmitting}
         autoFocus
+        nativeID="gratitude-input"
       />
       
       <View style={styles.footer}>

@@ -538,10 +538,10 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
   }
 
   return (
-    <View 
+    <View
       style={[
-        themeStyles, 
-        spacingStyles, 
+        themeStyles,
+        spacingStyles,
         compactMode && styles.containerCompact,
         { borderColor: rarityBorderColor, borderWidth: 2 }
       ]}
@@ -549,6 +549,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
+      nativeID="xp-progress-section"
     >
       {/* Level Title and Roman Numerals - Top Center */}
       <View style={styles.rarityRomanContainer}>

@@ -122,6 +122,7 @@ export function HabitForm({
             placeholder={t('habits.form.namePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             maxLength={50}
+            nativeID="habit-name-input"
           />
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
         </View>
@@ -147,18 +148,22 @@ export function HabitForm({
         <View style={styles.visualGroup}>
           <View style={styles.compactSection}>
             <Text style={styles.label}>{t('habits.form.color')}</Text>
-            <ColorPicker
-              selectedColor={formData.color}
-              onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
-            />
+            <View nativeID="habit-color-picker">
+              <ColorPicker
+                selectedColor={formData.color}
+                onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
+              />
+            </View>
           </View>
 
           <View style={styles.compactSection}>
             <Text style={styles.label}>{t('habits.form.icon')}</Text>
-            <IconPicker
-              selectedIcon={formData.icon}
-              onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
-            />
+            <View nativeID="habit-icon-picker">
+              <IconPicker
+                selectedIcon={formData.icon}
+                onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
+              />
+            </View>
           </View>
 
           <View style={[styles.compactSection, styles.lastCompactSection]}>
@@ -166,10 +171,12 @@ export function HabitForm({
               <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
               <HelpTooltip helpKey="habits.scheduling" />
             </View>
-            <DayPicker
-              selectedDays={formData.scheduledDays}
-              onDayToggle={handleDayToggle}
-            />
+            <View nativeID="habit-scheduled-days">
+              <DayPicker
+                selectedDays={formData.scheduledDays}
+                onDayToggle={handleDayToggle}
+              />
+            </View>
             {errors.scheduledDays && (
               <Text style={styles.errorText}>{errors.scheduledDays}</Text>
             )}

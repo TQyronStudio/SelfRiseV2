@@ -206,6 +206,7 @@ export function GoalForm({
             onFocus={() => scrollToInput(0)}
             editable={!isLoading}
             maxLength={100}
+            nativeID="goal-title-input"
           />
           {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
         </View>
@@ -236,6 +237,7 @@ export function GoalForm({
             style={[styles.input, styles.dateSelector]}
             onPress={() => setShowDateModal(true)}
             disabled={isLoading}
+            nativeID="goal-date-picker"
           >
             <Text style={[
               styles.dateText, 
@@ -258,6 +260,7 @@ export function GoalForm({
             onFocus={() => scrollToInput(250)}
             editable={!isLoading}
             maxLength={20}
+            nativeID="goal-unit-input"
           />
           {errors.unit && <Text style={styles.errorText}>{errors.unit}</Text>}
         </View>
@@ -277,6 +280,7 @@ export function GoalForm({
             onFocus={() => scrollToInput(300)}
             keyboardType="numeric"
             editable={!isLoading}
+            nativeID="goal-target-input"
           />
           {errors.targetValue && <Text style={styles.errorText}>{errors.targetValue}</Text>}
         </View>
