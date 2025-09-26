@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { useTutorial, TUTORIAL_ANIMATIONS } from '@/src/contexts/TutorialContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
 import { SpotlightEffect } from './SpotlightEffect';
@@ -39,6 +40,7 @@ interface TutorialOverlayProps {
 
 export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) => {
   const { state, actions } = useTutorial();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   // Animation values
@@ -183,7 +185,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {/* Loading indicator for target detection */}
         {isSpotlight && isLoadingTarget && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Preparing tutorial...</Text>
+            <Text style={styles.loadingText}>{t('tutorial.loading')}</Text>
           </View>
         )}
 
