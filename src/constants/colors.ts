@@ -53,7 +53,7 @@ export const Colors = {
   border: '#DEE2E6',
   borderLight: '#F1F3F4',
   shadow: 'rgba(0, 0, 0, 0.1)',
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  overlay: 'rgba(0, 0, 0, 0.4)',
   accent: '#E83E8C',
   
   // Navigation colors

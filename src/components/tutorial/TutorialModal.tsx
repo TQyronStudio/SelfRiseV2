@@ -31,6 +31,8 @@ import {
 interface TutorialModalProps {
   visible: boolean;
   step: TutorialStep;
+  currentStep: number;
+  totalSteps: number;
   onNext: () => void;
   onSkip: () => void;
 }
@@ -38,6 +40,8 @@ interface TutorialModalProps {
 export const TutorialModal: React.FC<TutorialModalProps> = ({
   visible,
   step,
+  currentStep,
+  totalSteps,
   onNext,
   onSkip,
 }) => {
@@ -165,15 +169,19 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
             {/* Content */}
             <Text style={styles.content}>{step.content.content}</Text>
 
-            {/* Progress indicator for welcome modal */}
-            {isWelcomeModal && (
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { backgroundColor: getModalColor() }]} />
-                </View>
-                <Text style={styles.progressText}>Step 1 of 16</Text>
+            {/* Progress indicator for all modal steps */}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View style={[
+                  styles.progressFill,
+                  {
+                    backgroundColor: getModalColor(),
+                    width: `${(currentStep / totalSteps) * 100}%`
+                  }
+                ]} />
               </View>
-            )}
+              <Text style={styles.progressText}>Step {currentStep} of {totalSteps}</Text>
+            </View>
 
             {/* Action Button */}
             <TouchableOpacity
@@ -223,7 +231,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalWrapper: {
     justifyContent: 'center',
@@ -298,7 +306,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    width: '6.25%', // 1/16 = 6.25%
     borderRadius: isTablet() ? 3 : 2,
   },
   progressText: {

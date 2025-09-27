@@ -81,13 +81,18 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
   const spotlightCenterX = target.x + target.width / 2;
   const spotlightCenterY = target.y + target.height / 2;
 
-  // Create spotlight mask using multiple View components
+  // Spotlight with cut-out overlay - creates light area inside target
   const createSpotlightMask = () => {
-    const spotlightSize = spotlightRadius * 2;
+    // Add padding to the target area for the cut-out
+    const cutoutPadding = 8;
+    const cutoutX = target.x - cutoutPadding;
+    const cutoutY = target.y - cutoutPadding;
+    const cutoutWidth = target.width + (cutoutPadding * 2);
+    const cutoutHeight = target.height + (cutoutPadding * 2);
 
     return (
       <View style={styles.spotlightContainer}>
-        {/* Top overlay */}
+        {/* Top overlay - above the target */}
         <View
           style={[
             styles.overlayPart,
@@ -95,67 +100,51 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
               top: 0,
               left: 0,
               width: SCREEN_WIDTH,
-              height: Math.max(0, spotlightCenterY - spotlightRadius),
+              height: Math.max(0, cutoutY),
             },
           ]}
         />
 
-        {/* Bottom overlay */}
+        {/* Bottom overlay - below the target */}
         <View
           style={[
             styles.overlayPart,
             {
-              top: spotlightCenterY + spotlightRadius,
+              top: cutoutY + cutoutHeight,
               left: 0,
               width: SCREEN_WIDTH,
-              height: Math.max(0, SCREEN_HEIGHT - (spotlightCenterY + spotlightRadius)),
+              height: Math.max(0, SCREEN_HEIGHT - (cutoutY + cutoutHeight)),
             },
           ]}
         />
 
-        {/* Left overlay */}
+        {/* Left overlay - to the left of target */}
         <View
           style={[
             styles.overlayPart,
             {
-              top: Math.max(0, spotlightCenterY - spotlightRadius),
+              top: cutoutY,
               left: 0,
-              width: Math.max(0, spotlightCenterX - spotlightRadius),
-              height: spotlightSize,
+              width: Math.max(0, cutoutX),
+              height: cutoutHeight,
             },
           ]}
         />
 
-        {/* Right overlay */}
+        {/* Right overlay - to the right of target */}
         <View
           style={[
             styles.overlayPart,
             {
-              top: Math.max(0, spotlightCenterY - spotlightRadius),
-              left: spotlightCenterX + spotlightRadius,
-              width: Math.max(0, SCREEN_WIDTH - (spotlightCenterX + spotlightRadius)),
-              height: spotlightSize,
+              top: cutoutY,
+              left: cutoutX + cutoutWidth,
+              width: Math.max(0, SCREEN_WIDTH - (cutoutX + cutoutWidth)),
+              height: cutoutHeight,
             },
           ]}
         />
 
-        {/* Spotlight circle with pulsing effect */}
-        <Animated.View
-          style={[
-            styles.spotlightCircle,
-            {
-              left: spotlightCenterX - spotlightRadius,
-              top: spotlightCenterY - spotlightRadius,
-              width: spotlightSize,
-              height: spotlightSize,
-              borderRadius: spotlightRadius,
-              opacity: spotlightOpacity,
-              transform: [{ scale: pulseScale }],
-            },
-          ]}
-        />
-
-        {/* Target highlight */}
+        {/* Target highlight - pulzující rámeček kolem světlé oblasti */}
         <Animated.View
           style={[
             styles.targetHighlight,
@@ -206,33 +195,21 @@ const styles = StyleSheet.create({
   },
   overlayPart: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  },
-  spotlightCircle: {
-    position: 'absolute',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#ffffff',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   targetHighlight: {
     position: 'absolute',
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    shadowColor: '#4CAF50',
+    borderWidth: 3,
+    borderColor: '#FF6B35',
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    shadowColor: '#FF6B35',
     shadowOffset: {
       width: 0,
       height: 0,
     },
     shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 12,
+    elevation: 12,
   },
   clickableArea: {
     position: 'absolute',

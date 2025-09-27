@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
   StatusBar,
+  DeviceEventEmitter,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -120,6 +121,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       const targetInfo = await tutorialTargetManager.waitForTarget(targetId, 10, 100);
 
       if (targetInfo) {
+        // Auto-scroll logic: if target is below viewport, scroll to make it visible
+        await ensureTargetVisible(targetId, targetInfo);
+
         setSpotlightTarget(targetInfo);
       } else {
         console.warn(`Failed to get target info for: ${targetId}`);
@@ -133,6 +137,33 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     }
   };
 
+  // Auto-scroll to ensure target is visible in viewport
+  const ensureTargetVisible = async (targetId: string, targetInfo: TargetElementInfo) => {
+    // Get viewport height
+    const viewportHeight = Dimensions.get('window').height;
+    const safeAreaTop = insets.top;
+    const safeAreaBottom = insets.bottom;
+    const availableHeight = viewportHeight - safeAreaTop - safeAreaBottom - 200; // Reserve space for tutorial content
+
+    // Check if target is below the visible area (considering safe areas and tutorial content)
+    const targetBottom = targetInfo.y + targetInfo.height;
+    const visibleAreaTop = safeAreaTop + 100; // Header space
+
+    if (targetInfo.y < visibleAreaTop || targetBottom > availableHeight) {
+      console.log(`🔄 Auto-scrolling to make ${targetId} visible...`);
+
+      // Find the main scroll view by getting main-content target
+      const mainContentInfo = await tutorialTargetManager.getTargetInfo('main-content');
+      if (mainContentInfo) {
+        // Calculate scroll position to center the target in viewport
+        const scrollY = Math.max(0, targetInfo.y - (availableHeight / 3)); // Position target in upper third
+
+        // Scroll to position - position refresh handled by scroll completion event
+        DeviceEventEmitter.emit('tutorial_scroll_to', { y: scrollY, animated: true });
+      }
+    }
+  };
+
   // Update spotlight when step changes
   useEffect(() => {
     if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
@@ -142,6 +173,29 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       setIsLoadingTarget(false);
     }
   }, [state.currentStepData]);
+
+  // Listen for scroll completion and refresh target positions
+  useEffect(() => {
+    const scrollCompletedListener = DeviceEventEmitter.addListener(
+      'tutorial_scroll_completed',
+      async () => {
+        if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
+          console.log(`🔄 [TUTORIAL] Refreshing target position after scroll: ${state.currentStepData.target}`);
+
+          // Get fresh target position
+          const refreshedTargetInfo = await tutorialTargetManager.getTargetInfo(state.currentStepData.target);
+          if (refreshedTargetInfo) {
+            console.log(`✅ [TUTORIAL] Refreshed position:`, refreshedTargetInfo);
+            setSpotlightTarget(refreshedTargetInfo);
+          }
+        }
+      }
+    );
+
+    return () => {
+      scrollCompletedListener.remove();
+    };
+  }, [state.currentStepData?.target, state.currentStepData?.type]);
 
   // Don't render if tutorial is not active
   if (!state.isActive || !state.currentStepData) {
@@ -167,8 +221,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         ]}
         pointerEvents={state.isActive ? 'auto' : 'none'}
       >
-        {/* Dark Background */}
-        <View style={styles.darkBackground} />
+        {/* No dark background needed - SpotlightEffect handles its own overlays */}
 
         {/* Spotlight Effect for spotlight type */}
         {isSpotlight && spotlightTarget && !isLoadingTarget && (
@@ -232,6 +285,20 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 {state.currentStepData.content.content}
               </Text>
 
+              {/* Progress indicator */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[
+                    styles.progressFill,
+                    {
+                      backgroundColor: Colors.primary,
+                      width: `${(state.currentStep / state.totalSteps) * 100}%`
+                    }
+                  ]} />
+                </View>
+                <Text style={styles.progressText}>Step {state.currentStep} of {state.totalSteps}</Text>
+              </View>
+
               {/* Next Button - Show when appropriate */}
               {(state.showNext || state.currentStepData.action === 'next') && (
                 <TouchableOpacity
@@ -256,6 +323,8 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           <TutorialModal
             visible={true}
             step={state.currentStepData}
+            currentStep={state.currentStep}
+            totalSteps={state.totalSteps}
             onNext={handleNext}
             onSkip={handleSkip}
           />
@@ -283,7 +352,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   skipButtonContainer: {
     position: 'absolute',
@@ -302,7 +371,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     position: 'absolute',
-    bottom: getContentBottomPosition(),
+    bottom: getContentBottomPosition() - 50, // Move down 50px more to be lower
     left: getHorizontalMargin(),
     right: getHorizontalMargin(),
     zIndex: 10000,
@@ -373,5 +442,25 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(Fonts.sizes.md),
     color: Colors.white,
     textAlign: 'center',
+  },
+  progressContainer: {
+    width: '100%',
+    marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
+  },
+  progressBar: {
+    height: isTablet() ? 6 : (getScreenSize() === ScreenSize.SMALL ? 3 : 4),
+    backgroundColor: Colors.backgroundSecondary,
+    borderRadius: isTablet() ? 3 : 2,
+    marginBottom: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: isTablet() ? 3 : 2,
+  },
+  progressText: {
+    fontSize: scaleFont(12),
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });

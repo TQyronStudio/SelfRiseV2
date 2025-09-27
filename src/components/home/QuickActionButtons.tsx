@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { HabitColor, HabitIcon } from '@/src/types/common';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 interface QuickActionButtonsProps {
   onHabitToggle?: (habitId: string) => void;
@@ -48,6 +49,30 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const router = useRouter();
   const { getHabitsByDate } = useHabitsData();
 
+  // Tutorial targeting
+  const quickActionsRef = useRef<View>(null);
+  const addHabitRef = useRef<TouchableOpacity>(null);
+
+  const { registerTarget: registerQuickActions, unregisterTarget: unregisterQuickActions } = useTutorialTarget(
+    'quick-actions-section',
+    quickActionsRef
+  );
+
+  const { registerTarget: registerAddHabit, unregisterTarget: unregisterAddHabit } = useTutorialTarget(
+    'add-habit-button',
+    addHabitRef as any
+  );
+
+  useEffect(() => {
+    registerQuickActions();
+    registerAddHabit();
+
+    return () => {
+      unregisterQuickActions();
+      unregisterAddHabit();
+    };
+  }, [registerQuickActions, unregisterQuickActions, registerAddHabit, unregisterAddHabit]);
+
   const todayString = today();
   const todayHabits = getHabitsByDate(todayString);
   const todayDayOfWeek = getDayOfWeekFromDateString(todayString);
@@ -80,12 +105,12 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   };
 
   return (
-    <View style={styles.container} nativeID="quick-actions-section">
+    <View ref={quickActionsRef} style={styles.container} nativeID="quick-actions-section">
       <Text style={styles.title}>{t('home.quickActions')}</Text>
 
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}
-        <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit} nativeID="add-habit-button">
+        <TouchableOpacity ref={addHabitRef} style={styles.actionButton} onPress={handleAddHabit} nativeID="add-habit-button">
           <Ionicons name="add-circle" size={20} color={Colors.primary} />
           <Text style={styles.actionText}>Add Habit</Text>
         </TouchableOpacity>

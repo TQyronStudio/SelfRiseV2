@@ -166,8 +166,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
   // Step 2: App Overview
   {
     id: 'app-overview',
-    type: 'spotlight',
-    target: 'main-content',
+    type: 'modal',
     content: {
       title: t('tutorial.steps.appOverview.title'),
       content: t('tutorial.steps.appOverview.content'),
