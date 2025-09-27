@@ -1118,6 +1118,17 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
         case 'click_element':
           console.log(`🎯 Element clicked: ${currentStepData.target}`);
+
+          // Handle specific navigation actions for certain steps
+          if (currentStepData.id === 'create-habit-button' && currentStepData.target === 'add-habit-button') {
+            console.log(`🎯 Navigating to habit creation screen...`);
+            // Navigate to habits tab with quickAction to open add habit modal
+            router.push('/(tabs)/habits?quickAction=addHabit');
+
+            // Wait for navigation and modal to complete before continuing tutorial
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+
           await nextStep();
           break;
 
