@@ -19,11 +19,13 @@ interface SpotlightTarget {
 
 interface SpotlightEffectProps {
   target: SpotlightTarget;
+  action?: string;
   onTargetPress?: () => void;
 }
 
 export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
   target,
+  action,
   onTargetPress,
 }) => {
   // Animation values
@@ -160,23 +162,25 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
           ]}
         />
 
-        {/* Clickable area */}
-        <TouchableOpacity
-          style={[
-            styles.clickableArea,
-            {
-              left: target.x,
-              top: target.y,
-              width: target.width,
-              height: target.height,
-            },
-          ]}
-          onPress={onTargetPress}
-          activeOpacity={0.8}
-          accessible={true}
-          accessibilityRole="button"
-          accessibilityLabel="Tap to continue tutorial"
-        />
+        {/* Clickable area - only for click actions, not for text input */}
+        {action !== 'type_text' && (
+          <TouchableOpacity
+            style={[
+              styles.clickableArea,
+              {
+                left: target.x,
+                top: target.y,
+                width: target.width,
+                height: target.height,
+              },
+            ]}
+            onPress={onTargetPress}
+            activeOpacity={0.8}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Tap to continue tutorial"
+          />
+        )}
       </View>
     );
   };

@@ -17,6 +17,7 @@ import { HabitForm, HabitFormData } from './HabitForm';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 
 interface HabitModalProps {
   visible: boolean;
@@ -56,28 +57,30 @@ export function HabitModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            disabled={isLoading}
-          >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          <Text style={styles.title}>
-            {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
-          </Text>
-          <View style={styles.placeholder} />
-        </View>
-        <HabitForm
-          initialData={initialData}
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          isEditing={isEditing}
-          isLoading={isLoading}
-        />
-      </SafeAreaView>
+      <TutorialOverlay>
+        <SafeAreaView style={styles.container} nativeID="main-content">
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              disabled={isLoading}
+            >
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            <Text style={styles.title}>
+              {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
+            </Text>
+            <View style={styles.placeholder} />
+          </View>
+          <HabitForm
+            initialData={initialData}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            isEditing={isEditing}
+            isLoading={isLoading}
+          />
+        </SafeAreaView>
+      </TutorialOverlay>
     </Modal>
   );
 }

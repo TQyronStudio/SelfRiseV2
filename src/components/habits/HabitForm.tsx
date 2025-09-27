@@ -1,6 +1,6 @@
 // src/components/habits/HabitForm.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  DeviceEventEmitter,
 } from 'react-native';
 import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
 import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
@@ -18,6 +19,7 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -45,7 +47,80 @@ export function HabitForm({
   isLoading = false,
 }: HabitFormProps) {
   const { t } = useI18n();
-  
+
+  // Tutorial target refs
+  const habitNameRef = useRef<TextInput>(null);
+  const habitColorRef = useRef<View>(null);
+  const habitIconRef = useRef<View>(null);
+  const habitDaysRef = useRef<View>(null);
+  const createButtonRef = useRef<TouchableOpacity>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Tutorial target registration
+  const { registerTarget: registerHabitName, unregisterTarget: unregisterHabitName } = useTutorialTarget(
+    'habit-name-input',
+    habitNameRef as any
+  );
+
+  const { registerTarget: registerHabitColor, unregisterTarget: unregisterHabitColor } = useTutorialTarget(
+    'habit-color-picker',
+    habitColorRef as any
+  );
+
+  const { registerTarget: registerHabitIcon, unregisterTarget: unregisterHabitIcon } = useTutorialTarget(
+    'habit-icon-picker',
+    habitIconRef as any
+  );
+
+  const { registerTarget: registerHabitDays, unregisterTarget: unregisterHabitDays } = useTutorialTarget(
+    'habit-scheduled-days',
+    habitDaysRef as any
+  );
+
+  const { registerTarget: registerCreateButton, unregisterTarget: unregisterCreateButton } = useTutorialTarget(
+    'create-habit-submit',
+    createButtonRef as any
+  );
+
+  useEffect(() => {
+    registerHabitName();
+    registerHabitColor();
+    registerHabitIcon();
+    registerHabitDays();
+    registerCreateButton();
+
+    return () => {
+      unregisterHabitName();
+      unregisterHabitColor();
+      unregisterHabitIcon();
+      unregisterHabitDays();
+      unregisterCreateButton();
+    };
+  }, []);
+
+  // Tutorial auto-scroll support for modal
+  useEffect(() => {
+    const scrollListener = DeviceEventEmitter.addListener(
+      'tutorial_scroll_to',
+      ({ y, animated = true }: { y: number; animated?: boolean }) => {
+        console.log(`📜 [HABIT_FORM] Tutorial auto-scroll to Y: ${y}`);
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y, animated });
+
+          // Signal that scroll is completed
+          setTimeout(() => {
+            console.log(`🔄 [HABIT_FORM] Signaling position refresh after scroll`);
+            DeviceEventEmitter.emit('tutorial_scroll_completed');
+          }, animated ? 300 : 50);
+        }
+      }
+    );
+
+    return () => {
+      scrollListener.remove();
+    };
+  }, []);
+
   const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',
     color: initialData?.color || HabitColor.BLUE,
@@ -105,7 +180,8 @@ export function HabitForm({
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
@@ -116,6 +192,7 @@ export function HabitForm({
         <View style={styles.section}>
           <Text style={styles.label}>{t('habits.form.name')}</Text>
           <TextInput
+            ref={habitNameRef}
             style={[styles.input, errors.name && styles.inputError]}
             value={formData.name}
             onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
@@ -148,7 +225,7 @@ export function HabitForm({
         <View style={styles.visualGroup}>
           <View style={styles.compactSection}>
             <Text style={styles.label}>{t('habits.form.color')}</Text>
-            <View nativeID="habit-color-picker">
+            <View ref={habitColorRef} nativeID="habit-color-picker">
               <ColorPicker
                 selectedColor={formData.color}
                 onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
@@ -158,7 +235,7 @@ export function HabitForm({
 
           <View style={styles.compactSection}>
             <Text style={styles.label}>{t('habits.form.icon')}</Text>
-            <View nativeID="habit-icon-picker">
+            <View ref={habitIconRef} nativeID="habit-icon-picker">
               <IconPicker
                 selectedIcon={formData.icon}
                 onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
@@ -171,7 +248,7 @@ export function HabitForm({
               <Text style={styles.label}>{t('habits.form.scheduledDays')}</Text>
               <HelpTooltip helpKey="habits.scheduling" />
             </View>
-            <View nativeID="habit-scheduled-days">
+            <View ref={habitDaysRef} nativeID="habit-scheduled-days">
               <DayPicker
                 selectedDays={formData.scheduledDays}
                 onDayToggle={handleDayToggle}
@@ -193,6 +270,7 @@ export function HabitForm({
           </TouchableOpacity>
           
           <TouchableOpacity
+            ref={createButtonRef}
             style={[styles.button, styles.submitButton]}
             onPress={handleSubmit}
             disabled={isLoading}

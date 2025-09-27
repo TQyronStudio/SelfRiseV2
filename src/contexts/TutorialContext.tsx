@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useXpAnimation } from './XpAnimationContext';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { router } from 'expo-router';
+import { tutorialTargetManager } from '@/src/utils/TutorialTargetHelper';
 
 // Crash Recovery Interface
 export interface TutorialCrashLog {
@@ -135,7 +136,7 @@ export const TUTORIAL_ANIMATIONS = {
 const initialState: TutorialState = {
   isActive: false,
   currentStep: 1,
-  totalSteps: 16,
+  totalSteps: 22,
   isCompleted: false,
   isSkipped: false,
   userInteractionBlocked: false,
@@ -559,8 +560,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   // Create tutorial steps with translations
   const TUTORIAL_STEPS = createTutorialSteps(t);
 
-  // Modal Coordination with XpAnimationContext
-  const { state: xpState, notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
+  // Modal Coordination with XpAnimationContext - only for achievement modal detection
+  const { state: xpState } = useXpAnimation();
 
 
   // Helper Functions
@@ -953,7 +954,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       const newStep = state.currentStep + 1;
 
+      console.log(`🎓 [NEXT STEP] Current: ${state.currentStep}, New: ${newStep}, Total: ${state.totalSteps}`);
+
       if (newStep > state.totalSteps) {
+        console.log(`🏁 [TUTORIAL] Completing tutorial - step ${newStep} exceeds total ${state.totalSteps}`);
         await completeTutorial();
         return;
       }
@@ -1126,7 +1130,26 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             router.push('/(tabs)/habits?quickAction=addHabit');
 
             // Wait for navigation and modal to complete before continuing tutorial
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Extended wait time to ensure modal is fully loaded and targets are registered
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Additionally wait for tutorial targets to be registered in the modal
+            let retryCount = 0;
+            const maxRetries = 10;
+            while (retryCount < maxRetries) {
+              const targetExists = await tutorialTargetManager.getTargetInfo('habit-name-input');
+              if (targetExists) {
+                console.log(`✅ Tutorial target 'habit-name-input' is ready after ${retryCount} retries`);
+                break;
+              }
+              console.log(`⏳ Waiting for tutorial target 'habit-name-input' to be registered... (${retryCount + 1}/${maxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, 200));
+              retryCount++;
+            }
+
+            if (retryCount >= maxRetries) {
+              console.warn(`⚠️ Tutorial target 'habit-name-input' still not found after ${maxRetries} retries`);
+            }
           }
 
           await nextStep();
@@ -1471,16 +1494,15 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
   }, [xpState.modalCoordination.isAchievementModalActive, state.currentStepData, state.isActive]);
 
-  // Notify modal coordination system when tutorial starts/ends
+  // Tutorial has its own overlay system and should not interfere with modal coordination
+  // Removing modal coordination notification to prevent conflicts with Monthly Challenge modals
   useEffect(() => {
     if (state.isActive) {
-      console.log('🎓 Tutorial started - notifying modal coordination system');
-      notifyActivityModalStarted('habit'); // Tutorial acts like an activity modal
+      console.log('🎓 Tutorial started - independent of modal coordination system');
     } else {
-      console.log('🎓 Tutorial ended - notifying modal coordination system');
-      notifyActivityModalEnded();
+      console.log('🎓 Tutorial ended - independent of modal coordination system');
     }
-  }, [state.isActive, notifyActivityModalStarted, notifyActivityModalEnded]);
+  }, [state.isActive]);
 
   // Visual Feedback & Highlighting Helper Methods
   const highlightField = (fieldId: string) => {

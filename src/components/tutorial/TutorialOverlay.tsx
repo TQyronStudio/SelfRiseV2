@@ -122,9 +122,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
 
       if (targetInfo) {
         // Auto-scroll logic: if target is below viewport, scroll to make it visible
-        await ensureTargetVisible(targetId, targetInfo);
+        const scrollNeeded = await ensureTargetVisible(targetId, targetInfo);
 
-        setSpotlightTarget(targetInfo);
+        if (scrollNeeded) {
+          // If scroll was triggered, don't set spotlight target yet -
+          // it will be set by the scroll completion listener
+          console.log(`🔄 [TUTORIAL] Waiting for scroll completion before setting spotlight...`);
+        } else {
+          // No scroll needed, set spotlight target immediately
+          setSpotlightTarget(targetInfo);
+        }
       } else {
         console.warn(`Failed to get target info for: ${targetId}`);
         setSpotlightTarget(null);
@@ -138,7 +145,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
   };
 
   // Auto-scroll to ensure target is visible in viewport
-  const ensureTargetVisible = async (targetId: string, targetInfo: TargetElementInfo) => {
+  const ensureTargetVisible = async (targetId: string, targetInfo: TargetElementInfo): Promise<boolean> => {
     // Get viewport height
     const viewportHeight = Dimensions.get('window').height;
     const safeAreaTop = insets.top;
@@ -160,8 +167,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
 
         // Scroll to position - position refresh handled by scroll completion event
         DeviceEventEmitter.emit('tutorial_scroll_to', { y: scrollY, animated: true });
+        return true; // Scroll was triggered
       }
     }
+
+    return false; // No scroll needed
   };
 
   // Update spotlight when step changes
@@ -216,10 +226,12 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           styles.overlay,
           {
             opacity: overlayOpacity,
-            zIndex: 9999,
+            zIndex: 99999, // Higher than all modals
           },
         ]}
-        pointerEvents={state.isActive ? 'auto' : 'none'}
+        pointerEvents={
+          state.isActive && state.currentStepData?.action !== 'type_text' ? 'auto' : 'box-none'
+        }
       >
         {/* No dark background needed - SpotlightEffect handles its own overlays */}
 
@@ -227,6 +239,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {isSpotlight && spotlightTarget && !isLoadingTarget && (
           <SpotlightEffect
             target={spotlightTarget}
+            action={state.currentStepData?.action}
             onTargetPress={() => {
               if (state.currentStepData?.action === 'click_element') {
                 actions.handleStepAction('click_element');
@@ -267,11 +280,26 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {isSpotlight && (
           <Animated.View
             style={[
-              styles.contentContainer,
+              state.currentStepData?.action === 'type_text'
+                ? styles.contentContainerTop
+                : styles.contentContainer,
               {
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
+              // Dynamic positioning for type_text based on spotlight target
+              state.currentStepData?.action === 'type_text' && spotlightTarget && (() => {
+                const basePosition = spotlightTarget.y + spotlightTarget.height + 8 +
+                                   (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
+                                   (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
+
+                // Ensure content doesn't go below safe area
+                const maxTop = Dimensions.get('window').height - insets.bottom - 250; // Reserve space for content
+
+                return {
+                  top: Math.min(basePosition, maxTop)
+                };
+              })()
             ]}
           >
             <View style={styles.contentCard}>
@@ -372,6 +400,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     position: 'absolute',
     bottom: getContentBottomPosition() - 50, // Move down 50px more to be lower
+    left: getHorizontalMargin(),
+    right: getHorizontalMargin(),
+    zIndex: 10000,
+  },
+  contentContainerTop: {
+    position: 'absolute',
+    // top is set dynamically based on spotlight target position
     left: getHorizontalMargin(),
     right: getHorizontalMargin(),
     zIndex: 10000,
