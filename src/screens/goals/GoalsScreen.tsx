@@ -266,7 +266,7 @@ export function GoalsScreen() {
       <View style={styles.addButtonContainer}>
         {!isEditMode && (
           <>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddGoal} nativeID="add-goal-button">
               <Ionicons name="add" size={24} color="white" />
               <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
             </TouchableOpacity>

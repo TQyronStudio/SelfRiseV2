@@ -27,7 +27,6 @@ function TabLayoutContent() {
           headerTitleStyle: {
             fontWeight: 'bold',
           },
-          tabBarButton: HapticTab,
           tabBarStyle: {
             backgroundColor: Colors.tabBarBackground,
             borderTopColor: 'transparent',
@@ -45,6 +44,7 @@ function TabLayoutContent() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="house.fill" color={color} />,
+          tabBarButton: (props) => <HapticTab {...props} nativeID="home-tab" />,
         }}
       />
       <Tabs.Screen
@@ -52,6 +52,7 @@ function TabLayoutContent() {
         options={{
           title: t('tabs.habits'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="repeat.circle.fill" color={color} />,
+          tabBarButton: (props) => <HapticTab {...props} nativeID="habits-tab" />,
         }}
       />
       <Tabs.Screen
@@ -59,6 +60,7 @@ function TabLayoutContent() {
         options={{
           title: t('tabs.journal'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="book.fill" color={color} />,
+          tabBarButton: (props) => <HapticTab {...props} nativeID="journal-tab" />,
         }}
       />
       <Tabs.Screen
@@ -66,6 +68,7 @@ function TabLayoutContent() {
         options={{
           title: t('tabs.goals'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="target" color={color} />,
+          tabBarButton: (props) => <HapticTab {...props} nativeID="goals-tab" />,
         }}
       />
       <Tabs.Screen
@@ -73,6 +76,7 @@ function TabLayoutContent() {
         options={{
           title: t('tabs.settings'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="gearshape.fill" color={color} />,
+          tabBarButton: (props) => <HapticTab {...props} nativeID="settings-tab" />,
         }}
       />
         </Tabs>

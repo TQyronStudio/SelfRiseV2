@@ -332,6 +332,7 @@ export function GoalForm({
               handleSubmit();
             }}
             disabled={isLoading}
+            nativeID="create-goal-submit"
           >
             <Text style={[styles.buttonText, styles.submitButtonText]}>
               {isLoading ? t('common.saving') : (isEditing ? t('common.save') : t('common.create'))}

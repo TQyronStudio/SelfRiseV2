@@ -298,6 +298,7 @@ export default function HomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        nativeID="main-content"
       >
         {/* Dynamic component rendering based on user order preferences */}
         {visibleComponents.map(component => renderComponent(component.id))}

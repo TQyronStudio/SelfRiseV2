@@ -667,13 +667,13 @@ const en: TranslationKeys = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     // Tutorial & Onboarding
-    tutorialReset: 'Reset Tutorial',
-    tutorialResetDescription: 'Clear tutorial progress and start from beginning',
-    tutorialResetConfirmTitle: 'Reset Tutorial?',
-    tutorialResetConfirmMessage: 'This will clear all tutorial progress and allow you to go through the tutorial again. This action cannot be undone.',
-    tutorialResetSuccess: 'Tutorial has been reset successfully! You can now start the tutorial again.',
+    tutorialReset: 'Restart Tutorial',
+    tutorialResetDescription: 'Restart the tutorial from the beginning',
+    tutorialResetConfirmTitle: 'Restart Tutorial?',
+    tutorialResetConfirmMessage: 'This will restart the tutorial from the beginning and guide you through the app again. This action cannot be undone.',
+    tutorialResetSuccess: 'Tutorial has been restarted successfully! You are now being guided through the app.',
     cancel: 'Cancel',
-    reset: 'Reset',
+    reset: 'Restart',
   },
   
   // Auth screens
@@ -731,6 +731,7 @@ const en: TranslationKeys = {
         general_activity: 'Activity',
         daily_engagement: 'Daily Engagement',
         monthly_challenge: 'Monthly Challenge',
+        XP_MULTIPLIER_BONUS: 'Comeback Bonus',
       },
       
       // Notifications and Announcements
@@ -879,6 +880,9 @@ const en: TranslationKeys = {
       },
       monthly_challenge: {
         icon_description: 'Calendar icon representing monthly challenge progress',
+      },
+      XP_MULTIPLIER_BONUS: {
+        icon_description: 'Lightning bolt icon representing comeback bonus multiplier',
       },
     },
   },
@@ -1287,6 +1291,123 @@ const en: TranslationKeys = {
       variant3: 'Time to review your progress and plan tomorrow! 📝',
       variant4: 'Good night! Don\'t forget to complete your daily gratitude! 🌟',
     },
+  },
+
+  // Tutorial System
+  tutorial: {
+    loading: 'Preparing tutorial...',
+    steps: {
+      welcome: {
+        title: 'Welcome to SelfRise! 🌟',
+        content: 'Ready to transform your life? Let\'s take a quick tour and set up your first habits, goals, and journal entries!',
+        button: 'Let\'s Start!'
+      },
+      appOverview: {
+        title: 'Your Personal Growth Hub',
+        content: 'SelfRise helps you build habits, track goals, and practice gratitude. Let\'s explore the three main sections that will change your life!',
+        button: 'Continue'
+      },
+      quickActions: {
+        title: 'Quick Actions ⚡',
+        content: 'These buttons let you quickly add habits, write in your journal, or create goals without navigating around the app!',
+        button: 'Next'
+      },
+      createHabitButton: {
+        title: 'Create Your First Habit 💪',
+        content: 'Click the + Add Habit button to build your first positive routine!',
+        button: 'Click Here'
+      },
+      habitName: {
+        title: 'Name Your Habit',
+        content: 'What habit would you like to build? Examples: \'Drink water\', \'Read 10 pages\', \'Meditate 5 minutes\'',
+        placeholder: 'Enter habit name...',
+        examples: 'Examples: Drink water, Read 10 pages, Exercise 30 minutes',
+        button: 'Continue'
+      },
+      habitColor: {
+        title: 'Choose a Color 🎨',
+        content: 'Pick a color that motivates you - it will help you quickly spot this habit!',
+        button: 'Next'
+      },
+      habitIcon: {
+        title: 'Pick an Icon',
+        content: 'Choose an icon that represents your habit perfectly!',
+        button: 'Next'
+      },
+      habitDays: {
+        title: 'When Will You Do It? 📅',
+        content: 'Select which days you want to practice this habit. Start small - you can always adjust later!',
+        button: 'Next'
+      },
+      habitCreate: {
+        title: 'Create Your Habit!',
+        content: 'Click Create to add your first habit!',
+        button: 'Create'
+      },
+      habitComplete: {
+        title: 'Amazing! Your First Habit is Ready! 🎉',
+        content: 'You\'ve just created your first habit! This is the foundation of your transformation journey.',
+        button: 'Continue'
+      },
+      journalIntro: {
+        title: 'Let\'s Explore Your Journal 📝',
+        content: 'Time to discover the power of gratitude and self-celebration!',
+        button: 'Show Me'
+      },
+      gratitudeEntry: {
+        title: 'Daily Gratitude & Self-Praise ✨',
+        content: 'Write at least 3 entries daily to build your journal streak! Express gratitude and celebrate your wins here every day.',
+        placeholder: 'What are you grateful for?',
+        examples: 'Example: I\'m grateful for my health, my family, this beautiful morning...',
+        button: 'Continue'
+      },
+      journalEncouragement: {
+        title: 'Keep Your Streak Going! 🔥',
+        content: 'Daily journaling builds mental resilience and positive thinking patterns. Your future self will thank you!',
+        button: 'Next'
+      },
+      goalsIntro: {
+        title: 'Time for Your Goals! 🎯',
+        content: 'Now let\'s set meaningful targets that will drive your long-term success!',
+        button: 'Let\'s Do It'
+      },
+      goalTitle: {
+        title: 'What\'s Your Goal?',
+        content: 'Examples: \'Read 12 books\', \'Run 100 kilometers\', \'Save $1000\', \'Learn Spanish\'',
+        placeholder: 'Enter your goal...',
+        examples: 'Examples: Read 12 books, Run 100 kilometers, Save $1000',
+        button: 'Continue'
+      },
+      goalUnit: {
+        title: 'What Unit Will You Track?',
+        content: 'Examples: books, kilometers, dollars, hours, pages, sessions',
+        placeholder: 'Enter unit...',
+        examples: 'Examples: books, kilometers, dollars, hours, pages',
+        button: 'Next'
+      },
+      goalTarget: {
+        title: 'How Much Do You Want to Achieve?',
+        content: 'Enter your target number - you can always adjust it later!',
+        placeholder: 'Enter number...',
+        button: 'Next'
+      },
+      goalDate: {
+        title: 'When Do You Want to Achieve It? 📅',
+        content: 'Set a realistic deadline that motivates you!',
+        placeholder: 'Select date...',
+        button: 'Next'
+      },
+      xpIntro: {
+        title: 'Your Growth Journey 📈',
+        content: 'Everything you do earns XP! Complete habits, achieve goals, write in your journal - watch your level rise as you grow! 🌟',
+        button: 'Amazing!'
+      },
+      completion: {
+        title: 'You\'re All Set! 🎊',
+        content: 'Congratulations! You now know how to use SelfRise to build habits, achieve goals, and practice gratitude. Your transformation journey starts now!',
+        button: 'Start My Journey!'
+      }
+    }
   },
 };
 

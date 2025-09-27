@@ -1,58 +1,44 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
+import ConfirmationModal from '@/src/components/common/ConfirmationModal';
+import BaseModal from '@/src/components/common/BaseModal';
 
 export default function SettingsScreen() {
   const { t } = useI18n();
-  const { actions: { resetTutorial, clearCrashData } } = useTutorial();
+  const { actions: { restartTutorial, clearCrashData } } = useTutorial();
   const [isResetting, setIsResetting] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleViewHabitStats = () => {
     router.push('/habit-stats' as any);
   };
 
-  const handleResetTutorial = () => {
-    Alert.alert(
-      t('settings.tutorialResetConfirmTitle'),
-      t('settings.tutorialResetConfirmMessage'),
-      [
-        {
-          text: t('settings.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('settings.reset'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsResetting(true);
-              await resetTutorial();
-              await clearCrashData();
+  const handleRestartTutorial = () => {
+    setShowResetConfirmation(true);
+  };
 
-              Alert.alert(
-                '✅ Success',
-                t('settings.tutorialResetSuccess'),
-                [{ text: 'OK' }]
-              );
-            } catch (error) {
-              console.error('Failed to reset tutorial:', error);
-              Alert.alert(
-                'Error',
-                'Failed to reset tutorial. Please try again.',
-                [{ text: 'OK' }]
-              );
-            } finally {
-              setIsResetting(false);
-            }
-          },
-        },
-      ]
-    );
+  const performRestart = async () => {
+    try {
+      setIsResetting(true);
+      await restartTutorial();
+      await clearCrashData();
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to restart tutorial:', error);
+      setErrorMessage('Failed to restart tutorial. Please try again.');
+      setShowErrorModal(true);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -86,12 +72,12 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Tutorial & Onboarding */}
+        {/* Tutorial */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tutorial & Onboarding</Text>
+          <Text style={styles.sectionTitle}>Tutorial</Text>
           <TouchableOpacity
             style={[styles.menuItem, isResetting && styles.menuItemDisabled]}
-            onPress={handleResetTutorial}
+            onPress={handleRestartTutorial}
             disabled={isResetting}
           >
             <View style={styles.menuItemLeft}>
@@ -118,6 +104,57 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        visible={showResetConfirmation}
+        onClose={() => setShowResetConfirmation(false)}
+        onConfirm={performRestart}
+        title={t('settings.tutorialResetConfirmTitle')}
+        message={t('settings.tutorialResetConfirmMessage')}
+        confirmText={t('settings.reset')}
+        cancelText={t('settings.cancel')}
+        confirmButtonColor={Colors.warning}
+        emoji="🔄"
+      />
+
+      {/* Success Modal */}
+      <BaseModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        showCloseButton={false}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalEmoji}>✅</Text>
+          <Text style={styles.modalTitle}>Success</Text>
+          <Text style={styles.modalMessage}>{t('settings.tutorialResetSuccess')}</Text>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => setShowSuccessModal(false)}
+          >
+            <Text style={styles.modalButtonText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </BaseModal>
+
+      {/* Error Modal */}
+      <BaseModal
+        visible={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        showCloseButton={false}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalEmoji}>❌</Text>
+          <Text style={styles.modalTitle}>Error</Text>
+          <Text style={styles.modalMessage}>{errorMessage}</Text>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => setShowErrorModal(false)}
+          >
+            <Text style={styles.modalButtonText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </BaseModal>
     </SafeAreaView>
   );
 }
@@ -185,5 +222,39 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
     fontStyle: 'italic',
+  },
+  modalContent: {
+    alignItems: 'center',
+  },
+  modalEmoji: {
+    fontSize: 48,
+    marginBottom: Layout.spacing.md,
+  },
+  modalTitle: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  modalMessage: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Layout.spacing.lg,
+  },
+  modalButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.xl,
+    alignItems: 'center',
+    minWidth: 100,
+  },
+  modalButtonText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.md,
+    fontWeight: 'bold',
   },
 });

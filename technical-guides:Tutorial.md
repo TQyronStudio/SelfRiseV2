@@ -19,7 +19,15 @@ Onboarding Tutorial je interaktivní průvodce pro nové uživatele, který je p
 - **Haptic Feedback**: Při každém kroku tutoriálu
 - **Smooth Transitions**: Plynulé přechody mezi kroky (300ms animace)
 
-## Tutorial Flow - 15 Kroků
+## Tutorial Flow - 16 Kroků (Zjednodušená Implementace)
+
+**❗ DŮLEŽITÉ**: Současná implementace má **16 zjednodušených kroků** namísto původně plánovaných komplexních kroků s achievement modaly. Tato verze je optimalizována pro rychlost a jednoduchost.
+
+### Zjednodušení oproti původnímu návrhu:
+- **Bez Achievement Modalů**: Kroky 6 a 12 (first-habit, first-goal) byly odstraněny
+- **Bez Navigation Steps**: Automatické navigace mezi taby byly zjednodušeny
+- **Streamlined Flow**: Fokus na core funkcionalitu bez složitých čekání
+- **16 kroků celkem**: Místo původních 20+ kroků s navigací a achievementy
 
 ### Step 1: Welcome Modal
 **Type**: Modal
@@ -483,42 +491,78 @@ interface TutorialMetrics {
 **Crash recovery** - Pokud se aplikace crashne během tutoriálu, při restartu se nabídne pokračování od posledního uloženého kroku nebo restart celého tutoriálu.
 
 ### 5. Achievement Integration
-**Existující Achievement System** - Namísto custom gratulačních modalů se použijí **skutečné achievement modaly**:
+**❌ POZNÁMKA: Achievement Integration byla odstraněna**
+Současná implementace tutoriálu má zjednodušených 16 kroků **BEZ achievement modalů** pro lepší výkon a jednoduchost.
 
-#### Ověřené Achievementy:
-- **`first-habit`** - Za vytvoření prvního návyku (Step 6)
-- **`first-goal`** - Za vytvoření prvního cíle (Step 12)
-- **`goal-getter`** - Za dokončení prvního cíle (mimo tutorial)
+#### Současný stav:
+- Tutorial má pouze 16 kroků bez achievement čekání
+- Žádné achievement modaly nejsou integrovány do tutorial flow
+- Rychlejší a jednodušší user experience
+- Bez závislosti na achievement systému
 
-#### Tutorial Flow Úpravy:
+#### Původně plánované:
+- ~~**`first-habit`** - Za vytvoření prvního návyku (Step 6)~~
+- ~~**`first-goal`** - Za vytvoření prvního cíle (Step 12)~~
+- ~~Tutorial coordination s achievement modaly~~
+
+### 6. Tutorial Restart System
+**Tutorial Restart** - Uživatelé mohou kdykoli restartovat tutorial z Settings obrazovky s okamžitým spuštěním.
+
+#### Funkcionalita:
+- **Settings Screen**: "Restart Tutorial" tlačítko v Tutorial sekci
+- **Immediate Launch**: Okamžité spuštění tutoriálu po potvrzení
+- **Auto Navigation**: Automatická navigace na Home screen před spuštěním
+- **Complete Reset**: Vymaže všechna tutorial data (progress, session, crash logs)
+
+#### User Flow:
+1. Uživatel klikne "Restart Tutorial" v Settings
+2. Zobrazí se ConfirmationModal s varováním
+3. Po potvrzení se spustí `restartTutorial()` funkce
+4. Automatická navigace na Home screen
+5. Tutorial se okamžitě spustí od Step 1
+6. Success modal potvrdí restart
+
+#### Technická implementace:
 ```typescript
-// Step 6: Namísto custom modalu
-// ❌ Původní: TutorialCelebrationModal
-// ✅ Nově: Automatické spuštění "first-habit" achievement modal
+const restartTutorial = async (): Promise<void> => {
+  // Reset all tutorial data
+  await AsyncStorage.removeItem(TUTORIAL_STORAGE_KEY);
+  await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
+  await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
+  dispatch({ type: 'RESET_TUTORIAL' });
 
-// Step 12: Namísto custom modalu
-// ❌ Původní: TutorialCelebrationModal
-// ✅ Nově: Automatické spuštění "first-goal" achievement modal
+  // Navigate to Home screen
+  router.push('/(tabs)' as any);
+
+  // Delay for navigation completion
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  // Start tutorial immediately
+  dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+  await saveTutorialProgress(1);
+};
 ```
 
-#### Required Implementation:
-1. **Habit Creation Achievement**: Přidat `AchievementService.runBatchAchievementCheck()` do HabitsContext.createHabit() (aktuálně chybí)
-2. **Goal Creation Achievement**: Už implementováno v GoalsContext.createGoal()
-3. **Tutorial Coordination**: Tutorial musí čekat na achievement modal completion před pokračováním
+#### Lokalizace:
+- `tutorialReset: 'Restart Tutorial'` (změněno z "Reset Tutorial")
+- `tutorialResetDescription: 'Restart the tutorial from the beginning'`
+- `tutorialResetConfirmTitle: 'Restart Tutorial?'`
+- `tutorialResetConfirmMessage: 'This will restart the tutorial from the beginning and guide you through the app again. This action cannot be undone.'`
+- `tutorialResetSuccess: 'Tutorial has been restarted successfully! You are now being guided through the app.'`
 
-#### Modal Priority Integration:
-Tutorial se integruje s existujícím 4-tier modal priority systemem:
-- **Tier 1**: Activity modals (habit/goal creation) - Tutorial actions
-- **Tier 3**: Achievement modals - Automatické spuštění po creation
-- Tutorial pokračuje až po uzavření achievement modalu
+#### Achievement Compatibility:
+- **Repeated Runs**: Tutorial lze spustit opakovaně bez problémů s achievementy
+- **No Achievement Conflicts**: Žádné achievement kroky neexistují v tutoriálu
+- **Clean Restart**: Každý restart je kompletně nezávislý
 
 ## Future Enhancements
 
 ### 1. Advanced Features
-- Tutorial replay možnost v settings
+- ✅ **Tutorial restart možnost v settings** (IMPLEMENTOVÁNO)
 - Skip specific sections pro advanced uživatele
 - A/B testing různých tutorial flows
 - Tutorial na nové features při app updates
+- **Achievement Integration**: Volitelné obnovení achievement modalů pro komplexnější onboarding
 
 ### 2. Personalization
 - Adaptivní tutorial na základě user behavior

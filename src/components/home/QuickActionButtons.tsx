@@ -80,12 +80,12 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} nativeID="quick-actions-section">
       <Text style={styles.title}>{t('home.quickActions')}</Text>
-      
+
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}
-        <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit} nativeID="add-habit-button">
           <Ionicons name="add-circle" size={20} color={Colors.primary} />
           <Text style={styles.actionText}>Add Habit</Text>
         </TouchableOpacity>

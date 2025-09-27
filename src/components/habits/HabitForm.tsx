@@ -196,6 +196,7 @@ export function HabitForm({
             style={[styles.button, styles.submitButton]}
             onPress={handleSubmit}
             disabled={isLoading}
+            nativeID="create-habit-submit"
           >
             <Text style={styles.submitButtonText}>
               {isEditing ? t('common.update') : t('common.create')}

@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useXpAnimation } from './XpAnimationContext';
+import { AchievementStorage } from '@/src/services/achievementStorage';
+import { router } from 'expo-router';
 
 // Crash Recovery Interface
 export interface TutorialCrashLog {
@@ -78,6 +80,7 @@ export interface TutorialContextType {
     showNextButton: (show: boolean) => void;
     handleStepAction: (action: string, value?: any) => Promise<void>;
     resetTutorial: () => Promise<void>;
+    restartTutorial: () => Promise<void>;
     clearCrashData: () => Promise<void>;
     // Visual Feedback & Highlighting
     highlightField: (fieldId: string) => void;
@@ -160,7 +163,46 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'next'
   },
 
-  // Step 2: Habit Name Input
+  // Step 2: App Overview
+  {
+    id: 'app-overview',
+    type: 'spotlight',
+    target: 'main-content',
+    content: {
+      title: t('tutorial.steps.appOverview.title'),
+      content: t('tutorial.steps.appOverview.content'),
+      button: t('tutorial.steps.appOverview.button')
+    },
+    action: 'next'
+  },
+
+  // Step 3: Quick Actions Explanation
+  {
+    id: 'quick-actions',
+    type: 'spotlight',
+    target: 'quick-actions-section',
+    content: {
+      title: t('tutorial.steps.quickActions.title'),
+      content: t('tutorial.steps.quickActions.content'),
+      button: t('tutorial.steps.quickActions.button')
+    },
+    action: 'next'
+  },
+
+  // Step 4: Create First Habit - Button
+  {
+    id: 'create-habit-button',
+    type: 'spotlight',
+    target: 'add-habit-button',
+    content: {
+      title: t('tutorial.steps.createHabitButton.title'),
+      content: t('tutorial.steps.createHabitButton.content'),
+      button: t('tutorial.steps.createHabitButton.button')
+    },
+    action: 'click_element'
+  },
+
+  // Step 5a: Habit Name Input
   {
     id: 'habit-name',
     type: 'spotlight',
@@ -176,7 +218,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     nextTrigger: 'first_character'
   },
 
-  // Step 3: Habit Color Selection
+  // Step 5b: Habit Color Selection
   {
     id: 'habit-color',
     type: 'spotlight',
@@ -189,7 +231,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_option'
   },
 
-  // Step 4: Habit Icon Selection
+  // Step 5c: Habit Icon Selection
   {
     id: 'habit-icon',
     type: 'spotlight',
@@ -202,7 +244,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_option'
   },
 
-  // Step 5: Habit Schedule Days
+  // Step 5d: Habit Schedule Days
   {
     id: 'habit-days',
     type: 'spotlight',
@@ -213,6 +255,19 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
       button: t('tutorial.steps.habitDays.button')
     },
     action: 'select_days'
+  },
+
+  // Step 5e: Create Habit
+  {
+    id: 'habit-create',
+    type: 'spotlight',
+    target: 'create-habit-submit',
+    content: {
+      title: t('tutorial.steps.habitCreate.title'),
+      content: t('tutorial.steps.habitCreate.content'),
+      button: t('tutorial.steps.habitCreate.button')
+    },
+    action: 'click_element'
   },
 
   // Step 6: Habit Creation Complete
@@ -227,56 +282,56 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'next'
   },
 
-  // Step 7: Journal Introduction
+  // Step 7: Navigate to Journal
   {
-    id: 'journal-intro',
-    type: 'modal',
+    id: 'navigate-journal',
+    type: 'spotlight',
+    target: 'journal-tab',
     content: {
       title: t('tutorial.steps.journalIntro.title'),
       content: t('tutorial.steps.journalIntro.content'),
       button: t('tutorial.steps.journalIntro.button')
     },
-    action: 'next'
+    action: 'click_element'
   },
 
-  // Step 8: First Gratitude Entry
+  // Step 8: Journal Actions Explanation
   {
-    id: 'gratitude-entry',
+    id: 'journal-actions',
     type: 'spotlight',
     target: 'gratitude-input',
     content: {
       title: t('tutorial.steps.gratitudeEntry.title'),
       content: t('tutorial.steps.gratitudeEntry.content'),
-      placeholder: t('tutorial.steps.gratitudeEntry.placeholder'),
-      examples: t('tutorial.steps.gratitudeEntry.examples'),
       button: t('tutorial.steps.gratitudeEntry.button')
-    },
-    action: 'type_text',
-    nextTrigger: 'first_character'
-  },
-
-  // Step 9: Journal Encouragement
-  {
-    id: 'journal-encouragement',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.journalEncouragement.title'),
-      content: t('tutorial.steps.journalEncouragement.content'),
-      button: t('tutorial.steps.journalEncouragement.button')
     },
     action: 'next'
   },
 
-  // Step 10: Goals Introduction
+  // Step 9: Navigate to Goals
   {
-    id: 'goals-intro',
-    type: 'modal',
+    id: 'navigate-goals',
+    type: 'spotlight',
+    target: 'goals-tab',
     content: {
       title: t('tutorial.steps.goalsIntro.title'),
       content: t('tutorial.steps.goalsIntro.content'),
       button: t('tutorial.steps.goalsIntro.button')
     },
-    action: 'next'
+    action: 'click_element'
+  },
+
+  // Step 10: Create First Goal - Button
+  {
+    id: 'create-goal-button',
+    type: 'spotlight',
+    target: 'add-goal-button',
+    content: {
+      title: 'Create Your First Goal',
+      content: 'Click + Add Goal to set your first meaningful target!',
+      button: 'Click Here'
+    },
+    action: 'click_element'
   },
 
   // Step 11: Goal Title
@@ -340,7 +395,33 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_date'
   },
 
-  // Step 15: XP System Introduction
+  // Step 15: Create Goal
+  {
+    id: 'goal-create',
+    type: 'spotlight',
+    target: 'create-goal-submit',
+    content: {
+      title: 'Create Your Goal!',
+      content: 'Click Create to add your first goal!',
+      button: 'Create'
+    },
+    action: 'click_element'
+  },
+
+  // Step 16: Navigate to Home
+  {
+    id: 'navigate-home',
+    type: 'spotlight',
+    target: 'home-tab',
+    content: {
+      title: 'Back to Your Dashboard 🏠',
+      content: 'Click Home to see your progress overview!',
+      button: 'Go Home'
+    },
+    action: 'click_element'
+  },
+
+  // Step 17: XP System Introduction
   {
     id: 'xp-intro',
     type: 'spotlight',
@@ -969,6 +1050,36 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const restartTutorial = async (): Promise<void> => {
+    try {
+      setLoading(true);
+
+      // First reset all tutorial data
+      await AsyncStorage.removeItem(TUTORIAL_STORAGE_KEY);
+      await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
+      await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
+      dispatch({ type: 'RESET_TUTORIAL' });
+
+      // Navigate to Home screen
+      router.push('/(tabs)' as any);
+
+      // Small delay to ensure navigation completes
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Then immediately start tutorial
+      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+      await saveTutorialProgress(1);
+
+    } catch (error) {
+      await handleTutorialError(error instanceof Error ? error : new Error('Failed to restart tutorial'), {
+        action: 'restartTutorial',
+        step: state.currentStep
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const setUserInteractionBlocked = (blocked: boolean) => {
     dispatch({ type: 'SET_INTERACTION_BLOCKED', payload: blocked });
   };
@@ -1457,6 +1568,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           showNextButton,
           handleStepAction,
           resetTutorial,
+          restartTutorial,
           clearCrashData,
           // Visual Feedback & Highlighting
           highlightField,

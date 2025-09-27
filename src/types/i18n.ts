@@ -724,6 +724,7 @@ export interface TranslationKeys {
         general_activity: string;
         daily_engagement: string;
         monthly_challenge: string;
+        XP_MULTIPLIER_BONUS: string;
       };
       notification: {
         message: string;
@@ -848,6 +849,9 @@ export interface TranslationKeys {
         icon_description: string;
       };
       general_activity: {
+        icon_description: string;
+      };
+      XP_MULTIPLIER_BONUS: {
         icon_description: string;
       };
     };
