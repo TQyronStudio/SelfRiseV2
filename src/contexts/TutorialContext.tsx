@@ -1096,16 +1096,21 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       const currentStepData = state.currentStepData;
       if (!currentStepData) return;
 
-      console.log(`🎓 Tutorial Step Action: ${currentStepData.id} - ${currentStepData.action} - Value:`, value);
+      console.log(`🎓 Tutorial Step Action: ${currentStepData.id} - ${action} - Value:`, value);
 
       // Handle different action types with enhanced validation and user guidance
-      switch (currentStepData.action) {
+      switch (action) {
         case 'type_text':
           await handleTextInput(currentStepData, value);
           break;
 
         case 'select_option':
-          await handleOptionSelection(currentStepData, value);
+          // For select_option, when called from Next button (no value), advance to next step
+          if (value === undefined) {
+            await nextStep();
+          } else {
+            await handleOptionSelection(currentStepData, value);
+          }
           break;
 
         case 'select_date':

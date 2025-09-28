@@ -9,6 +9,7 @@ import {
   Platform,
   StatusBar,
   DeviceEventEmitter,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -176,11 +177,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
 
   // Update spotlight when step changes
   useEffect(() => {
+    // Immediately clear previous spotlight to prevent visual glitch
+    setSpotlightTarget(null);
+    setIsLoadingTarget(false);
+
     if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
-      updateSpotlightTarget(state.currentStepData.target);
-    } else {
-      setSpotlightTarget(null);
-      setIsLoadingTarget(false);
+      // Small delay to ensure clean transition
+      setTimeout(() => {
+        updateSpotlightTarget(state.currentStepData.target);
+      }, 50);
     }
   }, [state.currentStepData]);
 
@@ -207,6 +212,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     };
   }, [state.currentStepData?.target, state.currentStepData?.type]);
 
+  // Hide keyboard when transitioning from text input steps to other steps
+  useEffect(() => {
+    if (state.currentStepData) {
+      // If previous step was type_text and current step is not, hide keyboard
+      if (state.currentStepData.action !== 'type_text') {
+        Keyboard.dismiss();
+      }
+    }
+  }, [state.currentStepData?.action]);
+
   // Don't render if tutorial is not active
   if (!state.isActive || !state.currentStepData) {
     return <>{children}</>;
@@ -230,7 +245,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           },
         ]}
         pointerEvents={
-          state.isActive && state.currentStepData?.action !== 'type_text' ? 'auto' : 'box-none'
+          state.isActive &&
+          state.currentStepData?.action !== 'type_text' &&
+          state.currentStepData?.action !== 'select_option'
+            ? 'auto'
+            : 'box-none'
         }
       >
         {/* No dark background needed - SpotlightEffect handles its own overlays */}
@@ -282,6 +301,8 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             style={[
               state.currentStepData?.action === 'type_text'
                 ? styles.contentContainerTop
+                : state.currentStepData?.action === 'select_option'
+                ? styles.contentContainerTopFixed
                 : styles.contentContainer,
               {
                 opacity: contentOpacity,
@@ -407,6 +428,13 @@ const styles = StyleSheet.create({
   contentContainerTop: {
     position: 'absolute',
     // top is set dynamically based on spotlight target position
+    left: getHorizontalMargin(),
+    right: getHorizontalMargin(),
+    zIndex: 10000,
+  },
+  contentContainerTopFixed: {
+    position: 'absolute',
+    top: (isTablet() ? 120 : (getScreenSize() === ScreenSize.SMALL ? 80 : 100)),
     left: getHorizontalMargin(),
     right: getHorizontalMargin(),
     zIndex: 10000,

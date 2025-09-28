@@ -20,6 +20,7 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { useTutorial } from '@/src/contexts/TutorialContext';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -47,6 +48,7 @@ export function HabitForm({
   isLoading = false,
 }: HabitFormProps) {
   const { t } = useI18n();
+  const { state: tutorialState, actions: tutorialActions } = useTutorial();
 
   // Tutorial target refs
   const habitNameRef = useRef<TextInput>(null);
@@ -121,6 +123,23 @@ export function HabitForm({
     };
   }, []);
 
+  // Auto-focus text input during tutorial
+  useEffect(() => {
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_text' &&
+      tutorialState.currentStepData?.target === 'habit-name-input'
+    ) {
+      // Small delay to ensure modal and spotlight are fully rendered
+      setTimeout(() => {
+        console.log(`⌨️ [TUTORIAL] Auto-focusing habit name input...`);
+        if (habitNameRef.current) {
+          habitNameRef.current.focus();
+        }
+      }, 300);
+    }
+  }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
+
   const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',
     color: initialData?.color || HabitColor.BLUE,
@@ -178,6 +197,27 @@ export function HabitForm({
     }));
   };
 
+  // Handle habit name change with tutorial first character detection
+  const handleNameChange = (text: string) => {
+    const prevName = formData.name;
+
+    // Update form data
+    setFormData(prev => ({ ...prev, name: text }));
+
+    // Tutorial logic: Show Next button when first character is typed
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_text' &&
+      tutorialState.currentStepData?.target === 'habit-name-input' &&
+      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
+      prevName.length === 0 &&
+      text.length > 0
+    ) {
+      console.log(`⌨️ [TUTORIAL] First character typed, enabling Next button...`);
+      tutorialActions.showNextButton(true);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -195,7 +235,7 @@ export function HabitForm({
             ref={habitNameRef}
             style={[styles.input, errors.name && styles.inputError]}
             value={formData.name}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+            onChangeText={handleNameChange}
             placeholder={t('habits.form.namePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             maxLength={50}
@@ -228,7 +268,19 @@ export function HabitForm({
             <View ref={habitColorRef} nativeID="habit-color-picker">
               <ColorPicker
                 selectedColor={formData.color}
-                onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
+                onColorSelect={(color) => {
+                  setFormData(prev => ({ ...prev, color }));
+
+                  // Tutorial logic: Show Next button when color is selected
+                  if (
+                    tutorialState.isActive &&
+                    tutorialState.currentStepData?.action === 'select_option' &&
+                    tutorialState.currentStepData?.target === 'habit-color-picker'
+                  ) {
+                    console.log(`🎨 [TUTORIAL] Color selected: ${color}, enabling Next button...`);
+                    tutorialActions.showNextButton(true);
+                  }
+                }}
               />
             </View>
           </View>
