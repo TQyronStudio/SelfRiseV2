@@ -16,6 +16,7 @@ import { GoalForm, GoalFormData } from './GoalForm';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 
 interface GoalModalProps {
   visible: boolean;
@@ -77,34 +78,36 @@ export function GoalModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            disabled={isLoading}
+      <TutorialOverlay>
+        <SafeAreaView style={styles.container} nativeID="main-content">
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              disabled={isLoading}
+            >
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            <Text style={styles.title}>
+              {isEditing ? t('goals.editGoal') : t('goals.addGoal')}
+            </Text>
+            <View style={styles.placeholder} />
+          </View>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          <Text style={styles.title}>
-            {isEditing ? t('goals.editGoal') : t('goals.addGoal')}
-          </Text>
-          <View style={styles.placeholder} />
-        </View>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-          <GoalForm
-            initialData={initialData}
-            onSubmit={onSubmit}
-            onCancel={onClose}
-            isEditing={isEditing}
-            isLoading={isLoading}
-          />
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            <GoalForm
+              initialData={initialData}
+              onSubmit={onSubmit}
+              onCancel={onClose}
+              isEditing={isEditing}
+              isLoading={isLoading}
+            />
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </TutorialOverlay>
     </Modal>
   );
 }

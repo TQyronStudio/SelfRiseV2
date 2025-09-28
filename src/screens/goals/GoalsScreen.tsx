@@ -13,6 +13,7 @@ import { ErrorModal, HelpTooltip } from '@/src/components/common';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goalStorage } from '@/src/services/storage/goalStorage';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 const styles = StyleSheet.create({
   container: {
@@ -104,6 +105,13 @@ export function GoalsScreen() {
   const { goals, isLoading, actions } = useGoalsData();
   // addXP removed - XP handled by goalStorage
   const params = useLocalSearchParams();
+
+  // Tutorial target registration for Add Goal button
+  const addGoalButtonRef = useRef<TouchableOpacity>(null);
+  const { registerTarget: registerAddGoalButton, unregisterTarget: unregisterAddGoalButton } = useTutorialTarget(
+    'add-goal-button',
+    addGoalButtonRef
+  );
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -120,6 +128,17 @@ export function GoalsScreen() {
   // This useEffect is now disabled - goal completion detection moved to handleSubmitProgress
   // for immediate priority over level-up modals
   // useEffect(() => { ... }, [goals, completionModalVisible]);
+
+  // Tutorial target registration
+  useEffect(() => {
+    registerAddGoalButton();
+    console.log(`📍 [TUTORIAL] Registered Add Goal button target: add-goal-button`);
+
+    return () => {
+      unregisterAddGoalButton();
+      console.log(`📍 [TUTORIAL] Unregistered Add Goal button target: add-goal-button`);
+    };
+  }, [registerAddGoalButton, unregisterAddGoalButton]);
 
   // Handle quick action from home screen
   useEffect(() => {
@@ -266,7 +285,12 @@ export function GoalsScreen() {
       <View style={styles.addButtonContainer}>
         {!isEditMode && (
           <>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddGoal} nativeID="add-goal-button">
+            <TouchableOpacity
+              ref={addGoalButtonRef}
+              style={styles.addButton}
+              onPress={handleAddGoal}
+              nativeID="add-goal-button"
+            >
               <Ionicons name="add" size={24} color="white" />
               <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
             </TouchableOpacity>

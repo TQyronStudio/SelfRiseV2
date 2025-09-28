@@ -53,39 +53,45 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
   // State
   const [spotlightTarget, setSpotlightTarget] = useState<TargetElementInfo | null>(null);
   const [isLoadingTarget, setIsLoadingTarget] = useState(false);
+  const [isScrollInProgress, setIsScrollInProgress] = useState(false);
 
   // Show/hide overlay animations
   useEffect(() => {
     if (state.isActive && state.currentStepData) {
-      showOverlay();
+      // Don't show overlay content immediately if scroll might be needed
+      // The overlay will be shown after target positioning is determined
+      if (!isScrollInProgress) {
+        showOverlay();
+      }
     } else {
       hideOverlay();
     }
-  }, [state.isActive, state.currentStepData]);
+  }, [state.isActive, state.currentStepData, isScrollInProgress]);
 
   const showOverlay = () => {
-    // Fade in overlay
+    // Fade in overlay faster for smoother transitions
     Animated.timing(overlayOpacity, {
       toValue: 1,
-      duration: TUTORIAL_ANIMATIONS.overlayFadeIn.duration,
+      duration: 150, // Reduced from TUTORIAL_ANIMATIONS.overlayFadeIn.duration
       useNativeDriver: true,
     }).start();
 
-    // Fade in content with slight delay
+    // Fade in content with minimal delay for modal-to-modal transitions
+    const contentDelay = state.currentStepData?.id === 'habit-name' ? 50 : 80; // Faster for modal steps
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(contentOpacity, {
           toValue: 1,
-          duration: 200,
+          duration: 150, // Reduced from 200
           useNativeDriver: true,
         }),
         Animated.timing(contentTranslateY, {
           toValue: 0,
-          duration: 200,
+          duration: 150, // Reduced from 200
           useNativeDriver: true,
         }),
       ]).start();
-    }, 100);
+    }, contentDelay);
   };
 
   const hideOverlay = () => {
@@ -128,18 +134,29 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         if (scrollNeeded) {
           // If scroll was triggered, don't set spotlight target yet -
           // it will be set by the scroll completion listener
-          console.log(`🔄 [TUTORIAL] Waiting for scroll completion before setting spotlight...`);
+          console.log(`🔄 [TUTORIAL] Auto-scroll needed for ${targetId}, delaying overlay...`);
+          setIsScrollInProgress(true);
+          // Hide any current overlay content during scroll
+          hideOverlay();
         } else {
-          // No scroll needed, set spotlight target immediately
+          // No scroll needed, set spotlight target immediately and show overlay
+          console.log(`✅ [TUTORIAL] No scroll needed for ${targetId}, showing overlay immediately`);
           setSpotlightTarget(targetInfo);
+          setIsScrollInProgress(false);
+          // Trigger overlay animation if not already shown
+          if (state.isActive && state.currentStepData) {
+            showOverlay();
+          }
         }
       } else {
         console.warn(`Failed to get target info for: ${targetId}`);
         setSpotlightTarget(null);
+        setIsScrollInProgress(false);
       }
     } catch (error) {
       console.error(`Error updating spotlight target for ${targetId}:`, error);
       setSpotlightTarget(null);
+      setIsScrollInProgress(false);
     } finally {
       setIsLoadingTarget(false);
     }
@@ -151,20 +168,35 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const viewportHeight = Dimensions.get('window').height;
     const safeAreaTop = insets.top;
     const safeAreaBottom = insets.bottom;
-    const availableHeight = viewportHeight - safeAreaTop - safeAreaBottom - 200; // Reserve space for tutorial content
 
-    // Check if target is below the visible area (considering safe areas and tutorial content)
+    // For type_text actions, reserve more space at top and bottom for tutorial content and keyboard
+    const isTypeText = state.currentStepData?.action === 'type_text';
+    const topReserve = isTypeText ? 150 : 100; // More space for tutorial text at top
+    const bottomReserve = isTypeText ? 350 : 200; // More space for keyboard
+
+    const visibleAreaTop = safeAreaTop + topReserve;
+    const visibleAreaBottom = viewportHeight - safeAreaBottom - bottomReserve;
+
+    const targetTop = targetInfo.y;
     const targetBottom = targetInfo.y + targetInfo.height;
-    const visibleAreaTop = safeAreaTop + 100; // Header space
 
-    if (targetInfo.y < visibleAreaTop || targetBottom > availableHeight) {
-      console.log(`🔄 Auto-scrolling to make ${targetId} visible...`);
+    console.log(`🔍 [TUTORIAL] Checking visibility for ${targetId}:`);
+    console.log(`   Target: ${targetTop}-${targetBottom}, Visible area: ${visibleAreaTop}-${visibleAreaBottom}`);
+
+    // Check if target is outside visible area
+    if (targetTop < visibleAreaTop || targetBottom > visibleAreaBottom) {
+      console.log(`🔄 [TUTORIAL] Auto-scrolling to make ${targetId} visible...`);
 
       // Find the main scroll view by getting main-content target
       const mainContentInfo = await tutorialTargetManager.getTargetInfo('main-content');
       if (mainContentInfo) {
         // Calculate scroll position to center the target in viewport
-        const scrollY = Math.max(0, targetInfo.y - (availableHeight / 3)); // Position target in upper third
+        const targetCenter = targetTop + (targetInfo.height / 2);
+        const viewportCenter = (visibleAreaTop + visibleAreaBottom) / 2;
+        const scrollOffset = targetCenter - viewportCenter;
+        const scrollY = Math.max(0, scrollOffset);
+
+        console.log(`📜 [TUTORIAL] Scrolling to Y: ${scrollY} (target center: ${targetCenter}, viewport center: ${viewportCenter})`);
 
         // Scroll to position - position refresh handled by scroll completion event
         DeviceEventEmitter.emit('tutorial_scroll_to', { y: scrollY, animated: true });
@@ -172,6 +204,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       }
     }
 
+    console.log(`✅ [TUTORIAL] Target ${targetId} is already visible, no scroll needed`);
     return false; // No scroll needed
   };
 
@@ -180,12 +213,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     // Immediately clear previous spotlight to prevent visual glitch
     setSpotlightTarget(null);
     setIsLoadingTarget(false);
+    setIsScrollInProgress(false);
 
     if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
-      // Small delay to ensure clean transition
+      // Minimize delay for smoother transitions - especially for modal-to-modal steps
+      const delay = state.currentStepData.id === 'habit-name' ? 100 : 50; // Slightly longer for modal content
       setTimeout(() => {
+        console.log(`🎯 [TUTORIAL] Updating spotlight for step: ${state.currentStepData.id} (target: ${state.currentStepData.target})`);
         updateSpotlightTarget(state.currentStepData.target);
-      }, 50);
+      }, delay);
     }
   }, [state.currentStepData]);
 
@@ -202,6 +238,13 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           if (refreshedTargetInfo) {
             console.log(`✅ [TUTORIAL] Refreshed position:`, refreshedTargetInfo);
             setSpotlightTarget(refreshedTargetInfo);
+
+            // Scroll is complete, now show overlay with correct positioning
+            setIsScrollInProgress(false);
+            if (state.isActive && state.currentStepData) {
+              console.log(`🎭 [TUTORIAL] Showing overlay after scroll completion`);
+              showOverlay();
+            }
           }
         }
       }
@@ -210,7 +253,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     return () => {
       scrollCompletedListener.remove();
     };
-  }, [state.currentStepData?.target, state.currentStepData?.type]);
+  }, [state.currentStepData?.target, state.currentStepData?.type, state.isActive, state.currentStepData]);
 
   // Hide keyboard when transitioning from text input steps to other steps
   useEffect(() => {
@@ -313,18 +356,33 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
-              // Dynamic positioning for type_text based on spotlight target
+              // Dynamic positioning for type_text based on context
               state.currentStepData?.action === 'type_text' && spotlightTarget && (() => {
-                const basePosition = spotlightTarget.y + spotlightTarget.height + 8 +
-                                   (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
-                                   (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
+                // Check if we're in Goal modal context (these need special positioning for keyboard)
+                const isGoalInput = state.currentStepData?.target?.includes('goal-') || false;
 
-                // Ensure content doesn't go below safe area
-                const maxTop = Dimensions.get('window').height - insets.bottom - 250; // Reserve space for content
+                if (isGoalInput) {
+                  // Goal inputs: place BELOW the input field like habit inputs
+                  // Keyboard won't overlap since it's in a modal with proper scroll handling
+                  const belowFieldPosition = spotlightTarget.y + spotlightTarget.height + 8 +
+                                           (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
+                                           (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
 
-                return {
-                  top: Math.min(basePosition, maxTop)
-                };
+                  console.log(`📍 [TUTORIAL] Goal input - positioning below field: ${belowFieldPosition}px (field at ${spotlightTarget.y}px)`);
+                  return { top: belowFieldPosition };
+                } else {
+                  // Habit inputs: place below input field as before
+                  const basePosition = spotlightTarget.y + spotlightTarget.height + 8 +
+                                     (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
+                                     (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
+
+                  // Ensure content doesn't go below safe area
+                  const maxTop = Dimensions.get('window').height - insets.bottom - 250;
+                  const finalPosition = Math.min(basePosition, maxTop);
+
+                  console.log(`📍 [TUTORIAL] Habit input - positioning below field: ${finalPosition}px`);
+                  return { top: finalPosition };
+                }
               })()
             ]}
           >

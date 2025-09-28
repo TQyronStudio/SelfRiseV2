@@ -176,6 +176,12 @@ export function HabitForm({
   };
 
   const handleSubmit = async () => {
+    // Tutorial guard: Prevent early submission if tutorial is active but not on create step
+    if (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') {
+      console.log(`🚫 [TUTORIAL] Blocking habit submission - tutorial is on step "${tutorialState.currentStepData?.id}", need to be on "habit-create"`);
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -369,9 +375,17 @@ export function HabitForm({
           
           <TouchableOpacity
             ref={createButtonRef}
-            style={[styles.button, styles.submitButton]}
+            style={[
+              styles.button,
+              styles.submitButton,
+              // Disable button visually if tutorial is active but not on create step
+              (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') && styles.disabledButton
+            ]}
             onPress={handleSubmit}
-            disabled={isLoading}
+            disabled={
+              isLoading ||
+              (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create')
+            }
             nativeID="create-habit-submit"
           >
             <Text style={styles.submitButtonText}>
@@ -491,5 +505,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.semibold,
     color: Colors.textInverse,
+  },
+  disabledButton: {
+    backgroundColor: Colors.backgroundSecondary,
+    opacity: 0.6,
   },
 });

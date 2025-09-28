@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { HelpTooltip } from '@/src/components/common';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 interface DailyGratitudeProgressProps {
   currentCount: number;
@@ -11,15 +12,32 @@ interface DailyGratitudeProgressProps {
   hasBonus: boolean;
 }
 
-export default function DailyGratitudeProgress({ 
-  currentCount, 
-  isComplete, 
-  hasBonus 
+export default function DailyGratitudeProgress({
+  currentCount,
+  isComplete,
+  hasBonus
 }: DailyGratitudeProgressProps) {
   const { t } = useI18n();
   const { state } = useGratitude();
-  
+
   const streakInfo = state.streakInfo;
+  const progressRef = useRef<View>(null);
+
+  // Register as tutorial target
+  const { registerTarget, unregisterTarget } = useTutorialTarget(
+    'todays-journal-progress',
+    progressRef
+  );
+
+  useEffect(() => {
+    registerTarget();
+    console.log(`📍 [TUTORIAL] Registered Journal Progress target: todays-journal-progress`);
+
+    return () => {
+      unregisterTarget();
+      console.log(`📍 [TUTORIAL] Unregistered Journal Progress target: todays-journal-progress`);
+    };
+  }, [registerTarget, unregisterTarget]);
 
   const getProgressColor = () => {
     if (hasBonus) return Colors.gold || '#FFD700';
@@ -49,7 +67,7 @@ export default function DailyGratitudeProgress({
   };
 
   return (
-    <View style={styles.container}>
+    <View ref={progressRef} style={styles.container} nativeID="todays-journal-progress">
       <View style={styles.header}>
         <Text style={styles.title}>Today's Journal Progress</Text>
         <Text style={[styles.progressText, { color: getProgressColor() }]}>

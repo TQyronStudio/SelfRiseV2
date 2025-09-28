@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Keyboard,
+  DeviceEventEmitter,
 } from 'react-native';
 import { GoalCategory } from '../../types/goal';
 import { CreateGoalInput, UpdateGoalInput } from '../../types/goal';
@@ -17,6 +18,8 @@ import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { useTutorial } from '@/src/contexts/TutorialContext';
 
 export type GoalFormData = {
   title: string;
@@ -54,7 +57,41 @@ export function GoalForm({
   isLoading = false,
 }: GoalFormProps) {
   const { t } = useI18n();
+  const { state: tutorialState, actions: tutorialActions } = useTutorial();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Tutorial target refs
+  const goalTitleRef = useRef<TextInput>(null);
+  const goalUnitRef = useRef<TextInput>(null);
+  const goalTargetRef = useRef<TextInput>(null);
+  const goalDateRef = useRef<TouchableOpacity>(null);
+  const createButtonRef = useRef<TouchableOpacity>(null);
+
+  // Tutorial target registration
+  const { registerTarget: registerGoalTitle, unregisterTarget: unregisterGoalTitle } = useTutorialTarget(
+    'goal-title-input',
+    goalTitleRef as any
+  );
+
+  const { registerTarget: registerGoalUnit, unregisterTarget: unregisterGoalUnit } = useTutorialTarget(
+    'goal-unit-input',
+    goalUnitRef as any
+  );
+
+  const { registerTarget: registerGoalTarget, unregisterTarget: unregisterGoalTarget } = useTutorialTarget(
+    'goal-target-input',
+    goalTargetRef as any
+  );
+
+  const { registerTarget: registerGoalDate, unregisterTarget: unregisterGoalDate } = useTutorialTarget(
+    'goal-date-picker',
+    goalDateRef as any
+  );
+
+  const { registerTarget: registerCreateButton, unregisterTarget: unregisterCreateButton } = useTutorialTarget(
+    'create-goal-submit',
+    createButtonRef as any
+  );
   
   const [formData, setFormData] = useState<GoalFormData>({
     title: initialData?.title || '',
@@ -71,6 +108,122 @@ export function GoalForm({
   const [errorMessage, setErrorMessage] = useState('');
   const [showDateConfirmation, setShowDateConfirmation] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
+
+  useEffect(() => {
+    registerGoalTitle();
+    registerGoalUnit();
+    registerGoalTarget();
+    registerGoalDate();
+    registerCreateButton();
+
+    return () => {
+      unregisterGoalTitle();
+      unregisterGoalUnit();
+      unregisterGoalTarget();
+      unregisterGoalDate();
+      unregisterCreateButton();
+    };
+  }, []);
+
+  // Tutorial auto-scroll support for modal
+  useEffect(() => {
+    const scrollListener = DeviceEventEmitter.addListener(
+      'tutorial_scroll_to',
+      ({ y, animated = true }: { y: number; animated?: boolean }) => {
+        console.log(`📜 [GOAL_FORM] Tutorial auto-scroll to Y: ${y}`);
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y, animated });
+
+          // Signal that scroll is completed
+          setTimeout(() => {
+            console.log(`🔄 [GOAL_FORM] Signaling position refresh after scroll`);
+            DeviceEventEmitter.emit('tutorial_scroll_completed');
+          }, animated ? 300 : 50);
+        }
+      }
+    );
+
+    return () => {
+      scrollListener.remove();
+    };
+  }, []);
+
+  // Auto-focus text inputs during tutorial
+  useEffect(() => {
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_text'
+    ) {
+      const target = tutorialState.currentStepData?.target;
+      // Small delay to ensure modal and spotlight are fully rendered
+      setTimeout(() => {
+        console.log(`⌨️ [TUTORIAL] Auto-focusing input: ${target}`);
+        if (target === 'goal-title-input' && goalTitleRef.current) {
+          goalTitleRef.current.focus();
+        } else if (target === 'goal-unit-input' && goalUnitRef.current) {
+          goalUnitRef.current.focus();
+        } else if (target === 'goal-target-input' && goalTargetRef.current) {
+          goalTargetRef.current.focus();
+        }
+      }, 300);
+    }
+  }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
+
+  // Tutorial-aware text input handlers
+  const handleTitleChange = (text: string) => {
+    const prevTitle = formData.title;
+    setFormData(prev => ({ ...prev, title: text }));
+
+    // Tutorial logic: Show Next button when first character is typed
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_text' &&
+      tutorialState.currentStepData?.target === 'goal-title-input' &&
+      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
+      prevTitle.length === 0 &&
+      text.length > 0
+    ) {
+      console.log(`⌨️ [TUTORIAL] First character typed in goal title, enabling Next button...`);
+      tutorialActions.showNextButton(true);
+    }
+  };
+
+  const handleUnitChange = (text: string) => {
+    const prevUnit = formData.unit;
+    setFormData(prev => ({ ...prev, unit: text }));
+
+    // Tutorial logic: Show Next button when first character is typed
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_text' &&
+      tutorialState.currentStepData?.target === 'goal-unit-input' &&
+      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
+      prevUnit.length === 0 &&
+      text.length > 0
+    ) {
+      console.log(`⌨️ [TUTORIAL] First character typed in goal unit, enabling Next button...`);
+      tutorialActions.showNextButton(true);
+    }
+  };
+
+  const handleTargetChange = (text: string) => {
+    const prevTarget = formData.targetValue;
+    const numValue = parseInt(text) || 0;
+    setFormData(prev => ({ ...prev, targetValue: numValue }));
+
+    // Tutorial logic: Show Next button when first character is typed
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'type_number' &&
+      tutorialState.currentStepData?.target === 'goal-target-input' &&
+      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
+      prevTarget === 0 &&
+      numValue > 0
+    ) {
+      console.log(`🔢 [TUTORIAL] First number typed in goal target, enabling Next button...`);
+      tutorialActions.showNextButton(true);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -104,6 +257,12 @@ export function GoalForm({
   };
 
   const handleSubmit = async () => {
+    // Tutorial guard: Prevent early submission if tutorial is active but not on create step
+    if (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create') {
+      console.log(`🚫 [TUTORIAL] Blocking goal submission - tutorial is on step "${tutorialState.currentStepData?.id}", need to be on "goal-create"`);
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -128,6 +287,17 @@ export function GoalForm({
         targetDate: formData.targetDate || undefined,
       };
       await onSubmit(submitData);
+      console.log(`✅ [TUTORIAL] Goal submitted successfully`);
+
+      // Tutorial logic: Advance tutorial after successful goal creation
+      if (
+        tutorialState.isActive &&
+        tutorialState.currentStepData?.action === 'click_element' &&
+        tutorialState.currentStepData?.target === 'create-goal-submit'
+      ) {
+        console.log(`🎯 [TUTORIAL] Goal created, advancing tutorial...`);
+        tutorialActions.handleStepAction('click_element');
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('goals.form.errors.submitFailed'));
       setShowError(true);
@@ -198,11 +368,12 @@ export function GoalForm({
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.title')}</Text>
           <TextInput
+            ref={goalTitleRef}
             style={[styles.input, errors.title && styles.inputError]}
             placeholder={t('goals.form.placeholders.title')}
             placeholderTextColor={Colors.textSecondary}
             value={formData.title}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
+            onChangeText={handleTitleChange}
             onFocus={() => scrollToInput(0)}
             editable={!isLoading}
             maxLength={100}
@@ -234,6 +405,7 @@ export function GoalForm({
           <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
           <Text style={styles.dateHint}>Tap to open step-by-step date selector</Text>
           <TouchableOpacity
+            ref={goalDateRef}
             style={[styles.input, styles.dateSelector]}
             onPress={() => setShowDateModal(true)}
             disabled={isLoading}
@@ -252,11 +424,12 @@ export function GoalForm({
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.unit')}</Text>
           <TextInput
+            ref={goalUnitRef}
             style={[styles.input, errors.unit && styles.inputError]}
             placeholder={t('goals.form.placeholders.unit')}
             placeholderTextColor={Colors.textSecondary}
             value={formData.unit}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, unit: text }))}
+            onChangeText={handleUnitChange}
             onFocus={() => scrollToInput(250)}
             editable={!isLoading}
             maxLength={20}
@@ -269,14 +442,12 @@ export function GoalForm({
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.targetValue')}</Text>
           <TextInput
+            ref={goalTargetRef}
             style={[styles.input, errors.targetValue && styles.inputError]}
             placeholder={t('goals.form.placeholders.targetValue')}
             placeholderTextColor={Colors.textSecondary}
             value={formData.targetValue > 0 ? formData.targetValue.toString() : ''}
-            onChangeText={(text) => {
-              const numValue = parseInt(text) || 0;
-              setFormData(prev => ({ ...prev, targetValue: numValue }));
-            }}
+            onChangeText={handleTargetChange}
             onFocus={() => scrollToInput(300)}
             keyboardType="numeric"
             editable={!isLoading}
@@ -326,12 +497,20 @@ export function GoalForm({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.submitButton, isLoading && styles.disabledButton]}
+            ref={createButtonRef}
+            style={[
+              styles.button,
+              styles.submitButton,
+              (isLoading || (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create')) && styles.disabledButton
+            ]}
             onPress={() => {
               scrollToInput(500);
               handleSubmit();
             }}
-            disabled={isLoading}
+            disabled={
+              isLoading ||
+              (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create')
+            }
             nativeID="create-goal-submit"
           >
             <Text style={[styles.buttonText, styles.submitButtonText]}>

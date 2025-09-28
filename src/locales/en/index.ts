@@ -1373,9 +1373,9 @@ const en: TranslationKeys = {
       },
       goalTitle: {
         title: 'What\'s Your Goal?',
-        content: 'Examples: \'Read 12 books\', \'Run 100 kilometers\', \'Save $1000\', \'Learn Spanish\'',
+        content: 'Think of something meaningful you want to achieve. Focus on the main goal name - you\'ll set the numbers and units in the next steps!',
         placeholder: 'Enter your goal...',
-        examples: 'Examples: Read 12 books, Run 100 kilometers, Save $1000',
+        examples: 'Examples: Read books, Running fitness, Save money, Learn Spanish',
         button: 'Continue'
       },
       goalUnit: {

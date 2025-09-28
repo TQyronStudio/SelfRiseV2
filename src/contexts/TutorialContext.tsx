@@ -299,7 +299,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
   {
     id: 'journal-actions',
     type: 'spotlight',
-    target: 'gratitude-input',
+    target: 'todays-journal-progress',
     content: {
       title: t('tutorial.steps.gratitudeEntry.title'),
       content: t('tutorial.steps.gratitudeEntry.content'),
@@ -1160,6 +1160,22 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             if (retryCount >= maxRetries) {
               console.warn(`⚠️ Tutorial target 'habit-name-input' still not found after ${maxRetries} retries`);
             }
+          } else if (currentStepData.id === 'navigate-journal' && currentStepData.target === 'journal-tab') {
+            console.log(`🎯 Navigating to Journal tab...`);
+            router.push('/(tabs)/journal');
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } else if (currentStepData.id === 'navigate-goals' && currentStepData.target === 'goals-tab') {
+            console.log(`🎯 Navigating to Goals tab...`);
+            router.push('/(tabs)/goals');
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } else if (currentStepData.id === 'create-goal-button' && currentStepData.target === 'add-goal-button') {
+            console.log(`🎯 Navigating to goal creation screen...`);
+            router.push('/(tabs)/goals?quickAction=addGoal');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          } else if (currentStepData.id === 'navigate-home' && currentStepData.target === 'home-tab') {
+            console.log(`🎯 Navigating back to Home tab...`);
+            router.push('/(tabs)');
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
 
           await nextStep();
