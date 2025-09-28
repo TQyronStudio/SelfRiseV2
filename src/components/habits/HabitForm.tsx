@@ -182,6 +182,17 @@ export function HabitForm({
 
     try {
       await onSubmit(formData);
+      console.log(`✅ [TUTORIAL] Habit submitted successfully`);
+
+      // Tutorial logic: Advance tutorial after successful habit creation
+      if (
+        tutorialState.isActive &&
+        tutorialState.currentStepData?.action === 'click_element' &&
+        tutorialState.currentStepData?.target === 'create-habit-submit'
+      ) {
+        console.log(`🎯 [TUTORIAL] Habit created, advancing tutorial...`);
+        tutorialActions.handleStepAction('click_element');
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('habits.form.errors.submitFailed'));
       setShowError(true);
@@ -189,12 +200,27 @@ export function HabitForm({
   };
 
   const handleDayToggle = (day: DayOfWeek) => {
+    const newScheduledDays = formData.scheduledDays.includes(day)
+      ? formData.scheduledDays.filter(d => d !== day)
+      : [...formData.scheduledDays, day];
+
+    console.log(`📅 [DEBUG] DayPicker toggle called with day: ${day}, new days:`, newScheduledDays);
+
     setFormData(prev => ({
       ...prev,
-      scheduledDays: prev.scheduledDays.includes(day)
-        ? prev.scheduledDays.filter(d => d !== day)
-        : [...prev.scheduledDays, day],
+      scheduledDays: newScheduledDays,
     }));
+
+    // Tutorial logic: Show Next button when at least one day is selected
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.action === 'select_days' &&
+      tutorialState.currentStepData?.target === 'habit-scheduled-days' &&
+      newScheduledDays.length > 0
+    ) {
+      console.log(`📅 [TUTORIAL] Days selected: ${newScheduledDays.length}, enabling Next button...`);
+      tutorialActions.showNextButton(true);
+    }
   };
 
   // Handle habit name change with tutorial first character detection

@@ -20,12 +20,14 @@ interface SpotlightTarget {
 interface SpotlightEffectProps {
   target: SpotlightTarget;
   action?: string;
+  targetId?: string;
   onTargetPress?: () => void;
 }
 
 export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
   target,
   action,
+  targetId,
   onTargetPress,
 }) => {
   // Animation values
@@ -95,7 +97,13 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
     return (
       <View
         style={styles.spotlightContainer}
-        pointerEvents={action === 'select_option' ? 'none' : 'auto'}
+        pointerEvents={
+          action === 'select_option' ||
+          action === 'select_days' ||
+          (action === 'click_element' && targetId === 'create-habit-submit')
+            ? 'none'
+            : 'auto'
+        }
       >
         {/* Top overlay - above the target */}
         <View
@@ -163,11 +171,18 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
               transform: [{ scale: pulseScale }],
             },
           ]}
-          pointerEvents={action === 'select_option' ? 'none' : 'auto'}
+          pointerEvents={
+            action === 'select_option' ||
+            action === 'select_days' ||
+            (action === 'click_element' && targetId === 'create-habit-submit')
+              ? 'none'
+              : 'auto'
+          }
         />
 
-        {/* Clickable area - only for click actions, not for text input or select options */}
-        {action !== 'type_text' && action !== 'select_option' && (
+        {/* Clickable area - only for click actions, not for text input, select options, or form submissions */}
+        {action !== 'type_text' && action !== 'select_option' && action !== 'select_days' &&
+         !(action === 'click_element' && targetId === 'create-habit-submit') && (
           <TouchableOpacity
             style={[
               styles.clickableArea,

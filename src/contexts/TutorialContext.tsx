@@ -1118,7 +1118,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           break;
 
         case 'select_days':
-          await handleDaySelection(currentStepData, value);
+          // For select_days, when called from Next button (no value), advance to next step
+          if (value === undefined) {
+            await nextStep();
+          } else {
+            await handleDaySelection(currentStepData, value);
+          }
           break;
 
         case 'type_number':

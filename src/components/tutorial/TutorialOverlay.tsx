@@ -247,7 +247,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         pointerEvents={
           state.isActive &&
           state.currentStepData?.action !== 'type_text' &&
-          state.currentStepData?.action !== 'select_option'
+          state.currentStepData?.action !== 'select_option' &&
+          state.currentStepData?.action !== 'select_days' &&
+          !(state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit')
             ? 'auto'
             : 'box-none'
         }
@@ -259,6 +261,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           <SpotlightEffect
             target={spotlightTarget}
             action={state.currentStepData?.action}
+            targetId={state.currentStepData?.target}
             onTargetPress={() => {
               if (state.currentStepData?.action === 'click_element') {
                 actions.handleStepAction('click_element');
@@ -301,7 +304,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             style={[
               state.currentStepData?.action === 'type_text'
                 ? styles.contentContainerTop
-                : state.currentStepData?.action === 'select_option'
+                : state.currentStepData?.action === 'select_option' ||
+                  state.currentStepData?.action === 'select_days' ||
+                  (state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit')
                 ? styles.contentContainerTopFixed
                 : styles.contentContainer,
               {
