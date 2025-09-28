@@ -279,7 +279,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           style={[
             styles.skipButtonContainer,
             {
-              top: (insets.top * getSafeAreaMultiplier()) + (isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 8 : 10)),
+              top: (insets.top * getSafeAreaMultiplier()) + (isTablet() ? 0 : (getScreenSize() === ScreenSize.SMALL ? 0 : 2)),
               opacity: contentOpacity,
             },
           ]}
@@ -360,7 +360,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   <Text style={styles.nextButtonText}>
                     {state.currentStepData.content.button || 'Next'}
                   </Text>
-                  <Ionicons name="arrow-forward" size={getIconSize(20)} color={Colors.white} />
+                  <Ionicons name="arrow-forward" size={getIconSize(16)} color={Colors.white} />
                 </TouchableOpacity>
               )}
             </View>
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   contentContainerTopFixed: {
     position: 'absolute',
-    top: (isTablet() ? 120 : (getScreenSize() === ScreenSize.SMALL ? 80 : 100)),
+    top: (isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80)),
     left: getHorizontalMargin(),
     right: getHorizontalMargin(),
     zIndex: 10000,
@@ -465,31 +465,32 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
     textAlign: 'center',
-    marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
+    marginBottom: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 12 : 14),
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primary,
-    paddingVertical: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 12 : 14),
-    paddingHorizontal: isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
-    borderRadius: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
-    minHeight: getButtonHeight(),
+    paddingVertical: isTablet() ? 10 : (getScreenSize() === ScreenSize.SMALL ? 8 : 9),
+    paddingHorizontal: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 16 : 18),
+    borderRadius: isTablet() ? 8 : (getScreenSize() === ScreenSize.SMALL ? 6 : 7),
+    minHeight: isTablet() ? 36 : (getScreenSize() === ScreenSize.SMALL ? 32 : 34),
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: isTablet() ? 6 : 4,
+      height: isTablet() ? 4 : 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: isTablet() ? 12 : 8,
-    elevation: isTablet() ? 6 : 4,
+    shadowOpacity: 0.25,
+    shadowRadius: isTablet() ? 8 : 6,
+    elevation: isTablet() ? 4 : 3,
+    marginTop: 0,
   },
   nextButtonText: {
-    fontSize: scaleFont(Fonts.sizes.md),
+    fontSize: scaleFont(Fonts.sizes.sm),
     fontWeight: '600',
     color: Colors.white,
-    marginRight: 8,
+    marginRight: 6,
   },
   loadingContainer: {
     position: 'absolute',
@@ -508,7 +509,7 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     width: '100%',
-    marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
+    marginBottom: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 12 : 14),
   },
   progressBar: {
     height: isTablet() ? 6 : (getScreenSize() === ScreenSize.SMALL ? 3 : 4),

@@ -93,7 +93,10 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
     const cutoutHeight = target.height + (cutoutPadding * 2);
 
     return (
-      <View style={styles.spotlightContainer}>
+      <View
+        style={styles.spotlightContainer}
+        pointerEvents={action === 'select_option' ? 'none' : 'auto'}
+      >
         {/* Top overlay - above the target */}
         <View
           style={[
@@ -160,10 +163,11 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
               transform: [{ scale: pulseScale }],
             },
           ]}
+          pointerEvents={action === 'select_option' ? 'none' : 'auto'}
         />
 
-        {/* Clickable area - only for click actions, not for text input */}
-        {action !== 'type_text' && (
+        {/* Clickable area - only for click actions, not for text input or select options */}
+        {action !== 'type_text' && action !== 'select_option' && (
           <TouchableOpacity
             style={[
               styles.clickableArea,

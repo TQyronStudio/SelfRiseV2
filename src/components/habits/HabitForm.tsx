@@ -269,6 +269,7 @@ export function HabitForm({
               <ColorPicker
                 selectedColor={formData.color}
                 onColorSelect={(color) => {
+                  console.log(`🎨 [DEBUG] ColorPicker callback called with color: ${color}`);
                   setFormData(prev => ({ ...prev, color }));
 
                   // Tutorial logic: Show Next button when color is selected
@@ -279,6 +280,12 @@ export function HabitForm({
                   ) {
                     console.log(`🎨 [TUTORIAL] Color selected: ${color}, enabling Next button...`);
                     tutorialActions.showNextButton(true);
+                  } else {
+                    console.log(`🎨 [DEBUG] Tutorial state:`, {
+                      isActive: tutorialState.isActive,
+                      action: tutorialState.currentStepData?.action,
+                      target: tutorialState.currentStepData?.target
+                    });
                   }
                 }}
               />
@@ -290,7 +297,20 @@ export function HabitForm({
             <View ref={habitIconRef} nativeID="habit-icon-picker">
               <IconPicker
                 selectedIcon={formData.icon}
-                onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
+                onIconSelect={(icon) => {
+                  console.log(`🎯 [DEBUG] IconPicker callback called with icon: ${icon}`);
+                  setFormData(prev => ({ ...prev, icon }));
+
+                  // Tutorial logic: Show Next button when icon is selected
+                  if (
+                    tutorialState.isActive &&
+                    tutorialState.currentStepData?.action === 'select_option' &&
+                    tutorialState.currentStepData?.target === 'habit-icon-picker'
+                  ) {
+                    console.log(`🎯 [TUTORIAL] Icon selected: ${icon}, enabling Next button...`);
+                    tutorialActions.showNextButton(true);
+                  }
+                }}
               />
             </View>
           </View>
