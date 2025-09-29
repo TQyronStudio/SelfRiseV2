@@ -1,4 +1,5 @@
 import { DateString, DayOfWeek } from '../types/common';
+import { WarmUpPayment } from '../types/gratitude';
 
 // Date formatting constants
 export const DATE_FORMAT = 'YYYY-MM-DD';
@@ -439,4 +440,37 @@ export const startOfWeek = (date: Date): Date => {
 export const endOfWeek = (date: Date): Date => {
   const startWeek = startOfWeek(date);
   return addDays(startWeek, 6) as Date;
+};
+
+// 🎯 WARM-UP AWARE CALCULATION: Smart streak calculation that bridges paid gaps
+export const calculateStreakWithWarmUp = (
+  dates: DateString[],
+  currentDate: DateString,
+  warmUpPayments: WarmUpPayment[]
+): number => {
+  if (!dates.includes(currentDate)) return 0;
+
+  // Get paid dates that bridge gaps (don't count as +1, just allow continuation)
+  const paidDates = warmUpPayments
+    .filter(payment => payment.isComplete)
+    .map(payment => payment.missedDate);
+
+  let streak = 1; // Today counts
+  let checkDate = subtractDays(currentDate, 1);
+
+  while (true) {
+    if (dates.includes(checkDate)) {
+      // Real completed day - count it
+      streak++;
+      checkDate = subtractDays(checkDate, 1);
+    } else if (paidDates.includes(checkDate)) {
+      // Paid gap - continue but don't count as +1 (just bridges the gap)
+      checkDate = subtractDays(checkDate, 1);
+    } else {
+      // Real gap - streak ends here
+      break;
+    }
+  }
+
+  return streak;
 };

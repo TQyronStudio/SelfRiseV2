@@ -2,7 +2,7 @@ import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, WarmU
 import { BaseStorage, STORAGE_KEYS, EntityStorage, StorageError, STORAGE_ERROR_CODES } from './base';
 import { createGratitude, updateEntityTimestamp, getNextGratitudeOrder } from '../../utils/data';
 import { DateString } from '../../types/common';
-import { calculateStreak, calculateCurrentStreak, calculateContinuingStreak, calculateLongestStreak, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
+import { calculateStreak, calculateCurrentStreak, calculateContinuingStreak, calculateLongestStreak, calculateStreakWithWarmUp, today, yesterday, subtractDays, formatDateToString } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
@@ -439,6 +439,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         canRecoverWithAd: false,
         frozenDays: 0,
         isFrozen: false,
+        justUnfrozeToday: false,
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
         // 🚨 CRITICAL FIX: Default to null, not 0 - preserves proper initialization
@@ -487,6 +488,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         canRecoverWithAd: false,
         frozenDays: 0,
         isFrozen: false,
+        justUnfrozeToday: false,
         preserveCurrentStreak: false,
         preserveCurrentStreakUntil: null,
         streakBeforeFreeze: 0,
@@ -599,6 +601,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
           canRecoverWithAd: false,
           frozenDays: 0,
           isFrozen: false,
+          justUnfrozeToday: false,
           preserveCurrentStreak: false,
           preserveCurrentStreakUntil: null,
           streakBeforeFreeze: 0,
@@ -618,45 +621,44 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // Update recovery logic for debt system
       const canRecoverWithAd = frozenDays > 0 && frozenDays <= 3;
       
-      // IMPROVED BUG #3 FIX: Smart streak continuation after warm-up using pre-freeze memory
-      let finalCurrentStreak: number;
-      let newStreakBeforeFreeze: number | null = savedStreak.streakBeforeFreeze ?? null;
-      let newWarmUpCompletedOn: DateString | null = savedStreak.warmUpCompletedOn ?? null;
+      // 🎯 SIMPLE FIX: Just +1 logic - elegant and bulletproof!
       const todayComplete = completedDates.includes(currentDate);
+      let finalCurrentStreak: number;
+      let newJustUnfrozeToday: boolean;
 
-      // 🚨 CRITICAL FIX: Check if warm-up was already completed today - prevent multiple recalculation
-      if (savedStreak.warmUpCompletedOn === currentDate && todayComplete) {
-        // Warm-up was already processed today, use existing streak (no recalculation)
-        finalCurrentStreak = savedStreak.currentStreak;
-        console.log(`[DEBUG] calculateAndUpdateStreak: Warm-up already completed today, using existing streak: ${finalCurrentStreak}`);
+      if (savedStreak.justUnfrozeToday && todayComplete) {
+        // User unfroze today and completed entries → +1 to original frozen streak
+        finalCurrentStreak = (savedStreak.streakBeforeFreeze || savedStreak.currentStreak) + 1;
+        newJustUnfrozeToday = false; // Clear flag after use
+        console.log(`[SIMPLE FIX] Just unfroze + completed: ${savedStreak.streakBeforeFreeze || savedStreak.currentStreak} + 1 = ${finalCurrentStreak}`);
       } else if (isFrozen) {
-        // When streak gets frozen, remember the ORIGINAL streak value (before any recalculations)
-        if (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined) {
-          newStreakBeforeFreeze = originalStreakValue; // 🚨 FIX: Use original value, not current
-          console.log(`[DEBUG] calculateAndUpdateStreak: Storing ORIGINAL streak before freeze: ${newStreakBeforeFreeze} (was currentStreak: ${savedStreak.currentStreak})`);
-        }
-        // Normal frozen behavior - keep saved streak
+        // Still frozen - keep current streak
         finalCurrentStreak = savedStreak.currentStreak;
-      } else if (!isFrozen && savedStreak.streakBeforeFreeze != null && typeof savedStreak.streakBeforeFreeze === 'number') {
-        // Just unfroze after warm-up - use pre-freeze streak + continue properly
-        if (todayComplete) {
-          // User completed today after warm-up, so continue the streak
-          finalCurrentStreak = savedStreak.streakBeforeFreeze + 1;
-          console.log(`[DEBUG] calculateAndUpdateStreak: Continuing streak after warm-up: ${savedStreak.streakBeforeFreeze} + 1 = ${finalCurrentStreak}`);
-          // Mark warm-up as completed today and clear the memory
-          newWarmUpCompletedOn = currentDate;
-          newStreakBeforeFreeze = null;
-        } else {
-          // User hasn't completed today yet, preserve pre-freeze streak
-          finalCurrentStreak = savedStreak.streakBeforeFreeze;
-          console.log(`[DEBUG] calculateAndUpdateStreak: Preserving pre-freeze streak: ${finalCurrentStreak} (today not complete yet)`);
-          // CRITICAL FIX: Keep streakBeforeFreeze until user completes today
-          newStreakBeforeFreeze = savedStreak.streakBeforeFreeze;
-        }
+        newJustUnfrozeToday = savedStreak.justUnfrozeToday || false;
+        console.log(`[SIMPLE FIX] Still frozen: keeping streak=${finalCurrentStreak}`);
       } else {
-        // Normal unfrozen behavior - recalculate streak
-        finalCurrentStreak = newCalculatedStreak;
+        // 🎯 WARM-UP AWARE: Smart normal calculation that bridges paid gaps
+        const smartStreak = calculateStreakWithWarmUp(
+          completedDates,
+          currentDate,
+          savedStreak.warmUpPayments || []
+        );
+        finalCurrentStreak = smartStreak;
+        newJustUnfrozeToday = false;
+        console.log(`[WARM-UP AWARE] Smart calculation: streak=${finalCurrentStreak} (vs basic ${newCalculatedStreak})`);
       }
+
+      // 🎯 SIMPLE FIX: Preserve streakBeforeFreeze only when initially freezing
+      let newStreakBeforeFreeze: number | null = null;
+      if (isFrozen && (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined)) {
+        // First time freezing - remember current streak
+        newStreakBeforeFreeze = originalStreakValue;
+        console.log(`[SIMPLE FIX] Initial freeze: storing streakBeforeFreeze=${newStreakBeforeFreeze}`);
+      } else if (isFrozen) {
+        // Already frozen - keep existing memory
+        newStreakBeforeFreeze = savedStreak.streakBeforeFreeze;
+      }
+      // When not frozen, streakBeforeFreeze stays null (normal behavior)
 
       const updatedStreak: GratitudeStreak = {
         currentStreak: finalCurrentStreak,
@@ -666,24 +668,24 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         canRecoverWithAd,
         frozenDays,
         isFrozen,
+        justUnfrozeToday: newJustUnfrozeToday,
         starCount,
         flameCount,
         crownCount,
-        // Preserve existing debt tracking data
+        // 🎯 SIMPLE FIX: Essential warm-up tracking data
         warmUpPayments: savedStreak.warmUpPayments || [],
         warmUpHistory: savedStreak.warmUpHistory || [],
-        // Preserve existing auto-reset tracking (don't overwrite)
+        // 🎯 SIMPLE FIX: Keep only essential fields
         autoResetTimestamp: savedStreak.autoResetTimestamp || null,
         autoResetReason: savedStreak.autoResetReason || null,
-        // BUG #3 FIX: Preserve flags and streak memory system
-        preserveCurrentStreak: savedStreak.preserveCurrentStreak || false, // Keep for backward compatibility
-        preserveCurrentStreakUntil: savedStreak.preserveCurrentStreakUntil || null, // Old timestamp system
-        // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
         streakBeforeFreeze: newStreakBeforeFreeze,
-        warmUpCompletedOn: newWarmUpCompletedOn,
+        // 🎯 SIMPLE FIX: Remove deprecated fields (no longer needed)
+        preserveCurrentStreak: false, // Deprecated - simple fix makes this unnecessary
+        preserveCurrentStreakUntil: null, // Deprecated - simple fix makes this unnecessary
+        warmUpCompletedOn: null, // Deprecated - simple fix makes timing tracking unnecessary
       };
       
-      console.log(`[FROZEN STREAK DEBUG] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}, warmUpCompletedOn=${newWarmUpCompletedOn}`);
+      console.log(`[SIMPLE FIX] calculateAndUpdateStreak: SAVING streak=${finalCurrentStreak}, frozen=${isFrozen}, frozenDays=${frozenDays}, canRecover=${canRecoverWithAd}`);
 
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, updatedStreak);
 
@@ -799,12 +801,13 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     try {
       const gratitudes = await this.getAll();
       const dateCountMap = new Map<DateString, number>();
-      
+
       gratitudes.forEach(gratitude => {
         const current = dateCountMap.get(gratitude.date) || 0;
         dateCountMap.set(gratitude.date, current + 1);
       });
-      
+
+      // 🎯 SIMPLE FIX: Just return naturally completed days (3+ entries)
       return Array.from(dateCountMap.entries())
         .filter(([, count]) => count >= 3)
         .map(([date]) => date)
@@ -1270,25 +1273,25 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       const newFrozenDays = await this.calculateFrozenDaysWithPayments(updatedPayments);
       console.log(`[DEBUG] warmUpStreakWithAds: newFrozenDays=${newFrozenDays} after applying ${adsApplied} ads`);
 
-      // BUG #3 FIX: Simplified warm up payment - let calculateAndUpdateStreak handle the logic
+      // 🎯 SIMPLE FIX: Set justUnfrozeToday flag when fully unfrozen
+      const justUnfrozeNow = newFrozenDays === 0 && currentStreakInfo.frozenDays > 0;
+
       const updatedStreakInfo: GratitudeStreak = {
         ...currentStreakInfo,
         frozenDays: newFrozenDays, // Update to new effective debt
         isFrozen: newFrozenDays > 0, // Unfreeze only if all streak is warmed up
         canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= 3,
+        justUnfrozeToday: justUnfrozeNow, // 🎯 KEY: Set flag when fully unfrozen
         warmUpPayments: updatedPayments,
         warmUpHistory: newHistoryEntries,
-        // Keep existing preserve system for backward compatibility (will be handled by calculateAndUpdateStreak)
-        preserveCurrentStreak: currentStreakInfo.preserveCurrentStreak || false,
-        preserveCurrentStreakUntil: currentStreakInfo.preserveCurrentStreakUntil || null,
-        // CRITICAL FIX: Always preserve streakBeforeFreeze (don't use && condition)
+        // 🎯 SIMPLE FIX: Keep existing streakBeforeFreeze for +1 logic
         streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze ?? null,
       };
       
-      // BUG #3 FIX: Add validation log to prevent streak corruption
+      // 🎯 SIMPLE FIX: Log completion for monitoring
       if (newFrozenDays === 0) {
-        console.log(`[DEBUG] warmUpStreakWithAds: STREAK FULLY WARMED UP - Original streak ${currentStreakInfo.currentStreak} will be continued by calculateAndUpdateStreak()`);
-        console.log(`[DEBUG] warmUpStreakWithAds: streakBeforeFreeze=${currentStreakInfo.streakBeforeFreeze} will be used for proper continuation`);
+        console.log(`[SIMPLE FIX] warmUpStreakWithAds: STREAK FULLY WARMED UP - justUnfrozeToday flag set to true`);
+        console.log(`[SIMPLE FIX] warmUpStreakWithAds: Next calculateAndUpdateStreak() will apply +1 logic`);
       }
       
       // CRITICAL FIX: Recalculate streak BEFORE saving to ensure atomicity
@@ -1301,14 +1304,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       // If this fails, the payment data is still saved and will be processed on next app launch
       await this.calculateAndUpdateStreak();
 
-      // BUG #3 FIX: Validate streak integrity after warm up payment
-      if (newFrozenDays === 0) {
-        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - Debt fully paid, streak should remain ${currentStreakInfo.currentStreak}`);
-        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - No entries should be created during warm up payment`);
-        console.log(`[DEBUG] warmUpStreakWithAds: VALIDATION - preserveCurrentStreak flag should be true`);
-      }
-
-      console.log(`[DEBUG] warmUpStreakWithAds: Successfully applied ${adsApplied} ads. New debt: ${newFrozenDays}`);
+      // 🎯 SIMPLE FIX: Simple completion logging
+      console.log(`[SIMPLE FIX] warmUpStreakWithAds: Successfully applied ${adsApplied} ads. New debt: ${newFrozenDays}`);
       
     } catch (error) {
       console.error(`[DEBUG] warmUpStreakWithAds: Error occurred:`, error);
