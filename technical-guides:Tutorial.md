@@ -273,6 +273,67 @@ content: "Congratulations! You now know how to use SelfRise to build habits, ach
 button: "Start My Journey!"
 ```
 
+## Tutorial Text Positioning - Unified Modal Behavior
+
+### CRITICAL: Modal Creation Forms (Habit & Goal) Positioning Rule
+
+**Problem**: Habit modal (steps 5a-5e) a Goal modal (steps 11a-11f) jsou téměř identické modaly, ale měly různé positioning logiky, což způsobovalo nekonzistentní chování a vzájemné rozbíjení oprav.
+
+**Solution**: **UNIFIED DYNAMIC POSITIONING** pro všechny modal creation kroky.
+
+#### Unifikované Pozicování - Design Decision:
+```typescript
+// VŠECHNY modal creation kroky (habit-* a goal-*) používají IDENTICKÉ dynamické pozicování:
+const MODAL_TEXT_POSITIONING = {
+  strategy: 'dynamic_below_field',
+  calculation: 'spotlightTarget.y + spotlightTarget.height + offset',
+  baseOffset: 16, // px pod textovým polem
+  safeAreaOffset: 'automaticky řešeno podle zařízení',
+  reasoning: [
+    '✅ Text PŘESNĚ pod textovým polem na všech zařízeních',
+    '✅ Adaptivní pro různé velikosti obrazovek a safe areas',
+    '✅ Konzistentní chování mezi Habit a Goal flows',
+    '✅ Skutečně "pod fieldem" bez ohledu na zařízení',
+    '✅ Řeší iOS/Android safe area rozdíly automaticky'
+  ]
+}
+```
+
+#### Affected Steps:
+- **Habit Creation**: Steps 5a (habit-name), 5b-5e (color, icon, days, create)
+- **Goal Creation**: Steps 11a (goal-title), 11b-11f (unit, target, date, category, create)
+
+#### Implementation Strategy:
+```typescript
+const isModalCreationStep = (
+  state.currentStepData?.id?.startsWith('habit-') ||
+  state.currentStepData?.id?.startsWith('goal-')
+) && state.currentStepData?.id !== 'habit-complete' && state.currentStepData?.id !== 'goal-complete';
+
+if (isModalCreationStep && spotlightTarget) {
+  // UNIFIED: Dynamické pozicování pod textovým polem pro OBA flows
+  const basePosition = spotlightTarget.y + spotlightTarget.height + 16;
+  const maxTop = Dimensions.get('window').height - insets.bottom - 250;
+  const finalPosition = Math.min(basePosition, maxTop);
+
+  position = { top: finalPosition, left: margin, right: margin };
+}
+```
+
+#### Benefits:
+1. **Skutečně "Pod Polem"**: Text se vždy zobrazí pod textovým polem bez ohledu na zařízení
+2. **Cross-Platform**: Funguje na iOS, Android, tabletech automaticky
+3. **Safe Area Aware**: Respektuje safe areas různých zařízení
+4. **Konzistence**: Habit a Goal flows fungují identicky
+5. **Adaptive**: Přizpůsobuje se velikosti obrazovky a orientaci
+
+#### Migration Notes:
+- **PŘED**: Fixní pozice 120px = problémy na různých zařízeních
+- **PO**: Dynamické pozicování = skutečně pod fieldem na všech zařízeních
+- **Impact**: Řeší cross-platform konzistenci, vždy správná pozice
+
+---
+
 ## Technical Implementation
 
 ### 1. Tutorial State Management

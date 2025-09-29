@@ -164,14 +164,28 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
 
   // Auto-scroll to ensure target is visible in viewport
   const ensureTargetVisible = async (targetId: string, targetInfo: TargetElementInfo): Promise<boolean> => {
+    // Skip auto-scroll for modal creation steps - they should work like Habit creation
+    const isModalStep = state.currentStepData?.id && (
+      state.currentStepData.id.startsWith('habit-') ||
+      state.currentStepData.id.startsWith('goal-')
+    );
+
+    if (isModalStep) {
+      console.log(`🚫 [TUTORIAL] Skipping auto-scroll for modal step: ${state.currentStepData?.id}`);
+      return false; // No scroll for modal steps
+    }
+
     // Get viewport height
     const viewportHeight = Dimensions.get('window').height;
     const safeAreaTop = insets.top;
     const safeAreaBottom = insets.bottom;
 
-    // For type_text actions, reserve more space at top and bottom for tutorial content and keyboard
+    // Reserve space for tutorial content based on step type
     const isTypeText = state.currentStepData?.action === 'type_text';
-    const topReserve = isTypeText ? 150 : 100; // More space for tutorial text at top
+    const isQuickActionsStep = state.currentStepData?.id === 'quick-actions';
+
+    // Quick Actions step needs more top space for tutorial text positioned at top
+    const topReserve = isQuickActionsStep ? 200 : (isTypeText ? 150 : 100);
     const bottomReserve = isTypeText ? 350 : 200; // More space for keyboard
 
     const visibleAreaTop = safeAreaTop + topReserve;
@@ -345,44 +359,51 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {isSpotlight && (
           <Animated.View
             style={[
-              state.currentStepData?.action === 'type_text'
-                ? styles.contentContainerTop
-                : state.currentStepData?.action === 'select_option' ||
-                  state.currentStepData?.action === 'select_days' ||
-                  (state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit')
-                ? styles.contentContainerTopFixed
-                : styles.contentContainer,
+              // 🎯 UNIFIED MODAL POSITIONING STRATEGY:
+              // All modal creation steps (habit + goal): DYNAMIC positioning below text field
+              // Other steps: BOTTOM positioning
+              (() => {
+                // Check if this is a modal creation step (habit or goal creation flow)
+                const isModalCreationStep = (
+                  (state.currentStepData?.id?.startsWith('habit-') && state.currentStepData?.id !== 'habit-complete') ||
+                  (state.currentStepData?.id?.startsWith('goal-') && state.currentStepData?.id !== 'goal-complete')
+                );
+
+                if (isModalCreationStep && spotlightTarget) {
+                  // UNIFIED: Dynamic position below text field for BOTH flows
+                  console.log(`📍 [TUTORIAL] Using unified dynamic positioning for modal step: ${state.currentStepData?.id}`);
+                  return styles.contentContainerModalDynamic;
+                } else if (state.currentStepData?.id === 'quick-actions') {
+                  // Quick Actions step needs top positioning to avoid overlap
+                  console.log(`📍 [TUTORIAL] Using top positioning for Quick Actions step`);
+                  return styles.contentContainerTopFixed;
+                } else {
+                  // Non-modal steps use bottom positioning
+                  return styles.contentContainer;
+                }
+              })(),
               {
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
-              // Dynamic positioning for type_text based on context
-              state.currentStepData?.action === 'type_text' && spotlightTarget && (() => {
-                // Check if we're in Goal modal context (these need special positioning for keyboard)
-                const isGoalInput = state.currentStepData?.target?.includes('goal-') || false;
+              // 🔧 DYNAMIC POSITIONING for modal creation steps - below the field
+              (() => {
+                const isModalCreationStep = (
+                  (state.currentStepData?.id?.startsWith('habit-') && state.currentStepData?.id !== 'habit-complete') ||
+                  (state.currentStepData?.id?.startsWith('goal-') && state.currentStepData?.id !== 'goal-complete')
+                );
 
-                if (isGoalInput) {
-                  // Goal inputs: place BELOW the input field like habit inputs
-                  // Keyboard won't overlap since it's in a modal with proper scroll handling
-                  const belowFieldPosition = spotlightTarget.y + spotlightTarget.height + 8 +
-                                           (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
-                                           (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
-
-                  console.log(`📍 [TUTORIAL] Goal input - positioning below field: ${belowFieldPosition}px (field at ${spotlightTarget.y}px)`);
-                  return { top: belowFieldPosition };
-                } else {
-                  // Habit inputs: place below input field as before
-                  const basePosition = spotlightTarget.y + spotlightTarget.height + 8 +
-                                     (spotlightTarget.height * 0.1) + // Account for 110% pulse scale
-                                     (isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20));
+                if (isModalCreationStep && spotlightTarget) {
+                  const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
 
                   // Ensure content doesn't go below safe area
                   const maxTop = Dimensions.get('window').height - insets.bottom - 250;
                   const finalPosition = Math.min(basePosition, maxTop);
 
-                  console.log(`📍 [TUTORIAL] Habit input - positioning below field: ${finalPosition}px`);
+                  console.log(`📍 [TUTORIAL] Dynamic positioning below field: ${finalPosition}px (target: ${spotlightTarget.y + spotlightTarget.height}px + 16px offset)`);
                   return { top: finalPosition };
                 }
+                return {};
               })()
             ]}
           >
@@ -488,9 +509,9 @@ const styles = StyleSheet.create({
     right: getHorizontalMargin(),
     zIndex: 10000,
   },
-  contentContainerTop: {
+  contentContainerModalDynamic: {
     position: 'absolute',
-    // top is set dynamically based on spotlight target position
+    // top is calculated dynamically based on spotlight target position + 16px offset
     left: getHorizontalMargin(),
     right: getHorizontalMargin(),
     zIndex: 10000,

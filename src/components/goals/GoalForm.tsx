@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 40, // Extra space at bottom for buttons
+    paddingBottom: 60, // Extra space to ensure Create button is always visible
   },
   inputGroup: {
     marginBottom: 20,

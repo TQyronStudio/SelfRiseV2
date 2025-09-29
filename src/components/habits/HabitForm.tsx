@@ -414,7 +414,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    flexGrow: 1,
+    paddingBottom: 60, // Extra space to ensure Create button is always visible
   },
   form: {
     padding: 20,
