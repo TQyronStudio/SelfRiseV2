@@ -448,15 +448,16 @@ export const calculateStreakWithWarmUp = (
   currentDate: DateString,
   warmUpPayments: WarmUpPayment[]
 ): number => {
-  if (!dates.includes(currentDate)) return 0;
+  // 🚨 CRITICAL FIX: Don't require today to be complete for warm-up to work
+  // This allows warm-up to preserve streak even before user writes today's entries
 
   // Get paid dates that bridge gaps (don't count as +1, just allow continuation)
   const paidDates = warmUpPayments
     .filter(payment => payment.isComplete)
     .map(payment => payment.missedDate);
 
-  let streak = 1; // Today counts
-  let checkDate = subtractDays(currentDate, 1);
+  let streak = 0;
+  let checkDate = subtractDays(currentDate, 1); // Start from yesterday
 
   while (true) {
     if (dates.includes(checkDate)) {
@@ -470,6 +471,11 @@ export const calculateStreakWithWarmUp = (
       // Real gap - streak ends here
       break;
     }
+  }
+
+  // If today is complete, add it to the streak
+  if (dates.includes(currentDate)) {
+    streak++;
   }
 
   return streak;

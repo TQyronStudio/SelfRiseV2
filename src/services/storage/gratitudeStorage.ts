@@ -631,6 +631,12 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         finalCurrentStreak = (savedStreak.streakBeforeFreeze || savedStreak.currentStreak) + 1;
         newJustUnfrozeToday = false; // Clear flag after use
         console.log(`[SIMPLE FIX] Just unfroze + completed: ${savedStreak.streakBeforeFreeze || savedStreak.currentStreak} + 1 = ${finalCurrentStreak}`);
+      } else if (savedStreak.justUnfrozeToday && !todayComplete) {
+        // 🚨 CRITICAL FIX: User unfroze but hasn't completed today yet
+        // Preserve streak value until user writes entries
+        finalCurrentStreak = savedStreak.streakBeforeFreeze || savedStreak.currentStreak;
+        newJustUnfrozeToday = true; // Keep flag active until completion
+        console.log(`[SIMPLE FIX] Just unfroze, waiting for completion: streak=${finalCurrentStreak} (preserved)`);
       } else if (isFrozen) {
         // Still frozen - keep current streak
         finalCurrentStreak = savedStreak.currentStreak;
@@ -655,8 +661,8 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         newStreakBeforeFreeze = originalStreakValue;
         console.log(`[SIMPLE FIX] Initial freeze: storing streakBeforeFreeze=${newStreakBeforeFreeze}`);
       } else if (isFrozen) {
-        // Already frozen - keep existing memory
-        newStreakBeforeFreeze = savedStreak.streakBeforeFreeze;
+        // Already frozen - keep existing memory (ensure it's not undefined)
+        newStreakBeforeFreeze = savedStreak.streakBeforeFreeze ?? null;
       }
       // When not frozen, streakBeforeFreeze stays null (normal behavior)
 

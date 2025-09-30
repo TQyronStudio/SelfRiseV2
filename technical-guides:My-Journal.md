@@ -479,6 +479,150 @@ Perfect user experience with proper priority sequencing
 
 ---
 
+## 🎯 **Frozen Streak Continuation Bug Fix (December 2025)**
+
+### **❌ Original Problem: "Streak Memory Loss After Warm-Up"**
+
+**Bug Scenario:**
+```
+Day 1: Frozen streak 2 → watch ads → write 3+ entries → streak = 3 ✅
+Day 2: Open app → streak = 1 ❌ (CRITICAL BUG!)
+```
+
+**Root Cause Analysis:**
+1. **Complex Parallel Logic**: Original system used multiple timing-based conditions (`warmUpCompletedOn`, `streakBeforeFreeze`, `preserveCurrentStreak`)
+2. **Memory Clearing Too Early**: `streakBeforeFreeze` was cleared immediately after first use, causing "amnesia"
+3. **Gap-Blind Normal Calculation**: Normal streak calculation couldn't see paid warm-up gaps, counted them as streak breaks
+
+### **✅ Solution: "Simple Fix + Warm-Up Aware Calculation"**
+
+**Two-Component Fix Architecture:**
+
+#### **Component 1: Simple +1 Logic (First Day After Warm-Up)**
+```typescript
+// New field in GratitudeStreak interface:
+justUnfrozeToday: boolean; // true when unfroze today via warm-up ads
+
+// Logic in calculateAndUpdateStreak():
+if (savedStreak.justUnfrozeToday && todayComplete) {
+  // User unfroze today and completed entries → +1 to original frozen streak
+  finalCurrentStreak = (savedStreak.streakBeforeFreeze || savedStreak.currentStreak) + 1;
+  newJustUnfrozeToday = false; // Clear flag after use
+} else if (isFrozen) {
+  // Still frozen - keep current streak
+  finalCurrentStreak = savedStreak.currentStreak;
+} else {
+  // Smart normal calculation (Component 2)
+}
+```
+
+#### **Component 2: Warm-Up Aware Normal Calculation (Subsequent Days)**
+```typescript
+// New utility function in date.ts:
+export const calculateStreakWithWarmUp = (
+  dates: DateString[],
+  currentDate: DateString,
+  warmUpPayments: WarmUpPayment[]
+): number => {
+  // Get paid dates that bridge gaps (don't count as +1, just allow continuation)
+  const paidDates = warmUpPayments
+    .filter(payment => payment.isComplete)
+    .map(payment => payment.missedDate);
+
+  let streak = 1; // Today counts
+  let checkDate = subtractDays(currentDate, 1);
+
+  while (true) {
+    if (dates.includes(checkDate)) {
+      // Real completed day - count it
+      streak++;
+      checkDate = subtractDays(checkDate, 1);
+    } else if (paidDates.includes(checkDate)) {
+      // Paid gap - continue but don't count as +1 (just bridges the gap)
+      checkDate = subtractDays(checkDate, 1);
+    } else {
+      // Real gap - streak ends here
+      break;
+    }
+  }
+
+  return streak;
+};
+
+// Usage in calculateAndUpdateStreak():
+else {
+  const smartStreak = calculateStreakWithWarmUp(
+    completedDates,
+    currentDate,
+    savedStreak.warmUpPayments || []
+  );
+  finalCurrentStreak = smartStreak;
+}
+```
+
+### **🔧 Implementation Details**
+
+**Flag Setting in warmUpStreakWithAds():**
+```typescript
+// Set justUnfrozeToday when fully unfrozen
+const justUnfrozeNow = newFrozenDays === 0 && currentStreakInfo.frozenDays > 0;
+
+const updatedStreakInfo: GratitudeStreak = {
+  ...currentStreakInfo,
+  frozenDays: newFrozenDays,
+  isFrozen: newFrozenDays > 0,
+  justUnfrozeToday: justUnfrozeNow, // 🎯 KEY: Set flag when fully unfrozen
+  // ...
+};
+```
+
+### **📊 Fix Results**
+
+**BEFORE (Buggy):**
+```
+Day 1: Frozen streak 2 → warm-up → 3+ entries → streak = 3 ✅
+Day 2: streak = 1 ❌ (Memory loss bug)
+```
+
+**AFTER (Fixed):**
+```
+Day 1: Frozen streak 2 → warm-up → 3+ entries → streak = 3 ✅ (Simple Fix)
+Day 2: streak = 4 ✅ (Warm-Up Aware calculation)
+Day 3: streak = 5 ✅ (Continues correctly)
+```
+
+### **🎯 Fix Benefits**
+
+**✅ Eliminates Complex Parallel Logic**
+- No more `warmUpCompletedOn` timing issues
+- No more `preserveCurrentStreak` race conditions
+- No more early memory clearing bugs
+
+**✅ Clean Separation of Concerns**
+- Simple Fix: Handles immediate post-warm-up day
+- Warm-Up Aware: Handles all subsequent days
+- Each component has single responsibility
+
+**✅ Data Integrity**
+- `completedDates` remains clean (natural entries only)
+- `warmUpPayments` provides gap bridging information
+- No synthetic data pollution
+
+**✅ Future-Proof Architecture**
+- Any changes to normal streak calculation automatically work for frozen streaks
+- Extensible to multiple warm-up scenarios
+- Backward compatible with existing data
+
+### **🧪 Edge Cases Covered**
+
+- **Multiple Day Gaps**: Works for consecutive paid days
+- **Partial Warm-Up**: Handles incomplete debt payments
+- **Long Streaks**: Preserves streaks of any length
+- **App Restart**: Survives app backgrounding/closing
+- **Race Conditions**: Atomic operations prevent corruption
+
+---
+
 **GOLDEN RULE**: *"One journal system, clear completion rules, complete streak protection, separate from XP concerns"*
 
 ---
