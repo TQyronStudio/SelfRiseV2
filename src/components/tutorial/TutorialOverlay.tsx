@@ -399,10 +399,30 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
               // 4. Target in bottom half of screen: TOP positioning
               // 5. Other steps: BOTTOM positioning
               (() => {
-                // Check if this is a modal creation step (habit or goal creation flow)
-                const isModalCreationStep = (
-                  (state.currentStepData?.id?.startsWith('habit-') && state.currentStepData?.id !== 'habit-complete') ||
-                  (state.currentStepData?.id?.startsWith('goal-') && state.currentStepData?.id !== 'goal-complete')
+                // Text input steps for HABIT ONLY (keyboard doesn't cover them in modal)
+                const isTextInputStep = (
+                  state.currentStepData?.id === 'habit-name'
+                );
+
+                // Goal text input steps need TOP positioning (keyboard would cover DYNAMIC positioning)
+                const isGoalTextInputStep = (
+                  state.currentStepData?.id === 'goal-title' ||
+                  state.currentStepData?.id === 'goal-unit' ||
+                  state.currentStepData?.id === 'goal-target'
+                );
+
+                // Picker/selector steps that need TOP positioning (to avoid overlap when expanded)
+                const isPickerStep = (
+                  state.currentStepData?.id === 'habit-color' ||
+                  state.currentStepData?.id === 'habit-icon' ||
+                  state.currentStepData?.id === 'habit-days' ||
+                  state.currentStepData?.id === 'goal-date'
+                );
+
+                // Submit button steps that need TOP positioning (button is at bottom of modal)
+                const isSubmitButtonStep = (
+                  state.currentStepData?.id === 'habit-create' ||
+                  state.currentStepData?.id === 'goal-create'
                 );
 
                 // Check if this is a tab navigation step (target is at bottom)
@@ -420,10 +440,22 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   spotlightTarget.y > (Dimensions.get('window').height / 2)
                 );
 
-                if (isModalCreationStep && spotlightTarget) {
-                  // UNIFIED: Dynamic position below text field for BOTH flows
-                  console.log(`📍 [TUTORIAL] Using unified dynamic positioning for modal step: ${state.currentStepData?.id}`);
+                if (isTextInputStep && spotlightTarget) {
+                  // Habit text input: Dynamic position below text field
+                  console.log(`📍 [TUTORIAL] Using dynamic positioning below field for: ${state.currentStepData?.id}`);
                   return styles.contentContainerModalDynamic;
+                } else if (isGoalTextInputStep) {
+                  // Goal text input: TOP positioning to avoid keyboard covering tutorial text
+                  console.log(`📍 [TUTORIAL] Using top positioning for goal text input: ${state.currentStepData?.id}`);
+                  return styles.contentContainerTopFixed;
+                } else if (isPickerStep) {
+                  // Picker steps: TOP positioning to avoid overlap with expanded picker
+                  console.log(`📍 [TUTORIAL] Using top positioning for picker step: ${state.currentStepData?.id}`);
+                  return styles.contentContainerTopFixed;
+                } else if (isSubmitButtonStep) {
+                  // Submit button: TOP positioning (button is at bottom)
+                  console.log(`📍 [TUTORIAL] Using top positioning for submit button: ${state.currentStepData?.id}`);
+                  return styles.contentContainerTopFixed;
                 } else if (state.currentStepData?.id === 'quick-actions') {
                   // Quick Actions step needs top positioning to avoid overlap
                   console.log(`📍 [TUTORIAL] Using top positioning for Quick Actions step`);
@@ -445,14 +477,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
-              // 🔧 DYNAMIC POSITIONING for modal creation steps - below the field
+              // 🔧 DYNAMIC POSITIONING for text input steps only - below the field
               (() => {
-                const isModalCreationStep = (
-                  (state.currentStepData?.id?.startsWith('habit-') && state.currentStepData?.id !== 'habit-complete') ||
-                  (state.currentStepData?.id?.startsWith('goal-') && state.currentStepData?.id !== 'goal-complete')
+                const isTextInputStep = (
+                  state.currentStepData?.id === 'habit-name' ||
+                  state.currentStepData?.id === 'goal-title' ||
+                  state.currentStepData?.id === 'goal-unit' ||
+                  state.currentStepData?.id === 'goal-target'
                 );
 
-                if (isModalCreationStep && spotlightTarget) {
+                if (isTextInputStep && spotlightTarget) {
                   const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
 
                   // Calculate dynamic tutorial card height instead of fixed 250px

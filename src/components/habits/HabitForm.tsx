@@ -55,7 +55,7 @@ export function HabitForm({
   const habitColorRef = useRef<View>(null);
   const habitIconRef = useRef<View>(null);
   const habitDaysRef = useRef<View>(null);
-  const createButtonRef = useRef<TouchableOpacity>(null);
+  const createButtonRef = useRef<View>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Tutorial target registration
@@ -139,6 +139,44 @@ export function HabitForm({
       }, 300);
     }
   }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
+
+  // 🎯 Auto-scroll to Create button during tutorial (step 9: habit-create)
+  useEffect(() => {
+    if (
+      tutorialState.isActive &&
+      tutorialState.currentStepData?.id === 'habit-create' &&
+      tutorialState.currentStepData?.target === 'create-habit-submit'
+    ) {
+      // Scroll to bottom where Create button is
+      setTimeout(() => {
+        console.log(`📜 [TUTORIAL] Auto-scrolling to Create button...`);
+        if (scrollViewRef.current && createButtonRef.current) {
+          createButtonRef.current.measureLayout(
+            scrollViewRef.current as any,
+            (x: number, y: number, width: number, height: number) => {
+              // 📐 Adaptive scroll offset based on device height
+              const screenHeight = require('react-native').Dimensions.get('window').height;
+              const topMargin = screenHeight < 700 ? 80 : 120; // Smaller devices: less margin
+
+              scrollViewRef.current?.scrollTo({
+                y: Math.max(0, y - topMargin), // Scroll so button is visible with adaptive top margin
+                animated: true,
+              });
+              console.log(`✅ [TUTORIAL] Scrolled to Create button at y=${y}px (margin: ${topMargin}px, screenHeight: ${screenHeight}px)`);
+
+              // Signal that scroll is complete
+              setTimeout(() => {
+                DeviceEventEmitter.emit('tutorial_scroll_completed');
+              }, 400);
+            },
+            () => {
+              console.error('Failed to measure Create button');
+            }
+          );
+        }
+      }, 200);
+    }
+  }, [tutorialState.isActive, tutorialState.currentStepData?.id]);
 
   const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',
@@ -259,6 +297,7 @@ export function HabitForm({
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
         bounces={true}
+        scrollEnabled={!tutorialState.isActive} // 🔒 Disable manual scroll during tutorial
       >
         <View style={styles.form}>
         <View style={styles.section}>
@@ -372,26 +411,26 @@ export function HabitForm({
           >
             <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity
-            ref={createButtonRef}
-            style={[
-              styles.button,
-              styles.submitButton,
-              // Disable button visually if tutorial is active but not on create step
-              (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') && styles.disabledButton
-            ]}
-            onPress={handleSubmit}
-            disabled={
-              isLoading ||
-              (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create')
-            }
-            nativeID="create-habit-submit"
-          >
-            <Text style={styles.submitButtonText}>
-              {isEditing ? t('common.update') : t('common.create')}
-            </Text>
-          </TouchableOpacity>
+
+          <View ref={createButtonRef} nativeID="create-habit-submit">
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.submitButton,
+                // Disable button visually if tutorial is active but not on create step
+                (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') && styles.disabledButton
+              ]}
+              onPress={handleSubmit}
+              disabled={
+                isLoading ||
+                (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create')
+              }
+            >
+              <Text style={styles.submitButtonText}>
+                {isEditing ? t('common.update') : t('common.create')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         </View>
       </ScrollView>
