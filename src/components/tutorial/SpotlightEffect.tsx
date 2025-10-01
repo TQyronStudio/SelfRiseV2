@@ -19,9 +19,9 @@ interface SpotlightTarget {
 
 interface SpotlightEffectProps {
   target: SpotlightTarget;
-  action?: string;
-  targetId?: string;
-  onTargetPress?: () => void;
+  action?: string | undefined;
+  targetId?: string | undefined;
+  onTargetPress?: (() => void) | undefined;
 }
 
 export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({

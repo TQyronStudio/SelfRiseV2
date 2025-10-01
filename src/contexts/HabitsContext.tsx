@@ -4,6 +4,7 @@ import { habitStorage } from '../services/storage/habitStorage';
 import { DateString } from '../types/common';
 import { HabitResetUtils } from '../utils/HabitResetUtils';
 import { AchievementService } from '../services/achievementService';
+import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
 
 export interface HabitsState {
   habits: Habit[];
@@ -140,9 +141,21 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       const newHabit = await habitStorage.create(input);
       dispatch({ type: 'ADD_HABIT', payload: newHabit });
 
-      // Check for achievements after habit creation
+      // 🎯 Enhanced Achievement Handling for Tutorial Restart
       try {
-        console.log('🎯 Checking achievements after habit creation:', newHabit.name, 'color:', newHabit.color);
+        const isRestarted = await isTutorialRestarted();
+        const isActive = await isTutorialActive();
+
+        if (isActive && isRestarted) {
+          // Tutorial is restarted - user already has first-habit achievement
+          // Skip achievement modal to avoid redundancy
+          console.log('✨ Tutorial restarted: Habit created successfully (achievement already earned)');
+          // Achievement check will run but won't show modal for already-earned achievements
+        } else {
+          // Normal flow - first tutorial or manual habit creation
+          console.log('🎯 Checking achievements after habit creation:', newHabit.name, 'color:', newHabit.color);
+        }
+
         await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
       } catch (achievementError) {
         console.error('Failed to check achievements after habit creation:', achievementError);

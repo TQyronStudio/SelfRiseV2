@@ -118,6 +118,7 @@ const TUTORIAL_SESSION_TIMESTAMP_KEY = 'onboarding_tutorial_timestamp';
 const TUTORIAL_CRASH_LOG_KEY = 'onboarding_tutorial_crash_log';
 const TUTORIAL_ERROR_COUNT_KEY = 'onboarding_tutorial_error_count';
 const TUTORIAL_RECOVERY_STATE_KEY = 'onboarding_tutorial_recovery_state';
+const TUTORIAL_RESTARTED_KEY = 'onboarding_tutorial_restarted'; // Flag for restarted tutorials
 
 // Animation Specifications
 export const TUTORIAL_ANIMATIONS = {
@@ -136,7 +137,7 @@ export const TUTORIAL_ANIMATIONS = {
 const initialState: TutorialState = {
   isActive: false,
   currentStep: 1,
-  totalSteps: 22,
+  totalSteps: 19, // Fixed: Actual number of tutorial steps (includes completion modal)
   isCompleted: false,
   isSkipped: false,
   userInteractionBlocked: false,
@@ -257,7 +258,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_days'
   },
 
-  // Step 5e: Create Habit
+  // Step 9: Create Habit
   {
     id: 'habit-create',
     type: 'spotlight',
@@ -270,7 +271,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'click_element'
   },
 
-  // Step 6: Habit Creation Complete
+  // Step 10: Habit Creation Complete
   {
     id: 'habit-complete',
     type: 'modal',
@@ -282,7 +283,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'next'
   },
 
-  // Step 7: Navigate to Journal
+  // Step 11: Navigate to Journal
   {
     id: 'navigate-journal',
     type: 'spotlight',
@@ -295,7 +296,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'click_element'
   },
 
-  // Step 8: Journal Actions Explanation
+  // Step 12: Journal Actions Explanation
   {
     id: 'journal-actions',
     type: 'spotlight',
@@ -308,7 +309,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'next'
   },
 
-  // Step 9: Navigate to Goals
+  // Step 13: Navigate to Goals
   {
     id: 'navigate-goals',
     type: 'spotlight',
@@ -321,7 +322,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'click_element'
   },
 
-  // Step 10: Create First Goal - Button
+  // Step 14: Create First Goal - Button
   {
     id: 'create-goal-button',
     type: 'spotlight',
@@ -334,7 +335,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'click_element'
   },
 
-  // Step 11: Goal Title
+  // Step 15: Goal Title
   {
     id: 'goal-title',
     type: 'spotlight',
@@ -350,7 +351,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     nextTrigger: 'first_character'
   },
 
-  // Step 12: Goal Unit
+  // Step 16: Goal Unit
   {
     id: 'goal-unit',
     type: 'spotlight',
@@ -366,7 +367,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     nextTrigger: 'first_character'
   },
 
-  // Step 13: Goal Target
+  // Step 17: Goal Target
   {
     id: 'goal-target',
     type: 'spotlight',
@@ -381,7 +382,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     nextTrigger: 'first_character'
   },
 
-  // Step 14: Goal Date (Optional)
+  // Step 18: Goal Date (Optional)
   {
     id: 'goal-date',
     type: 'spotlight',
@@ -395,46 +396,7 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_date'
   },
 
-  // Step 15: Create Goal
-  {
-    id: 'goal-create',
-    type: 'spotlight',
-    target: 'create-goal-submit',
-    content: {
-      title: 'Create Your Goal!',
-      content: 'Click Create to add your first goal!',
-      button: 'Create'
-    },
-    action: 'click_element'
-  },
-
-  // Step 16: Navigate to Home
-  {
-    id: 'navigate-home',
-    type: 'spotlight',
-    target: 'home-tab',
-    content: {
-      title: 'Back to Your Dashboard 🏠',
-      content: 'Click Home to see your progress overview!',
-      button: 'Go Home'
-    },
-    action: 'click_element'
-  },
-
-  // Step 17: XP System Introduction
-  {
-    id: 'xp-intro',
-    type: 'spotlight',
-    target: 'xp-progress-section',
-    content: {
-      title: t('tutorial.steps.xpIntro.title'),
-      content: t('tutorial.steps.xpIntro.content'),
-      button: t('tutorial.steps.xpIntro.button')
-    },
-    action: 'next'
-  },
-
-  // Step 16: Tutorial Complete
+  // Step 19: Tutorial Complete
   {
     id: 'completion',
     type: 'modal',
@@ -981,6 +943,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       // Clear any saved session data
       await clearTutorialSession();
 
+      // Clear restarted flag when tutorial is skipped
+      await AsyncStorage.removeItem(TUTORIAL_RESTARTED_KEY);
+
       dispatch({ type: 'SKIP_TUTORIAL' });
       await markTutorialSkipped();
     } catch (error) {
@@ -999,6 +964,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       // Clear any saved session data
       await clearTutorialSession();
+
+      // Clear restarted flag when tutorial completes
+      await AsyncStorage.removeItem(TUTORIAL_RESTARTED_KEY);
 
       dispatch({ type: 'COMPLETE_TUTORIAL' });
       await markTutorialCompleted();
@@ -1061,6 +1029,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.removeItem(TUTORIAL_STORAGE_KEY);
       await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
       await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
+
+      // 🎯 Set flag that this is a restarted tutorial
+      // This allows Habit/Goal contexts to handle achievements differently
+      await AsyncStorage.setItem(TUTORIAL_RESTARTED_KEY, 'true');
+
       dispatch({ type: 'RESET_TUTORIAL' });
 
       // Navigate to Home screen
@@ -1649,6 +1622,30 @@ export function useTutorial() {
     throw new Error('useTutorial must be used within a TutorialProvider');
   }
   return context;
+}
+
+// Helper: Check if tutorial is restarted (for achievement handling)
+export async function isTutorialRestarted(): Promise<boolean> {
+  try {
+    const value = await AsyncStorage.getItem(TUTORIAL_RESTARTED_KEY);
+    return value === 'true';
+  } catch (error) {
+    console.error('Error checking tutorial restart status:', error);
+    return false;
+  }
+}
+
+// Helper: Check if tutorial is currently active
+export async function isTutorialActive(): Promise<boolean> {
+  try {
+    const completed = await AsyncStorage.getItem(TUTORIAL_STORAGE_KEY);
+    const skipped = await AsyncStorage.getItem(TUTORIAL_SKIPPED_KEY);
+    // Tutorial is active if NOT completed and NOT skipped
+    return completed !== 'true' && skipped !== 'true';
+  } catch (error) {
+    console.error('Error checking tutorial active status:', error);
+    return false;
+  }
 }
 
 // Note: Tutorial steps are now managed within the TutorialProvider context

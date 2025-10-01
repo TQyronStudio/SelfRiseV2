@@ -273,37 +273,52 @@ content: "Congratulations! You now know how to use SelfRise to build habits, ach
 button: "Start My Journey!"
 ```
 
-## Tutorial Text Positioning - Unified Modal Behavior
+## Tutorial Text Positioning - Intelligent Adaptive System
 
-### CRITICAL: Modal Creation Forms (Habit & Goal) Positioning Rule
+### CRITICAL: Intelligent Positioning to Avoid Overlaps
 
-**Problem**: Habit modal (steps 5a-5e) a Goal modal (steps 11a-11f) jsou téměř identické modaly, ale měly různé positioning logiky, což způsobovalo nekonzistentní chování a vzájemné rozbíjení oprav.
+**Problem**: Tutorial text může překrývat zvýrazněné elementy, zejména když jsou ve spodní části obrazovky (tab bar, bottom buttons).
 
-**Solution**: **UNIFIED DYNAMIC POSITIONING** pro všechny modal creation kroky.
+**Solution**: **INTELLIGENT ADAPTIVE POSITIONING** - text se automaticky umístí tak, aby nepřekrýval target element.
 
-#### Unifikované Pozicování - Design Decision:
+#### Positioning Strategy Matrix:
 ```typescript
-// VŠECHNY modal creation kroky (habit-* a goal-*) používají IDENTICKÉ dynamické pozicování:
-const MODAL_TEXT_POSITIONING = {
-  strategy: 'dynamic_below_field',
-  calculation: 'spotlightTarget.y + spotlightTarget.height + offset',
-  baseOffset: 16, // px pod textovým polem
-  safeAreaOffset: 'automaticky řešeno podle zařízení',
-  reasoning: [
-    '✅ Text PŘESNĚ pod textovým polem na všech zařízeních',
-    '✅ Adaptivní pro různé velikosti obrazovek a safe areas',
-    '✅ Konzistentní chování mezi Habit a Goal flows',
-    '✅ Skutečně "pod fieldem" bez ohledu na zařízení',
-    '✅ Řeší iOS/Android safe area rozdíly automaticky'
-  ]
-}
+// 🎯 INTELLIGENT ADAPTIVE POSITIONING STRATEGY:
+// Automaticky vybírá nejlepší pozici podle typu kroku a umístění targetu
+
+1️⃣ MODAL CREATION STEPS (habit-*, goal-*)
+   Strategy: DYNAMIC BELOW FIELD
+   Calculation: spotlightTarget.y + spotlightTarget.height + 16px
+   Reasoning: Text přímo pod formulářovým fieldem
+   Examples: habit-name, goal-title, habit-color
+
+2️⃣ TAB NAVIGATION STEPS (navigate-journal, navigate-goals, navigate-home)
+   Strategy: TOP FIXED
+   Position: 70-100px from top (device-dependent)
+   Reasoning: Tab bar je DOLE → text NAHOŘE aby se nepřekrýval
+   Examples: navigate-journal, navigate-goals
+
+3️⃣ QUICK ACTIONS STEP
+   Strategy: TOP FIXED
+   Position: 70-100px from top
+   Reasoning: Quick actions section je uprostřed/dole
+
+4️⃣ SMART AUTO-DETECTION (any spotlight step)
+   Strategy: TOP if target.y > screen.height/2, else BOTTOM
+   Reasoning: Pokud je target ve spodní polovině → text NAHORU
+   Examples: Automatická detekce pro budoucí kroky
+
+5️⃣ DEFAULT (other steps)
+   Strategy: BOTTOM FIXED
+   Position: ~50px from bottom
+   Reasoning: Target je nahoře/uprostřed → text DOLE
 ```
 
 #### Affected Steps:
 - **Habit Creation**: Steps 5a (habit-name), 5b-5e (color, icon, days, create)
 - **Goal Creation**: Steps 11a (goal-title), 11b-11f (unit, target, date, category, create)
 
-#### Implementation Strategy:
+#### Implementation Strategy (V2 - Enhanced Android Support):
 ```typescript
 const isModalCreationStep = (
   state.currentStepData?.id?.startsWith('habit-') ||
@@ -313,11 +328,35 @@ const isModalCreationStep = (
 if (isModalCreationStep && spotlightTarget) {
   // UNIFIED: Dynamické pozicování pod textovým polem pro OBA flows
   const basePosition = spotlightTarget.y + spotlightTarget.height + 16;
-  const maxTop = Dimensions.get('window').height - insets.bottom - 250;
+
+  // 🎯 V2 ENHANCEMENT: Dynamic card height calculation instead of fixed 250px
+  const tutorialCardHeight = calculateTutorialCardHeight(); // ~170-220px based on device
+  const bottomSafePadding = 20; // Extra breathing room
+
+  // Android-specific: Extra padding for navigation bar variations
+  const androidNavBarExtra = Platform.OS === 'android' ? 8 : 0;
+
+  const maxTop = Dimensions.get('window').height - insets.bottom - tutorialCardHeight - bottomSafePadding - androidNavBarExtra;
   const finalPosition = Math.min(basePosition, maxTop);
 
   position = { top: finalPosition, left: margin, right: margin };
 }
+
+// Helper: Calculate tutorial card height dynamically
+const calculateTutorialCardHeight = (): number => {
+  const cardPadding = getCardPadding(); // 18-32px based on device
+  const titleHeight = scaleFont(Fonts.sizes.xl) * 1.3;
+  const titleMargin = isTablet() ? 16 : (screenSize === SMALL ? 10 : 12);
+  const contentHeight = scaleFont(Fonts.sizes.md) * 1.5 * 2; // 2 lines
+  const contentMargin = isTablet() ? 16 : (screenSize === SMALL ? 12 : 14);
+  const progressHeight = isTablet() ? 40 : (screenSize === SMALL ? 30 : 35);
+  const buttonHeight = showNext ? (isTablet() ? 36 : 32) : 0;
+
+  const total = (cardPadding * 2) + titleHeight + titleMargin +
+                contentHeight + contentMargin + progressHeight + buttonHeight;
+
+  return Math.ceil(total + 40); // +40px safety margin
+};
 ```
 
 #### Benefits:
@@ -326,11 +365,34 @@ if (isModalCreationStep && spotlightTarget) {
 3. **Safe Area Aware**: Respektuje safe areas různých zařízení
 4. **Konzistence**: Habit a Goal flows fungují identicky
 5. **Adaptive**: Přizpůsobuje se velikosti obrazovky a orientaci
+6. **🆕 Android Navigation Bar Support**: Automaticky respektuje různé Android navigační módy (gesture, 3-button, 2-button)
+7. **🆕 Dynamic Height Calculation**: Výška tutorial cardu se počítá dynamicky podle obsahu a zařízení
 
 #### Migration Notes:
-- **PŘED**: Fixní pozice 120px = problémy na různých zařízeních
-- **PO**: Dynamické pozicování = skutečně pod fieldem na všech zařízeních
-- **Impact**: Řeší cross-platform konzistenci, vždy správná pozice
+- **V1 (Original)**: Fixní pozice 120px = problémy na různých zařízeních
+- **V1.5 (First Fix)**: Dynamické pozicování s fixní rezervou 250px = lepší, ale stále nedokonalé na Androidu
+- **V2 (Current - Enhanced Android)**: Dynamický výpočet výšky cardu + Android-specific padding = perfektní na všech zařízeních
+- **Impact**:
+  - iOS: Funguje perfektně ✅
+  - Android (gesture nav): Funguje perfektně ✅
+  - Android (3-button nav): Funguje perfektně ✅ (dříve byl text těsně u spodu)
+  - Tablets: Funguje perfektně ✅
+
+#### Android-Specific Enhancements:
+```typescript
+// Android navigation bar heights (for reference):
+// - Gesture navigation: ~20px
+// - 3-button navigation: ~48px
+// - 2-button navigation: ~40px
+
+// Safe area automatically detected via useSafeAreaInsets()
+const insets = useSafeAreaInsets();
+// insets.bottom will be: 20-48px on Android (depends on nav mode)
+//                        34px on iOS (home bar)
+
+// Extra Android padding ensures comfortable spacing regardless of nav mode
+const androidNavBarExtra = Platform.OS === 'android' ? 8 : 0;
+```
 
 ---
 

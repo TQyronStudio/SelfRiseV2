@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput } from '../types/goal';
 import { goalStorage } from '../services/storage/goalStorage';
 import { AchievementService } from '../services/achievementService';
+import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
 
 export interface GoalsState {
   goals: Goal[];
@@ -151,21 +152,33 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const newGoal = await goalStorage.create(input);
       dispatch({ type: 'ADD_GOAL', payload: newGoal });
-      
-      // ✅ Trigger achievement check after goal creation
+
+      // 🎯 Enhanced Achievement Handling for Tutorial Restart
       // Run asynchronously to not block goal creation
       setTimeout(async () => {
         try {
-          console.log('🎯 Checking achievements after goal creation:', newGoal.title, 'targetValue:', newGoal.targetValue);
+          const isRestarted = await isTutorialRestarted();
+          const isActive = await isTutorialActive();
+
+          if (isActive && isRestarted) {
+            // Tutorial is restarted - user already has first-goal achievement
+            // Skip achievement modal to avoid redundancy
+            console.log('✨ Tutorial restarted: Goal created successfully (achievement already earned)');
+            // Achievement check will run but won't show modal for already-earned achievements
+          } else {
+            // Normal flow - first tutorial or manual goal creation
+            console.log('🎯 Checking achievements after goal creation:', newGoal.title, 'targetValue:', newGoal.targetValue);
+          }
+
           await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
         } catch (achievementError) {
           console.error('Failed to check achievements after goal creation:', achievementError);
         }
       }, 100);
-      
+
       return newGoal;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create goal';

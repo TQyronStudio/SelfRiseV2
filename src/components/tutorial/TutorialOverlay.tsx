@@ -119,6 +119,38 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     actions.handleStepAction('next');
   };
 
+  // Calculate dynamic tutorial card height based on device and content
+  const calculateTutorialCardHeight = (): number => {
+    const screenSize = getScreenSize();
+    const isTabletDevice = isTablet();
+
+    // Base measurements from styles
+    const cardPadding = getCardPadding(); // 18-32px
+    const titleHeight = scaleFont(Fonts.sizes.xl) * 1.3; // Line height
+    const titleMargin = isTabletDevice ? 16 : (screenSize === ScreenSize.SMALL ? 10 : 12);
+    const contentHeight = scaleFont(Fonts.sizes.md) * 1.5 * 2; // Assume 2 lines max
+    const contentMargin = isTabletDevice ? 16 : (screenSize === ScreenSize.SMALL ? 12 : 14);
+    const progressContainerHeight = isTabletDevice ? 40 : (screenSize === ScreenSize.SMALL ? 30 : 35);
+    const nextButtonHeight = state.showNext || state.currentStepData?.action === 'next'
+      ? (isTabletDevice ? 36 : (screenSize === ScreenSize.SMALL ? 32 : 34))
+      : 0;
+
+    // Total calculated height
+    const totalHeight =
+      (cardPadding * 2) + // Top and bottom padding
+      titleHeight +
+      titleMargin +
+      contentHeight +
+      contentMargin +
+      progressContainerHeight +
+      nextButtonHeight;
+
+    // Add safety margin for shadows and unexpected content
+    const safetyMargin = 40;
+
+    return Math.ceil(totalHeight + safetyMargin);
+  };
+
   // Get spotlight position for target element
   const updateSpotlightTarget = async (targetId: string) => {
     setIsLoadingTarget(true);
@@ -229,12 +261,13 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     setIsLoadingTarget(false);
     setIsScrollInProgress(false);
 
-    if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
+    if (state.currentStepData?.target && state.currentStepData?.type === 'spotlight') {
       // Minimize delay for smoother transitions - especially for modal-to-modal steps
       const delay = state.currentStepData.id === 'habit-name' ? 100 : 50; // Slightly longer for modal content
+      const targetId = state.currentStepData.target; // Capture for closure
       setTimeout(() => {
-        console.log(`🎯 [TUTORIAL] Updating spotlight for step: ${state.currentStepData.id} (target: ${state.currentStepData.target})`);
-        updateSpotlightTarget(state.currentStepData.target);
+        console.log(`🎯 [TUTORIAL] Updating spotlight for step: ${state.currentStepData?.id} (target: ${targetId})`);
+        updateSpotlightTarget(targetId);
       }, delay);
     }
   }, [state.currentStepData]);
@@ -244,7 +277,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const scrollCompletedListener = DeviceEventEmitter.addListener(
       'tutorial_scroll_completed',
       async () => {
-        if (state.currentStepData?.target && state.currentStepData.type === 'spotlight') {
+        if (state.currentStepData?.target && state.currentStepData?.type === 'spotlight') {
           console.log(`🔄 [TUTORIAL] Refreshing target position after scroll: ${state.currentStepData.target}`);
 
           // Get fresh target position
@@ -314,11 +347,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {/* No dark background needed - SpotlightEffect handles its own overlays */}
 
         {/* Spotlight Effect for spotlight type */}
-        {isSpotlight && spotlightTarget && !isLoadingTarget && (
+        {isSpotlight && spotlightTarget && !isLoadingTarget && state.currentStepData && (
           <SpotlightEffect
             target={spotlightTarget}
-            action={state.currentStepData?.action}
-            targetId={state.currentStepData?.target}
+            action={state.currentStepData.action}
+            targetId={state.currentStepData.target ?? undefined}
             onTargetPress={() => {
               if (state.currentStepData?.action === 'click_element') {
                 actions.handleStepAction('click_element');
@@ -359,14 +392,32 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {isSpotlight && (
           <Animated.View
             style={[
-              // 🎯 UNIFIED MODAL POSITIONING STRATEGY:
-              // All modal creation steps (habit + goal): DYNAMIC positioning below text field
-              // Other steps: BOTTOM positioning
+              // 🎯 INTELLIGENT ADAPTIVE POSITIONING STRATEGY:
+              // 1. Modal creation steps: DYNAMIC positioning below text field
+              // 2. Tab bar steps: TOP positioning (to avoid overlap with bottom tabs)
+              // 3. Quick actions: TOP positioning
+              // 4. Target in bottom half of screen: TOP positioning
+              // 5. Other steps: BOTTOM positioning
               (() => {
                 // Check if this is a modal creation step (habit or goal creation flow)
                 const isModalCreationStep = (
                   (state.currentStepData?.id?.startsWith('habit-') && state.currentStepData?.id !== 'habit-complete') ||
                   (state.currentStepData?.id?.startsWith('goal-') && state.currentStepData?.id !== 'goal-complete')
+                );
+
+                // Check if this is a tab navigation step (target is at bottom)
+                const isTabNavigationStep = (
+                  state.currentStepData?.id === 'navigate-journal' ||
+                  state.currentStepData?.id === 'navigate-goals' ||
+                  state.currentStepData?.id === 'navigate-home' ||
+                  state.currentStepData?.target === 'journal-tab' ||
+                  state.currentStepData?.target === 'goals-tab' ||
+                  state.currentStepData?.target === 'home-tab'
+                );
+
+                // Smart positioning: if target is in bottom half of screen, put text at top
+                const isTargetInBottomHalf = spotlightTarget && (
+                  spotlightTarget.y > (Dimensions.get('window').height / 2)
                 );
 
                 if (isModalCreationStep && spotlightTarget) {
@@ -376,6 +427,14 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 } else if (state.currentStepData?.id === 'quick-actions') {
                   // Quick Actions step needs top positioning to avoid overlap
                   console.log(`📍 [TUTORIAL] Using top positioning for Quick Actions step`);
+                  return styles.contentContainerTopFixed;
+                } else if (isTabNavigationStep) {
+                  // Tab navigation steps need top positioning to avoid overlap with bottom tab bar
+                  console.log(`📍 [TUTORIAL] Using top positioning for tab navigation step: ${state.currentStepData?.id}`);
+                  return styles.contentContainerTopFixed;
+                } else if (isTargetInBottomHalf) {
+                  // Target is in bottom half - put text at top to avoid overlap
+                  console.log(`📍 [TUTORIAL] Target in bottom half (y=${spotlightTarget?.y}px), using top positioning for: ${state.currentStepData?.id}`);
                   return styles.contentContainerTopFixed;
                 } else {
                   // Non-modal steps use bottom positioning
@@ -396,11 +455,18 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 if (isModalCreationStep && spotlightTarget) {
                   const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
 
-                  // Ensure content doesn't go below safe area
-                  const maxTop = Dimensions.get('window').height - insets.bottom - 250;
+                  // Calculate dynamic tutorial card height instead of fixed 250px
+                  const tutorialCardHeight = calculateTutorialCardHeight();
+                  const bottomSafePadding = 20; // Extra breathing room from bottom edge
+
+                  // Android-specific safe area handling: respect navigation bar height
+                  const androidNavBarExtra = Platform.OS === 'android' ? 8 : 0; // Extra padding for Android nav
+
+                  // Ensure content doesn't go below safe area with dynamic calculation
+                  const maxTop = Dimensions.get('window').height - insets.bottom - tutorialCardHeight - bottomSafePadding - androidNavBarExtra;
                   const finalPosition = Math.min(basePosition, maxTop);
 
-                  console.log(`📍 [TUTORIAL] Dynamic positioning below field: ${finalPosition}px (target: ${spotlightTarget.y + spotlightTarget.height}px + 16px offset)`);
+                  console.log(`📍 [TUTORIAL] Dynamic positioning: base=${basePosition}px, cardHeight=${tutorialCardHeight}px, maxTop=${maxTop}px, final=${finalPosition}px (${Platform.OS})`);
                   return { top: finalPosition };
                 }
                 return {};
