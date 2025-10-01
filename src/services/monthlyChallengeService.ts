@@ -1722,23 +1722,76 @@ export class MonthlyChallengeService {
       };
     }
 
-    // Select template with highest priority among suitable options
-    const selectedTemplate = finalTemplatePool.reduce((best, current) => 
-      current.priority > best.priority ? current : best
-    );
+    // ===============================================
+    // WEIGHTED RANDOM SELECTION WITH ANTI-REPEAT
+    // ===============================================
+    // Priority acts as weight, but adds randomness to ensure variety
+    // Higher priority = higher chance, but not guaranteed selection
+    // Like drawing cards from a deck where some cards are duplicated based on priority
 
-    // Check for seasonal preference
     const currentMonth = new Date().getMonth() + 1; // 1-12
     const monthString = currentMonth.toString().padStart(2, '0');
-    
-    const seasonalTemplate = finalTemplatePool.find(template => 
-      template.seasonality?.includes(monthString)
-    );
 
-    const finalSelection = seasonalTemplate || selectedTemplate;
-    const selectionReason = seasonalTemplate 
-      ? `Seasonal template for month ${monthString} (priority: ${finalSelection.priority})`
-      : `Highest priority template (priority: ${finalSelection.priority})`;
+    // Calculate weighted scores for each template
+    const weightedTemplates = finalTemplatePool.map(template => {
+      let weight = template.priority; // Base weight from priority (65-100)
+
+      // Seasonal bonus: +30 weight for seasonal templates (significant boost)
+      if (template.seasonality?.includes(monthString)) {
+        weight += 30;
+      }
+
+      // Anti-repeat penalty: -40 weight if recently used (strong discouragement)
+      if (previousTemplateIds.includes(template.id)) {
+        weight -= 40;
+      }
+
+      // Add random variance (±20 points) to introduce unpredictability
+      // This ensures variety while still respecting priority
+      const randomVariance = (Math.random() - 0.5) * 40; // Range: -20 to +20
+      const finalWeight = Math.max(0, weight + randomVariance);
+
+      return {
+        template,
+        weight: finalWeight,
+        baseWeight: weight,
+        randomVariance,
+        isSeasonal: template.seasonality?.includes(monthString) || false,
+        wasRecentlyUsed: previousTemplateIds.includes(template.id)
+      };
+    });
+
+    // Sort by final weight (highest to lowest)
+    weightedTemplates.sort((a, b) => b.weight - a.weight);
+
+    // Select the template with highest weighted score
+    const selectedWeighted = weightedTemplates[0];
+    const finalSelection = selectedWeighted.template;
+
+    // Build detailed selection reason
+    let selectionReason = `Weighted random selection (weight: ${Math.round(selectedWeighted.weight)})`;
+    const reasonParts: string[] = [];
+
+    if (selectedWeighted.isSeasonal) {
+      reasonParts.push('seasonal bonus +30');
+    }
+    if (selectedWeighted.wasRecentlyUsed) {
+      reasonParts.push('repeat penalty -40');
+    }
+    reasonParts.push(`random variance ${selectedWeighted.randomVariance >= 0 ? '+' : ''}${Math.round(selectedWeighted.randomVariance)}`);
+
+    if (reasonParts.length > 0) {
+      selectionReason += ` (${reasonParts.join(', ')})`;
+    }
+
+    // Log selection details for debugging
+    console.log('🎲 Template selection weights:', weightedTemplates.map(w => ({
+      id: w.template.id,
+      priority: w.template.priority,
+      finalWeight: Math.round(w.weight),
+      seasonal: w.isSeasonal,
+      recent: w.wasRecentlyUsed
+    })));
 
     return {
       selectedTemplate: finalSelection,

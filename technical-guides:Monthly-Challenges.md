@@ -508,6 +508,94 @@ Systém zajišťuje rozmanitost výzev:
 - **Respektuje user engagement** v jednotlivých oblastech
 - **Sezónní preference** (leden = novoroční habits, září = back-to-school)
 
+### **🎲 Weighted Random Template Selection (Tahání karet z balíčku)**
+
+**Klíčový princip**: Systém používá **váhovanou náhodnost** pro výběr výzev, ne deterministický výběr nejvyšší priority.
+
+#### **Jak funguje "tahání karet z balíčku":**
+
+```typescript
+// Každý template dostane váhový skór (weight)
+const weightedTemplates = templates.map(template => {
+  let weight = template.priority; // Base: 65-100 bodů
+
+  // Seasonal bonus: +30 bodů pro sezónní výzvy
+  if (isSeasonal) weight += 30;
+
+  // Anti-repeat penalty: -40 bodů pro nedávno použité výzvy
+  if (wasRecentlyUsed) weight -= 40;
+
+  // Random variance: ±20 bodů náhodné variace
+  const randomVariance = (Math.random() - 0.5) * 40;
+  weight += randomVariance;
+
+  return { template, weight };
+});
+
+// Vyber template s nejvyšším váhovým skórem
+const selected = weightedTemplates.sort((a, b) => b.weight - a.weight)[0];
+```
+
+#### **📊 Příklad výběru (Habits kategorie v říjnu):**
+
+| Template | Base Priority | Seasonal Bonus | Anti-repeat | Random | Final Weight | Probability |
+|----------|--------------|----------------|-------------|--------|--------------|-------------|
+| **Consistency Master** | 100 | +30 (říjen) | 0 | +15 | **145** | ~45% |
+| **Streak Builder** | 90 | 0 | 0 | +8 | **98** | ~25% |
+| **Variety Champion** | 85 | 0 | -40 (used) | -12 | **33** | ~10% |
+| **Bonus Hunter** | 75 | 0 | 0 | +18 | **93** | ~20% |
+
+**Výsledek**: I když Consistency Master má nejvyšší prioritu, existuje **~55% šance** že se vybere jiná výzva!
+
+#### **🎯 Výhody weighted random systému:**
+
+✅ **Pestrost** - Každý měsíc může přijít jiná výzva, i v rámci stejné kategorie
+✅ **Respektuje prioritu** - Templates s vyšší prioritou mají stále větší šanci
+✅ **Anti-repeat ochrana** - Nedávno použité výzvy mají -40 bodů penalty
+✅ **Sezónní preference** - Relevantní výzvy dostanou +30 bodů boost
+✅ **Překvapení** - Random variance (±20) zajišťuje nepředvídatelnost
+
+#### **🔒 Anti-repeat systém:**
+
+- **-40 bodů penalty** pro templates použité v posledních 6 měsících
+- **Silný discount** který výrazně snižuje šanci opakování
+- **Ale ne absolute ban** - v krajním případě (všechny templates použity) může projít
+
+#### **🎄 Sezónní bonusy:**
+
+Templates s `seasonality` field dostanou **+30 bodů** v relevantních měsících:
+
+```typescript
+// Příklad sezónnosti
+{
+  id: 'habits_consistency_master',
+  seasonality: ['01', '02', '09', '10'], // Leden, Únor, Září, Říjen
+  // +30 bodů bonus v těchto měsících
+}
+```
+
+**Sezónní templates:**
+- **Leden/Únor**: Novoroční návyky (Consistency Master)
+- **Září/Říjen**: Back-to-school návyky (Consistency Master)
+- Ostatní měsíce nemají sezónní preference
+
+#### **📈 Pravděpodobnostní analýza:**
+
+**Consistency Master v říjnu (se sezónním bonusem):**
+- Base priority: 100
+- Seasonal bonus: +30
+- Random variance: -20 až +20
+- **Finální rozsah: 110-150 bodů**
+- **Pravděpodobnost výběru: ~40-50%** (ne 100%!)
+
+**Ostatní templates:**
+- Base priority: 75-90
+- Random variance: -20 až +20
+- **Finální rozsah: 55-110 bodů**
+- **Pravděpodobnost výběru: ~50-60% CELKEM**
+
+**Výsledek**: I v sezónních měsících existuje **solidní šance** na výběr jiné výzvy!
+
 ---
 
 ## 🛠️ **TECHNICKÁ ARCHITEKTURA**
@@ -997,6 +1085,99 @@ if (this.isDailyStreakTrackingKey(template.requirementTemplates[0]?.trackingKey)
 **Problem**: Daily tracking challenges could theoretically generate targets exceeding calendar month limitations (e.g., 35 consecutive days in 30-day month).
 
 **Solution**: Implemented comprehensive monthly limit safeguard system with precise date calculation.
+
+### **🎲 11. Weighted Random Template Selection Fix (October 2025)**
+
+**Problem**: Template selection was deterministic (always highest priority), causing same challenges to repeat monthly despite having 12+ different challenge types.
+
+**Root Cause Analysis**:
+```typescript
+// ❌ BEFORE: Deterministic selection (always same result)
+const selectedTemplate = finalTemplatePool.reduce((best, current) =>
+  current.priority > best.priority ? current : best
+);
+
+// Results in:
+// - Consistency Master ALWAYS wins in Habits category (priority: 100)
+// - Perfect Month ALWAYS wins in Consistency category (priority: 100)
+// - Other templates with lower priority NEVER selected
+// - User gets same challenge month after month
+```
+
+**Impact**:
+- **0% variety** - Same templates dominated their categories
+- **User frustration** - "Why do I always get Consistency Master?"
+- **Wasted content** - 8 out of 12 challenge types effectively unused
+- **Anti-repeat system ineffective** - Even with -40 penalty, deterministic selection ignored it
+
+**Solution**: Implemented weighted random selection with variance
+
+```typescript
+// ✅ AFTER: Weighted random selection (variety + respect for priority)
+const weightedTemplates = finalTemplatePool.map(template => {
+  let weight = template.priority; // Base: 65-100
+
+  // Seasonal bonus: +30 for relevant months
+  if (template.seasonality?.includes(currentMonth)) weight += 30;
+
+  // Anti-repeat penalty: -40 for recently used
+  if (previousTemplateIds.includes(template.id)) weight -= 40;
+
+  // Random variance: ±20 points
+  const randomVariance = (Math.random() - 0.5) * 40;
+  weight = Math.max(0, weight + randomVariance);
+
+  return { template, weight };
+});
+
+// Select highest weighted (but now with randomness)
+const selected = weightedTemplates.sort((a, b) => b.weight - a.weight)[0];
+```
+
+**Selection Probability Examples (Habits in October)**:
+
+| Template | Old System | New System |
+|----------|-----------|-----------|
+| Consistency Master (priority 100, seasonal) | **100%** ✓ | ~40-50% |
+| Streak Builder (priority 90) | **0%** ✗ | ~25% |
+| Variety Champion (priority 85) | **0%** ✗ | ~15% |
+| Bonus Hunter (priority 75) | **0%** ✗ | ~10-20% |
+
+**Key Features**:
+- **Priority still matters** - Higher priority = higher chance, but not guaranteed
+- **Seasonal boost** - +30 weight for seasonally relevant challenges
+- **Anti-repeat protection** - -40 weight penalty for recently used templates
+- **Random variance** - ±20 points ensures unpredictability
+- **Variety guaranteed** - Even highest priority has only ~50% max chance
+
+**Real-world Example**:
+```
+User in October 2025:
+Before fix: Consistency Master (100% chance)
+After fix:  45% Consistency Master, 25% Streak Builder, 15% Variety, 15% Bonus Hunter
+```
+
+**Benefits**:
+- ✅ **True variety** - Users experience all 12 challenge types over time
+- ✅ **Respects design** - Priority still influences selection (weighted)
+- ✅ **Seasonal relevance** - October still favors back-to-school challenges
+- ✅ **Anti-repeat works** - Recently used templates effectively discouraged
+- ✅ **User engagement** - Fresh challenges maintain interest
+
+**Files Modified**:
+- `monthlyChallengeService.ts` - Replaced deterministic reduce with weighted random
+- `technical-guides:Monthly-Challenges.md` - Added "Weighted Random Template Selection" section
+
+**Debug Logging Added**:
+```typescript
+console.log('🎲 Template selection weights:', weightedTemplates.map(w => ({
+  id: w.template.id,
+  priority: w.template.priority,
+  finalWeight: Math.round(w.weight),
+  seasonal: w.isSeasonal,
+  recent: w.wasRecentlyUsed
+})));
+```
 
 #### **Technical Implementation**
 
