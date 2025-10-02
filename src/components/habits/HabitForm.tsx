@@ -220,7 +220,11 @@ export function HabitForm({
       return;
     }
 
+    console.log(`🔍 [DEBUG] handleSubmit called with formData:`, formData);
+    console.log(`🔍 [DEBUG] scheduledDays:`, formData.scheduledDays);
+
     if (!validateForm()) {
+      console.log(`❌ [DEBUG] Validation failed! Errors:`, errors);
       return;
     }
 

@@ -38,14 +38,14 @@ const PROGRESS_CACHE_THRESHOLD = 0.1; // Only animate if progress changed by >0.
 const REDUCED_MOTION_DURATION = 100; // Faster animations for reduced motion
 const NORMAL_ANIMATION_DURATION = 500; // Normal animation duration
 
-export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = React.memo(({
+const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgressBarProps>(({
   animated = true,
   showLevelBadge = true,
   showXPText = true,
   height = 12,
   compactMode = false,
   performanceMode = 'auto',
-}) => {
+}, ref) => {
   console.log('🎯 OptimizedXpProgressBar render');
   
   // Accessibility - Reduced motion support
@@ -539,6 +539,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
 
   return (
     <View
+      ref={ref}
       style={[
         themeStyles,
         spacingStyles,
@@ -549,7 +550,7 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
-      nativeID="xp-progress-section"
+      nativeID="xp-progress-bar"
     >
       {/* Level Title and Roman Numerals - Top Center */}
       <View style={styles.rarityRomanContainer}>
@@ -674,7 +675,9 @@ export const OptimizedXpProgressBar: React.FC<OptimizedXpProgressBarProps> = Rea
       </TouchableOpacity>
     </View>
   );
-}, (prevProps, nextProps) => {
+});
+
+export const OptimizedXpProgressBar = React.memo(OptimizedXpProgressBarComponent, (prevProps, nextProps) => {
   // CRITICAL: Intelligent comparison for React.memo optimization
   const propsChanged = (
     prevProps.animated !== nextProps.animated ||

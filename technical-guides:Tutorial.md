@@ -19,15 +19,15 @@ Onboarding Tutorial je interaktivní průvodce pro nové uživatele, který je p
 - **Haptic Feedback**: Při každém kroku tutoriálu
 - **Smooth Transitions**: Plynulé přechody mezi kroky (300ms animace)
 
-## Tutorial Flow - 16 Kroků (Zjednodušená Implementace)
+## Tutorial Flow - 25 Kroků (Complete Implementation)
 
-**❗ DŮLEŽITÉ**: Současná implementace má **16 zjednodušených kroků** namísto původně plánovaných komplexních kroků s achievement modaly. Tato verze je optimalizována pro rychlost a jednoduchost.
+**✅ AKTUALIZACE**: Současná implementace má **25 kompletních kroků** s intelligent achievement handling. Tutorial pokrývá celý onboarding flow od welcomu až po finální gratulaci.
 
-### Zjednodušení oproti původnímu návrhu:
-- **Bez Achievement Modalů**: Kroky 6 a 12 (first-habit, first-goal) byly odstraněny
-- **Bez Navigation Steps**: Automatické navigace mezi taby byly zjednodušeny
-- **Streamlined Flow**: Fokus na core funkcionalitu bez složitých čekání
-- **16 kroků celkem**: Místo původních 20+ kroků s navigací a achievementy
+### Klíčové vlastnosti:
+- **Achievement Integration**: Conditional handling - achievement modaly potlačeny během tutorialu
+- **Completion Modals**: Step 10 (habit-complete) a Step 21 (goal-complete) nahrazují achievement modaly
+- **Complete Flow**: Návrat na Home, XP system intro, Trophy Room, finální completion
+- **25 kroků celkem**: Plnohodnotný onboarding včetně gamifikačních prvků
 
 ### Step 1: Welcome Modal
 **Type**: Modal
@@ -614,19 +614,47 @@ interface TutorialMetrics {
 **Crash recovery** - Pokud se aplikace crashne během tutoriálu, při restartu se nabídne pokračování od posledního uloženého kroku nebo restart celého tutoriálu.
 
 ### 5. Achievement Integration
-**❌ POZNÁMKA: Achievement Integration byla odstraněna**
-Současná implementace tutoriálu má zjednodušených 16 kroků **BEZ achievement modalů** pro lepší výkon a jednoduchost.
+**✅ NOVÝ SYSTÉM: Conditional Achievement Handling (25 kroků)**
+Současná implementace používá **inteligentní podmíněnou logiku** pro achievementy během tutorialu.
 
-#### Současný stav:
-- Tutorial má pouze 16 kroků bez achievement čekání
-- Žádné achievement modaly nejsou integrovány do tutorial flow
-- Rychlejší a jednodušší user experience
-- Bez závislosti na achievement systému
+#### Jak to funguje:
 
-#### Původně plánované:
-- ~~**`first-habit`** - Za vytvoření prvního návyku (Step 6)~~
-- ~~**`first-goal`** - Za vytvoření prvního cíle (Step 12)~~
-- ~~Tutorial coordination s achievement modaly~~
+**Během tutorialu (První spuštění):**
+- Step 9: Create Habit → Habit se vytvoří, achievement `first-habit` se odemkne
+- Achievement modal je **POTLAČEN** (achievement se přidělí, ale modal se nezobrazí)
+- Step 10: **habit-complete** modal se zobrazí místo achievement modalu
+- Stejně pro Step 20 (Create Goal) → Step 21 (goal-complete modal)
+
+**Během tutorialu (Restart):**
+- Uživatel už má `first-habit` a `first-goal` achievementy
+- Achievement systém automaticky přeskočí již odemčené achievementy
+- Step 10 a Step 21 modaly se zobrazí normálně
+
+**Technická implementace:**
+```typescript
+// AchievementContext.tsx - addToCelebrationQueue
+const addToCelebrationQueue = async (achievement: Achievement, xpAwarded: number) => {
+  const tutorialActive = await isTutorialActive();
+
+  if (tutorialActive) {
+    console.log(`🎓 [TUTORIAL] Skipping achievement modal - tutorial is active`);
+    return; // Achievement unlocked, XP awarded, no modal
+  }
+
+  setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
+};
+```
+
+#### Výhody tohoto přístupu:
+- **Konzistentní UX**: Všichni uživatelé vidí stejné completion modaly v tutorialu
+- **Žádné duplikace**: Achievement modal se nezobrazí dvakrát
+- **Plná kompatibilita**: Achievement se stále odemkne a přidělí XP
+- **Clean restart**: Při restartu tutorialu žádné konflikty s již odemčenými achievementy
+
+#### Achievement modaly v tutorialu:
+- ~~**`first-habit`** achievement modal~~ → nahrazeno **Step 10: habit-complete**
+- ~~**`first-goal`** achievement modal~~ → nahrazeno **Step 21: goal-complete**
+- Achievement modaly se zobrazují **normálně po dokončení tutorialu**
 
 ### 6. Tutorial Restart System
 **Tutorial Restart** - Uživatelé mohou kdykoli restartovat tutorial z Settings obrazovky s okamžitým spuštěním.

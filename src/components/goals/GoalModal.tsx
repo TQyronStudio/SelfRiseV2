@@ -17,6 +17,7 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { TutorialOverlay } from '../tutorial/TutorialOverlay';
+import { useTutorial } from '../../contexts/TutorialContext';
 
 interface GoalModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ export function GoalModal({
   isLoading = false,
 }: GoalModalProps) {
   const { t } = useI18n();
+  const { state: tutorialState } = useTutorial();
   const isEditing = !!goal;
 
   const formatDateForInput = (date: string | undefined): string => {
@@ -75,8 +77,8 @@ export function GoalModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      presentationStyle={tutorialState.isActive ? "fullScreen" : "pageSheet"}
+      onRequestClose={tutorialState.isActive ? undefined : onClose}
     >
       <TutorialOverlay>
         <SafeAreaView style={styles.container} nativeID="main-content">

@@ -100,6 +100,7 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
         pointerEvents={
           action === 'select_option' ||
           action === 'select_days' ||
+          action === 'select_date' ||
           (action === 'click_element' && targetId === 'create-habit-submit')
             ? 'none'
             : 'auto'

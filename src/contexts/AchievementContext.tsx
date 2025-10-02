@@ -72,7 +72,7 @@ interface AchievementContextActions {
   getStatsByRarity: () => Record<AchievementRarity, { unlocked: number; total: number }>;
   
   // Celebration system
-  addToCelebrationQueue: (achievement: Achievement, xpAwarded: number) => void;
+  addToCelebrationQueue: (achievement: Achievement, xpAwarded: number) => Promise<void>;
   showNextCelebration: () => void;
   closeCelebrationModal: () => void;
   
@@ -331,8 +331,19 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
 
   /**
    * Add achievement to celebration queue
+   * Skip during tutorial - tutorial shows its own completion modals
    */
-  const addToCelebrationQueue = useCallback((achievement: Achievement, xpAwarded: number) => {
+  const addToCelebrationQueue = useCallback(async (achievement: Achievement, xpAwarded: number) => {
+    // Check if tutorial is active
+    const { isTutorialActive } = await import('./TutorialContext');
+    const tutorialActive = await isTutorialActive();
+
+    if (tutorialActive) {
+      console.log(`🎓 [TUTORIAL] Skipping achievement modal for "${achievement.name}" - tutorial is active`);
+      // Achievement is still unlocked and XP awarded, just no modal during tutorial
+      return;
+    }
+
     setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
   }, []);
 
@@ -395,10 +406,12 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
         };
         
         setRecentUnlocks(prev => [unlockEvent, ...prev.slice(0, 9)]); // Keep last 10
-        
+
         // Add to celebration queue
-        addToCelebrationQueue(eventData.achievement, eventData.xpAwarded);
-        
+        addToCelebrationQueue(eventData.achievement, eventData.xpAwarded).catch(err =>
+          console.error('Error adding achievement to celebration queue:', err)
+        );
+
         // Refresh achievements data
         refreshAchievements();
       }
@@ -419,7 +432,9 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
         
         // Add all achievements to celebration queue in crescendo order
         sortedAchievements.forEach(achievement => {
-          addToCelebrationQueue(achievement, achievement.xpReward);
+          addToCelebrationQueue(achievement, achievement.xpReward).catch(err =>
+            console.error('Error adding achievement to celebration queue:', err)
+          );
         });
         
         refreshAchievements();

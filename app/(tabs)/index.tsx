@@ -59,18 +59,38 @@ export default function HomeScreen() {
   // Tutorial scroll reference
   const mainScrollRef = useRef<ScrollView>(null);
 
+  // Tutorial target refs
+  const trophyButtonRef = useRef<View>(null);
+  const xpProgressBarRef = useRef<View>(null);
+
   // Tutorial target registration for main scroll area
   const { registerTarget: registerMainContent, unregisterTarget: unregisterMainContent } = useTutorialTarget(
     'main-content',
     mainScrollRef as any
   );
 
+  // Tutorial target registration for trophy button
+  const { registerTarget: registerTrophyButton, unregisterTarget: unregisterTrophyButton } = useTutorialTarget(
+    'trophy-button',
+    trophyButtonRef as any
+  );
+
+  // Tutorial target registration for XP progress bar
+  const { registerTarget: registerXpProgressBar, unregisterTarget: unregisterXpProgressBar } = useTutorialTarget(
+    'xp-progress-bar',
+    xpProgressBarRef as any
+  );
+
   useEffect(() => {
     registerMainContent();
+    registerTrophyButton();
+    registerXpProgressBar();
     return () => {
       unregisterMainContent();
+      unregisterTrophyButton();
+      unregisterXpProgressBar();
     };
-  }, [registerMainContent, unregisterMainContent]);
+  }, [registerMainContent, unregisterMainContent, registerTrophyButton, unregisterTrophyButton, registerXpProgressBar, unregisterXpProgressBar]);
 
   // Tutorial auto-scroll listener
   useEffect(() => {
@@ -242,7 +262,7 @@ export default function HomeScreen() {
   const renderComponent = (componentId: string) => {
     switch (componentId) {
       case 'xpProgressBar':
-        return <OptimizedXpProgressBar key={componentId} />;
+        return <OptimizedXpProgressBar key={componentId} ref={xpProgressBarRef} />;
       case 'xpMultiplier':
         return <XpMultiplierSection key={componentId} />;
       case 'quickActions':
@@ -311,12 +331,14 @@ export default function HomeScreen() {
       {/* Header Actions */}
       <View style={styles.headerActions}>
         {/* Trophy Room Button */}
-        <TouchableOpacity 
-          style={styles.trophyButton}
-          onPress={() => router.push('/achievements')}
-        >
-          <PremiumTrophyIcon size={32} />
-        </TouchableOpacity>
+        <View ref={trophyButtonRef} nativeID="trophy-button">
+          <TouchableOpacity
+            style={styles.trophyButton}
+            onPress={() => router.push('/achievements')}
+          >
+            <PremiumTrophyIcon size={32} />
+          </TouchableOpacity>
+        </View>
         
         {/* XP Multiplier Timer */}
         <MultiplierCountdownTimer

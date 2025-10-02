@@ -8,6 +8,7 @@ import {
   ScrollView,
   Keyboard,
   DeviceEventEmitter,
+  Dimensions,
 } from 'react-native';
 import { GoalCategory } from '../../types/goal';
 import { CreateGoalInput, UpdateGoalInput } from '../../types/goal';
@@ -65,6 +66,7 @@ export function GoalForm({
   const goalUnitRef = useRef<TextInput>(null);
   const goalTargetRef = useRef<TextInput>(null);
   const goalDateRef = useRef<View>(null);
+  const goalCategoryRef = useRef<View>(null);
   const createButtonRef = useRef<View>(null);
 
   // Tutorial target registration
@@ -86,6 +88,11 @@ export function GoalForm({
   const { registerTarget: registerGoalDate, unregisterTarget: unregisterGoalDate } = useTutorialTarget(
     'goal-date-picker',
     goalDateRef as any
+  );
+
+  const { registerTarget: registerGoalCategory, unregisterTarget: unregisterGoalCategory } = useTutorialTarget(
+    'goal-category-picker',
+    goalCategoryRef as any
   );
 
   const { registerTarget: registerCreateButton, unregisterTarget: unregisterCreateButton } = useTutorialTarget(
@@ -114,6 +121,7 @@ export function GoalForm({
     registerGoalUnit();
     registerGoalTarget();
     registerGoalDate();
+    registerGoalCategory();
     registerCreateButton();
 
     return () => {
@@ -121,6 +129,7 @@ export function GoalForm({
       unregisterGoalUnit();
       unregisterGoalTarget();
       unregisterGoalDate();
+      unregisterGoalCategory();
       unregisterCreateButton();
     };
   }, []);
@@ -148,14 +157,84 @@ export function GoalForm({
     };
   }, []);
 
-  // Auto-focus text inputs during tutorial
+  // 🎯 Reset scroll position to top when modal opens during tutorial
+  useEffect(() => {
+    if (tutorialState.isActive && scrollViewRef.current) {
+      console.log(`📜 [TUTORIAL] Resetting GoalForm scroll to top...`);
+      // Reset scroll to top immediately when modal opens during tutorial
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
+    }
+  }, []); // Run only once when component mounts
+
+  // 🎯 Auto-scroll to lower fields (goal-unit, goal-target, goal-date, goal-category) during tutorial
   useEffect(() => {
     if (
       tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_text'
+      (tutorialState.currentStepData?.id === 'goal-unit' ||
+       tutorialState.currentStepData?.id === 'goal-target' ||
+       tutorialState.currentStepData?.id === 'goal-date' ||
+       tutorialState.currentStepData?.id === 'goal-category')
+    ) {
+      setTimeout(() => {
+        const targetRef =
+          tutorialState.currentStepData?.id === 'goal-unit' ? goalUnitRef :
+          tutorialState.currentStepData?.id === 'goal-target' ? goalTargetRef :
+          tutorialState.currentStepData?.id === 'goal-date' ? goalDateRef :
+          goalCategoryRef;
+
+        if (scrollViewRef.current && targetRef.current) {
+          console.log(`📜 [TUTORIAL] Auto-scrolling to ${tutorialState.currentStepData?.id}...`);
+          targetRef.current.measureLayout(
+            scrollViewRef.current as any,
+            (x: number, y: number, width: number, height: number) => {
+              // Calculate offset to leave space for tutorial text above the field
+              const screenHeight = Dimensions.get('window').height;
+
+              // Tutorial card estimated height - LARGE offset pushes field DOWN:
+              // Goal-date needs BIG offset so field appears LOW on screen (tutorial text above)
+              // - Small screen: 500px card height + padding = field appears lower
+              // - Normal screen: 550px card height + padding = field appears lower
+              const isGoalDate = tutorialState.currentStepData?.id === 'goal-date';
+              const tutorialCardHeight = screenHeight < 700 ?
+                (isGoalDate ? 500 : 260) :
+                (isGoalDate ? 550 : 290);
+              const safeAreaTop = 50; // iOS notch/status bar
+              const padding = isGoalDate ? 80 : 20; // Large padding = field lower on screen
+
+              const topOffset = tutorialCardHeight + safeAreaTop + padding;
+              // This ensures field appears BELOW tutorial text, not hidden under it
+
+              scrollViewRef.current?.scrollTo({
+                y: Math.max(0, y - topOffset),
+                animated: true,
+              });
+              console.log(`✅ [TUTORIAL] Scrolled to ${tutorialState.currentStepData?.id} at y=${y}px (offset: ${topOffset}px)`);
+
+              // Signal scroll completion for spotlight refresh
+              setTimeout(() => {
+                DeviceEventEmitter.emit('tutorial_scroll_completed');
+              }, 400);
+            },
+            () => {
+              console.error(`Failed to measure ${tutorialState.currentStepData?.id}`);
+            }
+          );
+        }
+      }, 200);
+    }
+  }, [tutorialState.isActive, tutorialState.currentStepData?.id]);
+
+  // Auto-focus text/number inputs during tutorial
+  // Note: scrollEnabled={false} prevents native scroll-to-focused-input behavior
+  useEffect(() => {
+    if (
+      tutorialState.isActive &&
+      (tutorialState.currentStepData?.action === 'type_text' || tutorialState.currentStepData?.action === 'type_number')
     ) {
       const target = tutorialState.currentStepData?.target;
-      // Small delay to ensure modal and spotlight are fully rendered
+      // Delay to ensure scroll and spotlight are ready
       setTimeout(() => {
         console.log(`⌨️ [TUTORIAL] Auto-focusing input: ${target}`);
         if (target === 'goal-title-input' && goalTitleRef.current) {
@@ -165,47 +244,9 @@ export function GoalForm({
         } else if (target === 'goal-target-input' && goalTargetRef.current) {
           goalTargetRef.current.focus();
         }
-      }, 300);
+      }, 500); // Delay after auto-scroll
     }
   }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
-
-  // 🎯 Auto-scroll to Create button during tutorial (goal-create step)
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.id === 'goal-create' &&
-      tutorialState.currentStepData?.target === 'create-goal-submit'
-    ) {
-      // Scroll to bottom where Create button is
-      setTimeout(() => {
-        console.log(`📜 [TUTORIAL] Auto-scrolling to Create Goal button...`);
-        if (scrollViewRef.current && createButtonRef.current) {
-          createButtonRef.current.measureLayout(
-            scrollViewRef.current as any,
-            (x: number, y: number, width: number, height: number) => {
-              // 📐 Adaptive scroll offset based on device height
-              const screenHeight = require('react-native').Dimensions.get('window').height;
-              const topMargin = screenHeight < 700 ? 80 : 120; // Smaller devices: less margin
-
-              scrollViewRef.current?.scrollTo({
-                y: Math.max(0, y - topMargin), // Scroll so button is visible with adaptive top margin
-                animated: true,
-              });
-              console.log(`✅ [TUTORIAL] Scrolled to Create Goal button at y=${y}px (margin: ${topMargin}px, screenHeight: ${screenHeight}px)`);
-
-              // Signal that scroll is complete
-              setTimeout(() => {
-                DeviceEventEmitter.emit('tutorial_scroll_completed');
-              }, 400);
-            },
-            () => {
-              console.error('Failed to measure Create Goal button');
-            }
-          );
-        }
-      }, 200);
-    }
-  }, [tutorialState.isActive, tutorialState.currentStepData?.id]);
 
   // Tutorial-aware text input handlers
   const handleTitleChange = (text: string) => {
@@ -295,17 +336,22 @@ export function GoalForm({
   };
 
   const handleSubmit = async () => {
+    console.log(`🔍 [DEBUG] handleSubmit called with formData:`, formData);
+
     if (!validateForm()) {
+      console.log(`❌ [DEBUG] Validation failed! Errors:`, errors);
       return;
     }
 
     // Check if target date is missing and show confirmation modal
     if (!formData.targetDate) {
+      console.log(`📅 [DEBUG] No target date, showing confirmation modal...`);
       setShowDateConfirmation(true);
       return;
     }
 
     // Proceed with normal submission
+    console.log(`✅ [DEBUG] Validation passed, submitting goal...`);
     await submitGoal();
   };
 
@@ -338,6 +384,12 @@ export function GoalForm({
 
 
   const scrollToInput = (inputPosition: number) => {
+    // 🚫 BLOCK auto-scroll during tutorial - it breaks spotlight positioning
+    if (tutorialState.isActive) {
+      console.log(`🚫 [TUTORIAL] Blocking auto-scroll during tutorial (would scroll to y=${inputPosition})`);
+      return;
+    }
+
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({
         y: inputPosition,
@@ -378,33 +430,14 @@ export function GoalForm({
     setFormData(updatedFormData);
     setShowDateModal(false);
 
-    // Tutorial logic: Auto-submit goal after date selection
+    // Tutorial logic: Show Next button after date selection
     if (
       tutorialState.isActive &&
       tutorialState.currentStepData?.action === 'select_date' &&
       tutorialState.currentStepData?.target === 'goal-date-picker'
     ) {
-      console.log(`📅 [TUTORIAL] Date selected, auto-submitting goal with data:`, updatedFormData);
-      // Use setTimeout to ensure state updates are processed
-      setTimeout(async () => {
-        try {
-          const submitData = {
-            title: updatedFormData.title.trim(),
-            unit: updatedFormData.unit.trim(),
-            targetValue: updatedFormData.targetValue,
-            description: updatedFormData.description?.trim() || undefined,
-            targetDate: dateString,
-            category: updatedFormData.category,
-          };
-          await onSubmit(submitData);
-          console.log(`✅ [TUTORIAL] Goal submitted successfully after date selection`);
-          tutorialActions.handleStepAction('select_date');
-        } catch (error) {
-          console.error('Failed to submit goal during tutorial:', error);
-          setErrorMessage(error instanceof Error ? error.message : t('goals.form.errors.submitFailed'));
-          setShowError(true);
-        }
-      }, 100);
+      console.log(`📅 [TUTORIAL] Date selected, showing Next button...`);
+      tutorialActions.showNextButton(true);
     }
   };
 
@@ -523,7 +556,7 @@ export function GoalForm({
         {/* Category */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.category')}</Text>
-          <View style={styles.categoryContainer}>
+          <View ref={goalCategoryRef} nativeID="goal-category-picker" style={styles.categoryContainer}>
             {categoryOptions.map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -531,7 +564,18 @@ export function GoalForm({
                   styles.categoryOption,
                   formData.category === option.value && styles.categoryOptionActive,
                 ]}
-                onPress={() => setFormData(prev => ({ ...prev, category: option.value }))}
+                onPress={() => {
+                  setFormData(prev => ({ ...prev, category: option.value }));
+                  // Tutorial: Show Next button after category selection
+                  if (
+                    tutorialState.isActive &&
+                    tutorialState.currentStepData?.action === 'select_option' &&
+                    tutorialState.currentStepData?.target === 'goal-category-picker'
+                  ) {
+                    console.log(`📂 [TUTORIAL] Category selected: ${option.value}, enabling Next button...`);
+                    tutorialActions.showNextButton(true);
+                  }
+                }}
                 disabled={isLoading}
               >
                 <Text style={[

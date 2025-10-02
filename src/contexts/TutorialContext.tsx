@@ -137,7 +137,7 @@ export const TUTORIAL_ANIMATIONS = {
 const initialState: TutorialState = {
   isActive: false,
   currentStep: 1,
-  totalSteps: 19, // Fixed: Actual number of tutorial steps (includes completion modal)
+  totalSteps: 25, // Fixed: Complete tutorial flow (includes goal-complete, navigate-home, xp-intro, trophy-room, completion)
   isCompleted: false,
   isSkipped: false,
   userInteractionBlocked: false,
@@ -396,7 +396,84 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     action: 'select_date'
   },
 
-  // Step 19: Tutorial Complete
+  // Step 19: Goal Category
+  {
+    id: 'goal-category',
+    type: 'spotlight',
+    target: 'goal-category-picker',
+    content: {
+      title: t('tutorial.steps.goalCategory.title'),
+      content: t('tutorial.steps.goalCategory.content'),
+      button: t('tutorial.steps.goalCategory.button')
+    },
+    action: 'select_option'
+  },
+
+  // Step 20: Create Goal
+  {
+    id: 'goal-create',
+    type: 'spotlight',
+    target: 'create-goal-submit',
+    content: {
+      title: t('tutorial.steps.goalCreate.title'),
+      content: t('tutorial.steps.goalCreate.content'),
+      button: t('tutorial.steps.goalCreate.button')
+    },
+    action: 'click_element'
+  },
+
+  // Step 21: Goal Creation Complete
+  {
+    id: 'goal-complete',
+    type: 'modal',
+    content: {
+      title: t('tutorial.steps.goalComplete.title'),
+      content: t('tutorial.steps.goalComplete.content'),
+      button: t('tutorial.steps.goalComplete.button')
+    },
+    action: 'next'
+  },
+
+  // Step 22: Navigate to Home
+  {
+    id: 'navigate-home',
+    type: 'spotlight',
+    target: 'home-tab',
+    content: {
+      title: t('tutorial.steps.navigateHome.title'),
+      content: t('tutorial.steps.navigateHome.content'),
+      button: t('tutorial.steps.navigateHome.button')
+    },
+    action: 'click_element'
+  },
+
+  // Step 23: XP System Explanation
+  {
+    id: 'xp-intro',
+    type: 'spotlight',
+    target: 'xp-progress-bar',
+    content: {
+      title: t('tutorial.steps.xpIntro.title'),
+      content: t('tutorial.steps.xpIntro.content'),
+      button: t('tutorial.steps.xpIntro.button')
+    },
+    action: 'next'
+  },
+
+  // Step 24: Trophy Room
+  {
+    id: 'trophy-room',
+    type: 'spotlight',
+    target: 'trophy-button',
+    content: {
+      title: t('tutorial.steps.trophyRoom.title'),
+      content: t('tutorial.steps.trophyRoom.content'),
+      button: t('tutorial.steps.trophyRoom.button')
+    },
+    action: 'next'
+  },
+
+  // Step 25: Tutorial Complete
   {
     id: 'completion',
     type: 'modal',
@@ -1112,21 +1189,20 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             // Navigate to habits tab with quickAction to open add habit modal
             router.push('/(tabs)/habits?quickAction=addHabit');
 
-            // Wait for navigation and modal to complete before continuing tutorial
-            // Extended wait time to ensure modal is fully loaded and targets are registered
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Optimized wait: Start checking earlier with shorter initial delay
+            await new Promise(resolve => setTimeout(resolve, 400));
 
-            // Additionally wait for tutorial targets to be registered in the modal
+            // Poll for tutorial targets to be registered in the modal
             let retryCount = 0;
-            const maxRetries = 10;
+            const maxRetries = 15; // More retries but faster polling
             while (retryCount < maxRetries) {
               const targetExists = await tutorialTargetManager.getTargetInfo('habit-name-input');
               if (targetExists) {
-                console.log(`✅ Tutorial target 'habit-name-input' is ready after ${retryCount} retries`);
+                console.log(`✅ Tutorial target 'habit-name-input' is ready after ${retryCount} retries (${400 + retryCount * 150}ms total)`);
                 break;
               }
               console.log(`⏳ Waiting for tutorial target 'habit-name-input' to be registered... (${retryCount + 1}/${maxRetries})`);
-              await new Promise(resolve => setTimeout(resolve, 200));
+              await new Promise(resolve => setTimeout(resolve, 150));
               retryCount++;
             }
 
@@ -1144,7 +1220,23 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           } else if (currentStepData.id === 'create-goal-button' && currentStepData.target === 'add-goal-button') {
             console.log(`🎯 Navigating to goal creation screen...`);
             router.push('/(tabs)/goals?quickAction=addGoal');
-            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Optimized wait: Start checking earlier with shorter initial delay
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            // Poll for tutorial targets to be registered in the modal
+            let goalRetryCount = 0;
+            const goalMaxRetries = 15;
+            while (goalRetryCount < goalMaxRetries) {
+              const targetExists = await tutorialTargetManager.getTargetInfo('goal-title-input');
+              if (targetExists) {
+                console.log(`✅ Tutorial target 'goal-title-input' is ready after ${goalRetryCount} retries (${400 + goalRetryCount * 150}ms total)`);
+                break;
+              }
+              console.log(`⏳ Waiting for tutorial target 'goal-title-input' to be registered... (${goalRetryCount + 1}/${goalMaxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, 150));
+              goalRetryCount++;
+            }
           } else if (currentStepData.id === 'navigate-home' && currentStepData.target === 'home-tab') {
             console.log(`🎯 Navigating back to Home tab...`);
             router.push('/(tabs)');
@@ -1644,6 +1736,17 @@ export async function isTutorialActive(): Promise<boolean> {
     return completed !== 'true' && skipped !== 'true';
   } catch (error) {
     console.error('Error checking tutorial active status:', error);
+    return false;
+  }
+}
+
+// Helper: Check if user has specific achievement
+export async function hasAchievement(achievementId: string): Promise<boolean> {
+  try {
+    const userAchievements = await AchievementStorage.getUserAchievements();
+    return userAchievements.unlockedAchievements.includes(achievementId);
+  } catch (error) {
+    console.error(`Error checking achievement ${achievementId}:`, error);
     return false;
   }
 }

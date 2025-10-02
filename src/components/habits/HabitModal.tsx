@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { TutorialOverlay } from '../tutorial/TutorialOverlay';
+import { useTutorial } from '../../contexts/TutorialContext';
 
 interface HabitModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export function HabitModal({
   isLoading = false,
 }: HabitModalProps) {
   const { t } = useI18n();
+  const { state: tutorialState } = useTutorial();
   const isEditing = !!habit;
 
   const initialData: HabitFormData | undefined = habit
@@ -54,8 +56,8 @@ export function HabitModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      presentationStyle={tutorialState.isActive ? "fullScreen" : "pageSheet"}
+      onRequestClose={tutorialState.isActive ? undefined : onClose}
     >
       <TutorialOverlay>
         <SafeAreaView style={styles.container} nativeID="main-content">

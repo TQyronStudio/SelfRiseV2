@@ -1397,10 +1397,35 @@ const en: TranslationKeys = {
         placeholder: 'Select date...',
         button: 'Next'
       },
+      goalCategory: {
+        title: 'Choose a Category 📂',
+        content: 'This helps organize your goals and track progress by area of life!',
+        button: 'Next'
+      },
+      goalCreate: {
+        title: 'Create Your Goal!',
+        content: 'Click Create to add your first goal!',
+        button: 'Create'
+      },
+      goalComplete: {
+        title: 'Excellent! Your First Goal is Set! 🎯',
+        content: 'You\'ve just created your first goal! This is what will drive your long-term growth and success.',
+        button: 'Continue'
+      },
+      navigateHome: {
+        title: 'Let\'s Return Home 🏠',
+        content: 'Click the Home tab to see your progress dashboard!',
+        button: 'Take Me Home'
+      },
       xpIntro: {
         title: 'Your Growth Journey 📈',
         content: 'Everything you do earns XP! Complete habits, achieve goals, write in your journal - watch your level rise as you grow! 🌟',
         button: 'Amazing!'
+      },
+      trophyRoom: {
+        title: 'Your Achievement Collection 🏆',
+        content: 'Earn trophies by reaching milestones! Check here to see all your achievements and track your progress.',
+        button: 'Love It!'
       },
       completion: {
         title: 'You\'re All Set! 🎊',

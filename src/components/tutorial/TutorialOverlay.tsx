@@ -213,12 +213,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const safeAreaBottom = insets.bottom;
 
     // Reserve space for tutorial content based on step type
-    const isTypeText = state.currentStepData?.action === 'type_text';
+    const isTypeInput = (
+      state.currentStepData?.action === 'type_text' ||
+      state.currentStepData?.action === 'type_number'
+    );
     const isQuickActionsStep = state.currentStepData?.id === 'quick-actions';
 
     // Quick Actions step needs more top space for tutorial text positioned at top
-    const topReserve = isQuickActionsStep ? 200 : (isTypeText ? 150 : 100);
-    const bottomReserve = isTypeText ? 350 : 200; // More space for keyboard
+    const topReserve = isQuickActionsStep ? 200 : (isTypeInput ? 150 : 100);
+    const bottomReserve = isTypeInput ? 350 : 200; // More space for keyboard
 
     const visibleAreaTop = safeAreaTop + topReserve;
     const visibleAreaBottom = viewportHeight - safeAreaBottom - bottomReserve;
@@ -302,11 +305,14 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     };
   }, [state.currentStepData?.target, state.currentStepData?.type, state.isActive, state.currentStepData]);
 
-  // Hide keyboard when transitioning from text input steps to other steps
+  // Hide keyboard when transitioning from text/number input steps to other steps
   useEffect(() => {
     if (state.currentStepData) {
-      // If previous step was type_text and current step is not, hide keyboard
-      if (state.currentStepData.action !== 'type_text') {
+      // If current step is not type_text or type_number, hide keyboard
+      if (
+        state.currentStepData.action !== 'type_text' &&
+        state.currentStepData.action !== 'type_number'
+      ) {
         Keyboard.dismiss();
       }
     }
@@ -337,8 +343,10 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         pointerEvents={
           state.isActive &&
           state.currentStepData?.action !== 'type_text' &&
+          state.currentStepData?.action !== 'type_number' &&
           state.currentStepData?.action !== 'select_option' &&
           state.currentStepData?.action !== 'select_days' &&
+          state.currentStepData?.action !== 'select_date' &&
           !(state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit')
             ? 'auto'
             : 'box-none'
@@ -399,14 +407,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
               // 4. Target in bottom half of screen: TOP positioning
               // 5. Other steps: BOTTOM positioning
               (() => {
-                // Text input steps for HABIT ONLY (keyboard doesn't cover them in modal)
+                // Text input steps with DYNAMIC positioning (below field)
+                // These are at TOP of modal, so there's space below them
                 const isTextInputStep = (
-                  state.currentStepData?.id === 'habit-name'
+                  state.currentStepData?.id === 'habit-name' ||
+                  state.currentStepData?.id === 'goal-title'
                 );
 
-                // Goal text input steps need TOP positioning (keyboard would cover DYNAMIC positioning)
-                const isGoalTextInputStep = (
-                  state.currentStepData?.id === 'goal-title' ||
+                // Goal middle/bottom fields need TOP positioning (keyboard would cover DYNAMIC)
+                // These need auto-scroll to be visible
+                const isGoalLowerTextInputStep = (
                   state.currentStepData?.id === 'goal-unit' ||
                   state.currentStepData?.id === 'goal-target'
                 );
@@ -441,12 +451,12 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 );
 
                 if (isTextInputStep && spotlightTarget) {
-                  // Habit text input: Dynamic position below text field
+                  // Text input (habit-name, goal-title): Dynamic position below text field
                   console.log(`📍 [TUTORIAL] Using dynamic positioning below field for: ${state.currentStepData?.id}`);
                   return styles.contentContainerModalDynamic;
-                } else if (isGoalTextInputStep) {
-                  // Goal text input: TOP positioning to avoid keyboard covering tutorial text
-                  console.log(`📍 [TUTORIAL] Using top positioning for goal text input: ${state.currentStepData?.id}`);
+                } else if (isGoalLowerTextInputStep) {
+                  // Goal lower fields (unit, target): TOP positioning to avoid keyboard
+                  console.log(`📍 [TUTORIAL] Using top positioning for goal lower text input: ${state.currentStepData?.id}`);
                   return styles.contentContainerTopFixed;
                 } else if (isPickerStep) {
                   // Picker steps: TOP positioning to avoid overlap with expanded picker
@@ -477,16 +487,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
-              // 🔧 DYNAMIC POSITIONING for text input steps only - below the field
+              // 🔧 DYNAMIC POSITIONING for top text input steps - below the field
               (() => {
-                const isTextInputStep = (
+                const isTopTextInputStep = (
                   state.currentStepData?.id === 'habit-name' ||
-                  state.currentStepData?.id === 'goal-title' ||
-                  state.currentStepData?.id === 'goal-unit' ||
-                  state.currentStepData?.id === 'goal-target'
+                  state.currentStepData?.id === 'goal-title'
                 );
+                // NOTE: Goal lower fields (goal-unit, goal-target) use TOP positioning,
+                // because they're lower in modal and need auto-scroll
 
-                if (isTextInputStep && spotlightTarget) {
+                if (isTopTextInputStep && spotlightTarget) {
                   const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
 
                   // Calculate dynamic tutorial card height instead of fixed 250px
