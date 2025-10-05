@@ -540,12 +540,9 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // Calculate continuing streak - shows current streak even if today isn't completed yet
       const newCalculatedStreak = calculateContinuingStreak(completedDates, currentDate);
-      
-      // Calculate longest streak
-      const longestStreak = Math.max(
-        calculateLongestStreak(completedDates),
-        newCalculatedStreak
-      );
+
+      // NOTE: longestStreak calculation moved below after warm-up aware calculation
+      // This ensures we compare with the ACTUAL current streak (including paid gaps)
 
       // Calculate bonus milestone counters from actual data
       const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
@@ -584,7 +581,7 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       
       // Calculate debt excluding today for auto-reset decision
       const debtExcludingToday = await this.calculateFrozenDaysExcludingToday();
-      
+
       // Auto-reset if debt exceeds 3 days (excluding today)
       if (debtExcludingToday > 3) {
         // If today is complete, start new streak from 1, otherwise reset to 0
@@ -592,10 +589,22 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
         const newCurrentStreak = todayComplete ? 1 : 0;
         const newLastEntryDate = todayComplete ? currentDate : null;
         const newStreakStartDate = todayComplete ? currentDate : null;
-        
+
+        // Preserve longest streak even during auto-reset
+        // CRITICAL: Use warm-up aware calculation to preserve streaks with paid gaps
+        const warmUpAwareLongest = this.calculateHistoricalLongestStreakWithWarmUp(
+          completedDates,
+          savedStreak.warmUpPayments || []
+        );
+        const preservedLongestStreak = Math.max(
+          savedStreak.longestStreak || 0,
+          warmUpAwareLongest
+        );
+        console.log(`[AUTO-RESET] Preserving longest: max(${savedStreak.longestStreak || 0}, ${warmUpAwareLongest}) = ${preservedLongestStreak}`);
+
         const resetStreak: GratitudeStreak = {
           currentStreak: newCurrentStreak,
-          longestStreak,
+          longestStreak: preservedLongestStreak,
           lastEntryDate: newLastEntryDate,
           streakStartDate: newStreakStartDate,
           canRecoverWithAd: false,
@@ -666,9 +675,17 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
       }
       // When not frozen, streakBeforeFreeze stays null (normal behavior)
 
+      // 🎯 LONGEST STREAK FIX: Calculate AFTER finalCurrentStreak to include warm-up aware logic
+      // This ensures longestStreak accounts for paid gaps, not just raw completedDates
+      const finalLongestStreak = Math.max(
+        savedStreak.longestStreak || 0,  // Preserve historical longest
+        finalCurrentStreak                // Current streak (warm-up aware)
+      );
+      console.log(`[LONGEST STREAK FIX] Calculated: max(${savedStreak.longestStreak || 0}, ${finalCurrentStreak}) = ${finalLongestStreak}`);
+
       const updatedStreak: GratitudeStreak = {
         currentStreak: finalCurrentStreak,
-        longestStreak,
+        longestStreak: finalLongestStreak,
         lastEntryDate,
         streakStartDate,
         canRecoverWithAd,
@@ -1106,6 +1123,56 @@ export class GratitudeStorage implements EntityStorage<Gratitude> {
     }
     
     return missedDates;
+  }
+
+  /**
+   * HELPER: Calculate historical longest streak with warm-up awareness
+   * This scans through ALL completed dates and finds the longest streak
+   * accounting for paid gaps via warm-up payments
+   */
+  private calculateHistoricalLongestStreakWithWarmUp(
+    completedDates: DateString[],
+    warmUpPayments: WarmUpPayment[]
+  ): number {
+    if (completedDates.length === 0) return 0;
+
+    // Get all paid dates that can bridge gaps
+    const paidDates = new Set(
+      warmUpPayments
+        .filter(payment => payment.isComplete)
+        .map(payment => payment.missedDate)
+    );
+
+    // Sort all dates chronologically
+    const sortedDates = [...completedDates].sort();
+
+    let longestStreak = 0;
+
+    // Check streak ending at each completed date
+    for (let i = 0; i < sortedDates.length; i++) {
+      const endDate = sortedDates[i]!;
+      let currentStreak = 1; // Start with the current date
+      let checkDate = subtractDays(endDate, 1);
+
+      // Count backwards from this date
+      while (true) {
+        if (completedDates.includes(checkDate)) {
+          // Real completed day - count it
+          currentStreak++;
+          checkDate = subtractDays(checkDate, 1);
+        } else if (paidDates.has(checkDate)) {
+          // Paid gap - continue but don't count
+          checkDate = subtractDays(checkDate, 1);
+        } else {
+          // Real gap - streak ends
+          break;
+        }
+      }
+
+      longestStreak = Math.max(longestStreak, currentStreak);
+    }
+
+    return longestStreak;
   }
 
   /**
