@@ -344,7 +344,8 @@ export function GoalForm({
     }
 
     // Check if target date is missing and show confirmation modal
-    if (!formData.targetDate) {
+    // ⚠️ SKIP during tutorial - tutorial creates goal without date confirmation
+    if (!formData.targetDate && !tutorialState.isActive) {
       console.log(`📅 [DEBUG] No target date, showing confirmation modal...`);
       setShowDateConfirmation(true);
       return;
@@ -356,6 +357,7 @@ export function GoalForm({
   };
 
   const submitGoal = async () => {
+    console.log(`🚀 [DEBUG] submitGoal called`);
     try {
       const submitData = {
         ...formData,
@@ -364,19 +366,28 @@ export function GoalForm({
         description: formData.description?.trim() || undefined,
         targetDate: formData.targetDate || undefined,
       };
-      await onSubmit(submitData);
-      console.log(`✅ [TUTORIAL] Goal submitted successfully`);
 
-      // Tutorial logic: Advance tutorial after successful goal creation (via Create button)
+      console.log(`📤 [DEBUG] Calling onSubmit with data:`, submitData);
+      await onSubmit(submitData);
+      console.log(`✅ [TUTORIAL] Goal submitted successfully, onSubmit completed`);
+
+      // Tutorial logic: Wait for modal to close, THEN advance tutorial
       if (
         tutorialState.isActive &&
         tutorialState.currentStepData?.action === 'click_element' &&
         tutorialState.currentStepData?.target === 'create-goal-submit'
       ) {
-        console.log(`🎯 [TUTORIAL] Goal created via Create button, advancing tutorial...`);
+        console.log(`🎯 [TUTORIAL] Goal created via Create button, waiting for modal close...`);
+
+        // Wait for modal close animation (300ms) before advancing tutorial
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        console.log(`🎯 [TUTORIAL] Modal closed, advancing tutorial...`);
         tutorialActions.handleStepAction('click_element');
       }
     } catch (error) {
+      console.error(`❌ [DEBUG] Error in submitGoal:`, error);
+      console.error(`❌ [DEBUG] Error details:`, error instanceof Error ? error.message : String(error));
       setErrorMessage(error instanceof Error ? error.message : t('goals.form.errors.submitFailed'));
       setShowError(true);
     }
@@ -612,8 +623,16 @@ export function GoalForm({
                 (isLoading || (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create')) && styles.disabledButton
               ]}
               onPress={() => {
-                scrollToInput(500);
-                handleSubmit();
+                const isDisabled = isLoading || (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create');
+                console.log(`🔍 [GOAL_FORM] Create button pressed!`, {
+                  isLoading,
+                  tutorialActive: tutorialState.isActive,
+                  currentStep: tutorialState.currentStepData?.id,
+                  isDisabled
+                });
+                if (!isDisabled) {
+                  handleSubmit();
+                }
               }}
               disabled={
                 isLoading ||

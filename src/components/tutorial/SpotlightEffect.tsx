@@ -30,6 +30,19 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
   targetId,
   onTargetPress,
 }) => {
+  // 🔍 DEBUG: Log what's being rendered for Goal create button
+  if (targetId === 'create-goal-submit') {
+    console.log(`🔍 [SPOTLIGHT] Rendering for create-goal-submit:`, {
+      action,
+      targetId,
+      hasOnTargetPress: !!onTargetPress,
+      targetX: target.x,
+      targetY: target.y,
+      targetWidth: target.width,
+      targetHeight: target.height
+    });
+  }
+
   // Animation values
   const pulseScale = useRef(new Animated.Value(1)).current;
   const spotlightOpacity = useRef(new Animated.Value(0)).current;
@@ -94,17 +107,24 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
     const cutoutWidth = target.width + (cutoutPadding * 2);
     const cutoutHeight = target.height + (cutoutPadding * 2);
 
+    // Determine pointer events for spotlight container
+    const spotlightPointerEvents =
+      action === 'select_option' ||
+      action === 'select_days' ||
+      action === 'select_date' ||
+      (action === 'click_element' && targetId === 'create-habit-submit') ||
+      (action === 'click_element' && targetId === 'create-goal-submit')
+        ? 'none'
+        : 'auto';
+
+    if (targetId === 'create-goal-submit') {
+      console.log(`🔍 [SPOTLIGHT] Container pointerEvents for create-goal-submit: "${spotlightPointerEvents}"`);
+    }
+
     return (
       <View
         style={styles.spotlightContainer}
-        pointerEvents={
-          action === 'select_option' ||
-          action === 'select_days' ||
-          action === 'select_date' ||
-          (action === 'click_element' && targetId === 'create-habit-submit')
-            ? 'none'
-            : 'auto'
-        }
+        pointerEvents={spotlightPointerEvents}
       >
         {/* Top overlay - above the target */}
         <View
@@ -175,15 +195,24 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
           pointerEvents={
             action === 'select_option' ||
             action === 'select_days' ||
-            (action === 'click_element' && targetId === 'create-habit-submit')
+            (action === 'click_element' && targetId === 'create-habit-submit') ||
+            (action === 'click_element' && targetId === 'create-goal-submit')
               ? 'none'
               : 'auto'
           }
         />
 
         {/* Clickable area - only for click actions, not for text input, select options, or form submissions */}
-        {action !== 'type_text' && action !== 'select_option' && action !== 'select_days' &&
-         !(action === 'click_element' && targetId === 'create-habit-submit') && (
+        {(() => {
+          const shouldRenderClickableArea = action !== 'type_text' && action !== 'select_option' && action !== 'select_days' &&
+           !(action === 'click_element' && targetId === 'create-habit-submit') &&
+           !(action === 'click_element' && targetId === 'create-goal-submit');
+
+          if (targetId === 'create-goal-submit') {
+            console.log(`🔍 [SPOTLIGHT] Clickable area for create-goal-submit: shouldRender=${shouldRenderClickableArea}`);
+          }
+
+          return shouldRenderClickableArea && (
           <TouchableOpacity
             style={[
               styles.clickableArea,
@@ -200,7 +229,8 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Tap to continue tutorial"
           />
-        )}
+          );
+        })()}
       </View>
     );
   };

@@ -232,13 +232,18 @@ export function HabitForm({
       await onSubmit(formData);
       console.log(`✅ [TUTORIAL] Habit submitted successfully`);
 
-      // Tutorial logic: Advance tutorial after successful habit creation
+      // Tutorial logic: Wait for modal to close, THEN advance tutorial
       if (
         tutorialState.isActive &&
         tutorialState.currentStepData?.action === 'click_element' &&
         tutorialState.currentStepData?.target === 'create-habit-submit'
       ) {
-        console.log(`🎯 [TUTORIAL] Habit created, advancing tutorial...`);
+        console.log(`🎯 [TUTORIAL] Habit created, waiting for modal close...`);
+
+        // Wait for modal close animation (300ms) before advancing tutorial
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        console.log(`🎯 [TUTORIAL] Modal closed, advancing tutorial...`);
         tutorialActions.handleStepAction('click_element');
       }
     } catch (error) {

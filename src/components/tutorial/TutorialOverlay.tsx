@@ -340,17 +340,24 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             zIndex: 99999, // Higher than all modals
           },
         ]}
-        pointerEvents={
-          state.isActive &&
+        pointerEvents={(() => {
+          const pointerEventsValue = state.isActive &&
           state.currentStepData?.action !== 'type_text' &&
           state.currentStepData?.action !== 'type_number' &&
           state.currentStepData?.action !== 'select_option' &&
           state.currentStepData?.action !== 'select_days' &&
           state.currentStepData?.action !== 'select_date' &&
-          !(state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit')
+          !(state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-habit-submit') &&
+          !(state.currentStepData?.action === 'click_element' && state.currentStepData?.target === 'create-goal-submit')
             ? 'auto'
-            : 'box-none'
-        }
+            : 'box-none';
+
+          if (state.currentStepData?.target === 'create-goal-submit') {
+            console.log(`🔍 [OVERLAY] pointerEvents for create-goal-submit: "${pointerEventsValue}"`);
+          }
+
+          return pointerEventsValue;
+        })()}
       >
         {/* No dark background needed - SpotlightEffect handles its own overlays */}
 
@@ -399,6 +406,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
         {/* Tutorial Content */}
         {isSpotlight && (
           <Animated.View
+            pointerEvents="box-none"
             style={[
               // 🎯 INTELLIGENT ADAPTIVE POSITIONING STRATEGY:
               // 1. Modal creation steps: DYNAMIC positioning below text field
