@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useXpAnimation } from './XpAnimationContext';
 import { AchievementStorage } from '@/src/services/achievementStorage';
@@ -1240,7 +1240,35 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           } else if (currentStepData.id === 'navigate-home' && currentStepData.target === 'home-tab') {
             console.log(`🎯 Navigating back to Home tab...`);
             router.push('/(tabs)');
-            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Wait for navigation to complete
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Scroll home screen to top to make XP progress bar visible
+            console.log(`📜 [TUTORIAL] Scrolling home screen to top for XP progress bar visibility...`);
+            DeviceEventEmitter.emit('tutorial_scroll_to', { y: 0, animated: true });
+
+            // Wait for scroll animation to complete
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            // Verify XP progress bar target is registered and visible
+            console.log(`🔍 [TUTORIAL] Verifying XP progress bar target registration...`);
+            let xpRetryCount = 0;
+            const xpMaxRetries = 10;
+            while (xpRetryCount < xpMaxRetries) {
+              const targetExists = await tutorialTargetManager.getTargetInfo('xp-progress-bar');
+              if (targetExists) {
+                console.log(`✅ [TUTORIAL] XP progress bar target ready after ${xpRetryCount} retries`);
+                break;
+              }
+              console.log(`⏳ [TUTORIAL] Waiting for XP progress bar target... (${xpRetryCount + 1}/${xpMaxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, 100));
+              xpRetryCount++;
+            }
+
+            if (xpRetryCount >= xpMaxRetries) {
+              console.warn(`⚠️ [TUTORIAL] XP progress bar target still not found after ${xpMaxRetries} retries`);
+            }
           }
 
           await nextStep();
