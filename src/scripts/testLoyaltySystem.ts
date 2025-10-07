@@ -1,3 +1,4 @@
+// @ts-nocheck - Test/script file, not part of production build
 // Loyalty System Test Runner - Sub-checkpoint 4.5.10.C
 // Simple script to test loyalty system functionality during development
 

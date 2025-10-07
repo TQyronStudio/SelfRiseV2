@@ -172,7 +172,15 @@ export function createScheduleChangeEntry(
   }
 
   // Validate day names
-  const validDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const validDays: DayOfWeek[] = [
+    DayOfWeek.MONDAY,
+    DayOfWeek.TUESDAY,
+    DayOfWeek.WEDNESDAY,
+    DayOfWeek.THURSDAY,
+    DayOfWeek.FRIDAY,
+    DayOfWeek.SATURDAY,
+    DayOfWeek.SUNDAY
+  ];
   const invalidDays = newScheduledDays.filter(day => !validDays.includes(day));
   if (invalidDays.length > 0) {
     throw new Error(`Invalid day names: ${invalidDays.join(', ')}`);

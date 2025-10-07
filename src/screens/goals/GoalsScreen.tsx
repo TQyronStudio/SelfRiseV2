@@ -107,7 +107,7 @@ export function GoalsScreen() {
   const params = useLocalSearchParams();
 
   // Tutorial target registration for Add Goal button
-  const addGoalButtonRef = useRef<TouchableOpacity>(null);
+  const addGoalButtonRef = useRef<View>(null);
   const { registerTarget: registerAddGoalButton, unregisterTarget: unregisterAddGoalButton } = useTutorialTarget(
     'add-goal-button',
     addGoalButtonRef
@@ -285,15 +285,15 @@ export function GoalsScreen() {
       <View style={styles.addButtonContainer}>
         {!isEditMode && (
           <>
-            <TouchableOpacity
-              ref={addGoalButtonRef}
-              style={styles.addButton}
-              onPress={handleAddGoal}
-              nativeID="add-goal-button"
-            >
-              <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
-            </TouchableOpacity>
+            <View ref={addGoalButtonRef} nativeID="add-goal-button">
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddGoal}
+              >
+                <Ionicons name="add" size={24} color="white" />
+                <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
               <Ionicons name="library-outline" size={24} color={Colors.primary} />
               <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>

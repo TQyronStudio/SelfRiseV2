@@ -1765,7 +1765,7 @@ export class MonthlyChallengeService {
     weightedTemplates.sort((a, b) => b.weight - a.weight);
 
     // Select the template with highest weighted score
-    const selectedWeighted = weightedTemplates[0];
+    const selectedWeighted = weightedTemplates[0]!; // Array is never empty due to validation above
     const finalSelection = selectedWeighted.template;
 
     // Build detailed selection reason

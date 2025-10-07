@@ -604,6 +604,13 @@ export interface TranslationKeys {
     version: string;
     privacyPolicy: string;
     termsOfService: string;
+    tutorialReset: string;
+    tutorialResetDescription: string;
+    tutorialResetConfirmTitle: string;
+    tutorialResetConfirmMessage: string;
+    tutorialResetSuccess: string;
+    cancel: string;
+    reset: string;
   };
   
   // Auth screens
@@ -865,7 +872,7 @@ export interface TranslationKeys {
     continue: string;
     getStarted: string;
     finish: string;
-    progress: string;
+    progressText: string;
     loading: string;
 
     // Tutorial Step Content

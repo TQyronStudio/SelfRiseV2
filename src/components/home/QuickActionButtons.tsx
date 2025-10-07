@@ -51,7 +51,7 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
 
   // Tutorial targeting
   const quickActionsRef = useRef<View>(null);
-  const addHabitRef = useRef<TouchableOpacity>(null);
+  const addHabitRef = useRef<View>(null);
 
   const { registerTarget: registerQuickActions, unregisterTarget: unregisterQuickActions } = useTutorialTarget(
     'quick-actions-section',
@@ -60,7 +60,7 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
 
   const { registerTarget: registerAddHabit, unregisterTarget: unregisterAddHabit } = useTutorialTarget(
     'add-habit-button',
-    addHabitRef as any
+    addHabitRef
   );
 
   useEffect(() => {
@@ -110,10 +110,12 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
 
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}
-        <TouchableOpacity ref={addHabitRef} style={styles.actionButton} onPress={handleAddHabit} nativeID="add-habit-button">
-          <Ionicons name="add-circle" size={20} color={Colors.primary} />
-          <Text style={styles.actionText}>Add Habit</Text>
-        </TouchableOpacity>
+        <View ref={addHabitRef} nativeID="add-habit-button">
+          <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit}>
+            <Ionicons name="add-circle" size={20} color={Colors.primary} />
+            <Text style={styles.actionText}>Add Habit</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGratitude}>
           <Ionicons name="heart" size={20} color={Colors.primary} />

@@ -1,4 +1,6 @@
 #!/usr/bin/env npx tsx
+// @ts-nocheck - Test/script file, not part of production build
+
 
 /**
  * Performance Test Runner for Gamification System

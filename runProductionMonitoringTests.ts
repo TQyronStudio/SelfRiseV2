@@ -1,3 +1,4 @@
+// @ts-nocheck - Test/script file, not part of production build
 import { ProductionMonitoringTestRunner } from './src/utils/productionMonitoringTest';
 
 async function runTests() {

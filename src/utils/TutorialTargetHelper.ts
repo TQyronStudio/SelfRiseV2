@@ -31,7 +31,11 @@ class TutorialTargetManager {
    * Register a target element for tutorial spotlight
    */
   registerTarget(id: string, ref: RefObject<View>, fallbackPosition?: { x: number; y: number; width: number; height: number }) {
-    this.targets.set(id, { id, ref, fallbackPosition });
+    const target: TutorialTarget = { id, ref };
+    if (fallbackPosition) {
+      target.fallbackPosition = fallbackPosition;
+    }
+    this.targets.set(id, target);
   }
 
   /**
@@ -330,7 +334,7 @@ class TutorialTargetManager {
       },
     };
 
-    return fallbackPositions[targetId] || fallbackPositions['main-screen'];
+    return fallbackPositions[targetId] ?? fallbackPositions['main-screen']!;
   }
 
   /**
@@ -379,9 +383,9 @@ class TutorialTargetManager {
 export const tutorialTargetManager = new TutorialTargetManager();
 
 // React Hook for easier component integration
-export const useTutorialTarget = (targetId: string, ref: RefObject<View>, fallbackPosition?: { x: number; y: number; width: number; height: number }) => {
+export const useTutorialTarget = (targetId: string, ref: RefObject<View | null>, fallbackPosition?: { x: number; y: number; width: number; height: number }) => {
   const registerTarget = () => {
-    tutorialTargetManager.registerTarget(targetId, ref, fallbackPosition);
+    tutorialTargetManager.registerTarget(targetId, ref as RefObject<View>, fallbackPosition);
   };
 
   const unregisterTarget = () => {
