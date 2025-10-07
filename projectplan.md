@@ -376,10 +376,97 @@ export const help = {
 
 ### Phase 7: Settings & User Experience
 
-#### Checkpoint 7.1: Notification Settings
-- [ ] Daily reminder notifications
-- [ ] Streak milestone notifications
-- [ ] Achievement unlock notifications
+#### Checkpoint 7.1: Daily Reminder Notifications ⚡
+**Goal**: Implement smart daily notifications to help users stay consistent with their habits, journal, and goals.
+
+**Strategy**: Hybrid approach combining generics (afternoon) with smart notifications (evening) to balance relevance and performance.
+
+**Implementation Phases**:
+
+**Phase 1: Basic Notification Infrastructure (MVP)**
+- [ ] Install and configure `expo-notifications` package
+- [ ] Create NotificationService utility
+  - [ ] Permission management (request, check status, handle rejection)
+  - [ ] Basic scheduling functions (schedule, cancel, update)
+  - [ ] Notification channel setup (iOS/Android)
+- [ ] Add Notification Settings UI to Settings screen
+  - [ ] Permission status display ("Enabled" / "Disabled" with system settings link)
+  - [ ] Afternoon reminder toggle (ON/OFF) with time picker (default: 16:00)
+  - [ ] Evening reminder toggle (ON/OFF) with time picker (default: 20:00)
+  - [ ] Save preferences to AsyncStorage
+- [ ] Implement afternoon generic notifications
+  - [ ] Create 3-4 motivational text variants
+  - [ ] Random rotation system
+  - [ ] Daily scheduling at user-selected time (default: 16:00)
+
+**Phase 2: Smart Evening Notifications**
+- [ ] Create NotificationScheduler service
+  - [ ] analyzeUserProgress() - check habits, journal, goals completion status
+  - [ ] generateSmartMessage() - create contextual notification text based on missing tasks
+- [ ] Implement smart notification logic (priority order):
+  1. [ ] Check incomplete habits → "Ještě ti chybí dokončit návyky! 🏃‍♂️"
+  2. [ ] Check journal entries (<3) → "Nezapomeň zapsat 3 záznamy do deníku! 📝"
+  3. [ ] Check bonus entries (if 3 basic done) → "Máš ještě čas na bonusové záznamy! ⭐"
+  4. [ ] All complete → **No notification** (let user rest, no spam)
+- [ ] Hook into app lifecycle
+  - [ ] On app open → recalculate progress and reschedule evening notification
+  - [ ] On task completion (habit/journal) → update scheduled notification if needed
+- [ ] Handle notification tap
+  - [ ] Open app to relevant screen (habits/journal/goals) based on notification content
+
+**Technical Details**:
+- **Notification Types**: Local notifications (no push server needed)
+- **Background Processing**: None required - notifications scheduled in advance during app usage
+- **Performance Impact**: ~50ms async operation on app launch (non-blocking)
+- **Data Source**: AsyncStorage (habits, journal, goals data)
+- **Fallback**: If app not opened all day, use generic evening text instead of specific task counts
+- **Text Strategy**:
+  - Afternoon: Generic motivational (always relevant)
+  - Evening: Smart contextual (based on last app open data)
+
+**User Settings**:
+```
+📬 Notifications
+━━━━━━━━━━━━━━━━━━━
+  ⚠️ Notifications disabled → [Open System Settings >]
+
+  🌅 Afternoon Reminder        [🟢 ON / ⚪ OFF]
+     🕐 Time: 16:00             [Change >]
+     💬 "Motivational check-in"
+
+  🌙 Evening Reminder          [🟢 ON / ⚪ OFF]
+     🕐 Time: 20:00             [Change >]
+     💬 "Smart task reminder"
+```
+
+**Notification Logic**:
+
+**Afternoon (16:00)** - Generic rotation:
+- "Jak ti dnes jde? Nezapomeň na své cíle a návyky! 🚀"
+- "Ještě máš čas! Zkontroluj své návyky a cíle 💪"
+- "Odpolední check-in: Jak pokračuješ ve svých cílech? 🎯"
+- "Čas na micro-win! Dokončíš ještě jeden návyk? 🏃‍♂️"
+
+**Evening (20:00)** - Smart priority:
+1. **Incomplete habits** (highest priority)
+   - "Ještě ti chybí dokončit návyky! 🏃‍♂️"
+2. **Missing journal entries** (<3 required)
+   - "Nezapomeň zapsat 3 záznamy do deníku! 📝"
+3. **Missing bonus entries** (if 3 basic done)
+   - "Máš ještě čas na bonusové záznamy! ⭐"
+4. **All tasks complete**
+   - No notification sent (user earned rest)
+
+**Default State**:
+- Notifications: **OFF** by default (user opts in)
+- Afternoon time: **16:00**
+- Evening time: **20:00**
+
+**Notes**:
+- Removed streak/achievement notifications (redundant - user sees celebrations immediately in-app)
+- Phase 3 (advanced features) intentionally excluded per user request
+- Smart notifications update whenever app is opened during the day for maximum accuracy
+- Performance optimized: async background calculation, no UI blocking
 
 #### Checkpoint 7.2: App Settings
 - [ ] Theme selection and customization
