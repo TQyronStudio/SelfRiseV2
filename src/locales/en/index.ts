@@ -1291,6 +1291,47 @@ const en: TranslationKeys = {
       variant3: 'Time to review your progress and plan tomorrow! 📝',
       variant4: 'Good night! Don\'t forget to complete your daily gratitude! 🌟',
     },
+    // Daily reminder notifications
+    reminders: {
+      afternoon: {
+        variant1: {
+          title: 'SelfRise Check-in ☀️',
+          body: "How's your day going? Don't forget your goals and habits! 🚀",
+        },
+        variant2: {
+          title: 'Afternoon Motivation 💪',
+          body: 'You still have time! Check your habits and goals 💪',
+        },
+        variant3: {
+          title: 'Progress Time 🎯',
+          body: 'Afternoon check-in: How are you doing with your goals? 🎯',
+        },
+        variant4: {
+          title: 'Micro-win Moment ✨',
+          body: 'Time for a micro-win! Can you complete one more habit? 🏃‍♂️',
+        },
+      },
+      evening: {
+        incomplete_habits: {
+          title: 'You still have habits to complete! 🏃‍♂️',
+          body_one: 'You have 1 habit left to complete. Let\'s do this!',
+          body_other: 'You have {{count}} habits left to complete. Let\'s do this!',
+        },
+        missing_journal: {
+          title: 'Evening reflection time 📝',
+          body_one: 'Don\'t forget to write 1 more journal entry!',
+          body_other: 'Don\'t forget to write {{count}} more journal entries!',
+        },
+        bonus_opportunity: {
+          title: 'Bonus opportunity! ⭐',
+          body: 'You still have time for bonus entries! (currently {{count}}/10)',
+        },
+        fallback: {
+          title: 'Evening check-in 🌙',
+          body: 'Time for evening reflection! What did you accomplish today? 📝',
+        },
+      },
+    },
   },
 
 };

@@ -197,6 +197,7 @@ class NotificationService {
           body,
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
+          ...(Platform.OS === 'android' && { channelId: 'reminders' }),
           categoryIdentifier: category,
           data: {
             category,

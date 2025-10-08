@@ -37,19 +37,19 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 const AFTERNOON_MESSAGES = [
   {
     title: 'SelfRise Check-in ☀️',
-    body: 'Jak ti dnes jde? Nezapomeň na své cíle a návyky! 🚀',
+    body: "How's your day going? Don't forget your goals and habits! 🚀",
   },
   {
-    title: 'Odpolední motivace 💪',
-    body: 'Ještě máš čas! Zkontroluj své návyky a cíle 💪',
+    title: 'Afternoon Motivation 💪',
+    body: "You still have time! Check your habits and goals 💪",
   },
   {
-    title: 'Čas na progress 🎯',
-    body: 'Odpolední check-in: Jak pokračuješ ve svých cílech? 🎯',
+    title: 'Progress Time 🎯',
+    body: "Afternoon check-in: How are you doing with your goals? 🎯",
   },
   {
-    title: 'Micro-win moment ✨',
-    body: 'Čas na micro-win! Dokončíš ještě jeden návyk? 🏃‍♂️',
+    title: 'Micro-win Moment ✨',
+    body: "Time for a micro-win! Can you complete one more habit? 🏃‍♂️",
   },
 ];
 
@@ -257,9 +257,10 @@ class NotificationScheduler {
   private generateSmartEveningMessage(progress: DailyTaskProgress): SmartNotificationContent | null {
     // Priority 1: Incomplete habits
     if (progress.incompletedHabitsCount > 0) {
+      const habitWord = progress.incompletedHabitsCount === 1 ? 'habit' : 'habits';
       return {
-        title: 'Ještě ti chybí návyky! 🏃‍♂️',
-        body: `Máš ještě ${progress.incompletedHabitsCount} návyk${progress.incompletedHabitsCount === 1 ? '' : 'y/ů'} k dokončení. Jdeš na to?`,
+        title: 'You still have habits to complete! 🏃‍♂️',
+        body: `You have ${progress.incompletedHabitsCount} ${habitWord} left to complete. Let's do this!`,
         priority: NotificationPriority.HIGH,
       };
     }
@@ -267,9 +268,10 @@ class NotificationScheduler {
     // Priority 2: Missing journal entries
     if (!progress.hasThreeBasicEntries) {
       const missing = 3 - progress.journalEntriesCount;
+      const entryWord = missing === 1 ? 'entry' : 'entries';
       return {
-        title: 'Čas na večerní reflexi 📝',
-        body: `Nezapomeň zapsat ještě ${missing} záznam${missing === 1 ? '' : 'y'} do deníku!`,
+        title: 'Evening reflection time 📝',
+        body: `Don't forget to write ${missing} more journal ${entryWord}!`,
         priority: NotificationPriority.HIGH,
       };
     }
@@ -277,8 +279,8 @@ class NotificationScheduler {
     // Priority 3: Missing bonus entries (if 3 basic done)
     if (progress.hasThreeBasicEntries && progress.bonusEntriesCount < 10) {
       return {
-        title: 'Bonus příležitost! ⭐',
-        body: `Máš ještě čas na bonusové záznamy! (aktuálně ${progress.bonusEntriesCount}/10)`,
+        title: 'Bonus opportunity! ⭐',
+        body: `You still have time for bonus entries! (currently ${progress.bonusEntriesCount}/10)`,
         priority: NotificationPriority.DEFAULT,
       };
     }
@@ -293,8 +295,8 @@ class NotificationScheduler {
    */
   private getFallbackEveningMessage(): SmartNotificationContent {
     return {
-      title: 'Večerní check-in 🌙',
-      body: 'Čas na večerní reflexi! Co jsi dnes dokázal? 📝',
+      title: 'Evening check-in 🌙',
+      body: 'Time for evening reflection! What did you accomplish today? 📝',
       priority: NotificationPriority.DEFAULT,
     };
   }

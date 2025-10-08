@@ -706,6 +706,34 @@ export interface TranslationKeys {
       variant3: string;
       variant4: string;
     };
+    reminders: {
+      afternoon: {
+        variant1: { title: string; body: string };
+        variant2: { title: string; body: string };
+        variant3: { title: string; body: string };
+        variant4: { title: string; body: string };
+      };
+      evening: {
+        incomplete_habits: {
+          title: string;
+          body_one: string;
+          body_other: string;
+        };
+        missing_journal: {
+          title: string;
+          body_one: string;
+          body_other: string;
+        };
+        bonus_opportunity: {
+          title: string;
+          body: string;
+        };
+        fallback: {
+          title: string;
+          body: string;
+        };
+      };
+    };
   };
 
   // Gamification System
