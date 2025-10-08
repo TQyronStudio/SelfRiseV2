@@ -383,21 +383,21 @@ export const help = {
 
 **Implementation Phases**:
 
-**Phase 1: Basic Notification Infrastructure (MVP)**
-- [ ] Install and configure `expo-notifications` package
-- [ ] Create NotificationService utility
-  - [ ] Permission management (request, check status, handle rejection)
-  - [ ] Basic scheduling functions (schedule, cancel, update)
-  - [ ] Notification channel setup (iOS/Android)
-- [ ] Add Notification Settings UI to Settings screen
-  - [ ] Permission status display ("Enabled" / "Disabled" with system settings link)
-  - [ ] Afternoon reminder toggle (ON/OFF) with time picker (default: 16:00)
-  - [ ] Evening reminder toggle (ON/OFF) with time picker (default: 20:00)
-  - [ ] Save preferences to AsyncStorage
-- [ ] Implement afternoon generic notifications
-  - [ ] Create 3-4 motivational text variants
-  - [ ] Random rotation system
-  - [ ] Daily scheduling at user-selected time (default: 16:00)
+**Phase 1: Basic Notification Infrastructure (MVP)** ✅ **COMPLETED**
+- [x] Install and configure `expo-notifications` package
+- [x] Create NotificationService utility
+  - [x] Permission management (request, check status, handle rejection)
+  - [x] Basic scheduling functions (schedule, cancel, update)
+  - [x] Notification channel setup (iOS/Android)
+- [x] Add Notification Settings UI to Settings screen
+  - [x] Permission status display ("Enabled" / "Disabled" with system settings link)
+  - [x] Afternoon reminder toggle (ON/OFF) with time picker (default: 16:00)
+  - [x] Evening reminder toggle (ON/OFF) with time picker (default: 20:00)
+  - [x] Save preferences to AsyncStorage
+- [x] Implement afternoon generic notifications
+  - [x] Create 3-4 motivational text variants
+  - [x] Random rotation system
+  - [x] Daily scheduling at user-selected time (default: 16:00)
 
 **Phase 2: Smart Evening Notifications**
 - [ ] Create NotificationScheduler service

@@ -7,3 +7,4 @@ export * from './common';
 export * from './validation';
 export * from './i18n';
 export * from './gamification';
+export * from './notification';

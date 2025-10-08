@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -8,6 +8,7 @@ import { useTutorial } from '@/src/contexts/TutorialContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
+import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 
 export default function SettingsScreen() {
   const { t } = useI18n();
@@ -43,12 +44,18 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <NotificationSettings />
+        </View>
+
         {/* Habit Statistics Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Habit Analytics</Text>
-          <TouchableOpacity 
-            style={styles.menuItem} 
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={handleViewHabitStats}
           >
             <View style={styles.menuItemLeft}>
@@ -103,7 +110,7 @@ export default function SettingsScreen() {
             )}
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Reset Confirmation Modal */}
       <ConfirmationModal
@@ -166,6 +173,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 16,
   },
   section: {
