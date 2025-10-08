@@ -400,13 +400,16 @@ export const help = {
   - [x] Daily scheduling at user-selected time (default: 16:00)
 
 **Phase 2: Smart Evening Notifications**
+
+⚠️ **IMPORTANT - i18n Requirement**: All notification texts MUST be in English and added to i18n system (src/locales/en/index.ts under notifications.reminders section). Never hardcode Czech or other languages directly in code. Phase 1 is fully i18n-ready - maintain this standard!
+
 - [ ] Create NotificationScheduler service
   - [ ] analyzeUserProgress() - check habits, journal, goals completion status
   - [ ] generateSmartMessage() - create contextual notification text based on missing tasks
 - [ ] Implement smart notification logic (priority order):
-  1. [ ] Check incomplete habits → "Ještě ti chybí dokončit návyky! 🏃‍♂️"
-  2. [ ] Check journal entries (<3) → "Nezapomeň zapsat 3 záznamy do deníku! 📝"
-  3. [ ] Check bonus entries (if 3 basic done) → "Máš ještě čas na bonusové záznamy! ⭐"
+  1. [ ] Check incomplete habits → "You still have habits to complete! 🏃‍♂️"
+  2. [ ] Check journal entries (<3) → "Don't forget to write X more journal entries! 📝"
+  3. [ ] Check bonus entries (if 3 basic done) → "You still have time for bonus entries! ⭐"
   4. [ ] All complete → **No notification** (let user rest, no spam)
 - [ ] Hook into app lifecycle
   - [ ] On app open → recalculate progress and reschedule evening notification
@@ -467,6 +470,20 @@ export const help = {
 - Phase 3 (advanced features) intentionally excluded per user request
 - Smart notifications update whenever app is opened during the day for maximum accuracy
 - Performance optimized: async background calculation, no UI blocking
+
+**Known Limitations (Phase 1 MVP)**:
+- Permission status refreshes only on Settings screen mount (not on app resume from background)
+- If user changes permissions in system settings and returns to app, they must re-open Settings screen to see updated status
+- ⚠️ **Phase 2 enhancement**: Add app state listener or useFocusEffect to auto-refresh permission status
+
+**i18n & Internationalization**:
+- ✅ All notification texts in English (no hardcoded Czech/other languages)
+- ✅ i18n structure complete: `notifications.reminders.afternoon` (4 variants) & `notifications.reminders.evening` (4 types)
+- ✅ Pluralization support: `body_one` / `body_other` for proper grammar
+- ✅ Template interpolation: `{{count}}` for dynamic values
+- ✅ TypeScript types updated in `src/types/i18n.ts`
+- ✅ Ready for DE/ES/other languages - just add translations to `src/locales/{lang}/index.ts`
+- ⚠️ **Phase 2 requirement**: Continue using i18n keys, never hardcode notification texts
 
 #### Checkpoint 7.2: App Settings
 - [ ] Theme selection and customization
