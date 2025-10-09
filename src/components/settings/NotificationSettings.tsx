@@ -17,6 +17,8 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,6 +41,17 @@ export const NotificationSettings: React.FC = () => {
   // Load initial data
   useEffect(() => {
     loadData();
+
+    // Refresh permission status when app becomes active (user returns from system settings)
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        refreshPermissionStatus();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   const loadData = async () => {
@@ -67,6 +80,16 @@ export const NotificationSettings: React.FC = () => {
   // ========================================
   // PERMISSION HANDLERS
   // ========================================
+
+  const refreshPermissionStatus = async () => {
+    try {
+      const permissions = await notificationService.getPermissionStatus();
+      setPermissionStatus(permissions);
+      console.log('[NotificationSettings] Permission status refreshed:', permissions);
+    } catch (error) {
+      console.error('[NotificationSettings] Failed to refresh permission status:', error);
+    }
+  };
 
   const handleRequestPermissions = async () => {
     try {

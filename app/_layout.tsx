@@ -18,6 +18,9 @@ import '../src/services';
 // Tutorial System
 import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
 
+// Notification Lifecycle
+import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
+
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
   'Unable to get the view config for',
@@ -31,6 +34,9 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  // Initialize notification lifecycle management
+  useNotificationLifecycle();
 
   if (!loaded) {
     // Async font loading only occurs in development.

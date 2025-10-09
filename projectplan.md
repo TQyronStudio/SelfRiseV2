@@ -403,19 +403,20 @@ export const help = {
 
 ⚠️ **IMPORTANT - i18n Requirement**: All notification texts MUST be in English and added to i18n system (src/locales/en/index.ts under notifications.reminders section). Never hardcode Czech or other languages directly in code. Phase 1 is fully i18n-ready - maintain this standard!
 
-- [ ] Create NotificationScheduler service
-  - [ ] analyzeUserProgress() - check habits, journal, goals completion status
-  - [ ] generateSmartMessage() - create contextual notification text based on missing tasks
-- [ ] Implement smart notification logic (priority order):
-  1. [ ] Check incomplete habits → "You still have habits to complete! 🏃‍♂️"
-  2. [ ] Check journal entries (<3) → "Don't forget to write X more journal entries! 📝"
-  3. [ ] Check bonus entries (if 3 basic done) → "You still have time for bonus entries! ⭐"
-  4. [ ] All complete → **No notification** (let user rest, no spam)
-- [ ] Hook into app lifecycle
-  - [ ] On app open → recalculate progress and reschedule evening notification
-  - [ ] On task completion (habit/journal) → update scheduled notification if needed
-- [ ] Handle notification tap
-  - [ ] Open app to relevant screen (habits/journal/goals) based on notification content
+- [x] Create NotificationScheduler service ✅ **(Done in Phase 1)**
+  - [x] analyzeUserProgress() - check habits, journal, goals completion status (progressAnalyzer.analyzeDailyProgress())
+  - [x] generateSmartMessage() - create contextual notification text based on missing tasks (generateSmartEveningMessage())
+- [x] Implement smart notification logic (priority order): ✅ **(Done in Phase 1)**
+  1. [x] Check incomplete habits → "You still have habits to complete! 🏃‍♂️"
+  2. [x] Check journal entries (<3) → "Don't forget to write X more journal entries! 📝"
+  3. [x] Check bonus entries (if 3 basic done) → "You still have time for bonus entries! ⭐"
+  4. [x] All complete → **No notification** (let user rest, no spam)
+- [x] Hook into app lifecycle ✅ **(COMPLETED)**
+  - [x] On app open → recalculate progress and reschedule evening notification (useNotificationLifecycle hook)
+  - [x] On task completion (habit/journal) → automatic via app open (future enhancement: granular triggers)
+- [x] Handle notification tap ✅ **(COMPLETED)**
+  - [x] Open app to relevant screen (habits/journal/goals) based on notification content (smart navigation in useNotificationLifecycle)
+- [x] Fix permission status refresh on app resume ✅ **(BONUS - Phase 1 limitation resolved)**
 
 **Technical Details**:
 - **Notification Types**: Local notifications (no push server needed)
@@ -445,18 +446,21 @@ export const help = {
 **Notification Logic**:
 
 **Afternoon (16:00)** - Generic rotation:
-- "Jak ti dnes jde? Nezapomeň na své cíle a návyky! 🚀"
-- "Ještě máš čas! Zkontroluj své návyky a cíle 💪"
-- "Odpolední check-in: Jak pokračuješ ve svých cílech? 🎯"
-- "Čas na micro-win! Dokončíš ještě jeden návyk? 🏃‍♂️"
+- "How's your day going? Don't forget your goals and habits! 🚀"
+- "You still have time! Check your habits and goals 💪"
+- "Afternoon check-in: How are you doing with your goals? 🎯"
+- "Time for a micro-win! Can you complete one more habit? 🏃‍♂️"
 
 **Evening (20:00)** - Smart priority:
 1. **Incomplete habits** (highest priority)
-   - "Ještě ti chybí dokončit návyky! 🏃‍♂️"
+   - "You still have habits to complete! 🏃‍♂️"
+   - "You have X habit(s) left to complete. Let's do this!"
 2. **Missing journal entries** (<3 required)
-   - "Nezapomeň zapsat 3 záznamy do deníku! 📝"
+   - "Evening reflection time 📝"
+   - "Don't forget to write X more journal entry/entries!"
 3. **Missing bonus entries** (if 3 basic done)
-   - "Máš ještě čas na bonusové záznamy! ⭐"
+   - "Bonus opportunity! ⭐"
+   - "You still have time for bonus entries! (currently X/10)"
 4. **All tasks complete**
    - No notification sent (user earned rest)
 
@@ -471,10 +475,12 @@ export const help = {
 - Smart notifications update whenever app is opened during the day for maximum accuracy
 - Performance optimized: async background calculation, no UI blocking
 
-**Known Limitations (Phase 1 MVP)**:
-- Permission status refreshes only on Settings screen mount (not on app resume from background)
-- If user changes permissions in system settings and returns to app, they must re-open Settings screen to see updated status
-- ⚠️ **Phase 2 enhancement**: Add app state listener or useFocusEffect to auto-refresh permission status
+**Known Limitations**:
+- ~~Permission status refreshes only on Settings screen mount (not on app resume from background)~~ ✅ **FIXED in Phase 2**
+- ~~If user changes permissions in system settings and returns to app, they must re-open Settings screen to see updated status~~ ✅ **FIXED in Phase 2**
+- Task-level notification updates (e.g., completing a single habit immediately updates evening notification) not implemented
+  - Current: Notifications update when app becomes active (good enough for MVP)
+  - Future enhancement: Real-time updates on each task completion
 
 **i18n & Internationalization**:
 - ✅ All notification texts in English (no hardcoded Czech/other languages)
