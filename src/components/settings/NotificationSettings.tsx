@@ -280,13 +280,15 @@ export const NotificationSettings: React.FC = () => {
       {permissionStatus && !permissionStatus.granted && (
         <TouchableOpacity
           style={styles.permissionWarning}
-          onPress={handleOpenSystemSettings}
+          onPress={permissionStatus.canAskAgain ? handleRequestPermissions : handleOpenSystemSettings}
         >
           <Ionicons name="alert-circle" size={24} color={Colors.warning} />
           <View style={styles.permissionWarningContent}>
             <Text style={styles.permissionWarningTitle}>Notifications Disabled</Text>
             <Text style={styles.permissionWarningText}>
-              Tap to open system settings
+              {permissionStatus.canAskAgain
+                ? 'Tap to enable notifications'
+                : 'Tap to open system settings'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
