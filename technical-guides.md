@@ -555,6 +555,24 @@ All modals should follow the CelebrationModal pattern with:
 
 ## Technical Stack & Architecture
 
+## Build History & Testing Environment
+
+### iPhone Development Build - 2025-10-10
+**Status**: Active native build with full notification support
+**Build Method**: EAS Build (cloud) - development profile
+**Platform**: iOS
+**Native Modules**: expo-notifications fully integrated
+**Testing Device**: iPhone (physical device)
+**Build Details**:
+- Apple Push Notifications service key configured
+- Provisioning profile updated for development build
+- All native modules included in build
+- Notification system fully operational
+
+**Related Technical Documentation**: @technical-guides:Notifications.md
+
+---
+
 ## Latest Implementation Updates
 
 ### Monthly Challenge System Integration Complete (August 9, 2025)

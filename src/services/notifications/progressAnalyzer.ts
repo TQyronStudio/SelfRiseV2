@@ -110,7 +110,12 @@ class ProgressAnalyzer {
       const allEntries = await gratitudeStorage.getAll();
 
       // Filter entries from today
-      const todayEntries = allEntries.filter((entry) => isSameDay(entry.createdAt, today));
+      const todayEntries = allEntries.filter((entry) => {
+        const entryDate = entry.createdAt instanceof Date
+          ? entry.createdAt
+          : new Date(entry.createdAt);
+        return isSameDay(entryDate, today);
+      });
 
       const entriesCount = todayEntries.length;
       const hasThreeBasicEntries = entriesCount >= 3;

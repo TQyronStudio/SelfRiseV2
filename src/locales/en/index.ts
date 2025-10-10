@@ -1083,6 +1083,69 @@ const en: TranslationKeys = {
         button: 'Let\'s Begin!',
       },
 
+      // App Overview
+      appOverview: {
+        title: 'Your Personal Growth Dashboard 📊',
+        content: 'This is your home screen where you\'ll see your progress, streaks, and achievements. Check back daily to stay motivated!',
+        button: 'Show me around',
+      },
+
+      // Quick Actions
+      quickActions: {
+        title: 'Quick Actions 🚀',
+        content: 'These buttons let you quickly add habits, journal entries, or goals. Tap them anytime you want to make progress!',
+        button: 'Got it!',
+      },
+
+      // Create Habit Button
+      createHabitButton: {
+        title: 'Let\'s Create Your First Habit! 🌱',
+        content: 'Tap this button to start building your first positive habit. We\'ll guide you through the process step by step.',
+        button: 'Create habit',
+      },
+
+      // Habit Create (Save Button)
+      habitCreate: {
+        title: 'Save Your Habit 💾',
+        content: 'All done customizing? Tap the save button to create your habit and start building your streak!',
+        button: 'Continue',
+      },
+
+      // Goal Category
+      goalCategory: {
+        title: 'Choose a Category 🏷️',
+        content: 'Pick a category that best describes your goal. This helps organize your goals and track progress in different areas of your life.',
+        button: 'Next step',
+      },
+
+      // Goal Create (Save Button)
+      goalCreate: {
+        title: 'Create Your Goal 🎯',
+        content: 'Ready to start tracking? Tap the create button to save your goal and begin your journey!',
+        button: 'Let\'s do it!',
+      },
+
+      // Goal Complete
+      goalComplete: {
+        title: 'Goal Created! 🎉',
+        content: 'Awesome! Your goal is now active. Add progress updates to see predictions and track your journey!',
+        button: 'Continue',
+      },
+
+      // Navigate Home
+      navigateHome: {
+        title: 'Let\'s Go Home 🏠',
+        content: 'Tap the home tab to see your dashboard with all your progress, habits, and achievements!',
+        button: 'Take me home',
+      },
+
+      // Trophy Room
+      trophyRoom: {
+        title: 'Your Trophy Room 🏆',
+        content: 'This is where all your achievements live! Complete challenges to unlock badges and celebrate your wins!',
+        button: 'Amazing!',
+      },
+
       // Step 2: Habit Name Input
       habitName: {
         title: 'Create Your First Habit 🌱',

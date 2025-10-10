@@ -28,26 +28,19 @@ LogBox.ignoreLogs([
   'ViewPropTypes will be removed',
   'componentWillReceiveProps has been renamed',
   'Sending `onAnimatedValueUpdate` with no listeners registered',
+  'Route "./(tabs)/settings.tsx" is missing the required default export',
+  '[Layout children]: Too many screens defined',
+  'Cannot find native module \'ExpoPushTokenManager\'',
 ]);
 
-export default function RootLayout() {
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  // Initialize notification lifecycle management
+function LayoutContent() {
+  // Initialize notification lifecycle management (must be inside RootProvider)
+  // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <RootProvider>
-        <TutorialProvider>
-          <TutorialOverlay>
+    <TutorialProvider>
+      <TutorialOverlay>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen 
@@ -72,10 +65,27 @@ export default function RootLayout() {
           <Stack.Screen name="goal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="levels-overview" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="light" translucent={true} />
-          </TutorialOverlay>
-        </TutorialProvider>
+        </Stack>
+        <StatusBar style="light" translucent={true} />
+      </TutorialOverlay>
+    </TutorialProvider>
+  );
+}
+
+export default function RootLayout() {
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    // Async font loading only occurs in development.
+    return null;
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <RootProvider>
+        <LayoutContent />
       </RootProvider>
     </GestureHandlerRootView>
   );

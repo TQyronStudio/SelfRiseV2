@@ -910,6 +910,21 @@ export interface TranslationKeys {
         content: string;
         button: string;
       };
+      appOverview: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      quickActions: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      createHabitButton: {
+        title: string;
+        content: string;
+        button: string;
+      };
       habitName: {
         title: string;
         content: string;
@@ -928,6 +943,11 @@ export interface TranslationKeys {
         button: string;
       };
       habitDays: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      habitCreate: {
         title: string;
         content: string;
         button: string;
@@ -959,6 +979,11 @@ export interface TranslationKeys {
         content: string;
         button: string;
       };
+      goalCategory: {
+        title: string;
+        content: string;
+        button: string;
+      };
       goalTitle: {
         title: string;
         content: string;
@@ -983,6 +1008,26 @@ export interface TranslationKeys {
         title: string;
         content: string;
         placeholder: string;
+        button: string;
+      };
+      goalCreate: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      goalComplete: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      navigateHome: {
+        title: string;
+        content: string;
+        button: string;
+      };
+      trophyRoom: {
+        title: string;
+        content: string;
         button: string;
       };
       xpIntro: {

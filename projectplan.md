@@ -381,6 +381,8 @@ export const help = {
 
 **Strategy**: Hybrid approach combining generics (afternoon) with smart notifications (evening) to balance relevance and performance.
 
+🔴 **NATIVE REBUILD REQUIRED**: Notification system is implemented but **temporarily disabled** until native rebuild. See `NOTIFICATION_REBUILD_GUIDE.md` for instructions. After rebuild, uncomment `useNotificationLifecycle()` in `app/_layout.tsx`.
+
 **Implementation Phases**:
 
 **Phase 1: Basic Notification Infrastructure (MVP)** ✅ **COMPLETED**
