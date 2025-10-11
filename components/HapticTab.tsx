@@ -16,13 +16,11 @@ export function HapticTab(props: BottomTabBarButtonProps & { nativeID?: string }
   useEffect(() => {
     if (props.nativeID) {
       registerTarget();
-      console.log(`📍 [TUTORIAL] Registered tab target: ${props.nativeID}`);
     }
 
     return () => {
       if (props.nativeID) {
         unregisterTarget();
-        console.log(`📍 [TUTORIAL] Unregistered tab target: ${props.nativeID}`);
       }
     };
   }, [props.nativeID, registerTarget, unregisterTarget]);

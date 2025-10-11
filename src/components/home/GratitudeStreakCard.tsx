@@ -254,7 +254,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       // CRITICAL FIX: Only refresh once to avoid duplicate calculateAndUpdateStreak() calls
       // applySingleWarmUpPayment() already updated streak internally, just refresh UI state
       await actions.refreshStats();
-      console.log(`[DEBUG] GratitudeContext refreshStats completed - no duplicate calls`);
       
       // Verify debt was actually cleared (should be 0 due to incremental payments)
       const remainingDebt = await actions.calculateFrozenDays();
@@ -311,12 +310,10 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
 
   const executeForceResetDebt = async () => {
     try {
-      console.log(`[DEBUG] executeForceResetDebt: Starting clean force reset`);
       
       // ENHANCED: Clean debt reset without creating fake entries
       // Simply clear all debt tracking data and unfreeze streak
       const currentStreakInfo = state.streakInfo;
-      console.log(`[DEBUG] executeForceResetDebt: Current frozen days=${currentStreakInfo?.frozenDays}`);
 
       if (!currentStreakInfo) {
         console.error('[DEBUG] executeForceResetDebt: No streak info available');
@@ -349,15 +346,12 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       
       // Save updated streak info
       await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreakInfo);
-      console.log(`[DEBUG] executeForceResetDebt: Debt force reset completed`);
       
       // Recalculate streak to ensure consistency
       await actions.refreshStats();
-      console.log(`[DEBUG] executeForceResetDebt: Streak recalculated`);
 
       // Verify debt is now 0
       const verifyDebt = await actions.calculateFrozenDays();
-      console.log(`[DEBUG] executeForceResetDebt: Verification debt=${verifyDebt}`);
       
       // BUG #4 FIX: Clean up and show success using coordinated flow
       setAdsWatched(0);

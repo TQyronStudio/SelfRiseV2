@@ -31,11 +31,9 @@ export default function DailyGratitudeProgress({
 
   useEffect(() => {
     registerTarget();
-    console.log(`📍 [TUTORIAL] Registered Journal Progress target: todays-journal-progress`);
 
     return () => {
       unregisterTarget();
-      console.log(`📍 [TUTORIAL] Unregistered Journal Progress target: todays-journal-progress`);
     };
   }, [registerTarget, unregisterTarget]);
 

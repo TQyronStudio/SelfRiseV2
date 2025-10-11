@@ -132,11 +132,9 @@ export function GoalsScreen() {
   // Tutorial target registration
   useEffect(() => {
     registerAddGoalButton();
-    console.log(`📍 [TUTORIAL] Registered Add Goal button target: add-goal-button`);
 
     return () => {
       unregisterAddGoalButton();
-      console.log(`📍 [TUTORIAL] Unregistered Add Goal button target: add-goal-button`);
     };
   }, [registerAddGoalButton, unregisterAddGoalButton]);
 

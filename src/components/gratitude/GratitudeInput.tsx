@@ -93,20 +93,16 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       
       // SAFETY CHECK: If current streak = 0, no debt should exist (auto-reset case)
       if (currentStreak.currentStreak === 0 && authoritative_frozenDays === 0) {
-        console.log(`[DEBUG] GratitudeInput: Streak = 0, debt = 0. Allowing entry creation (post-reset state)`);
         // Allow entry creation - no debt after reset
       } else if (authoritative_frozenDays > 0) {
         // STRICT DEBT BLOCKING: No entries allowed when debt exists
-        console.log(`[DEBUG] GratitudeInput: Blocking entry due to debt. Authoritative debt: ${authoritative_frozenDays}, Calculated debt: ${calculatedFrozenDays}`);
         
         // CONSISTENCY WARNING: Log discrepancy for debugging
         if (authoritative_frozenDays !== calculatedFrozenDays) {
-          console.warn(`[DEBUG] GratitudeInput: Debt discrepancy! authoritative=${authoritative_frozenDays}, calculated=${calculatedFrozenDays}`);
         }
         
         // 🚀 SPECIFICATION COMPLIANCE: Automatic redirect to Home screen with modal auto-open
         if (router) {
-          console.log(`[DEBUG] GratitudeInput: Auto-redirecting to Home screen for debt recovery`);
           // Navigate to Home screen with flag to auto-open debt recovery modal
           router.push({ pathname: '/(tabs)', params: { openDebtModal: 'true' } });
           return;
