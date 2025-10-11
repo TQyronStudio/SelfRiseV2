@@ -290,12 +290,19 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 **Priority**: 🟡 **STŘEDNÍ** - Optimalizace challenge trackingu
 
-**Technical Documentation**: @sqlite-migration-phase3-features.md (TBD)
+**Technical Documentation**: @sqlite-migration-phase3-features.md
 
 **Implementation Checkpoints**:
-- [ ] TBD - Planning in progress
+- [ ] 3.1.1: Pre-migration preparation (backup all challenge data)
+- [ ] 3.2.1: Active challenges & requirements migration
+- [ ] 3.3.1: Progress tracking (daily snapshots & weekly breakdowns)
+- [ ] 3.4.1: Lifecycle state & history migration
+- [ ] 3.5.1: Verification & testing
+- [ ] Service refactoring (MonthlyProgressTracker, ChallengeService)
 
-**Total Time**: TBD
+**Expected Results**: 8-15x faster challenge operations, zero race conditions
+
+**Total Time**: 4-6 hours
 
 ---
 
