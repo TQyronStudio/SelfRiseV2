@@ -242,11 +242,8 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 **Technical Documentation**: @sqlite-migration-phase1-core.md
 
 **Implementation Checkpoints**:
-- [x] 1.1.1: Journal backup & verification ✅ COMPLETE (161 entries backed up, checksums verified: 607379d6, 7231f49d)
-  - Created: journalBackup.ts, testJournalBackup.ts, runBackupTest.ts, migration-test.tsx
-  - Backup location: AsyncStorage key `MIGRATION_BACKUP_JOURNAL_V1`
-  - Test passed: All checksums match, rollback capability confirmed
-- [ ] 1.1.2: SQLite database setup & schema creation (45 min) - REQUIRES DEV BUILD
+- [x] 1.1.1: Journal backup & verification ✅
+- [ ] 1.1.2: SQLite database setup & schema creation (45 min)
 - [ ] 1.1.3: Journal data migration with transactions (1 hour)
 - [ ] 1.1.4: Migration verification & integrity tests (45 min)
 - [ ] 1.1.5: Update GratitudeStorage service to SQLite (2 hours)
