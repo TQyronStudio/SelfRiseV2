@@ -23,7 +23,7 @@ import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
 
 // SQLite Database
-import { initializeDatabase } from '../src/services/database/init';
+// import { initializeDatabase } from '../src/services/database/init'; // DISABLED: Requires dev build
 
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
@@ -35,32 +35,32 @@ LogBox.ignoreLogs([
   'Route "./(tabs)/settings.tsx" is missing the required default export',
   '[Layout children]: Too many screens defined',
   'Cannot find native module \'ExpoPushTokenManager\'',
+  'Cannot find native module \'ExpoSQLite\'', // Added: SQLite not available yet
 ]);
 
 function LayoutContent() {
-  const [dbInitialized, setDbInitialized] = useState(false);
-
-  // Initialize SQLite database on app start
-  useEffect(() => {
-    initializeDatabase()
-      .then(() => {
-        console.log('✅ SQLite database ready');
-        setDbInitialized(true);
-      })
-      .catch((error) => {
-        console.error('❌ SQLite initialization failed:', error);
-        setDbInitialized(true); // Continue anyway for now
-      });
-  }, []);
+  // PHASE 1.1.1: SQLite initialization disabled for testing AsyncStorage backup
+  // Will be enabled in Phase 1.1.2 after development build
+  // useEffect(() => {
+  //   initializeDatabase()
+  //     .then(() => {
+  //       console.log('✅ SQLite database ready');
+  //       setDbInitialized(true);
+  //     })
+  //     .catch((error) => {
+  //       console.error('❌ SQLite initialization failed:', error);
+  //       setDbInitialized(true); // Continue anyway for now
+  //     });
+  // }, []);
 
   // Initialize notification lifecycle management (must be inside RootProvider)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
 
   // Wait for database before showing app
-  if (!dbInitialized) {
-    return null; // Or show loading screen
-  }
+  // if (!dbInitialized) {
+  //   return null; // Or show loading screen
+  // }
 
   return (
     <TutorialProvider>
