@@ -329,3 +329,9 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 **Total Documentation**: 3915 lines across 4 migration phases
 
+**📚 Master Architecture Reference**: @STORAGE-ARCHITECTURE.md (558 lines)
+- File-by-file storage mapping (SQLite vs AsyncStorage)
+- Implementation patterns & decision tree
+- Quick reference table for all features
+- Common mistakes to avoid
+
