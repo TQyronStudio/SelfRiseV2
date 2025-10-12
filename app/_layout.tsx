@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox } from 'react-native';
+import { useEffect, useState } from 'react';
 
 // Import i18n configuration to initialize internationalization
 import '../src/config/i18n';
@@ -21,6 +22,9 @@ import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
 // Notification Lifecycle
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
 
+// SQLite Database
+import { initializeDatabase } from '../src/services/database/init';
+
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
   'Unable to get the view config for',
@@ -34,9 +38,29 @@ LogBox.ignoreLogs([
 ]);
 
 function LayoutContent() {
+  const [dbInitialized, setDbInitialized] = useState(false);
+
+  // Initialize SQLite database on app start
+  useEffect(() => {
+    initializeDatabase()
+      .then(() => {
+        console.log('✅ SQLite database ready');
+        setDbInitialized(true);
+      })
+      .catch((error) => {
+        console.error('❌ SQLite initialization failed:', error);
+        setDbInitialized(true); // Continue anyway for now
+      });
+  }, []);
+
   // Initialize notification lifecycle management (must be inside RootProvider)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
+
+  // Wait for database before showing app
+  if (!dbInitialized) {
+    return null; // Or show loading screen
+  }
 
   return (
     <TutorialProvider>
