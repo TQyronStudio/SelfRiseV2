@@ -73,6 +73,8 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_journal_date ON journal_entries(date DESC);
     CREATE INDEX IF NOT EXISTS idx_journal_type ON journal_entries(type);
+    CREATE INDEX IF NOT EXISTS idx_journal_date_type ON journal_entries(date, type);
+    CREATE INDEX IF NOT EXISTS idx_journal_created_at ON journal_entries(created_at DESC);
 
     -- ========================================
     -- STREAK STATE (Singleton)
@@ -101,10 +103,12 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       id TEXT PRIMARY KEY,
       missed_date TEXT NOT NULL,
       paid_at INTEGER NOT NULL,
-      ads_watched INTEGER NOT NULL DEFAULT 0
+      ads_watched INTEGER NOT NULL DEFAULT 1,
+      is_complete INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE INDEX IF NOT EXISTS idx_warmup_date ON warm_up_payments(missed_date);
+    CREATE INDEX IF NOT EXISTS idx_warmup_paid_at ON warm_up_payments(paid_at DESC);
 
     -- ========================================
     -- HABITS
@@ -203,9 +207,36 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_progress_goal_time ON goal_progress(goal_id, timestamp DESC);
+
+    -- ========================================
+    -- PERFORMANCE VIEWS (Journal System)
+    -- ========================================
+
+    -- Today's entries count (cached query for performance)
+    CREATE VIEW IF NOT EXISTS v_todays_entry_count AS
+    SELECT COUNT(*) as count, date
+    FROM journal_entries
+    WHERE date = date('now')
+    GROUP BY date;
+
+    -- Completed dates for streak calculation (3+ entries)
+    CREATE VIEW IF NOT EXISTS v_completed_dates AS
+    SELECT DISTINCT date
+    FROM journal_entries
+    GROUP BY date
+    HAVING COUNT(*) >= 3
+    ORDER BY date DESC;
+
+    -- Bonus dates (4+ entries per day)
+    CREATE VIEW IF NOT EXISTS v_bonus_dates AS
+    SELECT date, COUNT(*) as count
+    FROM journal_entries
+    GROUP BY date
+    HAVING COUNT(*) > 3
+    ORDER BY date DESC;
   `);
 
-  console.log('✅ Tables created successfully');
+  console.log('✅ Tables and views created successfully');
 }
 
 /**

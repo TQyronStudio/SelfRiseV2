@@ -270,61 +270,44 @@ if (!verified || verified.entries.length !== backup.entries.length) {
 console.log(`✅ Backup created: ${backup.entries.length} entries, streak: ${backup.streak.currentStreak}`);
 ```
 
-**Phase 1.1.2: SQLite Database Setup** (10 min)
+**Phase 1.1.2: SQLite Database Setup** ✅ **COMPLETE**
+
+**Status**: Completed 2025-10-12
+**Implementation**: Updated `/src/services/database/init.ts`
+
+**Changes Made**:
+1. ✅ Added composite index `idx_journal_date_type` for faster filtering
+2. ✅ Added `idx_journal_created_at` for chronological sorting
+3. ✅ Fixed `warm_up_payments.ads_watched` DEFAULT to 1 (was 0)
+4. ✅ Added `is_complete` field to `warm_up_payments`
+5. ✅ Added `idx_warmup_paid_at` index for payment history
+6. ✅ Created 3 performance views:
+   - `v_todays_entry_count` - Fast today's count
+   - `v_completed_dates` - Pre-filtered completed dates (3+ entries)
+   - `v_bonus_dates` - Bonus dates (4+ entries)
+
+**Schema Summary**:
+- **3 Tables**: journal_entries, streak_state, warm_up_payments
+- **6 Indexes**: Optimized for date/type/time queries
+- **3 Views**: Pre-computed aggregations for performance
+- **WAL Mode**: Enabled for concurrent access
+- **Foreign Keys**: Enabled for referential integrity
+
+**Ready For**: Phase 1.1.3 (Data Migration) after development build completes
+
+**Implementation Code** (Reference - Already in init.ts):
 ```typescript
 import * as SQLite from 'expo-sqlite';
 
-// 1. Open/create database
-const db = await SQLite.openDatabaseAsync('selfrise.db');
+// Database already initialized in /src/services/database/init.ts
+// Tables created automatically on first app launch
+// No manual setup needed - migration will use existing schema
 
-// 2. Create tables
-await db.execAsync(`
-  PRAGMA journal_mode = WAL;  -- Write-Ahead Logging for performance
-  PRAGMA foreign_keys = ON;   -- Enable foreign key constraints
-
-  CREATE TABLE IF NOT EXISTS journal_entries (
-    id TEXT PRIMARY KEY,
-    text TEXT NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('gratitude', 'self-praise')),
-    date TEXT NOT NULL,
-    gratitude_number INTEGER NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_entries_date ON journal_entries(date);
-  CREATE INDEX IF NOT EXISTS idx_entries_type ON journal_entries(type);
-  CREATE INDEX IF NOT EXISTS idx_entries_date_type ON journal_entries(date, type);
-  CREATE INDEX IF NOT EXISTS idx_entries_created_at ON journal_entries(created_at DESC);
-
-  CREATE TABLE IF NOT EXISTS streak_state (
-    id INTEGER PRIMARY KEY CHECK(id = 1),
-    current_streak INTEGER NOT NULL DEFAULT 0,
-    longest_streak INTEGER NOT NULL DEFAULT 0,
-    last_entry_date TEXT,
-    streak_start_date TEXT,
-    frozen_days INTEGER NOT NULL DEFAULT 0,
-    is_frozen INTEGER NOT NULL DEFAULT 0,
-    can_recover_with_ad INTEGER NOT NULL DEFAULT 0,
-    streak_before_freeze INTEGER,
-    just_unfroze_today INTEGER NOT NULL DEFAULT 0,
-    star_count INTEGER NOT NULL DEFAULT 0,
-    flame_count INTEGER NOT NULL DEFAULT 0,
-    crown_count INTEGER NOT NULL DEFAULT 0,
-    updated_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS warm_up_payments (
-    id TEXT PRIMARY KEY,
-    missed_date TEXT NOT NULL,
-    paid_at INTEGER NOT NULL,
-    ads_watched INTEGER NOT NULL DEFAULT 1
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_payments_date ON warm_up_payments(missed_date);
-`);
-
-console.log('✅ SQLite tables created');
+// Schema includes:
+// - journal_entries: Full journal data with indexes
+// - streak_state: Singleton table for streak tracking
+// - warm_up_payments: Ad payment tracking with is_complete flag
+// - 3 performance views for fast queries
 ```
 
 **Phase 1.1.3: Data Migration** (15 min)

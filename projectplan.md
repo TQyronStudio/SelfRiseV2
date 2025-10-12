@@ -243,7 +243,7 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 **Implementation Checkpoints**:
 - [x] 1.1.1: Journal backup & verification ✅
-- [ ] 1.1.2: SQLite database setup & schema creation (45 min)
+- [x] 1.1.2: SQLite database setup & schema creation ✅
 - [ ] 1.1.3: Journal data migration with transactions (1 hour)
 - [ ] 1.1.4: Migration verification & integrity tests (45 min)
 - [ ] 1.1.5: Update GratitudeStorage service to SQLite (2 hours)
