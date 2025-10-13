@@ -167,6 +167,8 @@ const en: TranslationKeys = {
     // Pro hlavní 'SelfRise Streak'
     streakMilestone_generic_title: 'Another Milestone! 🎯',
     streakMilestone_generic_text: 'Congratulations on reaching {{days}} days in a row!',
+    streakMilestone14_title: 'Two Weeks Strong! 💪',
+    streakMilestone14_text: '14 days of dedication! You\'re proving to yourself that consistency is possible. Keep the momentum going!',
     streakMilestone21_title: 'A Habit is Forming! 🌱',
     streakMilestone21_text: '21 days in a row! You\'re building a strong habit of positive self-reflection. Keep going!',
     streakMilestone100_title: 'Welcome to the 100 Club! 💯',

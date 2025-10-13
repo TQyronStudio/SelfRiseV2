@@ -416,6 +416,307 @@ export default function MigrationTestScreen() {
     }
   };
 
+  const handleCheckTodayData = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔍 Checking today\'s data in BOTH storages...');
+
+    try {
+      const todayDate = today();
+      addLog(`\n📅 Today's date: ${todayDate}`);
+
+      // Check SQLite
+      addLog('\n📊 SQLite entries:');
+      const sqliteEntries = await sqliteGratitudeStorage.getByDate(todayDate);
+      addLog(`   Count: ${sqliteEntries.length}`);
+
+      if (sqliteEntries.length > 0) {
+        sqliteEntries.forEach((entry, i) => {
+          addLog(`   ${i + 1}. [${entry.id.substring(0, 8)}...] "${entry.content.substring(0, 30)}..."`);
+          addLog(`      Order: ${entry.order}, Created: ${new Date(entry.createdAt).toLocaleTimeString()}`);
+        });
+      }
+
+      // Check AsyncStorage using old gratitudeStorage
+      addLog('\n📊 AsyncStorage entries (using old system):');
+      try {
+        const { gratitudeStorage } = require('../../src/services/storage/gratitudeStorage');
+        const asyncEntries = await gratitudeStorage.getByDate(todayDate);
+        addLog(`   Count: ${asyncEntries.length}`);
+
+        if (asyncEntries.length > 0) {
+          asyncEntries.forEach((entry: any, i: number) => {
+            addLog(`   ${i + 1}. [${entry.id.substring(0, 8)}...] "${entry.content.substring(0, 30)}..."`);
+            addLog(`      Order: ${entry.order}, Created: ${new Date(entry.createdAt).toLocaleTimeString()}`);
+          });
+        }
+
+        // Find missing entries
+        const sqliteIds = new Set(sqliteEntries.map(e => e.id));
+        const missingInSQLite = asyncEntries.filter((e: any) => !sqliteIds.has(e.id));
+
+        addLog(`\n🔍 Analysis:`);
+        addLog(`   AsyncStorage total: ${asyncEntries.length}`);
+        addLog(`   SQLite total: ${sqliteEntries.length}`);
+        addLog(`   Missing in SQLite: ${missingInSQLite.length}`);
+
+        if (missingInSQLite.length > 0) {
+          addLog('\n❌ Found entries in AsyncStorage NOT in SQLite:');
+          missingInSQLite.forEach((entry: any, i: number) => {
+            addLog(`   ${i + 1}. [${entry.id.substring(0, 8)}...] "${entry.content.substring(0, 30)}..."`);
+          });
+        }
+
+      } catch (error) {
+        addLog(`   ⚠️ Could not check AsyncStorage: ${error instanceof Error ? error.message : 'Unknown'}`);
+      }
+
+      // Check completion
+      const count = await sqliteGratitudeStorage.countByDate(todayDate);
+      addLog(`\n🔢 SQLite count for today: ${count}`);
+      addLog(count >= 3 ? '✅ Today is completed (3+ entries)' : '❌ Today is NOT completed (< 3 entries)');
+
+      // Show detailed alert with all info
+      let alertMessage = `📊 SQLite: ${sqliteEntries.length} entries\n`;
+
+      try {
+        const { gratitudeStorage } = require('../../src/services/storage/gratitudeStorage');
+        const asyncEntries = await gratitudeStorage.getByDate(todayDate);
+        const sqliteIds = new Set(sqliteEntries.map(e => e.id));
+        const missingInSQLite = asyncEntries.filter((e: any) => !sqliteIds.has(e.id));
+
+        alertMessage += `📊 AsyncStorage: ${asyncEntries.length} entries\n`;
+        alertMessage += `\n❌ Missing in SQLite: ${missingInSQLite.length}\n`;
+        alertMessage += `\n✅ Completed: ${count >= 3 ? 'YES (3+)' : 'NO (< 3)'}\n`;
+
+        if (missingInSQLite.length > 0) {
+          alertMessage += `\n⚠️ Need to migrate ${missingInSQLite.length} entries!`;
+        }
+      } catch (err) {
+        alertMessage += `AsyncStorage: Error reading\n`;
+      }
+
+      alertMessage += `\nTotal needed: 3 entries`;
+
+      Alert.alert('Today\'s Data Check', alertMessage, [{ text: 'OK' }]);
+
+    } catch (error) {
+      addLog(`\n❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Check failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleMigrateMissingEntries = async () => {
+    if (isRunning) return;
+
+    Alert.alert(
+      'Migrate Missing Entries',
+      'This will copy missing entries from AsyncStorage to SQLite. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Migrate',
+          onPress: async () => {
+            setIsRunning(true);
+            clearLog();
+            addLog('🔄 Migrating missing entries from AsyncStorage to SQLite...');
+
+            try {
+              const todayDate = today();
+              addLog(`\n📅 Date: ${todayDate}`);
+
+              // Get entries from both storages
+              const sqliteEntries = await sqliteGratitudeStorage.getByDate(todayDate);
+              const { gratitudeStorage } = require('../../src/services/storage/gratitudeStorage');
+              const asyncEntries = await gratitudeStorage.getByDate(todayDate);
+
+              addLog(`\n📊 Found:`);
+              addLog(`   SQLite: ${sqliteEntries.length} entries`);
+              addLog(`   AsyncStorage: ${asyncEntries.length} entries`);
+
+              // Find missing entries
+              const sqliteIds = new Set(sqliteEntries.map(e => e.id));
+              const missingEntries = asyncEntries.filter((e: any) => !sqliteIds.has(e.id));
+
+              addLog(`\n🔍 Missing in SQLite: ${missingEntries.length} entries`);
+
+              if (missingEntries.length === 0) {
+                addLog('\n✅ No missing entries - all synced!');
+                Alert.alert('Success', 'All entries already in SQLite!', [{ text: 'OK' }]);
+                return;
+              }
+
+              // Migrate each missing entry
+              addLog(`\n🚀 Migrating ${missingEntries.length} entries...`);
+              let successCount = 0;
+
+              for (const entry of missingEntries) {
+                try {
+                  await sqliteGratitudeStorage.create({
+                    id: entry.id,
+                    content: entry.content,
+                    type: entry.type,
+                    date: entry.date,
+                    order: entry.order,
+                    isBonus: entry.isBonus || entry.order > 3,
+                    createdAt: entry.createdAt instanceof Date ? entry.createdAt.toISOString() : entry.createdAt,
+                    updatedAt: entry.updatedAt instanceof Date ? entry.updatedAt.toISOString() : entry.updatedAt,
+                  });
+                  successCount++;
+                  addLog(`   ✅ Migrated: [${entry.id.substring(0, 8)}...] order=${entry.order}`);
+                } catch (err) {
+                  addLog(`   ❌ Failed: [${entry.id.substring(0, 8)}...] ${err instanceof Error ? err.message : 'Unknown'}`);
+                }
+              }
+
+              // Verify
+              const newSqliteEntries = await sqliteGratitudeStorage.getByDate(todayDate);
+              addLog(`\n📊 After migration:`);
+              addLog(`   SQLite: ${newSqliteEntries.length} entries`);
+              addLog(`   Success: ${successCount}/${missingEntries.length}`);
+
+              const isComplete = newSqliteEntries.length >= 3;
+              addLog(`\n${isComplete ? '✅' : '❌'} Today is ${isComplete ? 'COMPLETED' : 'NOT completed'} (${newSqliteEntries.length}/3)`);
+
+              Alert.alert(
+                'Migration Complete',
+                `Migrated: ${successCount} entries\nTotal in SQLite: ${newSqliteEntries.length}\nCompleted: ${isComplete ? 'YES' : 'NO'}`,
+                [{ text: 'OK' }]
+              );
+
+            } catch (error) {
+              addLog(`\n❌ Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              console.error('Migration error:', error);
+              Alert.alert('Error', 'Migration failed - see logs', [{ text: 'OK' }]);
+            } finally {
+              setIsRunning(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleTestWarmUpStreak = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔥 Testing WARM-UP STREAK calculation (with warm-up payment logic)...');
+
+    try {
+      // Check today's date and entries
+      addLog('\n📅 Step 0: Check today\'s entries');
+      const todayDate = today();
+      addLog(`   Today's date: ${todayDate}`);
+      const todayEntries = await sqliteGratitudeStorage.getByDate(todayDate);
+      addLog(`   Today's entries in SQLite: ${todayEntries.length}`);
+      if (todayEntries.length > 0) {
+        todayEntries.forEach((e, i) => {
+          addLog(`   ${i + 1}. "${e.content.substring(0, 30)}..."`);
+        });
+      }
+
+      // Get old streak for comparison
+      addLog('\n📊 Step 1: Get current streak state');
+      const oldStreak = await sqliteGratitudeStorage.getStreak();
+      addLog(`   Current: ${oldStreak.currentStreak} days`);
+      addLog(`   Longest: ${oldStreak.longestStreak} days`);
+      addLog(`   Frozen: ${oldStreak.frozenDays} days`);
+      addLog(`   Just unfroze today: ${oldStreak.justUnfrozeToday ? 'YES' : 'NO'}`);
+
+      // Check warm-up payments
+      addLog('\n💳 Step 2: Check warm-up payments');
+      const payments = await sqliteGratitudeStorage.getWarmUpPayments();
+      addLog(`   Found ${payments.length} warm-up payment(s)`);
+      if (payments.length > 0) {
+        payments.slice(-3).forEach(p => {
+          addLog(`   - ${p.missedDate}: ${p.adsWatched} ad(s), complete: ${p.isComplete}`);
+        });
+      }
+
+      // Run warm-up aware streak calculation
+      addLog('\n🔄 Step 3: Run warm-up aware streak calculation');
+      const newStreak = await sqliteGratitudeStorage.calculateAndUpdateStreakWithWarmUp();
+      addLog(`   ✅ Calculation complete!`);
+
+      // Show results
+      addLog('\n📈 Step 4: Results');
+      addLog(`   Current streak: ${oldStreak.currentStreak} → ${newStreak.currentStreak}`);
+      addLog(`   Longest streak: ${oldStreak.longestStreak} → ${newStreak.longestStreak}`);
+      addLog(`   Last entry: ${newStreak.lastEntryDate}`);
+      addLog(`   Streak start: ${newStreak.streakStartDate}`);
+      addLog(`   Just unfroze: ${newStreak.justUnfrozeToday ? 'YES' : 'NO'}`);
+      addLog(`   ⭐ Stars: ${newStreak.starCount}`);
+      addLog(`   🔥 Flames: ${newStreak.flameCount}`);
+      addLog(`   👑 Crowns: ${newStreak.crownCount}`);
+
+      addLog('\n✅ WARM-UP STREAK TEST PASSED!');
+      Alert.alert(
+        'Success',
+        `Warm-up streak calculation works!\nCurrent: ${newStreak.currentStreak} days\nLongest: ${newStreak.longestStreak} days\nWarm-up payments respected!`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      addLog(`\n❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Warm-up streak test error:', error);
+      Alert.alert('Error', 'Warm-up streak test failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleTestBasicStreak = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔄 Testing BASIC STREAK calculation (no warm-up, no frozen)...');
+
+    try {
+      // Get old streak for comparison
+      addLog('\n📊 Step 1: Get current streak state');
+      const oldStreak = await sqliteGratitudeStorage.getStreak();
+      addLog(`   Current: ${oldStreak.currentStreak} days`);
+      addLog(`   Longest: ${oldStreak.longestStreak} days`);
+      addLog(`   Frozen: ${oldStreak.frozenDays} days`);
+
+      // Run basic streak calculation
+      addLog('\n🔄 Step 2: Run basic streak calculation');
+      const newStreak = await sqliteGratitudeStorage.calculateAndUpdateStreakBasic();
+      addLog(`   ✅ Calculation complete!`);
+
+      // Show results
+      addLog('\n📈 Step 3: Results');
+      addLog(`   Current streak: ${oldStreak.currentStreak} → ${newStreak.currentStreak}`);
+      addLog(`   Longest streak: ${oldStreak.longestStreak} → ${newStreak.longestStreak}`);
+      addLog(`   Last entry: ${newStreak.lastEntryDate}`);
+      addLog(`   Streak start: ${newStreak.streakStartDate}`);
+      addLog(`   ⭐ Stars: ${newStreak.starCount}`);
+      addLog(`   🔥 Flames: ${newStreak.flameCount}`);
+      addLog(`   👑 Crowns: ${newStreak.crownCount}`);
+
+      addLog('\n✅ BASIC STREAK TEST PASSED!');
+      Alert.alert(
+        'Success',
+        `Basic streak calculation works!\nCurrent: ${newStreak.currentStreak} days\nLongest: ${newStreak.longestStreak} days`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      addLog(`\n❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Basic streak test error:', error);
+      Alert.alert('Error', 'Basic streak test failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleResetDatabase = async () => {
     if (isRunning) return;
 
@@ -482,6 +783,38 @@ export default function MigrationTestScreen() {
           disabled={isRunning}
         >
           <Text style={styles.buttonText}>📖 Test SQLite READ</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.streakButton, isRunning && styles.disabledButton]}
+          onPress={handleTestBasicStreak}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔄 Test BASIC Streak</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.warmUpButton, isRunning && styles.disabledButton]}
+          onPress={handleTestWarmUpStreak}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔥 Test WARM-UP Streak</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.checkTodayButton, isRunning && styles.disabledButton]}
+          onPress={handleCheckTodayData}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔍 Check Today's Data</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.migrateMissingButton, isRunning && styles.disabledButton]}
+          onPress={handleMigrateMissingEntries}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔄 Migrate Missing</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -607,6 +940,18 @@ const styles = StyleSheet.create({
   },
   testReadButton: {
     backgroundColor: '#16A085',
+  },
+  streakButton: {
+    backgroundColor: '#9B59B6', // Purple for streak calculation
+  },
+  warmUpButton: {
+    backgroundColor: '#E67E22', // Orange for warm-up streak
+  },
+  checkTodayButton: {
+    backgroundColor: '#1ABC9C', // Teal for data check
+  },
+  migrateMissingButton: {
+    backgroundColor: '#2ECC71', // Green for migration
   },
   diagnosticButton: {
     backgroundColor: '#F39C12',

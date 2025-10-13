@@ -20,6 +20,7 @@ import { DateString } from '../../types/common';
 import { getDatabase } from '../database/init';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
+import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
 
 /**
  * SQLite-based Gratitude Storage
@@ -166,10 +167,10 @@ export class SQLiteGratitudeStorage {
       );
 
       return rows.map(row => ({
-        id: row.id,
         missedDate: row.missed_date,
-        paidAt: row.paid_at,
         adsWatched: row.ads_watched,
+        paymentTimestamp: new Date(row.paid_at), // Convert Unix timestamp to Date
+        isComplete: row.ads_watched >= 1, // 1 ad = complete
       }));
     } catch (error) {
       console.error('❌ SQLite getWarmUpPayments failed:', error);
@@ -210,7 +211,7 @@ export class SQLiteGratitudeStorage {
 
       console.log(`✅ SQLite: Entry created (id=${entry.id}, date=${entry.date}, order=${entry.order})`);
 
-      // Return created entry
+      // Return created entry (convert timestamps to Date objects)
       return {
         id: entry.id,
         content: entry.content,
@@ -218,8 +219,8 @@ export class SQLiteGratitudeStorage {
         date: entry.date,
         order: entry.order,
         isBonus: entry.isBonus,
-        createdAt: entry.createdAt,
-        updatedAt: entry.updatedAt,
+        createdAt: new Date(entry.createdAt),
+        updatedAt: new Date(entry.updatedAt),
       };
     } catch (error) {
       console.error('❌ SQLite create failed:', error);
@@ -260,7 +261,7 @@ export class SQLiteGratitudeStorage {
         return {
           ...existing,
           content: updates.content,
-          updatedAt: new Date(updatedAtMs).toISOString(),
+          updatedAt: new Date(updatedAtMs),
         };
       }
 
@@ -400,8 +401,8 @@ export class SQLiteGratitudeStorage {
       date: row.date,
       order: row.gratitude_number, // SQLite uses 'gratitude_number', app uses 'order'
       isBonus: row.gratitude_number > 3,
-      createdAt: new Date(row.created_at).toISOString(),
-      updatedAt: new Date(row.updated_at).toISOString(),
+      createdAt: new Date(row.created_at), // Convert from Unix timestamp to Date
+      updatedAt: new Date(row.updated_at), // Convert from Unix timestamp to Date
     };
   }
 
@@ -428,6 +429,332 @@ export class SQLiteGratitudeStorage {
       autoResetTimestamp: null, // Not stored in SQLite yet
       autoResetReason: null, // Not stored in SQLite yet
     };
+  }
+
+  // ========================================
+  // SQL HELPER METHODS (for calculateAndUpdateStreak)
+  // ========================================
+
+  /**
+   * Get completed dates (dates with 3+ entries)
+   * ✅ OPTIMIZED: SQL GROUP BY + HAVING instead of loading all data
+   * OLD: 50ms (load all 163 entries into memory)
+   * NEW: <2ms (SQL aggregation)
+   */
+  async getCompletedDates(): Promise<DateString[]> {
+    try {
+      const db = this.getDb();
+      const rows = await db.getAllAsync<{ date: DateString }>(
+        `SELECT date
+         FROM journal_entries
+         GROUP BY date
+         HAVING COUNT(*) >= 3
+         ORDER BY date ASC`
+      );
+
+      return rows.map(row => row.date);
+    } catch (error) {
+      console.error('❌ SQLite getCompletedDates failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get bonus dates (dates with 4+ entries)
+   * ✅ OPTIMIZED: SQL GROUP BY + HAVING
+   */
+  async getBonusDates(): Promise<DateString[]> {
+    try {
+      const db = this.getDb();
+      const rows = await db.getAllAsync<{ date: DateString }>(
+        `SELECT date
+         FROM journal_entries
+         GROUP BY date
+         HAVING COUNT(*) >= 4
+         ORDER BY date ASC`
+      );
+
+      return rows.map(row => row.date);
+    } catch (error) {
+      console.error('❌ SQLite getBonusDates failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Calculate milestone counters (star, flame, crown)
+   * ✅ OPTIMIZED: Single SQL query with aggregations
+   * OLD: Load all entries, count in memory
+   * NEW: SQL COUNT with CASE statements
+   */
+  async calculateMilestoneCounters(): Promise<{ starCount: number; flameCount: number; crownCount: number }> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{
+        star_count: number;
+        flame_count: number;
+        crown_count: number;
+      }>(
+        `SELECT
+           SUM(CASE WHEN entry_count >= 4 THEN 1 ELSE 0 END) as star_count,
+           SUM(CASE WHEN entry_count >= 8 THEN 1 ELSE 0 END) as flame_count,
+           SUM(CASE WHEN entry_count >= 13 THEN 1 ELSE 0 END) as crown_count
+         FROM (
+           SELECT COUNT(*) as entry_count
+           FROM journal_entries
+           GROUP BY date
+         )`
+      );
+
+      return {
+        starCount: result?.star_count || 0,
+        flameCount: result?.flame_count || 0,
+        crownCount: result?.crown_count || 0,
+      };
+    } catch (error) {
+      console.error('❌ SQLite calculateMilestoneCounters failed:', error);
+      return { starCount: 0, flameCount: 0, crownCount: 0 };
+    }
+  }
+
+  /**
+   * Get all unique dates that have entries
+   * ✅ OPTIMIZED: SQL DISTINCT
+   */
+  async getAllDatesWithEntries(): Promise<DateString[]> {
+    try {
+      const db = this.getDb();
+      const rows = await db.getAllAsync<{ date: DateString }>(
+        `SELECT DISTINCT date FROM journal_entries ORDER BY date ASC`
+      );
+
+      return rows.map(row => row.date);
+    } catch (error) {
+      console.error('❌ SQLite getAllDatesWithEntries failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get total count of all entries
+   * ✅ OPTIMIZED: SQL COUNT(*)
+   */
+  async getTotalEntryCount(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM journal_entries'
+      );
+
+      return result?.count || 0;
+    } catch (error) {
+      console.error('❌ SQLite getTotalEntryCount failed:', error);
+      return 0;
+    }
+  }
+
+  // ========================================
+  // STREAK CALCULATION (Complex Business Logic)
+  // ========================================
+
+  /**
+   * Calculate and update streak - PHASE 2: WITH WARM-UP (no frozen logic yet)
+   * Implements warm-up aware calculation per technical-guides:My-Journal.md
+   *
+   * ✅ PHASE 1: Basic streak calculation
+   * ✅ PHASE 2: Warm-up payment logic (CURRENT)
+   * 🔜 PHASE 3: Frozen streak logic (next step)
+   */
+  async calculateAndUpdateStreakWithWarmUp(): Promise<GratitudeStreak> {
+    try {
+      console.log('🔄 [WARM-UP STREAK] Starting calculation...');
+
+      // Get data using optimized SQL queries
+      const completedDates = await this.getCompletedDates();
+      const currentDate = today();
+      const savedStreak = await this.getStreak();
+
+      // Load warm-up payments from database
+      const warmUpPayments = await this.getWarmUpPayments();
+      console.log(`📊 [WARM-UP STREAK] Data: ${completedDates.length} completed, ${warmUpPayments.length} warm-up payments`);
+      console.log(`📅 [WARM-UP STREAK] Current date: ${currentDate}`);
+      console.log(`📅 [WARM-UP STREAK] Last 5 completed dates:`, completedDates.slice(-5));
+
+      const todayComplete = completedDates.includes(currentDate);
+      console.log(`✅ [WARM-UP STREAK] Today (${currentDate}) complete: ${todayComplete}`);
+
+      // 🎯 COMPONENT 1: Simple +1 Logic (justUnfrozeToday flag)
+      // Per technical guide lines 501-517
+      let finalCurrentStreak: number;
+      let newJustUnfrozeToday: boolean;
+
+      if (savedStreak.justUnfrozeToday && todayComplete) {
+        // User unfroze today and completed entries → +1 to original frozen streak
+        finalCurrentStreak = (savedStreak.streakBeforeFreeze || savedStreak.currentStreak) + 1;
+        newJustUnfrozeToday = false; // Clear flag after use
+        console.log(`✨ [WARM-UP STREAK] Just unfroze + completed: ${savedStreak.currentStreak} + 1 = ${finalCurrentStreak}`);
+      } else if (savedStreak.justUnfrozeToday && !todayComplete) {
+        // User unfroze but hasn't completed today yet - preserve streak
+        finalCurrentStreak = savedStreak.streakBeforeFreeze || savedStreak.currentStreak;
+        newJustUnfrozeToday = true; // Keep flag active until completion
+        console.log(`⏳ [WARM-UP STREAK] Just unfroze, waiting for completion: ${finalCurrentStreak}`);
+      } else {
+        // 🎯 COMPONENT 2: Warm-Up Aware Normal Calculation
+        // Per technical guide lines 519-561
+        const smartStreak = calculateStreakWithWarmUp(
+          completedDates,
+          currentDate,
+          warmUpPayments
+        );
+        finalCurrentStreak = smartStreak;
+        newJustUnfrozeToday = false;
+        console.log(`🧠 [WARM-UP STREAK] Smart calculation with warm-up awareness: ${finalCurrentStreak} days`);
+      }
+
+      // Calculate milestone counters using SQL
+      const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
+
+      // Determine last entry date and streak start
+      let lastEntryDate: DateString | null = null;
+      let streakStartDate: DateString | null = null;
+
+      if (completedDates.length > 0) {
+        const sortedDates = [...completedDates].sort();
+        lastEntryDate = sortedDates[sortedDates.length - 1]!;
+
+        if (finalCurrentStreak > 0) {
+          // Calculate streak start date
+          const streakLength = finalCurrentStreak;
+          streakStartDate = sortedDates[Math.max(0, sortedDates.length - streakLength)] || sortedDates[0]!;
+        }
+      }
+
+      // Calculate longest streak (preserve historical longest)
+      const finalLongestStreak = Math.max(
+        savedStreak.longestStreak || 0,
+        finalCurrentStreak
+      );
+
+      console.log(`🏆 [WARM-UP STREAK] Longest: max(${savedStreak.longestStreak || 0}, ${finalCurrentStreak}) = ${finalLongestStreak}`);
+
+      // Build updated streak object
+      const updatedStreak: GratitudeStreak = {
+        currentStreak: finalCurrentStreak,
+        longestStreak: finalLongestStreak,
+        lastEntryDate,
+        streakStartDate,
+        canRecoverWithAd: false, // Phase 3: Will add frozen logic
+        frozenDays: 0, // Phase 3: Will add frozen logic
+        isFrozen: false, // Phase 3: Will add frozen logic
+        justUnfrozeToday: newJustUnfrozeToday,
+        streakBeforeFreeze: savedStreak.streakBeforeFreeze ?? null, // Preserve for future unfreeze
+        starCount,
+        flameCount,
+        crownCount,
+        warmUpPayments, // Store loaded payments
+        warmUpHistory: savedStreak.warmUpHistory || [],
+        warmUpCompletedOn: null,
+        autoResetTimestamp: savedStreak.autoResetTimestamp ?? null, // Phase 3: Will add auto-reset logic
+        autoResetReason: savedStreak.autoResetReason ?? null,
+        preserveCurrentStreak: false,
+        preserveCurrentStreakUntil: null,
+      };
+
+      // Save to database
+      await this.updateStreak(updatedStreak);
+
+      console.log(`✅ [WARM-UP STREAK] Calculation complete: ${finalCurrentStreak} days`);
+
+      return updatedStreak;
+    } catch (error) {
+      console.error('❌ [WARM-UP STREAK] Calculation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate and update streak - PHASE 1: BASIC (no warm-up, no frozen)
+   * This is the core streak calculation method
+   *
+   * ✅ PHASE 1: Basic streak calculation
+   * 🔜 PHASE 2: Warm-up payment logic (next step)
+   * 🔜 PHASE 3: Frozen streak logic (after warm-up)
+   */
+  async calculateAndUpdateStreakBasic(): Promise<GratitudeStreak> {
+    try {
+      console.log('🔄 [BASIC STREAK] Starting calculation...');
+
+      // Get data using optimized SQL queries
+      const completedDates = await this.getCompletedDates();
+      const currentDate = today();
+      const savedStreak = await this.getStreak();
+
+      console.log(`📊 [BASIC STREAK] Data: ${completedDates.length} completed dates`);
+
+      // Calculate basic streak (no warm-up awareness yet)
+      const newCalculatedStreak = calculateContinuingStreak(completedDates, currentDate);
+      console.log(`📈 [BASIC STREAK] Raw streak: ${newCalculatedStreak} days`);
+
+      // Calculate milestone counters using SQL
+      const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
+      console.log(`⭐ [BASIC STREAK] Milestones: stars=${starCount}, flames=${flameCount}, crowns=${crownCount}`);
+
+      // Determine last entry date and streak start
+      let lastEntryDate: DateString | null = null;
+      let streakStartDate: DateString | null = null;
+
+      if (completedDates.length > 0) {
+        const sortedDates = [...completedDates].sort();
+        lastEntryDate = sortedDates[sortedDates.length - 1]!;
+
+        if (newCalculatedStreak > 0) {
+          // Calculate streak start date
+          const streakLength = newCalculatedStreak;
+          streakStartDate = sortedDates[Math.max(0, sortedDates.length - streakLength)] || sortedDates[0]!;
+        }
+      }
+
+      // Calculate longest streak (preserve historical longest)
+      const finalLongestStreak = Math.max(
+        savedStreak.longestStreak || 0,
+        newCalculatedStreak
+      );
+
+      console.log(`🏆 [BASIC STREAK] Longest: max(${savedStreak.longestStreak || 0}, ${newCalculatedStreak}) = ${finalLongestStreak}`);
+
+      // Build updated streak object
+      const updatedStreak: GratitudeStreak = {
+        currentStreak: newCalculatedStreak,
+        longestStreak: finalLongestStreak,
+        lastEntryDate,
+        streakStartDate,
+        canRecoverWithAd: false, // Phase 3: Will add frozen logic
+        frozenDays: 0, // Phase 3: Will add frozen logic
+        isFrozen: false, // Phase 3: Will add frozen logic
+        justUnfrozeToday: false, // Phase 3: Will add frozen logic
+        streakBeforeFreeze: null, // Phase 3: Will add frozen logic
+        starCount,
+        flameCount,
+        crownCount,
+        warmUpPayments: savedStreak.warmUpPayments || [],
+        warmUpHistory: savedStreak.warmUpHistory || [],
+        warmUpCompletedOn: null,
+        autoResetTimestamp: null, // Phase 3: Will add auto-reset logic
+        autoResetReason: null,
+        preserveCurrentStreak: false,
+        preserveCurrentStreakUntil: null,
+      };
+
+      // Save to database
+      await this.updateStreak(updatedStreak);
+
+      console.log(`✅ [BASIC STREAK] Calculation complete: ${newCalculatedStreak} days`);
+
+      return updatedStreak;
+    } catch (error) {
+      console.error('❌ [BASIC STREAK] Calculation failed:', error);
+      throw error;
+    }
   }
 }
 

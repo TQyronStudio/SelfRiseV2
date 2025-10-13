@@ -166,6 +166,8 @@ export interface TranslationKeys {
     // Pro hlavní 'SelfRise Streak'
     streakMilestone_generic_title: string;
     streakMilestone_generic_text: string;
+    streakMilestone14_title: string;
+    streakMilestone14_text: string;
     streakMilestone21_title: string;
     streakMilestone21_text: string;
     streakMilestone100_title: string;
