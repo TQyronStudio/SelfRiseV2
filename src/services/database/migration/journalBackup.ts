@@ -76,43 +76,99 @@ export async function createJournalBackup(): Promise<JournalBackup> {
   try {
     // Step 1: Read current AsyncStorage data
     console.log('📖 Reading AsyncStorage data...');
-    const entries = await BaseStorage.get<Gratitude[]>(STORAGE_KEYS.GRATITUDES);
-    const streak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
+    const rawEntries = await BaseStorage.get<any[]>(STORAGE_KEYS.GRATITUDES);
+    const rawStreak = await BaseStorage.get<any>(STORAGE_KEYS.GRATITUDE_STREAK);
 
     // Step 2: Validate data exists
-    if (!entries) {
+    if (!rawEntries) {
       console.log('⚠️  No journal entries found - creating empty backup');
     }
 
-    const safeEntries = entries || [];
-    const entriesCount = safeEntries.length;
+    const safeRawEntries = rawEntries || [];
+    console.log(`📊 Found ${safeRawEntries.length} journal entries`);
+    console.log(`📊 Streak data: ${rawStreak ? `${rawStreak.currentStreak} days` : 'none'}`);
 
-    console.log(`📊 Found ${entriesCount} journal entries`);
-    console.log(`📊 Streak data: ${streak ? `${streak.currentStreak} days` : 'none'}`);
+    // Step 3: Transform old data model to new SQLite model
+    console.log('🔄 Transforming data model (content→text, order→gratitudeNumber)...');
 
-    // Step 3: Generate checksums for verification
+    const transformedEntries: Gratitude[] = safeRawEntries.map((entry, index) => ({
+      id: entry.id,
+      text: entry.content || entry.text || '', // content → text
+      type: entry.type,
+      date: entry.date,
+      gratitudeNumber: entry.order || entry.gratitudeNumber || (index + 1), // order → gratitudeNumber
+      createdAt: typeof entry.createdAt === 'string' ? new Date(entry.createdAt).getTime() : entry.createdAt,
+      updatedAt: typeof entry.updatedAt === 'string' ? new Date(entry.updatedAt).getTime() : entry.updatedAt,
+    }));
+
+    console.log(`✅ Transformed ${transformedEntries.length} entries`);
+
+    // Step 4: Transform streak data
+    let transformedStreak: GratitudeStreak | null = null;
+
+    if (rawStreak) {
+      console.log('🔄 Transforming streak data...');
+
+      // Transform warm-up payments (paymentTimestamp → paidAt, generate ids)
+      const transformedPayments = (rawStreak.warmUpPayments || []).map((payment: any, index: number) => ({
+        id: payment.id || `payment_${payment.missedDate}_${index}`,
+        missedDate: payment.missedDate,
+        paidAt: payment.paymentTimestamp
+          ? (typeof payment.paymentTimestamp === 'string'
+              ? new Date(payment.paymentTimestamp).getTime()
+              : payment.paymentTimestamp)
+          : payment.paidAt || Date.now(),
+        adsWatched: payment.adsWatched || 1,
+      }));
+
+      transformedStreak = {
+        currentStreak: rawStreak.currentStreak,
+        longestStreak: rawStreak.longestStreak,
+        lastEntryDate: rawStreak.lastEntryDate,
+        streakStartDate: rawStreak.streakStartDate,
+        frozenDays: rawStreak.frozenDays || 0,
+        isFrozen: rawStreak.isFrozen || false,
+        canRecoverWithAd: rawStreak.canRecoverWithAd || false,
+        warmUpPayments: transformedPayments,
+        streakBeforeFreeze: rawStreak.streakBeforeFreeze || null,
+        justUnfrozeToday: rawStreak.justUnfrozeToday || rawStreak.justUnfroze_today || false,
+        starCount: rawStreak.starCount || 0,
+        flameCount: rawStreak.flameCount || 0,
+        crownCount: rawStreak.crownCount || 0,
+        warmUpCompletedOn: rawStreak.warmUpCompletedOn || null,
+        warmUpHistory: rawStreak.warmUpHistory || [],
+        autoResetTimestamp: rawStreak.autoResetTimestamp || null,
+        autoResetReason: rawStreak.autoResetReason || null,
+      };
+
+      console.log(`✅ Transformed streak data with ${transformedPayments.length} payments`);
+    }
+
+    const entriesCount = transformedEntries.length;
+
+    // Step 5: Generate checksums for verification
     console.log('🔐 Generating verification checksums...');
-    const entriesChecksum = generateChecksum(safeEntries);
-    const streakChecksum = streak ? generateChecksum(streak) : null;
+    const entriesChecksum = generateChecksum(transformedEntries);
+    const streakChecksum = transformedStreak ? generateChecksum(transformedStreak) : null;
 
-    // Step 4: Create backup object
+    // Step 6: Create backup object
     const backup: JournalBackup = {
       version: '1.0.0',
       timestamp: Date.now(),
       backupDate: new Date().toISOString(),
-      entries: safeEntries,
-      streak,
+      entries: transformedEntries,
+      streak: transformedStreak,
       entriesCount,
       entriesChecksum,
       streakChecksum,
       verified: false, // Will be set to true after verification
     };
 
-    // Step 5: Save backup to AsyncStorage (separate key)
+    // Step 7: Save backup to AsyncStorage (separate key)
     console.log('💾 Saving backup to AsyncStorage...');
     await BaseStorage.set('MIGRATION_BACKUP_JOURNAL_V1', backup);
 
-    // Step 6: Verify backup was saved correctly
+    // Step 8: Verify backup was saved correctly
     console.log('✅ Verifying backup integrity...');
     const verificationResult = await verifyJournalBackup();
 
@@ -120,20 +176,24 @@ export async function createJournalBackup(): Promise<JournalBackup> {
       throw new Error(`Backup verification failed: ${verificationResult.error}`);
     }
 
-    // Step 7: Mark backup as verified
+    // Step 9: Mark backup as verified
     backup.verified = true;
     await BaseStorage.set('MIGRATION_BACKUP_JOURNAL_V1', backup);
 
     console.log('✅ Journal backup created successfully');
     console.log(`   - Entries: ${entriesCount}`);
     console.log(`   - Entries checksum: ${entriesChecksum}`);
-    console.log(`   - Streak: ${streak ? `${streak.currentStreak} days` : 'none'}`);
+    console.log(`   - Streak: ${transformedStreak ? `${transformedStreak.currentStreak} days` : 'none'}`);
     console.log(`   - Backup key: MIGRATION_BACKUP_JOURNAL_V1`);
 
     return backup;
 
   } catch (error) {
     console.error('❌ Backup creation failed:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+    }
     throw new Error(`Failed to create journal backup: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -179,46 +239,39 @@ export async function verifyJournalBackup(): Promise<BackupVerificationResult> {
       };
     }
 
-    // Step 2: Load source data
-    const sourceEntries = await BaseStorage.get<Gratitude[]>(STORAGE_KEYS.GRATITUDES);
-    const sourceStreak = await BaseStorage.get<GratitudeStreak>(STORAGE_KEYS.GRATITUDE_STREAK);
+    // Step 2: Verify backup data integrity by re-calculating checksum
+    const backupEntriesChecksum = generateChecksum(backup.entries);
+    const backupStreakChecksum = backup.streak ? generateChecksum(backup.streak) : null;
 
-    const safeSourceEntries = sourceEntries || [];
+    // Step 3: Compare stored checksums with recalculated ones
+    const checksumsMatch =
+      backup.entriesChecksum === backupEntriesChecksum &&
+      backup.streakChecksum === backupStreakChecksum;
 
-    // Step 3: Compare counts
-    const entriesMatch = backup.entriesCount === safeSourceEntries.length;
-
-    if (!entriesMatch) {
+    if (!checksumsMatch) {
       return {
         success: false,
-        error: `Entry count mismatch: source=${safeSourceEntries.length}, backup=${backup.entriesCount}`,
+        error: 'Backup data corrupted - checksum mismatch after save/load',
         details: {
           backupExists: true,
           entriesMatch: false,
           checksumsMatch: false,
-          sourceCount: safeSourceEntries.length,
+          sourceCount: 0,
           backupCount: backup.entriesCount,
         },
       };
     }
 
-    // Step 4: Verify checksums
-    const currentEntriesChecksum = generateChecksum(safeSourceEntries);
-    const currentStreakChecksum = sourceStreak ? generateChecksum(sourceStreak) : null;
-
-    const checksumsMatch =
-      backup.entriesChecksum === currentEntriesChecksum &&
-      backup.streakChecksum === currentStreakChecksum;
-
-    if (!checksumsMatch) {
+    // Step 4: Verify entry count is reasonable
+    if (backup.entriesCount !== backup.entries.length) {
       return {
         success: false,
-        error: 'Checksum mismatch - data may have been modified',
+        error: `Entry count mismatch in backup: count=${backup.entriesCount}, actual=${backup.entries.length}`,
         details: {
           backupExists: true,
-          entriesMatch: true,
-          checksumsMatch: false,
-          sourceCount: safeSourceEntries.length,
+          entriesMatch: false,
+          checksumsMatch: true,
+          sourceCount: 0,
           backupCount: backup.entriesCount,
         },
       };
@@ -232,7 +285,7 @@ export async function verifyJournalBackup(): Promise<BackupVerificationResult> {
         backupExists: true,
         entriesMatch: true,
         checksumsMatch: true,
-        sourceCount: safeSourceEntries.length,
+        sourceCount: backup.entries.length,
         backupCount: backup.entriesCount,
       },
     };

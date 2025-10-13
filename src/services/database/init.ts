@@ -110,6 +110,10 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_warmup_date ON warm_up_payments(missed_date);
     CREATE INDEX IF NOT EXISTS idx_warmup_paid_at ON warm_up_payments(paid_at DESC);
 
+    -- Initialize singleton row in streak_state if not exists
+    INSERT OR IGNORE INTO streak_state (id, updated_at)
+    VALUES (1, strftime('%s', 'now') * 1000);
+
     -- ========================================
     -- HABITS
     -- ========================================
