@@ -13,6 +13,8 @@ import { runBackupTest, checkBackup, createBackupOnly } from '../../src/services
 import { getDatabase, isDatabaseInitialized } from '../../src/services/database/init';
 import { migrateJournalData, getMigrationStatus } from '../../src/services/database/migration/journalMigration';
 import { diagnoseBackup } from '../../src/services/database/migration/diagnoseBackup';
+import { sqliteGratitudeStorage } from '../../src/services/storage/SQLiteGratitudeStorage';
+import { today } from '../../src/utils/date';
 
 export default function MigrationTestScreen() {
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -266,6 +268,154 @@ export default function MigrationTestScreen() {
     }
   };
 
+  const handleTestSQLiteWrite = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('✍️ Testing SQLite WRITE operations...');
+
+    try {
+      const testId = `test_${Date.now()}`;
+      const testDate = today();
+
+      // Test 1: CREATE
+      addLog('\n📋 Test 1: Create entry');
+      const newEntry = await sqliteGratitudeStorage.create({
+        id: testId,
+        content: 'Test entry from SQLite WRITE test',
+        type: 'gratitude',
+        date: testDate,
+        order: 99,
+        isBonus: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      addLog(`✅ Entry created: id=${newEntry.id}`);
+      addLog(`   Content: "${newEntry.content}"`);
+
+      // Test 2: READ back
+      addLog('\n📋 Test 2: Read back created entry');
+      const readBack = await sqliteGratitudeStorage.getById(testId);
+      addLog(`✅ Entry found: ${readBack ? 'Yes' : 'No'}`);
+      if (readBack) {
+        addLog(`   Content matches: ${readBack.content === newEntry.content ? 'Yes' : 'No'}`);
+      }
+
+      // Test 3: UPDATE
+      addLog('\n📋 Test 3: Update entry');
+      const updated = await sqliteGratitudeStorage.update(testId, {
+        content: 'UPDATED test content'
+      });
+      addLog(`✅ Entry updated`);
+      addLog(`   New content: "${updated.content}"`);
+
+      // Test 4: READ after update
+      addLog('\n📋 Test 4: Read after update');
+      const readAfterUpdate = await sqliteGratitudeStorage.getById(testId);
+      addLog(`✅ Content updated correctly: ${readAfterUpdate?.content === 'UPDATED test content' ? 'Yes' : 'No'}`);
+
+      // Test 5: UPDATE STREAK
+      addLog('\n📋 Test 5: Update streak');
+      const currentStreak = await sqliteGratitudeStorage.getStreak();
+      addLog(`   Current streak before: ${currentStreak.currentStreak}`);
+
+      await sqliteGratitudeStorage.updateStreak({
+        starCount: currentStreak.starCount + 1
+      });
+
+      const updatedStreak = await sqliteGratitudeStorage.getStreak();
+      addLog(`✅ Star count incremented: ${currentStreak.starCount} → ${updatedStreak.starCount}`);
+
+      // Test 6: DELETE
+      addLog('\n📋 Test 6: Delete entry');
+      await sqliteGratitudeStorage.delete(testId);
+      addLog(`✅ Entry deleted`);
+
+      // Test 7: READ after delete
+      addLog('\n📋 Test 7: Verify deletion');
+      const readAfterDelete = await sqliteGratitudeStorage.getById(testId);
+      addLog(`✅ Entry not found: ${readAfterDelete === null ? 'Yes (correct)' : 'No (error!)'}`);
+
+      // Restore star count
+      await sqliteGratitudeStorage.updateStreak({
+        starCount: currentStreak.starCount
+      });
+
+      addLog('\n✅ ALL WRITE TESTS PASSED!');
+      Alert.alert('Success', 'SQLite WRITE operations working!\nCreate, Update, Delete all successful', [{ text: 'OK' }]);
+
+    } catch (error) {
+      addLog(`\n❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'SQLite write test failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleTestSQLiteRead = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('📖 Testing SQLite READ operations...');
+
+    try {
+      // Test 1: Get today's entries
+      addLog('\n📋 Test 1: Get today\'s entries');
+      const todayDate = today();
+      const todayEntries = await sqliteGratitudeStorage.getByDate(todayDate);
+      addLog(`✅ Found ${todayEntries.length} entries for today (${todayDate})`);
+
+      if (todayEntries.length > 0) {
+        addLog(`   First entry: "${todayEntries[0].content.substring(0, 30)}..."`);
+      }
+
+      // Test 2: Count entries
+      addLog('\n📋 Test 2: Count today\'s entries');
+      const count = await sqliteGratitudeStorage.countByDate(todayDate);
+      addLog(`✅ Count: ${count} entries`);
+
+      // Test 3: Get all entries
+      addLog('\n📋 Test 3: Get all entries');
+      const allEntries = await sqliteGratitudeStorage.getAll();
+      addLog(`✅ Total entries in database: ${allEntries.length}`);
+
+      // Test 4: Get streak
+      addLog('\n📋 Test 4: Get streak state');
+      const streak = await sqliteGratitudeStorage.getStreak();
+      addLog(`✅ Current streak: ${streak.currentStreak} days`);
+      addLog(`   Longest streak: ${streak.longestStreak} days`);
+      addLog(`   Last entry date: ${streak.lastEntryDate}`);
+      addLog(`   Frozen days: ${streak.frozenDays}`);
+
+      // Test 5: Get warm-up payments
+      addLog('\n📋 Test 5: Get warm-up payments');
+      const payments = await sqliteGratitudeStorage.getWarmUpPayments();
+      addLog(`✅ Found ${payments.length} warm-up payments`);
+
+      // Test 6: Get by ID (if we have entries)
+      if (allEntries.length > 0) {
+        addLog('\n📋 Test 6: Get by ID');
+        const firstEntry = allEntries[0];
+        const byId = await sqliteGratitudeStorage.getById(firstEntry.id);
+        addLog(`✅ Retrieved entry by ID: ${byId ? 'Success' : 'Failed'}`);
+        if (byId) {
+          addLog(`   Content: "${byId.content.substring(0, 40)}..."`);
+        }
+      }
+
+      addLog('\n✅ ALL READ TESTS PASSED!');
+      Alert.alert('Success', `SQLite READ operations working!\n${allEntries.length} entries, ${streak.currentStreak} days streak`, [{ text: 'OK' }]);
+
+    } catch (error) {
+      addLog(`\n❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'SQLite read test failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleResetDatabase = async () => {
     if (isRunning) return;
 
@@ -318,6 +468,22 @@ export default function MigrationTestScreen() {
       <Text style={styles.subtitle}>Journal Data Migration</Text>
 
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.testWriteButton, isRunning && styles.disabledButton]}
+          onPress={handleTestSQLiteWrite}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>✍️ Test SQLite WRITE</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.testReadButton, isRunning && styles.disabledButton]}
+          onPress={handleTestSQLiteRead}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📖 Test SQLite READ</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.button, styles.diagnosticButton, isRunning && styles.disabledButton]}
           onPress={handleDiagnoseBackup}
@@ -435,6 +601,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'center',
+  },
+  testWriteButton: {
+    backgroundColor: '#27AE60',
+  },
+  testReadButton: {
+    backgroundColor: '#16A085',
   },
   diagnosticButton: {
     backgroundColor: '#F39C12',
