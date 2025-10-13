@@ -554,8 +554,342 @@ export class SQLiteGratitudeStorage {
   }
 
   // ========================================
+  // FROZEN STREAK CALCULATION HELPERS
+  // ========================================
+
+  /**
+   * Calculate frozen days (debt) - how many consecutive missed days from yesterday backwards
+   * Per technical-guides:My-Journal.md lines 197-233
+   *
+   * ✅ OPTIMIZED: Uses SQL to check dates instead of loading all data
+   */
+  async calculateFrozenDays(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+      const currentStreak = await this.getStreak();
+
+      // FROZEN STREAK FIX #1: Ultra-short phantom debt prevention (5 minutes max)
+      if (currentStreak.autoResetTimestamp) {
+        const resetTime = new Date(currentStreak.autoResetTimestamp);
+        const now = new Date();
+        const minutesSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60);
+
+        if (minutesSinceReset < 5) {
+          return 0; // No debt immediately after reset
+        }
+      }
+
+      // CRITICAL FIX: If user completed today, debt is automatically 0
+      if (completedDates.includes(currentDate)) {
+        return 0;
+      }
+
+      // Calculate raw missed days (consecutive days backwards from yesterday)
+      const rawMissedDays = await this.calculateRawMissedDays();
+
+      // Get paid days from warm-up payments
+      const warmUpPayments = await this.getWarmUpPayments();
+      const paidDays = new Set<DateString>();
+
+      warmUpPayments.forEach(payment => {
+        if (payment.isComplete) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+
+      // Calculate which missed days are still unpaid
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
+
+      return unpaidMissedDays.length;
+    } catch (error) {
+      console.error('❌ calculateFrozenDays error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate frozen days EXCLUDING today (for auto-reset decision)
+   * Per technical-guides:My-Journal.md lines 235-258
+   */
+  async calculateFrozenDaysExcludingToday(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+
+      // Calculate raw missed days excluding today
+      let rawMissedDays = 0;
+      let checkDate = subtractDays(currentDate, 1); // Start with yesterday (skip today)
+
+      // Check backwards until we find a completed day or reach limit
+      for (let i = 0; i < 10; i++) {
+        if (completedDates.includes(checkDate)) {
+          break; // Found completed day
+        }
+        rawMissedDays++;
+        checkDate = subtractDays(checkDate, 1);
+      }
+
+      // Get paid days from warm-up payments (excluding today)
+      const warmUpPayments = await this.getWarmUpPayments();
+      const paidDays = new Set<DateString>();
+
+      warmUpPayments.forEach(payment => {
+        if (payment.isComplete && payment.missedDate !== currentDate) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+
+      // Calculate unpaid missed days (excluding today)
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date) && date !== currentDate);
+
+      return unpaidMissedDays.length;
+    } catch (error) {
+      console.error('❌ calculateFrozenDaysExcludingToday error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * HELPER: Calculate raw missed days without considering ad payments
+   * Returns actual number of consecutive missed days from yesterday backwards
+   */
+  private async calculateRawMissedDays(): Promise<number> {
+    try {
+      const currentDate = today();
+      const completedDates = await this.getCompletedDates();
+
+      let missedDays = 0;
+      let checkDate = subtractDays(currentDate, 1); // Start with yesterday
+
+      // Check backwards until we find a completed day or reach limit
+      for (let i = 0; i < 10; i++) {
+        if (completedDates.includes(checkDate)) {
+          break; // Found a completed day, no more debt
+        }
+        missedDays++;
+        checkDate = subtractDays(checkDate, 1);
+      }
+
+      return missedDays;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * HELPER: Get list of missed dates from today backwards
+   */
+  private getMissedDatesFromToday(count: number): DateString[] {
+    const currentDate = today();
+    const missedDates: DateString[] = [];
+
+    for (let i = 1; i <= count; i++) {
+      missedDates.push(subtractDays(currentDate, i));
+    }
+
+    return missedDates;
+  }
+
+  // ========================================
   // STREAK CALCULATION (Complex Business Logic)
   // ========================================
+
+  /**
+   * Calculate and update streak - FINAL VERSION: Complete implementation
+   * Includes ALL logic: basic, warm-up, frozen, auto-reset
+   * Per technical-guides:My-Journal.md lines 482-623
+   *
+   * ✅ PHASE 1: Basic streak calculation
+   * ✅ PHASE 2: Warm-up payment logic
+   * ✅ PHASE 3: Frozen streak logic (CURRENT)
+   */
+  async calculateAndUpdateStreak(): Promise<GratitudeStreak> {
+    try {
+      console.log('🔄 [FULL STREAK] Starting complete calculation...');
+
+      // Get data using optimized SQL queries
+      const completedDates = await this.getCompletedDates();
+      const currentDate = today();
+      const savedStreak = await this.getStreak();
+
+      // Load warm-up payments
+      const warmUpPayments = await this.getWarmUpPayments();
+      console.log(`📊 [FULL STREAK] Data: ${completedDates.length} completed, ${warmUpPayments.length} warm-up payments`);
+
+      // Save original streak value BEFORE any recalculations
+      const originalStreakValue = savedStreak.currentStreak;
+
+      // Calculate frozen days and debt
+      const frozenDays = await this.calculateFrozenDays();
+      const isFrozen = frozenDays > 0;
+      console.log(`🧊 [FULL STREAK] Frozen days: ${frozenDays}, isFrozen: ${isFrozen}`);
+
+      // Calculate debt excluding today for auto-reset decision
+      const debtExcludingToday = await this.calculateFrozenDaysExcludingToday();
+      console.log(`📊 [FULL STREAK] Debt excluding today: ${debtExcludingToday}`);
+
+      // AUTO-RESET if debt exceeds 3 days (excluding today)
+      if (debtExcludingToday > 3) {
+        console.log(`🔄 [FULL STREAK] AUTO-RESET triggered (debt=${debtExcludingToday} > 3)`);
+
+        const todayComplete = completedDates.includes(currentDate);
+        const newCurrentStreak = todayComplete ? 1 : 0;
+        const newLastEntryDate = todayComplete ? currentDate : null;
+        const newStreakStartDate = todayComplete ? currentDate : null;
+
+        // Calculate milestone counters
+        const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
+
+        // Preserve longest streak even during auto-reset
+        const preservedLongestStreak = Math.max(
+          savedStreak.longestStreak || 0,
+          savedStreak.currentStreak || 0
+        );
+
+        const resetStreak: GratitudeStreak = {
+          currentStreak: newCurrentStreak,
+          longestStreak: preservedLongestStreak,
+          lastEntryDate: newLastEntryDate,
+          streakStartDate: newStreakStartDate,
+          canRecoverWithAd: false,
+          frozenDays: 0,
+          isFrozen: false,
+          justUnfrozeToday: false,
+          preserveCurrentStreak: false,
+          preserveCurrentStreakUntil: null,
+          streakBeforeFreeze: null,
+          warmUpCompletedOn: null,
+          warmUpPayments: [],
+          warmUpHistory: [],
+          autoResetTimestamp: new Date(),
+          autoResetReason: `Auto-reset after ${debtExcludingToday} days debt`,
+          starCount,
+          flameCount,
+          crownCount,
+        };
+
+        await this.updateStreak(resetStreak);
+        console.log(`✅ [FULL STREAK] Auto-reset complete: streak=${newCurrentStreak}`);
+        return resetStreak;
+      }
+
+      // Update recovery logic for debt system
+      const canRecoverWithAd = frozenDays > 0 && frozenDays <= 3;
+
+      const todayComplete = completedDates.includes(currentDate);
+
+      // 🎯 COMPONENT 1: Simple +1 Logic (justUnfrozeToday flag)
+      // 🎯 COMPONENT 2: Frozen streak handling
+      // 🎯 COMPONENT 3: Warm-up aware calculation
+      let finalCurrentStreak: number;
+      let newJustUnfrozeToday: boolean;
+
+      if (savedStreak.justUnfrozeToday && todayComplete) {
+        // User unfroze today and completed entries → +1 to original frozen streak
+        finalCurrentStreak = (savedStreak.streakBeforeFreeze || savedStreak.currentStreak) + 1;
+        newJustUnfrozeToday = false; // Clear flag after use
+        console.log(`✨ [FULL STREAK] Just unfroze + completed: ${savedStreak.currentStreak} + 1 = ${finalCurrentStreak}`);
+      } else if (savedStreak.justUnfrozeToday && !todayComplete) {
+        // User unfroze but hasn't completed today yet - preserve streak
+        finalCurrentStreak = savedStreak.streakBeforeFreeze || savedStreak.currentStreak;
+        newJustUnfrozeToday = true; // Keep flag active until completion
+        console.log(`⏳ [FULL STREAK] Just unfroze, waiting for completion: ${finalCurrentStreak}`);
+      } else if (isFrozen) {
+        // Still frozen - keep current streak
+        finalCurrentStreak = savedStreak.currentStreak;
+        newJustUnfrozeToday = savedStreak.justUnfrozeToday || false;
+        console.log(`🧊 [FULL STREAK] Frozen - preserving streak: ${finalCurrentStreak}`);
+      } else {
+        // Normal calculation with warm-up awareness
+        const smartStreak = calculateStreakWithWarmUp(
+          completedDates,
+          currentDate,
+          warmUpPayments
+        );
+        finalCurrentStreak = smartStreak;
+        newJustUnfrozeToday = false;
+        console.log(`🧠 [FULL STREAK] Smart calculation with warm-up: ${finalCurrentStreak} days`);
+      }
+
+      // 🎯 SIMPLE FIX: Preserve streakBeforeFreeze only when initially freezing
+      let newStreakBeforeFreeze: number | null = null;
+      if (isFrozen && (savedStreak.streakBeforeFreeze === null || savedStreak.streakBeforeFreeze === undefined)) {
+        // First time freezing - remember current streak
+        newStreakBeforeFreeze = originalStreakValue;
+        console.log(`❄️ [FULL STREAK] First freeze - saving streak: ${newStreakBeforeFreeze}`);
+      } else if (isFrozen) {
+        // Already frozen - keep existing memory
+        newStreakBeforeFreeze = savedStreak.streakBeforeFreeze ?? null;
+      }
+      // When not frozen, streakBeforeFreeze stays null
+
+      // Calculate milestone counters
+      const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
+
+      // Determine last entry date and streak start
+      let lastEntryDate: DateString | null = null;
+      let streakStartDate: DateString | null = null;
+
+      if (completedDates.length > 0) {
+        const sortedDates = [...completedDates].sort();
+        const newLastEntryDate = sortedDates[sortedDates.length - 1]!;
+
+        // Use saved values when frozen, new values when not frozen
+        lastEntryDate = isFrozen ? savedStreak.lastEntryDate : newLastEntryDate;
+
+        if (finalCurrentStreak > 0) {
+          // Calculate streak start date
+          const streakLength = finalCurrentStreak;
+          const newStreakStartDate = sortedDates[Math.max(0, sortedDates.length - streakLength)] || sortedDates[0]!;
+          streakStartDate = isFrozen ? savedStreak.streakStartDate : newStreakStartDate;
+        }
+      }
+
+      // Calculate longest streak (preserve historical longest)
+      const finalLongestStreak = Math.max(
+        savedStreak.longestStreak || 0,
+        finalCurrentStreak
+      );
+
+      console.log(`🏆 [FULL STREAK] Longest: max(${savedStreak.longestStreak || 0}, ${finalCurrentStreak}) = ${finalLongestStreak}`);
+
+      // Build updated streak object
+      const updatedStreak: GratitudeStreak = {
+        currentStreak: finalCurrentStreak,
+        longestStreak: finalLongestStreak,
+        lastEntryDate,
+        streakStartDate,
+        canRecoverWithAd,
+        frozenDays,
+        isFrozen,
+        justUnfrozeToday: newJustUnfrozeToday,
+        streakBeforeFreeze: newStreakBeforeFreeze,
+        starCount,
+        flameCount,
+        crownCount,
+        warmUpPayments,
+        warmUpHistory: savedStreak.warmUpHistory || [],
+        warmUpCompletedOn: null,
+        autoResetTimestamp: savedStreak.autoResetTimestamp ?? null,
+        autoResetReason: savedStreak.autoResetReason ?? null,
+        preserveCurrentStreak: false,
+        preserveCurrentStreakUntil: null,
+      };
+
+      // Save to database
+      await this.updateStreak(updatedStreak);
+
+      console.log(`✅ [FULL STREAK] Complete: streak=${finalCurrentStreak}, frozen=${frozenDays}, canRecover=${canRecoverWithAd}`);
+
+      return updatedStreak;
+    } catch (error) {
+      console.error('❌ [FULL STREAK] Calculation failed:', error);
+      throw error;
+    }
+  }
 
   /**
    * Calculate and update streak - PHASE 2: WITH WARM-UP (no frozen logic yet)

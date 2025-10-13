@@ -601,6 +601,58 @@ export default function MigrationTestScreen() {
     );
   };
 
+  const handleTestFullStreak = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🎯 Testing FULL STREAK calculation (complete: warm-up + frozen logic)...');
+
+    try {
+      // Get old streak for comparison
+      addLog('\n📊 Step 1: Get current streak state');
+      const oldStreak = await sqliteGratitudeStorage.getStreak();
+      addLog(`   Current: ${oldStreak.currentStreak} days`);
+      addLog(`   Longest: ${oldStreak.longestStreak} days`);
+      addLog(`   Frozen: ${oldStreak.frozenDays} days`);
+      addLog(`   Is frozen: ${oldStreak.isFrozen ? 'YES' : 'NO'}`);
+      addLog(`   Can recover: ${oldStreak.canRecoverWithAd ? 'YES' : 'NO'}`);
+      addLog(`   Just unfroze today: ${oldStreak.justUnfrozeToday ? 'YES' : 'NO'}`);
+
+      // Run full streak calculation
+      addLog('\n🔄 Step 2: Run FULL streak calculation');
+      const newStreak = await sqliteGratitudeStorage.calculateAndUpdateStreak();
+      addLog(`   ✅ Calculation complete!`);
+
+      // Show results
+      addLog('\n📈 Step 3: Results');
+      addLog(`   Current streak: ${oldStreak.currentStreak} → ${newStreak.currentStreak}`);
+      addLog(`   Longest streak: ${oldStreak.longestStreak} → ${newStreak.longestStreak}`);
+      addLog(`   Frozen days: ${oldStreak.frozenDays} → ${newStreak.frozenDays}`);
+      addLog(`   Is frozen: ${oldStreak.isFrozen ? 'YES' : 'NO'} → ${newStreak.isFrozen ? 'YES' : 'NO'}`);
+      addLog(`   Can recover: ${oldStreak.canRecoverWithAd ? 'YES' : 'NO'} → ${newStreak.canRecoverWithAd ? 'YES' : 'NO'}`);
+      addLog(`   Last entry: ${newStreak.lastEntryDate}`);
+      addLog(`   Streak start: ${newStreak.streakStartDate}`);
+      addLog(`   ⭐ Stars: ${newStreak.starCount}`);
+      addLog(`   🔥 Flames: ${newStreak.flameCount}`);
+      addLog(`   👑 Crowns: ${newStreak.crownCount}`);
+
+      addLog('\n✅ FULL STREAK TEST PASSED!');
+      Alert.alert(
+        'Success',
+        `Full streak calculation works!\nCurrent: ${newStreak.currentStreak} days\nLongest: ${newStreak.longestStreak} days\nFrozen: ${newStreak.frozenDays} days\nCan recover: ${newStreak.canRecoverWithAd ? 'YES' : 'NO'}`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      addLog(`\n❌ Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Full streak test error:', error);
+      Alert.alert('Error', 'Full streak test failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleTestWarmUpStreak = async () => {
     if (isRunning) return;
 
@@ -802,6 +854,14 @@ export default function MigrationTestScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={[styles.button, styles.fullStreakButton, isRunning && styles.disabledButton]}
+          onPress={handleTestFullStreak}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🎯 Test FULL Streak</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.button, styles.checkTodayButton, isRunning && styles.disabledButton]}
           onPress={handleCheckTodayData}
           disabled={isRunning}
@@ -946,6 +1006,9 @@ const styles = StyleSheet.create({
   },
   warmUpButton: {
     backgroundColor: '#E67E22', // Orange for warm-up streak
+  },
+  fullStreakButton: {
+    backgroundColor: '#E74C3C', // Red for full streak (complete)
   },
   checkTodayButton: {
     backgroundColor: '#1ABC9C', // Teal for data check
