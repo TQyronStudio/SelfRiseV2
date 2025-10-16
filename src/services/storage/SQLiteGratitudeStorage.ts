@@ -1188,6 +1188,109 @@ export class SQLiteGratitudeStorage {
     // No-op: SQLite data was migrated with correct numbering in Phase 1.1.3
     return Promise.resolve();
   }
+
+  /**
+   * Count total gratitudes (all time)
+   * ✅ FAST: SQL COUNT query
+   */
+  async count(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM journal_entries'
+      );
+      return result?.count || 0;
+    } catch (error) {
+      console.error('❌ SQLite count failed:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get total days with at least one gratitude
+   * ✅ FAST: SQL COUNT DISTINCT
+   */
+  async getTotalDaysWithGratitude(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(DISTINCT date) as count FROM journal_entries'
+      );
+      return result?.count || 0;
+    } catch (error) {
+      console.error('❌ SQLite getTotalDaysWithGratitude failed:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get average gratitudes per day
+   * ✅ FAST: SQL AVG with GROUP BY
+   */
+  async getAverageGratitudesPerDay(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{ avg: number }>(
+        `SELECT AVG(entry_count) as avg
+         FROM (
+           SELECT COUNT(*) as entry_count
+           FROM journal_entries
+           GROUP BY date
+         )`
+      );
+      return Math.round((result?.avg || 0) * 10) / 10; // Round to 1 decimal
+    } catch (error) {
+      console.error('❌ SQLite getAverageGratitudesPerDay failed:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get streak info (alias for getStreak)
+   * Used by getStats()
+   */
+  async getStreakInfo(): Promise<GratitudeStreak> {
+    return this.getStreak();
+  }
+
+  /**
+   * Get comprehensive stats
+   * Used by GratitudeContext refreshStats()
+   */
+  async getStats(): Promise<any> {
+    try {
+      const [totalGratitudes, totalDays, averagePerDay, streakInfo] = await Promise.all([
+        this.count(),
+        this.getTotalDaysWithGratitude(),
+        this.getAverageGratitudesPerDay(),
+        this.getStreakInfo(),
+      ]);
+
+      return {
+        totalGratitudes,
+        totalDays,
+        averagePerDay,
+        streakInfo,
+        milestones: [], // Deprecated, kept for compatibility
+      };
+    } catch (error) {
+      console.error('❌ SQLite getStats failed:', error);
+      throw new StorageError(
+        'Failed to get gratitude stats',
+        STORAGE_ERROR_CODES.UNKNOWN,
+        'journal_entries'
+      );
+    }
+  }
+
+  /**
+   * Increment milestone counter (deprecated, no-op)
+   * Milestones are calculated dynamically via calculateMilestoneCounters()
+   */
+  async incrementMilestoneCounter(milestoneType: number): Promise<void> {
+    // No-op: Milestones calculated dynamically
+    return Promise.resolve();
+  }
 }
 
 // Export singleton instance
