@@ -247,7 +247,7 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [x] 1.1.3: Journal data migration with transactions ✅ (163 entries, 14 days streak, 16 payments)
 - [x] 1.1.4: Migration verification & integrity tests ✅
 - [x] 1.1.5: Update GratitudeStorage service to SQLite ✅
-- [ ] 1.1.6: Integrate SQLiteGratitudeStorage into app & implement rollback mechanism (2 hours)
+- [x] 1.1.6: Integrate SQLiteGratitudeStorage into app & implement rollback mechanism ✅
 - [ ] 1.1.7: Integration testing & race condition validation (1 hour)
 - [ ] 1.2: Habits storage migration (2 hours)
 - [ ] 1.3: Goals storage migration (2 hours)
