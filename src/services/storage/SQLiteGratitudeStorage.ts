@@ -577,6 +577,9 @@ export class SQLiteGratitudeStorage {
 
         if (minutesSinceReset < 5) {
           return 0; // No debt immediately after reset
+        } else {
+          // Clear old auto-reset timestamp to prevent perpetual 0 debt
+          await this.clearAutoResetTimestamp();
         }
       }
 
@@ -693,6 +696,73 @@ export class SQLiteGratitudeStorage {
     return missedDates;
   }
 
+  /**
+   * HELPER: Clear old auto-reset timestamp to prevent perpetual 0 debt
+   */
+  private async clearAutoResetTimestamp(): Promise<void> {
+    try {
+      const currentStreak = await this.getStreak();
+      const updatedStreak: GratitudeStreak = {
+        ...currentStreak,
+        autoResetTimestamp: null,
+        autoResetReason: null,
+      };
+      await this.updateStreak(updatedStreak);
+    } catch (error) {
+      console.error('[DEBUG] clearAutoResetTimestamp error:', error);
+    }
+  }
+
+  /**
+   * Calculate historical longest streak with warm-up awareness
+   * This checks ALL historical dates to find the longest streak that was maintained
+   * with warm-up payments bridging gaps
+   */
+  private calculateHistoricalLongestStreakWithWarmUp(
+    completedDates: DateString[],
+    warmUpPayments: WarmUpPayment[]
+  ): number {
+    if (completedDates.length === 0) return 0;
+
+    // Get all paid dates that can bridge gaps
+    const paidDates = new Set(
+      warmUpPayments
+        .filter(payment => payment.isComplete)
+        .map(payment => payment.missedDate)
+    );
+
+    // Sort all dates chronologically
+    const sortedDates = [...completedDates].sort();
+
+    let longestStreak = 0;
+
+    // Check streak ending at each completed date
+    for (let i = 0; i < sortedDates.length; i++) {
+      const endDate = sortedDates[i]!;
+      let currentStreak = 1; // Start with the current date
+      let checkDate = subtractDays(endDate, 1);
+
+      // Count backwards from this date
+      while (true) {
+        if (completedDates.includes(checkDate)) {
+          // Real completed day - count it
+          currentStreak++;
+          checkDate = subtractDays(checkDate, 1);
+        } else if (paidDates.has(checkDate)) {
+          // Paid gap - continue but don't count
+          checkDate = subtractDays(checkDate, 1);
+        } else {
+          // Real gap - streak ends
+          break;
+        }
+      }
+
+      longestStreak = Math.max(longestStreak, currentStreak);
+    }
+
+    return longestStreak;
+  }
+
   // ========================================
   // STREAK CALCULATION (Complex Business Logic)
   // ========================================
@@ -744,10 +814,16 @@ export class SQLiteGratitudeStorage {
         const { starCount, flameCount, crownCount } = await this.calculateMilestoneCounters();
 
         // Preserve longest streak even during auto-reset
+        // CRITICAL: Use warm-up aware calculation to preserve streaks with paid gaps
+        const warmUpAwareLongest = this.calculateHistoricalLongestStreakWithWarmUp(
+          completedDates,
+          warmUpPayments
+        );
         const preservedLongestStreak = Math.max(
           savedStreak.longestStreak || 0,
-          savedStreak.currentStreak || 0
+          warmUpAwareLongest
         );
+        console.log(`[AUTO-RESET] Preserving longest: max(${savedStreak.longestStreak || 0}, ${warmUpAwareLongest}) = ${preservedLongestStreak}`);
 
         const resetStreak: GratitudeStreak = {
           currentStreak: newCurrentStreak,
@@ -760,7 +836,7 @@ export class SQLiteGratitudeStorage {
           justUnfrozeToday: false,
           preserveCurrentStreak: false,
           preserveCurrentStreakUntil: null,
-          streakBeforeFreeze: null,
+          streakBeforeFreeze: 0, // Reset to 0 (not null) to match AsyncStorage
           warmUpCompletedOn: null,
           warmUpPayments: [],
           warmUpHistory: [],
