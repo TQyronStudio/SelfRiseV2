@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, UpdateGratitudeInput, WarmUpPayment } from '../types/gratitude';
-import { gratitudeStorage } from '../services/storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
+
+// Get storage implementation based on feature flag
+const gratitudeStorage = getGratitudeStorageImpl();
 
 export interface GratitudeState {
   gratitudes: Gratitude[];

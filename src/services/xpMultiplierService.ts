@@ -205,7 +205,8 @@ export class XPMultiplierService {
   private static async getRecentActivityData(days: number): Promise<DailyActivityData[]> {
     try {
       const habitStorage = new HabitStorage();
-      const gratitudeStorage = new GratitudeStorage();
+      const { getGratitudeStorageImpl } = require('../config/featureFlags');
+      const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
       
       const activityData: DailyActivityData[] = [];

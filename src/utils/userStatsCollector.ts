@@ -4,10 +4,13 @@
 import { UserStats } from './achievementPreviewUtils';
 import { GamificationService } from '../services/gamificationService';
 import { habitStorage } from '../services/storage/habitStorage';
-import { gratitudeStorage } from '../services/storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '../config/featureFlags';
 import { goalStorage } from '../services/storage/goalStorage';
 import { calculateCurrentStreak, calculateLongestStreak } from './date';
 import { AchievementIntegration } from '../services/achievementIntegration';
+
+// Get storage implementation based on feature flag
+const gratitudeStorage = getGratitudeStorageImpl();
 
 // ========================================
 // TYPESCRIPT INTERFACES - Phase 2 Safety

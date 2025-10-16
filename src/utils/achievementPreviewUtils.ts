@@ -2,7 +2,10 @@
 // Provides progress hints, requirements, and completion information for all achievements
 
 import { Achievement, AchievementRarity, AchievementCategory } from '../types/gamification';
-import { gratitudeStorage } from '../services/storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '../config/featureFlags';
+
+// Get storage implementation based on feature flag
+const gratitudeStorage = getGratitudeStorageImpl();
 
 // ========================================
 // INTERFACES

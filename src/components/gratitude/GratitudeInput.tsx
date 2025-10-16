@@ -12,10 +12,13 @@ import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { today } from '@/src/utils/date';
 import { ErrorModal } from '@/src/components/common';
-import { gratitudeStorage } from '@/src/services/storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '@/src/config/featureFlags';
 import { XPSourceType } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { Router } from 'expo-router';
+
+// Get storage implementation based on feature flag
+const gratitudeStorage = getGratitudeStorageImpl();
 
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;

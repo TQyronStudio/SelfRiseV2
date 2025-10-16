@@ -9,8 +9,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
-import { gratitudeStorage } from '../../services/storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '../../config/featureFlags';
 import { DateString } from '../../types/common';
+
+// Get storage implementation based on feature flag
+const gratitudeStorage = getGratitudeStorageImpl();
 import { 
   today, 
   subtractDays, 

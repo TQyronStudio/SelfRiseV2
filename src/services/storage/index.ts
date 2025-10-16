@@ -9,6 +9,9 @@ export { UserStorage, userStorage } from './userStorage';
 export { DataMigration, dataMigration } from './migration';
 export { DataBackup, dataBackup } from './backup';
 
+// SQLite storage services
+export { SQLiteGratitudeStorage, sqliteGratitudeStorage } from './SQLiteGratitudeStorage';
+
 // Storage service initialization
 import { dataMigration } from './migration';
 import { dataBackup } from './backup';

@@ -304,7 +304,8 @@ export class UserActivityTracker {
       
       // Use static imports for storage services
       const habitStorage = new HabitStorage();
-      const gratitudeStorage = new GratitudeStorage();
+      const { getGratitudeStorageImpl } = require('../config/featureFlags');
+      const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
       
       // Iterate through each day in the analysis period
