@@ -1174,6 +1174,20 @@ export class SQLiteGratitudeStorage {
       throw error;
     }
   }
+
+  // ========================================
+  // COMPATIBILITY METHODS (AsyncStorage parity)
+  // ========================================
+
+  /**
+   * Migrate gratitude numbering (no-op for SQLite)
+   * SQLite migration already handled numbering correctly
+   * This method exists for compatibility with GratitudeContext
+   */
+  async migrateGratitudeNumbering(): Promise<void> {
+    // No-op: SQLite data was migrated with correct numbering in Phase 1.1.3
+    return Promise.resolve();
+  }
 }
 
 // Export singleton instance
