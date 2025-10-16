@@ -125,6 +125,14 @@ export class SQLiteGratitudeStorage {
     }
   }
 
+  /**
+   * Get entries for specific date (alias for getByDate)
+   * Used by userActivityTracker.ts
+   */
+  async getEntriesForDate(date: DateString): Promise<Gratitude[]> {
+    return this.getByDate(date);
+  }
+
   // ========================================
   // STREAK OPERATIONS
   // ========================================

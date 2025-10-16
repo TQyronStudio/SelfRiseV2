@@ -38,29 +38,9 @@ LogBox.ignoreLogs([
 ]);
 
 function LayoutContent() {
-  const [dbInitialized, setDbInitialized] = useState(false);
-
-  // PHASE 1.1.2: SQLite initialization ENABLED (development build ready)
-  useEffect(() => {
-    initializeDatabase()
-      .then(() => {
-        console.log('✅ SQLite database ready');
-        setDbInitialized(true);
-      })
-      .catch((error) => {
-        console.error('❌ SQLite initialization failed:', error);
-        setDbInitialized(true); // Continue anyway for now
-      });
-  }, []);
-
-  // Initialize notification lifecycle management (must be inside RootProvider)
+  // Initialize notification lifecycle management (unconditional hook)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
-
-  // Wait for database before showing app
-  if (!dbInitialized) {
-    return null; // Show nothing while initializing
-  }
 
   return (
     <TutorialProvider>
@@ -100,9 +80,24 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [dbInitialized, setDbInitialized] = useState(false);
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
+  // PHASE 1.1.2: SQLite initialization ENABLED (development build ready)
+  // CRITICAL: Must initialize BEFORE RootProvider (which contains GratitudeProvider)
+  useEffect(() => {
+    initializeDatabase()
+      .then(() => {
+        console.log('✅ SQLite database ready');
+        setDbInitialized(true);
+      })
+      .catch((error) => {
+        console.error('❌ SQLite initialization failed:', error);
+        setDbInitialized(true); // Continue anyway for now
+      });
+  }, []);
+
+  if (!loaded || !dbInitialized) {
+    // Wait for fonts AND database before showing app
     return null;
   }
 
