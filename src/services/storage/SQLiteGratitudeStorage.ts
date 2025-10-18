@@ -1272,13 +1272,26 @@ export class SQLiteGratitudeStorage {
         const missedDate = unpaidMissedDays[i]!;
 
         // Insert or update warm_up_payment in SQLite
-        await db.runAsync(
-          `INSERT INTO warm_up_payments (missed_date, ads_watched, paid_at)
-           VALUES (?, 1, ?)
-           ON CONFLICT(missed_date)
-           DO UPDATE SET ads_watched = 1, paid_at = ?`,
-          [missedDate, Date.now(), Date.now()]
+        // Check if payment already exists for this date
+        const existingPayment = await db.getFirstAsync<{ id: string }>(
+          'SELECT id FROM warm_up_payments WHERE missed_date = ?',
+          [missedDate]
         );
+
+        if (existingPayment) {
+          // Update existing payment
+          await db.runAsync(
+            'UPDATE warm_up_payments SET ads_watched = 1, paid_at = ? WHERE id = ?',
+            [Date.now(), existingPayment.id]
+          );
+        } else {
+          // Insert new payment
+          const paymentId = `payment_${missedDate}_${Date.now()}`;
+          await db.runAsync(
+            'INSERT INTO warm_up_payments (id, missed_date, ads_watched, paid_at) VALUES (?, ?, 1, ?)',
+            [paymentId, missedDate, Date.now()]
+          );
+        }
 
         adsApplied++;
       }
