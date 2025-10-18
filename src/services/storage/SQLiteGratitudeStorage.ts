@@ -1180,6 +1180,18 @@ export class SQLiteGratitudeStorage {
   // ========================================
 
   /**
+   * Check if user can recover debt with ads (1-3 frozen days)
+   */
+  async canRecoverDebt(): Promise<boolean> {
+    try {
+      const frozenDays = await this.calculateFrozenDays();
+      return frozenDays > 0 && frozenDays <= 3;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * Calculate how many ads are needed to warm up frozen streak
    * Returns 0 if no debt, or if user already completed today (3+ entries)
    */
