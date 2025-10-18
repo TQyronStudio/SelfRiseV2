@@ -189,6 +189,7 @@ const en: TranslationKeys = {
       daily_complete_announcement: 'Congratulations! You have completed your daily journal practice!',
       streak_milestone_announcement: 'Amazing! You have reached a {{days}} day streak milestone!',
       bonus_milestone_announcement: 'Excellent! You have completed {{count}} bonus journal entries!',
+      epic_crown_announcement: 'Legendary achievement! You have reached the ultimate 10th bonus milestone with royal crown celebration!',
       daily_complete_modal: 'Daily journal completion celebration',
       streak_milestone_modal: '{{days}} day streak milestone celebration',
       bonus_milestone_modal: '{{count}} bonus entries celebration',
