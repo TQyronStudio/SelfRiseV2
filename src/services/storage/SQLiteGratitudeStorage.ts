@@ -1176,6 +1176,234 @@ export class SQLiteGratitudeStorage {
   }
 
   // ========================================
+  // FROZEN STREAK / WARM-UP PAYMENT METHODS
+  // ========================================
+
+  /**
+   * Calculate how many ads are needed to warm up frozen streak
+   * Returns 0 if no debt, or if user already completed today (3+ entries)
+   */
+  async adsNeededToWarmUp(): Promise<number> {
+    try {
+      const currentDate = today();
+      const todayCount = await this.countByDate(currentDate);
+
+      // CRITICAL FIX: If user has 3+ entries today, no ads needed
+      if (todayCount >= 3) {
+        return 0;
+      }
+
+      const effectiveFrozenDays = await this.calculateFrozenDays();
+
+      // If debt > 3, automatic reset (handled elsewhere)
+      if (effectiveFrozenDays > 3) return 0;
+
+      // Return effective unpaid debt (each ad pays 1 day)
+      return effectiveFrozenDays;
+    } catch (error) {
+      console.error('❌ adsNeededToWarmUp error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Apply single warm-up payment (1 ad = 1 missed day paid)
+   * Returns remaining frozen days and whether fully warmed
+   */
+  async applySingleWarmUpPayment(): Promise<{ remainingFrozenDays: number; isFullyWarmed: boolean }> {
+    try {
+      const currentFrozenDays = await this.calculateFrozenDays();
+
+      if (currentFrozenDays === 0) {
+        return { remainingFrozenDays: 0, isFullyWarmed: true };
+      }
+
+      // Apply 1 ad to the debt
+      await this.warmUpStreakWithAds(1);
+
+      // Calculate new debt after payment
+      const newFrozenDays = await this.calculateFrozenDays();
+      const isFullyWarmed = newFrozenDays === 0;
+
+      return { remainingFrozenDays: newFrozenDays, isFullyWarmed };
+    } catch (error) {
+      console.error('❌ applySingleWarmUpPayment error:', error);
+      throw new Error(`Failed to apply single ad payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Warm up frozen streak with multiple ads
+   * 1 ad = 1 day cleared
+   */
+  private async warmUpStreakWithAds(adsToApply: number): Promise<void> {
+    try {
+      const db = this.getDb();
+      const currentStreakInfo = await this.getStreak();
+      const currentFrozenDays = await this.calculateFrozenDays();
+
+      if (currentFrozenDays === 0) {
+        return; // No frozen days to warm up
+      }
+
+      if (adsToApply <= 0) {
+        throw new Error(`Invalid number of ads: ${adsToApply}`);
+      }
+
+      // Get the list of unpaid missed days
+      const unpaidMissedDays = await this.getUnpaidMissedDays();
+
+      // Apply ads to unpaid days (1 ad = 1 day cleared)
+      let adsApplied = 0;
+
+      for (let i = 0; i < Math.min(adsToApply, unpaidMissedDays.length); i++) {
+        const missedDate = unpaidMissedDays[i]!;
+
+        // Insert or update warm_up_payment in SQLite
+        await db.runAsync(
+          `INSERT INTO warm_up_payments (missed_date, ads_watched, paid_at)
+           VALUES (?, 1, ?)
+           ON CONFLICT(missed_date)
+           DO UPDATE SET ads_watched = 1, paid_at = ?`,
+          [missedDate, Date.now(), Date.now()]
+        );
+
+        adsApplied++;
+      }
+
+      // Calculate new effective debt
+      const warmUpPayments = await this.getWarmUpPayments();
+      const newFrozenDays = await this.calculateFrozenDays();
+
+      // Set justUnfrozeToday flag when fully unfrozen
+      const justUnfrozeNow = newFrozenDays === 0 && currentStreakInfo.frozenDays > 0;
+
+      const updatedStreakInfo: GratitudeStreak = {
+        ...currentStreakInfo,
+        frozenDays: newFrozenDays,
+        isFrozen: newFrozenDays > 0,
+        canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= 3,
+        justUnfrozeToday: justUnfrozeNow,
+        warmUpPayments, // Updated list from SQLite
+        streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze ?? null,
+      };
+
+      // Save updated streak state
+      await this.updateStreak(updatedStreakInfo);
+
+      // Recalculate streak to apply new logic
+      await this.calculateAndUpdateStreak();
+    } catch (error) {
+      console.error('❌ warmUpStreakWithAds error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list of unpaid missed days
+   */
+  private async getUnpaidMissedDays(): Promise<DateString[]> {
+    try {
+      const rawMissedDays = await this.calculateRawMissedDays();
+      const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+      const warmUpPayments = await this.getWarmUpPayments();
+      const paidDays = new Set<DateString>();
+
+      warmUpPayments.forEach(payment => {
+        if (payment.isComplete) {
+          paidDays.add(payment.missedDate);
+        }
+      });
+
+      return missedDates.filter(date => !paidDays.has(date));
+    } catch (error) {
+      console.error('❌ getUnpaidMissedDays error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get warm up payment progress for UI display
+   */
+  async getWarmUpPaymentProgress(): Promise<{
+    totalMissedDays: number;
+    paidDays: number;
+    unpaidDays: number;
+    paidDates: DateString[];
+    unpaidDates: DateString[];
+  }> {
+    try {
+      const totalMissedDays = await this.calculateRawMissedDays();
+      const unpaidDates = await this.getUnpaidMissedDays();
+      const allMissedDates = this.getMissedDatesFromToday(totalMissedDays);
+      const paidDates = allMissedDates.filter(date => !unpaidDates.includes(date));
+
+      return {
+        totalMissedDays,
+        paidDays: paidDates.length,
+        unpaidDays: unpaidDates.length,
+        paidDates,
+        unpaidDates,
+      };
+    } catch (error) {
+      console.error('❌ getWarmUpPaymentProgress error:', error);
+      return {
+        totalMissedDays: 0,
+        paidDays: 0,
+        unpaidDays: 0,
+        paidDates: [],
+        unpaidDates: [],
+      };
+    }
+  }
+
+  /**
+   * Reset streak to 0 (for manual reset or auto-reset after 3+ days debt)
+   */
+  async resetStreak(): Promise<GratitudeStreak> {
+    try {
+      const currentStreak = await this.getStreak();
+      const warmUpAwareLongest = this.calculateHistoricalLongestStreakWithWarmUp(
+        await this.getCompletedDates(),
+        await this.getWarmUpPayments()
+      );
+      const preservedLongestStreak = Math.max(
+        currentStreak.longestStreak || 0,
+        warmUpAwareLongest
+      );
+
+      const resetStreak: GratitudeStreak = {
+        currentStreak: 0,
+        longestStreak: preservedLongestStreak,
+        lastEntryDate: null,
+        streakStartDate: null,
+        frozenDays: 0,
+        isFrozen: false,
+        canRecoverWithAd: false,
+        warmUpPayments: [],
+        justUnfrozeToday: false,
+        streakBeforeFreeze: 0,
+        starCount: currentStreak.starCount || 0,
+        flameCount: currentStreak.flameCount || 0,
+        crownCount: currentStreak.crownCount || 0,
+        autoResetTimestamp: new Date().toISOString(),
+        autoResetReason: 'Manual reset',
+      };
+
+      await this.updateStreak(resetStreak);
+
+      // Clear all warm-up payments
+      const db = this.getDb();
+      await db.runAsync('DELETE FROM warm_up_payments');
+
+      return resetStreak;
+    } catch (error) {
+      console.error('❌ resetStreak error:', error);
+      throw error;
+    }
+  }
+
+  // ========================================
   // COMPATIBILITY METHODS (AsyncStorage parity)
   // ========================================
 
