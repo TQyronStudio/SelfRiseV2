@@ -191,44 +191,64 @@ export class SQLiteGratitudeStorage {
   // ========================================
 
   /**
-   * Create new journal entry (raw SQL insert)
-   * NOTE: This does NOT handle XP, streaks, or milestones
-   * Use wrapper class for full business logic
+   * Create new journal entry
+   * Compatible with CreateGratitudeInput interface (no order required)
+   * Automatically calculates order based on existing entries for the date
    */
-  async create(entry: {
-    id: string;
+  async create(input: {
+    id?: string;
     content: string;
     type: 'gratitude' | 'self-praise';
     date: DateString;
-    order: number;
-    isBonus: boolean;
-    createdAt: string;
-    updatedAt: string;
+    order?: number;
+    isBonus?: boolean;
+    createdAt?: string | Date;
+    updatedAt?: string | Date;
   }): Promise<Gratitude> {
     try {
       const db = this.getDb();
 
-      // Convert to SQLite format
-      const createdAtMs = new Date(entry.createdAt).getTime();
-      const updatedAtMs = new Date(entry.updatedAt).getTime();
+      // Generate ID if not provided
+      const entryId = input.id || `gratitude_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+      // Calculate order automatically if not provided
+      let order = input.order;
+      if (order === undefined) {
+        // Count existing entries for this date
+        const result = await db.getFirstAsync<{ count: number }>(
+          'SELECT COUNT(*) as count FROM journal_entries WHERE date = ?',
+          [input.date]
+        );
+        order = (result?.count || 0) + 1;
+      }
+
+      // Determine if this is a bonus entry
+      const isBonus = input.isBonus !== undefined ? input.isBonus : order > 3;
+
+      // Convert timestamps
+      const createdAt = input.createdAt ? new Date(input.createdAt) : new Date();
+      const updatedAt = input.updatedAt ? new Date(input.updatedAt) : new Date();
+      const createdAtMs = createdAt.getTime();
+      const updatedAtMs = updatedAt.getTime();
+
+      // Insert into SQLite
       await db.runAsync(
         'INSERT INTO journal_entries (id, text, type, date, gratitude_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [entry.id, entry.content, entry.type, entry.date, entry.order, createdAtMs, updatedAtMs]
+        [entryId, input.content, input.type, input.date, order, createdAtMs, updatedAtMs]
       );
 
-      console.log(`✅ SQLite: Entry created (id=${entry.id}, date=${entry.date}, order=${entry.order})`);
+      console.log(`✅ SQLite: Entry created (id=${entryId}, date=${input.date}, order=${order})`);
 
-      // Return created entry (convert timestamps to Date objects)
+      // Return created entry
       return {
-        id: entry.id,
-        content: entry.content,
-        type: entry.type,
-        date: entry.date,
-        order: entry.order,
-        isBonus: entry.isBonus,
-        createdAt: new Date(entry.createdAt),
-        updatedAt: new Date(entry.updatedAt),
+        id: entryId,
+        content: input.content,
+        type: input.type,
+        date: input.date,
+        order,
+        isBonus,
+        createdAt,
+        updatedAt,
       };
     } catch (error) {
       console.error('❌ SQLite create failed:', error);
