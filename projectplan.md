@@ -249,8 +249,21 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - [x] 1.1.5: Update GratitudeStorage service to SQLite ✅
 - [x] 1.1.6: Integrate SQLiteGratitudeStorage into app & implement rollback mechanism ✅
 - [x] 1.1.7: Integration testing & race condition validation ✅
-- [ ] 1.2: Habits storage migration (2 hours)
-- [ ] 1.3: Goals storage migration (2 hours)
+- [x] 1.2: Habits storage migration ✅ (11 habits, 266 completions, 13 schedule history)
+  - [x] 1.2.1: Habits backup & verification
+  - [x] 1.2.2: Update Habits SQLite schema
+  - [x] 1.2.3: Habits data migration
+  - [x] 1.2.4: Create SQLiteHabitStorage service (630 lines)
+  - [x] 1.2.5: Integrate into HabitsContext with feature flag
+  - [x] 1.2.6: Testing & validation
+- [x] 1.3: Goals storage migration ✅ (2 goals, 21 progress records, 0 milestones)
+  - [x] 1.3.1: Goals backup & verification (goalsBackup.ts - 171 lines)
+  - [x] 1.3.2: Update Goals SQLite schema (description, start_date, progress_type)
+  - [x] 1.3.3: Goals data migration (goalsMigration.ts - 241 lines)
+  - [x] 1.3.4: Create SQLiteGoalStorage service (880 lines)
+  - [x] 1.3.5: Integrate into GoalsContext with feature flag
+  - [x] 1.3.6: Schema migration automation (goals.order_index, target_date, goal_progress rebuild)
+  - [x] 1.3.7: Testing & validation (create goal, add progress, XP integration)
 - [ ] Final: Automated + manual testing (2 hours)
 
 **Expected Results**:
@@ -334,4 +347,33 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 - Implementation patterns & decision tree
 - Quick reference table for all features
 - Common mistakes to avoid
+
+
+
+---
+
+## 🐛 KNOWN ISSUES - To be fixed later
+
+### Issue: Habit Statistics Home Screen - Make Up červená nesynchronizovaná
+
+**Popis problému**:
+V Habit Statistics na Home screenu se po provedení Make Up (bonus completion pokrývající zmeškaný den) nezobrazuje stav správně. I když v jednotlivých kalendářích návyků není červené políčko (zmeškaný den byl pokrytý bonusem), v Home Screen statistikách stále zůstává červená.
+
+**Příklad**:
+- Pondělí: Téměř nic nesplněno → ve sloupci hodně červené
+- Sobota: Splněny všechny návyky + Make Up od první vynechávky
+- Očekávané chování: Červená by měla zmizet z pondělí, zelená přibývat v sobotu
+- Skutečné chování: I přesto že kalendáře jednotlivých návyků nemají červenou v pondělí, Home Screen statistiky ji stále zobrazují
+
+**Postup na opravu**:
+1. Zkontrolovat komponenty `WeeklyHabitChart.tsx` a `Monthly30DayChart.tsx`
+2. Ověřit že správně čtou `isCovered` a `isConverted` fields z completions
+3. Ujistit se že Make Up logika v `useHabitsData.ts` správně persistuje změny do SQLite pomocí `updateCompletion()`
+4. Otestovat že po restartu aplikace zůstávají Make Up změny zachované
+5. Debug log přidat pro tracking které completions mají `isCovered=true` vs. které se zobrazují jako červené
+
+**Poznámka**: Tento bug existoval pravděpodobně i před SQLite migrací, není způsobený přechodem na SQLite.
+
+**Status**: 📋 Zdokumentováno, opraví se později
+
 

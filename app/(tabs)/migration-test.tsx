@@ -15,6 +15,10 @@ import { migrateJournalData, getMigrationStatus } from '../../src/services/datab
 import { diagnoseBackup } from '../../src/services/database/migration/diagnoseBackup';
 import { sqliteGratitudeStorage } from '../../src/services/storage/SQLiteGratitudeStorage';
 import { today } from '../../src/utils/date';
+import { createHabitsBackup, verifyHabitsData } from '../../src/services/database/migration/habitsBackup';
+import { migrateHabitsData, getHabitsMigrationStatus } from '../../src/services/database/migration/habitsMigration';
+import { createGoalsBackup, verifyGoalsData } from '../../src/services/database/migration/goalsBackup';
+import { migrateGoalsToSQLite } from '../../src/services/database/migration/goalsMigration';
 
 export default function MigrationTestScreen() {
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -792,6 +796,9 @@ export default function MigrationTestScreen() {
               await db.execAsync('DROP TABLE IF EXISTS journal_entries');
               await db.execAsync('DROP TABLE IF EXISTS streak_state');
               await db.execAsync('DROP TABLE IF EXISTS warm_up_payments');
+              await db.execAsync('DROP TABLE IF EXISTS goal_progress');
+              await db.execAsync('DROP TABLE IF EXISTS goal_milestones');
+              await db.execAsync('DROP TABLE IF EXISTS goals');
               await db.execAsync('DROP VIEW IF EXISTS v_todays_entry_count');
               await db.execAsync('DROP VIEW IF EXISTS v_completed_dates');
               await db.execAsync('DROP VIEW IF EXISTS v_bonus_dates');
@@ -815,12 +822,329 @@ export default function MigrationTestScreen() {
     );
   };
 
+  // ========== PHASE 1.2: HABITS BACKUP TESTS ==========
+
+  const handleCreateHabitsBackup = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('📦 Creating Habits backup...');
+
+    try {
+      const result = await createHabitsBackup();
+
+      if (result.success) {
+        addLog('✅ Habits backup created successfully');
+        addLog(`   Habits: ${result.data?.counts.habits ?? 0}`);
+        addLog(`   Completions: ${result.data?.counts.completions ?? 0}`);
+        addLog(`   Timestamp: ${result.data?.timestamp ?? 'N/A'}`);
+        Alert.alert('Success', `Habits backup created:\n${result.data?.counts.habits ?? 0} habits\n${result.data?.counts.completions ?? 0} completions`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ Habits backup creation failed');
+        addLog(result.message);
+        Alert.alert('Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Habits backup creation crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleVerifyHabitsData = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔍 Verifying Habits data...');
+
+    try {
+      const result = await verifyHabitsData();
+
+      if (result.valid) {
+        addLog('✅ Habits data is valid');
+        addLog(`   Habits: ${result.counts.habits}`);
+        addLog(`   Completions: ${result.counts.completions}`);
+        addLog(`   Issues: ${result.issues.length}`);
+
+        if (result.issues.length > 0) {
+          addLog('\n⚠️ Issues found:');
+          result.issues.forEach(issue => addLog(`   - ${issue}`));
+        }
+
+        Alert.alert('Verification Complete', `Habits: ${result.counts.habits}\nCompletions: ${result.counts.completions}\nIssues: ${result.issues.length}`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ Habits data is invalid');
+        addLog(result.message);
+        Alert.alert('Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Habits verification crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunHabitsMigration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Habits migration...');
+
+    try {
+      // Check status first
+      const status = await getHabitsMigrationStatus();
+
+      if (status.isMigrated) {
+        addLog(`⚠️ Database already contains ${status.habitCount} habits`);
+        Alert.alert(
+          'Already Migrated',
+          `Database contains ${status.habitCount} habits. Migration may have already been completed.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      addLog('✅ Database is empty, ready to migrate');
+
+      // Run migration
+      const result = await migrateHabitsData();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`   Habits: ${result.habitsMigrated}`);
+        addLog(`   Completions: ${result.completionsMigrated}`);
+        addLog(`   Schedule history: ${result.scheduleHistoryMigrated}`);
+
+        if (result.errors.length > 0) {
+          addLog(`\n⚠️ Warnings (${result.errors.length}):`);
+          result.errors.slice(0, 5).forEach(err => addLog(`   - ${err}`));
+        }
+
+        Alert.alert(
+          'Migration Complete!',
+          `Habits: ${result.habitsMigrated}\nCompletions: ${result.completionsMigrated}\nSchedule history: ${result.scheduleHistoryMigrated}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        addLog(result.message);
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Migration Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Migration crashed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Migration crashed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleCheckHabitsMigrationStatus = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔍 Checking Habits migration status...');
+
+    try {
+      const status = await getHabitsMigrationStatus();
+
+      addLog(`Migration status:`);
+      addLog(`   Is migrated: ${status.isMigrated ? 'Yes ✅' : 'No ❌'}`);
+      addLog(`   Habit count: ${status.habitCount}`);
+      addLog(`   Completion count: ${status.completionCount}`);
+
+      Alert.alert(
+        'Habits Migration Status',
+        `Is migrated: ${status.isMigrated ? 'YES' : 'NO'}\nHabits: ${status.habitCount}\nCompletions: ${status.completionCount}`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  // ========== PHASE 1.3: GOALS MIGRATION ==========
+
+  const handleCreateGoalsBackup = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('📦 Creating Goals backup...');
+
+    try {
+      const result = await createGoalsBackup();
+
+      if (result.success) {
+        addLog('✅ Goals backup created successfully');
+        addLog(`   Goals: ${result.data?.counts.goals ?? 0}`);
+        addLog(`   Progress: ${result.data?.counts.progress ?? 0}`);
+        Alert.alert('Success', `Goals backup created:\n${result.data?.counts.goals ?? 0} goals\n${result.data?.counts.progress ?? 0} progress records`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ Goals backup creation failed');
+        addLog(result.message);
+        Alert.alert('Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Goals backup creation crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunGoalsMigration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Goals migration...');
+
+    try {
+      const result = await migrateGoalsToSQLite();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`   Goals: ${result.counts.goals}`);
+        addLog(`   Progress: ${result.counts.progress}`);
+        addLog(`   Milestones: ${result.counts.milestones}`);
+
+        if (result.errors.length > 0) {
+          addLog(`\n⚠️ Warnings (${result.errors.length}):`);
+          result.errors.slice(0, 5).forEach(err => addLog(`   - ${err}`));
+        }
+
+        Alert.alert(
+          'Migration Complete!',
+          `Goals: ${result.counts.goals}\nProgress: ${result.counts.progress}\nMilestones: ${result.counts.milestones}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        addLog(result.message);
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Migration Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Migration crashed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Migration crashed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Migration Test - Phase 1.1.3</Text>
-      <Text style={styles.subtitle}>Journal Data Migration</Text>
+      <Text style={styles.title}>Migration Test - Phase 1.3</Text>
+      <Text style={styles.subtitle}>Goals Migration</Text>
 
-      <View style={styles.buttonContainer}>
+      <ScrollView style={styles.buttonContainer}>
+        {/* ========== PHASE 1.3: GOALS MIGRATION BUTTONS ========== */}
+        <TouchableOpacity
+          style={[styles.button, styles.resetButton, isRunning && styles.disabledButton]}
+          onPress={async () => {
+            if (isRunning) return;
+            Alert.alert(
+              'Drop Goals Tables',
+              'DELETE goals tables? Requires re-migration after reload.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Drop',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setIsRunning(true);
+                    clearLog();
+                    addLog('🗑️ Dropping goals tables...');
+                    try {
+                      const db = getDatabase();
+                      await db.execAsync('DROP TABLE IF EXISTS goal_progress');
+                      await db.execAsync('DROP TABLE IF EXISTS goal_milestones');
+                      await db.execAsync('DROP TABLE IF EXISTS goals');
+                      addLog('✅ Tables dropped - RELOAD APP NOW');
+                      Alert.alert('Done', 'Tables dropped. RELOAD APP (Cmd+R)', [{ text: 'OK' }]);
+                    } catch (error) {
+                      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+                    } finally {
+                      setIsRunning(false);
+                    }
+                  }
+                }
+              ]
+            );
+          }}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🗑️ DROP Goals Tables</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.goalsBackupButton, isRunning && styles.disabledButton]}
+          onPress={handleCreateGoalsBackup}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📦 Create Goals Backup</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.goalsMigrateButton, isRunning && styles.disabledButton]}
+          onPress={handleRunGoalsMigration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🚀 RUN Goals Migration</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+        <Text style={styles.sectionTitle}>Phase 1.2: Habits Tests</Text>
+
+        <TouchableOpacity
+          style={[styles.button, styles.habitsBackupButton, isRunning && styles.disabledButton]}
+          onPress={handleCreateHabitsBackup}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📦 Create Habits Backup</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.habitsVerifyButton, isRunning && styles.disabledButton]}
+          onPress={handleVerifyHabitsData}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔍 Verify Habits Data</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.habitsMigrateButton, isRunning && styles.disabledButton]}
+          onPress={handleRunHabitsMigration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🚀 RUN Habits Migration</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.habitsStatusButton, isRunning && styles.disabledButton]}
+          onPress={handleCheckHabitsMigrationStatus}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📊 Check Habits Status</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+        <Text style={styles.sectionTitle}>Phase 1.1: Journal Tests</Text>
         <TouchableOpacity
           style={[styles.button, styles.testWriteButton, isRunning && styles.disabledButton]}
           onPress={handleTestSQLiteWrite}
@@ -947,7 +1271,7 @@ export default function MigrationTestScreen() {
         >
           <Text style={styles.buttonText}>🧹 Clear Log</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       <View style={styles.logContainer}>
         <Text style={styles.logTitle}>Test Log:</Text>
@@ -994,6 +1318,36 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'center',
+  },
+  goalsBackupButton: {
+    backgroundColor: '#16A085', // Teal for goals backup
+  },
+  goalsMigrateButton: {
+    backgroundColor: '#D35400', // Orange for goals migration
+  },
+  habitsBackupButton: {
+    backgroundColor: '#2980B9', // Blue for habits backup
+  },
+  habitsVerifyButton: {
+    backgroundColor: '#8E44AD', // Purple for verification
+  },
+  habitsMigrateButton: {
+    backgroundColor: '#E74C3C', // Red for migration (important action)
+  },
+  habitsStatusButton: {
+    backgroundColor: '#3498DB', // Blue for status check
+  },
+  divider: {
+    height: 2,
+    backgroundColor: '#BDC3C7',
+    marginVertical: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 12,
+    marginTop: 8,
   },
   testWriteButton: {
     backgroundColor: '#27AE60',

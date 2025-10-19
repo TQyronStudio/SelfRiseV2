@@ -1,13 +1,12 @@
 // Achievement Integration Layer
 // Connects AchievementService with existing storage services for real data
 
-import { HabitStorage } from './storage/habitStorage';
 import { GoalStorage } from './storage/goalStorage';
 import { DateString } from '../types/common';
 import { XPSourceType } from '../types/gamification';
 import { today, formatDateToString, subtractDays } from '../utils/date';
 import { LoyaltyService } from './loyaltyService';
-import { getGratitudeStorageImpl } from '../config/featureFlags';
+import { getGratitudeStorageImpl, getHabitStorageImpl } from '../config/featureFlags';
 
 /**
  * Integration layer providing real data to AchievementService
@@ -15,7 +14,7 @@ import { getGratitudeStorageImpl } from '../config/featureFlags';
  */
 export class AchievementIntegration {
   // Storage instances
-  private static habitStorage = new HabitStorage();
+  private static habitStorage = getHabitStorageImpl();
   private static gratitudeStorage = getGratitudeStorageImpl();
   private static goalStorage = new GoalStorage();
 

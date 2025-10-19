@@ -6,13 +6,13 @@
  */
 
 import { DailyTaskProgress } from '../../types/notification';
-import { habitStorage } from '../storage/habitStorage';
-import { getGratitudeStorageImpl } from '../../config/featureFlags';
+import { getGratitudeStorageImpl, getHabitStorageImpl } from '../../config/featureFlags';
 import { goalStorage } from '../storage/goalStorage';
 import { formatDateToString } from '../../utils/date';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
+const habitStorage = getHabitStorageImpl();
 
 /**
  * Helper to check if two dates are on the same day

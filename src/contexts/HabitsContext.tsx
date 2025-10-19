@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../types/habit';
-import { habitStorage } from '../services/storage/habitStorage';
+import { getHabitStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
 import { HabitResetUtils } from '../utils/HabitResetUtils';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
+
+// Get storage implementation based on feature flag
+const habitStorage = getHabitStorageImpl();
 
 export interface HabitsState {
   habits: Habit[];
@@ -113,20 +116,26 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
 
   const loadHabits = async () => {
     try {
+      console.log('🔄 HabitsContext: Starting loadHabits...');
       setLoading(true);
       setError(null);
-      
+
       // Initialize daily reset system
       await HabitResetUtils.initializeResetSystem();
-      
+
       const [habits, completions] = await Promise.all([
         habitStorage.getAll(),
         habitStorage.getAllCompletions(),
       ]);
-      
+
+      console.log(`🔄 HabitsContext: Loaded ${habits.length} habits, ${completions.length} completions`);
+
       dispatch({ type: 'SET_HABITS', payload: habits });
       dispatch({ type: 'SET_COMPLETIONS', payload: completions });
+
+      console.log('✅ HabitsContext: Habits loaded successfully');
     } catch (error) {
+      console.error('❌ HabitsContext: Failed to load habits:', error);
       setError(error instanceof Error ? error.message : 'Failed to load habits');
     } finally {
       setLoading(false);

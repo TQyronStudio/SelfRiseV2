@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput } from '../types/goal';
-import { goalStorage } from '../services/storage/goalStorage';
+import { getGoalStorageImpl } from '../config/featureFlags';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
+
+const goalStorage = getGoalStorageImpl();
 
 export interface GoalsState {
   goals: Goal[];

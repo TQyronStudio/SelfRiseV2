@@ -57,6 +57,72 @@ export function getDatabase(): SQLite.SQLiteDatabase {
 async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   console.log('📋 Creating database tables...');
 
+  // ========================================
+  // GOALS TABLE MIGRATION
+  // ========================================
+  const goalsTableInfo = await database.getAllAsync(`PRAGMA table_info(goals)`);
+
+  if (goalsTableInfo.length > 0) {
+    const columns = new Set(goalsTableInfo.map((col: any) => col.name));
+
+    if (!columns.has('order_index')) {
+      console.log('🔄 Adding goals.order_index...');
+      await database.execAsync(`ALTER TABLE goals ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0;`);
+      await database.execAsync(`CREATE INDEX IF NOT EXISTS idx_goals_order ON goals(order_index);`);
+    }
+
+    if (!columns.has('target_date')) {
+      console.log('🔄 Adding goals.target_date...');
+      await database.execAsync(`ALTER TABLE goals ADD COLUMN target_date TEXT;`);
+    }
+
+    if (!columns.has('description')) {
+      console.log('🔄 Adding goals.description...');
+      await database.execAsync(`ALTER TABLE goals ADD COLUMN description TEXT;`);
+    }
+
+    if (!columns.has('start_date')) {
+      console.log('🔄 Adding goals.start_date...');
+      await database.execAsync(`ALTER TABLE goals ADD COLUMN start_date TEXT;`);
+      // Set start_date to created_at date for existing records
+      await database.execAsync(`UPDATE goals SET start_date = date(created_at / 1000, 'unixepoch') WHERE start_date IS NULL;`);
+    }
+
+    console.log('✅ Goals table migration complete');
+  }
+
+  // ========================================
+  // GOAL_PROGRESS TABLE MIGRATION - REBUILD REQUIRED
+  // ========================================
+  const progressTableInfo = await database.getAllAsync(`PRAGMA table_info(goal_progress)`);
+
+  if (progressTableInfo.length > 0) {
+    const columns = new Set(progressTableInfo.map((col: any) => col.name));
+
+    // Check if table has old schema (timestamp column instead of date)
+    const hasOldSchema = columns.has('timestamp') && !columns.has('date');
+
+    if (hasOldSchema) {
+      console.log('🔄 Rebuilding goal_progress table with new schema...');
+
+      // Backup existing data
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS goal_progress_backup AS
+        SELECT * FROM goal_progress;
+      `);
+
+      // Drop old table
+      await database.execAsync(`DROP TABLE goal_progress;`);
+
+      // Recreate with new schema (will be created below in main CREATE TABLE block)
+      console.log('✅ Old goal_progress table dropped, will recreate with new schema');
+    } else if (!columns.has('progress_type')) {
+      // Partial migration for tables that need progress_type
+      console.log('🔄 Adding goal_progress.progress_type...');
+      await database.execAsync(`ALTER TABLE goal_progress ADD COLUMN progress_type TEXT NOT NULL DEFAULT 'add';`);
+    }
+  }
+
   await database.execAsync(`
     -- ========================================
     -- JOURNAL ENTRIES
@@ -120,17 +186,34 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE TABLE IF NOT EXISTS habits (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      category TEXT NOT NULL,
+      color TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      scheduled_days TEXT NOT NULL,
+      order_index INTEGER NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
       description TEXT,
-      difficulty TEXT NOT NULL,
-      target_type TEXT NOT NULL,
-      archived INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
+      updated_at INTEGER NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0
     );
 
-    CREATE INDEX IF NOT EXISTS idx_habits_archived ON habits(archived);
-    CREATE INDEX IF NOT EXISTS idx_habits_category ON habits(category);
+    CREATE INDEX IF NOT EXISTS idx_habits_order ON habits(order_index);
+    CREATE INDEX IF NOT EXISTS idx_habits_archived ON habits(is_archived);
+    CREATE INDEX IF NOT EXISTS idx_habits_active ON habits(is_active);
+
+    -- ========================================
+    -- HABIT SCHEDULE HISTORY (Timeline)
+    -- ========================================
+    CREATE TABLE IF NOT EXISTS habit_schedule_history (
+      id TEXT PRIMARY KEY,
+      habit_id TEXT NOT NULL,
+      scheduled_days TEXT NOT NULL,
+      effective_from_date TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_schedule_history_habit ON habit_schedule_history(habit_id, effective_from_date DESC);
 
     -- ========================================
     -- HABIT COMPLETIONS
@@ -139,30 +222,21 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       id TEXT PRIMARY KEY,
       habit_id TEXT NOT NULL,
       date TEXT NOT NULL,
-      time TEXT NOT NULL,
-      value INTEGER,
-      bonus INTEGER NOT NULL DEFAULT 0,
+      completed INTEGER NOT NULL DEFAULT 1,
+      is_bonus INTEGER NOT NULL DEFAULT 0,
+      completed_at INTEGER,
+      note TEXT,
+      is_converted INTEGER NOT NULL DEFAULT 0,
+      converted_from_date TEXT,
+      converted_to_date TEXT,
       created_at INTEGER NOT NULL,
-      FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
-      UNIQUE(habit_id, date, time)
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_completions_habit_date ON habit_completions(habit_id, date DESC);
-    CREATE INDEX IF NOT EXISTS idx_completions_date ON habit_completions(date DESC);
-
-    -- ========================================
-    -- HABIT SCHEDULES
-    -- ========================================
-    CREATE TABLE IF NOT EXISTS habit_schedules (
-      id TEXT PRIMARY KEY,
-      habit_id TEXT NOT NULL,
-      frequency TEXT NOT NULL,
-      daily_target INTEGER,
-      days_of_week TEXT,
+      updated_at INTEGER NOT NULL,
       FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
     );
 
-    CREATE INDEX IF NOT EXISTS idx_schedules_habit ON habit_schedules(habit_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_completion_habit_date ON habit_completions(habit_id, date);
+    CREATE INDEX IF NOT EXISTS idx_completions_date ON habit_completions(date DESC);
+    CREATE INDEX IF NOT EXISTS idx_completions_bonus ON habit_completions(is_bonus, date DESC);
 
     -- ========================================
     -- GOALS
@@ -170,11 +244,15 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE TABLE IF NOT EXISTS goals (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
-      category TEXT NOT NULL,
-      current_value INTEGER NOT NULL DEFAULT 0,
-      target_value INTEGER NOT NULL,
+      description TEXT,
       unit TEXT NOT NULL,
-      status TEXT NOT NULL CHECK(status IN ('active', 'completed', 'archived')),
+      target_value REAL NOT NULL,
+      current_value REAL NOT NULL DEFAULT 0,
+      target_date TEXT,
+      category TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'completed', 'archived', 'paused')),
+      order_index INTEGER NOT NULL DEFAULT 0,
+      start_date TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
       completed_at INTEGER
@@ -182,6 +260,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status);
     CREATE INDEX IF NOT EXISTS idx_goals_category ON goals(category);
+    CREATE INDEX IF NOT EXISTS idx_goals_order ON goals(order_index);
 
     -- ========================================
     -- GOAL MILESTONES
@@ -204,13 +283,16 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE TABLE IF NOT EXISTS goal_progress (
       id TEXT PRIMARY KEY,
       goal_id TEXT NOT NULL,
-      value INTEGER NOT NULL,
-      timestamp INTEGER NOT NULL,
+      value REAL NOT NULL,
+      date TEXT NOT NULL,
       note TEXT,
+      progress_type TEXT NOT NULL DEFAULT 'add' CHECK(progress_type IN ('add', 'subtract', 'set')),
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
       FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE
     );
 
-    CREATE INDEX IF NOT EXISTS idx_progress_goal_time ON goal_progress(goal_id, timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_progress_goal_date ON goal_progress(goal_id, date DESC);
 
     -- ========================================
     -- PERFORMANCE VIEWS (Journal System)
@@ -241,6 +323,37 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   `);
 
   console.log('✅ Tables and views created successfully');
+
+  // ========================================
+  // RESTORE DATA FROM BACKUP IF EXISTS
+  // ========================================
+  const backupExists = await database.getAllAsync(`SELECT name FROM sqlite_master WHERE type='table' AND name='goal_progress_backup'`);
+
+  if (backupExists.length > 0) {
+    console.log('🔄 Restoring goal_progress data from backup...');
+
+    // Migrate data from backup to new table
+    await database.execAsync(`
+      INSERT INTO goal_progress (id, goal_id, value, date, note, progress_type, created_at, updated_at)
+      SELECT
+        id,
+        goal_id,
+        value,
+        date(timestamp / 1000, 'unixepoch') as date,
+        note,
+        'add' as progress_type,
+        timestamp as created_at,
+        timestamp as updated_at
+      FROM goal_progress_backup;
+    `);
+
+    const restoredCount = await database.getFirstAsync<any>('SELECT COUNT(*) as count FROM goal_progress');
+    console.log(`✅ Restored ${restoredCount?.count || 0} progress records`);
+
+    // Drop backup table
+    await database.execAsync(`DROP TABLE goal_progress_backup;`);
+    console.log('✅ Backup table cleaned up');
+  }
 }
 
 /**

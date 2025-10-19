@@ -18,8 +18,6 @@ import { DateString } from '../types/common';
 import { XPMultiplier, MultiplierCondition } from '../types/gamification';
 import { XP_MULTIPLIERS } from '../constants/gamification';
 import { formatDateToString, today, addDays, subtractDays } from '../utils/date';
-import { HabitStorage } from './storage/habitStorage';
-import { GratitudeStorage } from './storage/gratitudeStorage';
 import { GoalStorage } from './storage/goalStorage';
 
 // ========================================
@@ -204,8 +202,8 @@ export class XPMultiplierService {
    */
   private static async getRecentActivityData(days: number): Promise<DailyActivityData[]> {
     try {
-      const habitStorage = new HabitStorage();
-      const { getGratitudeStorageImpl } = require('../config/featureFlags');
+      const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags');
+      const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
       
@@ -250,7 +248,7 @@ export class XPMultiplierService {
    * Get habit activity for specific date
    */
   private static async getHabitActivityForDate(
-    habitStorage: HabitStorage,
+    habitStorage: any,
     date: DateString
   ): Promise<number> {
     try {

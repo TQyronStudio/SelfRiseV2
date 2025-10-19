@@ -16,16 +16,24 @@ export const FEATURE_FLAGS = {
   USE_SQLITE_JOURNAL: true,
 
   /**
-   * SQLite Migration - Habits Storage (Future)
-   * Placeholder for Phase 1.2
+   * SQLite Migration - Habits Storage
+   *
+   * When true: Use SQLiteHabitStorage for all habit operations
+   * When false: Use AsyncStorage habitStorage (legacy system)
+   *
+   * Rollback strategy: Set to false if critical issues occur
    */
-  USE_SQLITE_HABITS: false,
+  USE_SQLITE_HABITS: true,
 
   /**
-   * SQLite Migration - Goals Storage (Future)
-   * Placeholder for Phase 1.3
+   * SQLite Migration - Goals Storage
+   *
+   * When true: Use SQLiteGoalStorage for all goal operations
+   * When false: Use AsyncStorage goalStorage (legacy system)
+   *
+   * Rollback strategy: Set to false if critical issues occur
    */
-  USE_SQLITE_GOALS: false,
+  USE_SQLITE_GOALS: true,
 } as const;
 
 /**
@@ -47,5 +55,35 @@ export function getGratitudeStorageImpl() {
   } else {
     const { gratitudeStorage } = require('../services/storage/gratitudeStorage');
     return gratitudeStorage;
+  }
+}
+
+/**
+ * Storage selection helper for habits
+ * Returns appropriate storage instance based on feature flag
+ */
+export function getHabitStorageImpl() {
+  if (FEATURE_FLAGS.USE_SQLITE_HABITS) {
+    // Lazy import to avoid circular dependencies
+    const { sqliteHabitStorage } = require('../services/storage/SQLiteHabitStorage');
+    return sqliteHabitStorage;
+  } else {
+    const { habitStorage } = require('../services/storage/habitStorage');
+    return habitStorage;
+  }
+}
+
+/**
+ * Storage selection helper for goals
+ * Returns appropriate storage instance based on feature flag
+ */
+export function getGoalStorageImpl() {
+  if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
+    // Lazy import to avoid circular dependencies
+    const { sqliteGoalStorage } = require('../services/storage/SQLiteGoalStorage');
+    return sqliteGoalStorage;
+  } else {
+    const { goalStorage } = require('../services/storage/goalStorage');
+    return goalStorage;
   }
 }

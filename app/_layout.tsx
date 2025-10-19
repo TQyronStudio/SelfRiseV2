@@ -25,6 +25,9 @@ import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle'
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
 
+// TEMPORARY: Debug utility for Phase 1.3
+import '../src/utils/dropGoalsTables';
+
 // Suppress ExpoLinearGradient view config warnings
 LogBox.ignoreLogs([
   'Unable to get the view config for',

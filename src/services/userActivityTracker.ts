@@ -4,8 +4,6 @@ import { DateString } from '../types/common';
 import { AchievementCategory, XPSourceType } from '../types/gamification';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
 import { GamificationService } from './gamificationService';
-import { HabitStorage } from './storage/habitStorage';
-import { GratitudeStorage } from './storage/gratitudeStorage';
 import { GoalStorage } from './storage/goalStorage';
 
 // ========================================
@@ -303,8 +301,8 @@ export class UserActivityTracker {
       const summaries: DailyActivitySummary[] = [];
       
       // Use static imports for storage services
-      const habitStorage = new HabitStorage();
-      const { getGratitudeStorageImpl } = require('../config/featureFlags');
+      const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags');
+      const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
       

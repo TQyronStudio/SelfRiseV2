@@ -11,6 +11,7 @@ export { DataBackup, dataBackup } from './backup';
 
 // SQLite storage services
 export { SQLiteGratitudeStorage, sqliteGratitudeStorage } from './SQLiteGratitudeStorage';
+export { SQLiteHabitStorage, sqliteHabitStorage } from './SQLiteHabitStorage';
 
 // Storage service initialization
 import { dataMigration } from './migration';

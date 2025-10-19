@@ -14,6 +14,8 @@ import { XP_REWARDS } from '@/src/constants/gamification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goalStorage } from '@/src/services/storage/goalStorage';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { dropGoalsTables } from '@/src/utils/dropGoalsTables';
+import { getDatabase } from '@/src/services/database/init';
 
 const styles = StyleSheet.create({
   container: {
