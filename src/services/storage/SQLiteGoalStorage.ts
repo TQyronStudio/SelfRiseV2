@@ -110,6 +110,14 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
 
       const newGoal = createGoal(input, maxOrder + 1);
 
+      // Convert timestamps
+      const createdAtTimestamp = newGoal.createdAt instanceof Date
+        ? newGoal.createdAt.getTime()
+        : newGoal.createdAt;
+      const updatedAtTimestamp = newGoal.updatedAt instanceof Date
+        ? newGoal.updatedAt.getTime()
+        : newGoal.updatedAt;
+
       await db.runAsync(
         `INSERT INTO goals (
           id, title, description, unit, target_value, current_value, target_date,
@@ -127,8 +135,8 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
           newGoal.status,
           newGoal.order,
           newGoal.startDate,
-          newGoal.createdAt,
-          newGoal.updatedAt,
+          createdAtTimestamp,
+          updatedAtTimestamp,
           newGoal.completedDate || null,
         ]
       );
