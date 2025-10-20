@@ -459,6 +459,159 @@ export async function migrateAchievementUnlockEvents(): Promise<{
 }
 
 // ========================================
+// PHASE 2.3: MULTIPLIERS & LOYALTY MIGRATION
+// ========================================
+
+/**
+ * Migrate XP multipliers
+ */
+export async function migrateXPMultipliers(): Promise<{
+  success: boolean;
+  multiplierCount: number;
+  error?: string;
+}> {
+  console.log('🔄 [Multipliers Migration] Starting...');
+
+  try {
+    const db = getDatabase();
+
+    const multiplierStr = await AsyncStorage.getItem('gamification_xp_multiplier');
+
+    if (!multiplierStr) {
+      console.log('ℹ️  [Multipliers Migration] No multiplier data to migrate');
+      return { success: true, multiplierCount: 0 };
+    }
+
+    const multiplierData = JSON.parse(multiplierStr);
+    console.log(`📊 [Multipliers Migration] Loaded multiplier data`);
+
+    // Current multiplier might be stored as single object or array
+    const multipliers = Array.isArray(multiplierData) ? multiplierData : [multiplierData];
+
+    if (multipliers.length === 0 || !multipliers[0]) {
+      console.log('ℹ️  [Multipliers Migration] No active multipliers');
+      return { success: true, multiplierCount: 0 };
+    }
+
+    await db.execAsync('BEGIN TRANSACTION');
+
+    try {
+      let migrated = 0;
+
+      for (const mult of multipliers) {
+        if (!mult || !mult.id) continue;
+
+        const activatedAt = mult.activatedAt instanceof Date
+          ? mult.activatedAt.getTime()
+          : typeof mult.activatedAt === 'number'
+            ? mult.activatedAt
+            : new Date(mult.activatedAt).getTime();
+
+        const expiresAt = mult.expiresAt instanceof Date
+          ? mult.expiresAt.getTime()
+          : typeof mult.expiresAt === 'number'
+            ? mult.expiresAt
+            : mult.expiresAt
+              ? new Date(mult.expiresAt).getTime()
+              : null;
+
+        await db.runAsync(
+          `INSERT OR REPLACE INTO xp_multipliers (
+            id, source, multiplier, activated_at, expires_at, is_active
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            mult.id,
+            mult.source || 'unknown',
+            mult.multiplier || 1.0,
+            activatedAt,
+            expiresAt,
+            mult.isActive ? 1 : 0,
+          ]
+        );
+
+        migrated++;
+      }
+
+      await db.execAsync('COMMIT');
+
+      console.log(`✅ [Multipliers Migration] ${migrated} multipliers migrated`);
+
+      return {
+        success: true,
+        multiplierCount: migrated,
+      };
+
+    } catch (error) {
+      await db.execAsync('ROLLBACK');
+      throw error;
+    }
+
+  } catch (error) {
+    console.error('❌ [Multipliers Migration] Failed:', error);
+    return {
+      success: false,
+      multiplierCount: 0,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Migrate loyalty tracking state
+ */
+export async function migrateLoyaltyState(): Promise<{
+  success: boolean;
+  migrated: boolean;
+  error?: string;
+}> {
+  console.log('🔄 [Loyalty Migration] Starting...');
+
+  try {
+    const db = getDatabase();
+
+    const loyaltyStr = await AsyncStorage.getItem('loyalty_tracking_state');
+
+    if (!loyaltyStr) {
+      console.log('ℹ️  [Loyalty Migration] No loyalty data to migrate');
+      return { success: true, migrated: false };
+    }
+
+    const loyalty = JSON.parse(loyaltyStr);
+    console.log(`📊 [Loyalty Migration] Loaded loyalty data (${loyalty.totalActiveDays} active days)`);
+
+    await db.runAsync(
+      `INSERT OR REPLACE INTO loyalty_state (
+        id, total_active_days, current_streak, longest_streak,
+        last_active_date, milestones_unlocked, updated_at
+      ) VALUES (1, ?, ?, ?, ?, ?, ?)`,
+      [
+        loyalty.totalActiveDays || 0,
+        loyalty.currentActiveStreak || 0,
+        loyalty.longestActiveStreak || 0,
+        loyalty.lastActiveDate || null,
+        JSON.stringify(loyalty.milestonesUnlocked || []),
+        Date.now(),
+      ]
+    );
+
+    console.log(`✅ [Loyalty Migration] State migrated successfully`);
+
+    return {
+      success: true,
+      migrated: true,
+    };
+
+  } catch (error) {
+    console.error('❌ [Loyalty Migration] Failed:', error);
+    return {
+      success: false,
+      migrated: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+// ========================================
 // VERIFICATION
 // ========================================
 
@@ -564,6 +717,8 @@ export async function migrateGamificationToSQLite(): Promise<{
     unlockedAchievements: number;
     unlockEvents: number;
     totalXP: number;
+    multipliers: number;
+    loyaltyMigrated: boolean;
   };
   errors: string[];
 }> {
@@ -577,6 +732,8 @@ export async function migrateGamificationToSQLite(): Promise<{
     unlockedAchievements: 0,
     unlockEvents: 0,
     totalXP: 0,
+    multipliers: 0,
+    loyaltyMigrated: false,
   };
 
   try {
@@ -612,6 +769,22 @@ export async function migrateGamificationToSQLite(): Promise<{
       summary.unlockEvents = eventsResult.eventCount;
     } else {
       errors.push(`Achievement Events Migration: ${eventsResult.error}`);
+    }
+
+    // Phase 5: XP Multipliers (Phase 2.3)
+    const multipliersResult = await migrateXPMultipliers();
+    if (multipliersResult.success) {
+      summary.multipliers = multipliersResult.multiplierCount;
+    } else {
+      errors.push(`Multipliers Migration: ${multipliersResult.error}`);
+    }
+
+    // Phase 6: Loyalty State (Phase 2.3)
+    const loyaltyResult = await migrateLoyaltyState();
+    if (loyaltyResult.success) {
+      summary.loyaltyMigrated = loyaltyResult.migrated;
+    } else {
+      errors.push(`Loyalty Migration: ${loyaltyResult.error}`);
     }
 
     // Verify migration
