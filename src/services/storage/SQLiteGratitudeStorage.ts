@@ -18,6 +18,9 @@ import * as SQLite from 'expo-sqlite';
 import { Gratitude, GratitudeStreak, CreateGratitudeInput, WarmUpPayment } from '../../types/gratitude';
 import { DateString } from '../../types/common';
 import { getDatabase } from '../database/init';
+import { GamificationService } from '../gamificationService';
+import { XPSourceType } from '../../types/gamification';
+import { XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
 import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
@@ -239,6 +242,67 @@ export class SQLiteGratitudeStorage {
 
       console.log(`✅ SQLite: Entry created (id=${entryId}, date=${input.date}, order=${order})`);
 
+      // ========================================
+      // XP AWARD LOGIC (Phase 1.1 Fix)
+      // ========================================
+
+      // Calculate base XP amount
+      const baseXpAmount = this.getXPForJournalEntry(order);
+      const xpSource = isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+
+      // Calculate milestone XP for bonuses (⭐🔥👑)
+      let milestoneXpAmount = 0;
+      let milestoneDescription = '';
+      if (isBonus) {
+        if (order === 4) { // First bonus milestone ⭐
+          milestoneXpAmount = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
+          milestoneDescription = ' + ⭐ First Bonus Milestone';
+        } else if (order === 8) { // Fifth bonus milestone 🔥
+          milestoneXpAmount = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
+          milestoneDescription = ' + 🔥 Fifth Bonus Milestone';
+        } else if (order === 13) { // Tenth bonus milestone 👑
+          milestoneXpAmount = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
+          milestoneDescription = ' + 👑 Tenth Bonus Milestone';
+        }
+      }
+
+      // Combine base XP + milestone XP for single transaction
+      const totalXpAmount = baseXpAmount + milestoneXpAmount;
+      const description = isBonus
+        ? `Bonus journal entry #${order}${milestoneDescription}`
+        : `Journal entry #${order}`;
+
+      // Award combined XP in single transaction (prevents double achievement processing)
+      await GamificationService.addXP(totalXpAmount, {
+        source: milestoneXpAmount > 0 ? XPSourceType.JOURNAL_BONUS_MILESTONE : xpSource,
+        description,
+        sourceId: entryId,
+        metadata: {
+          baseXp: baseXpAmount,
+          milestoneXp: milestoneXpAmount,
+          entryPosition: order,
+          entryLength: input.content.length,
+        },
+      });
+
+      console.log(`✅ Journal entry created (position: ${order}, +${totalXpAmount} XP)${milestoneDescription}`);
+
+      // Update milestone counters if milestone was reached
+      if (milestoneXpAmount > 0) {
+        const currentStreak = await this.getStreak();
+        const updatedStreak = { ...currentStreak };
+
+        if (order === 4) updatedStreak.starCount += 1;
+        else if (order === 8) updatedStreak.flameCount += 1;
+        else if (order === 13) updatedStreak.crownCount += 1;
+
+        await this.updateStreak(updatedStreak);
+        console.log(`✨ Milestone counter updated: ${order === 4 ? 'starCount' : order === 8 ? 'flameCount' : 'crownCount'}++`);
+      }
+
+      // Update streak after adding new gratitude
+      await this.calculateAndUpdateStreak();
+
       // Return created entry
       return {
         id: entryId,
@@ -257,6 +321,24 @@ export class SQLiteGratitudeStorage {
         STORAGE_ERROR_CODES.UNKNOWN,
         'journal_entries'
       );
+    }
+  }
+
+  /**
+   * Get XP amount for journal entry based on daily position
+   * Anti-spam protection: Entries 14+ receive 0 XP
+   */
+  private getXPForJournalEntry(position: number): number {
+    switch (position) {
+      case 1: return XP_REWARDS.JOURNAL.FIRST_ENTRY;   // 20 XP
+      case 2: return XP_REWARDS.JOURNAL.SECOND_ENTRY;  // 20 XP
+      case 3: return XP_REWARDS.JOURNAL.THIRD_ENTRY;   // 20 XP
+      default:
+        if (position >= 4 && position <= 13) {
+          return XP_REWARDS.JOURNAL.BONUS_ENTRY;  // 8 XP (4th-13th entries)
+        } else {
+          return XP_REWARDS.JOURNAL.FOURTEENTH_PLUS_ENTRY;  // 0 XP (14+ entries - anti-spam)
+        }
     }
   }
 
@@ -305,16 +387,66 @@ export class SQLiteGratitudeStorage {
   }
 
   /**
-   * Delete journal entry (raw SQL delete)
-   * NOTE: Does NOT handle XP refunds or streak recalculation
+   * Delete journal entry with XP refund
    */
   async delete(id: string): Promise<void> {
     try {
       const db = this.getDb();
 
+      // Get entry before deletion to calculate XP refund
+      const deletedEntry = await this.getById(id);
+      if (!deletedEntry) {
+        throw new Error(`Entry with id=${id} not found`);
+      }
+
+      // Calculate XP to refund
+      const position = deletedEntry.order;
+      const xpAmount = this.getXPForJournalEntry(position);
+      const xpSource = deletedEntry.isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+
+      // Delete from database
       await db.runAsync('DELETE FROM journal_entries WHERE id = ?', [id]);
 
-      console.log(`✅ SQLite: Entry deleted (id=${id})`);
+      console.log(`✅ SQLite: Entry deleted (id=${id}, position=${position})`);
+
+      // Refund XP if any was awarded
+      if (xpAmount > 0) {
+        await GamificationService.subtractXP(xpAmount, {
+          source: xpSource,
+          description: `Deleted journal entry #${position} (-${xpAmount} XP)`,
+        });
+
+        console.log(`🗑️ Journal entry deleted (-${xpAmount} XP)`);
+      } else {
+        console.log(`🗑️ Journal entry deleted (0 XP change)`);
+      }
+
+      // Check if milestone was lost and update counters
+      if (deletedEntry.isBonus) {
+        // Get current count for this date after deletion
+        const newCount = await this.countByDate(deletedEntry.date);
+
+        // If we lost a milestone, decrement the counter
+        if (position === 4 && newCount < 4) {
+          // Lost ⭐ milestone
+          const currentStreak = await this.getStreak();
+          await this.updateStreak({ starCount: Math.max(0, currentStreak.starCount - 1) });
+          console.log(`⭐ Milestone lost: starCount--`);
+        } else if (position === 8 && newCount < 8) {
+          // Lost 🔥 milestone
+          const currentStreak = await this.getStreak();
+          await this.updateStreak({ flameCount: Math.max(0, currentStreak.flameCount - 1) });
+          console.log(`🔥 Milestone lost: flameCount--`);
+        } else if (position === 13 && newCount < 13) {
+          // Lost 👑 milestone
+          const currentStreak = await this.getStreak();
+          await this.updateStreak({ crownCount: Math.max(0, currentStreak.crownCount - 1) });
+          console.log(`👑 Milestone lost: crownCount--`);
+        }
+      }
+
+      // Recalculate streak after deletion
+      await this.calculateAndUpdateStreak();
     } catch (error) {
       console.error(`❌ SQLite delete failed for id=${id}:`, error);
       throw new StorageError(
