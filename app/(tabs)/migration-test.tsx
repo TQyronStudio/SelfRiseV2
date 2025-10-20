@@ -19,6 +19,8 @@ import { createHabitsBackup, verifyHabitsData } from '../../src/services/databas
 import { migrateHabitsData, getHabitsMigrationStatus } from '../../src/services/database/migration/habitsMigration';
 import { createGoalsBackup, verifyGoalsData } from '../../src/services/database/migration/goalsBackup';
 import { migrateGoalsToSQLite } from '../../src/services/database/migration/goalsMigration';
+import { createGamificationBackup, verifyGamificationBackup } from '../../src/services/database/migration/gamificationBackup';
+import { migrateGamificationToSQLite } from '../../src/services/database/migration/gamificationMigration';
 
 export default function MigrationTestScreen() {
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -1006,6 +1008,91 @@ export default function MigrationTestScreen() {
     }
   };
 
+  // ========================================
+  // PHASE 2: GAMIFICATION MIGRATION HANDLERS
+  // ========================================
+
+  const handleCreateGamificationBackup = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔄 Creating gamification backup...');
+
+    try {
+      const { backup, checksums, backupPath } = await createGamificationBackup();
+
+      addLog('✅ Backup created successfully!');
+      addLog(`📁 Path: ${backupPath}`);
+      addLog(`\n📊 Checksums:`);
+      addLog(`   Total XP: ${checksums.totalXPSum}`);
+      addLog(`   Transactions: ${checksums.transactionCount}`);
+      addLog(`   Achievements: ${checksums.achievementUnlockCount}`);
+      addLog(`   Level-ups: ${checksums.levelUpEventCount}`);
+      addLog(`   Daily tracking days: ${checksums.dailyTrackingDays}`);
+
+      const verification = await verifyGamificationBackup(backup, checksums);
+      if (verification.valid) {
+        addLog('✅ Backup verification passed');
+        Alert.alert('Success', 'Gamification backup created and verified!', [{ text: 'OK' }]);
+      } else {
+        addLog('❌ Backup verification failed:');
+        verification.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Warning', 'Backup created but verification failed', [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Backup creation failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunGamificationMigration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Gamification migration...');
+
+    try {
+      const result = await migrateGamificationToSQLite();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`\n📊 Migration Summary:`);
+        addLog(`   XP Transactions: ${result.summary.xpTransactions}`);
+        addLog(`   Total XP: ${result.summary.totalXP}`);
+        addLog(`   Level-ups: ${result.summary.levelUpEvents}`);
+        addLog(`   Achievements: ${result.summary.achievements}`);
+        addLog(`   Unlocked: ${result.summary.unlockedAchievements}`);
+        addLog(`   Unlock Events: ${result.summary.unlockEvents}`);
+
+        if (result.errors.length > 0) {
+          addLog(`\n⚠️ Warnings (${result.errors.length}):`);
+          result.errors.slice(0, 5).forEach(err => addLog(`   - ${err}`));
+        }
+
+        Alert.alert(
+          'Migration Complete!',
+          `XP Transactions: ${result.summary.xpTransactions}\nTotal XP: ${result.summary.totalXP}\nAchievements: ${result.summary.achievements}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Migration Failed', result.errors.join('\n'), [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Migration crashed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Migration crashed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleRunGoalsMigration = async () => {
     if (isRunning) return;
 
@@ -1049,11 +1136,82 @@ export default function MigrationTestScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Migration Test - Phase 1.3</Text>
-      <Text style={styles.subtitle}>Goals Migration</Text>
+      <Text style={styles.title}>Migration Test - Phase 2.1</Text>
+      <Text style={styles.subtitle}>Gamification & XP Migration</Text>
 
       <ScrollView style={styles.buttonContainer}>
+        {/* ========== PHASE 2: GAMIFICATION MIGRATION BUTTONS ========== */}
+        <Text style={styles.sectionTitle}>Phase 2.1: Gamification Migration</Text>
+
+        <TouchableOpacity
+          style={[styles.button, styles.resetButton, isRunning && styles.disabledButton]}
+          onPress={async () => {
+            if (isRunning) return;
+            Alert.alert(
+              'Drop XP Tables',
+              'DELETE all gamification tables? Requires re-migration after reload.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'DROP TABLES',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setIsRunning(true);
+                    clearLog();
+                    addLog('🗑️ Dropping XP tables...');
+                    try {
+                      const db = getDatabase();
+                      await db.execAsync(`
+                        DROP TABLE IF EXISTS xp_transactions;
+                        DROP TABLE IF EXISTS xp_daily_summary;
+                        DROP TABLE IF EXISTS xp_state;
+                        DROP TABLE IF EXISTS level_up_history;
+                        DROP TABLE IF EXISTS achievement_progress;
+                        DROP TABLE IF EXISTS achievement_unlock_events;
+                        DROP TABLE IF EXISTS achievement_stats_cache;
+                        DROP TABLE IF EXISTS xp_multipliers;
+                        DROP TABLE IF EXISTS loyalty_state;
+                        DROP TABLE IF EXISTS daily_activity_log;
+                      `);
+                      addLog('✅ All XP tables dropped');
+                      addLog('⚠️ RELOAD APP to recreate tables');
+                      Alert.alert('Success', 'Tables dropped. RELOAD APP now.', [{ text: 'OK' }]);
+                    } catch (error) {
+                      addLog(`❌ Drop failed: ${error instanceof Error ? error.message : 'Unknown'}`);
+                      Alert.alert('Error', 'Failed to drop tables', [{ text: 'OK' }]);
+                    } finally {
+                      setIsRunning(false);
+                    }
+                  },
+                },
+              ]
+            );
+          }}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🗑️ DROP XP Tables</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton, isRunning && styles.disabledButton]}
+          onPress={handleCreateGamificationBackup}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📦 Create Gamification Backup</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton, isRunning && styles.disabledButton]}
+          onPress={handleRunGamificationMigration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🚀 RUN Gamification Migration</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
         {/* ========== PHASE 1.3: GOALS MIGRATION BUTTONS ========== */}
+        <Text style={styles.sectionTitle}>Phase 1.3: Goals Migration</Text>
         <TouchableOpacity
           style={[styles.button, styles.resetButton, isRunning && styles.disabledButton]}
           onPress={async () => {

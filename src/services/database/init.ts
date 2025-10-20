@@ -322,6 +322,133 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     ORDER BY date DESC;
   `);
 
+  // ========================================
+  // GAMIFICATION & XP TABLES (Phase 2)
+  // ========================================
+
+  await database.execAsync(`
+    -- XP Transactions (time-series data)
+    CREATE TABLE IF NOT EXISTS xp_transactions (
+      id TEXT PRIMARY KEY,
+      amount INTEGER NOT NULL,
+      source TEXT NOT NULL,
+      source_id TEXT,
+      timestamp INTEGER NOT NULL,
+      description TEXT,
+      metadata TEXT  -- JSON
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_xp_timestamp ON xp_transactions(timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_xp_source ON xp_transactions(source);
+    CREATE INDEX IF NOT EXISTS idx_xp_source_id ON xp_transactions(source_id);
+
+    -- Daily XP Summary (pre-aggregated for fast queries)
+    CREATE TABLE IF NOT EXISTS xp_daily_summary (
+      date TEXT PRIMARY KEY,
+      total_xp INTEGER NOT NULL DEFAULT 0,
+      habit_xp INTEGER NOT NULL DEFAULT 0,
+      journal_xp INTEGER NOT NULL DEFAULT 0,
+      goal_xp INTEGER NOT NULL DEFAULT 0,
+      achievement_xp INTEGER NOT NULL DEFAULT 0,
+      transaction_count INTEGER NOT NULL DEFAULT 0,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_xp_daily_date ON xp_daily_summary(date DESC);
+
+    -- User XP State (singleton)
+    CREATE TABLE IF NOT EXISTS xp_state (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      total_xp INTEGER NOT NULL DEFAULT 0,
+      current_level INTEGER NOT NULL DEFAULT 1,
+      last_activity INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    -- Level Up History
+    CREATE TABLE IF NOT EXISTS level_up_history (
+      id TEXT PRIMARY KEY,
+      level INTEGER NOT NULL,
+      timestamp INTEGER NOT NULL,
+      total_xp_at_levelup INTEGER NOT NULL,
+      is_milestone INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_levelup_timestamp ON level_up_history(timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_levelup_level ON level_up_history(level);
+
+    -- Achievement Progress
+    CREATE TABLE IF NOT EXISTS achievement_progress (
+      achievement_id TEXT PRIMARY KEY,
+      current_value INTEGER NOT NULL DEFAULT 0,
+      target_value INTEGER NOT NULL,
+      unlocked INTEGER NOT NULL DEFAULT 0,
+      unlocked_at INTEGER,
+      xp_awarded INTEGER DEFAULT 0,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_achievement_unlocked ON achievement_progress(unlocked);
+
+    -- Achievement Unlock Events (history)
+    CREATE TABLE IF NOT EXISTS achievement_unlock_events (
+      id TEXT PRIMARY KEY,
+      achievement_id TEXT NOT NULL,
+      unlocked_at INTEGER NOT NULL,
+      xp_awarded INTEGER NOT NULL,
+      category TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_unlock_timestamp ON achievement_unlock_events(unlocked_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_unlock_category ON achievement_unlock_events(category);
+
+    -- Achievement Statistics Cache
+    CREATE TABLE IF NOT EXISTS achievement_stats_cache (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      total_unlocked INTEGER NOT NULL DEFAULT 0,
+      total_xp_earned INTEGER NOT NULL DEFAULT 0,
+      by_category TEXT NOT NULL,  -- JSON
+      by_rarity TEXT NOT NULL,    -- JSON
+      last_updated INTEGER NOT NULL
+    );
+
+    -- XP Multipliers
+    CREATE TABLE IF NOT EXISTS xp_multipliers (
+      id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      multiplier REAL NOT NULL,
+      activated_at INTEGER NOT NULL,
+      expires_at INTEGER,
+      is_active INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_multiplier_active ON xp_multipliers(is_active, expires_at);
+
+    -- Loyalty Tracking
+    CREATE TABLE IF NOT EXISTS loyalty_state (
+      id INTEGER PRIMARY KEY CHECK(id = 1),
+      total_active_days INTEGER NOT NULL DEFAULT 0,
+      current_streak INTEGER NOT NULL DEFAULT 0,
+      longest_streak INTEGER NOT NULL DEFAULT 0,
+      last_active_date TEXT,
+      milestones_unlocked TEXT NOT NULL DEFAULT '[]',  -- JSON array
+      updated_at INTEGER NOT NULL
+    );
+
+    -- Daily Activity Log (for harmony streak calculation)
+    CREATE TABLE IF NOT EXISTS daily_activity_log (
+      date TEXT PRIMARY KEY,
+      has_habit_activity INTEGER NOT NULL DEFAULT 0,
+      has_journal_activity INTEGER NOT NULL DEFAULT 0,
+      has_goal_activity INTEGER NOT NULL DEFAULT 0,
+      habit_completions INTEGER NOT NULL DEFAULT 0,
+      journal_entries INTEGER NOT NULL DEFAULT 0,
+      goal_progress_updates INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_activity_date ON daily_activity_log(date DESC);
+  `);
+
   console.log('✅ Tables and views created successfully');
 
   // ========================================
