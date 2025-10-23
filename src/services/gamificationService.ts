@@ -618,26 +618,35 @@ export class GamificationService {
   // ========================================
 
   /**
-   * Add XP to user's total (PRIMARY PUBLIC API)
+   * Add XP to user's account with validation and tracking (PRIMARY PUBLIC API)
+   *
+   * SQLite Migration: Direct execution (no batching) - SQLite is 16x faster than AsyncStorage
+   * Batching was only needed for AsyncStorage performance workaround
+   *
    * @param amount Amount of XP to add
    * @param options XP addition configuration
    * @returns Transaction result with level changes
    */
   static async addXP(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
     try {
-      // FIX: Check skipBatching flag for immediate execution (for tests and critical operations)
-      const skipBatching = options.metadata?.skipBatching === true;
-      
-      if (skipBatching) {
-        console.log(`🚀 Adding XP immediately (skipBatching=true): +${amount} from ${options.source}`);
-        return await GamificationService.performXPAddition(amount, options);
-      } else {
-        // Use batching for normal operations
-        return await this.addXPWithBatching(amount, options);
-      }
+      // Direct execution - SQLite is fast enough (5ms vs 80ms AsyncStorage)
+      // No batching needed anymore
+      return await GamificationService.performXPAddition(amount, options);
     } catch (error) {
       console.error('GamificationService.addXP error:', error);
-      return await GamificationService.performXPAddition(amount, options);
+
+      // Return error result
+      const totalXP = await this.getTotalXP();
+      return {
+        success: false,
+        xpGained: 0,
+        totalXP,
+        previousLevel: getCurrentLevel(totalXP),
+        newLevel: getCurrentLevel(totalXP),
+        leveledUp: false,
+        milestoneReached: false,
+        error: error instanceof Error ? error.message : 'Failed to add XP'
+      };
     }
   }
 
@@ -738,20 +747,88 @@ export class GamificationService {
 
       // Update total XP (thread-safe within queue)
       const newTotalXP = previousTotalXP + finalAmount;
+      const newLevel = getCurrentLevel(newTotalXP);
       console.log(`💰 Updating total XP: ${previousTotalXP} + ${finalAmount} = ${newTotalXP}`);
-      await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
-      console.log(`📝 XP saved to AsyncStorage: ${newTotalXP}`);
 
-      // Save transaction
-      await this.saveTransaction(transaction);
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
-      // Update tracking data with anti-spam tracking
-      await this.updateDailyXPTracking(finalAmount, options.source, options.sourceId);
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - ACID transaction
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+        const timestamp = Date.now();
+        const todayDate = today();
+
+        await db.execAsync('BEGIN TRANSACTION');
+
+        try {
+          // 1. INSERT XP transaction
+          await db.runAsync(
+            `INSERT INTO xp_transactions (
+              id, amount, source, source_id, timestamp, description, metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              transaction.id,
+              transaction.amount,
+              transaction.source,
+              transaction.sourceId || null,
+              timestamp,
+              transaction.description || null,
+              options.metadata ? JSON.stringify(options.metadata) : null,
+            ]
+          );
+
+          // 2. UPDATE xp_state
+          await db.runAsync(
+            'UPDATE xp_state SET total_xp = ?, current_level = ?, last_activity = ?, updated_at = ? WHERE id = 1',
+            [newTotalXP, newLevel, timestamp, timestamp]
+          );
+
+          // 3. UPDATE daily summary (UPSERT)
+          const sourceColumn = options.source.includes('HABIT') ? 'habit_xp'
+            : options.source.includes('JOURNAL') ? 'journal_xp'
+            : options.source.includes('GOAL') ? 'goal_xp'
+            : options.source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
+            : null;
+
+          if (sourceColumn) {
+            await db.runAsync(
+              `INSERT INTO xp_daily_summary (date, total_xp, ${sourceColumn}, transaction_count, updated_at)
+               VALUES (?, ?, ?, 1, ?)
+               ON CONFLICT(date) DO UPDATE SET
+                 total_xp = total_xp + ?,
+                 ${sourceColumn} = ${sourceColumn} + ?,
+                 transaction_count = transaction_count + 1,
+                 updated_at = ?`,
+              [todayDate, finalAmount, finalAmount, timestamp, finalAmount, finalAmount, timestamp]
+            );
+          }
+
+          await db.execAsync('COMMIT');
+          console.log(`✅ XP saved to SQLite (ACID): ${newTotalXP}, Level ${newLevel}`);
+
+        } catch (error) {
+          await db.execAsync('ROLLBACK');
+          console.error('SQLite transaction failed, rolled back:', error);
+          throw error;
+        }
+      } else {
+        // Legacy AsyncStorage implementation
+        await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
+        console.log(`📝 XP saved to AsyncStorage: ${newTotalXP}`);
+
+        // Save transaction
+        await this.saveTransaction(transaction);
+
+        // Update tracking data with anti-spam tracking
+        await this.updateDailyXPTracking(finalAmount, options.source, options.sourceId);
+      }
+
+      // Update legacy tracking (still needed for some features)
       await this.updateXPBySource(options.source, finalAmount);
       await this.updateLastActivity();
 
       // Check for level up
-      const newLevel = getCurrentLevel(newTotalXP);
       const leveledUp = newLevel > previousLevel;
       const milestoneReached = leveledUp && isLevelMilestone(newLevel);
 
@@ -1142,12 +1219,27 @@ export class GamificationService {
    */
   static async getTotalXP(): Promise<number> {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_XP);
-      if (!stored) return 0;
-      
-      const parsed = parseFloat(stored);
-      // Safety check: if parseFloat returns NaN, default to 0
-      return isNaN(parsed) ? 0 : parsed;
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - query xp_state table
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        const result = await db.getFirstAsync<{ total_xp: number }>(
+          'SELECT total_xp FROM xp_state WHERE id = 1'
+        );
+
+        return result?.total_xp || 0;
+      } else {
+        // Legacy AsyncStorage implementation
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_XP);
+        if (!stored) return 0;
+
+        const parsed = parseFloat(stored);
+        // Safety check: if parseFloat returns NaN, default to 0
+        return isNaN(parsed) ? 0 : parsed;
+      }
     } catch (error) {
       console.error('GamificationService.getTotalXP error:', error);
       return 0;
@@ -1348,16 +1440,45 @@ export class GamificationService {
    */
   private static async saveTransaction(transaction: XPTransaction): Promise<void> {
     try {
-      const transactions = await this.getAllTransactions();
-      transactions.push(transaction);
-      
-      // Keep only last 1000 transactions for performance
-      const trimmedTransactions = transactions.slice(-1000);
-      
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.XP_TRANSACTIONS, 
-        JSON.stringify(trimmedTransactions)
-      );
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - INSERT transaction
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        const timestamp = transaction.createdAt instanceof Date
+          ? transaction.createdAt.getTime()
+          : typeof transaction.createdAt === 'number'
+            ? transaction.createdAt
+            : new Date(transaction.createdAt).getTime();
+
+        await db.runAsync(
+          `INSERT INTO xp_transactions (
+            id, amount, source, source_id, timestamp, description
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            transaction.id,
+            transaction.amount,
+            transaction.source,
+            transaction.sourceId || null,
+            timestamp,
+            transaction.description || null,
+          ]
+        );
+      } else {
+        // Legacy AsyncStorage implementation
+        const transactions = await this.getAllTransactions();
+        transactions.push(transaction);
+
+        // Keep only last 1000 transactions for performance
+        const trimmedTransactions = transactions.slice(-1000);
+
+        await AsyncStorage.setItem(
+          STORAGE_KEYS.XP_TRANSACTIONS,
+          JSON.stringify(trimmedTransactions)
+        );
+      }
     } catch (error) {
       console.error('GamificationService.saveTransaction error:', error);
       throw new Error('Failed to save XP transaction');
@@ -1666,45 +1787,83 @@ export class GamificationService {
     triggerSource: XPSourceType
   ): Promise<void> {
     try {
-      // CRITICAL: Prevent duplicate level-up storage from race conditions
-      const levelUpHistory = await this.getLevelUpHistory();
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
       const now = Date.now();
-      
-      // Check for recent duplicate level-up (within last 3 seconds for same level transition)
-      // NOTE: We check only level transition, not totalXP, because optimistic vs batch commits may have different XP totals
-      const recentDuplicate = levelUpHistory.find(event => {
-        const timeDiff = now - event.timestamp.getTime();
-        return timeDiff < 3000 && // Within 3 seconds (longer window for safety)
-               event.previousLevel === previousLevel &&
-               event.newLevel === newLevel &&
-               event.triggerSource === triggerSource; // Same trigger source adds extra validation
-      });
-      
-      if (recentDuplicate) {
-        console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 2s)`);
-        return;
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - INSERT into level_up_history
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        // Check for recent duplicate (within last 3 seconds)
+        const recentDuplicate = await db.getFirstAsync<{ id: string }>(
+          `SELECT id FROM level_up_history
+           WHERE level = ?
+           AND timestamp > ?
+           LIMIT 1`,
+          [newLevel, now - 3000]
+        );
+
+        if (recentDuplicate) {
+          console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 3s)`);
+          return;
+        }
+
+        const levelUpId = `levelup_${now}_${Math.random().toString(36).substr(2, 9)}`;
+
+        await db.runAsync(
+          `INSERT INTO level_up_history (
+            id, level, timestamp, total_xp_at_levelup, is_milestone
+          ) VALUES (?, ?, ?, ?, ?)`,
+          [
+            levelUpId,
+            newLevel,
+            now,
+            totalXP,
+            isLevelMilestone(newLevel) ? 1 : 0,
+          ]
+        );
+
+        console.log(`🎉 Level-up stored in SQLite: ${previousLevel} → ${newLevel} (${triggerSource})`);
+      } else {
+        // Legacy AsyncStorage implementation
+        const levelUpHistory = await this.getLevelUpHistory();
+
+        // Check for recent duplicate level-up (within last 3 seconds for same level transition)
+        const recentDuplicate = levelUpHistory.find(event => {
+          const timeDiff = now - event.timestamp.getTime();
+          return timeDiff < 3000 &&
+                 event.previousLevel === previousLevel &&
+                 event.newLevel === newLevel &&
+                 event.triggerSource === triggerSource;
+        });
+
+        if (recentDuplicate) {
+          console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 3s)`);
+          return;
+        }
+
+        const levelUpEvent: LevelUpEvent = {
+          id: `levelup_${now}_${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date(),
+          date: today(),
+          previousLevel,
+          newLevel,
+          totalXPAtLevelUp: totalXP,
+          triggerSource,
+          isMilestone: isLevelMilestone(newLevel),
+          shown: false,
+        };
+
+        levelUpHistory.push(levelUpEvent);
+
+        // Keep only last 100 level-up events for performance
+        const trimmedHistory = levelUpHistory.slice(-100);
+
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(trimmedHistory));
+
+        console.log(`🎉 Level-up stored: ${previousLevel} → ${newLevel} (${triggerSource})`);
       }
-
-      const levelUpEvent: LevelUpEvent = {
-        id: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date(),
-        date: today(),
-        previousLevel,
-        newLevel,
-        totalXPAtLevelUp: totalXP,
-        triggerSource,
-        isMilestone: isLevelMilestone(newLevel),
-        shown: false, // Track if modal has been shown to user
-      };
-
-      levelUpHistory.push(levelUpEvent);
-
-      // Keep only last 100 level-up events for performance
-      const trimmedHistory = levelUpHistory.slice(-100);
-
-      await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(trimmedHistory));
-      
-      console.log(`🎉 Level-up stored: ${previousLevel} → ${newLevel} (${triggerSource})`);
     } catch (error) {
       console.error('GamificationService.storeLevelUpEvent error:', error);
     }
@@ -1908,68 +2067,101 @@ export class GamificationService {
    * Update daily XP tracking data with anti-spam tracking
    */
   private static async updateDailyXPTracking(
-    amount: number, 
-    source: XPSourceType, 
+    amount: number,
+    source: XPSourceType,
     goalId?: string
   ): Promise<void> {
     try {
-      const dailyData = await this.getDailyXPData();
-      
-      // Update totals, ensuring they don't go negative (daily tracking should never be negative)
-      dailyData.totalXP = Math.max(0, dailyData.totalXP + amount);
-      dailyData.xpBySource[source] = Math.max(0, (dailyData.xpBySource[source] || 0) + amount);
-      
-      // Handle transaction counting and anti-spam tracking for both positive and negative XP
-      if (amount > 0) {
-        dailyData.transactionCount += 1;
-        
-        // ========================================
-        // ANTI-SPAM TRACKING - INCREASE COUNTERS
-        // ========================================
-        
-        // Track journal entries for anti-spam (entries 14+ = 0 XP)
-        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-          dailyData.journalEntryCount += 1;
-          console.log(`📊 Journal entry tracked: ${dailyData.journalEntryCount} entries today`);
-        }
-        
-        // Track goal transactions for anti-spam (3x/day per goal)
-        // NOTE: GOAL_COMPLETION excluded - milestone achievements don't count toward spam limit
-        if (goalId && (
-          source === XPSourceType.GOAL_PROGRESS || 
-          source === XPSourceType.GOAL_MILESTONE
-        )) {
-          dailyData.goalTransactions[goalId] = (dailyData.goalTransactions[goalId] || 0) + 1;
-          console.log(`🎯 Goal XP tracked: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
-        }
-      } else if (amount < 0) {
-        // Decrease transaction count for negative XP (subtractions)
-        dailyData.transactionCount = Math.max(0, dailyData.transactionCount - 1);
-        
-        // ========================================
-        // ANTI-SPAM TRACKING - DECREASE COUNTERS
-        // ========================================
-        
-        // Track journal entry deletions (reduce counter)
-        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-          dailyData.journalEntryCount = Math.max(0, dailyData.journalEntryCount - 1);
-          console.log(`📊 Journal entry removed: ${dailyData.journalEntryCount} entries today`);
-        }
-        
-        // Track goal transaction deletions
-        // NOTE: GOAL_COMPLETION excluded - milestone achievements don't count toward spam limit  
-        if (goalId && (
-          source === XPSourceType.GOAL_PROGRESS || 
-          source === XPSourceType.GOAL_MILESTONE
-        )) {
-          dailyData.goalTransactions[goalId] = Math.max(0, (dailyData.goalTransactions[goalId] || 0) - 1);
-          console.log(`🎯 Goal XP removed: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
-        }
-      }
-      
-      dailyData.lastTransactionTime = Date.now();
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
-      await AsyncStorage.setItem(STORAGE_KEYS.DAILY_XP_TRACKING, JSON.stringify(dailyData));
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - UPDATE xp_daily_summary with UPSERT
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+        const todayDate = today();
+        const timestamp = Date.now();
+
+        // Determine which column to update based on source
+        const sourceColumn = source.includes('HABIT') ? 'habit_xp'
+          : source.includes('JOURNAL') ? 'journal_xp'
+          : source.includes('GOAL') ? 'goal_xp'
+          : source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
+          : null;
+
+        if (sourceColumn) {
+          // UPSERT: Insert new row or update existing
+          await db.runAsync(
+            `INSERT INTO xp_daily_summary (date, total_xp, ${sourceColumn}, transaction_count, updated_at)
+             VALUES (?, ?, ?, 1, ?)
+             ON CONFLICT(date) DO UPDATE SET
+               total_xp = total_xp + ?,
+               ${sourceColumn} = ${sourceColumn} + ?,
+               transaction_count = transaction_count + 1,
+               updated_at = ?`,
+            [todayDate, amount, amount, timestamp, amount, amount, timestamp]
+          );
+        }
+
+        // Anti-spam tracking is handled by queries in getDailyXPData()
+        // No need to maintain separate counters
+        if (amount > 0) {
+          if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+            console.log(`📊 Journal entry tracked in xp_transactions`);
+          }
+          if (goalId && (source === XPSourceType.GOAL_PROGRESS || source === XPSourceType.GOAL_MILESTONE)) {
+            console.log(`🎯 Goal XP tracked in xp_transactions for goal ${goalId}`);
+          }
+        }
+      } else {
+        // Legacy AsyncStorage implementation
+        const dailyData = await this.getDailyXPData();
+
+        // Update totals, ensuring they don't go negative (daily tracking should never be negative)
+        dailyData.totalXP = Math.max(0, dailyData.totalXP + amount);
+        dailyData.xpBySource[source] = Math.max(0, (dailyData.xpBySource[source] || 0) + amount);
+
+        // Handle transaction counting and anti-spam tracking for both positive and negative XP
+        if (amount > 0) {
+          dailyData.transactionCount += 1;
+
+          // Track journal entries for anti-spam (entries 14+ = 0 XP)
+          if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+            dailyData.journalEntryCount += 1;
+            console.log(`📊 Journal entry tracked: ${dailyData.journalEntryCount} entries today`);
+          }
+
+          // Track goal transactions for anti-spam (3x/day per goal)
+          if (goalId && (
+            source === XPSourceType.GOAL_PROGRESS ||
+            source === XPSourceType.GOAL_MILESTONE
+          )) {
+            dailyData.goalTransactions[goalId] = (dailyData.goalTransactions[goalId] || 0) + 1;
+            console.log(`🎯 Goal XP tracked: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
+          }
+        } else if (amount < 0) {
+          // Decrease transaction count for negative XP (subtractions)
+          dailyData.transactionCount = Math.max(0, dailyData.transactionCount - 1);
+
+          // Track journal entry deletions (reduce counter)
+          if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
+            dailyData.journalEntryCount = Math.max(0, dailyData.journalEntryCount - 1);
+            console.log(`📊 Journal entry removed: ${dailyData.journalEntryCount} entries today`);
+          }
+
+          // Track goal transaction deletions
+          if (goalId && (
+            source === XPSourceType.GOAL_PROGRESS ||
+            source === XPSourceType.GOAL_MILESTONE
+          )) {
+            dailyData.goalTransactions[goalId] = Math.max(0, (dailyData.goalTransactions[goalId] || 0) - 1);
+            console.log(`🎯 Goal XP removed: goal ${goalId} has ${dailyData.goalTransactions[goalId]} transactions today`);
+          }
+        }
+
+        dailyData.lastTransactionTime = Date.now();
+
+        await AsyncStorage.setItem(STORAGE_KEYS.DAILY_XP_TRACKING, JSON.stringify(dailyData));
+      }
     } catch (error) {
       console.error('GamificationService.updateDailyXPTracking error:', error);
     }
@@ -1980,19 +2172,94 @@ export class GamificationService {
    */
   private static async getDailyXPData(): Promise<DailyXPData> {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_XP_TRACKING);
-      if (!stored) {
-        return this.createEmptyDailyData();
-      }
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
-      const data: DailyXPData = JSON.parse(stored);
-      
-      // Reset if it's a new day
-      if (data.date !== today()) {
-        return this.createEmptyDailyData();
-      }
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - query xp_daily_summary and daily_activity_log
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+        const todayDate = today();
 
-      return data;
+        // Get today's summary
+        const summary = await db.getFirstAsync<{
+          total_xp: number;
+          habit_xp: number;
+          journal_xp: number;
+          goal_xp: number;
+          achievement_xp: number;
+          transaction_count: number;
+        }>('SELECT * FROM xp_daily_summary WHERE date = ?', [todayDate]);
+
+        if (!summary) {
+          return this.createEmptyDailyData();
+        }
+
+        // Build xpBySource from summary columns
+        const xpBySource = this.createEmptyXPBySource();
+        xpBySource[XPSourceType.HABIT_COMPLETION] = summary.habit_xp;
+        xpBySource[XPSourceType.JOURNAL_ENTRY] = summary.journal_xp;
+        xpBySource[XPSourceType.GOAL_PROGRESS] = summary.goal_xp;
+        xpBySource[XPSourceType.ACHIEVEMENT_UNLOCK] = summary.achievement_xp;
+
+        // Get goal transactions count (for anti-spam)
+        const goalTransactions: Record<string, number> = {};
+        const goalTxRows = await db.getAllAsync<{ source_id: string; count: number }>(
+          `SELECT source_id, COUNT(*) as count
+           FROM xp_transactions
+           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           AND source LIKE 'GOAL_%'
+           AND source_id IS NOT NULL
+           AND amount > 0
+           GROUP BY source_id`,
+          [todayDate]
+        );
+        for (const row of goalTxRows) {
+          goalTransactions[row.source_id] = row.count;
+        }
+
+        // Count journal entries today
+        const journalCount = await db.getFirstAsync<{ count: number }>(
+          `SELECT COUNT(*) as count
+           FROM xp_transactions
+           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           AND source = 'JOURNAL_ENTRY'`,
+          [todayDate]
+        );
+
+        // Get last transaction time
+        const lastTx = await db.getFirstAsync<{ timestamp: number }>(
+          `SELECT timestamp
+           FROM xp_transactions
+           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           ORDER BY timestamp DESC LIMIT 1`,
+          [todayDate]
+        );
+
+        return {
+          date: todayDate,
+          totalXP: summary.total_xp,
+          xpBySource,
+          transactionCount: summary.transaction_count,
+          lastTransactionTime: lastTx?.timestamp || 0,
+          journalEntryCount: journalCount?.count || 0,
+          goalTransactions,
+        };
+      } else {
+        // Legacy AsyncStorage implementation
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_XP_TRACKING);
+        if (!stored) {
+          return this.createEmptyDailyData();
+        }
+
+        const data: DailyXPData = JSON.parse(stored);
+
+        // Reset if it's a new day
+        if (data.date !== today()) {
+          return this.createEmptyDailyData();
+        }
+
+        return data;
+      }
     } catch (error) {
       console.error('GamificationService.getDailyXPData error:', error);
       return this.createEmptyDailyData();

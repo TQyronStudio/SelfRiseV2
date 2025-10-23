@@ -509,31 +509,74 @@ export class XPMultiplierService {
    */
   static async getActiveMultiplier(): Promise<ActiveMultiplierInfo> {
     try {
-      const stored = await AsyncStorage.getItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER);
-      if (!stored) {
-        return { isActive: false, multiplier: 1, source: 'harmony_streak' };
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - query active multipliers
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+        const now = Date.now();
+
+        const activeMultiplier = await db.getFirstAsync<{
+          id: string;
+          source: string;
+          multiplier: number;
+          activated_at: number;
+          expires_at: number | null;
+        }>(
+          `SELECT * FROM xp_multipliers
+           WHERE is_active = 1
+           AND (expires_at IS NULL OR expires_at > ?)
+           ORDER BY activated_at DESC
+           LIMIT 1`,
+          [now]
+        );
+
+        if (!activeMultiplier) {
+          return { isActive: false, multiplier: 1, source: 'harmony_streak' };
+        }
+
+        const expiresAt = activeMultiplier.expires_at
+          ? new Date(activeMultiplier.expires_at)
+          : undefined;
+
+        const result: ActiveMultiplierInfo = {
+          isActive: true,
+          multiplier: activeMultiplier.multiplier,
+          activatedAt: new Date(activeMultiplier.activated_at),
+          expiresAt,
+          source: activeMultiplier.source as any,
+          timeRemaining: expiresAt ? expiresAt.getTime() - now : undefined,
+          description: 'Active multiplier',
+        };
+        return result;
+      } else {
+        // Legacy AsyncStorage implementation
+        const stored = await AsyncStorage.getItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER);
+        if (!stored) {
+          return { isActive: false, multiplier: 1, source: 'harmony_streak' };
+        }
+
+        const multiplierData = JSON.parse(stored);
+        const expiresAt = new Date(multiplierData.expiresAt);
+        const now = new Date();
+
+        // Check if multiplier has expired
+        if (expiresAt <= now) {
+          await AsyncStorage.removeItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER);
+          return { isActive: false, multiplier: 1, source: 'harmony_streak' };
+        }
+
+        return {
+          isActive: true,
+          multiplier: multiplierData.multiplier,
+          activatedAt: new Date(multiplierData.activatedAt),
+          expiresAt,
+          source: multiplierData.source,
+          timeRemaining: expiresAt.getTime() - now.getTime(),
+          description: this.getMultiplierDescription(multiplierData),
+        };
       }
-      
-      const multiplierData = JSON.parse(stored);
-      const expiresAt = new Date(multiplierData.expiresAt);
-      const now = new Date();
-      
-      // Check if multiplier has expired
-      if (expiresAt <= now) {
-        await AsyncStorage.removeItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER);
-        return { isActive: false, multiplier: 1, source: 'harmony_streak' };
-      }
-      
-      return {
-        isActive: true,
-        multiplier: multiplierData.multiplier,
-        activatedAt: new Date(multiplierData.activatedAt),
-        expiresAt,
-        source: multiplierData.source,
-        timeRemaining: expiresAt.getTime() - now.getTime(),
-        description: this.getMultiplierDescription(multiplierData),
-      };
-      
     } catch (error) {
       console.error('XPMultiplierService.getActiveMultiplier error:', error);
       return { isActive: false, multiplier: 1, source: 'harmony_streak' };

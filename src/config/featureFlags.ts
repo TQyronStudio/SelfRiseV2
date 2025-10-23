@@ -34,6 +34,16 @@ export const FEATURE_FLAGS = {
    * Rollback strategy: Set to false if critical issues occur
    */
   USE_SQLITE_GOALS: true,
+
+  /**
+   * SQLite Migration - Gamification Storage
+   *
+   * When true: Use SQLite for XP transactions, achievements, and gamification data
+   * When false: Use AsyncStorage (legacy system)
+   *
+   * Rollback strategy: Set to false if critical issues occur
+   */
+  USE_SQLITE_GAMIFICATION: true,
 } as const;
 
 /**

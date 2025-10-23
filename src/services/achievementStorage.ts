@@ -69,29 +69,84 @@ export class AchievementStorage {
    */
   static async getUserAchievements(): Promise<UserAchievements> {
     try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS);
-      
-      if (!stored) {
-        const emptyData = this.createEmptyUserAchievements();
-        await this.saveUserAchievements(emptyData);
-        return emptyData;
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - query achievement_progress and achievement_stats_cache
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        // Get all achievement progress
+        const progressRows = await db.getAllAsync<{
+          achievement_id: string;
+          current_value: number;
+          unlocked: number;
+          xp_awarded: number;
+        }>('SELECT achievement_id, current_value, unlocked, xp_awarded FROM achievement_progress');
+
+        // Get stats cache
+        const statsCache = await db.getFirstAsync<{
+          total_unlocked: number;
+          total_xp_earned: number;
+          by_category: string;
+          by_rarity: string;
+        }>('SELECT * FROM achievement_stats_cache WHERE id = 1');
+
+        // Build UserAchievements from SQLite data
+        const unlockedAchievements: string[] = [];
+        const achievementProgress: Record<string, number> = {};
+        let totalXPFromAchievements = 0;
+
+        for (const row of progressRows) {
+          achievementProgress[row.achievement_id] = row.current_value;
+          if (row.unlocked === 1) {
+            unlockedAchievements.push(row.achievement_id);
+            totalXPFromAchievements += row.xp_awarded;
+          }
+        }
+
+        const categoryProgress = statsCache?.by_category
+          ? JSON.parse(statsCache.by_category)
+          : {};
+
+        const rarityCount = statsCache?.by_rarity
+          ? JSON.parse(statsCache.by_rarity)
+          : {};
+
+        return {
+          unlockedAchievements,
+          achievementProgress,
+          lastChecked: today(),
+          totalXPFromAchievements,
+          rarityCount,
+          categoryProgress,
+          progressHistory: [], // Lazy load if needed
+          streakData: {}, // Lazy load if needed
+        };
+      } else {
+        // Legacy AsyncStorage implementation
+        const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS);
+
+        if (!stored) {
+          const emptyData = this.createEmptyUserAchievements();
+          await this.saveUserAchievements(emptyData);
+          return emptyData;
+        }
+
+        const data: UserAchievements = JSON.parse(stored);
+
+        // Validate and migrate if needed
+        const migrated = await this.validateAndMigrateUserAchievements(data);
+        if (migrated !== data) {
+          await this.saveUserAchievements(migrated);
+          return migrated;
+        }
+
+        return data;
       }
-      
-      const data: UserAchievements = JSON.parse(stored);
-      
-      // Validate and migrate if needed
-      const migrated = await this.validateAndMigrateUserAchievements(data);
-      if (migrated !== data) {
-        await this.saveUserAchievements(migrated);
-        return migrated;
-      }
-      
-      return data;
-      
     } catch (error) {
       console.error('AchievementStorage.getUserAchievements error:', error);
       const emptyData = this.createEmptyUserAchievements();
-      await this.saveUserAchievements(emptyData);
       return emptyData;
     }
   }
@@ -215,17 +270,45 @@ export class AchievementStorage {
    */
   static async getUnlockEvents(): Promise<AchievementUnlockEvent[]> {
     try {
-      const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS);
-      if (!stored) return [];
-      
-      const events = JSON.parse(stored);
-      
-      // Convert date strings back to Date objects
-      return events.map((event: any) => ({
-        ...event,
-        unlockedAt: new Date(event.unlockedAt)
-      }));
-      
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - query achievement_unlock_events
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        const rows = await db.getAllAsync<{
+          id: string;
+          achievement_id: string;
+          unlocked_at: number;
+          xp_awarded: number;
+          category: string;
+        }>('SELECT * FROM achievement_unlock_events ORDER BY unlocked_at DESC');
+
+        return rows.map(row => ({
+          achievementId: row.achievement_id,
+          unlockedAt: new Date(row.unlocked_at),
+          trigger: 'UNKNOWN' as any, // Not stored in current schema
+          xpAwarded: row.xp_awarded,
+          previousProgress: 0,
+          finalProgress: 100,
+          context: {
+            achievementCategory: row.category,
+          }
+        }));
+      } else {
+        // Legacy AsyncStorage implementation
+        const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS);
+        if (!stored) return [];
+
+        const events = JSON.parse(stored);
+
+        // Convert date strings back to Date objects
+        return events.map((event: any) => ({
+          ...event,
+          unlockedAt: new Date(event.unlockedAt)
+        }));
+      }
     } catch (error) {
       console.error('AchievementStorage.getUnlockEvents error:', error);
       return [];
@@ -334,9 +417,27 @@ export class AchievementStorage {
    */
   static async updateAchievementProgress(achievementId: string, progress: number): Promise<void> {
     try {
-      const userAchievements = await this.getUserAchievements();
-      userAchievements.achievementProgress[achievementId] = Math.max(0, Math.min(100, progress));
-      await this.saveUserAchievements(userAchievements);
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - UPDATE achievement_progress
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        const clampedProgress = Math.max(0, Math.min(100, progress));
+
+        await db.runAsync(
+          `UPDATE achievement_progress
+           SET current_value = ?, updated_at = ?
+           WHERE achievement_id = ?`,
+          [clampedProgress, Date.now(), achievementId]
+        );
+      } else {
+        // Legacy AsyncStorage implementation
+        const userAchievements = await this.getUserAchievements();
+        userAchievements.achievementProgress[achievementId] = Math.max(0, Math.min(100, progress));
+        await this.saveUserAchievements(userAchievements);
+      }
     } catch (error) {
       console.error('AchievementStorage.updateAchievementProgress error:', error);
       throw error;
