@@ -807,6 +807,13 @@ export class GamificationService {
           await db.execAsync('COMMIT');
           console.log(`✅ XP saved to SQLite (ACID): ${newTotalXP}, Level ${newLevel}`);
 
+          // Update cache for optimistic reads (for smooth UI animations)
+          this.cachedXPData = {
+            totalXP: newTotalXP,
+            level: newLevel,
+            timestamp: Date.now()
+          };
+
         } catch (error) {
           await db.execAsync('ROLLBACK');
           console.error('SQLite transaction failed, rolled back:', error);
