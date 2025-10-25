@@ -2197,29 +2197,28 @@ export class GamificationService {
           transaction_count: number;
         }>('SELECT * FROM xp_daily_summary WHERE date = ?', [todayDate]);
 
-        if (!summary) {
-          return this.createEmptyDailyData();
-        }
-
-        // Build xpBySource from summary columns
+        // Build xpBySource from summary columns (or defaults if no summary yet)
         const xpBySource = this.createEmptyXPBySource();
-        xpBySource[XPSourceType.HABIT_COMPLETION] = summary.habit_xp;
-        xpBySource[XPSourceType.JOURNAL_ENTRY] = summary.journal_xp;
-        xpBySource[XPSourceType.GOAL_PROGRESS] = summary.goal_xp;
-        xpBySource[XPSourceType.ACHIEVEMENT_UNLOCK] = summary.achievement_xp;
+        if (summary) {
+          xpBySource[XPSourceType.HABIT_COMPLETION] = summary.habit_xp;
+          xpBySource[XPSourceType.JOURNAL_ENTRY] = summary.journal_xp;
+          xpBySource[XPSourceType.GOAL_PROGRESS] = summary.goal_xp;
+          xpBySource[XPSourceType.ACHIEVEMENT_UNLOCK] = summary.achievement_xp;
+        }
 
         // Get goal transactions count (for anti-spam)
         const goalTransactions: Record<string, number> = {};
         const goalTxRows = await db.getAllAsync<{ source_id: string; count: number }>(
           `SELECT source_id, COUNT(*) as count
            FROM xp_transactions
-           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
            AND source LIKE 'GOAL_%'
            AND source_id IS NOT NULL
            AND amount > 0
            GROUP BY source_id`,
           [todayDate]
         );
+
         for (const row of goalTxRows) {
           goalTransactions[row.source_id] = row.count;
         }
@@ -2228,7 +2227,7 @@ export class GamificationService {
         const journalCount = await db.getFirstAsync<{ count: number }>(
           `SELECT COUNT(*) as count
            FROM xp_transactions
-           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
            AND source = 'JOURNAL_ENTRY'`,
           [todayDate]
         );
@@ -2237,16 +2236,16 @@ export class GamificationService {
         const lastTx = await db.getFirstAsync<{ timestamp: number }>(
           `SELECT timestamp
            FROM xp_transactions
-           WHERE DATE(timestamp / 1000, 'unixepoch') = ?
+           WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
            ORDER BY timestamp DESC LIMIT 1`,
           [todayDate]
         );
 
         return {
           date: todayDate,
-          totalXP: summary.total_xp,
+          totalXP: summary?.total_xp || 0,
           xpBySource,
-          transactionCount: summary.transaction_count,
+          transactionCount: summary?.transaction_count || 0,
           lastTransactionTime: lastTx?.timestamp || 0,
           journalEntryCount: journalCount?.count || 0,
           goalTransactions,
