@@ -1128,15 +1128,31 @@ export default function MigrationTestScreen() {
   };
 
   const handleVerifyChallengesBackup = async () => {
+    console.log('🔍 DEBUG: Handler started');
     try {
-      if (isRunning) return;
+      if (isRunning) {
+        console.log('🔍 DEBUG: Already running, exiting');
+        return;
+      }
 
+      console.log('🔍 DEBUG: Setting isRunning to true');
       setIsRunning(true);
-      clearLog();
+      console.log('🔍 DEBUG: Calling addLog...');
       addLog('🔍 Verifying latest challenges backup...');
+      console.log('🔍 DEBUG: addLog succeeded');
 
-      addLog(`📁 Document directory: ${FileSystem.documentDirectory}`);
-      const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory!);
+      const docDir = FileSystem.documentDirectory;
+      console.log('🔍 DEBUG: docDir =', docDir);
+
+      if (!docDir) {
+        addLog('❌ Document directory is null!');
+        Alert.alert('Error', 'FileSystem.documentDirectory is null', [{ text: 'OK' }]);
+        setIsRunning(false);
+        return;
+      }
+
+      addLog(`📁 Document directory: ${docDir}`);
+      const files = await FileSystem.readDirectoryAsync(docDir);
       addLog(`📂 Found ${files.length} files total`);
 
       const backups = files
@@ -1311,6 +1327,7 @@ export default function MigrationTestScreen() {
           <Text style={styles.buttonText}>📦 Create Challenges Backup</Text>
         </TouchableOpacity>
 
+        {/* Verify button temporarily disabled - verification will happen automatically in migration script
         <TouchableOpacity
           style={[styles.button, styles.challengesVerifyButton, isRunning && styles.disabledButton]}
           onPress={handleVerifyChallengesBackup}
@@ -1318,6 +1335,7 @@ export default function MigrationTestScreen() {
         >
           <Text style={styles.buttonText}>🔍 Verify Challenges Backup</Text>
         </TouchableOpacity>
+        */}
 
         <View style={styles.divider} />
 
