@@ -21,6 +21,7 @@ import { createGoalsBackup, verifyGoalsData } from '../../src/services/database/
 import { migrateGoalsToSQLite } from '../../src/services/database/migration/goalsMigration';
 import { createGamificationBackup, verifyGamificationBackup } from '../../src/services/database/migration/gamificationBackup';
 import { migrateGamificationToSQLite } from '../../src/services/database/migration/gamificationMigration';
+import { createChallengeBackup, verifyChallengeBackup } from '../../src/services/database/migration/challengesBackup';
 
 export default function MigrationTestScreen() {
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -1093,6 +1094,90 @@ export default function MigrationTestScreen() {
     }
   };
 
+  // ========== PHASE 3: MONTHLY CHALLENGES HANDLERS ==========
+
+  const handleCreateChallengesBackup = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔄 Creating monthly challenges backup...');
+
+    try {
+      const { backup, checksums, backupPath } = await createChallengeBackup();
+
+      addLog('✅ Backup created successfully!');
+      addLog(`📁 Path: ${backupPath}`);
+      addLog(`\n📊 Checksums:`);
+      addLog(`   Active challenges: ${checksums.activeChallengeCount}`);
+      addLog(`   Requirements: ${checksums.totalRequirementCount}`);
+      addLog(`   Daily snapshots: ${checksums.totalSnapshotCount}`);
+      addLog(`   Weekly breakdowns: ${checksums.totalWeeklyBreakdownCount}`);
+      addLog(`   History entries: ${checksums.historyEntryCount}`);
+      addLog(`   Previews: ${checksums.previewCount}`);
+      addLog(`   Ratings: ${checksums.totalRatingsCount}`);
+
+      Alert.alert('Success', 'Challenges backup created!', [{ text: 'OK' }]);
+
+    } catch (error) {
+      addLog(`❌ Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Backup creation failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleVerifyChallengesBackup = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔍 Verifying latest challenges backup...');
+
+    try {
+      // Find latest backup
+      const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory!);
+      const backups = files
+        .filter(f => f.startsWith('challenges_backup_') && f.endsWith('.json'))
+        .sort()
+        .reverse();
+
+      if (backups.length === 0) {
+        addLog('❌ No backups found');
+        Alert.alert('Error', 'No backups found. Create one first.', [{ text: 'OK' }]);
+        return;
+      }
+
+      const latestBackup = backups[0];
+      const backupPath = `${FileSystem.documentDirectory}${latestBackup}`;
+
+      addLog(`📁 Verifying: ${latestBackup}`);
+
+      const result = await verifyChallengeBackup(backupPath);
+
+      if (result.valid) {
+        addLog('✅ Backup verification PASSED');
+        if (result.checksums) {
+          addLog(`\n📊 Backup contains:`);
+          addLog(`   ${result.checksums.activeChallengeCount} challenges`);
+          addLog(`   ${result.checksums.totalRequirementCount} requirements`);
+          addLog(`   ${result.checksums.totalSnapshotCount} snapshots`);
+        }
+        Alert.alert('Success', 'Backup is valid!', [{ text: 'OK' }]);
+      } else {
+        addLog('❌ Backup verification FAILED');
+        addLog(`   Reason: ${result.message}`);
+        Alert.alert('Failed', result.message, [{ text: 'OK' }]);
+      }
+
+    } catch (error) {
+      addLog(`❌ Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', 'Verification failed - see logs', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleRunGoalsMigration = async () => {
     if (isRunning) return;
 
@@ -1206,6 +1291,27 @@ export default function MigrationTestScreen() {
           disabled={isRunning}
         >
           <Text style={styles.buttonText}>🚀 RUN Gamification Migration</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* ========== PHASE 3: MONTHLY CHALLENGES MIGRATION BUTTONS ========== */}
+        <Text style={styles.sectionTitle}>Phase 3: Monthly Challenges Migration</Text>
+
+        <TouchableOpacity
+          style={[styles.button, styles.challengesBackupButton, isRunning && styles.disabledButton]}
+          onPress={handleCreateChallengesBackup}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📦 Create Challenges Backup</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.challengesVerifyButton, isRunning && styles.disabledButton]}
+          onPress={handleVerifyChallengesBackup}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔍 Verify Challenges Backup</Text>
         </TouchableOpacity>
 
         <View style={styles.divider} />
@@ -1476,6 +1582,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'center',
+  },
+  challengesBackupButton: {
+    backgroundColor: '#9B59B6', // Purple for challenges backup
+  },
+  challengesVerifyButton: {
+    backgroundColor: '#8E44AD', // Dark purple for verification
   },
   goalsBackupButton: {
     backgroundColor: '#16A085', // Teal for goals backup
