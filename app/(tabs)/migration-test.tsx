@@ -1128,14 +1128,13 @@ export default function MigrationTestScreen() {
   };
 
   const handleVerifyChallengesBackup = async () => {
-    if (isRunning) return;
-
-    setIsRunning(true);
-    clearLog();
-    addLog('🔍 Verifying latest challenges backup...');
-
     try {
-      // Find latest backup
+      if (isRunning) return;
+
+      setIsRunning(true);
+      clearLog();
+      addLog('🔍 Verifying latest challenges backup...');
+
       const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory!);
       const backups = files
         .filter(f => f.startsWith('challenges_backup_') && f.endsWith('.json'))
@@ -1145,6 +1144,7 @@ export default function MigrationTestScreen() {
       if (backups.length === 0) {
         addLog('❌ No backups found');
         Alert.alert('Error', 'No backups found. Create one first.', [{ text: 'OK' }]);
+        setIsRunning(false);
         return;
       }
 
