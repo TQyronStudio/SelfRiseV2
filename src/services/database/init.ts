@@ -449,6 +449,177 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_activity_date ON daily_activity_log(date DESC);
   `);
 
+  // ========================================
+  // MONTHLY CHALLENGES TABLES (Phase 3)
+  // ========================================
+
+  await database.execAsync(`
+    -- Main challenge table
+    CREATE TABLE IF NOT EXISTS monthly_challenges (
+      id TEXT PRIMARY KEY,
+      month TEXT NOT NULL,
+      category TEXT NOT NULL CHECK(category IN ('habits', 'journal', 'goals', 'consistency')),
+      template_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      star_level INTEGER NOT NULL CHECK(star_level BETWEEN 1 AND 5),
+      base_xp_reward INTEGER NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('active', 'completed', 'failed', 'expired')),
+      progress INTEGER NOT NULL DEFAULT 0 CHECK(progress BETWEEN 0 AND 100),
+      created_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      expired_at INTEGER,
+      updated_at INTEGER NOT NULL,
+      generation_context TEXT,
+      bonus_conditions TEXT,
+      tags TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_challenges_month ON monthly_challenges(month DESC);
+    CREATE INDEX IF NOT EXISTS idx_challenges_status ON monthly_challenges(status);
+    CREATE INDEX IF NOT EXISTS idx_challenges_category ON monthly_challenges(category);
+
+    -- Challenge requirements (1:many relationship)
+    CREATE TABLE IF NOT EXISTS challenge_requirements (
+      id TEXT PRIMARY KEY,
+      challenge_id TEXT NOT NULL,
+      requirement_type TEXT NOT NULL,
+      description TEXT NOT NULL,
+      tracking_key TEXT NOT NULL,
+      target_value INTEGER NOT NULL,
+      current_value INTEGER NOT NULL DEFAULT 0,
+      progress_percentage INTEGER NOT NULL DEFAULT 0,
+      weekly_target INTEGER,
+      daily_target INTEGER,
+      milestones TEXT NOT NULL,
+      milestone_statuses TEXT NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (challenge_id) REFERENCES monthly_challenges(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_requirements_challenge ON challenge_requirements(challenge_id);
+    CREATE INDEX IF NOT EXISTS idx_requirements_tracking ON challenge_requirements(tracking_key);
+
+    -- Daily progress snapshots (time-series data)
+    CREATE TABLE IF NOT EXISTS challenge_daily_snapshots (
+      id TEXT PRIMARY KEY,
+      challenge_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      habits_completed INTEGER NOT NULL DEFAULT 0,
+      journal_entries INTEGER NOT NULL DEFAULT 0,
+      goal_progress_updates INTEGER NOT NULL DEFAULT 0,
+      xp_earned_today INTEGER NOT NULL DEFAULT 0,
+      balance_score REAL NOT NULL DEFAULT 0,
+      calculated_at INTEGER NOT NULL,
+      FOREIGN KEY (challenge_id) REFERENCES monthly_challenges(id) ON DELETE CASCADE,
+      UNIQUE(challenge_id, date)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_snapshots_challenge_date ON challenge_daily_snapshots(challenge_id, date DESC);
+    CREATE INDEX IF NOT EXISTS idx_snapshots_date ON challenge_daily_snapshots(date DESC);
+
+    -- Weekly progress breakdown
+    CREATE TABLE IF NOT EXISTS challenge_weekly_breakdown (
+      id TEXT PRIMARY KEY,
+      challenge_id TEXT NOT NULL,
+      week_number INTEGER NOT NULL CHECK(week_number BETWEEN 1 AND 5),
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      progress INTEGER NOT NULL DEFAULT 0 CHECK(progress BETWEEN 0 AND 100),
+      target_achieved INTEGER NOT NULL DEFAULT 0,
+      days_active INTEGER NOT NULL DEFAULT 0,
+      contributions TEXT NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (challenge_id) REFERENCES monthly_challenges(id) ON DELETE CASCADE,
+      UNIQUE(challenge_id, week_number)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_weekly_challenge_week ON challenge_weekly_breakdown(challenge_id, week_number);
+
+    -- Challenge lifecycle state (singleton per month)
+    CREATE TABLE IF NOT EXISTS challenge_lifecycle_state (
+      month TEXT PRIMARY KEY,
+      current_state TEXT NOT NULL CHECK(current_state IN ('idle', 'active', 'preview', 'completed', 'transitioning')),
+      current_challenge_id TEXT,
+      preview_challenge_id TEXT,
+      last_state_change INTEGER NOT NULL,
+      pending_actions TEXT,
+      state_history TEXT,
+      error_log TEXT,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_lifecycle_month ON challenge_lifecycle_state(month DESC);
+
+    -- User challenge ratings
+    CREATE TABLE IF NOT EXISTS user_challenge_ratings (
+      template_id TEXT PRIMARY KEY,
+      times_generated INTEGER NOT NULL DEFAULT 0,
+      times_completed INTEGER NOT NULL DEFAULT 0,
+      average_completion_rate REAL NOT NULL DEFAULT 0,
+      last_generated TEXT,
+      user_preference TEXT CHECK(user_preference IN ('liked', 'neutral', 'disliked')),
+      updated_at INTEGER NOT NULL
+    );
+
+    -- Challenge history (completed challenges)
+    CREATE TABLE IF NOT EXISTS challenge_history (
+      id TEXT PRIMARY KEY,
+      challenge_id TEXT NOT NULL,
+      month TEXT NOT NULL,
+      template_id TEXT NOT NULL,
+      final_status TEXT NOT NULL,
+      completion_rate INTEGER NOT NULL,
+      xp_earned INTEGER NOT NULL DEFAULT 0,
+      completed_at INTEGER,
+      archived_at INTEGER NOT NULL,
+      summary TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_history_month ON challenge_history(month DESC);
+    CREATE INDEX IF NOT EXISTS idx_history_template ON challenge_history(template_id);
+
+    -- Challenge state history (state machine transitions)
+    CREATE TABLE IF NOT EXISTS challenge_state_history (
+      id TEXT PRIMARY KEY,
+      month TEXT NOT NULL,
+      state TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      metadata TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_state_history_month ON challenge_state_history(month DESC);
+    CREATE INDEX IF NOT EXISTS idx_state_history_timestamp ON challenge_state_history(timestamp DESC);
+
+    -- Challenge error log
+    CREATE TABLE IF NOT EXISTS challenge_error_log (
+      id TEXT PRIMARY KEY,
+      month TEXT NOT NULL,
+      error TEXT NOT NULL,
+      context TEXT,
+      retry_attempt INTEGER NOT NULL DEFAULT 0,
+      timestamp INTEGER NOT NULL,
+      resolved INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_error_log_month ON challenge_error_log(month DESC);
+    CREATE INDEX IF NOT EXISTS idx_error_log_resolved ON challenge_error_log(resolved);
+
+    -- Challenge previews (for next month planning)
+    CREATE TABLE IF NOT EXISTS challenge_previews (
+      month TEXT PRIMARY KEY,
+      generated_at INTEGER NOT NULL,
+      preview_challenge_id TEXT NOT NULL,
+      alternative_1_id TEXT,
+      alternative_2_id TEXT,
+      user_can_choose INTEGER NOT NULL DEFAULT 0,
+      expires_at INTEGER NOT NULL,
+      selected_challenge_id TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_previews_expires ON challenge_previews(expires_at);
+  `);
+
   console.log('✅ Tables and views created successfully');
 
   // ========================================

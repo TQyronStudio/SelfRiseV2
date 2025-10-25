@@ -44,6 +44,16 @@ export const FEATURE_FLAGS = {
    * Rollback strategy: Set to false if critical issues occur
    */
   USE_SQLITE_GAMIFICATION: true,
+
+  /**
+   * SQLite Migration - Monthly Challenges Storage
+   *
+   * When true: Use SQLite for monthly challenges, progress tracking, and lifecycle management
+   * When false: Use AsyncStorage (legacy system)
+   *
+   * Rollback strategy: Set to false if critical issues occur
+   */
+  USE_SQLITE_CHALLENGES: false, // Start disabled, enable after service refactoring
 } as const;
 
 /**
@@ -95,5 +105,20 @@ export function getGoalStorageImpl() {
   } else {
     const { goalStorage } = require('../services/storage/goalStorage');
     return goalStorage;
+  }
+}
+
+/**
+ * Storage selection helper for monthly challenges
+ * Returns appropriate storage instance based on feature flag
+ */
+export function getChallengeStorageImpl() {
+  if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES) {
+    // Lazy import to avoid circular dependencies
+    const { sqliteChallengeStorage } = require('../services/storage/SQLiteChallengeStorage');
+    return sqliteChallengeStorage;
+  } else {
+    // TODO: Create AsyncStorage challenge storage wrapper when needed
+    throw new Error('AsyncStorage challenge storage not yet implemented - use SQLite');
   }
 }

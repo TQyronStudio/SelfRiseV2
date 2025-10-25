@@ -22,6 +22,10 @@ import { migrateGoalsToSQLite } from '../../src/services/database/migration/goal
 import { createGamificationBackup, verifyGamificationBackup } from '../../src/services/database/migration/gamificationBackup';
 import { migrateGamificationToSQLite } from '../../src/services/database/migration/gamificationMigration';
 import { createChallengeBackup, verifyChallengeBackup } from '../../src/services/database/migration/challengesBackup';
+import { migrateChallenges321ToSQLite } from '../../src/services/database/migration/challengesMigration';
+import { migrateProgressTracking331ToSQLite } from '../../src/services/database/migration/progressTrackingMigration';
+import { migrateLifecycleHistory341ToSQLite } from '../../src/services/database/migration/lifecycleHistoryMigration';
+import { verifyPhase3Migration } from '../../src/services/database/migration/challengesVerification';
 
 export default function MigrationTestScreen() {
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -1199,6 +1203,133 @@ export default function MigrationTestScreen() {
     }
   };
 
+  const handleRunChallenges321Migration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Phase 3.2.1: Challenges Migration...');
+
+    try {
+      const result = await migrateChallenges321ToSQLite();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`\n📊 Summary:`);
+        addLog(`   Challenges: ${result.summary.challenges}`);
+        addLog(`   Requirements: ${result.summary.requirements}`);
+        addLog(`   Ratings: ${result.summary.ratings}`);
+        Alert.alert('Success', `Migrated ${result.summary.challenges} challenges!`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Failed', result.errors[0] || 'Migration failed', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      Alert.alert('Error', 'Migration crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunProgressTracking331Migration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Phase 3.3.1: Progress Tracking Migration...');
+
+    try {
+      const result = await migrateProgressTracking331ToSQLite();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`\n📊 Summary:`);
+        addLog(`   Daily Snapshots: ${result.summary.dailySnapshots}`);
+        addLog(`   Weekly Breakdowns: ${result.summary.weeklyBreakdowns}`);
+        Alert.alert('Success', `Migrated ${result.summary.dailySnapshots} snapshots + ${result.summary.weeklyBreakdowns} breakdowns!`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Failed', result.errors[0] || 'Migration failed', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      Alert.alert('Error', 'Migration crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunLifecycleHistory341Migration = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🚀 Starting Phase 3.4.1: Lifecycle & History Migration...');
+
+    try {
+      const result = await migrateLifecycleHistory341ToSQLite();
+
+      if (result.success) {
+        addLog('✅ MIGRATION SUCCESSFUL!');
+        addLog(`\n📊 Summary:`);
+        addLog(`   State History: ${result.summary.stateHistory}`);
+        addLog(`   Error Log: ${result.summary.errorLog}`);
+        addLog(`   Challenge History: ${result.summary.challengeHistory}`);
+        addLog(`   Previews: ${result.summary.previews}`);
+        Alert.alert('Success', `Migrated lifecycle data successfully!`, [{ text: 'OK' }]);
+      } else {
+        addLog('❌ MIGRATION FAILED');
+        result.errors.forEach(err => addLog(`   - ${err}`));
+        Alert.alert('Failed', result.errors[0] || 'Migration failed', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      Alert.alert('Error', 'Migration crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleVerifyPhase3 = async () => {
+    if (isRunning) return;
+
+    setIsRunning(true);
+    clearLog();
+    addLog('🔍 Starting Phase 3 Verification...');
+
+    try {
+      const result = await verifyPhase3Migration();
+
+      if (result.success) {
+        addLog('✅ VERIFICATION SUCCESSFUL!');
+        addLog(`\n📊 Results:`);
+        result.results.forEach(r => {
+          addLog(`   ${r.category}: ${r.details}`);
+        });
+        Alert.alert('Success', 'All critical checks passed!', [{ text: 'OK' }]);
+      } else {
+        addLog('⚠️  VERIFICATION COMPLETED WITH WARNINGS');
+        addLog(`\n📊 Results:`);
+        result.results.forEach(r => {
+          addLog(`   ${r.category}: ${r.details}`);
+        });
+        if (result.errors.length > 0) {
+          addLog(`\n❌ Errors:`);
+          result.errors.forEach(err => addLog(`   - ${err}`));
+        }
+        Alert.alert('Warning', 'Some checks failed - see logs', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      Alert.alert('Error', 'Verification crashed', [{ text: 'OK' }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleRunGoalsMigration = async () => {
     if (isRunning) return;
 
@@ -1336,6 +1467,38 @@ export default function MigrationTestScreen() {
           <Text style={styles.buttonText}>🔍 Verify Challenges Backup</Text>
         </TouchableOpacity>
         */}
+
+        <TouchableOpacity
+          style={[styles.button, styles.challengesMigrateButton, isRunning && styles.disabledButton]}
+          onPress={handleRunChallenges321Migration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🚀 RUN Challenges Migration (3.2.1)</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.progressTrackingButton, isRunning && styles.disabledButton]}
+          onPress={handleRunProgressTracking331Migration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>📊 RUN Progress Tracking (3.3.1)</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.lifecycleHistoryButton, isRunning && styles.disabledButton]}
+          onPress={handleRunLifecycleHistory341Migration}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>🔄 RUN Lifecycle & History (3.4.1)</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.verifyPhase3Button, isRunning && styles.disabledButton]}
+          onPress={handleVerifyPhase3}
+          disabled={isRunning}
+        >
+          <Text style={styles.buttonText}>✅ VERIFY Phase 3 Migration</Text>
+        </TouchableOpacity>
 
         <View style={styles.divider} />
 
@@ -1611,6 +1774,18 @@ const styles = StyleSheet.create({
   },
   challengesVerifyButton: {
     backgroundColor: '#8E44AD', // Dark purple for verification
+  },
+  challengesMigrateButton: {
+    backgroundColor: '#8E44AD', // Dark purple for migration
+  },
+  progressTrackingButton: {
+    backgroundColor: '#6C3483', // Darker purple for progress tracking
+  },
+  lifecycleHistoryButton: {
+    backgroundColor: '#512E5F', // Darkest purple for lifecycle & history
+  },
+  verifyPhase3Button: {
+    backgroundColor: '#27AE60', // Green for verification
   },
   goalsBackupButton: {
     backgroundColor: '#16A085', // Teal for goals backup
