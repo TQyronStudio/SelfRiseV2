@@ -1135,11 +1135,16 @@ export default function MigrationTestScreen() {
       clearLog();
       addLog('🔍 Verifying latest challenges backup...');
 
+      addLog(`📁 Document directory: ${FileSystem.documentDirectory}`);
       const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory!);
+      addLog(`📂 Found ${files.length} files total`);
+
       const backups = files
         .filter(f => f.startsWith('challenges_backup_') && f.endsWith('.json'))
         .sort()
         .reverse();
+
+      addLog(`📦 Found ${backups.length} challenge backups`);
 
       if (backups.length === 0) {
         addLog('❌ No backups found');
