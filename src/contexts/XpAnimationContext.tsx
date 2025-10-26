@@ -513,18 +513,21 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // Process Tier 4: Level-up modals
   const processLevelUpModals = useCallback(() => {
     try {
+      // CRITICAL FIX: Extract modal data BEFORE setState to avoid setState-inside-setState
+      let modalToShow: any = null;
+
       setState(prev => {
         if (prev.modalCoordination.pendingLevelUpModals.length === 0) {
           return prev;
         }
-        
+
         const nextModal = prev.modalCoordination.pendingLevelUpModals[0];
         if (!nextModal) return prev;
-        
+
         const remainingModals = prev.modalCoordination.pendingLevelUpModals.slice(1);
-        
+
         console.log(`🚀 Processing level-up modal (Tier 4): ${nextModal.type}`);
-        
+
         // ENHANCED LOGGING: Level-up modal processing tracking
         console.log(`📊 Modal Flow Tracking:`, {
           event: 'LEVEL_UP_MODAL_PROCESSING',
@@ -533,26 +536,13 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
           remainingInQueue: remainingModals.length,
           timestamp: Date.now()
         });
-        
-        // Handle different types of level-up modals
+
+        // Store modal data to show AFTER setState completes
         if (nextModal.type === 'levelUp') {
-          console.log(`🌟 Processing queued level-up modal for Level ${nextModal.data.newLevel}`);
-          showLevelUpModal(
-            nextModal.data.newLevel,
-            nextModal.data.levelTitle,
-            nextModal.data.levelDescription,
-            nextModal.data.isMilestone || false
-          );
-          
-          console.log(`📊 Modal Flow Tracking:`, {
-            event: 'LEVEL_UP_MODAL_PROCESSED',
-            modalType: 'levelUp',
-            level: nextModal.data.newLevel,
-            success: true,
-            timestamp: Date.now()
-          });
+          console.log(`🌟 Queued level-up modal for Level ${nextModal.data.newLevel} - will display after state update`);
+          modalToShow = nextModal.data;
         }
-        
+
         return {
           ...prev,
           modalCoordination: {
@@ -561,11 +551,29 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
           }
         };
       });
+
+      // CRITICAL FIX: Show modal AFTER setState completes (prevents setState-inside-setState race condition)
+      if (modalToShow) {
+        showLevelUpModal(
+          modalToShow.newLevel,
+          modalToShow.levelTitle,
+          modalToShow.levelDescription,
+          modalToShow.isMilestone || false
+        );
+
+        console.log(`📊 Modal Flow Tracking:`, {
+          event: 'LEVEL_UP_MODAL_PROCESSED',
+          modalType: 'levelUp',
+          level: modalToShow.newLevel,
+          success: true,
+          timestamp: Date.now()
+        });
+      }
     } catch (error) {
       // GRACEFUL DEGRADATION: Level-up modal processing failure doesn't break modal queue
       console.error('🚨 Level-up modal processing failed, clearing queue to prevent infinite loops:', error instanceof Error ? error.message : String(error));
       console.log('📱 Activity and achievement modal functionality remains unaffected');
-      
+
       // Clear the queue to prevent stuck state
       setState(prev => ({
         ...prev,
