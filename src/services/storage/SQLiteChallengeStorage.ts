@@ -59,10 +59,8 @@ export interface SQLiteChallengeStorageInterface {
 // ========================================
 
 class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor() {
-    this.db = getDatabase();
+  private get db(): SQLite.SQLiteDatabase {
+    return getDatabase();
   }
 
   // ========================================
