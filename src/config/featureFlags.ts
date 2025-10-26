@@ -53,7 +53,7 @@ export const FEATURE_FLAGS = {
    *
    * Rollback strategy: Set to false if critical issues occur
    */
-  USE_SQLITE_CHALLENGES: false, // Start disabled, enable after service refactoring
+  USE_SQLITE_CHALLENGES: true,
 } as const;
 
 /**

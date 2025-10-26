@@ -9,8 +9,8 @@ import { MonthlyProgressTracker } from './monthlyProgressTracker';
 import { UserActivityTracker } from './userActivityTracker';
 import { StarRatingService } from './starRatingService';
 import { GamificationService } from './gamificationService';
-import { 
-  MonthlyChallenge, 
+import {
+  MonthlyChallenge,
   MonthlyChallengeGenerationResult,
   AchievementCategory,
   ChallengeLifecycleState,
@@ -21,6 +21,8 @@ import {
 import { DateString } from '../types/common';
 import { formatDateToString, today, addDays, parseDate, subtractDays } from '../utils/date';
 import { generateUUID } from '../utils/uuid';
+import { FEATURE_FLAGS } from '../config/featureFlags';
+import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
 
 // ========================================
 // INTERFACES & TYPES
@@ -82,7 +84,12 @@ export class MonthlyChallengeLifecycleManager {
   private static readonly STORAGE_KEY = 'monthly_challenge_lifecycle';
   private static readonly PREVIEW_STORAGE_KEY = 'monthly_challenge_preview';
   private static readonly STATUS_STORAGE_KEY = 'monthly_challenge_status';
-  
+
+  // Storage adapter - uses SQLite when enabled, AsyncStorage otherwise
+  private static get storage() {
+    return FEATURE_FLAGS.USE_SQLITE_CHALLENGES ? sqliteChallengeStorage : null;
+  }
+
   private static config: LifecycleManagerConfig = {
     enablePreviewGeneration: true,
     enableGracePeriod: false,
@@ -471,8 +478,15 @@ export class MonthlyChallengeLifecycleManager {
         ].slice(-20) // Keep last 20 state changes
       };
       
-      await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(updatedStatus));
-      
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const currentMonth = today().substring(0, 7);
+        await this.storage.saveLifecycleState(currentMonth, updatedStatus);
+      } else {
+        // Fallback to AsyncStorage
+        await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(updatedStatus));
+      }
+
     } catch (error) {
       console.error('Failed to set lifecycle state:', error);
       throw error;
@@ -484,8 +498,37 @@ export class MonthlyChallengeLifecycleManager {
    */
   static async getLifecycleStatus(): Promise<ChallengeLifecycleStatus> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const currentMonth = today().substring(0, 7);
+        const status = await this.storage.getLifecycleState(currentMonth);
+
+        if (status) {
+          return status;
+        }
+
+        // Return default status
+        return {
+          currentState: ChallengeLifecycleState.GENERATION_NEEDED,
+          currentChallenge: null,
+          previewChallenge: null,
+          lastStateChange: new Date(),
+          stateHistory: [],
+          pendingActions: [],
+          errors: [],
+          metrics: {
+            totalGenerations: 0,
+            totalCompletions: 0,
+            totalFailures: 0,
+            averageCompletionRate: 0,
+            lastBackgroundCheck: new Date()
+          }
+        };
+      }
+
+      // Fallback to AsyncStorage
       const stored = await AsyncStorage.getItem(this.STATUS_STORAGE_KEY);
-      
+
       if (stored) {
         const status = JSON.parse(stored);
         // Ensure dates are properly parsed
@@ -504,7 +547,7 @@ export class MonthlyChallengeLifecycleManager {
         }
         return status;
       }
-      
+
       // Return default status
       return {
         currentState: ChallengeLifecycleState.GENERATION_NEEDED,
@@ -590,8 +633,15 @@ export class MonthlyChallengeLifecycleManager {
       // Update system health
       updatedStatus.metrics.systemHealth = retryAttempt >= this.config.errorRetryAttempts ? 'error' : 'warning';
       
-      await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(updatedStatus));
-      
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const currentMonth = today().substring(0, 7);
+        await this.storage.saveLifecycleState(currentMonth, updatedStatus);
+      } else {
+        // Fallback to AsyncStorage
+        await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(updatedStatus));
+      }
+
     } catch (storageError) {
       console.error('Failed to handle error:', storageError);
     }
@@ -773,6 +823,13 @@ export class MonthlyChallengeLifecycleManager {
    */
   static async getPreviewForMonth(month: string): Promise<ChallengePreviewData | null> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const preview = await this.storage.getPreview(month);
+        return preview;
+      }
+
+      // Fallback to AsyncStorage
       const stored = await AsyncStorage.getItem(`${this.PREVIEW_STORAGE_KEY}_${month}`);
       if (stored) {
         const preview = JSON.parse(stored);
@@ -830,8 +887,15 @@ export class MonthlyChallengeLifecycleManager {
   // ===============================================
   
   private static async storePreview(preview: ChallengePreviewData): Promise<void> {
+    // Use SQLite when enabled
+    if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+      await this.storage.savePreview(preview.month, preview);
+      return;
+    }
+
+    // Fallback to AsyncStorage
     await AsyncStorage.setItem(
-      `${this.PREVIEW_STORAGE_KEY}_${preview.month}`, 
+      `${this.PREVIEW_STORAGE_KEY}_${preview.month}`,
       JSON.stringify(preview)
     );
   }
@@ -869,10 +933,17 @@ export class MonthlyChallengeLifecycleManager {
     // Implementation for system health check
     const status = await this.getLifecycleStatus();
     const now = new Date();
-    
+
     // Update last check time
     status.metrics.lastBackgroundCheck = now;
-    await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(status));
+
+    // Save updated status
+    if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+      const currentMonth = today().substring(0, 7);
+      await this.storage.saveLifecycleState(currentMonth, status);
+    } else {
+      await AsyncStorage.setItem(this.STATUS_STORAGE_KEY, JSON.stringify(status));
+    }
   }
   
   private static async updateMetrics(): Promise<void> {

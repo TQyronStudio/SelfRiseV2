@@ -16,6 +16,8 @@ import { formatDateToString, today, parseDate, addDays } from '../utils/date';
 import { GamificationService } from './gamificationService';
 import { StarRatingService } from './starRatingService';
 import { generateUUID } from '../utils/uuid';
+import { FEATURE_FLAGS } from '../config/featureFlags';
+import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
 
 // ========================================
 // INTERFACES & TYPES
@@ -96,6 +98,11 @@ export class MonthlyProgressTracker {
     MILESTONE_HISTORY: 'monthly_milestone_history',
     PROGRESS_CACHE: 'monthly_progress_cache'
   } as const;
+
+  // Storage adapter - uses SQLite when enabled, AsyncStorage otherwise
+  private static get storage() {
+    return FEATURE_FLAGS.USE_SQLITE_CHALLENGES ? sqliteChallengeStorage : null;
+  }
 
   // Performance optimization settings
   private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -575,7 +582,33 @@ export class MonthlyProgressTracker {
         return cached.data;
       }
 
-      // Load from storage
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const challenges = await this.storage.getActiveChallenges();
+        const challenge = challenges.find(c => c.id === challengeId);
+        if (!challenge) return null;
+
+        // Convert challenge to progress format
+        const progress: MonthlyChallengeProgress = {
+          challengeId: challenge.id,
+          currentProgress: challenge.requirements.reduce((acc, req) => {
+            acc[req.trackingKey] = req.currentValue;
+            return acc;
+          }, {} as Record<string, number>),
+          overallCompletionPercentage: challenge.progress || 0,
+          lastUpdated: new Date()
+        };
+
+        // Update cache
+        this.progressCache.set(challengeId, {
+          data: progress,
+          timestamp: Date.now()
+        });
+
+        return progress;
+      }
+
+      // Fallback to AsyncStorage
       const stored = await AsyncStorage.getItem(`${this.STORAGE_KEYS.MONTHLY_PROGRESS}_${challengeId}`);
       if (!stored) {
         return null;
@@ -604,7 +637,33 @@ export class MonthlyProgressTracker {
       // Update timestamp
       (progress as any).updatedAt = new Date();
 
-      // Save to storage
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        // Update challenge progress
+        await this.storage.updateChallengeProgress(progress.challengeId, progress.overallCompletionPercentage);
+
+        // Update individual requirements
+        const challenges = await this.storage.getActiveChallenges();
+        const challenge = challenges.find(c => c.id === progress.challengeId);
+        if (challenge) {
+          for (const req of challenge.requirements) {
+            if (progress.currentProgress[req.trackingKey] !== undefined) {
+              req.currentValue = progress.currentProgress[req.trackingKey];
+              await this.storage.updateRequirement(progress.challengeId, req);
+            }
+          }
+        }
+
+        // Update cache
+        this.progressCache.set(progress.challengeId, {
+          data: progress,
+          timestamp: Date.now()
+        });
+
+        return;
+      }
+
+      // Fallback to AsyncStorage
       await AsyncStorage.setItem(
         `${this.STORAGE_KEYS.MONTHLY_PROGRESS}_${progress.challengeId}`,
         JSON.stringify(progress)
@@ -1772,17 +1831,36 @@ export class MonthlyProgressTracker {
       if (this.snapshotsCache && Date.now() - this.snapshotsCache.timestamp < this.SNAPSHOTS_CACHE_TTL) {
         return this.snapshotsCache.data;
       }
-      
-      // Load from storage
+
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        // Get snapshots for all active challenges
+        const challenges = await this.storage.getActiveChallenges();
+        const allSnapshots: DailyProgressSnapshot[] = [];
+        for (const challenge of challenges) {
+          const snapshots = await this.storage.getDailySnapshots(challenge.id);
+          allSnapshots.push(...snapshots);
+        }
+
+        // Update cache
+        this.snapshotsCache = {
+          data: allSnapshots,
+          timestamp: Date.now()
+        };
+
+        return allSnapshots;
+      }
+
+      // Fallback to AsyncStorage
       const stored = await AsyncStorage.getItem(this.STORAGE_KEYS.DAILY_SNAPSHOTS);
       const allSnapshots: DailyProgressSnapshot[] = stored ? JSON.parse(stored) : [];
-      
+
       // Update cache
       this.snapshotsCache = {
         data: allSnapshots,
         timestamp: Date.now()
       };
-      
+
       return allSnapshots;
     } catch (error) {
       console.error('MonthlyProgressTracker.getAllSnapshots error:', error);
@@ -1814,14 +1892,22 @@ export class MonthlyProgressTracker {
    */
   private static async saveDailySnapshot(snapshot: DailyProgressSnapshot): Promise<void> {
     try {
-      // Load all existing snapshots
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        await this.storage.saveDailySnapshot(snapshot);
+        // CRITICAL: Invalidate cache after write
+        this.snapshotsCache = null;
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const allSnapshots = await this.getAllSnapshots();
-      
+
       // Find and update existing snapshot or add new one
-      const existingIndex = allSnapshots.findIndex(s => 
+      const existingIndex = allSnapshots.findIndex(s =>
         s.challengeId === snapshot.challengeId && s.date === snapshot.date
       );
-      
+
       if (existingIndex >= 0) {
         // Update existing snapshot
         allSnapshots[existingIndex] = snapshot;
@@ -1829,10 +1915,10 @@ export class MonthlyProgressTracker {
         // Add new snapshot
         allSnapshots.push(snapshot);
       }
-      
+
       // Save all snapshots back to storage
       await AsyncStorage.setItem(this.STORAGE_KEYS.DAILY_SNAPSHOTS, JSON.stringify(allSnapshots));
-      
+
       // CRITICAL: Invalidate cache after write to ensure consistency
       this.snapshotsCache = null;
       
@@ -1917,11 +2003,18 @@ export class MonthlyProgressTracker {
    */
   private static async getWeeklyBreakdown(challengeId: string, weekNumber: number): Promise<WeeklyBreakdown | null> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const breakdowns = await this.storage.getWeeklyBreakdowns(challengeId);
+        return breakdowns.find(b => b.weekNumber === weekNumber) || null;
+      }
+
+      // Fallback to AsyncStorage
       const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_${challengeId}_week${weekNumber}`;
       const stored = await AsyncStorage.getItem(key);
-      
+
       if (!stored) return null;
-      
+
       return JSON.parse(stored) as WeeklyBreakdown;
     } catch (error) {
       console.error('MonthlyProgressTracker.getWeeklyBreakdown error:', error);
@@ -2093,6 +2186,13 @@ export class MonthlyProgressTracker {
    */
   private static async saveWeeklyBreakdown(breakdown: WeeklyBreakdown): Promise<void> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        await this.storage.saveWeeklyBreakdown(breakdown.challengeId, breakdown);
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const key = `${this.STORAGE_KEYS.WEEKLY_BREAKDOWN}_${breakdown.challengeId}_week${breakdown.weekNumber}`;
       await AsyncStorage.setItem(key, JSON.stringify(breakdown));
     } catch (error) {
