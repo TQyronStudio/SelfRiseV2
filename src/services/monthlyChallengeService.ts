@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserActivityTracker, UserActivityBaseline } from './userActivityTracker';
 import { StarRatingService, ChallengeCompletionData } from './starRatingService';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
-import { 
-  MonthlyChallenge, 
-  MonthlyChallengeTemplate, 
+import {
+  MonthlyChallenge,
+  MonthlyChallengeTemplate,
   MonthlyChallengeRequirement,
   MonthlyChallengeGenerationContext,
   MonthlyChallengeGenerationResult,
@@ -15,14 +15,21 @@ import {
   UserChallengeRatings,
   StarRatingHistoryEntry,
   MonthlyChallengeProgress,
-  AchievementCategory 
+  AchievementCategory
 } from '../types/gamification';
 import { generateUUID } from '../utils/uuid';
+import { FEATURE_FLAGS } from '../config/featureFlags';
+import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
 
 export class MonthlyChallengeService {
   private static readonly STORAGE_KEY = 'monthly_challenges';
   private static readonly RATINGS_STORAGE_KEY = 'user_challenge_ratings';
   private static readonly PROGRESS_STORAGE_KEY = 'monthly_challenge_progress';
+
+  // Storage adapter - uses SQLite when enabled, AsyncStorage otherwise
+  private static get storage() {
+    return FEATURE_FLAGS.USE_SQLITE_CHALLENGES ? sqliteChallengeStorage : null;
+  }
 
   // Star-based XP reward structure
   private static readonly MONTHLY_XP_REWARDS = {
@@ -1968,10 +1975,17 @@ export class MonthlyChallengeService {
    */
   private static async saveGeneratedChallenge(challenge: MonthlyChallenge): Promise<void> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        await this.storage.saveActiveChallenge(challenge);
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const existingChallenges = await this.getAllStoredChallenges();
       const updatedChallenges = existingChallenges.filter(c => c.id !== challenge.id);
       updatedChallenges.push(challenge);
-      
+
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedChallenges));
     } catch (error) {
       console.error('Failed to save generated challenge:', error);
@@ -1984,12 +1998,19 @@ export class MonthlyChallengeService {
    */
   private static async updateChallengeHistory(userId: string, challenge: MonthlyChallenge): Promise<void> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        await this.storage.archiveChallenge(challenge);
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const historyKey = `${this.STORAGE_KEY}_history_${userId}`;
       const existingHistory = await AsyncStorage.getItem(historyKey);
       const history = existingHistory ? JSON.parse(existingHistory) : [];
-      
+
       history.unshift({
-        month: challenge.userBaselineSnapshot.month,
+        month: challenge.userBaselineSnapshot?.month || challenge.month,
         category: challenge.category,
         templateId: challenge.id,
         starLevel: challenge.starLevel,
@@ -1998,7 +2019,7 @@ export class MonthlyChallengeService {
 
       // Keep only last 12 months
       const trimmedHistory = history.slice(0, 12);
-      
+
       await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
     } catch (error) {
       console.error('Failed to update challenge history:', error);
@@ -2010,10 +2031,17 @@ export class MonthlyChallengeService {
    */
   private static async getRecentTemplateIds(userId: string, months: number): Promise<string[]> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const history = await this.storage.getChallengeHistory(months);
+        return history.map(h => h.metadata?.templateId || h.id).filter(Boolean);
+      }
+
+      // Fallback to AsyncStorage
       const historyKey = `${this.STORAGE_KEY}_history_${userId}`;
       const existingHistory = await AsyncStorage.getItem(historyKey);
       const history = existingHistory ? JSON.parse(existingHistory) : [];
-      
+
       return history.slice(0, months).map((h: any) => h.templateId).filter(Boolean);
     } catch (error) {
       console.error('Failed to get recent template IDs:', error);
@@ -2113,10 +2141,17 @@ export class MonthlyChallengeService {
    */
   private static async getRecentCategoryHistory(userId: string, months: number): Promise<AchievementCategory[]> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const history = await this.storage.getChallengeHistory(months);
+        return history.map(h => h.category).filter(Boolean);
+      }
+
+      // Fallback to AsyncStorage
       const historyKey = `${this.STORAGE_KEY}_history_${userId}`;
       const existingHistory = await AsyncStorage.getItem(historyKey);
       const history = existingHistory ? JSON.parse(existingHistory) : [];
-      
+
       return history.slice(0, months).map((h: any) => h.category).filter(Boolean);
     } catch (error) {
       console.error('Failed to get recent category history:', error);
@@ -2214,6 +2249,12 @@ export class MonthlyChallengeService {
    */
   private static async getAllStoredChallenges(): Promise<MonthlyChallenge[]> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        return await this.storage.getActiveChallenges();
+      }
+
+      // Fallback to AsyncStorage
       const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -2227,13 +2268,25 @@ export class MonthlyChallengeService {
    */
   static async archiveCompletedChallenge(challengeId: string): Promise<void> {
     try {
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        await this.storage.updateChallengeStatus(challengeId, 'completed');
+        const challenges = await this.storage.getActiveChallenges();
+        const challenge = challenges.find(c => c.id === challengeId);
+        if (challenge) {
+          await this.storage.archiveChallenge(challenge);
+        }
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const allChallenges = await this.getAllStoredChallenges();
-      const updatedChallenges = allChallenges.map(challenge => 
-        challenge.id === challengeId 
+      const updatedChallenges = allChallenges.map(challenge =>
+        challenge.id === challengeId
           ? { ...challenge, isActive: false, updatedAt: new Date() }
           : challenge
       );
-      
+
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedChallenges));
     } catch (error) {
       console.error('Failed to archive completed challenge:', error);
