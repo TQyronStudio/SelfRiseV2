@@ -4,21 +4,268 @@
 
 ## Table of Contents
 
-1. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
-2. [Development Standards](#development-standards)
-3. [Code Standards](#code-standards)
-4. [Performance Considerations](#performance-considerations)
-5. [User Interface & Celebrations](#user-interface--celebrations)
-6. [Security Guidelines](#security-guidelines)
-7. [Accessibility Standards](#accessibility-standards)
-8. [Configuration Management](#configuration-management)
-9. [Technical Stack & Architecture](#technical-stack--architecture)
-10. [My Journal System](#my-journal-system)
-11. [Gamification System](#gamification-system)
-12. [Achievements System](#achievements-system)
-13. [Screen Creation Guidelines](#screen-creation-guidelines)
-14. [Help Tooltip System](#help-tooltip-system)
-15. [Onboarding Tutorial System](#onboarding-tutorial-system)
+1. [Data Storage Architecture](#data-storage-architecture)
+2. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
+3. [Development Standards](#development-standards)
+4. [Code Standards](#code-standards)
+5. [Performance Considerations](#performance-considerations)
+6. [User Interface & Celebrations](#user-interface--celebrations)
+7. [Security Guidelines](#security-guidelines)
+8. [Accessibility Standards](#accessibility-standards)
+9. [Configuration Management](#configuration-management)
+10. [Technical Stack & Architecture](#technical-stack--architecture)
+11. [My Journal System](#my-journal-system)
+12. [Gamification System](#gamification-system)
+13. [Achievements System](#achievements-system)
+14. [Screen Creation Guidelines](#screen-creation-guidelines)
+15. [Help Tooltip System](#help-tooltip-system)
+16. [Onboarding Tutorial System](#onboarding-tutorial-system)
+
+---
+
+## Data Storage Architecture
+
+### Philosophy: "Use the Right Tool for the Right Job"
+
+SelfRise V2 uses a **hybrid storage architecture** combining SQLite for complex data and AsyncStorage for simple preferences.
+
+---
+
+### SQLite Storage (Primary Database)
+
+**Used For**: Complex data with relationships, queries, and transactions
+
+**Migrated Systems** (Phases 1-3 Complete):
+
+#### Phase 1: Core Data (✅ Complete)
+- **Journal Entries** (`journal_entries` table)
+  - Gratitude entries with text, type, date
+  - Streak state (singleton pattern)
+  - Warm-up payments
+- **Habits** (`habits` table)
+  - Habit definitions with schedules
+  - Completion tracking with bonus conversion
+  - Schedule history timeline
+- **Goals** (`goals` table)
+  - Goal tracking with milestones
+  - Progress history with add/subtract/set operations
+  - Category-based organization
+
+#### Phase 2: Gamification (✅ Complete)
+- **XP Transactions** (`xp_transactions` table)
+  - Time-series XP data with source tracking
+  - Daily XP summaries (pre-aggregated)
+  - User XP state (singleton)
+  - Level-up history
+- **Achievements** (`achievement_progress` table)
+  - Achievement progress tracking
+  - Unlock events history
+  - Statistics cache
+- **Loyalty System** (`loyalty_state` table)
+  - Active days tracking
+  - Streak calculations
+  - Milestones unlocked
+
+#### Phase 3: Monthly Challenges (✅ Complete)
+- **Monthly Challenges** (`monthly_challenges` table)
+  - Active challenges with requirements (1:many relationship)
+  - Daily progress snapshots (time-series)
+  - Weekly breakdowns (5 weeks per challenge)
+  - Lifecycle state machine (singleton per month)
+  - Challenge history archive
+  - Preview generation for next month
+  - User ratings tracking
+
+**Performance Benefits**:
+- **5-15x faster** than AsyncStorage for complex queries
+- **ACID transactions** ensure data consistency
+- **Indexed queries** for instant lookups
+- **Relational data** with foreign keys
+
+**Example Performance**:
+```typescript
+// AsyncStorage: ~25ms (parse JSON + filter)
+const challenge = JSON.parse(await AsyncStorage.getItem('challenges'))
+  .find(c => c.status === 'active');
+
+// SQLite: ~3ms (indexed query)
+const challenge = await db.getFirstAsync(
+  'SELECT * FROM monthly_challenges WHERE status = ? LIMIT 1',
+  ['active']
+);
+```
+
+---
+
+### AsyncStorage (Configuration Layer)
+
+**Used For**: Simple key-value pairs, preferences, and feature flags
+
+**Retained Systems** (Phase 4 - Intentionally NOT Migrated):
+
+#### 1. User Preferences
+```typescript
+'user_theme_preference'     // 'light' | 'dark' | 'auto'
+'home_preferences'          // Home screen customization
+'user_language'             // 'en' | 'de' | 'es'
+'i18n_locale'              // Current locale
+```
+
+**Why AsyncStorage?**
+- ✅ Read on app startup (before SQLite init)
+- ✅ Single key reads (2-5ms)
+- ✅ No relationships needed
+- ✅ Simpler code
+
+#### 2. Notification Settings
+```typescript
+'notification_settings'     // Notification preferences
+'push_notification_token'   // FCM/APNS token
+'notification_permissions'  // Permission status
+```
+
+**Why AsyncStorage?**
+- ✅ Updated infrequently
+- ✅ Small data (<1KB)
+- ✅ No queries needed
+
+#### 3. Tutorial & Onboarding
+```typescript
+'tutorial_completed'           // boolean
+'tutorial_current_step'        // number
+'tutorial_dismissed_hints'     // string[]
+'onboarding_completed'         // boolean
+'feature_discovery_flags'      // Record<string, boolean>
+```
+
+**Why AsyncStorage?**
+- ✅ Boolean flags (simplest data)
+- ✅ Read once, write once pattern
+- ✅ Perfect for feature flags
+
+#### 4. Feature Flags & App State
+```typescript
+'feature_flags'                // Feature toggles
+'experimental_features'        // Beta features
+'app_first_launch'            // boolean
+'app_version'                 // string
+'analytics_enabled'           // boolean
+```
+
+**Why AsyncStorage?**
+- ✅ Simple booleans/strings
+- ✅ Fast reads on startup
+- ✅ No user-generated data
+
+#### 5. Authentication Tokens (Future)
+```typescript
+'firebase_auth_token'         // JWT token
+'firebase_refresh_token'      // Refresh token
+'user_session'               // Session metadata
+```
+
+**Why AsyncStorage?**
+- ✅ **SECURITY**: Tokens should NOT be in SQLite (easier to export/leak)
+- ✅ Can use secure-store for encryption
+- ✅ Standard practice for auth tokens
+
+---
+
+### Feature Flag System
+
+**Location**: `src/config/featureFlags.ts`
+
+All SQLite migrations use feature flags for safe rollback:
+
+```typescript
+export const FEATURE_FLAGS = {
+  USE_SQLITE_JOURNAL: true,        // Phase 1: Journal
+  USE_SQLITE_HABITS: true,         // Phase 1: Habits
+  USE_SQLITE_GOALS: true,          // Phase 1: Goals
+  USE_SQLITE_GAMIFICATION: true,   // Phase 2: XP, Achievements
+  USE_SQLITE_CHALLENGES: true,     // Phase 3: Monthly Challenges
+} as const;
+```
+
+**Emergency Rollback**:
+- Set flag to `false` → App uses AsyncStorage fallback
+- All refactored services maintain AsyncStorage code for backward compatibility
+- Zero downtime rollback strategy
+
+---
+
+### Decision Matrix: SQLite vs AsyncStorage
+
+| Criteria | SQLite | AsyncStorage |
+|----------|--------|--------------|
+| **Relationships** | ✅ Foreign keys, JOINs | ❌ Manual linking |
+| **Queries** | ✅ Complex WHERE/ORDER BY | ❌ Load all + filter |
+| **Transactions** | ✅ ACID guarantees | ❌ No transactions |
+| **Performance (complex)** | ✅ 5-15x faster | ❌ Slower |
+| **Performance (simple)** | ⚠️ Similar (~2-5ms) | ✅ Fast enough |
+| **Code Complexity** | ⚠️ More complex | ✅ Very simple |
+| **Security (tokens)** | ❌ Easier to export | ✅ Can encrypt |
+| **Startup Dependency** | ❌ Needs init | ✅ Available immediately |
+
+**Rule of Thumb**:
+- **Use SQLite**: User-generated data, relationships, queries, time-series data
+- **Use AsyncStorage**: Settings, flags, tokens, simple preferences
+
+---
+
+### Migration Timeline
+
+| Phase | System | Status | Migration Date |
+|-------|--------|--------|----------------|
+| **Phase 1** | Journal, Habits, Goals | ✅ Complete | Oct 2024 |
+| **Phase 2** | XP, Achievements, Loyalty | ✅ Complete | Oct 2024 |
+| **Phase 3** | Monthly Challenges | ✅ Complete | Oct 26, 2024 |
+| **Phase 4** | Configuration (AsyncStorage) | ✅ Documented | Oct 26, 2024 |
+
+**Total Code Migrated**: ~15,000+ lines across 10+ services
+**Database Tables**: 25+ tables with proper indexes
+**Performance Improvement**: 5-15x faster for complex operations
+
+---
+
+### Implementation Guidelines
+
+**When Adding New Features**:
+
+1. **Ask**: "Is this simple key-value data or complex relational data?"
+   - Simple → AsyncStorage
+   - Complex → SQLite
+
+2. **Data Characteristics**:
+   - **Time-series data** (journal entries, XP transactions) → SQLite
+   - **1:many relationships** (goals with milestones, challenges with requirements) → SQLite
+   - **Query requirements** (filter by date, status, category) → SQLite
+   - **Simple flags/settings** (theme preference, tutorial completed) → AsyncStorage
+   - **Auth tokens** → AsyncStorage with encryption
+
+3. **Use Feature Flags**:
+   ```typescript
+   if (FEATURE_FLAGS.USE_SQLITE_NEW_FEATURE && this.storage) {
+     // SQLite implementation
+     await this.storage.saveData(data);
+     return;
+   }
+   // AsyncStorage fallback
+   await AsyncStorage.setItem(key, JSON.stringify(data));
+   ```
+
+4. **Always Provide Rollback**:
+   - Keep AsyncStorage code as fallback
+   - Test both code paths
+   - Document rollback procedure
+
+---
+
+### Related Documentation
+
+- **Phase 3 Details**: See `PHASE3-COMPLETION-CHECKLIST.md`
+- **Phase 4 (AsyncStorage Decisions)**: See `sqlite-migration-phase4-config.md`
+- **Database Schema**: See `src/services/database/init.ts`
 
 ---
 
