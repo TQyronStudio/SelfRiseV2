@@ -531,6 +531,71 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       contributions: JSON.parse(row.contributions)
     };
   }
+
+  // ========================================
+  // PREVIEW METHODS
+  // ========================================
+
+  async getPreview(month: string): Promise<any | null> {
+    const row = await this.db.getFirstAsync<any>(
+      'SELECT * FROM challenge_previews WHERE month = ?',
+      [month]
+    );
+
+    if (!row) return null;
+
+    return {
+      month: row.month,
+      generatedAt: new Date(row.generated_at),
+      expires: new Date(row.expires_at),
+      challenge: await this.getChallengeById(row.preview_challenge_id),
+      baselineSnapshot: {} // TODO: Add baseline snapshot if needed
+    };
+  }
+
+  async savePreview(month: string, preview: any): Promise<void> {
+    await this.db.runAsync(
+      `INSERT OR REPLACE INTO challenge_previews
+       (month, generated_at, preview_challenge_id, expires_at, user_can_choose)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        month,
+        preview.generatedAt.getTime(),
+        preview.challenge?.id || '',
+        preview.expires.getTime(),
+        0
+      ]
+    );
+  }
+
+  private async getChallengeById(id: string): Promise<MonthlyChallenge | null> {
+    const row = await this.db.getFirstAsync<any>(
+      `SELECT
+        c.*,
+        json_group_array(
+          json_object(
+            'id', r.id,
+            'type', r.requirement_type,
+            'description', r.description,
+            'trackingKey', r.tracking_key,
+            'targetValue', r.target_value,
+            'currentValue', r.current_value,
+            'progressPercentage', r.progress_percentage,
+            'weeklyTarget', r.weekly_target,
+            'dailyTarget', r.daily_target,
+            'progressMilestones', json(r.milestones),
+            'milestoneStatuses', json(r.milestone_statuses)
+          )
+        ) as requirements_json
+      FROM monthly_challenges c
+      LEFT JOIN challenge_requirements r ON c.id = r.challenge_id
+      WHERE c.id = ?
+      GROUP BY c.id`,
+      [id]
+    );
+
+    return row ? this.rowToChallengeWithRequirements(row) : null;
+  }
 }
 
 // ========================================

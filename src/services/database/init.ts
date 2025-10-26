@@ -453,6 +453,24 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   // MONTHLY CHALLENGES TABLES (Phase 3)
   // ========================================
 
+  // Migrate challenge_lifecycle_state to add new states
+  const lifecycleTableInfo = await database.getAllAsync(`PRAGMA table_info(challenge_lifecycle_state)`);
+
+  if (lifecycleTableInfo.length > 0) {
+    console.log('🔄 Rebuilding challenge_lifecycle_state table with extended states...');
+
+    // Backup existing data
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS challenge_lifecycle_state_backup AS
+      SELECT * FROM challenge_lifecycle_state;
+    `);
+
+    // Drop old table
+    await database.execAsync(`DROP TABLE IF EXISTS challenge_lifecycle_state;`);
+
+    console.log('✅ Old challenge_lifecycle_state table backed up and dropped');
+  }
+
   await database.execAsync(`
     -- Main challenge table
     CREATE TABLE IF NOT EXISTS monthly_challenges (
@@ -539,7 +557,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     -- Challenge lifecycle state (singleton per month)
     CREATE TABLE IF NOT EXISTS challenge_lifecycle_state (
       month TEXT PRIMARY KEY,
-      current_state TEXT NOT NULL CHECK(current_state IN ('idle', 'active', 'preview', 'completed', 'transitioning')),
+      current_state TEXT NOT NULL CHECK(current_state IN ('idle', 'active', 'preview', 'completed', 'transitioning', 'awaiting_month_start', 'error', 'recovery')),
       current_challenge_id TEXT,
       preview_challenge_id TEXT,
       last_state_change INTEGER NOT NULL,
@@ -651,6 +669,26 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     // Drop backup table
     await database.execAsync(`DROP TABLE goal_progress_backup;`);
     console.log('✅ Backup table cleaned up');
+  }
+
+  // Restore challenge lifecycle state
+  const lifecycleBackupExists = await database.getAllAsync(`SELECT name FROM sqlite_master WHERE type='table' AND name='challenge_lifecycle_state_backup'`);
+
+  if (lifecycleBackupExists.length > 0) {
+    console.log('🔄 Restoring challenge_lifecycle_state data from backup...');
+
+    // Restore data (map old states to new schema if needed)
+    await database.execAsync(`
+      INSERT OR REPLACE INTO challenge_lifecycle_state
+      SELECT * FROM challenge_lifecycle_state_backup;
+    `);
+
+    const restoredCount = await database.getFirstAsync<any>('SELECT COUNT(*) as count FROM challenge_lifecycle_state');
+    console.log(`✅ Restored ${restoredCount?.count || 0} lifecycle state records`);
+
+    // Drop backup table
+    await database.execAsync(`DROP TABLE challenge_lifecycle_state_backup;`);
+    console.log('✅ Lifecycle state backup table cleaned up');
   }
 }
 
