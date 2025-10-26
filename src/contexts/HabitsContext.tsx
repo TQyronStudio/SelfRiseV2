@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
 import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../types/habit';
 import { getHabitStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
@@ -8,6 +8,10 @@ import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
 
 // Get storage implementation based on feature flag
 const habitStorage = getHabitStorageImpl();
+
+// 🚀 PERFORMANCE: Query cache to reduce redundant SQLite reads
+// Cache TTL: 5 seconds (safe for make-up conversion accuracy)
+const QUERY_CACHE_TTL = 5000;
 
 export interface HabitsState {
   habits: Habit[];
@@ -106,6 +110,13 @@ function habitsReducer(state: HabitsState, action: HabitsAction): HabitsState {
 export function HabitsProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(habitsReducer, initialState);
 
+  // 🚀 PERFORMANCE: Query cache for SQLite reads
+  const habitsQueryCacheRef = useRef<{
+    habits: Habit[];
+    completions: HabitCompletion[];
+    timestamp: number;
+  } | null>(null);
+
   const setLoading = (loading: boolean) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
   };
@@ -114,15 +125,41 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: error });
   };
 
+  // 🚀 PERFORMANCE: Invalidate query cache on data mutations
+  // This ensures make-up conversion always has fresh data
+  const invalidateQueryCache = () => {
+    if (habitsQueryCacheRef.current) {
+      console.log('🗑️ HabitsContext: Invalidating query cache');
+      habitsQueryCacheRef.current = null;
+    }
+  };
+
   const loadHabits = async () => {
     try {
       console.log('🔄 HabitsContext: Starting loadHabits...');
       setLoading(true);
       setError(null);
 
+      // 🚀 PERFORMANCE: Check query cache first
+      if (habitsQueryCacheRef.current) {
+        const cacheAge = Date.now() - habitsQueryCacheRef.current.timestamp;
+        if (cacheAge < QUERY_CACHE_TTL) {
+          console.log(`⚡ HabitsContext: Using cached data (age: ${cacheAge}ms, TTL: ${QUERY_CACHE_TTL}ms)`);
+          dispatch({ type: 'SET_HABITS', payload: habitsQueryCacheRef.current.habits });
+          dispatch({ type: 'SET_COMPLETIONS', payload: habitsQueryCacheRef.current.completions });
+          setLoading(false);
+          console.log('✅ HabitsContext: Habits loaded from cache');
+          return;
+        } else {
+          console.log(`⏰ HabitsContext: Cache expired (age: ${cacheAge}ms > TTL: ${QUERY_CACHE_TTL}ms)`);
+        }
+      }
+
       // Initialize daily reset system
       await HabitResetUtils.initializeResetSystem();
 
+      // 🚀 PERFORMANCE: Cache miss - fetch from SQLite
+      console.log('💾 HabitsContext: Fetching from SQLite...');
       const [habits, completions] = await Promise.all([
         habitStorage.getAll(),
         habitStorage.getAllCompletions(),
@@ -130,10 +167,17 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
 
       console.log(`🔄 HabitsContext: Loaded ${habits.length} habits, ${completions.length} completions`);
 
+      // 🚀 PERFORMANCE: Update cache
+      habitsQueryCacheRef.current = {
+        habits,
+        completions,
+        timestamp: Date.now()
+      };
+
       dispatch({ type: 'SET_HABITS', payload: habits });
       dispatch({ type: 'SET_COMPLETIONS', payload: completions });
 
-      console.log('✅ HabitsContext: Habits loaded successfully');
+      console.log('✅ HabitsContext: Habits loaded successfully from SQLite');
     } catch (error) {
       console.error('❌ HabitsContext: Failed to load habits:', error);
       setError(error instanceof Error ? error.message : 'Failed to load habits');
@@ -148,6 +192,10 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       setError(null);
 
       const newHabit = await habitStorage.create(input);
+
+      // 🚀 PERFORMANCE: Invalidate cache before dispatch
+      invalidateQueryCache();
+
       dispatch({ type: 'ADD_HABIT', payload: newHabit });
 
       // 🎯 Enhanced Achievement Handling for Tutorial Restart
@@ -184,8 +232,12 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   const updateHabit = async (id: string, updates: UpdateHabitInput): Promise<Habit> => {
     try {
       setError(null);
-      
+
       const updatedHabit = await habitStorage.update(id, updates);
+
+      // 🚀 PERFORMANCE: Invalidate cache before dispatch (critical for scheduledDays changes)
+      invalidateQueryCache();
+
       dispatch({ type: 'UPDATE_HABIT', payload: updatedHabit });
       
       return updatedHabit;
@@ -199,8 +251,12 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   const deleteHabit = async (id: string): Promise<void> => {
     try {
       setError(null);
-      
+
       await habitStorage.delete(id);
+
+      // 🚀 PERFORMANCE: Invalidate cache before dispatch
+      invalidateQueryCache();
+
       dispatch({ type: 'DELETE_HABIT', payload: id });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete habit';
@@ -216,9 +272,13 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   ): Promise<HabitCompletion | null> => {
     try {
       setError(null);
-      
+
       const result = await habitStorage.toggleCompletion(habitId, date, isBonus);
-      
+
+      // 🚀 PERFORMANCE: Invalidate cache before dispatch
+      // CRITICAL: This ensures make-up conversion gets fresh completion data
+      invalidateQueryCache();
+
       if (result) {
         dispatch({ type: 'ADD_COMPLETION', payload: result });
       } else {
@@ -241,12 +301,15 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   const updateHabitOrder = async (habitOrders: Array<{ id: string; order: number }>): Promise<void> => {
     try {
       setError(null);
-      
+
       // Optimistically update local state first
       dispatch({ type: 'UPDATE_HABIT_ORDER', payload: habitOrders });
-      
+
       // Then update storage
       await habitStorage.updateHabitOrder(habitOrders);
+
+      // 🚀 PERFORMANCE: Invalidate cache after storage update
+      invalidateQueryCache();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update habit order';
       setError(errorMessage);
