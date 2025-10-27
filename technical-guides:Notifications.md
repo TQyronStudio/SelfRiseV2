@@ -43,85 +43,207 @@ The notification system consists of **3 core services** and **1 lifecycle hook**
 
 ## Smart Evening Notifications (20:00)
 
-Evening notifications use a **4-priority system** that analyzes user progress and sends the **most relevant message**.
+Evening notifications use a **dynamic weighted random system** that analyzes user progress and selects messages based on **proportional probability**.
 
-### Priority System (Highest to Lowest)
+### How It Works
 
-#### **Priority 1: Incomplete Habits** 🏃‍♂️
+Instead of fixed priorities, the system calculates **weights** for each notification type based on how much work remains. Higher weight = higher probability of being selected.
+
+**Core Principle**: The more incomplete a task category is, the more likely you'll receive a notification about it.
+
+---
+
+### Weighted Selection System
+
+#### **Option 1: Incomplete Habits** 🏃‍♂️
+
 **Condition**: User has scheduled habits for today that are not yet completed
 
-**Messages**:
+**Weight Calculation**:
+```typescript
+weight = (incompletedHabitsCount / scheduledTodayCount) × 100
+```
+
+**Examples**:
+- 1 out of 3 habits incomplete (33%) → weight: 33
+- 2 out of 3 habits incomplete (67%) → weight: 67
+- 3 out of 3 habits incomplete (100%) → weight: 100
+
+**Message**:
 - "You still have habits to complete! 🏃‍♂️"
 - "You have X habit(s) left to complete. Let's do this!"
-- "Don't break your streak! Complete your remaining habits 💪"
 
 **Navigation**: Tapping notification → Habits tab
 
-**Logic**:
-```typescript
-if (progress.incompletedHabitsCount > 0) {
-  // Send incomplete habits message
-  // Use pluralization: "1 habit" vs "2 habits"
-}
-```
+**Important**: Only counts habits **scheduled for today** (not all active habits)
 
 ---
 
-#### **Priority 2: Missing Journal Entries** 📝
-**Condition**: User has fewer than 3 basic entries OR fewer than 10 bonus entries
+#### **Option 2: Missing Journal Entries** 📝
 
-**Messages**:
+**Condition**: User has fewer than 3 basic entries (required daily minimum)
+
+**Weight Calculation**:
+```typescript
+missing = 3 - journalEntriesCount
+weight = (missing / 3) × 100
+```
+
+**Examples**:
+- 0 entries (missing 3) → weight: 100
+- 1 entry (missing 2) → weight: 67
+- 2 entries (missing 1) → weight: 33
+- 3+ entries → weight: 0 (excluded from selection)
+
+**Message**:
 - "Evening reflection time 📝"
 - "Don't forget to write X more journal entry/entries!"
-- "Quick gratitude check-in? You're X entries away 🙏"
 
 **Navigation**: Tapping notification → Journal tab
 
-**Logic**:
-```typescript
-if (!progress.hasThreeBasicEntries || progress.bonusEntriesCount < 10) {
-  // Send journal reminder
-  // Calculate missing entries: 3 - currentBasicEntries + (10 - currentBonusEntries)
-}
-```
-
-**Pluralization**:
-- 1 entry: "1 journal entry"
-- 2+ entries: "2 journal entries"
+**Pluralization**: "1 entry" vs "2 entries"
 
 ---
 
-#### **Priority 3: Goals Without Progress** 🎯
-**Condition**: User has active goals but hasn't added any progress update today
+#### **Option 3: Bonus Entries** ⭐
 
-**Messages**:
-- "Did you make progress on your goals today? 🎯"
-- "Quick goal update? Even small wins count! 🌟"
-- "Don't forget to track your goal progress today!"
+**Condition**: User has 3+ basic entries AND fewer than 10 bonus entries
 
-**Navigation**: Tapping notification → Goals tab
-
-**Logic**:
+**Weight Calculation**:
 ```typescript
-if (!progress.goalProgressAddedToday && progress.hasActiveGoals) {
-  // Send goal progress reminder
+weight = 15 (fixed nice-to-have weight)
+```
+
+**Important Rule**: This option is **ONLY available if user already has 3+ basic entries**. Bonuses never compete with basic requirements.
+
+**Message**:
+- "Bonus opportunity! ⭐"
+- "You still have time for bonus entries! (currently X/10)"
+
+**Navigation**: Tapping notification → Journal tab
+
+**Philosophy**: Bonuses are optional extras, so they have a small fixed weight to avoid overshadowing habits/journal basics.
+
+---
+
+### Selection Algorithm
+
+```typescript
+// Phase 1: Build list of available options
+const options = [];
+
+// Add habits if incomplete
+if (incompletedHabitsCount > 0 && scheduledTodayCount > 0) {
+  options.push({
+    type: 'habits',
+    weight: (incompletedHabitsCount / scheduledTodayCount) * 100
+  });
 }
+
+// Add journal if missing entries
+if (journalEntriesCount < 3) {
+  options.push({
+    type: 'journal',
+    weight: ((3 - journalEntriesCount) / 3) * 100
+  });
+}
+
+// Add bonuses ONLY if 3+ basic entries exist
+if (journalEntriesCount >= 3 && bonusEntriesCount < 10) {
+  options.push({
+    type: 'bonus',
+    weight: 15
+  });
+}
+
+// Phase 2: If no options, no notification (all complete!)
+if (options.length === 0) {
+  return null;
+}
+
+// Phase 3: Weighted random selection
+totalWeight = sum of all weights
+random = Random number between 0 and totalWeight
+Select option based on cumulative weight distribution
 ```
 
 ---
 
-#### **Priority 4: Generic Motivation** 💪
-**Condition**: All tasks complete OR no active tasks
+### Real-World Examples
 
-**Messages** (rotating):
-- "You're doing great! Keep up the amazing work! 🌟"
-- "Another day, another opportunity to grow 🚀"
-- "Reflect on today - what are you grateful for? 🙏"
-- "Tomorrow is a new day - rest well tonight! 😴"
+#### Example A: Busy Day
+**User State**:
+- 3 out of 5 habits incomplete (60%)
+- 1 journal entry (missing 2 = 67%)
+- No bonuses (but doesn't qualify - needs 3 basic first)
 
-**Navigation**: Tapping notification → Home tab
+**Weights**:
+- Habits: 60
+- Journal: 67
+- Total: 127
 
-**Logic**: Fallback when all higher priorities are satisfied
+**Probabilities**:
+- Habits: 60/127 = **47.2%** chance 🎯
+- Journal: 67/127 = **52.8%** chance 🎯
+
+**Result**: Slightly more likely to receive journal reminder (needs 2 more entries vs 3 more habits)
+
+---
+
+#### Example B: Almost Done
+**User State**:
+- 1 out of 5 habits incomplete (20%)
+- 3 journal entries (all basic requirements met!)
+- 4 bonus entries (could write 6 more)
+
+**Weights**:
+- Habits: 20
+- Journal: 0 (excluded - already has 3+)
+- Bonuses: 15
+- Total: 35
+
+**Probabilities**:
+- Habits: 20/35 = **57.1%** chance 🎯
+- Bonuses: 15/35 = **42.9%** chance 🎯
+
+**Result**: More likely habits reminder, but bonuses still have a decent shot
+
+---
+
+#### Example C: Everything Incomplete
+**User State**:
+- 5 out of 5 habits incomplete (100%)
+- 0 journal entries (missing 3 = 100%)
+
+**Weights**:
+- Habits: 100
+- Journal: 100
+- Total: 200
+
+**Probabilities**:
+- Habits: 100/200 = **50%** chance 🎯
+- Journal: 100/200 = **50%** chance 🎯
+
+**Result**: Perfect coin flip - both equally important
+
+---
+
+#### Example D: All Done Except Bonuses
+**User State**:
+- 0 habits incomplete
+- 3 basic journal entries (requirement met!)
+- 3 bonus entries (could write 7 more)
+
+**Weights**:
+- Habits: 0 (excluded)
+- Journal: 0 (excluded)
+- Bonuses: 15 (only option)
+- Total: 15
+
+**Probabilities**:
+- Bonuses: 15/15 = **100%** chance 🎯
+
+**Result**: Bonus notification sent (user requested this behavior)
 
 ---
 
@@ -728,6 +850,17 @@ The SelfRise notification system is designed to be:
 
 ---
 
-**Last Updated**: 2025-10-10
+**Last Updated**: 2025-10-27 (Dynamic Weighted System Implementation)
 **Related Files**: See "File Locations" section above
 **Related Documentation**: @projectplan.md Phase 7.1, @technical-guides.md
+
+---
+
+## Changelog
+
+### 2025-10-27: Dynamic Weighted System
+- **Changed**: Replaced fixed priority system with dynamic weighted random selection
+- **Added**: `scheduledTodayCount` to DailyTaskProgress for accurate weight calculation
+- **Fixed**: Habits filter now only counts habits scheduled for today (not all active habits)
+- **Improved**: Bonus entries now ONLY appear if user already has 3+ basic entries
+- **Added**: Console logging for weight calculations and selection probabilities (debugging)

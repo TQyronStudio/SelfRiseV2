@@ -248,45 +248,103 @@ class NotificationScheduler {
 
   /**
    * Generate smart evening message based on user progress
-   * Priority order:
-   * 1. Incomplete habits
-   * 2. Missing journal entries (<3)
-   * 3. Missing bonus entries (if 3 basic done)
-   * 4. All complete → null (no notification)
+   * Uses dynamic weighted system:
+   * - Habits weight: (incomplete/scheduled) × 100
+   * - Journal weight: (missing/3) × 100
+   * - Bonus weight: fixed 15 (only if 3+ entries exist)
    */
   private generateSmartEveningMessage(progress: DailyTaskProgress): SmartNotificationContent | null {
-    // Priority 1: Incomplete habits
-    if (progress.incompletedHabitsCount > 0) {
-      const habitWord = progress.incompletedHabitsCount === 1 ? 'habit' : 'habits';
-      return {
-        title: 'You still have habits to complete! 🏃‍♂️',
-        body: `You have ${progress.incompletedHabitsCount} ${habitWord} left to complete. Let's do this!`,
-        priority: NotificationPriority.HIGH,
-      };
+    interface NotificationOption {
+      type: 'habits' | 'journal' | 'bonus';
+      weight: number;
+      message: SmartNotificationContent;
     }
 
-    // Priority 2: Missing journal entries
+    const options: NotificationOption[] = [];
+
+    // Option 1: Incomplete habits (if any scheduled today)
+    if (progress.incompletedHabitsCount > 0 && progress.scheduledTodayCount > 0) {
+      const weight = (progress.incompletedHabitsCount / progress.scheduledTodayCount) * 100;
+      const habitWord = progress.incompletedHabitsCount === 1 ? 'habit' : 'habits';
+
+      options.push({
+        type: 'habits',
+        weight: weight,
+        message: {
+          title: 'You still have habits to complete! 🏃‍♂️',
+          body: `You have ${progress.incompletedHabitsCount} ${habitWord} left to complete. Let's do this!`,
+          priority: NotificationPriority.HIGH,
+        },
+      });
+    }
+
+    // Option 2: Missing journal entries (if less than 3)
     if (!progress.hasThreeBasicEntries) {
       const missing = 3 - progress.journalEntriesCount;
+      const weight = (missing / 3) * 100;
       const entryWord = missing === 1 ? 'entry' : 'entries';
-      return {
-        title: 'Evening reflection time 📝',
-        body: `Don't forget to write ${missing} more journal ${entryWord}!`,
-        priority: NotificationPriority.HIGH,
-      };
+
+      options.push({
+        type: 'journal',
+        weight: weight,
+        message: {
+          title: 'Evening reflection time 📝',
+          body: `Don't forget to write ${missing} more journal ${entryWord}!`,
+          priority: NotificationPriority.HIGH,
+        },
+      });
     }
 
-    // Priority 3: Missing bonus entries (if 3 basic done)
+    // Option 3: Bonus entries (ONLY if 3+ basic entries already written)
     if (progress.hasThreeBasicEntries && progress.bonusEntriesCount < 10) {
-      return {
-        title: 'Bonus opportunity! ⭐',
-        body: `You still have time for bonus entries! (currently ${progress.bonusEntriesCount}/10)`,
-        priority: NotificationPriority.DEFAULT,
-      };
+      options.push({
+        type: 'bonus',
+        weight: 15, // Fixed nice-to-have weight
+        message: {
+          title: 'Bonus opportunity! ⭐',
+          body: `You still have time for bonus entries! (currently ${progress.bonusEntriesCount}/10)`,
+          priority: NotificationPriority.DEFAULT,
+        },
+      });
     }
 
-    // Priority 4: All complete → no notification
-    return null;
+    // If no options available, all tasks complete → no notification
+    if (options.length === 0) {
+      return null;
+    }
+
+    // Weighted random selection
+    return this.weightedRandomPick(options);
+  }
+
+  /**
+   * Weighted random selection algorithm
+   * Picks an option based on weights (higher weight = higher probability)
+   */
+  private weightedRandomPick(options: Array<{ weight: number; message: SmartNotificationContent }>): SmartNotificationContent {
+    // Calculate total weight
+    const totalWeight = options.reduce((sum, option) => sum + option.weight, 0);
+
+    // Generate random number between 0 and totalWeight
+    const random = Math.random() * totalWeight;
+
+    // Find which option was selected
+    let cumulative = 0;
+    for (const option of options) {
+      cumulative += option.weight;
+      if (random <= cumulative) {
+        console.log('[NotificationScheduler] Weighted selection:', {
+          selected: option.message.title,
+          weight: option.weight,
+          totalWeight,
+          probability: `${((option.weight / totalWeight) * 100).toFixed(1)}%`,
+        });
+        return option.message;
+      }
+    }
+
+    // Fallback (should never happen, but TypeScript safety)
+    return options[0]!.message;
   }
 
   /**

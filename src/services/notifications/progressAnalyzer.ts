@@ -8,7 +8,9 @@
 import { DailyTaskProgress } from '../../types/notification';
 import { getGratitudeStorageImpl, getHabitStorageImpl } from '../../config/featureFlags';
 import { goalStorage } from '../storage/goalStorage';
-import { formatDateToString } from '../../utils/date';
+import { formatDateToString, getDayOfWeek } from '../../utils/date';
+import { Habit, HabitCompletion } from '../../types/habit';
+import { Gratitude } from '../../types/gratitude';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
@@ -69,17 +71,28 @@ class ProgressAnalyzer {
   /**
    * Analyze habits progress for today
    */
-  private async analyzeHabitsProgress(today: Date): Promise<Pick<DailyTaskProgress, 'incompletedHabitsCount'>> {
+  private async analyzeHabitsProgress(today: Date): Promise<Pick<DailyTaskProgress, 'incompletedHabitsCount' | 'scheduledTodayCount'>> {
     try {
       const habits = await habitStorage.getAll();
-      const activeHabits = habits.filter((habit) => habit.isActive);
+      const activeHabits = habits.filter((habit: Habit) => habit.isActive);
 
-      // Count habits that are NOT completed today
+      // Get today's day of week (e.g., 'monday', 'tuesday')
+      const todayDayOfWeek = getDayOfWeek(today);
+
+      // Filter habits that are scheduled for today
+      const scheduledTodayHabits = activeHabits.filter((habit: Habit) =>
+        habit.scheduledDays.includes(todayDayOfWeek)
+      );
+
+      // Count total scheduled for today (for weight calculation)
+      const scheduledTodayCount = scheduledTodayHabits.length;
+
+      // Count habits that are scheduled TODAY and NOT completed today
       let incompletedCount = 0;
 
-      for (const habit of activeHabits) {
+      for (const habit of scheduledTodayHabits) {
         const completions = await habitStorage.getCompletionsByHabitId(habit.id);
-        const completedToday = completions.some((completion) => {
+        const completedToday = completions.some((completion: HabitCompletion) => {
           if (!completion.completedAt) return false;
           const completionDate = completion.completedAt instanceof Date
             ? completion.completedAt
@@ -94,11 +107,13 @@ class ProgressAnalyzer {
 
       return {
         incompletedHabitsCount: incompletedCount,
+        scheduledTodayCount: scheduledTodayCount,
       };
     } catch (error) {
       console.error('[ProgressAnalyzer] Failed to analyze habits progress:', error);
       return {
         incompletedHabitsCount: 0,
+        scheduledTodayCount: 0,
       };
     }
   }
@@ -113,7 +128,7 @@ class ProgressAnalyzer {
       const allEntries = await gratitudeStorage.getAll();
 
       // Filter entries from today
-      const todayEntries = allEntries.filter((entry) => {
+      const todayEntries = allEntries.filter((entry: Gratitude) => {
         const entryDate = entry.createdAt instanceof Date
           ? entry.createdAt
           : new Date(entry.createdAt);

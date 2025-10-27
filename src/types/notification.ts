@@ -46,6 +46,7 @@ export interface NotificationPermissionStatus {
 
 export interface DailyTaskProgress {
   incompletedHabitsCount: number;
+  scheduledTodayCount: number; // Total habits scheduled for today (for weight calculation)
   journalEntriesCount: number;
   hasThreeBasicEntries: boolean;
   bonusEntriesCount: number;
