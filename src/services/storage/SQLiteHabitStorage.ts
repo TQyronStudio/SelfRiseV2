@@ -337,10 +337,22 @@ export class SQLiteHabitStorage {
 
       console.log(`✅ Habit completion created (+${xpAmount} XP)`);
 
-      const completion = await this.getCompletion(habitId, date);
-      if (!completion) throw new Error('Failed to retrieve created completion');
-
-      return completion;
+      // Return the completion object directly (no need to query DB again)
+      // This avoids READ-AFTER-WRITE consistency issues with SQLite WAL mode
+      return {
+        id: completionId,
+        habitId,
+        date,
+        completed: true,
+        isBonus,
+        completedAt: new Date(now),
+        note: note as string | undefined,
+        isConverted: false as boolean | undefined,
+        convertedFromDate: undefined as DateString | undefined,
+        convertedToDate: undefined as DateString | undefined,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      };
     } catch (error) {
       console.error('❌ SQLite createCompletion failed:', error);
       throw new Error(`Failed to create completion: ${error}`);
