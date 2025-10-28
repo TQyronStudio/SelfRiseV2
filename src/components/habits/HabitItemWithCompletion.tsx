@@ -16,7 +16,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitColor, HabitIcon, DayOfWeek } from '@/src/types/common';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts } from '@/src/constants/fonts';
 import { useI18n } from '@/src/hooks/useI18n';
 import { formatDateToString, getDayOfWeek } from '@/src/utils/date';
@@ -38,17 +38,6 @@ interface HabitItemWithCompletionProps {
   isEditMode: boolean;
   date?: string;
 }
-
-const COLOR_MAP = {
-  [HabitColor.RED]: Colors.habitRed,
-  [HabitColor.BLUE]: Colors.habitBlue,
-  [HabitColor.GREEN]: Colors.habitGreen,
-  [HabitColor.YELLOW]: Colors.habitYellow,
-  [HabitColor.PURPLE]: Colors.habitPurple,
-  [HabitColor.ORANGE]: Colors.habitOrange,
-  [HabitColor.PINK]: Colors.habitPink,
-  [HabitColor.TEAL]: Colors.habitTeal,
-};
 
 const ICON_MAP = {
   [HabitIcon.FITNESS]: 'fitness-outline',
@@ -92,8 +81,20 @@ export const HabitItemWithCompletion = React.memo(({
   date = formatDateToString(new Date())
 }: HabitItemWithCompletionProps) => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const COLOR_MAP = {
+    [HabitColor.RED]: colors.habitRed,
+    [HabitColor.BLUE]: colors.habitBlue,
+    [HabitColor.GREEN]: colors.habitGreen,
+    [HabitColor.YELLOW]: colors.habitYellow,
+    [HabitColor.PURPLE]: colors.habitPurple,
+    [HabitColor.ORANGE]: colors.habitOrange,
+    [HabitColor.PINK]: colors.habitPink,
+    [HabitColor.TEAL]: colors.habitTeal,
+  };
 
   // Wiggle animace pro edit mode
   const rotation = useSharedValue(0);
@@ -167,6 +168,186 @@ export const HabitItemWithCompletion = React.memo(({
   const isHabitScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
   const isActiveHabit = habit.isActive;
 
+  // Styles with theme support
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    inactiveContainer: {
+      opacity: 0.6,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    completedContainer: {
+      backgroundColor: colors.success + '08',
+      borderWidth: 1,
+      borderColor: colors.success + '20',
+    },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    bottomRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      marginLeft: 60,
+      marginTop: -2,
+    },
+    completionSection: {
+      marginRight: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 32,
+      height: 36,
+    },
+    bonusIndicator: {
+      marginTop: 2,
+    },
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    contentContainer: {
+      flex: 1,
+      minWidth: 0,
+      paddingRight: 8,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 1,
+    },
+    name: {
+      fontSize: 15,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      flex: 1,
+      lineHeight: 20,
+    },
+    inactiveName: {
+      color: colors.textSecondary,
+    },
+    completedName: {
+      color: colors.success,
+    },
+    bonusLabelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 6,
+      gap: 4,
+    },
+    bonusLabel: {
+      backgroundColor: colors.primary + '20',
+      paddingHorizontal: 4,
+      paddingVertical: 1,
+      borderRadius: 6,
+      alignSelf: 'flex-start',
+    },
+    bonusLabelText: {
+      fontSize: 9,
+      fontFamily: Fonts.medium,
+      color: colors.primary,
+    },
+    description: {
+      fontSize: 13,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      lineHeight: 17,
+      marginTop: 0,
+    },
+    inactiveDescription: {
+      color: colors.textSecondary,
+    },
+    completedDescription: {
+      color: colors.success + 'AA',
+    },
+    actionsGrid: {
+      flexDirection: 'column',
+      gap: 4,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      gap: 4,
+    },
+    daysContainer: {
+      flexDirection: 'row',
+      gap: 3,
+      flexWrap: 'wrap',
+    },
+    dayIndicator: {
+      width: 20,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    activeDayIndicator: {
+      backgroundColor: colors.primary,
+    },
+    inactiveDayIndicator: {
+      backgroundColor: colors.border,
+    },
+    dayLabel: {
+      fontSize: 8,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    activeDayLabel: {
+      color: colors.white,
+    },
+    inactiveDayLabel: {
+      color: colors.textSecondary,
+    },
+    draggingContainer: {
+      opacity: 0.8,
+      transform: [{ scale: 1.02 }],
+    },
+    draggingActionButton: {
+      backgroundColor: colors.primary,
+    },
+    actionButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    actionButtonDragging: {
+      backgroundColor: colors.primary,
+    },
+    todayScheduledContainer: {
+      borderWidth: 1,
+      borderColor: colors.primary + '30',
+    },
+    todayScheduledDayIndicator: {
+      borderWidth: 2,
+      borderColor: colors.success,
+      backgroundColor: colors.success,
+    },
+    todayUnscheduledDayIndicator: {
+      borderWidth: 2,
+      borderColor: colors.gold,
+      backgroundColor: colors.gold,
+    },
+    todayScheduledDayLabel: {
+      color: colors.white,
+      fontFamily: Fonts.bold,
+    },
+    todayUnscheduledDayLabel: {
+      color: colors.text,
+      fontFamily: Fonts.bold,
+    },
+  });
+
   // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
   const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
   const wrapperStyle = Platform.OS === 'ios' 
@@ -218,7 +399,7 @@ export const HabitItemWithCompletion = React.memo(({
           <Ionicons
             name={ICON_MAP[habit.icon] as any}
             size={20}
-            color={Colors.textInverse}
+            color={colors.white}
           />
         </View>
 
@@ -260,29 +441,29 @@ export const HabitItemWithCompletion = React.memo(({
         <View style={styles.actionsGrid}>
           <View style={styles.actionsRow}>
             <TouchableOpacity onPress={handleToggleActive} style={styles.actionButton}>
-              <Ionicons name={habit.isActive ? 'pause' : 'play'} size={16} color={Colors.textSecondary} />
+              <Ionicons name={habit.isActive ? 'pause' : 'play'} size={16} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => onEdit(habit)} style={styles.actionButton}>
-              <Ionicons name="pencil" size={16} color={Colors.textSecondary} />
+              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <View style={styles.actionsRow}>
             <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
-              <Ionicons name="trash" size={16} color={Colors.error} />
+              <Ionicons name="trash" size={16} color={colors.error} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => onViewStats(habit.id)} style={styles.actionButton}>
-              <Ionicons name="bar-chart-outline" size={16} color={Colors.textSecondary} />
+              <Ionicons name="bar-chart-outline" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           {/* Drag handle row - jen pro aktivní návyky */}
           {habit.isActive && onDrag && (
             <View style={styles.actionsRow}>
-              <TouchableOpacity 
-                onLongPress={onDrag} 
+              <TouchableOpacity
+                onLongPress={onDrag}
                 style={[styles.actionButton, isDragging && styles.actionButtonDragging]}
                 delayLongPress={100}
               >
-                <Ionicons name="reorder-three-outline" size={16} color={isDragging ? Colors.textInverse : Colors.textSecondary} />
+                <Ionicons name="reorder-three-outline" size={16} color={isDragging ? colors.white : colors.textSecondary} />
               </TouchableOpacity>
             </View>
           )}
@@ -341,195 +522,4 @@ export const HabitItemWithCompletion = React.memo(({
       />
     </WrapperComponent>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inactiveContainer: {
-    opacity: 0.6,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  completedContainer: {
-    backgroundColor: Colors.success + '08',
-    borderWidth: 1,
-    borderColor: Colors.success + '20',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center', // Changed to center for icon alignment
-    marginBottom: 4, // Reduced gap
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginLeft: 60, // Align with content
-    marginTop: -2, // Pull days closer up
-  },
-  completionSection: {
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 32,
-    height: 36, // Match icon container height for alignment
-  },
-  bonusIndicator: {
-    marginTop: 2,
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  contentContainer: {
-    flex: 1,
-    minWidth: 0, // Important: allows flex shrinking
-    paddingRight: 8,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 1, // Further reduced gap
-  },
-  name: {
-    fontSize: 15,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    flex: 1,
-    lineHeight: 20,
-  },
-  inactiveName: {
-    color: Colors.textTertiary,
-  },
-  completedName: {
-    color: Colors.success,
-  },
-  bonusLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 6,
-    gap: 4,
-  },
-  bonusLabel: {
-    backgroundColor: Colors.primary + '20',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  bonusLabelText: {
-    fontSize: 9,
-    fontFamily: Fonts.medium,
-    color: Colors.primary,
-  },
-  description: {
-    fontSize: 13,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    lineHeight: 17,
-    marginTop: 0, // Remove top margin
-  },
-  inactiveDescription: {
-    color: Colors.textTertiary,
-  },
-  completedDescription: {
-    color: Colors.success + 'AA',
-  },
-  actionsGrid: {
-    flexDirection: 'column',
-    gap: 4,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  daysContainer: {
-    flexDirection: 'row',
-    gap: 3,
-    flexWrap: 'wrap',
-  },
-  dayIndicator: {
-    width: 20,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activeDayIndicator: {
-    backgroundColor: Colors.primary,
-  },
-  inactiveDayIndicator: {
-    backgroundColor: Colors.border,
-  },
-  dayLabel: {
-    fontSize: 8,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  activeDayLabel: {
-    color: Colors.textInverse,
-  },
-  inactiveDayLabel: {
-    color: Colors.textTertiary,
-  },
-  draggingContainer: {
-    opacity: 0.8,
-    transform: [{ scale: 1.02 }],
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  draggingActionButton: {
-    backgroundColor: Colors.primary,
-  },
-  actionButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionButtonDragging: {
-    backgroundColor: Colors.primary,
-  },
-  // Styly pro dnešní zvýraznění
-  todayScheduledContainer: {
-    borderWidth: 1,
-    borderColor: Colors.primary + '30', // Jemná průhlednost podobná zelené při splnění
-  },
-  todayScheduledDayIndicator: {
-    borderWidth: 2,
-    borderColor: Colors.success,
-    backgroundColor: Colors.success,
-  },
-  todayUnscheduledDayIndicator: {
-    borderWidth: 2,
-    borderColor: Colors.gold,
-    backgroundColor: Colors.gold,
-  },
-  todayScheduledDayLabel: {
-    color: Colors.textInverse,
-    fontFamily: Fonts.bold,
-  },
-  todayUnscheduledDayLabel: {
-    color: Colors.text,
-    fontFamily: Fonts.bold,
-  },
 });
