@@ -13,7 +13,7 @@ import { NotificationSettings } from '@/src/components/settings/NotificationSett
 
 export default function SettingsScreen() {
   const { t } = useI18n();
-  const { colors } = useTheme();
+  const { colors, themeMode, setThemeMode } = useTheme();
   const { actions: { restartTutorial, clearCrashData } } = useTutorial();
   const [isResetting, setIsResetting] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
@@ -154,6 +154,58 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           <NotificationSettings />
+        </View>
+
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Appearance</Text>
+
+          {/* Light Mode */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setThemeMode('light')}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="sunny" size={24} color={colors.primary} />
+              <Text style={styles.menuItemText}>Light Mode</Text>
+            </View>
+            {themeMode === 'light' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
+
+          {/* Dark Mode */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setThemeMode('dark')}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="moon" size={24} color={colors.primary} />
+              <Text style={styles.menuItemText}>Dark Mode</Text>
+            </View>
+            {themeMode === 'dark' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
+
+          {/* System Auto */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setThemeMode('system')}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="phone-portrait" size={24} color={colors.primary} />
+              <View style={styles.menuItemTextContainer}>
+                <Text style={styles.menuItemText}>System Auto</Text>
+                <Text style={styles.menuItemDescription}>
+                  Matches your device settings
+                </Text>
+              </View>
+            </View>
+            {themeMode === 'system' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Habit Statistics Section */}
