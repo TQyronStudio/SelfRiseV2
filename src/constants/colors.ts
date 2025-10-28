@@ -56,6 +56,7 @@ export const lightColors = {
   borderLight: '#F1F3F4',
   shadow: 'rgba(0, 0, 0, 0.1)',
   overlay: 'rgba(0, 0, 0, 0.4)',
+  overlayLight: 'rgba(0, 0, 0, 0.2)',
   accent: '#E83E8C',
 
   // Navigation colors
@@ -63,24 +64,64 @@ export const lightColors = {
   tabBarBorder: '#E9ECEF',
   tabIconDefault: '#ADB5BD',
   tabIconSelected: '#007AFF',
+
+  // Elevation system (light mode uses subtle shadows)
+  elevation1: '#F8F9FA',
+  elevation2: '#E9ECEF',
+  elevation3: '#DEE2E6',
+
+  // Input states
+  inputBackground: '#FFFFFF',
+  inputBorder: '#CED4DA',
+  inputBorderFocus: '#007AFF',
+  inputPlaceholder: '#6C757D',
+  inputDisabled: '#E9ECEF',
+
+  // Card variations
+  cardBackground: '#FFFFFF',
+  cardBackgroundElevated: '#F8F9FA',
+  cardBorder: '#DEE2E6',
+
+  // Gratitude/Journal specific
+  gratitudeBackground: '#FFFFFF',
+  gratitudeBorder: '#007AFF',
+  selfPraiseBackground: '#F8F9FA',
+  selfPraiseBorder: '#28A745',
+  bonusGlow: 'rgba(255, 215, 0, 0.2)',
+
+  // Charts & Graphs
+  chartPrimary: '#007AFF',
+  chartSecondary: '#28A745',
+  chartTertiary: '#FFC107',
+  chartGrid: '#E9ECEF',
+  chartAxis: '#6C757D',
+
+  // Gamification
+  xpGold: '#FFD700',
+  xpBackground: 'rgba(255, 215, 0, 0.1)',
+  levelBadge: '#9C27B0',
+  achievementGold: '#FFD700',
+
+  // Transparent
+  transparent: 'transparent',
 } as const;
 
-// Dark theme colors (iOS-style dark mode with #1C1C1E base)
+// Dark theme colors (AMOLED-friendly pure black base)
 export const darkColors = {
   // Primary colors - brighter for better contrast on dark background
   primary: '#0A84FF',
-  primaryDark: '#409CFF',
-  primaryLight: '#5EB0FF',
+  primaryDark: '#0066CC',
+  primaryLight: '#409CFF',
 
   // Secondary colors - adjusted for dark mode
   secondary: '#FFB340',
   secondaryDark: '#FFA020',
   secondaryLight: '#FFC870',
 
-  // Background colors - iOS-style dark grays (not pure black)
-  background: '#1C1C1E',
-  backgroundSecondary: '#2C2C2E',
-  backgroundTertiary: '#3A3A3C',
+  // Background colors - Pure black AMOLED-friendly base
+  background: '#000000',              // Pure black (AMOLED)
+  backgroundSecondary: '#1C1C1E',     // Elevated surfaces
+  backgroundTertiary: '#2C2C2E',      // Modals, higher elevation
 
   // Text colors - inverted for readability
   text: '#FFFFFF',
@@ -89,7 +130,7 @@ export const darkColors = {
   textTertiary: '#636366',
   textInverse: '#000000',
 
-  // Status colors - slightly brighter for visibility
+  // Status colors - vivid for dark backgrounds
   success: '#32D74B',
   successLight: '#1E4620',
   warning: '#FFD60A',
@@ -99,15 +140,15 @@ export const darkColors = {
   info: '#64D2FF',
   infoLight: '#1A3A4D',
 
-  // Habit colors - adjusted saturation for dark mode
+  // Habit colors - vivid for dark mode visibility
   habitRed: '#FF6B6B',
-  habitBlue: '#64D2FF',
-  habitGreen: '#5AC8FA',
-  habitYellow: '#FFD60A',
-  habitPurple: '#BF5AF2',
-  habitOrange: '#FF9F0A',
-  habitPink: '#FF375F',
-  habitTeal: '#5AC8FA',
+  habitBlue: '#4ECDC4',
+  habitGreen: '#51CF66',
+  habitYellow: '#FFE66D',
+  habitPurple: '#B197FC',
+  habitOrange: '#FF922B',
+  habitPink: '#FF6B9D',
+  habitTeal: '#20C997',
 
   // Basic colors
   white: '#FFFFFF',
@@ -118,16 +159,57 @@ export const darkColors = {
 
   // UI colors - adjusted for dark mode
   border: '#38383A',
-  borderLight: '#2C2C2E',
-  shadow: 'rgba(0, 0, 0, 0.3)',
-  overlay: 'rgba(0, 0, 0, 0.6)',
+  borderLight: '#48484A',
+  shadow: 'transparent',              // No shadows in dark mode
+  overlay: 'rgba(0, 0, 0, 0.85)',     // Darker overlay
+  overlayLight: 'rgba(0, 0, 0, 0.6)',
   accent: '#FF375F',
 
   // Navigation colors
   tabBarBackground: '#1C1C1E',
   tabBarBorder: '#38383A',
-  tabIconDefault: '#8E8E93',
+  tabIconDefault: '#98989D',
   tabIconSelected: '#0A84FF',
+
+  // Elevation system (dark mode uses lighter backgrounds)
+  elevation1: '#2C2C2E',              // 1dp elevation
+  elevation2: '#3A3A3C',              // 2dp elevation
+  elevation3: '#48484A',              // 3dp elevation
+
+  // Input states
+  inputBackground: '#1C1C1E',
+  inputBorder: '#38383A',
+  inputBorderFocus: '#0A84FF',
+  inputPlaceholder: '#636366',
+  inputDisabled: '#2C2C2E',
+
+  // Card variations
+  cardBackground: '#1C1C1E',
+  cardBackgroundElevated: '#2C2C2E',
+  cardBorder: '#38383A',
+
+  // Gratitude/Journal specific
+  gratitudeBackground: '#1C1C1E',
+  gratitudeBorder: '#0A84FF',
+  selfPraiseBackground: '#2C2C2E',
+  selfPraiseBorder: '#32D74B',
+  bonusGlow: 'rgba(255, 215, 0, 0.3)',
+
+  // Charts & Graphs
+  chartPrimary: '#0A84FF',
+  chartSecondary: '#32D74B',
+  chartTertiary: '#FFD60A',
+  chartGrid: '#2C2C2E',
+  chartAxis: '#636366',
+
+  // Gamification
+  xpGold: '#FFD700',
+  xpBackground: 'rgba(255, 215, 0, 0.15)',
+  levelBadge: '#9C27B0',
+  achievementGold: '#FFD700',
+
+  // Transparent
+  transparent: 'transparent',
 } as const;
 
 // Type for theme colors - removes 'as const' literal types to allow both themes
