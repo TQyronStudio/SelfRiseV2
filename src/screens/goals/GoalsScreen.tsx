@@ -6,7 +6,7 @@ import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatu
 import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 // useEnhancedGamification removed - XP handled by goalStorage
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 // XPSourceType removed - XP handled by goalStorage
@@ -20,14 +20,14 @@ import { getDatabase } from '@/src/services/database/init';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   addButtonContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
     gap: 8,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -40,11 +40,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    shadowColor: Colors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -63,13 +63,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.primary,
-    shadowColor: Colors.shadow,
+    borderColor: colors.primary,
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   templateButtonText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -88,15 +88,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   editButtonText: {
-    color: Colors.text,
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
 
 export function GoalsScreen() {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { goals, isLoading, actions } = useGoalsData();
   // addXP removed - XP handled by goalStorage
   const params = useLocalSearchParams();
@@ -295,7 +296,7 @@ export function GoalsScreen() {
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
-              <Ionicons name="library-outline" size={24} color={Colors.primary} />
+              <Ionicons name="library-outline" size={24} color={colors.primary} />
               <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
             </TouchableOpacity>
           </>
