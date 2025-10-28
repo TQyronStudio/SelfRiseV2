@@ -598,7 +598,7 @@ export default function AchievementsScreen() {
         
         {/* Animated dots indicator */}
         <View style={styles.loadingDotsContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
         
         <Text style={styles.loadingTitle}>Loading Trophy Room</Text>
@@ -1154,8 +1154,8 @@ export default function AchievementsScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -1209,7 +1209,7 @@ const getCategoryColor = (category: AchievementCategory): string => {
     case AchievementCategory.CONSISTENCY: return '#F44336';
     case AchievementCategory.MASTERY: return '#9C27B0';
     case AchievementCategory.SPECIAL: return '#FFD700';
-    default: return Colors.primary;
+    default: return '#007AFF'; // Fallback color
   }
 };
 
