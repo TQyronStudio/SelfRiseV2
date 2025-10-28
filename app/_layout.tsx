@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 // Import i18n configuration to initialize internationalization
 import '../src/config/i18n';
 import { RootProvider } from '../src/contexts';
-import { Colors } from '../src/constants/colors';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 // Initialize Monthly Progress Integration for challenge tracking
 import '../src/services';
@@ -44,27 +44,28 @@ function LayoutContent() {
   // Initialize notification lifecycle management (unconditional hook)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
+  const { colors } = useTheme();
 
   return (
     <TutorialProvider>
       <TutorialOverlay>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="achievements" 
-            options={{ 
+          <Stack.Screen
+            name="achievements"
+            options={{
               headerShown: true,
               title: 'Trophy Room',
               headerBackTitle: 'Home',
               headerStyle: {
-                backgroundColor: Colors.primary,
+                backgroundColor: colors.primary,
               },
               headerTintColor: '#FFFFFF',
               headerTitleStyle: {
                 fontWeight: 'bold',
               },
-              presentation: 'card' 
-            }} 
+              presentation: 'card'
+            }}
           />
           <Stack.Screen name="journal-history" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="journal-stats" options={{ headerShown: false, presentation: 'card' }} />

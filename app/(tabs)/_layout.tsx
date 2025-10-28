@@ -5,30 +5,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 
 function TabLayoutContent() {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   return (
     <>
       <StatusBar style="light" />
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors.tabIconSelected,
-          tabBarInactiveTintColor: Colors.tabIconDefault,
+          tabBarActiveTintColor: colors.tabIconSelected,
+          tabBarInactiveTintColor: colors.tabIconDefault,
           headerShown: true,
           headerStyle: {
-            backgroundColor: Colors.primary,
+            backgroundColor: colors.primary,
           },
-          headerTintColor: Colors.textInverse,
+          headerTintColor: colors.textInverse,
           headerTitleAlign: 'center',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
           tabBarStyle: {
-            backgroundColor: Colors.tabBarBackground,
+            backgroundColor: colors.tabBarBackground,
             borderTopColor: 'transparent',
             borderTopWidth: 0,
           },

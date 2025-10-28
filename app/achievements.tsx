@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { HelpTooltip } from '@/src/components/common';
 // useOptimizedGamification removed - components use GamificationService directly
@@ -47,7 +47,8 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function AchievementsScreen() {
   const { t } = useI18n();
-  
+  const { colors } = useTheme();
+
   // ========================================
   // STATE MANAGEMENT
   // ========================================
@@ -611,11 +612,367 @@ export default function AchievementsScreen() {
       <Text style={styles.errorText}>{error}</Text>
     </View>
   );
-  
+
+  // ========================================
+  // STYLES - Inside component to access theme
+  // ========================================
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    // View mode toggle
+    viewModeContainer: {
+      flexDirection: 'row',
+      marginHorizontal: 16,
+      marginVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: 4,
+    },
+
+    viewModeButton: {
+      flex: 1,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+
+    viewModeButtonActive: {
+      backgroundColor: colors.primary,
+    },
+
+    viewModeText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+
+    viewModeTextActive: {
+      color: colors.white,
+    },
+
+    scrollView: {
+      flex: 1,
+    },
+
+    scrollContent: {
+      paddingBottom: 100,
+      paddingTop: 16,
+    },
+
+    // Achievement grid styles
+    achievementHeaderContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.backgroundSecondary,
+    },
+
+    achievementHeaderTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+
+    gridContainer: {
+      paddingHorizontal: 16,
+    },
+
+    achievementsContainer: {
+      paddingBottom: 24,
+    },
+
+    achievementRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 12,
+    },
+
+    cardWrapper: {
+      marginHorizontal: 4,
+      width: 150,
+    },
+
+    // No results state
+    noResultsContainer: {
+      alignItems: 'center',
+      paddingHorizontal: 40,
+      paddingVertical: 60,
+    },
+
+    noResultsTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+
+    noResultsSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+
+    // Overview Statistics
+    overviewContainer: {
+      backgroundColor: colors.white,
+      margin: 16,
+      borderRadius: 12,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+
+    overviewTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+
+    overviewStatsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+
+    overviewStatItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+
+    overviewStatNumber: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 4,
+    },
+
+    overviewStatLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    overviewStatDivider: {
+      width: 1,
+      height: 40,
+      backgroundColor: colors.border,
+      marginHorizontal: 8,
+    },
+
+    // Breakdown Sections
+    breakdownContainer: {
+      backgroundColor: colors.white,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderRadius: 12,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+
+    breakdownTitleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+
+    breakdownTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+
+    // Category Breakdown
+    categoryList: {
+      gap: 12,
+    },
+
+    categoryItem: {
+      marginBottom: 4,
+    },
+
+    categoryHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+
+    categoryName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+    },
+
+    categoryCount: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+
+    categoryProgressBar: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+
+    categoryProgressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+
+    // Rarity Distribution
+    rarityList: {
+      gap: 12,
+    },
+
+    rarityItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+
+    rarityBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      minWidth: 80,
+    },
+
+    rarityBadgeText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textInverse,
+      textAlign: 'center',
+    },
+
+    rarityStats: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+
+    rarityCount: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    rarityPercentage: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+
+    // Empty State
+    emptyContainer: {
+      alignItems: 'center',
+      paddingHorizontal: 40,
+      paddingVertical: 60,
+    },
+
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+
+    emptySubtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+
+    // Enhanced Loading State
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 80,
+      backgroundColor: colors.background,
+    },
+
+    loadingContent: {
+      alignItems: 'center',
+      maxWidth: 300,
+    },
+
+    loadingIconContainer: {
+      marginBottom: 24,
+    },
+
+    loadingIcon: {
+      fontSize: 56,
+      textAlign: 'center',
+    },
+
+    loadingDotsContainer: {
+      marginBottom: 20,
+    },
+
+    loadingTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+
+    loadingText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+
+    // Error State
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 40,
+      paddingVertical: 60,
+    },
+
+    errorText: {
+      fontSize: 16,
+      color: colors.error,
+      textAlign: 'center',
+    },
+  });
+
   // ========================================
   // MAIN RENDER
   // ========================================
-  
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -862,363 +1219,6 @@ const getRarityColor = (rarity: AchievementRarity): string => {
     case AchievementRarity.RARE: return '#2196F3';
     case AchievementRarity.EPIC: return '#9C27B0';
     case AchievementRarity.LEGENDARY: return '#FFD700';
-    default: return Colors.primary;
+    default: return '#007AFF'; // Fallback color instead of Colors.primary
   }
 };
-
-// ========================================
-// STYLES
-// ========================================
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  
-  // View mode toggle
-  viewModeContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: 4,
-  },
-  
-  viewModeButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  
-  viewModeButtonActive: {
-    backgroundColor: Colors.primary,
-  },
-  
-  viewModeText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  
-  viewModeTextActive: {
-    color: Colors.white,
-  },
-  
-  scrollView: {
-    flex: 1,
-  },
-  
-  scrollContent: {
-    paddingBottom: 100,
-    paddingTop: 16,
-  },
-  
-  // Achievement grid styles
-  achievementHeaderContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  
-  achievementHeaderTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  
-  gridContainer: {
-    paddingHorizontal: 16,
-  },
-  
-  achievementsContainer: {
-    paddingBottom: 24,
-  },
-  
-  achievementRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  
-  cardWrapper: {
-    marginHorizontal: 4,
-    width: 150, // Fixed width to maintain consistent spacing
-  },
-  
-  // No results state
-  noResultsContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-  },
-  
-  noResultsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  
-  noResultsSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  
-  // Overview Statistics
-  overviewContainer: {
-    backgroundColor: Colors.white,
-    margin: 16,
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  
-  overviewTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  
-  overviewStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  
-  overviewStatItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  
-  overviewStatNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  
-  overviewStatLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  
-  overviewStatDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: Colors.border,
-    marginHorizontal: 8,
-  },
-  
-  // Breakdown Sections
-  breakdownContainer: {
-    backgroundColor: Colors.white,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  
-  breakdownTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  breakdownTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-  },
-  
-  // Category Breakdown
-  categoryList: {
-    gap: 12,
-  },
-  
-  categoryItem: {
-    marginBottom: 4,
-  },
-  
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  
-  categoryName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  
-  categoryCount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  
-  categoryProgressBar: {
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  
-  categoryProgressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  
-  // Rarity Distribution
-  rarityList: {
-    gap: 12,
-  },
-  
-  rarityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  
-  rarityBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    minWidth: 80,
-  },
-  
-  rarityBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textInverse,
-    textAlign: 'center',
-  },
-  
-  rarityStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  
-  rarityCount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  
-  rarityPercentage: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  
-  // Empty State
-  emptyContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-  },
-  
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  
-  emptySubtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  
-  // Enhanced Loading State
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80,
-    backgroundColor: Colors.background,
-  },
-  
-  loadingContent: {
-    alignItems: 'center',
-    maxWidth: 300,
-  },
-  
-  loadingIconContainer: {
-    marginBottom: 24,
-  },
-  
-  loadingIcon: {
-    fontSize: 56,
-    textAlign: 'center',
-  },
-  
-  loadingDotsContainer: {
-    marginBottom: 20,
-  },
-  
-  loadingTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  
-  // Error State
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-  },
-  
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
-    textAlign: 'center',
-  },
-  
-});
