@@ -3,7 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter, Emi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout } from '@/src/constants';
 import { JournalStreakCard } from '@/src/components/home/GratitudeStreakCard';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
 import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
@@ -41,6 +42,7 @@ import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 export default function HomeScreen() {
   // const { t } = useI18n(); // Unused for now
+  const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
@@ -326,6 +328,43 @@ export default function HomeScreen() {
     setCompletionResult(null);
   };
 
+  // Styles using theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      paddingTop: Layout.spacing.xs,
+      paddingBottom: Layout.spacing.xs,
+    },
+    trophyButton: {
+      flex: 1,
+      alignItems: 'flex-start',
+      padding: Layout.spacing.xs,
+      borderRadius: Layout.borderRadius.md,
+    },
+    headerTimer: {
+      // Centered item - no flex, will be naturally centered
+    },
+    customizeButton: {
+      flex: 1,
+      alignItems: 'flex-end',
+      padding: Layout.spacing.sm,
+      borderRadius: Layout.borderRadius.sm,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    content: {
+      paddingVertical: Layout.spacing.md,
+      paddingBottom: Layout.spacing.xl,
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header Actions */}
@@ -349,11 +388,11 @@ export default function HomeScreen() {
         />
         
         {/* Customization Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.customizeButton}
           onPress={() => setShowCustomizationModal(true)}
         >
-          <Ionicons name="options" size={20} color={Colors.textSecondary} />
+          <Ionicons name="options" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -392,39 +431,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.md,
-    paddingTop: Layout.spacing.xs,
-    paddingBottom: Layout.spacing.xs,
-  },
-  trophyButton: {
-    flex: 1,
-    alignItems: 'flex-start',
-    padding: Layout.spacing.xs,
-    borderRadius: Layout.borderRadius.md,
-  },
-  headerTimer: {
-    // Centered item - no flex, will be naturally centered
-  },
-  customizeButton: {
-    flex: 1,
-    alignItems: 'flex-end',
-    padding: Layout.spacing.sm,
-    borderRadius: Layout.borderRadius.sm,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingVertical: Layout.spacing.md,
-    paddingBottom: Layout.spacing.xl,
-  },
-});
