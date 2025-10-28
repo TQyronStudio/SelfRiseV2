@@ -8,7 +8,8 @@ import {
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Gratitude } from '@/src/types/gratitude';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Fonts, Layout } from '@/src/constants';
 
 interface GratitudeListProps {
   gratitudes: Gratitude[];
@@ -19,6 +20,155 @@ interface GratitudeListProps {
 
 export default function GratitudeList({ gratitudes, showDate = false, onEdit, onDelete }: GratitudeListProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    list: {
+      padding: Layout.spacing.md,
+      paddingTop: 0,
+    },
+    gratitudeItem: {
+      backgroundColor: colors.gratitudeBackground,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+      borderLeftWidth: 4,
+      borderLeftColor: colors.gratitudeBorder,
+    },
+    bonusGratitudeItem: {
+      borderLeftColor: colors.gold,
+      backgroundColor: colors.bonusGlow,
+    },
+    selfPraiseItem: {
+      backgroundColor: colors.selfPraiseBackground,
+      borderLeftColor: colors.selfPraiseBorder,
+    },
+    bonusSelfPraiseItem: {
+      borderLeftColor: colors.gold,
+      backgroundColor: colors.bonusGlow,
+    },
+    gratitudeHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    orderContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    labelContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+    },
+    orderText: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.primary,
+      backgroundColor: colors.primaryLight,
+      width: 32,
+      height: 32,
+      textAlign: 'center',
+      lineHeight: 32,
+      borderRadius: 16,
+      marginRight: Layout.spacing.sm,
+    },
+    bonusOrderText: {
+      color: colors.gold,
+      backgroundColor: colors.bonusGlow,
+      lineHeight: 32,
+    },
+    selfPraiseOrderText: {
+      color: colors.success,
+      backgroundColor: colors.successLight,
+      lineHeight: 32,
+    },
+    bonusSelfPraiseOrderText: {
+      color: colors.gold,
+      backgroundColor: colors.bonusGlow,
+      lineHeight: 32,
+    },
+    bonusLabel: {
+      fontSize: Fonts.sizes.xs,
+      color: colors.gold,
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+      marginBottom: 2,
+    },
+    typeLabel: {
+      fontSize: Fonts.sizes.xs,
+      color: colors.primary,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+    selfPraiseTypeLabel: {
+      color: colors.success,
+    },
+    gratitudeContent: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      lineHeight: 22,
+      marginBottom: Layout.spacing.sm,
+    },
+    timeContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    gratitudeDate: {
+      fontSize: Fonts.sizes.xs,
+      color: colors.textSecondary,
+      fontWeight: '600',
+    },
+    gratitudeTime: {
+      fontSize: Fonts.sizes.xs,
+      color: colors.textSecondary,
+      textAlign: 'right',
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      gap: Layout.spacing.sm,
+      marginTop: Layout.spacing.md,
+      justifyContent: 'flex-end',
+    },
+    actionButton: {
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      borderRadius: 8,
+      minWidth: 60,
+      alignItems: 'center',
+    },
+    editButton: {
+      backgroundColor: colors.primary,
+    },
+    deleteButton: {
+      backgroundColor: colors.error,
+    },
+    editButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.sm,
+      fontWeight: '600',
+    },
+    deleteButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.sm,
+      fontWeight: '600',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    emptyText: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+  });
 
   const renderGratitudeItem = ({ item, index }: { item: Gratitude; index: number }) => (
     <View
@@ -117,158 +267,3 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  list: {
-    padding: Layout.spacing.md,
-    paddingTop: 0,
-  },
-  gratitudeItem: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  bonusGratitudeItem: {
-    borderLeftColor: Colors.gold || '#FFD700',
-    backgroundColor: Colors.background,
-  },
-  selfPraiseItem: {
-    borderLeftColor: Colors.success,
-  },
-  bonusSelfPraiseItem: {
-    borderLeftColor: Colors.gold || '#FFD700',
-    backgroundColor: Colors.background,
-  },
-  gratitudeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  orderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  labelContainer: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-  },
-  orderText: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    backgroundColor: Colors.primaryLight || Colors.background,
-    width: 32,
-    height: 32,
-    textAlign: 'center',
-    lineHeight: 32,
-    borderRadius: 16,
-    marginRight: Layout.spacing.sm,
-  },
-  bonusOrderText: {
-    color: Colors.gold || '#FFD700',
-    backgroundColor: '#FFF9E6',
-    lineHeight: 32,
-  },
-  selfPraiseOrderText: {
-    color: Colors.success,
-    backgroundColor: Colors.successLight || '#D4EDDA',
-    lineHeight: 32,
-  },
-  bonusSelfPraiseOrderText: {
-    color: Colors.gold || '#FFD700',
-    backgroundColor: '#FFF9E6',
-    lineHeight: 32,
-  },
-  bonusLabel: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.gold || '#FFD700',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  typeLabel: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.primary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  selfPraiseTypeLabel: {
-    color: Colors.success,
-  },
-  gratitudeContent: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    lineHeight: 22,
-    marginBottom: Layout.spacing.sm,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  gratitudeDate: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  gratitudeTime: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: Layout.spacing.sm,
-    marginTop: Layout.spacing.md,
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    borderRadius: 8,
-    minWidth: 60,
-    alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: Colors.primary,
-  },
-  deleteButton: {
-    backgroundColor: Colors.error,
-  },
-  editButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-  },
-  deleteButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  emptyText: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-});
