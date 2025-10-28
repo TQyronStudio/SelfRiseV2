@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { useGratitude } from '../../contexts/GratitudeContext';
@@ -33,6 +33,7 @@ export interface JournalStreakCardRef {
 }
 
 export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakCardProps>(({ onPress }, ref) => {
+  const { colors } = useTheme();
   const { t } = useI18n();
   const { state, actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
@@ -182,10 +183,203 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   };
 
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: 16,
+      padding: 20,
+      marginHorizontal: 16,
+      marginVertical: 8,
+      minHeight: 180,
+      justifyContent: 'center',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    shareButton: {
+      padding: 4,
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginLeft: 8,
+    },
+    streakSection: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    currentStreakContainer: {
+      alignItems: 'center',
+      marginBottom: 8,
+      position: 'relative',
+      minHeight: 80,
+      justifyContent: 'center',
+    },
+    streakNumber: {
+      fontSize: 48,
+      fontFamily: Fonts.bold,
+      color: colors.primary,
+      lineHeight: 56,
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+    frozenStreakNumber: {
+      color: '#E8F4FD',
+      textShadowColor: 'rgba(74, 144, 226, 0.8)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 6,
+    },
+    streakLabel: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      textShadowColor: 'rgba(0, 0, 0, 0.2)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
+    },
+    frozenStreakLabel: {
+      color: '#B0E0E6',
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+      textShadowColor: 'rgba(74, 144, 226, 0.6)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 4,
+    },
+    statusContainer: {
+      marginTop: 4,
+    },
+    statusActive: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.successLight,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    statusInactive: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    statusFrozen: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(74, 144, 226, 0.1)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(74, 144, 226, 0.3)',
+    },
+    statusText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginLeft: 4,
+    },
+    statusFrozenText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: '#4A90E2',
+      marginLeft: 4,
+      fontWeight: 'bold',
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statNumber: {
+      fontSize: 24,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    badgesContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    badge: {
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      minWidth: 40,
+    },
+    badgeEmoji: {
+      fontSize: 16,
+    },
+    badgeCount: {
+      fontSize: 12,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      marginTop: 2,
+    },
+    recoveryContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: colors.warningLight,
+      borderRadius: 8,
+    },
+    recoveryText: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.warning,
+      marginLeft: 6,
+    },
+    frozenContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: colors.warningLight,
+      borderRadius: 8,
+    },
+    frozenText: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.warning,
+      marginLeft: 6,
+      textAlign: 'center',
+    },
+  });
+
   if (isLoading || !streak) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -385,21 +579,21 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="heart" size={24} color={Colors.primary} />
+          <Ionicons name="heart" size={24} color={colors.primary} />
           <Text style={styles.title}>{t('home.journalStreak')}</Text>
         </View>
-        
+
         <View style={styles.headerActions}>
           {/* Share button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleSharePress}
             style={styles.shareButton}
             activeOpacity={0.7}
           >
-            <Ionicons name="share-outline" size={18} color={Colors.textSecondary} />
+            <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
-          
-          <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </View>
       </View>
 
@@ -547,205 +741,4 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       )}
     </TouchableOpacity>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    minHeight: 180,
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  shareButton: {
-    padding: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  streakSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  currentStreakContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-    position: 'relative',
-    minHeight: 80,
-    justifyContent: 'center',
-  },
-  streakNumber: {
-    fontSize: 48,
-    fontFamily: Fonts.bold,
-    color: Colors.primary,
-    lineHeight: 56,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  frozenStreakNumber: {
-    color: '#E8F4FD', // Light ice blue for better visibility
-    textShadowColor: 'rgba(74, 144, 226, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  streakLabel: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  frozenStreakLabel: {
-    color: '#B0E0E6',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    textShadowColor: 'rgba(74, 144, 226, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  statusContainer: {
-    marginTop: 4,
-  },
-  statusActive: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.successLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusInactive: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusFrozen: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(74, 144, 226, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 144, 226, 0.3)',
-  },
-  statusText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginLeft: 4,
-  },
-  statusFrozenText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: '#4A90E2',
-    marginLeft: 4,
-    fontWeight: 'bold',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  badgesContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  badge: {
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 40,
-  },
-  badgeEmoji: {
-    fontSize: 16,
-  },
-  badgeCount: {
-    fontSize: 12,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    marginTop: 2,
-  },
-  recoveryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: Colors.warningLight,
-    borderRadius: 8,
-  },
-  recoveryText: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.warning,
-    marginLeft: 6,
-  },
-  frozenContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: Colors.warningLight,
-    borderRadius: 8,
-  },
-  frozenText: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.warning,
-    marginLeft: 6,
-    textAlign: 'center',
-  },
 });
