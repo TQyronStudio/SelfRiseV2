@@ -17,97 +17,98 @@ import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { dropGoalsTables } from '@/src/utils/dropGoalsTables';
 import { getDatabase } from '@/src/services/database/init';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  addButtonContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    gap: 8,
-    backgroundColor: colors.background,
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  listContainer: {
-    flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    shadowColor: colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  templateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.backgroundSecondary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    shadowColor: colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  templateButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.backgroundSecondary,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  editButtonText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
-
 export function GoalsScreen() {
   const { t } = useI18n();
   const { colors } = useTheme();
   const { goals, isLoading, actions } = useGoalsData();
   // addXP removed - XP handled by goalStorage
   const params = useLocalSearchParams();
+
+  // Styles inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    addButtonContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+      gap: 8,
+      backgroundColor: colors.background,
+    },
+    buttonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    listContainer: {
+      flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    addButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 8,
+    },
+    templateButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    templateButtonText: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 8,
+    },
+    editButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    editButtonText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
 
   // Tutorial target registration for Add Goal button
   const addGoalButtonRef = useRef<View>(null);

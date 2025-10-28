@@ -210,6 +210,117 @@ export default function JournalScreen() {
 
   // GHOST SYSTEM REMOVED: Cleanup timeout useEffect eliminado - no longer needed
 
+  // Styles inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    keyboardAvoidingView: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    content: {
+      flexGrow: 1,
+      paddingTop: Layout.spacing.md,
+    },
+    contentWithInput: {
+      paddingBottom: 100, // Extra padding when input is shown to ensure scrollability
+    },
+    addButtonContainer: {
+      paddingHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: Layout.spacing.sm,
+    },
+    addButton: {
+      flex: 1,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      alignItems: 'center',
+      shadowColor: colors.black,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    gratitudeButton: {
+      backgroundColor: colors.primary,
+    },
+    selfPraiseButton: {
+      backgroundColor: colors.success,
+    },
+    addButtonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    badgeContainer: {
+      marginVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.md,
+    },
+    badgeHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    badgeRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+    },
+    badge: {
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.sm,
+      marginHorizontal: Layout.spacing.xs,
+    },
+    badgeIcon: {
+      fontSize: 24,
+      marginBottom: 4,
+    },
+    badgeCount: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    actionButtonsContainer: {
+      paddingHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.white,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      gap: Layout.spacing.sm,
+      shadowColor: colors.black,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      marginBottom: Layout.spacing.sm,
+    },
+    actionButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
@@ -354,113 +465,3 @@ export default function JournalScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingTop: Layout.spacing.md,
-  },
-  contentWithInput: {
-    paddingBottom: 100, // Extra padding when input is shown to ensure scrollability
-  },
-  addButtonContainer: {
-    paddingHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Layout.spacing.sm,
-  },
-  addButton: {
-    flex: 1,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    alignItems: 'center',
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  gratitudeButton: {
-    backgroundColor: colors.primary,
-  },
-  selfPraiseButton: {
-    backgroundColor: colors.success,
-  },
-  addButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  badgeContainer: {
-    marginVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.md,
-  },
-  badgeHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
-  badge: {
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.sm,
-    marginHorizontal: Layout.spacing.xs,
-  },
-  badgeIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  badgeCount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  actionButtonsContainer: {
-    paddingHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    gap: Layout.spacing.sm,
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: Layout.spacing.sm,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-});
