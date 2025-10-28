@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { ThemeProvider } from './ThemeContext';
 import { AppProvider } from './AppContext';
 // OptimizedGamificationProvider removed - components use GamificationService directly
 import { XpAnimationProvider } from './XpAnimationContext';
@@ -15,22 +16,24 @@ interface RootProviderProps {
 
 export function RootProvider({ children }: RootProviderProps) {
   return (
-    <AppProvider>
-      <XpAnimationProvider>
-        <HabitsProvider>
-          <GratitudeProvider>
-            <GoalsProvider>
-              <AchievementProvider>
-                <HomeCustomizationProvider>
-                  <XpAnimationContainer>
-                    {children}
-                  </XpAnimationContainer>
-                </HomeCustomizationProvider>
-              </AchievementProvider>
-            </GoalsProvider>
-          </GratitudeProvider>
-        </HabitsProvider>
-      </XpAnimationProvider>
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <XpAnimationProvider>
+          <HabitsProvider>
+            <GratitudeProvider>
+              <GoalsProvider>
+                <AchievementProvider>
+                  <HomeCustomizationProvider>
+                    <XpAnimationContainer>
+                      {children}
+                    </XpAnimationContainer>
+                  </HomeCustomizationProvider>
+                </AchievementProvider>
+              </GoalsProvider>
+            </GratitudeProvider>
+          </HabitsProvider>
+        </XpAnimationProvider>
+      </AppProvider>
+    </ThemeProvider>
   );
 }

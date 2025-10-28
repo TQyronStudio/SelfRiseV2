@@ -5,19 +5,124 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTutorial } from '@/src/contexts/TutorialContext';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Fonts, Layout } from '@/src/constants';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 
 export default function SettingsScreen() {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { actions: { restartTutorial, clearCrashData } } = useTutorial();
   const [isResetting, setIsResetting] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Styles that depend on theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 16,
+    },
+    section: {
+      marginBottom: 32,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 16,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.backgroundSecondary,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    menuItemLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    menuItemText: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginLeft: 12,
+    },
+    comingSoon: {
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    menuItemTextContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    menuItemDescription: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    menuItemDisabled: {
+      opacity: 0.6,
+    },
+    textDisabled: {
+      color: colors.textSecondary,
+    },
+    loadingText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    modalContent: {
+      alignItems: 'center',
+    },
+    modalEmoji: {
+      fontSize: 48,
+      marginBottom: Layout.spacing.md,
+    },
+    modalTitle: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    modalMessage: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    modalButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      alignItems: 'center',
+      minWidth: 100,
+    },
+    modalButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+    },
+  });
 
   const handleViewHabitStats = () => {
     router.push('/habit-stats' as any);
@@ -59,10 +164,10 @@ export default function SettingsScreen() {
             onPress={handleViewHabitStats}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="bar-chart" size={24} color={Colors.primary} />
+              <Ionicons name="bar-chart" size={24} color={colors.primary} />
               <Text style={styles.menuItemText}>Individual Habit Stats</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -71,7 +176,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>General</Text>
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="language" size={24} color={Colors.textSecondary} />
+              <Ionicons name="language" size={24} color={colors.textSecondary} />
               <Text style={[styles.menuItemText, styles.comingSoon]}>
                 Language Settings - Coming Soon
               </Text>
@@ -91,7 +196,7 @@ export default function SettingsScreen() {
               <Ionicons
                 name="refresh-circle"
                 size={24}
-                color={isResetting ? Colors.textSecondary : Colors.warning}
+                color={isResetting ? colors.textSecondary : colors.warning}
               />
               <View style={styles.menuItemTextContainer}>
                 <Text style={[styles.menuItemText, isResetting && styles.textDisabled]}>
@@ -103,7 +208,7 @@ export default function SettingsScreen() {
               </View>
             </View>
             {!isResetting && (
-              <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             )}
             {isResetting && (
               <Text style={styles.loadingText}>Resetting...</Text>
@@ -121,7 +226,7 @@ export default function SettingsScreen() {
         message={t('settings.tutorialResetConfirmMessage')}
         confirmText={t('settings.reset')}
         cancelText={t('settings.cancel')}
-        confirmButtonColor={Colors.warning}
+        confirmButtonColor={colors.warning}
         emoji="🔄"
       />
 
@@ -165,105 +270,3 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.backgroundSecondary,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginLeft: 12,
-  },
-  comingSoon: {
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  menuItemTextContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  menuItemDescription: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  menuItemDisabled: {
-    opacity: 0.6,
-  },
-  textDisabled: {
-    color: Colors.textSecondary,
-  },
-  loadingText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  modalContent: {
-    alignItems: 'center',
-  },
-  modalEmoji: {
-    fontSize: 48,
-    marginBottom: Layout.spacing.md,
-  },
-  modalTitle: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  modalMessage: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  modalButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    alignItems: 'center',
-    minWidth: 100,
-  },
-  modalButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-});

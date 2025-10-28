@@ -123,10 +123,231 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 
 **Note**: Notifications update on app open (not real-time per task). Future enhancement: granular triggers.
 
-#### Checkpoint 7.2: App Settings
-- [ ] Theme selection and customization
-- [ ] Language preference settings
-- [ ] Data export and backup options
+#### Checkpoint 7.2: App Settings ⏳ IN PROGRESS
+
+**Goal**: Implement theme switching (Light/Dark/System) and language preferences
+
+---
+
+##### **Sub-checkpoint 7.2.1: Theme System Foundation** 🎨
+
+**Implementation Strategy**: Context API with real-time system theme detection
+
+**Tasks**:
+- [ ] 7.2.1.A: Create color palettes in `src/constants/colors.ts`
+  - Export `lightColors` object (existing Colors as base)
+  - Create `darkColors` object with dark mode palette
+  - Dark background: `#1C1C1E` (iOS-style dark gray, not pure black)
+  - Dark primary: `#0A84FF` (brighter blue for better contrast)
+  - All text colors adjusted for dark mode readability
+
+- [ ] 7.2.1.B: Create ThemeContext (`src/contexts/ThemeContext.tsx`)
+  - State management: `'light' | 'dark' | 'system'`
+  - `useColorScheme()` hook for system theme detection
+  - Real-time listener for system theme changes (updates immediately when user changes phone settings)
+  - AsyncStorage persistence (key: `user_theme_preference`)
+  - Export `useTheme()` hook returning: `{ colors, themeMode, setThemeMode, isDark }`
+
+- [ ] 7.2.1.C: Integrate ThemeProvider into app root
+  - Wrap app in `<ThemeProvider>` in `app/_layout.tsx`
+  - Ensure provider wraps entire navigation stack
+
+**Technical Notes**:
+```typescript
+// src/contexts/ThemeContext.tsx
+const systemTheme = useColorScheme(); // 'light' | 'dark' from device
+const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+const colors = activeTheme === 'dark' ? darkColors : lightColors;
+
+// Real-time detection using Appearance API
+useEffect(() => {
+  const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+    if (themeMode === 'system') {
+      // Auto-update when system theme changes
+    }
+  });
+  return () => subscription.remove();
+}, [themeMode]);
+```
+
+---
+
+##### **Sub-checkpoint 7.2.2: Component Refactoring** 🔧
+
+**Strategy**: Aggressive batch refactoring (find/replace) with TypeScript validation
+
+**Tasks**:
+- [ ] 7.2.2.A: Batch refactor all components
+  - Find/replace all `import { Colors }` → `import { useTheme }`
+  - Add `const { colors } = useTheme();` to all component bodies
+  - Replace all `Colors.propertyName` → `colors.propertyName`
+  - Update StyleSheet.create() calls to use `colors` instead of `Colors`
+
+- [ ] 7.2.2.B: TypeScript validation pass
+  - Run `npx tsc --noEmit` to find compilation errors
+  - Fix any type errors or missed references
+  - Ensure all color references use theme context
+
+- [ ] 7.2.2.C: Handle special cases
+  - StatusBar color updates (light-content vs dark-content)
+  - Modal overlays and backdrop colors
+  - Shadow colors and opacity adjustments
+  - Icon colors in tab navigation
+
+**Estimated Files to Update**: ~50-80 component files
+
+---
+
+##### **Sub-checkpoint 7.2.3: Settings UI - Theme Selector** 🖼️
+
+**Tasks**:
+- [ ] 7.2.3.A: Add Theme section to Settings screen
+  - New section: "Appearance" above "Language"
+  - Theme selector with 3 radio options:
+    - ☀️ Light Mode
+    - 🌙 Dark Mode
+    - 🔄 System Auto (follows device settings)
+  - Visual indicator (checkmark) on active theme
+  - Instant preview on selection (no "Apply" button needed)
+
+- [ ] 7.2.3.B: Theme selector component polish
+  - Smooth transition animation when switching themes
+  - Haptic feedback on theme change (light impact)
+  - Success toast: "Theme updated" (optional)
+
+**UI Layout**:
+```typescript
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Appearance</Text>
+
+  <ThemeOption
+    icon="sunny"
+    label="Light"
+    active={themeMode === 'light'}
+    onPress={() => setThemeMode('light')}
+  />
+
+  <ThemeOption
+    icon="moon"
+    label="Dark"
+    active={themeMode === 'dark'}
+    onPress={() => setThemeMode('dark')}
+  />
+
+  <ThemeOption
+    icon="phone-portrait"
+    label="System Auto"
+    active={themeMode === 'system'}
+    onPress={() => setThemeMode('system')}
+    description="Matches your device settings"
+  />
+</View>
+```
+
+---
+
+##### **Sub-checkpoint 7.2.4: Language Settings UI** 🌍
+
+**Tasks**:
+- [ ] 7.2.4.A: Add Language section to Settings screen
+  - Section title: "Language"
+  - Language selector with 3 options:
+    - 🇬🇧 English
+    - 🇩🇪 Deutsch (German)
+    - 🇪🇸 Español (Spanish)
+  - Visual indicator (checkmark) on active language
+  - Instant language switch on selection
+
+- [ ] 7.2.4.B: Verify i18n integration
+  - Test language switching across all screens
+  - Verify AsyncStorage persistence (key: `user_language`)
+  - Ensure all UI text updates immediately
+  - Check modal and toast translations
+
+**Technical Notes**:
+- i18n infrastructure already complete (`src/utils/i18n.ts`, `src/hooks/useI18n.ts`)
+- Language switching handled by existing `changeLanguage()` function
+- Primary language: English (most complete translations)
+- German/Spanish translations may have gaps (to be filled later)
+
+---
+
+##### **Sub-checkpoint 7.2.5: Testing & QA** ✅
+
+**Testing Checklist**:
+- [ ] 7.2.5.A: Theme functionality testing
+  - [ ] Light mode displays correctly on all screens
+  - [ ] Dark mode displays correctly on all screens
+  - [ ] System auto mode detects device theme correctly
+  - [ ] Real-time system theme change updates app immediately
+  - [ ] Theme preference persists after app restart
+  - [ ] Theme transitions are smooth (no flashing)
+  - [ ] All text is readable in both themes (contrast check)
+  - [ ] Icons, shadows, and borders look good in both themes
+
+- [ ] 7.2.5.B: Language functionality testing
+  - [ ] English translations complete
+  - [ ] German translations working (flag incomplete translations)
+  - [ ] Spanish translations working (flag incomplete translations)
+  - [ ] Language preference persists after app restart
+  - [ ] All screens update immediately on language change
+  - [ ] Modals and toasts show correct language
+
+- [ ] 7.2.5.C: Cross-feature testing
+  - [ ] Test all major screens: Home, Habits, Journal, Goals, Settings
+  - [ ] Test all modals: Achievement, Level-up, Confirmations
+  - [ ] Test navigation in both themes
+  - [ ] Test notifications settings screen
+  - [ ] Test tutorial reset flow
+
+- [ ] 7.2.5.D: Edge cases
+  - [ ] Switch theme while modal is open
+  - [ ] Switch language while modal is open
+  - [ ] Rapid theme switching (no crashes)
+  - [ ] System theme changes during app usage
+
+---
+
+##### **i18n Translation Keys to Add**:
+
+Add to `src/locales/en/index.ts`:
+```typescript
+settings: {
+  // ... existing keys
+
+  // Appearance
+  appearance: 'Appearance',
+  theme: 'Theme',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  themeSystem: 'System Auto',
+  themeDescription: 'Choose your preferred color scheme',
+  themeSystemDescription: 'Matches your device settings',
+
+  // Language
+  language: 'Language',
+  languageDescription: 'Select your preferred language',
+  languageEnglish: 'English',
+  languageGerman: 'Deutsch',
+  languageSpanish: 'Español',
+}
+```
+
+---
+
+**Dependencies**: None (all features use existing libraries)
+
+**Estimated Time**: 2-3 hours
+
+**Priority**: High (user experience improvement)
+
+**Notes**:
+- T-Qyron theme (Level 20 unlock) planned for future update → See @projectplan-future-updates.md Phase 2.1
+- Data Export & Backup moved to future updates → See @projectplan-future-updates.md Phase 3
+
+---
+
+- ~~Data export and backup options~~ → Moved to Future Updates
 
 ### Phase 8: External Service Integration Preparation
 
@@ -411,5 +632,50 @@ V Habit Statistics na Home screenu se po provedení Make Up (bonus completion po
 **Poznámka**: Tento bug existoval pravděpodobně i před SQLite migrací, není způsobený přechodem na SQLite.
 
 **Status**: 📋 Zdokumentováno, opraví se později
+
+---
+
+## 🔮 FUTURE UPDATES - Plánované funkce
+
+### Data Export & Backup System 💾
+
+**Priority**: Medium | **Complexity**: Medium | **Estimated**: 4-6 hours
+
+**Goal**: Allow users to export, backup, and restore all their app data for safety and portability
+
+**Features**:
+- [ ] Export All Data - Download complete backup as JSON file
+- [ ] Import Backup - Restore data from backup file
+- [ ] Storage Usage Display - Show data size breakdown by category
+- [ ] Auto Backup Toggle - Automatic weekly backups
+- [ ] Share exported backup across apps (email, cloud storage)
+
+**Technical Implementation**:
+- ✅ Backup/restore logic already complete: `src/services/storage/backup.ts`
+- ✅ UserSettings type includes `dataBackupEnabled` flag
+- ⏳ Need to install: `expo-sharing`, `expo-document-picker`, `expo-file-system`
+- ⏳ Need to create: DataExportModal component
+- ⏳ Need to integrate: Share API and DocumentPicker for native file operations
+
+**Export Format**:
+- File extension: `.selfrise.json`
+- Includes: Habits, Goals, Journal, XP data, Achievements, User Settings
+- Metadata: Timestamp, app version, migration version, item counts
+
+**User Flow**:
+1. User taps "Export Data" → App creates JSON backup
+2. Native share sheet opens → User can send via email, save to iCloud/Google Drive
+3. User taps "Import Backup" → File picker opens
+4. User selects `.selfrise.json` file → Confirmation modal warns about overwrite
+5. User confirms → Data restored, success message shown
+
+**Why postponed**:
+- Theme and Language are higher priority for user experience
+- Export/Backup is "safety net" feature - important but not urgent
+- Requires additional native dependencies and testing
+
+**When to implement**:
+- After Checkpoint 7.2 (Theme + Language) complete
+- Before Phase 10 (App Store launch) - users need backup before going live
 
 

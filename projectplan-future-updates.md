@@ -293,4 +293,130 @@ Predict life changes and automatically adapt app experience
 
 ---
 
+## Phase 2: Premium Themes & Customization 🎨
+
+### Goal
+Unlock exclusive visual themes as gamification rewards
+
+### Phase 2.1: T-Qyron Theme (Level 20 Unlock) 👑
+
+**Implementation Priority**: Medium (after base theme system complete)
+**Complexity**: Low (extends existing theme infrastructure)
+**Prerequisites**: Theme system (Context API) implemented, Gamification level tracking
+
+#### Checkpoint 2.1.1: T-Qyron Theme Design & Implementation
+**Goal**: Create premium unlockable theme as level-based achievement reward
+
+##### Features:
+- [ ] Design T-Qyron color palette (premium/exclusive visual identity)
+- [ ] Implement theme unlock logic based on user level (≥20)
+- [ ] Create "Theme Locked" state in Settings with level requirement display
+- [ ] Add unlock celebration modal when user reaches Level 20
+- [ ] Create theme preview system (locked themes show preview but can't be activated)
+- [ ] Add achievement/trophy for unlocking T-Qyron theme
+- [ ] Implement theme badge/indicator in Settings menu
+
+**Technical Implementation**:
+```typescript
+// Theme system will check gamification level
+interface ThemeOption {
+  id: 'light' | 'dark' | 'system' | 'tqyron';
+  name: string;
+  unlockLevel?: number;        // undefined = always unlocked
+  badge?: string;              // Display badge (e.g., '👑' for premium)
+  preview: ThemeColors;        // Preview palette for locked themes
+}
+
+const themes: ThemeOption[] = [
+  { id: 'light', name: 'Light', preview: lightColors },
+  { id: 'dark', name: 'Dark', preview: darkColors },
+  { id: 'system', name: 'System Auto', preview: lightColors },
+  {
+    id: 'tqyron',
+    name: 'T-Qyron',
+    unlockLevel: 20,
+    badge: '👑',
+    preview: tqyronColors
+  },
+];
+
+// In ThemeSelector component:
+const { level } = useGamification();
+const isUnlocked = !theme.unlockLevel || level >= theme.unlockLevel;
+```
+
+**User Experience Flow**:
+1. User at Level 5 opens Settings → Sees "T-Qyron 👑" theme with lock icon
+2. Taps locked theme → Modal shows: "Reach Level 20 to unlock T-Qyron theme!"
+3. User reaches Level 20 → Achievement unlocked modal: "🎉 T-Qyron Theme Unlocked!"
+4. Settings now shows T-Qyron as selectable option
+5. User activates T-Qyron → App transforms with premium color palette
+
+**Gamification Integration**:
+- Achievement unlock: "Style Master - Unlock your first premium theme"
+- XP bonus on first activation: +500 XP
+- Social sharing: "I just unlocked the exclusive T-Qyron theme! 👑"
+- Retention impact: Premium theme acts as status symbol and engagement anchor
+
+**Future Expansion Potential**:
+- Level 50: "Midnight Galaxy" theme 🌌
+- Level 100: "Golden Champion" theme ✨
+- Special event themes: Holiday seasonal themes (Christmas, Halloween)
+- Achievements-based themes: "Complete 100-day streak to unlock Aurora theme"
+
+**Design Considerations**:
+- **T-Qyron color palette TBD** - Will be designed when implementing this feature
+  - Options to consider: gold/luxury vibe, cyber/futuristic aesthetic, or custom brand colors
+  - Must maintain accessibility standards (WCAG contrast ratios)
+  - Should feel meaningfully different from light/dark (premium experience)
+  - Visual elements that emphasize exclusivity (subtle animations, premium icons)
+- **Note**: Color palette design postponed until Phase 2.1 implementation begins
+
+---
+
+## Phase 3: Data Export & Backup System 💾
+
+**Moved from Checkpoint 7.2 - postponed to focus on Theme + Language first**
+
+**Priority**: Medium | **Complexity**: Medium | **Estimated**: 4-6 hours
+
+**Goal**: Allow users to export, backup, and restore all their app data for safety and portability
+
+### Features:
+- [ ] Export All Data - Download complete backup as JSON file
+- [ ] Import Backup - Restore data from backup file
+- [ ] Storage Usage Display - Show data size breakdown by category
+- [ ] Auto Backup Toggle - Automatic weekly backups
+- [ ] Share exported backup across apps (email, cloud storage)
+
+**Technical Implementation**:
+- ✅ Backup/restore logic already complete: `src/services/storage/backup.ts`
+- ✅ UserSettings type includes `dataBackupEnabled` flag
+- ⏳ Need to install: `expo-sharing`, `expo-document-picker`, `expo-file-system`
+- ⏳ Need to create: DataExportModal component
+- ⏳ Need to integrate: Share API and DocumentPicker for native file operations
+
+**Export Format**:
+- File extension: `.selfrise.json`
+- Includes: Habits, Goals, Journal, XP data, Achievements, User Settings
+- Metadata: Timestamp, app version, migration version, item counts
+
+**User Flow**:
+1. User taps "Export Data" → App creates JSON backup
+2. Native share sheet opens → User can send via email, save to iCloud/Google Drive
+3. User taps "Import Backup" → File picker opens
+4. User selects `.selfrise.json` file → Confirmation modal warns about overwrite
+5. User confirms → Data restored, success message shown
+
+**Why postponed**:
+- Theme and Language are higher priority for user experience
+- Export/Backup is "safety net" feature - important but not urgent
+- Requires additional native dependencies and testing
+
+**When to implement**:
+- After Checkpoint 7.2 (Theme + Language) complete
+- Before Phase 10 (App Store launch) - users need backup before going live
+
+---
+
 *This roadmap represents aspirational features for SelfRise V2's long-term evolution. Implementation timeline depends on user adoption, infrastructure readiness, and resource availability.*
