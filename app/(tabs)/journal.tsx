@@ -10,7 +10,8 @@ import { getLevelInfo } from '@/src/services/levelCalculation';
 // GHOST SYSTEM REMOVED: useLevelUpCelebrations hook eliminado - XpAnimationContext handles level-ups centrally
 import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
 import { today } from '@/src/utils/date';
-import { Colors, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeInput from '@/src/components/gratitude/GratitudeInput';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
@@ -20,6 +21,7 @@ import { HelpTooltip } from '@/src/components/common';
 
 export default function JournalScreen() {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
@@ -258,7 +260,7 @@ export default function JournalScreen() {
             style={styles.actionButton}
             onPress={() => router.push('/journal-history')}
           >
-            <IconSymbol name="clock" size={20} color={Colors.primary} />
+            <IconSymbol name="clock" size={20} color={colors.primary} />
             <Text style={styles.actionButtonText}>History</Text>
           </TouchableOpacity>
           
@@ -266,7 +268,7 @@ export default function JournalScreen() {
             style={styles.actionButton}
             onPress={() => router.push('/journal-stats')}
           >
-            <IconSymbol name="chart.bar" size={20} color={Colors.primary} />
+            <IconSymbol name="chart.bar" size={20} color={colors.primary} />
             <Text style={styles.actionButtonText}>Statistics</Text>
           </TouchableOpacity>
         </View>
@@ -356,7 +358,7 @@ export default function JournalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -385,7 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: Layout.spacing.md,
     alignItems: 'center',
-    shadowColor: Colors.black,
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -395,13 +397,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   gratitudeButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
   },
   selfPraiseButton: {
-    backgroundColor: Colors.success,
+    backgroundColor: colors.success,
   },
   addButtonText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -432,7 +434,7 @@ const styles = StyleSheet.create({
   badgeCount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: colors.text,
   },
   actionButtonsContainer: {
     paddingHorizontal: Layout.spacing.md,
@@ -442,11 +444,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: Layout.spacing.md,
     gap: Layout.spacing.sm,
-    shadowColor: Colors.black,
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -459,6 +461,6 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.primary,
+    color: colors.primary,
   },
 });

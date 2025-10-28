@@ -12,7 +12,7 @@ import {
 } from '@/src/components/habits';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 // XPSourceType removed - XP handled by habitStorage
@@ -22,13 +22,13 @@ import { XP_REWARDS } from '@/src/constants/gamification';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   addButtonContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   listContainer: {
     flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
@@ -42,11 +42,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    shadowColor: Colors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   addButtonText: {
     color: 'white',
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   editButtonText: {
-    color: Colors.text,
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
 
 export function HabitsScreen() {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, completions, isLoading, actions } = useHabitsData();
   // addXP/subtractXP removed - XP handled by habitStorage
   const params = useLocalSearchParams();
