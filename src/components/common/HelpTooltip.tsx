@@ -10,7 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/hooks/useTheme';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 import HelpAnalyticsService from '@/src/services/helpAnalyticsService';
@@ -41,6 +42,7 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   variant = 'default',
   children,
 }) => {
+  const { colors } = useTheme();
   const { t } = useI18n();
   const { isHighContrastEnabled } = useAccessibility();
 
@@ -262,10 +264,134 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   };
 
   const iconColor = variant === 'prominent'
-    ? Colors.primary
+    ? colors.primary
     : isHighContrastEnabled
-    ? Colors.text
-    : Colors.textSecondary;
+    ? colors.text
+    : colors.textSecondary;
+
+  const styles = StyleSheet.create({
+    trigger: {
+      padding: Layout.spacing.xs,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    triggerProminent: {
+      backgroundColor: colors.primary + '20',
+      borderRadius: Layout.borderRadius.full,
+      padding: Layout.spacing.sm,
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+    },
+    tooltip: {
+      position: 'absolute',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      shadowColor: colors.text,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    tooltipHighContrast: {
+      borderColor: colors.text,
+      borderWidth: 2,
+    },
+    arrow: {
+      position: 'absolute',
+      width: 0,
+      height: 0,
+      borderStyle: 'solid',
+    },
+    arrowTop: {
+      bottom: -8,
+      left: '50%',
+      marginLeft: -8,
+      borderLeftWidth: 8,
+      borderRightWidth: 8,
+      borderTopWidth: 8,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderTopColor: colors.cardBackgroundElevated,
+    },
+    arrowBottom: {
+      top: -8,
+      left: '50%',
+      marginLeft: -8,
+      borderLeftWidth: 8,
+      borderRightWidth: 8,
+      borderBottomWidth: 8,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderBottomColor: colors.cardBackgroundElevated,
+    },
+    arrowLeft: {
+      right: -8,
+      top: '50%',
+      marginTop: -8,
+      borderTopWidth: 8,
+      borderBottomWidth: 8,
+      borderLeftWidth: 8,
+      borderTopColor: 'transparent',
+      borderBottomColor: 'transparent',
+      borderLeftColor: colors.cardBackgroundElevated,
+    },
+    arrowRight: {
+      left: -8,
+      top: '50%',
+      marginTop: -8,
+      borderTopWidth: 8,
+      borderBottomWidth: 8,
+      borderRightWidth: 8,
+      borderTopColor: 'transparent',
+      borderBottomColor: 'transparent',
+      borderRightColor: colors.cardBackgroundElevated,
+    },
+    arrowHighContrast: {
+      borderTopColor: colors.cardBackgroundElevated,
+      borderBottomColor: colors.cardBackgroundElevated,
+      borderLeftColor: colors.cardBackgroundElevated,
+      borderRightColor: colors.cardBackgroundElevated,
+    },
+    content: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    title: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: '600' as const,
+      color: colors.text,
+      flex: 1,
+    },
+    titleHighContrast: {
+      fontWeight: '700' as const,
+    },
+    closeButton: {
+      padding: Layout.spacing.xs,
+      marginLeft: Layout.spacing.sm,
+    },
+    contentText: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: Fonts.lineHeights.sm,
+    },
+    contentTextHighContrast: {
+      color: colors.text,
+      fontWeight: '500' as const,
+    },
+  });
 
   const renderTrigger = () => {
     if (children) {
@@ -361,7 +487,7 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
                   <Ionicons
                     name="close"
                     size={16}
-                    color={isHighContrastEnabled ? Colors.text : Colors.textSecondary}
+                    color={isHighContrastEnabled ? colors.text : colors.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
@@ -389,127 +515,3 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
 
 // Memoize component to prevent unnecessary re-renders
 export const HelpTooltip = React.memo(HelpTooltipComponent);
-
-const styles = StyleSheet.create({
-  trigger: {
-    padding: Layout.spacing.xs,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  triggerProminent: {
-    backgroundColor: Colors.primaryLight + '20',
-    borderRadius: Layout.borderRadius.full,
-    padding: Layout.spacing.sm,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  tooltip: {
-    position: 'absolute',
-    backgroundColor: Colors.white,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tooltipHighContrast: {
-    borderColor: Colors.text,
-    borderWidth: 2,
-  },
-  arrow: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    borderStyle: 'solid',
-  },
-  arrowTop: {
-    bottom: -8,
-    left: '50%',
-    marginLeft: -8,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: Colors.white,
-  },
-  arrowBottom: {
-    top: -8,
-    left: '50%',
-    marginLeft: -8,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderBottomWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: Colors.white,
-  },
-  arrowLeft: {
-    right: -8,
-    top: '50%',
-    marginTop: -8,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderLeftWidth: 8,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderLeftColor: Colors.white,
-  },
-  arrowRight: {
-    left: -8,
-    top: '50%',
-    marginTop: -8,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderRightWidth: 8,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderRightColor: Colors.white,
-  },
-  arrowHighContrast: {
-    borderTopColor: Colors.white,
-    borderBottomColor: Colors.white,
-    borderLeftColor: Colors.white,
-    borderRightColor: Colors.white,
-  },
-  content: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  title: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    flex: 1,
-  },
-  titleHighContrast: {
-    fontWeight: '700' as const,
-  },
-  closeButton: {
-    padding: Layout.spacing.xs,
-    marginLeft: Layout.spacing.sm,
-  },
-  contentText: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    lineHeight: Fonts.lineHeights.sm,
-  },
-  contentTextHighContrast: {
-    color: Colors.text,
-    fontWeight: '500' as const,
-  },
-});
