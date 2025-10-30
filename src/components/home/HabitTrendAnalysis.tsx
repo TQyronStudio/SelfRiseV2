@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout, Fonts } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Fonts } from '@/src/constants';
 import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo, getCompletionRateMessage } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
@@ -16,6 +17,8 @@ interface TrendItemProps {
 }
 
 const TrendItem: React.FC<TrendItemProps> = ({ title, description, icon, color, trend }) => {
+  const { colors } = useTheme();
+
   const getTrendIcon = () => {
     switch (trend) {
       case 'improving': return '📈';
@@ -24,20 +27,56 @@ const TrendItem: React.FC<TrendItemProps> = ({ title, description, icon, color, 
     }
   };
 
+  const trendStyles = StyleSheet.create({
+    trendItem: {
+      backgroundColor: colors.background,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+      borderLeftWidth: 4,
+      minHeight: 70,
+    },
+    trendHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    trendIcon: {
+      fontSize: 18,
+    },
+    trendIndicator: {
+      fontSize: 16,
+    },
+    trendTitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    trendDescription: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      lineHeight: 16,
+    },
+  });
+
   return (
-    <View style={[styles.trendItem, { borderLeftColor: color }]}>
-      <View style={styles.trendHeader}>
-        <Text style={styles.trendIcon}>{icon}</Text>
-        <Text style={styles.trendIndicator}>{getTrendIcon()}</Text>
+    <View style={[trendStyles.trendItem, { borderLeftColor: color }]}>
+      <View style={trendStyles.trendHeader}>
+        <Text style={trendStyles.trendIcon}>{icon}</Text>
+        <Text style={trendStyles.trendIndicator}>{getTrendIcon()}</Text>
       </View>
-      <Text style={styles.trendTitle}>{title}</Text>
-      <Text style={styles.trendDescription} numberOfLines={2} ellipsizeMode="tail">{description}</Text>
+      <Text style={trendStyles.trendTitle}>{title}</Text>
+      <Text style={trendStyles.trendDescription} numberOfLines={2} ellipsizeMode="tail">{description}</Text>
     </View>
   );
 };
 
 export const HabitTrendAnalysis: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats } = useHabitsData();
 
   const trendAnalysis = useMemo(() => {
@@ -193,7 +232,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         title: '🚀 Overall Progress',
         description: `Improved by ${Math.round(overallTrendChange)}% over 4 weeks. Keep it up!`,
         icon: '📊',
-        color: Colors.success,
+        color: colors.success,
         trend: 'improving' as const
       });
     } else if (overallTrend === 'declining') {
@@ -201,7 +240,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         title: '⚠️ Needs Attention',
         description: `Dropped by ${Math.round(Math.abs(overallTrendChange))}% recently. Review your routine.`,
         icon: '📊',
-        color: Colors.error,
+        color: colors.error,
         trend: 'declining' as const
       });
     } else {
@@ -209,7 +248,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         title: '📈 Steady Progress',
         description: `Consistency stable at ${Math.round(recentAvg)}% average.`,
         icon: '📊',
-        color: Colors.warning,
+        color: colors.warning,
         trend: 'stable' as const
       });
     }
@@ -223,7 +262,7 @@ export const HabitTrendAnalysis: React.FC = () => {
           title: '🌱 Building New Habits',
           description: `${totalNewCompletions} completion${totalNewCompletions > 1 ? 's' : ''} across ${newHabits.length} new habit${newHabits.length > 1 ? 's' : ''}! Great start!`,
           icon: '🌱',
-          color: Colors.success,
+          color: colors.success,
           trend: 'improving' as const
         });
       }
@@ -239,15 +278,15 @@ export const HabitTrendAnalysis: React.FC = () => {
           title: '🚀 Early Momentum',
           description: `${avgRate}% average completion rate in building habits. You're establishing strong patterns!`,
           icon: '📈',
-          color: Colors.primary,
+          color: colors.primary,
           trend: 'improving' as const
         });
       }
     }
-    
+
     // Filter habits that are old enough for detailed trend analysis (14+ days)
     const establishedHabitsForTrends = habitAnalysis.filter(h => h.ageInfo.isEstablishedHabit);
-    
+
     // Only show detailed habit-specific trends for established habits
     if (establishedHabitsForTrends.length > 0) {
       // Best performing habit (only for established habits 14+ days)
@@ -261,7 +300,7 @@ export const HabitTrendAnalysis: React.FC = () => {
           title: '🏆 Star Performer',
           description: `${bestPerformer.habit.name}: ${message.description}`,
           icon: '⭐',
-          color: Colors.success,
+          color: colors.success,
           trend: 'improving' as const
         });
       }
@@ -277,7 +316,7 @@ export const HabitTrendAnalysis: React.FC = () => {
           title: message.title,
           description: message.description,
           icon: '🎯',
-          color: message.tone === 'warning' ? Colors.warning : Colors.info,
+          color: message.tone === 'warning' ? colors.warning : colors.primary,
           trend: 'declining' as const
         });
       }
@@ -290,7 +329,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         title: '🔥 Streak Champions',
         description: `${consistentHabits} habit${consistentHabits > 1 ? 's' : ''} with 7+ day streaks!`,
         icon: '🔥',
-        color: Colors.secondary,
+        color: colors.primary,
         trend: 'stable' as const
       });
     }
@@ -302,7 +341,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         title: '🎯 Excellent Week',
         description: `${currentWeek.completionRate}% completion this week. Amazing!`,
         icon: '🌟',
-        color: Colors.success,
+        color: colors.success,
         trend: 'improving' as const
       });
     }
@@ -318,13 +357,55 @@ export const HabitTrendAnalysis: React.FC = () => {
     };
   }, [habits, getHabitsByDate, getHabitStats]);
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginTop: Layout.spacing.md,
+      minHeight: 240,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    noDataContainer: {
+      alignItems: 'center',
+      paddingVertical: Layout.spacing.xl,
+    },
+    noDataText: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    noDataSubtext: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
   if (trendAnalysis.trends.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('home.habitStats.trendAnalysis')}</Text>
         </View>
-        
+
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
           <Text style={styles.noDataSubtext}>Complete habits for a few weeks to see trend analysis</Text>
@@ -357,85 +438,3 @@ export const HabitTrendAnalysis: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginTop: Layout.spacing.md,
-    minHeight: 240, // Minimum height, can grow if needed
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  trendItem: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    borderLeftWidth: 4,
-    minHeight: 70,
-  },
-  trendHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  trendIcon: {
-    fontSize: 18,
-  },
-  trendIndicator: {
-    fontSize: 16,
-  },
-  trendTitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  trendDescription: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    lineHeight: 16,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    paddingVertical: Layout.spacing.xl,
-  },
-  noDataText: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  noDataSubtext: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

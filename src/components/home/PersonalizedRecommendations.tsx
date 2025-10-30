@@ -6,14 +6,16 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useGoals } from '@/src/contexts/GoalsContext';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { Colors, Layout, Typography } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Typography } from '@/src/constants';
 import { RecommendationEngine, PersonalizedRecommendation } from '@/src/services/recommendationEngine';
 import { HelpTooltip } from '@/src/components/common';
 
 export function PersonalizedRecommendations() {
   const { t } = useI18n();
   const router = useRouter();
-  
+  const { colors } = useTheme();
+
   // Get data from contexts
   const { habits, completions } = useHabitsData();
   const { state: goalsState } = useGoals();
@@ -75,13 +77,13 @@ export function PersonalizedRecommendations() {
   const getPriorityColor = (priority: PersonalizedRecommendation['priority']) => {
     switch (priority) {
       case 'high':
-        return Colors.error;
+        return colors.error;
       case 'medium':
-        return Colors.warning;
+        return colors.warning;
       case 'low':
-        return Colors.info;
+        return colors.primary;
       default:
-        return Colors.textSecondary;
+        return colors.textSecondary;
     }
   };
 
@@ -105,12 +107,118 @@ export function PersonalizedRecommendations() {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      marginHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    title: {
+      ...Typography.subheading,
+      color: colors.text,
+      flex: 1,
+    },
+    scrollContent: {
+      paddingRight: Layout.spacing.md,
+    },
+    recommendationCard: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginRight: Layout.spacing.sm,
+      width: 240,
+      minHeight: 140,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    iconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary + '20',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    priorityDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    recommendationTitle: {
+      ...Typography.bodyBold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    recommendationDescription: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      lineHeight: 16,
+      marginBottom: Layout.spacing.sm,
+    },
+    actionContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 'auto',
+      paddingTop: Layout.spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    actionText: {
+      ...Typography.caption,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    promptContainer: {
+      marginTop: Layout.spacing.xs,
+      paddingTop: Layout.spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    promptLabel: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      fontSize: 10,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: Layout.spacing.xs,
+    },
+    promptText: {
+      ...Typography.caption,
+      color: colors.text,
+      fontStyle: 'italic',
+      fontSize: 11,
+      lineHeight: 14,
+    },
+    emptyState: {
+      alignItems: 'center',
+      padding: Layout.spacing.lg,
+      backgroundColor: colors.cardBackground,
+      borderRadius: Layout.borderRadius.lg,
+    },
+    emptyText: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: Layout.spacing.sm,
+    },
+  });
+
   if (recommendations.length === 0) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>{t('home.recommendations')}</Text>
         <View style={styles.emptyState}>
-          <Ionicons name="checkmark-circle" size={32} color={Colors.success} />
+          <Ionicons name="checkmark-circle" size={32} color={colors.success} />
           <Text style={styles.emptyText}>{t('home.noRecommendations')}</Text>
         </View>
       </View>
@@ -128,9 +236,9 @@ export function PersonalizedRecommendations() {
           variant="prominent"
         />
       </View>
-      
-      <ScrollView 
-        horizontal 
+
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -142,10 +250,10 @@ export function PersonalizedRecommendations() {
           >
             <View style={styles.cardHeader}>
               <View style={styles.iconContainer}>
-                <Ionicons 
-                  name={getRecommendationIcon(recommendation)} 
-                  size={20} 
-                  color={Colors.primary} 
+                <Ionicons
+                  name={getRecommendationIcon(recommendation)}
+                  size={20}
+                  color={colors.primary}
                 />
               </View>
               <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(recommendation.priority) }]} />
@@ -154,7 +262,7 @@ export function PersonalizedRecommendations() {
             <Text style={styles.recommendationTitle} numberOfLines={2}>
               {recommendation.title}
             </Text>
-            
+
             <Text style={styles.recommendationDescription} numberOfLines={3}>
               {recommendation.description}
             </Text>
@@ -164,7 +272,7 @@ export function PersonalizedRecommendations() {
                 <Text style={styles.actionText}>
                   {(recommendation as any).actionText}
                 </Text>
-                <Ionicons name="arrow-forward" size={14} color={Colors.primary} />
+                <Ionicons name="arrow-forward" size={14} color={colors.primary} />
               </View>
             )}
 
@@ -182,114 +290,3 @@ export function PersonalizedRecommendations() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  title: {
-    ...Typography.subheading,
-    color: Colors.text,
-    flex: 1,
-  },
-  scrollContent: {
-    paddingRight: Layout.spacing.md,
-  },
-  recommendationCard: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginRight: Layout.spacing.sm,
-    width: 240,
-    minHeight: 140,
-    shadowColor: Colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  recommendationTitle: {
-    ...Typography.bodyBold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  recommendationDescription: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    lineHeight: 16,
-    marginBottom: Layout.spacing.sm,
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 'auto',
-    paddingTop: Layout.spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  actionText: {
-    ...Typography.caption,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  promptContainer: {
-    marginTop: Layout.spacing.xs,
-    paddingTop: Layout.spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  promptLabel: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: Layout.spacing.xs,
-  },
-  promptText: {
-    ...Typography.caption,
-    color: Colors.text,
-    fontStyle: 'italic',
-    fontSize: 11,
-    lineHeight: 14,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: Layout.spacing.lg,
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-  },
-  emptyText: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: Layout.spacing.sm,
-  },
-});

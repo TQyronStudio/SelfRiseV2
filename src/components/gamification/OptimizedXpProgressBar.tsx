@@ -17,7 +17,7 @@ import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react'
 import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { GamificationService } from '../../services/gamificationService';
 import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLevelCalculationCache } from '../../services/levelCalculation';
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
@@ -47,14 +47,16 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   performanceMode = 'auto',
 }, ref) => {
   console.log('🎯 OptimizedXpProgressBar render');
-  
+
+  // Theme and i18n
+  const { colors } = useTheme();
+  const { t } = useI18n();
+
   // Accessibility - Reduced motion support
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
   const lastProgressRef = useRef(0);
   const currentProgressRef = useRef(0); // Track current animated progress value
   const animationThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
-  const { t } = useI18n();
   
   // Check for reduced motion preference
   useEffect(() => {
@@ -201,8 +203,8 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
 
   const themeStyles = useMemo(() => {
     const theme = customizationState.preferences.theme;
-    const baseStyles = styles.container;
-    
+    const baseStyles = styles(colors).container;
+
     switch (theme.cardStyle) {
       case 'minimal':
         return {
@@ -211,21 +213,21 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
           shadowOpacity: 0,
           elevation: 0,
           borderWidth: 1,
-          borderColor: Colors.border,
+          borderColor: colors.border,
         };
       case 'bold':
         return {
           ...baseStyles,
-          backgroundColor: Colors.background,
+          backgroundColor: colors.background,
           shadowOpacity: 0.15,
           elevation: 5,
           borderWidth: 2,
-          borderColor: Colors.primary + '20',
+          borderColor: colors.primary + '20',
         };
       default:
         return baseStyles;
     }
-  }, [customizationState.preferences.theme.cardStyle]);
+  }, [customizationState.preferences.theme.cardStyle, colors]);
 
   const spacingStyles = useMemo(() => {
     const spacing = customizationState.preferences.theme.spacing;
@@ -527,11 +529,13 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   // RENDER
   // ========================================
 
+  const dynamicStyles = useMemo(() => styles(colors), [colors]);
+
   if (isLoading) {
     return (
-      <View style={[themeStyles, spacingStyles, compactMode && styles.containerCompact]}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('gamification.progress.loading') || 'Loading XP...'}</Text>
+      <View style={[themeStyles, spacingStyles, compactMode && dynamicStyles.containerCompact]}>
+        <View style={dynamicStyles.loadingContainer}>
+          <Text style={dynamicStyles.loadingText}>{t('gamification.progress.loading') || 'Loading XP...'}</Text>
         </View>
       </View>
     );
@@ -543,7 +547,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       style={[
         themeStyles,
         spacingStyles,
-        compactMode && styles.containerCompact,
+        compactMode && dynamicStyles.containerCompact,
         { borderColor: rarityBorderColor, borderWidth: 2 }
       ]}
       accessible={true}
@@ -553,11 +557,11 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       nativeID="xp-progress-bar"
     >
       {/* Level Title and Roman Numerals - Top Center */}
-      <View style={styles.rarityRomanContainer}>
-        <View style={styles.titleHeaderRow}>
+      <View style={dynamicStyles.rarityRomanContainer}>
+        <View style={dynamicStyles.titleHeaderRow}>
           <Text
             style={[
-              styles.levelTitleRomanStyle,
+              dynamicStyles.levelTitleRomanStyle,
               { color: rarityBorderColor }
             ]}
           >
@@ -573,7 +577,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         {levelRomanAndTitle.romanNumeral && (
           <Text
             style={[
-              styles.rarityRomanText,
+              dynamicStyles.rarityRomanText,
               { color: rarityBorderColor }
             ]}
           >
@@ -584,74 +588,74 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
 
       {/* Level Badge - Top Left Corner */}
       {showLevelBadge && (
-        <View style={styles.topLeftBadgeContainer}>
-          <Animated.View 
+        <View style={dynamicStyles.topLeftBadgeContainer}>
+          <Animated.View
             style={[
-              styles.levelBadgeContainer,
+              dynamicStyles.levelBadgeContainer,
               { transform: [{ scale: pulseAnim }] }
             ]}
           >
             <SafeLinearGradient
               colors={badgeColors.background}
               style={StyleSheet.flatten([
-                styles.levelBadge,
+                dynamicStyles.levelBadge,
                 badgeSize,
                 { borderColor: badgeColors.border },
-                ...(isMilestone ? [styles.milestoneBadge] : [])
+                ...(isMilestone ? [dynamicStyles.milestoneBadge] : [])
               ])}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               suppressWarnings={true}
               fallbackColor={badgeColors.background[0]}
             >
-              <Text style={[styles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
+              <Text style={[dynamicStyles.levelNumber, { color: badgeColors.text, fontSize: fontSizes.levelNumber }]}>
                 {currentLevel}
               </Text>
             </SafeLinearGradient>
-            {isMilestone && <View style={styles.milestoneGlow} />}
+            {isMilestone && <View style={dynamicStyles.milestoneGlow} />}
           </Animated.View>
         </View>
       )}
 
       {/* Main Content Row */}
-      <View style={styles.mainContentRow}>
+      <View style={dynamicStyles.mainContentRow}>
 
       {/* Optimized Progress Bar */}
-      <View style={styles.progressSection}>
-        <View style={[styles.progressBar, { height }]}>
-          <View style={[styles.progressBackground, { height }]} />
-          
+      <View style={dynamicStyles.progressSection}>
+        <View style={[dynamicStyles.progressBar, { height }]}>
+          <View style={[dynamicStyles.progressBackground, { height }]} />
+
           {/* CRITICAL: Animated progress fill */}
-          <Animated.View style={[styles.progressFillContainer, { width: animatedWidth as any, height }]}>
+          <Animated.View style={[dynamicStyles.progressFillContainer, { width: animatedWidth as any, height }]}>
             <SafeLinearGradient
               colors={progressColors}
-              style={styles.progressFill}
+              style={dynamicStyles.progressFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               suppressWarnings={true}
               fallbackColor={progressColors[0]}
             />
           </Animated.View>
-          
+
           {isMilestone && (
-            <View style={[styles.milestoneIndicator, { height: height + 4 }]} />
+            <View style={[dynamicStyles.milestoneIndicator, { height: height + 4 }]} />
           )}
         </View>
 
         {/* Optimized XP Text */}
         {showXPText && !compactMode && (
-          <View style={styles.xpTextContainer}>
-            <Text style={[styles.xpText, { fontSize: fontSizes.xpText }]}>
+          <View style={dynamicStyles.xpTextContainer}>
+            <Text style={[dynamicStyles.xpText, { fontSize: fontSizes.xpText }]}>
               Level {currentLevel} {Math.round(xpProgress)}% to level {currentLevel + 1}
             </Text>
-            <Text style={[styles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}>
+            <Text style={[dynamicStyles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}>
               {formatNumber(totalXP)}/{formatNumber(totalXP + xpToNextLevel)} XP
             </Text>
           </View>
         )}
 
         {showXPText && compactMode && (
-          <Text style={[styles.xpTextCompact, { fontSize: fontSizes.xpNumbers }]}>
+          <Text style={[dynamicStyles.xpTextCompact, { fontSize: fontSizes.xpNumbers }]}>
             Level {currentLevel} • {Math.round(xpProgress)}%
           </Text>
         )}
@@ -660,7 +664,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
 
       {/* Info Button - Top Right Corner */}
       <TouchableOpacity
-        style={styles.infoButtonAbsolute}
+        style={dynamicStyles.infoButtonAbsolute}
         onPress={() => router.push('/levels-overview')}
         accessible={true}
         accessibilityRole="button"
@@ -699,34 +703,29 @@ export const OptimizedXpProgressBar = React.memo(OptimizedXpProgressBarComponent
 // OPTIMIZED STYLES
 // ========================================
 
-const styles = StyleSheet.create({
+const styles = (colors: any) => StyleSheet.create({
   container: {
     flexDirection: 'column',
-    backgroundColor: Colors.background,
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
     paddingVertical: 4,
     paddingHorizontal: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
     position: 'relative', // Pro absolutní pozicování badge
   },
   containerCompact: {
     paddingVertical: 2,
     paddingHorizontal: 12,
   },
-  
+
   topLeftBadgeContainer: {
     position: 'absolute',
     top: 4,
     left: 4,
     zIndex: 10,
   },
-  
+
   mainContentRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -738,7 +737,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   trophyContainer: {
     alignItems: 'center',
@@ -802,7 +801,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressBackground: {
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     borderRadius: 6,
   },
   progressFillContainer: {
@@ -836,23 +835,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   xpText: {
-    color: Colors.text,
+    color: colors.text,
     fontWeight: '500',
   },
   xpNumbers: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '400',
   },
   xpTextCompact: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 4,
     textAlign: 'center',
   },
-  
+
   // ========================================
   // RARITY ROMAN NUMERALS STYLES
   // ========================================
-  
+
   rarityRomanContainer: {
     alignItems: 'center',
     paddingVertical: 0,
@@ -882,32 +881,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  
+
   levelTitleRomanStyle: {
     fontSize: 20,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Stejný serif font
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
     letterSpacing: 2,
     textAlign: 'center',
-    // Jemnější embossed efekt pro název
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
-  
+
   rarityRomanText: {
     fontSize: 32,
     fontWeight: '900',
-    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', // Serif font pro římský styl
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
     letterSpacing: 4,
     textAlign: 'center',
-    // Embossed/vytesaný efekt - stín dolů a doprava pro hloubku
     textShadowColor: 'rgba(0, 0, 0, 0.4)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 3,
-    // Monumentální římský vzhled
     textTransform: 'uppercase',
   },
 });

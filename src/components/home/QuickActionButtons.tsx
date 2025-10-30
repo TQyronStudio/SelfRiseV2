@@ -3,7 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout, Typography } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Typography } from '@/src/constants';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
@@ -13,18 +14,6 @@ import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 interface QuickActionButtonsProps {
   onHabitToggle?: (habitId: string) => void;
 }
-
-// Color mapping for habits
-const COLOR_MAP = {
-  [HabitColor.RED]: Colors.habitRed,
-  [HabitColor.BLUE]: Colors.habitBlue,
-  [HabitColor.GREEN]: Colors.habitGreen,
-  [HabitColor.YELLOW]: Colors.habitYellow,
-  [HabitColor.PURPLE]: Colors.habitPurple,
-  [HabitColor.ORANGE]: Colors.habitOrange,
-  [HabitColor.PINK]: Colors.habitPink,
-  [HabitColor.TEAL]: Colors.habitTeal,
-};
 
 // Icon mapping for habits
 const ICON_MAP = {
@@ -46,8 +35,21 @@ const ICON_MAP = {
 
 export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const router = useRouter();
   const { getHabitsByDate } = useHabitsData();
+
+  // Color mapping for habits (moved inside component to access theme colors)
+  const COLOR_MAP = {
+    [HabitColor.RED]: colors.habitRed,
+    [HabitColor.BLUE]: colors.habitBlue,
+    [HabitColor.GREEN]: colors.habitGreen,
+    [HabitColor.YELLOW]: colors.habitYellow,
+    [HabitColor.PURPLE]: colors.habitPurple,
+    [HabitColor.ORANGE]: colors.habitOrange,
+    [HabitColor.PINK]: colors.habitPink,
+    [HabitColor.TEAL]: colors.habitTeal,
+  };
 
   // Tutorial targeting
   const quickActionsRef = useRef<View>(null);
@@ -104,6 +106,83 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
     onHabitToggle?.(habitId);
   };
 
+  // Dynamic styles based on theme
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      ...Typography.subheading,
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    subtitle: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.xs,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Layout.spacing.sm,
+      gap: Layout.spacing.xs,
+    },
+    actionButton: {
+      flex: 1,
+      alignItems: 'center',
+      padding: Layout.spacing.sm,
+      borderRadius: Layout.borderRadius.md,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    actionText: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      marginTop: Layout.spacing.xs,
+      textAlign: 'center',
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    habitTogglesContainer: {
+      marginTop: Layout.spacing.sm,
+      paddingTop: Layout.spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    habitTogglesRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    habitToggle: {
+      alignItems: 'center',
+      padding: Layout.spacing.sm,
+      borderRadius: Layout.borderRadius.md,
+      minWidth: 70,
+      maxWidth: 90,
+    },
+    symbolCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    habitName: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      fontSize: 10,
+    },
+  });
+
   return (
     <View ref={quickActionsRef} style={styles.container} nativeID="quick-actions-section">
       <Text style={styles.title}>{t('home.quickActions')}</Text>
@@ -112,23 +191,23 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
         {/* Main Action Buttons */}
         <View ref={addHabitRef} nativeID="add-habit-button">
           <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit}>
-            <Ionicons name="add-circle" size={20} color={Colors.primary} />
+            <Ionicons name="add-circle" size={20} color={colors.primary} />
             <Text style={styles.actionText}>Add Habit</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGratitude}>
-          <Ionicons name="heart" size={20} color={Colors.primary} />
+          <Ionicons name="heart" size={20} color={colors.primary} />
           <Text style={styles.actionText}>Gratitude</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddSelfPraise}>
-          <Ionicons name="star" size={20} color={Colors.success} />
+          <Ionicons name="star" size={20} color={colors.success} />
           <Text style={styles.actionText}>Self-Praise</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGoal}>
-          <Ionicons name="flag" size={20} color={Colors.secondary} />
+          <Ionicons name="flag" size={20} color={colors.secondary} />
           <Text style={styles.actionText}>Add Goal</Text>
         </TouchableOpacity>
       </View>
@@ -145,10 +224,10 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
                 onPress={() => handleHabitQuickToggle(habit.id)}
               >
                 <View style={[styles.symbolCircle, { backgroundColor: COLOR_MAP[habit.color] }]}>
-                  <Ionicons 
-                    name={ICON_MAP[habit.icon] as any} 
-                    size={16} 
-                    color={Colors.textInverse} 
+                  <Ionicons
+                    name={ICON_MAP[habit.icon] as any}
+                    size={16}
+                    color={colors.textInverse}
                   />
                 </View>
                 <Text style={styles.habitName} numberOfLines={1}>
@@ -162,84 +241,3 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    ...Typography.subheading,
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  subtitle: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Layout.spacing.sm,
-    gap: Layout.spacing.xs,
-  },
-  actionButton: {
-    flex: 1,
-    alignItems: 'center',
-    padding: Layout.spacing.sm,
-    borderRadius: Layout.borderRadius.md,
-    backgroundColor: Colors.background + '80',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  actionText: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginTop: Layout.spacing.xs,
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  habitTogglesContainer: {
-    marginTop: Layout.spacing.sm,
-    paddingTop: Layout.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  habitTogglesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  habitToggle: {
-    alignItems: 'center',
-    padding: Layout.spacing.sm,
-    borderRadius: Layout.borderRadius.md,
-    minWidth: 70,
-    maxWidth: 90,
-  },
-  symbolCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  habitName: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontSize: 10,
-  },
-});

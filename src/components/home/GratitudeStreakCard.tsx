@@ -623,12 +623,12 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
             </View>
           ) : streakData.currentStreak > 0 ? (
             <View style={styles.statusActive}>
-              <Ionicons name="flame" size={16} color={Colors.success} />
+              <Ionicons name="flame" size={16} color={colors.success} />
               <Text style={styles.statusText}>{t('home.streakActive')}</Text>
             </View>
           ) : (
             <View style={styles.statusInactive}>
-              <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
+              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
               <Text style={styles.statusText}>{t('home.startToday')}</Text>
             </View>
           )}
@@ -669,14 +669,14 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       {/* Debt warning or recovery option */}
       {streakData.frozenDays > 0 ? (
         <TouchableOpacity style={styles.frozenContainer} onPress={handleDebtPress}>
-          <Ionicons name="warning" size={16} color={Colors.warning} />
+          <Ionicons name="warning" size={16} color={colors.warning} />
           <Text style={styles.frozenText}>
             ❄️ Streak Frozen: {streakData.frozenDays} day{streakData.frozenDays !== 1 ? 's' : ''} - Tap to warm up
           </Text>
         </TouchableOpacity>
       ) : streakData.canRecoverWithAd ? (
         <View style={styles.recoveryContainer}>
-          <Ionicons name="refresh" size={16} color={Colors.warning} />
+          <Ionicons name="refresh" size={16} color={colors.warning} />
           <Text style={styles.recoveryText}>{t('home.canRecover')}</Text>
         </View>
       ) : null}

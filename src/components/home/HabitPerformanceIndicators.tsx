@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout, Fonts } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Fonts } from '@/src/constants';
 import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
@@ -16,14 +17,16 @@ interface PerformanceIndicatorProps {
   color: string;
 }
 
-const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({ 
-  title, 
-  value, 
-  trend, 
-  subtitle, 
-  icon, 
-  color 
+const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
+  title,
+  value,
+  trend,
+  subtitle,
+  icon,
+  color
 }) => {
+  const { colors } = useTheme();
+
   const getTrendIcon = () => {
     switch (trend) {
       case 'up': return '📈';
@@ -33,18 +36,60 @@ const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
     }
   };
 
+  const indicatorStyles = StyleSheet.create({
+    indicatorCard: {
+      backgroundColor: colors.background,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      width: 140,
+      borderLeftWidth: 4,
+    },
+    indicatorHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    indicatorIcon: {
+      fontSize: 20,
+    },
+    indicatorTrend: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    trendIcon: {
+      fontSize: 14,
+    },
+    indicatorTitle: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.xs,
+    },
+    indicatorValue: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.bold,
+      marginBottom: 2,
+    },
+    indicatorSubtitle: {
+      fontSize: 10,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
-    <View style={[styles.indicatorCard, { borderLeftColor: color }]}>
-      <View style={styles.indicatorHeader}>
-        <Text style={styles.indicatorIcon}>{icon}</Text>
-        <View style={styles.indicatorTrend}>
-          {trend && <Text style={styles.trendIcon}>{getTrendIcon()}</Text>}
+    <View style={[indicatorStyles.indicatorCard, { borderLeftColor: color }]}>
+      <View style={indicatorStyles.indicatorHeader}>
+        <Text style={indicatorStyles.indicatorIcon}>{icon}</Text>
+        <View style={indicatorStyles.indicatorTrend}>
+          {trend && <Text style={indicatorStyles.trendIcon}>{getTrendIcon()}</Text>}
         </View>
       </View>
-      
-      <Text style={styles.indicatorTitle}>{title}</Text>
-      <Text style={[styles.indicatorValue, { color }]}>{value}</Text>
-      {subtitle && <Text style={styles.indicatorSubtitle}>{subtitle}</Text>}
+
+      <Text style={indicatorStyles.indicatorTitle}>{title}</Text>
+      <Text style={[indicatorStyles.indicatorValue, { color }]}>{value}</Text>
+      {subtitle && <Text style={indicatorStyles.indicatorSubtitle}>{subtitle}</Text>}
     </View>
   );
 };
@@ -98,6 +143,7 @@ const calculatePeriodCompletionRate = (
 
 export const HabitPerformanceIndicators: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getRelevantDatesForHabit } = useHabitsData();
 
   const performanceData = useMemo(() => {
@@ -210,11 +256,56 @@ export const HabitPerformanceIndicators: React.FC = () => {
 
   const getTrendColor = () => {
     switch (performanceData.trend) {
-      case 'up': return Colors.success;
-      case 'down': return Colors.error;
-      default: return Colors.warning;
+      case 'up': return colors.success;
+      case 'down': return colors.error;
+      default: return colors.warning;
     }
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginTop: Layout.spacing.md,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    indicatorsContainer: {
+      paddingHorizontal: Layout.spacing.xs,
+      gap: Layout.spacing.md,
+    },
+    noDataContainer: {
+      alignItems: 'center',
+      paddingVertical: Layout.spacing.xl,
+    },
+    noDataText: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    noDataSubtext: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
 
   if (performanceData.totalActive === 0) {
     return (
@@ -222,7 +313,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
         <View style={styles.header}>
           <Text style={styles.title}>{t('home.habitStats.performanceIndicators')}</Text>
         </View>
-        
+
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
           <Text style={styles.noDataSubtext}>Add habits to see performance indicators</Text>
@@ -240,8 +331,8 @@ export const HabitPerformanceIndicators: React.FC = () => {
         </Text>
       </View>
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.indicatorsContainer}
       >
@@ -249,7 +340,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           title={t('home.habitStats.activeHabits')}
           value={performanceData.totalActive}
           icon="🎯"
-          color={Colors.primary}
+          color={colors.primary}
         />
 
         <PerformanceIndicator
@@ -257,7 +348,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           value={`${performanceData.completedToday}/${performanceData.totalActive}`}
           subtitle={`${Math.round((performanceData.completedToday / performanceData.totalActive) * 100)}%`}
           icon="✅"
-          color={Colors.success}
+          color={colors.success}
         />
 
         <PerformanceIndicator
@@ -270,7 +361,6 @@ export const HabitPerformanceIndicators: React.FC = () => {
         />
 
         {performanceData.weeklyTopPerformer && (() => {
-          // Only show percentage for habits 7+ days old
           const ageInfo = getHabitAgeInfo(performanceData.weeklyTopPerformer.habit);
           if (ageInfo.canShowPerformance) {
             return (
@@ -279,12 +369,11 @@ export const HabitPerformanceIndicators: React.FC = () => {
                 value={`${Math.round(performanceData.weeklyTopPerformer.completionRate)}%`}
                 subtitle={performanceData.weeklyTopPerformer.habit.name}
                 icon="🏆"
-                color={Colors.secondary}
+                color={colors.primary}
               />
             );
           } else {
-            // For new habits (Days 1-6), show raw completion count
-            const completions = (performanceData.weeklyTopPerformer.completedScheduled || 0) + 
+            const completions = (performanceData.weeklyTopPerformer.completedScheduled || 0) +
                               (performanceData.weeklyTopPerformer.bonusCompletions || 0);
             return (
               <PerformanceIndicator
@@ -292,14 +381,13 @@ export const HabitPerformanceIndicators: React.FC = () => {
                 value={`${completions}`}
                 subtitle={`${performanceData.weeklyTopPerformer.habit.name} (building)`}
                 icon="🌱"
-                color={Colors.success}
+                color={colors.success}
               />
             );
           }
         })()}
 
         {performanceData.monthlyTopPerformer && (() => {
-          // Only show percentage for habits 7+ days old
           const ageInfo = getHabitAgeInfo(performanceData.monthlyTopPerformer.habit);
           if (ageInfo.canShowPerformance) {
             return (
@@ -308,15 +396,14 @@ export const HabitPerformanceIndicators: React.FC = () => {
                 value={`${Math.round(performanceData.monthlyTopPerformer.completionRate)}%`}
                 subtitle={performanceData.monthlyTopPerformer.habit.name}
                 icon="👑"
-                color={Colors.primary}
+                color={colors.primary}
               />
             );
           }
-          return null; // Don't show monthly stats for very new habits
+          return null;
         })()}
 
         {performanceData.strugglingHabit && (() => {
-          // Only show struggling habits for established habits (14+ days) to avoid discouraging new users
           const ageInfo = getHabitAgeInfo(performanceData.strugglingHabit.habit);
           if (ageInfo.isEstablishedHabit && performanceData.strugglingHabit.completionRate < 50) {
             return (
@@ -325,7 +412,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
                 value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
                 subtitle={performanceData.strugglingHabit.habit.name}
                 icon="💪"
-                color={Colors.warning}
+                color={colors.warning}
               />
             );
           }
@@ -335,95 +422,3 @@ export const HabitPerformanceIndicators: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginTop: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  indicatorsContainer: {
-    paddingHorizontal: Layout.spacing.xs,
-    gap: Layout.spacing.md,
-  },
-  indicatorCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    width: 140,
-    borderLeftWidth: 4,
-  },
-  indicatorHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  indicatorIcon: {
-    fontSize: 20,
-  },
-  indicatorTrend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  trendIcon: {
-    fontSize: 14,
-  },
-  indicatorTitle: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.xs,
-  },
-  indicatorValue: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.bold,
-    marginBottom: 2,
-  },
-  indicatorSubtitle: {
-    fontSize: 10,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    paddingVertical: Layout.spacing.xl,
-  },
-  noDataText: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  noDataSubtext: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});
