@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts, Layout } from '@/src/constants';
-import { useTheme } from '@/src/hooks/useTheme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 import HelpAnalyticsService from '@/src/services/helpAnalyticsService';
