@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Fonts, Layout } from '@/src/constants';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -34,6 +35,49 @@ export default function BaseModal({
   maxWidth = screenWidth * 0.85,
   animationType = 'fade',
 }: BaseModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    keyboardView: {
+      flex: 1,
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.xl,
+      width: '100%',
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.md,
+      textAlign: 'center',
+    },
+    content: {
+      marginBottom: Layout.spacing.lg,
+    },
+    closeButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.lg,
+      borderRadius: Layout.borderRadius.md,
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.md,
+      fontWeight: '600',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -66,55 +110,3 @@ export default function BaseModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    paddingVertical: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.lg,
-    width: '100%',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  title: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  content: {
-    marginBottom: Layout.spacing.lg,
-  },
-  closeButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    alignItems: 'center',
-    minWidth: 120,
-    alignSelf: 'center',
-  },
-  closeButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-});

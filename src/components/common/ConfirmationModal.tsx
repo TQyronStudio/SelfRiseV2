@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BaseModal from './BaseModal';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Fonts, Layout } from '@/src/constants';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -23,9 +24,64 @@ export default function ConfirmationModal({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  confirmButtonColor = Colors.error,
+  confirmButtonColor,
   emoji = '❓',
 }: ConfirmationModalProps) {
+  const { colors } = useTheme();
+  const defaultConfirmColor = confirmButtonColor || colors.error;
+
+  const styles = StyleSheet.create({
+    container: {
+      alignItems: 'center',
+    },
+    emoji: {
+      fontSize: 48,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: Layout.spacing.md,
+      width: '100%',
+    },
+    cancelButton: {
+      flex: 1,
+      backgroundColor: colors.border,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      alignItems: 'center',
+    },
+    cancelButtonText: {
+      color: colors.text,
+      fontSize: Fonts.sizes.md,
+      fontWeight: '500',
+    },
+    confirmButton: {
+      flex: 1,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      alignItems: 'center',
+    },
+    confirmButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+    },
+  });
+
   const handleConfirm = () => {
     onConfirm();
     onClose();
@@ -47,8 +103,8 @@ export default function ConfirmationModal({
             <Text style={styles.cancelButtonText}>{cancelText}</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={[styles.confirmButton, { backgroundColor: confirmButtonColor }]} 
+          <TouchableOpacity
+            style={[styles.confirmButton, { backgroundColor: defaultConfirmColor }]}
             onPress={handleConfirm}
           >
             <Text style={styles.confirmButtonText}>{confirmText}</Text>
@@ -58,55 +114,3 @@ export default function ConfirmationModal({
     </BaseModal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  message: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: Layout.spacing.md,
-    width: '100%',
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: Colors.border,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: Colors.text,
-    fontSize: Fonts.sizes.md,
-    fontWeight: '500',
-  },
-  confirmButton: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-});
