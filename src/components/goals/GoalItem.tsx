@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalStatus } from '../../types/goal';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ConfirmationModal } from '../common';
@@ -27,6 +27,7 @@ interface GoalItemProps {
 
 export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging, isEditMode }: GoalItemProps) => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Wiggle animace pro edit mode
@@ -74,15 +75,15 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
   const getStatusColor = (status: GoalStatus) => {
     switch (status) {
       case GoalStatus.COMPLETED:
-        return Colors.success;
+        return colors.success;
       case GoalStatus.ACTIVE:
-        return Colors.primary;
+        return colors.primary;
       case GoalStatus.PAUSED:
-        return Colors.warning;
+        return colors.warning;
       case GoalStatus.ARCHIVED:
-        return Colors.textSecondary;
+        return colors.textSecondary;
       default:
-        return Colors.textSecondary;
+        return colors.textSecondary;
     }
   };
 
@@ -113,9 +114,102 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
     onDelete();
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+    },
+    titleContainer: {
+      flex: 1,
+      marginRight: 12,
+    },
+    title: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    status: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      textTransform: 'uppercase',
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 8,
+    },
+    description: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginBottom: 12,
+    },
+    progressContainer: {
+      marginBottom: 8,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    progressText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+    },
+    progressPercentage: {
+      fontSize: 14,
+      fontFamily: Fonts.semibold,
+      color: colors.primary,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    targetDate: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    categoryContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    categoryLabel: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    categoryValue: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.primary,
+    },
+  });
+
   // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
   const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;
-  const wrapperStyle = Platform.OS === 'ios' 
+  const wrapperStyle = Platform.OS === 'ios'
     ? [styles.container, animatedStyle] // Wiggle animace pouze na iOS
     : [styles.container]; // Žádná animace na Androidu
 
@@ -131,20 +225,20 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
         <View style={styles.actions}>
           {onDrag && (
             <TouchableOpacity style={styles.actionButton} onLongPress={onDrag}>
-              <Ionicons name="reorder-three-outline" size={20} color={Colors.textSecondary} />
+              <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.actionButton} onPress={onAddProgress}>
-            <Ionicons name="add-circle-outline" size={20} color={Colors.success} />
+            <Ionicons name="add-circle-outline" size={20} color={colors.success} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={onViewStats}>
-            <Ionicons name="stats-chart" size={20} color={Colors.primary} />
+            <Ionicons name="stats-chart" size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
-            <Ionicons name="create-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="create-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={handleDeletePress}>
-            <Ionicons name="trash-outline" size={20} color={Colors.error} />
+            <Ionicons name="trash-outline" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -168,7 +262,7 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
               styles.progressFill,
               {
                 width: `${Math.min(progressPercentage, 100)}%`,
-                backgroundColor: isCompleted ? Colors.success : Colors.primary,
+                backgroundColor: isCompleted ? colors.success : colors.primary,
               },
             ]}
           />
@@ -197,105 +291,4 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
       />
     </WrapperComponent>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  titleContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  status: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    textTransform: 'uppercase',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-  },
-  description: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginBottom: 8,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontFamily: Fonts.semibold,
-    color: Colors.primary,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  targetDate: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  categoryLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  categoryValue: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.primary,
-  },
 });
