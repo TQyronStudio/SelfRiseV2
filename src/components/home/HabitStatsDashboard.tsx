@@ -36,7 +36,7 @@ export const HabitStatsDashboard: React.FC = () => {
     },
     toggleContainer: {
       flexDirection: 'row',
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.lg,
       padding: 2,
     },

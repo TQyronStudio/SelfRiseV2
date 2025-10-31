@@ -218,7 +218,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       case 'bold':
         return {
           ...baseStyles,
-          backgroundColor: colors.background,
+          backgroundColor: colors.cardBackgroundElevated,
           shadowOpacity: 0.15,
           elevation: 5,
           borderWidth: 2,
@@ -706,7 +706,7 @@ export const OptimizedXpProgressBar = React.memo(OptimizedXpProgressBarComponent
 const styles = (colors: any) => StyleSheet.create({
   container: {
     flexDirection: 'column',
-    backgroundColor: colors.cardBackground,
+    backgroundColor: colors.cardBackgroundElevated,
     borderRadius: 16,
     paddingVertical: 4,
     paddingHorizontal: 16,

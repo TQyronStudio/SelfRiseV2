@@ -127,7 +127,7 @@ export function PersonalizedRecommendations() {
       paddingRight: Layout.spacing.md,
     },
     recommendationCard: {
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.lg,
       padding: Layout.spacing.md,
       marginRight: Layout.spacing.sm,
@@ -202,7 +202,7 @@ export function PersonalizedRecommendations() {
     emptyState: {
       alignItems: 'center',
       padding: Layout.spacing.lg,
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.lg,
     },
     emptyText: {

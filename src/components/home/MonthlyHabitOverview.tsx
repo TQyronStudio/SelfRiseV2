@@ -5,6 +5,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { getPast30Days, formatDateForDisplay, today, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface StatCardProps {
   title: string;
@@ -13,16 +14,49 @@ interface StatCardProps {
   color?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color = Colors.primary }) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statTitle}>{title}</Text>
-    <Text style={[styles.statValue, { color }]}>{value}</Text>
-    {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
-  </View>
-);
+const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color }) => {
+  const { colors } = useTheme();
+  const styles = StyleSheet.create({
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.sm,
+      alignItems: 'center',
+    },
+    statTitle: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    statValue: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.bold,
+      marginBottom: 2,
+    },
+    statSubtitle: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statTitle}>{title}</Text>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+    </View>
+  );
+};
 
 export const MonthlyHabitOverview: React.FC = React.memo(() => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getRelevantDatesForHabit } = useHabitsData();
 
   const monthlyStats = useMemo(() => {
@@ -155,6 +189,144 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       };
     });
   }, [habits, getHabitsByDate]);
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginTop: Layout.spacing.md,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: Layout.spacing.md,
+      gap: Layout.spacing.sm,
+    },
+    insightsContainer: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: Layout.spacing.md,
+    },
+    insightsTitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    insightItem: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.sm,
+      marginBottom: Layout.spacing.xs,
+      borderLeftWidth: 4,
+    },
+    insightLabel: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    insightText: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    noDataContainer: {
+      alignItems: 'center',
+      paddingVertical: Layout.spacing.xl,
+    },
+    noDataText: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    noDataSubtext: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    chartContainer: {
+      marginBottom: Layout.spacing.md,
+      paddingTop: Layout.spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    chartTitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+      textAlign: 'center',
+    },
+    miniChart: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      height: 35,
+      paddingHorizontal: Layout.spacing.xs,
+    },
+    miniBar: {
+      flex: 1,
+      alignItems: 'center',
+      maxWidth: 8,
+    },
+    miniBarContainer: {
+      height: 24,
+      width: 3,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      marginBottom: 2,
+    },
+    miniBarFill: {
+      width: 3,
+      borderRadius: 1.5,
+      minHeight: 2,
+    },
+    bonusIndicator: {
+      width: 3,
+      height: 2,
+      borderTopLeftRadius: 1.5,
+      borderTopRightRadius: 1.5,
+      marginTop: -1,
+    },
+    miniDayLabel: {
+      fontSize: 8,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    todayMiniLabel: {
+      color: colors.primary,
+      fontFamily: Fonts.semibold,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -294,168 +466,4 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       )}
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginTop: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: Layout.spacing.md,
-    gap: Layout.spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.sm,
-    alignItems: 'center',
-  },
-  statTitle: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  statValue: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.bold,
-    marginBottom: 2,
-  },
-  statSubtitle: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  insightsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Layout.spacing.md,
-  },
-  insightsTitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  insightItem: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.sm,
-    marginBottom: Layout.spacing.xs,
-    borderLeftWidth: 4,
-  },
-  insightLabel: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  insightText: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    paddingVertical: Layout.spacing.xl,
-  },
-  noDataText: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  noDataSubtext: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  chartContainer: {
-    marginBottom: Layout.spacing.md,
-    paddingTop: Layout.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  chartTitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-    textAlign: 'center',
-  },
-  miniChart: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 35,
-    paddingHorizontal: Layout.spacing.xs,
-  },
-  miniBar: {
-    flex: 1,
-    alignItems: 'center',
-    maxWidth: 8,
-  },
-  miniBarContainer: {
-    height: 24,
-    width: 3,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  miniBarFill: {
-    width: 3,
-    borderRadius: 1.5,
-    minHeight: 2,
-  },
-  bonusIndicator: {
-    width: 3,
-    height: 2,
-    borderTopLeftRadius: 1.5,
-    borderTopRightRadius: 1.5,
-    marginTop: -1,
-  },
-  miniDayLabel: {
-    fontSize: 8,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  todayMiniLabel: {
-    color: Colors.primary,
-    fontFamily: Fonts.semibold,
-  },
 });

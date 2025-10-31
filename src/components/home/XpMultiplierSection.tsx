@@ -22,6 +22,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { XPMultiplierService, ActiveMultiplierInfo, HarmonyStreakResult, MultiplierActivationResult } from '../../services/xpMultiplierService';
 import { MultiplierActivationModal } from '../gamification/MultiplierActivationModal';
 import { MultiplierCountdownTimer } from '../gamification/MultiplierCountdownTimer';
@@ -62,6 +63,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   compact = false,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   
   // ========================================
   // STATE & ANIMATIONS
@@ -312,13 +314,139 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   };
   
   // ========================================
+  // STYLES
+  // ========================================
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 16,
+      padding: 16,
+      marginVertical: 8,
+    },
+
+    compactContainer: {
+      padding: 12,
+      marginVertical: 4,
+    },
+
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 12,
+    },
+
+    activeMultiplierContainer: {
+      backgroundColor: '#FFD700',
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 8,
+    },
+
+    multiplierHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+
+    multiplierInfo: {
+      marginLeft: 12,
+      flex: 1,
+    },
+
+    multiplierTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#333333',
+    },
+
+    multiplierSubtext: {
+      fontSize: 12,
+      color: '#666666',
+      marginTop: 2,
+    },
+
+    multiplierDescription: {
+      fontSize: 12,
+      color: '#555555',
+      fontStyle: 'italic',
+    },
+
+    harmonyProgressContainer: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    progressHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+
+    progressIcon: {
+      fontSize: 20,
+      marginRight: 8,
+    },
+
+    progressInfo: {
+      flex: 1,
+    },
+
+    progressTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    progressSubtext: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+
+    progressBarContainer: {
+      width: '100%',
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      marginBottom: 12,
+      overflow: 'hidden',
+    },
+
+    progressBar: {
+      height: '100%',
+      backgroundColor: '#4CAF50',
+      borderRadius: 3,
+    },
+
+    activateButton: {
+      backgroundColor: '#4CAF50',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 8,
+    },
+
+    activateButtonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
+  });
+
+  // ========================================
   // MAIN RENDER
   // ========================================
-  
+
   if (!shouldShowSection()) {
     return null;
   }
-  
+
   return (
     <>
       <Animated.View
@@ -353,136 +481,5 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
     </>
   );
 };
-
-// ========================================
-// STYLES
-// ========================================
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginVertical: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  
-  compactContainer: {
-    padding: 12,
-    marginVertical: 4,
-  },
-  
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
-  },
-  
-  activeMultiplierContainer: {
-    backgroundColor: '#FFD700',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-  },
-  
-  multiplierHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  
-  multiplierInfo: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  
-  multiplierTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  
-  multiplierSubtext: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 2,
-  },
-  
-  multiplierDescription: {
-    fontSize: 12,
-    color: '#555555',
-    fontStyle: 'italic',
-  },
-  
-  harmonyProgressContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-  },
-  
-  progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  
-  progressIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  
-  progressInfo: {
-    flex: 1,
-  },
-  
-  progressTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  
-  progressSubtext: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 2,
-  },
-  
-  progressBarContainer: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#E9ECEF',
-    borderRadius: 3,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 3,
-  },
-  
-  activateButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  
-  activateButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-});
 
 export default XpMultiplierSection;

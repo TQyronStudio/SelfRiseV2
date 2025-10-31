@@ -6,6 +6,7 @@ import { Colors, Layout, Fonts } from '@/src/constants';
 import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { calculateHabitCompletionRate } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface StatCardProps {
   title: string;
@@ -14,16 +15,49 @@ interface StatCardProps {
   color?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color = Colors.primary }) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statTitle}>{title}</Text>
-    <Text style={[styles.statValue, { color }]}>{value}</Text>
-    {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
-  </View>
-);
+const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color }) => {
+  const { colors } = useTheme();
+  const styles = StyleSheet.create({
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.sm,
+      alignItems: 'center',
+    },
+    statTitle: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    statValue: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.bold,
+      marginBottom: 2,
+    },
+    statSubtitle: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statTitle}>{title}</Text>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+    </View>
+  );
+};
 
 export const YearlyHabitOverview: React.FC = React.memo(() => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange, getRelevantDatesForHabit } = useHabitsData();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -186,10 +220,106 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
     return dateRange.length;
   }, [getEarliestDataDate, getDataDateRange]);
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginTop: Layout.spacing.md,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: Layout.spacing.md,
+      gap: Layout.spacing.sm,
+    },
+    insightsContainer: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: Layout.spacing.md,
+    },
+    insightsTitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    insightItem: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.sm,
+      marginBottom: Layout.spacing.xs,
+      borderLeftWidth: 4,
+    },
+    insightLabel: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    insightText: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    noDataContainer: {
+      alignItems: 'center',
+      paddingVertical: Layout.spacing.xl,
+    },
+    noDataText: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    noDataSubtext: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    loadingContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Layout.spacing.xl,
+    },
+    loadingText: {
+      marginTop: Layout.spacing.sm,
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading yearly statistics...</Text>
       </View>
     );
@@ -289,126 +419,4 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       )}
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginTop: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: Layout.spacing.md,
-    gap: Layout.spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.sm,
-    alignItems: 'center',
-  },
-  statTitle: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  statValue: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.bold,
-    marginBottom: 2,
-  },
-  statSubtitle: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  insightsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Layout.spacing.md,
-  },
-  insightsTitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  insightItem: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.sm,
-    marginBottom: Layout.spacing.xs,
-    borderLeftWidth: 4,
-  },
-  insightLabel: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  insightText: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    paddingVertical: Layout.spacing.xl,
-  },
-  noDataText: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  noDataSubtext: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Layout.spacing.xl,
-  },
-  loadingText: {
-    marginTop: Layout.spacing.sm,
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
 });

@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  Modal, 
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Modal,
   ScrollView,
   Switch,
   Alert
@@ -12,8 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
-import { Colors, Layout, Typography } from '@/src/constants';
+import { Layout, Typography } from '@/src/constants';
 
 interface HomeCustomizationModalProps {
   visible: boolean;
@@ -22,6 +23,7 @@ interface HomeCustomizationModalProps {
 
 export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state, actions } = useHomeCustomization();
 
   const handleToggleComponent = async (componentId: string) => {
@@ -71,6 +73,83 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
     return names[componentId] || componentId;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    title: {
+      ...Typography.heading,
+      color: colors.text,
+    },
+    closeButton: {
+      padding: Layout.spacing.xs,
+    },
+    content: {
+      flex: 1,
+      padding: Layout.spacing.md,
+    },
+    section: {
+      marginBottom: Layout.spacing.lg,
+    },
+    sectionTitle: {
+      ...Typography.subheading,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    sectionDescription: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.md,
+      lineHeight: 18,
+    },
+    componentRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    componentInfo: {
+      flex: 1,
+    },
+    componentName: {
+      ...Typography.body,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    componentOrder: {
+      ...Typography.caption,
+      color: colors.textSecondary,
+      fontSize: 12,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    actionText: {
+      ...Typography.body,
+      color: colors.textSecondary,
+      marginLeft: Layout.spacing.sm,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -82,7 +161,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
         <View style={styles.header}>
           <Text style={styles.title}>{t('home.customization.title')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.textPrimary} />
+            <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -109,8 +188,8 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
                   <Switch
                     value={component.visible}
                     onValueChange={() => handleToggleComponent(component.id)}
-                    trackColor={{ false: Colors.border, true: Colors.primary + '40' }}
-                    thumbColor={component.visible ? Colors.primary : Colors.textSecondary}
+                    trackColor={{ false: colors.border, true: colors.primary + '40' }}
+                    thumbColor={component.visible ? colors.primary : colors.textSecondary}
                   />
                 </View>
               ))
@@ -120,11 +199,11 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('home.customization.actions')}</Text>
             
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={handleResetToDefaults}
             >
-              <Ionicons name="refresh" size={20} color={Colors.textSecondary} />
+              <Ionicons name="refresh" size={20} color={colors.textSecondary} />
               <Text style={styles.actionText}>{t('home.customization.resetToDefaults')}</Text>
             </TouchableOpacity>
           </View>
@@ -133,80 +212,3 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.background,
-  },
-  title: {
-    ...Typography.heading,
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Layout.spacing.xs,
-  },
-  content: {
-    flex: 1,
-    padding: Layout.spacing.md,
-  },
-  section: {
-    marginBottom: Layout.spacing.lg,
-  },
-  sectionTitle: {
-    ...Typography.subheading,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  sectionDescription: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.md,
-    lineHeight: 18,
-  },
-  componentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-  },
-  componentInfo: {
-    flex: 1,
-  },
-  componentName: {
-    ...Typography.body,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  componentOrder: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-  },
-  actionText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginLeft: Layout.spacing.sm,
-  },
-});

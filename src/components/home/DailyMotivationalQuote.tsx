@@ -84,7 +84,7 @@ export function DailyMotivationalQuote() {
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.lg,
       padding: Layout.spacing.md,
       marginHorizontal: Layout.spacing.md,

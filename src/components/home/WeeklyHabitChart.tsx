@@ -5,9 +5,11 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Layout, Fonts } from '@/src/constants';
 import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export const WeeklyHabitChart: React.FC = React.memo(() => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getDataDateRange, getRelevantDatesForHabit } = useHabitsData();
 
   const weekData = useMemo(() => {
@@ -169,6 +171,124 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     return Colors.textSecondary;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    chartContainer: {
+      marginBottom: Layout.spacing.md,
+    },
+    chartWrapper: {
+      position: 'relative',
+      flex: 1,
+    },
+    chartContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'flex-end',
+      paddingHorizontal: Layout.spacing.xs,
+    },
+    dayColumn: {
+      flex: 1,
+      alignItems: 'center',
+      maxWidth: 50,
+    },
+    barContainer: {
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.xs,
+      position: 'relative',
+    },
+    unifiedBar: {
+      width: 24,
+      position: 'relative',
+    },
+    barSection: {
+      width: 24,
+      position: 'absolute',
+      left: 0,
+    },
+    barBase: {
+      width: 28,
+      height: 2,
+      backgroundColor: colors.border,
+      position: 'absolute',
+      bottom: -1,
+    },
+    dayLabel: {
+      fontSize: 10,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginBottom: 2,
+    },
+    todayLabel: {
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    dayNumber: {
+      fontSize: Fonts.sizes.xs,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    todayNumber: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    completionText: {
+      fontSize: 9,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    legend: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: Layout.spacing.xs,
+      marginVertical: 2,
+    },
+    legendColor: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    legendText: {
+      fontSize: 10,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -312,127 +432,4 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       </View>
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  chartContainer: {
-    marginBottom: Layout.spacing.md,
-  },
-  chartWrapper: {
-    position: 'relative',
-    flex: 1,
-  },
-  // Y-axis styles removed - no labels needed
-  // gridLine removed - no grid lines wanted
-  chartContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    paddingHorizontal: Layout.spacing.xs,
-    // No left padding needed - no Y-axis labels
-  },
-  dayColumn: {
-    flex: 1,
-    alignItems: 'center',
-    maxWidth: 50,
-  },
-  barContainer: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.xs,
-    position: 'relative',
-  },
-  unifiedBar: {
-    width: 24,
-    position: 'relative',
-    // Removed borderRadius - now applied individually to sections
-    // overflow: 'hidden', // Removed to allow individual section border radius
-  },
-  barSection: {
-    width: 24,
-    position: 'absolute',
-    left: 0,
-  },
-  barBase: {
-    width: 28,
-    height: 2,
-    backgroundColor: Colors.border,
-    position: 'absolute',
-    bottom: -1,
-  },
-  dayLabel: {
-    fontSize: 10,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-  todayLabel: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  dayNumber: {
-    fontSize: Fonts.sizes.xs,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  todayNumber: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  completionText: {
-    fontSize: 9,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: Layout.spacing.xs,
-    marginVertical: 2,
-  },
-  legendColor: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 4,
-  },
-  legendText: {
-    fontSize: 10,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
 });

@@ -8,6 +8,7 @@ import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from 
 import MonthlyChallengeCard from './MonthlyChallengeCard';
 import MonthlyChallengeCompletionModal from './MonthlyChallengeCompletionModal';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface MonthlychallengeSectionProps {
   onChallengePress?: (challenge: MonthlyChallenge) => void;
@@ -20,6 +21,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   onViewAllPress,
   compact = false
 }) => {
+  const { colors } = useTheme();
   const [challenge, setChallenge] = useState<MonthlyChallenge | null>(null);
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -221,6 +223,320 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       year: 'numeric'
     });
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: 24,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 16,
+      paddingHorizontal: 16,
+    },
+    headerLeft: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    challengeScrollView: {
+      marginBottom: 16,
+    },
+    challengeContainer: {
+      paddingHorizontal: 16,
+    },
+    summaryCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 16,
+      elevation: 2,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      marginBottom: 16,
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    summaryTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    summaryPercent: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      marginBottom: 16,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    summaryStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 16,
+    },
+    stat: {
+      alignItems: 'center',
+    },
+    statNumber: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    milestoneTracker: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 16,
+      marginBottom: 12,
+    },
+    milestoneTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    milestoneRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    milestoneItem: {
+      alignItems: 'center',
+    },
+    milestoneCircle: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    milestoneCheck: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    milestoneLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    streakBadge: {
+      backgroundColor: colors.cardBackground,
+      borderColor: colors.warning,
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      alignSelf: 'center',
+    },
+    streakText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.warning,
+    },
+    starRatingOverview: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 16,
+      elevation: 1,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.03,
+      shadowRadius: 2,
+    },
+    starRatingTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    starRatingGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    starRatingItem: {
+      alignItems: 'center',
+      minWidth: '22%',
+    },
+    starRatingCategory: {
+      fontSize: 10,
+      color: colors.textSecondary,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    loadingCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 24,
+      marginHorizontal: 16,
+      alignItems: 'center',
+      elevation: 2,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+    },
+    loadingText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    errorCard: {
+      backgroundColor: colors.cardBackground,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.error,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.error,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    retryButton: {
+      backgroundColor: colors.error,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    emptyCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 24,
+      marginHorizontal: 16,
+      alignItems: 'center',
+      elevation: 2,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    trackingText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+
+    // Compact styles
+    compactContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 12,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      elevation: 1,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.03,
+      shadowRadius: 2,
+    },
+    compactHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    compactTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    compactMonth: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    compactViewAll: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: colors.border,
+      borderRadius: 6,
+    },
+    compactViewAllText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    compactStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    compactStat: {
+      alignItems: 'center',
+    },
+    compactStatNumber: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    compactStatLabel: {
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+  });
 
   if (loading) {
     return (
@@ -466,317 +782,5 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  challengeScrollView: {
-    marginBottom: 16,
-  },
-  challengeContainer: {
-    paddingHorizontal: 16,
-  },
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    marginBottom: 16,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  summaryPercent: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 4,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  summaryStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  milestoneTracker: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 16,
-    marginBottom: 12,
-  },
-  milestoneTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  milestoneRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  milestoneItem: {
-    alignItems: 'center',
-  },
-  milestoneCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  milestoneCheck: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  milestoneLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  streakBadge: {
-    backgroundColor: '#FEF3C7',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignSelf: 'center',
-  },
-  streakText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#92400E',
-  },
-  starRatingOverview: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-  },
-  starRatingTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 12,
-  },
-  starRatingGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  starRatingItem: {
-    alignItems: 'center',
-    minWidth: '22%',
-  },
-  starRatingCategory: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  errorCard: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#DC2626',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  retryButton: {
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  trackingText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  // Compact styles
-  compactContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-  },
-  compactHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  compactTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  compactMonth: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  compactViewAll: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-  },
-  compactViewAllText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  compactStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  compactStat: {
-    alignItems: 'center',
-  },
-  compactStatNumber: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  compactStatLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-  },
-});
 
 export default MonthlyChallengeSection;

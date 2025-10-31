@@ -29,7 +29,7 @@ const TrendItem: React.FC<TrendItemProps> = ({ title, description, icon, color, 
 
   const trendStyles = StyleSheet.create({
     trendItem: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.md,
       padding: Layout.spacing.md,
       marginBottom: Layout.spacing.sm,

@@ -179,7 +179,7 @@ export function StreakHistoryGraph() {
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 12,
       padding: 16,
       marginHorizontal: 16,

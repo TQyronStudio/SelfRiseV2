@@ -2,12 +2,14 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout, Fonts } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Fonts, Colors } from '@/src/constants';
 import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 export const Monthly30DayChart: React.FC = React.memo(() => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getEarliestDataDate, getDataDateRange, getRelevantDatesForHabit } = useHabitsData();
 
   const monthData = useMemo(() => {
@@ -161,6 +163,108 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
     return monthData.length;
   }, [monthData]);
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+    },
+    header: {
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    subtitle: {
+      fontSize: Fonts.sizes.md,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    chartContainer: {
+      marginBottom: Layout.spacing.md,
+    },
+    chartWrapper: {
+      position: 'relative',
+      flex: 1,
+    },
+    scrollableChart: {
+      flex: 1,
+    },
+    chartContent: {
+      paddingHorizontal: Layout.spacing.xs,
+    },
+    dayColumn: {
+      alignItems: 'center',
+      width: 12,
+      marginHorizontal: 1,
+    },
+    barContainer: {
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      width: 10,
+      position: 'relative',
+    },
+    unifiedBar: {
+      width: 8,
+      position: 'relative',
+    },
+    barSection: {
+      width: 8,
+      position: 'absolute',
+      left: 0,
+    },
+    barBase: {
+      width: 10,
+      height: 1,
+      backgroundColor: colors.border,
+      position: 'absolute',
+      bottom: -1,
+    },
+    dayLabel: {
+      fontSize: 8,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 2,
+      textAlign: 'center',
+    },
+    todayLabel: {
+      color: colors.primary,
+      fontFamily: Fonts.semibold,
+    },
+    completionText: {
+      fontSize: 7,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    legend: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: Layout.spacing.xs,
+      marginVertical: 2,
+    },
+    legendColor: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    legendText: {
+      fontSize: 10,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -297,119 +401,4 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       </View>
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  subtitle: {
-    fontSize: Fonts.sizes.md,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  chartContainer: {
-    marginBottom: Layout.spacing.md,
-  },
-  chartWrapper: {
-    position: 'relative',
-    flex: 1,
-  },
-  // Y-axis styles removed - no labels needed
-  // gridLine removed - no grid lines wanted
-  scrollableChart: {
-    flex: 1,
-  },
-  chartContent: {
-    paddingHorizontal: Layout.spacing.xs,
-    // No left padding needed - no Y-axis labels
-  },
-  dayColumn: {
-    alignItems: 'center',
-    width: 12,
-    marginHorizontal: 1,
-  },
-  barContainer: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    width: 10,
-    position: 'relative',
-  },
-  unifiedBar: {
-    width: 8,
-    position: 'relative',
-    // Removed borderRadius - now applied individually to sections
-    // overflow: 'hidden', // Removed to allow individual section border radius
-  },
-  barSection: {
-    width: 8,
-    position: 'absolute',
-    left: 0,
-  },
-  barBase: {
-    width: 10,
-    height: 1,
-    backgroundColor: Colors.border,
-    position: 'absolute',
-    bottom: -1,
-  },
-  dayLabel: {
-    fontSize: 8,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  todayLabel: {
-    color: Colors.primary,
-    fontFamily: Fonts.semibold,
-  },
-  completionText: {
-    fontSize: 7,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: Layout.spacing.xs,
-    marginVertical: 2,
-  },
-  legendColor: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 4,
-  },
-  legendText: {
-    fontSize: 10,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
 });

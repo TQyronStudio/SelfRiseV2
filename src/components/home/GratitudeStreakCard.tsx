@@ -185,7 +185,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 16,
       padding: 20,
       marginHorizontal: 16,
@@ -273,7 +273,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     statusInactive: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.cardBackgroundElevated,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 12,
@@ -326,7 +326,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     },
     badge: {
       alignItems: 'center',
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 8,
       paddingHorizontal: 8,
       paddingVertical: 4,

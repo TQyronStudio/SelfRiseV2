@@ -38,7 +38,7 @@ const PerformanceIndicator: React.FC<PerformanceIndicatorProps> = ({
 
   const indicatorStyles = StyleSheet.create({
     indicatorCard: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: Layout.borderRadius.md,
       padding: Layout.spacing.md,
       width: 140,
