@@ -589,19 +589,33 @@ export class MonthlyProgressTracker {
         if (!challenge) return null;
 
         // Convert challenge to progress format with ALL required fields
+        const progressData = challenge.requirements.reduce((acc: Record<string, number>, req: any) => {
+          acc[req.trackingKey] = req.currentValue || 0;
+          return acc;
+        }, {} as Record<string, number>);
+
+        // Calculate completion percentage from requirements
+        let totalCompletion = 0;
+        if (challenge.requirements.length > 0) {
+          for (const req of challenge.requirements) {
+            const current = (req as any).currentValue || 0;
+            const target = req.target || 1;
+            const reqCompletion = Math.min((current / target) * 100, 100);
+            totalCompletion += reqCompletion;
+          }
+          totalCompletion = Math.round(totalCompletion / challenge.requirements.length);
+        }
+
         const progress: MonthlyChallengeProgress = {
           // From ChallengeProgress interface
           challengeId: challenge.id,
           userId: (challenge as any).userId || 'local_user',
-          progress: challenge.requirements.reduce((acc: Record<string, number>, req: any) => {
-            acc[req.trackingKey] = req.currentValue || 0;
-            return acc;
-          }, {} as Record<string, number>),
-          isCompleted: false,
+          progress: progressData,
+          isCompleted: totalCompletion >= 100,
           xpEarned: 0,
 
           // From MonthlyChallengeProgress interface
-          completionPercentage: (challenge as any).progress || 0,
+          completionPercentage: totalCompletion,
           daysActive: 0,
           daysRemaining: this.calculateDaysRemaining(challenge),
           projectedCompletion: 0,
@@ -1123,10 +1137,10 @@ export class MonthlyProgressTracker {
       // Update weekly progress - use current today() for consistency with snapshot creation
       const todayString = today();
       const todaySnapshot = await this.getDailySnapshot(challengeId, todayString);
-      if (todaySnapshot) {
+      if (todaySnapshot && todaySnapshot.dailyContributions) {
         // Update weekly progress based on today's contributions
         for (const [trackingKey, contribution] of Object.entries(todaySnapshot.dailyContributions)) {
-          weeklyBreakdown.weeklyProgress[trackingKey] = 
+          weeklyBreakdown.weeklyProgress[trackingKey] =
             (weeklyBreakdown.weeklyProgress[trackingKey] || 0) + contribution;
         }
 
