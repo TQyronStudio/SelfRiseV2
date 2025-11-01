@@ -412,7 +412,9 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       'SELECT * FROM user_challenge_ratings'
     );
 
-    const ratings: UserChallengeRatings = {};
+    // Note: This method seems misnamed - it returns template ratings, not star ratings
+    // Using 'any' to match dynamic template_id keys
+    const ratings: any = {};
 
     for (const row of rows) {
       ratings[row.template_id] = {
@@ -424,7 +426,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       };
     }
 
-    return ratings;
+    return ratings as UserChallengeRatings;
   }
 
   async updateRating(templateId: string, rating: any): Promise<void> {
@@ -450,6 +452,14 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   // ========================================
 
   async archiveChallenge(challenge: MonthlyChallenge): Promise<void> {
+    // Extract runtime properties that exist in DB but not in TypeScript interface
+    const challengeAny = challenge as any;
+    const month = challengeAny.month || challenge.userBaselineSnapshot?.month || challenge.startDate.substring(0, 7);
+    const status = challengeAny.status || (challenge.isActive ? 'active' : 'completed');
+    const progress = challengeAny.progress || 0;
+    const xpAwarded = challengeAny.xpAwarded || 0;
+    const templateId = challengeAny.metadata?.templateId || '';
+
     await this.db.runAsync(
       `INSERT INTO challenge_history (
         id, challenge_id, month, template_id, final_status,
@@ -458,12 +468,12 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       [
         `history_${challenge.id}`,
         challenge.id,
-        challenge.month,
-        challenge.metadata?.templateId || '',
-        challenge.status,
-        challenge.progress || 0,
-        challenge.xpAwarded || 0,
-        challenge.completedAt ? new Date(challenge.completedAt).getTime() : null,
+        month,
+        templateId,
+        status,
+        progress,
+        xpAwarded,
+        challengeAny.completedAt ? new Date(challengeAny.completedAt).getTime() : null,
         Date.now(),
         null
       ]
@@ -543,13 +553,14 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       type: row.requirement_type,
       description: row.description,
       trackingKey: row.tracking_key,
-      targetValue: row.target_value,
-      currentValue: row.current_value || 0,
-      progressMilestones: JSON.parse(row.milestones),
+      target: row.target_value, // DB column: target_value → interface: target
+      baselineValue: 0, // Not stored in old schema
+      scalingMultiplier: 1.0, // Not stored in old schema
+      progressMilestones: JSON.parse(row.milestones || '[25, 50, 75]'),
       weeklyTarget: row.weekly_target,
-      dailyTarget: row.daily_target,
-      milestoneStatuses: JSON.parse(row.milestone_statuses)
-    };
+      dailyTarget: row.daily_target
+      // Note: currentValue and milestoneStatuses are runtime properties added by rowToChallengeWithRequirements
+    } as any; // Use 'any' to allow runtime properties
   }
 
   private rowToSnapshot(row: any): DailyProgressSnapshot {
