@@ -666,6 +666,9 @@ export class MonthlyProgressTracker {
 
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        // Clear cache FIRST to ensure fresh read on next getChallengeProgress
+        this.clearProgressCache(progress.challengeId);
+
         // Update challenge progress
         await this.storage.updateChallengeProgress(progress.challengeId, progress.completionPercentage);
 
@@ -681,12 +684,8 @@ export class MonthlyProgressTracker {
           }
         }
 
-        // Update cache
-        this.progressCache.set(progress.challengeId, {
-          data: progress,
-          timestamp: Date.now()
-        });
-
+        // Don't cache after save - let getChallengeProgress rebuild from DB
+        // This ensures UI always gets fresh data
         return;
       }
 
