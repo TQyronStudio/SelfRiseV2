@@ -9,10 +9,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
 import { Layout } from '@/src/constants/dimensions';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GamificationService } from '@/src/services/gamificationService';
 import { getCurrentLevel, getLevelInfo } from '@/src/services/levelCalculation';
 
@@ -27,6 +27,7 @@ interface LevelData {
 
 export const LevelsOverviewScreen: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [currentLevel, setCurrentLevel] = useState(1);
   const [levels, setLevels] = useState<LevelData[]>([]);
@@ -92,7 +93,7 @@ export const LevelsOverviewScreen: React.FC = () => {
 
   const renderLevelItem = ({ item, index }: { item: LevelData; index: number }) => {
     const isCurrentLevel = item.level === currentLevel;
-    const itemColor = item.isUnlocked ? item.color : Colors.textSecondary;
+    const itemColor = item.isUnlocked ? item.color : colors.textSecondary;
 
     return (
       <View
@@ -118,7 +119,7 @@ export const LevelsOverviewScreen: React.FC = () => {
               <Ionicons
                 name="lock-closed"
                 size={16}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
                 style={styles.lockIcon}
               />
             )}
@@ -169,6 +170,151 @@ export const LevelsOverviewScreen: React.FC = () => {
     router.back();
   };
 
+  // Styles moved inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+      backgroundColor: colors.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backButton: {
+      padding: 8,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.white,
+      textAlign: 'center',
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    currentLevelSummary: {
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginVertical: Layout.spacing.sm,
+      borderRadius: 12,
+    },
+    summaryTitle: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    summaryText: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    summarySubtext: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+    },
+    listContainer: {
+      paddingHorizontal: Layout.spacing.md,
+      paddingBottom: Layout.spacing.xl,
+    },
+    levelItem: {
+      backgroundColor: colors.cardBackgroundElevated,
+      marginBottom: Layout.spacing.sm,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    lockedLevel: {
+      opacity: 0.6,
+    },
+    currentLevel: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    levelContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    levelHeader: {
+      alignItems: 'center',
+      marginRight: Layout.spacing.md,
+    },
+    levelBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    levelNumber: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    currentBadge: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+    },
+    currentText: {
+      fontSize: Fonts.sizes.xs,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    lockIcon: {
+      marginTop: 4,
+    },
+    levelInfo: {
+      flex: 1,
+    },
+    levelName: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      marginBottom: 2,
+    },
+    levelRarity: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: '500',
+      marginBottom: 2,
+    },
+    xpRequired: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+    },
+    lockedText: {
+      color: colors.textSecondary,
+    },
+    progressContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+    },
+  });
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -180,7 +326,7 @@ export const LevelsOverviewScreen: React.FC = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Level Overview</Text>
           <View style={styles.headerSpacer} />
@@ -203,7 +349,7 @@ export const LevelsOverviewScreen: React.FC = () => {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Level Overview</Text>
         <View style={styles.headerSpacer} />
@@ -237,158 +383,3 @@ export const LevelsOverviewScreen: React.FC = () => {
       </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.white,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  currentLevelSummary: {
-    backgroundColor: Colors.white,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginVertical: Layout.spacing.sm,
-    borderRadius: 12,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryTitle: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  summaryText: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  summarySubtext: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-  },
-  listContainer: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingBottom: Layout.spacing.xl,
-  },
-  levelItem: {
-    backgroundColor: Colors.white,
-    marginBottom: Layout.spacing.sm,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  lockedLevel: {
-    backgroundColor: Colors.backgroundSecondary,
-    opacity: 0.6,
-  },
-  currentLevel: {
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  levelContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  levelHeader: {
-    alignItems: 'center',
-    marginRight: Layout.spacing.md,
-  },
-  levelBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  levelNumber: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  currentBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  currentText: {
-    fontSize: Fonts.sizes.xs,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  lockIcon: {
-    marginTop: 4,
-  },
-  levelInfo: {
-    flex: 1,
-  },
-  levelName: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  levelRarity: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  xpRequired: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-  },
-  lockedText: {
-    color: Colors.textSecondary,
-  },
-  progressContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-  },
-});

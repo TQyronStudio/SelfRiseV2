@@ -7,7 +7,7 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { AchievementCategory, AchievementRarity } from '@/src/types/gamification';
 
 export interface FilterOptions {
@@ -34,14 +34,6 @@ const CATEGORIES = [
   { key: AchievementCategory.CONSISTENCY, label: 'Consistency', icon: '⚔️' },
 ];
 
-const RARITIES = [
-  { key: 'all' as const, label: 'All Rarities', color: Colors.gray },
-  { key: AchievementRarity.COMMON, label: 'Common', color: '#9E9E9E' },
-  { key: AchievementRarity.RARE, label: 'Rare', color: '#2196F3' },
-  { key: AchievementRarity.EPIC, label: 'Epic', color: '#9C27B0' },
-  { key: AchievementRarity.LEGENDARY, label: 'Legendary', color: '#FFD700' },
-];
-
 const SORT_OPTIONS = [
   { key: 'category' as const, label: 'Category', icon: '📂' },
   { key: 'rarity' as const, label: 'Rarity', icon: '💎' },
@@ -55,9 +47,126 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   totalCount,
   filteredCount,
 }) => {
+  const { colors } = useTheme();
+
+  const RARITIES = [
+    { key: 'all' as const, label: 'All Rarities', color: colors.gray },
+    { key: AchievementRarity.COMMON, label: 'Common', color: '#9E9E9E' },
+    { key: AchievementRarity.RARE, label: 'Rare', color: '#2196F3' },
+    { key: AchievementRarity.EPIC, label: 'Epic', color: '#9C27B0' },
+    { key: AchievementRarity.LEGENDARY, label: 'Legendary', color: '#FFD700' },
+  ];
+
   const updateFilters = (update: Partial<FilterOptions>) => {
     onFiltersChange({ ...filters, ...update });
   };
+
+  // Styles - moved inside component to access colors
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      margin: 16,
+      marginBottom: 8,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+    },
+    searchInput: {
+      flex: 1,
+      height: 40,
+      fontSize: 16,
+      color: colors.text,
+    },
+    searchIcon: {
+      fontSize: 16,
+      marginLeft: 8,
+    },
+    filtersScrollView: {
+      maxHeight: 200,
+    },
+    filtersContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+    filterGroup: {
+      marginBottom: 12,
+    },
+    filterGroupTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    filterButton: {
+      backgroundColor: colors.background,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterButtonActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    filterButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    filterButtonTextActive: {
+      color: colors.white,
+    },
+    filterChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      marginRight: 8,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    filterChipIcon: {
+      fontSize: 12,
+      marginRight: 4,
+    },
+    filterChipText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    filterChipTextActive: {
+      color: colors.white,
+    },
+    rarityIndicator: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    resultsContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.background,
+    },
+    resultsText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -68,7 +177,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
           placeholder="Search achievements..."
           value={filters.searchQuery}
           onChangeText={(text) => updateFilters({ searchQuery: text })}
-          placeholderTextColor={Colors.textSecondary}
+          placeholderTextColor={colors.textSecondary}
         />
         <Text style={styles.searchIcon}>🔍</Text>
       </View>
@@ -189,128 +298,3 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    margin: 16,
-    marginBottom: 8,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  
-  searchIcon: {
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  
-  filtersScrollView: {
-    maxHeight: 200,
-  },
-  
-  filtersContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  
-  filterGroup: {
-    marginBottom: 12,
-  },
-  
-  filterGroupTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  
-  filterButton: {
-    backgroundColor: Colors.backgroundSecondary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  
-  filterButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  
-  filterButtonTextActive: {
-    color: Colors.white,
-  },
-  
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  
-  filterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  
-  filterChipIcon: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  
-  filterChipText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  
-  filterChipTextActive: {
-    color: Colors.white,
-  },
-  
-  rarityIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 4,
-  },
-  
-  resultsContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  
-  resultsText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

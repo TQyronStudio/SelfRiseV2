@@ -78,6 +78,22 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     };
   }, [challenge?.id]); // Re-setup listener when challenge changes
 
+  // Challenge generation event listener
+  useEffect(() => {
+    const generationListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_challenge_challenge_generated',
+      (eventData: any) => {
+        console.log('🎊 New challenge generated event received:', eventData);
+        // Reload challenge when lifecycle manager generates new one
+        loadMonthlyChallenge();
+      }
+    );
+
+    return () => {
+      generationListener.remove();
+    };
+  }, []);
+
   // Completion event listener
   useEffect(() => {
     const completionListener: EmitterSubscription = DeviceEventEmitter.addListener(
@@ -141,43 +157,22 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         }
       }
 
-      // Generate if none exists at all
+      // If still no challenge, lifecycle manager will generate it
+      // DO NOT generate here to avoid race conditions
       if (!currentChallenge) {
-        console.log('🗓️ No monthly challenge found (active or completed), generating new one...');
-        // Create generation context
-        const currentMonth = new Date().toISOString().substring(0, 7);
-        const context = {
-          month: currentMonth,
-          userId: 'local_user',
-          userBaseline: {} as any, // Will be populated by service
-          currentStarRatings: {
-            habits: 1,
-            journal: 1,
-            goals: 1,
-            consistency: 1,
-            mastery: 1,
-            special: 1,
-            history: [],
-            lastUpdated: new Date(),
-          },
-          recentCategoryHistory: [],
-          isFirstMonth: true,
-        };
-
-        const generationResult = await MonthlyChallengeService.generateMonthlyChallenge(context);
-        if (generationResult.success) {
-          currentChallenge = generationResult.challenge;
-        } else {
-          throw new Error(generationResult.error || 'Failed to generate monthly challenge');
-        }
+        console.log('⏳ No challenge yet - waiting for lifecycle manager to generate...');
+        setChallenge(null);
+        setProgress(null);
+        setLoading(false);
+        return;
       }
-      
+
       // Get progress for the challenge
       const challengeProgress = await MonthlyProgressTracker.getChallengeProgress(currentChallenge.id);
-      
+
       setChallenge(currentChallenge);
       setProgress(challengeProgress);
-      
+
       console.log(`✅ Loaded monthly challenge: ${currentChallenge.title}`);
     } catch (error) {
       console.error('MonthlyChallengeSection.loadMonthlyChallenge error:', error);

@@ -6,18 +6,18 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
-import { 
-  Achievement, 
+import { useTheme } from '@/src/contexts/ThemeContext';
+import {
+  Achievement,
   AchievementRarity,
 } from '@/src/types/gamification';
 import { useAccessibility, getHighContrastRarityColors, getHighContrastGlowColors } from '@/src/hooks/useAccessibility';
 import { useI18n } from '@/src/hooks/useI18n';
-import { 
-  generateProgressHint, 
-  generateCompletionInfo, 
+import {
+  generateProgressHint,
+  generateCompletionInfo,
   generateSmartTooltip,
-  UserStats 
+  UserStats
 } from '@/src/utils/achievementPreviewUtils';
 import { AchievementService } from '@/src/services/achievementService';
 import { AchievementTooltip } from './AchievementTooltip';
@@ -63,6 +63,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   realTimeProgress,
   userStats,
 }) => {
+  const { colors, isDark } = useTheme();
   const { t } = useI18n();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   
@@ -166,8 +167,135 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     description: achievement.description
   }) || `${achievement.name}, ${achievement.rarity.toLowerCase()} rarity achievement, ${status}. ${achievement.description}`;
 
-  const accessibilityHint = t('achievements.card.accessibility_hint') || 
+  const accessibilityHint = t('achievements.card.accessibility_hint') ||
     `${isUnlocked ? 'Completed achievement' : 'In progress achievement'}. Tap for more details.`;
+
+  // Styles - moved inside component to access colors
+  const styles = StyleSheet.create({
+    card: {
+      width: 150,
+      height: 120,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+      padding: 8,
+      marginBottom: 12,
+      position: 'relative',
+    },
+    cardLocked: {
+      opacity: 0.7,
+    },
+    rarityIndicator: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 3,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+    },
+    iconContainer: {
+      alignItems: 'center',
+      marginTop: 4,
+      marginBottom: 4,
+    },
+    icon: {
+      fontSize: 24,
+    },
+    iconLocked: {
+      opacity: 0.5,
+    },
+    infoContainer: {
+      flex: 1,
+      justifyContent: 'space-between',
+    },
+    name: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.text,
+      textAlign: 'center',
+      lineHeight: 14,
+    },
+    textLocked: {
+      color: colors.textSecondary,
+    },
+    bottomRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    xpReward: {
+      fontSize: 10,
+      fontWeight: 'bold',
+    },
+    rarityBadge: {
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderRadius: 6,
+    },
+    rarityText: {
+      fontSize: 8,
+      fontWeight: 'bold',
+      color: colors.white,
+      textTransform: 'uppercase',
+    },
+    progressContainer: {
+      marginTop: 8,
+      paddingHorizontal: 8,
+      paddingBottom: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    progressTrack: {
+      flex: 1,
+      height: 3,
+      backgroundColor: colors.border,
+      borderRadius: 1.5,
+      marginRight: 4,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 1.5,
+    },
+    progressText: {
+      fontSize: 8,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      minWidth: 20,
+    },
+    lockedOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    lockedIcon: {
+      fontSize: 20,
+      opacity: 0.6,
+    },
+    progressHintText: {
+      fontSize: 9,
+      fontWeight: '500',
+      textAlign: 'center',
+      marginTop: 2,
+      lineHeight: 12,
+    },
+    completionText: {
+      fontSize: 9,
+      fontWeight: '500',
+      color: colors.success,
+      textAlign: 'center',
+      marginTop: 2,
+      lineHeight: 12,
+    },
+  });
 
   return (
     <>
@@ -195,9 +323,9 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         style={[
           styles.card,
           !isUnlocked && styles.cardLocked,
-          { 
-            borderColor: isUnlocked ? rarityColor : Colors.border,
-            backgroundColor: isUnlocked ? rarityGlow : Colors.white,
+          {
+            borderColor: isUnlocked ? rarityColor : colors.border,
+            backgroundColor: isUnlocked ? rarityGlow : colors.cardBackgroundElevated,
           },
         ]}
         onPress={handleCardPress}
@@ -271,7 +399,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           </Text>
           
           {/* Rarity badge */}
-          <View style={[styles.rarityBadge, { backgroundColor: isUnlocked ? rarityColor : Colors.gray }]}>
+          <View style={[styles.rarityBadge, { backgroundColor: isUnlocked ? rarityColor : colors.gray }]}>
             <Text style={styles.rarityText}>
               {achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}
             </Text>
@@ -285,9 +413,9 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           <View 
             style={[
               styles.progressFill,
-              { 
+              {
                 width: `${progress}%`,
-                backgroundColor: isUnlocked ? rarityColor : Colors.gray
+                backgroundColor: isUnlocked ? rarityColor : colors.gray
               }
             ]} 
           />
@@ -322,138 +450,3 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   </>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    width: 150,
-    height: 120,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    padding: 8,
-    marginBottom: 12,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    position: 'relative',
-  },
-  cardLocked: {
-    opacity: 0.7,
-  },
-  rarityIndicator: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  iconContainer: {
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  icon: {
-    fontSize: 24,
-  },
-  iconLocked: {
-    opacity: 0.5,
-  },
-  infoContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  name: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 14,
-  },
-  textLocked: {
-    color: Colors.textSecondary,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  xpReward: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  rarityBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  rarityText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: Colors.white,
-    textTransform: 'uppercase',
-  },
-  progressContainer: {
-    marginTop: 8,
-    paddingHorizontal: 8,
-    paddingBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  progressTrack: {
-    flex: 1,
-    height: 3,
-    backgroundColor: Colors.border,
-    borderRadius: 1.5,
-    marginRight: 4,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 1.5,
-  },
-  progressText: {
-    fontSize: 8,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    minWidth: 20,
-  },
-  lockedOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lockedIcon: {
-    fontSize: 20,
-    opacity: 0.6,
-  },
-  
-  // Preview system styles
-  progressHintText: {
-    fontSize: 9,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: 2,
-    lineHeight: 12,
-  },
-  completionText: {
-    fontSize: 9,
-    fontWeight: '500',
-    color: '#4CAF50',
-    textAlign: 'center',
-    marginTop: 2,
-    lineHeight: 12,
-  },
-});

@@ -1824,7 +1824,16 @@ export class MonthlyChallengeService {
       // Check if user qualifies for first-month treatment
       if (context.isFirstMonth || this.shouldUseFirstMonthTreatment(context.userBaseline)) {
         const firstMonthResult = this.generateFirstMonthChallenge(context.forceCategory, context.userId);
-        
+
+        // Save first month challenge to storage if not dry run
+        if (!context.dryRun) {
+          console.log('📝 [MonthlyChallengeService] Saving FIRST MONTH challenge:', firstMonthResult.challenge.id);
+          await this.saveGeneratedChallenge(firstMonthResult.challenge);
+          console.log('📝 [MonthlyChallengeService] First month challenge saved, now updating history');
+          await this.updateChallengeHistory(context.userId, firstMonthResult.challenge);
+          console.log('📝 [MonthlyChallengeService] First month history updated successfully');
+        }
+
         return {
           challenge: firstMonthResult.challenge,
           generationMetadata: {
@@ -1889,8 +1898,13 @@ export class MonthlyChallengeService {
 
       // Save challenge to storage if not dry run
       if (!context.dryRun) {
+        console.log('📝 [MonthlyChallengeService] Saving generated challenge:', challenge.id);
         await this.saveGeneratedChallenge(challenge);
+        console.log('📝 [MonthlyChallengeService] Challenge saved, now updating history');
         await this.updateChallengeHistory(context.userId, challenge);
+        console.log('📝 [MonthlyChallengeService] History updated successfully');
+      } else {
+        console.log('⏭️  [MonthlyChallengeService] Skipping save (dry run mode)');
       }
 
       return {
@@ -1975,20 +1989,30 @@ export class MonthlyChallengeService {
    */
   private static async saveGeneratedChallenge(challenge: MonthlyChallenge): Promise<void> {
     try {
+      console.log('💾 [saveGeneratedChallenge] Starting save...', {
+        challengeId: challenge.id,
+        USE_SQLITE: FEATURE_FLAGS.USE_SQLITE_CHALLENGES,
+        hasStorage: !!this.storage
+      });
+
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        console.log('💾 [saveGeneratedChallenge] Using SQLite storage');
         await this.storage.saveActiveChallenge(challenge);
+        console.log('💾 [saveGeneratedChallenge] SQLite save completed');
         return;
       }
 
+      console.log('💾 [saveGeneratedChallenge] Using AsyncStorage fallback');
       // Fallback to AsyncStorage
       const existingChallenges = await this.getAllStoredChallenges();
       const updatedChallenges = existingChallenges.filter(c => c.id !== challenge.id);
       updatedChallenges.push(challenge);
 
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedChallenges));
+      console.log('💾 [saveGeneratedChallenge] AsyncStorage save completed');
     } catch (error) {
-      console.error('Failed to save generated challenge:', error);
+      console.error('❌ [saveGeneratedChallenge] Failed to save generated challenge:', error);
       throw error;
     }
   }

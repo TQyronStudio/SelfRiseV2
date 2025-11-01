@@ -722,18 +722,10 @@ export default function AchievementsScreen() {
 
     // Overview Statistics
     overviewContainer: {
-      backgroundColor: colors.white,
+      backgroundColor: colors.cardBackgroundElevated,
       margin: 16,
       borderRadius: 12,
       padding: 20,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
     },
 
     overviewTitle: {
@@ -777,19 +769,11 @@ export default function AchievementsScreen() {
 
     // Breakdown Sections
     breakdownContainer: {
-      backgroundColor: colors.white,
+      backgroundColor: colors.cardBackgroundElevated,
       marginHorizontal: 16,
       marginBottom: 16,
       borderRadius: 12,
       padding: 20,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
     },
 
     breakdownTitleRow: {

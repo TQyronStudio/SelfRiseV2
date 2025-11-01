@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 // Clipboard functionality temporarily disabled
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 import { GratitudeStreak } from '../../types/gratitude';
 
 interface StreakSharingModalProps {
@@ -23,6 +23,7 @@ interface StreakSharingModalProps {
 
 export function StreakSharingModal({ visible, onClose, streak }: StreakSharingModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [isSharing, setIsSharing] = useState(false);
 
   const generateShareText = (): string => {
@@ -102,7 +103,7 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
             {streak.currentStreak === 1 ? t('home.day') : t('home.days')}
           </Text>
         </View>
-        
+
         <View style={styles.badgesRow}>
           {streak.starCount > 0 && (
             <View style={styles.badge}>
@@ -123,7 +124,7 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
             </View>
           )}
         </View>
-        
+
         {streak.longestStreak > streak.currentStreak && (
           <View style={styles.bestStreakContainer}>
             <Text style={styles.bestStreakText}>
@@ -134,6 +135,154 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
       </View>
     );
   };
+
+  // Styles moved inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 20,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginLeft: 8,
+    },
+    closeButton: {
+      padding: 4,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingTop: 24,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    previewContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    streakDisplay: {
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    streakNumber: {
+      fontSize: 48,
+      fontFamily: Fonts.bold,
+      color: colors.primary,
+      lineHeight: 56,
+    },
+    streakLabel: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    badgesRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 12,
+    },
+    badge: {
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      minWidth: 50,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    badgeEmoji: {
+      fontSize: 20,
+    },
+    badgeCount: {
+      fontSize: 14,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      marginTop: 2,
+    },
+    bestStreakContainer: {
+      marginTop: 8,
+    },
+    bestStreakText: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    textPreviewContainer: {
+      marginBottom: 24,
+    },
+    textPreviewLabel: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    textPreview: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: 12,
+      maxHeight: 120,
+    },
+    previewText: {
+      fontSize: 13,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      lineHeight: 18,
+    },
+    actions: {
+      flexDirection: 'row',
+      paddingHorizontal: 20,
+      paddingBottom: 34,
+      paddingTop: 16,
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    shareButton: {
+      backgroundColor: colors.primary,
+    },
+    actionText: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginLeft: 8,
+    },
+    shareButtonText: {
+      color: colors.textInverse,
+    },
+  });
 
   return (
     <Modal
@@ -146,11 +295,11 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Ionicons name="share-outline" size={24} color={Colors.primary} />
+            <Ionicons name="share-outline" size={24} color={colors.primary} />
             <Text style={styles.title}>{t('home.shareStreak')}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -159,9 +308,9 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
           <Text style={styles.subtitle}>
             {t('home.shareSubtitle')}
           </Text>
-          
+
           {renderStreakPreview()}
-          
+
           {/* Share text preview */}
           <View style={styles.textPreviewContainer}>
             <Text style={styles.textPreviewLabel}>{t('home.sharePreview')}:</Text>
@@ -173,22 +322,22 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={handleCopyToClipboard}
             activeOpacity={0.7}
           >
-            <Ionicons name="copy-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="copy-outline" size={20} color={colors.textSecondary} />
             <Text style={styles.actionText}>{t('home.copyText')}</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.actionButton, styles.shareButton]}
             onPress={handleShare}
             disabled={isSharing}
             activeOpacity={0.7}
           >
-            <Ionicons name="share-social-outline" size={20} color={Colors.textInverse} />
+            <Ionicons name="share-social-outline" size={20} color={colors.textInverse} />
             <Text style={[styles.actionText, styles.shareButtonText]}>
               {isSharing ? t('home.sharing') : t('home.shareNow')}
             </Text>
@@ -198,148 +347,3 @@ export function StreakSharingModal({ visible, onClose, streak }: StreakSharingMo
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  previewContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  streakDisplay: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  streakNumber: {
-    fontSize: 48,
-    fontFamily: Fonts.bold,
-    color: Colors.primary,
-    lineHeight: 56,
-  },
-  streakLabel: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  badge: {
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    minWidth: 50,
-  },
-  badgeEmoji: {
-    fontSize: 20,
-  },
-  badgeCount: {
-    fontSize: 14,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    marginTop: 2,
-  },
-  bestStreakContainer: {
-    marginTop: 8,
-  },
-  bestStreakText: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  textPreviewContainer: {
-    marginBottom: 24,
-  },
-  textPreviewLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  textPreview: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: 12,
-    maxHeight: 120,
-  },
-  previewText: {
-    fontSize: 13,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  actions: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 34,
-    paddingTop: 16,
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  shareButton: {
-    backgroundColor: Colors.primary,
-  },
-  actionText: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  shareButtonText: {
-    color: Colors.textInverse,
-  },
-});

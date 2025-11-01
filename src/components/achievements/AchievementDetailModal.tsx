@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { UserStats, ProgressHint, generateProgressHintAsync } from '@/src/utils/achievementPreviewUtils';
 import { AchievementService } from '@/src/services/achievementService';
@@ -73,7 +73,7 @@ const getCategoryColor = (category: string): string => {
     case 'journal': return '#2196F3';
     case 'goals': return '#FF9800';
     case 'consistency': return '#F44336';
-    default: return Colors.primary;
+    default: return '#007AFF';
   }
 };
 
@@ -109,15 +109,16 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   batchUserStats,
   realTimeProgress,
 }) => {
+  const { colors } = useTheme();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   const [progressHint, setProgressHint] = useState<ProgressHint | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
 
   // Calculate values only if achievement exists
   const isUnlocked = achievement ? (userAchievements?.unlockedAchievements.includes(achievement.id) || false) : false;
-  const rarityColor = achievement ? getRarityColor(achievement.rarity, isHighContrastEnabled) : Colors.primary;
+  const rarityColor = achievement ? getRarityColor(achievement.rarity, isHighContrastEnabled) : colors.primary;
   const rarityEmoji = achievement ? getRarityEmoji(achievement.rarity) : '🏆';
-  const categoryColor = achievement ? getCategoryColor(achievement.category) : Colors.primary;
+  const categoryColor = achievement ? getCategoryColor(achievement.category) : colors.primary;
   const categoryIcon = achievement ? getCategoryIcon(achievement.category) : 'medal' as keyof typeof Ionicons.glyphMap;
 
   // Initialize batch user stats - component only renders when visible
@@ -180,6 +181,300 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     );
   }
 
+  // Styles - moved inside component to access colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 20,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 2,
+      backgroundColor: colors.cardBackgroundElevated,
+      minHeight: 60,
+    },
+    closeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+    },
+    shareButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    achievementCard: {
+      margin: 16,
+      padding: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      borderLeftWidth: 4,
+    },
+    achievementHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    iconContainer: {
+      position: 'relative',
+      marginRight: 16,
+    },
+    achievementIcon: {
+      fontSize: 48,
+      textAlign: 'center',
+    },
+    achievementIconLocked: {
+      opacity: 0.5,
+    },
+    statusBadge: {
+      position: 'absolute',
+      bottom: -4,
+      right: -4,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    statusEmoji: {
+      fontSize: 12,
+    },
+    achievementInfo: {
+      flex: 1,
+    },
+    achievementName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    achievementNameLocked: {
+      color: colors.textSecondary,
+    },
+    metaContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      marginBottom: 12,
+    },
+    rarityBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      marginRight: 8,
+      marginBottom: 4,
+    },
+    rarityText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+    categoryBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      marginRight: 8,
+      marginBottom: 4,
+    },
+    categoryText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: colors.white,
+      marginLeft: 4,
+    },
+    xpReward: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 24,
+      marginBottom: 20,
+    },
+    unlockedContent: {
+      marginTop: 8,
+    },
+    completionInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    completionText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginLeft: 8,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 16,
+    },
+    achievementDetails: {
+      marginTop: 8,
+    },
+    detailTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    detailLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    lockedContent: {
+      marginTop: 8,
+    },
+    loadingContainer: {
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
+    loadingText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    progressSection: {
+      marginBottom: 16,
+    },
+    progressTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    progressText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 12,
+    },
+    progressBarContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    progressTrack: {
+      flex: 1,
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      marginRight: 12,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    progressPercentage: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      minWidth: 40,
+    },
+    guidanceSection: {
+      marginTop: 8,
+    },
+    guidanceTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    requirementText: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 8,
+      lineHeight: 20,
+    },
+    actionHint: {
+      fontSize: 14,
+      color: colors.primary,
+      marginBottom: 8,
+      lineHeight: 20,
+    },
+    estimatedTime: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    noProgressContainer: {
+      alignItems: 'center',
+      paddingVertical: 32,
+    },
+    lockedMessage: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 12,
+      lineHeight: 20,
+    },
+    actionContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    shareActionButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    shareButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.white,
+      marginLeft: 8,
+    },
+    closeActionButton: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 12,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+    },
+    closeButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+  });
 
   return (
     <Modal
@@ -198,7 +493,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Close achievement details"
           >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
           
           <Text style={styles.modalTitle}>
@@ -258,7 +553,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     </View>
                     
                     <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
-                      <Ionicons name={categoryIcon} size={12} color={Colors.white} />
+                      <Ionicons name={categoryIcon} size={12} color={colors.white} />
                       <Text style={styles.categoryText}>
                         {achievement?.category ? 
                           achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
@@ -363,7 +658,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     </>
                   ) : (
                     <View style={styles.noProgressContainer}>
-                      <Ionicons name="lock-closed" size={32} color={Colors.textSecondary} />
+                      <Ionicons name="lock-closed" size={32} color={colors.textSecondary} />
                       <Text style={styles.lockedMessage}>
                         This achievement is locked. Keep using the app to unlock it!
                       </Text>
@@ -378,361 +673,3 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
     </Modal>
   );
 };
-
-// ========================================
-// STYLES
-// ========================================
-
-const styles = StyleSheet.create({
-  // Main container - full screen like HabitModal
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  scrollView: {
-    flex: 1, // Now it's OK because we're in SafeAreaView, not overlay
-  },
-
-  scrollContent: {
-    paddingBottom: 20,
-  },
-
-  // Header - full screen style like HabitModal
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 2, // Keep rarity color border
-    backgroundColor: Colors.backgroundSecondary,
-    minHeight: 60,
-  },
-
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-    textAlign: 'center',
-  },
-
-  shareButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  // Achievement Card
-  achievementCard: {
-    margin: 16,
-    padding: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-  },
-
-  achievementHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  iconContainer: {
-    position: 'relative',
-    marginRight: 16,
-  },
-
-  achievementIcon: {
-    fontSize: 48,
-    textAlign: 'center',
-  },
-
-  achievementIconLocked: {
-    opacity: 0.5,
-  },
-
-  statusBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  statusEmoji: {
-    fontSize: 12,
-  },
-
-  achievementInfo: {
-    flex: 1,
-  },
-
-  achievementName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-
-  achievementNameLocked: {
-    color: Colors.textSecondary,
-  },
-
-  metaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-
-  rarityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-
-  rarityText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-
-  categoryText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-    marginLeft: 4,
-  },
-
-  xpReward: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-
-  description: {
-    fontSize: 16,
-    color: Colors.text,
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-
-  // Unlocked Content
-  unlockedContent: {
-    marginTop: 8,
-  },
-
-  completionInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  completionText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginLeft: 8,
-  },
-
-  separator: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 16,
-  },
-
-  achievementDetails: {
-    marginTop: 8,
-  },
-
-  detailTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-  },
-
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-
-  detailLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-
-  // Locked Content
-  lockedContent: {
-    marginTop: 8,
-  },
-
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-
-  loadingText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  progressSection: {
-    marginBottom: 16,
-  },
-
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-
-  progressText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-  },
-
-  progressBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  progressTrack: {
-    flex: 1,
-    height: 8,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    minWidth: 40,
-  },
-
-  guidanceSection: {
-    marginTop: 8,
-  },
-
-  guidanceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-
-  requirementText: {
-    fontSize: 14,
-    color: Colors.text,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-
-  actionHint: {
-    fontSize: 14,
-    color: Colors.primary,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-
-  estimatedTime: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-
-  noProgressContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-
-  lockedMessage: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 20,
-  },
-
-  // Action Buttons
-  actionContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-
-  shareActionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-
-  shareButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.white,
-    marginLeft: 8,
-  },
-
-  closeActionButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-  },
-
-  closeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-});

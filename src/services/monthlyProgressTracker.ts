@@ -588,14 +588,31 @@ export class MonthlyProgressTracker {
         const challenge = challenges.find(c => c.id === challengeId);
         if (!challenge) return null;
 
-        // Convert challenge to progress format
+        // Convert challenge to progress format with ALL required fields
         const progress: MonthlyChallengeProgress = {
           challengeId: challenge.id,
-          currentProgress: challenge.requirements.reduce((acc, req) => {
+          progress: challenge.requirements.reduce((acc, req) => {
             acc[req.trackingKey] = req.currentValue;
             return acc;
           }, {} as Record<string, number>),
-          overallCompletionPercentage: challenge.progress || 0,
+          completionPercentage: challenge.progress || 0,
+          daysActive: 0,
+          daysRemaining: this.calculateDaysRemaining(challenge),
+          projectedCompletion: 0,
+          activeDays: [],
+          currentStreak: 0,
+          isCompleted: false,
+          weeklyProgress: {
+            week1: {},
+            week2: {},
+            week3: {},
+            week4: {},
+          },
+          milestonesReached: {
+            25: { reached: false },
+            50: { reached: false },
+            75: { reached: false },
+          },
           lastUpdated: new Date()
         };
 

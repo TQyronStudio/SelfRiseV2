@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { AchievementStats, AchievementRarity, AchievementCategory } from '@/src/types/gamification';
 import { LoyaltyProgressCard } from './LoyaltyProgressCard';
 
@@ -26,39 +26,6 @@ interface StatCardProps {
   progress?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ 
-  title, 
-  value, 
-  subtitle, 
-  color, 
-  icon, 
-  progress 
-}) => (
-  <View style={[styles.statCard, { borderLeftColor: color }]}>
-    <View style={styles.statHeader}>
-      <Text style={styles.statIcon}>{icon}</Text>
-      <View style={styles.statTextContainer}>
-        <Text style={styles.statTitle}>{title}</Text>
-        <Text style={[styles.statValue, { color }]}>{value}</Text>
-        {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
-      </View>
-    </View>
-    {progress !== undefined && (
-      <View style={styles.progressContainer}>
-        <View style={styles.progressTrack}>
-          <View 
-            style={[
-              styles.progressFill,
-              { width: `${progress}%`, backgroundColor: color }
-            ]} 
-          />
-        </View>
-        <Text style={styles.progressText}>{Math.round(progress)}%</Text>
-      </View>
-    )}
-  </View>
-);
-
 export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
   stats,
   totalAchievements,
@@ -66,15 +33,185 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
   userLevel = 1,
   userAchievements,
 }) => {
+  const { colors } = useTheme();
   const completionRate = totalAchievements > 0 ? (unlockedCount / totalAchievements) * 100 : 0;
-  
+
   // Calculate rarity distribution
   const rarityStats = Object.entries(stats.rarityBreakdown).map(([rarity, data]) => ({
     rarity: rarity as AchievementRarity,
     ...data,
   }));
 
+  // Styles - moved inside component to access colors
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+    },
+    headerContainer: {
+      alignItems: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 16,
+      backgroundColor: colors.cardBackgroundElevated,
+      marginBottom: 16,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    primaryStatsRow: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      gap: 12,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      borderLeftWidth: 4,
+    },
+    statHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    statIcon: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+    statTextContainer: {
+      flex: 1,
+    },
+    statTitle: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginBottom: 2,
+    },
+    statValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 2,
+    },
+    statSubtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    progressContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    progressTrack: {
+      flex: 1,
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      marginRight: 8,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+    progressText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      minWidth: 28,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+      marginHorizontal: 16,
+    },
+    qualityStatsContainer: {
+      marginBottom: 16,
+    },
+    qualityStatsRow: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      gap: 8,
+    },
+    qualityStatCard: {
+      flex: 1,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: 12,
+      alignItems: 'center',
+    },
+    qualityIndicator: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      marginBottom: 6,
+    },
+    qualityCount: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    qualityLabel: {
+      fontSize: 10,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 6,
+    },
+    qualityProgressContainer: {
+      width: '100%',
+    },
+    qualityProgressTrack: {
+      height: 2,
+      backgroundColor: colors.border,
+      borderRadius: 1,
+    },
+    qualityProgressFill: {
+      height: '100%',
+      borderRadius: 1,
+    },
+  });
 
+  // StatCard component - moved inside to access styles
+  const StatCard: React.FC<StatCardProps> = ({
+    title,
+    value,
+    subtitle,
+    color,
+    icon,
+    progress
+  }) => (
+    <View style={[styles.statCard, { borderLeftColor: color }]}>
+      <View style={styles.statHeader}>
+        <Text style={styles.statIcon}>{icon}</Text>
+        <View style={styles.statTextContainer}>
+          <Text style={styles.statTitle}>{title}</Text>
+          <Text style={[styles.statValue, { color }]}>{value}</Text>
+          {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+        </View>
+      </View>
+      {progress !== undefined && (
+        <View style={styles.progressContainer}>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progress}%`, backgroundColor: color }
+              ]}
+            />
+          </View>
+          <Text style={styles.progressText}>{Math.round(progress)}%</Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -93,7 +230,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
           title="Total Trophies"
           value={`${unlockedCount}/${totalAchievements}`}
           subtitle="Collected"
-          color={Colors.primary}
+          color={colors.primary}
           icon="🏆"
           progress={completionRate}
         />
@@ -150,7 +287,7 @@ const getRarityColor = (rarity: AchievementRarity): string => {
     case AchievementRarity.RARE: return '#2196F3';
     case AchievementRarity.EPIC: return '#9C27B0';
     case AchievementRarity.LEGENDARY: return '#FFD700';
-    default: return Colors.primary;
+    default: return '#007AFF';
   }
 };
 
@@ -160,7 +297,7 @@ const getCategoryColor = (category: AchievementCategory): string => {
     case AchievementCategory.JOURNAL: return '#2196F3';
     case AchievementCategory.GOALS: return '#FF9800';
     case AchievementCategory.CONSISTENCY: return '#F44336';
-    default: return Colors.primary;
+    default: return '#007AFF';
   }
 };
 
@@ -183,180 +320,3 @@ const getCategoryName = (category: AchievementCategory): string => {
     default: return 'Achievement';
   }
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-  },
-  
-  // Header
-  headerContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.white,
-    marginBottom: 16,
-  },
-  
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  
-  headerSubtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  
-  // Primary Stats
-  primaryStatsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    gap: 12,
-  },
-  
-  // Stat Cards
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  statIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  
-  statTextContainer: {
-    flex: 1,
-  },
-  
-  statTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-  
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  
-  statSubtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  
-  progressTrack: {
-    flex: 1,
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: 2,
-    marginRight: 8,
-  },
-  
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  
-  progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    minWidth: 28,
-  },
-  
-  // Section Titles
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-    marginHorizontal: 16,
-  },
-  
-  // Quality Stats
-  qualityStatsContainer: {
-    marginBottom: 16,
-  },
-  
-  qualityStatsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  
-  qualityStatCard: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  
-  qualityIndicator: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginBottom: 6,
-  },
-  
-  qualityCount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  
-  qualityLabel: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  
-  qualityProgressContainer: {
-    width: '100%',
-  },
-  
-  qualityProgressTrack: {
-    height: 2,
-    backgroundColor: Colors.border,
-    borderRadius: 1,
-  },
-  
-  qualityProgressFill: {
-    height: '100%',
-    borderRadius: 1,
-  },
-  
-});

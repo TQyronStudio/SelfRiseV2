@@ -557,7 +557,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     -- Challenge lifecycle state (singleton per month)
     CREATE TABLE IF NOT EXISTS challenge_lifecycle_state (
       month TEXT PRIMARY KEY,
-      current_state TEXT NOT NULL CHECK(current_state IN ('idle', 'active', 'preview', 'completed', 'transitioning', 'awaiting_month_start', 'error', 'recovery')),
+      current_state TEXT NOT NULL CHECK(current_state IN ('idle', 'active', 'preview', 'completed', 'transitioning', 'awaiting_month_start', 'error', 'recovery', 'preview_generation', 'generation_needed', 'generating', 'completing', 'failed', 'archived')),
       current_challenge_id TEXT,
       preview_challenge_id TEXT,
       last_state_change INTEGER NOT NULL,

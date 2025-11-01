@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, AchievementCategory, UserAchievements } from '@/src/types/gamification';
 import { UserStats } from '@/src/utils/achievementPreviewUtils';
@@ -37,7 +37,7 @@ const getCategoryColor = (category: AchievementCategory): string => {
     case AchievementCategory.JOURNAL: return '#2196F3';
     case AchievementCategory.GOALS: return '#FF9800';
     case AchievementCategory.CONSISTENCY: return '#F44336';
-    default: return Colors.primary;
+    default: return '#007AFF';
   }
 };
 
@@ -51,11 +51,13 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   realTimeProgressMap,
   batchUserStats,
 }) => {
+  const { colors } = useTheme();
+
   if (achievements.length === 0) {
     return null;
   }
 
-  const unlockedCount = achievements.filter(achievement => 
+  const unlockedCount = achievements.filter(achievement =>
     userAchievements.unlockedAchievements.includes(achievement.id)
   ).length;
 
@@ -69,6 +71,85 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   for (let i = 0; i < achievements.length; i += numColumns) {
     rows.push(achievements.slice(i, i + numColumns));
   }
+
+  // Styles - moved inside component to access colors
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: 24,
+    },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      marginHorizontal: 16,
+      marginBottom: 12,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    iconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    categoryIcon: {
+      fontSize: 16,
+    },
+    categoryName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    categoryStats: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    progressContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: 80,
+    },
+    progressTrack: {
+      flex: 1,
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      marginRight: 8,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+    progressText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      minWidth: 28,
+      textAlign: 'right',
+    },
+    achievementsContainer: {
+      paddingHorizontal: 16,
+    },
+    achievementRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 12,
+    },
+    cardWrapper: {
+      marginHorizontal: 4,
+      width: 150,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -142,94 +223,3 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-  },
-  
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  
-  categoryIcon: {
-    fontSize: 16,
-  },
-  
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  
-  categoryStats: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: 80,
-  },
-  
-  progressTrack: {
-    flex: 1,
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: 2,
-    marginRight: 8,
-  },
-  
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  
-  progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    minWidth: 28,
-    textAlign: 'right',
-  },
-  
-  achievementsContainer: {
-    paddingHorizontal: 16,
-  },
-  
-  achievementRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  
-  cardWrapper: {
-    marginHorizontal: 4,
-    width: 150, // Fixed width to maintain consistent spacing
-  },
-});

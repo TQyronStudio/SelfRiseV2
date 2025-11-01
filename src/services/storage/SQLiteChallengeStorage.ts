@@ -68,6 +68,12 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   // ========================================
 
   async getActiveChallenges(): Promise<MonthlyChallenge[]> {
+    console.log('🔍 [SQLite] Querying active challenges...');
+
+    // First check what's in the table
+    const allRows = await this.db.getAllAsync<any>('SELECT id, month, status, title FROM monthly_challenges');
+    console.log(`📊 [SQLite] Total challenges in DB: ${allRows.length}`, allRows);
+
     const rows = await this.db.getAllAsync<any>(
       `SELECT
         c.*,
@@ -93,6 +99,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       ORDER BY c.created_at DESC`
     );
 
+    console.log(`✅ [SQLite] Found ${rows.length} active challenges`);
     return rows.map(row => this.rowToChallengeWithRequirements(row));
   }
 
@@ -100,6 +107,19 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
     await this.db.execAsync('BEGIN TRANSACTION');
 
     try {
+      // Map isActive to status for backward compatibility
+      const status = (challenge as any).status || (challenge.isActive ? 'active' : 'completed');
+      const month = (challenge as any).month || challenge.userBaselineSnapshot?.month || new Date().toISOString().substring(0, 7);
+
+      console.log('💾 [SQLite] Saving challenge:', {
+        id: challenge.id,
+        month,
+        status,
+        isActive: challenge.isActive,
+        title: challenge.title,
+        category: challenge.category
+      });
+
       // Insert/update challenge
       await this.db.runAsync(
         `INSERT OR REPLACE INTO monthly_challenges (
@@ -110,27 +130,31 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           challenge.id,
-          challenge.month,
+          month,
           challenge.category,
-          challenge.metadata?.templateId || challenge.id,
+          (challenge as any).metadata?.templateId || challenge.id,
           challenge.title,
           challenge.description,
           challenge.starLevel,
           challenge.baseXPReward,
-          challenge.status,
-          challenge.progress || 0,
+          status,
+          (challenge as any).progress || 0,
           new Date(challenge.createdAt).getTime(),
-          challenge.completedAt ? new Date(challenge.completedAt).getTime() : null,
-          challenge.expiredAt ? new Date(challenge.expiredAt).getTime() : null,
+          (challenge as any).completedAt ? new Date((challenge as any).completedAt).getTime() : null,
+          (challenge as any).expiredAt ? new Date((challenge as any).expiredAt).getTime() : null,
           Date.now(),
-          JSON.stringify(challenge.metadata?.generationContext || {}),
-          JSON.stringify(challenge.bonusXPConditions || []),
-          JSON.stringify(challenge.tags || [])
+          JSON.stringify((challenge as any).metadata?.generationContext || challenge.userBaselineSnapshot || {}),
+          JSON.stringify((challenge as any).bonusXPConditions || []),
+          JSON.stringify((challenge as any).tags || [])
         ]
       );
 
       // Insert/update requirements
       for (const req of challenge.requirements || []) {
+        // Map target to target_value for backward compatibility
+        const targetValue = (req as any).targetValue || req.target || 0;
+        const currentValue = (req as any).currentValue || 0;
+
         await this.db.runAsync(
           `INSERT OR REPLACE INTO challenge_requirements (
             id, challenge_id, requirement_type, description,
@@ -144,21 +168,23 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
             req.type,
             req.description,
             req.trackingKey,
-            req.targetValue,
-            req.currentValue || 0,
-            Math.round(((req.currentValue || 0) / req.targetValue) * 100),
+            targetValue,
+            currentValue,
+            Math.round((currentValue / Math.max(1, targetValue)) * 100),
             req.weeklyTarget || null,
             req.dailyTarget || null,
             JSON.stringify(req.progressMilestones || [0.25, 0.50, 0.75]),
-            JSON.stringify(req.milestoneStatuses || [false, false, false]),
+            JSON.stringify((req as any).milestoneStatuses || [false, false, false]),
             Date.now()
           ]
         );
       }
 
       await this.db.execAsync('COMMIT');
+      console.log('✅ [SQLite] Challenge saved successfully:', challenge.id);
     } catch (error) {
       await this.db.execAsync('ROLLBACK');
+      console.error('❌ [SQLite] Failed to save challenge:', error);
       throw error;
     }
   }
@@ -455,18 +481,29 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       ? JSON.parse(row.requirements_json).filter((r: any) => r.id !== null)
       : [];
 
+    const generationContext = JSON.parse(row.generation_context || '{}');
+
+    // Calculate start/end dates from month
+    const monthDate = new Date(row.month + '-01');
+    const startDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).toISOString().split('T')[0];
+    const endDate = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString().split('T')[0];
+
     return {
       id: row.id,
-      month: row.month,
       category: row.category,
       title: row.title,
       description: row.description,
+      startDate,
+      endDate,
       requirements: requirements.map((r: any) => ({
         type: r.type,
         description: r.description,
         trackingKey: r.trackingKey,
-        targetValue: r.targetValue,
+        target: r.targetValue,
+        targetValue: r.targetValue, // Backward compat
         currentValue: r.currentValue || 0,
+        baselineValue: 0,
+        scalingMultiplier: 1.0,
         progressMilestones: r.progressMilestones || [0.25, 0.50, 0.75],
         weeklyTarget: r.weeklyTarget,
         dailyTarget: r.dailyTarget,
@@ -474,21 +511,20 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       })),
       starLevel: row.star_level,
       baseXPReward: row.base_xp_reward,
-      bonusXPConditions: JSON.parse(row.bonus_conditions || '[]'),
-      status: row.status,
-      progress: row.progress,
-      createdAt: new Date(row.created_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-      expiredAt: row.expired_at ? new Date(row.expired_at) : undefined,
-      metadata: {
-        templateId: row.template_id,
-        generationContext: JSON.parse(row.generation_context || '{}'),
-        userBaseline: {},
-        difficultyScore: 0
+      userBaselineSnapshot: {
+        month: row.month,
+        analysisStartDate: startDate,
+        analysisEndDate: endDate,
+        dataQuality: generationContext.dataQuality || 'minimal',
+        totalActiveDays: generationContext.totalActiveDays || 0
       },
-      tags: JSON.parse(row.tags || '[]'),
-      xpAwarded: 0 // Will be calculated when completed
-    };
+      scalingFormula: 'baseline * 1.0',
+      isActive: row.status === 'active',
+      generationReason: 'scheduled',
+      categoryRotation: [],
+      createdAt: new Date(row.created_at),
+      updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(row.created_at)
+    } as MonthlyChallenge;
   }
 
   private rowToRequirement(row: any): MonthlyChallengeRequirement {

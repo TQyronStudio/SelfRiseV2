@@ -11,6 +11,7 @@ import {
 import { useI18n } from '@/src/hooks/useI18n';
 import { Colors, Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -31,6 +32,58 @@ interface WarmUpConfirmationModalProps extends WarmUpModalProps {
 
 // AdFailedModal Component
 function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
+  const { colors } = useTheme();
+
+  const modalStyles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -54,8 +107,60 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
   );
 }
 
-// WarmUpErrorModal Component  
+// WarmUpErrorModal Component
 function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
+  const { colors } = useTheme();
+
+  const modalStyles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -80,15 +185,79 @@ function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: Warm
 }
 
 // WarmUpConfirmationModal Component
-function WarmUpConfirmationModal({ 
-  visible, 
-  onClose, 
+function WarmUpConfirmationModal({
+  visible,
+  onClose,
   onConfirm,
-  title, 
-  message, 
+  title,
+  message,
   confirmText,
-  cancelText 
+  cancelText
 }: WarmUpConfirmationModalProps) {
+  const { colors } = useTheme();
+
+  const modalStyles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: Layout.spacing.md,
+    },
+    cancelButton: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      color: colors.text,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -104,8 +273,8 @@ function WarmUpConfirmationModal({
             {message || 'This would show a real advertisement. Continue with ad simulation?'}
           </Text>
           <View style={modalStyles.buttonContainer}>
-            <TouchableOpacity 
-              style={[modalStyles.button, modalStyles.cancelButton]} 
+            <TouchableOpacity
+              style={[modalStyles.button, modalStyles.cancelButton]}
               onPress={onClose}
             >
               <Text style={[modalStyles.buttonText, modalStyles.cancelButtonText]}>
@@ -121,74 +290,6 @@ function WarmUpConfirmationModal({
     </Modal>
   );
 }
-
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    paddingVertical: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.85,
-    width: '100%',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  message: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: Layout.spacing.md,
-  },
-  cancelButton: {
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  cancelButtonText: {
-    color: Colors.text,
-  },
-});
 
 interface StreakWarmUpModalProps {
   visible: boolean;
@@ -212,6 +313,7 @@ export default function StreakWarmUpModal({
   onResetStreak,
 }: StreakWarmUpModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -268,6 +370,170 @@ export default function StreakWarmUpModal({
     return `Warming up: ${adsWatched + 1}/${totalAdsNeeded} 🔥`;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: Layout.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    closeButton: {
+      padding: Layout.spacing.sm,
+    },
+    title: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    placeholder: {
+      width: 40,
+    },
+    content: {
+      flex: 1,
+      padding: Layout.spacing.md,
+    },
+    frozenCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.lg,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    frozenEmoji: {
+      fontSize: 48,
+      marginBottom: Layout.spacing.sm,
+    },
+    frozenTitle: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.warning,
+      marginBottom: Layout.spacing.xs,
+    },
+    frozenMessage: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    progressCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.lg,
+      marginBottom: Layout.spacing.md,
+    },
+    progressTitle: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    progressBarContainer: {
+      marginBottom: Layout.spacing.md,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      overflow: 'hidden',
+      marginBottom: Layout.spacing.sm,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 4,
+    },
+    progressText: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    dotsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+      flexWrap: 'wrap',
+    },
+    dot: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginHorizontal: 4,
+      marginVertical: 4,
+    },
+    completedDot: {
+      backgroundColor: colors.success,
+    },
+    currentDot: {
+      backgroundColor: colors.primary,
+    },
+    dotNumber: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: colors.textSecondary,
+    },
+    progressMessage: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    watchButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    watchButtonDisabled: {
+      backgroundColor: colors.border,
+    },
+    watchButtonText: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    resetButton: {
+      backgroundColor: 'transparent',
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+      borderWidth: 1,
+      borderColor: colors.error,
+    },
+    resetButtonText: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.error,
+    },
+    infoCard: {
+      flexDirection: 'row',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      alignItems: 'flex-start',
+    },
+    infoText: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      marginLeft: Layout.spacing.sm,
+      flex: 1,
+      lineHeight: 20,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -278,7 +544,7 @@ export default function StreakWarmUpModal({
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <IconSymbol name="xmark" size={24} color={Colors.text} />
+            <IconSymbol name="xmark" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Warm Up Your Streak</Text>
           <View style={styles.placeholder} />
@@ -323,9 +589,9 @@ export default function StreakWarmUpModal({
                 return React.createElement(View, {
                   key: `dot-${index}`,
                   style: dotStyle
-                }, 
+                },
                   index < adsWatched ? (
-                    <IconSymbol name="checkmark" size={12} color={Colors.white} />
+                    <IconSymbol name="checkmark" size={12} color="#FFFFFF" />
                   ) : index === adsWatched ? (
                     <Text style={styles.dotNumber}>{index + 1}</Text>
                   ) : (
@@ -371,7 +637,7 @@ export default function StreakWarmUpModal({
 
           {/* Info */}
           <View style={styles.infoCard}>
-            <IconSymbol name="info.circle" size={20} color={Colors.textSecondary} />
+            <IconSymbol name="info.circle" size={20} color={colors.textSecondary} />
             <Text style={styles.infoText}>
               First warm up your frozen streak by watching ads. After your streak is warmed up, you can write journal entries normally without watching more ads.
             </Text>
@@ -402,182 +668,3 @@ export default function StreakWarmUpModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Layout.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  closeButton: {
-    padding: Layout.spacing.sm,
-  },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    padding: Layout.spacing.md,
-  },
-  frozenCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.lg,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  frozenEmoji: {
-    fontSize: 48,
-    marginBottom: Layout.spacing.sm,
-  },
-  frozenTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.warning,
-    marginBottom: Layout.spacing.xs,
-  },
-  frozenMessage: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  progressCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.lg,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  progressTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  progressBarContainer: {
-    marginBottom: Layout.spacing.md,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: Layout.spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-    flexWrap: 'wrap',
-  },
-  dot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-    marginVertical: 4,
-  },
-  completedDot: {
-    backgroundColor: Colors.success,
-  },
-  currentDot: {
-    backgroundColor: Colors.primary,
-  },
-  dotNumber: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: Colors.textSecondary,
-  },
-  progressMessage: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  watchButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  watchButtonDisabled: {
-    backgroundColor: Colors.border,
-  },
-  watchButtonText: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  resetButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.error,
-  },
-  resetButtonText: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.error,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    alignItems: 'flex-start',
-  },
-  infoText: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    marginLeft: Layout.spacing.sm,
-    flex: 1,
-    lineHeight: 20,
-  },
-});
