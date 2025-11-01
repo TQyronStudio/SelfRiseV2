@@ -992,6 +992,21 @@ export class MonthlyProgressTracker {
     try {
       const now = new Date();
       const todayString = formatDateToString(now);
+
+      // Get challenge to validate date range
+      const challenge = await this.getChallengeById(challengeId);
+      if (!challenge) {
+        console.warn(`Cannot create snapshot: challenge ${challengeId} not found`);
+        return;
+      }
+
+      // CRITICAL: Validate that today's date falls within challenge date range
+      // This prevents snapshots from previous month being saved to new month's challenge
+      if (todayString < challenge.startDate || todayString > challenge.endDate) {
+        console.warn(`⚠️ Skipping snapshot creation: date ${todayString} is outside challenge range ${challenge.startDate} to ${challenge.endDate}`);
+        return;
+      }
+
       const dayOfMonth = now.getDate();
       const weekNumber = this.calculateWeekNumber(now) as 1 | 2 | 3 | 4 | 5;
 
