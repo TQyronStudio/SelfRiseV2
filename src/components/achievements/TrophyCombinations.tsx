@@ -9,6 +9,7 @@ import {
 import { Colors } from '@/src/constants/colors';
 import { Achievement, AchievementCategory, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { TrophyCollectionCard3D } from './TrophyCollectionCard3D';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface TrophyCombinationsProps {
   userAchievements: UserAchievements;
@@ -131,12 +132,14 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
   allAchievements,
   onCollectionPress,
 }) => {
+  const { colors } = useTheme();
+
   // Calculate collection progress
   const collectionsWithProgress: TrophyCollection[] = TROPHY_COLLECTIONS.map(collection => {
     const completedCount = collection.requiredAchievements.filter(achievementId =>
       userAchievements.unlockedAchievements.includes(achievementId)
     ).length;
-    
+
     return {
       ...collection,
       isCompleted: completedCount === collection.requiredAchievements.length,
@@ -144,28 +147,226 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
       totalCount: collection.requiredAchievements.length,
     };
   });
-  
+
   // Sort collections: completed first, then by rarity, then by progress
   const sortedCollections = collectionsWithProgress.sort((a, b) => {
     if (a.isCompleted && !b.isCompleted) return -1;
     if (!a.isCompleted && b.isCompleted) return 1;
-    
+
     const rarityOrder = {
       [AchievementRarity.LEGENDARY]: 4,
       [AchievementRarity.EPIC]: 3,
       [AchievementRarity.RARE]: 2,
       [AchievementRarity.COMMON]: 1,
     };
-    
+
     const rarityDiff = rarityOrder[b.rarity] - rarityOrder[a.rarity];
     if (rarityDiff !== 0) return rarityDiff;
-    
+
     return (b.completedCount / b.totalCount) - (a.completedCount / a.totalCount);
   });
-  
+
   const completedCollections = collectionsWithProgress.filter(c => c.isCompleted);
   const totalBonusXP = completedCollections.reduce((sum, c) => sum + c.bonusXP, 0);
-  
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    headerContainer: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      alignItems: 'center',
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    headerSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+
+    // Summary stats
+    summaryContainer: {
+      flexDirection: 'row',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    summaryCard: {
+      flex: 1,
+      alignItems: 'center',
+    },
+
+    summaryValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 4,
+    },
+
+    summaryLabel: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    // Collections list - removed maxHeight to allow full expansion
+
+    collectionsContent: {
+      padding: 16,
+    },
+
+    collectionCard: {
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      borderLeftWidth: 4,
+      position: 'relative',
+    },
+
+    collectionCardCompleted: {
+      backgroundColor: 'rgba(76, 175, 80, 0.05)',
+      borderColor: '#4CAF50',
+    },
+
+    completionBadge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: '#4CAF50',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    completionText: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+
+    collectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+
+    collectionIcon: {
+      fontSize: 24,
+      marginRight: 12,
+    },
+
+    collectionInfo: {
+      flex: 1,
+    },
+
+    collectionName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    completedText: {
+      color: '#4CAF50',
+    },
+
+    collectionMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    rarityBadge: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+      marginRight: 8,
+    },
+
+    rarityText: {
+      fontSize: 9,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+
+    bonusXP: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+
+    collectionDescription: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      lineHeight: 18,
+      marginBottom: 12,
+    },
+
+    progressSection: {
+      marginBottom: 8,
+    },
+
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+
+    progressText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+
+    progressPercentage: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    progressBar: {
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+    },
+
+    progressFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+
+    statusContainer: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+
+    statusCompleted: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#4CAF50',
+    },
+
+    statusIncomplete: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -175,7 +376,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
           Complete themed sets for bonus rewards
         </Text>
       </View>
-      
+
       {/* Summary stats */}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryCard}>
@@ -196,7 +397,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
           <Text style={styles.summaryLabel}>Rate</Text>
         </View>
       </View>
-      
+
       {/* Collections list */}
       <View style={styles.collectionsContent}>
         {sortedCollections.map((collection) => (
@@ -210,206 +411,3 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  
-  headerContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    alignItems: 'center',
-  },
-  
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  
-  // Summary stats
-  summaryContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  
-  summaryCard: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  
-  summaryValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  
-  summaryLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  
-  // Collections list - removed maxHeight to allow full expansion
-  
-  collectionsContent: {
-    padding: 16,
-  },
-  
-  collectionCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    position: 'relative',
-  },
-  
-  collectionCardCompleted: {
-    backgroundColor: 'rgba(76, 175, 80, 0.05)',
-    borderColor: '#4CAF50',
-  },
-  
-  completionBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  
-  completionText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  collectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  
-  collectionIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  
-  collectionInfo: {
-    flex: 1,
-  },
-  
-  collectionName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  
-  completedText: {
-    color: '#4CAF50',
-  },
-  
-  collectionMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  rarityBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  
-  rarityText: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  bonusXP: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  
-  collectionDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  
-  progressSection: {
-    marginBottom: 8,
-  },
-  
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  
-  progressText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  
-  progressPercentage: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  
-  progressBar: {
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: 2,
-  },
-  
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  
-  statusContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  
-  statusCompleted: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4CAF50',
-  },
-  
-  statusIncomplete: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-});

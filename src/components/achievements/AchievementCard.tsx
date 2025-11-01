@@ -33,13 +33,13 @@ interface AchievementCardProps {
 
 const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
   const colors = getHighContrastRarityColors(isHighContrast);
-  
+
   switch (rarity) {
     case AchievementRarity.COMMON: return colors.common;
     case AchievementRarity.RARE: return colors.rare;
     case AchievementRarity.EPIC: return colors.epic;
     case AchievementRarity.LEGENDARY: return colors.legendary;
-    default: return isHighContrast ? '#000000' : Colors.primary;
+    default: return isHighContrast ? '#000000' : '#007AFF';
   }
 };
 
@@ -388,11 +388,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
         )}
         
         <View style={styles.bottomRow}>
-          <Text 
+          <Text
             style={[
               styles.xpReward,
               !isUnlocked && styles.textLocked,
-              { color: isUnlocked ? rarityColor : Colors.textSecondary }
+              { color: isUnlocked ? rarityColor : colors.textSecondary }
             ]}
           >
             {achievement.xpReward} XP

@@ -1156,24 +1156,31 @@ export class MonthlyChallengeService {
     category: AchievementCategory,
     userId: string
   ): MonthlyChallenge {
-    const currentDate = new Date();
-    const startDate = formatDateToString(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
-    const endDate = formatDateToString(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+    // CRITICAL: Use month utility functions to avoid timezone issues
+    // (creating Date objects with local time causes UTC conversion problems)
+    const todayDate = today();
+    const startDate = parseDate(todayDate);
+    startDate.setUTCDate(1);
+    const startDateStr = formatDateToString(startDate);
+
+    const endDate = parseDate(todayDate);
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    const endDateStr = formatDateToString(endDate);
 
     return {
       id: generateUUID(),
       title: `🌱 First Month: ${template.title}`,
       description: `${template.description}\n\n✨ This is your introduction to monthly challenges! We've made it extra achievable to help you build confidence.`,
-      startDate,
-      endDate,
+      startDate: startDateStr,
+      endDate: endDateStr,
       baseXPReward: 400, // Fixed first-month XP (between 1★ and 2★)
       starLevel: 1,
       category,
       requirements,
       userBaselineSnapshot: {
-        month: startDate.substring(0, 7),
-        analysisStartDate: startDate,
-        analysisEndDate: endDate,
+        month: startDateStr.substring(0, 7),
+        analysisStartDate: startDateStr,
+        analysisEndDate: endDateStr,
         dataQuality: 'minimal',
         totalActiveDays: 0
       },
@@ -1952,26 +1959,32 @@ export class MonthlyChallengeService {
     starLevel: 1 | 2 | 3 | 4 | 5,
     context: MonthlyChallengeGenerationContext
   ): MonthlyChallenge {
-    const monthDate = new Date(context.month + '-01');
-    const startDate = formatDateToString(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
-    const endDate = formatDateToString(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+    // CRITICAL: Use UTC methods to avoid timezone issues
+    const monthDate = parseDate(context.month + '-01');
+    const startDate = parseDate(context.month + '-01');
+    startDate.setUTCDate(1);
+    const startDateStr = formatDateToString(startDate);
+
+    const endDate = parseDate(context.month + '-01');
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    const endDateStr = formatDateToString(endDate);
 
     return {
       id: generateUUID(),
       title: template.title,
-      description: template.id === 'journal_consistency_writer' 
+      description: template.id === 'journal_consistency_writer'
         ? `Journal every single day with ${starLevel} ${starLevel === 1 ? 'entry' : 'entries'} per day to build an unbreakable habit`
         : template.description,
-      startDate,
-      endDate,
+      startDate: startDateStr,
+      endDate: endDateStr,
       baseXPReward: params.xpReward,
       starLevel,
       category,
       requirements: params.requirements,
       userBaselineSnapshot: {
         month: context.month,
-        analysisStartDate: context.userBaseline?.analysisStartDate || startDate,
-        analysisEndDate: context.userBaseline?.analysisEndDate || endDate,
+        analysisStartDate: context.userBaseline?.analysisStartDate || startDateStr,
+        analysisEndDate: context.userBaseline?.analysisEndDate || endDateStr,
         dataQuality: context.userBaseline?.dataQuality || 'minimal',
         totalActiveDays: context.userBaseline?.totalActiveDays || 0
       },
@@ -2082,25 +2095,30 @@ export class MonthlyChallengeService {
       throw new Error('No fallback template available');
     }
     const requirements = this.createFirstMonthRequirements(template, 1);
-    
-    const monthDate = new Date(month + '-01');
-    const startDate = formatDateToString(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
-    const endDate = formatDateToString(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+
+    // CRITICAL: Use UTC methods to avoid timezone issues
+    const startDate = parseDate(month + '-01');
+    startDate.setUTCDate(1);
+    const startDateStr = formatDateToString(startDate);
+
+    const endDate = parseDate(month + '-01');
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    const endDateStr = formatDateToString(endDate);
 
     return {
       id: generateUUID(),
       title: `🔧 Fallback: ${template!.title}`,
       description: `${template!.description}\n\n⚠️ This is a simplified challenge due to generation issues.`,
-      startDate,
-      endDate,
+      startDate: startDateStr,
+      endDate: endDateStr,
       baseXPReward: 300,
       starLevel: 1,
       category: AchievementCategory.HABITS,
       requirements,
       userBaselineSnapshot: {
         month,
-        analysisStartDate: startDate,
-        analysisEndDate: endDate,
+        analysisStartDate: startDateStr,
+        analysisEndDate: endDateStr,
         dataQuality: 'minimal',
         totalActiveDays: 0
       },

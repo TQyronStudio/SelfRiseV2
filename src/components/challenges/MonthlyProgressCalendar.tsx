@@ -46,17 +46,24 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     const loadDailySnapshots = async () => {
       try {
         setIsLoadingSnapshots(true);
-        
+
         // Get all snapshots and filter for this challenge
         const allSnapshots = await (MonthlyProgressTracker as any).getAllSnapshots();
-        const challengeSnapshots = allSnapshots.filter((s: any) => s.challengeId === challenge.id);
-        
+
+        // CRITICAL: Filter by challenge ID AND date range to exclude cross-month contamination
+        // (e.g., prevent October 31 from appearing in November challenge)
+        const challengeSnapshots = allSnapshots.filter((s: any) => {
+          return s.challengeId === challenge.id &&
+                 s.date >= challenge.startDate &&
+                 s.date <= challenge.endDate;
+        });
+
         // Convert to date-indexed object for quick lookup
         const snapshotsByDate: Record<string, any> = {};
         challengeSnapshots.forEach((snapshot: any) => {
           snapshotsByDate[snapshot.date] = snapshot;
         });
-        
+
         setDailySnapshots(snapshotsByDate);
       } catch (error) {
         console.error('MonthlyProgressCalendar: Failed to load daily snapshots:', error);
@@ -67,7 +74,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     };
 
     loadDailySnapshots();
-  }, [challenge.id]);
+  }, [challenge.id, challenge.startDate, challenge.endDate]);
   const getCategoryColor = (category: AchievementCategory) => {
     switch (category) {
       case 'habits': return '#22C55E';

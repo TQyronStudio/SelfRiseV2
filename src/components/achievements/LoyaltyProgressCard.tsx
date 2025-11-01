@@ -10,13 +10,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
-import { 
-  LoyaltyTracking, 
-  LoyaltyLevel, 
-  LoyaltyProgress, 
+import { useTheme } from '../../contexts/ThemeContext';
+import {
+  LoyaltyTracking,
+  LoyaltyLevel,
+  LoyaltyProgress,
   LoyaltyLevelDisplay,
-  LoyaltyMilestone 
+  LoyaltyMilestone
 } from '@/src/types/gamification';
 import { LoyaltyService } from '@/src/services/loyaltyService';
 
@@ -25,10 +25,11 @@ interface LoyaltyProgressCardProps {
   expanded?: boolean;
 }
 
-export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({ 
-  onPress, 
-  expanded = false 
+export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
+  onPress,
+  expanded = false
 }) => {
+  const { colors } = useTheme();
   const [loyaltyData, setLoyaltyData] = useState<LoyaltyTracking | null>(null);
   const [loyaltyProgress, setLoyaltyProgress] = useState<LoyaltyProgress | null>(null);
   const [levelDisplay, setLevelDisplay] = useState<LoyaltyLevelDisplay | null>(null);
@@ -74,10 +75,230 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
     );
   };
 
+  // Create styles inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderLeftWidth: 4,
+    },
+
+    // Loading and Error States
+    loadingContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 24,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    loadingText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+
+    errorContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 24,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    errorText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+
+    // Header Section
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+
+    levelIcon: {
+      fontSize: 28,
+      marginRight: 12,
+    },
+
+    headerText: {
+      flex: 1,
+    },
+
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+
+    levelName: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+
+    headerRight: {
+      alignItems: 'center',
+    },
+
+    activeDaysValue: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 2,
+    },
+
+    activeDaysLabel: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    // Progress Section
+    progressSection: {
+      marginBottom: 12,
+    },
+
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+
+    progressText: {
+      fontSize: 13,
+      color: colors.text,
+      flex: 1,
+      fontWeight: '500',
+    },
+
+    progressPercentage: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    progressTrack: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      marginBottom: 6,
+    },
+
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+
+    daysRemaining: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    // Complete Section
+    completeSection: {
+      alignItems: 'center',
+      paddingVertical: 12,
+      marginBottom: 12,
+    },
+
+    completeIcon: {
+      fontSize: 32,
+      marginBottom: 8,
+    },
+
+    completeText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    completeSubtext: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+
+    // Expanded Section
+    expandedSection: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 12,
+      marginBottom: 12,
+    },
+
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+
+    statItem: {
+      alignItems: 'center',
+    },
+
+    statValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    statLabel: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    // Motivation Section
+    motivationSection: {
+      backgroundColor: colors.background,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+    },
+
+    motivationText: {
+      fontSize: 13,
+      color: colors.text,
+      textAlign: 'center',
+      lineHeight: 18,
+      fontStyle: 'italic',
+    },
+
+    // Description Section
+    descriptionSection: {
+      alignItems: 'center',
+    },
+
+    descriptionText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color={Colors.primary} />
+        <ActivityIndicator size="small" color={colors.primary} />
         <Text style={styles.loadingText}>Loading loyalty data...</Text>
       </View>
     );
@@ -92,8 +313,8 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
   }
 
   return (
-    <TouchableOpacity 
-      style={[styles.container, { borderLeftColor: levelDisplay.color }]} 
+    <TouchableOpacity
+      style={[styles.container, { borderLeftColor: levelDisplay.color }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -127,19 +348,19 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
               {Math.round(loyaltyProgress.progress)}%
             </Text>
           </View>
-          
+
           <View style={styles.progressTrack}>
-            <View 
+            <View
               style={[
                 styles.progressFill,
-                { 
+                {
                   width: `${loyaltyProgress.progress}%`,
                   backgroundColor: levelDisplay.color
                 }
-              ]} 
+              ]}
             />
           </View>
-          
+
           <Text style={styles.daysRemaining}>
             {loyaltyProgress.daysRemaining} days remaining
           </Text>
@@ -197,227 +418,3 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  // Loading and Error States
-  loadingContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 24,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  loadingText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 8,
-  },
-
-  errorContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 24,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  errorText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  // Header Section
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-
-  levelIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-
-  headerText: {
-    flex: 1,
-  },
-
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-
-  levelName: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  headerRight: {
-    alignItems: 'center',
-  },
-
-  activeDaysValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 2,
-  },
-
-  activeDaysLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-
-  // Progress Section
-  progressSection: {
-    marginBottom: 12,
-  },
-
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-
-  progressText: {
-    fontSize: 13,
-    color: Colors.text,
-    flex: 1,
-    fontWeight: '500',
-  },
-
-  progressPercentage: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-
-  progressTrack: {
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    marginBottom: 6,
-  },
-
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-
-  daysRemaining: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-
-  // Complete Section
-  completeSection: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-
-  completeIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-
-  completeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-
-  completeSubtext: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  // Expanded Section
-  expandedSection: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: 12,
-    marginBottom: 12,
-  },
-
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-
-  statItem: {
-    alignItems: 'center',
-  },
-
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-
-  statLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-
-  // Motivation Section
-  motivationSection: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-
-  motivationText: {
-    fontSize: 13,
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 18,
-    fontStyle: 'italic',
-  },
-
-  // Description Section
-  descriptionSection: {
-    alignItems: 'center',
-  },
-
-  descriptionText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

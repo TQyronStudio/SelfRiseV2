@@ -92,6 +92,8 @@ export class AchievementStorage {
           by_rarity: string;
         }>('SELECT * FROM achievement_stats_cache WHERE id = 1');
 
+        console.log('📊 [AchievementStorage] Stats cache from DB:', statsCache);
+
         // Build UserAchievements from SQLite data
         const unlockedAchievements: string[] = [];
         const achievementProgress: Record<string, number> = {};
@@ -105,13 +107,54 @@ export class AchievementStorage {
           }
         }
 
-        const categoryProgress = statsCache?.by_category
+        console.log('📊 [AchievementStorage] Unlocked achievements from DB:', unlockedAchievements.length, unlockedAchievements);
+
+        let categoryProgress = statsCache?.by_category
           ? JSON.parse(statsCache.by_category)
           : {};
 
-        const rarityCount = statsCache?.by_rarity
+        let rarityCount = statsCache?.by_rarity
           ? JSON.parse(statsCache.by_rarity)
           : {};
+
+        // CRITICAL: If cache is empty, calculate from progress rows
+        if (!statsCache || Object.keys(categoryProgress).length === 0 || Object.keys(rarityCount).length === 0) {
+          console.log('⚠️ Achievement stats cache is empty, rebuilding from progress...');
+
+          // Load achievement catalog to get category and rarity info
+          const { CORE_ACHIEVEMENTS } = await import('../constants/achievementCatalog');
+
+          // Initialize empty counts
+          categoryProgress = {};
+          rarityCount = {};
+
+          // Calculate from unlocked achievements
+          for (const achievementId of unlockedAchievements) {
+            const achievement = CORE_ACHIEVEMENTS.find(a => a.id === achievementId);
+            if (achievement) {
+              // Update category count
+              categoryProgress[achievement.category] = (categoryProgress[achievement.category] || 0) + 1;
+
+              // Update rarity count
+              rarityCount[achievement.rarity] = (rarityCount[achievement.rarity] || 0) + 1;
+            }
+          }
+
+          // Save rebuilt cache to database
+          await db.runAsync(
+            `INSERT OR REPLACE INTO achievement_stats_cache (id, total_unlocked, total_xp_earned, by_category, by_rarity, last_updated)
+             VALUES (1, ?, ?, ?, ?, ?)`,
+            [
+              unlockedAchievements.length,
+              totalXPFromAchievements,
+              JSON.stringify(categoryProgress),
+              JSON.stringify(rarityCount),
+              Date.now()
+            ]
+          );
+
+          console.log('✅ Achievement stats cache rebuilt:', { categoryProgress, rarityCount });
+        }
 
         return {
           unlockedAchievements,
@@ -158,18 +201,42 @@ export class AchievementStorage {
     try {
       // Update timestamp
       data.lastChecked = today();
-      
+
       // Validate data before saving
       const validatedData = this.validateUserAchievementsData(data);
-      
-      await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS,
-        JSON.stringify(validatedData)
-      );
-      
+
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - update achievement_stats_cache
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        // Update statistics cache with category and rarity counts
+        await db.runAsync(
+          `INSERT OR REPLACE INTO achievement_stats_cache (id, total_unlocked, total_xp_earned, by_category, by_rarity, last_updated)
+           VALUES (1, ?, ?, ?, ?, ?)`,
+          [
+            validatedData.unlockedAchievements.length,
+            validatedData.totalXPFromAchievements,
+            JSON.stringify(validatedData.categoryProgress),
+            JSON.stringify(validatedData.rarityCount),
+            Date.now()
+          ]
+        );
+
+        console.log('✅ Updated achievement_stats_cache in SQLite');
+      } else {
+        // Legacy AsyncStorage implementation
+        await AsyncStorage.setItem(
+          ACHIEVEMENT_STORAGE_KEYS.USER_ACHIEVEMENTS,
+          JSON.stringify(validatedData)
+        );
+      }
+
       // Update statistics cache
       await this.updateStatisticsCache(validatedData);
-      
+
     } catch (error) {
       console.error('AchievementStorage.saveUserAchievements error:', error);
       throw error;
