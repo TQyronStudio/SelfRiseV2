@@ -583,14 +583,22 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   }
 
   private rowToWeeklyBreakdown(row: any): WeeklyProgressData {
+    const contributions = JSON.parse(row.contributions || '{}');
+
     return {
+      // Map old format to new WeeklyBreakdown format
+      challengeId: row.challenge_id,
       weekNumber: row.week_number as 1 | 2 | 3 | 4 | 5,
       startDate: row.start_date,
       endDate: row.end_date,
-      progress: row.progress,
-      targetAchieved: row.target_achieved === 1,
-      daysActive: row.days_active,
-      contributions: JSON.parse(row.contributions)
+      weeklyProgress: contributions, // Old 'contributions' → new 'weeklyProgress'
+      weeklyTarget: {}, // Not stored in old schema
+      completionPercentage: row.progress || 0, // Old 'progress' → new 'completionPercentage'
+      daysActive: row.days_active || 0,
+      perfectDays: 0, // Not stored in old schema
+      bestDay: null, // Not stored in old schema
+      isCurrentWeek: false, // Will be calculated
+      isCompleted: row.target_achieved === 1
     };
   }
 

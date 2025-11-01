@@ -1172,7 +1172,7 @@ export class MonthlyProgressTracker {
 
         // Update progress object with weekly data
         const weekKey = `week${currentWeekNumber}` as keyof typeof progress.weeklyProgress;
-        progress.weeklyProgress[weekKey] = { ...weeklyBreakdown.weeklyProgress };
+        progress.weeklyProgress[weekKey] = { ...(weeklyBreakdown.weeklyProgress || {}) };
 
         // Calculate overall weekly consistency
         progress.weeklyConsistency = await this.calculateWeeklyConsistency(challengeId);
