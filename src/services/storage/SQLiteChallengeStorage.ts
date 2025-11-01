@@ -10,11 +10,14 @@ import { getDatabase } from '../database/init';
 import type {
   MonthlyChallenge,
   MonthlyChallengeRequirement,
-  DailyProgressSnapshot,
-  WeeklyProgressData,
-  ChallengeLifecycleStatus,
+  ChallengeLifecycleState,
   UserChallengeRatings
-} from '../../types/monthlyChallenge';
+} from '../../types/gamification';
+import type { DailyProgressSnapshot, WeeklyBreakdown } from '../monthlyProgressTracker';
+
+// Type alias for backward compatibility
+type ChallengeLifecycleStatus = any;
+type WeeklyProgressData = WeeklyBreakdown;
 
 // ========================================
 // STORAGE INTERFACE
@@ -229,6 +232,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   }
 
   async updateRequirement(challengeId: string, requirement: MonthlyChallengeRequirement): Promise<void> {
+    const req = requirement as any;
     await this.db.runAsync(
       `UPDATE challenge_requirements
        SET current_value = ?,
@@ -237,9 +241,9 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
            updated_at = ?
        WHERE challenge_id = ? AND tracking_key = ?`,
       [
-        requirement.currentValue,
-        Math.round((requirement.currentValue / requirement.targetValue) * 100),
-        JSON.stringify(requirement.milestoneStatuses),
+        req.currentValue || 0,
+        Math.round(((req.currentValue || 0) / (req.targetValue || requirement.target || 1)) * 100),
+        JSON.stringify(req.milestoneStatuses || [false, false, false]),
         Date.now(),
         challengeId,
         requirement.trackingKey
@@ -252,6 +256,13 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   // ========================================
 
   async saveDailySnapshot(snapshot: DailyProgressSnapshot): Promise<void> {
+    // Extract counts from dailyContributions based on tracking keys
+    const habitsCompleted = snapshot.dailyContributions['scheduled_habit_completions'] ||
+                           snapshot.dailyContributions['habit_variety'] || 0;
+    const journalEntries = snapshot.dailyContributions['daily_journal_entries'] ||
+                          snapshot.dailyContributions['daily_journal_streak'] || 0;
+    const goalProgress = snapshot.dailyContributions['goal_progress_updates'] || 0;
+
     await this.db.runAsync(
       `INSERT OR REPLACE INTO challenge_daily_snapshots (
         id, challenge_id, date,
@@ -262,12 +273,12 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
         `${snapshot.challengeId}_${snapshot.date}`,
         snapshot.challengeId,
         snapshot.date,
-        snapshot.snapshot.habits_completed || 0,
-        snapshot.snapshot.journal_entries || 0,
-        snapshot.snapshot.goal_progress_updates || 0,
-        snapshot.snapshot.xp_earned_today || 0,
-        snapshot.snapshot.balance_score || 0,
-        new Date(snapshot.calculatedAt).getTime()
+        habitsCompleted,
+        journalEntries,
+        goalProgress,
+        snapshot.xpEarnedToday || 0,
+        0, // balance_score - calculated separately if needed
+        snapshot.timestamp ? new Date(snapshot.timestamp).getTime() : Date.now()
       ]
     );
   }
@@ -306,10 +317,10 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
         breakdown.weekNumber,
         breakdown.startDate,
         breakdown.endDate,
-        breakdown.progress || 0,
-        breakdown.targetAchieved ? 1 : 0,
+        breakdown.completionPercentage || 0,
+        breakdown.isCompleted ? 1 : 0,
         breakdown.daysActive || 0,
-        JSON.stringify(breakdown.contributions || {}),
+        JSON.stringify(breakdown.weeklyProgress || {}),
         Date.now()
       ]
     );
@@ -542,17 +553,32 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
   }
 
   private rowToSnapshot(row: any): DailyProgressSnapshot {
+    // Map database columns to new DailyProgressSnapshot format
+    const dailyContributions: Record<string, number> = {};
+
+    // Map individual columns to appropriate tracking keys
+    if (row.habits_completed) {
+      dailyContributions['scheduled_habit_completions'] = row.habits_completed;
+    }
+    if (row.journal_entries) {
+      dailyContributions['daily_journal_entries'] = row.journal_entries;
+    }
+    if (row.goal_progress_updates) {
+      dailyContributions['goal_progress_updates'] = row.goal_progress_updates;
+    }
+
     return {
       date: row.date,
       challengeId: row.challenge_id,
-      snapshot: {
-        habits_completed: row.habits_completed,
-        journal_entries: row.journal_entries,
-        goal_progress_updates: row.goal_progress_updates,
-        xp_earned_today: row.xp_earned_today,
-        balance_score: row.balance_score
-      },
-      calculatedAt: new Date(row.calculated_at)
+      dailyContributions,
+      cumulativeProgress: {}, // Will be populated from challenge progress
+      progressPercentage: 0, // Will be calculated
+      weekNumber: 1, // Will be calculated from date
+      dayOfMonth: new Date(row.date).getDate(),
+      isTripleFeatureDay: row.habits_completed > 0 && row.journal_entries > 0 && row.goal_progress_updates > 0,
+      isPerfectDay: row.habits_completed >= 1 && row.journal_entries >= 3,
+      xpEarnedToday: row.xp_earned_today || 0,
+      timestamp: new Date(row.calculated_at)
     };
   }
 

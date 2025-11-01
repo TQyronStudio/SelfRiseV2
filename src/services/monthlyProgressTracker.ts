@@ -590,18 +590,28 @@ export class MonthlyProgressTracker {
 
         // Convert challenge to progress format with ALL required fields
         const progress: MonthlyChallengeProgress = {
+          // From ChallengeProgress interface
           challengeId: challenge.id,
-          progress: challenge.requirements.reduce((acc, req) => {
-            acc[req.trackingKey] = req.currentValue;
+          userId: (challenge as any).userId || 'local_user',
+          progress: challenge.requirements.reduce((acc: Record<string, number>, req: any) => {
+            acc[req.trackingKey] = req.currentValue || 0;
             return acc;
           }, {} as Record<string, number>),
-          completionPercentage: challenge.progress || 0,
+          isCompleted: false,
+          xpEarned: 0,
+
+          // From MonthlyChallengeProgress interface
+          completionPercentage: (challenge as any).progress || 0,
           daysActive: 0,
           daysRemaining: this.calculateDaysRemaining(challenge),
           projectedCompletion: 0,
           activeDays: [],
           currentStreak: 0,
-          isCompleted: false,
+          longestStreak: 0,
+          streakBonusEligible: false,
+          dailyConsistency: 0,
+          weeklyConsistency: 0,
+          bestWeek: 1,
           weeklyProgress: {
             week1: {},
             week2: {},
@@ -613,7 +623,7 @@ export class MonthlyProgressTracker {
             50: { reached: false },
             75: { reached: false },
           },
-          lastUpdated: new Date()
+          updatedAt: new Date()
         };
 
         // Update cache
@@ -657,15 +667,15 @@ export class MonthlyProgressTracker {
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
         // Update challenge progress
-        await this.storage.updateChallengeProgress(progress.challengeId, progress.overallCompletionPercentage);
+        await this.storage.updateChallengeProgress(progress.challengeId, progress.completionPercentage);
 
         // Update individual requirements
         const challenges = await this.storage.getActiveChallenges();
         const challenge = challenges.find(c => c.id === progress.challengeId);
         if (challenge) {
           for (const req of challenge.requirements) {
-            if (progress.currentProgress[req.trackingKey] !== undefined) {
-              req.currentValue = progress.currentProgress[req.trackingKey];
+            if (progress.progress[req.trackingKey] !== undefined) {
+              (req as any).currentValue = progress.progress[req.trackingKey];
               await this.storage.updateRequirement(progress.challengeId, req);
             }
           }
