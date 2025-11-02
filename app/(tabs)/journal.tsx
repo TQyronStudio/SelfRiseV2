@@ -214,7 +214,7 @@ export default function JournalScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     keyboardAvoidingView: {
       flex: 1,
@@ -243,14 +243,6 @@ export default function JournalScreen() {
       borderRadius: 12,
       padding: Layout.spacing.md,
       alignItems: 'center',
-      shadowColor: colors.black,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
     },
     gratitudeButton: {
       backgroundColor: colors.primary,
@@ -300,18 +292,10 @@ export default function JournalScreen() {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.white,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 12,
       padding: Layout.spacing.md,
       gap: Layout.spacing.sm,
-      shadowColor: colors.black,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
       marginBottom: Layout.spacing.sm,
     },
     actionButtonText: {
