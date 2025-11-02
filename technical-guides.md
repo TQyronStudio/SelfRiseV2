@@ -4,22 +4,405 @@
 
 ## Table of Contents
 
-1. [Data Storage Architecture](#data-storage-architecture)
-2. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
-3. [Development Standards](#development-standards)
-4. [Code Standards](#code-standards)
-5. [Performance Considerations](#performance-considerations)
-6. [User Interface & Celebrations](#user-interface--celebrations)
-7. [Security Guidelines](#security-guidelines)
-8. [Accessibility Standards](#accessibility-standards)
-9. [Configuration Management](#configuration-management)
-10. [Technical Stack & Architecture](#technical-stack--architecture)
-11. [My Journal System](#my-journal-system)
-12. [Gamification System](#gamification-system)
-13. [Achievements System](#achievements-system)
-14. [Screen Creation Guidelines](#screen-creation-guidelines)
-15. [Help Tooltip System](#help-tooltip-system)
-16. [Onboarding Tutorial System](#onboarding-tutorial-system)
+1. [Theme & Color System](#theme--color-system)
+2. [Data Storage Architecture](#data-storage-architecture)
+3. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
+4. [Development Standards](#development-standards)
+5. [Code Standards](#code-standards)
+6. [Performance Considerations](#performance-considerations)
+7. [User Interface & Celebrations](#user-interface--celebrations)
+8. [Security Guidelines](#security-guidelines)
+9. [Accessibility Standards](#accessibility-standards)
+10. [Configuration Management](#configuration-management)
+11. [Technical Stack & Architecture](#technical-stack--architecture)
+12. [My Journal System](#my-journal-system)
+13. [Gamification System](#gamification-system)
+14. [Achievements System](#achievements-system)
+15. [Screen Creation Guidelines](#screen-creation-guidelines)
+16. [Help Tooltip System](#help-tooltip-system)
+17. [Onboarding Tutorial System](#onboarding-tutorial-system)
+
+---
+
+## Theme & Color System
+
+### Philosophy: "Consistent Visual Hierarchy Across All Themes"
+
+SelfRise V2 implements a sophisticated dual-theme system (Light/Dark) with strict color hierarchy standards to ensure consistent user experience across the entire application.
+
+---
+
+### Theme Architecture
+
+**Location**: `src/constants/colors.ts`
+
+**Theme Provider**: `src/contexts/ThemeContext.tsx`
+
+**Supported Themes**:
+- **Light Mode**: Clean, bright interface (default)
+- **Dark Mode**: AMOLED-friendly pure black base with elevated surfaces
+- **System Auto**: Follows device theme settings with real-time updates
+
+---
+
+### Dark Mode Color Hierarchy (Primary Standard)
+
+**Critical Rule**: Dark mode uses a **3-tier elevation system** with pure black base and gray elevated surfaces.
+
+#### Tier 1: Base Layer (Deepest)
+```typescript
+background: '#000000'  // Pure black (AMOLED-friendly)
+```
+**Usage**:
+- ❌ **RARELY USED** - Only for deepest nested elements for subtle depth
+- ⚠️ **NOT for main page backgrounds**
+- ✅ Nested elements inside cards (e.g., badges, buttons on elevated cards)
+
+**Example**:
+```typescript
+// ❌ WRONG - Never use for main containers
+<View style={{ backgroundColor: colors.background }}>
+
+// ✅ CORRECT - Only for nested depth
+<View style={{ backgroundColor: colors.cardBackgroundElevated }}>
+  <View style={{ backgroundColor: colors.background, borderWidth: 1 }}>
+    {/* Badge inside card */}
+  </View>
+</View>
+```
+
+#### Tier 2: Elevated Surfaces (Standard Page Background)
+```typescript
+backgroundSecondary: '#1C1C1E'  // Dark gray - PRIMARY page background
+```
+**Usage**:
+- ✅ **MAIN PAGE BACKGROUNDS** - All screens, modals, full-page containers
+- ✅ Tab navigation backgrounds
+- ✅ Modal overlays
+
+**Example**:
+```typescript
+// ✅ CORRECT - Standard pattern for all screens
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,  // #1C1C1E
+  },
+});
+```
+
+**Reference Screens**:
+- HomeScreen: Uses `backgroundSecondary` (#1C1C1E)
+- Trophy Room: Uses `backgroundSecondary` (#1C1C1E)
+- All modal screens: Use `backgroundSecondary` (#1C1C1E)
+
+#### Tier 3: Elevated Cards & Components (Highest Elevation)
+```typescript
+cardBackgroundElevated: '#2C2C2E'  // Light gray - CARDS and COMPONENTS
+```
+**Usage**:
+- ✅ **ALL CARDS** - Achievement cards, habit cards, goal cards
+- ✅ **ELEVATED SECTIONS** - Headers, filters, search bars
+- ✅ **INTERACTIVE ELEMENTS** - Buttons, input fields, chips
+
+**Example**:
+```typescript
+// ✅ CORRECT - Cards on page background
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.backgroundSecondary,  // Page background
+  },
+  card: {
+    backgroundColor: colors.cardBackgroundElevated,  // Card elevation
+    borderRadius: 12,
+    padding: 16,
+  },
+  searchBar: {
+    backgroundColor: colors.cardBackgroundElevated,  // Interactive element
+  },
+});
+```
+
+---
+
+### Visual Hierarchy Summary
+
+| Element Type | Color | Hex Value | Usage |
+|--------------|-------|-----------|-------|
+| **Page Background** | `backgroundSecondary` | `#1C1C1E` | Screens, modals, main containers |
+| **Cards & Components** | `cardBackgroundElevated` | `#2C2C2E` | Cards, headers, filters, buttons |
+| **Nested Depth** | `background` | `#000000` | Rare - only for depth inside cards |
+
+**Visual Example**:
+```
+┌─────────────────────────────────────┐
+│ Screen (#1C1C1E - backgroundSecondary) │
+│                                     │
+│  ┌──────────────────────────────┐  │
+│  │ Card (#2C2C2E - elevated)    │  │
+│  │                              │  │
+│  │  ┌────────────────────────┐  │  │
+│  │  │ Badge (#000000)        │  │  │
+│  │  └────────────────────────┘  │  │
+│  └──────────────────────────────┘  │
+│                                     │
+│  ┌──────────────────────────────┐  │
+│  │ Search Bar (#2C2C2E)         │  │
+│  └──────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+---
+
+### Light Mode Color Hierarchy
+
+**Inverted hierarchy** with white base and gray elevations:
+
+```typescript
+background: '#FFFFFF'              // Pure white base
+backgroundSecondary: '#F8F9FA'     // Light gray - page backgrounds
+cardBackgroundElevated: '#F8F9FA'  // Same as backgroundSecondary
+```
+
+**Note**: Light mode uses subtle shadows for elevation instead of background color differences.
+
+---
+
+### Text Color Standards
+
+#### Dark Mode
+```typescript
+text: '#FFFFFF'           // Primary text - white
+textSecondary: '#98989D'  // Secondary text - gray
+textTertiary: '#636366'   // Tertiary text - darker gray
+```
+
+#### Light Mode
+```typescript
+text: '#212529'           // Primary text - black
+textSecondary: '#6C757D'  // Secondary text - gray
+textTertiary: '#ADB5BD'   // Tertiary text - light gray
+```
+
+**Usage Rules**:
+- Main headings, body text → `colors.text`
+- Subtitles, descriptions, labels → `colors.textSecondary`
+- Hints, disabled text → `colors.textTertiary`
+
+---
+
+### Semantic Colors (Theme-Independent)
+
+**Status Colors** (stay vivid in both themes):
+```typescript
+success: '#32D74B'   // Dark mode: brighter green
+error: '#FF453A'     // Dark mode: brighter red
+warning: '#FFD60A'   // Dark mode: brighter yellow
+primary: '#0A84FF'   // Dark mode: brighter blue
+```
+
+**Important**: Semantic colors are **more vivid in dark mode** for better visibility against dark backgrounds.
+
+---
+
+### Border & Shadow Standards
+
+#### Dark Mode
+```typescript
+border: '#38383A'      // Subtle gray borders
+shadow: 'transparent'  // NO SHADOWS in dark mode (AMOLED-friendly)
+```
+
+**Critical Rule**: ❌ **NEVER use shadows in dark mode**
+- Remove ALL: `shadowColor`, `shadowOffset`, `shadowOpacity`, `shadowRadius`, `elevation`
+- Use background color hierarchy for depth instead
+
+#### Light Mode
+```typescript
+border: '#DEE2E6'              // Light gray borders
+shadow: 'rgba(0, 0, 0, 0.1)'   // Subtle shadows for depth
+```
+
+---
+
+### Theme Implementation Checklist
+
+When creating/refactoring components:
+
+**1. Import Theme Hook**:
+```typescript
+import { useTheme } from '@/src/contexts/ThemeContext';
+const { colors } = useTheme();
+```
+
+**2. Move Styles Inside Component**:
+```typescript
+// ❌ WRONG - Static styles outside component
+const styles = StyleSheet.create({...});
+
+// ✅ CORRECT - Dynamic styles inside component
+export function Component() {
+  const { colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: { backgroundColor: colors.backgroundSecondary }
+  });
+}
+```
+
+**3. Apply Correct Color Hierarchy**:
+```typescript
+const styles = StyleSheet.create({
+  // Main screen background
+  container: {
+    backgroundColor: colors.backgroundSecondary,  // #1C1C1E
+  },
+
+  // Cards and components
+  card: {
+    backgroundColor: colors.cardBackgroundElevated,  // #2C2C2E
+  },
+
+  // Nested elements (rare)
+  badge: {
+    backgroundColor: colors.background,  // #000000
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+});
+```
+
+**4. Remove All Shadows**:
+```typescript
+// ❌ DELETE these in dark mode
+shadowColor: '#000',
+shadowOffset: { width: 0, height: 2 },
+shadowOpacity: 0.1,
+shadowRadius: 4,
+elevation: 3,
+```
+
+**5. Use Theme-Aware Text**:
+```typescript
+<Text style={{ color: colors.text }}>Main Text</Text>
+<Text style={{ color: colors.textSecondary }}>Subtitle</Text>
+```
+
+---
+
+### Common Mistakes to Avoid
+
+#### ❌ Mistake 1: Using Pure Black for Main Backgrounds
+```typescript
+// ❌ WRONG
+container: {
+  backgroundColor: colors.background,  // Pure black - too dark!
+}
+
+// ✅ CORRECT
+container: {
+  backgroundColor: colors.backgroundSecondary,  // #1C1C1E
+}
+```
+
+#### ❌ Mistake 2: Using White/Black Static Colors
+```typescript
+// ❌ WRONG
+backgroundColor: '#FFFFFF',  // Doesn't adapt to theme
+color: '#000000',            // Doesn't adapt to theme
+
+// ✅ CORRECT
+backgroundColor: colors.cardBackgroundElevated,
+color: colors.text,
+```
+
+#### ❌ Mistake 3: Adding Shadows in Dark Mode
+```typescript
+// ❌ WRONG - Shadows don't work in dark mode
+card: {
+  backgroundColor: colors.cardBackgroundElevated,
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+}
+
+// ✅ CORRECT - No shadows, elevation via background only
+card: {
+  backgroundColor: colors.cardBackgroundElevated,  // Elevation via color
+}
+```
+
+#### ❌ Mistake 4: Inconsistent Nesting
+```typescript
+// ❌ WRONG - Pure black card on gray background (backwards)
+<View style={{ backgroundColor: colors.backgroundSecondary }}>
+  <View style={{ backgroundColor: colors.background }}>  // Too dark!
+
+// ✅ CORRECT - Light gray card on dark gray background
+<View style={{ backgroundColor: colors.backgroundSecondary }}>
+  <View style={{ backgroundColor: colors.cardBackgroundElevated }}>
+```
+
+---
+
+### Reference Implementation
+
+**Perfect Example - HomeScreen**:
+```typescript
+// app/(tabs)/index.tsx
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,  // Main background
+  },
+});
+
+// Individual card components
+const cardStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.cardBackgroundElevated,  // Elevated card
+    borderRadius: 12,
+    padding: 16,
+  },
+});
+```
+
+**Perfect Example - Trophy Room**:
+```typescript
+// app/achievements.tsx
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,  // #1C1C1E
+  },
+  achievementCard: {
+    backgroundColor: colors.cardBackgroundElevated,  // #2C2C2E
+  },
+});
+```
+
+---
+
+### Testing Checklist
+
+Before committing theme changes:
+
+- [ ] **Visual Check**: Compare with HomeScreen appearance
+- [ ] **Color Hierarchy**: Page (#1C1C1E) → Cards (#2C2C2E) → Nested (#000000 rare)
+- [ ] **No Shadows**: Verify all shadows removed in dark mode
+- [ ] **Text Contrast**: All text readable on backgrounds
+- [ ] **Theme Toggle**: Test switching between Light/Dark/System modes
+- [ ] **Consistency**: All similar components use same colors
+
+---
+
+### Quick Reference
+
+**When in doubt, ask yourself**:
+
+1. **Is this a main page/modal?** → `colors.backgroundSecondary` (#1C1C1E)
+2. **Is this a card/component?** → `colors.cardBackgroundElevated` (#2C2C2E)
+3. **Is this nested inside a card?** → `colors.background` (#000000) + border
+4. **Am I using shadows?** → ❌ Remove in dark mode
+5. **Does it match HomeScreen?** → ✅ Visual consistency check
 
 ---
 
