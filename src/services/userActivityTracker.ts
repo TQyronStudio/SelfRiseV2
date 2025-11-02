@@ -479,7 +479,7 @@ export class UserActivityTracker {
         // Generation context
         generatedAt: new Date(),
         dataQuality,
-        isFirstMonth: context.totalActiveDays < this.QUALITY_THRESHOLDS.PARTIAL,
+        isFirstMonth: context.totalActiveDays < this.QUALITY_THRESHOLDS.MINIMAL, // Changed from PARTIAL (15) to MINIMAL (5)
         totalActiveDays: context.totalActiveDays,
         analysisStartDate: context.analysisStartDate,
         analysisEndDate: context.analysisEndDate

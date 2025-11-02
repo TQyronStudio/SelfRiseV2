@@ -620,7 +620,7 @@ export default function AchievementsScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
 
     // View mode toggle
@@ -901,7 +901,7 @@ export default function AchievementsScreen() {
       justifyContent: 'center',
       alignItems: 'center',
       paddingVertical: 80,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
 
     loadingContent: {

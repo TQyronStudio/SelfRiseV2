@@ -1417,13 +1417,29 @@ export class MonthlyChallengeService {
    * Check if user qualifies for first-month treatment
    */
   static shouldUseFirstMonthTreatment(userBaseline: UserActivityBaseline | null): boolean {
-    if (!userBaseline) return true; // No baseline = new user
-    
+    if (!userBaseline) {
+      console.log('🔍 [First Month Check] No baseline → First Month Treatment');
+      return true; // No baseline = new user
+    }
+
+    const isFirst = userBaseline.isFirstMonth;
+    const hasLowActivity = userBaseline.totalActiveDays < 7;
+    const isMinimal = userBaseline.dataQuality === 'minimal';
+
+    console.log('🔍 [First Month Check]', {
+      isFirstMonth: isFirst,
+      totalActiveDays: userBaseline.totalActiveDays,
+      dataQuality: userBaseline.dataQuality,
+      hasLowActivity,
+      isMinimal,
+      result: isFirst || hasLowActivity || isMinimal
+    });
+
     // Consider first-month treatment if:
     return (
-      userBaseline.isFirstMonth ||                    // Explicitly marked as first month
-      userBaseline.totalActiveDays < 7 ||            // Less than a week of activity
-      userBaseline.dataQuality === 'minimal'         // Very limited data
+      isFirst ||                    // Explicitly marked as first month
+      hasLowActivity ||            // Less than a week of activity
+      isMinimal                    // Very limited data
     );
   }
 
