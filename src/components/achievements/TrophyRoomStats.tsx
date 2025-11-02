@@ -45,7 +45,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
   // Styles - moved inside component to access colors
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     headerContainer: {
       alignItems: 'center',

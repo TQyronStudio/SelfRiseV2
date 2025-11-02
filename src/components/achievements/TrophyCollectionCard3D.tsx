@@ -253,11 +253,11 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
       position: 'absolute',
       top: 4,
       left: 4,
-      right: -2,
-      bottom: -2,
+      right: 4,
+      bottom: 4,
       borderRadius: 16,
       zIndex: -1,
-      opacity: 0.3,
+      opacity: 0.15,
     },
 
     completionBadge: {

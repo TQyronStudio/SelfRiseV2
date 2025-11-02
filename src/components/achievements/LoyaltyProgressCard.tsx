@@ -269,7 +269,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
 
     // Motivation Section
     motivationSection: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
