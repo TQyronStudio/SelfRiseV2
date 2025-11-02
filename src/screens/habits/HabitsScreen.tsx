@@ -29,13 +29,13 @@ export function HabitsScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     addButtonContainer: {
       paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: 8,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     listContainer: {
       flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
@@ -53,20 +53,12 @@ export function HabitsScreen() {
       paddingVertical: 12,
       paddingHorizontal: 24,
       borderRadius: 8,
-      shadowColor: colors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 2,
     },
     editButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.cardBackgroundElevated,
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 8,
@@ -74,7 +66,7 @@ export function HabitsScreen() {
       borderColor: colors.border,
     },
     addButtonText: {
-      color: 'white',
+      color: colors.white,
       fontSize: 16,
       fontWeight: '600',
       marginLeft: 8,

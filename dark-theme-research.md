@@ -2,7 +2,7 @@
 
 **Created:** 2025-11-02
 **Status:** In Progress
-**Completion:** 35/150+ components (23%)
+**Completion:** 41/150+ components (27%)
 
 ---
 
@@ -64,13 +64,13 @@
 
 ### **PRIORITY 2: Habits Screen & Components** (~20 files)
 
-#### Main Habits Screens
-- [ ] src/screens/habits/HabitsScreen.tsx
-- [ ] src/screens/habits/DailyHabitTrackingScreen.tsx
-- [ ] src/screens/habits/IndividualHabitStatsScreen.tsx
-- [ ] src/screens/habits/ReorderScreen.tsx
-- [ ] app/habit-stats.tsx
-- [ ] app/reorder-habits.tsx
+#### Main Habits Screens ✅ COMPLETED (Dávka 1/3)
+- [x] src/screens/habits/HabitsScreen.tsx (removed shadows, verified colors)
+- [x] src/screens/habits/DailyHabitTrackingScreen.tsx (added useTheme, fixed background)
+- [x] src/screens/habits/IndividualHabitStatsScreen.tsx (added useTheme, fixed colors)
+- [x] src/screens/habits/ReorderScreen.tsx (added useTheme, 2-tier hierarchy)
+- [x] app/habit-stats.tsx (added useTheme, fixed header colors)
+- [x] app/reorder-habits.tsx (wrapper only - no changes needed)
 
 #### Habit Components
 - [ ] src/components/habits/HabitModal.tsx
