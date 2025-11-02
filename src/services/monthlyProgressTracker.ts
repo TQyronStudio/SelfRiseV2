@@ -606,6 +606,26 @@ export class MonthlyProgressTracker {
           totalCompletion = Math.round(totalCompletion / challenge.requirements.length);
         }
 
+        // Get all daily snapshots for this challenge to calculate active days
+        const challengeSnapshots = await this.storage.getDailySnapshots(challengeId);
+
+        // Calculate active days (days with any contribution)
+        const activeDays = challengeSnapshots
+          .filter((snapshot: any) => {
+            const contributions = snapshot.dailyContributions || {};
+            return Object.values(contributions).some(val => val > 0);
+          })
+          .map((snapshot: any) => snapshot.date);
+
+        const daysActive = activeDays.length;
+
+        // Calculate milestones based on completion percentage
+        const milestonesReached = {
+          25: { reached: totalCompletion >= 25 },
+          50: { reached: totalCompletion >= 50 },
+          75: { reached: totalCompletion >= 75 },
+        };
+
         const progress: MonthlyChallengeProgress = {
           // From ChallengeProgress interface
           challengeId: challenge.id,
@@ -616,10 +636,10 @@ export class MonthlyProgressTracker {
 
           // From MonthlyChallengeProgress interface
           completionPercentage: totalCompletion,
-          daysActive: 0,
+          daysActive,
           daysRemaining: this.calculateDaysRemaining(challenge),
           projectedCompletion: 0,
-          activeDays: [],
+          activeDays,
           currentStreak: 0,
           longestStreak: 0,
           streakBonusEligible: false,
@@ -632,11 +652,7 @@ export class MonthlyProgressTracker {
             week3: {},
             week4: {},
           },
-          milestonesReached: {
-            25: { reached: false },
-            50: { reached: false },
-            75: { reached: false },
-          },
+          milestonesReached,
           updatedAt: new Date()
         };
 
