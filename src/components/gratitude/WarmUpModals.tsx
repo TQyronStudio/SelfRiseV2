@@ -7,7 +7,8 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -36,13 +37,65 @@ interface MultiActionModalProps extends BaseModalProps {
 }
 
 // WarmUpSuccessModal - for successful warm up payments and no frozen days messages
-export function WarmUpSuccessModal({ 
-  visible, 
-  onClose, 
-  title, 
-  message, 
-  buttonText 
+export function WarmUpSuccessModal({
+  visible,
+  onClose,
+  title,
+  message,
+  buttonText
 }: BaseModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -67,13 +120,65 @@ export function WarmUpSuccessModal({
 }
 
 // WarmUpErrorModal - for warm up payment errors and issues
-export function WarmUpErrorModal({ 
-  visible, 
-  onClose, 
-  title, 
-  message, 
-  buttonText 
+export function WarmUpErrorModal({
+  visible,
+  onClose,
+  title,
+  message,
+  buttonText
 }: BaseModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -98,15 +203,77 @@ export function WarmUpErrorModal({
 }
 
 // WarmUpConfirmationModal - for ad watching confirmations and simple confirmations
-export function WarmUpConfirmationModal({ 
-  visible, 
-  onClose, 
+export function WarmUpConfirmationModal({
+  visible,
+  onClose,
   onConfirm,
-  title, 
-  message, 
+  title,
+  message,
   confirmText,
-  cancelText 
+  cancelText
 }: ConfirmationModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: Layout.spacing.md,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.backgroundSecondary,
+    },
+    cancelButtonText: {
+      color: colors.text,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -122,8 +289,8 @@ export function WarmUpConfirmationModal({
             {message || 'Are you sure you want to continue?'}
           </Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.cancelButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
@@ -141,16 +308,78 @@ export function WarmUpConfirmationModal({
 }
 
 // WarmUpIssueModal - for warm up payment issues with multiple action options
-export function WarmUpIssueModal({ 
-  visible, 
+export function WarmUpIssueModal({
+  visible,
   onClose,
   onPrimaryAction,
   onSecondaryAction,
-  title, 
-  message, 
+  title,
+  message,
   primaryActionText,
-  secondaryActionText 
+  secondaryActionText
 }: MultiActionModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: Layout.spacing.md,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.backgroundSecondary,
+    },
+    cancelButtonText: {
+      color: colors.text,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -166,8 +395,8 @@ export function WarmUpIssueModal({
             {message || 'There seems to be an issue. Choose how to proceed.'}
           </Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.cancelButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
               onPress={onPrimaryAction}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
@@ -185,15 +414,77 @@ export function WarmUpIssueModal({
 }
 
 // QuickWarmUpModal - for quick warm up confirmations
-export function QuickWarmUpModal({ 
-  visible, 
-  onClose, 
+export function QuickWarmUpModal({
+  visible,
+  onClose,
   onConfirm,
-  title, 
-  message, 
+  title,
+  message,
   confirmText,
-  cancelText 
+  cancelText
 }: ConfirmationModalProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: Layout.spacing.md,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.backgroundSecondary,
+    },
+    cancelButtonText: {
+      color: colors.text,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -209,8 +500,8 @@ export function QuickWarmUpModal({
             {message || 'This will warm up your frozen streak without watching ads. Your streak will continue normally. Continue?'}
           </Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.cancelButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
@@ -226,71 +517,3 @@ export function QuickWarmUpModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    paddingVertical: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.85,
-    width: '100%',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  message: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: Layout.spacing.md,
-  },
-  cancelButton: {
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  cancelButtonText: {
-    color: Colors.text,
-  },
-});
