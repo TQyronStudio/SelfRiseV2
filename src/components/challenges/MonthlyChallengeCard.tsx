@@ -5,6 +5,7 @@ import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from 
 import { StarRatingService } from '../../services/starRatingService';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { HelpTooltip } from '../common';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MonthlyChallengeCardProps {
   challenge: MonthlyChallenge;
@@ -21,10 +22,12 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   onPress,
   compact = false
 }) => {
-  const completedRequirements = challenge.requirements.filter(req => 
+  const { colors } = useTheme();
+
+  const completedRequirements = challenge.requirements.filter(req =>
     (progress.progress[req.trackingKey] || 0) >= req.target
   ).length;
-  
+
   const totalRequirements = challenge.requirements.length;
   const overallProgress = totalRequirements > 0 ? (completedRequirements / totalRequirements) * 100 : 0;
   const isCompleted = progress.isCompleted || overallProgress >= 100;
@@ -99,9 +102,171 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
     }
   };
 
+  // Create inline styles with theme colors
+  const styles = StyleSheet.create({
+    card: {
+      borderRadius: 16,
+      marginBottom: 16,
+      backgroundColor: colors.cardBackgroundElevated,
+      overflow: 'hidden',
+      minWidth: screenWidth * 0.85,
+    },
+    completedCard: {
+      opacity: 0.85,
+    },
+    cardBackground: {
+      padding: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      flex: 1,
+      marginRight: 12,
+    },
+    headerRight: {
+      alignItems: 'flex-end',
+      gap: 8,
+    },
+    categoryIcon: {
+      fontSize: 28,
+      marginRight: 12,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 6,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      flexWrap: 'wrap',
+    },
+    category: {
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+    },
+    xpBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    xpText: {
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    completedBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    completedBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    description: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 18,
+      lineHeight: 20,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    footerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    completedText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+
+    // Compact styles
+    compactCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
+      minWidth: screenWidth * 0.8,
+    },
+    compactHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    compactIcon: {
+      fontSize: 20,
+      marginRight: 10,
+    },
+    compactContent: {
+      flex: 1,
+    },
+    compactTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 4,
+    },
+    compactTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    starDifficultyContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    compactMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    compactXP: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    compactProgress: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    compactDays: {
+      fontSize: 11,
+      color: '#EF4444',
+      fontWeight: '500',
+    },
+    compactProgressBar: {
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      overflow: 'hidden',
+      marginBottom: 6,
+    },
+    compactProgressFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+  });
+
   if (compact) {
     return (
-      <Pressable 
+      <Pressable
         style={[styles.compactCard, isCompleted && styles.completedCard]}
         onPress={handlePress}
         android_ripple={{ color: categoryColor + '20' }}
@@ -145,13 +310,13 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
             </View>
           )}
         </View>
-        
+
         <View style={styles.compactProgressBar}>
-          <View 
+          <View
             style={[
-              styles.compactProgressFill, 
+              styles.compactProgressFill,
               { width: `${overallProgress}%`, backgroundColor: categoryColor }
-            ]} 
+            ]}
           />
         </View>
 
@@ -160,7 +325,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   }
 
   return (
-    <Pressable 
+    <Pressable
       style={[styles.card, isCompleted && styles.completedCard]}
       onPress={handlePress}
       android_ripple={{ color: categoryColor + '20' }}
@@ -192,7 +357,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
               </View>
             </View>
           </View>
-          
+
           <View style={styles.headerRight}>
             <View style={[styles.xpBadge, { backgroundColor: starColor + '20' }]}>
               <Text style={[styles.xpText, { color: starColor }]}>
@@ -235,182 +400,5 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    minWidth: screenWidth * 0.85,
-  },
-  completedCard: {
-    opacity: 0.85,
-  },
-  cardBackground: {
-    padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    flex: 1,
-    marginRight: 12,
-  },
-  headerRight: {
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  categoryIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 6,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    flexWrap: 'wrap',
-  },
-  category: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  xpBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  xpText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  completedBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  completedBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  description: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 18,
-    lineHeight: 20,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  completedText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  // Compact styles
-  compactCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    minWidth: screenWidth * 0.8,
-  },
-  compactHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  compactIcon: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-  compactContent: {
-    flex: 1,
-  },
-  compactTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  compactTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
-    flex: 1,
-  },
-  starDifficultyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  compactMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  compactXP: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  compactProgress: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  compactDays: {
-    fontSize: 11,
-    color: '#EF4444',
-    fontWeight: '500',
-  },
-  compactProgressBar: {
-    height: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  compactProgressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-});
 
 export default MonthlyChallengeCard;

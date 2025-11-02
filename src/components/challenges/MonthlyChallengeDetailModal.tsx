@@ -13,6 +13,7 @@ import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from 
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import MonthlyProgressCalendar from './MonthlyProgressCalendar';
 import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MonthlyChallengeDetailModalProps {
   challenge: MonthlyChallenge | null;
@@ -31,6 +32,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   visible,
   onClose
 }) => {
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(initialProgress);
 
@@ -166,9 +168,301 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const totalDays = getTotalDays();
   const isCompleted = progress.isCompleted || progress.completionPercentage >= 100;
 
-  const completedRequirements = displayChallenge.requirements.filter(req => 
+  const completedRequirements = displayChallenge.requirements.filter(req =>
     (progress.progress[req.trackingKey] || 0) >= req.target
   ).length;
+
+  // Create inline styles with theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      paddingTop: 60,
+      paddingBottom: 24,
+      paddingHorizontal: 20,
+    },
+    headerContent: {
+      position: 'relative',
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1,
+    },
+    closeButtonText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    headerMain: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    categoryIcon: {
+      fontSize: 32,
+      marginRight: 16,
+    },
+    headerText: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      marginBottom: 8,
+    },
+    headerMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    category: {
+      fontSize: 14,
+      color: 'rgba(255, 255, 255, 0.9)',
+      fontWeight: '600',
+      letterSpacing: 0.5,
+    },
+    headerBadges: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    xpBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    xpText: {
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    completedBadge: {
+      backgroundColor: 'rgba(34, 197, 94, 0.9)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    completedBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    tabContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tabScrollContent: {
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    tabButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      marginRight: 12,
+      backgroundColor: colors.border,
+    },
+    activeTabButton: {
+      // backgroundColor will be set dynamically
+    },
+    tabButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    activeTabButtonText: {
+      // color will be set dynamically
+    },
+    content: {
+      flex: 1,
+      padding: 20,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      lineHeight: 24,
+    },
+    timeCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+    },
+    timeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 12,
+    },
+    timeItem: {
+      alignItems: 'center',
+    },
+    timeNumber: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    timeLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    timeDetails: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    requirementCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+    },
+    requirementHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    requirementIcon: {
+      width: 24,
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    requirementStatus: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    requirementContent: {
+      flex: 1,
+    },
+    requirementText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginBottom: 4,
+      lineHeight: 22,
+    },
+    completedRequirementText: {
+      color: '#059669',
+      fontWeight: '500',
+    },
+    requirementProgress: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 6,
+    },
+    requirementNumbers: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    requirementPercent: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    requirementProgressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    requirementProgressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    tipsCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+    },
+    tip: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+    tipIcon: {
+      fontSize: 16,
+      marginRight: 12,
+      marginTop: 2,
+    },
+    tipText: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    strategyCard: {
+      backgroundColor: '#F0F9FF',
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: '#BAE6FD',
+    },
+    strategyText: {
+      fontSize: 14,
+      color: '#1E40AF',
+      lineHeight: 20,
+      marginBottom: 8,
+    },
+    strategyHighlight: {
+      fontWeight: '600',
+    },
+    rewardCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2,
+    },
+    rewardIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    rewardIconText: {
+      fontSize: 20,
+    },
+    rewardContent: {
+      flex: 1,
+    },
+    rewardTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    rewardDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 18,
+      marginBottom: 4,
+    },
+    rewardBonus: {
+      fontSize: 12,
+      color: '#F59E0B',
+      fontWeight: '600',
+    },
+  });
 
   const renderTabButton = (tab: TabType, label: string) => (
     <Pressable
@@ -478,416 +772,5 @@ const getMonthlyChallengeTips = (category: AchievementCategory): string[] => {
       ];
   }
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  headerContent: {
-    position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  categoryIcon: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  headerMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  category: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  headerBadges: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  xpBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  xpText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  completedBadge: {
-    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  completedBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  tabContainer: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  tabScrollContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  tabButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 12,
-    backgroundColor: '#F3F4F6',
-  },
-  activeTabButton: {
-    // backgroundColor will be set dynamically
-  },
-  tabButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  activeTabButtonText: {
-    // color will be set dynamically
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 16,
-    color: '#4B5563',
-    lineHeight: 24,
-  },
-  timeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  timeItem: {
-    alignItems: 'center',
-  },
-  timeNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  timeLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  timeDetails: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  progressCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressPercent: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'right',
-    flex: 1,
-    marginLeft: 16,
-  },
-  progressBar: {
-    height: 12,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  progressStat: {
-    alignItems: 'center',
-  },
-  progressStatValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  progressStatLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  milestoneCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  milestoneLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  milestoneMarker: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  milestoneCheck: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  milestoneLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  milestoneDate: {
-    fontSize: 11,
-    color: '#9CA3AF',
-  },
-  requirementCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-  },
-  requirementHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  requirementIcon: {
-    width: 24,
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  requirementStatus: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  requirementContent: {
-    flex: 1,
-  },
-  requirementText: {
-    fontSize: 16,
-    color: '#4B5563',
-    marginBottom: 4,
-    lineHeight: 22,
-  },
-  completedRequirementText: {
-    color: '#059669',
-    fontWeight: '500',
-  },
-  requirementProgress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  requirementNumbers: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  requirementPercent: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  requirementProgressBar: {
-    height: 8,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  requirementProgressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  tipsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  tip: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  tipIcon: {
-    fontSize: 16,
-    marginRight: 12,
-    marginTop: 2,
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#4B5563',
-    lineHeight: 20,
-  },
-  strategyCard: {
-    backgroundColor: '#F0F9FF',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
-  },
-  strategyText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  strategyHighlight: {
-    fontWeight: '600',
-  },
-  rewardCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  rewardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  rewardIconText: {
-    fontSize: 20,
-  },
-  rewardContent: {
-    flex: 1,
-  },
-  rewardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  rewardDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  rewardBonus: {
-    fontSize: 12,
-    color: '#F59E0B',
-    fontWeight: '600',
-  },
-});
 
 export default MonthlyChallengeDetailModal;
