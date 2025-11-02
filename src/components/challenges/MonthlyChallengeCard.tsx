@@ -330,7 +330,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       onPress={handlePress}
       android_ripple={{ color: categoryColor + '20' }}
     >
-      <View style={[styles.cardBackground, { backgroundColor: categoryColor + '08' }]}>
+      <View style={styles.cardBackground}>
         {/* Header with Star Rating */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>

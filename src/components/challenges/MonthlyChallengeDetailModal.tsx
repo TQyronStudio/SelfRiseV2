@@ -408,15 +408,15 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       lineHeight: 20,
     },
     strategyCard: {
-      backgroundColor: '#F0F9FF',
+      backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 12,
       padding: 16,
       borderWidth: 1,
-      borderColor: '#BAE6FD',
+      borderColor: colors.border,
     },
     strategyText: {
       fontSize: 14,
-      color: '#1E40AF',
+      color: colors.textSecondary,
       lineHeight: 20,
       marginBottom: 8,
     },

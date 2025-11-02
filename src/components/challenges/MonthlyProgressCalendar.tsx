@@ -2,13 +2,14 @@
 // Visual calendar showing daily contributions and milestones for monthly challenges
 import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { 
-  MonthlyChallenge, 
-  MonthlyChallengeProgress, 
-  AchievementCategory 
+import {
+  MonthlyChallenge,
+  MonthlyChallengeProgress,
+  AchievementCategory
 } from '../../types/gamification';
 import { addDays, parseDate, formatDateToString } from '../../utils/date';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MonthlyProgressCalendarProps {
   challenge: MonthlyChallenge;
@@ -38,6 +39,8 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   progress,
   compact = false
 }) => {
+  const { colors } = useTheme();
+
   // Load real daily snapshots instead of using fake weekly estimates
   const [dailySnapshots, setDailySnapshots] = useState<Record<string, any>>({});
   const [isLoadingSnapshots, setIsLoadingSnapshots] = useState(true);
@@ -263,12 +266,223 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     return styles.defaultDayText;
   };
 
+  // Create dynamic styles inside component with theme colors
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginVertical: 8,
+    },
+    header: {
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    legend: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 16,
+      gap: 12,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    legendColor: {
+      width: 12,
+      height: 12,
+      borderRadius: 2,
+    },
+    legendText: {
+      fontSize: 11,
+      color: colors.textSecondary,
+    },
+    calendar: {
+      marginBottom: 16,
+    },
+    weekHeader: {
+      flexDirection: 'row',
+      paddingLeft: 24,
+      marginBottom: 8,
+    },
+    weekHeaderText: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    week: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    weekNumber: {
+      width: 20,
+      fontSize: 10,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    weekDays: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: 2,
+    },
+    day: {
+      flex: 1,
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 6,
+      position: 'relative',
+      minHeight: 32,
+    },
+    emptyDay: {
+      backgroundColor: 'transparent',
+    },
+    noActivityDay: {
+      backgroundColor: colors.border,
+    },
+    lowActivityDay: {
+      backgroundColor: colors.border, // Will be overridden with category color + alpha
+    },
+    mediumActivityDay: {
+      backgroundColor: colors.border, // Will be overridden with category color + alpha
+    },
+    highActivityDay: {
+      backgroundColor: colors.border, // Will be overridden with category color
+    },
+    todayDay: {
+      borderWidth: 2,
+      borderColor: '#3B82F6',
+    },
+    futureDay: {
+      backgroundColor: colors.border,
+      opacity: 0.5,
+    },
+    milestoneDay: {
+      borderWidth: 2,
+      // borderColor will be set dynamically
+    },
+    defaultDayText: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    activeDayText: {
+      fontSize: 11,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
+    todayDayText: {
+      fontSize: 11,
+      color: '#3B82F6',
+      fontWeight: 'bold',
+    },
+    futureDayText: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    milestoneIndicator: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 16,
+      height: 14,
+      borderRadius: 7,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 2,
+    },
+    milestoneText: {
+      fontSize: 8,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
+    perfectDayBadge: {
+      position: 'absolute',
+      bottom: -4,
+      right: -2,
+    },
+    perfectDayText: {
+      fontSize: 10,
+      color: '#F59E0B',
+    },
+    weeklySummary: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 12,
+    },
+    weeklySummaryTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    weekSummaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    weekSummaryLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    weekSummaryStats: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    weekSummaryText: {
+      fontSize: 11,
+      color: colors.textSecondary,
+    },
+    weekSummaryPercent: {
+      fontSize: 12,
+      color: colors.text,
+      fontWeight: '600',
+      minWidth: 32,
+      textAlign: 'right',
+    },
+
+    // Compact styles
+    compactContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: 12,
+      marginVertical: 4,
+    },
+    compactTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    compactCalendar: {
+      gap: 3,
+      paddingHorizontal: 2,
+    },
+  });
+
   if (compact) {
     return (
       <View style={styles.compactContainer}>
         <Text style={styles.compactTitle}>Daily Progress</Text>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.compactCalendar}
         >
@@ -292,9 +506,9 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>Monthly Progress Calendar</Text>
         <Text style={styles.subtitle}>
-          {new Date(challenge.startDate).toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
+          {new Date(challenge.startDate).toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
           })}
         </Text>
       </View>
@@ -339,7 +553,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
                   <View key={`empty-${i}`} style={[styles.day, styles.emptyDay]} />
                 ))
               )}
-              
+
               {week.map((day, dayIndex) => (
                 <View key={day.date} style={getDayStyle(day)}>
                   <Text style={getDayTextStyle(day)}>{day.dayNumber}</Text>
@@ -368,23 +582,23 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
           const perfectDays = week.filter(day => day.isPerfectDay).length;
           const goodDays = week.filter(day => day.isGoodProgress).length;
           const someDays = week.filter(day => day.adaptiveIntensity === 'some').length;
-          
+
           // Calculate intelligent weekly target based on month structure
           const startDate = parseDate(challenge.startDate);
           const endDate = parseDate(challenge.endDate);
           const monthTotalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
           const weekDays = week.length;
-          
+
           // Calculate combined monthly target from all requirements
           const monthlyTarget = challenge.requirements.reduce((total, req) => total + req.target, 0);
           const weeklyTarget = (monthlyTarget * weekDays) / monthTotalDays;
-          
+
           // Sum actual contributions for the week
           const weekActualProgress = week.reduce((sum, day) => {
             const dailyContributions = day.contributions || {};
             return sum + Object.values(dailyContributions).reduce((a, b) => a + b, 0);
           }, 0);
-          
+
           // Calculate true completion percentage (can exceed 100%)
           const weekProgress = Math.round((weekActualProgress / weeklyTarget) * 100);
 
@@ -415,220 +629,5 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  legend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16,
-    gap: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 2,
-  },
-  legendText: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  calendar: {
-    marginBottom: 16,
-  },
-  weekHeader: {
-    flexDirection: 'row',
-    paddingLeft: 24,
-    marginBottom: 8,
-  },
-  weekHeaderText: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  week: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  weekNumber: {
-    width: 20,
-    fontSize: 10,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  weekDays: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 2,
-  },
-  day: {
-    flex: 1,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 6,
-    position: 'relative',
-    minHeight: 32,
-  },
-  emptyDay: {
-    backgroundColor: 'transparent',
-  },
-  noActivityDay: {
-    backgroundColor: '#F3F4F6',
-  },
-  lowActivityDay: {
-    backgroundColor: '#E5E7EB', // Will be overridden with category color + alpha
-  },
-  mediumActivityDay: {
-    backgroundColor: '#D1D5DB', // Will be overridden with category color + alpha
-  },
-  highActivityDay: {
-    backgroundColor: '#6B7280', // Will be overridden with category color
-  },
-  todayDay: {
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-  },
-  futureDay: {
-    backgroundColor: '#F9FAFB',
-    opacity: 0.5,
-  },
-  milestoneDay: {
-    borderWidth: 2,
-    // borderColor will be set dynamically
-  },
-  defaultDayText: {
-    fontSize: 11,
-    color: '#4B5563',
-    fontWeight: '500',
-  },
-  activeDayText: {
-    fontSize: 11,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  todayDayText: {
-    fontSize: 11,
-    color: '#3B82F6',
-    fontWeight: 'bold',
-  },
-  futureDayText: {
-    fontSize: 11,
-    color: '#D1D5DB',
-    fontWeight: '500',
-  },
-  milestoneIndicator: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    minWidth: 16,
-    height: 14,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  milestoneText: {
-    fontSize: 8,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  perfectDayBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -2,
-  },
-  perfectDayText: {
-    fontSize: 10,
-    color: '#F59E0B',
-  },
-  weeklySummary: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 12,
-  },
-  weeklySummaryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  weekSummaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  weekSummaryLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  weekSummaryStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  weekSummaryText: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  weekSummaryPercent: {
-    fontSize: 12,
-    color: '#1F2937',
-    fontWeight: '600',
-    minWidth: 32,
-    textAlign: 'right',
-  },
-
-  // Compact styles
-  compactContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    marginVertical: 4,
-  },
-  compactTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  compactCalendar: {
-    gap: 3,
-    paddingHorizontal: 2,
-  },
-});
 
 export default MonthlyProgressCalendar;
