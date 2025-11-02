@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  View, 
-  StyleSheet, 
-  Animated 
+import {
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HabitCompletionButtonProps {
   isCompleted: boolean;
@@ -23,26 +23,49 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
   disabled = false,
   size = 'medium',
 }) => {
+  const { colors } = useTheme();
+
   const sizeConfig = {
     small: { button: 24, icon: 14, circle: 10 },
     medium: { button: 28, icon: 18, circle: 12 },
     large: { button: 36, icon: 22, circle: 16 },
   };
-  
+
   const config = sizeConfig[size];
-  
+
   const buttonStyle = {
     width: config.button,
     height: config.button,
     borderRadius: config.button / 2,
   };
-  
+
   const circleStyle = {
     width: config.circle,
     height: config.circle,
     borderRadius: config.circle / 2,
   };
-  
+
+  const styles = StyleSheet.create({
+    completionButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    completionButtonCompleted: {
+      backgroundColor: colors.success,
+      borderColor: colors.success,
+    },
+    completionButtonAnimating: {
+      opacity: 0.5,
+      transform: [{ scale: 0.9 }],
+    },
+    completionCircle: {
+      backgroundColor: colors.border,
+    },
+  });
+
   return (
     <TouchableOpacity
       style={[
@@ -56,10 +79,10 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
       activeOpacity={0.7}
     >
       {isCompleted ? (
-        <Ionicons 
-          name="checkmark" 
-          size={config.icon} 
-          color="white" 
+        <Ionicons
+          name="checkmark"
+          size={config.icon}
+          color="white"
         />
       ) : (
         <View style={[styles.completionCircle, circleStyle]} />
@@ -67,24 +90,3 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  completionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: 'white',
-  },
-  completionButtonCompleted: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
-  },
-  completionButtonAnimating: {
-    opacity: 0.5,
-    transform: [{ scale: 0.9 }],
-  },
-  completionCircle: {
-    backgroundColor: Colors.border,
-  },
-});

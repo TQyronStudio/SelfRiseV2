@@ -2,7 +2,7 @@
 
 **Created:** 2025-11-02
 **Status:** In Progress
-**Completion:** 49/150+ components (33%)
+**Completion:** 58/150+ components (39%)
 
 ---
 
@@ -82,16 +82,16 @@
 - [x] src/components/habits/DailyHabitTracker.tsx (added useTheme, tracker cards)
 - [x] src/components/habits/DailyHabitProgress.tsx (added useTheme, progress cards)
 
-#### Habit UI Components (Dávka 3/3) - TODO
-- [ ] src/components/habits/HabitCompletionButton.tsx
-- [ ] src/components/habits/DailyProgressBar.tsx
-- [ ] src/components/habits/BonusCompletionIndicator.tsx
-- [ ] src/components/habits/CompletionAnimation.tsx
-- [ ] src/components/habits/HabitCalendarView.tsx
-- [ ] src/components/habits/HabitStatsAccordionItem.tsx
-- [ ] src/components/habits/ColorPicker.tsx
-- [ ] src/components/habits/IconPicker.tsx
-- [ ] src/components/habits/DayPicker.tsx
+#### Habit UI Components (Dávka 3/3) ✅ COMPLETED - PRIORITY 2 DONE!
+- [x] src/components/habits/HabitCompletionButton.tsx (completion button themed)
+- [x] src/components/habits/DailyProgressBar.tsx (progress bars themed)
+- [x] src/components/habits/BonusCompletionIndicator.tsx (bonus badges themed)
+- [x] src/components/habits/CompletionAnimation.tsx (animations - removed shadows)
+- [x] src/components/habits/HabitCalendarView.tsx (calendar full dark theme)
+- [x] src/components/habits/HabitStatsAccordionItem.tsx (stats accordion themed)
+- [x] src/components/habits/ColorPicker.tsx (color grid preserved)
+- [x] src/components/habits/IconPicker.tsx (icon picker themed)
+- [x] src/components/habits/DayPicker.tsx (day picker themed)
 
 ### **PRIORITY 3: Journal/Gratitude Screen & Components** (~10 files)
 

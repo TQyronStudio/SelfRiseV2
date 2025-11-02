@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HabitIcon } from '../../types/common';
 import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface IconPickerProps {
   selectedIcon: HabitIcon;
@@ -27,6 +28,32 @@ const ICON_MAP = {
 } as const;
 
 export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginVertical: 16,
+    },
+    iconOption: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    selectedIcon: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {Object.entries(ICON_MAP).map(([icon, iconName]) => (
@@ -42,34 +69,10 @@ export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
           <Ionicons
             name={iconName as any}
             size={24}
-            color={selectedIcon === icon ? Colors.textInverse : Colors.textSecondary}
+            color={selectedIcon === icon ? Colors.textInverse : colors.textSecondary}
           />
         </TouchableOpacity>
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginVertical: 16,
-  },
-  iconOption: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  selectedIcon: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-});

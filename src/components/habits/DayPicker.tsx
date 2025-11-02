@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { DayOfWeek } from '../../types/common';
 import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DayPickerProps {
   selectedDays: DayOfWeek[];
@@ -20,6 +21,38 @@ const DAYS = [
 ];
 
 export function DayPicker({ selectedDays, onDayToggle }: DayPickerProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginVertical: 16,
+    },
+    dayOption: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    selectedDay: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    dayLabel: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    selectedDayLabel: {
+      color: Colors.textInverse,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {DAYS.map(({ key, label }) => {
@@ -48,33 +81,3 @@ export function DayPicker({ selectedDays, onDayToggle }: DayPickerProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 16,
-  },
-  dayOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  selectedDay: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  dayLabel: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  selectedDayLabel: {
-    color: Colors.textInverse,
-  },
-});

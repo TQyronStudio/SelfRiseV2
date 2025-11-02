@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DailyProgressBarProps {
   completed: number;
@@ -17,17 +17,18 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   total,
   showPercentage = true,
   height = 8,
-  color = Colors.primary,
-  backgroundColor = Colors.border,
+  color,
+  backgroundColor,
   animated = true,
 }) => {
+  const { colors } = useTheme();
   const progressAnim = useRef(new Animated.Value(0)).current;
-  
+
   const percentage = total > 0 ? (completed / total) * 100 : 0;
-  
+
   useEffect(() => {
     let animationRef: Animated.CompositeAnimation | null = null;
-    
+
     if (animated) {
       animationRef = Animated.timing(progressAnim, {
         toValue: percentage,
@@ -47,7 +48,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
     };
   }, [percentage, animated, progressAnim]);
 
-  const animatedWidth = animated 
+  const animatedWidth = animated
     ? progressAnim.interpolate({
         inputRange: [0, 100],
         outputRange: ['0%', '100%'],
@@ -56,17 +57,48 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
     : `${percentage}%`;
 
   const getProgressColor = () => {
-    if (percentage === 100) return Colors.success;
-    if (percentage >= 75) return Colors.primary;
-    if (percentage >= 50) return Colors.warning;
-    return Colors.error;
+    if (percentage === 100) return colors.success;
+    if (percentage >= 75) return colors.primary;
+    if (percentage >= 50) return colors.warning;
+    return colors.error;
   };
 
-  const progressColor = color === Colors.primary ? getProgressColor() : color;
+  const progressColor = color || getProgressColor();
+  const bgColor = backgroundColor || colors.border;
+
+  const styles = StyleSheet.create({
+    container: {
+      width: '100%',
+    },
+    progressBar: {
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      borderRadius: 4,
+      minWidth: 2, // Ensure some visual feedback even for very small progress
+    },
+    textContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    progressText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    percentageText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+  });
 
   return (
     <View style={styles.container}>
-      <View style={[styles.progressBar, { height, backgroundColor }]}>
+      <View style={[styles.progressBar, { height, backgroundColor: bgColor }]}>
         <Animated.View
           style={[
             styles.progressFill,
@@ -78,7 +110,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
           ]}
         />
       </View>
-      
+
       {showPercentage && (
         <View style={styles.textContainer}>
           <Text style={[styles.progressText, { color: progressColor }]}>
@@ -92,31 +124,3 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  progressBar: {
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    borderRadius: 4,
-    minWidth: 2, // Ensure some visual feedback even for very small progress
-  },
-  textContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  percentageText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});

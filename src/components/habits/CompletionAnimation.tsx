@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface CompletionAnimationProps {
   isVisible: boolean;
@@ -14,11 +14,14 @@ export const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
   isVisible,
   onAnimationComplete,
   size = 60,
-  color = Colors.success,
+  color,
 }) => {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  const animationColor = color || colors.success;
 
   useEffect(() => {
     if (isVisible) {
@@ -75,6 +78,29 @@ export const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
     outputRange: ['0deg', '360deg'],
   });
 
+  const styles = StyleSheet.create({
+    container: {
+      position: 'absolute',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    },
+    animationContainer: {
+      width: '100%',
+      height: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconContainer: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      // NO shadows in dark mode (AMOLED-friendly)
+    },
+  });
+
   return (
     <View style={[styles.container, { width: size, height: size }]} pointerEvents="none">
       <Animated.View
@@ -89,40 +115,10 @@ export const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
           },
         ]}
       >
-        <View style={[styles.iconContainer, { backgroundColor: color }]}>
+        <View style={[styles.iconContainer, { backgroundColor: animationColor }]}>
           <Ionicons name="checkmark" size={size * 0.4} color="white" />
         </View>
       </Animated.View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
-  animationContainer: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconContainer: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-});
