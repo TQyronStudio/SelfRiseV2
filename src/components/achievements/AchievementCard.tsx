@@ -174,7 +174,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const styles = StyleSheet.create({
     card: {
       width: 150,
-      height: 120,
+      height: 130, // Increased from 120 to 130 to prevent overlap
       backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 12,
       borderWidth: 2,

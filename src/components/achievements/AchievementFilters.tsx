@@ -71,7 +71,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
     searchContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       margin: 16,
       marginBottom: 8,
       borderRadius: 8,
@@ -104,7 +104,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
       marginBottom: 8,
     },
     filterButton: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: 20,
@@ -126,7 +126,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
     filterChip: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
       paddingHorizontal: 12,
       paddingVertical: 6,
       marginRight: 8,
@@ -159,7 +159,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
     resultsContainer: {
       paddingHorizontal: 16,
       paddingVertical: 8,
-      backgroundColor: colors.background,
+      backgroundColor: colors.cardBackgroundElevated,
     },
     resultsText: {
       fontSize: 12,

@@ -185,7 +185,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     scrollView: {
       flex: 1,
@@ -210,6 +210,8 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       backgroundColor: colors.background,
       justifyContent: 'center',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     modalTitle: {
       fontSize: 18,
@@ -225,6 +227,8 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       backgroundColor: colors.background,
       justifyContent: 'center',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     achievementCard: {
       margin: 16,
