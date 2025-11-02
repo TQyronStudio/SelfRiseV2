@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { Colors, Layout, Fonts } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Layout, Fonts } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 // Note: Using Alert for export since clipboard is not available
 
@@ -21,6 +22,7 @@ interface ExportModalProps {
 
 export default function ExportModal({ visible, onClose }: ExportModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state, actions } = useGratitude();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -137,6 +139,83 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     }
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'flex-end',
+    },
+    modal: {
+      backgroundColor: colors.backgroundSecondary, // Modal background
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '80%',
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: Layout.spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    closeButton: {
+      padding: Layout.spacing.xs,
+    },
+    content: {
+      padding: Layout.spacing.lg,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    exportOptions: {
+      gap: Layout.spacing.md,
+    },
+    exportButton: {
+      backgroundColor: colors.cardBackgroundElevated, // Elevated button
+      borderRadius: 12,
+      padding: Layout.spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    exportButtonDisabled: {
+      opacity: 0.6,
+    },
+    exportButtonContent: {
+      alignItems: 'center',
+    },
+    exportButtonTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: Layout.spacing.sm,
+      marginBottom: Layout.spacing.xs,
+    },
+    exportButtonDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+    loadingContainer: {
+      alignItems: 'center',
+      marginTop: Layout.spacing.lg,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: Layout.spacing.sm,
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -149,15 +228,15 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
           <View style={styles.header}>
             <Text style={styles.title}>Export Journal</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <IconSymbol name="xmark" size={24} color={Colors.textSecondary} />
+              <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.content}>
             <Text style={styles.description}>
               Export your journal entries and statistics. The data will be displayed in a popup for you to copy and save.
             </Text>
-            
+
             <View style={styles.exportOptions}>
               <TouchableOpacity
                 style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
@@ -165,21 +244,21 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                 disabled={isExporting}
               >
                 <View style={styles.exportButtonContent}>
-                  <IconSymbol name="doc.text" size={24} color={Colors.primary} />
+                  <IconSymbol name="doc.text" size={24} color={colors.primary} />
                   <Text style={styles.exportButtonTitle}>Text Format</Text>
                   <Text style={styles.exportButtonDescription}>
                     Human-readable format perfect for sharing and reading
                   </Text>
                 </View>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
                 onPress={() => exportData('json')}
                 disabled={isExporting}
               >
                 <View style={styles.exportButtonContent}>
-                  <IconSymbol name="chevron.left.slash.chevron.right" size={24} color={Colors.primary} />
+                  <IconSymbol name="chevron.left.slash.chevron.right" size={24} color={colors.primary} />
                   <Text style={styles.exportButtonTitle}>JSON Format</Text>
                   <Text style={styles.exportButtonDescription}>
                     Structured data format for backup or technical use
@@ -187,10 +266,10 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                 </View>
               </TouchableOpacity>
             </View>
-            
+
             {isExporting && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Exporting your journal...</Text>
               </View>
             )}
@@ -200,80 +279,3 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Layout.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Layout.spacing.xs,
-  },
-  content: {
-    padding: Layout.spacing.lg,
-  },
-  description: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  exportOptions: {
-    gap: Layout.spacing.md,
-  },
-  exportButton: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  exportButtonDisabled: {
-    opacity: 0.6,
-  },
-  exportButtonContent: {
-    alignItems: 'center',
-  },
-  exportButtonTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: Layout.spacing.sm,
-    marginBottom: Layout.spacing.xs,
-  },
-  exportButtonDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    marginTop: Layout.spacing.lg,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginTop: Layout.spacing.sm,
-  },
-});

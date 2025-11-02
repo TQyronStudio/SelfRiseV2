@@ -8,7 +8,8 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { DateString } from '@/src/types/common';
 import { Gratitude } from '@/src/types/gratitude';
-import { Colors, Layout } from '@/src/constants';
+import { Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
 import EditGratitudeModal from '@/src/components/gratitude/EditGratitudeModal';
@@ -18,6 +19,7 @@ import { today, addDays, subtractDays, formatDateForDisplay, formatDateToString 
 export default function JournalHistoryScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const { colors } = useTheme();
   const { state, actions } = useGratitude();
   const [selectedDate, setSelectedDate] = useState<DateString>(today());
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,19 +93,19 @@ export default function JournalHistoryScreen() {
 
   const confirmDelete = async () => {
     if (!deletingGratitude) return;
-    
+
     try {
       await actions.deleteGratitude(deletingGratitude.id);
-      
+
       // Force refresh to ensure all screens have latest data
       await actions.forceRefresh();
-      
+
       // If searching, refresh search results
       if (isSearching) {
         performSearch();
       }
       // Note: useEffect will handle refreshing gratitudes list for regular view
-      
+
       setDeletingGratitude(null);
     } catch (error) {
       Alert.alert('Error', 'Failed to delete journal entry');
@@ -113,7 +115,7 @@ export default function JournalHistoryScreen() {
   const handleEditSuccess = async () => {
     // Force refresh to ensure all screens have latest data
     await actions.forceRefresh();
-    
+
     // If searching, refresh search results
     if (isSearching) {
       performSearch();
@@ -121,6 +123,123 @@ export default function JournalHistoryScreen() {
     // Note: useEffect will handle refreshing gratitudes list for regular view
     setEditingGratitude(null);
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+      backgroundColor: colors.primary,
+    },
+    backButton: {
+      padding: Layout.spacing.xs,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      textAlign: 'center',
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    searchContainer: {
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 10,
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      gap: Layout.spacing.sm,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+    },
+    dateNavigation: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    dateButton: {
+      padding: Layout.spacing.sm,
+      borderRadius: 8,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    dateButtonDisabled: {
+      opacity: 0.5,
+    },
+    dateDisplay: {
+      flex: 1,
+      alignItems: 'center',
+      gap: Layout.spacing.xs,
+    },
+    dateText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    todayButton: {
+      paddingHorizontal: Layout.spacing.sm,
+      paddingVertical: Layout.spacing.xs,
+      backgroundColor: colors.primary,
+      borderRadius: 6,
+    },
+    todayButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    searchHeader: {
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+    },
+    searchResultsText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    content: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    contentContainer: {
+      flexGrow: 1,
+    },
+    emptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+      paddingTop: Layout.spacing.xl,
+    },
+    emptyStateText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+  });
 
   return (
     <>
@@ -136,7 +255,7 @@ export default function JournalHistoryScreen() {
         {/* Custom Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color={Colors.textInverse} />
+            <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Journal History</Text>
           <View style={styles.headerSpacer} />
@@ -145,17 +264,17 @@ export default function JournalHistoryScreen() {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <IconSymbol name="magnifyingglass" size={20} color={Colors.textSecondary} />
+          <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search journal entries..."
             value={searchTerm}
             onChangeText={setSearchTerm}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
           />
           {searchTerm.length > 0 && (
             <TouchableOpacity onPress={() => setSearchTerm('')}>
-              <IconSymbol name="xmark.circle.fill" size={20} color={Colors.textSecondary} />
+              <IconSymbol name="xmark.circle.fill" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -165,9 +284,9 @@ export default function JournalHistoryScreen() {
       {!isSearching && (
         <View style={styles.dateNavigation}>
           <TouchableOpacity onPress={() => navigateDate('prev')} style={styles.dateButton}>
-            <IconSymbol name="chevron.left" size={20} color={Colors.primary} />
+            <IconSymbol name="chevron.left" size={20} color={colors.primary} />
           </TouchableOpacity>
-          
+
           <View style={styles.dateDisplay}>
             <Text style={styles.dateText}>{formatDateForDisplayLocal(selectedDate)}</Text>
             {!isToday && (
@@ -176,16 +295,16 @@ export default function JournalHistoryScreen() {
               </TouchableOpacity>
             )}
           </View>
-          
-          <TouchableOpacity 
-            onPress={() => navigateDate('next')} 
+
+          <TouchableOpacity
+            onPress={() => navigateDate('next')}
             style={[styles.dateButton, selectedDate >= today() && styles.dateButtonDisabled]}
             disabled={selectedDate >= today()}
           >
-            <IconSymbol 
-              name="chevron.right" 
-              size={20} 
-              color={selectedDate >= today() ? Colors.textSecondary : Colors.primary} 
+            <IconSymbol
+              name="chevron.right"
+              size={20}
+              color={selectedDate >= today() ? colors.textSecondary : colors.primary}
             />
           </TouchableOpacity>
         </View>
@@ -246,120 +365,3 @@ export default function JournalHistoryScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.primary,
-  },
-  backButton: {
-    padding: Layout.spacing.xs,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textInverse,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  searchContainer: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 10,
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    gap: Layout.spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  dateNavigation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  dateButton: {
-    padding: Layout.spacing.sm,
-    borderRadius: 8,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  dateButtonDisabled: {
-    opacity: 0.5,
-  },
-  dateDisplay: {
-    flex: 1,
-    alignItems: 'center',
-    gap: Layout.spacing.xs,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  todayButton: {
-    paddingHorizontal: Layout.spacing.sm,
-    paddingVertical: Layout.spacing.xs,
-    backgroundColor: Colors.primary,
-    borderRadius: 6,
-  },
-  todayButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  searchHeader: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-  },
-  searchResultsText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    flexGrow: 1,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-    paddingTop: Layout.spacing.xl,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});

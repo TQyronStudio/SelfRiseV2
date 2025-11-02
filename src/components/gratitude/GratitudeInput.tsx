@@ -9,7 +9,8 @@ import {
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 // useEnhancedGamification removed - XP handled by gratitudeStorage
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { today } from '@/src/utils/date';
 import { ErrorModal } from '@/src/components/common';
 import { getGratitudeStorageImpl } from '@/src/config/featureFlags';
@@ -58,6 +59,7 @@ const SELF_PRAISE_PLACEHOLDERS = [
 
 export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude', router }: GratitudeInputProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { actions } = useGratitude();
   // addXP removed - XP handled by gratitudeStorage
   const [gratitudeText, setGratitudeText] = useState('');
@@ -138,6 +140,80 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    textInput: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      minHeight: 80,
+      textAlignVertical: 'top',
+      paddingVertical: Layout.spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginBottom: Layout.spacing.sm,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    characterCount: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: Layout.spacing.lg,
+      paddingVertical: Layout.spacing.sm,
+      borderRadius: 8,
+    },
+    submitButtonSelfPraise: {
+      backgroundColor: colors.success,
+    },
+    submitButtonDisabled: {
+      backgroundColor: colors.gray,
+    },
+    submitButtonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+    },
+    submitButtonTextDisabled: {
+      color: colors.textSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    headerTitle: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    closeButton: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.gray,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      fontSize: 18,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      lineHeight: 18,
+    },
+  });
+
   return (
     <View style={styles.container}>
       {/* Header s křížkem pro zavření */}
@@ -158,7 +234,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       <TextInput
         style={styles.textInput}
         placeholder={isBonus ? `${currentPlaceholder} (optional)` : currentPlaceholder}
-        placeholderTextColor={Colors.textSecondary}
+        placeholderTextColor={colors.textSecondary}
         value={gratitudeText}
         onChangeText={setGratitudeText}
         multiline
@@ -190,7 +266,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
           </Text>
         </TouchableOpacity>
       </View>
-      
+
       <ErrorModal
         visible={showError}
         onClose={() => setShowError(false)}
@@ -199,85 +275,3 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  textInput: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    paddingVertical: Layout.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    marginBottom: Layout.spacing.sm,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  characterCount: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Layout.spacing.lg,
-    paddingVertical: Layout.spacing.sm,
-    borderRadius: 8,
-  },
-  submitButtonSelfPraise: {
-    backgroundColor: Colors.success,
-  },
-  submitButtonDisabled: {
-    backgroundColor: Colors.gray,
-  },
-  submitButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-  submitButtonTextDisabled: {
-    color: Colors.textSecondary,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  headerTitle: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  closeButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.gray,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 18,
-    color: Colors.white,
-    fontWeight: 'bold',
-    lineHeight: 18,
-  },
-});

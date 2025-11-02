@@ -10,7 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { Fonts, Layout } from '@/src/constants';
 import { useXpFeedback } from '../../hooks/useXpFeedback';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -50,11 +51,12 @@ export default function CelebrationModal({
   disableXpAnimations = false,
 }: CelebrationModalProps) {
   const { t } = useI18n();
-  
+  const { colors } = useTheme();
+
   // Conditionally use XP feedback hooks only if not disabled
   let triggerHapticFeedback: ((type: 'light' | 'medium' | 'heavy') => Promise<void>) | undefined;
   let playSoundEffect: ((type: 'xp_gain' | 'level_up' | 'milestone') => Promise<void>) | undefined;
-  
+
   if (!disableXpAnimations) {
     const xpFeedback = useXpFeedback();
     triggerHapticFeedback = xpFeedback.triggerHapticFeedback;
@@ -231,7 +233,7 @@ export default function CelebrationModal({
         }
         return t('journal.celebration.bonus_milestone_modal', { count: bonusCount || 0 }) || `${bonusCount || 0} bonus entries celebration`;
       case 'level_up':
-        return t('gamification.celebration.level_up_modal', { 
+        return t('gamification.celebration.level_up_modal', {
           level: levelUpData?.newLevel,
           isMilestone: levelUpData?.isMilestone
         }) || `Level ${levelUpData?.newLevel} achievement${levelUpData?.isMilestone ? ' milestone' : ''} celebration`;
@@ -239,6 +241,240 @@ export default function CelebrationModal({
         return t('common.celebration.modal') || 'Achievement celebration';
     }
   })();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.backgroundSecondary, // Modal background
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+      // Removed all shadows for AMOLED-friendly design
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    message: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+    streakBadge: {
+      backgroundColor: colors.primary, // Keep vibrant primary color
+      borderRadius: 50,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.lg,
+    },
+    streakNumber: {
+      fontSize: Fonts.sizes.xxl || 32,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    streakLabel: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      letterSpacing: 1,
+    },
+    button: {
+      backgroundColor: colors.primary, // Keep vibrant primary color
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 120,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    // Level-up specific styles
+    levelUpContainer: {
+      alignItems: 'center',
+      marginBottom: Layout.spacing.lg,
+    },
+    milestoneBadge: {
+      backgroundColor: '#FFD700', // Keep vibrant gold for milestone
+      // Removed shadows
+    },
+    levelTitle: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.primary,
+      textAlign: 'center',
+      marginTop: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    rewardsContainer: {
+      backgroundColor: colors.cardBackgroundElevated, // Elevated card
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      marginTop: Layout.spacing.sm,
+      width: '100%',
+    },
+    rewardsTitle: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+      textAlign: 'center',
+    },
+    rewardItem: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginBottom: 2,
+    },
+    // XP Badge styles
+    xpBadge: {
+      backgroundColor: colors.success, // Keep vibrant success color
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.sm,
+      paddingHorizontal: Layout.spacing.md,
+      alignItems: 'center',
+      marginTop: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+      // Removed shadows
+    },
+    xpLabel: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      marginBottom: 2,
+    },
+    xpAmount: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+
+    // EPIC CROWN CELEBRATION STYLES FOR 10TH BONUS (bonusCount === 10)
+    epicModal: {
+      backgroundColor: colors.backgroundSecondary, // Modal background
+      borderRadius: 24, // More rounded for premium feel
+      paddingVertical: Layout.spacing.xl * 1.5,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.9, // Slightly wider for epic impact
+      width: '100%',
+      borderWidth: 3,
+      borderColor: '#FFD700', // Keep royal golden border
+      // Removed shadows
+    },
+
+    epicEmoji: {
+      fontSize: 80, // Larger crown emoji for epic celebration
+      marginBottom: Layout.spacing.lg,
+      textShadowColor: '#FFD700',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 8,
+    },
+
+    epicTitle: {
+      fontSize: Fonts.sizes.xxl || 28,
+      fontWeight: 'bold',
+      color: '#B8860B', // Keep darker gold for readability
+      textAlign: 'center',
+      marginBottom: Layout.spacing.md,
+      textShadowColor: 'rgba(255, 215, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
+    },
+
+    epicMessage: {
+      fontSize: Fonts.sizes.lg,
+      color: '#DAA520', // Keep royal gold text
+      textAlign: 'center',
+      lineHeight: 26,
+      marginBottom: Layout.spacing.xl,
+      fontWeight: '600',
+    },
+
+    epicBadge: {
+      backgroundColor: '#FFD700', // Keep pure gold background
+      borderRadius: 60,
+      paddingVertical: Layout.spacing.lg,
+      paddingHorizontal: Layout.spacing.xl,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.xl,
+      borderWidth: 2,
+      borderColor: '#FFA500', // Keep orange gold border
+      // Removed shadows
+    },
+
+    epicBadgeNumber: {
+      fontSize: 42, // Larger number for epic badge
+      fontWeight: 'bold',
+      color: '#8B4513', // Keep dark brown for contrast on gold
+      textShadowColor: 'rgba(255, 255, 255, 0.8)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 1,
+    },
+
+    epicBadgeLabel: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: '#8B4513', // Keep dark brown for contrast on gold
+      letterSpacing: 2,
+      textShadowColor: 'rgba(255, 255, 255, 0.6)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 1,
+    },
+
+    epicXpBadge: {
+      backgroundColor: '#FFD700', // Keep royal gold XP badge
+      borderRadius: 16,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      marginTop: Layout.spacing.md,
+      marginBottom: Layout.spacing.lg,
+      borderWidth: 2,
+      borderColor: '#FFA500',
+      // Removed shadows
+    },
+
+    epicXpLabel: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: '#8B4513', // Keep dark brown for contrast
+      marginBottom: 4,
+      textShadowColor: 'rgba(255, 255, 255, 0.6)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 1,
+    },
+
+    epicXpAmount: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: '#8B4513', // Keep dark brown for contrast
+      textShadowColor: 'rgba(255, 255, 255, 0.8)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 1,
+    },
+  });
 
   return (
     <Modal
@@ -469,279 +705,3 @@ export default function CelebrationModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    paddingVertical: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.85,
-    width: '100%',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  message: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  streakBadge: {
-    backgroundColor: Colors.primary,
-    borderRadius: 50,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
-  },
-  streakNumber: {
-    fontSize: Fonts.sizes.xxl || 32,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  streakLabel: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.white,
-    letterSpacing: 1,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  // Level-up specific styles
-  levelUpContainer: {
-    alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
-  },
-  milestoneBadge: {
-    backgroundColor: '#FFD700', // Gold color for milestone levels
-    shadowColor: '#FFD700',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  levelTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    textAlign: 'center',
-    marginTop: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-  },
-  rewardsContainer: {
-    backgroundColor: Colors.background || '#F8F9FA',
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    marginTop: Layout.spacing.sm,
-    width: '100%',
-  },
-  rewardsTitle: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-    textAlign: 'center',
-  },
-  rewardItem: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 2,
-  },
-  // XP Badge styles
-  xpBadge: {
-    backgroundColor: '#4CAF50', // Green background for XP
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.sm,
-    paddingHorizontal: Layout.spacing.md,
-    alignItems: 'center',
-    marginTop: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: '#4CAF50',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  xpLabel: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.white,
-    marginBottom: 2,
-  },
-  xpAmount: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  // 🎉 EPIC CROWN CELEBRATION STYLES FOR 10TH BONUS (bonusCount === 10) 🎉
-  epicModal: {
-    backgroundColor: Colors.white,
-    borderRadius: 24, // More rounded for premium feel
-    paddingVertical: Layout.spacing.xl * 1.5,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.9, // Slightly wider for epic impact
-    width: '100%',
-    borderWidth: 3,
-    borderColor: '#FFD700', // Royal golden border
-    shadowColor: '#FFD700', // Golden shadow
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 20, // Enhanced elevation for premium feel
-  },
-  
-  epicEmoji: {
-    fontSize: 80, // Larger crown emoji for epic celebration
-    marginBottom: Layout.spacing.lg,
-    textShadowColor: '#FFD700',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  
-  epicTitle: {
-    fontSize: Fonts.sizes.xxl || 28,
-    fontWeight: 'bold',
-    color: '#B8860B', // Darker gold for readability
-    textAlign: 'center',
-    marginBottom: Layout.spacing.md,
-    textShadowColor: 'rgba(255, 215, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  
-  epicMessage: {
-    fontSize: Fonts.sizes.lg,
-    color: '#DAA520', // Royal gold text
-    textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: Layout.spacing.xl,
-    fontWeight: '600',
-  },
-  
-  epicBadge: {
-    backgroundColor: '#FFD700', // Pure gold background
-    borderRadius: 60,
-    paddingVertical: Layout.spacing.lg,
-    paddingHorizontal: Layout.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.xl,
-    borderWidth: 2,
-    borderColor: '#FFA500', // Orange gold border
-    shadowColor: '#FFD700',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  
-  epicBadgeNumber: {
-    fontSize: 42, // Larger number for epic badge
-    fontWeight: 'bold',
-    color: '#8B4513', // Dark brown for contrast on gold
-    textShadowColor: 'rgba(255, 255, 255, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-  
-  epicBadgeLabel: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: '#8B4513', // Dark brown for contrast on gold
-    letterSpacing: 2,
-    textShadowColor: 'rgba(255, 255, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-  
-  epicXpBadge: {
-    backgroundColor: '#FFD700', // Royal gold XP badge
-    borderRadius: 16,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    marginTop: Layout.spacing.md,
-    marginBottom: Layout.spacing.lg,
-    borderWidth: 2,
-    borderColor: '#FFA500',
-    shadowColor: '#FFD700',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  
-  epicXpLabel: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: '#8B4513', // Dark brown for contrast
-    marginBottom: 4,
-    textShadowColor: 'rgba(255, 255, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-  
-  epicXpAmount: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: '#8B4513', // Dark brown for contrast
-    textShadowColor: 'rgba(255, 255, 255, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-});

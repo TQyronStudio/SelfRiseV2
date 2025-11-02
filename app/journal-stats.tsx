@@ -7,7 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { GratitudeStats } from '@/src/types/gratitude';
-import { Colors, Layout } from '@/src/constants';
+import { Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import StatisticsCard from '@/src/components/gratitude/StatisticsCard';
 import ExportModal from '@/src/components/gratitude/ExportModal';
@@ -15,6 +16,7 @@ import ExportModal from '@/src/components/gratitude/ExportModal';
 export default function JournalStatsScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const { colors } = useTheme();
   const { state, actions } = useGratitude();
   const [stats, setStats] = useState<GratitudeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +86,111 @@ export default function JournalStatsScreen() {
     return stats.totalDays > 0 ? 1 : 0;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+      backgroundColor: colors.primary,
+    },
+    backButton: {
+      padding: Layout.spacing.xs,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      textAlign: 'center',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      gap: Layout.spacing.xs,
+    },
+    headerButton: {
+      padding: Layout.spacing.xs,
+    },
+    content: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    contentContainer: {
+      flexGrow: 1,
+    },
+    statsGrid: {
+      padding: Layout.spacing.md,
+    },
+    breakdownCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    breakdownTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: Layout.spacing.md,
+    },
+    breakdownContent: {
+      gap: Layout.spacing.sm,
+    },
+    breakdownItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    breakdownLabel: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    breakdownValue: {
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    motivationCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.lg,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    motivationIcon: {
+      fontSize: 32,
+      marginBottom: Layout.spacing.sm,
+    },
+    motivationTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    motivationText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  });
+
   return (
     <>
       <Stack.Screen 
@@ -98,15 +205,15 @@ export default function JournalStatsScreen() {
         {/* Custom Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color={Colors.textInverse} />
+            <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Journal Statistics</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={() => setShowExportModal(true)} style={styles.headerButton}>
-              <IconSymbol name="square.and.arrow.up" size={20} color={Colors.textInverse} />
+              <IconSymbol name="square.and.arrow.up" size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={loadStats} style={styles.headerButton}>
-              <IconSymbol name="arrow.clockwise" size={20} color={Colors.textInverse} />
+              <IconSymbol name="arrow.clockwise" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -124,7 +231,7 @@ export default function JournalStatsScreen() {
             value={stats?.totalGratitudes || 0}
             subtitle="All time"
             icon="📝"
-            color={Colors.primary}
+            color={colors.primary}
           />
 
           {/* Active Days */}
@@ -133,7 +240,7 @@ export default function JournalStatsScreen() {
             value={stats?.totalDays || 0}
             subtitle={`${stats?.totalDays === 1 ? 'day' : 'days'} with entries`}
             icon="📅"
-            color={Colors.success}
+            color={colors.success}
           />
 
           {/* Current Streak */}
@@ -142,7 +249,7 @@ export default function JournalStatsScreen() {
             value={`${state.streakInfo?.currentStreak || 0} days`}
             subtitle={getStreakDescription()}
             icon="🔥"
-            color={Colors.habitOrange}
+            color={colors.habitOrange}
           />
 
           {/* Average Per Day */}
@@ -151,7 +258,7 @@ export default function JournalStatsScreen() {
             value={stats?.averagePerDay ? stats.averagePerDay.toFixed(1) : '0.0'}
             subtitle="entries per active day"
             icon="📊"
-            color={Colors.secondary || Colors.primary}
+            color={colors.secondary || colors.primary}
           />
 
           {/* Milestone Badges */}
@@ -160,7 +267,7 @@ export default function JournalStatsScreen() {
             value={getBadgeTotal()}
             subtitle={`⭐ ${state.streakInfo?.starCount || 0} • 🔥 ${state.streakInfo?.flameCount || 0} • 👑 ${state.streakInfo?.crownCount || 0}`}
             icon="🏆"
-            color={Colors.gold || '#FFD700'}
+            color={colors.gold || '#FFD700'}
           />
 
           {/* Gratitude vs Self-Praise Breakdown */}
@@ -169,13 +276,13 @@ export default function JournalStatsScreen() {
             <View style={styles.breakdownContent}>
               <View style={styles.breakdownItem}>
                 <Text style={styles.breakdownLabel}>🙏 Gratitude</Text>
-                <Text style={[styles.breakdownValue, { color: Colors.primary }]}>
+                <Text style={[styles.breakdownValue, { color: colors.primary }]}>
                   {typeBreakdown.gratitude}
                 </Text>
               </View>
               <View style={styles.breakdownItem}>
                 <Text style={styles.breakdownLabel}>💪 Self-Praise</Text>
-                <Text style={[styles.breakdownValue, { color: Colors.success }]}>
+                <Text style={[styles.breakdownValue, { color: colors.success }]}>
                   {typeBreakdown.selfPraise}
                 </Text>
               </View>
@@ -207,116 +314,3 @@ export default function JournalStatsScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-    backgroundColor: Colors.primary,
-  },
-  backButton: {
-    padding: Layout.spacing.xs,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textInverse,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: Layout.spacing.xs,
-  },
-  headerButton: {
-    padding: Layout.spacing.xs,
-  },
-  content: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    flexGrow: 1,
-  },
-  statsGrid: {
-    padding: Layout.spacing.md,
-  },
-  breakdownCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  breakdownTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: Layout.spacing.md,
-  },
-  breakdownContent: {
-    gap: Layout.spacing.sm,
-  },
-  breakdownItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  breakdownLabel: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  breakdownValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  motivationCard: {
-    backgroundColor: Colors.primaryLight || Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.lg,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  motivationIcon: {
-    fontSize: 32,
-    marginBottom: Layout.spacing.sm,
-  },
-  motivationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  motivationText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});

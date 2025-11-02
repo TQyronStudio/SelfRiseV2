@@ -2,7 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { HelpTooltip } from '@/src/components/common';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
@@ -18,6 +19,7 @@ export default function DailyGratitudeProgress({
   hasBonus
 }: DailyGratitudeProgressProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state } = useGratitude();
 
   const streakInfo = state.streakInfo;
@@ -38,9 +40,9 @@ export default function DailyGratitudeProgress({
   }, [registerTarget, unregisterTarget]);
 
   const getProgressColor = () => {
-    if (hasBonus) return Colors.gold || '#FFD700';
-    if (isComplete) return Colors.success || Colors.green;
-    return Colors.primary;
+    if (hasBonus) return colors.gold || '#FFD700';
+    if (isComplete) return colors.success || colors.green;
+    return colors.primary;
   };
 
   const getProgressText = () => {
@@ -63,6 +65,158 @@ export default function DailyGratitudeProgress({
     const remaining = 3 - currentCount;
     return `${remaining} more ${remaining !== 1 ? 'entries' : 'entry'} needed`;
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    title: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    progressText: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      marginBottom: Layout.spacing.sm,
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    bonusIndicator: {
+      position: 'absolute',
+      right: -4,
+      top: -4,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.gold || '#FFD700',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bonusText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    subText: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    completeSubText: {
+      color: colors.success || colors.green,
+      fontWeight: '500',
+    },
+    bonusSubText: {
+      color: colors.gold || '#FFD700',
+      fontWeight: '500',
+    },
+    dotsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    dot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: colors.border,
+      marginHorizontal: 4,
+    },
+    completedDot: {
+      transform: [{ scale: 1.2 }],
+    },
+    bonusDot: {
+      backgroundColor: colors.gold || '#FFD700',
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 8,
+    },
+    bonusDotText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    streakContainer: {
+      marginTop: Layout.spacing.md,
+      paddingTop: Layout.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    streakHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    streakContent: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+    },
+    streakItem: {
+      alignItems: 'center',
+      flex: 1,
+    },
+    streakNumberContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
+    streakNumber: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 4,
+    },
+    frozenStreakNumber: {
+      color: '#4A90E2',
+      textShadowColor: 'rgba(74, 144, 226, 0.3)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
+    },
+    streakLabel: {
+      fontSize: Fonts.sizes.xs,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      textTransform: 'uppercase',
+      fontWeight: '500',
+    },
+    frozenStreakLabel: {
+      color: '#4A90E2',
+      fontWeight: 'bold',
+    },
+    streakDivider: {
+      width: 1,
+      height: 30,
+      backgroundColor: colors.border,
+      marginHorizontal: Layout.spacing.md,
+    },
+  });
 
   return (
     <View ref={progressRef} style={styles.container} nativeID="todays-journal-progress">
@@ -163,194 +317,3 @@ export default function DailyGratitudeProgress({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  title: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  progressText: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    marginBottom: Layout.spacing.sm,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  bonusIndicator: {
-    position: 'absolute',
-    right: -4,
-    top: -4,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: Colors.gold || '#FFD700',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bonusText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  subText: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  completeSubText: {
-    color: Colors.success || Colors.green,
-    fontWeight: '500',
-  },
-  bonusSubText: {
-    color: Colors.gold || '#FFD700',
-    fontWeight: '500',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.border,
-    marginHorizontal: 4,
-  },
-  completedDot: {
-    transform: [{ scale: 1.2 }],
-  },
-  bonusDot: {
-    backgroundColor: Colors.gold || '#FFD700',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  bonusDotText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  streakContainer: {
-    marginTop: Layout.spacing.md,
-    paddingTop: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  streakHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  streakContent: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
-  streakItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  streakNumberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  streakNumber: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  frozenStreakNumber: {
-    color: '#4A90E2', // Ice blue color
-    textShadowColor: 'rgba(74, 144, 226, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  streakLabel: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    fontWeight: '500',
-  },
-  frozenStreakLabel: {
-    color: '#4A90E2',
-    fontWeight: 'bold',
-  },
-  streakDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: Colors.border,
-    marginHorizontal: Layout.spacing.md,
-  },
-  bonusStreakContainer: {
-    marginTop: Layout.spacing.md,
-    paddingTop: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  bonusStreakTitle: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    color: Colors.gold || '#FFD700',
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  bonusStreakRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bonusStreakNumber: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.gold || '#FFD700',
-    marginBottom: 4,
-  },
-  bonusStreakLabel: {
-    fontSize: Fonts.sizes.xs,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    fontWeight: '500',
-  },
-});
