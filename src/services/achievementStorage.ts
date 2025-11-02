@@ -92,8 +92,6 @@ export class AchievementStorage {
           by_rarity: string;
         }>('SELECT * FROM achievement_stats_cache WHERE id = 1');
 
-        console.log('📊 [AchievementStorage] Stats cache from DB:', statsCache);
-
         // Build UserAchievements from SQLite data
         const unlockedAchievements: string[] = [];
         const achievementProgress: Record<string, number> = {};
@@ -106,8 +104,6 @@ export class AchievementStorage {
             totalXPFromAchievements += row.xp_awarded;
           }
         }
-
-        console.log('📊 [AchievementStorage] Unlocked achievements from DB:', unlockedAchievements.length, unlockedAchievements);
 
         let categoryProgress = statsCache?.by_category
           ? JSON.parse(statsCache.by_category)
@@ -563,7 +559,7 @@ export class AchievementStorage {
       for (const rarity of Object.values(AchievementRarity)) {
         const totalOfRarity = CORE_ACHIEVEMENTS.filter(a => a.rarity === rarity).length;
         const unlockedOfRarity = userAchievements.rarityCount[rarity] || 0;
-        
+
         rarityBreakdown[rarity] = {
           total: totalOfRarity,
           unlocked: unlockedOfRarity,
@@ -645,19 +641,28 @@ export class AchievementStorage {
    */
   static async getCachedStatistics(maxAgeHours: number = 24): Promise<AchievementStats | null> {
     try {
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // CRITICAL: When using SQLite, don't use AsyncStorage cache
+        // Always return null to force regeneration from SQLite data
+        return null;
+      }
+
+      // Legacy AsyncStorage implementation
       const stored = await AsyncStorage.getItem(ACHIEVEMENT_STORAGE_KEYS.STATISTICS_CACHE);
       if (!stored) return null;
-      
+
       const cacheData = JSON.parse(stored);
       const cachedAt = new Date(cacheData.cachedAt);
       const ageInHours = (Date.now() - cachedAt.getTime()) / (1000 * 60 * 60);
-      
+
       if (ageInHours > maxAgeHours) {
         return null; // Cache expired
       }
-      
+
       return cacheData.stats;
-      
+
     } catch (error) {
       console.error('AchievementStorage.getCachedStatistics error:', error);
       return null;

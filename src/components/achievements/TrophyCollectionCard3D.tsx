@@ -6,9 +6,9 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
 import { AchievementRarity } from '@/src/types/gamification';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
+import { useTheme } from '@/src/contexts/ThemeContext';
 // Simple device capability replacement
 const getDeviceCapability = () => ({
   tier: 'medium' as const,
@@ -41,7 +41,7 @@ const getRarityColor = (rarity: AchievementRarity): string => {
     case AchievementRarity.RARE: return '#2196F3';
     case AchievementRarity.EPIC: return '#9C27B0';
     case AchievementRarity.LEGENDARY: return '#FFD700';
-    default: return Colors.primary;
+    default: return '#007AFF'; // Fallback to iOS blue
   }
 };
 
@@ -49,6 +49,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
   collection,
   onPress,
 }) => {
+  const { colors } = useTheme();
   const { isReduceMotionEnabled, isHighContrastEnabled } = useAccessibility();
   const deviceCapability = getDeviceCapability();
   
@@ -192,7 +193,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
   const cardTransform = {
     transform: [
       { scale: scaleAnim },
-      { 
+      {
         rotateY: rotateAnim.interpolate({
           inputRange: [-10, 10],
           outputRange: ['-5deg', '5deg'],
@@ -200,13 +201,211 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
       },
     ],
   };
-  
-  const glowStyle = {
-    shadowColor: rarityColor,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: collection.isCompleted ? 8 : 4,
-  };
-  
+
+  // Dynamic styles using theme colors
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: 16,
+      position: 'relative',
+    },
+
+    particleContainer: {
+      position: 'absolute',
+      top: 20,
+      left: '50%',
+      width: 100,
+      height: 100,
+      marginLeft: -50,
+      zIndex: 10,
+      pointerEvents: 'none',
+    },
+
+    particle: {
+      position: 'absolute',
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      left: '50%',
+      top: '50%',
+      marginLeft: -3,
+      marginTop: -3,
+    },
+
+    card: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 16,
+      padding: 20,
+      borderLeftWidth: 4,
+      position: 'relative',
+    },
+
+    cardCompleted: {
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
+
+    cardHighContrast: {
+      borderWidth: 3,
+      borderColor: '#000',
+    },
+
+    depthLayer: {
+      position: 'absolute',
+      top: 4,
+      left: 4,
+      right: -2,
+      bottom: -2,
+      borderRadius: 16,
+      zIndex: -1,
+      opacity: 0.3,
+    },
+
+    completionBadge: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    completionText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+
+    collectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+
+    iconContainer: {
+      marginRight: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 40,
+      height: 40,
+    },
+
+    collectionIcon: {
+      fontSize: 28,
+      textAlign: 'center',
+    },
+
+    iconCompleted: {
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
+    },
+
+    collectionInfo: {
+      flex: 1,
+    },
+
+    collectionName: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 6,
+    },
+
+    collectionMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    rarityBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
+      marginRight: 12,
+    },
+
+    rarityText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+
+    bonusXP: {
+      fontSize: 14,
+      fontWeight: '700',
+    },
+
+    collectionDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginBottom: 16,
+    },
+
+    progressSection: {
+      marginBottom: 12,
+    },
+
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+
+    progressText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+
+    progressPercentage: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+
+    progressBarContainer: {
+      position: 'relative',
+    },
+
+    progressTrack: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+
+    progressHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 2,
+      borderRadius: 3,
+      opacity: 0.6,
+    },
+
+    statusContainer: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+
+    statusCompleted: {
+      fontSize: 14,
+      fontWeight: '700',
+    },
+
+    statusIncomplete: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <Animated.View style={[styles.container, cardTransform]}>
       {/* Particle effects for completed collections */}
@@ -237,12 +436,11 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
       <TouchableOpacity
         style={[
           styles.card,
-          glowStyle,
-          { 
+          {
             borderLeftColor: rarityColor,
-            backgroundColor: collection.isCompleted 
+            backgroundColor: collection.isCompleted
               ? `${rarityColor}10` // Very subtle tint for completed
-              : Colors.backgroundSecondary
+              : colors.cardBackgroundElevated
           },
           collection.isCompleted && styles.cardCompleted,
           isHighContrastEnabled && styles.cardHighContrast,
@@ -347,214 +545,3 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-    position: 'relative',
-  },
-  
-  particleContainer: {
-    position: 'absolute',
-    top: 20,
-    left: '50%',
-    width: 100,
-    height: 100,
-    marginLeft: -50,
-    zIndex: 10,
-    pointerEvents: 'none',
-  },
-  
-  particle: {
-    position: 'absolute',
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    left: '50%',
-    top: '50%',
-    marginLeft: -3,
-    marginTop: -3,
-  },
-  
-  card: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
-    position: 'relative',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  
-  cardCompleted: {
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  
-  cardHighContrast: {
-    borderWidth: 3,
-    borderColor: '#000',
-  },
-  
-  depthLayer: {
-    position: 'absolute',
-    top: 4,
-    left: 4,
-    right: -2,
-    bottom: -2,
-    borderRadius: 16,
-    zIndex: -1,
-    opacity: 0.3,
-  },
-  
-  completionBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  
-  completionText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  collectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  
-  iconContainer: {
-    marginRight: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-    height: 40,
-  },
-  
-  collectionIcon: {
-    fontSize: 28,
-    textAlign: 'center',
-  },
-  
-  iconCompleted: {
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  
-  collectionInfo: {
-    flex: 1,
-  },
-  
-  collectionName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 6,
-  },
-  
-  collectionMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  rarityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  
-  rarityText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  bonusXP: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  
-  collectionDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  
-  progressSection: {
-    marginBottom: 12,
-  },
-  
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  
-  progressText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  
-  progressPercentage: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  
-  progressBarContainer: {
-    position: 'relative',
-  },
-  
-  progressTrack: {
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  
-  progressHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    borderRadius: 3,
-    opacity: 0.6,
-  },
-  
-  statusContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  
-  statusCompleted: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  
-  statusIncomplete: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-});

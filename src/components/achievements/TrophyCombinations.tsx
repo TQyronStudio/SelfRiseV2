@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
 import { Achievement, AchievementCategory, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { TrophyCollectionCard3D } from './TrophyCollectionCard3D';
 import { useTheme } from '../../contexts/ThemeContext';

@@ -1076,7 +1076,7 @@ export default function AchievementsScreen() {
 
   const renderOverviewMode = () => {
     if (!userAchievements || !achievementStats) return null;
-    
+
     return (
       <View>
         {/* Enhanced Trophy Room Statistics */}
