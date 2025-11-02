@@ -47,31 +47,9 @@ SelfRise V2 implements a sophisticated dual-theme system (Light/Dark) with stric
 
 ### Dark Mode Color Hierarchy (Primary Standard)
 
-**Critical Rule**: Dark mode uses a **3-tier elevation system** with pure black base and gray elevated surfaces.
+**Critical Rule**: Dark mode uses a **2-tier elevation system** with gray backgrounds at different elevations.
 
-#### Tier 1: Base Layer (Deepest)
-```typescript
-background: '#000000'  // Pure black (AMOLED-friendly)
-```
-**Usage**:
-- ❌ **RARELY USED** - Only for deepest nested elements for subtle depth
-- ⚠️ **NOT for main page backgrounds**
-- ✅ Nested elements inside cards (e.g., badges, buttons on elevated cards)
-
-**Example**:
-```typescript
-// ❌ WRONG - Never use for main containers
-<View style={{ backgroundColor: colors.background }}>
-
-// ✅ CORRECT - Only for nested depth
-<View style={{ backgroundColor: colors.cardBackgroundElevated }}>
-  <View style={{ backgroundColor: colors.background, borderWidth: 1 }}>
-    {/* Badge inside card */}
-  </View>
-</View>
-```
-
-#### Tier 2: Elevated Surfaces (Standard Page Background)
+#### Tier 1: Page Backgrounds (Base Layer)
 ```typescript
 backgroundSecondary: '#1C1C1E'  // Dark gray - PRIMARY page background
 ```
@@ -79,6 +57,12 @@ backgroundSecondary: '#1C1C1E'  // Dark gray - PRIMARY page background
 - ✅ **MAIN PAGE BACKGROUNDS** - All screens, modals, full-page containers
 - ✅ Tab navigation backgrounds
 - ✅ Modal overlays
+- ✅ **THIS IS THE STANDARD** - Use this 95% of the time for backgrounds
+
+**Reference Screens**:
+- HomeScreen: Uses `backgroundSecondary` (#1C1C1E)
+- Trophy Room: Uses `backgroundSecondary` (#1C1C1E)
+- All modal screens: Use `backgroundSecondary` (#1C1C1E)
 
 **Example**:
 ```typescript
@@ -91,12 +75,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-**Reference Screens**:
-- HomeScreen: Uses `backgroundSecondary` (#1C1C1E)
-- Trophy Room: Uses `backgroundSecondary` (#1C1C1E)
-- All modal screens: Use `backgroundSecondary` (#1C1C1E)
-
-#### Tier 3: Elevated Cards & Components (Highest Elevation)
+#### Tier 2: Elevated Cards & Components (Highest Elevation)
 ```typescript
 cardBackgroundElevated: '#2C2C2E'  // Light gray - CARDS and COMPONENTS
 ```
@@ -127,11 +106,12 @@ const styles = StyleSheet.create({
 
 ### Visual Hierarchy Summary
 
-| Element Type | Color | Hex Value | Usage |
-|--------------|-------|-----------|-------|
-| **Page Background** | `backgroundSecondary` | `#1C1C1E` | Screens, modals, main containers |
-| **Cards & Components** | `cardBackgroundElevated` | `#2C2C2E` | Cards, headers, filters, buttons |
-| **Nested Depth** | `background` | `#000000` | Rare - only for depth inside cards |
+**Simple 2-Tier System**:
+
+| Tier | Color | Hex Value | Usage |
+|------|-------|-----------|-------|
+| **1 - Base** | `backgroundSecondary` | `#1C1C1E` | Page backgrounds, modals, main containers |
+| **2 - Elevated** | `cardBackgroundElevated` | `#2C2C2E` | Cards, headers, filters, buttons, all components |
 
 **Visual Example**:
 ```
@@ -141,9 +121,9 @@ const styles = StyleSheet.create({
 │  ┌──────────────────────────────┐  │
 │  │ Card (#2C2C2E - elevated)    │  │
 │  │                              │  │
-│  │  ┌────────────────────────┐  │  │
-│  │  │ Badge (#000000)        │  │  │
-│  │  └────────────────────────┘  │  │
+│  │  • Heading                   │  │
+│  │  • Content                   │  │
+│  │  • All elements use #2C2C2E │  │
 │  └──────────────────────────────┘  │
 │                                     │
 │  ┌──────────────────────────────┐  │
@@ -151,6 +131,8 @@ const styles = StyleSheet.create({
 │  └──────────────────────────────┘  │
 └─────────────────────────────────────┘
 ```
+
+**Note**: Pure black (`background` #000000) is **NOT USED** in our dark theme. We only use the 2 gray tiers above.
 
 ---
 
@@ -330,15 +312,14 @@ card: {
 }
 ```
 
-#### ❌ Mistake 4: Inconsistent Nesting
+#### ❌ Mistake 4: Using Pure Black (#000000)
 ```typescript
-// ❌ WRONG - Pure black card on gray background (backwards)
-<View style={{ backgroundColor: colors.backgroundSecondary }}>
-  <View style={{ backgroundColor: colors.background }}>  // Too dark!
+// ❌ WRONG - Pure black is not part of our 2-tier system
+<View style={{ backgroundColor: colors.background }}>  // #000000 - Don't use!
 
-// ✅ CORRECT - Light gray card on dark gray background
-<View style={{ backgroundColor: colors.backgroundSecondary }}>
-  <View style={{ backgroundColor: colors.cardBackgroundElevated }}>
+// ✅ CORRECT - Use the 2-tier gray system only
+<View style={{ backgroundColor: colors.backgroundSecondary }}>  // #1C1C1E - Page
+  <View style={{ backgroundColor: colors.cardBackgroundElevated }}>  // #2C2C2E - Card
 ```
 
 ---
@@ -386,8 +367,9 @@ const styles = StyleSheet.create({
 Before committing theme changes:
 
 - [ ] **Visual Check**: Compare with HomeScreen appearance
-- [ ] **Color Hierarchy**: Page (#1C1C1E) → Cards (#2C2C2E) → Nested (#000000 rare)
+- [ ] **Color Hierarchy**: Page (#1C1C1E) → Cards (#2C2C2E) - **2 tiers only**
 - [ ] **No Shadows**: Verify all shadows removed in dark mode
+- [ ] **No Pure Black**: Verify no `colors.background` (#000000) used
 - [ ] **Text Contrast**: All text readable on backgrounds
 - [ ] **Theme Toggle**: Test switching between Light/Dark/System modes
 - [ ] **Consistency**: All similar components use same colors
@@ -398,9 +380,9 @@ Before committing theme changes:
 
 **When in doubt, ask yourself**:
 
-1. **Is this a main page/modal?** → `colors.backgroundSecondary` (#1C1C1E)
-2. **Is this a card/component?** → `colors.cardBackgroundElevated` (#2C2C2E)
-3. **Is this nested inside a card?** → `colors.background` (#000000) + border
+1. **Is this a main page/modal/screen?** → `colors.backgroundSecondary` (#1C1C1E)
+2. **Is this a card/component/button/filter?** → `colors.cardBackgroundElevated` (#2C2C2E)
+3. **Am I using pure black?** → ❌ NO - we don't use `colors.background` (#000000)
 4. **Am I using shadows?** → ❌ Remove in dark mode
 5. **Does it match HomeScreen?** → ✅ Visual consistency check
 
