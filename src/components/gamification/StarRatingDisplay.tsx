@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { AchievementCategory } from '../../types/gamification';
 import { StarRatingService } from '../../services/starRatingService';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // ========================================
 // INTERFACES
@@ -83,6 +84,8 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
   style,
   animateChanges = false,
 }) => {
+  const { colors } = useTheme();
+
   // Animation value for star changes
   const animationValue = React.useRef(new Animated.Value(0)).current;
   const [previousStarLevel, setPreviousStarLevel] = React.useState(starLevel);
@@ -153,9 +156,30 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
     return stars;
   };
 
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      backgroundColor: colors.cardBackgroundElevated,
+      position: 'relative',
+    },
+    multiplierBadge: {
+      position: 'absolute',
+      top: -8,
+      right: -8,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+  });
+
   return (
     <TouchableOpacity
-      style={[styles.container, style]}
+      style={[dynamicStyles.container, style]}
       onPress={handlePress}
       activeOpacity={interactive ? 0.7 : 1}
       disabled={!interactive}
@@ -182,8 +206,8 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
       {/* Multiplier Badge */}
       {showMultiplier && multiplier && (
         <View style={[
-          styles.multiplierBadge,
-          { 
+          dynamicStyles.multiplierBadge,
+          {
             backgroundColor: `${starInfo.color}20`,
             borderColor: starInfo.color
           }
@@ -216,23 +240,6 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
 // ========================================
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    position: 'relative',
-  },
-
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -242,17 +249,6 @@ const styles = StyleSheet.create({
   categoryLabel: {
     textAlign: 'center',
     marginTop: 2,
-  },
-
-  multiplierBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: '#FFFFFF',
   },
 
   multiplierText: {

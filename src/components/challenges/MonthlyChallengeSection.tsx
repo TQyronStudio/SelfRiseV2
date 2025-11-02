@@ -364,14 +364,6 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       borderRadius: 12,
       padding: 16,
       marginHorizontal: 16,
-      elevation: 1,
-      shadowColor: colors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.03,
-      shadowRadius: 2,
     },
     starRatingTitle: {
       fontSize: 14,
