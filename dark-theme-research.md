@@ -2,7 +2,7 @@
 
 **Created:** 2025-11-02
 **Status:** In Progress
-**Completion:** 41/150+ components (27%)
+**Completion:** 49/150+ components (33%)
 
 ---
 
@@ -72,16 +72,18 @@
 - [x] app/habit-stats.tsx (added useTheme, fixed header colors)
 - [x] app/reorder-habits.tsx (wrapper only - no changes needed)
 
-#### Habit Components
-- [ ] src/components/habits/HabitModal.tsx
-- [ ] src/components/habits/HabitForm.tsx
-- [ ] src/components/habits/HabitItem.tsx
-- [ ] src/components/habits/HabitItemWithCompletion.tsx
-- [ ] src/components/habits/HabitList.tsx
-- [ ] src/components/habits/HabitListWithCompletion.tsx
+#### Habit Components (Dávka 2/3) ✅ COMPLETED
+- [x] src/components/habits/HabitModal.tsx (added useTheme, fixed backgrounds)
+- [x] src/components/habits/HabitForm.tsx (added useTheme, form inputs themed)
+- [x] src/components/habits/HabitItem.tsx (verified useTheme, fixed static colors)
+- [x] src/components/habits/HabitItemWithCompletion.tsx (verified - already perfect)
+- [x] src/components/habits/HabitList.tsx (added useTheme, header/empty state)
+- [x] src/components/habits/HabitListWithCompletion.tsx (added useTheme)
+- [x] src/components/habits/DailyHabitTracker.tsx (added useTheme, tracker cards)
+- [x] src/components/habits/DailyHabitProgress.tsx (added useTheme, progress cards)
+
+#### Habit UI Components (Dávka 3/3) - TODO
 - [ ] src/components/habits/HabitCompletionButton.tsx
-- [ ] src/components/habits/DailyHabitTracker.tsx
-- [ ] src/components/habits/DailyHabitProgress.tsx
 - [ ] src/components/habits/DailyProgressBar.tsx
 - [ ] src/components/habits/BonusCompletionIndicator.tsx
 - [ ] src/components/habits/CompletionAnimation.tsx

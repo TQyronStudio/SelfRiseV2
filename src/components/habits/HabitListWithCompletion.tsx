@@ -4,8 +4,8 @@ import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flat
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
-import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface HabitListWithCompletionProps {
   habits: Habit[];
@@ -43,14 +43,15 @@ export function HabitListWithCompletion({
   date = formatDateToString(new Date()),
   ListHeaderComponent,
 }: HabitListWithCompletionProps) {
+  const { colors } = useTheme();
   const [isDragging, setIsDragging] = React.useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
-  
+
   // 1. Filtrování a řazení návyků
   const activeHabits = habits
     .filter(habit => habit.isActive)
     .sort((a, b) => a.order - b.order);
-    
+
   const inactiveHabits = habits
     .filter(habit => !habit.isActive)
     .sort((a, b) => a.order - b.order);
@@ -147,6 +148,52 @@ export function HabitListWithCompletion({
     return item.id;
   }, []);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    content: {
+      flexGrow: 1,
+      paddingBottom: 20,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    habitContainer: {
+      paddingHorizontal: 16,
+    },
+    emptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 24,
+      minHeight: 300,
+    },
+    emptyStateText: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    emptyStateSubtext: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
   // Vrácení k ScrollView struktuře, ale s nestedScrollEnabled
   return (
     <ScrollView
@@ -222,49 +269,3 @@ export function HabitListWithCompletion({
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  habitContainer: {
-    paddingHorizontal: 16,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 24,
-    minHeight: 300,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

@@ -15,12 +15,12 @@ import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { ColorPicker } from './ColorPicker';
 import { IconPicker } from './IconPicker';
 import { DayPicker } from './DayPicker';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { useTutorial } from '@/src/contexts/TutorialContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -48,6 +48,7 @@ export function HabitForm({
   isLoading = false,
 }: HabitFormProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state: tutorialState, actions: tutorialActions } = useTutorial();
 
   // Tutorial target refs
@@ -297,6 +298,116 @@ export function HabitForm({
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 60,
+    },
+    form: {
+      padding: 20,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    visualGroup: {
+      marginBottom: 24,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+    },
+    compactSection: {
+      marginBottom: 16,
+    },
+    lastCompactSection: {
+      marginBottom: 0,
+    },
+    label: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    labelWithHelp: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      backgroundColor: colors.cardBackgroundElevated,
+      color: colors.text,
+    },
+    textArea: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      backgroundColor: colors.cardBackgroundElevated,
+      color: colors.text,
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    inputError: {
+      borderColor: colors.error,
+    },
+    errorText: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.error,
+      marginTop: 4,
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      paddingBottom: 20,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.cardBackgroundElevated,
+      marginRight: 8,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+      marginLeft: 8,
+    },
+    cancelButtonText: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.textSecondary,
+    },
+    submitButtonText: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.textInverse,
+    },
+    disabledButton: {
+      backgroundColor: colors.cardBackgroundElevated,
+      opacity: 0.6,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -317,7 +428,7 @@ export function HabitForm({
             value={formData.name}
             onChangeText={handleNameChange}
             placeholder={t('habits.form.namePlaceholder')}
-            placeholderTextColor={Colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             maxLength={50}
             nativeID="habit-name-input"
           />
@@ -331,7 +442,7 @@ export function HabitForm({
             value={formData.description}
             onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
             placeholder={t('habits.form.descriptionPlaceholder')}
-            placeholderTextColor={Colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             multiline
             numberOfLines={3}
             maxLength={200}
@@ -452,111 +563,3 @@ export function HabitForm({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 60, // Extra space to ensure Create button is always visible
-  },
-  form: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  visualGroup: {
-    marginBottom: 24,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 16,
-  },
-  compactSection: {
-    marginBottom: 16,
-  },
-  lastCompactSection: {
-    marginBottom: 0,
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  labelWithHelp: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    backgroundColor: Colors.background,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    backgroundColor: Colors.background,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  errorText: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.error,
-    marginTop: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingBottom: 20,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.backgroundSecondary,
-    marginRight: 8,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    marginLeft: 8,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.textSecondary,
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.textInverse,
-  },
-  disabledButton: {
-    backgroundColor: Colors.backgroundSecondary,
-    opacity: 0.6,
-  },
-});

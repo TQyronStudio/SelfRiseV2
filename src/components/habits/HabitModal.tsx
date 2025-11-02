@@ -14,11 +14,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { HabitForm, HabitFormData } from './HabitForm';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 import { useTutorial } from '../../contexts/TutorialContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HabitModalProps {
   visible: boolean;
@@ -38,6 +38,7 @@ export function HabitModal({
   isLoading = false,
 }: HabitModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state: tutorialState } = useTutorial();
   const isEditing = !!habit;
 
@@ -60,19 +61,19 @@ export function HabitModal({
       onRequestClose={tutorialState.isActive ? undefined : onClose}
     >
       <TutorialOverlay>
-        <SafeAreaView style={styles.container} nativeID="main-content">
-          <View style={styles.header}>
+        <SafeAreaView style={styles(colors).container} nativeID="main-content">
+          <View style={styles(colors).header}>
             <TouchableOpacity
-              style={styles.closeButton}
+              style={styles(colors).closeButton}
               onPress={onClose}
               disabled={isLoading}
             >
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
-            <Text style={styles.title}>
+            <Text style={styles(colors).title}>
               {isEditing ? t('habits.editHabit') : t('habits.addHabit')}
             </Text>
-            <View style={styles.placeholder} />
+            <View style={styles(colors).placeholder} />
           </View>
           <HabitForm
             initialData={initialData}
@@ -87,11 +88,11 @@ export function HabitModal({
   );
 }
 
-// STANDARDÍ React Native Modal styly
-const styles = StyleSheet.create({
+// Theme-aware styles moved inside component scope
+const styles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -100,21 +101,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
     minHeight: 60,
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.cardBackgroundElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 18,
     fontFamily: Fonts.semibold,
-    color: Colors.text,
+    color: colors.text,
   },
   placeholder: {
     width: 40,

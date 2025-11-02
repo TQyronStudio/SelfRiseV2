@@ -221,7 +221,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           <Ionicons
             name={ICON_MAP[habit.icon] as any}
             size={24}
-            color={Colors.textInverse}
+            color={colors.white}
           />
         </View>
 
@@ -284,7 +284,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           <Ionicons
             name={habit.isActive ? 'pause' : 'play'}
             size={20}
-            color={Colors.textSecondary}
+            color={colors.textSecondary}
           />
         </TouchableOpacity>
 
@@ -293,7 +293,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           onPress={() => onEdit(habit)}
           activeOpacity={0.7}
         >
-          <Ionicons name="pencil" size={20} color={Colors.textSecondary} />
+          <Ionicons name="pencil" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -301,7 +301,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash" size={20} color={Colors.error} />
+          <Ionicons name="trash" size={20} color={colors.error} />
         </TouchableOpacity>
 
         {habit.isActive && (
@@ -311,7 +311,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
             activeOpacity={0.7}
             delayLongPress={100}
           >
-            <Ionicons name="reorder-three-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>

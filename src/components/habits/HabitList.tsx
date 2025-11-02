@@ -11,9 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Habit } from '../../types/habit';
 import { HabitItem } from './HabitItem';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HabitListProps {
   habits: Habit[];
@@ -37,6 +37,7 @@ export function HabitList({
   onReorderHabits,
 }: HabitListProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const activeHabits = habits.filter(habit => habit.isActive);
   const inactiveHabits = habits.filter(habit => !habit.isActive);
@@ -62,9 +63,93 @@ export function HabitList({
     onReorderHabits(habitOrders);
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 20,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerLeft: {
+      flex: 1,
+    },
+    subtitle: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    headerActions: {
+      flexDirection: 'row',
+    },
+    headerButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 8,
+    },
+    activeHeaderButton: {
+      backgroundColor: colors.primary,
+    },
+    content: {
+      flex: 1,
+    },
+    section: {
+      marginTop: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 12,
+      paddingHorizontal: 20,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptySubtitle: {
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    emptyButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    emptyButtonText: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.textInverse,
+    },
+  });
+
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="add-circle-outline" size={64} color={Colors.border} />
+      <Ionicons name="add-circle-outline" size={64} color={colors.border} />
       <Text style={styles.emptyTitle}>No habits yet</Text>
       <Text style={styles.emptySubtitle}>
         Start building better habits by creating your first one
@@ -87,10 +172,10 @@ export function HabitList({
             {activeHabits.length} active • {inactiveHabits.length} inactive
           </Text>
         </View>
-        
+
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton} onPress={onAddHabit}>
-            <Ionicons name="add" size={20} color={Colors.textSecondary} />
+            <Ionicons name="add" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -146,87 +231,3 @@ export function HabitList({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  activeHeaderButton: {
-    backgroundColor: Colors.primary,
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 12,
-    paddingHorizontal: 20,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.background,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.textInverse,
-  },
-});

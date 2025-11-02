@@ -10,19 +10,21 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useHabitsData } from '../../hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
-import { Colors } from '../../constants/colors';
 import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../utils/date';
 import { Habit, HabitCompletion } from '../../types/habit';
 // XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '../../constants/gamification';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Fonts } from '../../constants/fonts';
 
 interface DailyHabitTrackerProps {
   date?: string; // Optional date, defaults to today
 }
 
-export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({ 
-  date = formatDateToString(new Date()) 
+export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
+  date = formatDateToString(new Date())
 }) => {
+  const { colors } = useTheme();
   const { habits, completions, actions, isLoading } = useHabitsData();
   // addXP/subtractXP removed - XP handled by habitStorage
   const [completingHabit, setCompletingHabit] = useState<string | null>(null);
@@ -89,7 +91,170 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   };
   
   const dailyProgress = calculateDailyProgress();
-  
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    progressHeader: {
+      padding: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    dateText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    progressContainer: {
+      marginBottom: 8,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      overflow: 'hidden',
+      marginBottom: 8,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 4,
+    },
+    progressText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    habitsContainer: {
+      padding: 20,
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    emptyStateText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 16,
+    },
+    emptyStateSubtext: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 8,
+    },
+    habitItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    habitItemCompleted: {
+      backgroundColor: colors.success + '10',
+      borderColor: colors.success + '30',
+    },
+    habitItemAnimating: {
+      opacity: 0.7,
+      transform: [{ scale: 0.98 }],
+    },
+    habitLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    habitIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    habitInfo: {
+      flex: 1,
+    },
+    habitName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    habitNameCompleted: {
+      color: colors.success,
+    },
+    habitDetails: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    bonusIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary + '20',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+    },
+    bonusText: {
+      fontSize: 12,
+      color: colors.primary,
+      marginLeft: 4,
+      fontWeight: '500',
+    },
+    scheduledText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    habitRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    starIndicator: {
+      marginRight: 8,
+    },
+    completionButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    completionButtonCompleted: {
+      backgroundColor: colors.success,
+      borderColor: colors.success,
+    },
+    completionButtonAnimating: {
+      opacity: 0.5,
+    },
+    completionCircle: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: colors.border,
+    },
+  });
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -97,7 +262,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
       </View>
     );
   }
-  
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Daily Progress Header */}
@@ -137,7 +302,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
             const isScheduled = isScheduledToday(habit);
             const isBonus = completion?.isBonus || false;
             const isAnimating = completingHabit === habit.id;
-            
+
             return (
               <TouchableOpacity
                 key={habit.id}
@@ -152,13 +317,13 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                 <View style={styles.habitLeft}>
                   {/* Habit Icon */}
                   <View style={[styles.habitIcon, { backgroundColor: habit.color }]}>
-                    <Ionicons 
-                      name={habit.icon as any} 
-                      size={24} 
-                      color="white" 
+                    <Ionicons
+                      name={habit.icon as any}
+                      size={24}
+                      color={colors.white}
                     />
                   </View>
-                  
+
                   {/* Habit Info */}
                   <View style={styles.habitInfo}>
                     <Text style={[
@@ -170,7 +335,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                     <View style={styles.habitDetails}>
                       {!isScheduled && (
                         <View style={styles.bonusIndicator}>
-                          <Ionicons name="star" size={12} color={Colors.primary} />
+                          <Ionicons name="star" size={12} color={colors.primary} />
                           <Text style={styles.bonusText}>Bonus</Text>
                         </View>
                       )}
@@ -180,12 +345,12 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                     </View>
                   </View>
                 </View>
-                
+
                 {/* Completion Button */}
                 <View style={styles.habitRight}>
                   {isBonus && (
                     <View style={styles.starIndicator}>
-                      <Ionicons name="star" size={16} color={Colors.primary} />
+                      <Ionicons name="star" size={16} color={colors.primary} />
                     </View>
                   )}
                   <View style={[
@@ -194,7 +359,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                     isAnimating && styles.completionButtonAnimating,
                   ]}>
                     {isCompleted ? (
-                      <Ionicons name="checkmark" size={18} color="white" />
+                      <Ionicons name="checkmark" size={18} color={colors.white} />
                     ) : (
                       <View style={styles.completionCircle} />
                     )}
@@ -208,166 +373,3 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  progressHeader: {
-    padding: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  habitsContainer: {
-    padding: 20,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 16,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  habitItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  habitItemCompleted: {
-    backgroundColor: Colors.success + '10',
-    borderColor: Colors.success + '30',
-  },
-  habitItemAnimating: {
-    opacity: 0.7,
-    transform: [{ scale: 0.98 }],
-  },
-  habitLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  habitIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  habitInfo: {
-    flex: 1,
-  },
-  habitName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  habitNameCompleted: {
-    color: Colors.success,
-  },
-  habitDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bonusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  bonusText: {
-    fontSize: 12,
-    color: Colors.primary,
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  scheduledText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  habitRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  starIndicator: {
-    marginRight: 8,
-  },
-  completionButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: 'white',
-  },
-  completionButtonCompleted: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
-  },
-  completionButtonAnimating: {
-    opacity: 0.5,
-  },
-  completionCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.border,
-  },
-});
