@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, AddGoalProgressInput } from '../../types/goal';
 import { ProgressEntryForm } from './ProgressEntryForm';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -33,6 +33,49 @@ export function ProgressModal({
   isLoading = false,
 }: ProgressModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      minHeight: 60,
+    },
+    closeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    titleContainer: {
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+    },
+    subtitle: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    placeholder: {
+      width: 40,
+    },
+  });
 
   // STANDARDÍ React Native Modal s krásným pageSheet stylem
   return (
@@ -49,7 +92,7 @@ export function ProgressModal({
             onPress={onClose}
             disabled={isLoading}
           >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
@@ -74,46 +117,3 @@ export function ProgressModal({
     </Modal>
   );
 }
-
-// STANDARDÍ React Native Modal styly
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    minHeight: 60,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  placeholder: {
-    width: 40,
-  },
-});

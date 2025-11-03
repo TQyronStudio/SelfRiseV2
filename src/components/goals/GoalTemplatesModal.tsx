@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput 
 import { Ionicons } from '@expo/vector-icons';
 import { GoalCategory, CreateGoalInput } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout } from '@/src/constants/dimensions';
 
 interface GoalTemplate {
@@ -26,6 +26,7 @@ interface GoalTemplatesModalProps {
 
 export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalTemplatesModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<GoalCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -205,7 +206,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       onPress={() => handleSelectTemplate(template)}
     >
       <View style={[styles.templateIcon, { backgroundColor: template.color }]}>
-        <Ionicons name={template.icon as any} size={24} color={Colors.white} />
+        <Ionicons name={template.icon as any} size={24} color={colors.white} />
       </View>
       <View style={styles.templateContent}>
         <Text style={styles.templateTitle}>{template.title}</Text>
@@ -219,9 +220,153 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
           </Text>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+      <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
     </TouchableOpacity>
   );
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingTop: Layout.spacing.lg,
+      paddingBottom: Layout.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    closeButton: {
+      padding: Layout.spacing.xs,
+    },
+    searchSection: {
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: Layout.spacing.sm,
+      fontSize: 16,
+      color: colors.text,
+    },
+    categoriesSection: {
+      marginBottom: Layout.spacing.md,
+    },
+    categoriesContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: Layout.spacing.md,
+      gap: Layout.spacing.sm,
+    },
+    categoryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      borderRadius: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    categoryButtonActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    categoryButtonText: {
+      marginLeft: Layout.spacing.xs,
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    categoryButtonTextActive: {
+      color: colors.white,
+    },
+    templatesContainer: {
+      flex: 1,
+      paddingHorizontal: Layout.spacing.md,
+    },
+    templateCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    templateIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Layout.spacing.md,
+    },
+    templateContent: {
+      flex: 1,
+    },
+    templateTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    templateDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 18,
+      marginBottom: Layout.spacing.sm,
+    },
+    templateMeta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    templateTarget: {
+      fontSize: 12,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    templateCategory: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: Layout.spacing.xl * 2,
+    },
+    emptyStateText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: Layout.spacing.md,
+      textAlign: 'center',
+    },
+    footer: {
+      padding: Layout.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    footerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 16,
+    },
+  });
 
   return (
     <Modal
@@ -234,19 +379,19 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
         <View style={styles.header}>
           <Text style={styles.title}>{t('goals.templates.title')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.text} />
+            <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color={Colors.textSecondary} />
+            <Ionicons name="search" size={20} color={colors.textSecondary} />
             <TextInput
               style={styles.searchInput}
               placeholder={t('goals.templates.searchPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
         </View>
@@ -263,10 +408,10 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
                   ]}
                   onPress={() => setSelectedCategory(category.key as GoalCategory | 'all')}
                 >
-                  <Ionicons 
-                    name={category.icon as any} 
-                    size={18} 
-                    color={selectedCategory === category.key ? Colors.white : Colors.textSecondary} 
+                  <Ionicons
+                    name={category.icon as any}
+                    size={18}
+                    color={selectedCategory === category.key ? colors.white : colors.textSecondary}
                   />
                   <Text style={[
                     styles.categoryButtonText,
@@ -283,7 +428,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
         <ScrollView style={styles.templatesContainer} showsVerticalScrollIndicator={false}>
           {filteredTemplates.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="search" size={64} color={Colors.textSecondary} />
+              <Ionicons name="search" size={64} color={colors.textSecondary} />
               <Text style={styles.emptyStateText}>{t('goals.templates.noTemplates')}</Text>
             </View>
           ) : (
@@ -300,152 +445,3 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.md,
-    paddingTop: Layout.spacing.lg,
-    paddingBottom: Layout.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Layout.spacing.xs,
-  },
-  searchSection: {
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.md,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Layout.spacing.sm,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  categoriesSection: {
-    marginBottom: Layout.spacing.md,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: Layout.spacing.md,
-    gap: Layout.spacing.sm,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  categoryButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  categoryButtonText: {
-    marginLeft: Layout.spacing.xs,
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  categoryButtonTextActive: {
-    color: Colors.white,
-  },
-  templatesContainer: {
-    flex: 1,
-    paddingHorizontal: Layout.spacing.md,
-  },
-  templateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  templateIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Layout.spacing.md,
-  },
-  templateContent: {
-    flex: 1,
-  },
-  templateTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  templateDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: Layout.spacing.sm,
-  },
-  templateMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  templateTarget: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  templateCategory: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Layout.spacing.xl * 2,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginTop: Layout.spacing.md,
-    textAlign: 'center',
-  },
-  footer: {
-    padding: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  footerText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-});

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GoalProgress } from '../../types/goal';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ConfirmationModal } from '../common';
@@ -21,6 +21,7 @@ interface ProgressItemProps {
 
 function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
@@ -48,15 +49,76 @@ function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
   const getProgressTypeColor = (type: string) => {
     switch (type) {
       case 'add':
-        return Colors.success;
+        return colors.success;
       case 'subtract':
-        return Colors.error;
+        return colors.error;
       case 'set':
-        return Colors.primary;
+        return colors.primary;
       default:
-        return Colors.textSecondary;
+        return colors.textSecondary;
     }
   };
+
+  const styles = StyleSheet.create({
+    progressItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginBottom: 8,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    progressTypeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    progressTypeIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    progressTypeText: {
+      fontSize: 16,
+      fontFamily: Fonts.bold,
+      color: colors.white,
+    },
+    progressInfo: {
+      flex: 1,
+    },
+    progressValue: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+    },
+    progressDate: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    progressNote: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginTop: 8,
+      marginLeft: 44,
+    },
+    deleteButton: {
+      padding: 8,
+      borderRadius: 6,
+      backgroundColor: colors.backgroundSecondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
 
 
   return (
@@ -78,7 +140,7 @@ function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash" size={16} color={Colors.error} />
+          <Ionicons name="trash" size={16} color={colors.error} />
         </TouchableOpacity>
       </View>
       
@@ -102,6 +164,30 @@ function ProgressItem({ item, goalUnit, onDelete }: ProgressItemProps) {
 
 export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: ProgressHistoryListProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 16,
+    },
+    emptyContainer: {
+      paddingVertical: 32,
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
 
   const handleDeleteProgress = async (id: string) => {
     try {
@@ -144,92 +230,3 @@ export function ProgressHistoryList({ progress, goalUnit, onDeleteProgress }: Pr
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  progressItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressTypeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  progressTypeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  progressTypeText: {
-    fontSize: 16,
-    fontFamily: Fonts.bold,
-    color: Colors.white,
-  },
-  progressInfo: {
-    flex: 1,
-  },
-  progressValue: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-  },
-  progressDate: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  progressNote: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginTop: 8,
-    marginLeft: 44,
-  },
-  deleteButton: {
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

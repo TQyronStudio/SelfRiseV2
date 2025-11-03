@@ -2,8 +2,8 @@ import React from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, Text } from 'react-native';
 import { Goal } from '../../types/goal';
 import { GoalItem } from './GoalItem';
-import { Colors } from '../../constants/colors';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface GoalListProps {
   goals: Goal[];
@@ -31,6 +31,7 @@ export function GoalList({
   isEditMode = false,
 }: GoalListProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const sortedGoals = [...goals].sort((a, b) => a.order - b.order);
 
@@ -65,22 +66,22 @@ export function GoalList({
       showsVerticalScrollIndicator={false}
     />
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});
+  const styles = StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      padding: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+}

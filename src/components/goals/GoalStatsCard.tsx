@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Goal, GoalStats, GoalStatus, GoalTimelineStatus } from '../../types/goal';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface GoalStatsCardProps {
   goal: Goal;
@@ -13,19 +13,20 @@ interface GoalStatsCardProps {
 
 export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const getStatusColor = (status: GoalStatus) => {
     switch (status) {
       case GoalStatus.COMPLETED:
-        return Colors.success;
+        return colors.success;
       case GoalStatus.ACTIVE:
-        return Colors.primary;
+        return colors.primary;
       case GoalStatus.PAUSED:
-        return Colors.warning;
+        return colors.warning;
       case GoalStatus.ARCHIVED:
-        return Colors.textSecondary;
+        return colors.textSecondary;
       default:
-        return Colors.textSecondary;
+        return colors.textSecondary;
     }
   };
 
@@ -66,17 +67,17 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
   const getTimelineStatusColor = (status: GoalTimelineStatus) => {
     switch (status) {
       case 'wayAhead':
-        return Colors.primary; // Blue
+        return colors.primary;
       case 'ahead':
-        return Colors.success; // Green
+        return colors.success;
       case 'onTrack':
-        return Colors.success; // Green
+        return colors.success;
       case 'behind':
-        return Colors.warning; // Orange/Yellow
+        return colors.warning;
       case 'wayBehind':
-        return Colors.error; // Red
+        return colors.error;
       default:
-        return Colors.textSecondary;
+        return colors.textSecondary;
     }
   };
 
@@ -186,135 +187,127 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
       )}
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.white,
-    fontWeight: '600',
-  },
-  content: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-  },
-  progressContainer: {
-    marginBottom: 8,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-  },
-  progressPercentage: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.primary,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  statItem: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-  },
-  statValue: {
-    fontSize: 20,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-});
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    statusText: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    content: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+    },
+    section: {
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 12,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    infoLabel: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    infoValue: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+    },
+    progressContainer: {
+      marginBottom: 8,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    progressLabel: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+    },
+    progressPercentage: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.primary,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 16,
+    },
+    statItem: {
+      flex: 1,
+      minWidth: '45%',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+    },
+    statValue: {
+      fontSize: 20,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    loadingText: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginVertical: 20,
+    },
+  });
+}

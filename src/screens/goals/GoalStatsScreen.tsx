@@ -11,13 +11,14 @@ import { GoalCompletionPredictions } from '@/src/components/goals/GoalCompletion
 import { GoalSharingModal } from '@/src/components/goals/GoalSharingModal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useGoals } from '@/src/contexts/GoalsContext';
-import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export function GoalStatsScreen() {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const router = useRouter();
   const { goalId } = useLocalSearchParams<{ goalId: string }>();
   const { getGoalWithStats, getGoalProgress, actions, isLoading } = useGoalsData();
@@ -50,12 +51,98 @@ export function GoalStatsScreen() {
     router.back();
   };
 
+  // Styles inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backButton: {
+      padding: 8,
+    },
+    title: {
+      fontSize: 20,
+      fontFamily: Fonts.semibold,
+      color: colors.white,
+    },
+    shareButton: {
+      padding: 8,
+    },
+    tabContainer: {
+      flexDirection: 'row',
+      backgroundColor: colors.backgroundSecondary,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderRadius: 8,
+      padding: 4,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+    activeTab: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.primary,
+    },
+    tabText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    activeTabText: {
+      color: colors.primary,
+      fontWeight: 'bold',
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 16,
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.error,
+      marginBottom: 16,
+    },
+    backButtonText: {
+      fontSize: 16,
+      color: colors.primary,
+    },
+  });
+
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.title}>Loading...</Text>
           <View style={styles.shareButton} />
@@ -72,7 +159,7 @@ export function GoalStatsScreen() {
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.title}>Error</Text>
           <View style={styles.shareButton} />
@@ -91,11 +178,11 @@ export function GoalStatsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{goal.title}</Text>
         <TouchableOpacity style={styles.shareButton} onPress={() => setShowSharingModal(true)}>
-          <Ionicons name="share-outline" size={24} color={Colors.white} />
+          <Ionicons name="share-outline" size={24} color={colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -168,88 +255,3 @@ export function GoalStatsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: Colors.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: Fonts.semibold,
-    color: Colors.white,
-  },
-  shareButton: {
-    padding: 8,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: Colors.background,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 8,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  activeTabText: {
-    color: Colors.primary,
-    fontWeight: 'bold',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
-    marginBottom: 16,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: Colors.primary,
-  },
-});

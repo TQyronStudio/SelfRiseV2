@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalStatus, GoalCategory } from '@/src/types/goal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 
@@ -13,6 +14,7 @@ interface GoalPerformanceDashboardProps {
 
 export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDashboardProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const {
     activeGoals,
     completedGoals,
@@ -124,6 +126,125 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
     );
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    content: {
+      padding: Layout.spacing.md,
+    },
+    section: {
+      marginBottom: Layout.spacing.xl,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.md,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Layout.spacing.sm,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '48%',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      borderLeftWidth: 4,
+    },
+    statCardContent: {
+      alignItems: 'center',
+    },
+    statCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    statCardTitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginLeft: Layout.spacing.xs,
+      textAlign: 'center',
+    },
+    statCardValue: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    categoryCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    categoryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    categoryTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginLeft: Layout.spacing.sm,
+    },
+    categoryStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Layout.spacing.md,
+    },
+    categoryStatItem: {
+      alignItems: 'center',
+    },
+    categoryStatLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.xs,
+    },
+    categoryStatValue: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    progressBarContainer: {
+      marginTop: Layout.spacing.sm,
+    },
+    progressBarBackground: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    quickActionsGrid: {
+      gap: Layout.spacing.sm,
+    },
+    quickActionCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    quickActionTitle: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    quickActionSubtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginRight: Layout.spacing.sm,
+    },
+  });
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
@@ -213,7 +334,7 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
                 <Text style={styles.quickActionSubtitle}>
                   {Math.round((goal.currentValue / goal.targetValue) * 100)}% {t('goals.dashboard.complete')}
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
               </TouchableOpacity>
             ))}
           </View>
@@ -222,137 +343,3 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    padding: Layout.spacing.md,
-  },
-  section: {
-    marginBottom: Layout.spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.md,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Layout.spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '48%',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    borderLeftWidth: 4,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statCardContent: {
-    alignItems: 'center',
-  },
-  statCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  statCardTitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginLeft: Layout.spacing.xs,
-    textAlign: 'center',
-  },
-  statCardValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  categoryCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginLeft: Layout.spacing.sm,
-  },
-  categoryStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Layout.spacing.md,
-  },
-  categoryStatItem: {
-    alignItems: 'center',
-  },
-  categoryStatLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.xs,
-  },
-  categoryStatValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  progressBarContainer: {
-    marginTop: Layout.spacing.sm,
-  },
-  progressBarBackground: {
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  quickActionsGrid: {
-    gap: Layout.spacing.sm,
-  },
-  quickActionCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickActionTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  quickActionSubtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginRight: Layout.spacing.sm,
-  },
-});

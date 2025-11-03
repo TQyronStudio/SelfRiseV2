@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Goal, GoalProgress } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 
@@ -19,6 +20,7 @@ interface TrendData {
 
 export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAnalysisProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const trendData = useMemo(() => {
     if (!progressHistory || progressHistory.length === 0) return [];
@@ -179,6 +181,33 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
   );
 
   if (trendData.length === 0) {
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: colors.backgroundSecondary,
+      },
+      title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginBottom: Layout.spacing.lg,
+        textAlign: 'center',
+      },
+      emptyState: {
+        backgroundColor: colors.cardBackgroundElevated,
+        borderRadius: 12,
+        padding: Layout.spacing.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: Layout.spacing.md,
+      },
+      emptyStateText: {
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+      },
+    });
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>{t('goals.analysis.progressTrend')}</Text>
@@ -189,10 +218,151 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
     );
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.lg,
+      textAlign: 'center',
+    },
+    section: {
+      marginBottom: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.md,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Layout.spacing.md,
+    },
+    chartContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+    },
+    chartArea: {
+      flexDirection: 'row',
+      height: 140,
+    },
+    yAxisLabels: {
+      width: 40,
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      paddingRight: Layout.spacing.sm,
+    },
+    axisLabel: {
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+    chartBars: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      paddingBottom: 20,
+    },
+    barContainer: {
+      flex: 1,
+      alignItems: 'center',
+      marginHorizontal: 1,
+    },
+    barBackground: {
+      width: '100%',
+      height: 120,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+    },
+    bar: {
+      width: '80%',
+      minHeight: 2,
+      borderRadius: 2,
+    },
+    barLabel: {
+      fontSize: 8,
+      color: colors.textSecondary,
+      marginTop: Layout.spacing.xs,
+      textAlign: 'center',
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: Layout.spacing.sm,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: Colors.primary,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: Layout.spacing.xs,
+    },
+    insightCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+      borderLeftWidth: 4,
+    },
+    insightText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
+    progressItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    progressItemLeft: {
+      flex: 1,
+    },
+    progressDate: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    progressValue: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    progressItemRight: {
+      alignItems: 'flex-end',
+    },
+    progressPercentage: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    trendIndicator: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginTop: Layout.spacing.xs,
+    },
+  });
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>{t('goals.analysis.progressTrend')}</Text>
-      
+
       {/* Progress Chart */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('goals.analysis.progressChart')}</Text>
@@ -215,8 +385,8 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
-              {trendData.length > 1 && trendData[trendData.length - 1] && trendData[0] ? 
-                (((trendData[trendData.length - 1]?.percentage ?? 0) - (trendData[0]?.percentage ?? 0)) / trendData.length).toFixed(1) : 
+              {trendData.length > 1 && trendData[trendData.length - 1] && trendData[0] ?
+                (((trendData[trendData.length - 1]?.percentage ?? 0) - (trendData[0]?.percentage ?? 0)) / trendData.length).toFixed(1) :
                 '0'
               }%
             </Text>
@@ -230,8 +400,8 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('goals.analysis.insights')}</Text>
           {insights.map((insight, index) => (
-            <View key={index} style={[styles.insightCard, { 
-              borderLeftColor: 
+            <View key={index} style={[styles.insightCard, {
+              borderLeftColor:
                 insight.type === 'positive' ? Colors.success :
                 insight.type === 'negative' ? Colors.error : Colors.info
             }]}>
@@ -252,14 +422,14 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
             </View>
             <View style={styles.progressItemRight}>
               <Text style={[styles.progressPercentage, {
-                color: data.trend === 'up' ? Colors.success : 
-                       data.trend === 'down' ? Colors.error : Colors.textSecondary
+                color: data.trend === 'up' ? Colors.success :
+                       data.trend === 'down' ? Colors.error : colors.textSecondary
               }]}>
                 {data.percentage.toFixed(1)}%
               </Text>
               <View style={[styles.trendIndicator, {
-                backgroundColor: data.trend === 'up' ? Colors.success : 
-                                 data.trend === 'down' ? Colors.error : Colors.textSecondary
+                backgroundColor: data.trend === 'up' ? Colors.success :
+                                 data.trend === 'down' ? Colors.error : colors.textSecondary
               }]} />
             </View>
           </View>
@@ -268,177 +438,3 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.lg,
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Layout.spacing.md,
-  },
-  chartContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  chartArea: {
-    flexDirection: 'row',
-    height: 140,
-  },
-  yAxisLabels: {
-    width: 40,
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingRight: Layout.spacing.sm,
-  },
-  axisLabel: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-  },
-  chartBars: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingBottom: 20,
-  },
-  barContainer: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 1,
-  },
-  barBackground: {
-    width: '100%',
-    height: 120,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  bar: {
-    width: '80%',
-    minHeight: 2,
-    borderRadius: 2,
-  },
-  barLabel: {
-    fontSize: 8,
-    color: Colors.textSecondary,
-    marginTop: Layout.spacing.xs,
-    textAlign: 'center',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Layout.spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: Layout.spacing.xs,
-  },
-  insightCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    borderLeftWidth: 4,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  insightText: {
-    fontSize: 14,
-    color: Colors.text,
-    lineHeight: 20,
-  },
-  progressItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  progressItemLeft: {
-    flex: 1,
-  },
-  progressDate: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  progressValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  progressItemRight: {
-    alignItems: 'flex-end',
-  },
-  progressPercentage: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  trendIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: Layout.spacing.xs,
-  },
-  emptyState: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: Layout.spacing.md,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});

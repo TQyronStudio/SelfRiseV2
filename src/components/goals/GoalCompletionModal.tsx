@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
 import { Goal } from '../../types/goal';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { Layout } from '../../constants/dimensions';
 import { useI18n } from '../../hooks/useI18n';
@@ -18,6 +18,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
 
   // Modal priority coordination - goal completion is a PRIMARY modal
@@ -61,6 +62,128 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
     
     return messages[Math.floor(Math.random() * messages.length)];
   };
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      padding: 24,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emojiContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.success,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    emoji: {
+      fontSize: 32,
+    },
+    title: {
+      fontSize: 24,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    message: {
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 24,
+      lineHeight: 24,
+    },
+    goalInfo: {
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    goalTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    goalProgress: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.success,
+      textAlign: 'center',
+    },
+    xpRewardContainer: {
+      alignItems: 'center',
+      backgroundColor: colors.primary + '15',
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      marginVertical: 16,
+      borderWidth: 1,
+      borderColor: colors.primary + '30',
+    },
+    xpRewardText: {
+      fontSize: 20,
+      fontFamily: Fonts.bold,
+      color: colors.primary,
+      marginBottom: 4,
+    },
+    xpRewardLabel: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.primary,
+      opacity: 0.8,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+      marginBottom: 24,
+    },
+    statItem: {
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      minWidth: 100,
+    },
+    statValue: {
+      fontSize: 18,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    button: {
+      backgroundColor: colors.success,
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 8,
+      minWidth: 120,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+    },
+  });
 
   return (
     <Modal
@@ -110,133 +233,3 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.85,
-    width: '100%',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  emojiContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.success,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emoji: {
-    fontSize: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  message: {
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-  },
-  goalInfo: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  goalTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  goalProgress: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.success,
-    textAlign: 'center',
-  },
-  xpRewardContainer: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '15', // 15% opacity
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginVertical: 16,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30', // 30% opacity
-  },
-  xpRewardText: {
-    fontSize: 20,
-    fontFamily: Fonts.bold,
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  xpRewardLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.primary,
-    opacity: 0.8,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 24,
-  },
-  statItem: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    minWidth: 100,
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  button: {
-    backgroundColor: Colors.success,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-  },
-});

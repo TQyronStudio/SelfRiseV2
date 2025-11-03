@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { AddGoalProgressInput } from '../../types/goal';
 import { DateString } from '../../types/common';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
@@ -43,6 +43,7 @@ export function ProgressEntryForm({
   isLoading = false,
 }: ProgressEntryFormProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
   
   const [formData, setFormData] = useState<ProgressEntryFormData>({
@@ -121,6 +122,140 @@ export function ProgressEntryForm({
     { value: 'set', label: t('goals.progress.form.types.set'), icon: '=' },
   ];
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 40,
+    },
+    inputGroup: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    inputError: {
+      borderColor: colors.error,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.error,
+      marginTop: 4,
+    },
+    typeContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    typeOption: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    typeOptionActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    typeIcon: {
+      fontSize: 24,
+      fontFamily: Fonts.bold,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    typeIconActive: {
+      color: colors.white,
+    },
+    typeText: {
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    typeTextActive: {
+      color: colors.white,
+    },
+    previewContainer: {
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 20,
+      alignItems: 'center',
+    },
+    previewLabel: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      marginBottom: 8,
+    },
+    previewValue: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    previewPercentage: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.primary,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+    },
+    disabledButton: {
+      opacity: 0.5,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+    submitButtonText: {
+      color: colors.white,
+    },
+  });
+
   return (
     <ScrollView 
       ref={scrollViewRef}
@@ -165,7 +300,7 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input, errors.value && styles.inputError]}
             placeholder={t('goals.progress.form.placeholders.value')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.value > 0 ? formData.value.toString() : ''}
             onChangeText={(text) => {
               const numValue = parseInt(text) || 0;
@@ -195,7 +330,7 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input, styles.textArea, errors.note && styles.inputError]}
             placeholder={t('goals.progress.form.placeholders.note')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.note}
             onChangeText={(text) => setFormData(prev => ({ ...prev, note: text }))}
             onFocus={() => scrollToInput(300)}
@@ -213,7 +348,7 @@ export function ProgressEntryForm({
           <TextInput
             style={[styles.input]}
             placeholder={t('goals.progress.form.placeholders.date')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.date}
             onChangeText={(text) => setFormData(prev => ({ ...prev, date: text as DateString }))}
             onFocus={() => scrollToInput(450)}
@@ -260,137 +395,3 @@ export function ProgressEntryForm({
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  errorText: {
-    fontSize: 14,
-    color: Colors.error,
-    marginTop: 4,
-  },
-  typeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  typeOption: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
-  },
-  typeOptionActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  typeIcon: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  typeIconActive: {
-    color: Colors.white,
-  },
-  typeText: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  typeTextActive: {
-    color: Colors.white,
-  },
-  previewContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  previewLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  previewValue: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  previewPercentage: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.primary,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-  },
-  cancelButtonText: {
-    color: Colors.textSecondary,
-  },
-  submitButtonText: {
-    color: Colors.white,
-  },
-});

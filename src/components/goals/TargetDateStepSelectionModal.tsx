@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import ErrorModal from '../common/ErrorModal';
@@ -69,6 +69,7 @@ export function TargetDateStepSelectionModal({
   initialDate,
 }: StepSelectionModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   // Default date calculation: First day of month +2 from current
   const getDefaultDate = (): Date => {
@@ -384,6 +385,88 @@ export function TargetDateStepSelectionModal({
     }
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      elevation: 10,
+      // Dynamic width and height set by animations
+    },
+    modalInner: {
+      flex: 1,
+      position: 'relative',
+    },
+    navigationContainer: {
+      position: 'absolute',
+      top: 16,
+      left: 16,
+      right: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      zIndex: 10,
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    closeButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    header: {
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+      paddingTop: 60, // Account for navigation controls
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    stepContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      justifyContent: 'center',
+    },
+    gridContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    gridSquare: {
+      width: SQUARE_SIZE,
+      height: SQUARE_SIZE,
+      borderRadius: SQUARE_BORDER_RADIUS,
+      justifyContent: 'center',
+      alignItems: 'center',
+      // backgroundColor and margins set dynamically
+    },
+    gridSquareText: {
+      color: TEXT_COLOR,
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -441,89 +524,3 @@ export function TargetDateStepSelectionModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    elevation: 10,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    // Dynamic width and height set by animations
-  },
-  modalInner: {
-    flex: 1,
-    position: 'relative',
-  },
-  navigationContainer: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    zIndex: 10,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingTop: 60, // Account for navigation controls
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  stepContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    justifyContent: 'center',
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  gridSquare: {
-    width: SQUARE_SIZE,
-    height: SQUARE_SIZE,
-    borderRadius: SQUARE_BORDER_RADIUS,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // backgroundColor and margins set dynamically
-  },
-  gridSquareText: {
-    color: TEXT_COLOR,
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    textAlign: 'center',
-  },
-});

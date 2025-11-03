@@ -13,11 +13,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, CreateGoalInput, UpdateGoalInput } from '../../types/goal';
 import { GoalForm, GoalFormData } from './GoalForm';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 import { useTutorial } from '../../contexts/TutorialContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface GoalModalProps {
   visible: boolean;
@@ -37,6 +37,7 @@ export function GoalModal({
   isLoading = false,
 }: GoalModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state: tutorialState } = useTutorial();
   const isEditing = !!goal;
 
@@ -72,6 +73,40 @@ export function GoalModal({
       }
     : undefined;
 
+  // Styles inside component to access theme colors
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      minHeight: 60,
+    },
+    closeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+    },
+    placeholder: {
+      width: 40,
+    },
+  });
+
   // STANDARDÍ React Native Modal s krásným pageSheet stylem
   return (
     <Modal
@@ -88,7 +123,7 @@ export function GoalModal({
               onPress={onClose}
               disabled={isLoading}
             >
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
             <Text style={styles.title}>
               {isEditing ? t('goals.editGoal') : t('goals.addGoal')}
@@ -113,37 +148,3 @@ export function GoalModal({
     </Modal>
   );
 }
-
-// STANDARDÍ React Native Modal styly
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    minHeight: 60,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-  },
-  placeholder: {
-    width: 40,
-  },
-});

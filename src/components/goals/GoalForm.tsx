@@ -13,9 +13,9 @@ import {
 import { GoalCategory } from '../../types/goal';
 import { CreateGoalInput, UpdateGoalInput } from '../../types/goal';
 import { DateString } from '../../types/common';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
@@ -58,6 +58,7 @@ export function GoalForm({
   isLoading = false,
 }: GoalFormProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { state: tutorialState, actions: tutorialActions } = useTutorial();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -479,7 +480,7 @@ export function GoalForm({
             ref={goalTitleRef}
             style={[styles.input, errors.title && styles.inputError]}
             placeholder={t('goals.form.placeholders.title')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.title}
             onChangeText={handleTitleChange}
             onFocus={() => scrollToInput(0)}
@@ -496,7 +497,7 @@ export function GoalForm({
           <TextInput
             style={[styles.input, styles.textArea, errors.description && styles.inputError]}
             placeholder={t('goals.form.placeholders.description')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.description || ''}
             onChangeText={(text) => setFormData(prev => ({ ...prev, description: text || undefined }))}
             onFocus={() => scrollToInput(100)}
@@ -535,7 +536,7 @@ export function GoalForm({
             ref={goalUnitRef}
             style={[styles.input, errors.unit && styles.inputError]}
             placeholder={t('goals.form.placeholders.unit')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.unit}
             onChangeText={handleUnitChange}
             onFocus={() => scrollToInput(250)}
@@ -553,7 +554,7 @@ export function GoalForm({
             ref={goalTargetRef}
             style={[styles.input, errors.targetValue && styles.inputError]}
             placeholder={t('goals.form.placeholders.targetValue')}
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={formData.targetValue > 0 ? formData.targetValue.toString() : ''}
             onChangeText={handleTargetChange}
             onFocus={() => scrollToInput(300)}
@@ -669,125 +670,125 @@ export function GoalForm({
       />
     </ScrollView>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 60, // Extra space to ensure Create button is always visible
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  dateHint: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontStyle: 'italic',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  dateSelector: {
-    justifyContent: 'center',
-    minHeight: 50,
-  },
-  dateText: {
-    fontSize: 16,
-    fontFamily: Fonts.regular,
-    color: Colors.text,
-  },
-  placeholderText: {
-    color: Colors.textSecondary,
-  },
-  errorText: {
-    fontSize: 14,
-    color: Colors.error,
-    marginTop: 4,
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
-  },
-  categoryOptionActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-  },
-  categoryTextActive: {
-    color: Colors.white,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-  },
-  cancelButtonText: {
-    color: Colors.textSecondary,
-  },
-  submitButtonText: {
-    color: Colors.white,
-  },
-});
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 60,
+    },
+    inputGroup: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    dateHint: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginBottom: 4,
+      fontStyle: 'italic',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    inputError: {
+      borderColor: colors.error,
+    },
+    dateSelector: {
+      justifyContent: 'center',
+      minHeight: 50,
+    },
+    dateText: {
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+    },
+    placeholderText: {
+      color: colors.textSecondary,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.error,
+      marginTop: 4,
+    },
+    categoryContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    categoryOption: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    categoryOptionActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    categoryText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    categoryTextActive: {
+      color: '#FFFFFF',
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+    },
+    disabledButton: {
+      opacity: 0.5,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+    submitButtonText: {
+      color: '#FFFFFF',
+    },
+  });
+}

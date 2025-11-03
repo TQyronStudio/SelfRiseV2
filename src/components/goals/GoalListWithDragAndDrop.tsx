@@ -3,8 +3,8 @@ import { View, StyleSheet, ScrollView, Text, FlatList } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
-import { Colors } from '../../constants/colors';
 import { useI18n } from '../../hooks/useI18n';
+import { useTheme } from '../../contexts/ThemeContext';
 import { HelpTooltip } from '../common/HelpTooltip';
 
 interface GoalListWithDragAndDropProps {
@@ -31,6 +31,7 @@ export function GoalListWithDragAndDrop({
   ListHeaderComponent,
 }: GoalListWithDragAndDropProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -182,44 +183,44 @@ export function GoalListWithDragAndDrop({
       )}
     </ScrollView>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-  },
-  goalItemContainer: {
-    marginBottom: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    content: {
+      flexGrow: 1,
+      padding: 16,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    goalItemContainer: {
+      marginBottom: 12,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+}

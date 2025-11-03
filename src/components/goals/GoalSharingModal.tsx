@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Share, Modal } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors } from '@/src/constants/colors';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout } from '@/src/constants/dimensions';
 
 interface GoalSharingModalProps {
@@ -16,6 +16,7 @@ interface GoalSharingModalProps {
 
 export function GoalSharingModal({ visible, goal, stats, progressHistory, onClose }: GoalSharingModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [isExporting, setIsExporting] = useState(false);
 
   // Don't render if stats are not available
@@ -186,12 +187,12 @@ export function GoalSharingModal({ visible, goal, stats, progressHistory, onClos
     }
   };
 
-  const ShareOption = ({ 
-    icon, 
-    title, 
-    description, 
-    onPress, 
-    color = Colors.primary 
+  const ShareOption = ({
+    icon,
+    title,
+    description,
+    onPress,
+    color = colors.primary
   }: {
     icon: string;
     title: string;
@@ -205,15 +206,109 @@ export function GoalSharingModal({ visible, goal, stats, progressHistory, onClos
       disabled={isExporting}
     >
       <View style={[styles.shareOptionIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon as any} size={24} color={Colors.white} />
+        <Ionicons name={icon as any} size={24} color={colors.white} />
       </View>
       <View style={styles.shareOptionContent}>
         <Text style={styles.shareOptionTitle}>{title}</Text>
         <Text style={styles.shareOptionDescription}>{description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+      <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
     </TouchableOpacity>
   );
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingTop: Layout.spacing.lg,
+      paddingBottom: Layout.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    closeButton: {
+      padding: Layout.spacing.xs,
+    },
+    goalInfo: {
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: Layout.spacing.md,
+      marginHorizontal: Layout.spacing.md,
+      marginVertical: Layout.spacing.sm,
+      borderRadius: 12,
+    },
+    goalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    goalProgress: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: Layout.spacing.md,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: Layout.spacing.lg,
+      marginBottom: Layout.spacing.md,
+    },
+    shareOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+      borderRadius: 12,
+    },
+    shareOptionIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Layout.spacing.md,
+    },
+    shareOptionContent: {
+      flex: 1,
+    },
+    shareOptionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    shareOptionDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 18,
+    },
+    footer: {
+      padding: Layout.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    footerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 16,
+    },
+  });
 
   return (
     <Modal
@@ -226,7 +321,7 @@ export function GoalSharingModal({ visible, goal, stats, progressHistory, onClos
         <View style={styles.header}>
           <Text style={styles.title}>{t('goals.sharing.title')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.text} />
+            <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -245,49 +340,49 @@ export function GoalSharingModal({ visible, goal, stats, progressHistory, onClos
             title={t('goals.sharing.quickSummary')}
             description={t('goals.sharing.quickSummaryDescription')}
             onPress={() => shareGoal('summary')}
-            color={Colors.primary}
+            color={colors.primary}
           />
-          
+
           <ShareOption
             icon="analytics"
             title={t('goals.sharing.detailedReport')}
             description={t('goals.sharing.detailedReportDescription')}
             onPress={() => shareGoal('detailed')}
-            color={Colors.info}
+            color={colors.info}
           />
-          
+
           <ShareOption
             icon="code"
             title={t('goals.sharing.dataExport')}
             description={t('goals.sharing.dataExportDescription')}
             onPress={() => shareGoal('json')}
-            color={Colors.warning}
+            color={colors.warning}
           />
 
           <Text style={styles.sectionTitle}>{t('goals.sharing.copyOptions')}</Text>
-          
+
           <ShareOption
             icon="copy"
             title={t('goals.sharing.copyToClipboard')}
             description={t('goals.sharing.copyToClipboardDescription')}
             onPress={() => copyToClipboard('summary')}
-            color={Colors.success}
+            color={colors.success}
           />
-          
+
           <ShareOption
             icon="clipboard"
             title={t('goals.sharing.copyDetailed')}
             description={t('goals.sharing.copyDetailedDescription')}
             onPress={() => copyToClipboard('detailed')}
-            color={Colors.success}
+            color={colors.success}
           />
-          
+
           <ShareOption
             icon="document"
             title={t('goals.sharing.copyJson')}
             description={t('goals.sharing.copyJsonDescription')}
             onPress={() => copyToClipboard('json')}
-            color={Colors.success}
+            color={colors.success}
           />
         </View>
 
@@ -298,107 +393,3 @@ export function GoalSharingModal({ visible, goal, stats, progressHistory, onClos
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Layout.spacing.md,
-    paddingTop: Layout.spacing.lg,
-    paddingBottom: Layout.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Layout.spacing.xs,
-  },
-  goalInfo: {
-    backgroundColor: Colors.backgroundSecondary,
-    padding: Layout.spacing.md,
-    marginHorizontal: Layout.spacing.md,
-    marginVertical: Layout.spacing.sm,
-    borderRadius: 12,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  goalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  goalProgress: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: Layout.spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: Layout.spacing.lg,
-    marginBottom: Layout.spacing.md,
-  },
-  shareOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    borderRadius: 12,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  shareOptionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Layout.spacing.md,
-  },
-  shareOptionContent: {
-    flex: 1,
-  },
-  shareOptionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  shareOptionDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  footer: {
-    padding: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  footerText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-});

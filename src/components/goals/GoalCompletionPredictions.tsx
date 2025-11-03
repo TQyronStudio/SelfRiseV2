@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 import { HelpTooltip } from '@/src/components/common';
@@ -31,6 +32,7 @@ interface PredictionInsight {
 
 export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoading = false }: GoalCompletionPredictionsProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const predictions = useMemo(() => {
     // If no stats, return empty predictions
@@ -330,6 +332,30 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
 
   // If stats are not available, show loading or no data message
   if (!stats) {
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: colors.backgroundSecondary,
+      },
+      sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.text,
+        flex: 1,
+      },
+      loadingContainer: {
+        backgroundColor: colors.cardBackgroundElevated,
+        borderRadius: 8,
+        padding: Layout.spacing.lg,
+        alignItems: 'center',
+      },
+      loadingText: {
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+      },
+    });
+
     return (
       <View style={styles.container}>
         <Text style={styles.sectionTitle}>{t('goals.details.predictions')}</Text>
@@ -344,10 +370,122 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
 
   // const today = new Date(); // Unused in render
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.lg,
+      textAlign: 'center',
+    },
+    section: {
+      marginBottom: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.md,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    predictionCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.md,
+    },
+    predictionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    predictionMethod: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    accuracyBadge: {
+      paddingHorizontal: Layout.spacing.sm,
+      paddingVertical: Layout.spacing.xs,
+      borderRadius: 12,
+    },
+    accuracyText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.white,
+    },
+    predictionDetails: {
+      gap: Layout.spacing.sm,
+    },
+    predictionItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Layout.spacing.sm,
+    },
+    predictionLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    predictionValue: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    confidenceBar: {
+      marginTop: Layout.spacing.md,
+    },
+    confidenceBarBackground: {
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      overflow: 'hidden',
+    },
+    confidenceBarFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+    insightCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 8,
+      padding: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+      borderLeftWidth: 4,
+    },
+    insightHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    insightTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginLeft: Layout.spacing.sm,
+    },
+    insightDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+  });
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>{t('goals.predictions.title')}</Text>
-      
+
       {/* Predictions */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -370,33 +508,33 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
                 <Text style={styles.accuracyText}>{t(`goals.predictions.${prediction.accuracy}`)}</Text>
               </View>
             </View>
-            
+
             <View style={styles.predictionDetails}>
               <View style={styles.predictionItem}>
                 <Ionicons name="calendar" size={16} color={Colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.estimatedDate')}</Text>
                 <Text style={styles.predictionValue}>{prediction.estimatedDate}</Text>
               </View>
-              
+
               <View style={styles.predictionItem}>
                 <Ionicons name="time" size={16} color={Colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.daysRemaining')}</Text>
                 <Text style={styles.predictionValue}>{prediction.daysRemaining}</Text>
               </View>
-              
+
               <View style={styles.predictionItem}>
                 <Ionicons name="analytics" size={16} color={Colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.confidence')}</Text>
                 <Text style={styles.predictionValue}>{prediction.confidence.toFixed(0)}%</Text>
               </View>
             </View>
-            
+
             <View style={styles.confidenceBar}>
               <View style={styles.confidenceBarBackground}>
-                <View 
+                <View
                   style={[
                     styles.confidenceBarFill,
-                    { 
+                    {
                       width: `${prediction.confidence}%`,
                       backgroundColor: prediction.accuracy === 'high' ? Colors.success :
                                       prediction.accuracy === 'medium' ? Colors.warning : Colors.error
@@ -421,12 +559,12 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
                             insight.type === 'warning' ? Colors.warning : Colors.info
           }]}>
             <View style={styles.insightHeader}>
-              <Ionicons 
-                name={insight.icon as any} 
-                size={20} 
+              <Ionicons
+                name={insight.icon as any}
+                size={20}
                 color={insight.type === 'positive' ? Colors.success :
                        insight.type === 'negative' ? Colors.error :
-                       insight.type === 'warning' ? Colors.warning : Colors.info} 
+                       insight.type === 'warning' ? Colors.warning : Colors.info}
               />
               <Text style={styles.insightTitle}>{insight.title}</Text>
             </View>
@@ -437,136 +575,3 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.lg,
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.md,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-  },
-  predictionCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.md,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  predictionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  predictionMethod: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-  },
-  accuracyBadge: {
-    paddingHorizontal: Layout.spacing.sm,
-    paddingVertical: Layout.spacing.xs,
-    borderRadius: 12,
-  },
-  accuracyText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  predictionDetails: {
-    gap: Layout.spacing.sm,
-  },
-  predictionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Layout.spacing.sm,
-  },
-  predictionLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  predictionValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  confidenceBar: {
-    marginTop: Layout.spacing.md,
-  },
-  confidenceBarBackground: {
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  confidenceBarFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  insightCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    borderLeftWidth: 4,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  insightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  insightTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginLeft: Layout.spacing.sm,
-  },
-  insightDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  loadingContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.lg,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});
