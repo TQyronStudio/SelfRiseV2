@@ -462,6 +462,128 @@ export function GoalForm({
     { value: GoalCategory.OTHER, label: t('goals.categories.other') },
   ];
 
+  // Move styles BEFORE return statement
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 60,
+    },
+    inputGroup: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    dateHint: {
+      fontSize: 12,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+      marginBottom: 4,
+      fontStyle: 'italic',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    inputError: {
+      borderColor: colors.error,
+    },
+    dateSelector: {
+      justifyContent: 'center',
+      minHeight: 50,
+    },
+    dateText: {
+      fontSize: 16,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+    },
+    placeholderText: {
+      color: colors.textSecondary,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.error,
+      marginTop: 4,
+    },
+    categoryContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    categoryOption: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    categoryOptionActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    categoryText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+    },
+    categoryTextActive: {
+      color: '#FFFFFF',
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+    },
+    disabledButton: {
+      opacity: 0.5,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+    submitButtonText: {
+      color: '#FFFFFF',
+    },
+  });
+
   return (
     <ScrollView
       ref={scrollViewRef}
@@ -670,125 +792,4 @@ export function GoalForm({
       />
     </ScrollView>
   );
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    scrollContent: {
-      flexGrow: 1,
-    },
-    content: {
-      padding: 20,
-      paddingBottom: 60,
-    },
-    inputGroup: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 16,
-      fontFamily: Fonts.medium,
-      color: colors.text,
-      marginBottom: 8,
-    },
-    dateHint: {
-      fontSize: 12,
-      fontFamily: Fonts.regular,
-      color: colors.textSecondary,
-      marginBottom: 4,
-      fontStyle: 'italic',
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
-      fontFamily: Fonts.regular,
-      color: colors.text,
-      backgroundColor: colors.cardBackgroundElevated,
-    },
-    textArea: {
-      height: 80,
-      textAlignVertical: 'top',
-    },
-    inputError: {
-      borderColor: colors.error,
-    },
-    dateSelector: {
-      justifyContent: 'center',
-      minHeight: 50,
-    },
-    dateText: {
-      fontSize: 16,
-      fontFamily: Fonts.regular,
-      color: colors.text,
-    },
-    placeholderText: {
-      color: colors.textSecondary,
-    },
-    errorText: {
-      fontSize: 14,
-      color: colors.error,
-      marginTop: 4,
-    },
-    categoryContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-    },
-    categoryOption: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.cardBackgroundElevated,
-    },
-    categoryOptionActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    categoryText: {
-      fontSize: 14,
-      fontFamily: Fonts.medium,
-      color: colors.textSecondary,
-    },
-    categoryTextActive: {
-      color: '#FFFFFF',
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 20,
-      gap: 12,
-    },
-    button: {
-      flex: 1,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    cancelButton: {
-      backgroundColor: colors.cardBackgroundElevated,
-    },
-    submitButton: {
-      backgroundColor: colors.primary,
-    },
-    disabledButton: {
-      opacity: 0.5,
-    },
-    buttonText: {
-      fontSize: 16,
-      fontFamily: Fonts.medium,
-    },
-    cancelButtonText: {
-      color: colors.textSecondary,
-    },
-    submitButtonText: {
-      color: '#FFFFFF',
-    },
-  });
 }

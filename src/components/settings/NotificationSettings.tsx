@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Colors, Fonts, Layout } from '../../constants';
+import { Fonts, Layout } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   notificationService,
@@ -277,11 +277,11 @@ export const NotificationSettings: React.FC = () => {
     permissionWarning: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: Colors.warning + '15',
+      backgroundColor: colors.warning + '15',
       padding: 16,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: Colors.warning + '30',
+      borderColor: colors.warning + '30',
     },
     permissionWarningContent: {
       flex: 1,
@@ -290,7 +290,7 @@ export const NotificationSettings: React.FC = () => {
     permissionWarningTitle: {
       fontSize: 16,
       fontFamily: Fonts.semibold,
-      color: Colors.warning,
+      color: colors.warning,
       marginBottom: 2,
     },
     permissionWarningText: {
@@ -348,7 +348,7 @@ export const NotificationSettings: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -365,7 +365,7 @@ export const NotificationSettings: React.FC = () => {
           style={styles.permissionWarning}
           onPress={permissionStatus.canAskAgain ? handleRequestPermissions : handleOpenSystemSettings}
         >
-          <Ionicons name="alert-circle" size={24} color={Colors.warning} />
+          <Ionicons name="alert-circle" size={24} color={colors.warning} />
           <View style={styles.permissionWarningContent}>
             <Text style={styles.permissionWarningTitle}>Notifications Disabled</Text>
             <Text style={styles.permissionWarningText}>
@@ -382,7 +382,7 @@ export const NotificationSettings: React.FC = () => {
       <View style={styles.settingItem}>
         <View style={styles.settingHeader}>
           <View style={styles.settingHeaderLeft}>
-            <Ionicons name="sunny" size={24} color={Colors.primary} />
+            <Ionicons name="sunny" size={24} color={colors.primary} />
             <View style={styles.settingHeaderText}>
               <Text style={styles.settingTitle}>Afternoon Reminder</Text>
               <Text style={styles.settingDescription}>Motivational check-in</Text>
@@ -391,8 +391,8 @@ export const NotificationSettings: React.FC = () => {
           <Switch
             value={settings.afternoonReminderEnabled}
             onValueChange={handleAfternoonToggle}
-            trackColor={{ false: colors.textSecondary, true: Colors.primary }}
-            thumbColor={Colors.white}
+            trackColor={{ false: colors.textSecondary, true: colors.primary }}
+            thumbColor={'#FFFFFF'}
           />
         </View>
 
@@ -412,7 +412,7 @@ export const NotificationSettings: React.FC = () => {
       <View style={styles.settingItem}>
         <View style={styles.settingHeader}>
           <View style={styles.settingHeaderLeft}>
-            <Ionicons name="moon" size={24} color={Colors.primary} />
+            <Ionicons name="moon" size={24} color={colors.primary} />
             <View style={styles.settingHeaderText}>
               <Text style={styles.settingTitle}>Evening Reminder</Text>
               <Text style={styles.settingDescription}>Smart task reminder</Text>
@@ -421,8 +421,8 @@ export const NotificationSettings: React.FC = () => {
           <Switch
             value={settings.eveningReminderEnabled}
             onValueChange={handleEveningToggle}
-            trackColor={{ false: colors.textSecondary, true: Colors.primary }}
-            thumbColor={Colors.white}
+            trackColor={{ false: colors.textSecondary, true: colors.primary }}
+            thumbColor={'#FFFFFF'}
           />
         </View>
 
