@@ -8,8 +8,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from 'react-native';
-import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -312,7 +311,6 @@ export default function StreakWarmUpModal({
   onComplete,
   onResetStreak,
 }: StreakWarmUpModalProps) {
-  const { t } = useI18n();
   const { colors } = useTheme();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
@@ -373,7 +371,7 @@ export default function StreakWarmUpModal({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     header: {
       flexDirection: 'row',

@@ -23,6 +23,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors, Fonts, Layout } from '../../constants';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   notificationService,
   notificationScheduler,
@@ -31,6 +32,7 @@ import {
 import { NotificationPermissionStatus, NotificationSettings as NotificationSettingsType } from '../../types/notification';
 
 export const NotificationSettings: React.FC = () => {
+  const { colors } = useTheme();
   // State
   const [loading, setLoading] = useState(true);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | null>(null);
@@ -262,6 +264,87 @@ export const NotificationSettings: React.FC = () => {
   // RENDER
   // ========================================
 
+  // Move styles inside component for theme support
+  const styles = StyleSheet.create({
+    container: {
+      gap: 12,
+    },
+    loadingContainer: {
+      paddingVertical: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    permissionWarning: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.warning + '15',
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: Colors.warning + '30',
+    },
+    permissionWarningContent: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    permissionWarningTitle: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: Colors.warning,
+      marginBottom: 2,
+    },
+    permissionWarningText: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.text,
+    },
+    settingItem: {
+      backgroundColor: colors.cardBackgroundElevated,
+      padding: 16,
+      borderRadius: 12,
+    },
+    settingHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    settingHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    settingHeaderText: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontFamily: Fonts.semibold,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    settingDescription: {
+      fontSize: 14,
+      fontFamily: Fonts.regular,
+      color: colors.textSecondary,
+    },
+    timeSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 12,
+    },
+    timeText: {
+      flex: 1,
+      fontSize: 16,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+      marginLeft: 8,
+    },
+  });
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -291,7 +374,7 @@ export const NotificationSettings: React.FC = () => {
                 : 'Tap to open system settings'}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       )}
 
@@ -308,7 +391,7 @@ export const NotificationSettings: React.FC = () => {
           <Switch
             value={settings.afternoonReminderEnabled}
             onValueChange={handleAfternoonToggle}
-            trackColor={{ false: Colors.textSecondary, true: Colors.primary }}
+            trackColor={{ false: colors.textSecondary, true: Colors.primary }}
             thumbColor={Colors.white}
           />
         </View>
@@ -318,9 +401,9 @@ export const NotificationSettings: React.FC = () => {
             style={styles.timeSelector}
             onPress={() => setShowAfternoonPicker(true)}
           >
-            <Ionicons name="time-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
             <Text style={styles.timeText}>{settings.afternoonReminderTime}</Text>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -338,7 +421,7 @@ export const NotificationSettings: React.FC = () => {
           <Switch
             value={settings.eveningReminderEnabled}
             onValueChange={handleEveningToggle}
-            trackColor={{ false: Colors.textSecondary, true: Colors.primary }}
+            trackColor={{ false: colors.textSecondary, true: Colors.primary }}
             thumbColor={Colors.white}
           />
         </View>
@@ -348,9 +431,9 @@ export const NotificationSettings: React.FC = () => {
             style={styles.timeSelector}
             onPress={() => setShowEveningPicker(true)}
           >
-            <Ionicons name="time-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
             <Text style={styles.timeText}>{settings.eveningReminderTime}</Text>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -378,83 +461,3 @@ export const NotificationSettings: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
-  loadingContainer: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  permissionWarning: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.warning + '15',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.warning + '30',
-  },
-  permissionWarningContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  permissionWarningTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.warning,
-    marginBottom: 2,
-  },
-  permissionWarningText: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.text,
-  },
-  settingItem: {
-    backgroundColor: Colors.backgroundSecondary,
-    padding: 16,
-    borderRadius: 12,
-  },
-  settingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  settingHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  settingHeaderText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.semibold,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  settingDescription: {
-    fontSize: 14,
-    fontFamily: Fonts.regular,
-    color: Colors.textSecondary,
-  },
-  timeSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  timeText: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-    marginLeft: 8,
-  },
-});

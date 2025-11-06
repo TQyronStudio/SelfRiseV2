@@ -2298,10 +2298,23 @@ export class MonthlyProgressTracker {
    * Archive completed challenge for historical reference
    */
   private static async archiveCompletedChallenge(
-    challenge: MonthlyChallenge, 
+    challenge: MonthlyChallenge,
     progress: MonthlyChallengeProgress
   ): Promise<void> {
     try {
+      // Import MonthlyChallengeService using require for Jest compatibility
+      const { MonthlyChallengeService } = require('./monthlyChallengeService');
+      await MonthlyChallengeService.archiveCompletedChallenge(challenge.id);
+
+      // Use SQLite when enabled
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        // SQLite archival is handled by MonthlyChallengeService.archiveCompletedChallenge
+        // No additional storage needed here
+        console.log(`🗃️ Challenge archived to SQLite: ${challenge.title}`);
+        return;
+      }
+
+      // Fallback to AsyncStorage
       const archiveData = {
         challenge,
         progress,
@@ -2315,16 +2328,12 @@ export class MonthlyProgressTracker {
           weeklyConsistency: progress.weeklyConsistency
         }
       };
-      
+
       // Save to archive storage
       const archiveKey = `monthly_challenge_archive_${challenge.id}`;
       await AsyncStorage.setItem(archiveKey, JSON.stringify(archiveData));
-      
-      // Import MonthlyChallengeService using require for Jest compatibility
-      const { MonthlyChallengeService } = require('./monthlyChallengeService');
-      await MonthlyChallengeService.archiveCompletedChallenge(challenge.id);
-      
-      console.log(`🗃️ Challenge archived: ${challenge.title}`);
+
+      console.log(`🗃️ Challenge archived to AsyncStorage: ${challenge.title}`);
     } catch (error) {
       console.error('MonthlyProgressTracker.archiveCompletedChallenge error:', error);
       // Don't throw - archival is not critical for core functionality
