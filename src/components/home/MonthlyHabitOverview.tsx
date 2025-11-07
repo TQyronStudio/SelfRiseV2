@@ -343,14 +343,14 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
         <StatCard
           title={t('home.habitStats.totalHabits')}
           value={habits.filter(h => h.isActive).length.toString()}
-          color={Colors.primary}
+          color={colors.primary}
         />
         
         <StatCard
           title={t('home.habitStats.monthlyAverage')}
           value={`${monthlyStats.completionRate}%`}
           subtitle={`${monthlyStats.totalCompletions}/${monthlyStats.totalPossible}`}
-          color={monthlyStats.completionRate >= 70 ? Colors.success : monthlyStats.completionRate >= 50 ? Colors.warning : Colors.error}
+          color={monthlyStats.completionRate >= 70 ? colors.success : monthlyStats.completionRate >= 50 ? colors.warning : colors.error}
         />
 
         <StatCard
@@ -387,9 +387,9 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
                           styles.miniBarFill,
                           { 
                             height: barHeight,
-                            backgroundColor: day.completionRate >= 80 ? Colors.success : 
-                                           day.completionRate >= 60 ? Colors.warning : 
-                                           day.completionRate >= 40 ? Colors.secondary : Colors.error
+                            backgroundColor: day.completionRate >= 80 ? colors.success : 
+                                           day.completionRate >= 60 ? colors.warning : 
+                                           day.completionRate >= 40 ? Colors.secondary : colors.error
                           }
                         ]} 
                       />
@@ -397,7 +397,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
                     
                     {/* Bonus indicator */}
                     {hasBonus && (
-                      <View style={[styles.bonusIndicator, { backgroundColor: Colors.gold }]} />
+                      <View style={[styles.bonusIndicator, { backgroundColor: colors.gold }]} />
                     )}
                   </View>
                   
@@ -420,7 +420,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           <Text style={styles.insightsTitle}>{t('home.habitStats.performanceIndicators')}</Text>
           
           {topPerformer && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
               <Text style={styles.insightLabel}>🏆 Top Performer</Text>
               <Text style={styles.insightText}>
                 {topPerformer.name} ({topPerformer.completionRate}%)
@@ -429,7 +429,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {strugglingHabit && strugglingHabit.completionRate < 50 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.warning }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.warning }]}>
               <Text style={styles.insightLabel}>💪 Needs Focus</Text>
               <Text style={styles.insightText}>
                 {strugglingHabit.name} ({strugglingHabit.completionRate}%)
@@ -438,7 +438,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {monthlyStats.completionRate >= 80 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
               <Text style={styles.insightLabel}>🔥 {t('home.habitStats.improvingTrend')}</Text>
               <Text style={styles.insightText}>
                 Great month! Keep up the excellent work.
@@ -447,7 +447,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {monthlyStats.completionRate < 40 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.error }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.error }]}>
               <Text style={styles.insightLabel}>📈 {t('home.habitStats.decliningTrend')}</Text>
               <Text style={styles.insightText}>
                 Consider reviewing your habits and goals.

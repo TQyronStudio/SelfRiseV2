@@ -138,20 +138,20 @@ export function StreakVisualization({ showDays = 7 }: StreakVisualizationProps) 
       opacity: 0.3,
     },
     dayCompleted: {
-      backgroundColor: Colors.successLight,
-      borderColor: Colors.success,
+      backgroundColor: colors.successLight,
+      borderColor: colors.success,
     },
     dayBonus: {
-      backgroundColor: Colors.primary + '20',
-      borderColor: Colors.primary,
+      backgroundColor: colors.primary + '20',
+      borderColor: colors.primary,
     },
     dayToday: {
-      borderColor: Colors.primary,
+      borderColor: colors.primary,
       borderStyle: 'dashed',
     },
     completedIndicator: {
       fontSize: 16,
-      color: Colors.success,
+      color: colors.success,
       fontFamily: Fonts.bold,
     },
     bonusIndicator: {
@@ -159,7 +159,7 @@ export function StreakVisualization({ showDays = 7 }: StreakVisualizationProps) 
     },
     todayIndicator: {
       fontSize: 20,
-      color: Colors.primary,
+      color: colors.primary,
       fontFamily: Fonts.bold,
     },
     legend: {
@@ -192,7 +192,7 @@ export function StreakVisualization({ showDays = 7 }: StreakVisualizationProps) 
     },
     todayLegendIndicator: {
       fontSize: 12,
-      color: Colors.primary,
+      color: colors.primary,
       fontFamily: Fonts.bold,
     },
   });

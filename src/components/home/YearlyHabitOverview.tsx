@@ -342,14 +342,14 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
         <StatCard
           title="Total Habits"
           value={habits.filter(h => h.isActive).length.toString()}
-          color={Colors.primary}
+          color={colors.primary}
         />
         
         <StatCard
           title="Yearly Average"
           value={`${yearlyStats.completionRate}%`}
           subtitle={`${yearlyStats.totalCompletions}/${yearlyStats.totalPossible}`}
-          color={yearlyStats.completionRate >= 70 ? Colors.success : yearlyStats.completionRate >= 50 ? Colors.warning : Colors.error}
+          color={yearlyStats.completionRate >= 70 ? colors.success : yearlyStats.completionRate >= 50 ? colors.warning : colors.error}
         />
 
         <StatCard
@@ -373,7 +373,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
           <Text style={styles.insightsTitle}>Performance Insights</Text>
           
           {topPerformer && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
               <Text style={styles.insightLabel}>🏆 Top Performer</Text>
               <Text style={styles.insightText}>
                 {topPerformer.name} ({topPerformer.completionRate}%)
@@ -382,7 +382,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {strugglingHabit && strugglingHabit.completionRate < 50 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.warning }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.warning }]}>
               <Text style={styles.insightLabel}>💪 Needs Focus</Text>
               <Text style={styles.insightText}>
                 {strugglingHabit.name} ({strugglingHabit.completionRate}%)
@@ -391,7 +391,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {yearlyStats.completionRate >= 80 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.success }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
               <Text style={styles.insightLabel}>🔥 Excellent Year</Text>
               <Text style={styles.insightText}>
                 Outstanding yearly performance! Keep it up.
@@ -400,7 +400,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
           )}
 
           {yearlyStats.completionRate < 40 && (
-            <View style={[styles.insightItem, { borderLeftColor: Colors.error }]}>
+            <View style={[styles.insightItem, { borderLeftColor: colors.error }]}>
               <Text style={styles.insightLabel}>📈 Room for Improvement</Text>
               <Text style={styles.insightText}>
                 Consider reviewing your habits and goals.

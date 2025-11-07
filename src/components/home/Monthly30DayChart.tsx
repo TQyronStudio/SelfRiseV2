@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { Layout, Fonts, Colors } from '@/src/constants';
+import { Layout, Fonts } from '@/src/constants';
 import { formatDate, getPast30Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
@@ -307,7 +307,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
-                                backgroundColor: day.isToday ? Colors.textSecondary : Colors.error,
+                                backgroundColor: day.isToday ? colors.textSecondary : colors.error,
                                 bottom: 0,
                                 // Always apply bottom border radius for missed section (it's always at bottom)
                                 borderBottomLeftRadius: 2,
@@ -329,7 +329,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
-                                backgroundColor: Colors.success,
+                                backgroundColor: colors.success,
                                 bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
                                 // Apply top border radius if this is the topmost section
                                 ...(day.bonusCount === 0 ? {
@@ -353,7 +353,7 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
-                                backgroundColor: Colors.gold,
+                                backgroundColor: colors.gold,
                                 bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
                                 // Always apply top border radius for bonus section (it's always on top)
                                 borderTopLeftRadius: 2,
@@ -387,15 +387,15 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.success }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.success }]} />
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.error }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.error }]} />
           <Text style={styles.legendText}>Missed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.gold }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.gold }]} />
           <Text style={styles.legendText}>Bonus</Text>
         </View>
       </View>

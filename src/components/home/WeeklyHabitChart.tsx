@@ -165,8 +165,8 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
   }, [weekData]);
 
   const getBarColor = (completionRate: number) => {
-    if (completionRate >= 80) return Colors.success;
-    if (completionRate >= 60) return Colors.warning;
+    if (completionRate >= 80) return colors.success;
+    if (completionRate >= 60) return colors.warning;
     if (completionRate >= 40) return Colors.secondary;
     return Colors.textSecondary;
   };
@@ -326,7 +326,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
-                                backgroundColor: isToday(day.date) ? Colors.textSecondary : Colors.error,
+                                backgroundColor: isToday(day.date) ? Colors.textSecondary : colors.error,
                                 bottom: 0,
                                 // Always apply bottom border radius for missed section (it's always at bottom)
                                 borderBottomLeftRadius: Layout.borderRadius.sm,
@@ -348,7 +348,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.scheduledCount, dayTotal, dayColumnHeight),
-                                backgroundColor: Colors.success,
+                                backgroundColor: colors.success,
                                 bottom: day.actualMissedDays > 0 ? getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight) : 0,
                                 // Apply top border radius if this is the topmost section
                                 ...(day.bonusCount === 0 ? {
@@ -372,7 +372,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.bonusCount, dayTotal, dayColumnHeight),
-                                backgroundColor: Colors.gold,
+                                backgroundColor: colors.gold,
                                 bottom: getSectionHeight(day.actualMissedDays + day.scheduledCount, dayTotal, dayColumnHeight),
                                 // Always apply top border radius for bonus section (it's always on top)
                                 borderTopLeftRadius: Layout.borderRadius.sm,
@@ -418,15 +418,15 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.success }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.success }]} />
           <Text style={styles.legendText}>Completed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.error }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.error }]} />
           <Text style={styles.legendText}>Missed</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: Colors.gold }]} />
+          <View style={[styles.legendColor, { backgroundColor: colors.gold }]} />
           <Text style={styles.legendText}>Bonus</Text>
         </View>
       </View>
