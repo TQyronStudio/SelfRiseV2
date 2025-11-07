@@ -66,16 +66,14 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
     orderText: {
       fontSize: Fonts.sizes.lg,
       fontWeight: 'bold',
-      color: colors.primary,
-      backgroundColor: colors.white,
+      color: colors.primaryLight,
+      backgroundColor: colors.primaryDark,
       width: 32,
       height: 32,
       textAlign: 'center',
       lineHeight: 32,
       borderRadius: 16,
       marginRight: Layout.spacing.sm,
-      borderWidth: 2,
-      borderColor: colors.primary,
     },
     bonusOrderText: {
       color: colors.gold,
