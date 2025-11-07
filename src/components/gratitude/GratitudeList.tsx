@@ -66,8 +66,8 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
     orderText: {
       fontSize: Fonts.sizes.lg,
       fontWeight: 'bold',
-      color: colors.primary,
-      backgroundColor: colors.primaryLight,
+      color: colors.white,
+      backgroundColor: colors.primary,
       width: 32,
       height: 32,
       textAlign: 'center',
@@ -81,8 +81,8 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
       lineHeight: 32,
     },
     selfPraiseOrderText: {
-      color: colors.success,
-      backgroundColor: colors.successLight,
+      color: colors.white,
+      backgroundColor: colors.success,
       lineHeight: 32,
     },
     bonusSelfPraiseOrderText: {
