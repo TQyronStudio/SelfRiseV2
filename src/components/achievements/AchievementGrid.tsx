@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, UserAchievements } from '@/src/types/gamification';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AchievementGridProps {
   achievements: Achievement[];
@@ -24,6 +25,22 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
   userAchievements,
   onAchievementPress,
 }) => {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      padding: 16,
+      paddingBottom: 100,
+    },
+    row: {
+      justifyContent: 'space-around',
+      paddingHorizontal: 8,
+    },
+    cardWrapper: {
+      marginBottom: 8,
+    },
+  });
+
   const renderAchievementCard = ({ item: achievement }: { item: Achievement }) => {
     const isUnlocked = userAchievements.unlockedAchievements.includes(achievement.id);
 
@@ -52,17 +69,3 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
     />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  row: {
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-  },
-  cardWrapper: {
-    marginBottom: 8,
-  },
-});

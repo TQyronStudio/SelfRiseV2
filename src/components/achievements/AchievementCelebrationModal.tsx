@@ -10,10 +10,11 @@ import {
   Animated,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
 import { useXpFeedback } from '@/src/hooks/useXpFeedback';
 import { Achievement, AchievementRarity } from '@/src/types/gamification';
 import { useAccessibility, getHighContrastRarityColors } from '@/src/hooks/useAccessibility';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -27,13 +28,13 @@ interface AchievementCelebrationModalProps {
 // Get rarity color for theming
 const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
   const colors = getHighContrastRarityColors(isHighContrast);
-  
+
   switch (rarity) {
     case AchievementRarity.COMMON: return colors.common;
     case AchievementRarity.RARE: return colors.rare;
     case AchievementRarity.EPIC: return colors.epic;
     case AchievementRarity.LEGENDARY: return colors.legendary;
-    default: return isHighContrast ? '#000000' : Colors.primary;
+    default: return isHighContrast ? '#000000' : '#007AFF';
   }
 };
 
@@ -71,6 +72,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   }
 
   const { t } = useI18n();
+  const { colors } = useTheme();
   const { isHighContrastEnabled, isReduceMotionEnabled } = useAccessibility();
   const { triggerHapticFeedback, playSoundEffect } = useXpFeedback();
 
@@ -81,6 +83,94 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
   const rarityHaptic = getRarityHapticIntensity(achievement.rarity);
   const raritySound = getRaritySoundEffect(achievement.rarity);
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      borderWidth: 3,
+      paddingVertical: Layout.spacing.xl,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      maxWidth: screenWidth * 0.85,
+      width: '100%',
+    },
+    emoji: {
+      fontSize: 72,
+      marginBottom: Layout.spacing.md,
+    },
+    title: {
+      fontSize: Fonts.sizes.xxl || 28,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    achievementName: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: '600',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    description: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+      paddingHorizontal: Layout.spacing.sm,
+    },
+    rarityBadge: {
+      borderRadius: 20,
+      paddingVertical: Layout.spacing.sm,
+      paddingHorizontal: Layout.spacing.lg,
+      marginBottom: Layout.spacing.md,
+    },
+    rarityText: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: colors.white,
+      letterSpacing: 1,
+    },
+    xpBadge: {
+      borderWidth: 2,
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.lg,
+      alignItems: 'center',
+      marginBottom: Layout.spacing.lg,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    xpLabel: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    xpAmount: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+    },
+    button: {
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      minWidth: 140,
+    },
+    buttonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
 
   // Get rarity-specific emoji and title
   const getRarityEmoji = (rarity: AchievementRarity): string => {
@@ -277,98 +367,3 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    borderWidth: 3, // Border for rarity theming
-    paddingVertical: Layout.spacing.xl,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    maxWidth: screenWidth * 0.85,
-    width: '100%',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 15,
-  },
-  emoji: {
-    fontSize: 72,
-    marginBottom: Layout.spacing.md,
-  },
-  title: {
-    fontSize: Fonts.sizes.xxl || 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  achievementName: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: '600',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  description: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-    paddingHorizontal: Layout.spacing.sm,
-  },
-  rarityBadge: {
-    borderRadius: 20,
-    paddingVertical: Layout.spacing.sm,
-    paddingHorizontal: Layout.spacing.lg,
-    marginBottom: Layout.spacing.md,
-  },
-  rarityText: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.white,
-    letterSpacing: 1,
-  },
-  xpBadge: {
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.lg,
-    alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
-    backgroundColor: Colors.backgroundSecondary || '#F8F9FA',
-  },
-  xpLabel: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  xpAmount: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-  },
-  button: {
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    minWidth: 140,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-});
