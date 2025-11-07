@@ -22,6 +22,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 import { XPMultiplierService, ActiveMultiplierInfo } from '../../services/xpMultiplierService';
 
 // ========================================
@@ -104,23 +105,23 @@ const getSizeConfig = (size: 'small' | 'medium' | 'large') => {
 };
 
 /**
- * Get color configuration based on variant
+ * Get color configuration based on variant (now theme-aware)
  */
-const getColorConfig = (variant: 'light' | 'dark' | 'colored') => {
+const getColorConfig = (variant: 'light' | 'dark' | 'colored', colors: any) => {
   switch (variant) {
     case 'light':
       return {
-        backgroundColor: '#FFFFFF',
-        textColor: '#333333',
-        progressColor: '#4CAF50',
-        borderColor: '#E0E0E0',
+        backgroundColor: colors.backgroundSecondary,
+        textColor: colors.text,
+        progressColor: colors.success,
+        borderColor: colors.border,
       };
     case 'dark':
       return {
-        backgroundColor: '#333333',
-        textColor: '#FFFFFF',
+        backgroundColor: colors.cardBackgroundElevated,
+        textColor: colors.text,
         progressColor: '#FFD700',
-        borderColor: '#555555',
+        borderColor: colors.border,
       };
     case 'colored':
       return {
@@ -131,10 +132,10 @@ const getColorConfig = (variant: 'light' | 'dark' | 'colored') => {
       };
     default:
       return {
-        backgroundColor: '#FFFFFF',
-        textColor: '#333333',
-        progressColor: '#4CAF50',
-        borderColor: '#E0E0E0',
+        backgroundColor: colors.backgroundSecondary,
+        textColor: colors.text,
+        progressColor: colors.success,
+        borderColor: colors.border,
       };
   }
 };
@@ -152,6 +153,7 @@ export const MultiplierCountdownTimer: React.FC<MultiplierCountdownTimerProps> =
   autoUpdate = true,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   
   // ========================================
   // STATE & ANIMATIONS
@@ -166,7 +168,7 @@ export const MultiplierCountdownTimer: React.FC<MultiplierCountdownTimerProps> =
   const [pulseAnim] = useState(new Animated.Value(1));
   
   const sizeConfig = getSizeConfig(size);
-  const colorConfig = getColorConfig(variant);
+  const colorConfig = getColorConfig(variant, colors);
   
   // ========================================
   // DATA LOADING & UPDATES
@@ -329,7 +331,7 @@ export const MultiplierCountdownTimer: React.FC<MultiplierCountdownTimerProps> =
     if (!activeMultiplier?.isActive) {
       return (
         <View style={styles.inactiveContainer}>
-          <Text style={[styles.inactiveText, { fontSize: sizeConfig.fontSize }]}>
+          <Text style={[styles.inactiveText, { fontSize: sizeConfig.fontSize, color: colorConfig.textColor }]}>
             No Multiplier
           </Text>
         </View>
@@ -419,11 +421,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
     position: 'relative',
   },
   
@@ -467,7 +464,6 @@ const styles = StyleSheet.create({
   },
   
   inactiveText: {
-    color: '#999999',
     textAlign: 'center',
     lineHeight: 12,
   },

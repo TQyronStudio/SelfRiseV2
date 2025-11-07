@@ -1,8 +1,9 @@
-// Star Progress Indicator Component  
+// Star Progress Indicator Component
 // Shows progression history and trend analysis
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { AchievementCategory, StarRatingHistoryEntry } from '../../types/gamification';
 import { StarRatingService, StarRatingAnalysis } from '../../services/starRatingService';
 import StarRatingDisplay from './StarRatingDisplay';
@@ -32,14 +33,280 @@ interface AnalysisSummaryProps {
 }
 
 // ========================================
+// STYLES FUNCTION
+// ========================================
+
+const createStyles = (colors: any) => StyleSheet.create({
+  container: {
+    backgroundColor: colors.cardBackgroundElevated,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+
+  refreshButton: {
+    padding: 4,
+  },
+
+  refreshText: {
+    fontSize: 18,
+    color: colors.textSecondary,
+  },
+
+  loadingState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+
+  loadingText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+
+  // Analysis styles
+  analysisContainer: {
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 8,
+  },
+
+  analysisTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+
+  analysisGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+
+  analysisItem: {
+    flex: 1,
+    minWidth: '45%',
+    alignItems: 'center',
+    padding: 8,
+  },
+
+  analysisLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+
+  analysisValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+
+  categoryValue: {
+    fontSize: 12,
+    textTransform: 'capitalize',
+  },
+
+  trendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  trendIcon: {
+    fontSize: 12,
+  },
+
+  trendText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+
+  compactAnalysis: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 6,
+  },
+
+  compactOverallRating: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+
+  compactTrend: {
+    fontSize: 14,
+  },
+
+  // Timeline styles
+  timelineContainer: {
+    maxHeight: 300,
+  },
+
+  timeline: {
+    paddingLeft: 8,
+  },
+
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingLeft: 16,
+    position: 'relative',
+  },
+
+  timelineDot: {
+    position: 'absolute',
+    left: -4,
+    top: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+
+  historyContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+
+  monthText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+
+  progressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  reasonIcon: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  starChange: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+
+  categoryName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+    textTransform: 'capitalize',
+  },
+
+  completionBar: {
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    marginBottom: 4,
+    overflow: 'hidden',
+  },
+
+  completionFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+
+  completionText: {
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+
+  // Compact mode styles
+  compactGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+
+  compactHistoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 6,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 6,
+    minWidth: 60,
+  },
+
+  starLevel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  compactCompletion: {
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+
+  // Empty state
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+
+  emptyStateText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+
+  emptyStateSubtext: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+});
+
+// ========================================
 // PROGRESS TIMELINE COMPONENT
 // ========================================
 
-const ProgressTimeline: React.FC<ProgressTimelineProps> = ({ 
-  history, 
+const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
+  history,
   category,
-  compactMode 
+  compactMode
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   if (history.length === 0) {
     return (
       <View style={styles.emptyState}>
@@ -170,10 +437,13 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
 // ANALYSIS SUMMARY COMPONENT
 // ========================================
 
-const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({ 
-  analysis, 
-  compactMode 
+const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({
+  analysis,
+  compactMode
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const getTrendColor = (trend: string) => {
     switch (trend) {
       case 'improving': return '#4CAF50';
@@ -255,6 +525,7 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
   onCategoryPress,
   style,
 }) => {
+  const { colors } = useTheme();
   const [history, setHistory] = useState<StarRatingHistoryEntry[]>([]);
   const [analysis, setAnalysis] = useState<StarRatingAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -286,20 +557,22 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
 
   if (loading) {
     return (
-      <View style={[styles.container, style]}>
-        <View style={styles.loadingState}>
-          <Text style={styles.loadingText}>Loading progress...</Text>
+      <View style={[createStyles(colors).container, style]}>
+        <View style={createStyles(colors).loadingState}>
+          <Text style={createStyles(colors).loadingText}>Loading progress...</Text>
         </View>
       </View>
     );
   }
+
+  const styles = createStyles(colors);
 
   return (
     <View style={[styles.container, style]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>
-          {category 
+          {category
             ? `${category.charAt(0).toUpperCase() + category.slice(1)} Progress`
             : 'Star Progression'}
         </Text>
@@ -316,281 +589,13 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
       )}
 
       {/* Progress Timeline */}
-      <ProgressTimeline 
-        history={history} 
+      <ProgressTimeline
+        history={history}
         category={category}
         compactMode={compactMode}
       />
     </View>
   );
 };
-
-// ========================================
-// STYLES
-// ========================================
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-
-  refreshButton: {
-    padding: 4,
-  },
-
-  refreshText: {
-    fontSize: 18,
-    color: '#666666',
-  },
-
-  loadingState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-
-  loadingText: {
-    fontSize: 14,
-    color: '#666666',
-  },
-
-  // Analysis styles
-  analysisContainer: {
-    marginBottom: 20,
-    padding: 12,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-  },
-
-  analysisTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 12,
-  },
-
-  analysisGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-
-  analysisItem: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    padding: 8,
-  },
-
-  analysisLabel: {
-    fontSize: 11,
-    color: '#666666',
-    marginBottom: 2,
-  },
-
-  analysisValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-
-  categoryValue: {
-    fontSize: 12,
-    textTransform: 'capitalize',
-  },
-
-  trendContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-
-  trendIcon: {
-    fontSize: 12,
-  },
-
-  trendText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-
-  compactAnalysis: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    padding: 8,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 6,
-  },
-
-  compactOverallRating: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-
-  compactTrend: {
-    fontSize: 14,
-  },
-
-  // Timeline styles
-  timelineContainer: {
-    maxHeight: 300,
-  },
-
-  timeline: {
-    paddingLeft: 8,
-  },
-
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-    paddingLeft: 16,
-    position: 'relative',
-  },
-
-  timelineDot: {
-    position: 'absolute',
-    left: -4,
-    top: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-
-  historyContent: {
-    flex: 1,
-    marginLeft: 8,
-  },
-
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-
-  monthText: {
-    fontSize: 12,
-    color: '#666666',
-    fontWeight: '500',
-  },
-
-  progressBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-
-  reasonIcon: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-
-  starChange: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-
-  categoryName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 6,
-    textTransform: 'capitalize',
-  },
-
-  completionBar: {
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    marginBottom: 4,
-    overflow: 'hidden',
-  },
-
-  completionFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-
-  completionText: {
-    fontSize: 10,
-    color: '#666666',
-  },
-
-  // Compact mode styles
-  compactGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-
-  compactHistoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    padding: 6,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 6,
-    minWidth: 60,
-  },
-
-  starLevel: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-
-  compactCompletion: {
-    fontSize: 10,
-    color: '#666666',
-  },
-
-  // Empty state
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-
-  emptyStateText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-
-  emptyStateSubtext: {
-    fontSize: 12,
-    color: '#999999',
-    textAlign: 'center',
-  },
-});
 
 export default StarProgressIndicator;

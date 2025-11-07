@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { 
-  View, 
-  Animated, 
-  StyleSheet, 
+import {
+  View,
+  Animated,
+  StyleSheet,
   Dimensions,
   Easing,
-  AccessibilityInfo 
+  AccessibilityInfo
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -34,10 +35,11 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
   visible,
   type,
   intensity = 'medium',
-  colors,
+  colors: colorsProp,
   duration = 3000,
   onComplete,
 }) => {
+  const { colors: themeColors } = useTheme();
   const particlesRef = useRef<Particle[]>([]);
 
   // Get default colors based on type
@@ -54,7 +56,7 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
     }
   };
 
-  const effectColors = colors || getDefaultColors();
+  const effectColors = colorsProp || getDefaultColors();
 
   // Create a single particle
   const createParticle = (index: number): Particle => {
@@ -253,13 +255,5 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
   },
 });

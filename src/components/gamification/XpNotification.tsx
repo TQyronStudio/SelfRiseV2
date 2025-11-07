@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Animated, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
   Dimensions,
   Platform,
   AccessibilityInfo
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
@@ -41,6 +42,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   onDismiss,
 }) => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -379,6 +381,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     return null;
   }
 
+  const styles = createStyles(colors);
   const notificationText = generateNotificationText(batchedData);
   const accessibilityLabel = generateAccessibilityAnnouncement(batchedData);
 
@@ -401,15 +404,15 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
       accessibilityLiveRegion="assertive"
       importantForAccessibility="yes"
     >
-      <View 
+      <View
         style={styles.notification}
         accessible={true}
         accessibilityRole="text"
         accessibilityLabel={accessibilityLabel}
       >
         {/* Notification Text */}
-        <Text 
-          style={styles.messageText} 
+        <Text
+          style={styles.messageText}
           numberOfLines={2}
           accessible={true}
           accessibilityRole="text"
@@ -417,9 +420,9 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         >
           {notificationText}
         </Text>
-        
+
         {/* XP Amount */}
-        <View 
+        <View
           style={[
             styles.xpContainer,
             batchedData.totalXP < 0 && styles.xpContainerNegative,
@@ -427,12 +430,12 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           ]}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={t('gamification.xp.notification.amount', { 
+          accessibilityLabel={t('gamification.xp.notification.amount', {
             amount: batchedData.totalXP,
             type: batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'
           }) || `Experience points ${batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'}: ${Math.abs(batchedData.totalXP)}`}
         >
-          <Text 
+          <Text
             style={[
               styles.xpLabel,
               batchedData.totalXP < 0 && styles.xpLabelNegative,
@@ -442,7 +445,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           >
             {batchedData.totalXP > 0 ? '+' : ''}{batchedData.totalXP}
           </Text>
-          <Text 
+          <Text
             style={[
               styles.xpSuffix,
               batchedData.totalXP < 0 && styles.xpSuffixNegative,
@@ -460,7 +463,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
 // STYLES
 // ========================================
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 60 : 40, // Account for status bar
@@ -470,23 +473,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   notification: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: colors.cardBackgroundElevated,
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: colors.border,
     maxWidth: screenWidth - 32,
     minWidth: 280,
   },
@@ -494,46 +489,46 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: colors.text,
     marginRight: 12,
     lineHeight: 20,
   },
   xpContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: colors.primary + '15',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
   },
   xpContainerNegative: {
-    backgroundColor: '#FF3B3B15', // Red background for negative XP
+    backgroundColor: colors.error + '15',
   },
   xpContainerNeutral: {
-    backgroundColor: '#99999915', // Gray background for zero XP
+    backgroundColor: colors.textSecondary + '15',
   },
   xpLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: colors.primary,
   },
   xpLabelNegative: {
-    color: '#FF3B3B', // Red text for negative XP
+    color: colors.error,
   },
   xpLabelNeutral: {
-    color: '#999999', // Gray text for zero XP
+    color: colors.textSecondary,
   },
   xpSuffix: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.primary,
+    color: colors.primary,
     marginLeft: 2,
     opacity: 0.8,
   },
   xpSuffixNegative: {
-    color: '#FF3B3B', // Red text for negative XP
+    color: colors.error,
   },
   xpSuffixNeutral: {
-    color: '#999999', // Gray text for zero XP
+    color: colors.textSecondary,
   },
 });

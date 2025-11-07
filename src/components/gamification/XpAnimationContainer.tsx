@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { XpPopupAnimation } from './XpPopupAnimation';
 import { XpNotification } from './XpNotification';
 import { useXpPopup, useXpNotification } from '../../contexts/XpAnimationContext';
@@ -9,12 +10,13 @@ interface XpAnimationContainerProps {
 }
 
 export const XpAnimationContainer: React.FC<XpAnimationContainerProps> = ({ children }) => {
+  const { colors } = useTheme();
   const { activePopups, isEnabled } = useXpPopup();
-  const { 
-    pendingNotifications, 
-    isNotificationVisible, 
+  const {
+    pendingNotifications,
+    isNotificationVisible,
     dismissNotification,
-    isAnimationEnabled 
+    isAnimationEnabled
   } = useXpNotification();
 
   return (

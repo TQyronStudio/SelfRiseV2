@@ -25,6 +25,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ActiveMultiplierInfo } from '../../services/xpMultiplierService';
 
 // ========================================
@@ -96,6 +97,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
   showShare = false,
 }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   
   // ========================================
   // STATE & ANIMATIONS
@@ -485,7 +487,9 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
   // ========================================
   // MAIN RENDER
   // ========================================
-  
+
+  const styles = createStyles(colors);
+
   return (
     <Modal
       visible={visible}
@@ -504,7 +508,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
       >
         {/* Particle effects */}
         {renderParticles()}
-        
+
         {/* Main content */}
         <Animated.View
           style={[
@@ -526,13 +530,13 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
           >
             {/* Header */}
             <Text style={styles.celebrationTitle}>🚀 MULTIPLIER ACTIVATED!</Text>
-            
+
             {/* Multiplier details */}
             {renderMultiplierDetails()}
-            
+
             {/* Achievement summary */}
             {renderAchievementSummary()}
-            
+
             {/* Action buttons */}
             {renderActionButtons()}
           </ScrollView>
@@ -546,30 +550,27 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
 // STYLES
 // ========================================
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBackgroundElevated,
     borderRadius: 20,
     width: Math.min(screenWidth - 40, 380),
     maxHeight: screenHeight * 0.8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  
+
   scrollContent: {
     padding: 24,
   },
-  
+
   celebrationTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -580,94 +581,89 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
-  
+
   multiplierDetails: {
     alignItems: 'center',
     backgroundColor: '#FFD700',
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
-  
+
   multiplierIcon: {
     fontSize: 48,
     marginBottom: 8,
   },
-  
+
   multiplierValue: {
     fontSize: 36,
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 4,
   },
-  
+
   multiplierDuration: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333333',
     marginBottom: 8,
   },
-  
+
   multiplierSource: {
     fontSize: 14,
     color: '#555555',
     textAlign: 'center',
   },
-  
+
   achievementSummary: {
     marginBottom: 24,
   },
-  
+
   achievementTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333333',
+    color: colors.text,
     marginBottom: 16,
   },
-  
+
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  
+
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
-  
+
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: colors.success,
     marginBottom: 4,
   },
-  
+
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
-  
+
   achievementDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
-  
+
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
   },
-  
+
   button: {
     flex: 1,
     paddingVertical: 14,
@@ -675,29 +671,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  
+
   shareButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
   },
-  
+
   shareButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: colors.text,
   },
-  
+
   continueButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
   },
-  
+
   continueButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  
+
   particle: {
     position: 'absolute',
     fontSize: 24,

@@ -25,6 +25,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 import { XPMultiplierService, ActiveMultiplierInfo, HarmonyStreakResult } from '../../services/xpMultiplierService';
 
 // ========================================
@@ -77,6 +78,7 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   position = 'inline',
 }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   
   // ========================================
   // STATE & ANIMATIONS
@@ -465,7 +467,9 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   // ========================================
   
   if (!visible) return null;
-  
+
+  const styles = createStyles(colors);
+
   return (
     <View style={[styles.container, style]} testID="xp-multiplier-indicator">
       {renderActiveMultiplier()}
@@ -478,24 +482,21 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
 // STYLES
 // ========================================
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     alignItems: 'center',
     marginVertical: 8,
   },
-  
+
   multiplierContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBackgroundElevated,
     borderRadius: 16,
     padding: 16,
     marginVertical: 4,
     width: Math.min(screenWidth - 32, 320),
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   
   activeMultiplier: {
@@ -511,9 +512,9 @@ const styles = StyleSheet.create({
   },
   
   progressMultiplier: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
   },
   
   multiplierHeader: {
@@ -530,19 +531,19 @@ const styles = StyleSheet.create({
   multiplierText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: colors.text,
   },
-  
+
   timeRemaining: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: colors.text,
     marginBottom: 4,
   },
-  
+
   multiplierSource: {
     fontSize: 12,
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   
@@ -584,27 +585,27 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: colors.text,
   },
-  
+
   progressBarContainer: {
     width: '100%',
     height: 8,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.border,
     borderRadius: 4,
     marginBottom: 8,
     overflow: 'hidden',
   },
-  
+
   progressBar: {
     height: '100%',
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
     borderRadius: 4,
   },
-  
+
   progressSubtext: {
     fontSize: 12,
-    color: '#666666',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

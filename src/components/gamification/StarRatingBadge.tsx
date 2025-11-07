@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { AchievementCategory } from '../../types/gamification';
 import { StarRatingService } from '../../services/starRatingService';
 
@@ -35,6 +36,8 @@ export const StarRatingBadge: React.FC<StarRatingBadgeProps> = ({
   onPress,
   style,
 }) => {
+  const { colors } = useTheme();
+
   // Get star display info
   const starInfo = StarRatingService.getStarDisplayInfo(starLevel);
   const multipliers = StarRatingService.getStarMultipliers();
@@ -273,13 +276,6 @@ export const StarRatingGrid: React.FC<StarRatingGridProps> = ({
 
 const styles = StyleSheet.create({
   badge: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowRadius: 2,
-    elevation: 1,
     alignSelf: 'flex-start',
   },
 

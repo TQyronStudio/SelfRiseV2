@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  StyleSheet,
   Animated,
-  AccessibilityInfo 
+  AccessibilityInfo
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
@@ -28,6 +29,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   onAnimationComplete,
 }) => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -250,6 +252,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     return null;
   }
 
+  const styles = createStyles(colors);
   const accessibilityLabel = getAccessibilityAnnouncement();
 
   return (
@@ -273,13 +276,13 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
       accessibilityLiveRegion="polite"
       importantForAccessibility={Math.abs(amount) >= 5 ? "yes" : "no-hide-descendants"}
     >
-      <View 
+      <View
         style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]}
         accessible={true}
         accessibilityRole="text"
         accessibilityLabel={accessibilityLabel}
       >
-        <Text 
+        <Text
           style={styles.icon}
           accessible={true}
           accessibilityRole="image"
@@ -287,11 +290,11 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
         >
           {sourceStyle.icon}
         </Text>
-        <Text 
+        <Text
           style={[styles.xpText, { color: sourceStyle.color }]}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={t('gamification.xp.popup.amount_label', { 
+          accessibilityLabel={t('gamification.xp.popup.amount_label', {
             amount: Math.abs(amount),
             sign: amount >= 0 ? 'plus' : 'minus'
           }) || `${amount >= 0 ? 'Plus' : 'Minus'} ${Math.abs(amount)} experience points`}
@@ -303,7 +306,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     position: 'absolute',
     alignItems: 'center',
@@ -313,20 +316,12 @@ const styles = StyleSheet.create({
   popup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: colors.cardBackgroundElevated,
     borderRadius: 24,
     paddingVertical: 10,
     paddingHorizontal: 18,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(10px)',
+    borderColor: colors.border,
   },
   icon: {
     fontSize: 16,
