@@ -57,6 +57,18 @@ export const StreakTransition: React.FC<StreakTransitionProps> = ({
     opacity: opacity.value,
   }));
 
+  const styles = StyleSheet.create({
+    container: {
+      position: 'absolute',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    lottieAnimation: {
+      width: '100%',
+      height: '100%',
+    },
+  });
+
   if (!isVisible) return null;
 
   return (
@@ -71,15 +83,3 @@ export const StreakTransition: React.FC<StreakTransitionProps> = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lottieAnimation: {
-    width: '100%',
-    height: '100%',
-  },
-});

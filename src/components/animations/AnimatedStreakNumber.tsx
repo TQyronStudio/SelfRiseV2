@@ -11,8 +11,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import LottieView from 'lottie-react-native';
-import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface AnimatedStreakNumberProps {
   number: number;
@@ -31,6 +31,8 @@ export const AnimatedStreakNumber: React.FC<AnimatedStreakNumberProps> = ({
   fontSize = 48,
   style,
 }) => {
+  const { colors } = useTheme();
+
   // Animation values
   const iceOpacity = useSharedValue(0);
   const fireOpacity = useSharedValue(0);
@@ -155,29 +157,40 @@ export const AnimatedStreakNumber: React.FC<AnimatedStreakNumberProps> = ({
     };
   });
 
-  const glowStyle = useAnimatedStyle(() => {
-    const glowOpacity = glowIntensity.value;
-    const shadowRadius = 20 + (glowOpacity * 30);
-    
-    return {
-      shadowOpacity: glowOpacity * 0.7,
-      shadowRadius,
-      shadowColor: isFrozen ? '#4A90E2' : '#FF6B35',
-    };
-  });
+  // Removed glowStyle with shadows for dark theme compatibility
 
   const textStyle = useMemo(() => ({
     fontSize,
     fontFamily: Fonts.bold,
     color: isFrozen ? '#E8F4FD' : '#FFFFFF',
     textAlign: 'center' as const,
-    textShadowColor: isFrozen ? 'rgba(74, 144, 226, 0.8)' : 'rgba(255, 107, 53, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: isFrozen ? 8 : 12,
   }), [fontSize, isFrozen]);
 
+  const styles = StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 100,
+      height: 80,
+      position: 'relative',
+    },
+    lottieContainer: {
+      position: 'absolute',
+      width: 100,
+      height: 80,
+      top: 0,
+      left: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    lottieAnimation: {
+      width: 100,
+      height: 80,
+    },
+  });
+
   return (
-    <Animated.View style={[styles.container, containerAnimatedStyle, glowStyle, style]}>
+    <Animated.View style={[styles.container, containerAnimatedStyle, style]}>
       {/* Lottie Animation Background */}
       {isFrozen ? (
         <Animated.View style={[styles.lottieContainer, iceOverlayStyle]}>
@@ -206,26 +219,3 @@ export const AnimatedStreakNumber: React.FC<AnimatedStreakNumberProps> = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 100,
-    height: 80,
-    position: 'relative',
-  },
-  lottieContainer: {
-    position: 'absolute',
-    width: 100,
-    height: 80,
-    top: 0,
-    left: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lottieAnimation: {
-    width: 100,
-    height: 80,
-  },
-});
