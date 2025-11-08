@@ -12,8 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TutorialStep } from '@/src/contexts/TutorialContext';
-import { Colors } from '@/src/constants/colors';
 import { Fonts } from '@/src/constants/fonts';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import {
   getModalWidth,
   getModalPadding,
@@ -45,6 +45,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   onNext,
   onSkip,
 }) => {
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   // Animation values
@@ -108,10 +109,130 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   };
 
   const getModalColor = () => {
-    if (isWelcomeModal) return Colors.primary;
+    if (isWelcomeModal) return colors.primary;
     if (isCompletionModal) return '#4CAF50';
-    return Colors.primary;
+    return colors.primary;
   };
+
+  const styles = StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    modalWrapper: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: getHorizontalMargin(),
+      width: '100%',
+    },
+    modalContent: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: isTablet() ? 24 : 20,
+      padding: getModalPadding(),
+      width: getModalWidth(),
+      maxWidth: '100%',
+      alignItems: 'center',
+      borderTopWidth: isTablet() ? 5 : 4,
+    },
+    skipButton: {
+      position: 'absolute',
+      top: getScreenSize() === ScreenSize.SMALL ? 12 : 16,
+      right: getScreenSize() === ScreenSize.SMALL ? 12 : 16,
+      width: getSkipButtonSize() * 0.8,
+      height: getSkipButtonSize() * 0.8,
+      borderRadius: (getSkipButtonSize() * 0.8) / 2,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+    },
+    emojiContainer: {
+      width: isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80),
+      height: isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80),
+      borderRadius: isTablet() ? 50 : (getScreenSize() === ScreenSize.SMALL ? 35 : 40),
+      backgroundColor: colors.backgroundSecondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
+    },
+    emoji: {
+      fontSize: scaleFont(40),
+    },
+    title: {
+      fontSize: scaleFont(Fonts.sizes.xxl),
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
+      lineHeight: scaleFont(Fonts.sizes.xxl) * 1.2,
+    },
+    content: {
+      fontSize: scaleFont(Fonts.sizes.md),
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
+      marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
+    },
+    progressContainer: {
+      width: '100%',
+      marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
+    },
+    progressBar: {
+      height: isTablet() ? 6 : (getScreenSize() === ScreenSize.SMALL ? 3 : 4),
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: isTablet() ? 3 : 2,
+      marginBottom: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: isTablet() ? 3 : 2,
+    },
+    progressText: {
+      fontSize: scaleFont(Fonts.sizes.sm),
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: isTablet() ? 18 : (getScreenSize() === ScreenSize.SMALL ? 14 : 16),
+      paddingHorizontal: isTablet() ? 40 : (getScreenSize() === ScreenSize.SMALL ? 24 : 32),
+      borderRadius: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 10 : 12),
+      minWidth: isTablet() ? 240 : (getScreenSize() === ScreenSize.SMALL ? 160 : 200),
+    },
+    actionButtonText: {
+      fontSize: scaleFont(Fonts.sizes.md),
+      fontWeight: '600',
+      color: colors.white,
+      marginRight: 8,
+    },
+    completionInfo: {
+      marginTop: isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
+      width: '100%',
+    },
+    completionStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statText: {
+      fontSize: scaleFont(Fonts.sizes.sm),
+      color: colors.textSecondary,
+      marginTop: isTablet() ? 6 : 4,
+      fontWeight: '500',
+    },
+  });
 
   return (
     <Modal
@@ -155,7 +276,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
               accessibilityRole="button"
               accessibilityLabel="Skip tutorial"
             >
-              <Ionicons name="close" size={getIconSize(20)} color={Colors.textSecondary} />
+              <Ionicons name="close" size={getIconSize(20)} color={colors.textSecondary} />
             </TouchableOpacity>
 
             {/* Emoji */}
@@ -194,7 +315,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
               <Text style={styles.actionButtonText}>
                 {step.content.button || 'Continue'}
               </Text>
-              <Ionicons name="arrow-forward" size={getIconSize(20)} color={Colors.white} />
+              <Ionicons name="arrow-forward" size={getIconSize(20)} color={colors.white} />
             </TouchableOpacity>
 
             {/* Additional info for completion modal */}
@@ -218,139 +339,3 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  modalWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: getHorizontalMargin(),
-    width: '100%',
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderRadius: isTablet() ? 24 : 20,
-    padding: getModalPadding(),
-    width: getModalWidth(),
-    maxWidth: '100%',
-    alignItems: 'center',
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: isTablet() ? 12 : 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: isTablet() ? 24 : 20,
-    elevation: isTablet() ? 12 : 10,
-    borderTopWidth: isTablet() ? 5 : 4,
-  },
-  skipButton: {
-    position: 'absolute',
-    top: getScreenSize() === ScreenSize.SMALL ? 12 : 16,
-    right: getScreenSize() === ScreenSize.SMALL ? 12 : 16,
-    width: getSkipButtonSize() * 0.8, // Slightly smaller for modal
-    height: getSkipButtonSize() * 0.8,
-    borderRadius: (getSkipButtonSize() * 0.8) / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  emojiContainer: {
-    width: isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80),
-    height: isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80),
-    borderRadius: isTablet() ? 50 : (getScreenSize() === ScreenSize.SMALL ? 35 : 40),
-    backgroundColor: Colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: isTablet() ? 24 : (getScreenSize() === ScreenSize.SMALL ? 16 : 20),
-  },
-  emoji: {
-    fontSize: scaleFont(40),
-  },
-  title: {
-    fontSize: scaleFont(Fonts.sizes.xxl),
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
-    lineHeight: scaleFont(Fonts.sizes.xxl) * 1.2,
-  },
-  content: {
-    fontSize: scaleFont(Fonts.sizes.md),
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
-    marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
-  },
-  progressContainer: {
-    width: '100%',
-    marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
-  },
-  progressBar: {
-    height: isTablet() ? 6 : (getScreenSize() === ScreenSize.SMALL ? 3 : 4),
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: isTablet() ? 3 : 2,
-    marginBottom: isTablet() ? 12 : (getScreenSize() === ScreenSize.SMALL ? 6 : 8),
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: isTablet() ? 3 : 2,
-  },
-  progressText: {
-    fontSize: scaleFont(Fonts.sizes.sm),
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: isTablet() ? 18 : (getScreenSize() === ScreenSize.SMALL ? 14 : 16),
-    paddingHorizontal: isTablet() ? 40 : (getScreenSize() === ScreenSize.SMALL ? 24 : 32),
-    borderRadius: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 10 : 12),
-    minWidth: isTablet() ? 240 : (getScreenSize() === ScreenSize.SMALL ? 160 : 200),
-    shadowColor: Colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: isTablet() ? 6 : 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: isTablet() ? 12 : 8,
-    elevation: isTablet() ? 6 : 4,
-  },
-  actionButtonText: {
-    fontSize: scaleFont(Fonts.sizes.md),
-    fontWeight: '600',
-    color: Colors.white,
-    marginRight: 8,
-  },
-  completionInfo: {
-    marginTop: isTablet() ? 32 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
-    width: '100%',
-  },
-  completionStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statText: {
-    fontSize: scaleFont(Fonts.sizes.sm),
-    color: Colors.textSecondary,
-    marginTop: isTablet() ? 6 : 4,
-    fontWeight: '500',
-  },
-});

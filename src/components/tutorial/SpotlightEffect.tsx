@@ -235,38 +235,30 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
     );
   };
 
+  const styles = StyleSheet.create({
+    spotlightContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: SCREEN_WIDTH,
+      height: SCREEN_HEIGHT,
+      zIndex: 10000,
+    },
+    overlayPart: {
+      position: 'absolute',
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    targetHighlight: {
+      position: 'absolute',
+      borderWidth: 3,
+      borderColor: '#FF6B35',
+      backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    },
+    clickableArea: {
+      position: 'absolute',
+      zIndex: 10001,
+    },
+  });
+
   return createSpotlightMask();
 };
-
-const styles = StyleSheet.create({
-  spotlightContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    zIndex: 10000,
-  },
-  overlayPart: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  targetHighlight: {
-    position: 'absolute',
-    borderWidth: 3,
-    borderColor: '#FF6B35',
-    backgroundColor: 'rgba(255, 107, 53, 0.1)',
-    shadowColor: '#FF6B35',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  clickableArea: {
-    position: 'absolute',
-    zIndex: 10001,
-  },
-});
