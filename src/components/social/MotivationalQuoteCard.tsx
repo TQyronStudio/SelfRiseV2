@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SocialSharingService, MotivationalQuote } from '../../services/socialSharingService';
-import { Colors, Layout } from '../../constants';
+import { Layout } from '../../constants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // ========================================
 // INTERFACES
@@ -38,8 +39,121 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
   compact = false,
   showActions = true
 }) => {
+  const { colors } = useTheme();
   const [currentQuote, setCurrentQuote] = useState<MotivationalQuote | null>(null);
   const [sharing, setSharing] = useState(false);
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: Layout.borderRadius.lg,
+      padding: Layout.spacing.lg,
+      margin: Layout.spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border + '40',
+    },
+    containerCompact: {
+      padding: Layout.spacing.md,
+      margin: Layout.spacing.sm,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+    },
+    categoryBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      paddingHorizontal: Layout.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: Layout.borderRadius.sm,
+    },
+    categoryText: {
+      fontSize: 12,
+      fontWeight: '600',
+      marginLeft: 4,
+      textTransform: 'capitalize',
+    },
+    refreshButton: {
+      padding: Layout.spacing.xs,
+      borderRadius: Layout.borderRadius.sm,
+    },
+    quoteContainer: {
+      position: 'relative',
+      marginBottom: Layout.spacing.md,
+    },
+    quoteIcon: {
+      position: 'absolute',
+      top: -4,
+      left: -4,
+      zIndex: 1,
+    },
+    quoteText: {
+      fontSize: 16,
+      lineHeight: 24,
+      color: colors.textPrimary,
+      fontStyle: 'italic',
+      paddingLeft: Layout.spacing.md,
+      marginBottom: Layout.spacing.sm,
+    },
+    quoteTextCompact: {
+      fontSize: 14,
+      lineHeight: 20,
+      paddingLeft: Layout.spacing.sm,
+      marginBottom: Layout.spacing.xs,
+    },
+    quoteAuthor: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'right',
+      fontWeight: '500',
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingTop: Layout.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: Layout.spacing.lg,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.xs,
+      borderRadius: Layout.borderRadius.sm,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    actionText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginLeft: 4,
+      fontWeight: '500',
+    },
+    inspirationIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: Layout.spacing.sm,
+    },
+    inspirationText: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginLeft: 4,
+      opacity: 0.8,
+    },
+    loadingContainer: {
+      paddingVertical: Layout.spacing.lg,
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+  });
 
   useEffect(() => {
     loadMotivationalQuote();
@@ -164,7 +278,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
             onPress={loadMotivationalQuote}
             accessibilityLabel="Get new quote"
           >
-            <Ionicons name="refresh" size={18} color={Colors.textSecondary} />
+            <Ionicons name="refresh" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -198,17 +312,17 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
             onPress={handleCopyToClipboard}
             accessibilityLabel="Copy quote to clipboard"
           >
-            <Ionicons name="copy-outline" size={18} color={Colors.textSecondary} />
+            <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
             <Text style={styles.actionText}>Copy</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={styles.actionButton}
             onPress={handleShare}
             disabled={sharing}
             accessibilityLabel="Share quote"
           >
-            <Ionicons name="share-outline" size={18} color={Colors.textSecondary} />
+            <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
             <Text style={styles.actionText}>Share</Text>
           </TouchableOpacity>
         </View>
@@ -224,124 +338,3 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
     </View>
   );
 };
-
-// ========================================
-// STYLES
-// ========================================
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.lg,
-    margin: Layout.spacing.md,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: Colors.border + '40',
-  },
-  containerCompact: {
-    padding: Layout.spacing.md,
-    margin: Layout.spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundSecondary,
-    paddingHorizontal: Layout.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: Layout.borderRadius.sm,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-    textTransform: 'capitalize',
-  },
-  refreshButton: {
-    padding: Layout.spacing.xs,
-    borderRadius: Layout.borderRadius.sm,
-  },
-  quoteContainer: {
-    position: 'relative',
-    marginBottom: Layout.spacing.md,
-  },
-  quoteIcon: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    zIndex: 1,
-  },
-  quoteText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: Colors.textPrimary,
-    fontStyle: 'italic',
-    paddingLeft: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-  },
-  quoteTextCompact: {
-    fontSize: 14,
-    lineHeight: 20,
-    paddingLeft: Layout.spacing.sm,
-    marginBottom: Layout.spacing.xs,
-  },
-  quoteAuthor: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-    fontWeight: '500',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    gap: Layout.spacing.lg,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.md,
-    paddingVertical: Layout.spacing.xs,
-    borderRadius: Layout.borderRadius.sm,
-    backgroundColor: Colors.backgroundSecondary,
-  },
-  actionText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  inspirationIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Layout.spacing.sm,
-  },
-  inspirationText: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginLeft: 4,
-    opacity: 0.8,
-  },
-  loadingContainer: {
-    paddingVertical: Layout.spacing.lg,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-});
