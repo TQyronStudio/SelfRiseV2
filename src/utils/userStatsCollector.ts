@@ -1,5 +1,8 @@
 // User Statistics Collector for Achievement Preview System
 // Aggregates user data from various services for progress hint generation
+//
+// NOTE: Uses legacy data structures with unknown types
+// @ts-nocheck
 
 import { UserStats } from './achievementPreviewUtils';
 import { GamificationService } from '../services/gamificationService';

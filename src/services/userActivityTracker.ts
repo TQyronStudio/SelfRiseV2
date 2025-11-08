@@ -313,16 +313,16 @@ export class UserActivityTracker {
         
         // Gather habit data for this day
         const habitCompletions = await habitStorage.getCompletionsByDate(currentDate);
-        const scheduledHabits = habitCompletions.filter(c => !c.isBonus);
-        const bonusHabits = habitCompletions.filter(c => c.isBonus);
+        const scheduledHabits = habitCompletions.filter((c: any) => !c.isBonus);
+        const bonusHabits = habitCompletions.filter((c: any) => c.isBonus);
         const uniqueHabits = await habitStorage.getUniqueHabitsCompletedOnDate(currentDate);
-        
+
         // Gather journal data for this day
         const journalEntries = await gratitudeStorage.getEntriesForDate(currentDate);
         const regularEntries = journalEntries.slice(0, 3); // First 3 are regular
         const bonusEntries = journalEntries.slice(3); // Rest are bonus
-        const avgLength = journalEntries.length > 0 ? 
-          journalEntries.reduce((sum, e) => sum + e.content.length, 0) / journalEntries.length : 0;
+        const avgLength = journalEntries.length > 0 ?
+          journalEntries.reduce((sum: any, e: any) => sum + e.content.length, 0) / journalEntries.length : 0;
         
         // Gather goal data for this day
         const xpTransactions = await GamificationService.getTransactionsByDateRange(currentDate, currentDate);

@@ -93,7 +93,7 @@ export async function migrateXPTransactions(): Promise<{
               transaction.sourceId || null,
               timestamp,
               transaction.description || null,
-              transaction.metadata ? JSON.stringify(transaction.metadata) : null,
+              (transaction as any).metadata ? JSON.stringify((transaction as any).metadata) : null,
             ]
           );
 

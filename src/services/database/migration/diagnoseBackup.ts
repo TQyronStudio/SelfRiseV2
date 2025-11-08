@@ -6,6 +6,22 @@ import { getJournalBackup } from './journalBackup';
 import { BaseStorage, STORAGE_KEYS } from '../../storage/base';
 import { Gratitude, GratitudeStreak } from '../../../types/gratitude';
 
+// Legacy types for AsyncStorage migration data (old property names)
+interface LegacyGratitude {
+  id: string;
+  text: string; // old name, now 'content'
+  type: string;
+  date: string;
+  gratitudeNumber: number; // old name, now 'order'
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface LegacyWarmUpPayment {
+  id: string;
+  paidAt: string;
+}
+
 export async function diagnoseBackup(): Promise<void> {
   console.log('========================================');
   console.log('BACKUP DIAGNOSTIC ANALYSIS');

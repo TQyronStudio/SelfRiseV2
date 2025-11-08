@@ -142,6 +142,11 @@ async function migrateWeeklyBreakdowns(
 
       const [, challengeId, weekNum] = match;
 
+      if (!challengeId || !weekNum) {
+        console.warn(`⚠️  Invalid match for key: ${key}`);
+        continue;
+      }
+
       await db.runAsync(
         `INSERT INTO challenge_weekly_breakdown (
           id, challenge_id, week_number, start_date, end_date,

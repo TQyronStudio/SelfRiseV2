@@ -186,6 +186,7 @@ export interface TranslationKeys {
       daily_complete_announcement: string;
       streak_milestone_announcement: string;
       bonus_milestone_announcement: string;
+      epic_crown_announcement: string;
       daily_complete_modal: string;
       streak_milestone_modal: string;
       bonus_milestone_modal: string;

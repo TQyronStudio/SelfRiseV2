@@ -3,8 +3,8 @@
  * Phase 1.2.4 - Replace AsyncStorage with SQLite for habits
  */
 
-import { Habit, HabitCompletion, CreateHabitInput, DayOfWeek, ScheduleTimeline } from '../../types/habit';
-import { DateString } from '../../types/common';
+import { Habit, HabitCompletion, CreateHabitInput, ScheduleTimeline } from '../../types/habit';
+import { DateString, DayOfWeek } from '../../types/common';
 import { getDatabase } from '../database/init';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
@@ -34,7 +34,7 @@ export class SQLiteHabitStorage {
       console.log(`📊 SQLite getAll: Found ${rows.length} habits in DB`);
       const habits = rows.map(row => this.rowToHabit(row));
       console.log(`📊 SQLite getAll: Mapped to ${habits.length} Habit objects`);
-      if (habits.length > 0) {
+      if (habits.length > 0 && habits[0]) {
         console.log(`📊 First habit:`, habits[0].name, habits[0].id);
       }
 
@@ -339,20 +339,19 @@ export class SQLiteHabitStorage {
 
       // Return the completion object directly (no need to query DB again)
       // This avoids READ-AFTER-WRITE consistency issues with SQLite WAL mode
-      return {
+      const completion: HabitCompletion = {
         id: completionId,
         habitId,
         date,
         completed: true,
         isBonus,
         completedAt: new Date(now),
-        note: note as string | undefined,
-        isConverted: false as boolean | undefined,
-        convertedFromDate: undefined as DateString | undefined,
-        convertedToDate: undefined as DateString | undefined,
+        isConverted: false,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       };
+      if (note) completion.note = note;
+      return completion;
     } catch (error) {
       console.error('❌ SQLite createCompletion failed:', error);
       throw new Error(`Failed to create completion: ${error}`);
@@ -550,20 +549,21 @@ export class SQLiteHabitStorage {
   }
 
   private rowToCompletion(row: any): HabitCompletion {
-    return {
+    const completion: HabitCompletion = {
       id: row.id,
       habitId: row.habit_id,
       date: row.date as DateString,
       completed: row.completed === 1,
       isBonus: row.is_bonus === 1,
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-      note: row.note || undefined,
       isConverted: row.is_converted === 1,
-      convertedFromDate: row.converted_from_date as DateString | undefined,
-      convertedToDate: row.converted_to_date as DateString | undefined,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
+    if (row.completed_at) completion.completedAt = new Date(row.completed_at);
+    if (row.note) completion.note = row.note;
+    if (row.converted_from_date) completion.convertedFromDate = row.converted_from_date as DateString;
+    if (row.converted_to_date) completion.convertedToDate = row.converted_to_date as DateString;
+    return completion;
   }
 
   // ========================================

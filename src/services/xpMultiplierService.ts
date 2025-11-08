@@ -19,6 +19,7 @@ import { XPMultiplier, MultiplierCondition } from '../types/gamification';
 import { XP_MULTIPLIERS } from '../constants/gamification';
 import { formatDateToString, today, addDays, subtractDays } from '../utils/date';
 import { GoalStorage } from './storage/goalStorage';
+import { GratitudeStorage } from './storage/gratitudeStorage';
 
 // ========================================
 // INTERFACES & TYPES
@@ -544,11 +545,13 @@ export class XPMultiplierService {
           isActive: true,
           multiplier: activeMultiplier.multiplier,
           activatedAt: new Date(activeMultiplier.activated_at),
-          expiresAt,
           source: activeMultiplier.source as any,
-          timeRemaining: expiresAt ? expiresAt.getTime() - now : undefined,
           description: 'Active multiplier',
         };
+        if (expiresAt) {
+          result.expiresAt = expiresAt;
+          result.timeRemaining = expiresAt.getTime() - now;
+        }
         return result;
       } else {
         // Legacy AsyncStorage implementation

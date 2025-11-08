@@ -108,18 +108,22 @@ async function migrateLifecycleState(
     'failed': 'completed'
   };
 
-  if (stateMapping[normalizedState]) {
-    normalizedState = stateMapping[normalizedState];
+  // Map to valid state or default to 'idle'
+  if (normalizedState && stateMapping[normalizedState]) {
+    normalizedState = stateMapping[normalizedState]!; // Non-null assertion - we just checked it exists
   }
 
   // If still invalid, default to 'idle'
   const validStates = ['idle', 'active', 'preview', 'completed', 'transitioning'];
-  if (!validStates.includes(normalizedState)) {
+  if (!normalizedState || !validStates.includes(normalizedState)) {
     console.log(`⚠️  Invalid state "${status.currentState}" - defaulting to "idle"`);
     normalizedState = 'idle';
   }
 
-  console.log(`✅ Normalized state: "${normalizedState}"`);
+  // Type assertion for TypeScript - normalizedState is guaranteed to be string here
+  const finalState: string = normalizedState;
+
+  console.log(`✅ Normalized state: "${finalState}"`);
 
   try {
     // Insert main lifecycle state
@@ -130,7 +134,7 @@ async function migrateLifecycleState(
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         currentMonth,
-        normalizedState,
+        finalState,
         status.currentChallenge?.id || null,
         status.previewChallenge?.previewChallenge?.id || null,
         new Date(status.lastStateChange).getTime(),
@@ -141,7 +145,7 @@ async function migrateLifecycleState(
       ]
     );
 
-    console.log(`   ✅ Lifecycle state: ${normalizedState}`);
+    console.log(`   ✅ Lifecycle state: ${finalState}`);
 
     // Migrate state history (limit to last 50 entries)
     const recentHistory = status.stateHistory?.slice(-50) || [];

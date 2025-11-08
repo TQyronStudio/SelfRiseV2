@@ -172,12 +172,30 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       } as Goal);
 
       // Convert timestamps
-      const updatedAtTimestamp = updatedGoal.updatedAt instanceof Date
-        ? updatedGoal.updatedAt.getTime()
-        : updatedGoal.updatedAt;
-      const completedAtTimestamp = updatedGoal.completedDate
-        ? (updatedGoal.completedDate instanceof Date ? updatedGoal.completedDate.getTime() : new Date(updatedGoal.completedDate).getTime())
-        : null;
+      // Convert updatedAt to timestamp
+      let updatedAtTimestamp: number;
+      if (typeof updatedGoal.updatedAt === 'number') {
+        updatedAtTimestamp = updatedGoal.updatedAt;
+      } else if (updatedGoal.updatedAt instanceof Date) {
+        updatedAtTimestamp = updatedGoal.updatedAt.getTime();
+      } else {
+        updatedAtTimestamp = new Date(updatedGoal.updatedAt as any).getTime();
+      }
+
+      // Convert completedDate to timestamp
+      // Note: completedDate type is DateString | undefined, but in practice can be number | Date | string
+      let completedAtTimestamp: number | null = null;
+      const completedDate = updatedGoal.completedDate as any;
+      if (completedDate !== undefined && completedDate !== null) {
+        if (typeof completedDate === 'number') {
+          completedAtTimestamp = completedDate;
+        } else if (completedDate instanceof Date) {
+          completedAtTimestamp = completedDate.getTime();
+        } else {
+          // It's a string (DateString)
+          completedAtTimestamp = new Date(completedDate).getTime();
+        }
+      }
 
       await db.runAsync(
         `UPDATE goals SET
@@ -526,8 +544,8 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         note: updates.note ?? currentProgress.note,
         date: updates.date ?? currentProgress.date,
         progressType: updates.progressType ?? currentProgress.progress_type,
-        createdAt: currentProgress.created_at,
-        updatedAt: Date.now(),
+        createdAt: new Date(currentProgress.created_at),
+        updatedAt: new Date(),
       };
 
       await db.runAsync(
@@ -538,7 +556,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
           updatedProgress.note,
           updatedProgress.date,
           updatedProgress.progressType,
-          updatedProgress.updatedAt,
+          updatedProgress.updatedAt.getTime(),
           id,
         ]
       );

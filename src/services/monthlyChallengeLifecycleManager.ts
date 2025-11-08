@@ -518,10 +518,10 @@ export class MonthlyChallengeLifecycleManager {
           errors: [],
           metrics: {
             totalGenerations: 0,
-            totalCompletions: 0,
-            totalFailures: 0,
-            averageCompletionRate: 0,
-            lastBackgroundCheck: new Date()
+            successfulGenerations: 0,
+            averageGenerationTime: 0,
+            lastBackgroundCheck: new Date(),
+            systemHealth: 'healthy' as const
           }
         };
       }

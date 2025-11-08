@@ -1558,12 +1558,14 @@ export class SQLiteGratitudeStorage {
         isFrozen: false,
         canRecoverWithAd: false,
         warmUpPayments: [],
+        warmUpCompletedOn: null,
+        warmUpHistory: [],
         justUnfrozeToday: false,
         streakBeforeFreeze: 0,
         starCount: currentStreak.starCount || 0,
         flameCount: currentStreak.flameCount || 0,
         crownCount: currentStreak.crownCount || 0,
-        autoResetTimestamp: new Date().toISOString(),
+        autoResetTimestamp: new Date(),
         autoResetReason: 'Manual reset',
       };
 

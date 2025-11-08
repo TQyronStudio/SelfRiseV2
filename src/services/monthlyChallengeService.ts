@@ -2063,7 +2063,7 @@ export class MonthlyChallengeService {
       const history = existingHistory ? JSON.parse(existingHistory) : [];
 
       history.unshift({
-        month: challenge.userBaselineSnapshot?.month || challenge.month,
+        month: challenge.userBaselineSnapshot?.month || challenge.startDate.substring(0, 7),
         category: challenge.category,
         templateId: challenge.id,
         starLevel: challenge.starLevel,
@@ -2087,7 +2087,7 @@ export class MonthlyChallengeService {
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
         const history = await this.storage.getChallengeHistory(months);
-        return history.map(h => h.metadata?.templateId || h.id).filter(Boolean);
+        return history.map(h => (h as any).metadata?.templateId || h.id).filter(Boolean);
       }
 
       // Fallback to AsyncStorage
