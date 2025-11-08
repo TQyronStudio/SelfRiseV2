@@ -80,14 +80,6 @@ function TabLayoutContent() {
           tabBarButton: (props) => <HapticTab {...props} nativeID="settings-tab" />,
         }}
       />
-      <Tabs.Screen
-        name="migration-test"
-        options={{
-          title: 'Migration Test',
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="wrench.fill" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="migration-test-tab" />,
-        }}
-      />
         </Tabs>
     </>
   );

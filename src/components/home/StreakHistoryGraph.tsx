@@ -71,7 +71,7 @@ export function StreakHistoryGraph() {
       for (let i = DAYS_TO_SHOW - 1; i >= 0; i--) {
         const date = subtractDays(endDate, i);
         // BUG #3 FIX: Exclude fake entries created by debt recovery system
-        const dayEntries = allJournalEntries.filter(entry =>
+        const dayEntries = allJournalEntries.filter((entry: { date: string; content: string }) =>
           entry.date === date &&
           !entry.content.includes('Streak recovery - Ad watched') // Exclude fake entries
         );

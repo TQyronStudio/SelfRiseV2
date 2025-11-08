@@ -25,35 +25,35 @@ export function HabitCalendarView({
 }: HabitCalendarViewProps) {
   const { colors } = useTheme();
   const { getHabitCompletionsWithConversion } = useHabitsData();
-  
+
   // Get month info
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  
+
   // Get first day of month and number of days
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
-  
+
   // Adjust for Monday start (convert JS Sunday=0 to Monday=0 system)
   // JS: Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
   // Our headers: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
   const mondayStartOffset = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
-  
+
   // Get completions for this month (with smart conversion applied)
   const allCompletions = getHabitCompletionsWithConversion(habit.id);
   const monthCompletions = allCompletions.filter(completion => {
     const completionDate = parseDate(completion.date);
     return completionDate.getFullYear() === year && completionDate.getMonth() === month;
   });
-  
+
   const getCompletionForDay = (day: number): HabitCompletion | undefined => {
     const dateString = formatDateToString(new Date(year, month, day));
     return monthCompletions.find(c => c.date === dateString);
   };
-  
+
   const isScheduledDay = (day: number): boolean => {
     const date = new Date(year, month, day);
     const dateString = formatDateToString(date);
@@ -69,7 +69,184 @@ export function HabitCalendarView({
     const creationDateString = formatDateToString(createdAt);
     return dateString >= creationDateString;
   };
-  
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+    },
+    navButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    monthTitle: {
+      fontSize: 18,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+    },
+    dayHeaders: {
+      flexDirection: 'row',
+      paddingHorizontal: 8,
+      marginBottom: 8,
+    },
+    dayHeader: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 12,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      paddingVertical: 8,
+    },
+    calendar: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: 8,
+    },
+    emptyDay: {
+      width: '14.28%',
+      aspectRatio: 1,
+      padding: 1,
+    },
+    dayCell: {
+      width: '14.28%',
+      aspectRatio: 1,
+      padding: 1,
+    },
+    dayCellInner: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'relative',
+      borderRadius: 8,
+      backgroundColor: colors.cardBackgroundElevated,
+    },
+    todayCell: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    completedDay: {
+      backgroundColor: colors.success,
+    },
+    bonusDay: {
+      backgroundColor: colors.warning,
+    },
+    missedDay: {
+      backgroundColor: colors.error,
+    },
+    makeupDay: {
+      backgroundColor: colors.success,
+    },
+    dayText: {
+      fontSize: 14,
+      fontFamily: Fonts.medium,
+      color: colors.text,
+    },
+    todayText: {
+      color: colors.primary,
+      fontFamily: Fonts.bold,
+    },
+    completedText: {
+      color: colors.textInverse,
+      fontFamily: Fonts.bold,
+    },
+    bonusIndicator: {
+      position: 'absolute',
+      top: 2,
+      right: 2,
+    },
+    makeupIndicator: {
+      position: 'absolute',
+      bottom: 1,
+      left: '50%',
+      marginLeft: -7,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      borderRadius: 8,
+      width: 14,
+      height: 14,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    scheduledIndicator: {
+      position: 'absolute',
+      bottom: 2,
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.primary,
+    },
+    legend: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      marginTop: 16,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      marginHorizontal: 8,
+    },
+    legendTitle: {
+      fontSize: 14,
+      fontFamily: Fonts.bold,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    legendRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 8,
+    },
+    legendItems: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      gap: 4,
+    },
+    legendBox: {
+      width: 16,
+      height: 16,
+      borderRadius: 4,
+    },
+    legendDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginRight: 4,
+    },
+    legendGoldCheck: {
+      width: 12,
+      height: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 4,
+    },
+    legendCheckmark: {
+      fontSize: 10,
+      color: colors.warning,
+      fontWeight: '900',
+      lineHeight: 12,
+    },
+    legendText: {
+      fontSize: 11,
+      fontFamily: Fonts.medium,
+      color: colors.textSecondary,
+      marginLeft: 4,
+    },
+  });
+
   // Create calendar grid
   const calendarDays = [];
   
@@ -117,12 +294,12 @@ export function HabitCalendarView({
           </Text>
           {isRegularBonus && (
             <View style={styles.bonusIndicator}>
-              <Ionicons name="star" size={8} color={Colors.warning} />
+              <Ionicons name="star" size={8} color={colors.warning} />
             </View>
           )}
           {isMakeupCompletion && (
             <View style={styles.makeupIndicator}>
-              <Ionicons name="checkmark" size={14} color={Colors.warning} />
+              <Ionicons name="checkmark" size={14} color={colors.warning} />
             </View>
           )}
           {/* Show scheduled indicator for scheduled days (but not for makeup completions) */}
@@ -133,169 +310,8 @@ export function HabitCalendarView({
       </View>
     );
   }
-  
-  const dayHeaders = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  const styles = StyleSheet.create({
-    container: {
-      backgroundColor: colors.backgroundSecondary,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 16,
-      paddingHorizontal: 8,
-    },
-    navButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.cardBackgroundElevated,
-    },
-    monthTitle: {
-      fontSize: 18,
-      fontFamily: Fonts.bold,
-      color: colors.text,
-    },
-    dayHeaders: {
-      flexDirection: 'row',
-      paddingHorizontal: 8,
-      marginBottom: 8,
-    },
-    dayHeader: {
-      flex: 1,
-      textAlign: 'center',
-      fontSize: 12,
-      fontFamily: Fonts.medium,
-      color: colors.textSecondary,
-      paddingVertical: 8,
-    },
-    calendar: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      paddingHorizontal: 8,
-    },
-    emptyDay: {
-      width: '14.28%', // 100% / 7 days
-      aspectRatio: 1,
-      padding: 1, // Internal padding for spacing
-    },
-    dayCell: {
-      width: '14.28%', // 100% / 7 days
-      aspectRatio: 1,
-      padding: 1, // Internal padding for spacing
-    },
-    dayCellInner: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      position: 'relative',
-      borderRadius: 8,
-      backgroundColor: colors.cardBackgroundElevated,
-    },
-    todayCell: {
-      borderWidth: 2,
-      borderColor: colors.primary,
-    },
-    completedDay: {
-      backgroundColor: colors.success,
-    },
-    bonusDay: {
-      backgroundColor: colors.warning,
-    },
-    missedDay: {
-      backgroundColor: colors.error,
-    },
-    makeupDay: {
-      backgroundColor: colors.success, // Same as completed, but for converted bonus
-    },
-    dayText: {
-      fontSize: 14,
-      fontFamily: Fonts.medium,
-      color: colors.text,
-    },
-    todayText: {
-      color: colors.primary,
-      fontFamily: Fonts.bold,
-    },
-    completedText: {
-      color: colors.textInverse,
-      fontFamily: Fonts.bold,
-    },
-    bonusIndicator: {
-      position: 'absolute',
-      top: 2,
-      right: 2,
-    },
-    scheduledIndicator: {
-      position: 'absolute',
-      bottom: 2,
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.primary,
-    },
-    makeupIndicator: {
-      position: 'absolute',
-      bottom: 1,
-      left: '50%',
-      marginLeft: -7, // Half of icon width to center (14/2)
-      backgroundColor: 'rgba(0, 0, 0, 0.1)', // Subtle background for better visibility
-      borderRadius: 8,
-      width: 14,
-      height: 14,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    legend: {
-      paddingVertical: 16,
-      paddingHorizontal: 24,
-      marginTop: 16,
-      backgroundColor: colors.cardBackgroundElevated,
-      borderRadius: 12,
-      marginHorizontal: 8,
-    },
-    legendRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginBottom: 8,
-    },
-    legendItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
-      gap: 4,
-    },
-    legendDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      marginRight: 4,
-    },
-    legendGoldCheck: {
-      width: 12,
-      height: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 4,
-    },
-    legendCheckmark: {
-      fontSize: 10,
-      color: colors.warning,
-      fontWeight: '900',
-      lineHeight: 12,
-    },
-    legendText: {
-      fontSize: 11,
-      fontFamily: Fonts.medium,
-      color: colors.textSecondary,
-      marginLeft: 4,
-    },
-  });
+  const dayHeaders = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
   return (
     <View style={styles.container}>

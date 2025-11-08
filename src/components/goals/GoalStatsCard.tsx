@@ -45,149 +45,6 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
     }
   };
 
-  // If stats are not available, show loading or no data message
-  if (!stats) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{goal.title}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(goal.status) }]}>
-            <Text style={styles.statusText}>{getStatusText(goal.status)}</Text>
-          </View>
-        </View>
-        <View style={styles.content}>
-          <Text style={styles.loadingText}>
-            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see statistics.'}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  const getTimelineStatusColor = (status: GoalTimelineStatus) => {
-    switch (status) {
-      case 'wayAhead':
-        return colors.primary;
-      case 'ahead':
-        return colors.success;
-      case 'onTrack':
-        return colors.success;
-      case 'behind':
-        return colors.warning;
-      case 'wayBehind':
-        return colors.error;
-      default:
-        return colors.textSecondary;
-    }
-  };
-
-  const getTimelineStatusText = (status: GoalTimelineStatus) => {
-    switch (status) {
-      case 'wayAhead':
-        return t('goals.dashboard.wayAhead');
-      case 'ahead':
-        return t('goals.dashboard.ahead');
-      case 'onTrack':
-        return t('goals.dashboard.onTrack');
-      case 'behind':
-        return t('goals.dashboard.behind');
-      case 'wayBehind':
-        return t('goals.dashboard.wayBehind');
-      default:
-        return status;
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      {/* Goal Info */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Goal Details</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Status:</Text>
-          <Text style={[styles.infoValue, { color: getStatusColor(goal.status) }]}>
-            {getStatusText(goal.status)}
-          </Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Progress:</Text>
-          <Text style={styles.infoValue}>
-            {goal.currentValue} / {goal.targetValue} {goal.unit}
-          </Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Category:</Text>
-          <Text style={styles.infoValue}>{goal.category}</Text>
-        </View>
-        {goal.targetDate && (
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Target Date:</Text>
-            <Text style={styles.infoValue}>{goal.targetDate}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.section}>
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Completion</Text>
-            <Text style={styles.progressPercentage}>
-              {stats.completionPercentage.toFixed(2)}%
-            </Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min(stats.completionPercentage, 100)}%`,
-                  backgroundColor: goal.status === GoalStatus.COMPLETED ? Colors.success : Colors.primary,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* Statistics */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Statistics</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.progressEntries}</Text>
-            <Text style={styles.statLabel}>Entries</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.daysActive}</Text>
-            <Text style={styles.statLabel}>Days Active</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.averageDaily.toFixed(1)}</Text>
-            <Text style={styles.statLabel}>Avg Daily</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: getTimelineStatusColor(stats.timelineStatus || 'onTrack') }]}>
-              {getTimelineStatusText(stats.timelineStatus || 'onTrack')}
-            </Text>
-            <Text style={styles.statLabel}>Timeline Status</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Predictions */}
-      {stats.estimatedCompletionDate && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Predictions</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Estimated Completion:</Text>
-            <Text style={styles.infoValue}>{stats.estimatedCompletionDate}</Text>
-          </View>
-        </View>
-      )}
-    </View>
-  );
-
   const styles = StyleSheet.create({
     container: {
       backgroundColor: colors.cardBackgroundElevated,
@@ -310,4 +167,147 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
       marginVertical: 20,
     },
   });
+
+  // If stats are not available, show loading or no data message
+  if (!stats) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{goal.title}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(goal.status) }]}>
+            <Text style={styles.statusText}>{getStatusText(goal.status)}</Text>
+          </View>
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.loadingText}>
+            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see statistics.'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  const getTimelineStatusColor = (status: GoalTimelineStatus) => {
+    switch (status) {
+      case 'wayAhead':
+        return colors.primary;
+      case 'ahead':
+        return colors.success;
+      case 'onTrack':
+        return colors.success;
+      case 'behind':
+        return colors.warning;
+      case 'wayBehind':
+        return colors.error;
+      default:
+        return colors.textSecondary;
+    }
+  };
+
+  const getTimelineStatusText = (status: GoalTimelineStatus) => {
+    switch (status) {
+      case 'wayAhead':
+        return t('goals.dashboard.wayAhead');
+      case 'ahead':
+        return t('goals.dashboard.ahead');
+      case 'onTrack':
+        return t('goals.dashboard.onTrack');
+      case 'behind':
+        return t('goals.dashboard.behind');
+      case 'wayBehind':
+        return t('goals.dashboard.wayBehind');
+      default:
+        return status;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Goal Info */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Goal Details</Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Status:</Text>
+          <Text style={[styles.infoValue, { color: getStatusColor(goal.status) }]}>
+            {getStatusText(goal.status)}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Progress:</Text>
+          <Text style={styles.infoValue}>
+            {goal.currentValue} / {goal.targetValue} {goal.unit}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Category:</Text>
+          <Text style={styles.infoValue}>{goal.category}</Text>
+        </View>
+        {goal.targetDate && (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Target Date:</Text>
+            <Text style={styles.infoValue}>{goal.targetDate}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Progress Bar */}
+      <View style={styles.section}>
+        <View style={styles.progressContainer}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressLabel}>Completion</Text>
+            <Text style={styles.progressPercentage}>
+              {stats.completionPercentage.toFixed(2)}%
+            </Text>
+          </View>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${Math.min(stats.completionPercentage, 100)}%`,
+                  backgroundColor: goal.status === GoalStatus.COMPLETED ? colors.success : colors.primary,
+                },
+              ]}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Statistics */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Statistics</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{stats.progressEntries}</Text>
+            <Text style={styles.statLabel}>Entries</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{stats.daysActive}</Text>
+            <Text style={styles.statLabel}>Days Active</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{stats.averageDaily.toFixed(1)}</Text>
+            <Text style={styles.statLabel}>Avg Daily</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: getTimelineStatusColor(stats.timelineStatus || 'onTrack') }]}>
+              {getTimelineStatusText(stats.timelineStatus || 'onTrack')}
+            </Text>
+            <Text style={styles.statLabel}>Timeline Status</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Predictions */}
+      {stats.estimatedCompletionDate && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Predictions</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Estimated Completion:</Text>
+            <Text style={styles.infoValue}>{stats.estimatedCompletionDate}</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
 }

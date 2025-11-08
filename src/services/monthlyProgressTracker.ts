@@ -613,7 +613,7 @@ export class MonthlyProgressTracker {
         const activeDays = challengeSnapshots
           .filter((snapshot: any) => {
             const contributions = snapshot.dailyContributions || {};
-            return Object.values(contributions).some(val => val > 0);
+            return Object.values(contributions).some((val: unknown) => typeof val === 'number' && val > 0);
           })
           .map((snapshot: any) => snapshot.date);
 

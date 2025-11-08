@@ -35,6 +35,24 @@ export function GoalList({
 
   const sortedGoals = [...goals].sort((a, b) => a.order - b.order);
 
+  const styles = StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      padding: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
+
   const renderGoalItem = ({ item: goal }: { item: Goal }) => (
     <GoalItem
       goal={goal}
@@ -66,22 +84,4 @@ export function GoalList({
       showsVerticalScrollIndicator={false}
     />
   );
-
-  const styles = StyleSheet.create({
-    container: {
-      flexGrow: 1,
-      padding: 16,
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 60,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-  });
 }

@@ -138,9 +138,9 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       
       dispatch({ type: 'SET_GOALS', payload: goals });
       dispatch({ type: 'SET_PROGRESS', payload: progress });
-      
+
       // Load stats for all goals using the freshly loaded goals
-      const statsPromises = goals.map(goal => goalStorage.getGoalStats(goal.id));
+      const statsPromises = goals.map((goal: { id: string }) => goalStorage.getGoalStats(goal.id));
       const stats = await Promise.all(statsPromises);
       dispatch({ type: 'SET_STATS', payload: stats });
     } catch (error) {

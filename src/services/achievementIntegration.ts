@@ -36,20 +36,20 @@ export class AchievementIntegration {
       }
       
       // Filter by timeframe if specified - safe mapping
-      const habitsWithSafeDates = habits.map(h => {
+      const habitsWithSafeDates = habits.map((h: { id: string; createdAt?: Date | string | number }) => {
         if (!h.createdAt) {
           console.warn('Habit missing createdAt:', h.id);
           return null;
         }
-        
+
         const createdAtDate = h.createdAt instanceof Date ? h.createdAt : new Date(h.createdAt);
         if (isNaN(createdAtDate.getTime())) {
           console.warn('Invalid createdAt date for habit:', h.id, h.createdAt);
           return null;
         }
-        
+
         return { createdAt: createdAtDate, date: formatDateToString(createdAtDate) };
-      }).filter((item): item is { createdAt: Date, date: string } => item !== null);
+      }).filter((item: { createdAt: Date, date: string } | null): item is { createdAt: Date, date: string } => item !== null);
       
       const filteredHabits = this.filterByTimeframe(habitsWithSafeDates, timeframe);
       
@@ -762,7 +762,7 @@ export class AchievementIntegration {
       
       // For simplicity, count all created habits as active
       // In a more sophisticated system, we'd track historical active habit counts and deletions
-      const activeHabits = habits.filter(habit => {
+      const activeHabits = habits.filter((habit: { id: string; createdAt?: Date | string | number }) => {
         if (!habit.createdAt) {
           console.warn('Habit missing createdAt:', habit.id);
           return false;

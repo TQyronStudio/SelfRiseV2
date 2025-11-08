@@ -289,7 +289,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
       <View style={styles.habitsContainer}>
         {activeHabits.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="leaf-outline" size={48} color={Colors.textTertiary} />
+            <Ionicons name="leaf-outline" size={48} color={colors.textTertiary} />
             <Text style={styles.emptyStateText}>No active habits</Text>
             <Text style={styles.emptyStateSubtext}>
               Create your first habit to start tracking!
