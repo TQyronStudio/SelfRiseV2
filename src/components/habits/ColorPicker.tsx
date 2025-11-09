@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { HabitColor } from '../../types/common';
-import { Colors } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface ColorPickerProps {

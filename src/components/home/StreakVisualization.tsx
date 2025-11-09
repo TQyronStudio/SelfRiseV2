@@ -6,7 +6,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';

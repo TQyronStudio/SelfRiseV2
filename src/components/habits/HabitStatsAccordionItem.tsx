@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '../../types/habit';
 import { HabitColor, HabitIcon } from '../../types/common';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { HabitCalendarView } from './HabitCalendarView';

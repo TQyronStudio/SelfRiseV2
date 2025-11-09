@@ -9,7 +9,6 @@ import {
   AccessibilityInfo
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Colors } from '../../constants/colors';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
 

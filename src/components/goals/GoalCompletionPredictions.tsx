@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 import { HelpTooltip } from '@/src/components/common';
 

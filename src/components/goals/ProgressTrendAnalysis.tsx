@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Goal, GoalProgress } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 
 interface ProgressTrendAnalysisProps {

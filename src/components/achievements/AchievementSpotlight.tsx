@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import { Colors } from '@/src/constants/colors';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 interface AchievementSpotlightProps {
   userAchievements: UserAchievements;
@@ -59,6 +59,7 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
   allAchievements,
   onAchievementPress,
 }) => {
+  const { colors } = useTheme();
   const [spotlightAchievement, setSpotlightAchievement] = useState<Achievement | null>(null);
   const [story, setStory] = useState<string>('');
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -128,6 +129,193 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
       clearInterval(interval);
     };
   }, [unlockedAchievements, fadeAnim]);
+
+  const styles = StyleSheet.create({
+    container: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    headerContainer: {
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    headerSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+
+    spotlightContainer: {
+      position: 'relative',
+    },
+
+    spotlightCard: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 16,
+      padding: 20,
+      borderWidth: 2,
+    },
+
+    rarityStrip: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 4,
+      borderTopLeftRadius: 14,
+      borderTopRightRadius: 14,
+    },
+
+    achievementHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+      marginTop: 4,
+    },
+
+    achievementIcon: {
+      fontSize: 32,
+      marginRight: 12,
+    },
+
+    achievementInfo: {
+      flex: 1,
+    },
+
+    achievementName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 6,
+    },
+
+    achievementMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    rarityBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+      marginRight: 8,
+    },
+
+    rarityText: {
+      fontSize: 10,
+      fontWeight: 'bold',
+      color: colors.white,
+    },
+
+    xpReward: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+
+    achievementDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginBottom: 16,
+    },
+
+    storyContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      position: 'relative',
+    },
+
+    storyQuote: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.primary,
+      opacity: 0.3,
+      position: 'absolute',
+    },
+
+    storyText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+      fontStyle: 'italic',
+      paddingHorizontal: 16,
+      textAlign: 'center',
+    },
+
+    spotlightFooter: {
+      alignItems: 'center',
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 12,
+    },
+
+    spotlightText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+      marginBottom: 4,
+    },
+
+    rotationText: {
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+
+    glowEffect: {
+      position: 'absolute',
+      top: -4,
+      left: -4,
+      right: -4,
+      bottom: -4,
+      borderRadius: 20,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 0,
+    },
+
+    // Empty state
+    emptyContainer: {
+      alignItems: 'center',
+      padding: 32,
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+      opacity: 0.5,
+    },
+
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+
+    emptySubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  });
 
   if (!spotlightAchievement) {
     return (
@@ -202,195 +390,3 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  
-  spotlightContainer: {
-    position: 'relative',
-  },
-  
-  spotlightCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  
-  rarityStrip: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
-  },
-  
-  achievementHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  
-  achievementIcon: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  
-  achievementInfo: {
-    flex: 1,
-  },
-  
-  achievementName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 6,
-  },
-  
-  achievementMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  rarityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  
-  rarityText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: Colors.white,
-  },
-  
-  xpReward: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  
-  achievementDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  
-  storyContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    position: 'relative',
-  },
-  
-  storyQuote: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    opacity: 0.3,
-    position: 'absolute',
-  },
-  
-  storyText: {
-    fontSize: 14,
-    color: Colors.text,
-    lineHeight: 20,
-    fontStyle: 'italic',
-    paddingHorizontal: 16,
-    textAlign: 'center',
-  },
-  
-  spotlightFooter: {
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: 12,
-  },
-  
-  spotlightText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  
-  rotationText: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-  },
-  
-  glowEffect: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: 20,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 0,
-  },
-  
-  // Empty state
-  emptyContainer: {
-    alignItems: 'center',
-    padding: 32,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-    opacity: 0.5,
-  },
-  
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  
-  emptySubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});

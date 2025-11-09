@@ -8,11 +8,12 @@ import {
   Dimensions,
   ScrollView
 } from 'react-native';
-import { Colors, Fonts, Layout } from '@/src/constants';
+import { Fonts, Layout } from '@/src/constants';
 import { Achievement, AchievementRarity } from '@/src/types/gamification';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility, getHighContrastRarityColors } from '@/src/hooks/useAccessibility';
 import { ProgressHint, CompletionInfo, SmartTooltip } from '@/src/utils/achievementPreviewUtils';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -49,9 +50,250 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
 }) => {
   const { t } = useI18n();
   const { isHighContrastEnabled } = useAccessibility();
-  
+  const { colors } = useTheme();
+
   const rarityColor = getRarityColor(achievement.rarity, isHighContrastEnabled);
-  
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 16,
+      borderWidth: 2,
+      paddingVertical: Layout.spacing.lg,
+      paddingHorizontal: Layout.spacing.md,
+      maxWidth: screenWidth * 0.9,
+      maxHeight: '80%',
+      width: '100%',
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: Layout.spacing.lg,
+    },
+    achievementIcon: {
+      fontSize: 48,
+      marginBottom: Layout.spacing.sm,
+    },
+    achievementName: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
+    rarityBadge: {
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.xs,
+      paddingHorizontal: Layout.spacing.sm,
+    },
+    rarityText: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: colors.white,
+      letterSpacing: 1,
+    },
+    description: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: Layout.spacing.lg,
+    },
+
+    // Sections
+    completionSection: {
+      marginBottom: Layout.spacing.lg,
+    },
+    progressSection: {
+      marginBottom: Layout.spacing.lg,
+    },
+    tipSection: {
+      marginBottom: Layout.spacing.lg,
+    },
+    xpSection: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.md,
+      paddingVertical: Layout.spacing.sm,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+    },
+
+    // Section Titles
+    sectionTitle: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+
+    // Completion Info
+    completionDetails: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: Layout.spacing.sm,
+    },
+    accomplishmentText: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    completionMeta: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.xs,
+    },
+    completionDate: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+
+    // Progress Info
+    requirementBox: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: Layout.spacing.sm,
+      marginBottom: Layout.spacing.sm,
+    },
+    requirementTitle: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    requirementText: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    progressBox: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: Layout.spacing.sm,
+      marginBottom: Layout.spacing.sm,
+    },
+    progressTitle: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+    },
+    progressText: {
+      fontSize: Fonts.sizes.md,
+      fontWeight: '600',
+      marginBottom: Layout.spacing.sm,
+    },
+
+    // Progress Bar
+    progressBarContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Layout.spacing.xs,
+    },
+    progressTrack: {
+      flex: 1,
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      marginRight: Layout.spacing.sm,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    progressPercentage: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      minWidth: 35,
+    },
+    estimatedTime: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+
+    // Action Hint
+    actionHintBox: {
+      backgroundColor: '#E8F5E8',
+      borderRadius: 8,
+      padding: Layout.spacing.sm,
+      borderLeftWidth: 4,
+      borderLeftColor: '#4CAF50',
+    },
+    actionHintTitle: {
+      fontSize: Fonts.sizes.sm,
+      fontWeight: 'bold',
+      color: '#2E7D32',
+      marginBottom: Layout.spacing.xs,
+    },
+    actionHintText: {
+      fontSize: Fonts.sizes.md,
+      color: '#2E7D32',
+      lineHeight: 20,
+    },
+
+    // Smart Tips
+    primaryTip: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      marginBottom: Layout.spacing.xs,
+      lineHeight: 20,
+    },
+    motivationalMessage: {
+      fontSize: Fonts.sizes.md,
+      color: colors.primary,
+      fontWeight: '600',
+      marginBottom: Layout.spacing.xs,
+      lineHeight: 20,
+    },
+    actionAdvice: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      marginBottom: Layout.spacing.xs,
+      lineHeight: 18,
+    },
+    estimatedEffort: {
+      fontSize: Fonts.sizes.sm,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+
+    // XP Section
+    xpLabel: {
+      fontSize: Fonts.sizes.md,
+      color: colors.text,
+      marginRight: Layout.spacing.sm,
+    },
+    xpAmount: {
+      fontSize: Fonts.sizes.xl,
+      fontWeight: 'bold',
+    },
+
+    // Close Button
+    closeButton: {
+      borderRadius: 12,
+      paddingVertical: Layout.spacing.md,
+      paddingHorizontal: Layout.spacing.xl,
+      alignItems: 'center',
+      marginTop: Layout.spacing.sm,
+    },
+    closeButtonText: {
+      color: colors.white,
+      fontSize: Fonts.sizes.md,
+      fontWeight: 'bold',
+    },
+  });
+
   return (
     <Modal
       visible={visible}
@@ -203,250 +445,3 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    borderWidth: 2,
-    paddingVertical: Layout.spacing.lg,
-    paddingHorizontal: Layout.spacing.md,
-    maxWidth: screenWidth * 0.9,
-    maxHeight: '80%',
-    width: '100%',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
-  },
-  achievementIcon: {
-    fontSize: 48,
-    marginBottom: Layout.spacing.sm,
-  },
-  achievementName: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: Layout.spacing.sm,
-  },
-  rarityBadge: {
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.xs,
-    paddingHorizontal: Layout.spacing.sm,
-  },
-  rarityText: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.white,
-    letterSpacing: 1,
-  },
-  description: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Layout.spacing.lg,
-  },
-  
-  // Sections
-  completionSection: {
-    marginBottom: Layout.spacing.lg,
-  },
-  progressSection: {
-    marginBottom: Layout.spacing.lg,
-  },
-  tipSection: {
-    marginBottom: Layout.spacing.lg,
-  },
-  xpSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.md,
-    paddingVertical: Layout.spacing.sm,
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-  },
-  
-  // Section Titles
-  sectionTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  
-  // Completion Info
-  completionDetails: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.sm,
-  },
-  accomplishmentText: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  completionMeta: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.xs,
-  },
-  completionDate: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  
-  // Progress Info
-  requirementBox: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.sm,
-    marginBottom: Layout.spacing.sm,
-  },
-  requirementTitle: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  requirementText: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    lineHeight: 20,
-  },
-  
-  progressBox: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: Layout.spacing.sm,
-    marginBottom: Layout.spacing.sm,
-  },
-  progressTitle: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-  },
-  progressText: {
-    fontSize: Fonts.sizes.md,
-    fontWeight: '600',
-    marginBottom: Layout.spacing.sm,
-  },
-  
-  // Progress Bar
-  progressBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.xs,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    marginRight: Layout.spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressPercentage: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    minWidth: 35,
-  },
-  estimatedTime: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  
-  // Action Hint
-  actionHintBox: {
-    backgroundColor: '#E8F5E8',
-    borderRadius: 8,
-    padding: Layout.spacing.sm,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
-  },
-  actionHintTitle: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: Layout.spacing.xs,
-  },
-  actionHintText: {
-    fontSize: Fonts.sizes.md,
-    color: '#2E7D32',
-    lineHeight: 20,
-  },
-  
-  // Smart Tips
-  primaryTip: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    marginBottom: Layout.spacing.xs,
-    lineHeight: 20,
-  },
-  motivationalMessage: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginBottom: Layout.spacing.xs,
-    lineHeight: 20,
-  },
-  actionAdvice: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    marginBottom: Layout.spacing.xs,
-    lineHeight: 18,
-  },
-  estimatedEffort: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  
-  // XP Section
-  xpLabel: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.text,
-    marginRight: Layout.spacing.sm,
-  },
-  xpAmount: {
-    fontSize: Fonts.sizes.xl,
-    fontWeight: 'bold',
-  },
-  
-  // Close Button
-  closeButton: {
-    borderRadius: 12,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.xl,
-    alignItems: 'center',
-    marginTop: Layout.spacing.sm,
-  },
-  closeButtonText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.md,
-    fontWeight: 'bold',
-  },
-});

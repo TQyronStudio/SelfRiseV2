@@ -5,7 +5,6 @@ import { Goal, GoalStatus, GoalCategory } from '@/src/types/goal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { Colors } from '@/src/constants/colors';
 import { Layout } from '@/src/constants/dimensions';
 
 interface GoalPerformanceDashboardProps {

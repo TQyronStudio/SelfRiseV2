@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { DayOfWeek } from '../../types/common';
-import { Colors } from '../../constants/colors';
 import { Fonts } from '../../constants/fonts';
 import { useTheme } from '../../contexts/ThemeContext';
 

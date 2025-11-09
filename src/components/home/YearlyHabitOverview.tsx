@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
-import { Colors, Layout, Fonts } from '@/src/constants';
+import { Layout, Fonts } from '@/src/constants';
 import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { calculateHabitCompletionRate } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';

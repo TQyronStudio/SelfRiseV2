@@ -2,7 +2,6 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HabitIcon } from '../../types/common';
-import { Colors } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface IconPickerProps {
