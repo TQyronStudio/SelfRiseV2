@@ -94,12 +94,12 @@ export default function EditGratitudeModal({
       backgroundColor: colors.textSecondary,
     },
     saveButtonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: 16,
       fontWeight: '600',
     },
     saveButtonTextDisabled: {
-      color: '#FFFFFF',
+      color: colors.white,
     },
     content: {
       flex: 1,

@@ -89,7 +89,7 @@ export function WarmUpSuccessModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -172,7 +172,7 @@ export function WarmUpErrorModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -261,7 +261,7 @@ export function WarmUpConfirmationModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -367,7 +367,7 @@ export function WarmUpIssueModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -472,7 +472,7 @@ export function QuickWarmUpModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',

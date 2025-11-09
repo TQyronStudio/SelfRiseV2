@@ -405,7 +405,6 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
           styles.multiplierDetails,
           {
             transform: [{ scale: pulseAnim }],
-            shadowColor: glowColor,
           },
         ]}
       >
@@ -553,7 +552,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
 const createStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -577,9 +576,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
     color: '#FFD700',
     marginBottom: 20,
-    textShadowColor: 'rgba(255, 215, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
 
   multiplierDetails: {

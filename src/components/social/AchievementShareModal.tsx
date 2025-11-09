@@ -343,11 +343,11 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
       lineHeight: 18,
     },
     privacyNotice: {
-      backgroundColor: '#10B98115',
+      backgroundColor: colors.success + '15',
       borderRadius: Layout.borderRadius.lg,
       padding: Layout.spacing.lg,
       borderWidth: 1,
-      borderColor: '#10B981',
+      borderColor: colors.success,
     },
     privacyHeader: {
       flexDirection: 'row',
@@ -357,7 +357,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
     privacyTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#10B981',
+      color: colors.success,
       marginLeft: Layout.spacing.sm,
     },
     privacyText: {
@@ -511,7 +511,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
               {/* Privacy Notice */}
               <View style={styles.privacyNotice}>
                 <View style={styles.privacyHeader}>
-                  <Ionicons name="shield-checkmark" size={20} color="#10B981" />
+                  <Ionicons name="shield-checkmark" size={20} color={colors.success} />
                   <Text style={styles.privacyTitle}>Privacy Protected</Text>
                 </View>
                 <Text style={styles.privacyText}>

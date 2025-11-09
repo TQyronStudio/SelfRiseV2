@@ -11,13 +11,14 @@ import {
   ScrollView,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { 
-  MonthlyChallenge, 
-  MonthlyChallengeCompletionResult, 
-  AchievementCategory 
+import {
+  MonthlyChallenge,
+  MonthlyChallengeCompletionResult,
+  AchievementCategory
 } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useXpAnimation } from '../../contexts/XpAnimationContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MonthlyChallengeCompletionModalProps {
   visible: boolean;
@@ -46,6 +47,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   onClose,
   onContinue
 }) => {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const particleAnims = useRef<Animated.Value[]>([]).current;
   const slideUpAnim = useRef(new Animated.Value(50)).current;
@@ -282,12 +284,305 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
     );
   };
 
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    particle: {
+      position: 'absolute',
+    },
+    modal: {
+      backgroundColor: colors.cardBackgroundElevated,
+      borderRadius: 20,
+      maxHeight: screenHeight * 0.9,
+      width: screenWidth * 0.9,
+      maxWidth: 400,
+      elevation: 10,
+    },
+    scrollContent: {
+      padding: 24,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 24,
+      padding: 20,
+      borderRadius: 16,
+    },
+    completionEmoji: {
+      fontSize: 64,
+      marginBottom: 12,
+    },
+    completionTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    completionSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    challengeInfo: {
+      marginBottom: 24,
+    },
+    challengeHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    challengeIcon: {
+      fontSize: 32,
+      marginRight: 12,
+    },
+    challengeDetails: {
+      flex: 1,
+    },
+    challengeName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    challengeMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    challengeCategory: {
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+    },
+    completionMessage: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      lineHeight: 24,
+      textAlign: 'center',
+    },
+    progressSummary: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    progressTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    progressPercentage: {
+      fontSize: 28,
+      fontWeight: 'bold',
+    },
+    progressBar: {
+      height: 12,
+      backgroundColor: colors.border,
+      borderRadius: 6,
+      overflow: 'hidden',
+      marginBottom: 16,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 6,
+    },
+    progressStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    progressStat: {
+      alignItems: 'center',
+    },
+    progressStatValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    progressStatLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    rewardsSection: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: '#BBF7D0',
+    },
+    rewardsTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    rewardItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    rewardLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    rewardValue: {
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    totalReward: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: '#D1D5DB',
+    },
+    totalRewardLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    totalRewardValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    starProgressSection: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: '#FDE68A',
+    },
+    starProgressTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#92400E',
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    starProgressContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    starProgressItem: {
+      alignItems: 'center',
+    },
+    starProgressLabel: {
+      fontSize: 12,
+      color: '#78350F',
+      marginBottom: 8,
+    },
+    starProgressText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#78350F',
+      marginTop: 4,
+    },
+    starProgressArrow: {
+      fontSize: 24,
+      color: '#D97706',
+      fontWeight: 'bold',
+    },
+    starProgressDescription: {
+      fontSize: 14,
+      color: '#92400E',
+      textAlign: 'center',
+      fontStyle: 'italic',
+    },
+    streakSection: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: '#FECACA',
+      alignItems: 'center',
+    },
+    streakTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#991B1B',
+      marginBottom: 8,
+    },
+    streakValue: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#DC2626',
+      marginBottom: 8,
+    },
+    streakDescription: {
+      fontSize: 14,
+      color: '#7F1D1D',
+      textAlign: 'center',
+    },
+    nextMonthSection: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: '#DBEAFE',
+    },
+    nextMonthTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#1E40AF',
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    nextMonthDescription: {
+      fontSize: 14,
+      color: '#1E3A8A',
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    actionButtons: {
+      padding: 24,
+      paddingTop: 0,
+      gap: 12,
+    },
+    continueButton: {
+      paddingVertical: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    continueButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    closeButton: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      color: colors.textSecondary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         {/* Particles */}
         {particleAnims.map((_, index) => renderParticle(index))}
-        
+
         {/* Main Modal */}
         <Animated.View
           style={[
@@ -337,7 +632,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   </View>
                 </View>
               </View>
-              
+
               <Text style={styles.completionMessage}>
                 {getCompletionMessage(completionPercentage, challenge.starLevel, challenge.category)}
               </Text>
@@ -351,19 +646,19 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   {Math.round(completionPercentage)}%
                 </Text>
               </View>
-              
+
               <View style={styles.progressBar}>
-                <View 
+                <View
                   style={[
                     styles.progressFill,
-                    { 
+                    {
                       width: `${completionPercentage}%`,
                       backgroundColor: categoryColor
                     }
-                  ]} 
+                  ]}
                 />
               </View>
-              
+
               <View style={styles.progressStats}>
                 <View style={styles.progressStat}>
                   <Text style={styles.progressStatValue}>{completionResult?.requirementsCompleted || 0}</Text>
@@ -383,14 +678,14 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
             {/* XP Rewards Breakdown */}
             <View style={styles.rewardsSection}>
               <Text style={styles.rewardsTitle}>XP Rewards Earned</Text>
-              
+
               <View style={styles.rewardItem}>
                 <Text style={styles.rewardLabel}>Base Challenge XP</Text>
                 <Text style={[styles.rewardValue, { color: categoryColor }]}>
                   +{completionResult.baseXP || 0}
                 </Text>
               </View>
-              
+
               {(completionResult.bonusXP || 0) > 0 && (
                 <View style={styles.rewardItem}>
                   <Text style={styles.rewardLabel}>Completion Bonus</Text>
@@ -399,7 +694,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   </Text>
                 </View>
               )}
-              
+
               {(completionResult.streakBonus || 0) > 0 && (
                 <View style={styles.rewardItem}>
                   <Text style={styles.rewardLabel}>Monthly Streak Bonus 🔥</Text>
@@ -408,7 +703,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   </Text>
                 </View>
               )}
-              
+
               {(completionResult.perfectCompletionBonus || 0) > 0 && (
                 <View style={styles.rewardItem}>
                   <Text style={styles.rewardLabel}>Perfect Completion 🏆</Text>
@@ -417,7 +712,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   </Text>
                 </View>
               )}
-              
+
               <View style={[styles.rewardItem, styles.totalReward]}>
                 <Text style={styles.totalRewardLabel}>Total XP Earned</Text>
                 <Text style={[styles.totalRewardValue, { color: starColor }]}>
@@ -443,9 +738,9 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                       {getStarRarity(completionResult.oldStarLevel)}
                     </Text>
                   </View>
-                  
+
                   <Text style={styles.starProgressArrow}>→</Text>
-                  
+
                   <View style={styles.starProgressItem}>
                     <Text style={styles.starProgressLabel}>New Level</Text>
                     <StarRatingDisplay
@@ -483,7 +778,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
               <View style={styles.nextMonthSection}>
                 <Text style={styles.nextMonthTitle}>Ready for Next Month?</Text>
                 <Text style={styles.nextMonthDescription}>
-                  Your next challenge will be generated automatically on the 1st. 
+                  Your next challenge will be generated automatically on the 1st.
                   {completionResult.starLevelChanged && ' With your new star level, expect a greater challenge and bigger rewards!'}
                 </Text>
               </View>
@@ -500,7 +795,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 <Text style={styles.continueButtonText}>Continue Journey</Text>
               </Pressable>
             )}
-            
+
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>
                 {onContinue ? 'Close' : 'Awesome!'}
@@ -512,302 +807,5 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  particle: {
-    position: 'absolute',
-  },
-  modal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    maxHeight: screenHeight * 0.9,
-    width: screenWidth * 0.9,
-    maxWidth: 400,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  scrollContent: {
-    padding: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-    padding: 20,
-    borderRadius: 16,
-  },
-  completionEmoji: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
-  completionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  completionSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  challengeInfo: {
-    marginBottom: 24,
-  },
-  challengeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  challengeIcon: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  challengeDetails: {
-    flex: 1,
-  },
-  challengeName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  challengeMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  challengeCategory: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  completionMessage: {
-    fontSize: 16,
-    color: '#4B5563',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  progressSummary: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  progressTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  progressPercentage: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  progressBar: {
-    height: 12,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  progressStat: {
-    alignItems: 'center',
-  },
-  progressStatValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  progressStatLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  rewardsSection: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-  },
-  rewardsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  rewardItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  rewardLabel: {
-    fontSize: 14,
-    color: '#4B5563',
-  },
-  rewardValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  totalReward: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#D1D5DB',
-  },
-  totalRewardLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  totalRewardValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  starProgressSection: {
-    backgroundColor: '#FEF3C7',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  starProgressTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#92400E',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  starProgressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  starProgressItem: {
-    alignItems: 'center',
-  },
-  starProgressLabel: {
-    fontSize: 12,
-    color: '#78350F',
-    marginBottom: 8,
-  },
-  starProgressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#78350F',
-    marginTop: 4,
-  },
-  starProgressArrow: {
-    fontSize: 24,
-    color: '#D97706',
-    fontWeight: 'bold',
-  },
-  starProgressDescription: {
-    fontSize: 14,
-    color: '#92400E',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  streakSection: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    alignItems: 'center',
-  },
-  streakTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#991B1B',
-    marginBottom: 8,
-  },
-  streakValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#DC2626',
-    marginBottom: 8,
-  },
-  streakDescription: {
-    fontSize: 14,
-    color: '#7F1D1D',
-    textAlign: 'center',
-  },
-  nextMonthSection: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  nextMonthTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E40AF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  nextMonthDescription: {
-    fontSize: 14,
-    color: '#1E3A8A',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  actionButtons: {
-    padding: 24,
-    paddingTop: 0,
-    gap: 12,
-  },
-  continueButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default MonthlyChallengeCompletionModal;

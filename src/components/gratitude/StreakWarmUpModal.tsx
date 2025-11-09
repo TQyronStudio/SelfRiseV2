@@ -76,7 +76,7 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -153,7 +153,7 @@ function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: Warm
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -238,7 +238,7 @@ function WarmUpConfirmationModal({
       minWidth: 120,
     },
     buttonText: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -500,7 +500,7 @@ export default function StreakWarmUpModal({
     watchButtonText: {
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.white,
     },
     resetButton: {
       backgroundColor: 'transparent',

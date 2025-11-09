@@ -199,7 +199,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       zIndex: 1,
     },
     closeButtonText: {
-      color: '#FFFFFF',
+      color: colors.cardBackgroundElevated,
       fontSize: 18,
       fontWeight: 'bold',
     },
@@ -218,7 +218,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     title: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.cardBackgroundElevated,
       marginBottom: 8,
     },
     headerMeta: {
@@ -252,7 +252,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       borderRadius: 16,
     },
     completedBadgeText: {
-      color: '#FFFFFF',
+      color: colors.cardBackgroundElevated,
       fontSize: 14,
       fontWeight: 'bold',
     },
@@ -535,7 +535,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                 <View style={styles.requirementIcon}>
                   <Text style={[
                     styles.requirementStatus,
-                    { color: isRequirementCompleted ? categoryColor : '#9CA3AF' }
+                    { color: isRequirementCompleted ? categoryColor : colors.textSecondary }
                   ]}>
                     {isRequirementCompleted ? '✓' : '○'}
                   </Text>
@@ -552,7 +552,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                   <View style={styles.requirementProgress}>
                     <Text style={[
                       styles.requirementNumbers,
-                      { color: isRequirementCompleted ? categoryColor : '#6B7280' }
+                      { color: isRequirementCompleted ? categoryColor : colors.textSecondary }
                     ]}>
                       {currentProgress} / {requirement.target}
                     </Text>
@@ -565,14 +565,14 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
               </View>
               
               <View style={styles.requirementProgressBar}>
-                <View 
+                <View
                   style={[
                     styles.requirementProgressFill,
-                    { 
+                    {
                       width: `${progressPercent}%`,
-                      backgroundColor: isRequirementCompleted ? categoryColor : '#D1D5DB'
+                      backgroundColor: isRequirementCompleted ? categoryColor : colors.border
                     }
-                  ]} 
+                  ]}
                 />
               </View>
             </View>
@@ -693,7 +693,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             
             <View style={styles.headerBadges}>
               <View style={[styles.xpBadge, { backgroundColor: starColor + '20' }]}>
-                <Text style={[styles.xpText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.xpText, { color: colors.cardBackgroundElevated }]}>
                   +{displayChallenge.baseXPReward} XP
                 </Text>
               </View>
