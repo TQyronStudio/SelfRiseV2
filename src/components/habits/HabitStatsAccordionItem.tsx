@@ -13,17 +13,6 @@ interface HabitStatsAccordionItemProps {
   initiallyExpanded?: boolean;
 }
 
-const COLOR_MAP = {
-  [HabitColor.RED]: colors.habitRed,
-  [HabitColor.BLUE]: colors.habitBlue,
-  [HabitColor.GREEN]: colors.habitGreen,
-  [HabitColor.YELLOW]: colors.habitYellow,
-  [HabitColor.PURPLE]: colors.habitPurple,
-  [HabitColor.ORANGE]: colors.habitOrange,
-  [HabitColor.PINK]: colors.habitPink,
-  [HabitColor.TEAL]: colors.habitTeal,
-};
-
 const ICON_MAP = {
   [HabitIcon.FITNESS]: 'fitness-outline',
   [HabitIcon.BOOK]: 'book-outline',
@@ -43,6 +32,17 @@ const ICON_MAP = {
 
 export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: HabitStatsAccordionItemProps) {
   const { colors } = useTheme();
+
+  const COLOR_MAP = {
+    [HabitColor.RED]: colors.habitRed,
+    [HabitColor.BLUE]: colors.habitBlue,
+    [HabitColor.GREEN]: colors.habitGreen,
+    [HabitColor.YELLOW]: colors.habitYellow,
+    [HabitColor.PURPLE]: colors.habitPurple,
+    [HabitColor.ORANGE]: colors.habitOrange,
+    [HabitColor.PINK]: colors.habitPink,
+    [HabitColor.TEAL]: colors.habitTeal,
+  };
   const { getHabitStats } = useHabitsData();
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
   const [currentDate, setCurrentDate] = useState(new Date());

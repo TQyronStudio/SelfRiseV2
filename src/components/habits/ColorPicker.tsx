@@ -8,19 +8,19 @@ interface ColorPickerProps {
   onColorSelect: (color: HabitColor) => void;
 }
 
-const COLOR_MAP = {
-  [HabitColor.RED]: colors.habitRed,
-  [HabitColor.BLUE]: colors.habitBlue,
-  [HabitColor.GREEN]: colors.habitGreen,
-  [HabitColor.YELLOW]: colors.habitYellow,
-  [HabitColor.PURPLE]: colors.habitPurple,
-  [HabitColor.ORANGE]: colors.habitOrange,
-  [HabitColor.PINK]: colors.habitPink,
-  [HabitColor.TEAL]: colors.habitTeal,
-};
-
 export function ColorPicker({ selectedColor, onColorSelect }: ColorPickerProps) {
   const { colors } = useTheme();
+
+  const COLOR_MAP = {
+    [HabitColor.RED]: colors.habitRed,
+    [HabitColor.BLUE]: colors.habitBlue,
+    [HabitColor.GREEN]: colors.habitGreen,
+    [HabitColor.YELLOW]: colors.habitYellow,
+    [HabitColor.PURPLE]: colors.habitPurple,
+    [HabitColor.ORANGE]: colors.habitOrange,
+    [HabitColor.PINK]: colors.habitPink,
+    [HabitColor.TEAL]: colors.habitTeal,
+  };
 
   const styles = StyleSheet.create({
     container: {
