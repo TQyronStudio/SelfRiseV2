@@ -224,21 +224,21 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
 
     // Action Hint
     actionHintBox: {
-      backgroundColor: '#E8F5E8',
+      backgroundColor: colors.backgroundSecondary,
       borderRadius: 8,
       padding: Layout.spacing.sm,
       borderLeftWidth: 4,
-      borderLeftColor: '#4CAF50',
+      borderLeftColor: '#4CAF50', // Keep success green accent
     },
     actionHintTitle: {
       fontSize: Fonts.sizes.sm,
       fontWeight: 'bold',
-      color: '#2E7D32',
+      color: colors.success,
       marginBottom: Layout.spacing.xs,
     },
     actionHintText: {
       fontSize: Fonts.sizes.md,
-      color: '#2E7D32',
+      color: colors.text,
       lineHeight: 20,
     },
 

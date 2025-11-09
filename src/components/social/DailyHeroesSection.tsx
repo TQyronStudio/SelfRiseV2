@@ -167,11 +167,11 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
       paddingHorizontal: Layout.spacing.sm,
       paddingVertical: 2,
       borderRadius: Layout.borderRadius.sm,
-      backgroundColor: '#FF6B6B15',
+      backgroundColor: 'rgba(255, 107, 107, 0.08)', // Semi-transparent red overlay (AMOLED-friendly)
     },
     inspirationText: {
       fontSize: 10,
-      color: '#FF6B6B',
+      color: '#FF6B6B', // Keep vibrant red accent for inspiration
       fontWeight: '500',
       marginLeft: 2,
     },
@@ -296,7 +296,7 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
       alignItems: 'flex-start',
       paddingHorizontal: Layout.spacing.lg,
       paddingVertical: Layout.spacing.md,
-      backgroundColor: '#FFA50015',
+      backgroundColor: 'rgba(255, 165, 0, 0.08)', // Semi-transparent orange overlay (AMOLED-friendly)
       marginHorizontal: Layout.spacing.lg,
       marginTop: Layout.spacing.sm,
       borderRadius: Layout.borderRadius.md,

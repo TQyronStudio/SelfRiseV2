@@ -705,12 +705,12 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
               const reached = progress.milestonesReached[milestone as keyof typeof progress.milestonesReached]?.reached || false;
               return (
                 <View key={milestone} style={styles.milestoneItem}>
-                  <View 
+                  <View
                     style={[
                       styles.milestoneCircle,
-                      { 
-                        backgroundColor: reached ? categoryColor : '#E5E7EB',
-                        borderColor: reached ? categoryColor : '#D1D5DB'
+                      {
+                        backgroundColor: reached ? categoryColor : colors.border,
+                        borderColor: reached ? categoryColor : colors.border
                       }
                     ]}
                   >
@@ -718,7 +718,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
                   </View>
                   <Text style={[
                     styles.milestoneLabel,
-                    { color: reached ? categoryColor : '#9CA3AF' }
+                    { color: reached ? categoryColor : colors.textSecondary }
                   ]}>
                     {milestone}%
                   </Text>

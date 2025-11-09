@@ -60,7 +60,7 @@ function LayoutContent() {
               headerStyle: {
                 backgroundColor: colors.primary,
               },
-              headerTintColor: '#FFFFFF',
+              headerTintColor: colors.textInverse,
               headerTitleStyle: {
                 fontWeight: 'bold',
               },

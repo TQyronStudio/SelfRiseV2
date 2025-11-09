@@ -392,7 +392,7 @@ export const NotificationSettings: React.FC = () => {
             value={settings.afternoonReminderEnabled}
             onValueChange={handleAfternoonToggle}
             trackColor={{ false: colors.textSecondary, true: colors.primary }}
-            thumbColor={'#FFFFFF'}
+            thumbColor={colors.white}
           />
         </View>
 
@@ -422,7 +422,7 @@ export const NotificationSettings: React.FC = () => {
             value={settings.eveningReminderEnabled}
             onValueChange={handleEveningToggle}
             trackColor={{ false: colors.textSecondary, true: colors.primary }}
-            thumbColor={'#FFFFFF'}
+            thumbColor={colors.white}
           />
         </View>
 

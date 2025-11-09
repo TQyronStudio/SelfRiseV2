@@ -274,7 +274,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
     completionText: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.white,
     },
 
     collectionHeader: {
@@ -328,7 +328,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
     rarityText: {
       fontSize: 10,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.white,
     },
 
     bonusXP: {
