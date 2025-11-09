@@ -80,7 +80,7 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
         case GoalCategory.PERSONAL: return '#96CEB4';
         case GoalCategory.FINANCIAL: return '#FFEAA7';
         case GoalCategory.OTHER: return '#BDC3C7';
-        default: return colors.primary;
+        default: return '#007AFF'; // Fallback primary color
       }
     };
 
