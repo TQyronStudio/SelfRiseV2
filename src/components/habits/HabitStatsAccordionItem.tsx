@@ -14,14 +14,14 @@ interface HabitStatsAccordionItemProps {
 }
 
 const COLOR_MAP = {
-  [HabitColor.RED]: Colors.habitRed,
-  [HabitColor.BLUE]: Colors.habitBlue,
-  [HabitColor.GREEN]: Colors.habitGreen,
-  [HabitColor.YELLOW]: Colors.habitYellow,
-  [HabitColor.PURPLE]: Colors.habitPurple,
-  [HabitColor.ORANGE]: Colors.habitOrange,
-  [HabitColor.PINK]: Colors.habitPink,
-  [HabitColor.TEAL]: Colors.habitTeal,
+  [HabitColor.RED]: colors.habitRed,
+  [HabitColor.BLUE]: colors.habitBlue,
+  [HabitColor.GREEN]: colors.habitGreen,
+  [HabitColor.YELLOW]: colors.habitYellow,
+  [HabitColor.PURPLE]: colors.habitPurple,
+  [HabitColor.ORANGE]: colors.habitOrange,
+  [HabitColor.PINK]: colors.habitPink,
+  [HabitColor.TEAL]: colors.habitTeal,
 };
 
 const ICON_MAP = {
@@ -186,7 +186,7 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
             <Ionicons
               name={ICON_MAP[habit.icon] as any}
               size={20}
-              color={Colors.textInverse}
+              color={colors.textInverse}
             />
           </View>
           <View style={styles.nameContainer}>

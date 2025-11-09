@@ -357,14 +357,14 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           title={t('home.habitStats.bestDay')}
           value={monthlyStats.bestDayCount.toString()}
           subtitle={monthlyStats.bestDay ? formatDateForDisplay(monthlyStats.bestDay, 'short') : '-'}
-          color={Colors.secondary}
+          color={colors.secondary}
         />
         
         <StatCard
           title={t('home.habitStats.weeklyAverage')}
           value={monthlyStats.avgDaily.toString()}
           subtitle="per active day"
-          color={Colors.accent}
+          color={colors.accent}
         />
       </View>
 
@@ -389,7 +389,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
                             height: barHeight,
                             backgroundColor: day.completionRate >= 80 ? colors.success : 
                                            day.completionRate >= 60 ? colors.warning : 
-                                           day.completionRate >= 40 ? Colors.secondary : colors.error
+                                           day.completionRate >= 40 ? colors.secondary : colors.error
                           }
                         ]} 
                       />

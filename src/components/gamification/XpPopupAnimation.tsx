@@ -117,9 +117,9 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
         };
       default:
         return {
-          color: Colors.primary,
+          color: colors.primary,
           icon: '✨',
-          shadowColor: Colors.primary,
+          shadowColor: colors.primary,
         };
     }
   };

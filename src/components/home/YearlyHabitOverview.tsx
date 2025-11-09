@@ -356,14 +356,14 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
           title="Best Day"
           value={yearlyStats.bestDayCount.toString()}
           subtitle={yearlyStats.bestDay ? formatDateForDisplay(yearlyStats.bestDay, 'short') : '-'}
-          color={Colors.secondary}
+          color={colors.secondary}
         />
         
         <StatCard
           title="Daily Average"
           value={yearlyStats.avgDaily.toString()}
           subtitle="per active day"
-          color={Colors.accent}
+          color={colors.accent}
         />
       </View>
 

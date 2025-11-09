@@ -80,7 +80,7 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
         case GoalCategory.PERSONAL: return '#96CEB4';
         case GoalCategory.FINANCIAL: return '#FFEAA7';
         case GoalCategory.OTHER: return '#BDC3C7';
-        default: return Colors.primary;
+        default: return colors.primary;
       }
     };
 
@@ -254,25 +254,25 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
             <StatCard
               title={t('goals.dashboard.activeGoals')}
               value={activeGoals.length}
-              color={Colors.primary}
+              color={colors.primary}
               icon="flag"
             />
             <StatCard
               title={t('goals.dashboard.completedGoals')}
               value={completedGoals.length}
-              color={Colors.success}
+              color={colors.success}
               icon="checkmark-circle"
             />
             <StatCard
               title={t('goals.dashboard.completionRate')}
               value={`${Math.round(completionRate)}%`}
-              color={Colors.warning}
+              color={colors.warning}
               icon="pie-chart"
             />
             <StatCard
               title={t('goals.dashboard.onTrack')}
               value={onTrackGoals.length}
-              color={Colors.success}
+              color={colors.success}
               icon="trending-up"
             />
           </View>
@@ -285,25 +285,25 @@ export function GoalPerformanceDashboard({ onViewGoalStats }: GoalPerformanceDas
             <StatCard
               title={t('goals.dashboard.overdue')}
               value={overdueGoals.length}
-              color={Colors.error}
+              color={colors.error}
               icon="warning"
             />
             <StatCard
               title={t('goals.dashboard.dueThisWeek')}
               value={dueThisWeek.length}
-              color={Colors.warning}
+              color={colors.warning}
               icon="calendar"
             />
             <StatCard
               title={t('goals.dashboard.dueThisMonth')}
               value={dueThisMonth.length}
-              color={Colors.info}
+              color={colors.info}
               icon="calendar-outline"
             />
             <StatCard
               title={t('goals.dashboard.behindSchedule')}
               value={behindScheduleGoals.length}
-              color={Colors.error}
+              color={colors.error}
               icon="trending-down"
             />
           </View>

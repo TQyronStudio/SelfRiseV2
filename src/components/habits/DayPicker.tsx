@@ -48,7 +48,7 @@ export function DayPicker({ selectedDays, onDayToggle }: DayPickerProps) {
       color: colors.textSecondary,
     },
     selectedDayLabel: {
-      color: Colors.textInverse,
+      color: colors.textInverse,
     },
   });
 

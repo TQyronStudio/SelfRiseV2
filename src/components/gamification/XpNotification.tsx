@@ -181,7 +181,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         return {
           icon: '✨',
           name: 'activities',
-          color: Colors.primary,
+          color: colors.primary,
         };
     }
   };

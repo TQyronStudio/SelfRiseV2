@@ -163,8 +163,8 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
                     styles.bar,
                     { 
                       height: data.height,
-                      backgroundColor: data.trend === 'up' ? Colors.success : 
-                                     data.trend === 'down' ? Colors.error : Colors.primary
+                      backgroundColor: data.trend === 'up' ? colors.success : 
+                                     data.trend === 'down' ? colors.error : colors.primary
                     }
                   ]} 
                 />
@@ -302,7 +302,7 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
     statValue: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: Colors.primary,
+      color: colors.primary,
     },
     statLabel: {
       fontSize: 12,
@@ -401,8 +401,8 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
           {insights.map((insight, index) => (
             <View key={index} style={[styles.insightCard, {
               borderLeftColor:
-                insight.type === 'positive' ? Colors.success :
-                insight.type === 'negative' ? Colors.error : Colors.info
+                insight.type === 'positive' ? colors.success :
+                insight.type === 'negative' ? colors.error : colors.info
             }]}>
               <Text style={styles.insightText}>{insight.text}</Text>
             </View>
@@ -421,14 +421,14 @@ export function ProgressTrendAnalysis({ goal, progressHistory }: ProgressTrendAn
             </View>
             <View style={styles.progressItemRight}>
               <Text style={[styles.progressPercentage, {
-                color: data.trend === 'up' ? Colors.success :
-                       data.trend === 'down' ? Colors.error : colors.textSecondary
+                color: data.trend === 'up' ? colors.success :
+                       data.trend === 'down' ? colors.error : colors.textSecondary
               }]}>
                 {data.percentage.toFixed(1)}%
               </Text>
               <View style={[styles.trendIndicator, {
-                backgroundColor: data.trend === 'up' ? Colors.success :
-                                 data.trend === 'down' ? Colors.error : colors.textSecondary
+                backgroundColor: data.trend === 'up' ? colors.success :
+                                 data.trend === 'down' ? colors.error : colors.textSecondary
               }]} />
             </View>
           </View>

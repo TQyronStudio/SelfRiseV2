@@ -35,7 +35,7 @@ const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): str
     case AchievementRarity.RARE: return colors.rare;
     case AchievementRarity.EPIC: return colors.epic;
     case AchievementRarity.LEGENDARY: return colors.legendary;
-    default: return isHighContrast ? '#000000' : Colors.primary;
+    default: return isHighContrast ? '#000000' : colors.primary;
   }
 };
 

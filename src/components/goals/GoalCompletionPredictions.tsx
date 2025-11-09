@@ -501,8 +501,8 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
             <View style={styles.predictionHeader}>
               <Text style={styles.predictionMethod}>{prediction.method}</Text>
               <View style={[styles.accuracyBadge, {
-                backgroundColor: prediction.accuracy === 'high' ? Colors.success :
-                                prediction.accuracy === 'medium' ? Colors.warning : Colors.error
+                backgroundColor: prediction.accuracy === 'high' ? colors.success :
+                                prediction.accuracy === 'medium' ? colors.warning : colors.error
               }]}>
                 <Text style={styles.accuracyText}>{t(`goals.predictions.${prediction.accuracy}`)}</Text>
               </View>
@@ -510,19 +510,19 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
 
             <View style={styles.predictionDetails}>
               <View style={styles.predictionItem}>
-                <Ionicons name="calendar" size={16} color={Colors.primary} />
+                <Ionicons name="calendar" size={16} color={colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.estimatedDate')}</Text>
                 <Text style={styles.predictionValue}>{prediction.estimatedDate}</Text>
               </View>
 
               <View style={styles.predictionItem}>
-                <Ionicons name="time" size={16} color={Colors.primary} />
+                <Ionicons name="time" size={16} color={colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.daysRemaining')}</Text>
                 <Text style={styles.predictionValue}>{prediction.daysRemaining}</Text>
               </View>
 
               <View style={styles.predictionItem}>
-                <Ionicons name="analytics" size={16} color={Colors.primary} />
+                <Ionicons name="analytics" size={16} color={colors.primary} />
                 <Text style={styles.predictionLabel}>{t('goals.predictions.confidence')}</Text>
                 <Text style={styles.predictionValue}>{prediction.confidence.toFixed(0)}%</Text>
               </View>
@@ -535,8 +535,8 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
                     styles.confidenceBarFill,
                     {
                       width: `${prediction.confidence}%`,
-                      backgroundColor: prediction.accuracy === 'high' ? Colors.success :
-                                      prediction.accuracy === 'medium' ? Colors.warning : Colors.error
+                      backgroundColor: prediction.accuracy === 'high' ? colors.success :
+                                      prediction.accuracy === 'medium' ? colors.warning : colors.error
                     }
                   ]}
                 />
@@ -553,17 +553,17 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
         </View>
         {insights.map((insight, index) => (
           <View key={index} style={[styles.insightCard, {
-            borderLeftColor: insight.type === 'positive' ? Colors.success :
-                            insight.type === 'negative' ? Colors.error :
-                            insight.type === 'warning' ? Colors.warning : Colors.info
+            borderLeftColor: insight.type === 'positive' ? colors.success :
+                            insight.type === 'negative' ? colors.error :
+                            insight.type === 'warning' ? colors.warning : colors.info
           }]}>
             <View style={styles.insightHeader}>
               <Ionicons
                 name={insight.icon as any}
                 size={20}
-                color={insight.type === 'positive' ? Colors.success :
-                       insight.type === 'negative' ? Colors.error :
-                       insight.type === 'warning' ? Colors.warning : Colors.info}
+                color={insight.type === 'positive' ? colors.success :
+                       insight.type === 'negative' ? colors.error :
+                       insight.type === 'warning' ? colors.warning : colors.info}
               />
               <Text style={styles.insightTitle}>{insight.title}</Text>
             </View>

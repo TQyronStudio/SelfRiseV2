@@ -68,7 +68,7 @@ export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
           <Ionicons
             name={iconName as any}
             size={24}
-            color={selectedIcon === icon ? Colors.textInverse : colors.textSecondary}
+            color={selectedIcon === icon ? colors.textInverse : colors.textSecondary}
           />
         </TouchableOpacity>
       ))}

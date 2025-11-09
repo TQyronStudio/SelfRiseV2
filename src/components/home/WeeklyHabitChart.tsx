@@ -167,8 +167,8 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
   const getBarColor = (completionRate: number) => {
     if (completionRate >= 80) return colors.success;
     if (completionRate >= 60) return colors.warning;
-    if (completionRate >= 40) return Colors.secondary;
-    return Colors.textSecondary;
+    if (completionRate >= 40) return colors.secondary;
+    return colors.textSecondary;
   };
 
   const styles = StyleSheet.create({
@@ -326,7 +326,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
                               styles.barSection,
                               {
                                 height: getSectionHeight(day.actualMissedDays, dayTotal, dayColumnHeight),
-                                backgroundColor: isToday(day.date) ? Colors.textSecondary : colors.error,
+                                backgroundColor: isToday(day.date) ? colors.textSecondary : colors.error,
                                 bottom: 0,
                                 // Always apply bottom border radius for missed section (it's always at bottom)
                                 borderBottomLeftRadius: Layout.borderRadius.sm,
