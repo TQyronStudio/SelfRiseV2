@@ -153,26 +153,33 @@ export default function JournalScreen() {
   const handleInputSuccess = useCallback(async () => {
     setShowInput(false);
     const newCount = currentCount + 1;
-    
+
     // Show celebration on 3rd gratitude
     if (newCount === 3) {
       setCelebrationType('daily_complete');
-      
+
       // COORDINATION: Notify activity modal started (Tier 1 priority)
       notifyActivityModalStarted('journal');
       setShowCelebration(true);
-      
+
       // Check for streak milestones after completing daily requirement
       setTimeout(async () => {
-        // NOTE: No need to call refreshStats() here - addGratitude() already updates context
-        // Just use the current streak value from state
+        // 🎯 FIX: Get NEW streak after completion, then check if it's exactly a milestone
+        // When user completes 3rd entry, streak updates (e.g., 6 → 7)
+        // We celebrate when NEW streak is exactly 7, 14, 21, etc.
+        // NOT when it becomes 8 (which is 7+1, past the milestone)
+        await actions.refreshStats();
         const currentStreak = state.streakInfo?.currentStreak || 0;
-        
-        // Show celebration for special milestones (21, 100, 365, 1000) or generic for others
-        if ([7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000].includes(currentStreak)) {
+
+        // Milestone list: these are the EXACT values to celebrate
+        const milestones = [7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000];
+
+        // Only celebrate if current streak is EXACTLY a milestone value
+        // Example: 6→7 (celebrate!), 7→8 (no celebration, 8 is not a milestone)
+        if (milestones.includes(currentStreak)) {
           setMilestoneStreak(currentStreak);
           setCelebrationType('streak_milestone');
-          
+
           // COORDINATION: Notify activity modal started (Tier 1 priority)
           notifyActivityModalStarted('journal');
           setShowCelebration(true);

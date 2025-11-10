@@ -165,7 +165,7 @@ export default function CelebrationModal({
         };
       case 'streak_milestone':
         // Použít speciální texty pro klíčové milníky nebo generický text
-        const hasSpecialMilestone = [21, 100, 365, 1000].includes(streakDays || 0);
+        const hasSpecialMilestone = [7, 14, 21, 100, 365, 1000].includes(streakDays || 0);
         const milestoneKey = hasSpecialMilestone ? `streakMilestone${streakDays}` : 'streakMilestone_generic';
         
         return {
