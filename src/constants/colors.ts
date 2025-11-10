@@ -109,9 +109,9 @@ export const lightColors = {
 // Dark theme colors (AMOLED-friendly pure black base)
 export const darkColors = {
   // Primary colors - brighter for better contrast on dark background
-  primary: '#0A84FF',
-  primaryDark: '#0066CC',
-  primaryLight: '#409CFF',
+  primary: '#1E9FFF', // Brighter, more vibrant blue for better visibility
+  primaryDark: '#0A84FF',
+  primaryLight: '#5CB8FF',
 
   // Secondary colors - adjusted for dark mode
   secondary: '#FFB340',

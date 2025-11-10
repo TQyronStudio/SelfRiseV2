@@ -66,8 +66,8 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
     orderText: {
       fontSize: Fonts.sizes.lg,
       fontWeight: 'bold',
-      color: '#64B5FF',
-      backgroundColor: colors.primaryDark,
+      color: '#70D6FF', // Super bright glowing blue for maximum visibility
+      backgroundColor: '#003D5C', // Very dark blue background for strong contrast
       width: 32,
       height: 32,
       textAlign: 'center',
