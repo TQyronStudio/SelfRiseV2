@@ -654,8 +654,333 @@ const en: TranslationKeys = {
       filterButton: 'Filter achievements',
       viewDetails: 'View details for {{name}} achievement',
     },
+
+    // Individual achievement translations (78 achievements - 156 keys)
+    // HABITS ACHIEVEMENTS (8 achievements)
+    first_habit: {
+      name: 'First Steps',
+      description: 'Create your very first habit and begin your journey to self-improvement'
+    },
+    habit_builder: {
+      name: 'Habit Builder',
+      description: 'Create 5 different habits to diversify your personal development journey'
+    },
+    century_club: {
+      name: 'Century Club',
+      description: 'Complete 100 habit tasks - join the elite ranks of consistent achievers'
+    },
+    consistency_king: {
+      name: 'Consistency King',
+      description: 'Complete 1000 habit tasks - you are the master of consistency'
+    },
+    streak_champion: {
+      name: 'Habit Streak Champion',
+      description: 'Achieve a 21-day streak with any single habit - building lasting change'
+    },
+    century_streak: {
+      name: 'Century Streak',
+      description: 'Maintain a 75-day streak with any habit - approaching legendary status'
+    },
+    multi_tasker: {
+      name: 'Multi-Tasker',
+      description: 'Complete 5 different habits in a single day - showing diverse commitment'
+    },
+    habit_legend: {
+      name: 'Habit Legend',
+      description: 'Reach Level 50 "Specialist V" with XP earned primarily from habit activities - true mastery'
+    },
+
+    // JOURNAL ACHIEVEMENTS (33 achievements)
+    first_journal: {
+      name: 'First Reflection',
+      description: 'Write your first gratitude journal entry and start practicing mindfulness'
+    },
+    deep_thinker: {
+      name: 'Deep Thinker',
+      description: 'Write a journal entry with at least 200 characters - show your thoughtfulness'
+    },
+    journal_enthusiast: {
+      name: 'Journal Enthusiast',
+      description: 'Write 100 journal entries - you are building a beautiful habit of reflection'
+    },
+    gratitude_guru: {
+      name: 'Gratitude Guru',
+      description: 'Achieve a 30-day journal writing streak - you are a master of daily reflection'
+    },
+    eternal_gratitude: {
+      name: 'Eternal Gratitude',
+      description: 'Maintain a 100-day journal streak - your gratitude practice is legendary'
+    },
+    bonus_seeker: {
+      name: 'Bonus Seeker',
+      description: 'Write 50 bonus journal entries - you go above and beyond in your gratitude practice'
+    },
+    journal_streaker: {
+      name: 'Gratitude Guardian',
+      description: 'Write in your journal for 21 consecutive days'
+    },
+    triple_crown: {
+      name: 'Triple Crown',
+      description: 'Maintain 7+ day streaks in habits, journal, and goals simultaneously'
+    },
+    lightning_start: {
+      name: 'Lightning Start',
+      description: 'Create and complete a habit on the same day 3 times - instant action taker'
+    },
+    first_star: {
+      name: 'First Star',
+      description: 'Get your first star (first bonus entry of the day) - discovering expanded gratitude'
+    },
+    five_stars: {
+      name: 'Five Stars',
+      description: 'Get a star 5 times total - regular expansion of gratitude practice'
+    },
+    flame_achiever: {
+      name: 'Flame Achiever',
+      description: 'Get your first flame (5 bonuses in one day) - a day of intensive gratitude and reflection'
+    },
+    bonus_week: {
+      name: 'Bonus Week',
+      description: 'At least 1 bonus every day for 7 days in a row - a week of consistent expanded practice'
+    },
+    crown_royalty: {
+      name: 'Crown Royalty',
+      description: 'Get your first crown (10 bonuses in one day) - pinnacle day of reflection with royal status'
+    },
+    flame_collector: {
+      name: 'Flame Collector',
+      description: 'Get flames 5 times total - master of intensive gratitude days'
+    },
+    golden_bonus_streak: {
+      name: 'Golden Bonus Streak',
+      description: 'At least 3 bonuses every day for 7 days in a row - a week of deep and expanded reflection'
+    },
+    triple_crown_master: {
+      name: 'Triple Crown Master',
+      description: 'Get crowns 3 times total - legendary master of royal reflection days'
+    },
+    bonus_century: {
+      name: 'Bonus Century',
+      description: 'Write 200 bonus entries total - ultimate master of expanded gratitude practice'
+    },
+    star_beginner: {
+      name: 'Star Beginner',
+      description: 'Get stars 10 times total - beginning collector of bonus experiences'
+    },
+    star_collector: {
+      name: 'Star Collector',
+      description: 'Get stars 25 times total - regular expander of gratitude practice'
+    },
+    star_master: {
+      name: 'Star Master',
+      description: 'Get stars 50 times total - master of expanded daily reflection'
+    },
+    star_champion: {
+      name: 'Star Champion',
+      description: 'Get stars 100 times total - champion of long-term expanded practice'
+    },
+    star_legend: {
+      name: 'Star Legend',
+      description: 'Get stars 200 times total - legendary master of bonus experiences'
+    },
+    flame_starter: {
+      name: 'Flame Starter',
+      description: 'Get flames 5 times total - beginning master of intensive days'
+    },
+    flame_accumulator: {
+      name: 'Flame Accumulator',
+      description: 'Get flames 10 times total - collector of exceptional gratitude days'
+    },
+    flame_master: {
+      name: 'Flame Master',
+      description: 'Get flames 25 times total - master of systematic intensive days'
+    },
+    flame_champion: {
+      name: 'Flame Champion',
+      description: 'Get flames 50 times total - champion of deep daily reflection'
+    },
+    flame_legend: {
+      name: 'Flame Legend',
+      description: 'Get flames 100 times total - legendary master of intensive gratitude practice'
+    },
+    crown_achiever: {
+      name: 'Crown Achiever',
+      description: 'Get crowns 3 times total - achieve royal reflection days'
+    },
+    crown_collector: {
+      name: 'Crown Collector',
+      description: 'Get crowns 5 times total - collector of royal gratitude experiences'
+    },
+    crown_master: {
+      name: 'Crown Master',
+      description: 'Get crowns 10 times total - master of royal-level reflection'
+    },
+    crown_champion: {
+      name: 'Crown Champion',
+      description: 'Get crowns 25 times total - champion of royal gratitude days'
+    },
+    crown_emperor: {
+      name: 'Crown Emperor',
+      description: 'Get crowns 50 times total - imperial status in deep reflection practice'
+    },
+
+    // GOALS ACHIEVEMENTS (8 achievements)
+    first_goal: {
+      name: 'First Vision',
+      description: 'Set your first goal and define where you want your journey to lead'
+    },
+    goal_getter: {
+      name: 'Goal Getter',
+      description: 'Complete your first goal - you turn dreams into reality'
+    },
+    goal_champion: {
+      name: 'Goal Champion',
+      description: 'Complete 5 goals - you are becoming a master of achievement'
+    },
+    ambitious: {
+      name: 'Ambitious',
+      description: 'Set a goal with target value of 1000 or more - you dream big'
+    },
+    progress_tracker: {
+      name: 'Progress Tracker',
+      description: 'Make progress on goals for 7 consecutive days - consistency leads to success'
+    },
+    mega_dreamer: {
+      name: 'Mega Dreamer',
+      description: 'Set a goal with target value of 1,000,000 or more - you dream in millions'
+    },
+    million_achiever: {
+      name: 'Million Achiever',
+      description: 'Complete a goal with target value of 1,000,000 or more - you turn massive dreams into reality'
+    },
+    goal_achiever: {
+      name: 'Dream Fulfiller',
+      description: 'Complete 3 goals - you turn dreams into reality'
+    },
+
+    // CONSISTENCY ACHIEVEMENTS (6 achievements)
+    weekly_warrior: {
+      name: 'Weekly Warrior',
+      description: 'Maintain a 7-day streak in any habit - prove your dedication'
+    },
+    monthly_master: {
+      name: 'Monthly Master',
+      description: 'Achieve a 30-day streak - you are truly building lasting habits'
+    },
+    hundred_days: {
+      name: 'Centurion',
+      description: 'Reach 100 days of consistency - join the elite ranks of habit masters'
+    },
+    daily_visitor: {
+      name: 'Daily Visitor',
+      description: 'Use the app for 7 consecutive days - building a healthy habit'
+    },
+    dedicated_user: {
+      name: 'Dedicated User',
+      description: 'Use the app for 30 consecutive days - your commitment is inspiring'
+    },
+    perfect_month: {
+      name: 'Perfect Month',
+      description: 'Complete activities in all 3 areas (habits, journal, goals) for 28+ days in any month'
+    },
+
+    // MASTERY ACHIEVEMENTS (9 achievements)
+    level_up: {
+      name: 'Level Up',
+      description: 'Reach level 10 "Beginner V" - you are growing stronger'
+    },
+    selfrise_expert: {
+      name: 'SelfRise Expert',
+      description: 'Reach level 25 "Adept V" - you have mastered the fundamentals'
+    },
+    selfrise_master: {
+      name: 'SelfRise Master',
+      description: 'Reach level 50 "Specialist V" - you are a true master of self-improvement'
+    },
+    recommendation_master: {
+      name: 'Recommendation Master',
+      description: 'Follow 20 personalized recommendations from the For You section'
+    },
+    balance_master: {
+      name: 'Balance Master',
+      description: 'Use all 3 features (habits, journal, goals) in a single day 10 times'
+    },
+    trophy_collector_basic: {
+      name: 'Trophy Collector',
+      description: 'Unlock 10 achievements - you are building an impressive collection'
+    },
+    trophy_collector_master: {
+      name: 'Trophy Master',
+      description: 'Unlock 25 achievements - your trophy room is legendary'
+    },
+    ultimate_selfrise_legend: {
+      name: 'Ultimate SelfRise Legend',
+      description: 'Reach level 100 "Mythic V" - you have achieved the ultimate mastery of self-improvement'
+    },
+    loyalty_ultimate_veteran: {
+      name: 'Ultimate Veteran',
+      description: '500 active days total - your dedication is unmatched'
+    },
+
+    // SPECIAL ACHIEVEMENTS (14 achievements)
+    grateful_heart: {
+      name: 'Grateful Heart',
+      description: 'Maintain a 7-day journal writing streak - consistency builds gratitude'
+    },
+    achievement_unlocked: {
+      name: 'Achievement Unlocked',
+      description: 'Complete 10 goals - you are a legendary goal achiever'
+    },
+    seven_wonder: {
+      name: 'Seven Wonder',
+      description: 'Have 7 or more active habits at the same time - master of organization'
+    },
+    persistence_pays: {
+      name: 'Persistence Pays',
+      description: 'Resume activity after a 3+ day break and complete 7 activities - comeback champion'
+    },
+    legendary_master: {
+      name: 'SelfRise Legend',
+      description: 'Achieve mastery in all areas: 10 goals completed, 500 habits done, 365 journal entries'
+    },
+    loyalty_first_week: {
+      name: 'First Week',
+      description: '7 active days total - beginning of your loyalty journey'
+    },
+    loyalty_two_weeks_strong: {
+      name: 'Two Weeks Strong',
+      description: '14 active days total - your dedication grows'
+    },
+    loyalty_three_weeks_committed: {
+      name: 'Three Weeks Committed',
+      description: '21 active days total - committed to your growth'
+    },
+    loyalty_month_explorer: {
+      name: 'Month Explorer',
+      description: '30 active days total - exploring your potential'
+    },
+    loyalty_two_month_veteran: {
+      name: 'Two Month Veteran',
+      description: '60 active days total - experienced in personal growth'
+    },
+    loyalty_century_user: {
+      name: 'Century User',
+      description: '100 active days total - among the elite users'
+    },
+    loyalty_half_year_hero: {
+      name: 'Half Year Hero',
+      description: '183 active days total - your commitment is legendary'
+    },
+    loyalty_year_legend: {
+      name: 'Year Legend',
+      description: '365 active days total - you have reached legendary status'
+    },
+    loyalty_master: {
+      name: 'Loyalty Master',
+      description: '1000 active days total - you have achieved ultimate loyalty'
+    },
   },
-  
+
   // Settings screen
   settings: {
     title: 'Settings',

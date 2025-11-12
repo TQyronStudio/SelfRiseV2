@@ -299,9 +299,9 @@ export default function AchievementsScreen() {
     // Search filter
     if (filters.searchQuery.trim()) {
       const query = filters.searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(achievement => 
-        achievement.name.toLowerCase().includes(query) ||
-        achievement.description.toLowerCase().includes(query)
+      filtered = filtered.filter(achievement =>
+        t(achievement.nameKey).toLowerCase().includes(query) ||
+        t(achievement.descriptionKey).toLowerCase().includes(query)
       );
     }
     
@@ -309,7 +309,7 @@ export default function AchievementsScreen() {
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'alphabetical':
-          return a.name.localeCompare(b.name);
+          return t(a.nameKey).localeCompare(t(b.nameKey));
         
         case 'rarity': {
           const rarityOrder = {

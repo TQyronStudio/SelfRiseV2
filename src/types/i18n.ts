@@ -166,6 +166,8 @@ export interface TranslationKeys {
     // Pro hlavní 'SelfRise Streak'
     streakMilestone_generic_title: string;
     streakMilestone_generic_text: string;
+    streakMilestone7_title: string;
+    streakMilestone7_text: string;
     streakMilestone14_title: string;
     streakMilestone14_text: string;
     streakMilestone21_title: string;
@@ -583,19 +585,37 @@ export interface TranslationKeys {
       filterButton: string;
       viewDetails: string;
     };
-    
+
     // Celebration Modal
     celebration: {
       announcement: string;
       continue_button: string;
       continue_hint: string;
     };
+
+    // Individual achievement translations (78 achievements - 156 keys)
+    // Each achievement has nameKey and descriptionKey
+    [achievementId: string]: {
+      name: string;
+      description: string;
+    } | any; // Allow other properties for backward compatibility
   };
   
   // Settings screen
   settings: {
     title: string;
+    appearance: string;
+    theme: string;
+    themeLight: string;
+    themeDark: string;
+    themeSystem: string;
+    themeDescription: string;
+    themeSystemDescription: string;
     language: string;
+    languageDescription: string;
+    languageEnglish: string;
+    languageGerman: string;
+    languageSpanish: string;
     notifications: string;
     morningNotification: string;
     eveningNotification: string;

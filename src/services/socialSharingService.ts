@@ -266,7 +266,7 @@ export class SocialSharingService {
 
       const shareOptions = {
         message: fullMessage,
-        title: `🏆 Achievement Unlocked: ${shareData.achievement.name}!`
+        title: `🏆 Achievement Unlocked: ${shareData.achievement.nameKey}!`
       };
 
       const result = await Share.share(shareOptions);
@@ -411,7 +411,7 @@ export class SocialSharingService {
 
     const emoji = rarityEmojis[achievement.rarity] || '🏆';
     
-    return `Just unlocked "${achievement.name}" ${emoji} - ${achievement.description} Currently at Level ${currentLevel} in my personal growth journey! 🚀`;
+    return `Just unlocked "${achievement.nameKey}" ${emoji} - ${achievement.descriptionKey} Currently at Level ${currentLevel} in my personal growth journey! 🚀`;
   }
 
   /**

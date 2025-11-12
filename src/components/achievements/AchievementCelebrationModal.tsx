@@ -226,10 +226,10 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
     if (visible) {
       // Accessibility announcement
       const announcement = t('achievements.celebration.announcement', { 
-        name: achievement.name,
+        name: t(achievement.nameKey),
         rarity: achievement.rarity.toLowerCase(),
         xp: xpAwarded
-      }) || `Achievement unlocked: ${achievement.name}! ${achievement.rarity} rarity achievement earned ${xpAwarded} XP.`;
+      }) || `Achievement unlocked: ${t(achievement.nameKey)}! ${achievement.rarity} rarity achievement earned ${xpAwarded} XP.`;
       
       AccessibilityInfo.announceForAccessibility(announcement);
 
@@ -314,12 +314,12 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
 
           {/* Achievement name */}
           <Text style={styles.achievementName}>
-            {achievement.name}
+            {t(achievement.nameKey)}
           </Text>
 
           {/* Achievement description */}
           <Text style={styles.description}>
-            {achievement.description}
+            {t(achievement.descriptionKey)}
           </Text>
 
           {/* Rarity badge */}

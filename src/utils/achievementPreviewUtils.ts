@@ -1395,7 +1395,7 @@ const getDefaultProgressHint = (achievement: Achievement): ProgressHint => {
     progressText: "Progress towards this achievement",
     progressPercentage: 0,
     isCompleted: false,
-    requirementText: achievement.description,
+    requirementText: achievement.descriptionKey, // Translation key - will be translated at component level
     actionHint: "Use the app features to unlock this achievement!"
   };
 };

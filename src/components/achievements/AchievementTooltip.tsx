@@ -310,7 +310,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             <View style={styles.header}>
               <Text style={styles.achievementIcon}>{achievement.icon}</Text>
               <Text style={[styles.achievementName, { color: rarityColor }]}>
-                {achievement.name}
+                {t(achievement.nameKey)}
               </Text>
               <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
                 <Text style={styles.rarityText}>
@@ -321,7 +321,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             
             {/* Description */}
             <Text style={styles.description}>
-              {achievement.description}
+              {t(achievement.descriptionKey)}
             </Text>
             
             {/* Unlocked Achievement Info */}

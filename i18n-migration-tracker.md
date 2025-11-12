@@ -601,6 +601,223 @@ Minimal cleanup needed before multi-language.
 
 ---
 
+## PHASE 3: ACHIEVEMENT REFACTORING 🏆
+
+### ✅ **STATUS: PLANNING COMPLETE** (Ready to implement)
+
+### Overview:
+Achievement system currently uses hardcoded `name` and `description` properties. We need to refactor to use translation keys (`nameKey` and `descriptionKey`) to support multi-language.
+
+**Total Work:** 78 achievements × 2 keys = 156 translation keys + type changes + component updates
+
+---
+
+### 3.1: IMPACT ANALYSIS
+
+**Files that will be modified:**
+
+1. **Type Definition** (1 file)
+   - `src/types/gamification.ts:157-170` - Achievement interface
+   - Change: `name: string` → `nameKey: string`, `description: string` → `descriptionKey: string`
+
+2. **Achievement Catalog** (1 file)
+   - `src/constants/achievementCatalog.ts` (1,808 lines, 78 achievements)
+   - Change: Replace all `name: '...'` with `nameKey: 'achievements.xxx.name'`
+   - Change: Replace all `description: '...'` with `descriptionKey: 'achievements.xxx.description'`
+
+3. **UI Components** (6 files)
+   - `src/components/achievements/AchievementCard.tsx:364` - Display name
+   - `src/components/achievements/AchievementCard.tsx:168` - Accessibility label
+   - `src/components/achievements/AchievementHistory.tsx:210,228` - History list
+   - `src/components/achievements/AchievementTooltip.tsx:313,324` - Tooltip display
+   - `src/components/achievements/AchievementCelebrationModal.tsx:317,322` - Celebration modal
+   - `src/components/social/AchievementShareModal.tsx:438,451` - Share modal
+   - Change: `achievement.name` → `t(achievement.nameKey)`
+   - Change: `achievement.description` → `t(achievement.descriptionKey)`
+
+4. **Service Files** (3 files)
+   - `src/services/achievementService.ts:518,724,1028,1148` - Logging only
+   - `src/services/achievementStorage.ts:292,323` - Metadata storage
+   - `src/services/socialSharingService.ts:269,414` - Share text generation
+   - Change: Update to use `t(achievement.nameKey)` when displaying to user
+
+5. **Screen Files** (1 file)
+   - `app/achievements.tsx:303-304` - Search/filter logic
+   - Change: Search through translated text using `t(achievement.nameKey)` and `t(achievement.descriptionKey)`
+
+6. **Utility Files** (1 file)
+   - `src/utils/achievementPreviewUtils.ts:1398` - Preview generation
+   - Change: Use `t(achievement.descriptionKey)` for requirement text
+
+7. **Context Files** (1 file)
+   - `src/contexts/AchievementContext.tsx:342,395` - Logging only
+   - Change: Keep for debugging (can use nameKey for logs)
+
+**Total files affected: 14 files**
+
+---
+
+### 3.2: TRANSLATION KEY STRUCTURE
+
+**Naming Convention:**
+```typescript
+achievements.{achievement-id-kebab-case}.name
+achievements.{achievement-id-kebab-case}.description
+```
+
+**Example:**
+```typescript
+// Before:
+{
+  id: 'first-habit',
+  name: 'First Steps',
+  description: 'Create your very first habit and begin your journey to self-improvement'
+}
+
+// After:
+{
+  id: 'first-habit',
+  nameKey: 'achievements.first_habit.name',
+  descriptionKey: 'achievements.first_habit.description'
+}
+
+// In EN locale:
+achievements: {
+  first_habit: {
+    name: 'First Steps',
+    description: 'Create your very first habit and begin your journey to self-improvement'
+  }
+}
+```
+
+---
+
+### 3.3: IMPLEMENTATION CHECKLIST
+
+#### Step 1: Extract Achievement Texts (Manual/Script)
+- [ ] Create extraction script to parse achievementCatalog.ts
+- [ ] Generate EN translation keys from existing name/description values
+- [ ] Convert achievement IDs to snake_case for i18n keys (e.g., `first-habit` → `first_habit`)
+- [ ] Output to JSON format ready for en/index.ts
+
+#### Step 2: Update Type Definition
+- [ ] Update `src/types/gamification.ts` Achievement interface:
+  - [ ] Change `name: string` → `nameKey: string`
+  - [ ] Change `description: string` → `descriptionKey: string`
+  - [ ] Keep backward compatibility temporarily with optional `name?` and `description?`
+
+#### Step 3: Add Translation Keys to EN Locale
+- [ ] Add `achievements: {}` section to `src/locales/en/index.ts`
+- [ ] Add all 78 achievements with name/description (156 keys total)
+- [ ] Organize by category for maintainability:
+  - [ ] HABITS (8 achievements = 16 keys)
+  - [ ] JOURNAL (31 achievements = 62 keys)
+  - [ ] GOALS (8 achievements = 16 keys)
+  - [ ] CONSISTENCY (8 achievements = 16 keys)
+  - [ ] MASTERY (9 achievements = 18 keys)
+  - [ ] SPECIAL (14 achievements = 28 keys)
+
+#### Step 4: Update Achievement Catalog
+- [ ] Update `src/constants/achievementCatalog.ts`:
+  - [ ] Replace `name: '...'` with `nameKey: 'achievements.xxx.name'` (78 occurrences)
+  - [ ] Replace `description: '...'` with `descriptionKey: 'achievements.xxx.description'` (78 occurrences)
+  - [ ] Total replacements: 156
+
+#### Step 5: Update UI Components (6 files)
+- [ ] `src/components/achievements/AchievementCard.tsx`:
+  - [ ] Line 364: `{achievement.name}` → `{t(achievement.nameKey)}`
+  - [ ] Line 164-168: Accessibility label logic update
+- [ ] `src/components/achievements/AchievementHistory.tsx`:
+  - [ ] Line 210: `{achievement.name}` → `{t(achievement.nameKey)}`
+  - [ ] Line 228: `{achievement.description}` → `{t(achievement.descriptionKey)}`
+- [ ] `src/components/achievements/AchievementTooltip.tsx`:
+  - [ ] Line 313: `{achievement.name}` → `{t(achievement.nameKey)}`
+  - [ ] Line 324: `{achievement.description}` → `{t(achievement.descriptionKey)}`
+- [ ] `src/components/achievements/AchievementCelebrationModal.tsx`:
+  - [ ] Line 317: `{achievement.name}` → `{t(achievement.nameKey)}`
+  - [ ] Line 322: `{achievement.description}` → `{t(achievement.descriptionKey)}`
+  - [ ] Line 229-232: Accessibility label update
+- [ ] `src/components/social/AchievementShareModal.tsx`:
+  - [ ] Line 438: `{achievement.name}` → `{t(achievement.nameKey)}`
+  - [ ] Line 451: `{achievement.description}` → `{t(achievement.descriptionKey)}`
+
+#### Step 6: Update Service Files (3 files)
+- [ ] `src/services/achievementService.ts`:
+  - [ ] Line 518, 724, 1028, 1148: Keep using `achievement.nameKey` for logs (no translation needed)
+- [ ] `src/services/achievementStorage.ts`:
+  - [ ] Line 292: `achievementName: t(achievement.nameKey)` for metadata
+  - [ ] Line 323: Keep using `achievement.nameKey` for logs
+- [ ] `src/services/socialSharingService.ts`:
+  - [ ] Line 269, 414: Use `t(achievement.nameKey)` and `t(achievement.descriptionKey)` for share text
+
+#### Step 7: Update Screen Files (1 file)
+- [ ] `app/achievements.tsx`:
+  - [ ] Line 303-304: Update search/filter logic to search through translated text:
+    ```typescript
+    // Before:
+    achievement.name.toLowerCase().includes(query) ||
+    achievement.description.toLowerCase().includes(query)
+
+    // After:
+    t(achievement.nameKey).toLowerCase().includes(query) ||
+    t(achievement.descriptionKey).toLowerCase().includes(query)
+    ```
+
+#### Step 8: Update Utility Files (1 file)
+- [ ] `src/utils/achievementPreviewUtils.ts`:
+  - [ ] Line 1398: `requirementText: t(achievement.descriptionKey)`
+
+#### Step 9: Testing & Validation
+- [ ] Run TypeScript compiler to catch type errors
+- [ ] Test achievements display on home screen
+- [ ] Test achievement card tooltips
+- [ ] Test achievement unlock celebration modal
+- [ ] Test achievement history view
+- [ ] Test achievement sharing functionality
+- [ ] Test achievement search/filter
+- [ ] Verify all 78 achievements render correctly
+- [ ] Check console for missing translation warnings
+
+#### Step 10: Documentation & Cleanup
+- [ ] Update this tracker with completion status
+- [ ] Remove backward compatibility (`name?`, `description?`) from types
+- [ ] Mark Phase 3 as complete in main progress tracker
+- [ ] Commit changes with descriptive message
+
+---
+
+### 3.4: RISK MITIGATION
+
+**Potential Issues:**
+1. **Missing translations**: Fallback to EN if key not found
+2. **Search performance**: Pre-compute translated strings if needed
+3. **Type errors**: TypeScript will catch usage of old `name`/`description` properties
+
+**Rollback Strategy:**
+- Keep git commits small and incremental
+- Test each file after changes
+- If critical issue found, revert specific commit
+
+---
+
+### 3.5: ESTIMATED EFFORT
+
+**Breakdown:**
+- Step 1 (Extraction): 30 min
+- Step 2 (Types): 15 min
+- Step 3 (EN Locale): 45 min (manual copy-paste + formatting)
+- Step 4 (Catalog): 30 min (find-replace with verification)
+- Step 5 (UI Components): 45 min (6 files, careful updates)
+- Step 6 (Services): 30 min (3 files)
+- Step 7 (Screen): 15 min (1 file)
+- Step 8 (Utility): 10 min (1 file)
+- Step 9 (Testing): 45 min (comprehensive testing)
+- Step 10 (Docs): 15 min
+
+**Total: ~5 hours** (conservative estimate with buffer)
+
+---
+
 ### 2.6: HARDCODED TEXT FINDINGS
 
 #### Category: Navigation & Tabs

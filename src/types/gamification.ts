@@ -155,8 +155,8 @@ export interface LevelRequirement {
  * Individual achievement definition
  */
 export interface Achievement extends BaseEntity {
-  name: string;
-  description: string;
+  nameKey: string; // Translation key for achievement name (e.g., 'achievements.first_habit.name')
+  descriptionKey: string; // Translation key for achievement description (e.g., 'achievements.first_habit.description')
   icon: string; // Emoji or icon identifier
   category: AchievementCategory;
   rarity: AchievementRarity;
@@ -167,6 +167,12 @@ export interface Achievement extends BaseEntity {
   unlockedAt?: Date;
   progress?: number; // Current progress (0-100)
   maxProgress?: number; // Max value for progressive achievements
+
+  // Backward compatibility (deprecated - will be removed after migration)
+  /** @deprecated Use nameKey with t() function instead */
+  name?: string;
+  /** @deprecated Use descriptionKey with t() function instead */
+  description?: string;
 }
 
 /**

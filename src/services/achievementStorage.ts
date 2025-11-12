@@ -289,7 +289,7 @@ export class AchievementStorage {
         previousProgress: 0, // Will be filled by caller
         finalProgress: 100,
         context: {
-          achievementName: achievement.name,
+          achievementNameKey: achievement.nameKey,
           achievementRarity: achievement.rarity,
           achievementCategory: achievement.category,
           ...metadata
@@ -320,7 +320,7 @@ export class AchievementStorage {
         JSON.stringify(trimmedEvents)
       );
 
-      console.log(`📦 Stored unlock event for achievement: ${achievement.name}`);
+      console.log(`📦 Stored unlock event for achievement: ${achievement.nameKey}`);
       
     } catch (error) {
       console.error('AchievementStorage.storeUnlockEvent error:', error);

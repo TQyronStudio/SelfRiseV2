@@ -515,7 +515,7 @@ export class AchievementService {
             }
           );
           
-          console.log(`🏆 Achievement unlocked: ${achievement.name} (+${achievement.xpReward} XP)`);
+          console.log(`🏆 Achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
         } else if (evaluationResult.progressDelta > 0) {
           // Store progress update
           await AchievementStorage.storeProgressUpdate(
@@ -721,7 +721,7 @@ export class AchievementService {
             }
           );
           
-          console.log(`🏆 Background achievement unlocked: ${achievement.name} (+${achievement.xpReward} XP)`);
+          console.log(`🏆 Background achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
         } else if (evaluationResult.progressDelta > 0) {
           // Store progress update
           await AchievementStorage.storeProgressUpdate(
@@ -1025,7 +1025,7 @@ export class AchievementService {
             'daily_batch',
             { evaluationResult, triggerType: 'batch' }
           );
-          console.log(`🏆 Batch unlock: ${achievement.name} (+${achievement.xpReward} XP)`);
+          console.log(`🏆 Batch unlock: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
         }
       }
 
@@ -1145,7 +1145,7 @@ export class AchievementService {
           showCelebration: true
         });
         
-        console.log(`🎉 Achievement notification triggered: ${achievement.name}`);
+        console.log(`🎉 Achievement notification triggered: ${achievement.nameKey}`);
       }
       
       // If multiple achievements unlocked, also trigger summary notification

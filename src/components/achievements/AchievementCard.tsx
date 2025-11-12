@@ -161,11 +161,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
       : 'locked';
       
   const accessibilityLabel = t('achievements.card.accessibility_label', {
-    name: achievement.name,
+    name: t(achievement.nameKey),
     rarity: t(`achievements.rarity.${achievement.rarity.toLowerCase()}`),
     status: status,
-    description: achievement.description
-  }) || `${achievement.name}, ${achievement.rarity.toLowerCase()} rarity achievement, ${status}. ${achievement.description}`;
+    description: t(achievement.descriptionKey)
+  }) || `${t(achievement.nameKey)}, ${achievement.rarity.toLowerCase()} rarity achievement, ${status}. ${t(achievement.descriptionKey)}`;
 
   const accessibilityHint = t('achievements.card.accessibility_hint') ||
     `${isUnlocked ? 'Completed achievement' : 'In progress achievement'}. Tap for more details.`;
@@ -354,14 +354,14 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
       
       {/* Achievement info */}
       <View style={styles.infoContainer}>
-        <Text 
+        <Text
           style={[
             styles.name,
             !isUnlocked && styles.textLocked
-          ]} 
+          ]}
           numberOfLines={2}
         >
-          {achievement.name}
+          {t(achievement.nameKey)}
         </Text>
         
         {/* Progress hint for locked achievements */}

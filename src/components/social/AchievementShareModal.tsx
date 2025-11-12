@@ -18,6 +18,7 @@ import { SocialSharingService, AchievementShareData } from '../../services/socia
 import { Achievement } from '../../types/gamification';
 import { Layout } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 // ========================================
 // INTERFACES
@@ -48,6 +49,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
   onClose
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [shareData, setShareData] = useState<AchievementShareData | null>(null);
   const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -435,7 +437,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
                     </Text>
                   </View>
                   <View style={styles.achievementInfo}>
-                    <Text style={styles.achievementName}>{achievement.name}</Text>
+                    <Text style={styles.achievementName}>{t(achievement.nameKey)}</Text>
                     <Text 
                       style={[
                         styles.achievementRarity,
@@ -448,7 +450,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
                 </View>
                 
                 <Text style={styles.achievementDescription}>
-                  {achievement.description}
+                  {t(achievement.descriptionKey)}
                 </Text>
 
                 <View style={styles.achievementStats}>

@@ -18,8 +18,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   
   {
     id: 'first-habit',
-    name: 'First Steps',
-    description: 'Create your very first habit and begin your journey to self-improvement',
+    nameKey: 'achievements.first_habit.name',
+    descriptionKey: 'achievements.first_habit.description',
     icon: '🌱',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.COMMON,
@@ -39,8 +39,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'habit-builder',
-    name: 'Habit Builder',
-    description: 'Create 5 different habits to diversify your personal development journey',
+    nameKey: 'achievements.habit_builder.name',
+    descriptionKey: 'achievements.habit_builder.description',
     icon: '🏗️',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.RARE,
@@ -60,8 +60,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'century-club',
-    name: 'Century Club',
-    description: 'Complete 100 habit tasks - join the elite ranks of consistent achievers',
+    nameKey: 'achievements.century_club.name',
+    descriptionKey: 'achievements.century_club.description',
     icon: '💯',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.EPIC,
@@ -81,8 +81,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'consistency-king',
-    name: 'Consistency King',
-    description: 'Complete 1000 habit tasks - you are the master of consistency',
+    nameKey: 'achievements.consistency_king.name',
+    descriptionKey: 'achievements.consistency_king.description',
     icon: '👑',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.LEGENDARY,
@@ -102,8 +102,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'streak-champion',
-    name: 'Habit Streak Champion',
-    description: 'Achieve a 21-day streak with any single habit - building lasting change',
+    nameKey: 'achievements.streak_champion.name',
+    descriptionKey: 'achievements.streak_champion.description',
     icon: '🏆',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.EPIC,
@@ -123,8 +123,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'century-streak',
-    name: 'Century Streak',
-    description: 'Maintain a 75-day streak with any habit - approaching legendary status',
+    nameKey: 'achievements.century_streak.name',
+    descriptionKey: 'achievements.century_streak.description',
     icon: '⚡',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.LEGENDARY,
@@ -144,8 +144,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'multi-tasker',
-    name: 'Multi-Tasker',
-    description: 'Complete 5 different habits in a single day - showing diverse commitment',
+    nameKey: 'achievements.multi_tasker.name',
+    descriptionKey: 'achievements.multi_tasker.description',
     icon: '⚡',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.RARE,
@@ -165,8 +165,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'habit-legend',
-    name: 'Habit Legend',
-    description: 'Reach Level 50 "Specialist V" with XP earned primarily from habit activities - true mastery',
+    nameKey: 'achievements.habit_legend.name',
+    descriptionKey: 'achievements.habit_legend.description',
     icon: '🏆',
     category: AchievementCategory.HABITS,
     rarity: AchievementRarity.LEGENDARY,
@@ -202,8 +202,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'first-journal',
-    name: 'First Reflection',
-    description: 'Write your first gratitude journal entry and start practicing mindfulness',
+    nameKey: 'achievements.first_journal.name',
+    descriptionKey: 'achievements.first_journal.description',
     icon: '📝',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.COMMON,
@@ -223,8 +223,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'deep-thinker',
-    name: 'Deep Thinker',
-    description: 'Write a journal entry with at least 200 characters - show your thoughtfulness',
+    nameKey: 'achievements.deep_thinker.name',
+    descriptionKey: 'achievements.deep_thinker.description',
     icon: '🤔',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -244,8 +244,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'journal-enthusiast',
-    name: 'Journal Enthusiast',
-    description: 'Write 100 journal entries - you are building a beautiful habit of reflection',
+    nameKey: 'achievements.journal_enthusiast.name',
+    descriptionKey: 'achievements.journal_enthusiast.description',
     icon: '📖',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -266,8 +266,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'grateful-heart',
-    name: 'Grateful Heart',
-    description: 'Maintain a 7-day journal writing streak - consistency builds gratitude',
+    nameKey: 'achievements.grateful_heart.name',
+    descriptionKey: 'achievements.grateful_heart.description',
     icon: '💝',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -287,8 +287,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'gratitude-guru',
-    name: 'Gratitude Guru',
-    description: 'Achieve a 30-day journal writing streak - you are a master of daily reflection',
+    nameKey: 'achievements.gratitude_guru.name',
+    descriptionKey: 'achievements.gratitude_guru.description',
     icon: '🧘‍♀️',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -308,8 +308,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'eternal-gratitude',
-    name: 'Eternal Gratitude',
-    description: 'Maintain a 100-day journal streak - your gratitude practice is legendary',
+    nameKey: 'achievements.eternal_gratitude.name',
+    descriptionKey: 'achievements.eternal_gratitude.description',
     icon: '🌟',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -329,8 +329,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'bonus-seeker',
-    name: 'Bonus Seeker',
-    description: 'Write 50 bonus journal entries - you go above and beyond in your gratitude practice',
+    nameKey: 'achievements.bonus_seeker.name',
+    descriptionKey: 'achievements.bonus_seeker.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -350,8 +350,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'first-goal',
-    name: 'First Vision',
-    description: 'Set your first goal and define where you want your journey to lead',
+    nameKey: 'achievements.first_goal.name',
+    descriptionKey: 'achievements.first_goal.description',
     icon: '🎯',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.COMMON,
@@ -371,8 +371,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'goal-getter',
-    name: 'Goal Getter',
-    description: 'Complete your first goal - you turn dreams into reality',
+    nameKey: 'achievements.goal_getter.name',
+    descriptionKey: 'achievements.goal_getter.description',
     icon: '✅',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.RARE,
@@ -392,8 +392,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'goal-champion',
-    name: 'Goal Champion',
-    description: 'Complete 5 goals - you are becoming a master of achievement',
+    nameKey: 'achievements.goal_champion.name',
+    descriptionKey: 'achievements.goal_champion.description',
     icon: '🏆',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.EPIC,
@@ -413,8 +413,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'achievement-unlocked',
-    name: 'Achievement Unlocked',
-    description: 'Complete 10 goals - you are a legendary goal achiever',
+    nameKey: 'achievements.achievement_unlocked.name',
+    descriptionKey: 'achievements.achievement_unlocked.description',
     icon: '🎖️',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.LEGENDARY,
@@ -434,8 +434,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'ambitious',
-    name: 'Ambitious',
-    description: 'Set a goal with target value of 1000 or more - you dream big',
+    nameKey: 'achievements.ambitious.name',
+    descriptionKey: 'achievements.ambitious.description',
     icon: '🚀',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.RARE,
@@ -455,8 +455,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'progress-tracker',
-    name: 'Progress Tracker',
-    description: 'Make progress on goals for 7 consecutive days - consistency leads to success',
+    nameKey: 'achievements.progress_tracker.name',
+    descriptionKey: 'achievements.progress_tracker.description',
     icon: '📈',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.EPIC,
@@ -476,8 +476,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'mega-dreamer',
-    name: 'Mega Dreamer',
-    description: 'Set a goal with target value of 1,000,000 or more - you dream in millions',
+    nameKey: 'achievements.mega_dreamer.name',
+    descriptionKey: 'achievements.mega_dreamer.description',
     icon: '🌟',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.EPIC,
@@ -497,8 +497,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'million-achiever',
-    name: 'Million Achiever',
-    description: 'Complete a goal with target value of 1,000,000 or more - you turn massive dreams into reality',
+    nameKey: 'achievements.million_achiever.name',
+    descriptionKey: 'achievements.million_achiever.description',
     icon: '💎',
     category: AchievementCategory.GOALS,
     rarity: AchievementRarity.LEGENDARY,
@@ -522,8 +522,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'weekly-warrior',
-    name: 'Weekly Warrior',
-    description: 'Maintain a 7-day streak in any habit - prove your dedication',
+    nameKey: 'achievements.weekly_warrior.name',
+    descriptionKey: 'achievements.weekly_warrior.description',
     icon: '⚔️',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.RARE,
@@ -543,8 +543,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'monthly-master',
-    name: 'Monthly Master',
-    description: 'Achieve a 30-day streak - you are truly building lasting habits',
+    nameKey: 'achievements.monthly_master.name',
+    descriptionKey: 'achievements.monthly_master.description',
     icon: '👑',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.EPIC,
@@ -564,8 +564,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'hundred-days',
-    name: 'Centurion',
-    description: 'Reach 100 days of consistency - join the elite ranks of habit masters',
+    nameKey: 'achievements.hundred_days.name',
+    descriptionKey: 'achievements.hundred_days.description',
     icon: '🏛️',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.LEGENDARY,
@@ -585,8 +585,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'journal-streaker',
-    name: 'Gratitude Guardian',
-    description: 'Write in your journal for 21 consecutive days',
+    nameKey: 'achievements.journal_streaker.name',
+    descriptionKey: 'achievements.journal_streaker.description',
     icon: '📖',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.RARE,
@@ -611,8 +611,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'goal-achiever',
-    name: 'Dream Fulfiller',
-    description: 'Complete 3 goals - you turn dreams into reality',
+    nameKey: 'achievements.goal_achiever.name',
+    descriptionKey: 'achievements.goal_achiever.description',
     icon: '🌟',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
@@ -636,8 +636,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'daily-visitor',
-    name: 'Daily Visitor',
-    description: 'Use the app for 7 consecutive days - building a healthy habit',
+    nameKey: 'achievements.daily_visitor.name',
+    descriptionKey: 'achievements.daily_visitor.description',
     icon: '📅',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.RARE,
@@ -657,8 +657,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'dedicated-user',
-    name: 'Dedicated User', 
-    description: 'Use the app for 30 consecutive days - your commitment is inspiring',
+    nameKey: 'achievements.dedicated_user.name',
+    descriptionKey: 'achievements.dedicated_user.description',
     icon: '🎯',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.EPIC,
@@ -678,8 +678,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'perfect-month',
-    name: 'Perfect Month',
-    description: 'Complete activities in all 3 areas (habits, journal, goals) for 28+ days in any month',
+    nameKey: 'achievements.perfect_month.name',
+    descriptionKey: 'achievements.perfect_month.description',
     icon: '🌟',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.LEGENDARY,
@@ -699,8 +699,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'triple-crown',
-    name: 'Triple Crown',
-    description: 'Maintain 7+ day streaks in habits, journal, and goals simultaneously',
+    nameKey: 'achievements.triple_crown.name',
+    descriptionKey: 'achievements.triple_crown.description',
     icon: '👑',
     category: AchievementCategory.CONSISTENCY,
     rarity: AchievementRarity.LEGENDARY,
@@ -747,8 +747,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'level-up',
-    name: 'Level Up',
-    description: 'Reach level 10 "Beginner V" - you are growing stronger',
+    nameKey: 'achievements.level_up.name',
+    descriptionKey: 'achievements.level_up.description',
     icon: '⬆️',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.RARE,
@@ -768,8 +768,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'selfrise-expert',
-    name: 'SelfRise Expert',
-    description: 'Reach level 25 "Adept V" - you have mastered the fundamentals',
+    nameKey: 'achievements.selfrise_expert.name',
+    descriptionKey: 'achievements.selfrise_expert.description',
     icon: '🎓',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
@@ -789,8 +789,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'selfrise-master',
-    name: 'SelfRise Master',
-    description: 'Reach level 50 "Specialist V" - you are a true master of self-improvement',
+    nameKey: 'achievements.selfrise_master.name',
+    descriptionKey: 'achievements.selfrise_master.description',
     icon: '🏅',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.LEGENDARY,
@@ -810,8 +810,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'recommendation-master',
-    name: 'Recommendation Master',
-    description: 'Follow 20 personalized recommendations from the For You section',
+    nameKey: 'achievements.recommendation_master.name',
+    descriptionKey: 'achievements.recommendation_master.description',
     icon: '💡',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
@@ -831,8 +831,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'balance-master',
-    name: 'Balance Master',
-    description: 'Use all 3 features (habits, journal, goals) in a single day 10 times',
+    nameKey: 'achievements.balance_master.name',
+    descriptionKey: 'achievements.balance_master.description',
     icon: '⚖️',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.EPIC,
@@ -852,8 +852,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'trophy-collector-basic',
-    name: 'Trophy Collector',
-    description: 'Unlock 10 achievements - you are building an impressive collection',
+    nameKey: 'achievements.trophy_collector_basic.name',
+    descriptionKey: 'achievements.trophy_collector_basic.description',
     icon: '🏆',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.RARE,
@@ -873,8 +873,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'trophy-collector-master',
-    name: 'Trophy Master',
-    description: 'Unlock 25 achievements - your trophy room is legendary',
+    nameKey: 'achievements.trophy_collector_master.name',
+    descriptionKey: 'achievements.trophy_collector_master.description',
     icon: '🏆',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.LEGENDARY,
@@ -894,8 +894,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'ultimate-selfrise-legend',
-    name: 'Ultimate SelfRise Legend',
-    description: 'Reach level 100 "Mythic V" - you have achieved the ultimate mastery of self-improvement',
+    nameKey: 'achievements.ultimate_selfrise_legend.name',
+    descriptionKey: 'achievements.ultimate_selfrise_legend.description',
     icon: '🌟',
     category: AchievementCategory.MASTERY,
     rarity: AchievementRarity.LEGENDARY,
@@ -919,8 +919,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'lightning-start',
-    name: 'Lightning Start',
-    description: 'Create and complete a habit on the same day 3 times - instant action taker',
+    nameKey: 'achievements.lightning_start.name',
+    descriptionKey: 'achievements.lightning_start.description',
     icon: '⚡',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
@@ -940,8 +940,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'seven-wonder',
-    name: 'Seven Wonder',
-    description: 'Have 7 or more active habits at the same time - master of organization',
+    nameKey: 'achievements.seven_wonder.name',
+    descriptionKey: 'achievements.seven_wonder.description',
     icon: '🏛️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -961,8 +961,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'persistence-pays',
-    name: 'Persistence Pays',
-    description: 'Resume activity after a 3+ day break and complete 7 activities - comeback champion',
+    nameKey: 'achievements.persistence_pays.name',
+    descriptionKey: 'achievements.persistence_pays.description',
     icon: '💪',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -982,8 +982,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'legendary-master',
-    name: 'SelfRise Legend',
-    description: 'Achieve mastery in all areas: 10 goals completed, 500 habits done, 365 journal entries',
+    nameKey: 'achievements.legendary_master.name',
+    descriptionKey: 'achievements.legendary_master.description',
     icon: '🏆',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1030,8 +1030,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-first-week',
-    name: 'First Week',
-    description: '7 active days total - beginning of your loyalty journey',
+    nameKey: 'achievements.loyalty_first_week.name',
+    descriptionKey: 'achievements.loyalty_first_week.description',
     icon: '🌱',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.COMMON,
@@ -1051,8 +1051,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-two-weeks-strong',
-    name: 'Two Weeks Strong',
-    description: '14 active days total - your dedication grows',
+    nameKey: 'achievements.loyalty_two_weeks_strong.name',
+    descriptionKey: 'achievements.loyalty_two_weeks_strong.description',
     icon: '💪',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
@@ -1072,8 +1072,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-three-weeks-committed',
-    name: 'Three Weeks Committed',
-    description: '21 active days total - committed to your growth',
+    nameKey: 'achievements.loyalty_three_weeks_committed.name',
+    descriptionKey: 'achievements.loyalty_three_weeks_committed.description',
     icon: '🔥',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.RARE,
@@ -1093,8 +1093,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-month-explorer',
-    name: 'Month Explorer',
-    description: '30 active days total - exploring your potential',
+    nameKey: 'achievements.loyalty_month_explorer.name',
+    descriptionKey: 'achievements.loyalty_month_explorer.description',
     icon: '🗺️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1114,8 +1114,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-two-month-veteran',
-    name: 'Two Month Veteran',
-    description: '60 active days total - experienced in personal growth',
+    nameKey: 'achievements.loyalty_two_month_veteran.name',
+    descriptionKey: 'achievements.loyalty_two_month_veteran.description',
     icon: '⚔️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1135,8 +1135,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-century-user',
-    name: 'Century User',
-    description: '100 active days total - among the elite users',
+    nameKey: 'achievements.loyalty_century_user.name',
+    descriptionKey: 'achievements.loyalty_century_user.description',
     icon: '💯',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.EPIC,
@@ -1156,8 +1156,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-half-year-hero',
-    name: 'Half Year Hero',
-    description: '183 active days total - your commitment is legendary',
+    nameKey: 'achievements.loyalty_half_year_hero.name',
+    descriptionKey: 'achievements.loyalty_half_year_hero.description',
     icon: '🦸‍♀️',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1177,8 +1177,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-year-legend',
-    name: 'Year Legend',
-    description: '365 active days total - you have reached legendary status',
+    nameKey: 'achievements.loyalty_year_legend.name',
+    descriptionKey: 'achievements.loyalty_year_legend.description',
     icon: '👑',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1198,8 +1198,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-ultimate-veteran',
-    name: 'Ultimate Veteran',
-    description: '500 active days total - your dedication is unmatched',
+    nameKey: 'achievements.loyalty_ultimate_veteran.name',
+    descriptionKey: 'achievements.loyalty_ultimate_veteran.description',
     icon: '🏅',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1219,8 +1219,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'loyalty-master',
-    name: 'Loyalty Master',
-    description: '1000 active days total - you have achieved ultimate loyalty',
+    nameKey: 'achievements.loyalty_master.name',
+    descriptionKey: 'achievements.loyalty_master.description',
     icon: '🏆',
     category: AchievementCategory.SPECIAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1247,8 +1247,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'first-star',
-    name: 'First Star',
-    description: 'Get your first star (first bonus entry of the day) - discovering expanded gratitude',
+    nameKey: 'achievements.first_star.name',
+    descriptionKey: 'achievements.first_star.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.COMMON,
@@ -1268,8 +1268,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'five-stars',
-    name: 'Five Stars',
-    description: 'Get a star 5 times total - regular expansion of gratitude practice',
+    nameKey: 'achievements.five_stars.name',
+    descriptionKey: 'achievements.five_stars.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1289,8 +1289,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-achiever',
-    name: 'Flame Achiever',
-    description: 'Get your first flame (5 bonuses in one day) - a day of intensive gratitude and reflection',
+    nameKey: 'achievements.flame_achiever.name',
+    descriptionKey: 'achievements.flame_achiever.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1310,8 +1310,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'bonus-week',
-    name: 'Bonus Week',
-    description: 'At least 1 bonus every day for 7 days in a row - a week of consistent expanded practice',
+    nameKey: 'achievements.bonus_week.name',
+    descriptionKey: 'achievements.bonus_week.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1331,8 +1331,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-royalty',
-    name: 'Crown Royalty',
-    description: 'Get your first crown (10 bonuses in one day) - pinnacle day of reflection with royal status',
+    nameKey: 'achievements.crown_royalty.name',
+    descriptionKey: 'achievements.crown_royalty.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1352,8 +1352,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-collector',
-    name: 'Flame Collector',
-    description: 'Get flames 5 times total - master of intensive gratitude days',
+    nameKey: 'achievements.flame_collector.name',
+    descriptionKey: 'achievements.flame_collector.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1373,8 +1373,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'golden-bonus-streak',
-    name: 'Golden Bonus Streak',
-    description: 'At least 3 bonuses every day for 7 days in a row - a week of deep and expanded reflection',
+    nameKey: 'achievements.golden_bonus_streak.name',
+    descriptionKey: 'achievements.golden_bonus_streak.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1394,8 +1394,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'triple-crown-master',
-    name: 'Triple Crown Master',
-    description: 'Get crowns 3 times total - legendary master of royal reflection days',
+    nameKey: 'achievements.triple_crown_master.name',
+    descriptionKey: 'achievements.triple_crown_master.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1415,8 +1415,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'bonus-century',
-    name: 'Bonus Century',
-    description: 'Write 200 bonus entries total - ultimate master of expanded gratitude practice',
+    nameKey: 'achievements.bonus_century.name',
+    descriptionKey: 'achievements.bonus_century.description',
     icon: '💯',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1438,8 +1438,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'star-beginner',
-    name: 'Star Beginner',
-    description: 'Get stars 10 times total - beginning collector of bonus experiences',
+    nameKey: 'achievements.star_beginner.name',
+    descriptionKey: 'achievements.star_beginner.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.RARE,
@@ -1459,8 +1459,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'star-collector',
-    name: 'Star Collector',
-    description: 'Get stars 25 times total - regular expander of gratitude practice',
+    nameKey: 'achievements.star_collector.name',
+    descriptionKey: 'achievements.star_collector.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1480,8 +1480,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'star-master',
-    name: 'Star Master',
-    description: 'Get stars 50 times total - master of expanded daily reflection',
+    nameKey: 'achievements.star_master.name',
+    descriptionKey: 'achievements.star_master.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1501,8 +1501,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'star-champion',
-    name: 'Star Champion',
-    description: 'Get stars 100 times total - champion of long-term expanded practice',
+    nameKey: 'achievements.star_champion.name',
+    descriptionKey: 'achievements.star_champion.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1522,8 +1522,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'star-legend',
-    name: 'Star Legend',
-    description: 'Get stars 200 times total - legendary master of bonus experiences',
+    nameKey: 'achievements.star_legend.name',
+    descriptionKey: 'achievements.star_legend.description',
     icon: '⭐',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1545,8 +1545,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-starter',
-    name: 'Flame Starter',
-    description: 'Get flames 5 times total - beginning master of intensive days',
+    nameKey: 'achievements.flame_starter.name',
+    descriptionKey: 'achievements.flame_starter.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1566,8 +1566,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-accumulator',
-    name: 'Flame Accumulator',
-    description: 'Get flames 10 times total - collector of exceptional gratitude days',
+    nameKey: 'achievements.flame_accumulator.name',
+    descriptionKey: 'achievements.flame_accumulator.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1587,8 +1587,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-master',
-    name: 'Flame Master',
-    description: 'Get flames 25 times total - master of systematic intensive days',
+    nameKey: 'achievements.flame_master.name',
+    descriptionKey: 'achievements.flame_master.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1608,8 +1608,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-champion',
-    name: 'Flame Champion',
-    description: 'Get flames 50 times total - champion of deep daily reflection',
+    nameKey: 'achievements.flame_champion.name',
+    descriptionKey: 'achievements.flame_champion.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1629,8 +1629,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'flame-legend',
-    name: 'Flame Legend',
-    description: 'Get flames 100 times total - legendary master of intensive gratitude practice',
+    nameKey: 'achievements.flame_legend.name',
+    descriptionKey: 'achievements.flame_legend.description',
     icon: '🔥',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1652,8 +1652,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-achiever',
-    name: 'Crown Achiever',
-    description: 'Get crowns 3 times total - achieve royal reflection days',
+    nameKey: 'achievements.crown_achiever.name',
+    descriptionKey: 'achievements.crown_achiever.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.EPIC,
@@ -1673,8 +1673,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-collector',
-    name: 'Crown Collector',
-    description: 'Get crowns 5 times total - collector of royal gratitude experiences',
+    nameKey: 'achievements.crown_collector.name',
+    descriptionKey: 'achievements.crown_collector.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1694,8 +1694,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-master',
-    name: 'Crown Master',
-    description: 'Get crowns 10 times total - master of royal-level reflection',
+    nameKey: 'achievements.crown_master.name',
+    descriptionKey: 'achievements.crown_master.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1715,8 +1715,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-champion',
-    name: 'Crown Champion',
-    description: 'Get crowns 25 times total - champion of royal gratitude days',
+    nameKey: 'achievements.crown_champion.name',
+    descriptionKey: 'achievements.crown_champion.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,
@@ -1736,8 +1736,8 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
 
   {
     id: 'crown-emperor',
-    name: 'Crown Emperor',
-    description: 'Get crowns 50 times total - imperial status in deep reflection practice',
+    nameKey: 'achievements.crown_emperor.name',
+    descriptionKey: 'achievements.crown_emperor.description',
     icon: '👑',
     category: AchievementCategory.JOURNAL,
     rarity: AchievementRarity.LEGENDARY,

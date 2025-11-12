@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface AchievementHistoryProps {
   userAchievements: UserAchievements;
@@ -53,6 +54,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
   onPress
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const rarityColor = getRarityColor(achievement.rarity);
   const timeAgo = getTimeAgo(unlockIndex, totalUnlocked);
   const isRecent = unlockIndex >= totalUnlocked * 0.8;
@@ -207,7 +209,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
           <View style={styles.achievementInfo}>
             <Text style={styles.achievementIcon}>{achievement.icon}</Text>
             <View style={styles.achievementText}>
-              <Text style={styles.achievementName}>{achievement.name}</Text>
+              <Text style={styles.achievementName}>{t(achievement.nameKey)}</Text>
               <Text style={styles.achievementCategory}>
                 {achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1)}
               </Text>
@@ -225,7 +227,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
         </View>
         
         <Text style={styles.achievementDescription} numberOfLines={2}>
-          {achievement.description}
+          {t(achievement.descriptionKey)}
         </Text>
         
         <View style={styles.rewardContainer}>
