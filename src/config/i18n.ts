@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import translation files
 import en from '../locales/en';
+import de from '../locales/de';
+import es from '../locales/es';
 
 // Storage key for language preference
 const LANGUAGE_STORAGE_KEY = 'user_language';
@@ -48,6 +50,8 @@ i18n
   .init({
     resources: {
       en: { translation: en },
+      de: { translation: de },
+      es: { translation: es },
     },
     fallbackLng: 'en',
     debug: __DEV__,
