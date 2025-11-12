@@ -659,24 +659,48 @@ const en: TranslationKeys = {
   // Settings screen
   settings: {
     title: 'Settings',
+
+    // Appearance
+    appearance: 'Appearance',
+    theme: 'Theme',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    themeSystem: 'System Auto',
+    themeDescription: 'Choose your preferred color scheme',
+    themeSystemDescription: 'Matches your device settings',
+
+    // Language
     language: 'Language',
+    languageDescription: 'Select your preferred language',
+    languageEnglish: 'English',
+    languageGerman: 'Deutsch',
+    languageSpanish: 'Español',
+
+    // Notifications
     notifications: 'Notifications',
     morningNotification: 'Morning Notification',
     eveningNotification: 'Evening Notification',
+
+    // Account
     account: 'Account',
     login: 'Login',
     register: 'Register',
     logout: 'Logout',
+
+    // About
     about: 'About',
     version: 'Version',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
+
     // Tutorial & Onboarding
     tutorialReset: 'Restart Tutorial',
     tutorialResetDescription: 'Restart the tutorial from the beginning',
     tutorialResetConfirmTitle: 'Restart Tutorial?',
     tutorialResetConfirmMessage: 'This will restart the tutorial from the beginning and guide you through the app again. This action cannot be undone.',
     tutorialResetSuccess: 'Tutorial has been restarted successfully! You are now being guided through the app.',
+
+    // Common
     cancel: 'Cancel',
     reset: 'Restart',
   },

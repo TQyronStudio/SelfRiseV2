@@ -10,6 +10,7 @@ import { Fonts, Layout } from '@/src/constants';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
+import { changeLanguage, getCurrentLanguage } from '@/src/utils/i18n';
 
 export default function SettingsScreen() {
   const { t } = useI18n();
@@ -20,6 +21,7 @@ export default function SettingsScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
 
   // Styles that depend on theme colors
   const styles = StyleSheet.create({
@@ -147,6 +149,15 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLanguageChange = async (language: 'en' | 'de' | 'es') => {
+    try {
+      await changeLanguage(language);
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -223,17 +234,51 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* General Settings */}
+        {/* Language Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>General</Text>
-          <View style={styles.menuItem}>
+          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+
+          {/* English */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleLanguageChange('en')}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="language" size={24} color={colors.textSecondary} />
-              <Text style={[styles.menuItemText, styles.comingSoon]}>
-                Language Settings - Coming Soon
-              </Text>
+              <Text style={{ fontSize: 24, marginRight: 12 }}>🇬🇧</Text>
+              <Text style={styles.menuItemText}>{t('settings.languageEnglish')}</Text>
             </View>
-          </View>
+            {currentLanguage === 'en' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
+
+          {/* German (Deutsch) */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleLanguageChange('de')}
+          >
+            <View style={styles.menuItemLeft}>
+              <Text style={{ fontSize: 24, marginRight: 12 }}>🇩🇪</Text>
+              <Text style={styles.menuItemText}>{t('settings.languageGerman')}</Text>
+            </View>
+            {currentLanguage === 'de' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
+
+          {/* Spanish (Español) */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleLanguageChange('es')}
+          >
+            <View style={styles.menuItemLeft}>
+              <Text style={{ fontSize: 24, marginRight: 12 }}>🇪🇸</Text>
+              <Text style={styles.menuItemText}>{t('settings.languageSpanish')}</Text>
+            </View>
+            {currentLanguage === 'es' && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Tutorial */}
