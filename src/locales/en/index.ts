@@ -106,6 +106,9 @@ const en: TranslationKeys = {
       resetToDefaults: 'Reset to Defaults',
       resetTitle: 'Reset Home Layout',
       resetMessage: 'This will restore the default home screen layout. Are you sure?',
+      errors: {
+        visibilityFailed: 'Failed to update component visibility. Please try again.',
+      },
     },
   },
   
@@ -198,6 +201,13 @@ const en: TranslationKeys = {
       epic_crown_modal: 'Epic royal crown celebration for 10th bonus milestone achievement',
       streak_badge_accessibility: '{{days}} day streak achievement badge',
       bonus_badge_accessibility: '{{count}} bonus {{#eq count 1}}entry{{else}}entries{{/eq}} achievement badge',
+    },
+
+    // Export functionality
+    export: {
+      title: 'Journal Export - {{format}} Format',
+      truncated: '[Content truncated for display]',
+      error: 'Failed to export journal data',
     },
   },
   
@@ -1005,6 +1015,22 @@ const en: TranslationKeys = {
     notifications: 'Notifications',
     morningNotification: 'Morning Notification',
     eveningNotification: 'Evening Notification',
+    notificationSettings: {
+      errors: {
+        loadFailed: 'Failed to load notification settings',
+        permissionsTitle: 'Permissions Required',
+        permissionsMessage: 'Notification permissions are needed to send you reminders. You can enable them in system settings.',
+        permissionsFailed: 'Failed to request notification permissions',
+        settingsFailed: 'Failed to open system settings',
+        afternoonUpdateFailed: 'Failed to update afternoon reminder',
+        eveningUpdateFailed: 'Failed to update evening reminder',
+        afternoonTimeFailed: 'Failed to update afternoon reminder time',
+        eveningTimeFailed: 'Failed to update evening reminder time',
+      },
+      buttons: {
+        openSettings: 'Open Settings',
+      },
+    },
 
     // Account
     account: 'Account',
@@ -1748,6 +1774,22 @@ const en: TranslationKeys = {
           body: 'Time for evening reflection! What did you accomplish today? 📝',
         },
       },
+    },
+  },
+
+  // Social features
+  social: {
+    quote: {
+      copiedTitle: '📋 Copied!',
+      copiedMessage: 'Quote copied to clipboard.',
+      copyError: 'Failed to copy quote. Please try again.',
+    },
+    achievements: {
+      shareSuccessTitle: '🎉 Shared Successfully!',
+      shareSuccessMessage: 'Your achievement has been shared. Keep up the great work!',
+      shareError: 'Failed to share achievement. Please try again.',
+      copiedTitle: '📋 Copied!',
+      copiedMessage: 'Achievement details copied to clipboard. You can now paste it anywhere!',
     },
   },
 

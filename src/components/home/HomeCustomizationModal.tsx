@@ -31,8 +31,8 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
       await actions.toggleComponentVisibility(componentId);
     } catch (error) {
       Alert.alert(
-        'Error',
-        'Failed to update component visibility. Please try again.'
+        t('common.error'),
+        t('home.customization.errors.visibilityFailed')
       );
     }
   };
@@ -50,7 +50,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
             try {
               await actions.resetToDefaults();
             } catch (error) {
-              Alert.alert('Error', 'Failed to reset settings. Please try again.');
+              Alert.alert(t('common.error'), t('home.customization.errors.visibilityFailed'));
             }
           }
         },

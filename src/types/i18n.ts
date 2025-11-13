@@ -105,6 +105,9 @@ export interface TranslationKeys {
       resetToDefaults: string;
       resetTitle: string;
       resetMessage: string;
+      errors: {
+        visibilityFailed: string;
+      };
     };
   };
   
@@ -195,6 +198,11 @@ export interface TranslationKeys {
       epic_crown_modal: string;
       streak_badge_accessibility: string;
       bonus_badge_accessibility: string;
+    };
+    export: {
+      title: string;
+      truncated: string;
+      error: string;
     };
   };
   
@@ -619,6 +627,22 @@ export interface TranslationKeys {
     notifications: string;
     morningNotification: string;
     eveningNotification: string;
+    notificationSettings: {
+      errors: {
+        loadFailed: string;
+        permissionsTitle: string;
+        permissionsMessage: string;
+        permissionsFailed: string;
+        settingsFailed: string;
+        afternoonUpdateFailed: string;
+        eveningUpdateFailed: string;
+        afternoonTimeFailed: string;
+        eveningTimeFailed: string;
+      };
+      buttons: {
+        openSettings: string;
+      };
+    };
     account: string;
     login: string;
     register: string;
@@ -1182,6 +1206,22 @@ export interface TranslationKeys {
       levelProgression: { title: string; content: string; };
       xpMultipliers: { title: string; content: string; };
       harmonyStreak: { title: string; content: string; };
+    };
+  };
+
+  // Social features
+  social: {
+    quote: {
+      copiedTitle: string;
+      copiedMessage: string;
+      copyError: string;
+    };
+    achievements: {
+      shareSuccessTitle: string;
+      shareSuccessMessage: string;
+      shareError: string;
+      copiedTitle: string;
+      copiedMessage: string;
     };
   };
 }

@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Fonts, Layout } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 import {
   notificationService,
   notificationScheduler,
@@ -33,6 +34,7 @@ import { NotificationPermissionStatus, NotificationSettings as NotificationSetti
 
 export const NotificationSettings: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   // State
   const [loading, setLoading] = useState(true);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | null>(null);
@@ -73,7 +75,7 @@ export const NotificationSettings: React.FC = () => {
       setSettings(currentSettings);
     } catch (error) {
       console.error('[NotificationSettings] Failed to load data:', error);
-      Alert.alert('Error', 'Failed to load notification settings');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -100,17 +102,17 @@ export const NotificationSettings: React.FC = () => {
 
       if (!permissions.granted) {
         Alert.alert(
-          'Permissions Required',
-          'Notification permissions are needed to send you reminders. You can enable them in system settings.',
+          t('settings.notificationSettings.errors.permissionsTitle'),
+          t('settings.notificationSettings.errors.permissionsMessage'),
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: handleOpenSystemSettings },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('settings.notificationSettings.buttons.openSettings'), onPress: handleOpenSystemSettings },
           ]
         );
       }
     } catch (error) {
       console.error('[NotificationSettings] Failed to request permissions:', error);
-      Alert.alert('Error', 'Failed to request notification permissions');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.permissionsFailed'));
     }
   };
 
@@ -119,7 +121,7 @@ export const NotificationSettings: React.FC = () => {
       await notificationService.openSystemSettings();
     } catch (error) {
       console.error('[NotificationSettings] Failed to open system settings:', error);
-      Alert.alert('Error', 'Failed to open system settings');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.settingsFailed'));
     }
   };
 
@@ -151,7 +153,7 @@ export const NotificationSettings: React.FC = () => {
       );
     } catch (error) {
       console.error('[NotificationSettings] Failed to toggle afternoon reminder:', error);
-      Alert.alert('Error', 'Failed to update afternoon reminder');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.afternoonUpdateFailed'));
     }
   };
 
@@ -181,7 +183,7 @@ export const NotificationSettings: React.FC = () => {
       );
     } catch (error) {
       console.error('[NotificationSettings] Failed to toggle evening reminder:', error);
-      Alert.alert('Error', 'Failed to update evening reminder');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.eveningUpdateFailed'));
     }
   };
 
@@ -214,7 +216,7 @@ export const NotificationSettings: React.FC = () => {
       }
     } catch (error) {
       console.error('[NotificationSettings] Failed to update afternoon time:', error);
-      Alert.alert('Error', 'Failed to update afternoon reminder time');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.afternoonTimeFailed'));
     }
   };
 
@@ -244,7 +246,7 @@ export const NotificationSettings: React.FC = () => {
       }
     } catch (error) {
       console.error('[NotificationSettings] Failed to update evening time:', error);
-      Alert.alert('Error', 'Failed to update evening reminder time');
+      Alert.alert(t('common.error'), t('settings.notificationSettings.errors.eveningTimeFailed'));
     }
   };
 

@@ -72,7 +72,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
       setShareData(data);
     } catch (error) {
       console.error('Failed to load sharing data:', error);
-      Alert.alert('Error', 'Failed to prepare sharing content. Please try again.');
+      Alert.alert(t('common.error'), t('social.achievements.shareError'));
     } finally {
       setLoading(false);
     }
@@ -88,14 +88,14 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
       if (success) {
         // Show success feedback
         Alert.alert(
-          '🎉 Shared Successfully!',
-          'Your achievement has been shared. Keep up the great work!',
-          [{ text: 'OK', onPress: onClose }]
+          t('social.achievements.shareSuccessTitle'),
+          t('social.achievements.shareSuccessMessage'),
+          [{ text: t('common.ok'), onPress: onClose }]
         );
       }
     } catch (error) {
       console.error('Share failed:', error);
-      Alert.alert('Error', 'Failed to share achievement. Please try again.');
+      Alert.alert(t('common.error'), t('social.achievements.shareError'));
     } finally {
       setSharing(false);
     }
@@ -109,14 +109,14 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
       
       if (success) {
         Alert.alert(
-          '📋 Copied!',
-          'Achievement details copied to clipboard. You can now paste it anywhere!',
-          [{ text: 'OK' }]
+          t('social.achievements.copiedTitle'),
+          t('social.achievements.copiedMessage'),
+          [{ text: t('common.ok') }]
         );
       }
     } catch (error) {
       console.error('Copy failed:', error);
-      Alert.alert('Error', 'Failed to copy to clipboard. Please try again.');
+      Alert.alert(t('common.error'), t('social.achievements.shareError'));
     }
   };
 

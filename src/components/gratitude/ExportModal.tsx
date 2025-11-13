@@ -125,15 +125,15 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
       
       // Show the exported data in an alert (since clipboard is not available)
       Alert.alert(
-        `Journal Export - ${formatName} Format`,
-        content.length > 1000 ? 
-          `${content.substring(0, 1000)}...\n\n[Content truncated for display]` : 
+        t('journal.export.title', { format: formatName }),
+        content.length > 1000 ?
+          `${content.substring(0, 1000)}...\n\n${t('journal.export.truncated')}` :
           content,
-        [{ text: 'OK', onPress: onClose }]
+        [{ text: t('common.ok'), onPress: onClose }]
       );
-      
+
     } catch (error) {
-      Alert.alert('Export Error', 'Failed to export journal data');
+      Alert.alert(t('common.error'), t('journal.export.error'));
     } finally {
       setIsExporting(false);
     }

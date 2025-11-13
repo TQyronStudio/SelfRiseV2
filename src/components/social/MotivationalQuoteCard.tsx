@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SocialSharingService, MotivationalQuote } from '../../services/socialSharingService';
 import { Layout } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 // ========================================
 // INTERFACES
@@ -40,6 +41,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
   showActions = true
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [currentQuote, setCurrentQuote] = useState<MotivationalQuote | null>(null);
   const [sharing, setSharing] = useState(false);
 
@@ -189,7 +191,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
       }
     } catch (error) {
       console.error('Failed to share quote:', error);
-      Alert.alert('Error', 'Failed to share quote. Please try again.');
+      Alert.alert(t('common.error'), t('social.quote.copyError'));
     } finally {
       setSharing(false);
     }
@@ -203,13 +205,13 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
       Clipboard.setString(quoteText);
       
       Alert.alert(
-        '📋 Copied!',
-        'Quote copied to clipboard.',
-        [{ text: 'OK' }]
+        t('social.quote.copiedTitle'),
+        t('social.quote.copiedMessage'),
+        [{ text: t('common.ok') }]
       );
     } catch (error) {
       console.error('Failed to copy quote:', error);
-      Alert.alert('Error', 'Failed to copy quote. Please try again.');
+      Alert.alert(t('common.error'), t('social.quote.copyError'));
     }
   };
 

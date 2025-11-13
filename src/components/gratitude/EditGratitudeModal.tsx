@@ -48,7 +48,7 @@ export default function EditGratitudeModal({
       await actions.updateGratitude(gratitude.id, { content: content.trim() });
       onSuccess();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update journal entry');
+      Alert.alert(t('common.error'), t('journal.export.error'));
     } finally {
       setIsSubmitting(false);
     }
