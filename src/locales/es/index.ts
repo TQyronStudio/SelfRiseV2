@@ -914,6 +914,441 @@ const es: Partial<TranslationKeys> = {
       name: 'Maestro de Lealtad',
       description: '1000 días activos en total - has alcanzado la lealtad definitiva'
     },
+
+    // Achievement Progress Preview Hints (245+ keys for progress tracking)
+    preview: {
+      // Default fallback
+      default: {
+        progress: 'Progreso hacia este logro',
+        action: '¡Usa las funciones de la app para desbloquear este logro!'
+      },
+
+      // HABITS ACHIEVEMENTS (8 achievements = 24 keys)
+      first_habit: {
+        progress_incomplete: '¡Crea tu primer hábito para empezar!',
+        progress_complete: '✅ ¡Primer hábito creado!',
+        requirement: 'Crea tu primer hábito',
+        action: '¡Ve a la pestaña de Hábitos y crea tu primer hábito!'
+      },
+      habit_builder: {
+        progress: 'Crea 5 hábitos ({{current}}/{{target}})',
+        requirement: 'Crea 5 hábitos diferentes para diversificar tu desarrollo',
+        action: '¡Crea más hábitos para diversificar tu crecimiento!'
+      },
+      century_club: {
+        progress: 'Completa 100 hábitos ({{current}}/{{target}})',
+        requirement: 'Completa 100 tareas de hábitos en total',
+        action: '¡Sigue completando tus hábitos diarios!'
+      },
+      consistency_king: {
+        progress: 'Completa 1000 hábitos ({{current}}/{{target}})',
+        requirement: 'Completa 1000 tareas de hábitos en total',
+        action: '¡Estás construyendo una consistencia increíble!'
+      },
+      streak_champion: {
+        progress: 'Alcanza racha de 21 días (mejor: {{current}} días)',
+        requirement: 'Alcanza una racha de 21 días con un solo hábito',
+        action: '¡Concéntrate en la consistencia con un hábito!'
+      },
+      century_streak: {
+        progress: 'Alcanza racha de 75 días (mejor: {{current}} días)',
+        requirement: 'Mantén una racha de 75 días con cualquier hábito',
+        action: '¡Dedicación increíble! ¡Mantén la racha viva!'
+      },
+      multi_tasker: {
+        progress: 'Completa 5 hábitos en un día (mejor: {{current}})',
+        requirement: 'Completa 5 hábitos diferentes en un solo día',
+        action: '¡Desafíate con múltiples hábitos hoy!'
+      },
+      habit_legend: {
+        progress: 'Alcanza Nivel 50 con 50%+ XP de hábitos (Nivel {{level}}, {{xpPercent}}% XP de hábitos)',
+        requirement: 'Alcanza Nivel 50 con 50%+ XP de actividades de hábitos',
+        action: '¡Concéntrate en actividades de hábitos para aumentar tu ratio de XP!'
+      },
+
+      // JOURNAL ACHIEVEMENTS - Basic (8 achievements = 24 keys)
+      first_journal: {
+        progress_incomplete: '¡Escribe tu primera entrada de gratitud!',
+        progress_complete: '✅ ¡Primera reflexión completada!',
+        requirement: 'Escribe tu primera entrada en el diario de gratitud',
+        action: '¡Ve a la pestaña de Diario y escribe tu primera entrada!'
+      },
+      deep_thinker: {
+        progress_checking: 'Verificando tus entradas reflexivas...',
+        requirement: 'Escribe una entrada de diario con al menos 200 caracteres',
+        action: '¡Exprésate completamente en tu próxima entrada de diario!'
+      },
+      journal_enthusiast: {
+        progress: 'Escribe 100 entradas de diario ({{current}}/{{target}})',
+        requirement: 'Escribe 100 entradas de diario en total',
+        action: '¡Sigue expresando gratitud diariamente!'
+      },
+      grateful_heart: {
+        progress: 'Mantén racha de 7 días (actual: {{current}} días)',
+        requirement: 'Mantén una racha de escritura de diario de 7 días',
+        action: '¡Mantén tu racha viva con entradas diarias!'
+      },
+      journal_streaker: {
+        progress: 'Alcanza racha de 21 días (mejor: {{current}} días)',
+        requirement: 'Escribe en tu diario durante 21 días consecutivos',
+        action: '¡Construyendo un hábito fuerte de gratitud!'
+      },
+      gratitude_guru: {
+        progress: 'Alcanza racha de 30 días (mejor: {{current}} días)',
+        requirement: 'Alcanza una racha de escritura de diario de 30 días',
+        action: '¡Te estás convirtiendo en un maestro de la gratitud!'
+      },
+      eternal_gratitude: {
+        progress: 'Alcanza racha de 100 días (mejor: {{current}} días)',
+        requirement: 'Mantén una racha de diario de 100 días',
+        action: '¡Dedicación increíble a la gratitud!'
+      },
+      bonus_seeker: {
+        progress: 'Escribe 50 entradas bonus ({{current}}/{{target}})',
+        requirement: 'Escribe 50 entradas de diario bonus',
+        action: '¡Ve más allá del mínimo diario con entradas bonus!'
+      },
+
+      // JOURNAL BONUS ACHIEVEMENTS - Basic (9 achievements = 27 keys)
+      first_star: {
+        progress_incomplete: '¡Consigue tu primer hito bonus ⭐!',
+        progress_complete: '✅ ¡Primera estrella ganada!',
+        requirement: 'Escribe tu primera entrada de diario bonus para obtener una estrella',
+        action: '¡Escribe 4+ entradas de diario hoy para ganar tu primera ⭐!'
+      },
+      five_stars: {
+        progress: 'Gana 5 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 5 veces en total',
+        action: '¡Sigue escribiendo entradas bonus para ganar más estrellas!'
+      },
+      flame_achiever: {
+        progress_incomplete: '¡Consigue tu primer hito de llama 🔥!',
+        progress_complete: '✅ ¡Primera llama ganada!',
+        requirement: 'Escribe 5+ entradas bonus en un día para ganar una llama',
+        action: '¡Desafíate con 8+ entradas de diario en un día!'
+      },
+      bonus_week: {
+        progress: 'Racha bonus 7 días ({{current}}/{{target}})',
+        requirement: 'Escribe al menos 1 entrada bonus durante 7 días consecutivos',
+        action: '¡Escribe 4+ entradas diarias para mantener tu racha bonus!'
+      },
+      crown_royalty: {
+        progress_incomplete: '¡Consigue tu primer hito de corona 👑!',
+        progress_complete: '✅ ¡Primera corona ganada!',
+        requirement: 'Escribe 10+ entradas bonus en un día para ganar una corona',
+        action: '¡Ve por el estatus real con 13+ entradas de diario en un día!'
+      },
+      flame_collector: {
+        progress: 'Colecciona 5 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 5 veces en total',
+        action: '¡Sigue teniendo días intensos de gratitud con 5+ entradas bonus!'
+      },
+      golden_bonus_streak: {
+        progress: 'Racha bonus dorada 7 días ({{current}}/{{target}})',
+        requirement: 'Escribe 3+ entradas bonus diarias durante 7 días consecutivos',
+        action: '¡Escribe 6+ entradas diarias para la racha bonus definitiva!'
+      },
+      triple_crown_master: {
+        progress: 'Gana 3 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 3 veces en total',
+        action: '¡Domina el arte de los días de gratitud reales!'
+      },
+      bonus_century: {
+        progress: 'Escribe 200 entradas bonus ({{current}}/{{target}})',
+        requirement: 'Escribe 200 entradas de diario bonus en total',
+        action: '¡Maestría bonus definitiva - sigue escribiendo más allá del mínimo!'
+      },
+
+      // JOURNAL BONUS - Star Milestones (5 achievements = 15 keys)
+      star_beginner: {
+        progress: 'Gana 10 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 10 veces en total',
+        action: '¡Construye tu colección de días bonus!'
+      },
+      star_collector: {
+        progress: 'Gana 25 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 25 veces en total',
+        action: '¡Te estás convirtiendo en un coleccionista de estrellas!'
+      },
+      star_master: {
+        progress: 'Gana 50 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 50 veces en total',
+        action: '¡Maestría de estrellas a la vista - sigue ganando hitos bonus!'
+      },
+      star_champion: {
+        progress: 'Gana 75 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 75 veces en total',
+        action: '¡Eres un verdadero campeón de estrellas!'
+      },
+      star_legend: {
+        progress: 'Gana 100 estrellas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito ⭐ 100 veces en total',
+        action: '¡Estatus legendario de coleccionista de estrellas - eres imparable!'
+      },
+
+      // JOURNAL BONUS - Flame Milestones (5 achievements = 15 keys)
+      flame_starter: {
+        progress: 'Gana 10 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 10 veces en total',
+        action: '¡Sigue teniendo esos días intensos de escritura!'
+      },
+      flame_accumulator: {
+        progress: 'Gana 20 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 20 veces en total',
+        action: '¡Tu colección de llamas está creciendo!'
+      },
+      flame_master: {
+        progress: 'Gana 35 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 35 veces en total',
+        action: '¡Maestro de sesiones intensas de gratitud!'
+      },
+      flame_champion: {
+        progress: 'Gana 50 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 50 veces en total',
+        action: '¡Eres un campeón de llamas!'
+      },
+      flame_legend: {
+        progress: 'Gana 75 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 75 veces en total',
+        action: '¡Estatus legendario de llamas - tu dedicación es inspiradora!'
+      },
+
+      // JOURNAL BONUS - Crown Milestones (5 achievements = 15 keys)
+      crown_achiever: {
+        progress: 'Gana 5 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 5 veces en total',
+        action: '¡Estás alcanzando el estatus real de gratitud!'
+      },
+      crown_collector: {
+        progress: 'Gana 10 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 10 veces en total',
+        action: '¡Construyendo tu colección de coronas!'
+      },
+      crown_master: {
+        progress: 'Gana 15 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 15 veces en total',
+        action: '¡Maestro de días de diario real!'
+      },
+      crown_champion: {
+        progress: 'Gana 25 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 25 veces en total',
+        action: '¡Eres un campeón de coronas!'
+      },
+      crown_emperor: {
+        progress: 'Gana 40 coronas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 👑 40 veces en total',
+        action: '¡Estatus imperial alcanzado - eres la realeza de la gratitud!'
+      },
+
+      // GOALS ACHIEVEMENTS (8 achievements = 24 keys)
+      first_goal: {
+        progress_incomplete: '¡Crea tu primera meta para empezar!',
+        progress_complete: '✅ ¡Primera meta creada!',
+        requirement: 'Crea tu primera meta',
+        action: '¡Ve a la pestaña de Metas y establece tu primera meta!'
+      },
+      goal_getter: {
+        progress: 'Crea 5 metas ({{current}}/{{target}})',
+        requirement: 'Crea 5 metas diferentes',
+        action: '¡Establece más metas para expandir tus ambiciones!'
+      },
+      goal_achiever: {
+        progress: 'Completa 5 metas ({{current}}/{{target}})',
+        requirement: 'Completa 5 metas en total',
+        action: '¡Sigue completando tus metas!'
+      },
+      goal_champion: {
+        progress: 'Completa 20 metas ({{current}}/{{target}})',
+        requirement: 'Completa 20 metas en total',
+        action: '¡Eres un campeón logrando metas!'
+      },
+      achievement_unlocked: {
+        progress_incomplete: '¡Completa tu primera meta!',
+        progress_complete: '✅ ¡Primera meta completada!',
+        requirement: 'Completa tu primera meta',
+        action: '¡Haz progreso en tus metas activas!'
+      },
+      ambitious: {
+        progress_incomplete: '¡Crea una meta con valor objetivo de 1000+!',
+        progress_complete: '✅ ¡Meta grande creada!',
+        requirement: 'Crea una meta con valor objetivo de 1000 o más',
+        action: '¡Piensa en grande y establece una meta ambiciosa!'
+      },
+      progress_tracker: {
+        progress: 'Actualiza progreso de meta durante 10 días ({{current}}/{{target}})',
+        requirement: 'Actualiza progreso de meta durante 10 días consecutivos',
+        action: '¡Sigue rastreando tu progreso diario de metas!'
+      },
+      goal_explorer: {
+        progress: 'Crea metas en 3 categorías ({{current}}/{{target}})',
+        requirement: 'Crea metas en 3 categorías diferentes',
+        action: '¡Diversifica tus metas entre categorías!'
+      },
+
+      // CONSISTENCY ACHIEVEMENTS (8 achievements = 24 keys)
+      weekly_warrior: {
+        progress: 'Usa la app durante 7 días ({{current}}/{{target}})',
+        requirement: 'Usa la app durante 7 días consecutivos',
+        action: '¡Mantén tu racha diaria viva!'
+      },
+      monthly_master: {
+        progress: 'Usa la app durante 30 días ({{current}}/{{target}})',
+        requirement: 'Usa la app durante 30 días consecutivos',
+        action: '¡Estás construyendo una consistencia increíble!'
+      },
+      hundred_days: {
+        progress: 'Usa la app durante 100 días ({{current}}/{{target}})',
+        requirement: 'Usa la app durante 100 días consecutivos',
+        action: '¡Consistencia legendaria - sigue así!'
+      },
+      daily_visitor: {
+        progress: 'Abre la app {{current}} veces',
+        requirement: 'Abre la app regularmente durante {{target}} días en total',
+        action: '¡Haz de la app parte de tu rutina diaria!'
+      },
+      dedicated_user: {
+        progress: '{{current}} días activos en total',
+        requirement: 'Sé activo durante {{target}} días en total (no consecutivos)',
+        action: '¡Sigue volviendo y creciendo!'
+      },
+      perfect_month: {
+        progress: 'Días perfectos este mes: {{current}}/{{target}}',
+        requirement: 'Completa los tres tipos de actividad cada día durante 30 días',
+        action: '¡Completa hábitos, diario y metas diariamente!'
+      },
+      triple_crown: {
+        progress_incomplete: '¡Completa hábitos, diario y metas hoy!',
+        progress_complete: '✅ ¡Triple corona ganada!',
+        requirement: 'Completa al menos un hábito, entrada de diario y progreso de meta en un día',
+        action: '¡Haz los tres tipos de actividad hoy para la corona!'
+      },
+      balance_master: {
+        progress: 'Días equilibrados: {{current}}/{{target}}',
+        requirement: 'Usa las tres funciones (hábitos, diario, metas) en un día, {{target}} veces en total',
+        action: '¡Sigue equilibrando todas las áreas de crecimiento!'
+      },
+
+      // MASTERY ACHIEVEMENTS (9 achievements = 27 keys)
+      level_up: {
+        progress: 'Alcanza Nivel 10 (actual: Nivel {{current}})',
+        requirement: 'Alcanza Nivel 10',
+        action: '¡Sigue ganando XP a través de actividades!'
+      },
+      selfrise_expert: {
+        progress: 'Alcanza Nivel 25 (actual: Nivel {{current}})',
+        requirement: 'Alcanza Nivel 25',
+        action: '¡Te estás convirtiendo en un experto de SelfRise!'
+      },
+      selfrise_master: {
+        progress: 'Alcanza Nivel 50 (actual: Nivel {{current}})',
+        requirement: 'Alcanza Nivel 50',
+        action: '¡Nivel maestro acercándose - sigue creciendo!'
+      },
+      ultimate_selfrise_legend: {
+        progress: 'Alcanza Nivel 100 (actual: Nivel {{current}})',
+        requirement: 'Alcanza el Nivel 100 máximo',
+        action: '¡El logro definitivo - el estatus legendario te espera!'
+      },
+      trophy_collector_basic: {
+        progress: 'Desbloquea 10 logros ({{current}}/{{target}})',
+        requirement: 'Desbloquea 10 logros en total',
+        action: '¡Sigue desbloqueando logros en todas las categorías!'
+      },
+      trophy_collector_master: {
+        progress: 'Desbloquea 30 logros ({{current}}/{{target}})',
+        requirement: 'Desbloquea 30 logros en total',
+        action: '¡Estatus de coleccionista maestro - encuentra todos los logros!'
+      },
+      recommendation_master: {
+        progress: 'Sigue {{current}} recomendaciones',
+        requirement: 'Sigue {{target}} recomendaciones personalizadas',
+        action: '¡Revisa la sección de Recomendaciones y sigue la guía!'
+      },
+      balance_master_alt: {
+        progress: 'Días equilibrados: {{current}}/{{target}}',
+        requirement: 'Usa hábitos, diario y metas en un día durante {{target}} días',
+        action: '¡Sigue usando las tres funciones diariamente!'
+      },
+      harmony_streak: {
+        progress: 'Racha de armonía actual: {{current}} días',
+        requirement: 'Mantén armonía (todas las funciones) durante {{target}} días consecutivos',
+        action: '¡Completa hábitos, diario y metas cada día!'
+      },
+
+      // SPECIAL ACHIEVEMENTS (14 achievements = 42 keys)
+      lightning_start: {
+        progress: 'Inicios rápidos: {{current}}/{{target}}',
+        requirement: 'Crea y completa un hábito el mismo día ({{target}} veces)',
+        action: '¡Crea un hábito y complétalo hoy!'
+      },
+      seven_wonder: {
+        progress: 'Hábitos activos: {{current}}/{{target}}',
+        requirement: 'Ten {{target}} hábitos activos simultáneamente',
+        action: '¡Crea más hábitos para alcanzar {{target}} hábitos activos!'
+      },
+      persistence_pays: {
+        progress: 'Regresos: {{current}}/{{target}}',
+        requirement: 'Regresa a la app después de 7+ días de inactividad ({{target}} veces)',
+        action: '¡Incluso si tomas un descanso, volver es lo que importa!'
+      },
+      legendary_master: {
+        progress: '{{current}}% hacia estatus legendario',
+        requirement: 'Completa todos los hitos principales en todas las categorías',
+        action: '¡Domina cada aspecto de SelfRise para alcanzar el estatus legendario!'
+      },
+
+      // Loyalty Achievements (10 achievements = 30 keys)
+      loyalty_first_week: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '7 días activos en total',
+        action: '¡Sigue usando la app diariamente!'
+      },
+      loyalty_two_weeks_strong: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '14 días activos en total',
+        action: '¡Tu compromiso está creciendo!'
+      },
+      loyalty_three_weeks_committed: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '21 días activos en total',
+        action: '¡Tres semanas de dedicación!'
+      },
+      loyalty_month_explorer: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '30 días activos en total',
+        action: '¡Explorando tu potencial!'
+      },
+      loyalty_two_month_veteran: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '60 días activos en total',
+        action: '¡Experimentado en crecimiento personal!'
+      },
+      loyalty_century_user: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '100 días activos en total',
+        action: '¡Estatus de usuario élite acercándose!'
+      },
+      loyalty_half_year_hero: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '183 días activos en total',
+        action: '¡Tu compromiso es legendario!'
+      },
+      loyalty_year_legend: {
+        progress: 'Días activos: {{current}}/{{target}})',
+        requirement: '365 días activos en total',
+        action: '¡Estatus legendario al alcance!'
+      },
+      loyalty_ultimate_veteran: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '500 días activos en total',
+        action: '¡Dedicación definitiva!'
+      },
+      loyalty_master: {
+        progress: 'Días activos: {{current}}/{{target}}',
+        requirement: '1000 días activos en total',
+        action: '¡Maestro de lealtad - eres imparable!'
+      },
+    },
   } as any,
 
   // Auth screens

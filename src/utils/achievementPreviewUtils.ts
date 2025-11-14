@@ -3,6 +3,7 @@
 
 import { Achievement, AchievementRarity, AchievementCategory } from '../types/gamification';
 import { getGratitudeStorageImpl } from '../config/featureFlags';
+import { TFunction } from 'i18next';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
@@ -127,42 +128,42 @@ const checkDeepThinkingEntries = async (): Promise<{ hasDeepEntry: boolean; tota
 // PROGRESS HINT GENERATION
 // ========================================
 
-export const generateProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+export const generateProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.category) {
     case AchievementCategory.HABITS:
-      return generateHabitProgressHint(achievement, userStats);
+      return generateHabitProgressHint(achievement, userStats, t);
     case AchievementCategory.JOURNAL:
-      return generateJournalProgressHint(achievement, userStats);
+      return generateJournalProgressHint(achievement, userStats, t);
     case AchievementCategory.GOALS:
-      return generateGoalProgressHint(achievement, userStats);
+      return generateGoalProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateConsistencyProgressHint(achievement, userStats);
+      return generateConsistencyProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateMasteryProgressHint(achievement, userStats);
+      return generateMasteryProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateSpecialProgressHint(achievement, userStats);
+      return generateSpecialProgressHint(achievement, userStats, t);
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
 // Asynchronous version for achievements that need async data
-export const generateProgressHintAsync = async (achievement: Achievement, userStats: UserStats): Promise<ProgressHint> => {
+export const generateProgressHintAsync = async (achievement: Achievement, userStats: UserStats, t: TFunction): Promise<ProgressHint> => {
   switch (achievement.category) {
     case AchievementCategory.HABITS:
-      return generateHabitProgressHint(achievement, userStats);
+      return generateHabitProgressHint(achievement, userStats, t);
     case AchievementCategory.JOURNAL:
-      return await generateJournalProgressHintAsync(achievement, userStats);
+      return await generateJournalProgressHintAsync(achievement, userStats, t);
     case AchievementCategory.GOALS:
-      return generateGoalProgressHint(achievement, userStats);
+      return generateGoalProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateConsistencyProgressHint(achievement, userStats);
+      return generateConsistencyProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateMasteryProgressHint(achievement, userStats);
+      return generateMasteryProgressHint(achievement, userStats, t);
     case AchievementCategory.CONSISTENCY:
-      return generateSpecialProgressHint(achievement, userStats);
+      return generateSpecialProgressHint(achievement, userStats, t);
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
@@ -170,181 +171,189 @@ export const generateProgressHintAsync = async (achievement: Achievement, userSt
 // CATEGORY-SPECIFIC HINTS
 // ========================================
 
-const generateHabitProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateHabitProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'first-habit':
       return {
-        progressText: userStats.habitsCreated === 0 ? "Create your first habit to begin!" : "✅ First habit created!",
+        progressText: userStats.habitsCreated === 0
+          ? t('achievements.preview.first_habit.progress_incomplete')
+          : t('achievements.preview.first_habit.progress_complete'),
         progressPercentage: userStats.habitsCreated > 0 ? 100 : 0,
         isCompleted: userStats.habitsCreated > 0,
-        requirementText: "Create your very first habit",
-        actionHint: "Go to Habits tab and create your first habit!"
+        requirementText: t('achievements.preview.first_habit.requirement'),
+        actionHint: t('achievements.preview.first_habit.action')
       };
       
     case 'habit-builder':
       const created = Math.min(userStats.habitsCreated, 5);
       return {
-        progressText: `Create 5 habits (${created}/5)`,
+        progressText: t('achievements.preview.habit_builder.progress', { current: created, target: 5 }),
         progressPercentage: (created / 5) * 100,
         isCompleted: created >= 5,
-        requirementText: "Create 5 different habits to diversify development",
-        actionHint: "Create more habits to diversify your growth!",
+        requirementText: t('achievements.preview.habit_builder.requirement'),
+        actionHint: t('achievements.preview.habit_builder.action'),
         estimatedDays: Math.max(0, 5 - created)
       };
       
     case 'century-club':
       const completed = Math.min(userStats.totalHabitCompletions, 100);
       return {
-        progressText: `Complete 100 habits (${completed}/100)`,
+        progressText: t('achievements.preview.century_club.progress', { current: completed, target: 100 }),
         progressPercentage: (completed / 100) * 100,
         isCompleted: completed >= 100,
-        requirementText: "Complete 100 habit tasks total",
-        actionHint: "Keep completing your daily habits!",
+        requirementText: t('achievements.preview.century_club.requirement'),
+        actionHint: t('achievements.preview.century_club.action'),
         estimatedDays: Math.ceil((100 - completed) / 2) // Assuming 2 habits per day
       };
       
     case 'consistency-king':
       const total = Math.min(userStats.totalHabitCompletions, 1000);
       return {
-        progressText: `Complete 1000 habits (${total}/1000)`,
+        progressText: t('achievements.preview.consistency_king.progress', { current: total, target: 1000 }),
         progressPercentage: (total / 1000) * 100,
         isCompleted: total >= 1000,
-        requirementText: "Complete 1000 habit tasks total",
-        actionHint: "You're building amazing consistency!",
+        requirementText: t('achievements.preview.consistency_king.requirement'),
+        actionHint: t('achievements.preview.consistency_king.action'),
         estimatedDays: Math.ceil((1000 - total) / 3) // Assuming 3 habits per day
       };
       
     case 'streak-champion':
       const streak = Math.min(userStats.longestHabitStreak, 21);
       return {
-        progressText: `Achieve 21-day streak (best: ${userStats.longestHabitStreak} days)`,
+        progressText: t('achievements.preview.streak_champion.progress', { current: userStats.longestHabitStreak, target: 21 }),
         progressPercentage: (streak / 21) * 100,
         isCompleted: userStats.longestHabitStreak >= 21,
-        requirementText: "Achieve a 21-day streak with any single habit",
-        actionHint: "Focus on consistency with one habit!",
+        requirementText: t('achievements.preview.streak_champion.requirement'),
+        actionHint: t('achievements.preview.streak_champion.action'),
         estimatedDays: Math.max(0, 21 - userStats.longestHabitStreak)
       };
       
     case 'century-streak':
       const longStreak = Math.min(userStats.longestHabitStreak, 75);
       return {
-        progressText: `Achieve 75-day streak (best: ${userStats.longestHabitStreak} days)`,
+        progressText: t('achievements.preview.century_streak.progress', { current: userStats.longestHabitStreak, target: 75 }),
         progressPercentage: (longStreak / 75) * 100,
         isCompleted: userStats.longestHabitStreak >= 75,
-        requirementText: "Maintain a 75-day streak with any habit",
-        actionHint: "Incredible dedication! Keep the streak alive!",
+        requirementText: t('achievements.preview.century_streak.requirement'),
+        actionHint: t('achievements.preview.century_streak.action'),
         estimatedDays: Math.max(0, 75 - userStats.longestHabitStreak)
       };
       
     case 'multi-tasker':
       const maxInDay = Math.min(userStats.maxHabitsInOneDay, 5);
       return {
-        progressText: `Complete 5 habits in one day (best: ${userStats.maxHabitsInOneDay})`,
+        progressText: t('achievements.preview.multi_tasker.progress', { current: userStats.maxHabitsInOneDay, target: 5 }),
         progressPercentage: (maxInDay / 5) * 100,
         isCompleted: userStats.maxHabitsInOneDay >= 5,
-        requirementText: "Complete 5 different habits in a single day",
-        actionHint: "Challenge yourself with multiple habits today!"
+        requirementText: t('achievements.preview.multi_tasker.requirement'),
+        actionHint: t('achievements.preview.multi_tasker.action')
       };
       
     case 'habit-legend':
       const levelProgress = userStats.currentLevel >= 50 && (userStats.xpFromHabits / userStats.totalXP) >= 0.5;
+      const habitXPPercent = Math.round((userStats.xpFromHabits / userStats.totalXP) * 100);
       return {
-        progressText: `Reach Level 50 with 50%+ XP from habits (Level ${userStats.currentLevel}, ${Math.round((userStats.xpFromHabits / userStats.totalXP) * 100)}% habit XP)`,
+        progressText: t('achievements.preview.habit_legend.progress', {
+          level: userStats.currentLevel,
+          xpPercent: habitXPPercent
+        }),
         progressPercentage: levelProgress ? 100 : Math.min((userStats.currentLevel / 50) * 50 + ((userStats.xpFromHabits / userStats.totalXP) * 50), 100),
         isCompleted: levelProgress,
-        requirementText: "Reach Level 50 with 50%+ XP from habit activities",
-        actionHint: "Focus on habit activities to boost your XP ratio!"
+        requirementText: t('achievements.preview.habit_legend.requirement'),
+        actionHint: t('achievements.preview.habit_legend.action')
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
-const generateJournalProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateJournalProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'first-journal':
       return {
-        progressText: userStats.journalEntries === 0 ? "Write your first gratitude entry!" : "✅ First reflection completed!",
+        progressText: userStats.journalEntries === 0
+          ? t('achievements.preview.first_journal.progress_incomplete')
+          : t('achievements.preview.first_journal.progress_complete'),
         progressPercentage: userStats.journalEntries > 0 ? 100 : 0,
         isCompleted: userStats.journalEntries > 0,
-        requirementText: "Write your first gratitude journal entry",
-        actionHint: "Go to Journal tab and write your first entry!"
+        requirementText: t('achievements.preview.first_journal.requirement'),
+        actionHint: t('achievements.preview.first_journal.action')
       };
       
     case 'deep-thinker':
       // Synchronous fallback - shows progress as pending async load
       return {
-        progressText: "Checking your thoughtful entries...",
+        progressText: t('achievements.preview.deep_thinker.progress_checking'),
         progressPercentage: 0,
         isCompleted: false,
-        requirementText: "Write a journal entry with at least 200 characters",
-        actionHint: "Express yourself fully in your next journal entry! (Use async version for real progress)"
+        requirementText: t('achievements.preview.deep_thinker.requirement'),
+        actionHint: t('achievements.preview.deep_thinker.action')
       };
       
     case 'journal-enthusiast':
       const entries = Math.min(userStats.totalJournalEntries, 100);
       return {
-        progressText: `Write 100 journal entries (${entries}/100)`,
+        progressText: t('achievements.preview.journal_enthusiast.progress', { current: entries, target: 100 }),
         progressPercentage: (entries / 100) * 100,
         isCompleted: entries >= 100,
-        requirementText: "Write 100 journal entries total",
-        actionHint: "Keep expressing gratitude daily!",
+        requirementText: t('achievements.preview.journal_enthusiast.requirement'),
+        actionHint: t('achievements.preview.journal_enthusiast.action'),
         estimatedDays: Math.ceil((100 - entries) / 1) // 1 entry per day
       };
-      
+
     case 'grateful-heart':
       const currentStreak = Math.min(userStats.currentJournalStreak, 7);
       return {
-        progressText: `Maintain 7-day streak (current: ${userStats.currentJournalStreak} days)`,
+        progressText: t('achievements.preview.grateful_heart.progress', { current: userStats.currentJournalStreak, target: 7 }),
         progressPercentage: (currentStreak / 7) * 100,
         isCompleted: userStats.currentJournalStreak >= 7,
-        requirementText: "Maintain a 7-day journal writing streak",
-        actionHint: "Keep your streak alive with daily entries!",
+        requirementText: t('achievements.preview.grateful_heart.requirement'),
+        actionHint: t('achievements.preview.grateful_heart.action'),
         estimatedDays: Math.max(0, 7 - userStats.currentJournalStreak)
       };
-      
+
     case 'journal-streaker':
       const streak21 = Math.min(userStats.longestJournalStreak, 21);
       return {
-        progressText: `Achieve 21-day streak (best: ${userStats.longestJournalStreak} days)`,
+        progressText: t('achievements.preview.journal_streaker.progress', { current: userStats.longestJournalStreak, target: 21 }),
         progressPercentage: (streak21 / 21) * 100,
         isCompleted: userStats.longestJournalStreak >= 21,
-        requirementText: "Write in your journal for 21 consecutive days",
-        actionHint: "Building a strong gratitude habit!",
+        requirementText: t('achievements.preview.journal_streaker.requirement'),
+        actionHint: t('achievements.preview.journal_streaker.action'),
         estimatedDays: Math.max(0, 21 - userStats.longestJournalStreak)
       };
-      
+
     case 'gratitude-guru':
       const streak30 = Math.min(userStats.longestJournalStreak, 30);
       return {
-        progressText: `Achieve 30-day streak (best: ${userStats.longestJournalStreak} days)`,
+        progressText: t('achievements.preview.gratitude_guru.progress', { current: userStats.longestJournalStreak, target: 30 }),
         progressPercentage: (streak30 / 30) * 100,
         isCompleted: userStats.longestJournalStreak >= 30,
-        requirementText: "Achieve a 30-day journal writing streak",
-        actionHint: "You're becoming a gratitude master!",
+        requirementText: t('achievements.preview.gratitude_guru.requirement'),
+        actionHint: t('achievements.preview.gratitude_guru.action'),
         estimatedDays: Math.max(0, 30 - userStats.longestJournalStreak)
       };
-      
+
     case 'eternal-gratitude':
       const streak100 = Math.min(userStats.longestJournalStreak, 100);
       return {
-        progressText: `Achieve 100-day streak (best: ${userStats.longestJournalStreak} days)`,
+        progressText: t('achievements.preview.eternal_gratitude.progress', { current: userStats.longestJournalStreak, target: 100 }),
         progressPercentage: (streak100 / 100) * 100,
         isCompleted: userStats.longestJournalStreak >= 100,
-        requirementText: "Maintain a 100-day journal streak",
-        actionHint: "Incredible dedication to gratitude!",
+        requirementText: t('achievements.preview.eternal_gratitude.requirement'),
+        actionHint: t('achievements.preview.eternal_gratitude.action'),
         estimatedDays: Math.max(0, 100 - userStats.longestJournalStreak)
       };
-      
+
     case 'bonus-seeker':
       const bonusEntries = Math.min(userStats.bonusJournalEntries, 50);
       return {
-        progressText: `Write 50 bonus entries (${bonusEntries}/50)`,
+        progressText: t('achievements.preview.bonus_seeker.progress', { current: bonusEntries, target: 50 }),
         progressPercentage: (bonusEntries / 50) * 100,
         isCompleted: bonusEntries >= 50,
-        requirementText: "Write 50 bonus journal entries",
-        actionHint: "Go beyond the daily minimum with bonus entries!",
+        requirementText: t('achievements.preview.bonus_seeker.requirement'),
+        actionHint: t('achievements.preview.bonus_seeker.action'),
         estimatedDays: Math.ceil((50 - bonusEntries) / 2) // Assuming 2 bonus per day
       };
 
@@ -357,94 +366,100 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
 
     case 'first-star':
       return {
-        progressText: userStats.starCount === 0 ? "Get your first ⭐ bonus milestone!" : "✅ First star earned!",
+        progressText: userStats.starCount === 0
+          ? t('achievements.preview.first_star.progress_incomplete')
+          : t('achievements.preview.first_star.progress_complete'),
         progressPercentage: userStats.starCount > 0 ? 100 : 0,
         isCompleted: userStats.starCount > 0,
-        requirementText: "Write your first bonus journal entry to get a star",
-        actionHint: "Write 4+ journal entries today to earn your first ⭐!"
+        requirementText: t('achievements.preview.first_star.requirement'),
+        actionHint: t('achievements.preview.first_star.action')
       };
 
     case 'five-stars':
       const stars5 = Math.min(userStats.starCount, 5);
       return {
-        progressText: `Earn 5 stars total (${stars5}/5)`,
+        progressText: t('achievements.preview.five_stars.progress', { current: stars5, target: 5 }),
         progressPercentage: (stars5 / 5) * 100,
         isCompleted: stars5 >= 5,
-        requirementText: "Earn ⭐ milestone 5 times total",
-        actionHint: "Keep writing bonus entries to earn more stars!",
+        requirementText: t('achievements.preview.five_stars.requirement'),
+        actionHint: t('achievements.preview.five_stars.action'),
         estimatedDays: Math.max(0, 5 - stars5)
       };
 
     case 'flame-achiever':
       return {
-        progressText: userStats.flameCount === 0 ? "Get your first 🔥 flame milestone!" : "✅ First flame earned!",
+        progressText: userStats.flameCount === 0
+          ? t('achievements.preview.flame_achiever.progress_incomplete')
+          : t('achievements.preview.flame_achiever.progress_complete'),
         progressPercentage: userStats.flameCount > 0 ? 100 : 0,
         isCompleted: userStats.flameCount > 0,
-        requirementText: "Write 5+ bonus entries in one day to earn a flame",
-        actionHint: "Challenge yourself with 8+ journal entries in one day!"
+        requirementText: t('achievements.preview.flame_achiever.requirement'),
+        actionHint: t('achievements.preview.flame_achiever.action')
       };
 
     case 'bonus-week':
       const bonusWeek = Math.min(userStats.bonusStreakDays, 7);
       return {
-        progressText: `Bonus streak 7 days (${bonusWeek}/7)`,
+        progressText: t('achievements.preview.bonus_week.progress', { current: bonusWeek, target: 7 }),
         progressPercentage: (bonusWeek / 7) * 100,
         isCompleted: bonusWeek >= 7,
-        requirementText: "Write at least 1 bonus entry for 7 consecutive days",
-        actionHint: "Write 4+ entries daily to maintain your bonus streak!",
+        requirementText: t('achievements.preview.bonus_week.requirement'),
+        actionHint: t('achievements.preview.bonus_week.action'),
         estimatedDays: Math.max(0, 7 - bonusWeek)
       };
 
     case 'crown-royalty':
       return {
-        progressText: userStats.crownCount === 0 ? "Get your first 👑 crown milestone!" : "✅ First crown earned!",
+        progressText: userStats.crownCount === 0
+          ? t('achievements.preview.crown_royalty.progress_incomplete')
+          : t('achievements.preview.crown_royalty.progress_complete'),
         progressPercentage: userStats.crownCount > 0 ? 100 : 0,
         isCompleted: userStats.crownCount > 0,
-        requirementText: "Write 10+ bonus entries in one day to earn a crown",
-        actionHint: "Go for royal status with 13+ journal entries in one day!"
+        requirementText: t('achievements.preview.crown_royalty.requirement'),
+        actionHint: t('achievements.preview.crown_royalty.action')
       };
 
     case 'flame-collector':
       const flameCollector = Math.min(userStats.flameCount, 5);
       return {
-        progressText: `Collect 5 flames total (${flameCollector}/5)`,
+        progressText: t('achievements.preview.flame_collector.progress', { current: flameCollector, target: 5 }),
         progressPercentage: (flameCollector / 5) * 100,
         isCompleted: flameCollector >= 5,
-        requirementText: "Earn 🔥 milestone 5 times total",
-        actionHint: "Keep having intense gratitude days with 5+ bonus entries!",
+        requirementText: t('achievements.preview.flame_collector.requirement'),
+        actionHint: t('achievements.preview.flame_collector.action'),
         estimatedDays: Math.max(0, 5 - flameCollector) * 7 // Rough estimate
       };
 
     case 'golden-bonus-streak':
       const goldenStreak = Math.min(userStats.goldenBonusStreakDays, 7);
       return {
-        progressText: `Golden bonus streak 7 days (${goldenStreak}/7)`,
+        progressText: t('achievements.preview.golden_bonus_streak.progress', { current: goldenStreak, target: 7 }),
         progressPercentage: (goldenStreak / 7) * 100,
         isCompleted: goldenStreak >= 7,
-        requirementText: "Write 3+ bonus entries daily for 7 consecutive days",
-        actionHint: "Write 6+ entries daily for the ultimate bonus streak!",
+        requirementText: t('achievements.preview.golden_bonus_streak.requirement'),
+        actionHint: t('achievements.preview.golden_bonus_streak.action'),
         estimatedDays: Math.max(0, 7 - goldenStreak)
       };
 
     case 'triple-crown-master':
       const tripleCrown = Math.min(userStats.crownCount, 3);
       return {
-        progressText: `Earn 3 crowns total (${tripleCrown}/3)`,
+        progressText: t('achievements.preview.triple_crown_master.progress', { current: tripleCrown, target: 3 }),
         progressPercentage: (tripleCrown / 3) * 100,
         isCompleted: tripleCrown >= 3,
-        requirementText: "Earn 👑 milestone 3 times total",
-        actionHint: "Master the art of royal gratitude days!",
+        requirementText: t('achievements.preview.triple_crown_master.requirement'),
+        actionHint: t('achievements.preview.triple_crown_master.action'),
         estimatedDays: Math.max(0, 3 - tripleCrown) * 30 // Rough estimate
       };
 
     case 'bonus-century':
       const bonusCentury = Math.min(userStats.bonusJournalEntries, 200);
       return {
-        progressText: `Write 200 bonus entries (${bonusCentury}/200)`,
+        progressText: t('achievements.preview.bonus_century.progress', { current: bonusCentury, target: 200 }),
         progressPercentage: (bonusCentury / 200) * 100,
         isCompleted: bonusCentury >= 200,
-        requirementText: "Write 200 bonus journal entries total",
-        actionHint: "Ultimate bonus mastery - keep writing beyond the minimum!",
+        requirementText: t('achievements.preview.bonus_century.requirement'),
+        actionHint: t('achievements.preview.bonus_century.action'),
         estimatedDays: Math.ceil((200 - bonusCentury) / 2) // Assuming 2 bonus per day
       };
 
@@ -453,55 +468,55 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
     case 'star-beginner':
       const starBeginner = Math.min(userStats.starCount, 10);
       return {
-        progressText: `Earn 10 stars total (${starBeginner}/10)`,
+        progressText: t('achievements.preview.star_beginner.progress', { current: starBeginner, target: 10 }),
         progressPercentage: (starBeginner / 10) * 100,
         isCompleted: starBeginner >= 10,
-        requirementText: "Earn ⭐ milestone 10 times total",
-        actionHint: "Build your collection of bonus days!",
+        requirementText: t('achievements.preview.star_beginner.requirement'),
+        actionHint: t('achievements.preview.star_beginner.action'),
         estimatedDays: Math.max(0, 10 - starBeginner)
       };
 
     case 'star-collector':
       const starCollector = Math.min(userStats.starCount, 25);
       return {
-        progressText: `Earn 25 stars total (${starCollector}/25)`,
+        progressText: t('achievements.preview.star_collector.progress', { current: starCollector, target: 25 }),
         progressPercentage: (starCollector / 25) * 100,
         isCompleted: starCollector >= 25,
-        requirementText: "Earn ⭐ milestone 25 times total",
-        actionHint: "You're becoming a star collector!",
+        requirementText: t('achievements.preview.star_collector.requirement'),
+        actionHint: t('achievements.preview.star_collector.action'),
         estimatedDays: Math.max(0, 25 - starCollector)
       };
 
     case 'star-master':
       const starMaster = Math.min(userStats.starCount, 50);
       return {
-        progressText: `Earn 50 stars total (${starMaster}/50)`,
+        progressText: t('achievements.preview.star_master.progress', { current: starMaster, target: 50 }),
         progressPercentage: (starMaster / 50) * 100,
         isCompleted: starMaster >= 50,
-        requirementText: "Earn ⭐ milestone 50 times total",
-        actionHint: "Master level star achievement!",
+        requirementText: t('achievements.preview.star_master.requirement'),
+        actionHint: t('achievements.preview.star_master.action'),
         estimatedDays: Math.max(0, 50 - starMaster)
       };
 
     case 'star-champion':
       const starChampion = Math.min(userStats.starCount, 100);
       return {
-        progressText: `Earn 100 stars total (${starChampion}/100)`,
+        progressText: t('achievements.preview.star_champion.progress', { current: starChampion, target: 100 }),
         progressPercentage: (starChampion / 100) * 100,
         isCompleted: starChampion >= 100,
-        requirementText: "Earn ⭐ milestone 100 times total",
-        actionHint: "Champion level dedication to bonus gratitude!",
+        requirementText: t('achievements.preview.star_champion.requirement'),
+        actionHint: t('achievements.preview.star_champion.action'),
         estimatedDays: Math.max(0, 100 - starChampion)
       };
 
     case 'star-legend':
       const starLegend = Math.min(userStats.starCount, 200);
       return {
-        progressText: `Earn 200 stars total (${starLegend}/200)`,
+        progressText: t('achievements.preview.star_legend.progress', { current: starLegend, target: 200 }),
         progressPercentage: (starLegend / 200) * 100,
         isCompleted: starLegend >= 200,
-        requirementText: "Earn ⭐ milestone 200 times total",
-        actionHint: "Legendary star collector status!",
+        requirementText: t('achievements.preview.star_legend.requirement'),
+        actionHint: t('achievements.preview.star_legend.action'),
         estimatedDays: Math.max(0, 200 - starLegend)
       };
 
@@ -510,55 +525,55 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
     case 'flame-starter':
       const flameStarter = Math.min(userStats.flameCount, 5);
       return {
-        progressText: `Earn 5 flames total (${flameStarter}/5)`,
+        progressText: t('achievements.preview.flame_starter.progress', { current: flameStarter, target: 5 }),
         progressPercentage: (flameStarter / 5) * 100,
         isCompleted: flameStarter >= 5,
-        requirementText: "Earn 🔥 milestone 5 times total",
-        actionHint: "Starting your flame collection!",
+        requirementText: t('achievements.preview.flame_starter.requirement'),
+        actionHint: t('achievements.preview.flame_starter.action'),
         estimatedDays: Math.max(0, 5 - flameStarter) * 7
       };
 
     case 'flame-accumulator':
       const flameAccumulator = Math.min(userStats.flameCount, 10);
       return {
-        progressText: `Earn 10 flames total (${flameAccumulator}/10)`,
+        progressText: t('achievements.preview.flame_accumulator.progress', { current: flameAccumulator, target: 10 }),
         progressPercentage: (flameAccumulator / 10) * 100,
         isCompleted: flameAccumulator >= 10,
-        requirementText: "Earn 🔥 milestone 10 times total",
-        actionHint: "Accumulating intense gratitude days!",
+        requirementText: t('achievements.preview.flame_accumulator.requirement'),
+        actionHint: t('achievements.preview.flame_accumulator.action'),
         estimatedDays: Math.max(0, 10 - flameAccumulator) * 14
       };
 
     case 'flame-master':
       const flameMaster = Math.min(userStats.flameCount, 25);
       return {
-        progressText: `Earn 25 flames total (${flameMaster}/25)`,
+        progressText: t('achievements.preview.flame_master.progress', { current: flameMaster, target: 25 }),
         progressPercentage: (flameMaster / 25) * 100,
         isCompleted: flameMaster >= 25,
-        requirementText: "Earn 🔥 milestone 25 times total",
-        actionHint: "Master of systematic intense days!",
+        requirementText: t('achievements.preview.flame_master.requirement'),
+        actionHint: t('achievements.preview.flame_master.action'),
         estimatedDays: Math.max(0, 25 - flameMaster) * 10
       };
 
     case 'flame-champion':
       const flameChampion = Math.min(userStats.flameCount, 50);
       return {
-        progressText: `Earn 50 flames total (${flameChampion}/50)`,
+        progressText: t('achievements.preview.flame_champion.progress', { current: flameChampion, target: 50 }),
         progressPercentage: (flameChampion / 50) * 100,
         isCompleted: flameChampion >= 50,
-        requirementText: "Earn 🔥 milestone 50 times total",
-        actionHint: "Champion of deep daily reflection!",
+        requirementText: t('achievements.preview.flame_champion.requirement'),
+        actionHint: t('achievements.preview.flame_champion.action'),
         estimatedDays: Math.max(0, 50 - flameChampion) * 7
       };
 
     case 'flame-legend':
       const flameLegend = Math.min(userStats.flameCount, 100);
       return {
-        progressText: `Earn 100 flames total (${flameLegend}/100)`,
+        progressText: t('achievements.preview.flame_legend.progress', { current: flameLegend, target: 100 }),
         progressPercentage: (flameLegend / 100) * 100,
         isCompleted: flameLegend >= 100,
-        requirementText: "Earn 🔥 milestone 100 times total",
-        actionHint: "Legendary master of intense gratitude!",
+        requirementText: t('achievements.preview.flame_legend.requirement'),
+        actionHint: t('achievements.preview.flame_legend.action'),
         estimatedDays: Math.max(0, 100 - flameLegend) * 4
       };
 
@@ -567,371 +582,381 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
     case 'crown-achiever':
       const crownAchiever = Math.min(userStats.crownCount, 3);
       return {
-        progressText: `Earn 3 crowns total (${crownAchiever}/3)`,
+        progressText: t('achievements.preview.crown_achiever.progress', { current: crownAchiever, target: 3 }),
         progressPercentage: (crownAchiever / 3) * 100,
         isCompleted: crownAchiever >= 3,
-        requirementText: "Earn 👑 milestone 3 times total",
-        actionHint: "Achieve royal reflection days!",
+        requirementText: t('achievements.preview.crown_achiever.requirement'),
+        actionHint: t('achievements.preview.crown_achiever.action'),
         estimatedDays: Math.max(0, 3 - crownAchiever) * 60
       };
 
     case 'crown-collector':
       const crownCollector = Math.min(userStats.crownCount, 5);
       return {
-        progressText: `Earn 5 crowns total (${crownCollector}/5)`,
+        progressText: t('achievements.preview.crown_collector.progress', { current: crownCollector, target: 5 }),
         progressPercentage: (crownCollector / 5) * 100,
         isCompleted: crownCollector >= 5,
-        requirementText: "Earn 👑 milestone 5 times total",
-        actionHint: "Collecting royal gratitude experiences!",
+        requirementText: t('achievements.preview.crown_collector.requirement'),
+        actionHint: t('achievements.preview.crown_collector.action'),
         estimatedDays: Math.max(0, 5 - crownCollector) * 45
       };
 
     case 'crown-master':
       const crownMaster = Math.min(userStats.crownCount, 10);
       return {
-        progressText: `Earn 10 crowns total (${crownMaster}/10)`,
+        progressText: t('achievements.preview.crown_master.progress', { current: crownMaster, target: 10 }),
         progressPercentage: (crownMaster / 10) * 100,
         isCompleted: crownMaster >= 10,
-        requirementText: "Earn 👑 milestone 10 times total",
-        actionHint: "Master of royal-level reflection!",
+        requirementText: t('achievements.preview.crown_master.requirement'),
+        actionHint: t('achievements.preview.crown_master.action'),
         estimatedDays: Math.max(0, 10 - crownMaster) * 30
       };
 
     case 'crown-champion':
       const crownChampion = Math.min(userStats.crownCount, 25);
       return {
-        progressText: `Earn 25 crowns total (${crownChampion}/25)`,
+        progressText: t('achievements.preview.crown_champion.progress', { current: crownChampion, target: 25 }),
         progressPercentage: (crownChampion / 25) * 100,
         isCompleted: crownChampion >= 25,
-        requirementText: "Earn 👑 milestone 25 times total",
-        actionHint: "Champion of royal gratitude days!",
+        requirementText: t('achievements.preview.crown_champion.requirement'),
+        actionHint: t('achievements.preview.crown_champion.action'),
         estimatedDays: Math.max(0, 25 - crownChampion) * 14
       };
 
     case 'crown-emperor':
       const crownEmperor = Math.min(userStats.crownCount, 50);
       return {
-        progressText: `Earn 50 crowns total (${crownEmperor}/50)`,
+        progressText: t('achievements.preview.crown_emperor.progress', { current: crownEmperor, target: 50 }),
         progressPercentage: (crownEmperor / 50) * 100,
         isCompleted: crownEmperor >= 50,
-        requirementText: "Earn 👑 milestone 50 times total",
-        actionHint: "Imperial status in deep reflection practice!",
+        requirementText: t('achievements.preview.crown_emperor.requirement'),
+        actionHint: t('achievements.preview.crown_emperor.action'),
         estimatedDays: Math.max(0, 50 - crownEmperor) * 7
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
 // Async version for journal achievements that need real-time data
-const generateJournalProgressHintAsync = async (achievement: Achievement, userStats: UserStats): Promise<ProgressHint> => {
+const generateJournalProgressHintAsync = async (achievement: Achievement, userStats: UserStats, t: TFunction): Promise<ProgressHint> => {
   switch (achievement.id) {
     case 'first-journal':
       return {
-        progressText: userStats.journalEntries === 0 ? "Write your first gratitude entry!" : "✅ First reflection completed!",
+        progressText: userStats.journalEntries === 0
+          ? t('achievements.preview.first_journal.progress_incomplete')
+          : t('achievements.preview.first_journal.progress_complete'),
         progressPercentage: userStats.journalEntries > 0 ? 100 : 0,
         isCompleted: userStats.journalEntries > 0,
-        requirementText: "Write your first gratitude journal entry",
-        actionHint: "Go to Journal tab and write your first entry!"
+        requirementText: t('achievements.preview.first_journal.requirement'),
+        actionHint: t('achievements.preview.first_journal.action')
       };
-      
+
     case 'deep-thinker':
       const deepThinkingData = await checkDeepThinkingEntries();
       return {
-        progressText: deepThinkingData.hasDeepEntry 
-          ? `✅ Deep thinking achieved! (${deepThinkingData.totalLongEntries} entries ≥200 chars)`
-          : `Write thoughtfully (longest: ${deepThinkingData.longestEntry} chars, need: 200+)`,
+        progressText: deepThinkingData.hasDeepEntry
+          ? t('achievements.preview.deep_thinker.progress_complete', { count: deepThinkingData.totalLongEntries })
+          : t('achievements.preview.deep_thinker.progress_incomplete', { longest: deepThinkingData.longestEntry }),
         progressPercentage: deepThinkingData.hasDeepEntry ? 100 : Math.min((deepThinkingData.longestEntry / 200) * 100, 99),
         isCompleted: deepThinkingData.hasDeepEntry,
-        requirementText: "Write a journal entry with at least 200 characters",
-        actionHint: deepThinkingData.hasDeepEntry 
-          ? "You've mastered thoughtful reflection!" 
-          : `Express yourself more fully! You need ${Math.max(0, 200 - deepThinkingData.longestEntry)} more characters.`
+        requirementText: t('achievements.preview.deep_thinker.requirement'),
+        actionHint: deepThinkingData.hasDeepEntry
+          ? t('achievements.preview.deep_thinker.action_complete')
+          : t('achievements.preview.deep_thinker.action_incomplete', { needed: Math.max(0, 200 - deepThinkingData.longestEntry) })
       };
-      
+
     default:
       // For other journal achievements, use the sync version
-      return generateJournalProgressHint(achievement, userStats);
+      return generateJournalProgressHint(achievement, userStats, t);
   }
 };
 
-const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateGoalProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'first-goal':
       return {
-        progressText: userStats.goalsCreated === 0 ? "Set your first goal to start!" : "✅ First goal set!",
+        progressText: userStats.goalsCreated === 0
+          ? t('achievements.preview.first_goal.progress_incomplete')
+          : t('achievements.preview.first_goal.progress_complete'),
         progressPercentage: userStats.goalsCreated > 0 ? 100 : 0,
         isCompleted: userStats.goalsCreated > 0,
-        requirementText: "Set your first goal",
-        actionHint: "Go to Goals tab and create your first goal!"
+        requirementText: t('achievements.preview.first_goal.requirement'),
+        actionHint: t('achievements.preview.first_goal.action')
       };
-      
+
     case 'goal-getter':
       return {
-        progressText: userStats.completedGoals === 0 ? "Complete your first goal!" : "✅ First goal completed!",
+        progressText: userStats.completedGoals === 0
+          ? t('achievements.preview.goal_getter.progress_incomplete')
+          : t('achievements.preview.goal_getter.progress_complete'),
         progressPercentage: userStats.completedGoals > 0 ? 100 : 0,
         isCompleted: userStats.completedGoals > 0,
-        requirementText: "Complete your first goal",
-        actionHint: "Finish one of your goals to unlock this!"
+        requirementText: t('achievements.preview.goal_getter.requirement'),
+        actionHint: t('achievements.preview.goal_getter.action')
       };
-      
+
     case 'goal-achiever':
       const completed3 = Math.min(userStats.completedGoals, 3);
       return {
-        progressText: `Complete 3 goals (${completed3}/3)`,
+        progressText: t('achievements.preview.goal_achiever.progress', { current: completed3, target: 3 }),
         progressPercentage: (completed3 / 3) * 100,
         isCompleted: completed3 >= 3,
-        requirementText: "Complete 3 goals",
-        actionHint: "Keep working towards your goals!",
+        requirementText: t('achievements.preview.goal_achiever.requirement'),
+        actionHint: t('achievements.preview.goal_achiever.action'),
         estimatedDays: (3 - completed3) * 30 // Rough estimate
       };
-      
+
     case 'goal-champion':
       const completed5 = Math.min(userStats.completedGoals, 5);
       return {
-        progressText: `Complete 5 goals (${completed5}/5)`,
+        progressText: t('achievements.preview.goal_champion.progress', { current: completed5, target: 5 }),
         progressPercentage: (completed5 / 5) * 100,
         isCompleted: completed5 >= 5,
-        requirementText: "Complete 5 goals",
-        actionHint: "You're becoming a goal champion!",
+        requirementText: t('achievements.preview.goal_champion.requirement'),
+        actionHint: t('achievements.preview.goal_champion.action'),
         estimatedDays: (5 - completed5) * 30
       };
-      
+
     case 'achievement-unlocked':
       const completed10 = Math.min(userStats.completedGoals, 10);
       return {
-        progressText: `Complete 10 goals (${completed10}/10)`,
+        progressText: t('achievements.preview.achievement_unlocked.progress', { current: completed10, target: 10 }),
         progressPercentage: (completed10 / 10) * 100,
         isCompleted: completed10 >= 10,
-        requirementText: "Complete 10 goals",
-        actionHint: "Ultimate goal achievement awaits!",
+        requirementText: t('achievements.preview.achievement_unlocked.requirement'),
+        actionHint: t('achievements.preview.achievement_unlocked.action'),
         estimatedDays: (10 - completed10) * 30
       };
-      
+
     case 'ambitious':
       return {
-        progressText: userStats.hasLargeGoal ? "✅ Ambitious goal set!" : "Set a goal with target ≥1000",
+        progressText: userStats.hasLargeGoal
+          ? t('achievements.preview.ambitious.progress_complete')
+          : t('achievements.preview.ambitious.progress_incomplete'),
         progressPercentage: userStats.hasLargeGoal ? 100 : 0,
         isCompleted: userStats.hasLargeGoal,
-        requirementText: "Set a goal with target value of 1000 or more",
-        actionHint: "Dream big with an ambitious goal!"
+        requirementText: t('achievements.preview.ambitious.requirement'),
+        actionHint: t('achievements.preview.ambitious.action')
       };
-      
+
     case 'progress-tracker':
       const progressStreak = Math.min(userStats.goalProgressStreak, 7);
       return {
-        progressText: `Make progress 7 days straight (${progressStreak}/7)`,
+        progressText: t('achievements.preview.progress_tracker.progress', { current: progressStreak, target: 7 }),
         progressPercentage: (progressStreak / 7) * 100,
         isCompleted: progressStreak >= 7,
-        requirementText: "Make progress on goals for 7 consecutive days",
-        actionHint: "Update your goal progress daily!",
+        requirementText: t('achievements.preview.progress_tracker.requirement'),
+        actionHint: t('achievements.preview.progress_tracker.action'),
         estimatedDays: Math.max(0, 7 - progressStreak)
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
-const generateConsistencyProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateConsistencyProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'weekly-warrior':
       const weekStreak = Math.min(userStats.longestHabitStreak, 7);
       return {
-        progressText: `Maintain 7-day streak (best: ${userStats.longestHabitStreak} days)`,
+        progressText: t('achievements.preview.weekly_warrior.progress', { current: userStats.longestHabitStreak }),
         progressPercentage: (weekStreak / 7) * 100,
         isCompleted: userStats.longestHabitStreak >= 7,
-        requirementText: "Maintain a 7-day streak in any habit",
-        actionHint: "Focus on consistency with one habit!"
+        requirementText: t('achievements.preview.weekly_warrior.requirement'),
+        actionHint: t('achievements.preview.weekly_warrior.action')
       };
-      
+
     case 'monthly-master':
       const monthStreak = Math.min(userStats.longestHabitStreak, 30);
       return {
-        progressText: `Achieve 30-day streak (best: ${userStats.longestHabitStreak} days)`,
+        progressText: t('achievements.preview.monthly_master.progress', { current: userStats.longestHabitStreak }),
         progressPercentage: (monthStreak / 30) * 100,
         isCompleted: userStats.longestHabitStreak >= 30,
-        requirementText: "Achieve a 30-day streak",
-        actionHint: "You're building incredible consistency!"
+        requirementText: t('achievements.preview.monthly_master.requirement'),
+        actionHint: t('achievements.preview.monthly_master.action')
       };
-      
+
     case 'hundred-days':
       const centStreak = Math.min(userStats.longestHabitStreak, 100);
       return {
-        progressText: `Reach 100 days consistency (best: ${userStats.longestHabitStreak} days)`,
+        progressText: t('achievements.preview.hundred_days.progress', { current: userStats.longestHabitStreak }),
         progressPercentage: (centStreak / 100) * 100,
         isCompleted: userStats.longestHabitStreak >= 100,
-        requirementText: "Reach 100 days of consistency",
-        actionHint: "Legendary consistency achievement!"
+        requirementText: t('achievements.preview.hundred_days.requirement'),
+        actionHint: t('achievements.preview.hundred_days.action')
       };
-      
+
     case 'daily-visitor':
       const appStreak = Math.min(userStats.appUsageStreak, 7);
       return {
-        progressText: `Use app 7 days straight (${appStreak}/7)`,
+        progressText: t('achievements.preview.daily_visitor.progress', { current: appStreak, target: 7 }),
         progressPercentage: (appStreak / 7) * 100,
         isCompleted: appStreak >= 7,
-        requirementText: "Use the app for 7 consecutive days",
-        actionHint: "Open the app daily!"
+        requirementText: t('achievements.preview.daily_visitor.requirement'),
+        actionHint: t('achievements.preview.daily_visitor.action')
       };
-      
+
     case 'dedicated-user':
       const appStreak30 = Math.min(userStats.appUsageStreak, 30);
       return {
-        progressText: `Use app 30 days straight (${appStreak30}/30)`,
+        progressText: t('achievements.preview.dedicated_user.progress', { current: appStreak30, target: 30 }),
         progressPercentage: (appStreak30 / 30) * 100,
         isCompleted: appStreak30 >= 30,
-        requirementText: "Use the app for 30 consecutive days",
-        actionHint: "You're becoming a dedicated user!"
+        requirementText: t('achievements.preview.dedicated_user.requirement'),
+        actionHint: t('achievements.preview.dedicated_user.action')
       };
-      
+
     case 'perfect-month':
       const perfectDays = Math.min(userStats.perfectMonthDays, 28);
       return {
-        progressText: `Perfect month days (${perfectDays}/28)`,
+        progressText: t('achievements.preview.perfect_month.progress', { current: perfectDays, target: 28 }),
         progressPercentage: (perfectDays / 28) * 100,
         isCompleted: perfectDays >= 28,
-        requirementText: "Complete activities in all 3 areas for 28+ days in a month",
-        actionHint: "Use habits, journal, and goals every day this month!"
+        requirementText: t('achievements.preview.perfect_month.requirement'),
+        actionHint: t('achievements.preview.perfect_month.action')
       };
-      
+
     case 'triple-crown':
       return {
-        progressText: userStats.hasTripleCrown ? "✅ Triple Crown achieved!" : "Maintain 7+ day streaks in all areas simultaneously",
+        progressText: userStats.hasTripleCrown
+          ? t('achievements.preview.triple_crown.progress_complete')
+          : t('achievements.preview.triple_crown.progress_incomplete'),
         progressPercentage: userStats.hasTripleCrown ? 100 : 0,
         isCompleted: userStats.hasTripleCrown,
-        requirementText: "Maintain 7+ day streaks in habits, journal, and goals simultaneously",
-        actionHint: "Build consistent streaks across all three features!"
+        requirementText: t('achievements.preview.triple_crown.requirement'),
+        actionHint: t('achievements.preview.triple_crown.action')
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
-const generateMasteryProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateMasteryProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'level-up':
       const level10 = Math.min(userStats.currentLevel, 10);
       return {
-        progressText: `Reach level 10 (current: Level ${userStats.currentLevel})`,
+        progressText: t('achievements.preview.level_up.progress', { current: userStats.currentLevel }),
         progressPercentage: (level10 / 10) * 100,
         isCompleted: userStats.currentLevel >= 10,
-        requirementText: "Reach level 10",
-        actionHint: "Earn more XP to level up!"
+        requirementText: t('achievements.preview.level_up.requirement'),
+        actionHint: t('achievements.preview.level_up.action')
       };
-      
+
     case 'selfrise-expert':
       const level25 = Math.min(userStats.currentLevel, 25);
       return {
-        progressText: `Reach level 25 (current: Level ${userStats.currentLevel})`,
+        progressText: t('achievements.preview.selfrise_expert.progress', { current: userStats.currentLevel }),
         progressPercentage: (level25 / 25) * 100,
         isCompleted: userStats.currentLevel >= 25,
-        requirementText: "Reach level 25",
-        actionHint: "You're becoming a SelfRise expert!"
+        requirementText: t('achievements.preview.selfrise_expert.requirement'),
+        actionHint: t('achievements.preview.selfrise_expert.action')
       };
-      
+
     case 'selfrise-master':
       const level50 = Math.min(userStats.currentLevel, 50);
       return {
-        progressText: `Reach level 50 (current: Level ${userStats.currentLevel})`,
+        progressText: t('achievements.preview.selfrise_master.progress', { current: userStats.currentLevel }),
         progressPercentage: (level50 / 50) * 100,
         isCompleted: userStats.currentLevel >= 50,
-        requirementText: "Reach level 50",
-        actionHint: "Master level achievement awaits!"
+        requirementText: t('achievements.preview.selfrise_master.requirement'),
+        actionHint: t('achievements.preview.selfrise_master.action')
       };
-      
+
     case 'ultimate-selfrise-legend':
       const level100 = Math.min(userStats.currentLevel, 100);
       return {
-        progressText: `Reach level 100 (current: Level ${userStats.currentLevel})`,
+        progressText: t('achievements.preview.ultimate_selfrise_legend.progress', { current: userStats.currentLevel }),
         progressPercentage: (level100 / 100) * 100,
         isCompleted: userStats.currentLevel >= 100,
-        requirementText: "Reach level 100",
-        actionHint: "Ultimate legend status - incredible!"
+        requirementText: t('achievements.preview.ultimate_selfrise_legend.requirement'),
+        actionHint: t('achievements.preview.ultimate_selfrise_legend.action')
       };
-      
+
     case 'trophy-collector-basic':
       const achievements10 = Math.min(userStats.unlockedAchievements, 10);
       return {
-        progressText: `Unlock 10 achievements (${achievements10}/10)`,
+        progressText: t('achievements.preview.trophy_collector_basic.progress', { current: achievements10, target: 10 }),
         progressPercentage: (achievements10 / 10) * 100,
         isCompleted: achievements10 >= 10,
-        requirementText: "Unlock 10 achievements",
-        actionHint: "Keep unlocking achievements!"
+        requirementText: t('achievements.preview.trophy_collector_basic.requirement'),
+        actionHint: t('achievements.preview.trophy_collector_basic.action')
       };
-      
+
     case 'trophy-collector-master':
       const achievements25 = Math.min(userStats.unlockedAchievements, 25);
       return {
-        progressText: `Unlock 25 achievements (${achievements25}/25)`,
+        progressText: t('achievements.preview.trophy_collector_master.progress', { current: achievements25, target: 25 }),
         progressPercentage: (achievements25 / 25) * 100,
         isCompleted: achievements25 >= 25,
-        requirementText: "Unlock 25 achievements",
-        actionHint: "You're a true trophy master!"
+        requirementText: t('achievements.preview.trophy_collector_master.requirement'),
+        actionHint: t('achievements.preview.trophy_collector_master.action')
       };
-      
+
     case 'recommendation-master':
       const recs = Math.min(userStats.recommendationsFollowed, 20);
       return {
-        progressText: `Follow recommendations (${recs}/20)`,
+        progressText: t('achievements.preview.recommendation_master.progress', { current: recs, target: 20 }),
         progressPercentage: (recs / 20) * 100,
         isCompleted: recs >= 20,
-        requirementText: "Follow 20 personalized recommendations",
-        actionHint: "Check the For You section for personalized tips!",
+        requirementText: t('achievements.preview.recommendation_master.requirement'),
+        actionHint: t('achievements.preview.recommendation_master.action'),
         estimatedDays: Math.ceil((20 - recs) / 2) // Assuming 2 recommendations per day
       };
-      
+
     case 'balance-master':
       const comboDays = Math.min(userStats.dailyFeatureComboDays, 10);
       return {
-        progressText: `All-feature days (${comboDays}/10)`,
+        progressText: t('achievements.preview.balance_master.progress', { current: comboDays, target: 10 }),
         progressPercentage: (comboDays / 10) * 100,
         isCompleted: comboDays >= 10,
-        requirementText: "Use all 3 features (habits, journal, goals) in a single day 10 times",
-        actionHint: "Try to use habits, journal, and goals all in one day!",
+        requirementText: t('achievements.preview.balance_master.requirement'),
+        actionHint: t('achievements.preview.balance_master.action'),
         estimatedDays: Math.max(0, 10 - comboDays)
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
-const generateSpecialProgressHint = (achievement: Achievement, userStats: UserStats): ProgressHint => {
+const generateSpecialProgressHint = (achievement: Achievement, userStats: UserStats, t: TFunction): ProgressHint => {
   switch (achievement.id) {
     case 'lightning-start':
       const sameDay = Math.min(userStats.samedayHabitCreationCompletions, 3);
       return {
-        progressText: `Same-day habit creation & completion (${sameDay}/3)`,
+        progressText: t('achievements.preview.lightning_start.progress', { current: sameDay, target: 3 }),
         progressPercentage: (sameDay / 3) * 100,
         isCompleted: sameDay >= 3,
-        requirementText: "Create and complete a habit on the same day 3 times",
-        actionHint: "Create a habit and complete it immediately today!",
+        requirementText: t('achievements.preview.lightning_start.requirement'),
+        actionHint: t('achievements.preview.lightning_start.action'),
         estimatedDays: Math.max(0, 3 - sameDay)
       };
-      
+
     case 'seven-wonder':
       const activeHabits = Math.min(userStats.activeHabitsSimultaneous, 7);
       return {
-        progressText: `Active habits simultaneously (${activeHabits}/7)`,
+        progressText: t('achievements.preview.seven_wonder.progress', { current: activeHabits, target: 7 }),
         progressPercentage: (activeHabits / 7) * 100,
         isCompleted: activeHabits >= 7,
-        requirementText: "Have 7 or more active habits at the same time",
-        actionHint: "Create more habits to reach the 7-habit milestone!"
+        requirementText: t('achievements.preview.seven_wonder.requirement'),
+        actionHint: t('achievements.preview.seven_wonder.action')
       };
-      
+
     case 'persistence-pays':
       const comeback = Math.min(userStats.comebackActivities, 7);
       return {
-        progressText: `Comeback activities completed (${comeback}/7)`,
+        progressText: t('achievements.preview.persistence_pays.progress', { current: comeback, target: 7 }),
         progressPercentage: (comeback / 7) * 100,
         isCompleted: comeback >= 7,
-        requirementText: "Resume after 3+ day break and complete 7 activities",
-        actionHint: "Complete more activities after returning from a break!"
+        requirementText: t('achievements.preview.persistence_pays.requirement'),
+        actionHint: t('achievements.preview.persistence_pays.action')
       };
-      
+
     case 'legendary-master':
       const goals = Math.min(userStats.completedGoals, 10);
       const habits = Math.min(userStats.totalHabitCompletions, 500);
@@ -941,126 +966,133 @@ const generateSpecialProgressHint = (achievement: Achievement, userStats: UserSt
       const entriesProgress = (entries / 365) * 100;
       const overallProgress = (goalsProgress + habitsProgress + entriesProgress) / 3;
       return {
-        progressText: `Ultimate mastery: Goals ${goals}/10, Habits ${habits}/500, Entries ${entries}/365`,
+        progressText: t('achievements.preview.legendary_master.progress', {
+          goals: goals,
+          goalsTarget: 10,
+          habits: habits,
+          habitsTarget: 500,
+          entries: entries,
+          entriesTarget: 365
+        }),
         progressPercentage: overallProgress,
         isCompleted: goals >= 10 && habits >= 500 && entries >= 365,
-        requirementText: "Complete 10 goals + 500 habits + 365 journal entries",
-        actionHint: "Master all areas of SelfRise for legendary status!"
+        requirementText: t('achievements.preview.legendary_master.requirement'),
+        actionHint: t('achievements.preview.legendary_master.action')
       };
     
     // Loyalty achievements
     case 'loyalty-first-week':
       const days7 = Math.min(userStats.totalActiveDays, 7);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/7)`,
+        progressText: t('achievements.preview.loyalty_first_week.progress', { current: userStats.totalActiveDays, target: 7 }),
         progressPercentage: (days7 / 7) * 100,
         isCompleted: userStats.totalActiveDays >= 7,
-        requirementText: "Be active for 7 days total",
-        actionHint: "Use the app daily to build your streak!",
+        requirementText: t('achievements.preview.loyalty_first_week.requirement'),
+        actionHint: t('achievements.preview.loyalty_first_week.action'),
         estimatedDays: Math.max(0, 7 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-two-weeks-strong':
       const days14 = Math.min(userStats.totalActiveDays, 14);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/14)`,
+        progressText: t('achievements.preview.loyalty_two_weeks_strong.progress', { current: userStats.totalActiveDays, target: 14 }),
         progressPercentage: (days14 / 14) * 100,
         isCompleted: userStats.totalActiveDays >= 14,
-        requirementText: "Be active for 14 days total",
-        actionHint: "Your dedication is growing stronger!",
+        requirementText: t('achievements.preview.loyalty_two_weeks_strong.requirement'),
+        actionHint: t('achievements.preview.loyalty_two_weeks_strong.action'),
         estimatedDays: Math.max(0, 14 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-three-weeks-committed':
       const days21 = Math.min(userStats.totalActiveDays, 21);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/21)`,
+        progressText: t('achievements.preview.loyalty_three_weeks_committed.progress', { current: userStats.totalActiveDays, target: 21 }),
         progressPercentage: (days21 / 21) * 100,
         isCompleted: userStats.totalActiveDays >= 21,
-        requirementText: "Be active for 21 days total",
-        actionHint: "You're truly committed to your growth!",
+        requirementText: t('achievements.preview.loyalty_three_weeks_committed.requirement'),
+        actionHint: t('achievements.preview.loyalty_three_weeks_committed.action'),
         estimatedDays: Math.max(0, 21 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-month-explorer':
       const days30 = Math.min(userStats.totalActiveDays, 30);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/30)`,
+        progressText: t('achievements.preview.loyalty_month_explorer.progress', { current: userStats.totalActiveDays, target: 30 }),
         progressPercentage: (days30 / 30) * 100,
         isCompleted: userStats.totalActiveDays >= 30,
-        requirementText: "Be active for 30 days total",
-        actionHint: "Explore your potential with daily consistency!",
+        requirementText: t('achievements.preview.loyalty_month_explorer.requirement'),
+        actionHint: t('achievements.preview.loyalty_month_explorer.action'),
         estimatedDays: Math.max(0, 30 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-two-month-veteran':
       const days60 = Math.min(userStats.totalActiveDays, 60);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/60)`,
+        progressText: t('achievements.preview.loyalty_two_month_veteran.progress', { current: userStats.totalActiveDays, target: 60 }),
         progressPercentage: (days60 / 60) * 100,
         isCompleted: userStats.totalActiveDays >= 60,
-        requirementText: "Be active for 60 days total",
-        actionHint: "You're becoming a veteran in personal growth!",
+        requirementText: t('achievements.preview.loyalty_two_month_veteran.requirement'),
+        actionHint: t('achievements.preview.loyalty_two_month_veteran.action'),
         estimatedDays: Math.max(0, 60 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-century-user':
       const days100 = Math.min(userStats.totalActiveDays, 100);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/100)`,
+        progressText: t('achievements.preview.loyalty_century_user.progress', { current: userStats.totalActiveDays, target: 100 }),
         progressPercentage: (days100 / 100) * 100,
         isCompleted: userStats.totalActiveDays >= 100,
-        requirementText: "Be active for 100 days total",
-        actionHint: "Join the elite ranks of century users!",
+        requirementText: t('achievements.preview.loyalty_century_user.requirement'),
+        actionHint: t('achievements.preview.loyalty_century_user.action'),
         estimatedDays: Math.max(0, 100 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-half-year-hero':
       const days183 = Math.min(userStats.totalActiveDays, 183);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/183)`,
+        progressText: t('achievements.preview.loyalty_half_year_hero.progress', { current: userStats.totalActiveDays, target: 183 }),
         progressPercentage: (days183 / 183) * 100,
         isCompleted: userStats.totalActiveDays >= 183,
-        requirementText: "Be active for 183 days total (half year)",
-        actionHint: "Your commitment is legendary!",
+        requirementText: t('achievements.preview.loyalty_half_year_hero.requirement'),
+        actionHint: t('achievements.preview.loyalty_half_year_hero.action'),
         estimatedDays: Math.max(0, 183 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-year-legend':
       const days365 = Math.min(userStats.totalActiveDays, 365);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/365)`,
+        progressText: t('achievements.preview.loyalty_year_legend.progress', { current: userStats.totalActiveDays, target: 365 }),
         progressPercentage: (days365 / 365) * 100,
         isCompleted: userStats.totalActiveDays >= 365,
-        requirementText: "Be active for 365 days total (full year)",
-        actionHint: "Legendary status achieved through dedication!",
+        requirementText: t('achievements.preview.loyalty_year_legend.requirement'),
+        actionHint: t('achievements.preview.loyalty_year_legend.action'),
         estimatedDays: Math.max(0, 365 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-ultimate-veteran':
       const days500 = Math.min(userStats.totalActiveDays, 500);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/500)`,
+        progressText: t('achievements.preview.loyalty_ultimate_veteran.progress', { current: userStats.totalActiveDays, target: 500 }),
         progressPercentage: (days500 / 500) * 100,
         isCompleted: userStats.totalActiveDays >= 500,
-        requirementText: "Be active for 500 days total",
-        actionHint: "Your dedication is unmatched!",
+        requirementText: t('achievements.preview.loyalty_ultimate_veteran.requirement'),
+        actionHint: t('achievements.preview.loyalty_ultimate_veteran.action'),
         estimatedDays: Math.max(0, 500 - userStats.totalActiveDays)
       };
-      
+
     case 'loyalty-master':
       const days1000 = Math.min(userStats.totalActiveDays, 1000);
       return {
-        progressText: `Total active days (${userStats.totalActiveDays}/1000)`,
+        progressText: t('achievements.preview.loyalty_master.progress', { current: userStats.totalActiveDays, target: 1000 }),
         progressPercentage: (days1000 / 1000) * 100,
         isCompleted: userStats.totalActiveDays >= 1000,
-        requirementText: "Be active for 1000 days total (ultimate loyalty)",
-        actionHint: "You have achieved ultimate loyalty mastery!",
+        requirementText: t('achievements.preview.loyalty_master.requirement'),
+        actionHint: t('achievements.preview.loyalty_master.action'),
         estimatedDays: Math.max(0, 1000 - userStats.totalActiveDays)
       };
-      
+
     default:
-      return getDefaultProgressHint(achievement);
+      return getDefaultProgressHint(achievement, t);
   }
 };
 
@@ -1390,12 +1422,12 @@ const getEffortEstimate = (achievement: Achievement, progress: number): string |
 // HELPERS
 // ========================================
 
-const getDefaultProgressHint = (achievement: Achievement): ProgressHint => {
+const getDefaultProgressHint = (achievement: Achievement, t: TFunction): ProgressHint => {
   return {
-    progressText: "Progress towards this achievement",
+    progressText: t('achievements.preview.default.progress'),
     progressPercentage: 0,
     isCompleted: false,
     requirementText: achievement.descriptionKey, // Translation key - will be translated at component level
-    actionHint: "Use the app features to unlock this achievement!"
+    actionHint: t('achievements.preview.default.action')
   };
 };

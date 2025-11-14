@@ -85,16 +85,16 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
   
   // Generate preview data if enabled and userStats provided
-  const progressHint = showPreview && userStats && !isUnlocked 
-    ? generateProgressHint(achievement, userStats) 
+  const progressHint = showPreview && userStats && !isUnlocked
+    ? generateProgressHint(achievement, userStats, t)
     : undefined;
-    
-  const completionInfo = showPreview && userStats && isUnlocked 
-    ? generateCompletionInfo(achievement, userStats) 
+
+  const completionInfo = showPreview && userStats && isUnlocked
+    ? generateCompletionInfo(achievement, userStats, t)
     : undefined;
-    
-  const smartTooltip = showPreview && userStats 
-    ? generateSmartTooltip(achievement, progress) 
+
+  const smartTooltip = showPreview && userStats
+    ? generateSmartTooltip(achievement, progress, t)
     : undefined;
   
   const handlePressIn = () => {
