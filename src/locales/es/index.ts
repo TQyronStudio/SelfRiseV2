@@ -1632,6 +1632,124 @@ const es: Partial<TranslationKeys> = {
     },
     achievements: {},
     challenges: {
+      templates: {
+        // HABITS templates
+        habits_consistency_master: {
+          title: 'Maestro de Consistencia',
+          description: 'Completa tus hábitos programados consistentemente durante todo el mes',
+          requirement: 'Completa tareas de hábitos programados',
+          bonus1: 'Completación perfecta (+20% de bonus)',
+          bonus2: 'Continuación de racha mensual (+100 XP por mes)',
+          bonus3: 'Bonus de consistencia de fin de semana (+50 XP)'
+        },
+        habits_variety_champion: {
+          title: 'Campeón de Variedad',
+          description: 'Explora diferentes hábitos cada semana para construir una rutina diversa',
+          requirement: 'Completa diferentes hábitos cada semana',
+          bonus1: 'Descubrimiento de nuevo hábito (+25 XP por hábito nuevo)',
+          bonus2: 'Hito de variedad semanal (+30 XP por semana)',
+          bonus3: 'Bonus de equilibrio de categorías (+100 XP)'
+        },
+        habits_streak_builder: {
+          title: 'Constructor de Rachas',
+          description: 'Mantén rachas de hábitos consistentes durante todo el mes',
+          requirement: 'Mantén rachas de hábitos por días consecutivos',
+          bonus1: 'Recompensas de hito de racha (+50 XP por racha de 7 días)',
+          bonus2: 'Rachas de múltiples hábitos (+75 XP de bonus)',
+          bonus3: 'Racha de mes perfecto (+200 XP)'
+        },
+        habits_bonus_hunter: {
+          title: 'Cazador de Bonus',
+          description: 'Ve más allá de tus hábitos programados con completaciones bonus',
+          requirement: 'Completa hábitos bonus por encima de tu horario',
+          bonus1: 'Recompensas por completación bonus (+15 XP por bonus)',
+          bonus2: 'Campeón de bonus diario (+50 XP por 5+ bonus)',
+          bonus3: 'Maestro de bonus mensual (+200 XP)'
+        },
+        // JOURNAL templates
+        journal_reflection_expert: {
+          title: 'Experto en Reflexión',
+          description: 'Escribe entradas de diario diarias durante todo el mes',
+          requirement: 'Escribe entradas de diario en el número objetivo de días',
+          bonus1: 'Recompensa por reflexión diaria (+15 XP por día)',
+          bonus2: 'Consistencia semanal (+60 XP por semana)',
+          bonus3: 'Mes perfecto de diario (+250 XP)'
+        },
+        journal_gratitude_guru: {
+          title: 'Gurú de Gratitud',
+          description: 'Enfócate en entradas de diario con tema de gratitud',
+          requirement: 'Escribe entradas de diario enfocadas en gratitud',
+          bonus1: 'Bonus de entrada de gratitud (+20 XP por entrada)',
+          bonus2: 'Racha de gratitud semanal (+75 XP)',
+          bonus3: 'Maestro de gratitud mensual (+250 XP)'
+        },
+        journal_consistency_writer: {
+          title: 'Escritor Consistente',
+          description: 'Mantén racha de escritura diaria en el diario',
+          requirement: 'Escribe entradas de diario consecutivamente',
+          bonus1: 'Recompensa por racha diaria (+25 XP por día)',
+          bonus2: 'Hito de racha semanal (+100 XP)',
+          bonus3: 'Racha de mes ininterrumpida (+400 XP)'
+        },
+        journal_depth_explorer: {
+          title: 'Explorador de Profundidad',
+          description: 'Escribe entradas de diario detalladas y reflexivas',
+          requirement: 'Escribe entradas detalladas (200+ caracteres)',
+          bonus1: 'Bonus de entrada detallada (+30 XP por entrada)',
+          bonus2: 'Reflexión reflexiva (+100 XP semanalmente)',
+          bonus3: 'Maestro de palabras (+350 XP mensualmente)'
+        },
+        // GOALS templates
+        goals_progress_champion: {
+          title: 'Campeón de Progreso',
+          description: 'Haz progreso diario consistente hacia tus metas',
+          requirement: 'Haz progreso en metas en el número objetivo de días',
+          bonus1: 'Logro de progreso diario (+20 XP por día)',
+          bonus2: 'Consistencia semanal (+50 XP por semana)',
+          bonus3: 'Mes de progreso perfecto (+200 XP)'
+        },
+        goals_completion_master: {
+          title: 'Logro Desbloqueado',
+          description: 'Completa múltiples metas durante todo el mes',
+          requirement: 'Completa el número objetivo de metas',
+          bonus1: 'Bonus de completación de meta (+100 XP por meta)',
+          bonus2: 'Logro de múltiples metas (+150 XP por 3+ metas)',
+          bonus3: 'Bonus de gran meta (+200 XP por metas de valor 1000+)'
+        },
+        // CONSISTENCY templates
+        consistency_triple_master: {
+          title: 'Maestro Triple',
+          description: 'Usa las tres funciones (hábitos, diario, metas) cada día',
+          requirement: 'Usa hábitos, diario y metas diariamente',
+          bonus1: 'Día triple perfecto (+30 XP por día)',
+          bonus2: 'Logro triple semanal (+100 XP por semana)',
+          bonus3: 'Maestro triple mensual (+300 XP)'
+        },
+        consistency_perfect_month: {
+          title: 'Mes Perfecto',
+          description: 'Alcanza mínimos diarios (1+ hábitos, 3+ entradas de diario) consistentemente',
+          requirement: 'Cumple con los requisitos mínimos diarios consistentemente',
+          bonus1: 'Logro de día perfecto (+50 XP por día)',
+          bonus2: 'Bonus de semana perfecta (+200 XP por semana)',
+          bonus3: 'Mes impecable (+500 XP por 100%)'
+        },
+        consistency_xp_champion: {
+          title: 'Campeón de XP',
+          description: 'Acumula XP total a través de compromiso mensual consistente',
+          requirement: 'Acumula XP a través de todas las actividades de la app mensualmente',
+          bonus1: 'Logros de hito (+50 XP por hito)',
+          bonus2: 'Bonos de consistencia (+100 XP por bonus)',
+          bonus3: 'Completación de mes perfecto (+500 XP por alcanzar el 100%)'
+        },
+        consistency_balance_expert: {
+          title: 'Experto en Equilibrio',
+          description: 'Mantén fuentes de XP equilibradas (ninguna fuente >60% del total)',
+          requirement: 'Mantén uso equilibrado de funciones',
+          bonus1: 'Bonus de equilibrio perfecto (+100 XP por semana)',
+          bonus2: 'Campeón de variedad (+150 XP mensualmente)',
+          bonus3: 'Logro de armonía (+200 XP por equilibrio excepcional)'
+        }
+      },
       starDifficulty: {
         title: 'Dificultad de Estrellas',
         content: 'Los desafíos se clasifican por dificultad de estrellas (⭐ a ⭐⭐⭐⭐⭐). Los desafíos de mayor dificultad ofrecen mayores recompensas de XP pero requieren más dedicación para completarse.'

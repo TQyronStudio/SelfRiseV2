@@ -1847,6 +1847,124 @@ const en: TranslationKeys = {
 
     // Monthly challenges help
     challenges: {
+      templates: {
+        // HABITS templates
+        habits_consistency_master: {
+          title: 'Consistency Master',
+          description: 'Complete your scheduled habits consistently throughout the month',
+          requirement: 'Complete scheduled habit tasks',
+          bonus1: 'Perfect completion (+20% bonus)',
+          bonus2: 'Monthly streak continuation (+100 XP per month)',
+          bonus3: 'Weekend consistency bonus (+50 XP)'
+        },
+        habits_variety_champion: {
+          title: 'Variety Champion',
+          description: 'Explore different habits each week to build a diverse routine',
+          requirement: 'Complete different habits each week',
+          bonus1: 'New habit discovery (+25 XP per new habit)',
+          bonus2: 'Weekly variety milestone (+30 XP per week)',
+          bonus3: 'Category balance bonus (+100 XP)'
+        },
+        habits_streak_builder: {
+          title: 'Streak Builder',
+          description: 'Maintain consistent habit streaks throughout the month',
+          requirement: 'Maintain habit streaks for consecutive days',
+          bonus1: 'Streak milestone rewards (+50 XP per 7-day streak)',
+          bonus2: 'Multiple habit streaks (+75 XP bonus)',
+          bonus3: 'Perfect month streak (+200 XP)'
+        },
+        habits_bonus_hunter: {
+          title: 'Bonus Hunter',
+          description: 'Go beyond your scheduled habits with bonus completions',
+          requirement: 'Complete bonus habits above your schedule',
+          bonus1: 'Bonus completion rewards (+15 XP per bonus)',
+          bonus2: 'Daily bonus champion (+50 XP for 5+ bonuses)',
+          bonus3: 'Monthly bonus master (+200 XP)'
+        },
+        // JOURNAL templates
+        journal_reflection_expert: {
+          title: 'Reflection Expert',
+          description: 'Write daily journal entries throughout the month',
+          requirement: 'Write journal entries on target number of days',
+          bonus1: 'Daily reflection reward (+15 XP per day)',
+          bonus2: 'Weekly consistency (+60 XP per week)',
+          bonus3: 'Perfect journaling month (+250 XP)'
+        },
+        journal_gratitude_guru: {
+          title: 'Gratitude Guru',
+          description: 'Focus on gratitude-themed journal entries',
+          requirement: 'Write gratitude-focused journal entries',
+          bonus1: 'Gratitude entry bonus (+20 XP per entry)',
+          bonus2: 'Weekly gratitude streak (+75 XP)',
+          bonus3: 'Monthly gratitude master (+250 XP)'
+        },
+        journal_consistency_writer: {
+          title: 'Consistency Writer',
+          description: 'Maintain daily journal writing streak',
+          requirement: 'Write journal entries consecutively',
+          bonus1: 'Daily streak reward (+25 XP per day)',
+          bonus2: 'Weekly streak milestone (+100 XP)',
+          bonus3: 'Unbroken month streak (+400 XP)'
+        },
+        journal_depth_explorer: {
+          title: 'Depth Explorer',
+          description: 'Write detailed, thoughtful journal entries',
+          requirement: 'Write detailed entries (200+ characters)',
+          bonus1: 'Detailed entry bonus (+30 XP per entry)',
+          bonus2: 'Thoughtful reflection (+100 XP weekly)',
+          bonus3: 'Master wordsmith (+350 XP monthly)'
+        },
+        // GOALS templates
+        goals_progress_champion: {
+          title: 'Progress Champion',
+          description: 'Make consistent daily progress towards your goals',
+          requirement: 'Make goal progress on target number of days',
+          bonus1: 'Daily progress achievement (+20 XP per day)',
+          bonus2: 'Weekly consistency (+50 XP per week)',
+          bonus3: 'Perfect progress month (+200 XP)'
+        },
+        goals_completion_master: {
+          title: 'Achievement Unlocked',
+          description: 'Complete multiple goals throughout the month',
+          requirement: 'Complete target number of goals',
+          bonus1: 'Goal completion bonus (+100 XP per goal)',
+          bonus2: 'Multi-goal achievement (+150 XP for 3+ goals)',
+          bonus3: 'Big goal bonus (+200 XP for 1000+ value goals)'
+        },
+        // CONSISTENCY templates
+        consistency_triple_master: {
+          title: 'Triple Master',
+          description: 'Use all three features (habits, journal, goals) every day',
+          requirement: 'Use habits, journal, and goals daily',
+          bonus1: 'Perfect triple day (+30 XP per day)',
+          bonus2: 'Weekly triple achievement (+100 XP per week)',
+          bonus3: 'Monthly triple master (+300 XP)'
+        },
+        consistency_perfect_month: {
+          title: 'Perfect Month',
+          description: 'Achieve daily minimums (1+ habits, 3+ journal entries) consistently',
+          requirement: 'Meet daily minimum requirements consistently',
+          bonus1: 'Perfect day achievement (+50 XP per day)',
+          bonus2: 'Perfect week bonus (+200 XP per week)',
+          bonus3: 'Flawless month (+500 XP for 100%)'
+        },
+        consistency_xp_champion: {
+          title: 'XP Champion',
+          description: 'Accumulate total XP through consistent monthly engagement',
+          requirement: 'Accumulate XP through all app activities monthly',
+          bonus1: 'Milestone achievements (+50 XP per milestone)',
+          bonus2: 'Consistency bonuses (+100 XP per bonus)',
+          bonus3: 'Perfect month completion (+500 XP for reaching 100%)'
+        },
+        consistency_balance_expert: {
+          title: 'Balance Expert',
+          description: 'Maintain balanced XP sources (no single source >60% of total)',
+          requirement: 'Maintain balanced feature usage',
+          bonus1: 'Perfect balance bonus (+100 XP per week)',
+          bonus2: 'Variety champion (+150 XP monthly)',
+          bonus3: 'Harmony achievement (+200 XP for exceptional balance)'
+        }
+      },
       starDifficulty: {
         title: 'Challenge Star Rating',
         content: 'Ready for a challenge? ⭐ Pick your adventure level! 1-star challenges are perfect for getting started, while 5-star challenges are for the ultimate achievers. Higher stars mean bigger XP rewards and bragging rights!'

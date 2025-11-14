@@ -1632,6 +1632,124 @@ const de: Partial<TranslationKeys> = {
     },
     achievements: {},
     challenges: {
+      templates: {
+        // HABITS templates
+        habits_consistency_master: {
+          title: 'Beständigkeits-Meister',
+          description: 'Schließe deine geplanten Gewohnheiten den ganzen Monat über beständig ab',
+          requirement: 'Schließe geplante Gewohnheitsaufgaben ab',
+          bonus1: 'Perfekte Vollendung (+20% Bonus)',
+          bonus2: 'Monatliche Serien-Fortsetzung (+100 XP pro Monat)',
+          bonus3: 'Wochenend-Beständigkeitsbonus (+50 XP)'
+        },
+        habits_variety_champion: {
+          title: 'Vielfalt-Champion',
+          description: 'Erkunde jede Woche verschiedene Gewohnheiten, um eine vielfältige Routine aufzubauen',
+          requirement: 'Schließe jede Woche verschiedene Gewohnheiten ab',
+          bonus1: 'Neue Gewohnheitsentdeckung (+25 XP pro neue Gewohnheit)',
+          bonus2: 'Wöchentlicher Vielfaltsmeilenstein (+30 XP pro Woche)',
+          bonus3: 'Kategorien-Balance-Bonus (+100 XP)'
+        },
+        habits_streak_builder: {
+          title: 'Serien-Baumeister',
+          description: 'Halte beständige Gewohnheitsserien den ganzen Monat über aufrecht',
+          requirement: 'Halte Gewohnheitsserien für aufeinanderfolgende Tage aufrecht',
+          bonus1: 'Serien-Meilenstein-Belohnungen (+50 XP pro 7-Tage-Serie)',
+          bonus2: 'Mehrere Gewohnheitsserien (+75 XP Bonus)',
+          bonus3: 'Perfekte Monats-Serie (+200 XP)'
+        },
+        habits_bonus_hunter: {
+          title: 'Bonus-Jäger',
+          description: 'Gehe über deine geplanten Gewohnheiten hinaus mit Bonusvollendungen',
+          requirement: 'Schließe Bonusgewohnheiten über deinen Zeitplan hinaus ab',
+          bonus1: 'Bonusvollendungs-Belohnungen (+15 XP pro Bonus)',
+          bonus2: 'Täglicher Bonus-Champion (+50 XP für 5+ Boni)',
+          bonus3: 'Monatlicher Bonus-Meister (+200 XP)'
+        },
+        // JOURNAL templates
+        journal_reflection_expert: {
+          title: 'Reflexions-Experte',
+          description: 'Schreibe den ganzen Monat über täglich Tagebuch-Einträge',
+          requirement: 'Schreibe Tagebuch-Einträge an der Zielanzahl von Tagen',
+          bonus1: 'Tägliche Reflexionsbelohnung (+15 XP pro Tag)',
+          bonus2: 'Wöchentliche Beständigkeit (+60 XP pro Woche)',
+          bonus3: 'Perfekter Tagebuch-Monat (+250 XP)'
+        },
+        journal_gratitude_guru: {
+          title: 'Dankbarkeits-Guru',
+          description: 'Konzentriere dich auf dankbarkeitsthematische Tagebuch-Einträge',
+          requirement: 'Schreibe dankbarkeitsfokussierte Tagebuch-Einträge',
+          bonus1: 'Dankbarkeitseintrags-Bonus (+20 XP pro Eintrag)',
+          bonus2: 'Wöchentliche Dankbarkeits-Serie (+75 XP)',
+          bonus3: 'Monatlicher Dankbarkeits-Meister (+250 XP)'
+        },
+        journal_consistency_writer: {
+          title: 'Beständigkeits-Schreiber',
+          description: 'Halte tägliche Tagebuch-Schreib-Serie aufrecht',
+          requirement: 'Schreibe Tagebuch-Einträge aufeinanderfolgend',
+          bonus1: 'Tägliche Serien-Belohnung (+25 XP pro Tag)',
+          bonus2: 'Wöchentlicher Serien-Meilenstein (+100 XP)',
+          bonus3: 'Ununterbrochene Monats-Serie (+400 XP)'
+        },
+        journal_depth_explorer: {
+          title: 'Tiefen-Entdecker',
+          description: 'Schreibe detaillierte, durchdachte Tagebuch-Einträge',
+          requirement: 'Schreibe detaillierte Einträge (200+ Zeichen)',
+          bonus1: 'Detaillierter Eintragsbonus (+30 XP pro Eintrag)',
+          bonus2: 'Durchdachte Reflexion (+100 XP wöchentlich)',
+          bonus3: 'Meister-Wortschmied (+350 XP monatlich)'
+        },
+        // GOALS templates
+        goals_progress_champion: {
+          title: 'Fortschritts-Champion',
+          description: 'Mache beständigen täglichen Fortschritt auf deine Ziele zu',
+          requirement: 'Mache Zielfortschritt an der Zielanzahl von Tagen',
+          bonus1: 'Tägliche Fortschrittsleistung (+20 XP pro Tag)',
+          bonus2: 'Wöchentliche Beständigkeit (+50 XP pro Woche)',
+          bonus3: 'Perfekter Fortschrittsmonat (+200 XP)'
+        },
+        goals_completion_master: {
+          title: 'Erfolg Freigeschaltet',
+          description: 'Schließe mehrere Ziele im Laufe des Monats ab',
+          requirement: 'Schließe die Zielanzahl von Zielen ab',
+          bonus1: 'Zielvollendungsbonus (+100 XP pro Ziel)',
+          bonus2: 'Mehrfach-Ziel-Leistung (+150 XP für 3+ Ziele)',
+          bonus3: 'Großer Zielbonus (+200 XP für 1000+-Werte-Ziele)'
+        },
+        // CONSISTENCY templates
+        consistency_triple_master: {
+          title: 'Dreifach-Meister',
+          description: 'Nutze alle drei Funktionen (Gewohnheiten, Tagebuch, Ziele) jeden Tag',
+          requirement: 'Nutze Gewohnheiten, Tagebuch und Ziele täglich',
+          bonus1: 'Perfekter Dreifach-Tag (+30 XP pro Tag)',
+          bonus2: 'Wöchentliche Dreifach-Leistung (+100 XP pro Woche)',
+          bonus3: 'Monatlicher Dreifach-Meister (+300 XP)'
+        },
+        consistency_perfect_month: {
+          title: 'Perfekter Monat',
+          description: 'Erreiche tägliche Minima (1+ Gewohnheiten, 3+ Tagebuch-Einträge) beständig',
+          requirement: 'Erfülle tägliche Mindestanforderungen beständig',
+          bonus1: 'Perfekte Tagesleistung (+50 XP pro Tag)',
+          bonus2: 'Perfekter Wochenbonus (+200 XP pro Woche)',
+          bonus3: 'Makelloser Monat (+500 XP für 100%)'
+        },
+        consistency_xp_champion: {
+          title: 'XP-Champion',
+          description: 'Sammle Gesamt-XP durch beständiges monatliches Engagement',
+          requirement: 'Sammle XP durch alle App-Aktivitäten monatlich',
+          bonus1: 'Meilenstein-Leistungen (+50 XP pro Meilenstein)',
+          bonus2: 'Beständigkeitsboni (+100 XP pro Bonus)',
+          bonus3: 'Perfekte Monatsvollendung (+500 XP für das Erreichen von 100%)'
+        },
+        consistency_balance_expert: {
+          title: 'Balance-Experte',
+          description: 'Halte ausgewogene XP-Quellen aufrecht (keine einzelne Quelle >60% des Gesamtwerts)',
+          requirement: 'Halte ausgewogene Funktionsnutzung aufrecht',
+          bonus1: 'Perfekter Balance-Bonus (+100 XP pro Woche)',
+          bonus2: 'Vielfalt-Champion (+150 XP monatlich)',
+          bonus3: 'Harmonie-Leistung (+200 XP für außergewöhnliche Balance)'
+        }
+      },
       starDifficulty: {
         title: 'Herausforderungs-Sternebewertung',
         content: 'Bereit für eine Herausforderung? ⭐ Wähle dein Abenteuer-Level! 1-Stern-Herausforderungen sind perfekt zum Einstieg, während 5-Stern-Herausforderungen für die ultimativen Leistungsträger sind. Höhere Sterne bedeuten größere EP-Belohnungen und Prahlrechte!'

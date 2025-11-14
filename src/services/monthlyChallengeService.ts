@@ -2,6 +2,7 @@
 // Transforms weekly challenges into sophisticated monthly challenges with personalized difficulty scaling
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TFunction } from 'i18next';
 import { UserActivityTracker, UserActivityBaseline } from './userActivityTracker';
 import { StarRatingService, ChallengeCompletionData } from './starRatingService';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
@@ -45,444 +46,441 @@ export class MonthlyChallengeService {
   // ===============================================
 
   /**
-   * Habits Category Templates - Enhanced monthly habit challenges
+   * Generate challenge templates with translations
    */
-  private static readonly HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [
-    {
-      id: 'habits_consistency_master',
-      category: AchievementCategory.HABITS,
-      title: 'Consistency Master',
-      description: 'Complete your scheduled habits consistently throughout the month',
-      baselineMetricKey: 'totalHabitCompletions',
-      baselineMultiplierRange: [1.05, 1.25],
-      requirementTemplates: [
+  private static getChallengeTemplates(t: TFunction): {
+    HABITS: MonthlyChallengeTemplate[];
+    JOURNAL: MonthlyChallengeTemplate[];
+    GOALS: MonthlyChallengeTemplate[];
+    CONSISTENCY: MonthlyChallengeTemplate[];
+  } {
+    return {
+      HABITS: [
         {
-          type: 'habits',
-          description: 'Complete scheduled habit tasks',
-          trackingKey: 'scheduled_habit_completions',
-          progressMilestones: [0.25, 0.50, 0.75]
+          id: 'habits_consistency_master',
+          category: AchievementCategory.HABITS,
+          title: t('challenges.templates.habits_consistency_master.title'),
+          description: t('challenges.templates.habits_consistency_master.description'),
+          baselineMetricKey: 'totalHabitCompletions',
+          baselineMultiplierRange: [1.05, 1.25],
+          requirementTemplates: [
+            {
+              type: 'habits',
+              description: t('challenges.templates.habits_consistency_master.requirement'),
+              trackingKey: 'scheduled_habit_completions',
+              progressMilestones: [0.25, 0.50, 0.75]
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 1,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 500,
+          bonusXPConditions: [
+            t('challenges.templates.habits_consistency_master.bonus1'),
+            t('challenges.templates.habits_consistency_master.bonus2'),
+            t('challenges.templates.habits_consistency_master.bonus3')
+          ],
+          tags: ['consistency', 'routine', 'discipline'],
+          priority: 100,
+          cooldownMonths: 2,
+          seasonality: ['01', '02', '09', '10'] // New year and back-to-school
+        },
+        {
+          id: 'habits_variety_champion',
+          category: AchievementCategory.HABITS,
+          title: t('challenges.templates.habits_variety_champion.title'),
+          description: t('challenges.templates.habits_variety_champion.description'),
+          baselineMetricKey: 'avgHabitVariety',
+          baselineMultiplierRange: [1.10, 1.30],
+          requirementTemplates: [
+            {
+              type: 'habits',
+              description: t('challenges.templates.habits_variety_champion.requirement'),
+              trackingKey: 'unique_weekly_habits',
+              progressMilestones: [0.25, 0.50, 0.75],
+              weeklyTarget: 5
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 550,
+          bonusXPConditions: [
+            t('challenges.templates.habits_variety_champion.bonus1'),
+            t('challenges.templates.habits_variety_champion.bonus2'),
+            t('challenges.templates.habits_variety_champion.bonus3')
+          ],
+          tags: ['variety', 'exploration', 'growth'],
+          priority: 85,
+          cooldownMonths: 3
+        },
+        {
+          id: 'habits_streak_builder',
+          category: AchievementCategory.HABITS,
+          title: t('challenges.templates.habits_streak_builder.title'),
+          description: t('challenges.templates.habits_streak_builder.description'),
+          baselineMetricKey: 'longestHabitStreak',
+          baselineMultiplierRange: [1.15, 1.35],
+          requirementTemplates: [
+            {
+              type: 'habits',
+              description: t('challenges.templates.habits_streak_builder.requirement'),
+              trackingKey: 'habit_streak_days',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 1
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 3,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 600,
+          bonusXPConditions: [
+            t('challenges.templates.habits_streak_builder.bonus1'),
+            t('challenges.templates.habits_streak_builder.bonus2'),
+            t('challenges.templates.habits_streak_builder.bonus3')
+          ],
+          tags: ['streaks', 'momentum', 'persistence'],
+          priority: 90,
+          cooldownMonths: 2
+        },
+        {
+          id: 'habits_bonus_hunter',
+          category: AchievementCategory.HABITS,
+          title: t('challenges.templates.habits_bonus_hunter.title'),
+          description: t('challenges.templates.habits_bonus_hunter.description'),
+          baselineMetricKey: 'avgDailyBonusHabits',
+          baselineMultiplierRange: [1.20, 1.40],
+          requirementTemplates: [
+            {
+              type: 'habits',
+              description: t('challenges.templates.habits_bonus_hunter.requirement'),
+              trackingKey: 'bonus_habit_completions',
+              progressMilestones: [0.25, 0.50, 0.75]
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 525,
+          bonusXPConditions: [
+            t('challenges.templates.habits_bonus_hunter.bonus1'),
+            t('challenges.templates.habits_bonus_hunter.bonus2'),
+            t('challenges.templates.habits_bonus_hunter.bonus3')
+          ],
+          tags: ['bonus', 'exceeding', 'ambitious'],
+          priority: 75,
+          cooldownMonths: 3
         }
       ],
-      starLevelRequirements: {
-        minLevel: 1,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 500,
-      bonusXPConditions: [
-        'Perfect completion (+20% bonus)',
-        'Monthly streak continuation (+100 XP per month)',
-        'Weekend consistency bonus (+50 XP)'
-      ],
-      tags: ['consistency', 'routine', 'discipline'],
-      priority: 100,
-      cooldownMonths: 2,
-      seasonality: ['01', '02', '09', '10'] // New year and back-to-school
-    },
-    {
-      id: 'habits_variety_champion',
-      category: AchievementCategory.HABITS,
-      title: 'Variety Champion',
-      description: 'Explore different habits each week to build a diverse routine',
-      baselineMetricKey: 'avgHabitVariety',
-      baselineMultiplierRange: [1.10, 1.30],
-      requirementTemplates: [
+      JOURNAL: [
         {
-          type: 'habits',
-          description: 'Complete different habits each week',
-          trackingKey: 'unique_weekly_habits',
-          progressMilestones: [0.25, 0.50, 0.75],
-          weeklyTarget: 5
+          id: 'journal_reflection_expert',
+          category: AchievementCategory.JOURNAL,
+          title: t('challenges.templates.journal_reflection_expert.title'),
+          description: t('challenges.templates.journal_reflection_expert.description'),
+          baselineMetricKey: 'totalJournalEntries',
+          baselineMultiplierRange: [1.05, 1.25],
+          requirementTemplates: [
+            {
+              type: 'journal',
+              description: t('challenges.templates.journal_reflection_expert.requirement'),
+              trackingKey: 'quality_journal_entries',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 3
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 1,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 500,
+          bonusXPConditions: [
+            t('challenges.templates.journal_reflection_expert.bonus1'),
+            t('challenges.templates.journal_reflection_expert.bonus2'),
+            t('challenges.templates.journal_reflection_expert.bonus3')
+          ],
+          tags: ['reflection', 'quality', 'mindfulness'],
+          priority: 95,
+          cooldownMonths: 2
+        },
+        {
+          id: 'journal_gratitude_guru',
+          category: AchievementCategory.JOURNAL,
+          title: t('challenges.templates.journal_gratitude_guru.title'),
+          description: t('challenges.templates.journal_gratitude_guru.description'),
+          baselineMetricKey: 'avgDailyBonusEntries',
+          baselineMultiplierRange: [1.10, 1.30],
+          requirementTemplates: [
+            {
+              type: 'journal',
+              description: t('challenges.templates.journal_gratitude_guru.requirement'),
+              trackingKey: 'total_journal_entries_with_bonus',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 4
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 550,
+          bonusXPConditions: [
+            t('challenges.templates.journal_gratitude_guru.bonus1'),
+            t('challenges.templates.journal_gratitude_guru.bonus2'),
+            t('challenges.templates.journal_gratitude_guru.bonus3')
+          ],
+          tags: ['gratitude', 'bonus', 'abundance'],
+          priority: 85,
+          cooldownMonths: 3
+        },
+        {
+          id: 'journal_consistency_writer',
+          category: AchievementCategory.JOURNAL,
+          title: t('challenges.templates.journal_consistency_writer.title'),
+          description: t('challenges.templates.journal_consistency_writer.description'),
+          baselineMetricKey: 'journalConsistencyDays',
+          baselineMultiplierRange: [1.15, 1.35],
+          requirementTemplates: [
+            {
+              type: 'journal',
+              description: t('challenges.templates.journal_consistency_writer.requirement'),
+              trackingKey: 'daily_journal_streak',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 1
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 3,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 600,
+          bonusXPConditions: [
+            t('challenges.templates.journal_consistency_writer.bonus1'),
+            t('challenges.templates.journal_consistency_writer.bonus2'),
+            t('challenges.templates.journal_consistency_writer.bonus3')
+          ],
+          tags: ['daily', 'consistency', 'streak'],
+          priority: 90,
+          cooldownMonths: 2
+        },
+        {
+          id: 'journal_depth_explorer',
+          category: AchievementCategory.JOURNAL,
+          title: t('challenges.templates.journal_depth_explorer.title'),
+          description: t('challenges.templates.journal_depth_explorer.description'),
+          baselineMetricKey: 'avgEntryLength',
+          baselineMultiplierRange: [1.20, 1.40],
+          requirementTemplates: [
+            {
+              type: 'journal',
+              description: t('challenges.templates.journal_depth_explorer.requirement'),
+              trackingKey: 'avg_entry_length',
+              progressMilestones: [0.25, 0.50, 0.75]
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 575,
+          bonusXPConditions: [
+            t('challenges.templates.journal_depth_explorer.bonus1'),
+            t('challenges.templates.journal_depth_explorer.bonus2'),
+            t('challenges.templates.journal_depth_explorer.bonus3')
+          ],
+          tags: ['depth', 'detail', 'insight'],
+          priority: 75,
+          cooldownMonths: 3
         }
       ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 550,
-      bonusXPConditions: [
-        'New habit discovery (+25 XP per new habit)',
-        'Weekly variety milestone (+30 XP per week)',
-        'Category balance bonus (+100 XP)'
-      ],
-      tags: ['variety', 'exploration', 'growth'],
-      priority: 85,
-      cooldownMonths: 3
-    },
-    {
-      id: 'habits_streak_builder',
-      category: AchievementCategory.HABITS,
-      title: 'Streak Builder',
-      description: 'Maintain consistent habit streaks throughout the month',
-      baselineMetricKey: 'longestHabitStreak',
-      baselineMultiplierRange: [1.15, 1.35],
-      requirementTemplates: [
+      GOALS: [
         {
-          type: 'habits',
-          description: 'Maintain habit streaks for consecutive days',
-          trackingKey: 'habit_streak_days',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
+          id: 'goals_progress_champion',
+          category: AchievementCategory.GOALS,
+          title: t('challenges.templates.goals_progress_champion.title'),
+          description: t('challenges.templates.goals_progress_champion.description'),
+          baselineMetricKey: 'totalGoalProgressDays',
+          baselineMultiplierRange: [1.05, 1.25],
+          requirementTemplates: [
+            {
+              type: 'goals',
+              description: t('challenges.templates.goals_progress_champion.requirement'),
+              trackingKey: 'daily_goal_progress',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 1
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 1,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 525,
+          bonusXPConditions: [
+            t('challenges.templates.goals_progress_champion.bonus1'),
+            t('challenges.templates.goals_progress_champion.bonus2'),
+            t('challenges.templates.goals_progress_champion.bonus3')
+          ],
+          tags: ['progress', 'consistency', 'achievement'],
+          priority: 95,
+          cooldownMonths: 2
+        },
+        {
+          id: 'goals_completion_master',
+          category: AchievementCategory.GOALS,
+          title: t('challenges.templates.goals_completion_master.title'),
+          description: t('challenges.templates.goals_completion_master.description'),
+          baselineMetricKey: 'goalsCompleted',
+          baselineMultiplierRange: [1.15, 1.35],
+          requirementTemplates: [
+            {
+              type: 'goals',
+              description: t('challenges.templates.goals_completion_master.requirement'),
+              trackingKey: 'goal_completions',
+              progressMilestones: [0.25, 0.50, 0.75]
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 625,
+          bonusXPConditions: [
+            t('challenges.templates.goals_completion_master.bonus1'),
+            t('challenges.templates.goals_completion_master.bonus2'),
+            t('challenges.templates.goals_completion_master.bonus3')
+          ],
+          tags: ['completion', 'achievement', 'success'],
+          priority: 85,
+          cooldownMonths: 3
         }
       ],
-      starLevelRequirements: {
-        minLevel: 3,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 600,
-      bonusXPConditions: [
-        'Streak milestone rewards (+50 XP per 7-day streak)',
-        'Multiple habit streaks (+75 XP bonus)',
-        'Perfect month streak (+200 XP)'
-      ],
-      tags: ['streaks', 'momentum', 'persistence'],
-      priority: 90,
-      cooldownMonths: 2
-    },
-    {
-      id: 'habits_bonus_hunter',
-      category: AchievementCategory.HABITS,
-      title: 'Bonus Hunter',
-      description: 'Go beyond your scheduled habits with bonus completions',
-      baselineMetricKey: 'avgDailyBonusHabits',
-      baselineMultiplierRange: [1.20, 1.40],
-      requirementTemplates: [
+      CONSISTENCY: [
         {
-          type: 'habits',
-          description: 'Complete bonus habits above your schedule',
-          trackingKey: 'bonus_habit_completions',
-          progressMilestones: [0.25, 0.50, 0.75]
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 525,
-      bonusXPConditions: [
-        'Daily bonus achievement (+15 XP per day)',
-        'Weekend bonus surge (+100 XP)',
-        'Consistency bonus (+10 XP per consistent week)'
-      ],
-      tags: ['bonus', 'exceeding', 'ambitious'],
-      priority: 75,
-      cooldownMonths: 3
-    }
-  ];
-
-  /**
-   * Journal Category Templates - Enhanced monthly journaling challenges
-   */
-  private static readonly JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [
-    {
-      id: 'journal_reflection_expert',
-      category: AchievementCategory.JOURNAL,
-      title: 'Reflection Expert',
-      description: 'Write quality, thoughtful journal entries consistently',
-      baselineMetricKey: 'totalJournalEntries',
-      baselineMultiplierRange: [1.05, 1.25],
-      requirementTemplates: [
+          id: 'consistency_triple_master',
+          category: AchievementCategory.CONSISTENCY,
+          title: t('challenges.templates.consistency_triple_master.title'),
+          description: t('challenges.templates.consistency_triple_master.description'),
+          baselineMetricKey: 'tripleFeatureDays',
+          baselineMultiplierRange: [1.05, 1.25],
+          requirementTemplates: [
+            {
+              type: 'consistency',
+              description: t('challenges.templates.consistency_triple_master.requirement'),
+              trackingKey: 'triple_feature_days',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 1
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 2,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 600,
+          bonusXPConditions: [
+            t('challenges.templates.consistency_triple_master.bonus1'),
+            t('challenges.templates.consistency_triple_master.bonus2'),
+            t('challenges.templates.consistency_triple_master.bonus3')
+          ],
+          tags: ['triple', 'balance', 'comprehensive'],
+          priority: 100,
+          cooldownMonths: 2
+        },
         {
-          type: 'journal',
-          description: 'Write quality journal entries (33+ characters)',
-          trackingKey: 'quality_journal_entries',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 3
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 1,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 500,
-      bonusXPConditions: [
-        'Length bonus for detailed entries (+20 XP per 500+ chars)',
-        'Daily reflection streak (+25 XP per consecutive day)',
-        'Thoughtful content bonus (+50 XP per week)'
-      ],
-      tags: ['reflection', 'quality', 'mindfulness'],
-      priority: 95,
-      cooldownMonths: 2
-    },
-    {
-      id: 'journal_gratitude_guru',
-      category: AchievementCategory.JOURNAL,
-      title: 'Gratitude Guru',
-      description: 'Master both regular and bonus journal entries for gratitude practice',
-      baselineMetricKey: 'avgDailyBonusEntries',
-      baselineMultiplierRange: [1.10, 1.30],
-      requirementTemplates: [
+          id: 'consistency_perfect_month',
+          category: AchievementCategory.CONSISTENCY,
+          title: t('challenges.templates.consistency_perfect_month.title'),
+          description: t('challenges.templates.consistency_perfect_month.description'),
+          baselineMetricKey: 'perfectDays',
+          baselineMultiplierRange: [1.15, 1.35],
+          requirementTemplates: [
+            {
+              type: 'consistency',
+              description: t('challenges.templates.consistency_perfect_month.requirement'),
+              trackingKey: 'perfect_days',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: 1
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 3,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 675,
+          bonusXPConditions: [
+            t('challenges.templates.consistency_perfect_month.bonus1'),
+            t('challenges.templates.consistency_perfect_month.bonus2'),
+            t('challenges.templates.consistency_perfect_month.bonus3')
+          ],
+          tags: ['perfect', 'minimums', 'excellence'],
+          priority: 90,
+          cooldownMonths: 2
+        },
         {
-          type: 'journal',
-          description: 'Write regular and bonus gratitude entries',
-          trackingKey: 'total_journal_entries_with_bonus',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 4
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 550,
-      bonusXPConditions: [
-        'Bonus entry achievement (+30 XP per bonus)',
-        'Gratitude depth bonus (+40 XP per week)',
-        'Perfect gratitude day (+15 XP per day with 5+ entries)'
-      ],
-      tags: ['gratitude', 'bonus', 'abundance'],
-      priority: 85,
-      cooldownMonths: 3
-    },
-    {
-      id: 'journal_consistency_writer',
-      category: AchievementCategory.JOURNAL,
-      title: 'Consistency Writer',
-      description: 'Journal every single day to build an unbreakable habit',
-      baselineMetricKey: 'journalConsistencyDays',
-      baselineMultiplierRange: [1.15, 1.35],
-      requirementTemplates: [
+          id: 'consistency_xp_champion',
+          category: AchievementCategory.CONSISTENCY,
+          title: t('challenges.templates.consistency_xp_champion.title'),
+          description: t('challenges.templates.consistency_xp_champion.description'),
+          baselineMetricKey: 'avgDailyXP',
+          baselineMultiplierRange: [1.15, 1.35],
+          requirementTemplates: [
+            {
+              type: 'consistency',
+              description: t('challenges.templates.consistency_xp_champion.requirement'),
+              trackingKey: 'monthly_xp_total',
+              progressMilestones: [0.25, 0.50, 0.75],
+              dailyTarget: undefined // No daily target for monthly accumulation
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 1,
+            preferredDataQuality: ['partial', 'complete']
+          },
+          baseXPReward: 675,
+          bonusXPConditions: [
+            t('challenges.templates.consistency_xp_champion.bonus1'),
+            t('challenges.templates.consistency_xp_champion.bonus2'),
+            t('challenges.templates.consistency_xp_champion.bonus3')
+          ],
+          tags: ['engagement', 'daily', 'active'],
+          priority: 85,
+          cooldownMonths: 3
+        },
         {
-          type: 'journal',
-          description: 'Journal consistently every day',
-          trackingKey: 'daily_journal_streak',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
+          id: 'consistency_balance_expert',
+          category: AchievementCategory.CONSISTENCY,
+          title: t('challenges.templates.consistency_balance_expert.title'),
+          description: t('challenges.templates.consistency_balance_expert.description'),
+          baselineMetricKey: 'balanceScore',
+          baselineMultiplierRange: [1.20, 1.40],
+          requirementTemplates: [
+            {
+              type: 'consistency',
+              description: t('challenges.templates.consistency_balance_expert.requirement'),
+              trackingKey: 'balance_score',
+              progressMilestones: [0.25, 0.50, 0.75]
+            }
+          ],
+          starLevelRequirements: {
+            minLevel: 4,
+            preferredDataQuality: ['complete']
+          },
+          baseXPReward: 700,
+          bonusXPConditions: [
+            t('challenges.templates.consistency_balance_expert.bonus1'),
+            t('challenges.templates.consistency_balance_expert.bonus2'),
+            t('challenges.templates.consistency_balance_expert.bonus3')
+          ],
+          tags: ['balance', 'variety', 'harmony'],
+          priority: 65,
+          cooldownMonths: 4
         }
-      ],
-      starLevelRequirements: {
-        minLevel: 3,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 600,
-      bonusXPConditions: [
-        'Perfect daily streak (+100 XP per week)',
-        'Never miss a day (+300 XP monthly bonus)',
-        'Consistency champion (+50 XP per milestone)'
-      ],
-      tags: ['daily', 'consistency', 'streak'],
-      priority: 90,
-      cooldownMonths: 2
-    },
-    {
-      id: 'journal_depth_explorer',
-      category: AchievementCategory.JOURNAL,
-      title: 'Depth Explorer',
-      description: 'Write longer, more detailed entries to deepen self-reflection',
-      baselineMetricKey: 'avgEntryLength',
-      baselineMultiplierRange: [1.20, 1.40],
-      requirementTemplates: [
-        {
-          type: 'journal',
-          description: 'Achieve target average entry length',
-          trackingKey: 'avg_entry_length',
-          progressMilestones: [0.25, 0.50, 0.75]
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 575,
-      bonusXPConditions: [
-        'Long entry bonus (+25 XP per 1000+ char entry)',
-        'Weekly depth achievement (+75 XP)',
-        'Insight discovery bonus (+100 XP for exceptional entries)'
-      ],
-      tags: ['depth', 'detail', 'insight'],
-      priority: 75,
-      cooldownMonths: 3
-    }
-  ];
-
-  /**
-   * Goals Category Templates - Enhanced monthly goal achievement challenges
-   */
-  private static readonly GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [
-    {
-      id: 'goals_progress_champion',
-      category: AchievementCategory.GOALS,
-      title: 'Progress Champion',
-      description: 'Make consistent daily progress towards your goals',
-      baselineMetricKey: 'totalGoalProgressDays',
-      baselineMultiplierRange: [1.05, 1.25],
-      requirementTemplates: [
-        {
-          type: 'goals',
-          description: 'Make goal progress on target number of days',
-          trackingKey: 'daily_goal_progress',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 1,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 525,
-      bonusXPConditions: [
-        'Daily progress achievement (+20 XP per day)',
-        'Weekly consistency (+50 XP per week)',
-        'Perfect progress month (+200 XP)'
-      ],
-      tags: ['progress', 'consistency', 'achievement'],
-      priority: 95,
-      cooldownMonths: 2
-    },
-    {
-      id: 'goals_completion_master',
-      category: AchievementCategory.GOALS,
-      title: 'Achievement Unlocked',
-      description: 'Complete multiple goals throughout the month',
-      baselineMetricKey: 'goalsCompleted',
-      baselineMultiplierRange: [1.15, 1.35],
-      requirementTemplates: [
-        {
-          type: 'goals',
-          description: 'Complete target number of goals',
-          trackingKey: 'goal_completions',
-          progressMilestones: [0.25, 0.50, 0.75]
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 625,
-      bonusXPConditions: [
-        'Goal completion bonus (+100 XP per goal)',
-        'Multi-goal achievement (+150 XP for 3+ goals)',
-        'Big goal bonus (+200 XP for 1000+ value goals)'
-      ],
-      tags: ['completion', 'achievement', 'success'],
-      priority: 85,
-      cooldownMonths: 3
-    }
-  ];
-
-  /**
-   * Consistency Category Templates - Enhanced monthly consistency challenges
-   */
-  private static readonly CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [
-    {
-      id: 'consistency_triple_master',
-      category: AchievementCategory.CONSISTENCY,
-      title: 'Triple Master',
-      description: 'Use all three features (habits, journal, goals) every day',
-      baselineMetricKey: 'tripleFeatureDays',
-      baselineMultiplierRange: [1.05, 1.25],
-      requirementTemplates: [
-        {
-          type: 'consistency',
-          description: 'Use habits, journal, and goals daily',
-          trackingKey: 'triple_feature_days',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 2,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 600,
-      bonusXPConditions: [
-        'Perfect triple day (+30 XP per day)',
-        'Weekly triple achievement (+100 XP per week)',
-        'Monthly triple master (+300 XP)'
-      ],
-      tags: ['triple', 'balance', 'comprehensive'],
-      priority: 100,
-      cooldownMonths: 2
-    },
-    {
-      id: 'consistency_perfect_month',
-      category: AchievementCategory.CONSISTENCY,
-      title: 'Perfect Month',
-      description: 'Achieve daily minimums (1+ habits, 3+ journal entries) consistently',
-      baselineMetricKey: 'perfectDays',
-      baselineMultiplierRange: [1.15, 1.35],
-      requirementTemplates: [
-        {
-          type: 'consistency',
-          description: 'Meet daily minimum requirements consistently',
-          trackingKey: 'perfect_days',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: 1
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 3,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 675,
-      bonusXPConditions: [
-        'Perfect day achievement (+50 XP per day)',
-        'Perfect week bonus (+200 XP per week)',
-        'Flawless month (+500 XP for 100%)'
-      ],
-      tags: ['perfect', 'minimums', 'excellence'],
-      priority: 90,
-      cooldownMonths: 2
-    },
-    {
-      id: 'consistency_xp_champion',
-      category: AchievementCategory.CONSISTENCY,
-      title: 'XP Champion',
-      description: 'Accumulate total XP through consistent monthly engagement',
-      baselineMetricKey: 'avgDailyXP',
-      baselineMultiplierRange: [1.15, 1.35],
-      requirementTemplates: [
-        {
-          type: 'consistency',
-          description: 'Accumulate XP through all app activities monthly',
-          trackingKey: 'monthly_xp_total',
-          progressMilestones: [0.25, 0.50, 0.75],
-          dailyTarget: undefined // No daily target for monthly accumulation
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 1,
-        preferredDataQuality: ['partial', 'complete']
-      },
-      baseXPReward: 675,
-      bonusXPConditions: [
-        'Milestone achievements (+50 XP per milestone)',
-        'Consistency bonuses (+100 XP per bonus)',
-        'Perfect month completion (+500 XP for reaching 100%)'
-      ],
-      tags: ['engagement', 'daily', 'active'],
-      priority: 85,
-      cooldownMonths: 3
-    },
-    {
-      id: 'consistency_balance_expert',
-      category: AchievementCategory.CONSISTENCY,
-      title: 'Balance Expert',
-      description: 'Maintain balanced XP sources (no single source >60% of total)',
-      baselineMetricKey: 'balanceScore',
-      baselineMultiplierRange: [1.20, 1.40],
-      requirementTemplates: [
-        {
-          type: 'consistency',
-          description: 'Maintain balanced feature usage',
-          trackingKey: 'balance_score',
-          progressMilestones: [0.25, 0.50, 0.75]
-        }
-      ],
-      starLevelRequirements: {
-        minLevel: 4,
-        preferredDataQuality: ['complete']
-      },
-      baseXPReward: 700,
-      bonusXPConditions: [
-        'Perfect balance bonus (+100 XP per week)',
-        'Variety champion (+150 XP monthly)',
-        'Harmony achievement (+200 XP for exceptional balance)'
-      ],
-      tags: ['balance', 'variety', 'harmony'],
-      priority: 65,
-      cooldownMonths: 4
-    }
-  ];
+      ]
+    };
+  }
 
   // ===============================================
   // TEMPLATE ACCESS AND MANAGEMENT
@@ -491,12 +489,13 @@ export class MonthlyChallengeService {
   /**
    * Get all available challenge templates organized by category
    */
-  static getAllTemplates(): Record<AchievementCategory, MonthlyChallengeTemplate[]> {
+  static getAllTemplates(t: TFunction): Record<AchievementCategory, MonthlyChallengeTemplate[]> {
+    const templates = this.getChallengeTemplates(t);
     return {
-      [AchievementCategory.HABITS]: [...this.HABITS_TEMPLATES],
-      [AchievementCategory.JOURNAL]: [...this.JOURNAL_TEMPLATES],
-      [AchievementCategory.GOALS]: [...this.GOALS_TEMPLATES],
-      [AchievementCategory.CONSISTENCY]: [...this.CONSISTENCY_TEMPLATES],
+      [AchievementCategory.HABITS]: [...templates.HABITS],
+      [AchievementCategory.JOURNAL]: [...templates.JOURNAL],
+      [AchievementCategory.GOALS]: [...templates.GOALS],
+      [AchievementCategory.CONSISTENCY]: [...templates.CONSISTENCY],
       [AchievementCategory.MASTERY]: [], // No mastery challenge templates yet
       [AchievementCategory.SPECIAL]: [], // No special challenge templates yet
     };
@@ -505,16 +504,16 @@ export class MonthlyChallengeService {
   /**
    * Get templates for a specific category
    */
-  static getTemplatesForCategory(category: AchievementCategory): MonthlyChallengeTemplate[] {
-    const allTemplates = this.getAllTemplates();
+  static getTemplatesForCategory(category: AchievementCategory, t: TFunction): MonthlyChallengeTemplate[] {
+    const allTemplates = this.getAllTemplates(t);
     return allTemplates[category] || [];
   }
 
   /**
    * Get a specific template by ID
    */
-  static getTemplateById(templateId: string): MonthlyChallengeTemplate | null {
-    const allTemplates = Object.values(this.getAllTemplates()).flat();
+  static getTemplateById(templateId: string, t: TFunction): MonthlyChallengeTemplate | null {
+    const allTemplates = Object.values(this.getAllTemplates(t)).flat();
     return allTemplates.find(template => template.id === templateId) || null;
   }
 
@@ -1086,7 +1085,8 @@ export class MonthlyChallengeService {
    */
   static generateFirstMonthChallenge(
     preferredCategory?: AchievementCategory,
-    userId: string = 'local_user'
+    userId: string = 'local_user',
+    t?: TFunction
   ): {
     challenge: MonthlyChallenge;
     welcomeMessage: string;
@@ -1102,7 +1102,7 @@ export class MonthlyChallengeService {
     const selectedCategory = preferredCategory || this.selectBeginnerFriendlyCategory();
     
     // Get beginner template for the category
-    const template = this.selectBeginnerTemplate(selectedCategory);
+    const template = this.selectBeginnerTemplate(selectedCategory, t);
     
     // Create first-month requirements (extra conservative)
     const requirements = this.createFirstMonthRequirements(template, 1); // Force level 1
@@ -1135,8 +1135,10 @@ export class MonthlyChallengeService {
   /**
    * Select the most beginner-friendly template within a category
    */
-  private static selectBeginnerTemplate(category: AchievementCategory): MonthlyChallengeTemplate {
-    const categoryTemplates = this.getTemplatesForCategory(category);
+  private static selectBeginnerTemplate(category: AchievementCategory, t?: TFunction): MonthlyChallengeTemplate {
+    // Create a dummy t function if not provided (for backward compatibility)
+    const tFunc = t || ((key: string) => key) as TFunction;
+    const categoryTemplates = this.getTemplatesForCategory(category, tFunc);
     
     // Find template with lowest minimum level requirement
     const beginnerTemplate = categoryTemplates.reduce((easiest, current) => 
@@ -1700,7 +1702,8 @@ export class MonthlyChallengeService {
     category: AchievementCategory,
     userBaseline: UserActivityBaseline | null,
     starLevel: 1 | 2 | 3 | 4 | 5,
-    previousTemplateIds: string[] = []
+    previousTemplateIds: string[] = [],
+    t: TFunction
   ): {
     selectedTemplate: MonthlyChallengeTemplate;
     selectionReason: string;
@@ -1708,7 +1711,7 @@ export class MonthlyChallengeService {
     warnings: string[];
   } {
     const warnings: string[] = [];
-    const categoryTemplates = this.getTemplatesForCategory(category);
+    const categoryTemplates = this.getTemplatesForCategory(category, t);
     
     if (categoryTemplates.length === 0) {
       throw new Error(`No templates available for category: ${category}`);
@@ -1838,7 +1841,7 @@ export class MonthlyChallengeService {
   /**
    * Generate a personalized monthly challenge based on user baseline and star ratings
    */
-  static async generateMonthlyChallenge(context: MonthlyChallengeGenerationContext): Promise<MonthlyChallengeGenerationResult> {
+  static async generateMonthlyChallenge(context: MonthlyChallengeGenerationContext, t: TFunction): Promise<MonthlyChallengeGenerationResult> {
     const startTime = Date.now();
     const warnings: string[] = [];
     const alternatives: string[] = [];
@@ -1846,7 +1849,7 @@ export class MonthlyChallengeService {
     try {
       // Check if user qualifies for first-month treatment
       if (context.isFirstMonth || this.shouldUseFirstMonthTreatment(context.userBaseline)) {
-        const firstMonthResult = this.generateFirstMonthChallenge(context.forceCategory, context.userId);
+        const firstMonthResult = this.generateFirstMonthChallenge(context.forceCategory, context.userId, t);
 
         // Save first month challenge to storage if not dry run
         if (!context.dryRun) {
@@ -1895,7 +1898,8 @@ export class MonthlyChallengeService {
         categorySelection.selectedCategory,
         context.userBaseline,
         starLevel,
-        await this.getRecentTemplateIds(context.userId, 6) // Avoid templates used in last 6 months
+        await this.getRecentTemplateIds(context.userId, 6), // Avoid templates used in last 6 months
+        t
       );
       warnings.push(...templateSelection.warnings);
       alternatives.push(...templateSelection.alternativeTemplates.map(t => `template:${t.id}`));
@@ -1949,7 +1953,7 @@ export class MonthlyChallengeService {
       console.error('Challenge generation failed:', error);
       
       return {
-        challenge: await this.generateFallbackChallenge(context.userId, context.month),
+        challenge: await this.generateFallbackChallenge(context.userId, context.month, t),
         generationMetadata: {
           selectedTemplate: 'fallback_challenge',
           appliedStarLevel: 1,
@@ -2105,8 +2109,9 @@ export class MonthlyChallengeService {
   /**
    * Generate fallback challenge when main generation fails
    */
-  private static async generateFallbackChallenge(userId: string, month: string): Promise<MonthlyChallenge> {
-    const template = this.HABITS_TEMPLATES[0]; // Use first habits template as fallback
+  private static async generateFallbackChallenge(userId: string, month: string, t: TFunction): Promise<MonthlyChallenge> {
+    const templates = this.getChallengeTemplates(t);
+    const template = templates.HABITS[0]; // Use first habits template as fallback
     if (!template) {
       throw new Error('No fallback template available');
     }
@@ -2150,7 +2155,7 @@ export class MonthlyChallengeService {
   /**
    * Automatic monthly challenge generation trigger - call this on 1st of each month
    */
-  static async generateChallengeForCurrentMonth(userId: string = 'local_user'): Promise<MonthlyChallengeGenerationResult> {
+  static async generateChallengeForCurrentMonth(userId: string = 'local_user', t: TFunction): Promise<MonthlyChallengeGenerationResult> {
     const currentMonth = formatDateToString(new Date()).substring(0, 7); // YYYY-MM
     
     // Check if challenge already exists for this month
@@ -2191,7 +2196,7 @@ export class MonthlyChallengeService {
       dryRun: false
     };
 
-    return await this.generateMonthlyChallenge(context);
+    return await this.generateMonthlyChallenge(context, t);
   }
 
   /**
@@ -2220,7 +2225,7 @@ export class MonthlyChallengeService {
   /**
    * Background challenge generation check - should be called daily
    */
-  static async checkAndGenerateMonthlyChallenges(): Promise<{
+  static async checkAndGenerateMonthlyChallenges(t: TFunction): Promise<{
     challengeGenerated: boolean;
     month: string;
     result?: MonthlyChallengeGenerationResult;
@@ -2238,7 +2243,7 @@ export class MonthlyChallengeService {
         };
       }
 
-      const result = await this.generateChallengeForCurrentMonth();
+      const result = await this.generateChallengeForCurrentMonth('local_user', t);
       
       return {
         challengeGenerated: true,
