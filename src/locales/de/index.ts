@@ -122,6 +122,109 @@ const de: Partial<TranslationKeys> = {
         visibilityFailed: 'Sichtbarkeit der Komponente konnte nicht aktualisiert werden. Bitte versuche es erneut.',
       },
     },
+    // Habit Performance Indicators
+    habitPerformance: {
+      noHabitsDescription: 'Füge Gewohnheiten hinzu, um Leistungsindikatoren zu sehen',
+      vsLastWeek: 'vs. {{percent}}% letzte Woche',
+      thisWeek: 'Diese Woche',
+      buildingHabit: '{{name}} (im Aufbau)',
+      monthlyFocus: '{{month}} Fokus',
+    },
+    // Habit Trend Analysis
+    habitTrends: {
+      noDataDescription: 'Erledige Gewohnheiten für ein paar Wochen, um die Trendanalyse zu sehen',
+      overallProgress: '🚀 Gesamtfortschritt',
+      improvedByPercent: 'Um {{percent}}% über 4 Wochen verbessert. Weiter so!',
+      needsAttention: '⚠️ Braucht Aufmerksamkeit',
+      droppedByPercent: 'Kürzlich um {{percent}}% gesunken. Überprüfe deine Routine.',
+      steadyProgress: '📈 Stetiger Fortschritt',
+      consistencyStable: 'Beständigkeit stabil bei {{percent}}% Durchschnitt.',
+      buildingNewHabits: '🌱 Neue Gewohnheiten aufbauen',
+      newHabitsProgress: '{{completions}} Erledigung{{completions, plural, one {} other {en}}} über {{habits}} neue Gewohnheit{{habits, plural, one {} other {en}}}! Großartiger Start!',
+      earlyMomentum: '🚀 Früher Schwung',
+      earlyMomentumDescription: '{{percent}}% durchschnittliche Erledigungsrate bei neuen Gewohnheiten. Du etablierst starke Muster!',
+      starPerformer: '🏆 Spitzenleistung',
+      streakChampions: '🔥 Serien-Champions',
+      streakChampionsDescription: '{{count}} Gewohnheit{{count, plural, one {} other {en}}} mit 7+ Tage Serien!',
+      excellentWeek: '🎯 Exzellente Woche',
+      excellentWeekDescription: '{{percent}}% Erledigung diese Woche. Fantastisch!',
+      last4Weeks: 'Letzte 4 Wochen',
+    },
+    // Monthly Habit Overview
+    monthlyOverview: {
+      title: 'Letzte 30 Tage',
+      activeDays: '{{active}}/{{total}} aktive Tage',
+      perActiveDay: 'pro aktivem Tag',
+      dailyProgress: 'Täglicher Fortschritt (Letzte 30 Tage)',
+      topPerformer: '🏆 Spitzenreiter',
+      needsFocus: '💪 Braucht Fokus',
+      greatMonth: 'Toller Monat! Weiter so mit der exzellenten Arbeit.',
+      reviewHabits: 'Erwäge, deine Gewohnheiten und Ziele zu überprüfen.',
+      noDataDescription: 'Füge einige Gewohnheiten hinzu, um deine Monatsübersicht zu sehen',
+    },
+    // XP Multiplier Section
+    xpMultiplier: {
+      sectionTitle: '⚡ XP Multiplikator',
+      activeTitle: '2x XP Aktiv! {{time}}',
+      harmonyReward: 'Harmonie-Serien-Belohnung',
+      multiplierActive: 'Multiplikator Aktiv',
+      activeDescription: 'Alle XP-Gewinne werden verdoppelt, während dieser Multiplikator aktiv ist',
+      harmonyStreak: 'Harmonie-Serie: {{current}}/7',
+      readyToActivate: 'Bereit, 2x XP zu aktivieren!',
+      moreDays: '{{days}} weitere{{days, plural, one {r Tag} other { Tage}}} für 2x XP',
+      activateButton: '2x XP aktivieren',
+    },
+    // Monthly 30 Day Chart
+    monthly30Day: {
+      title30: 'Erledigung der letzten 30 Tage',
+      titleCustom: 'Erledigung der letzten {{days}} Tage',
+      completionRate: '{{completed}}/{{total}} ({{percent}}%)',
+      bonus: '{{count}} Bonus',
+      completed: 'Erledigt',
+      missed: 'Verpasst',
+      bonusLabel: 'Bonus',
+    },
+    // Weekly Habit Chart
+    weeklyChart: {
+      title7: 'Erledigung der letzten 7 Tage',
+      titleCustom: 'Erledigung der letzten {{days}} Tage',
+      completionRate: '{{completed}}/{{total}} ({{percent}}%)',
+      bonus: '{{count}} Bonus',
+      completed: 'Erledigt',
+      missed: 'Verpasst',
+      bonusLabel: 'Bonus',
+    },
+    // Quick Actions
+    quickActions: {
+      addHabit: 'Gewohnheit hinzufügen',
+      gratitude: 'Dankbarkeit',
+      selfPraise: 'Selbstlob',
+      addGoal: 'Ziel hinzufügen',
+    },
+    // Yearly Habit Overview
+    yearlyOverview: {
+      title365: 'Übersicht der letzten 365 Tage',
+      titleCustom: 'Übersicht der letzten {{days}} Tage',
+      activeDays: '{{active}}/{{total}} aktive Tage',
+      yearlyAverage: 'Jahresdurchschnitt',
+      dailyAverage: 'Tagesdurchschnitt',
+      perActiveDay: 'pro aktivem Tag',
+      excellentYear: '🔥 Exzellentes Jahr',
+      excellentYearDescription: 'Herausragende Jahresleistung! Weiter so.',
+      roomForImprovement: '📈 Verbesserungspotenzial',
+      noDataDescription: 'Füge einige Gewohnheiten hinzu, um deine Jahresübersicht zu sehen',
+      loading: 'Lade Jahresstatistiken...',
+    },
+    // Habit Stats Dashboard
+    habitStatsDashboard: {
+      week: 'Woche',
+      month: 'Monat',
+      year: 'Jahr',
+    },
+    // Premium Trophy Icon
+    premiumTrophy: {
+      label: 'Trophäen',
+    },
   } as any,
 
   // Habits screen

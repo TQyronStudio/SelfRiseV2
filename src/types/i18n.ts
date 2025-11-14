@@ -57,6 +57,109 @@ export interface TranslationKeys {
       week: string;
       month: string;
     };
+    // Habit Performance Indicators
+    habitPerformance: {
+      noHabitsDescription: string;
+      vsLastWeek: string;
+      thisWeek: string;
+      buildingHabit: string;
+      monthlyFocus: string;
+    };
+    // Habit Trend Analysis
+    habitTrends: {
+      noDataDescription: string;
+      overallProgress: string;
+      improvedByPercent: string;
+      needsAttention: string;
+      droppedByPercent: string;
+      steadyProgress: string;
+      consistencyStable: string;
+      buildingNewHabits: string;
+      newHabitsProgress: string;
+      earlyMomentum: string;
+      earlyMomentumDescription: string;
+      starPerformer: string;
+      streakChampions: string;
+      streakChampionsDescription: string;
+      excellentWeek: string;
+      excellentWeekDescription: string;
+      last4Weeks: string;
+    };
+    // Monthly Habit Overview
+    monthlyOverview: {
+      title: string;
+      activeDays: string;
+      perActiveDay: string;
+      dailyProgress: string;
+      topPerformer: string;
+      needsFocus: string;
+      greatMonth: string;
+      reviewHabits: string;
+      noDataDescription: string;
+    };
+    // XP Multiplier Section
+    xpMultiplier: {
+      sectionTitle: string;
+      activeTitle: string;
+      harmonyReward: string;
+      multiplierActive: string;
+      activeDescription: string;
+      harmonyStreak: string;
+      readyToActivate: string;
+      moreDays: string;
+      activateButton: string;
+    };
+    // Monthly 30 Day Chart
+    monthly30Day: {
+      title30: string;
+      titleCustom: string;
+      completionRate: string;
+      bonus: string;
+      completed: string;
+      missed: string;
+      bonusLabel: string;
+    };
+    // Weekly Habit Chart
+    weeklyChart: {
+      title7: string;
+      titleCustom: string;
+      completionRate: string;
+      bonus: string;
+      completed: string;
+      missed: string;
+      bonusLabel: string;
+    };
+    // Quick Actions (nested)
+    quickActions: {
+      addHabit: string;
+      gratitude: string;
+      selfPraise: string;
+      addGoal: string;
+    };
+    // Yearly Habit Overview
+    yearlyOverview: {
+      title365: string;
+      titleCustom: string;
+      activeDays: string;
+      yearlyAverage: string;
+      dailyAverage: string;
+      perActiveDay: string;
+      excellentYear: string;
+      excellentYearDescription: string;
+      roomForImprovement: string;
+      noDataDescription: string;
+      loading: string;
+    };
+    // Habit Stats Dashboard
+    habitStatsDashboard: {
+      week: string;
+      month: string;
+      year: string;
+    };
+    // Premium Trophy Icon
+    premiumTrophy: {
+      label: string;
+    };
     // Streak sharing
     shareStreak: string;
     shareSubtitle: string;
@@ -72,12 +175,6 @@ export interface TranslationKeys {
     copiedToClipboard: string;
     shareError: string;
     copyError: string;
-    // Quick Actions
-    quickActions: string;
-    addHabit: string;
-    addJournal: string;
-    addGoal: string;
-    todayHabits: string;
     // Daily Quote
     dailyQuote: string;
     quoteCategories: {

@@ -320,7 +320,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading yearly statistics...</Text>
+        <Text style={styles.loadingText}>{t('home.yearlyOverview.loading')}</Text>
       </View>
     );
   }
@@ -330,39 +330,39 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>
-          {actualDataPeriod >= 365 ? 'Past 365 Days Overview' : `Past ${actualDataPeriod} Days Overview`}
+          {actualDataPeriod >= 365 ? t('home.yearlyOverview.title365') : t('home.yearlyOverview.titleCustom', { days: actualDataPeriod })}
         </Text>
         <Text style={styles.subtitle}>
-          {yearlyStats.activeDays}/{yearlyStats.totalDays} active days
+          {t('home.yearlyOverview.activeDays', { active: yearlyStats.activeDays, total: yearlyStats.totalDays })}
         </Text>
       </View>
 
       {/* Main Stats Grid */}
       <View style={styles.statsGrid}>
         <StatCard
-          title="Total Habits"
+          title={t('home.habitStats.totalHabits')}
           value={habits.filter(h => h.isActive).length.toString()}
           color={colors.primary}
         />
-        
+
         <StatCard
-          title="Yearly Average"
+          title={t('home.yearlyOverview.yearlyAverage')}
           value={`${yearlyStats.completionRate}%`}
           subtitle={`${yearlyStats.totalCompletions}/${yearlyStats.totalPossible}`}
           color={yearlyStats.completionRate >= 70 ? colors.success : yearlyStats.completionRate >= 50 ? colors.warning : colors.error}
         />
 
         <StatCard
-          title="Best Day"
+          title={t('home.habitStats.bestDay')}
           value={yearlyStats.bestDayCount.toString()}
           subtitle={yearlyStats.bestDay ? formatDateForDisplay(yearlyStats.bestDay, 'short') : '-'}
           color={colors.secondary}
         />
-        
+
         <StatCard
-          title="Daily Average"
+          title={t('home.yearlyOverview.dailyAverage')}
           value={yearlyStats.avgDaily.toString()}
-          subtitle="per active day"
+          subtitle={t('home.yearlyOverview.perActiveDay')}
           color={colors.accent}
         />
       </View>
@@ -370,11 +370,11 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       {/* Performance Insights */}
       {habits.length > 0 && (
         <View style={styles.insightsContainer}>
-          <Text style={styles.insightsTitle}>Performance Insights</Text>
-          
+          <Text style={styles.insightsTitle}>{t('home.habitStats.performanceIndicators')}</Text>
+
           {topPerformer && (
             <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
-              <Text style={styles.insightLabel}>🏆 Top Performer</Text>
+              <Text style={styles.insightLabel}>{t('home.monthlyOverview.topPerformer')}</Text>
               <Text style={styles.insightText}>
                 {topPerformer.name} ({topPerformer.completionRate}%)
               </Text>
@@ -383,7 +383,7 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
 
           {strugglingHabit && strugglingHabit.completionRate < 50 && (
             <View style={[styles.insightItem, { borderLeftColor: colors.warning }]}>
-              <Text style={styles.insightLabel}>💪 Needs Focus</Text>
+              <Text style={styles.insightLabel}>{t('home.monthlyOverview.needsFocus')}</Text>
               <Text style={styles.insightText}>
                 {strugglingHabit.name} ({strugglingHabit.completionRate}%)
               </Text>
@@ -392,18 +392,18 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
 
           {yearlyStats.completionRate >= 80 && (
             <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
-              <Text style={styles.insightLabel}>🔥 Excellent Year</Text>
+              <Text style={styles.insightLabel}>{t('home.yearlyOverview.excellentYear')}</Text>
               <Text style={styles.insightText}>
-                Outstanding yearly performance! Keep it up.
+                {t('home.yearlyOverview.excellentYearDescription')}
               </Text>
             </View>
           )}
 
           {yearlyStats.completionRate < 40 && (
             <View style={[styles.insightItem, { borderLeftColor: colors.error }]}>
-              <Text style={styles.insightLabel}>📈 Room for Improvement</Text>
+              <Text style={styles.insightLabel}>{t('home.yearlyOverview.roomForImprovement')}</Text>
               <Text style={styles.insightText}>
-                Consider reviewing your habits and goals.
+                {t('home.monthlyOverview.reviewHabits')}
               </Text>
             </View>
           )}
@@ -413,8 +413,8 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       {/* No Data State */}
       {habits.length === 0 && (
         <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>No habit data available</Text>
-          <Text style={styles.noDataSubtext}>Add some habits to see your yearly overview</Text>
+          <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
+          <Text style={styles.noDataSubtext}>{t('home.yearlyOverview.noDataDescription')}</Text>
         </View>
       )}
     </View>

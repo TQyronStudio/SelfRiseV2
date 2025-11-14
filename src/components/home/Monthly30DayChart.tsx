@@ -270,11 +270,15 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>
-          {actualDataPeriod >= 30 ? 'Past 30 Days Completion' : `Past ${actualDataPeriod} Days Completion`}
+          {actualDataPeriod >= 30 ? t('home.monthly30Day.title30') : t('home.monthly30Day.titleCustom', { days: actualDataPeriod })}
         </Text>
         <Text style={styles.subtitle}>
-          {overallStats.totalCompletions}/{overallStats.totalPossible} ({overallStats.avgCompletionRate}%)
-          {overallStats.totalBonusCompletions > 0 && ` + ${overallStats.totalBonusCompletions} bonus`}
+          {t('home.monthly30Day.completionRate', {
+            completed: overallStats.totalCompletions,
+            total: overallStats.totalPossible,
+            percent: overallStats.avgCompletionRate
+          })}
+          {overallStats.totalBonusCompletions > 0 && ` + ${t('home.monthly30Day.bonus', { count: overallStats.totalBonusCompletions })}`}
         </Text>
       </View>
 
@@ -388,15 +392,15 @@ export const Monthly30DayChart: React.FC = React.memo(() => {
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, { backgroundColor: colors.success }]} />
-          <Text style={styles.legendText}>Completed</Text>
+          <Text style={styles.legendText}>{t('home.monthly30Day.completed')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, { backgroundColor: colors.error }]} />
-          <Text style={styles.legendText}>Missed</Text>
+          <Text style={styles.legendText}>{t('home.monthly30Day.missed')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, { backgroundColor: colors.gold }]} />
-          <Text style={styles.legendText}>Bonus</Text>
+          <Text style={styles.legendText}>{t('home.monthly30Day.bonusLabel')}</Text>
         </View>
       </View>
     </View>

@@ -332,9 +332,9 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Past 30 Days</Text>
+        <Text style={styles.title}>{t('home.monthlyOverview.title')}</Text>
         <Text style={styles.subtitle}>
-          {monthlyStats.activeDays}/{monthlyStats.totalDays} active days
+          {t('home.monthlyOverview.activeDays', { active: monthlyStats.activeDays, total: monthlyStats.totalDays })}
         </Text>
       </View>
 
@@ -363,7 +363,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
         <StatCard
           title={t('home.habitStats.weeklyAverage')}
           value={monthlyStats.avgDaily.toString()}
-          subtitle="per active day"
+          subtitle={t('home.monthlyOverview.perActiveDay')}
           color={colors.accent}
         />
       </View>
@@ -371,7 +371,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       {/* Daily Mini Chart */}
       {habits.length > 0 && (
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Daily Progress (Past 30 Days)</Text>
+          <Text style={styles.chartTitle}>{t('home.monthlyOverview.dailyProgress')}</Text>
           <View style={styles.miniChart}>
             {dailyChartData.map((day, index) => {
               const barHeight = Math.max(2, (day.completionRate / 100) * 20);
@@ -421,7 +421,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
           
           {topPerformer && (
             <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
-              <Text style={styles.insightLabel}>🏆 Top Performer</Text>
+              <Text style={styles.insightLabel}>{t('home.monthlyOverview.topPerformer')}</Text>
               <Text style={styles.insightText}>
                 {topPerformer.name} ({topPerformer.completionRate}%)
               </Text>
@@ -430,7 +430,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
 
           {strugglingHabit && strugglingHabit.completionRate < 50 && (
             <View style={[styles.insightItem, { borderLeftColor: colors.warning }]}>
-              <Text style={styles.insightLabel}>💪 Needs Focus</Text>
+              <Text style={styles.insightLabel}>{t('home.monthlyOverview.needsFocus')}</Text>
               <Text style={styles.insightText}>
                 {strugglingHabit.name} ({strugglingHabit.completionRate}%)
               </Text>
@@ -441,7 +441,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
             <View style={[styles.insightItem, { borderLeftColor: colors.success }]}>
               <Text style={styles.insightLabel}>🔥 {t('home.habitStats.improvingTrend')}</Text>
               <Text style={styles.insightText}>
-                Great month! Keep up the excellent work.
+                {t('home.monthlyOverview.greatMonth')}
               </Text>
             </View>
           )}
@@ -450,7 +450,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
             <View style={[styles.insightItem, { borderLeftColor: colors.error }]}>
               <Text style={styles.insightLabel}>📈 {t('home.habitStats.decliningTrend')}</Text>
               <Text style={styles.insightText}>
-                Consider reviewing your habits and goals.
+                {t('home.monthlyOverview.reviewHabits')}
               </Text>
             </View>
           )}
@@ -461,7 +461,7 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       {habits.length === 0 && (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
-          <Text style={styles.noDataSubtext}>Add some habits to see your monthly overview</Text>
+          <Text style={styles.noDataSubtext}>{t('home.monthlyOverview.noDataDescription')}</Text>
         </View>
       )}
     </View>

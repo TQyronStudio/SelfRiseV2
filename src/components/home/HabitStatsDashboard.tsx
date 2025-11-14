@@ -82,7 +82,7 @@ export const HabitStatsDashboard: React.FC = () => {
               styles.toggleText,
               viewMode === 'week' && styles.toggleTextActive
             ]}>
-              Week
+              {t('home.habitStatsDashboard.week')}
             </Text>
           </TouchableOpacity>
 
@@ -97,7 +97,7 @@ export const HabitStatsDashboard: React.FC = () => {
               styles.toggleText,
               viewMode === 'month' && styles.toggleTextActive
             ]}>
-              Month
+              {t('home.habitStatsDashboard.month')}
             </Text>
           </TouchableOpacity>
 
@@ -112,7 +112,7 @@ export const HabitStatsDashboard: React.FC = () => {
               styles.toggleText,
               viewMode === 'year' && styles.toggleTextActive
             ]}>
-              Year
+              {t('home.habitStatsDashboard.year')}
             </Text>
           </TouchableOpacity>
         </View>

@@ -224,16 +224,16 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
       <View style={styles.activeMultiplierContainer}>
         <View style={styles.multiplierInfo}>
           <Text style={styles.multiplierTitle}>
-            2x XP Active! {formatTimeRemaining()}
+            {t('home.xpMultiplier.activeTitle', { time: formatTimeRemaining() })}
           </Text>
           <Text style={styles.multiplierSubtext}>
-            {activeMultiplier.source === 'harmony_streak' ? 'Harmony Streak Reward' : 'Multiplier Active'}
+            {activeMultiplier.source === 'harmony_streak' ? t('home.xpMultiplier.harmonyReward') : t('home.xpMultiplier.multiplierActive')}
           </Text>
         </View>
 
         {!compact && (
           <Text style={styles.multiplierDescription}>
-            All XP gains are doubled while this multiplier is active
+            {t('home.xpMultiplier.activeDescription')}
           </Text>
         )}
       </View>
@@ -260,12 +260,12 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
           <Text style={styles.progressIcon}>🎯</Text>
           <View style={styles.progressInfo}>
             <Text style={styles.progressTitle}>
-              Harmony Streak: {harmonyStreak.currentStreak}/7
+              {t('home.xpMultiplier.harmonyStreak', { current: harmonyStreak.currentStreak })}
             </Text>
             <Text style={styles.progressSubtext}>
-              {canActivate 
-                ? 'Ready to activate 2x XP!' 
-                : `${7 - harmonyStreak.currentStreak} more days for 2x XP`
+              {canActivate
+                ? t('home.xpMultiplier.readyToActivate')
+                : t('home.xpMultiplier.moreDays', { days: 7 - harmonyStreak.currentStreak })
               }
             </Text>
           </View>
@@ -289,7 +289,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
             {isLoading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text style={styles.activateButtonText}>Activate 2x XP</Text>
+              <Text style={styles.activateButtonText}>{t('home.xpMultiplier.activateButton')}</Text>
             )}
           </TouchableOpacity>
         )}
@@ -462,7 +462,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
         testID="xp-multiplier-section"
       >
         {/* Section Header */}
-        <Text style={styles.sectionTitle}>⚡ XP Multiplier</Text>
+        <Text style={styles.sectionTitle}>{t('home.xpMultiplier.sectionTitle')}</Text>
         
         {/* Content */}
         {renderActiveMultiplier()}

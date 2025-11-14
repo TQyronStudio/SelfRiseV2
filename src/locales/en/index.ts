@@ -41,7 +41,7 @@ const en: TranslationKeys = {
     // Habit Statistics Dashboard
     habitStats: {
       weeklyChart: 'Weekly Habit Completion',
-      monthlyOverview: 'Monthly Overview', 
+      monthlyOverview: 'Monthly Overview',
       performanceIndicators: 'Performance',
       trendAnalysis: 'Trends - Habits',
       totalHabits: 'Total Habits',
@@ -58,6 +58,109 @@ const en: TranslationKeys = {
       week: 'Week',
       month: 'Month',
     },
+    // Habit Performance Indicators
+    habitPerformance: {
+      noHabitsDescription: 'Add habits to see performance indicators',
+      vsLastWeek: 'vs. {{percent}}% last week',
+      thisWeek: 'This Week',
+      buildingHabit: '{{name}} (building)',
+      monthlyFocus: '{{month}} Focus',
+    },
+    // Habit Trend Analysis
+    habitTrends: {
+      noDataDescription: 'Complete habits for a few weeks to see trend analysis',
+      overallProgress: '🚀 Overall Progress',
+      improvedByPercent: 'Improved by {{percent}}% over 4 weeks. Keep it up!',
+      needsAttention: '⚠️ Needs Attention',
+      droppedByPercent: 'Dropped by {{percent}}% recently. Review your routine.',
+      steadyProgress: '📈 Steady Progress',
+      consistencyStable: 'Consistency stable at {{percent}}% average.',
+      buildingNewHabits: '🌱 Building New Habits',
+      newHabitsProgress: '{{completions}} completion{{completions, plural, one {} other {s}}} across {{habits}} new habit{{habits, plural, one {} other {s}}}! Great start!',
+      earlyMomentum: '🚀 Early Momentum',
+      earlyMomentumDescription: '{{percent}}% average completion rate in building habits. You\'re establishing strong patterns!',
+      starPerformer: '🏆 Star Performer',
+      streakChampions: '🔥 Streak Champions',
+      streakChampionsDescription: '{{count}} habit{{count, plural, one {} other {s}}} with 7+ day streaks!',
+      excellentWeek: '🎯 Excellent Week',
+      excellentWeekDescription: '{{percent}}% completion this week. Amazing!',
+      last4Weeks: 'Last 4 weeks',
+    },
+    // Monthly Habit Overview
+    monthlyOverview: {
+      title: 'Past 30 Days',
+      activeDays: '{{active}}/{{total}} active days',
+      perActiveDay: 'per active day',
+      dailyProgress: 'Daily Progress (Past 30 Days)',
+      topPerformer: '🏆 Top Performer',
+      needsFocus: '💪 Needs Focus',
+      greatMonth: 'Great month! Keep up the excellent work.',
+      reviewHabits: 'Consider reviewing your habits and goals.',
+      noDataDescription: 'Add some habits to see your monthly overview',
+    },
+    // XP Multiplier Section
+    xpMultiplier: {
+      sectionTitle: '⚡ XP Multiplier',
+      activeTitle: '2x XP Active! {{time}}',
+      harmonyReward: 'Harmony Streak Reward',
+      multiplierActive: 'Multiplier Active',
+      activeDescription: 'All XP gains are doubled while this multiplier is active',
+      harmonyStreak: 'Harmony Streak: {{current}}/7',
+      readyToActivate: 'Ready to activate 2x XP!',
+      moreDays: '{{days}} more day{{days, plural, one {} other {s}}} for 2x XP',
+      activateButton: 'Activate 2x XP',
+    },
+    // Monthly 30 Day Chart
+    monthly30Day: {
+      title30: 'Past 30 Days Completion',
+      titleCustom: 'Past {{days}} Days Completion',
+      completionRate: '{{completed}}/{{total}} ({{percent}}%)',
+      bonus: '{{count}} bonus',
+      completed: 'Completed',
+      missed: 'Missed',
+      bonusLabel: 'Bonus',
+    },
+    // Weekly Habit Chart
+    weeklyChart: {
+      title7: 'Past 7 Days Completion',
+      titleCustom: 'Past {{days}} Days Completion',
+      completionRate: '{{completed}}/{{total}} ({{percent}}%)',
+      bonus: '{{count}} bonus',
+      completed: 'Completed',
+      missed: 'Missed',
+      bonusLabel: 'Bonus',
+    },
+    // Quick Actions
+    quickActions: {
+      addHabit: 'Add Habit',
+      gratitude: 'Gratitude',
+      selfPraise: 'Self-Praise',
+      addGoal: 'Add Goal',
+    },
+    // Yearly Habit Overview
+    yearlyOverview: {
+      title365: 'Past 365 Days Overview',
+      titleCustom: 'Past {{days}} Days Overview',
+      activeDays: '{{active}}/{{total}} active days',
+      yearlyAverage: 'Yearly Average',
+      dailyAverage: 'Daily Average',
+      perActiveDay: 'per active day',
+      excellentYear: '🔥 Excellent Year',
+      excellentYearDescription: 'Outstanding yearly performance! Keep it up.',
+      roomForImprovement: '📈 Room for Improvement',
+      noDataDescription: 'Add some habits to see your yearly overview',
+      loading: 'Loading yearly statistics...',
+    },
+    // Habit Stats Dashboard
+    habitStatsDashboard: {
+      week: 'Week',
+      month: 'Month',
+      year: 'Year',
+    },
+    // Premium Trophy Icon
+    premiumTrophy: {
+      label: 'Trophies',
+    },
     // Streak sharing
     shareStreak: 'Share My Streak',
     shareSubtitle: 'Show off your journal journey!',
@@ -73,12 +176,6 @@ const en: TranslationKeys = {
     copiedToClipboard: 'Copied to clipboard!',
     shareError: 'Failed to share. Please try again.',
     copyError: 'Failed to copy. Please try again.',
-    // Quick Actions
-    quickActions: 'Quick Actions',
-    addHabit: 'Add Habit',
-    addJournal: 'Add Entry',
-    addGoal: 'Add Goal',
-    todayHabits: 'Today\'s Habits',
     // Daily Quote
     dailyQuote: 'Daily Inspiration',
     quoteCategories: {

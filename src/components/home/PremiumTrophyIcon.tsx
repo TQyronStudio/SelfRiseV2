@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface PremiumTrophyIconProps {
   size?: number;
@@ -10,6 +11,7 @@ interface PremiumTrophyIconProps {
 export const PremiumTrophyIcon: React.FC<PremiumTrophyIconProps> = ({
   size = 32
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
@@ -60,7 +62,7 @@ export const PremiumTrophyIcon: React.FC<PremiumTrophyIconProps> = ({
         <Text style={[styles.trophyLabel, {
           fontSize: size * 0.22,
         }]} numberOfLines={1} adjustsFontSizeToFit>
-          TROPHIES
+          {t('home.premiumTrophy.label').toUpperCase()}
         </Text>
       </View>
     </View>

@@ -316,7 +316,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
 
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
-          <Text style={styles.noDataSubtext}>Add habits to see performance indicators</Text>
+          <Text style={styles.noDataSubtext}>{t('home.habitPerformance.noHabitsDescription')}</Text>
         </View>
       </View>
     );
@@ -355,7 +355,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           title={t('home.habitStats.weeklyAverage')}
           value={`${performanceData.weeklyProgress}%`}
           trend={performanceData.trend}
-          subtitle={`vs. ${Math.round(performanceData.previousWeekRate)}% last week`}
+          subtitle={t('home.habitPerformance.vsLastWeek', { percent: Math.round(performanceData.previousWeekRate) })}
           icon="📊"
           color={getTrendColor()}
         />
@@ -365,7 +365,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           if (ageInfo.canShowPerformance) {
             return (
               <PerformanceIndicator
-                title="This Week"
+                title={t('home.habitPerformance.thisWeek')}
                 value={`${Math.round(performanceData.weeklyTopPerformer.completionRate)}%`}
                 subtitle={performanceData.weeklyTopPerformer.habit.name}
                 icon="🏆"
@@ -377,9 +377,9 @@ export const HabitPerformanceIndicators: React.FC = () => {
                               (performanceData.weeklyTopPerformer.bonusCompletions || 0);
             return (
               <PerformanceIndicator
-                title="This Week"
+                title={t('home.habitPerformance.thisWeek')}
                 value={`${completions}`}
-                subtitle={`${performanceData.weeklyTopPerformer.habit.name} (building)`}
+                subtitle={t('home.habitPerformance.buildingHabit', { name: performanceData.weeklyTopPerformer.habit.name })}
                 icon="🌱"
                 color={colors.success}
               />
@@ -408,7 +408,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           if (ageInfo.isEstablishedHabit && performanceData.strugglingHabit.completionRate < 50) {
             return (
               <PerformanceIndicator
-                title={`${new Date().toLocaleDateString('en-US', { month: 'long' })} Focus`}
+                title={t('home.habitPerformance.monthlyFocus', { month: new Date().toLocaleDateString('en-US', { month: 'long' }) })}
                 value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
                 subtitle={performanceData.strugglingHabit.habit.name}
                 icon="💪"

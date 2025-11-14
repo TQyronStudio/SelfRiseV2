@@ -229,24 +229,24 @@ export const HabitTrendAnalysis: React.FC = () => {
     // Generate trend insights
     if (overallTrend === 'improving') {
       trends.push({
-        title: '🚀 Overall Progress',
-        description: `Improved by ${Math.round(overallTrendChange)}% over 4 weeks. Keep it up!`,
+        title: t('home.habitTrends.overallProgress'),
+        description: t('home.habitTrends.improvedByPercent', { percent: Math.round(overallTrendChange) }),
         icon: '📊',
         color: colors.success,
         trend: 'improving' as const
       });
     } else if (overallTrend === 'declining') {
       trends.push({
-        title: '⚠️ Needs Attention',
-        description: `Dropped by ${Math.round(Math.abs(overallTrendChange))}% recently. Review your routine.`,
+        title: t('home.habitTrends.needsAttention'),
+        description: t('home.habitTrends.droppedByPercent', { percent: Math.round(Math.abs(overallTrendChange)) }),
         icon: '📊',
         color: colors.error,
         trend: 'declining' as const
       });
     } else {
       trends.push({
-        title: '📈 Steady Progress',
-        description: `Consistency stable at ${Math.round(recentAvg)}% average.`,
+        title: t('home.habitTrends.steadyProgress'),
+        description: t('home.habitTrends.consistencyStable', { percent: Math.round(recentAvg) }),
         icon: '📊',
         color: colors.warning,
         trend: 'stable' as const
@@ -259,8 +259,8 @@ export const HabitTrendAnalysis: React.FC = () => {
       const totalNewCompletions = newHabits.reduce((sum, h) => sum + h.completedScheduled + h.bonusCompletions, 0);
       if (totalNewCompletions > 0) {
         trends.push({
-          title: '🌱 Building New Habits',
-          description: `${totalNewCompletions} completion${totalNewCompletions > 1 ? 's' : ''} across ${newHabits.length} new habit${newHabits.length > 1 ? 's' : ''}! Great start!`,
+          title: t('home.habitTrends.buildingNewHabits'),
+          description: t('home.habitTrends.newHabitsProgress', { completions: totalNewCompletions, habits: newHabits.length }),
           icon: '🌱',
           color: colors.success,
           trend: 'improving' as const
@@ -275,8 +275,8 @@ export const HabitTrendAnalysis: React.FC = () => {
       if (highPerformingEarly.length > 0) {
         const avgRate = Math.round(highPerformingEarly.reduce((sum, h) => sum + h.recentRate, 0) / highPerformingEarly.length);
         trends.push({
-          title: '🚀 Early Momentum',
-          description: `${avgRate}% average completion rate in building habits. You're establishing strong patterns!`,
+          title: t('home.habitTrends.earlyMomentum'),
+          description: t('home.habitTrends.earlyMomentumDescription', { percent: avgRate }),
           icon: '📈',
           color: colors.primary,
           trend: 'improving' as const
@@ -297,7 +297,7 @@ export const HabitTrendAnalysis: React.FC = () => {
       if (bestPerformer) {
         const message = getCompletionRateMessage(bestPerformer.completionResult, bestPerformer.ageInfo, bestPerformer.habit.name);
         trends.push({
-          title: '🏆 Star Performer',
+          title: t('home.habitTrends.starPerformer'),
           description: `${bestPerformer.habit.name}: ${message.description}`,
           icon: '⭐',
           color: colors.success,
@@ -326,8 +326,8 @@ export const HabitTrendAnalysis: React.FC = () => {
     const consistentHabits = habitAnalysis.filter(h => h.currentStreak >= 7).length;
     if (consistentHabits > 0) {
       trends.push({
-        title: '🔥 Streak Champions',
-        description: `${consistentHabits} habit${consistentHabits > 1 ? 's' : ''} with 7+ day streaks!`,
+        title: t('home.habitTrends.streakChampions'),
+        description: t('home.habitTrends.streakChampionsDescription', { count: consistentHabits }),
         icon: '🔥',
         color: colors.primary,
         trend: 'stable' as const
@@ -338,8 +338,8 @@ export const HabitTrendAnalysis: React.FC = () => {
     const currentWeek = weeks[3];
     if (currentWeek && currentWeek.completionRate >= 80) {
       trends.push({
-        title: '🎯 Excellent Week',
-        description: `${currentWeek.completionRate}% completion this week. Amazing!`,
+        title: t('home.habitTrends.excellentWeek'),
+        description: t('home.habitTrends.excellentWeekDescription', { percent: currentWeek.completionRate }),
         icon: '🌟',
         color: colors.success,
         trend: 'improving' as const
@@ -408,7 +408,7 @@ export const HabitTrendAnalysis: React.FC = () => {
 
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>{t('home.habitStats.noData')}</Text>
-          <Text style={styles.noDataSubtext}>Complete habits for a few weeks to see trend analysis</Text>
+          <Text style={styles.noDataSubtext}>{t('home.habitTrends.noDataDescription')}</Text>
         </View>
       </View>
     );
@@ -419,7 +419,7 @@ export const HabitTrendAnalysis: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.title}>{t('home.habitStats.trendAnalysis')}</Text>
         <Text style={styles.subtitle}>
-          Last 4 weeks - {formatDateForDisplay(today(), 'short')}
+          {t('home.habitTrends.last4Weeks')} - {formatDateForDisplay(today(), 'short')}
         </Text>
       </View>
 

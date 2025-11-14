@@ -192,23 +192,23 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
         <View ref={addHabitRef} nativeID="add-habit-button">
           <TouchableOpacity style={styles.actionButton} onPress={handleAddHabit}>
             <Ionicons name="add-circle" size={20} color={colors.primary} />
-            <Text style={styles.actionText}>Add Habit</Text>
+            <Text style={styles.actionText}>{t('home.quickActions.addHabit')}</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGratitude}>
           <Ionicons name="heart" size={20} color={colors.primary} />
-          <Text style={styles.actionText}>Gratitude</Text>
+          <Text style={styles.actionText}>{t('home.quickActions.gratitude')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddSelfPraise}>
           <Ionicons name="star" size={20} color={colors.success} />
-          <Text style={styles.actionText}>Self-Praise</Text>
+          <Text style={styles.actionText}>{t('home.quickActions.selfPraise')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleAddGoal}>
           <Ionicons name="flag" size={20} color={colors.secondary} />
-          <Text style={styles.actionText}>Add Goal</Text>
+          <Text style={styles.actionText}>{t('home.quickActions.addGoal')}</Text>
         </TouchableOpacity>
       </View>
 
