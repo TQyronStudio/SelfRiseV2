@@ -85,11 +85,6 @@ const de: Partial<TranslationKeys> = {
     copiedToClipboard: 'In die Zwischenablage kopiert!',
     shareError: 'Teilen fehlgeschlagen. Bitte versuche es erneut.',
     copyError: 'Kopieren fehlgeschlagen. Bitte versuche es erneut.',
-    // Quick Actions
-    quickActions: 'Schnellaktionen',
-    addHabit: 'Gewohnheit hinzufügen',
-    addJournal: 'Eintrag hinzufügen',
-    addGoal: 'Ziel hinzufügen',
     todayHabits: 'Heutige Gewohnheiten',
     // Daily Quote
     dailyQuote: 'Tägliche Inspiration',
@@ -195,6 +190,7 @@ const de: Partial<TranslationKeys> = {
       bonusLabel: 'Bonus',
     },
     // Quick Actions
+    quickActionsTitle: 'Schnellaktionen',
     quickActions: {
       addHabit: 'Gewohnheit hinzufügen',
       gratitude: 'Dankbarkeit',

@@ -131,6 +131,7 @@ const en: TranslationKeys = {
       bonusLabel: 'Bonus',
     },
     // Quick Actions
+    quickActionsTitle: 'Quick Actions',
     quickActions: {
       addHabit: 'Add Habit',
       gratitude: 'Gratitude',

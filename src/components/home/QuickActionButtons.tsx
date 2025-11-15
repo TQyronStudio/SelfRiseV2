@@ -185,7 +185,7 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
 
   return (
     <View ref={quickActionsRef} style={styles.container} nativeID="quick-actions-section">
-      <Text style={styles.title}>{t('home.quickActions')}</Text>
+      <Text style={styles.title}>{t('home.quickActionsTitle')}</Text>
 
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}

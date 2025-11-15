@@ -130,6 +130,7 @@ export interface TranslationKeys {
       bonusLabel: string;
     };
     // Quick Actions (nested)
+    quickActionsTitle: string;
     quickActions: {
       addHabit: string;
       gratitude: string;

@@ -85,11 +85,6 @@ const es: Partial<TranslationKeys> = {
     copiedToClipboard: '¡Copiado al portapapeles!',
     shareError: 'Error al compartir. Por favor, inténtalo de nuevo.',
     copyError: 'Error al copiar. Por favor, inténtalo de nuevo.',
-    // Quick Actions
-    quickActions: 'Acciones Rápidas',
-    addHabit: 'Añadir Hábito',
-    addJournal: 'Añadir Entrada',
-    addGoal: 'Añadir Meta',
     todayHabits: 'Hábitos de Hoy',
     // Daily Quote
     dailyQuote: 'Inspiración Diaria',
@@ -195,6 +190,7 @@ const es: Partial<TranslationKeys> = {
       bonusLabel: 'Bonus',
     },
     // Quick Actions
+    quickActionsTitle: 'Acciones Rápidas',
     quickActions: {
       addHabit: 'Añadir Hábito',
       gratitude: 'Gratitud',
