@@ -262,6 +262,18 @@ const es: Partial<TranslationKeys> = {
         submitFailed: 'No se pudo guardar el hábito. Por favor, inténtalo de nuevo.',
       },
     },
+    emptyState: {
+      title: 'Aún no hay hábitos',
+      subtitle: 'Comienza a construir mejores hábitos creando tu primero',
+    },
+    emptyStateWithCompletion: {
+      title: 'Aún no se han creado hábitos',
+      subtitle: '¡Toca "Añadir Nuevo Hábito" para comenzar!',
+    },
+    emptyStateTracker: {
+      title: 'No hay hábitos activos',
+      subtitle: '¡Crea tu primer hábito para empezar a rastrear!',
+    },
   } as any,
 
   // Journal screen

@@ -244,6 +244,18 @@ const en: TranslationKeys = {
         submitFailed: 'Failed to save habit. Please try again.',
       },
     },
+    emptyState: {
+      title: 'No habits yet',
+      subtitle: 'Start building better habits by creating your first one',
+    },
+    emptyStateWithCompletion: {
+      title: 'No habits created yet',
+      subtitle: 'Tap "Add New Habit" to get started!',
+    },
+    emptyStateTracker: {
+      title: 'No active habits',
+      subtitle: 'Create your first habit to start tracking!',
+    },
   },
   
   // Journal screen

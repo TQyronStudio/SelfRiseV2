@@ -262,6 +262,18 @@ const de: Partial<TranslationKeys> = {
         submitFailed: 'Gewohnheit konnte nicht gespeichert werden. Bitte versuche es erneut.',
       },
     },
+    emptyState: {
+      title: 'Noch keine Gewohnheiten',
+      subtitle: 'Beginne bessere Gewohnheiten aufzubauen, indem du deine erste erstellst',
+    },
+    emptyStateWithCompletion: {
+      title: 'Noch keine Gewohnheiten erstellt',
+      subtitle: 'Tippe auf "Gewohnheit hinzufügen", um loszulegen!',
+    },
+    emptyStateTracker: {
+      title: 'Keine aktiven Gewohnheiten',
+      subtitle: 'Erstelle deine erste Gewohnheit, um mit dem Tracking zu beginnen!',
+    },
   } as any,
 
   // Journal screen

@@ -6,6 +6,7 @@ import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
 import { Fonts } from '@/src/constants/fonts';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface HabitListWithCompletionProps {
   habits: Habit[];
@@ -43,6 +44,7 @@ export function HabitListWithCompletion({
   date = formatDateToString(new Date()),
   ListHeaderComponent,
 }: HabitListWithCompletionProps) {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const [isDragging, setIsDragging] = React.useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -262,8 +264,8 @@ export function HabitListWithCompletion({
       {/* Empty state */}
       {habits.length === 0 && (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No habits created yet</Text>
-          <Text style={styles.emptyStateSubtext}>Tap "Add New Habit" to get started!</Text>
+          <Text style={styles.emptyStateText}>{t('habits.emptyStateWithCompletion.title')}</Text>
+          <Text style={styles.emptyStateSubtext}>{t('habits.emptyStateWithCompletion.subtitle')}</Text>
         </View>
       )}
     </ScrollView>

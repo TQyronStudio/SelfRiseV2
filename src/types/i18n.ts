@@ -243,6 +243,18 @@ export interface TranslationKeys {
         submitFailed: string;
       };
     };
+    emptyState: {
+      title: string;
+      subtitle: string;
+    };
+    emptyStateWithCompletion: {
+      title: string;
+      subtitle: string;
+    };
+    emptyStateTracker: {
+      title: string;
+      subtitle: string;
+    };
   };
   
   // Journal screen

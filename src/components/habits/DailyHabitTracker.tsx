@@ -16,6 +16,7 @@ import { Habit, HabitCompletion } from '../../types/habit';
 import { XP_REWARDS } from '../../constants/gamification';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
+import { useI18n } from '../../hooks/useI18n';
 
 interface DailyHabitTrackerProps {
   date?: string; // Optional date, defaults to today
@@ -24,6 +25,7 @@ interface DailyHabitTrackerProps {
 export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   date = formatDateToString(new Date())
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const { habits, completions, actions, isLoading } = useHabitsData();
   // addXP/subtractXP removed - XP handled by habitStorage
@@ -290,9 +292,9 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
         {activeHabits.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="leaf-outline" size={48} color={colors.textTertiary} />
-            <Text style={styles.emptyStateText}>No active habits</Text>
+            <Text style={styles.emptyStateText}>{t('habits.emptyStateTracker.title')}</Text>
             <Text style={styles.emptyStateSubtext}>
-              Create your first habit to start tracking!
+              {t('habits.emptyStateTracker.subtitle')}
             </Text>
           </View>
         ) : (

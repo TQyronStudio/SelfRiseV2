@@ -150,9 +150,9 @@ export function HabitList({
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="add-circle-outline" size={64} color={colors.border} />
-      <Text style={styles.emptyTitle}>No habits yet</Text>
+      <Text style={styles.emptyTitle}>{t('habits.emptyState.title')}</Text>
       <Text style={styles.emptySubtitle}>
-        Start building better habits by creating your first one
+        {t('habits.emptyState.subtitle')}
       </Text>
       <TouchableOpacity style={styles.emptyButton} onPress={onAddHabit}>
         <Text style={styles.emptyButtonText}>{t('habits.addHabit')}</Text>
