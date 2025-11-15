@@ -526,6 +526,22 @@ const de: Partial<TranslationKeys> = {
       done: 'Fertig',
     },
 
+    status: {
+      active: 'Aktiv',
+      paused: 'Pausiert',
+      archived: 'Archiviert',
+    },
+
+    detailsCard: {
+      title: 'Zieldetails',
+      status: 'Status:',
+      progress: 'Fortschritt:',
+      category: 'Kategorie:',
+      targetDate: 'Zieldatum:',
+      target: 'Ziel',
+      completion: 'Fertigstellung',
+    },
+
     analysis: {
       progressTrend: 'Fortschrittstrend',
       progressChart: 'Fortschrittsdiagramm',

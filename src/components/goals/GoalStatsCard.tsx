@@ -35,11 +35,11 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
       case GoalStatus.COMPLETED:
         return t('goals.completed');
       case GoalStatus.ACTIVE:
-        return 'Active';
+        return t('goals.status.active');
       case GoalStatus.PAUSED:
-        return 'Paused';
+        return t('goals.status.paused');
       case GoalStatus.ARCHIVED:
-        return 'Archived';
+        return t('goals.status.archived');
       default:
         return status;
     }
@@ -225,26 +225,26 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
     <View style={styles.container}>
       {/* Goal Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Goal Details</Text>
+        <Text style={styles.sectionTitle}>{t('goals.detailsCard.title')}</Text>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Status:</Text>
+          <Text style={styles.infoLabel}>{t('goals.detailsCard.status')}</Text>
           <Text style={[styles.infoValue, { color: getStatusColor(goal.status) }]}>
             {getStatusText(goal.status)}
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Progress:</Text>
+          <Text style={styles.infoLabel}>{t('goals.detailsCard.progress')}</Text>
           <Text style={styles.infoValue}>
             {goal.currentValue} / {goal.targetValue} {goal.unit}
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Category:</Text>
+          <Text style={styles.infoLabel}>{t('goals.detailsCard.category')}</Text>
           <Text style={styles.infoValue}>{goal.category}</Text>
         </View>
         {goal.targetDate && (
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Target Date:</Text>
+            <Text style={styles.infoLabel}>{t('goals.detailsCard.targetDate')}</Text>
             <Text style={styles.infoValue}>{goal.targetDate}</Text>
           </View>
         )}
@@ -254,7 +254,7 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
       <View style={styles.section}>
         <View style={styles.progressContainer}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Completion</Text>
+            <Text style={styles.progressLabel}>{t('goals.detailsCard.completion')}</Text>
             <Text style={styles.progressPercentage}>
               {stats.completionPercentage.toFixed(2)}%
             </Text>

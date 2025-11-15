@@ -526,6 +526,22 @@ const es: Partial<TranslationKeys> = {
       done: 'Hecho',
     },
 
+    status: {
+      active: 'Activo',
+      paused: 'Pausado',
+      archived: 'Archivado',
+    },
+
+    detailsCard: {
+      title: 'Detalles de la Meta',
+      status: 'Estado:',
+      progress: 'Progreso:',
+      category: 'Categoría:',
+      targetDate: 'Fecha Objetivo:',
+      target: 'Objetivo',
+      completion: 'Finalización',
+    },
+
     analysis: {
       progressTrend: 'Tendencia de Progreso',
       progressChart: 'Gráfico de Progreso',

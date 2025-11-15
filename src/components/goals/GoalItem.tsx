@@ -92,11 +92,11 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
       case GoalStatus.COMPLETED:
         return t('goals.completed');
       case GoalStatus.ACTIVE:
-        return 'Active';
+        return t('goals.status.active');
       case GoalStatus.PAUSED:
-        return 'Paused';
+        return t('goals.status.paused');
       case GoalStatus.ARCHIVED:
-        return 'Archived';
+        return t('goals.status.archived');
       default:
         return status;
     }
@@ -271,7 +271,7 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
 
       {goal.targetDate && (
         <Text style={styles.targetDate}>
-          Target: {goal.targetDate}
+          {t('goals.detailsCard.target')}: {goal.targetDate}
         </Text>
       )}
 

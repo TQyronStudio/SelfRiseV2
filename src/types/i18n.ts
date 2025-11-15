@@ -490,6 +490,20 @@ export interface TranslationKeys {
       reorder: string;
       done: string;
     };
+    status: {
+      active: string;
+      paused: string;
+      archived: string;
+    };
+    detailsCard: {
+      title: string;
+      status: string;
+      progress: string;
+      category: string;
+      targetDate: string;
+      target: string;
+      completion: string;
+    };
     analysis: {
       progressTrend: string;
       progressChart: string;

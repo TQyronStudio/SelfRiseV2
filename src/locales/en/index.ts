@@ -424,11 +424,11 @@ const en: TranslationKeys = {
         },
       },
     },
-    
+
     details: {
       predictions: 'Completion Predictions',
     },
-    
+
     categories: {
       personal: 'Personal',
       health: 'Health',
@@ -529,7 +529,25 @@ const en: TranslationKeys = {
       reorder: 'Reorder',
       done: 'Done',
     },
-    
+
+    // Goal Status
+    status: {
+      active: 'Active',
+      paused: 'Paused',
+      archived: 'Archived',
+    },
+
+    // Goal Details
+    detailsCard: {
+      title: 'Goal Details',
+      status: 'Status:',
+      progress: 'Progress:',
+      category: 'Category:',
+      targetDate: 'Target Date:',
+      target: 'Target',
+      completion: 'Completion',
+    },
+
     // Goal Analytics
     analysis: {
       progressTrend: 'Progress Trend',
@@ -687,7 +705,7 @@ const en: TranslationKeys = {
       accessibility_label: '{{name}}, {{rarity}} rarity achievement. Status: {{status}}. {{description}}',
       accessibility_hint: 'Tap to view more details about this achievement',
     },
-    
+
     // Achievement Details Modal
     details: {
       title: 'Achievement Details',
