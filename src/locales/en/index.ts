@@ -26,6 +26,8 @@ const en: TranslationKeys = {
     startToday: 'Start today',
     bestStreak: 'Best',
     canRecover: 'Recover with ad',
+    streakFrozen: 'Streak Frozen - Warm Up to Continue ❄️🔥',
+    streakFrozenTap: '❄️ Streak Frozen: {{days}} day{{days, plural, one {} other {s}}} - Tap to warm up',
     // Streak visualization  
     recentActivity: 'Recent Activity',
     completed: 'Completed',
@@ -318,6 +320,12 @@ const en: TranslationKeys = {
       title: 'Journal Export - {{format}} Format',
       truncated: '[Content truncated for display]',
       error: 'Failed to export journal data',
+    },
+
+    // Error messages
+    errors: {
+      searchFailed: 'Failed to search journal entries',
+      deleteFailed: 'Failed to delete journal entry',
     },
   },
   

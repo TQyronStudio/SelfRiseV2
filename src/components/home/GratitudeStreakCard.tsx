@@ -619,7 +619,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
           {streakData.isFrozen ? (
             <View style={styles.statusFrozen}>
               <Ionicons name="snow" size={16} color="#4A90E2" />
-              <Text style={styles.statusFrozenText}>Streak Frozen - Warm Up to Continue ❄️🔥</Text>
+              <Text style={styles.statusFrozenText}>{t('home.streakFrozen')}</Text>
             </View>
           ) : streakData.currentStreak > 0 ? (
             <View style={styles.statusActive}>
@@ -671,7 +671,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         <TouchableOpacity style={styles.frozenContainer} onPress={handleDebtPress}>
           <Ionicons name="warning" size={16} color={colors.warning} />
           <Text style={styles.frozenText}>
-            ❄️ Streak Frozen: {streakData.frozenDays} day{streakData.frozenDays !== 1 ? 's' : ''} - Tap to warm up
+            {t('home.streakFrozenTap', { days: streakData.frozenDays })}
           </Text>
         </TouchableOpacity>
       ) : streakData.canRecoverWithAd ? (

@@ -38,6 +38,8 @@ const de: Partial<TranslationKeys> = {
     startToday: 'Heute beginnen',
     bestStreak: 'Beste',
     canRecover: 'Mit Werbung wiederherstellen',
+    streakFrozen: 'Serie eingefroren - Zum Fortsetzen aufwärmen ❄️🔥',
+    streakFrozenTap: '❄️ Serie eingefroren: {{days}} Tag{{days, plural, one {} other {e}}} - Zum Aufwärmen tippen',
     // Streak visualization
     recentActivity: 'Letzte Aktivität',
     completed: 'Abgeschlossen',
@@ -328,6 +330,11 @@ const de: Partial<TranslationKeys> = {
       title: 'Tagebuch-Export - {{format}}-Format',
       truncated: '[Inhalt für Anzeige gekürzt]',
       error: 'Tagebuchdaten konnten nicht exportiert werden',
+    },
+
+    errors: {
+      searchFailed: 'Suche in Tagebucheinträgen fehlgeschlagen',
+      deleteFailed: 'Tagebucheintrag konnte nicht gelöscht werden',
     },
   } as any,
 

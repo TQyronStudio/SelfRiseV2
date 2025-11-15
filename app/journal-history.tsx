@@ -51,7 +51,7 @@ export default function JournalHistoryScreen() {
       const results = await actions.searchGratitudes(searchTerm);
       setSearchResults(results);
     } catch (error) {
-      Alert.alert('Error', 'Failed to search gratitudes');
+      Alert.alert(t('common.error'), t('journal.errors.searchFailed'));
     }
   };
 
@@ -108,7 +108,7 @@ export default function JournalHistoryScreen() {
 
       setDeletingGratitude(null);
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete journal entry');
+      Alert.alert(t('common.error'), t('journal.errors.deleteFailed'));
     }
   };
 

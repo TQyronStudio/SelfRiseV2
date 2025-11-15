@@ -25,6 +25,8 @@ export interface TranslationKeys {
     startToday: string;
     bestStreak: string;
     canRecover: string;
+    streakFrozen: string;
+    streakFrozenTap: string;
     // Streak visualization  
     recentActivity: string;
     completed: string;
@@ -313,6 +315,10 @@ export interface TranslationKeys {
       title: string;
       truncated: string;
       error: string;
+    };
+    errors: {
+      searchFailed: string;
+      deleteFailed: string;
     };
   };
   

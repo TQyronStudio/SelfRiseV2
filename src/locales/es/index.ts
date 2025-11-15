@@ -38,6 +38,8 @@ const es: Partial<TranslationKeys> = {
     startToday: 'Comenzar hoy',
     bestStreak: 'Mejor',
     canRecover: 'Recuperar con anuncio',
+    streakFrozen: 'Racha Congelada - Calienta para Continuar ❄️🔥',
+    streakFrozenTap: '❄️ Racha Congelada: {{days}} día{{days, plural, one {} other {s}}} - Toca para calentar',
     // Streak visualization
     recentActivity: 'Actividad Reciente',
     completed: 'Completado',
@@ -328,6 +330,11 @@ const es: Partial<TranslationKeys> = {
       title: 'Exportación de Diario - Formato {{format}}',
       truncated: '[Contenido truncado para visualización]',
       error: 'No se pudieron exportar los datos del diario',
+    },
+
+    errors: {
+      searchFailed: 'No se pudo buscar en las entradas del diario',
+      deleteFailed: 'No se pudo eliminar la entrada del diario',
     },
   } as any,
 
