@@ -1872,6 +1872,22 @@ const es: Partial<TranslationKeys> = {
           bonus3: 'Logro de armonía (+200 XP por equilibrio excepcional)'
         }
       },
+      detail: {
+        tabOverview: 'Resumen',
+        tabCalendar: 'Calendario',
+        tabTips: 'Consejos',
+        sectionDescription: 'Descripción del Desafío',
+        sectionTimeline: 'Cronograma',
+        labelDaysRemaining: 'Días Restantes',
+        labelActiveDays: 'Días Activos',
+        labelTotalDays: 'Días Totales',
+        sectionRequirements: 'Progreso de Requisitos',
+        sectionTips: 'Consejos para el Éxito',
+        sectionStrategy: 'Estrategia Mensual',
+        sectionRewards: 'Recompensas',
+        rewardDescription: '¡Completa todos los requisitos para ganar esta recompensa de XP. La finalización perfecta (100%) gana XP adicional!',
+        completed: '✓ Completado',
+      },
       starDifficulty: {
         title: 'Dificultad de Estrellas',
         content: 'Los desafíos se clasifican por dificultad de estrellas (⭐ a ⭐⭐⭐⭐⭐). Los desafíos de mayor dificultad ofrecen mayores recompensas de XP pero requieren más dedicación para completarse.'

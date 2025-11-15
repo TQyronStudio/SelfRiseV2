@@ -1314,6 +1314,23 @@ export interface TranslationKeys {
       // Removed standard gaming concepts - achievements are intuitive
     };
     challenges: {
+      templates?: any; // Challenge templates are dynamic
+      detail: {
+        tabOverview: string;
+        tabCalendar: string;
+        tabTips: string;
+        sectionDescription: string;
+        sectionTimeline: string;
+        labelDaysRemaining: string;
+        labelActiveDays: string;
+        labelTotalDays: string;
+        sectionRequirements: string;
+        sectionTips: string;
+        sectionStrategy: string;
+        sectionRewards: string;
+        rewardDescription: string;
+        completed: string;
+      };
       starDifficulty: { title: string; content: string; };
       progressTracking: { title: string; content: string; };
       completionRewards: { title: string; content: string; };

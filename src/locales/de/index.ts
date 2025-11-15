@@ -1872,6 +1872,22 @@ const de: Partial<TranslationKeys> = {
           bonus3: 'Harmonie-Leistung (+200 XP für außergewöhnliche Balance)'
         }
       },
+      detail: {
+        tabOverview: 'Übersicht',
+        tabCalendar: 'Kalender',
+        tabTips: 'Tipps',
+        sectionDescription: 'Herausforderungsbeschreibung',
+        sectionTimeline: 'Zeitplan',
+        labelDaysRemaining: 'Verbleibende Tage',
+        labelActiveDays: 'Aktive Tage',
+        labelTotalDays: 'Gesamttage',
+        sectionRequirements: 'Anforderungsfortschritt',
+        sectionTips: 'Tipps für Erfolg',
+        sectionStrategy: 'Monatsstrategie',
+        sectionRewards: 'Belohnungen',
+        rewardDescription: 'Erfülle alle Anforderungen, um diese XP-Belohnung zu verdienen. Perfekte Vollendung (100%) bringt Bonus-XP!',
+        completed: '✓ Abgeschlossen',
+      },
       starDifficulty: {
         title: 'Herausforderungs-Sternebewertung',
         content: 'Bereit für eine Herausforderung? ⭐ Wähle dein Abenteuer-Level! 1-Stern-Herausforderungen sind perfekt zum Einstieg, während 5-Stern-Herausforderungen für die ultimativen Leistungsträger sind. Höhere Sterne bedeuten größere EP-Belohnungen und Prahlrechte!'

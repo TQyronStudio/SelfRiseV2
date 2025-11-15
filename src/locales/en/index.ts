@@ -2081,6 +2081,22 @@ const en: TranslationKeys = {
           bonus3: 'Harmony achievement (+200 XP for exceptional balance)'
         }
       },
+      detail: {
+        tabOverview: 'Overview',
+        tabCalendar: 'Calendar',
+        tabTips: 'Tips',
+        sectionDescription: 'Challenge Description',
+        sectionTimeline: 'Timeline',
+        labelDaysRemaining: 'Days Remaining',
+        labelActiveDays: 'Active Days',
+        labelTotalDays: 'Total Days',
+        sectionRequirements: 'Requirements Progress',
+        sectionTips: 'Tips for Success',
+        sectionStrategy: 'Monthly Strategy',
+        sectionRewards: 'Rewards',
+        rewardDescription: 'Complete all requirements to earn this XP reward. Perfect completion (100%) earns bonus XP!',
+        completed: '✓ Completed',
+      },
       starDifficulty: {
         title: 'Challenge Star Rating',
         content: 'Ready for a challenge? ⭐ Pick your adventure level! 1-star challenges are perfect for getting started, while 5-star challenges are for the ultimate achievers. Higher stars mean bigger XP rewards and bragging rights!'

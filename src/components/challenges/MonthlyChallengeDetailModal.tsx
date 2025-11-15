@@ -14,6 +14,7 @@ import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import MonthlyProgressCalendar from './MonthlyProgressCalendar';
 import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface MonthlyChallengeDetailModalProps {
   challenge: MonthlyChallenge | null;
@@ -32,6 +33,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   visible,
   onClose
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(initialProgress);
@@ -486,26 +488,26 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     <View>
       {/* Challenge Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Challenge Description</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionDescription')}</Text>
         <Text style={styles.description}>{displayChallenge.description}</Text>
       </View>
 
       {/* Time Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Timeline</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionTimeline')}</Text>
         <View style={styles.timeCard}>
           <View style={styles.timeRow}>
             <View style={styles.timeItem}>
               <Text style={styles.timeNumber}>{daysRemaining}</Text>
-              <Text style={styles.timeLabel}>Days Remaining</Text>
+              <Text style={styles.timeLabel}>{t('challenges.detail.labelDaysRemaining')}</Text>
             </View>
             <View style={styles.timeItem}>
               <Text style={styles.timeNumber}>{progress.daysActive}</Text>
-              <Text style={styles.timeLabel}>Active Days</Text>
+              <Text style={styles.timeLabel}>{t('challenges.detail.labelActiveDays')}</Text>
             </View>
             <View style={styles.timeItem}>
               <Text style={styles.timeNumber}>{totalDays}</Text>
-              <Text style={styles.timeLabel}>Total Days</Text>
+              <Text style={styles.timeLabel}>{t('challenges.detail.labelTotalDays')}</Text>
             </View>
           </View>
           <Text style={styles.timeDetails}>
@@ -523,7 +525,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
       {/* Requirements Progress (moved from Progress tab) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Requirements Progress</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionRequirements')}</Text>
         {displayChallenge.requirements.map((requirement, index) => {
           const currentProgress = progress.progress[requirement.trackingKey] || 0;
           const progressPercent = Math.min(100, (currentProgress / requirement.target) * 100);
@@ -597,7 +599,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const renderTipsTab = () => (
     <View>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tips for Success</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionTips')}</Text>
         <View style={styles.tipsCard}>
           {getMonthlyChallengeTips(displayChallenge.category).map((tip, index) => (
             <View key={index} style={styles.tip}>
@@ -610,7 +612,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
       {/* Challenge Strategy */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Monthly Strategy</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionStrategy')}</Text>
         <View style={styles.strategyCard}>
           <Text style={styles.strategyText}>
             This is a <Text style={[styles.strategyHighlight, { color: starColor }]}>
@@ -625,7 +627,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
       {/* Reward Information */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Rewards</Text>
+        <Text style={styles.sectionTitle}>{t('challenges.detail.sectionRewards')}</Text>
         <View style={[styles.rewardCard, { borderColor: categoryColor + '30' }]}>
           <View style={[styles.rewardIcon, { backgroundColor: categoryColor + '20' }]}>
             <Text style={[styles.rewardIconText, { color: categoryColor }]}>🎁</Text>
@@ -635,7 +637,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
               {displayChallenge.baseXPReward} Experience Points
             </Text>
             <Text style={styles.rewardDescription}>
-              Complete all requirements to earn this XP reward. Perfect completion (100%) earns bonus XP!
+              {t('challenges.detail.rewardDescription')}
             </Text>
             {progress.currentStreak > 0 && (
               <Text style={styles.rewardBonus}>
@@ -699,7 +701,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
               </View>
               {isCompleted && (
                 <View style={styles.completedBadge}>
-                  <Text style={styles.completedBadgeText}>✓ Completed</Text>
+                  <Text style={styles.completedBadgeText}>{t('challenges.detail.completed')}</Text>
                 </View>
               )}
             </View>
@@ -713,9 +715,9 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabScrollContent}
           >
-            {renderTabButton('overview', 'Overview')}
-            {renderTabButton('calendar', 'Calendar')}
-            {renderTabButton('tips', 'Tips')}
+            {renderTabButton('overview', t('challenges.detail.tabOverview'))}
+            {renderTabButton('calendar', t('challenges.detail.tabCalendar'))}
+            {renderTabButton('tips', t('challenges.detail.tabTips'))}
           </ScrollView>
         </View>
 
