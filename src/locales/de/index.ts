@@ -357,6 +357,13 @@ const de: Partial<TranslationKeys> = {
       overview: 'Übersicht',
       trends: 'Trends',
       predictions: 'Vorhersagen',
+      sectionStatistics: 'Statistiken',
+      labelEntries: 'Einträge',
+      labelDaysActive: 'Aktive Tage',
+      labelAvgDaily: 'Ø Täglich',
+      labelTimelineStatus: 'Zeitplan-Status',
+      sectionPredictions: 'Vorhersagen',
+      labelEstimatedCompletion: 'Geschätzte Fertigstellung:',
     },
 
     form: {

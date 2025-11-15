@@ -344,6 +344,13 @@ const en: TranslationKeys = {
       overview: 'Overview',
       trends: 'Trends',
       predictions: 'Predictions',
+      sectionStatistics: 'Statistics',
+      labelEntries: 'Entries',
+      labelDaysActive: 'Days Active',
+      labelAvgDaily: 'Avg Daily',
+      labelTimelineStatus: 'Timeline Status',
+      sectionPredictions: 'Predictions',
+      labelEstimatedCompletion: 'Estimated Completion:',
     },
     
     form: {

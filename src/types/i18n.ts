@@ -332,6 +332,13 @@ export interface TranslationKeys {
       overview: string;
       trends: string;
       predictions: string;
+      sectionStatistics: string;
+      labelEntries: string;
+      labelDaysActive: string;
+      labelAvgDaily: string;
+      labelTimelineStatus: string;
+      sectionPredictions: string;
+      labelEstimatedCompletion: string;
     };
     form: {
       title: string;

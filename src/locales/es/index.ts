@@ -357,6 +357,13 @@ const es: Partial<TranslationKeys> = {
       overview: 'Resumen',
       trends: 'Tendencias',
       predictions: 'Predicciones',
+      sectionStatistics: 'Estadísticas',
+      labelEntries: 'Entradas',
+      labelDaysActive: 'Días Activos',
+      labelAvgDaily: 'Promedio Diario',
+      labelTimelineStatus: 'Estado del Cronograma',
+      sectionPredictions: 'Predicciones',
+      labelEstimatedCompletion: 'Finalización Estimada:',
     },
 
     form: {

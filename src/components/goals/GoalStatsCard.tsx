@@ -275,25 +275,25 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
 
       {/* Statistics */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Statistics</Text>
+        <Text style={styles.sectionTitle}>{t('goals.stats.sectionStatistics')}</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.progressEntries}</Text>
-            <Text style={styles.statLabel}>Entries</Text>
+            <Text style={styles.statLabel}>{t('goals.stats.labelEntries')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.daysActive}</Text>
-            <Text style={styles.statLabel}>Days Active</Text>
+            <Text style={styles.statLabel}>{t('goals.stats.labelDaysActive')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.averageDaily.toFixed(1)}</Text>
-            <Text style={styles.statLabel}>Avg Daily</Text>
+            <Text style={styles.statLabel}>{t('goals.stats.labelAvgDaily')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: getTimelineStatusColor(stats.timelineStatus || 'onTrack') }]}>
               {getTimelineStatusText(stats.timelineStatus || 'onTrack')}
             </Text>
-            <Text style={styles.statLabel}>Timeline Status</Text>
+            <Text style={styles.statLabel}>{t('goals.stats.labelTimelineStatus')}</Text>
           </View>
         </View>
       </View>
@@ -301,9 +301,9 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
       {/* Predictions */}
       {stats.estimatedCompletionDate && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Predictions</Text>
+          <Text style={styles.sectionTitle}>{t('goals.stats.sectionPredictions')}</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Estimated Completion:</Text>
+            <Text style={styles.infoLabel}>{t('goals.stats.labelEstimatedCompletion')}</Text>
             <Text style={styles.infoValue}>{stats.estimatedCompletionDate}</Text>
           </View>
         </View>
