@@ -59,18 +59,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
   };
 
   const getComponentDisplayName = (componentId: string) => {
-    const names: Record<string, string> = {
-      xpProgressBar: 'XP Progress',
-      journalStreak: 'Journal Streak',
-      quickActions: 'Quick Actions',
-      dailyQuote: 'Daily Quote',
-      recommendations: 'Recommendations',
-      streakHistory: 'Streak History',
-      habitStats: 'Habit Statistics',
-      habitPerformance: 'Performance',
-      habitTrends: 'Trends',
-    };
-    return names[componentId] || componentId;
+    return t(`home.customization.componentNames.${componentId}` as any) || componentId;
   };
 
   const styles = StyleSheet.create({

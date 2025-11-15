@@ -21,12 +21,14 @@ export interface TranslationKeys {
     // Streak display
     day: string;
     days: string;
+    frozen: string;
     streakActive: string;
     startToday: string;
     bestStreak: string;
     canRecover: string;
     streakFrozen: string;
-    streakFrozenTap: string;
+    streakFrozenTap_one: string;
+    streakFrozenTap_other: string;
     // Streak visualization  
     recentActivity: string;
     completed: string;
@@ -208,7 +210,22 @@ export interface TranslationKeys {
       errors: {
         visibilityFailed: string;
       };
+      componentNames: {
+        xpProgressBar: string;
+        xpMultiplier: string;
+        journalStreak: string;
+        quickActions: string;
+        dailyQuote: string;
+        recommendations: string;
+        streakHistory: string;
+        habitStats: string;
+        habitPerformance: string;
+        habitTrends: string;
+        monthlyChallenges: string;
+      };
     };
+    // Today's Habits
+    todayHabits: string;
   };
   
   // Habits screen
