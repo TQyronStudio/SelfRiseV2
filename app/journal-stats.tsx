@@ -55,18 +55,18 @@ export default function JournalStatsScreen() {
 
   const getStreakDescription = () => {
     if (!state.streakInfo) return '';
-    
+
     const { currentStreak, longestStreak } = state.streakInfo;
-    
+
     if (currentStreak === 0) {
-      return longestStreak > 0 ? `Best streak: ${longestStreak} days` : 'Start your streak today!';
+      return longestStreak > 0 ? t('journal.stats.bestStreak', { days: longestStreak }) : t('journal.stats.startToday');
     }
-    
+
     if (currentStreak === longestStreak) {
-      return 'Personal best! 🎉';
+      return t('journal.stats.personalBest');
     }
-    
-    return `Best: ${longestStreak} days`;
+
+    return t('journal.stats.best', { days: longestStreak });
   };
 
   const getBadgeTotal = () => {
@@ -207,7 +207,7 @@ export default function JournalStatsScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Journal Statistics</Text>
+          <Text style={styles.headerTitle}>{t('journal.stats.title')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={() => setShowExportModal(true)} style={styles.headerButton}>
               <IconSymbol name="square.and.arrow.up" size={20} color="#FFFFFF" />
@@ -227,25 +227,25 @@ export default function JournalStatsScreen() {
         <View style={styles.statsGrid}>
           {/* Total Entries */}
           <StatisticsCard
-            title="Total Entries"
+            title={t('journal.stats.totalEntries')}
             value={stats?.totalGratitudes || 0}
-            subtitle="All time"
+            subtitle={t('journal.stats.allTime')}
             icon="📝"
             color={colors.primary}
           />
 
           {/* Active Days */}
           <StatisticsCard
-            title="Active Days"
+            title={t('journal.stats.activeDays')}
             value={stats?.totalDays || 0}
-            subtitle={`${stats?.totalDays === 1 ? 'day' : 'days'} with entries`}
+            subtitle={t('journal.stats.daysWithEntries', { count: stats?.totalDays || 0 })}
             icon="📅"
             color={colors.success}
           />
 
           {/* Current Streak */}
           <StatisticsCard
-            title="Current Streak"
+            title={t('journal.stats.currentStreak')}
             value={`${state.streakInfo?.currentStreak || 0} days`}
             subtitle={getStreakDescription()}
             icon="🔥"
@@ -254,16 +254,16 @@ export default function JournalStatsScreen() {
 
           {/* Average Per Day */}
           <StatisticsCard
-            title="Daily Average"
+            title={t('journal.stats.dailyAverage')}
             value={stats?.averagePerDay ? stats.averagePerDay.toFixed(1) : '0.0'}
-            subtitle="entries per active day"
+            subtitle={t('journal.stats.entriesPerDay')}
             icon="📊"
             color={colors.secondary || colors.primary}
           />
 
           {/* Milestone Badges */}
           <StatisticsCard
-            title="Milestone Badges"
+            title={t('journal.stats.milestoneBadges')}
             value={getBadgeTotal()}
             subtitle={`⭐ ${state.streakInfo?.starCount || 0} • 🔥 ${state.streakInfo?.flameCount || 0} • 👑 ${state.streakInfo?.crownCount || 0}`}
             icon="🏆"

@@ -335,13 +335,13 @@ export default function SettingsScreen() {
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalEmoji}>✅</Text>
-          <Text style={styles.modalTitle}>Success</Text>
+          <Text style={styles.modalTitle}>{t('settings.success')}</Text>
           <Text style={styles.modalMessage}>{t('settings.tutorialResetSuccess')}</Text>
           <TouchableOpacity
             style={styles.modalButton}
             onPress={() => setShowSuccessModal(false)}
           >
-            <Text style={styles.modalButtonText}>OK</Text>
+            <Text style={styles.modalButtonText}>{t('common.ok')}</Text>
           </TouchableOpacity>
         </View>
       </BaseModal>
@@ -354,13 +354,13 @@ export default function SettingsScreen() {
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalEmoji}>❌</Text>
-          <Text style={styles.modalTitle}>Error</Text>
+          <Text style={styles.modalTitle}>{t('settings.errorTitle')}</Text>
           <Text style={styles.modalMessage}>{errorMessage}</Text>
           <TouchableOpacity
             style={styles.modalButton}
             onPress={() => setShowErrorModal(false)}
           >
-            <Text style={styles.modalButtonText}>OK</Text>
+            <Text style={styles.modalButtonText}>{t('common.ok')}</Text>
           </TouchableOpacity>
         </View>
       </BaseModal>

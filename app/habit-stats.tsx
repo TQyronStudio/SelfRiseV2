@@ -7,10 +7,12 @@ import { Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { IndividualHabitStatsScreen } from '@/src/screens/habits/IndividualHabitStatsScreen';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 export default function HabitStatsPage() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     container: {
@@ -56,7 +58,7 @@ export default function HabitStatsPage() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <IconSymbol name="chevron.left" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Active Habits</Text>
+          <Text style={styles.headerTitle}>{t('habits.stats.activeHabits')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 

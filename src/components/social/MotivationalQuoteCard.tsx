@@ -315,7 +315,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
             accessibilityLabel="Copy quote to clipboard"
           >
             <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-            <Text style={styles.actionText}>Copy</Text>
+            <Text style={styles.actionText}>{t('social.quote.copy')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -325,7 +325,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
             accessibilityLabel="Share quote"
           >
             <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
-            <Text style={styles.actionText}>Share</Text>
+            <Text style={styles.actionText}>{t('social.quote.share')}</Text>
           </TouchableOpacity>
         </View>
       )}

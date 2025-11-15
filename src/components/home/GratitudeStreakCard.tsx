@@ -712,9 +712,9 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         <WarmUpSuccessModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || 'Success!'}
-          message={currentModal.message || 'Operation completed successfully.'}
-          buttonText={currentModal.primaryText || 'OK'}
+          title={currentModal.title || t('journal.fallback.success')}
+          message={currentModal.message || t('journal.fallback.operationComplete')}
+          buttonText={currentModal.primaryText || t('common.ok')}
         />
       )}
 
@@ -722,9 +722,9 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         <WarmUpErrorModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || 'Error'}
-          message={currentModal.message || 'Something went wrong. Please try again.'}
-          buttonText={currentModal.primaryText || 'OK'}
+          title={currentModal.title || t('journal.fallback.error')}
+          message={currentModal.message || t('journal.fallback.errorMessage')}
+          buttonText={currentModal.primaryText || t('common.ok')}
         />
       )}
 
@@ -734,9 +734,9 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         <WarmUpSuccessModal
           visible={true}
           onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || '🎉 Congratulations!'}
-          message={currentModal.message || 'Your debt has been cleared successfully!'}
-          buttonText={currentModal.primaryText || 'Continue'}
+          title={currentModal.title || t('journal.fallback.congratulations')}
+          message={currentModal.message || t('journal.fallback.debtCleared')}
+          buttonText={currentModal.primaryText || t('common.continue')}
         />
       )}
     </TouchableOpacity>

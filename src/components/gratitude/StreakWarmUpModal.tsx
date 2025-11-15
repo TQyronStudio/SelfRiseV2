@@ -11,6 +11,7 @@ import {
 import { Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -312,6 +313,7 @@ export default function StreakWarmUpModal({
   onResetStreak,
 }: StreakWarmUpModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -628,7 +630,7 @@ export default function StreakWarmUpModal({
               onPress={() => setShowResetConfirmation(true)}
             >
               <Text style={styles.resetButtonText}>
-                Start Fresh
+                {t('common.startFresh')}
               </Text>
             </TouchableOpacity>
           )}
@@ -658,10 +660,10 @@ export default function StreakWarmUpModal({
         visible={showResetConfirmation}
         onClose={() => setShowResetConfirmation(false)}
         onConfirm={handleResetStreak}
-        title="Start Fresh?"
-        message="⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone."
-        confirmText="Start Fresh"
-        cancelText="Cancel"
+        title={t('journal.warmUp.startFresh.title')}
+        message={t('journal.warmUp.startFresh.message')}
+        confirmText={t('common.startFresh')}
+        cancelText={t('common.cancel')}
       />
     </Modal>
   );

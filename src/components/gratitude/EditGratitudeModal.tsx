@@ -196,7 +196,7 @@ export default function EditGratitudeModal({
             style={styles.textInput}
             value={content}
             onChangeText={setContent}
-            placeholder="Edit your journal entry..."
+            placeholder={t('journal.editPlaceholder')}
             multiline
             autoFocus
             maxLength={500}

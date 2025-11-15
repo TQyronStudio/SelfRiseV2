@@ -6,6 +6,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementStats, AchievementRarity, AchievementCategory } from '@/src/types/gamification';
 import { LoyaltyProgressCard } from './LoyaltyProgressCard';
 
@@ -34,6 +35,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
   userAchievements,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const completionRate = totalAchievements > 0 ? (unlockedCount / totalAchievements) * 100 : 0;
 
   // Calculate rarity distribution
@@ -227,18 +229,18 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
       {/* Primary Stats Row */}
       <View style={styles.primaryStatsRow}>
         <StatCard
-          title="Total Trophies"
+          title={t('achievements.trophyRoom.totalTrophies')}
           value={`${unlockedCount}/${totalAchievements}`}
-          subtitle="Collected"
+          subtitle={t('achievements.trophyRoom.collected')}
           color={colors.primary}
           icon="🏆"
           progress={completionRate}
         />
-        
+
         <StatCard
-          title="Completion Rate"
+          title={t('achievements.trophyRoom.completionRate')}
           value={`${Math.round(completionRate)}%`}
-          subtitle="Overall Progress"
+          subtitle={t('achievements.trophyRoom.overallProgress')}
           color={completionRate >= 75 ? '#4CAF50' : completionRate >= 50 ? '#FF9800' : '#F44336'}
           icon="📊"
         />

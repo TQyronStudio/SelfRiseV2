@@ -259,6 +259,9 @@ const en: TranslationKeys = {
       title: 'No active habits',
       subtitle: 'Create your first habit to start tracking!',
     },
+    stats: {
+      activeHabits: 'Active Habits',
+    },
   },
   
   // Journal screen
@@ -326,6 +329,53 @@ const en: TranslationKeys = {
     errors: {
       searchFailed: 'Failed to search journal entries',
       deleteFailed: 'Failed to delete journal entry',
+    },
+
+    // Journal UI text
+    searchPlaceholder: 'Search journal entries...',
+    editPlaceholder: 'Edit your journal entry...',
+
+    // Delete confirmation
+    deleteConfirm: {
+      title: 'Delete Journal Entry',
+      message: 'Are you sure you want to delete this {{type}} entry? This action cannot be undone.',
+      gratitude: 'gratitude',
+      selfPraise: 'self-praise',
+    },
+
+    // Journal stats
+    stats: {
+      title: 'Journal Statistics',
+      totalEntries: 'Total Entries',
+      allTime: 'All time',
+      activeDays: 'Active Days',
+      daysWithEntries: '{{count}} {{count, plural, one {day} other {days}}} with entries',
+      currentStreak: 'Current Streak',
+      dailyAverage: 'Daily Average',
+      entriesPerDay: 'entries per active day',
+      milestoneBadges: 'Milestone Badges',
+      bestStreak: 'Best streak: {{days}} days',
+      startToday: 'Start your streak today!',
+      personalBest: 'Personal best! 🎉',
+      best: 'Best: {{days}} days',
+    },
+
+    // Warm-up modals
+    warmUp: {
+      startFresh: {
+        title: 'Start Fresh?',
+        message: '⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone.',
+      },
+    },
+
+    // Fallback messages
+    fallback: {
+      success: 'Success!',
+      operationComplete: 'Operation completed successfully.',
+      error: 'Error',
+      errorMessage: 'Something went wrong. Please try again.',
+      congratulations: '🎉 Congratulations!',
+      debtCleared: 'Your debt has been cleared successfully!',
     },
   },
   
@@ -638,6 +688,11 @@ const en: TranslationKeys = {
       copied: 'Content copied to clipboard!',
       copyError: 'Failed to copy content. Please try again.',
     },
+
+    // Goal Completion Modal
+    completion: {
+      continue: 'Continue',
+    },
   },
   
   // Achievements screen
@@ -687,6 +742,14 @@ const en: TranslationKeys = {
       searchPlaceholder: 'Search achievements...',
       noResults: 'No achievements found',
       clearFilters: 'Clear Filters',
+    },
+
+    // Trophy Room Stats
+    trophyRoom: {
+      totalTrophies: 'Total Trophies',
+      collected: 'Collected',
+      completionRate: 'Completion Rate',
+      overallProgress: 'Overall Progress',
     },
     
     // Sorting
@@ -1645,6 +1708,8 @@ const en: TranslationKeys = {
     // Common
     cancel: 'Cancel',
     reset: 'Restart',
+    success: 'Success',
+    errorTitle: 'Error',
   },
   
   // Auth screens
@@ -1794,6 +1859,11 @@ const en: TranslationKeys = {
       },
     },
 
+    // XP Multiplier
+    multiplier: {
+      continue: 'Continue',
+    },
+
     // Achievement System
     achievement: {
       unlocked: 'Achievement Unlocked!',
@@ -1802,7 +1872,7 @@ const en: TranslationKeys = {
       xp_reward: '+{{xp}} XP',
       requirements: 'Requirements',
       unlock_condition: 'Unlock Condition',
-      
+
       announcement: {
         unlocked: 'Achievement unlocked: {{name}}! You earned {{xp}} experience points.',
       },
@@ -1882,7 +1952,10 @@ const en: TranslationKeys = {
     continue: 'Continue',
     yes: 'Yes',
     no: 'No',
-    
+    copy: 'Copy',
+    share: 'Share',
+    startFresh: 'Start Fresh',
+
     // Celebration support
     celebration: {
       general_announcement: 'Congratulations on your achievement!',
@@ -2505,6 +2578,8 @@ const en: TranslationKeys = {
   // Social features
   social: {
     quote: {
+      copy: 'Copy',
+      share: 'Share',
       copiedTitle: '📋 Copied!',
       copiedMessage: 'Quote copied to clipboard.',
       copyError: 'Failed to copy quote. Please try again.',

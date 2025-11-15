@@ -272,6 +272,9 @@ const es: Partial<TranslationKeys> = {
       title: 'No hay hábitos activos',
       subtitle: '¡Crea tu primer hábito para empezar a rastrear!',
     },
+    stats: {
+      activeHabits: 'Hábitos activos',
+    },
   } as any,
 
   // Journal screen
@@ -335,6 +338,53 @@ const es: Partial<TranslationKeys> = {
     errors: {
       searchFailed: 'No se pudo buscar en las entradas del diario',
       deleteFailed: 'No se pudo eliminar la entrada del diario',
+    },
+
+    // Journal UI text
+    searchPlaceholder: 'Buscar entradas del diario...',
+    editPlaceholder: 'Edita tu entrada del diario...',
+
+    // Delete confirmation
+    deleteConfirm: {
+      title: 'Eliminar entrada del diario',
+      message: '¿Estás seguro de que quieres eliminar esta entrada de {{type}}? Esta acción no se puede deshacer.',
+      gratitude: 'gratitud',
+      selfPraise: 'autoelogio',
+    },
+
+    // Journal stats
+    stats: {
+      title: 'Estadísticas del diario',
+      totalEntries: 'Total de entradas',
+      allTime: 'De todos los tiempos',
+      activeDays: 'Días activos',
+      daysWithEntries: '{{count}} día{{count, plural, one {} other {s}}} con entradas',
+      currentStreak: 'Racha actual',
+      dailyAverage: 'Promedio diario',
+      entriesPerDay: 'entradas por día activo',
+      milestoneBadges: 'Insignias de hitos',
+      bestStreak: 'Mejor racha: {{days}} días',
+      startToday: '¡Comienza tu racha hoy!',
+      personalBest: '¡Mejor marca personal! 🎉',
+      best: 'Mejor: {{days}} días',
+    },
+
+    // Warm-up modals
+    warmUp: {
+      startFresh: {
+        title: '¿Empezar de nuevo?',
+        message: '⚠️ Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer.',
+      },
+    },
+
+    // Fallback messages
+    fallback: {
+      success: '¡Éxito!',
+      operationComplete: 'Operación completada con éxito.',
+      error: 'Error',
+      errorMessage: 'Algo salió mal. Por favor, inténtalo de nuevo.',
+      congratulations: '¡Felicidades! 🎉',
+      debtCleared: '¡Tu deuda ha sido liquidada con éxito!',
     },
   } as any,
 
@@ -628,6 +678,11 @@ const es: Partial<TranslationKeys> = {
       copied: '¡Contenido copiado al portapapeles!',
       copyError: 'No se pudo copiar el contenido. Por favor, inténtalo de nuevo.',
     },
+
+    // Goal Completion Modal
+    completion: {
+      continue: 'Continuar',
+    },
   } as any,
 
   // Settings screen - Language section (PRIORITY 1)
@@ -693,6 +748,8 @@ const es: Partial<TranslationKeys> = {
     // Common
     cancel: 'Cancelar',
     reset: 'Reiniciar',
+    success: 'Éxito',
+    errorTitle: 'Error',
   } as any,
 
   // Common
@@ -719,6 +776,15 @@ const es: Partial<TranslationKeys> = {
     continue: 'Continuar',
     yes: 'Sí',
     no: 'No',
+    copy: 'Copiar',
+    share: 'Compartir',
+    startFresh: 'Empezar de nuevo',
+
+    // Celebration support
+    celebration: {
+      general_announcement: '¡Felicidades por tu logro!',
+      modal: 'Celebración de logro',
+    },
   } as any,
 
   // Days of week
@@ -1642,6 +1708,11 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
+    // XP Multiplier
+    multiplier: {
+      continue: 'Continuar',
+    },
+
     achievement: {
       unlocked: '¡Logro Desbloqueado!',
       locked: 'Logro Bloqueado',
@@ -1782,7 +1853,14 @@ const es: Partial<TranslationKeys> = {
         content: 'Ve tendencias de finalización semanales y mensuales, indicadores de rendimiento (total de hábitos, finalizados hoy, promedio semanal) y análisis de tendencias.'
       }
     },
-    achievements: {},
+    achievements: {
+      trophyRoom: {
+        totalTrophies: 'Trofeos totales',
+        collected: 'Recolectados',
+        completionRate: 'Tasa de finalización',
+        overallProgress: 'Progreso general',
+      },
+    },
     challenges: {
       templates: {
         // HABITS templates
@@ -2027,6 +2105,8 @@ const es: Partial<TranslationKeys> = {
 
   social: {
     quote: {
+      copy: 'Copiar',
+      share: 'Compartir',
       copiedTitle: '📋 ¡Copiado!',
       copiedMessage: 'Cita copiada al portapapeles.',
       copyError: 'No se pudo copiar la cita. Por favor, inténtalo de nuevo.',

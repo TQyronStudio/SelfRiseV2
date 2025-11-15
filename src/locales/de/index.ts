@@ -272,6 +272,9 @@ const de: Partial<TranslationKeys> = {
       title: 'Keine aktiven Gewohnheiten',
       subtitle: 'Erstelle deine erste Gewohnheit, um mit dem Tracking zu beginnen!',
     },
+    stats: {
+      activeHabits: 'Aktive Gewohnheiten',
+    },
   } as any,
 
   // Journal screen
@@ -335,6 +338,53 @@ const de: Partial<TranslationKeys> = {
     errors: {
       searchFailed: 'Suche in Tagebucheinträgen fehlgeschlagen',
       deleteFailed: 'Tagebucheintrag konnte nicht gelöscht werden',
+    },
+
+    // Journal UI text
+    searchPlaceholder: 'Tagebucheinträge durchsuchen...',
+    editPlaceholder: 'Bearbeite deinen Tagebucheintrag...',
+
+    // Delete confirmation
+    deleteConfirm: {
+      title: 'Tagebucheintrag löschen',
+      message: 'Bist du sicher, dass du diesen {{type}}-Eintrag löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.',
+      gratitude: 'Dankbarkeits',
+      selfPraise: 'Selbstlob',
+    },
+
+    // Journal stats
+    stats: {
+      title: 'Tagebuch-Statistiken',
+      totalEntries: 'Gesamteinträge',
+      allTime: 'Aller Zeiten',
+      activeDays: 'Aktive Tage',
+      daysWithEntries: '{{count}} Tag{{count, plural, one {} other {e}}} mit Einträgen',
+      currentStreak: 'Aktuelle Serie',
+      dailyAverage: 'Täglicher Durchschnitt',
+      entriesPerDay: 'Einträge pro aktivem Tag',
+      milestoneBadges: 'Meilenstein-Abzeichen',
+      bestStreak: 'Beste Serie: {{days}} Tage',
+      startToday: 'Starte heute deine Serie!',
+      personalBest: 'Persönliche Bestleistung! 🎉',
+      best: 'Beste: {{days}} Tage',
+    },
+
+    // Warm-up modals
+    warmUp: {
+      startFresh: {
+        title: 'Neu beginnen?',
+        message: '⚠️ Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden.',
+      },
+    },
+
+    // Fallback messages
+    fallback: {
+      success: 'Erfolg!',
+      operationComplete: 'Vorgang erfolgreich abgeschlossen.',
+      error: 'Fehler',
+      errorMessage: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
+      congratulations: '🎉 Glückwunsch!',
+      debtCleared: 'Deine Schuld wurde erfolgreich beglichen!',
     },
   } as any,
 
@@ -628,6 +678,11 @@ const de: Partial<TranslationKeys> = {
       copied: 'Inhalt in die Zwischenablage kopiert!',
       copyError: 'Inhalt konnte nicht kopiert werden. Bitte versuche es erneut.',
     },
+
+    // Goal Completion Modal
+    completion: {
+      continue: 'Weiter',
+    },
   } as any,
 
   // Settings screen - Language section (PRIORITY 1)
@@ -693,6 +748,8 @@ const de: Partial<TranslationKeys> = {
     // Common
     cancel: 'Abbrechen',
     reset: 'Neustarten',
+    success: 'Erfolg',
+    errorTitle: 'Fehler',
   } as any,
 
   // Common
@@ -719,6 +776,15 @@ const de: Partial<TranslationKeys> = {
     continue: 'Fortfahren',
     yes: 'Ja',
     no: 'Nein',
+    copy: 'Kopieren',
+    share: 'Teilen',
+    startFresh: 'Neu beginnen',
+
+    // Celebration support
+    celebration: {
+      general_announcement: 'Glückwunsch zu deinem Erfolg!',
+      modal: 'Erfolg-Feier',
+    },
   } as any,
 
   // Days of week
@@ -1642,6 +1708,11 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
+    // XP Multiplier
+    multiplier: {
+      continue: 'Weiter',
+    },
+
     achievement: {
       unlocked: 'Erfolg freigeschaltet!',
       locked: 'Gesperrter Erfolg',
@@ -1782,7 +1853,14 @@ const de: Partial<TranslationKeys> = {
         content: 'Sieh, wie fantastisch du bist! 📊 Erhalte ein vollständiges Bild deines Gewohnheitserfolgs mit Abschlussraten, Trends und Mustern. Es ist der Beweis deiner unglaublichen Beständigkeit und deines Wachstums!'
       }
     },
-    achievements: {},
+    achievements: {
+      trophyRoom: {
+        totalTrophies: 'Gesamttrophäen',
+        collected: 'Gesammelt',
+        completionRate: 'Abschlussrate',
+        overallProgress: 'Gesamtfortschritt',
+      },
+    },
     challenges: {
       templates: {
         // HABITS templates
@@ -2027,6 +2105,8 @@ const de: Partial<TranslationKeys> = {
 
   social: {
     quote: {
+      copy: 'Kopieren',
+      share: 'Teilen',
       copiedTitle: '📋 Kopiert!',
       copiedMessage: 'Zitat in Zwischenablage kopiert.',
       copyError: 'Zitat konnte nicht kopiert werden. Bitte versuche es erneut.',

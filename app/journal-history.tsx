@@ -267,7 +267,7 @@ export default function JournalHistoryScreen() {
           <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search journal entries..."
+            placeholder={t('journal.searchPlaceholder')}
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholderTextColor={colors.textSecondary}
@@ -353,10 +353,14 @@ export default function JournalHistoryScreen() {
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
         visible={deletingGratitude !== null}
-        title="Delete Journal Entry"
-        message={`Are you sure you want to delete this ${deletingGratitude?.type === 'gratitude' ? 'gratitude' : 'self-praise'} entry? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('journal.deleteConfirm.title')}
+        message={t('journal.deleteConfirm.message', {
+          type: deletingGratitude?.type === 'gratitude'
+            ? t('journal.deleteConfirm.gratitude')
+            : t('journal.deleteConfirm.selfPraise')
+        })}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={confirmDelete}
         onClose={() => setDeletingGratitude(null)}
         emoji="🗑️"

@@ -8,6 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementCategory, AchievementRarity } from '@/src/types/gamification';
 
 export interface FilterOptions {
@@ -48,6 +49,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   filteredCount,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const RARITIES = [
     { key: 'all' as const, label: 'All Rarities', color: colors.gray },
@@ -174,7 +176,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search achievements..."
+          placeholder={t('achievements.searchPlaceholder')}
           value={filters.searchQuery}
           onChangeText={(text) => updateFilters({ searchQuery: text })}
           placeholderTextColor={colors.textSecondary}

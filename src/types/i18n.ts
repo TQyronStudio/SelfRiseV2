@@ -258,8 +258,11 @@ export interface TranslationKeys {
       title: string;
       subtitle: string;
     };
+    stats: {
+      activeHabits: string;
+    };
   };
-  
+
   // Journal screen
   journal: {
     title: string;
@@ -319,6 +322,43 @@ export interface TranslationKeys {
     errors: {
       searchFailed: string;
       deleteFailed: string;
+    };
+    searchPlaceholder: string;
+    editPlaceholder: string;
+    deleteConfirm: {
+      title: string;
+      message: string;
+      gratitude: string;
+      selfPraise: string;
+    };
+    stats: {
+      title: string;
+      totalEntries: string;
+      allTime: string;
+      activeDays: string;
+      daysWithEntries: string;
+      currentStreak: string;
+      dailyAverage: string;
+      entriesPerDay: string;
+      milestoneBadges: string;
+      bestStreak: string;
+      startToday: string;
+      personalBest: string;
+      best: string;
+    };
+    warmUp: {
+      startFresh: {
+        title: string;
+        message: string;
+      };
+    };
+    fallback: {
+      success: string;
+      operationComplete: string;
+      error: string;
+      errorMessage: string;
+      congratulations: string;
+      debtCleared: string;
     };
   };
   
@@ -587,7 +627,10 @@ export interface TranslationKeys {
       copied: string;
       copyError: string;
     };
-    
+    completion: {
+      continue: string;
+    };
+
     // Step-by-step date selection
     selectYear: string;
     selectMonth: string;
@@ -747,6 +790,13 @@ export interface TranslationKeys {
       continue_hint: string;
     };
 
+    trophyRoom: {
+      totalTrophies: string;
+      collected: string;
+      completionRate: string;
+      overallProgress: string;
+    };
+
     // Individual achievement translations (78 achievements - 156 keys)
     // Each achievement has nameKey and descriptionKey
     [achievementId: string]: {
@@ -804,6 +854,8 @@ export interface TranslationKeys {
     tutorialResetSuccess: string;
     cancel: string;
     reset: string;
+    success: string;
+    errorTitle: string;
   };
   
   // Auth screens
@@ -859,6 +911,9 @@ export interface TranslationKeys {
     continue: string;
     yes: string;
     no: string;
+    copy: string;
+    share: string;
+    startFresh: string;
     celebration: {
       general_announcement: string;
       modal: string;
@@ -1082,6 +1137,9 @@ export interface TranslationKeys {
       XP_MULTIPLIER_BONUS: {
         icon_description: string;
       };
+    };
+    multiplier: {
+      continue: string;
     };
   };
 
@@ -1378,6 +1436,8 @@ export interface TranslationKeys {
       copiedTitle: string;
       copiedMessage: string;
       copyError: string;
+      copy: string;
+      share: string;
     };
     achievements: {
       shareSuccessTitle: string;

@@ -477,7 +477,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
           accessibilityRole="button"
           accessibilityLabel="Continue using the app with multiplier active"
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>{t('gamification.multiplier.continue')}</Text>
         </TouchableOpacity>
       </View>
     );

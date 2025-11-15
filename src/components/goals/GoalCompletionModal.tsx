@@ -226,7 +226,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
           </View>
           
           <TouchableOpacity style={styles.button} onPress={handleClose}>
-            <Text style={styles.buttonText}>Continue</Text>
+            <Text style={styles.buttonText}>{t('goals.completion.continue')}</Text>
           </TouchableOpacity>
         </View>
       </View>
