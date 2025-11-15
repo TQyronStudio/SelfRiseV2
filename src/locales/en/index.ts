@@ -516,6 +516,19 @@ const en: TranslationKeys = {
       behind: 'Behind',
       wayBehind: 'Way Behind',
     },
+
+    // Goal Sections
+    sections: {
+      activeGoals: 'Active Goals',
+      completedGoals: 'Completed Goals',
+      otherGoals: 'Other Goals',
+    },
+
+    // Goal Screen Actions
+    actions: {
+      reorder: 'Reorder',
+      done: 'Done',
+    },
     
     // Goal Analytics
     analysis: {

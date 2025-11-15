@@ -174,7 +174,7 @@ export function GoalListWithDragAndDrop({
       {activeGoals.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>Active Goals</Text>
+            <Text style={styles.sectionTitle}>{t('goals.sections.activeGoals')}</Text>
             <HelpTooltip
               helpKey="goals.overview"
               iconSize={14}
@@ -209,7 +209,7 @@ export function GoalListWithDragAndDrop({
       {/* Completed Goals Section - No Drag & Drop */}
       {completedGoals.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Completed Goals</Text>
+          <Text style={styles.sectionTitle}>{t('goals.sections.completedGoals')}</Text>
           {completedGoals.map(renderStaticGoalItem)}
         </View>
       )}
@@ -217,7 +217,7 @@ export function GoalListWithDragAndDrop({
       {/* Other Goals Section - No Drag & Drop */}
       {otherGoals.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Other Goals</Text>
+          <Text style={styles.sectionTitle}>{t('goals.sections.otherGoals')}</Text>
           {otherGoals.map(renderStaticGoalItem)}
         </View>
       )}

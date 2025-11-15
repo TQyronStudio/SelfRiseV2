@@ -515,6 +515,17 @@ const es: Partial<TranslationKeys> = {
       wayBehind: 'Muy Atrasado',
     },
 
+    sections: {
+      activeGoals: 'Metas Activas',
+      completedGoals: 'Metas Completadas',
+      otherGoals: 'Otras Metas',
+    },
+
+    actions: {
+      reorder: 'Reordenar',
+      done: 'Hecho',
+    },
+
     analysis: {
       progressTrend: 'Tendencia de Progreso',
       progressChart: 'Gráfico de Progreso',

@@ -481,6 +481,15 @@ export interface TranslationKeys {
       behind: string;
       wayBehind: string;
     };
+    sections: {
+      activeGoals: string;
+      completedGoals: string;
+      otherGoals: string;
+    };
+    actions: {
+      reorder: string;
+      done: string;
+    };
     analysis: {
       progressTrend: string;
       progressChart: string;

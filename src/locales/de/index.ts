@@ -515,6 +515,17 @@ const de: Partial<TranslationKeys> = {
       wayBehind: 'Weit zurück',
     },
 
+    sections: {
+      activeGoals: 'Aktive Ziele',
+      completedGoals: 'Abgeschlossene Ziele',
+      otherGoals: 'Andere Ziele',
+    },
+
+    actions: {
+      reorder: 'Neu ordnen',
+      done: 'Fertig',
+    },
+
     analysis: {
       progressTrend: 'Fortschrittstrend',
       progressChart: 'Fortschrittsdiagramm',

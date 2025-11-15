@@ -286,12 +286,12 @@ export function GoalsScreen() {
             </TouchableOpacity>
           </>
         )}
-        <TouchableOpacity 
-          style={styles.editButton} 
+        <TouchableOpacity
+          style={styles.editButton}
           onPress={() => setIsEditMode(!isEditMode)}
         >
           <Text style={styles.editButtonText}>
-            {isEditMode ? 'Done' : 'Reorder'}
+            {isEditMode ? t('goals.actions.done') : t('goals.actions.reorder')}
           </Text>
         </TouchableOpacity>
       </View>
