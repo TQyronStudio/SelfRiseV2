@@ -436,6 +436,43 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
+    // Streak rescue modals
+    rescue: {
+      congratulations: {
+        title: '🎉 ¡Racha rescatada!',
+        message: '¡Felicidades! Tu racha ha sido rescatada exitosamente. Ahora puedes escribir entradas de diario normalmente.',
+        continue: 'Continuar',
+      },
+      autoFixed: {
+        title: '¡Racha rescatada!',
+        message: '¡Tu racha ha sido rescatada exitosamente! Hubo un problema técnico pero lo arreglamos automáticamente.',
+      },
+      issueResolved: {
+        title: 'Problema resuelto',
+        message: 'Pedimos disculpas por el problema técnico. Tu racha ha sido rescatada exitosamente y ahora puedes continuar escribiendo entradas normalmente.',
+      },
+      noDebt: {
+        title: 'Sin deuda',
+        message: 'Tu racha parece estar ya rescatada. Actualizando tus datos de racha...',
+      },
+      technicalIssue: {
+        title: 'Problema técnico',
+        message: 'Viste todos los anuncios requeridos pero encontramos un problema técnico. Tu rescate de racha está completo, por favor reinicia la aplicación si es necesario.',
+      },
+      technicalIssueRetry: {
+        title: 'Problema técnico',
+        message: 'Encontramos un problema técnico al completar tu rescate de racha (intento {{attempt}}/2). Por favor, inténtalo de nuevo.',
+      },
+      criticalError: {
+        title: 'Error crítico',
+        message: 'Encontramos un problema técnico crítico. Por favor reinicia la aplicación. Tus datos están seguros.',
+      },
+      resetFailed: {
+        title: 'Reinicio fallido',
+        message: 'No se pudo reiniciar la deuda. Por favor contacta con el soporte.',
+      },
+    },
+
     // Fallback messages
     fallback: {
       success: '¡Éxito!',

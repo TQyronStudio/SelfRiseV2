@@ -409,6 +409,41 @@ export interface TranslationKeys {
         message: string;
       };
     };
+    rescue: {
+      congratulations: {
+        title: string;
+        message: string;
+        continue: string;
+      };
+      autoFixed: {
+        title: string;
+        message: string;
+      };
+      issueResolved: {
+        title: string;
+        message: string;
+      };
+      noDebt: {
+        title: string;
+        message: string;
+      };
+      technicalIssue: {
+        title: string;
+        message: string;
+      };
+      technicalIssueRetry: {
+        title: string;
+        message: string;
+      };
+      criticalError: {
+        title: string;
+        message: string;
+      };
+      resetFailed: {
+        title: string;
+        message: string;
+      };
+    };
     fallback: {
       success: string;
       operationComplete: string;

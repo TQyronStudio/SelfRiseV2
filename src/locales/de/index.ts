@@ -436,6 +436,43 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
+    // Streak rescue modals
+    rescue: {
+      congratulations: {
+        title: '🎉 Serie gerettet!',
+        message: 'Glückwunsch! Deine Serie wurde erfolgreich gerettet. Du kannst jetzt normal Tagebucheinträge schreiben.',
+        continue: 'Weiter',
+      },
+      autoFixed: {
+        title: 'Serie gerettet!',
+        message: 'Deine Serie wurde erfolgreich gerettet! Es gab ein technisches Problem, aber wir haben es automatisch behoben.',
+      },
+      issueResolved: {
+        title: 'Problem gelöst',
+        message: 'Wir entschuldigen uns für das technische Problem. Deine Serie wurde erfolgreich gerettet und du kannst jetzt normal weiter schreiben.',
+      },
+      noDebt: {
+        title: 'Keine Schuld',
+        message: 'Deine Serie scheint bereits gerettet zu sein. Aktualisiere deine Seriendaten...',
+      },
+      technicalIssue: {
+        title: 'Technisches Problem',
+        message: 'Du hast alle erforderlichen Werbungen angesehen, aber wir haben ein technisches Problem festgestellt. Deine Serienrettung ist abgeschlossen, bitte starte die App bei Bedarf neu.',
+      },
+      technicalIssueRetry: {
+        title: 'Technisches Problem',
+        message: 'Wir haben ein technisches Problem beim Abschließen deiner Serienrettung festgestellt (Versuch {{attempt}}/2). Bitte versuche es erneut.',
+      },
+      criticalError: {
+        title: 'Kritischer Fehler',
+        message: 'Wir haben ein kritisches technisches Problem festgestellt. Bitte starte die App neu. Deine Daten sind sicher.',
+      },
+      resetFailed: {
+        title: 'Zurücksetzen fehlgeschlagen',
+        message: 'Schuld konnte nicht zurückgesetzt werden. Bitte kontaktiere den Support.',
+      },
+    },
+
     // Fallback messages
     fallback: {
       success: 'Erfolg!',

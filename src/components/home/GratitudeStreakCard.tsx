@@ -112,9 +112,9 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   const showCongratulationsModal = () => {
     showModal({
       type: DebtModalType.CONGRATULATIONS,
-      title: '🎉 Streak Rescued!',
-      message: 'Congratulations! Your streak has been successfully rescued. You can now write journal entries normally.',
-      primaryText: 'Continue',
+      title: t('journal.rescue.congratulations.title'),
+      message: t('journal.rescue.congratulations.message'),
+      primaryText: t('journal.rescue.congratulations.continue'),
       onPrimaryAction: closeModal,
     });
   };
@@ -398,7 +398,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     
     // BUG #4 FIX: Use coordinated modal flow
     if (adsNeeded === 0) {
-      showSuccessModal('No Debt', 'Your streak appears to be already rescued. Refreshing your streak data...');
+      showSuccessModal(t('journal.rescue.noDebt.title'), t('journal.rescue.noDebt.message'));
       return;
     }
     
@@ -458,11 +458,11 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         console.log(`[DEBUG] Auto-fixing remaining debt: ${remainingDebt} days`);
         try {
           await executeForceResetDebt();
-          showSuccessModal('Streak Rescued!', 'Your streak has been successfully rescued! There was a technical issue but we fixed it automatically.');
+          showSuccessModal(t('journal.rescue.autoFixed.title'), t('journal.rescue.autoFixed.message'));
           return;
         } catch (autoFixError) {
           console.error('Auto-fix failed:', autoFixError);
-          showErrorModal('Technical Issue', 'You watched all required ads but we encountered a technical issue. Your streak rescue is complete, please restart the app if needed.');
+          showErrorModal(t('journal.rescue.technicalIssue.title'), t('journal.rescue.technicalIssue.message'));
           return;
         }
       }
@@ -476,8 +476,8 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       if (issueRetryCount < 2) {
         setIssueRetryCount(prev => prev + 1);
         showErrorModal(
-          'Technical Issue', 
-          `We encountered a technical issue while completing your streak rescue (attempt ${issueRetryCount + 1}/2). Please try again.`
+          t('journal.rescue.technicalIssueRetry.title'),
+          t('journal.rescue.technicalIssueRetry.message', { attempt: issueRetryCount + 1 })
         );
       } else {
         // After 2 failures, automatically fix it with apology
@@ -485,12 +485,12 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         try {
           await executeForceResetDebt();
           showSuccessModal(
-            'Issue Resolved', 
-            'We apologize for the technical issue. Your streak has been successfully rescued and you can now continue writing entries normally.'
+            t('journal.rescue.issueResolved.title'),
+            t('journal.rescue.issueResolved.message')
           );
         } catch (autoFixError) {
           console.error('Auto-fix failed after retries:', autoFixError);
-          showErrorModal('Critical Error', 'We encountered a critical technical issue. Please restart the app. Your data is safe.');
+          showErrorModal(t('journal.rescue.criticalError.title'), t('journal.rescue.criticalError.message'));
         }
         setIssueRetryCount(0); // Reset for future issues
       }
@@ -556,12 +556,12 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       await actions.refreshStats();
       
       // Show success message with apology
-      showSuccessModal('Issue Resolved', 'We apologize for the technical issue. Your streak has been successfully rescued and you can continue writing entries normally.');
+      showSuccessModal(t('journal.rescue.issueResolved.title'), t('journal.rescue.issueResolved.message'));
       
     } catch (error) {
       console.error('Failed to reset debt:', error);
       // BUG #4 FIX: Use coordinated modal flow for errors
-      showErrorModal('Reset Failed', 'Failed to reset debt. Please contact support.');
+      showErrorModal(t('journal.rescue.resetFailed.title'), t('journal.rescue.resetFailed.message'));
     }
   };
 

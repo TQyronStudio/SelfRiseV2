@@ -429,6 +429,43 @@ const en: TranslationKeys = {
       },
     },
 
+    // Streak rescue modals
+    rescue: {
+      congratulations: {
+        title: '🎉 Streak Rescued!',
+        message: 'Congratulations! Your streak has been successfully rescued. You can now write journal entries normally.',
+        continue: 'Continue',
+      },
+      autoFixed: {
+        title: 'Streak Rescued!',
+        message: 'Your streak has been successfully rescued! There was a technical issue but we fixed it automatically.',
+      },
+      issueResolved: {
+        title: 'Issue Resolved',
+        message: 'We apologize for the technical issue. Your streak has been successfully rescued and you can now continue writing entries normally.',
+      },
+      noDebt: {
+        title: 'No Debt',
+        message: 'Your streak appears to be already rescued. Refreshing your streak data...',
+      },
+      technicalIssue: {
+        title: 'Technical Issue',
+        message: 'You watched all required ads but we encountered a technical issue. Your streak rescue is complete, please restart the app if needed.',
+      },
+      technicalIssueRetry: {
+        title: 'Technical Issue',
+        message: 'We encountered a technical issue while completing your streak rescue (attempt {{attempt}}/2). Please try again.',
+      },
+      criticalError: {
+        title: 'Critical Error',
+        message: 'We encountered a critical technical issue. Please restart the app. Your data is safe.',
+      },
+      resetFailed: {
+        title: 'Reset Failed',
+        message: 'Failed to reset debt. Please contact support.',
+      },
+    },
+
     // Fallback messages
     fallback: {
       success: 'Success!',
