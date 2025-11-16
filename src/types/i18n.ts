@@ -342,6 +342,14 @@ export interface TranslationKeys {
     };
     searchPlaceholder: string;
     editPlaceholder: string;
+    historyTitle: string;
+    today: string;
+    searchResults_one: string;
+    searchResults_other: string;
+    noSearchResults: string;
+    emptySearch: string;
+    emptyHistory: string;
+    loadingStats: string;
     deleteConfirm: {
       title: string;
       message: string;
@@ -362,8 +370,40 @@ export interface TranslationKeys {
       startToday: string;
       personalBest: string;
       best: string;
+      motivationTitle: string;
+      motivationNoStreak: string;
+      motivationDay1: string;
+      motivationDays: string;
     };
     warmUp: {
+      title: string;
+      frozenDays: string;
+      frozenMessage_one: string;
+      frozenMessage_other: string;
+      streakWarmedUp: string;
+      warmingUp: string;
+      warmingProgress: string;
+      adsProgress: string;
+      loadingAd: string;
+      warmUpComplete: string;
+      warmUpButton: string;
+      infoText: string;
+      adFailed: {
+        title: string;
+        message: string;
+        ok: string;
+      };
+      error: {
+        title: string;
+        message: string;
+        ok: string;
+      };
+      confirmation: {
+        title: string;
+        message: string;
+        cancel: string;
+        confirm: string;
+      };
       startFresh: {
         title: string;
         message: string;

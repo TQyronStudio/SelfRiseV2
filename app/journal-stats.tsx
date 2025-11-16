@@ -220,7 +220,7 @@ export default function JournalStatsScreen() {
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading statistics...</Text>
+            <Text style={styles.loadingText}>{t('journal.loadingStats')}</Text>
           </View>
         ) : (
           <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -292,13 +292,13 @@ export default function JournalStatsScreen() {
           {/* Motivational Message */}
           <View style={styles.motivationCard}>
             <Text style={styles.motivationIcon}>🌟</Text>
-            <Text style={styles.motivationTitle}>Keep Going!</Text>
+            <Text style={styles.motivationTitle}>{t('journal.stats.motivationTitle')}</Text>
             <Text style={styles.motivationText}>
-              {state.streakInfo?.currentStreak === 0 
-                ? "Every journey begins with a single step. Start your journaling streak today!"
+              {state.streakInfo?.currentStreak === 0
+                ? t('journal.stats.motivationNoStreak')
                 : state.streakInfo?.currentStreak === 1
-                ? "Great start! One day down, many more to go. Keep up the momentum!"
-                : `Amazing ${state.streakInfo?.currentStreak || 0}-day streak! You're building a powerful habit.`
+                ? t('journal.stats.motivationDay1')
+                : t('journal.stats.motivationDays', { days: state.streakInfo?.currentStreak || 0 })
               }
             </Text>
           </View>

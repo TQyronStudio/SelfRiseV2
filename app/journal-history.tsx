@@ -257,7 +257,7 @@ export default function JournalHistoryScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Journal History</Text>
+          <Text style={styles.headerTitle}>{t('journal.historyTitle')}</Text>
           <View style={styles.headerSpacer} />
         </View>
 
@@ -291,7 +291,7 @@ export default function JournalHistoryScreen() {
             <Text style={styles.dateText}>{formatDateForDisplayLocal(selectedDate)}</Text>
             {!isToday && (
               <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
-                <Text style={styles.todayButtonText}>Today</Text>
+                <Text style={styles.todayButtonText}>{t('journal.today')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -315,9 +315,9 @@ export default function JournalHistoryScreen() {
         {isSearching && (
           <View style={styles.searchHeader}>
             <Text style={styles.searchResultsText}>
-              {searchResults.length > 0 
-                ? `Found ${searchResults.length} results for "${searchTerm}"`
-                : `No results found for "${searchTerm}"`
+              {searchResults.length > 0
+                ? t('journal.searchResults', { count: searchResults.length, term: searchTerm })
+                : t('journal.noSearchResults', { term: searchTerm })
               }
             </Text>
           </View>
@@ -333,9 +333,9 @@ export default function JournalHistoryScreen() {
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
-              {isSearching 
-                ? 'No journal entries match your search.'
-                : `No journal entries for ${formatDateForDisplayLocal(selectedDate)}.`
+              {isSearching
+                ? t('journal.emptySearch')
+                : t('journal.emptyHistory', { date: formatDateForDisplayLocal(selectedDate) })
               }
             </Text>
           </View>

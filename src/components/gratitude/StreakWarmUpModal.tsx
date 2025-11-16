@@ -33,6 +33,7 @@ interface WarmUpConfirmationModalProps extends WarmUpModalProps {
 // AdFailedModal Component
 function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const modalStyles = StyleSheet.create({
     overlay: {
@@ -94,12 +95,12 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
       <View style={modalStyles.overlay}>
         <View style={modalStyles.modal}>
           <Text style={modalStyles.emoji}>❌</Text>
-          <Text style={modalStyles.title}>{title || 'Ad Failed'}</Text>
+          <Text style={modalStyles.title}>{title || t('journal.warmUp.adFailed.title')}</Text>
           <Text style={modalStyles.message}>
-            {message || 'Failed to load ad. Please try again.'}
+            {message || t('journal.warmUp.adFailed.message')}
           </Text>
           <TouchableOpacity style={modalStyles.button} onPress={onClose}>
-            <Text style={modalStyles.buttonText}>{buttonText || 'OK'}</Text>
+            <Text style={modalStyles.buttonText}>{buttonText || t('journal.warmUp.adFailed.ok')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -110,6 +111,7 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
 // WarmUpErrorModal Component
 function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const modalStyles = StyleSheet.create({
     overlay: {
@@ -171,12 +173,12 @@ function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: Warm
       <View style={modalStyles.overlay}>
         <View style={modalStyles.modal}>
           <Text style={modalStyles.emoji}>⚠️</Text>
-          <Text style={modalStyles.title}>{title || 'Error'}</Text>
+          <Text style={modalStyles.title}>{title || t('journal.warmUp.error.title')}</Text>
           <Text style={modalStyles.message}>
-            {message || 'Something went wrong. Please try again.'}
+            {message || t('journal.warmUp.error.message')}
           </Text>
           <TouchableOpacity style={modalStyles.button} onPress={onClose}>
-            <Text style={modalStyles.buttonText}>{buttonText || 'OK'}</Text>
+            <Text style={modalStyles.buttonText}>{buttonText || t('journal.warmUp.error.ok')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -195,6 +197,7 @@ function WarmUpConfirmationModal({
   cancelText
 }: WarmUpConfirmationModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const modalStyles = StyleSheet.create({
     overlay: {
@@ -268,9 +271,9 @@ function WarmUpConfirmationModal({
       <View style={modalStyles.overlay}>
         <View style={modalStyles.modal}>
           <Text style={modalStyles.emoji}>🔄</Text>
-          <Text style={modalStyles.title}>{title || 'Watch Ad to Warm Up Streak'}</Text>
+          <Text style={modalStyles.title}>{title || t('journal.warmUp.confirmation.title')}</Text>
           <Text style={modalStyles.message}>
-            {message || 'This would show a real advertisement. Continue with ad simulation?'}
+            {message || t('journal.warmUp.confirmation.message')}
           </Text>
           <View style={modalStyles.buttonContainer}>
             <TouchableOpacity
@@ -278,11 +281,11 @@ function WarmUpConfirmationModal({
               onPress={onClose}
             >
               <Text style={[modalStyles.buttonText, modalStyles.cancelButtonText]}>
-                {cancelText || 'Cancel'}
+                {cancelText || t('journal.warmUp.confirmation.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={modalStyles.button} onPress={onConfirm}>
-              <Text style={modalStyles.buttonText}>{confirmText || 'Watch Ad'}</Text>
+              <Text style={modalStyles.buttonText}>{confirmText || t('journal.warmUp.confirmation.confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -357,17 +360,20 @@ export default function StreakWarmUpModal({
   };
 
   const getFrozenMessage = () => {
-    if (frozenDays === 1) {
-      return `Your streak has been frozen for 1 day. Watch ${totalAdsNeeded} ad to warm it up, then continue journaling freely! ❄️➡️🔥`;
-    }
-    return `Your streak has been frozen for ${frozenDays} days. Watch ${totalAdsNeeded} ads to warm it up, then continue journaling freely! ❄️➡️🔥`;
+    return t('journal.warmUp.frozenMessage', {
+      count: frozenDays,
+      adsNeeded: totalAdsNeeded
+    });
   };
 
   const getProgressMessage = () => {
     if (remainingAds === 0) {
-      return 'Streak warmed up! Go to Journal and continue your journey! ✨';
+      return t('journal.warmUp.streakWarmedUp');
     }
-    return `Warming up: ${adsWatched + 1}/${totalAdsNeeded} 🔥`;
+    return t('journal.warmUp.warmingUp', {
+      current: adsWatched + 1,
+      total: totalAdsNeeded
+    });
   };
 
   const styles = StyleSheet.create({
@@ -546,7 +552,7 @@ export default function StreakWarmUpModal({
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <IconSymbol name="xmark" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Warm Up Your Streak</Text>
+          <Text style={styles.title}>{t('journal.warmUp.title')}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -554,26 +560,26 @@ export default function StreakWarmUpModal({
           {/* Frozen Status */}
           <View style={styles.frozenCard}>
             <Text style={styles.frozenEmoji}>❄️</Text>
-            <Text style={styles.frozenTitle}>Frozen Days</Text>
+            <Text style={styles.frozenTitle}>{t('journal.warmUp.frozenDays')}</Text>
             <Text style={styles.frozenMessage}>{getFrozenMessage()}</Text>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressCard}>
-            <Text style={styles.progressTitle}>Warming Progress</Text>
-            
+            <Text style={styles.progressTitle}>{t('journal.warmUp.warmingProgress')}</Text>
+
             {/* Progress Bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBar}>
-                <View 
+                <View
                   style={[
                     styles.progressFill,
                     { width: `${progressPercentage}%` }
-                  ]} 
+                  ]}
                 />
               </View>
               <Text style={styles.progressText}>
-                {adsWatched}/{totalAdsNeeded} ads
+                {t('journal.warmUp.adsProgress', { watched: adsWatched, total: totalAdsNeeded })}
               </Text>
             </View>
 
@@ -614,11 +620,11 @@ export default function StreakWarmUpModal({
             disabled={isWatchingAd || remainingAds <= 0}
           >
             <Text style={styles.watchButtonText}>
-              {isWatchingAd 
-                ? 'Loading Ad...' 
-                : remainingAds <= 0 
-                  ? 'Warm Up Complete! ✓' 
-                  : `Warm Up (${adsWatched + 1}/${totalAdsNeeded})`
+              {isWatchingAd
+                ? t('journal.warmUp.loadingAd')
+                : remainingAds <= 0
+                  ? t('journal.warmUp.warmUpComplete')
+                  : t('journal.warmUp.warmUpButton', { current: adsWatched + 1, total: totalAdsNeeded })
               }
             </Text>
           </TouchableOpacity>
@@ -639,7 +645,7 @@ export default function StreakWarmUpModal({
           <View style={styles.infoCard}>
             <IconSymbol name="info.circle" size={20} color={colors.textSecondary} />
             <Text style={styles.infoText}>
-              First warm up your frozen streak by watching ads. After your streak is warmed up, you can write journal entries normally without watching more ads.
+              {t('journal.warmUp.infoText')}
             </Text>
           </View>
         </View>

@@ -358,6 +358,14 @@ const es: Partial<TranslationKeys> = {
     // Journal UI text
     searchPlaceholder: 'Buscar entradas del diario...',
     editPlaceholder: 'Edita tu entrada del diario...',
+    historyTitle: 'Historial del diario',
+    today: 'Hoy',
+    searchResults_one: 'Se encontró {{count}} resultado para "{{term}}"',
+    searchResults_other: 'Se encontraron {{count}} resultados para "{{term}}"',
+    noSearchResults: 'No se encontraron resultados para "{{term}}"',
+    emptySearch: 'No hay entradas del diario que coincidan con tu búsqueda.',
+    emptyHistory: 'No hay entradas del diario para {{date}}.',
+    loadingStats: 'Cargando estadísticas...',
 
     // Delete confirmation
     deleteConfirm: {
@@ -382,10 +390,46 @@ const es: Partial<TranslationKeys> = {
       startToday: '¡Comienza tu racha hoy!',
       personalBest: '¡Mejor marca personal! 🎉',
       best: 'Mejor: {{days}} días',
+      motivationTitle: '¡Sigue así!',
+      motivationNoStreak: "Todo viaje comienza con un solo paso. ¡Comienza tu racha de diario hoy!",
+      motivationDay1: "¡Buen comienzo! Un día completado, muchos más por venir. ¡Mantén el impulso!",
+      motivationDays: "¡Increíble racha de {{days}} días! Estás construyendo un hábito poderoso.",
     },
 
     // Warm-up modals
     warmUp: {
+      title: 'Calienta tu racha',
+      frozenDays: 'Días congelados',
+      frozenMessage_one: 'Tu racha ha estado congelada durante {{count}} día. Mira {{adsNeeded}} anuncio para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
+      frozenMessage_other: 'Tu racha ha estado congelada durante {{count}} días. Mira {{adsNeeded}} anuncios para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
+      streakWarmedUp: '¡Racha calentada! ¡Ve al Diario y continúa tu viaje! ✨',
+      warmingUp: 'Calentando: {{current}}/{{total}} 🔥',
+      warmingProgress: 'Progreso de calentamiento',
+      adsProgress: '{{watched}}/{{total}} anuncios',
+      loadingAd: 'Cargando anuncio...',
+      warmUpComplete: '¡Calentamiento completado! ✓',
+      warmUpButton: 'Calentar ({{current}}/{{total}})',
+      infoText: 'Primero calienta tu racha congelada viendo anuncios. Después de que tu racha esté caliente, puedes escribir entradas de diario normalmente sin ver más anuncios.',
+
+      adFailed: {
+        title: 'Anuncio fallido',
+        message: 'No se pudo cargar el anuncio. Por favor, inténtalo de nuevo.',
+        ok: 'OK',
+      },
+
+      error: {
+        title: 'Error',
+        message: 'Algo salió mal. Por favor, inténtalo de nuevo.',
+        ok: 'OK',
+      },
+
+      confirmation: {
+        title: 'Ver anuncio para calentar racha',
+        message: 'Esto mostraría un anuncio real. ¿Continuar con la simulación del anuncio?',
+        cancel: 'Cancelar',
+        confirm: 'Ver anuncio',
+      },
+
       startFresh: {
         title: '¿Empezar de nuevo?',
         message: '⚠️ Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer.',

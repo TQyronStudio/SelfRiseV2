@@ -358,6 +358,14 @@ const de: Partial<TranslationKeys> = {
     // Journal UI text
     searchPlaceholder: 'Tagebucheinträge durchsuchen...',
     editPlaceholder: 'Bearbeite deinen Tagebucheintrag...',
+    historyTitle: 'Tagebuch-Verlauf',
+    today: 'Heute',
+    searchResults_one: '{{count}} Ergebnis gefunden für "{{term}}"',
+    searchResults_other: '{{count}} Ergebnisse gefunden für "{{term}}"',
+    noSearchResults: 'Keine Ergebnisse gefunden für "{{term}}"',
+    emptySearch: 'Keine Tagebucheinträge entsprechen deiner Suche.',
+    emptyHistory: 'Keine Tagebucheinträge für {{date}}.',
+    loadingStats: 'Lade Statistiken...',
 
     // Delete confirmation
     deleteConfirm: {
@@ -382,10 +390,46 @@ const de: Partial<TranslationKeys> = {
       startToday: 'Starte heute deine Serie!',
       personalBest: 'Persönliche Bestleistung! 🎉',
       best: 'Beste: {{days}} Tage',
+      motivationTitle: 'Weiter so!',
+      motivationNoStreak: "Jede Reise beginnt mit einem einzigen Schritt. Starte heute deine Tagebuch-Serie!",
+      motivationDay1: "Toller Start! Ein Tag geschafft, viele weitere folgen. Bleib dran!",
+      motivationDays: "Fantastische {{days}}-Tage-Serie! Du baust eine starke Gewohnheit auf.",
     },
 
     // Warm-up modals
     warmUp: {
+      title: 'Wärme deine Serie auf',
+      frozenDays: 'Eingefrorene Tage',
+      frozenMessage_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Schau dir {{adsNeeded}} Werbung an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
+      frozenMessage_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Schau dir {{adsNeeded}} Werbungen an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
+      streakWarmedUp: 'Serie aufgewärmt! Gehe zum Tagebuch und setze deine Reise fort! ✨',
+      warmingUp: 'Aufwärmen: {{current}}/{{total}} 🔥',
+      warmingProgress: 'Aufwärm-Fortschritt',
+      adsProgress: '{{watched}}/{{total}} Werbungen',
+      loadingAd: 'Lade Werbung...',
+      warmUpComplete: 'Aufwärmen abgeschlossen! ✓',
+      warmUpButton: 'Aufwärmen ({{current}}/{{total}})',
+      infoText: 'Wärme zuerst deine eingefrorene Serie auf, indem du Werbungen ansiehst. Danach kannst du normal Tagebucheinträge schreiben, ohne weitere Werbungen anzusehen.',
+
+      adFailed: {
+        title: 'Werbung fehlgeschlagen',
+        message: 'Werbung konnte nicht geladen werden. Bitte versuche es erneut.',
+        ok: 'OK',
+      },
+
+      error: {
+        title: 'Fehler',
+        message: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
+        ok: 'OK',
+      },
+
+      confirmation: {
+        title: 'Werbung ansehen zum Aufwärmen',
+        message: 'Hier würde eine echte Werbung gezeigt werden. Mit Werbesimulation fortfahren?',
+        cancel: 'Abbrechen',
+        confirm: 'Werbung ansehen',
+      },
+
       startFresh: {
         title: 'Neu beginnen?',
         message: '⚠️ Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden.',

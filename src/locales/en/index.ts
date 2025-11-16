@@ -351,6 +351,14 @@ const en: TranslationKeys = {
     // Journal UI text
     searchPlaceholder: 'Search journal entries...',
     editPlaceholder: 'Edit your journal entry...',
+    historyTitle: 'Journal History',
+    today: 'Today',
+    searchResults_one: 'Found {{count}} result for "{{term}}"',
+    searchResults_other: 'Found {{count}} results for "{{term}}"',
+    noSearchResults: 'No results found for "{{term}}"',
+    emptySearch: 'No journal entries match your search.',
+    emptyHistory: 'No journal entries for {{date}}.',
+    loadingStats: 'Loading statistics...',
 
     // Delete confirmation
     deleteConfirm: {
@@ -375,10 +383,46 @@ const en: TranslationKeys = {
       startToday: 'Start your streak today!',
       personalBest: 'Personal best! 🎉',
       best: 'Best: {{days}} days',
+      motivationTitle: 'Keep Going!',
+      motivationNoStreak: "Every journey begins with a single step. Start your journaling streak today!",
+      motivationDay1: "Great start! One day down, many more to go. Keep up the momentum!",
+      motivationDays: "Amazing {{days}}-day streak! You're building a powerful habit.",
     },
 
     // Warm-up modals
     warmUp: {
+      title: 'Warm Up Your Streak',
+      frozenDays: 'Frozen Days',
+      frozenMessage_one: 'Your streak has been frozen for {{count}} day. Watch {{adsNeeded}} ad to warm it up, then continue journaling freely! ❄️➡️🔥',
+      frozenMessage_other: 'Your streak has been frozen for {{count}} days. Watch {{adsNeeded}} ads to warm it up, then continue journaling freely! ❄️➡️🔥',
+      streakWarmedUp: 'Streak warmed up! Go to Journal and continue your journey! ✨',
+      warmingUp: 'Warming up: {{current}}/{{total}} 🔥',
+      warmingProgress: 'Warming Progress',
+      adsProgress: '{{watched}}/{{total}} ads',
+      loadingAd: 'Loading Ad...',
+      warmUpComplete: 'Warm Up Complete! ✓',
+      warmUpButton: 'Warm Up ({{current}}/{{total}})',
+      infoText: 'First warm up your frozen streak by watching ads. After your streak is warmed up, you can write journal entries normally without watching more ads.',
+
+      adFailed: {
+        title: 'Ad Failed',
+        message: 'Failed to load ad. Please try again.',
+        ok: 'OK',
+      },
+
+      error: {
+        title: 'Error',
+        message: 'Something went wrong. Please try again.',
+        ok: 'OK',
+      },
+
+      confirmation: {
+        title: 'Watch Ad to Warm Up Streak',
+        message: 'This would show a real advertisement. Continue with ad simulation?',
+        cancel: 'Cancel',
+        confirm: 'Watch Ad',
+      },
+
       startFresh: {
         title: 'Start Fresh?',
         message: '⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone.',
