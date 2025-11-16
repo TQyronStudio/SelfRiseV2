@@ -105,12 +105,12 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
   const getStarRarity = (starLevel: number): string => {
     switch (starLevel) {
-      case 1: return 'Common';
-      case 2: return 'Rare';
-      case 3: return 'Epic';
-      case 4: return 'Legendary';
-      case 5: return 'Master';
-      default: return 'Unknown';
+      case 1: return t('monthlyChallenge.rarity.common');
+      case 2: return t('monthlyChallenge.rarity.rare');
+      case 3: return t('monthlyChallenge.rarity.epic');
+      case 4: return t('monthlyChallenge.rarity.legendary');
+      case 5: return t('monthlyChallenge.rarity.master');
+      default: return t('monthlyChallenge.rarity.unknown');
     }
   };
 
@@ -601,7 +601,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('challenges.detail.sectionTips')}</Text>
         <View style={styles.tipsCard}>
-          {getMonthlyChallengeTips(displayChallenge.category).map((tip, index) => (
+          {getMonthlyChallengeTips(displayChallenge.category, t).map((tip, index) => (
             <View key={index} style={styles.tip}>
               <Text style={styles.tipIcon}>💡</Text>
               <Text style={styles.tipText}>{tip}</Text>
@@ -615,12 +615,13 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         <Text style={styles.sectionTitle}>{t('challenges.detail.sectionStrategy')}</Text>
         <View style={styles.strategyCard}>
           <Text style={styles.strategyText}>
-            This is a <Text style={[styles.strategyHighlight, { color: starColor }]}>
-              {getStarRarity(displayChallenge.starLevel)} ({displayChallenge.starLevel}★)
-            </Text> difficulty challenge designed to help you grow consistently.
+            {t('monthlyChallenge.detailModal.strategyDescription', {
+              rarity: getStarRarity(displayChallenge.starLevel),
+              stars: displayChallenge.starLevel
+            })}
           </Text>
           <Text style={styles.strategyText}>
-            Complete this challenge to advance to the next star level and unlock higher XP rewards!
+            {t('monthlyChallenge.detailModal.strategyDescriptionAdvance')}
           </Text>
         </View>
       </View>
@@ -634,14 +635,17 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
           </View>
           <View style={styles.rewardContent}>
             <Text style={styles.rewardTitle}>
-              {displayChallenge.baseXPReward} Experience Points
+              {t('monthlyChallenge.detailModal.rewardTitle', { xp: displayChallenge.baseXPReward })}
             </Text>
             <Text style={styles.rewardDescription}>
               {t('challenges.detail.rewardDescription')}
             </Text>
             {progress.currentStreak > 0 && (
               <Text style={styles.rewardBonus}>
-                🔥 Streak Bonus: +{progress.currentStreak * 100} XP for {progress.currentStreak} month streak
+                {t('monthlyChallenge.detailModal.streakBonus', {
+                  xp: progress.currentStreak * 100,
+                  months: progress.currentStreak
+                })}
               </Text>
             )}
           </View>
@@ -730,48 +734,18 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   );
 };
 
-const getMonthlyChallengeTips = (category: AchievementCategory): string[] => {
+const getMonthlyChallengeTips = (category: AchievementCategory, t: (key: string) => any): string[] => {
   switch (category) {
     case 'habits':
-      return [
-        'Focus on consistency over perfection - aim to complete your habits daily',
-        'Use habit stacking: link new habits to existing routines',
-        'Track your progress daily to maintain momentum throughout the month',
-        'Prepare for obstacles by having backup plans for difficult days',
-        'Celebrate small wins along the way to stay motivated'
-      ];
+      return t('monthlyChallenge.detailModal.tips.habits');
     case 'journal':
-      return [
-        'Write your entries at the same time each day to build consistency',
-        'Be specific in your gratitude - focus on particular moments and people',
-        'Use the bonus entries to explore deeper reflections and insights',
-        'Keep your journal accessible so you can write whenever inspiration strikes',
-        'Review past entries weekly to see your growth and patterns'
-      ];
+      return t('monthlyChallenge.detailModal.tips.journal');
     case 'goals':
-      return [
-        'Break down monthly goals into weekly and daily milestones',
-        'Set aside dedicated time each day for goal-related activities',
-        'Track your progress regularly to stay on course',
-        'Adjust your approach if you\'re falling behind - flexibility is key',
-        'Connect with your deeper "why" to maintain motivation'
-      ];
+      return t('monthlyChallenge.detailModal.tips.goals');
     case 'consistency':
-      return [
-        'Use all three features (habits, journal, goals) each day for maximum impact',
-        'Create a daily routine that incorporates all your self-improvement activities',
-        'Set up reminders and notifications to maintain consistency',
-        'Build streaks gradually - focus on not breaking the chain',
-        'Plan for weekends and holidays to maintain your routine'
-      ];
+      return t('monthlyChallenge.detailModal.tips.consistency');
     default:
-      return [
-        'Stay consistent with your daily activities throughout the month',
-        'Track your progress regularly and adjust your approach as needed',
-        'Don\'t give up if you have a bad day - get back on track immediately',
-        'Focus on building sustainable habits rather than short-term bursts',
-        'Remember that small daily actions lead to significant monthly results'
-      ];
+      return t('monthlyChallenge.detailModal.tips.default');
   }
 };
 

@@ -19,6 +19,7 @@ import {
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useXpAnimation } from '../../contexts/XpAnimationContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface MonthlyChallengeCompletionModalProps {
   visible: boolean;
@@ -48,6 +49,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   onContinue
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const particleAnims = useRef<Animated.Value[]>([]).current;
   const slideUpAnim = useRef(new Animated.Value(50)).current;
@@ -172,12 +174,12 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
 
   const getStarRarity = (starLevel: number): string => {
     switch (starLevel) {
-      case 1: return 'Common';
-      case 2: return 'Rare';
-      case 3: return 'Epic';
-      case 4: return 'Legendary';
-      case 5: return 'Master';
-      default: return 'Unknown';
+      case 1: return t('monthlyChallenge.rarity.common');
+      case 2: return t('monthlyChallenge.rarity.rare');
+      case 3: return t('monthlyChallenge.rarity.epic');
+      case 4: return t('monthlyChallenge.rarity.legendary');
+      case 5: return t('monthlyChallenge.rarity.master');
+      default: return t('monthlyChallenge.rarity.unknown');
     }
   };
 
@@ -200,30 +202,30 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   };
 
   const getCompletionTitle = (completionPercentage: number) => {
-    if (completionPercentage >= 100) return 'Perfect Completion!';
-    if (completionPercentage >= 90) return 'Outstanding Achievement!';
-    if (completionPercentage >= 80) return 'Great Progress!';
-    if (completionPercentage >= 70) return 'Challenge Completed!';
-    return 'Month Progress!';
+    if (completionPercentage >= 100) return t('monthlyChallenge.completionModal.titles.perfect');
+    if (completionPercentage >= 90) return t('monthlyChallenge.completionModal.titles.outstanding');
+    if (completionPercentage >= 80) return t('monthlyChallenge.completionModal.titles.great');
+    if (completionPercentage >= 70) return t('monthlyChallenge.completionModal.titles.completed');
+    return t('monthlyChallenge.completionModal.titles.progress');
   };
 
   const getCompletionMessage = (completionPercentage: number, starLevel: number, category: string) => {
     const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
     const rarityName = getStarRarity(starLevel);
-    
+
     if (completionPercentage >= 100) {
-      return `Incredible! You've achieved perfect completion on this ${rarityName} ${categoryName} challenge. Your dedication is truly inspiring!`;
+      return t('monthlyChallenge.completionModal.messages.perfect', { rarity: rarityName, category: categoryName });
     }
     if (completionPercentage >= 90) {
-      return `Amazing work! You've nearly mastered this ${rarityName} ${categoryName} challenge with outstanding consistency.`;
+      return t('monthlyChallenge.completionModal.messages.outstanding', { rarity: rarityName, category: categoryName });
     }
     if (completionPercentage >= 80) {
-      return `Excellent progress! You've shown great commitment to this ${rarityName} ${categoryName} challenge this month.`;
+      return t('monthlyChallenge.completionModal.messages.great', { rarity: rarityName, category: categoryName });
     }
     if (completionPercentage >= 70) {
-      return `Well done! You've successfully completed this ${rarityName} ${categoryName} challenge and earned your rewards.`;
+      return t('monthlyChallenge.completionModal.messages.completed', { rarity: rarityName, category: categoryName });
     }
-    return `Good effort! You've made meaningful progress on this ${rarityName} ${categoryName} challenge this month.`;
+    return t('monthlyChallenge.completionModal.messages.progress', { rarity: rarityName, category: categoryName });
   };
 
   const categoryColor = getCategoryColor(challenge.category);
@@ -606,7 +608,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 {getCompletionTitle(completionPercentage)}
               </Text>
               <Text style={styles.completionSubtitle}>
-                Monthly Challenge • {new Date(challenge.endDate).toLocaleDateString('en-US', {
+                {t('monthlyChallenge.completionModal.subtitle')} • {new Date(challenge.endDate).toLocaleDateString('en-US', {
                   month: 'long',
                   year: 'numeric'
                 })}
@@ -641,7 +643,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
             {/* Progress Summary */}
             <View style={styles.progressSummary}>
               <View style={styles.progressHeader}>
-                <Text style={styles.progressTitle}>Final Results</Text>
+                <Text style={styles.progressTitle}>{t('monthlyChallenge.completionModal.finalResults')}</Text>
                 <Text style={[styles.progressPercentage, { color: categoryColor }]}>
                   {Math.round(completionPercentage)}%
                 </Text>
@@ -677,10 +679,10 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
 
             {/* XP Rewards Breakdown */}
             <View style={styles.rewardsSection}>
-              <Text style={styles.rewardsTitle}>XP Rewards Earned</Text>
+              <Text style={styles.rewardsTitle}>{t('monthlyChallenge.completionModal.rewards.title')}</Text>
 
               <View style={styles.rewardItem}>
-                <Text style={styles.rewardLabel}>Base Challenge XP</Text>
+                <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.baseXP')}</Text>
                 <Text style={[styles.rewardValue, { color: categoryColor }]}>
                   +{completionResult.baseXP || 0}
                 </Text>
@@ -688,7 +690,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
 
               {(completionResult.bonusXP || 0) > 0 && (
                 <View style={styles.rewardItem}>
-                  <Text style={styles.rewardLabel}>Completion Bonus</Text>
+                  <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.completionBonus')}</Text>
                   <Text style={[styles.rewardValue, { color: '#22C55E' }]}>
                     +{completionResult.bonusXP}
                   </Text>
@@ -697,7 +699,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
 
               {(completionResult.streakBonus || 0) > 0 && (
                 <View style={styles.rewardItem}>
-                  <Text style={styles.rewardLabel}>Monthly Streak Bonus 🔥</Text>
+                  <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.streakBonus')}</Text>
                   <Text style={[styles.rewardValue, { color: '#F59E0B' }]}>
                     +{completionResult.streakBonus}
                   </Text>
@@ -706,7 +708,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
 
               {(completionResult.perfectCompletionBonus || 0) > 0 && (
                 <View style={styles.rewardItem}>
-                  <Text style={styles.rewardLabel}>Perfect Completion 🏆</Text>
+                  <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.perfectBonus')}</Text>
                   <Text style={[styles.rewardValue, { color: '#8B5CF6' }]}>
                     +{completionResult.perfectCompletionBonus}
                   </Text>
@@ -714,7 +716,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
               )}
 
               <View style={[styles.rewardItem, styles.totalReward]}>
-                <Text style={styles.totalRewardLabel}>Total XP Earned</Text>
+                <Text style={styles.totalRewardLabel}>{t('monthlyChallenge.completionModal.rewards.totalEarned')}</Text>
                 <Text style={[styles.totalRewardValue, { color: starColor }]}>
                   +{completionResult.totalXPEarned || 0} XP
                 </Text>
@@ -724,10 +726,10 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
             {/* Star Progression */}
             {completionResult.starLevelChanged && (
               <View style={styles.starProgressSection}>
-                <Text style={styles.starProgressTitle}>Star Level Progression! 🌟</Text>
+                <Text style={styles.starProgressTitle}>{t('monthlyChallenge.completionModal.starProgression.title')}</Text>
                 <View style={styles.starProgressContainer}>
                   <View style={styles.starProgressItem}>
-                    <Text style={styles.starProgressLabel}>Previous</Text>
+                    <Text style={styles.starProgressLabel}>{t('monthlyChallenge.completionModal.starProgression.previous')}</Text>
                     <StarRatingDisplay
                       category={challenge.category}
                       starLevel={completionResult.oldStarLevel}
@@ -742,7 +744,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   <Text style={styles.starProgressArrow}>→</Text>
 
                   <View style={styles.starProgressItem}>
-                    <Text style={styles.starProgressLabel}>New Level</Text>
+                    <Text style={styles.starProgressLabel}>{t('monthlyChallenge.completionModal.starProgression.newLevel')}</Text>
                     <StarRatingDisplay
                       category={challenge.category}
                       starLevel={completionResult.newStarLevel}
@@ -755,7 +757,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   </View>
                 </View>
                 <Text style={styles.starProgressDescription}>
-                  Your next monthly challenge will be more challenging with higher XP rewards!
+                  {t('monthlyChallenge.completionModal.starProgression.description')}
                 </Text>
               </View>
             )}
@@ -763,12 +765,12 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
             {/* Monthly Streak */}
             {(completionResult.monthlyStreak || 0) > 0 && (
               <View style={styles.streakSection}>
-                <Text style={styles.streakTitle}>Monthly Streak 🔥</Text>
+                <Text style={styles.streakTitle}>{t('monthlyChallenge.completionModal.streak.title')}</Text>
                 <Text style={styles.streakValue}>
-                  {completionResult.monthlyStreak} Month{completionResult.monthlyStreak > 1 ? 's' : ''}
+                  {completionResult.monthlyStreak} {t('monthlyChallenge.completionModal.streak.month', { count: completionResult.monthlyStreak })}
                 </Text>
                 <Text style={styles.streakDescription}>
-                  Keep up the momentum! Each consecutive month increases your streak bonuses.
+                  {t('monthlyChallenge.completionModal.streak.description')}
                 </Text>
               </View>
             )}
@@ -776,10 +778,12 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
             {/* Next Month Preview */}
             {completionResult.nextMonthEligible && (
               <View style={styles.nextMonthSection}>
-                <Text style={styles.nextMonthTitle}>Ready for Next Month?</Text>
+                <Text style={styles.nextMonthTitle}>{t('monthlyChallenge.completionModal.nextMonth.title')}</Text>
                 <Text style={styles.nextMonthDescription}>
-                  Your next challenge will be generated automatically on the 1st.
-                  {completionResult.starLevelChanged && ' With your new star level, expect a greater challenge and bigger rewards!'}
+                  {completionResult.starLevelChanged
+                    ? t('monthlyChallenge.completionModal.nextMonth.descriptionWithLevel')
+                    : t('monthlyChallenge.completionModal.nextMonth.description')
+                  }
                 </Text>
               </View>
             )}
@@ -792,13 +796,13 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 style={[styles.continueButton, { backgroundColor: categoryColor }]}
                 onPress={onContinue}
               >
-                <Text style={styles.continueButtonText}>Continue Journey</Text>
+                <Text style={styles.continueButtonText}>{t('monthlyChallenge.completionModal.nextMonth.continue')}</Text>
               </Pressable>
             )}
 
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>
-                {onContinue ? 'Close' : 'Awesome!'}
+                {onContinue ? t('common.close') : t('common.success')}
               </Text>
             </Pressable>
           </View>

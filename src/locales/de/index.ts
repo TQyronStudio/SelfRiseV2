@@ -781,6 +781,163 @@ const de: Partial<TranslationKeys> = {
     },
   } as any,
 
+  // Monthly Challenge
+  monthlyChallenge: {
+    // Section title
+    title: 'Monatsherausforderung',
+
+    // States
+    loading: 'Lade Herausforderung...',
+    preparing: '🗓️ Bereite deine Monatsherausforderung vor...',
+    noActiveChallenge: 'Keine aktive Herausforderung',
+    challengePreparing: '⏳ Herausforderung wird vorbereitet',
+    errorLoading: 'Fehler beim Laden der Herausforderung',
+    failedToLoad: 'Monatsherausforderung konnte nicht geladen werden',
+    retry: 'Erneut versuchen',
+
+    // Actions
+    view: 'Ansehen',
+    close: 'Schließen',
+    awesome: 'Großartig!',
+    continueJourney: 'Reise fortsetzen',
+
+    // Labels
+    complete: 'Abgeschlossen',
+    completePercentage: 'Abgeschlossen',
+    daysLeft: 'Tage übrig',
+    daysLeftCompact: 'T übrig',
+    level: 'Stufe',
+    difficulty: 'Schwierigkeit',
+    activeDays: 'Aktive Tage',
+    maxXP: 'Max. EP',
+    milestones: 'Meilensteine',
+    requirements: 'Anforderungen',
+
+    // Progress
+    monthlyProgress: 'Monatsfortschritt',
+    monthStreak: 'Monatsserie',
+    yourChallengeLevels: 'Deine Herausforderungsstufen',
+
+    // Completion
+    monthComplete: '✓ Monat abgeschlossen',
+    completed: 'Monatsherausforderung abgeschlossen! 🎉',
+    endsDate: 'Endet: {date}',
+
+    // Star rarity labels
+    rarity: {
+      common: 'Gewöhnlich',
+      rare: 'Selten',
+      epic: 'Episch',
+      legendary: 'Legendär',
+      master: 'Meister',
+      unknown: 'Unbekannt',
+    },
+
+    // Completion Modal
+    completionModal: {
+      subtitle: 'Monatsherausforderung',
+      finalResults: 'Endergebnisse',
+
+      // Completion titles
+      titles: {
+        perfect: 'Perfekte Vollendung!',
+        outstanding: 'Herausragende Leistung!',
+        great: 'Toller Fortschritt!',
+        completed: 'Herausforderung abgeschlossen!',
+        progress: 'Monatsfortschritt!',
+      },
+
+      // Completion messages
+      messages: {
+        perfect: 'Unglaublich! Du hast eine perfekte Vollendung bei dieser {rarity} {category} Herausforderung erreicht. Deine Hingabe ist wirklich inspirierend!',
+        outstanding: 'Großartige Arbeit! Du hast diese {rarity} {category} Herausforderung mit herausragender Beständigkeit fast gemeistert.',
+        great: 'Ausgezeichneter Fortschritt! Du hast großes Engagement für diese {rarity} {category} Herausforderung diesen Monat gezeigt.',
+        completed: 'Gut gemacht! Du hast diese {rarity} {category} Herausforderung erfolgreich abgeschlossen und deine Belohnungen verdient.',
+        progress: 'Gute Leistung! Du hast bedeutsamen Fortschritt bei dieser {rarity} {category} Herausforderung diesen Monat gemacht.',
+      },
+
+      // Rewards
+      rewards: {
+        title: 'Verdiente EP-Belohnungen',
+        baseXP: 'Basis-Herausforderungs-EP',
+        completionBonus: 'Vollendungsbonus',
+        streakBonus: 'Monatlicher Serien-Bonus 🔥',
+        perfectBonus: 'Perfekte Vollendung 🏆',
+        totalEarned: 'Gesamt verdiente EP',
+      },
+
+      // Star progression
+      starProgression: {
+        title: 'Stern-Stufenfortschritt! 🌟',
+        previous: 'Vorherige',
+        newLevel: 'Neue Stufe',
+        description: 'Deine nächste Monatsherausforderung wird anspruchsvoller mit höheren EP-Belohnungen sein!',
+      },
+
+      // Streak
+      streak: {
+        title: 'Monatliche Serie 🔥',
+        month_one: 'Monat',
+        month_other: 'Monate',
+        description: 'Mach weiter so! Jeder aufeinanderfolgende Monat erhöht deine Serien-Boni.',
+      },
+
+      // Next month
+      nextMonth: {
+        title: 'Bereit für nächsten Monat?',
+        description: 'Deine nächste Herausforderung wird automatisch am 1. generiert.',
+        descriptionWithLevel: 'Deine nächste Herausforderung wird automatisch am 1. generiert. Mit deiner neuen Sternstufe erwarte eine größere Herausforderung und höhere Belohnungen!',
+      },
+    },
+
+    // Detail Modal
+    detailModal: {
+      strategyDescription: 'Dies ist eine {rarity} ({stars}★) Schwierigkeitsherausforderung, die dir helfen soll, beständig zu wachsen.',
+      strategyDescriptionAdvance: 'Schließe diese Herausforderung ab, um zur nächsten Sternstufe aufzusteigen und höhere EP-Belohnungen freizuschalten!',
+      rewardTitle: '{xp} Erfahrungspunkte',
+      streakBonus: '🔥 Serien-Bonus: +{bonus} EP für {count} Monate Serie',
+
+      // Category-specific tips
+      tips: {
+        habits: [
+          'Konzentriere dich darauf, nachhaltige Gewohnheiten aufzubauen, die zu deinem Lebensstil passen.',
+          'Beginne mit einfacheren Gewohnheiten und steigere schrittweise die Schwierigkeit.',
+          'Verfolge deine Gewohnheiten täglich, um Verantwortlichkeit zu bewahren.',
+          'Feiere kleine Erfolge, um den ganzen Monat über motiviert zu bleiben.',
+          'Nutze Gewohnheitsstapelung, um neue Gewohnheiten mit bestehenden Routinen zu verknüpfen.',
+        ],
+        journal: [
+          'Reserviere jeden Tag eine feste Zeit für das Journaling.',
+          'Schreibe authentisch über deine Erfahrungen und Gefühle.',
+          'Nutze Journal-Eingabeaufforderungen, wenn du feststeckst.',
+          'Überprüfe vergangene Einträge, um dein Wachstum zu verfolgen.',
+          'Experimentiere mit verschiedenen Journaling-Stilen, um herauszufinden, was funktioniert.',
+        ],
+        goals: [
+          'Teile große Ziele in kleinere, umsetzbare Meilensteine auf.',
+          'Überprüfe und passe deine Ziele wöchentlich an.',
+          'Konzentriere dich auf Fortschritt, nicht auf Perfektion.',
+          'Dokumentiere Lektionen, die du auf dem Weg lernst.',
+          'Feiere Meilenstein-Erfolge, um den Schwung aufrechtzuerhalten.',
+        ],
+        consistency: [
+          'Erscheine jeden Tag, auch wenn der Fortschritt klein erscheint.',
+          'Baue Routinen auf, die deine Beständigkeitsziele unterstützen.',
+          'Verfolge deine täglichen Aktivitäten, um Muster zu identifizieren.',
+          'Nutze Erinnerungen und Verantwortlichkeits-Tools.',
+          'Denk daran, dass Beständigkeit sich im Laufe der Zeit verstärkt.',
+        ],
+        default: [
+          'Bleib den ganzen Monat über auf deine Ziele fokussiert.',
+          'Verfolge deinen Fortschritt täglich, um den Schwung aufrechtzuerhalten.',
+          'Feiere Meilensteine auf dem Weg.',
+          'Passe deinen Ansatz bei Bedarf an, aber bleib in Bewegung.',
+          'Erinnere dich daran, warum du angefangen hast, wenn Herausforderungen auftreten.',
+        ],
+      },
+    },
+  } as any,
+
   // Settings screen - Language section (PRIORITY 1)
   settings: {
     title: 'Einstellungen',

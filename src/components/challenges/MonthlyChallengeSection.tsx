@@ -9,6 +9,7 @@ import MonthlyChallengeCard from './MonthlyChallengeCard';
 import MonthlyChallengeCompletionModal from './MonthlyChallengeCompletionModal';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface MonthlychallengeSectionProps {
   onChallengePress?: (challenge: MonthlyChallenge) => void;
@@ -22,6 +23,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   compact = false
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [challenge, setChallenge] = useState<MonthlyChallenge | null>(null);
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -176,7 +178,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       console.log(`✅ Loaded monthly challenge: ${currentChallenge.title}`);
     } catch (error) {
       console.error('MonthlyChallengeSection.loadMonthlyChallenge error:', error);
-      setError('Failed to load monthly challenge');
+      setError(t('monthlyChallenge.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -529,11 +531,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Monthly Challenge</Text>
-          <Text style={styles.subtitle}>Loading challenge...</Text>
+          <Text style={styles.title}>{t('monthlyChallenge.title')}</Text>
+          <Text style={styles.subtitle}>{t('monthlyChallenge.loading')}</Text>
         </View>
         <View style={styles.loadingCard}>
-          <Text style={styles.loadingText}>🗓️ Preparing your monthly challenge...</Text>
+          <Text style={styles.loadingText}>{t('monthlyChallenge.preparing')}</Text>
         </View>
       </View>
     );
@@ -543,13 +545,13 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Monthly Challenge</Text>
-          <Text style={styles.subtitle}>Error loading challenge</Text>
+          <Text style={styles.title}>{t('monthlyChallenge.title')}</Text>
+          <Text style={styles.subtitle}>{t('monthlyChallenge.errorLoading')}</Text>
         </View>
         <View style={styles.errorCard}>
           <Text style={styles.errorText}>⚠️ {error}</Text>
           <Pressable style={styles.retryButton} onPress={handleRefresh}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('monthlyChallenge.retry')}</Text>
           </Pressable>
         </View>
       </View>
@@ -560,11 +562,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Monthly Challenge</Text>
-          <Text style={styles.subtitle}>No active challenge</Text>
+          <Text style={styles.title}>{t('monthlyChallenge.title')}</Text>
+          <Text style={styles.subtitle}>{t('monthlyChallenge.noActiveChallenge')}</Text>
         </View>
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>⏳ Challenge preparing</Text>
+          <Text style={styles.emptyText}>{t('monthlyChallenge.challengePreparing')}</Text>
         </View>
       </View>
     );
@@ -591,29 +593,29 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       <View style={styles.compactContainer}>
         <View style={styles.compactHeader}>
           <View>
-            <Text style={styles.compactTitle}>Monthly Challenge</Text>
+            <Text style={styles.compactTitle}>{t('monthlyChallenge.title')}</Text>
             <Text style={styles.compactMonth}>{monthName}</Text>
           </View>
           <Pressable style={styles.compactViewAll} onPress={handleViewAll}>
-            <Text style={styles.compactViewAllText}>View</Text>
+            <Text style={styles.compactViewAllText}>{t('monthlyChallenge.view')}</Text>
           </Pressable>
         </View>
-        
+
         <MonthlyChallengeCard
           challenge={challenge}
           progress={progress}
           onPress={handleChallengePress}
           compact={true}
         />
-        
+
         <View style={styles.compactStats}>
           <View style={styles.compactStat}>
             <Text style={styles.compactStatNumber}>{Math.round(progress.completionPercentage)}%</Text>
-            <Text style={styles.compactStatLabel}>Complete</Text>
+            <Text style={styles.compactStatLabel}>{t('monthlyChallenge.complete')}</Text>
           </View>
           <View style={styles.compactStat}>
             <Text style={styles.compactStatNumber}>{daysRemaining}</Text>
-            <Text style={styles.compactStatLabel}>Days Left</Text>
+            <Text style={styles.compactStatLabel}>{t('monthlyChallenge.daysLeft')}</Text>
           </View>
           <View style={styles.compactStat}>
             <StarRatingDisplay
@@ -622,7 +624,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
               size="small"
               showLabel={false}
             />
-            <Text style={styles.compactStatLabel}>{challenge.starLevel}★ Level</Text>
+            <Text style={styles.compactStatLabel}>{challenge.starLevel}★ {t('monthlyChallenge.level')}</Text>
           </View>
         </View>
       </View>
@@ -633,12 +635,12 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>Monthly Challenge</Text>
+          <Text style={styles.title}>{t('monthlyChallenge.title')}</Text>
           <Text style={styles.subtitle}>
-            {monthName} • {Math.round(progress.completionPercentage)}% complete
+            {monthName} • {Math.round(progress.completionPercentage)}% {t('monthlyChallenge.complete').toLowerCase()}
           </Text>
         </View>
-        
+
       </View>
 
       {/* Main Challenge Card */}
@@ -659,7 +661,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       {/* Monthly Progress Summary */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryTitle}>Monthly Progress</Text>
+          <Text style={styles.summaryTitle}>{t('monthlyChallenge.title')}</Text>
           <Text style={[
             styles.summaryPercent,
             { color: isCompleted ? '#22C55E' : categoryColor }
@@ -667,39 +669,39 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
             {Math.round(progress.completionPercentage)}%
           </Text>
         </View>
-        
+
         <View style={styles.progressBar}>
-          <View 
+          <View
             style={[
               styles.progressFill,
-              { 
+              {
                 width: `${progress.completionPercentage}%`,
                 backgroundColor: isCompleted ? '#22C55E' : categoryColor
               }
-            ]} 
+            ]}
           />
         </View>
-        
+
         <View style={styles.summaryStats}>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>{progress.daysActive}</Text>
-            <Text style={styles.statLabel}>Active Days</Text>
+            <Text style={styles.statLabel}>{t('monthlyChallenge.activeDays')}</Text>
           </View>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>{daysRemaining}</Text>
-            <Text style={styles.statLabel}>Days Left</Text>
+            <Text style={styles.statLabel}>{t('monthlyChallenge.daysLeft')}</Text>
           </View>
           <View style={styles.stat}>
             <Text style={[styles.statNumber, { color: categoryColor }]}>
               {challenge.baseXPReward}
             </Text>
-            <Text style={styles.statLabel}>Max XP</Text>
+            <Text style={styles.statLabel}>{t('monthlyChallenge.maxXp')}</Text>
           </View>
         </View>
 
         {/* Milestone Progress */}
         <View style={styles.milestoneTracker}>
-          <Text style={styles.milestoneTitle}>Milestones</Text>
+          <Text style={styles.milestoneTitle}>{t('monthlyChallenge.milestones')}</Text>
           <View style={styles.milestoneRow}>
             {[25, 50, 75].map(milestone => {
               const reached = progress.milestonesReached[milestone as keyof typeof progress.milestonesReached]?.reached || false;

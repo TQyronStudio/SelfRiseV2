@@ -792,7 +792,157 @@ const en: TranslationKeys = {
       continue: 'Continue',
     },
   },
-  
+
+  // Monthly Challenge
+  monthlyChallenge: {
+    // Section title
+    title: 'Monthly Challenge',
+
+    // States
+    loading: 'Loading challenge...',
+    preparing: '🗓️ Preparing your monthly challenge...',
+    noActiveChallenge: 'No active challenge',
+    challengePreparing: '⏳ Challenge preparing',
+    errorLoading: 'Error loading challenge',
+    failedToLoad: 'Failed to load monthly challenge',
+    retry: 'Retry',
+
+    // Actions
+    view: 'View',
+    close: 'Close',
+    awesome: 'Awesome!',
+    continueJourney: 'Continue Journey',
+
+    // Labels
+    complete: 'complete',
+    completePercentage: 'Complete',
+    daysLeft: 'Days Left',
+    daysLeftCompact: 'd left',
+    level: 'Level',
+    difficulty: 'Difficulty',
+    activeDays: 'Active Days',
+    maxXP: 'Max XP',
+    milestones: 'Milestones',
+    requirements: 'Requirements',
+
+    // Progress
+    monthlyProgress: 'Monthly Progress',
+    monthStreak: 'Month Streak',
+    yourChallengeLevels: 'Your Challenge Levels',
+
+    // Completion
+    monthComplete: '✓ Month Complete',
+    completed: 'Monthly Challenge Completed! 🎉',
+    endsDate: 'Ends: {date}',
+
+    // Star rarity
+    rarity: {
+      common: 'Common',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+      master: 'Master',
+      unknown: 'Unknown',
+    },
+
+    // Completion modal
+    completionModal: {
+      subtitle: 'Monthly Challenge',
+      finalResults: 'Final Results',
+
+      titles: {
+        perfect: 'Perfect Completion!',
+        outstanding: 'Outstanding Achievement!',
+        great: 'Great Progress!',
+        completed: 'Challenge Completed!',
+        progress: 'Month Progress!',
+      },
+
+      messages: {
+        perfect: 'Incredible! You\'ve achieved perfect completion on this {rarity} {category} challenge. Your dedication is truly inspiring!',
+        outstanding: 'Amazing work! You\'ve nearly mastered this {rarity} {category} challenge with outstanding consistency.',
+        great: 'Excellent progress! You\'ve shown great commitment to this {rarity} {category} challenge this month.',
+        completed: 'Well done! You\'ve successfully completed this {rarity} {category} challenge and earned your rewards.',
+        progress: 'Good effort! You\'ve made meaningful progress on this {rarity} {category} challenge this month.',
+      },
+
+      rewards: {
+        title: 'XP Rewards Earned',
+        baseXP: 'Base Challenge XP',
+        completionBonus: 'Completion Bonus',
+        streakBonus: 'Monthly Streak Bonus 🔥',
+        perfectBonus: 'Perfect Completion 🏆',
+        totalEarned: 'Total XP Earned',
+      },
+
+      starProgression: {
+        title: 'Star Level Progression! 🌟',
+        previous: 'Previous',
+        newLevel: 'New Level',
+        description: 'Your next monthly challenge will be more challenging with higher XP rewards!',
+      },
+
+      streak: {
+        title: 'Monthly Streak 🔥',
+        month_one: 'Month',
+        month_other: 'Months',
+        description: 'Keep up the momentum! Each consecutive month increases your streak bonuses.',
+      },
+
+      nextMonth: {
+        title: 'Ready for Next Month?',
+        description: 'Your next challenge will be generated automatically on the 1st.',
+        descriptionWithLevel: 'Your next challenge will be generated automatically on the 1st. With your new star level, expect a greater challenge and bigger rewards!',
+      },
+    },
+
+    // Detail modal
+    detailModal: {
+      strategyDescription: 'This is a {rarity} ({stars}★) difficulty challenge designed to help you grow consistently.',
+      strategyDescriptionAdvance: 'Complete this challenge to advance to the next star level and unlock higher XP rewards!',
+      rewardTitle: '{xp} Experience Points',
+      streakBonus: '🔥 Streak Bonus: +{bonus} XP for {count} month streak',
+
+      tips: {
+        habits: [
+          'Focus on building sustainable habits that align with your lifestyle.',
+          'Start with easier habits and gradually increase difficulty.',
+          'Track your habits daily to maintain accountability.',
+          'Celebrate small wins to stay motivated throughout the month.',
+          'Use habit stacking to link new habits to existing routines.',
+        ],
+        journal: [
+          'Set aside dedicated time each day for journaling.',
+          'Write authentically about your experiences and feelings.',
+          'Use journal prompts when you feel stuck.',
+          'Review past entries to track your growth.',
+          'Experiment with different journaling styles to find what works.',
+        ],
+        goals: [
+          'Break large goals into smaller, actionable milestones.',
+          'Review and adjust your goals weekly.',
+          'Focus on progress, not perfection.',
+          'Document lessons learned along the way.',
+          'Celebrate milestone achievements to maintain momentum.',
+        ],
+        consistency: [
+          'Show up every day, even if progress feels small.',
+          'Build routines that support your consistency goals.',
+          'Track your daily activities to identify patterns.',
+          'Use reminders and accountability tools.',
+          'Remember that consistency compounds over time.',
+        ],
+        default: [
+          'Stay focused on your goals throughout the month.',
+          'Track your progress daily to maintain momentum.',
+          'Celebrate milestones along the way.',
+          'Adjust your approach if needed, but keep moving forward.',
+          'Remember why you started when challenges arise.',
+        ],
+      },
+    },
+  },
+
   // Achievements screen
   achievements: {
     title: 'Trophy Room',

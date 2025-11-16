@@ -6,6 +6,7 @@ import { StarRatingService } from '../../services/starRatingService';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { HelpTooltip } from '../common';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface MonthlyChallengeCardProps {
   challenge: MonthlyChallenge;
@@ -23,6 +24,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   compact = false
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const completedRequirements = challenge.requirements.filter(req =>
     (progress.progress[req.trackingKey] || 0) >= req.target
@@ -55,12 +57,12 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
 
   const getStarRarity = (starLevel: number): string => {
     switch (starLevel) {
-      case 1: return 'Common';
-      case 2: return 'Rare';
-      case 3: return 'Epic';
-      case 4: return 'Legendary';
-      case 5: return 'Master';
-      default: return 'Unknown';
+      case 1: return t('monthlyChallenge.rarity.common');
+      case 2: return t('monthlyChallenge.rarity.rare');
+      case 3: return t('monthlyChallenge.rarity.epic');
+      case 4: return t('monthlyChallenge.rarity.legendary');
+      case 5: return t('monthlyChallenge.rarity.master');
+      default: return t('monthlyChallenge.rarity.unknown');
     }
   };
 
@@ -366,7 +368,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
             </View>
             {isCompleted && (
               <View style={[styles.completedBadge, { backgroundColor: categoryColor }]}>
-                <Text style={styles.completedBadgeText}>✓ Month Complete</Text>
+                <Text style={styles.completedBadgeText}>✓ {t('monthlyChallenge.complete')}</Text>
               </View>
             )}
           </View>
@@ -380,19 +382,21 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Ends: {new Date(challenge.endDate).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
+            {t('monthlyChallenge.endsDate', {
+              date: new Date(challenge.endDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })
             })}
           </Text>
           {isCompleted ? (
             <Text style={[styles.completedText, { color: categoryColor }]}>
-              Monthly Challenge Completed! 🎉
+              {t('monthlyChallenge.challengeCompleted')}
             </Text>
           ) : (
             <Text style={[styles.footerText, { color: starColor }]}>
-              {getStarRarity(challenge.starLevel)} Difficulty • {challenge.starLevel}★
+              {getStarRarity(challenge.starLevel)} {t('monthlyChallenge.difficultyLabel')} {challenge.starLevel}★
             </Text>
           )}
         </View>

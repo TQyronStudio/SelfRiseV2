@@ -781,6 +781,163 @@ const es: Partial<TranslationKeys> = {
     },
   } as any,
 
+  // Monthly Challenge
+  monthlyChallenge: {
+    // Section title
+    title: 'Desafío Mensual',
+
+    // States
+    loading: 'Cargando desafío...',
+    preparing: '🗓️ Preparando tu desafío mensual...',
+    noActiveChallenge: 'Sin desafío activo',
+    challengePreparing: '⏳ Desafío en preparación',
+    errorLoading: 'Error al cargar el desafío',
+    failedToLoad: 'No se pudo cargar el desafío mensual',
+    retry: 'Reintentar',
+
+    // Actions
+    view: 'Ver',
+    close: 'Cerrar',
+    awesome: '¡Increíble!',
+    continueJourney: 'Continuar el Viaje',
+
+    // Labels
+    complete: 'Completado',
+    completePercentage: 'Completo',
+    daysLeft: 'Días restantes',
+    daysLeftCompact: 'd rest.',
+    level: 'Nivel',
+    difficulty: 'Dificultad',
+    activeDays: 'Días Activos',
+    maxXP: 'XP Máx.',
+    milestones: 'Hitos',
+    requirements: 'Requisitos',
+
+    // Progress
+    monthlyProgress: 'Progreso Mensual',
+    monthStreak: 'Racha Mensual',
+    yourChallengeLevels: 'Tus Niveles de Desafío',
+
+    // Completion
+    monthComplete: '✓ Mes Completo',
+    completed: '¡Desafío Mensual Completado! 🎉',
+    endsDate: 'Termina: {date}',
+
+    // Star rarity labels
+    rarity: {
+      common: 'Común',
+      rare: 'Raro',
+      epic: 'Épico',
+      legendary: 'Legendario',
+      master: 'Maestro',
+      unknown: 'Desconocido',
+    },
+
+    // Completion Modal
+    completionModal: {
+      subtitle: 'Desafío Mensual',
+      finalResults: 'Resultados Finales',
+
+      // Completion titles
+      titles: {
+        perfect: '¡Finalización Perfecta!',
+        outstanding: '¡Logro Sobresaliente!',
+        great: '¡Gran Progreso!',
+        completed: '¡Desafío Completado!',
+        progress: '¡Progreso del Mes!',
+      },
+
+      // Completion messages
+      messages: {
+        perfect: '¡Increíble! Has logrado una finalización perfecta en este desafío {rarity} de {category}. ¡Tu dedicación es verdaderamente inspiradora!',
+        outstanding: '¡Trabajo increíble! Casi has dominado este desafío {rarity} de {category} con una consistencia sobresaliente.',
+        great: '¡Excelente progreso! Has mostrado gran compromiso con este desafío {rarity} de {category} este mes.',
+        completed: '¡Bien hecho! Has completado exitosamente este desafío {rarity} de {category} y ganado tus recompensas.',
+        progress: '¡Buen esfuerzo! Has hecho un progreso significativo en este desafío {rarity} de {category} este mes.',
+      },
+
+      // Rewards
+      rewards: {
+        title: 'Recompensas de XP Ganadas',
+        baseXP: 'XP Base del Desafío',
+        completionBonus: 'Bonificación de Finalización',
+        streakBonus: 'Bonificación de Racha Mensual 🔥',
+        perfectBonus: 'Finalización Perfecta 🏆',
+        totalEarned: 'Total de XP Ganado',
+      },
+
+      // Star progression
+      starProgression: {
+        title: '¡Progresión de Nivel de Estrellas! 🌟',
+        previous: 'Anterior',
+        newLevel: 'Nuevo Nivel',
+        description: '¡Tu próximo desafío mensual será más difícil con mayores recompensas de XP!',
+      },
+
+      // Streak
+      streak: {
+        title: 'Racha Mensual 🔥',
+        month_one: 'Mes',
+        month_other: 'Meses',
+        description: '¡Mantén el impulso! Cada mes consecutivo aumenta tus bonificaciones de racha.',
+      },
+
+      // Next month
+      nextMonth: {
+        title: '¿Listo para el Próximo Mes?',
+        description: 'Tu próximo desafío se generará automáticamente el día 1.',
+        descriptionWithLevel: 'Tu próximo desafío se generará automáticamente el día 1. ¡Con tu nuevo nivel de estrellas, espera un desafío mayor y mejores recompensas!',
+      },
+    },
+
+    // Detail Modal
+    detailModal: {
+      strategyDescription: 'Este es un desafío de dificultad {rarity} ({stars}★) diseñado para ayudarte a crecer consistentemente.',
+      strategyDescriptionAdvance: '¡Completa este desafío para avanzar al siguiente nivel de estrellas y desbloquear mayores recompensas de XP!',
+      rewardTitle: '{xp} Puntos de Experiencia',
+      streakBonus: '🔥 Bonificación de Racha: +{bonus} XP por {count} meses de racha',
+
+      // Category-specific tips
+      tips: {
+        habits: [
+          'Concéntrate en construir hábitos sostenibles que se alineen con tu estilo de vida.',
+          'Comienza con hábitos más fáciles y aumenta gradualmente la dificultad.',
+          'Rastrea tus hábitos diariamente para mantener la responsabilidad.',
+          'Celebra las pequeñas victorias para mantenerte motivado durante todo el mes.',
+          'Usa el apilamiento de hábitos para vincular nuevos hábitos con rutinas existentes.',
+        ],
+        journal: [
+          'Reserva tiempo dedicado cada día para el journaling.',
+          'Escribe auténticamente sobre tus experiencias y sentimientos.',
+          'Usa indicaciones de journaling cuando te sientas atascado.',
+          'Revisa entradas pasadas para rastrear tu crecimiento.',
+          'Experimenta con diferentes estilos de journaling para encontrar lo que funciona.',
+        ],
+        goals: [
+          'Divide metas grandes en hitos más pequeños y accionables.',
+          'Revisa y ajusta tus metas semanalmente.',
+          'Concéntrate en el progreso, no en la perfección.',
+          'Documenta las lecciones aprendidas en el camino.',
+          'Celebra los logros de hitos para mantener el impulso.',
+        ],
+        consistency: [
+          'Preséntate cada día, incluso si el progreso parece pequeño.',
+          'Construye rutinas que apoyen tus objetivos de consistencia.',
+          'Rastrea tus actividades diarias para identificar patrones.',
+          'Usa recordatorios y herramientas de responsabilidad.',
+          'Recuerda que la consistencia se compone con el tiempo.',
+        ],
+        default: [
+          'Mantente enfocado en tus objetivos durante todo el mes.',
+          'Rastrea tu progreso diariamente para mantener el impulso.',
+          'Celebra los hitos en el camino.',
+          'Ajusta tu enfoque si es necesario, pero sigue avanzando.',
+          'Recuerda por qué empezaste cuando surjan desafíos.',
+        ],
+      },
+    },
+  } as any,
+
   // Settings screen - Language section (PRIORITY 1)
   settings: {
     title: 'Ajustes',

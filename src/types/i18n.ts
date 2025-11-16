@@ -728,7 +728,127 @@ export interface TranslationKeys {
     selectMonth: string;
     selectDay: string;
   };
-  
+
+  // Monthly Challenge
+  monthlyChallenge: {
+    // Section title
+    title: string;
+
+    // States
+    loading: string;
+    preparing: string;
+    noActiveChallenge: string;
+    challengePreparing: string;
+    errorLoading: string;
+    failedToLoad: string;
+    retry: string;
+
+    // Actions
+    view: string;
+    close: string;
+    awesome: string;
+    continueJourney: string;
+
+    // Labels
+    complete: string;
+    completePercentage: string;
+    daysLeft: string;
+    daysLeftCompact: string;
+    level: string;
+    difficulty: string;
+    activeDays: string;
+    maxXP: string;
+    milestones: string;
+    requirements: string;
+
+    // Progress
+    monthlyProgress: string;
+    monthStreak: string;
+    yourChallengeLevels: string;
+
+    // Completion
+    monthComplete: string;
+    completed: string;
+    endsDate: string;
+
+    // Star rarity labels
+    rarity: {
+      common: string;
+      rare: string;
+      epic: string;
+      legendary: string;
+      master: string;
+      unknown: string;
+    };
+
+    // Completion Modal
+    completionModal: {
+      subtitle: string;
+      finalResults: string;
+
+      titles: {
+        perfect: string;
+        outstanding: string;
+        great: string;
+        completed: string;
+        progress: string;
+      };
+
+      messages: {
+        perfect: string;
+        outstanding: string;
+        great: string;
+        completed: string;
+        progress: string;
+      };
+
+      rewards: {
+        title: string;
+        baseXP: string;
+        completionBonus: string;
+        streakBonus: string;
+        perfectBonus: string;
+        totalEarned: string;
+      };
+
+      starProgression: {
+        title: string;
+        previous: string;
+        newLevel: string;
+        description: string;
+      };
+
+      streak: {
+        title: string;
+        month_one: string;
+        month_other: string;
+        description: string;
+      };
+
+      nextMonth: {
+        title: string;
+        description: string;
+        descriptionWithLevel: string;
+      };
+    };
+
+    // Detail Modal
+    detailModal: {
+      strategyDescription: string;
+      strategyDescriptionAdvance: string;
+      rewardTitle: string;
+      streakBonus: string;
+
+      tips: {
+        habits: string[];
+        journal: string[];
+        goals: string[];
+        consistency: string[];
+        default: string[];
+      };
+    };
+  };
+
   // Achievements screen
   achievements: {
     title: string;
