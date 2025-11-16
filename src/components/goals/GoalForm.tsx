@@ -634,7 +634,7 @@ export function GoalForm({
         {/* Target Date */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('goals.form.targetDate')}</Text>
-          <Text style={styles.dateHint}>Tap to open step-by-step date selector</Text>
+          <Text style={styles.dateHint}>{t('goals.form.targetDateHint')}</Text>
           <View ref={goalDateRef} nativeID="goal-date-picker">
             <TouchableOpacity
               style={[styles.input, styles.dateSelector]}
@@ -645,7 +645,7 @@ export function GoalForm({
                 styles.dateText,
                 !formData._displayDate && styles.placeholderText
               ]}>
-                {formData._displayDate || 'Select target date (optional)'}
+                {formData._displayDate || t('goals.form.targetDatePlaceholder')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -358,20 +358,20 @@ export default function JournalScreen() {
         
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/journal-history')}
           >
             <IconSymbol name="clock" size={20} color={colors.primary} />
-            <Text style={styles.actionButtonText}>History</Text>
+            <Text style={styles.actionButtonText}>{t('journal.history')}</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/journal-stats')}
           >
             <IconSymbol name="chart.bar" size={20} color={colors.primary} />
-            <Text style={styles.actionButtonText}>Statistics</Text>
+            <Text style={styles.actionButtonText}>{t('journal.statistics')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -400,11 +400,11 @@ export default function JournalScreen() {
                 }}
               >
                 <Text style={styles.addButtonText}>
-                  + Add Gratitude
+                  {t('journal.addGratitudeButton')}
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, styles.selfPraiseButton]}
                 onPress={() => {
                   setInputType('self-praise');
@@ -414,7 +414,7 @@ export default function JournalScreen() {
                 }}
               >
                 <Text style={styles.addButtonText}>
-                  + Add Self-Praise
+                  {t('journal.addSelfPraiseButton')}
                 </Text>
               </TouchableOpacity>
             </View>

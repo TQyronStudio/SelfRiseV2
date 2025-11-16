@@ -187,7 +187,7 @@ export function HabitList({
           <View style={styles.content}>
             {activeHabits.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Active Habits</Text>
+                <Text style={styles.sectionTitle}>{t('habits.activeHabits')}</Text>
                 <DraggableFlatList
                   data={activeHabits}
                   keyExtractor={(item) => item.id}
@@ -203,7 +203,7 @@ export function HabitList({
 
             {inactiveHabits.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Inactive Habits</Text>
+                <Text style={styles.sectionTitle}>{t('habits.inactiveHabits')}</Text>
                 <FlatList
                   data={inactiveHabits}
                   keyExtractor={(item) => item.id}

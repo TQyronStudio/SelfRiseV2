@@ -600,9 +600,9 @@ export default function AchievementsScreen() {
         <View style={styles.loadingDotsContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-        
-        <Text style={styles.loadingTitle}>Loading Trophy Room</Text>
-        <Text style={styles.loadingText}>Polishing your achievements...</Text>
+
+        <Text style={styles.loadingTitle}>{t('achievements.loadingTitle')}</Text>
+        <Text style={styles.loadingText}>{t('achievements.loadingText')}</Text>
       </View>
     </View>
   );
@@ -1052,10 +1052,10 @@ export default function AchievementsScreen() {
           styles.viewModeText,
           viewMode === 'overview' && styles.viewModeTextActive
         ]}>
-          🏠 Trophy Room
+          {t('achievements.viewModeTrophyRoom')}
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={[
           styles.viewModeButton,
@@ -1067,7 +1067,7 @@ export default function AchievementsScreen() {
           styles.viewModeText,
           viewMode === 'achievements' && styles.viewModeTextActive
         ]}>
-          🏆 Browse All
+          {t('achievements.viewModeBrowseAll')}
         </Text>
       </TouchableOpacity>
       
@@ -1116,9 +1116,9 @@ export default function AchievementsScreen() {
       {/* Achievement Grid/List */}
       {filteredAndSortedAchievements.length === 0 ? (
         <View style={styles.noResultsContainer}>
-          <Text style={styles.noResultsTitle}>No achievements found</Text>
+          <Text style={styles.noResultsTitle}>{t('achievements.filter.noResults')}</Text>
           <Text style={styles.noResultsSubtitle}>
-            Try adjusting your filters or search criteria
+            {t('achievements.filter.noResultsSubtitle')}
           </Text>
         </View>
       ) : (

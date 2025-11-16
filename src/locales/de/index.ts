@@ -246,6 +246,8 @@ const de: Partial<TranslationKeys> = {
     addHabit: 'Gewohnheit hinzufügen',
     editHabit: 'Gewohnheit bearbeiten',
     deleteHabit: 'Gewohnheit löschen',
+    activeHabits: 'Aktive Gewohnheiten',
+    inactiveHabits: 'Inaktive Gewohnheiten',
     habitName: 'Gewohnheitsname',
     habitNamePlaceholder: 'Gewohnheitsname eingeben...',
     selectColor: 'Farbe wählen',
@@ -296,12 +298,15 @@ const de: Partial<TranslationKeys> = {
   journal: {
     title: 'Mein Tagebuch',
     addGratitude: 'Dankbarkeit hinzufügen',
+    addGratitudeButton: '+ Dankbarkeit hinzufügen',
+    addSelfPraiseButton: '+ Selbstlob hinzufügen',
     gratitudePlaceholder: 'Wofür bist du heute dankbar?',
     minimumRequired: 'Schreibe mindestens 3 Einträge, um deine Serie aufrechtzuerhalten',
     bonusGratitude: 'Bonus-Eintrag',
     currentStreak: 'Aktuelle Serie',
     longestStreak: 'Längste Serie',
     history: 'Historie',
+    statistics: 'Statistiken',
     // --- BONUS MILESTONE SYSTEM ---
     bonusMilestone1_title: 'Erster Bonus-Eintrag! ⭐',
     bonusMilestone1_text: 'Fantastisch! Du hast heute deinen ersten Bonus-Eintrag geschrieben! Mach weiter so!',
@@ -394,6 +399,47 @@ const de: Partial<TranslationKeys> = {
       motivationNoStreak: "Jede Reise beginnt mit einem einzigen Schritt. Starte heute deine Tagebuch-Serie!",
       motivationDay1: "Toller Start! Ein Tag geschafft, viele weitere folgen. Bleib dran!",
       motivationDays: "Fantastische {{days}}-Tage-Serie! Du baust eine starke Gewohnheit auf.",
+    },
+
+    // Gratitude Input Component
+    input: {
+      // Header titles
+      addGratitudeTitle: 'Dankbarkeit hinzufügen',
+      addSelfPraiseTitle: 'Selbstlob hinzufügen',
+
+      // Error messages
+      emptyError: 'Bitte gib deine Dankbarkeit ein',
+      minLengthError: 'Dankbarkeit muss mindestens 3 Zeichen lang sein',
+      frozenStreakError_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
+      frozenStreakError_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
+
+      // Gratitude placeholders (rotating)
+      gratitudePlaceholders: [
+        'Was hat dich heute zum Lächeln gebracht?',
+        'Wem bist du gerade jetzt dankbar?',
+        'Was für eine kleine Sache hat dir Freude bereitet?',
+        'Was für etwas Schönes hast du heute gesehen?',
+        'Für welche Fähigkeit bist du dankbar?',
+        'Für welchen Teil deines Tages bist du am dankbarsten?',
+        'Worauf freust du dich?',
+        'Für welches Essen bist du heute dankbar?',
+        'Welches Lied hat deinen Tag besser gemacht?',
+        'Welches einfache Vergnügen hast du genossen?',
+      ],
+
+      // Self-praise placeholders (rotating)
+      selfPraisePlaceholders: [
+        'Welche Herausforderung hast du heute gemeistert?',
+        'Was hast du heute gut gemacht?',
+        'Was hast du heute getan, auf das du stolz bist?',
+        'Wie bist du deinen Zielen näher gekommen?',
+        'Welche gute Entscheidung hast du getroffen?',
+        'Wann warst du heute diszipliniert?',
+        'Wie hast du Freundlichkeit zu dir selbst gezeigt?',
+        'Was hast du heute gelernt?',
+        'Auf welche Anstrengung bist du stolz, unabhängig vom Ergebnis?',
+        'Was hast du heute nur für dich selbst getan?',
+      ],
     },
 
     // Warm-up modals
@@ -491,6 +537,10 @@ const de: Partial<TranslationKeys> = {
     editGoal: 'Ziel bearbeiten',
     deleteGoal: 'Ziel löschen',
     noGoals: 'Noch keine Ziele. Beginne mit der Erstellung deines ersten Ziels!',
+
+    // Error states
+    error: 'Fehler',
+    goalNotFound: 'Ziel nicht gefunden',
     goalTitleLabel: 'Zieltitel',
     goalTitlePlaceholder: 'Gib dein Ziel ein...',
     unitLabel: 'Einheit',
@@ -534,6 +584,8 @@ const de: Partial<TranslationKeys> = {
       targetValue: 'Zielwert',
       category: 'Kategorie',
       targetDate: 'Zieldatum (Empfohlen)',
+      targetDateHint: 'Tippe, um den schrittweisen Datumsauswahl zu öffnen',
+      targetDatePlaceholder: 'Zieldatum auswählen (optional)',
       placeholders: {
         title: 'Gib deinen Zieltitel ein...',
         description: 'Beschreibe dein Ziel genauer...',
@@ -950,6 +1002,10 @@ const de: Partial<TranslationKeys> = {
     themeSystem: 'System Auto',
     themeDescription: 'Wählen Sie Ihr bevorzugtes Farbschema',
     themeSystemDescription: 'Entspricht Ihren Geräteeinstellungen',
+    lightMode: 'Heller Modus',
+    darkMode: 'Dunkler Modus',
+    systemAuto: 'System Auto',
+    systemAutoDescription: 'Entspricht Ihren Geräteeinstellungen',
 
     // Language
     language: 'Sprache',
@@ -979,6 +1035,10 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
+    // Analytics
+    habitAnalytics: 'Gewohnheitsanalytik',
+    individualHabitStats: 'Individuelle Gewohnheitsstatistiken',
+
     // Account
     account: 'Konto',
     login: 'Anmelden',
@@ -991,7 +1051,8 @@ const de: Partial<TranslationKeys> = {
     privacyPolicy: 'Datenschutzrichtlinie',
     termsOfService: 'Nutzungsbedingungen',
 
-    // Tutorial
+    // Tutorial & Onboarding
+    tutorial: 'Tutorial',
     tutorialReset: 'Tutorial neustarten',
     tutorialResetDescription: 'Tutorial von vorne beginnen',
     tutorialResetConfirmTitle: 'Tutorial neustarten?',
@@ -1003,6 +1064,7 @@ const de: Partial<TranslationKeys> = {
     reset: 'Neustarten',
     success: 'Erfolg',
     errorTitle: 'Fehler',
+    resetting: 'Wird neu gestartet...',
   } as any,
 
   // Common
@@ -1062,6 +1124,62 @@ const de: Partial<TranslationKeys> = {
 
   // Achievements - All 78 achievements translated to German
   achievements: {
+    title: 'Trophäenzimmer',
+    subtitle: 'Deine persönliche Ruhmeshalle',
+
+    // View mode toggle
+    viewModeTrophyRoom: '🏠 Trophäenzimmer',
+    viewModeBrowseAll: '🏆 Alle durchsuchen',
+
+    // Loading states
+    loadingTitle: 'Trophäenzimmer wird geladen',
+    loadingText: 'Erfolge werden poliert...',
+
+    // Overview Statistics
+    overview: {
+      unlockedCount: 'Freigeschaltet',
+      totalCount: 'Gesamt',
+      completionRate: 'Fortschritt',
+      totalXP: 'Gesamt-EP',
+      recentUnlocks: 'Kürzlich',
+      nextToUnlock: 'Als Nächstes',
+      noAchievements: 'Noch keine Erfolge freigeschaltet',
+      getStarted: 'Beginne Gewohnheiten zu erfüllen, schreibe in dein Tagebuch und erreiche Ziele, um deinen ersten Erfolg freizuschalten!',
+    },
+
+    // Categories
+    categories: {
+      all: 'Alle',
+      habits: 'Gewohnheiten',
+      journal: 'Tagebuch',
+      goals: 'Ziele',
+      consistency: 'Beständigkeit',
+      mastery: 'Meisterschaft',
+      social: 'Sozial',
+      special: 'Besonders',
+    },
+
+    // Rarity levels
+    rarity: {
+      common: 'Gewöhnlich',
+      rare: 'Selten',
+      epic: 'Episch',
+      legendary: 'Legendär',
+    },
+
+    // Filtering and Search
+    filter: {
+      showAll: 'Alle anzeigen',
+      unlockedOnly: 'Nur Freigeschaltete',
+      lockedOnly: 'Nur Gesperrte',
+      byCategory: 'Nach Kategorie',
+      byRarity: 'Nach Seltenheit',
+      searchPlaceholder: 'Erfolge suchen...',
+      noResults: 'Keine Erfolge gefunden',
+      noResultsSubtitle: 'Versuche, deine Filter oder Suchkriterien anzupassen',
+      clearFilters: 'Filter löschen',
+    },
+
     // HABITS ACHIEVEMENTS (8 achievements)
     first_habit: {
       name: 'Erste Schritte',
@@ -1930,6 +2048,20 @@ const de: Partial<TranslationKeys> = {
       rewards: 'Level-Belohnungen',
       title: 'Level-Titel',
       description: 'Level-Beschreibung',
+
+      // Level Overview Screen
+      overview: {
+        currentBadge: 'Aktuell',
+        xpRequiredSuffix: 'XP erforderlich',
+        rarity: {
+          mythic: 'Mythisch',
+          legendary: 'Legendär',
+          epic: 'Episch',
+          rare: 'Selten',
+          growing: 'Wachsend',
+          beginner: 'Anfänger',
+        },
+      },
     },
 
     effects: {

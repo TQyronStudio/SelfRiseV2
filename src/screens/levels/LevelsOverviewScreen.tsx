@@ -83,12 +83,12 @@ export const LevelsOverviewScreen: React.FC = () => {
   };
 
   const getLevelRarity = (level: number): string => {
-    if (level >= 81) return 'Mythic';
-    if (level >= 61) return 'Legendary';
-    if (level >= 41) return 'Epic';
-    if (level >= 21) return 'Rare';
-    if (level >= 11) return 'Growing';
-    return 'Beginner';
+    if (level >= 81) return t('gamification.levels.overview.rarity.mythic');
+    if (level >= 61) return t('gamification.levels.overview.rarity.legendary');
+    if (level >= 41) return t('gamification.levels.overview.rarity.epic');
+    if (level >= 21) return t('gamification.levels.overview.rarity.rare');
+    if (level >= 11) return t('gamification.levels.overview.rarity.growing');
+    return t('gamification.levels.overview.rarity.beginner');
   };
 
   const renderLevelItem = ({ item, index }: { item: LevelData; index: number }) => {
@@ -112,7 +112,7 @@ export const LevelsOverviewScreen: React.FC = () => {
             </View>
             {isCurrentLevel && (
               <View style={styles.currentBadge}>
-                <Text style={styles.currentText}>Current</Text>
+                <Text style={styles.currentText}>{t('gamification.levels.overview.currentBadge')}</Text>
               </View>
             )}
             {!item.isUnlocked && (
@@ -151,7 +151,7 @@ export const LevelsOverviewScreen: React.FC = () => {
                 !item.isUnlocked && styles.lockedText,
               ]}
             >
-              {item.xpRequired.toLocaleString()} XP required
+              {item.xpRequired.toLocaleString()} {t('gamification.levels.overview.xpRequiredSuffix')}
             </Text>
           </View>
         </View>

@@ -234,6 +234,8 @@ export interface TranslationKeys {
     addHabit: string;
     editHabit: string;
     deleteHabit: string;
+    activeHabits: string;
+    inactiveHabits: string;
     habitName: string;
     habitNamePlaceholder: string;
     selectColor: string;
@@ -284,12 +286,15 @@ export interface TranslationKeys {
   journal: {
     title: string;
     addGratitude: string;
+    addGratitudeButton: string;
+    addSelfPraiseButton: string;
     gratitudePlaceholder: string;
     minimumRequired: string;
     bonusGratitude: string;
     currentStreak: string;
     longestStreak: string;
     history: string;
+    statistics: string;
     // --- BONUS MILESTONE SYSTEM ---
     // Bonus count milestones: 1st, 5th, 10th bonus entries
     bonusMilestone1_title: string;
@@ -374,6 +379,16 @@ export interface TranslationKeys {
       motivationNoStreak: string;
       motivationDay1: string;
       motivationDays: string;
+    };
+    input: {
+      addGratitudeTitle: string;
+      addSelfPraiseTitle: string;
+      emptyError: string;
+      minLengthError: string;
+      frozenStreakError_one: string;
+      frozenStreakError_other: string;
+      gratitudePlaceholders: string[];
+      selfPraisePlaceholders: string[];
     };
     warmUp: {
       title: string;
@@ -461,6 +476,8 @@ export interface TranslationKeys {
     editGoal: string;
     deleteGoal: string;
     noGoals: string;
+    error: string;
+    goalNotFound: string;
     goalTitleLabel: string;
     goalTitlePlaceholder: string;
     unitLabel: string;
@@ -498,6 +515,8 @@ export interface TranslationKeys {
       targetValue: string;
       category: string;
       targetDate: string;
+      targetDateHint: string;
+      targetDatePlaceholder: string;
       placeholders: {
         title: string;
         description: string;
@@ -853,6 +872,10 @@ export interface TranslationKeys {
   achievements: {
     title: string;
     subtitle: string;
+    viewModeTrophyRoom: string;
+    viewModeBrowseAll: string;
+    loadingTitle: string;
+    loadingText: string;
     overview: {
       unlockedCount: string;
       totalCount: string;
@@ -887,6 +910,7 @@ export interface TranslationKeys {
       byRarity: string;
       searchPlaceholder: string;
       noResults: string;
+      noResultsSubtitle: string;
       clearFilters: string;
     };
     sort: {
@@ -1027,6 +1051,10 @@ export interface TranslationKeys {
     themeSystem: string;
     themeDescription: string;
     themeSystemDescription: string;
+    lightMode: string;
+    darkMode: string;
+    systemAuto: string;
+    systemAutoDescription: string;
     language: string;
     languageDescription: string;
     languageEnglish: string;
@@ -1051,6 +1079,8 @@ export interface TranslationKeys {
         openSettings: string;
       };
     };
+    habitAnalytics: string;
+    individualHabitStats: string;
     account: string;
     login: string;
     register: string;
@@ -1059,6 +1089,7 @@ export interface TranslationKeys {
     version: string;
     privacyPolicy: string;
     termsOfService: string;
+    tutorial: string;
     tutorialReset: string;
     tutorialResetDescription: string;
     tutorialResetConfirmTitle: string;
@@ -1068,6 +1099,7 @@ export interface TranslationKeys {
     reset: string;
     success: string;
     errorTitle: string;
+    resetting: string;
   };
   
   // Auth screens
@@ -1265,6 +1297,18 @@ export interface TranslationKeys {
       rewards: string;
       title: string;
       description: string;
+      overview: {
+        currentBadge: string;
+        xpRequiredSuffix: string;
+        rarity: {
+          mythic: string;
+          legendary: string;
+          epic: string;
+          rare: string;
+          growing: string;
+          beginner: string;
+        };
+      };
     };
     effects: {
       level_up: string;

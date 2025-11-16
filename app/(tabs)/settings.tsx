@@ -163,13 +163,13 @@ export default function SettingsScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Notifications Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
+          <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
           <NotificationSettings />
         </View>
 
         {/* Appearance Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
+          <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
 
           {/* Light Mode */}
           <TouchableOpacity
@@ -178,7 +178,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="sunny" size={24} color={colors.primary} />
-              <Text style={styles.menuItemText}>Light Mode</Text>
+              <Text style={styles.menuItemText}>{t('settings.lightMode')}</Text>
             </View>
             {themeMode === 'light' && (
               <Ionicons name="checkmark-circle" size={24} color={colors.success} />
@@ -192,7 +192,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="moon" size={24} color={colors.primary} />
-              <Text style={styles.menuItemText}>Dark Mode</Text>
+              <Text style={styles.menuItemText}>{t('settings.darkMode')}</Text>
             </View>
             {themeMode === 'dark' && (
               <Ionicons name="checkmark-circle" size={24} color={colors.success} />
@@ -207,9 +207,9 @@ export default function SettingsScreen() {
             <View style={styles.menuItemLeft}>
               <Ionicons name="phone-portrait" size={24} color={colors.primary} />
               <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemText}>System Auto</Text>
+                <Text style={styles.menuItemText}>{t('settings.systemAuto')}</Text>
                 <Text style={styles.menuItemDescription}>
-                  Matches your device settings
+                  {t('settings.systemAutoDescription')}
                 </Text>
               </View>
             </View>
@@ -221,14 +221,14 @@ export default function SettingsScreen() {
 
         {/* Habit Statistics Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Habit Analytics</Text>
+          <Text style={styles.sectionTitle}>{t('settings.habitAnalytics')}</Text>
           <TouchableOpacity
             style={styles.menuItem}
             onPress={handleViewHabitStats}
           >
             <View style={styles.menuItemLeft}>
               <Ionicons name="bar-chart" size={24} color={colors.primary} />
-              <Text style={styles.menuItemText}>Individual Habit Stats</Text>
+              <Text style={styles.menuItemText}>{t('settings.individualHabitStats')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -283,7 +283,7 @@ export default function SettingsScreen() {
 
         {/* Tutorial */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tutorial</Text>
+          <Text style={styles.sectionTitle}>{t('settings.tutorial')}</Text>
           <TouchableOpacity
             style={[styles.menuItem, isResetting && styles.menuItemDisabled]}
             onPress={handleRestartTutorial}
@@ -308,7 +308,7 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             )}
             {isResetting && (
-              <Text style={styles.loadingText}>Resetting...</Text>
+              <Text style={styles.loadingText}>{t('settings.resetting')}</Text>
             )}
           </TouchableOpacity>
         </View>

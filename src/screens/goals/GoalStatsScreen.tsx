@@ -161,11 +161,11 @@ export function GoalStatsScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={styles.title}>Error</Text>
+          <Text style={styles.title}>{t('goals.error')}</Text>
           <View style={styles.shareButton} />
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Goal not found</Text>
+          <Text style={styles.errorText}>{t('goals.goalNotFound')}</Text>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>

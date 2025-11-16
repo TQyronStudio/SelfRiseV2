@@ -211,7 +211,7 @@ export function HabitListWithCompletion({
       {/* Active Habits Section - Platform Specific Drag & Drop */}
       {activeHabits.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Habits</Text>
+          <Text style={styles.sectionTitle}>{t('habits.activeHabits')}</Text>
           {/* iOS: Podmíněné použití DraggableFlatList */}
           {Platform.OS === 'ios' && isEditMode ? (
             <DraggableFlatList
@@ -241,7 +241,7 @@ export function HabitListWithCompletion({
       {/* Inactive Habits Section - No Drag & Drop */}
       {inactiveHabits.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inactive Habits</Text>
+          <Text style={styles.sectionTitle}>{t('habits.inactiveHabits')}</Text>
           {inactiveHabits.map((habit) => (
             <View key={habit.id} style={styles.habitContainer}>
               <HabitItemWithCompletion

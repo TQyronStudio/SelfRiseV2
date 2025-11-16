@@ -235,6 +235,8 @@ const en: TranslationKeys = {
     addHabit: 'Add Habit',
     editHabit: 'Edit Habit',
     deleteHabit: 'Delete Habit',
+    activeHabits: 'Active Habits',
+    inactiveHabits: 'Inactive Habits',
     habitName: 'Habit Name',
     habitNamePlaceholder: 'Enter habit name...',
     selectColor: 'Select Color',
@@ -285,12 +287,15 @@ const en: TranslationKeys = {
   journal: {
     title: 'My Journal',
     addGratitude: 'Add Gratitude',
+    addGratitudeButton: '+ Add Gratitude',
+    addSelfPraiseButton: '+ Add Self-Praise',
     gratitudePlaceholder: 'What are you grateful for today?',
     minimumRequired: 'Write at least 3 entries to maintain your streak',
     bonusGratitude: 'Bonus Entry',
     currentStreak: 'Current Streak',
     longestStreak: 'Longest Streak',
     history: 'History',
+    statistics: 'Statistics',
     // --- BONUS MILESTONE SYSTEM ---
     // Bonus count milestones: 1st, 5th, 10th bonus entries
     bonusMilestone1_title: 'First Bonus Entry! ⭐',
@@ -389,6 +394,47 @@ const en: TranslationKeys = {
       motivationDays: "Amazing {{days}}-day streak! You're building a powerful habit.",
     },
 
+    // Gratitude Input Component
+    input: {
+      // Header titles
+      addGratitudeTitle: 'Add Gratitude',
+      addSelfPraiseTitle: 'Add Self-Praise',
+
+      // Error messages
+      emptyError: 'Please enter your gratitude',
+      minLengthError: 'Gratitude must be at least 3 characters long',
+      frozenStreakError_one: 'Your streak is frozen for {{count}} day. Warm it up on the Home screen first, then continue journaling! 🔥',
+      frozenStreakError_other: 'Your streak is frozen for {{count}} days. Warm it up on the Home screen first, then continue journaling! 🔥',
+
+      // Gratitude placeholders (rotating)
+      gratitudePlaceholders: [
+        'What made you smile today?',
+        'Who are you thankful for right now?',
+        'What small thing brought you joy?',
+        'What beautiful thing did you see today?',
+        'What skill are you grateful to have?',
+        'What part of your day are you most thankful for?',
+        'What is something you\'re looking forward to?',
+        'What food are you grateful for today?',
+        'What song made your day better?',
+        'What simple pleasure did you enjoy?',
+      ],
+
+      // Self-praise placeholders (rotating)
+      selfPraisePlaceholders: [
+        'What challenge did you overcome today?',
+        'What\'s one thing you did well today?',
+        'What did you do today that you\'re proud of?',
+        'How did you take a step towards your goals?',
+        'What good decision did you make?',
+        'When were you disciplined today?',
+        'How did you show kindness to yourself?',
+        'What did you learn today?',
+        'What effort are you proud of, regardless of the outcome?',
+        'What did you do today that was just for you?',
+      ],
+    },
+
     // Warm-up modals
     warmUp: {
       title: 'Warm Up Your Streak',
@@ -484,6 +530,10 @@ const en: TranslationKeys = {
     editGoal: 'Edit Goal',
     deleteGoal: 'Delete Goal',
     noGoals: 'No goals yet. Start by creating your first goal!',
+
+    // Error states
+    error: 'Error',
+    goalNotFound: 'Goal not found',
     goalTitleLabel: 'Goal Title',
     goalTitlePlaceholder: 'Enter your goal...',
     unitLabel: 'Unit',
@@ -529,6 +579,8 @@ const en: TranslationKeys = {
       targetValue: 'Target Value',
       category: 'Category',
       targetDate: 'Target Date (Recommended)',
+      targetDateHint: 'Tap to open step-by-step date selector',
+      targetDatePlaceholder: 'Select target date (optional)',
       placeholders: {
         title: 'Enter your goal title...',
         description: 'Describe your goal in more detail...',
@@ -947,7 +999,15 @@ const en: TranslationKeys = {
   achievements: {
     title: 'Trophy Room',
     subtitle: 'Your personal hall of fame',
-    
+
+    // View mode toggle
+    viewModeTrophyRoom: '🏠 Trophy Room',
+    viewModeBrowseAll: '🏆 Browse All',
+
+    // Loading states
+    loadingTitle: 'Loading Trophy Room',
+    loadingText: 'Polishing your achievements...',
+
     // Overview Statistics
     overview: {
       unlockedCount: 'Unlocked',
@@ -989,6 +1049,7 @@ const en: TranslationKeys = {
       byRarity: 'By Rarity',
       searchPlaceholder: 'Search achievements...',
       noResults: 'No achievements found',
+      noResultsSubtitle: 'Try adjusting your filters or search criteria',
       clearFilters: 'Clear Filters',
     },
 
@@ -1905,6 +1966,10 @@ const en: TranslationKeys = {
     themeSystem: 'System Auto',
     themeDescription: 'Choose your preferred color scheme',
     themeSystemDescription: 'Matches your device settings',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
+    systemAuto: 'System Auto',
+    systemAutoDescription: 'Matches your device settings',
 
     // Language
     language: 'Language',
@@ -1934,6 +1999,10 @@ const en: TranslationKeys = {
       },
     },
 
+    // Analytics
+    habitAnalytics: 'Habit Analytics',
+    individualHabitStats: 'Individual Habit Stats',
+
     // Account
     account: 'Account',
     login: 'Login',
@@ -1947,6 +2016,7 @@ const en: TranslationKeys = {
     termsOfService: 'Terms of Service',
 
     // Tutorial & Onboarding
+    tutorial: 'Tutorial',
     tutorialReset: 'Restart Tutorial',
     tutorialResetDescription: 'Restart the tutorial from the beginning',
     tutorialResetConfirmTitle: 'Restart Tutorial?',
@@ -1958,6 +2028,7 @@ const en: TranslationKeys = {
     reset: 'Restart',
     success: 'Success',
     errorTitle: 'Error',
+    resetting: 'Resetting...',
   },
   
   // Auth screens
@@ -2074,6 +2145,20 @@ const en: TranslationKeys = {
       rewards: 'Level Rewards',
       title: 'Level Title',
       description: 'Level Description',
+
+      // Level Overview Screen
+      overview: {
+        currentBadge: 'Current',
+        xpRequiredSuffix: 'XP required',
+        rarity: {
+          mythic: 'Mythic',
+          legendary: 'Legendary',
+          epic: 'Epic',
+          rare: 'Rare',
+          growing: 'Growing',
+          beginner: 'Beginner',
+        },
+      },
     },
 
     // Effects and Celebrations

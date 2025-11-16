@@ -29,34 +29,6 @@ interface GratitudeInputProps {
   router?: Router; // For automatic navigation to Home screen on debt
 }
 
-// Rotating placeholders for gratitude
-const GRATITUDE_PLACEHOLDERS = [
-  "What made you smile today?",
-  "Who are you thankful for right now?",
-  "What small thing brought you joy?",
-  "What beautiful thing did you see today?",
-  "What skill are you grateful to have?",
-  "What part of your day are you most thankful for?",
-  "What is something you're looking forward to?",
-  "What food are you grateful for today?",
-  "What song made your day better?",
-  "What simple pleasure did you enjoy?"
-];
-
-// Rotating placeholders for self-praise
-const SELF_PRAISE_PLACEHOLDERS = [
-  "What challenge did you overcome today?",
-  "What's one thing you did well today?",
-  "What did you do today that you're proud of?",
-  "How did you take a step towards your goals?",
-  "What good decision did you make?",
-  "When were you disciplined today?",
-  "How did you show kindness to yourself?",
-  "What did you learn today?",
-  "What effort are you proud of, regardless of the outcome?",
-  "What did you do today that was just for you?"
-];
-
 export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = false, inputType = 'gratitude', router }: GratitudeInputProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
@@ -67,21 +39,23 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentPlaceholder] = useState(() => {
-    const placeholders = inputType === 'gratitude' ? GRATITUDE_PLACEHOLDERS : SELF_PRAISE_PLACEHOLDERS;
+    const placeholders = inputType === 'gratitude'
+      ? t('journal.input.gratitudePlaceholders')
+      : t('journal.input.selfPraisePlaceholders');
     return placeholders[Math.floor(Math.random() * placeholders.length)];
   });
 
   const handleSubmit = async () => {
     const trimmedText = gratitudeText.trim();
-    
+
     if (!trimmedText) {
-      setErrorMessage('Please enter your gratitude');
+      setErrorMessage(t('journal.input.emptyError'));
       setShowError(true);
       return;
     }
 
     if (trimmedText.length < 3) {
-      setErrorMessage('Gratitude must be at least 3 characters long');
+      setErrorMessage(t('journal.input.minLengthError'));
       setShowError(true);
       return;
     }
@@ -113,7 +87,10 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
           return;
         } else {
           // Fallback: Show error message if router not available
-          setErrorMessage(`Your streak is frozen for ${authoritative_frozenDays} day${authoritative_frozenDays > 1 ? 's' : ''}. Warm it up on the Home screen first, then continue journaling! 🔥`);
+          const errorKey = authoritative_frozenDays === 1
+            ? 'journal.input.frozenStreakError_one'
+            : 'journal.input.frozenStreakError_other';
+          setErrorMessage(t(errorKey, { count: authoritative_frozenDays }));
           setShowError(true);
           return;
         }
@@ -219,7 +196,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       {/* Header s křížkem pro zavření */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {inputType === 'gratitude' ? 'Add Gratitude' : 'Add Self-Praise'}
+          {inputType === 'gratitude' ? t('journal.input.addGratitudeTitle') : t('journal.input.addSelfPraiseTitle')}
         </Text>
         {onCancel && (
           <TouchableOpacity 
