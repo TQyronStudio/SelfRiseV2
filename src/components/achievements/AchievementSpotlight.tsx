@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 interface AchievementSpotlightProps {
   userAchievements: UserAchievements;
@@ -25,33 +26,33 @@ const getRarityColor = (rarity: AchievementRarity): string => {
   }
 };
 
-const getAchievementStory = (achievement: Achievement): string => {
+const getAchievementStory = (achievement: Achievement, t: any): string => {
   // Generate inspiring stories based on achievement type
   const stories: Record<AchievementRarity, string[]> = {
     [AchievementRarity.COMMON]: [
-      "Every great journey begins with a single step. This achievement marks the start of your transformation.",
-      "Small victories lead to great triumphs. You've taken an important first step.",
-      "The foundation of success is built one achievement at a time. Well done!",
+      t('achievements.spotlight.stories.common1'),
+      t('achievements.spotlight.stories.common2'),
+      t('achievements.spotlight.stories.common3'),
     ],
     [AchievementRarity.RARE]: [
-      "Dedication and consistency have brought you here. This achievement reflects your growing commitment.",
-      "You're developing the habits of a champion. This rare achievement proves your determination.",
-      "Excellence is not an act, but a habit. This achievement shows you're building that habit.",
+      t('achievements.spotlight.stories.rare1'),
+      t('achievements.spotlight.stories.rare2'),
+      t('achievements.spotlight.stories.rare3'),
     ],
     [AchievementRarity.EPIC]: [
-      "Extraordinary achievements require extraordinary effort. You've proven you have what it takes.",
-      "This epic achievement places you among the dedicated few who push beyond their limits.",
-      "Greatness is not given, it's earned. This achievement is proof of your exceptional commitment.",
+      t('achievements.spotlight.stories.epic1'),
+      t('achievements.spotlight.stories.epic2'),
+      t('achievements.spotlight.stories.epic3'),
     ],
     [AchievementRarity.LEGENDARY]: [
-      "Legends are not born, they are forged through relentless pursuit of excellence. You are legendary.",
-      "This achievement represents the pinnacle of dedication. You've joined the ranks of the extraordinary.",
-      "History will remember those who dared to be great. This legendary achievement is your mark on eternity.",
+      t('achievements.spotlight.stories.legendary1'),
+      t('achievements.spotlight.stories.legendary2'),
+      t('achievements.spotlight.stories.legendary3'),
     ],
   };
 
   const rarityStories = stories[achievement.rarity] || stories[AchievementRarity.COMMON];
-  return rarityStories[Math.floor(Math.random() * rarityStories.length)] || "This achievement represents your dedication to growth and improvement.";
+  return rarityStories[Math.floor(Math.random() * rarityStories.length)] || t('achievements.spotlight.stories.common1');
 };
 
 export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
@@ -59,6 +60,7 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
   allAchievements,
   onAchievementPress,
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const [spotlightAchievement, setSpotlightAchievement] = useState<Achievement | null>(null);
   const [story, setStory] = useState<string>('');
@@ -97,7 +99,7 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
 
       if (randomAchievement) {
         setSpotlightAchievement(randomAchievement);
-        setStory(getAchievementStory(randomAchievement));
+        setStory(getAchievementStory(randomAchievement, t));
       }
 
       // Animate in
@@ -321,9 +323,9 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🌟</Text>
-        <Text style={styles.emptyTitle}>Achievement Spotlight</Text>
+        <Text style={styles.emptyTitle}>{t('achievements.spotlight.emptyTitle')}</Text>
         <Text style={styles.emptySubtitle}>
-          Unlock achievements to see them featured here with inspiring stories!
+          {t('achievements.spotlight.emptySubtitle')}
         </Text>
       </View>
     );
@@ -334,8 +336,8 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>🌟 Achievement Spotlight</Text>
-        <Text style={styles.headerSubtitle}>Celebrating Your Success</Text>
+        <Text style={styles.headerTitle}>{t('achievements.spotlight.titleWithEmoji')}</Text>
+        <Text style={styles.headerSubtitle}>{t('achievements.spotlight.subtitle')}</Text>
       </View>
 
       <Animated.View style={[styles.spotlightContainer, { opacity: fadeAnim }]}>
@@ -377,8 +379,8 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
 
           {/* Spotlight footer */}
           <View style={styles.spotlightFooter}>
-            <Text style={styles.spotlightText}>✨ Featured Achievement ✨</Text>
-            <Text style={styles.rotationText}>Rotates every 30 seconds</Text>
+            <Text style={styles.spotlightText}>{t('achievements.spotlight.featuredAchievement')}</Text>
+            <Text style={styles.rotationText}>{t('achievements.spotlight.rotationText')}</Text>
           </View>
         </TouchableOpacity>
 

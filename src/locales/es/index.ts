@@ -248,6 +248,9 @@ const es: Partial<TranslationKeys> = {
     deleteHabit: 'Eliminar Hábito',
     activeHabits: 'Hábitos Activos',
     inactiveHabits: 'Hábitos Inactivos',
+    addNewHabit: 'Añadir Nuevo Hábito',
+    done: 'Hecho',
+    reorder: 'Reordenar',
     habitName: 'Nombre del Hábito',
     habitNamePlaceholder: 'Introduce el nombre del hábito...',
     selectColor: 'Seleccionar Color',
@@ -291,6 +294,12 @@ const es: Partial<TranslationKeys> = {
     },
     stats: {
       activeHabits: 'Hábitos activos',
+    },
+    calendar: {
+      legendScheduled: 'Programado',
+      legendCompleted: 'Completado',
+      legendMissed: 'Perdido',
+      legendMakeup: 'Recuperado',
     },
   } as any,
 
@@ -830,6 +839,15 @@ const es: Partial<TranslationKeys> = {
     // Goal Completion Modal
     completion: {
       continue: 'Continuar',
+      title: '¡Meta Completada!',
+      bonus: 'Bonus de Meta Completada',
+      statusComplete: 'Completada',
+      statusCompleted: 'Completada',
+      message1: '¡Felicidades! ¡Has alcanzado tu meta!',
+      message2: '¡Trabajo increíble! ¡Meta completada con éxito!',
+      message3: '¡Fantástico! ¡Has llegado a tu objetivo!',
+      message4: '¡Bien hecho! ¡Tu dedicación dio frutos!',
+      message5: '¡Excelente! ¡Otra meta conquistada!',
     },
   } as any,
 
@@ -1145,6 +1163,36 @@ const es: Partial<TranslationKeys> = {
       nextToUnlock: 'Próximos',
       noAchievements: 'Aún no hay logros desbloqueados',
       getStarted: '¡Comienza a completar hábitos, escribe en tu diario y alcanza metas para desbloquear tu primer logro!',
+    },
+
+    // Achievement Spotlight
+    spotlight: {
+      title: 'Destacado de Logros',
+      titleWithEmoji: '🌟 Destacado de Logros',
+      subtitle: 'Celebrando Tu Éxito',
+      emptyTitle: 'Destacado de Logros',
+      emptySubtitle: '¡Desbloquea logros para verlos destacados aquí con historias inspiradoras!',
+      featuredAchievement: '✨ Logro Destacado ✨',
+      rotationText: 'Rota cada 30 segundos',
+
+      // Inspirational stories by rarity
+      stories: {
+        common1: 'Cada gran viaje comienza con un solo paso. Este logro marca el inicio de tu transformación.',
+        common2: 'Pequeñas victorias conducen a grandes triunfos. Has dado un primer paso importante.',
+        common3: 'La base del éxito se construye logro a logro. ¡Bien hecho!',
+
+        rare1: 'La dedicación y la constancia te han traído hasta aquí. Este logro refleja tu creciente compromiso.',
+        rare2: 'Estás desarrollando los hábitos de un campeón. Este logro raro prueba tu determinación.',
+        rare3: 'La excelencia no es un acto, sino un hábito. Este logro muestra que estás construyendo ese hábito.',
+
+        epic1: 'Los logros extraordinarios requieren esfuerzos extraordinarios. Has demostrado que tienes lo necesario.',
+        epic2: 'Este logro épico te coloca entre los pocos dedicados que superan sus límites.',
+        epic3: 'La grandeza no se da, se gana. Este logro es prueba de tu compromiso excepcional.',
+
+        legendary1: 'Las leyendas no nacen, se forjan a través de la búsqueda incansable de la excelencia. Eres legendario.',
+        legendary2: 'Este logro representa el pináculo de la dedicación. Te has unido a las filas de los extraordinarios.',
+        legendary3: 'La historia recordará a quienes se atrevieron a ser grandes. Este logro legendario es tu huella en la eternidad.',
+      },
     },
 
     // Categories

@@ -9,6 +9,7 @@ import { DayOfWeek } from '../../types/common';
 import { wasScheduledOnDate } from '../../utils/habitImmutability';
 import { HelpTooltip } from '../common/HelpTooltip';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface HabitCalendarViewProps {
   habit: Habit;
@@ -23,6 +24,7 @@ export function HabitCalendarView({
   onPrevMonth,
   onNextMonth
 }: HabitCalendarViewProps) {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const { getHabitCompletionsWithConversion } = useHabitsData();
 
@@ -348,15 +350,15 @@ export function HabitCalendarView({
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-            <Text style={styles.legendText}>Scheduled</Text>
+            <Text style={styles.legendText}>{t('habits.calendar.legendScheduled')}</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
-            <Text style={styles.legendText}>Completed</Text>
+            <Text style={styles.legendText}>{t('habits.calendar.legendCompleted')}</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.error }]} />
-            <Text style={styles.legendText}>Missed</Text>
+            <Text style={styles.legendText}>{t('habits.calendar.legendMissed')}</Text>
           </View>
         </View>
 
@@ -366,7 +368,7 @@ export function HabitCalendarView({
             <View style={styles.legendGoldCheck}>
               <Text style={styles.legendCheckmark}>✓</Text>
             </View>
-            <Text style={styles.legendText}>Makeup</Text>
+            <Text style={styles.legendText}>{t('habits.calendar.legendMakeup')}</Text>
             <HelpTooltip
               helpKey="habits.makeupFunction"
               iconSize={12}

@@ -248,6 +248,9 @@ const de: Partial<TranslationKeys> = {
     deleteHabit: 'Gewohnheit löschen',
     activeHabits: 'Aktive Gewohnheiten',
     inactiveHabits: 'Inaktive Gewohnheiten',
+    addNewHabit: 'Neue Gewohnheit hinzufügen',
+    done: 'Fertig',
+    reorder: 'Neu ordnen',
     habitName: 'Gewohnheitsname',
     habitNamePlaceholder: 'Gewohnheitsname eingeben...',
     selectColor: 'Farbe wählen',
@@ -291,6 +294,12 @@ const de: Partial<TranslationKeys> = {
     },
     stats: {
       activeHabits: 'Aktive Gewohnheiten',
+    },
+    calendar: {
+      legendScheduled: 'Geplant',
+      legendCompleted: 'Abgeschlossen',
+      legendMissed: 'Verpasst',
+      legendMakeup: 'Nachgeholt',
     },
   } as any,
 
@@ -830,6 +839,15 @@ const de: Partial<TranslationKeys> = {
     // Goal Completion Modal
     completion: {
       continue: 'Weiter',
+      title: 'Ziel Erreicht!',
+      bonus: 'Zielabschluss-Bonus',
+      statusComplete: 'Abgeschlossen',
+      statusCompleted: 'Abgeschlossen',
+      message1: 'Herzlichen Glückwunsch! Du hast dein Ziel erreicht!',
+      message2: 'Fantastische Arbeit! Ziel erfolgreich abgeschlossen!',
+      message3: 'Großartig! Du hast dein Ziel erreicht!',
+      message4: 'Gut gemacht! Deine Hingabe hat sich ausgezahlt!',
+      message5: 'Ausgezeichnet! Ein weiteres Ziel erobert!',
     },
   } as any,
 
@@ -1145,6 +1163,36 @@ const de: Partial<TranslationKeys> = {
       nextToUnlock: 'Als Nächstes',
       noAchievements: 'Noch keine Erfolge freigeschaltet',
       getStarted: 'Beginne Gewohnheiten zu erfüllen, schreibe in dein Tagebuch und erreiche Ziele, um deinen ersten Erfolg freizuschalten!',
+    },
+
+    // Achievement Spotlight
+    spotlight: {
+      title: 'Erfolgs-Spotlight',
+      titleWithEmoji: '🌟 Erfolgs-Spotlight',
+      subtitle: 'Feiere deinen Erfolg',
+      emptyTitle: 'Erfolgs-Spotlight',
+      emptySubtitle: 'Schalte Erfolge frei, um sie hier mit inspirierenden Geschichten zu sehen!',
+      featuredAchievement: '✨ Ausgewählter Erfolg ✨',
+      rotationText: 'Wechselt alle 30 Sekunden',
+
+      // Inspirational stories by rarity
+      stories: {
+        common1: 'Jede große Reise beginnt mit einem einzigen Schritt. Dieser Erfolg markiert den Beginn deiner Transformation.',
+        common2: 'Kleine Siege führen zu großen Triumphen. Du hast einen wichtigen ersten Schritt gemacht.',
+        common3: 'Das Fundament des Erfolgs wird Schritt für Schritt aufgebaut. Gut gemacht!',
+
+        rare1: 'Hingabe und Beständigkeit haben dich hierher gebracht. Dieser Erfolg zeigt dein wachsendes Engagement.',
+        rare2: 'Du entwickelst die Gewohnheiten eines Champions. Dieser seltene Erfolg beweist deine Entschlossenheit.',
+        rare3: 'Exzellenz ist keine Handlung, sondern eine Gewohnheit. Dieser Erfolg zeigt, dass du diese Gewohnheit aufbaust.',
+
+        epic1: 'Außergewöhnliche Erfolge erfordern außergewöhnliche Anstrengungen. Du hast bewiesen, dass du das Zeug dazu hast.',
+        epic2: 'Dieser epische Erfolg stellt dich unter die wenigen Engagierten, die über ihre Grenzen hinausgehen.',
+        epic3: 'Größe wird nicht gegeben, sie wird verdient. Dieser Erfolg ist der Beweis für dein außergewöhnliches Engagement.',
+
+        legendary1: 'Legenden werden nicht geboren, sie werden durch unerbittliches Streben nach Exzellenz geschmiedet. Du bist legendär.',
+        legendary2: 'Dieser Erfolg repräsentiert den Höhepunkt der Hingabe. Du hast die Reihen der Außergewöhnlichen erreicht.',
+        legendary3: 'Die Geschichte wird sich an diejenigen erinnern, die gewagt haben, großartig zu sein. Dieser legendäre Erfolg ist deine Spur in der Ewigkeit.',
+      },
     },
 
     // Categories

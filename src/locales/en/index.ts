@@ -237,6 +237,9 @@ const en: TranslationKeys = {
     deleteHabit: 'Delete Habit',
     activeHabits: 'Active Habits',
     inactiveHabits: 'Inactive Habits',
+    addNewHabit: 'Add New Habit',
+    done: 'Done',
+    reorder: 'Reorder',
     habitName: 'Habit Name',
     habitNamePlaceholder: 'Enter habit name...',
     selectColor: 'Select Color',
@@ -280,6 +283,12 @@ const en: TranslationKeys = {
     },
     stats: {
       activeHabits: 'Active Habits',
+    },
+    calendar: {
+      legendScheduled: 'Scheduled',
+      legendCompleted: 'Completed',
+      legendMissed: 'Missed',
+      legendMakeup: 'Makeup',
     },
   },
   
@@ -842,6 +851,15 @@ const en: TranslationKeys = {
     // Goal Completion Modal
     completion: {
       continue: 'Continue',
+      title: 'Goal Completed!',
+      bonus: 'Goal Completion Bonus',
+      statusComplete: 'Complete',
+      statusCompleted: 'Completed',
+      message1: 'Congratulations! You\'ve achieved your goal!',
+      message2: 'Amazing work! Goal completed successfully!',
+      message3: 'Fantastic! You\'ve reached your target!',
+      message4: 'Well done! Your dedication paid off!',
+      message5: 'Excellent! Another goal conquered!',
     },
   },
 
@@ -1138,7 +1156,37 @@ const en: TranslationKeys = {
       noCategory: 'No achievements in this category yet.',
       noCategorySubtitle: 'Keep using the app and achievements will appear here!',
     },
-    
+
+    // Achievement Spotlight
+    spotlight: {
+      title: 'Achievement Spotlight',
+      titleWithEmoji: '🌟 Achievement Spotlight',
+      subtitle: 'Celebrating Your Success',
+      emptyTitle: 'Achievement Spotlight',
+      emptySubtitle: 'Unlock achievements to see them featured here with inspiring stories!',
+      featuredAchievement: '✨ Featured Achievement ✨',
+      rotationText: 'Rotates every 30 seconds',
+
+      // Inspirational stories by rarity
+      stories: {
+        common1: 'Every great journey begins with a single step. This achievement marks the start of your transformation.',
+        common2: 'Small victories lead to great triumphs. You\'ve taken an important first step.',
+        common3: 'The foundation of success is built one achievement at a time. Well done!',
+
+        rare1: 'Dedication and consistency have brought you here. This achievement reflects your growing commitment.',
+        rare2: 'You\'re developing the habits of a champion. This rare achievement proves your determination.',
+        rare3: 'Excellence is not an act, but a habit. This achievement shows you\'re building that habit.',
+
+        epic1: 'Extraordinary achievements require extraordinary effort. You\'ve proven you have what it takes.',
+        epic2: 'This epic achievement places you among the dedicated few who push beyond their limits.',
+        epic3: 'Greatness is not given, it\'s earned. This achievement is proof of your exceptional commitment.',
+
+        legendary1: 'Legends are not born, they are forged through relentless pursuit of excellence. You are legendary.',
+        legendary2: 'This achievement represents the pinnacle of dedication. You\'ve joined the ranks of the extraordinary.',
+        legendary3: 'History will remember those who dared to be great. This legendary achievement is your mark on eternity.',
+      },
+    },
+
     // Achievement Names (will be used for individual achievements)
     names: {
       firstSteps: 'First Steps',

@@ -90,11 +90,11 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     : undefined;
 
   const completionInfo = showPreview && userStats && isUnlocked
-    ? generateCompletionInfo(achievement, userStats, t)
+    ? generateCompletionInfo(achievement, userStats)
     : undefined;
 
   const smartTooltip = showPreview && userStats
-    ? generateSmartTooltip(achievement, progress, t)
+    ? generateSmartTooltip(achievement, progress)
     : undefined;
   
   const handlePressIn = () => {

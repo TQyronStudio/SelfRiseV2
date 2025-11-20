@@ -236,6 +236,9 @@ export interface TranslationKeys {
     deleteHabit: string;
     activeHabits: string;
     inactiveHabits: string;
+    addNewHabit: string;
+    done: string;
+    reorder: string;
     habitName: string;
     habitNamePlaceholder: string;
     selectColor: string;
@@ -279,6 +282,12 @@ export interface TranslationKeys {
     };
     stats: {
       activeHabits: string;
+    };
+    calendar: {
+      legendScheduled: string;
+      legendCompleted: string;
+      legendMissed: string;
+      legendMakeup: string;
     };
   };
 
@@ -740,6 +749,15 @@ export interface TranslationKeys {
     };
     completion: {
       continue: string;
+      title: string;
+      bonus: string;
+      statusComplete: string;
+      statusCompleted: string;
+      message1: string;
+      message2: string;
+      message3: string;
+      message4: string;
+      message5: string;
     };
 
     // Step-by-step date selection
@@ -978,6 +996,29 @@ export interface TranslationKeys {
       noSearchResultsSubtitle: string;
       noCategory: string;
       noCategorySubtitle: string;
+    };
+    spotlight: {
+      title: string;
+      titleWithEmoji: string;
+      subtitle: string;
+      emptyTitle: string;
+      emptySubtitle: string;
+      featuredAchievement: string;
+      rotationText: string;
+      stories: {
+        common1: string;
+        common2: string;
+        common3: string;
+        rare1: string;
+        rare2: string;
+        rare3: string;
+        epic1: string;
+        epic2: string;
+        epic3: string;
+        legendary1: string;
+        legendary2: string;
+        legendary3: string;
+      };
     };
     names: {
       firstSteps: string;

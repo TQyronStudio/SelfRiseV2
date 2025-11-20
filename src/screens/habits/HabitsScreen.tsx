@@ -198,15 +198,15 @@ export function HabitsScreen() {
           {(Platform.OS === 'android' || !isEditMode) && (
             <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
               <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addButtonText}>Add New Habit</Text>
+              <Text style={styles.addButtonText}>{t('habits.addNewHabit')}</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity 
-            style={styles.editButton} 
+          <TouchableOpacity
+            style={styles.editButton}
             onPress={handleEditPress}
           >
             <Text style={styles.editButtonText}>
-              {isEditMode ? 'Done' : 'Reorder'}
+              {isEditMode ? t('habits.done') : t('habits.reorder')}
             </Text>
           </TouchableOpacity>
         </View>

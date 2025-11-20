@@ -53,13 +53,13 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
 
   const getCompletionMessage = () => {
     const messages = [
-      'Congratulations! You\'ve achieved your goal!',
-      'Amazing work! Goal completed successfully!',
-      'Fantastic! You\'ve reached your target!',
-      'Well done! Your dedication paid off!',
-      'Excellent! Another goal conquered!',
+      t('goals.completion.message1'),
+      t('goals.completion.message2'),
+      t('goals.completion.message3'),
+      t('goals.completion.message4'),
+      t('goals.completion.message5'),
     ];
-    
+
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
@@ -198,7 +198,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
             <Text style={styles.emoji}>{getCelebrationEmoji()}</Text>
           </View>
           
-          <Text style={styles.title}>Goal Completed!</Text>
+          <Text style={styles.title}>{t('goals.completion.title')}</Text>
           <Text style={styles.message}>{getCompletionMessage()}</Text>
           
           <View style={styles.goalInfo}>
@@ -211,17 +211,17 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
           {/* XP Reward Display */}
           <View style={styles.xpRewardContainer}>
             <Text style={styles.xpRewardText}>+{XP_REWARDS.GOALS.GOAL_COMPLETION} XP</Text>
-            <Text style={styles.xpRewardLabel}>Goal Completion Bonus</Text>
+            <Text style={styles.xpRewardLabel}>{t('goals.completion.bonus')}</Text>
           </View>
           
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>100%</Text>
-              <Text style={styles.statLabel}>Complete</Text>
+              <Text style={styles.statLabel}>{t('goals.completion.statusComplete')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{goal.completedDate}</Text>
-              <Text style={styles.statLabel}>Completed</Text>
+              <Text style={styles.statLabel}>{t('goals.completion.statusCompleted')}</Text>
             </View>
           </View>
           
