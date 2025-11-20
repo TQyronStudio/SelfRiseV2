@@ -64,14 +64,14 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   // Get help content from i18n
   const helpContent = t(`help.${helpKey}`, {
     defaultValue: {
-      title: 'Help',
-      content: 'Help information not available for this feature.'
+      title: t('common.help'),
+      content: t('common.helpNotAvailable')
     }
   }) as any;
 
   const title = typeof helpContent === 'object' && helpContent?.title
     ? helpContent.title
-    : 'Help';
+    : t('common.help');
 
   const content = typeof helpContent === 'object' && helpContent?.content
     ? helpContent.content

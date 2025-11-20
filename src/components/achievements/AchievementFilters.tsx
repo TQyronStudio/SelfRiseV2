@@ -27,21 +27,6 @@ interface AchievementFiltersProps {
   filteredCount: number;
 }
 
-const CATEGORIES = [
-  { key: 'all' as const, label: 'All Categories', icon: '🏆' },
-  { key: AchievementCategory.HABITS, label: 'Habits', icon: '🏃‍♂️' },
-  { key: AchievementCategory.JOURNAL, label: 'Journal', icon: '📝' },
-  { key: AchievementCategory.GOALS, label: 'Goals', icon: '🎯' },
-  { key: AchievementCategory.CONSISTENCY, label: 'Consistency', icon: '⚔️' },
-];
-
-const SORT_OPTIONS = [
-  { key: 'category' as const, label: 'Category', icon: '📂' },
-  { key: 'rarity' as const, label: 'Rarity', icon: '💎' },
-  { key: 'unlock_date' as const, label: 'Recent', icon: '📅' },
-  { key: 'alphabetical' as const, label: 'A-Z', icon: '🔤' },
-];
-
 export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   filters,
   onFiltersChange,
@@ -51,12 +36,27 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
 
+  const CATEGORIES = [
+    { key: 'all' as const, label: t('social.achievements_filters.allCategories'), icon: '🏆' },
+    { key: AchievementCategory.HABITS, label: t('social.achievements_filters.habitsCategory'), icon: '🏃‍♂️' },
+    { key: AchievementCategory.JOURNAL, label: t('social.achievements_filters.journalCategory'), icon: '📝' },
+    { key: AchievementCategory.GOALS, label: t('social.achievements_filters.goalsCategory'), icon: '🎯' },
+    { key: AchievementCategory.CONSISTENCY, label: t('social.achievements_filters.consistencyCategory'), icon: '⚔️' },
+  ];
+
+  const SORT_OPTIONS = [
+    { key: 'category' as const, label: t('social.achievements_filters.categoryLabel'), icon: '📂' },
+    { key: 'rarity' as const, label: t('social.achievements_filters.rarityLabel'), icon: '💎' },
+    { key: 'unlock_date' as const, label: t('social.achievements_filters.recentLabel'), icon: '📅' },
+    { key: 'alphabetical' as const, label: t('social.achievements_filters.alphabeticalLabel'), icon: '🔤' },
+  ];
+
   const RARITIES = [
-    { key: 'all' as const, label: 'All Rarities', color: colors.gray },
-    { key: AchievementRarity.COMMON, label: 'Common', color: '#9E9E9E' },
-    { key: AchievementRarity.RARE, label: 'Rare', color: '#2196F3' },
-    { key: AchievementRarity.EPIC, label: 'Epic', color: '#9C27B0' },
-    { key: AchievementRarity.LEGENDARY, label: 'Legendary', color: '#FFD700' },
+    { key: 'all' as const, label: t('social.achievements_filters.allRarities'), color: colors.gray },
+    { key: AchievementRarity.COMMON, label: t('social.achievements_filters.commonRarity'), color: '#9E9E9E' },
+    { key: AchievementRarity.RARE, label: t('social.achievements_filters.rareRarity'), color: '#2196F3' },
+    { key: AchievementRarity.EPIC, label: t('social.achievements_filters.epicRarity'), color: '#9C27B0' },
+    { key: AchievementRarity.LEGENDARY, label: t('social.achievements_filters.legendaryRarity'), color: '#FFD700' },
   ];
 
   const updateFilters = (update: Partial<FilterOptions>) => {

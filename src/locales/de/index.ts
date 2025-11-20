@@ -356,6 +356,13 @@ const de: Partial<TranslationKeys> = {
       epic_crown_modal: 'Epische königliche Kronenfeier für die Errungenschaft des 10. Bonus-Meilensteins',
       streak_badge_accessibility: 'Erfolgsabzeichen für {{days}} Tage Serie',
       bonus_badge_accessibility: 'Erfolgsabzeichen für {{count}} Bonus-{{#eq count 1}}Eintrag{{else}}Einträge{{/eq}}',
+      // Fallback strings for CelebrationModal (when i18n keys are missing)
+      daily_complete_title: 'Herzlichen Glückwunsch! 🎉',
+      daily_complete_message: 'Du hast deine tägliche Tagebuch-Praxis abgeschlossen!',
+      level_up_title: 'Level Erhöht! 🎉',
+      level_up_message: 'Herzlichen Glückwunsch zum Erreichen eines neuen Levels!',
+      default_title: 'Herzlichen Glückwunsch!',
+      default_message: 'Gut gemacht!',
     },
 
     export: {
@@ -1118,6 +1125,10 @@ const de: Partial<TranslationKeys> = {
       general_announcement: 'Glückwunsch zu deinem Erfolg!',
       modal: 'Erfolg-Feier',
     },
+
+    // Help tooltip fallback
+    help: 'Hilfe',
+    helpNotAvailable: 'Hilfeinformationen nicht verfügbar für diese Funktion.',
   } as any,
 
   // Days of week
@@ -2543,6 +2554,7 @@ const de: Partial<TranslationKeys> = {
       copiedTitle: '📋 Kopiert!',
       copiedMessage: 'Zitat in Zwischenablage kopiert.',
       copyError: 'Zitat konnte nicht kopiert werden. Bitte versuche es erneut.',
+      title: '✨ Motivierendes Zitat',
     },
     achievements: {
       shareSuccessTitle: '🎉 Erfolgreich geteilt!',
@@ -2550,6 +2562,45 @@ const de: Partial<TranslationKeys> = {
       shareError: 'Errungenschaft konnte nicht geteilt werden. Bitte versuche es erneut.',
       copiedTitle: '📋 Kopiert!',
       copiedMessage: 'Errungenschaften-Details in Zwischenablage kopiert. Du kannst sie jetzt überall einfügen!',
+      shareAchievementTitle: 'Errungenschaft teilen',
+      shareAchievementDescription: 'Mit den integrierten Freigabeoptionen deines Geräts teilen',
+      copyClipboardTitle: 'In Zwischenablage kopieren',
+      copyClipboardDescription: 'Errungenschaften-Details in deine Zwischenablage kopieren',
+    },
+    achievements_filters: {
+      allCategories: 'Alle Kategorien',
+      habitsCategory: 'Gewohnheiten',
+      journalCategory: 'Tagebuch',
+      goalsCategory: 'Ziele',
+      consistencyCategory: 'Beständigkeit',
+      categoryLabel: 'Kategorie',
+      rarityLabel: 'Seltenheit',
+      recentLabel: 'Kürzlich',
+      alphabeticalLabel: 'A-Z',
+      allRarities: 'Alle Seltenheiten',
+      commonRarity: 'Gewöhnlich',
+      rareRarity: 'Selten',
+      epicRarity: 'Episch',
+      legendaryRarity: 'Legendär',
+    },
+    achievements_trophies: {
+      habitMastery: 'Alle gewohnheitsbezogenen Erfolge freigeschaltet',
+      journalMastery: 'Meistern aller Aspekte der reflektierenden Journalführung',
+      goalMastery: 'Meisterschaft in Zielsetzung und -erreichung',
+      legendaryCollector: 'Alle legendären Errungenschaften sammeln',
+      epicCollector: 'Alle epischen Errungenschaften freigeschaltet',
+      universalBeginning: 'Erste Schritte in allen Bereichen',
+      consistencyMaster: 'Meistern der Kunst der Beständigkeit',
+      timeMaster: 'Exzellenz in zeitbasierten Errungenschaften',
+    },
+    days: {
+      monday: 'Mo',
+      tuesday: 'Di',
+      wednesday: 'Mi',
+      thursday: 'Do',
+      friday: 'Fr',
+      saturday: 'Sa',
+      sunday: 'So',
     },
   } as any,
 };

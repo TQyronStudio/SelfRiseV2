@@ -347,6 +347,13 @@ const en: TranslationKeys = {
       epic_crown_modal: 'Epic royal crown celebration for 10th bonus milestone achievement',
       streak_badge_accessibility: '{{days}} day streak achievement badge',
       bonus_badge_accessibility: '{{count}} bonus {{#eq count 1}}entry{{else}}entries{{/eq}} achievement badge',
+      // Fallback strings for CelebrationModal (when i18n keys are missing)
+      daily_complete_title: 'Congratulations! 🎉',
+      daily_complete_message: 'You\'ve completed your daily journal practice!',
+      level_up_title: 'Level Up! 🎉',
+      level_up_message: 'Congratulations on reaching a new level!',
+      default_title: 'Congratulations!',
+      default_message: 'Great job!',
     },
 
     // Export functionality
@@ -2342,6 +2349,10 @@ const en: TranslationKeys = {
       general_announcement: 'Congratulations on your achievement!',
       modal: 'Achievement celebration',
     },
+
+    // Help tooltip fallback
+    help: 'Help',
+    helpNotAvailable: 'Help information not available for this feature.',
   },
   
   // Days of week
@@ -2964,6 +2975,7 @@ const en: TranslationKeys = {
       copiedTitle: '📋 Copied!',
       copiedMessage: 'Quote copied to clipboard.',
       copyError: 'Failed to copy quote. Please try again.',
+      title: '✨ Motivational Quote',
     },
     achievements: {
       shareSuccessTitle: '🎉 Shared Successfully!',
@@ -2971,6 +2983,45 @@ const en: TranslationKeys = {
       shareError: 'Failed to share achievement. Please try again.',
       copiedTitle: '📋 Copied!',
       copiedMessage: 'Achievement details copied to clipboard. You can now paste it anywhere!',
+      shareAchievementTitle: 'Share Achievement',
+      shareAchievementDescription: 'Share using your device\'s built-in sharing options',
+      copyClipboardTitle: 'Copy to Clipboard',
+      copyClipboardDescription: 'Copy achievement details to your clipboard',
+    },
+    achievements_filters: {
+      allCategories: 'All Categories',
+      habitsCategory: 'Habits',
+      journalCategory: 'Journal',
+      goalsCategory: 'Goals',
+      consistencyCategory: 'Consistency',
+      categoryLabel: 'Category',
+      rarityLabel: 'Rarity',
+      recentLabel: 'Recent',
+      alphabeticalLabel: 'A-Z',
+      allRarities: 'All Rarities',
+      commonRarity: 'Common',
+      rareRarity: 'Rare',
+      epicRarity: 'Epic',
+      legendaryRarity: 'Legendary',
+    },
+    achievements_trophies: {
+      habitMastery: 'Complete all habit-related achievements',
+      journalMastery: 'Master all aspects of reflective journaling',
+      goalMastery: 'Achieve mastery in goal setting and completion',
+      legendaryCollector: 'Collect all legendary achievements',
+      epicCollector: 'Unlock all epic achievements',
+      universalBeginning: 'Take your first steps in all areas',
+      consistencyMaster: 'Master the art of consistency',
+      timeMaster: 'Excel in time-based achievements',
+    },
+    days: {
+      monday: 'Mo',
+      tuesday: 'Tu',
+      wednesday: 'We',
+      thursday: 'Th',
+      friday: 'Fr',
+      saturday: 'Sa',
+      sunday: 'Su',
     },
   },
 

@@ -344,6 +344,12 @@ export interface TranslationKeys {
       epic_crown_modal: string;
       streak_badge_accessibility: string;
       bonus_badge_accessibility: string;
+      daily_complete_title: string;
+      daily_complete_message: string;
+      level_up_title: string;
+      level_up_message: string;
+      default_title: string;
+      default_message: string;
     };
     export: {
       title: string;
@@ -1199,6 +1205,8 @@ export interface TranslationKeys {
     copy: string;
     share: string;
     startFresh: string;
+    help: string;
+    helpNotAvailable: string;
     celebration: {
       general_announcement: string;
       modal: string;
@@ -1730,6 +1738,7 @@ export interface TranslationKeys {
   // Social features
   social: {
     quote: {
+      title: string;
       copiedTitle: string;
       copiedMessage: string;
       copyError: string;
@@ -1742,6 +1751,45 @@ export interface TranslationKeys {
       shareError: string;
       copiedTitle: string;
       copiedMessage: string;
+      shareAchievementTitle: string;
+      shareAchievementDescription: string;
+      copyClipboardTitle: string;
+      copyClipboardDescription: string;
+    };
+    achievements_filters: {
+      allCategories: string;
+      habitsCategory: string;
+      journalCategory: string;
+      goalsCategory: string;
+      consistencyCategory: string;
+      categoryLabel: string;
+      rarityLabel: string;
+      recentLabel: string;
+      alphabeticalLabel: string;
+      allRarities: string;
+      commonRarity: string;
+      rareRarity: string;
+      epicRarity: string;
+      legendaryRarity: string;
+    };
+    achievements_trophies: {
+      habitMastery: string;
+      journalMastery: string;
+      goalMastery: string;
+      legendaryCollector: string;
+      epicCollector: string;
+      universalBeginning: string;
+      consistencyMaster: string;
+      timeMaster: string;
+    };
+    days: {
+      monday: string;
+      tuesday: string;
+      wednesday: string;
+      thursday: string;
+      friday: string;
+      saturday: string;
+      sunday: string;
     };
   };
 }

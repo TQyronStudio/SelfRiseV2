@@ -9,6 +9,7 @@ import {
 import { Achievement, AchievementCategory, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { TrophyCollectionCard3D } from './TrophyCollectionCard3D';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface TrophyCombinationsProps {
   userAchievements: UserAchievements;
@@ -30,12 +31,12 @@ interface TrophyCollection {
   totalCount: number;
 }
 
-const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount' | 'totalCount'>[] = [
+const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'completedCount' | 'totalCount'>[] => [
   // Category-based collections
   {
     id: 'habits-master',
     name: 'Habits Master',
-    description: 'Complete all habit-related achievements',
+    description: t('social.achievements_trophies.habitMastery'),
     icon: '🏃‍♂️',
     requiredAchievements: ['first-habit', 'weekly-warrior', 'habit-collector', 'completion-machine'],
     bonusXP: 200,
@@ -45,7 +46,7 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
   {
     id: 'journal-sage',
     name: 'Journal Sage',
-    description: 'Master all aspects of reflective journaling',
+    description: t('social.achievements_trophies.journalMastery'),
     icon: '📖',
     requiredAchievements: ['first-journal', 'journal-streaker', 'journal-master'],
     bonusXP: 150,
@@ -55,19 +56,19 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
   {
     id: 'goal-champion',
     name: 'Goal Champion',
-    description: 'Achieve mastery in goal setting and completion',
+    description: t('social.achievements_trophies.goalMastery'),
     icon: '🎯',
     requiredAchievements: ['first-goal', 'goal-achiever'],
     bonusXP: 100,
     rarity: AchievementRarity.RARE,
     category: AchievementCategory.GOALS,
   },
-  
+
   // Rarity-based collections
   {
     id: 'legendary-collector',
     name: 'Legendary Collector',
-    description: 'Collect all legendary achievements',
+    description: t('social.achievements_trophies.legendaryCollector'),
     icon: '👑',
     requiredAchievements: ['hundred-days', 'legendary-master'],
     bonusXP: 500,
@@ -76,18 +77,18 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
   {
     id: 'epic-hunter',
     name: 'Epic Hunter',
-    description: 'Unlock all epic achievements',
+    description: t('social.achievements_trophies.epicCollector'),
     icon: '⚔️',
     requiredAchievements: ['monthly-master', 'completion-machine', 'journal-master', 'goal-achiever', 'perfect-week', 'weekend-warrior'],
     bonusXP: 300,
     rarity: AchievementRarity.EPIC,
   },
-  
+
   // Special themed collections
   {
     id: 'first-steps',
     name: 'Foundation Builder',
-    description: 'Take your first steps in all areas',
+    description: t('social.achievements_trophies.universalBeginning'),
     icon: '🌱',
     requiredAchievements: ['first-habit', 'first-journal', 'first-goal'],
     bonusXP: 75,
@@ -96,7 +97,7 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
   {
     id: 'consistency-king',
     name: 'Consistency King',
-    description: 'Master the art of consistency',
+    description: t('social.achievements_trophies.consistencyMaster'),
     icon: '👑',
     requiredAchievements: ['weekly-warrior', 'monthly-master', 'journal-streaker'],
     bonusXP: 250,
@@ -106,7 +107,7 @@ const TROPHY_COLLECTIONS: Omit<TrophyCollection, 'isCompleted' | 'completedCount
   {
     id: 'time-master',
     name: 'Time Master',
-    description: 'Excel in time-based achievements',
+    description: t('social.achievements_trophies.timeMaster'),
     icon: '⏰',
     requiredAchievements: ['early-bird', 'perfect-week', 'weekend-warrior'],
     bonusXP: 200,
@@ -132,6 +133,9 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
   onCollectionPress,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
+
+  const TROPHY_COLLECTIONS = getTrophyCollections(t);
 
   // Calculate collection progress
   const collectionsWithProgress: TrophyCollection[] = TROPHY_COLLECTIONS.map(collection => {

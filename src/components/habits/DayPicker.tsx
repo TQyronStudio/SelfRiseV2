@@ -3,24 +3,26 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { DayOfWeek } from '../../types/common';
 import { Fonts } from '../../constants/fonts';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface DayPickerProps {
   selectedDays: DayOfWeek[];
   onDayToggle: (day: DayOfWeek) => void;
 }
 
-const DAYS = [
-  { key: DayOfWeek.MONDAY, label: 'Mo' },
-  { key: DayOfWeek.TUESDAY, label: 'Tu' },
-  { key: DayOfWeek.WEDNESDAY, label: 'We' },
-  { key: DayOfWeek.THURSDAY, label: 'Th' },
-  { key: DayOfWeek.FRIDAY, label: 'Fr' },
-  { key: DayOfWeek.SATURDAY, label: 'Sa' },
-  { key: DayOfWeek.SUNDAY, label: 'Su' },
-];
-
 export function DayPicker({ selectedDays, onDayToggle }: DayPickerProps) {
+  const { t } = useI18n();
   const { colors } = useTheme();
+
+  const DAYS = [
+    { key: DayOfWeek.MONDAY, label: t('social.days.monday') },
+    { key: DayOfWeek.TUESDAY, label: t('social.days.tuesday') },
+    { key: DayOfWeek.WEDNESDAY, label: t('social.days.wednesday') },
+    { key: DayOfWeek.THURSDAY, label: t('social.days.thursday') },
+    { key: DayOfWeek.FRIDAY, label: t('social.days.friday') },
+    { key: DayOfWeek.SATURDAY, label: t('social.days.saturday') },
+    { key: DayOfWeek.SUNDAY, label: t('social.days.sunday') },
+  ];
 
   const styles = StyleSheet.create({
     container: {

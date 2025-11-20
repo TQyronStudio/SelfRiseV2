@@ -356,6 +356,13 @@ const es: Partial<TranslationKeys> = {
       epic_crown_modal: 'Celebración épica de corona real por el logro del hito bonus número 10',
       streak_badge_accessibility: 'Insignia de logro de racha de {{days}} días',
       bonus_badge_accessibility: 'Insignia de logro de {{count}} entrada{{#eq count 1}}{{else}}s{{/eq}} bonus',
+      // Fallback strings for CelebrationModal (when i18n keys are missing)
+      daily_complete_title: '¡Felicidades! 🎉',
+      daily_complete_message: '¡Has completado tu práctica diaria de diario!',
+      level_up_title: '¡Subes de Nivel! 🎉',
+      level_up_message: '¡Felicidades por alcanzar un nuevo nivel!',
+      default_title: '¡Felicidades!',
+      default_message: '¡Bien hecho!',
     },
 
     export: {
@@ -1118,6 +1125,10 @@ const es: Partial<TranslationKeys> = {
       general_announcement: '¡Felicidades por tu logro!',
       modal: 'Celebración de logro',
     },
+
+    // Help tooltip fallback
+    help: 'Ayuda',
+    helpNotAvailable: 'Información de ayuda no disponible para esta función.',
   } as any,
 
   // Days of week
@@ -2543,6 +2554,7 @@ const es: Partial<TranslationKeys> = {
       copiedTitle: '📋 ¡Copiado!',
       copiedMessage: 'Cita copiada al portapapeles.',
       copyError: 'No se pudo copiar la cita. Por favor, inténtalo de nuevo.',
+      title: '✨ Cita Motivadora',
     },
     achievements: {
       shareSuccessTitle: '🎉 ¡Compartido Exitosamente!',
@@ -2550,6 +2562,45 @@ const es: Partial<TranslationKeys> = {
       shareError: 'No se pudo compartir el logro. Por favor, inténtalo de nuevo.',
       copiedTitle: '📋 ¡Copiado!',
       copiedMessage: 'Detalles del logro copiados al portapapeles. ¡Ahora puedes pegarlos en cualquier lugar!',
+      shareAchievementTitle: 'Compartir Logro',
+      shareAchievementDescription: 'Compartir usando las opciones integradas de tu dispositivo',
+      copyClipboardTitle: 'Copiar al Portapapeles',
+      copyClipboardDescription: 'Copiar detalles del logro a tu portapapeles',
+    },
+    achievements_filters: {
+      allCategories: 'Todas las Categorías',
+      habitsCategory: 'Hábitos',
+      journalCategory: 'Diario',
+      goalsCategory: 'Metas',
+      consistencyCategory: 'Consistencia',
+      categoryLabel: 'Categoría',
+      rarityLabel: 'Rareza',
+      recentLabel: 'Reciente',
+      alphabeticalLabel: 'A-Z',
+      allRarities: 'Todas las Rarezas',
+      commonRarity: 'Común',
+      rareRarity: 'Raro',
+      epicRarity: 'Épico',
+      legendaryRarity: 'Legendario',
+    },
+    achievements_trophies: {
+      habitMastery: 'Completar todos los logros relacionados con hábitos',
+      journalMastery: 'Dominar todos los aspectos de la reflexión en diario',
+      goalMastery: 'Lograr dominio en establecimiento y cumplimiento de metas',
+      legendaryCollector: 'Recopilar todos los logros legendarios',
+      epicCollector: 'Desbloquear todos los logros épicos',
+      universalBeginning: 'Dar tus primeros pasos en todas las áreas',
+      consistencyMaster: 'Dominar el arte de la consistencia',
+      timeMaster: 'Destacar en logros basados en el tiempo',
+    },
+    days: {
+      monday: 'Lu',
+      tuesday: 'Ma',
+      wednesday: 'Mi',
+      thursday: 'Ju',
+      friday: 'Vi',
+      saturday: 'Sá',
+      sunday: 'Do',
     },
   } as any,
 };

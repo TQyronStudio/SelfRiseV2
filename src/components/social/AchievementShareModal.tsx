@@ -123,16 +123,16 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
   const shareOptions: ShareOption[] = [
     {
       id: 'native_share',
-      title: 'Share Achievement',
-      description: 'Share using your device\'s built-in sharing options',
+      title: t('social.achievements.shareAchievementTitle'),
+      description: t('social.achievements.shareAchievementDescription'),
       icon: 'share-social',
       color: '#3B82F6',
       onPress: handleShare
     },
     {
       id: 'copy_clipboard',
-      title: 'Copy to Clipboard',
-      description: 'Copy achievement details to your clipboard',
+      title: t('social.achievements.copyClipboardTitle'),
+      description: t('social.achievements.copyClipboardDescription'),
       icon: 'copy',
       color: '#10B981',
       onPress: handleCopyToClipboard

@@ -183,7 +183,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
       const shareMessage = formatQuoteForSharing(currentQuote);
       const result = await Share.share({
         message: shareMessage,
-        title: '✨ Motivational Quote'
+        title: t('social.quote.title')
       });
 
       if (result.action === Share.sharedAction) {
