@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Fonts, Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -45,6 +46,7 @@ export function WarmUpSuccessModal({
   buttonText
 }: BaseModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     overlay: {
@@ -106,12 +108,12 @@ export function WarmUpSuccessModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>✅</Text>
-          <Text style={styles.title}>{title || 'Success!'}</Text>
+          <Text style={styles.title}>{title || t('journal.warmup.modals.success.title')}</Text>
           <Text style={styles.message}>
-            {message || 'Operation completed successfully.'}
+            {message || t('journal.warmup.modals.success.message')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText || 'OK'}</Text>
+            <Text style={styles.buttonText}>{buttonText || t('journal.warmup.modals.success.button')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -128,6 +130,7 @@ export function WarmUpErrorModal({
   buttonText
 }: BaseModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     overlay: {
@@ -189,12 +192,12 @@ export function WarmUpErrorModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>{title || 'Error'}</Text>
+          <Text style={styles.title}>{title || t('journal.warmup.modals.error.title')}</Text>
           <Text style={styles.message}>
-            {message || 'Something went wrong. Please try again.'}
+            {message || t('journal.warmup.modals.error.message')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText || 'OK'}</Text>
+            <Text style={styles.buttonText}>{buttonText || t('journal.warmup.modals.error.button')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -213,6 +216,7 @@ export function WarmUpConfirmationModal({
   cancelText
 }: ConfirmationModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     overlay: {
@@ -284,9 +288,9 @@ export function WarmUpConfirmationModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🔄</Text>
-          <Text style={styles.title}>{title || 'Confirmation'}</Text>
+          <Text style={styles.title}>{title || t('journal.warmup.modals.confirmation.title')}</Text>
           <Text style={styles.message}>
-            {message || 'Are you sure you want to continue?'}
+            {message || t('journal.warmup.modals.confirmation.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -294,11 +298,11 @@ export function WarmUpConfirmationModal({
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {cancelText || 'Cancel'}
+                {cancelText || t('journal.warmup.modals.confirmation.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onConfirm}>
-              <Text style={styles.buttonText}>{confirmText || 'Confirm'}</Text>
+              <Text style={styles.buttonText}>{confirmText || t('journal.warmup.modals.confirmation.confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -319,6 +323,7 @@ export function WarmUpIssueModal({
   secondaryActionText
 }: MultiActionModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     overlay: {
@@ -390,9 +395,9 @@ export function WarmUpIssueModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🛠️</Text>
-          <Text style={styles.title}>{title || 'Issue Detected'}</Text>
+          <Text style={styles.title}>{title || t('journal.warmup.modals.issue.title')}</Text>
           <Text style={styles.message}>
-            {message || 'There seems to be an issue. Choose how to proceed.'}
+            {message || t('journal.warmup.modals.issue.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -400,11 +405,11 @@ export function WarmUpIssueModal({
               onPress={onPrimaryAction}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {primaryActionText || 'Try Again'}
+                {primaryActionText || t('journal.warmup.modals.issue.primaryAction')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onSecondaryAction}>
-              <Text style={styles.buttonText}>{secondaryActionText || 'Quick Warm Up'}</Text>
+              <Text style={styles.buttonText}>{secondaryActionText || t('journal.warmup.modals.issue.secondaryAction')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -424,6 +429,7 @@ export function QuickWarmUpModal({
   cancelText
 }: ConfirmationModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     overlay: {
@@ -495,9 +501,9 @@ export function QuickWarmUpModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🔄</Text>
-          <Text style={styles.title}>{title || 'Quick Warm Up'}</Text>
+          <Text style={styles.title}>{title || t('journal.warmup.modals.quickWarmUp.title')}</Text>
           <Text style={styles.message}>
-            {message || 'This will warm up your frozen streak without watching ads. Your streak will continue normally. Continue?'}
+            {message || t('journal.warmup.modals.quickWarmUp.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -505,11 +511,11 @@ export function QuickWarmUpModal({
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {cancelText || 'Cancel'}
+                {cancelText || t('journal.warmup.modals.quickWarmUp.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onConfirm}>
-              <Text style={styles.buttonText}>{confirmText || 'Warm Up'}</Text>
+              <Text style={styles.buttonText}>{confirmText || t('journal.warmup.modals.quickWarmUp.confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>

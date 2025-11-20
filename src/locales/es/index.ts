@@ -363,6 +363,13 @@ const es: Partial<TranslationKeys> = {
       level_up_message: '¡Felicidades por alcanzar un nuevo nivel!',
       default_title: '¡Felicidades!',
       default_message: '¡Bien hecho!',
+      xp_earned: 'XP Ganado',
+      rewards_title: 'Nuevas Recompensas:',
+      milestone_suffix: ' ¡Hito!',
+      unlocked_prefix: 'Has desbloqueado',
+      milestone_first: 'Primero',
+      milestone_fifth: 'Quinto',
+      milestone_tenth: 'Décimo',
     },
 
     export: {
@@ -495,6 +502,37 @@ const es: Partial<TranslationKeys> = {
       startFresh: {
         title: '¿Empezar de nuevo?',
         message: '⚠️ Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer.',
+      },
+
+      modals: {
+        success: {
+          title: '¡Éxito!',
+          message: 'Operación completada exitosamente.',
+          button: 'OK',
+        },
+        error: {
+          title: 'Error',
+          message: 'Algo salió mal. Por favor, inténtalo de nuevo.',
+          button: 'OK',
+        },
+        confirmation: {
+          title: 'Confirmación',
+          message: '¿Estás seguro de que quieres continuar?',
+          confirm: 'Confirmar',
+          cancel: 'Cancelar',
+        },
+        issue: {
+          title: 'Problema detectado',
+          message: 'Hay un problema. Elige cómo quieres proceder.',
+          primaryAction: 'Intentar de nuevo',
+          secondaryAction: 'Calentamiento rápido',
+        },
+        quickWarmUp: {
+          title: 'Calentamiento rápido',
+          message: 'Esto calentará tu racha congelada sin ver anuncios. Tu racha continuará normalmente. ¿Continuar?',
+          confirm: 'Calentar',
+          cancel: 'Cancelar',
+        },
       },
     },
 
@@ -1120,6 +1158,43 @@ const es: Partial<TranslationKeys> = {
     share: 'Compartir',
     startFresh: 'Empezar de nuevo',
 
+    // Modal defaults
+    modals: {
+      errorTitle: 'Error',
+      confirmTitle: 'Confirmar Acción',
+      confirm: 'Confirmar',
+      closeButton: 'Cerrar',
+    },
+
+    // Error messages
+    errors: {
+      goals: {
+        failedToSave: 'No se pudo guardar el objetivo',
+        failedToDelete: 'No se pudo eliminar el objetivo',
+        failedToReorder: 'No se pudieron reordenar los objetivos',
+        failedToAddProgress: 'No se pudo agregar el progreso',
+        noProgressData: 'Sin datos de progreso aún. Agregue algo de progreso para ver estadísticas.',
+      },
+      habits: {
+        failedToSave: 'No se pudo guardar el hábito',
+        failedToDelete: 'No se pudo eliminar el hábito',
+        failedToUpdate: 'No se pudo actualizar el hábito',
+        failedToReorder: 'No se pudieron reordenar los hábitos',
+        failedToToggleCompletion: 'No se pudo cambiar la finalización',
+        loadingHabits: 'Cargando hábitos...',
+        activeHabits: 'Hábitos Activos',
+        inactiveHabits: 'Hábitos Inactivos',
+        noHabitsFound: 'No se encontraron hábitos',
+        createHabitsFirst: 'Cree algunos hábitos primero para ver sus estadísticas',
+      },
+      gratitude: {
+        failedToSave: 'No se pudo guardar la gratitud',
+      },
+      social: {
+        failedToLoadHeroes: 'No se pudieron cargar los héroes diarios',
+      },
+    },
+
     // Celebration support
     celebration: {
       general_announcement: '¡Felicidades por tu logro!',
@@ -1224,6 +1299,32 @@ const es: Partial<TranslationKeys> = {
       rare: 'Raro',
       epic: 'Épico',
       legendary: 'Legendario',
+    },
+
+    // Celebration Modal
+    celebration: {
+      announcement: '¡Logro {{rarity}} desbloqueado: {{name}}! Has ganado {{xp}} puntos de experiencia.',
+      continue_button: 'Continuar',
+      continue_hint: 'Cerrar celebración de logro y volver a la app',
+      rarity_common: '¡Logro Desbloqueado!',
+      rarity_rare: '¡Logro Raro!',
+      rarity_epic: '¡Logro Épico!',
+      rarity_legendary: '¡Logro Legendario!',
+      xp_earned: 'XP Ganado',
+    },
+
+    // Achievement Detail Modal
+    detail: {
+      unlockedYesterday: 'Desbloqueado ayer',
+      unlockedDaysAgo: 'Desbloqueado hace {{days}} días',
+      unlockedWeeksAgo: 'Desbloqueado hace {{weeks}} semanas',
+      unlockedRecently: 'Desbloqueado recientemente',
+      titleUnlocked: '¡Logro Desbloqueado!',
+      titleDetails: 'Detalles del Logro',
+      detailsSection: 'Detalles del Logro',
+      progressToUnlock: 'Progreso para Desbloquear',
+      howToUnlock: 'Cómo Desbloquear',
+      lockedMessage: 'Este logro está bloqueado. ¡Sigue usando la app para desbloquearlo!',
     },
 
     // Filtering and Search
@@ -2548,6 +2649,43 @@ const es: Partial<TranslationKeys> = {
   } as any,
 
   social: {
+    // Phase 7: DailyHeroesSection
+    dailyHeroes: {
+      title: 'Héroes Diarios 🦸‍♀️',
+      subtitle: 'Logros anónimos para inspirarte',
+      loading: 'Cargando logros inspiradores...',
+      tryAgain: 'Reintentar',
+      noHeroes: 'No hay héroes disponibles ahora',
+      noHeroesSubtitle: '¡Vuelve más tarde para nueva inspiración!',
+      footer: 'Cada logro compartido aquí es del viaje real de un usuario. ¡No estás solo! 💪',
+      inspiring: 'Inspirador',
+      daysActive: 'días activos',
+      today: '🟢 Hoy',
+      yesterday: '🟡 Ayer',
+      recent: '🔵 Reciente',
+    },
+    // Phase 8: NotificationSettings & LoyaltyCard
+    notifications: {
+      disabled: 'Notificaciones deshabilitadas',
+      enableTap: 'Toca para habilitar notificaciones',
+      settingsTap: 'Toca para abrir configuración del sistema',
+      afternoonReminder: 'Recordatorio Vespertino',
+      afternoonDescription: 'Chequeo motivacional',
+      eveningReminder: 'Recordatorio Nocturno',
+      eveningDescription: 'Recordatorio de tareas inteligente',
+    },
+    loyalty: {
+      loadingData: 'Cargando datos de lealtad...',
+      unavailableData: '⚠️ Datos de lealtad no disponibles',
+      journeyTitle: '🏆 Viaje de Lealtad',
+      activeDays: 'Días Activos',
+      daysRemaining: 'días restantes',
+      maxReached: '¡Has alcanzado la lealtad máxima!',
+      daysOfDedication: 'días de dedicación',
+      currentStreak: 'Racha Actual',
+      longestStreak: 'Racha Más Larga',
+      level: 'Nivel',
+    },
     quote: {
       copy: 'Copiar',
       share: 'Compartir',

@@ -179,9 +179,9 @@ export default function CelebrationModal({
         // Bonus count system: 1st⭐, 5th🔥, 10th👑
         const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
         const bonusCountSafe = bonusCount || 1; // Fallback to 1 if null
-        const milestoneNames = { 1: 'First', 5: 'Fifth', 10: 'Tenth' };
-        const milestoneName = milestoneNames[bonusCountSafe as keyof typeof milestoneNames] || 'Bonus';
-        
+        const milestoneNameMap = { 1: 'milestone_first', 5: 'milestone_fifth', 10: 'milestone_tenth' };
+        const milestoneName = t(`journal.celebration.${milestoneNameMap[bonusCountSafe as keyof typeof milestoneNameMap] || 'milestone_first'}`) || 'Bonus';
+
         return {
           title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `${milestoneName} Bonus Entry!`,
           message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `Amazing! You've written ${bonusCountSafe} bonus ${bonusCountSafe === 1 ? 'entry' : 'entries'} today!`,
@@ -190,18 +190,18 @@ export default function CelebrationModal({
       case 'level_up':
         if (!levelUpData) {
           return {
-            title: 'Level Up! 🎉',
-            message: 'Congratulations on reaching a new level!',
+            title: t('journal.celebration.level_up_title') || 'Level Up! 🎉',
+            message: t('journal.celebration.level_up_message') || 'Congratulations on reaching a new level!',
             emoji: '🎉',
           };
         }
-        
+
         const levelEmoji = levelUpData.isMilestone ? '🏆' : '⬆️';
-        const milestoneText = levelUpData.isMilestone ? ' Milestone!' : '';
-        
+        const milestoneText = levelUpData.isMilestone ? t('journal.celebration.milestone_suffix') : '';
+
         return {
           title: `Level ${levelUpData.newLevel}${milestoneText} ${levelEmoji}`,
-          message: levelUpData.levelDescription || `You've unlocked ${levelUpData.levelTitle}!`,
+          message: levelUpData.levelDescription || `${t('journal.celebration.unlocked_prefix')} ${levelUpData.levelTitle}!`,
           emoji: levelEmoji,
         };
       default:
@@ -599,7 +599,7 @@ export default function CelebrationModal({
               <Text style={[
                 styles.xpLabel,
                 bonusCount === 10 && styles.epicXpLabel, // Epic XP label styling
-              ]}>XP Earned</Text>
+              ]}>{t('journal.celebration.xp_earned')}</Text>
               <Text style={[
                 styles.xpAmount,
                 bonusCount === 10 && styles.epicXpAmount, // Epic XP amount styling
@@ -659,12 +659,12 @@ export default function CelebrationModal({
                     count: levelUpData.rewards.length
                   }) || `New rewards list with ${levelUpData.rewards.length} items`}
                 >
-                  <Text 
+                  <Text
                     style={styles.rewardsTitle}
                     accessible={true}
                     accessibilityRole="header"
                   >
-                    {t('gamification.celebration.rewards_title') || 'New Rewards:'}
+                    {t('gamification.celebration.rewards_title') || t('journal.celebration.rewards_title') || 'New Rewards:'}
                   </Text>
                   {levelUpData.rewards.map((reward, index) => (
                     <Text 

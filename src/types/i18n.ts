@@ -350,6 +350,13 @@ export interface TranslationKeys {
       level_up_message: string;
       default_title: string;
       default_message: string;
+      xp_earned: string;
+      rewards_title: string;
+      milestone_suffix: string;
+      unlocked_prefix: string;
+      milestone_first: string;
+      milestone_fifth: string;
+      milestone_tenth: string;
     };
     export: {
       title: string;
@@ -437,6 +444,36 @@ export interface TranslationKeys {
       startFresh: {
         title: string;
         message: string;
+      };
+      modals: {
+        success: {
+          title: string;
+          message: string;
+          button: string;
+        };
+        error: {
+          title: string;
+          message: string;
+          button: string;
+        };
+        confirmation: {
+          title: string;
+          message: string;
+          cancel: string;
+          confirm: string;
+        };
+        issue: {
+          title: string;
+          message: string;
+          primaryAction: string;
+          secondaryAction: string;
+        };
+        quickWarmUp: {
+          title: string;
+          message: string;
+          cancel: string;
+          confirm: string;
+        };
       };
     };
     rescue: {
@@ -926,6 +963,28 @@ export interface TranslationKeys {
       epic: string;
       legendary: string;
     };
+    celebration: {
+      announcement: string;
+      continue_button: string;
+      continue_hint: string;
+      rarity_common: string;
+      rarity_rare: string;
+      rarity_epic: string;
+      rarity_legendary: string;
+      xp_earned: string;
+    };
+    detail: {
+      unlockedYesterday: string;
+      unlockedDaysAgo: string;
+      unlockedWeeksAgo: string;
+      unlockedRecently: string;
+      titleUnlocked: string;
+      titleDetails: string;
+      detailsSection: string;
+      progressToUnlock: string;
+      howToUnlock: string;
+      lockedMessage: string;
+    };
     filter: {
       showAll: string;
       unlockedOnly: string;
@@ -1066,13 +1125,6 @@ export interface TranslationKeys {
       viewDetails: string;
     };
 
-    // Celebration Modal
-    celebration: {
-      announcement: string;
-      continue_button: string;
-      continue_hint: string;
-    };
-
     trophyRoom: {
       totalTrophies: string;
       collected: string;
@@ -1207,6 +1259,39 @@ export interface TranslationKeys {
     startFresh: string;
     help: string;
     helpNotAvailable: string;
+    modals: {
+      errorTitle: string;
+      confirmTitle: string;
+      confirm: string;
+      closeButton: string;
+    };
+    errors: {
+      goals: {
+        failedToSave: string;
+        failedToDelete: string;
+        failedToReorder: string;
+        failedToAddProgress: string;
+        noProgressData: string;
+      };
+      habits: {
+        failedToSave: string;
+        failedToDelete: string;
+        failedToUpdate: string;
+        failedToReorder: string;
+        failedToToggleCompletion: string;
+        loadingHabits: string;
+        activeHabits: string;
+        inactiveHabits: string;
+        noHabitsFound: string;
+        createHabitsFirst: string;
+      };
+      gratitude: {
+        failedToSave: string;
+      };
+      social: {
+        failedToLoadHeroes: string;
+      };
+    };
     celebration: {
       general_announcement: string;
       modal: string;
@@ -1737,6 +1822,43 @@ export interface TranslationKeys {
 
   // Social features
   social: {
+    // Phase 7: DailyHeroesSection
+    dailyHeroes: {
+      title: string;
+      subtitle: string;
+      loading: string;
+      tryAgain: string;
+      noHeroes: string;
+      noHeroesSubtitle: string;
+      footer: string;
+      inspiring: string;
+      daysActive: string;
+      today: string;
+      yesterday: string;
+      recent: string;
+    };
+    // Phase 8: NotificationSettings & LoyaltyCard
+    notifications: {
+      disabled: string;
+      enableTap: string;
+      settingsTap: string;
+      afternoonReminder: string;
+      afternoonDescription: string;
+      eveningReminder: string;
+      eveningDescription: string;
+    };
+    loyalty: {
+      loadingData: string;
+      unavailableData: string;
+      journeyTitle: string;
+      activeDays: string;
+      daysRemaining: string;
+      maxReached: string;
+      daysOfDedication: string;
+      currentStreak: string;
+      longestStreak: string;
+      level: string;
+    };
     quote: {
       title: string;
       copiedTitle: string;

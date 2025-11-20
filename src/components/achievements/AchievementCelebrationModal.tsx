@@ -185,11 +185,11 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
 
   const getRarityTitle = (rarity: AchievementRarity): string => {
     switch (rarity) {
-      case AchievementRarity.COMMON: return 'Achievement Unlocked!';
-      case AchievementRarity.RARE: return 'Rare Achievement!';
-      case AchievementRarity.EPIC: return 'Epic Achievement!';
-      case AchievementRarity.LEGENDARY: return 'Legendary Achievement!';
-      default: return 'Achievement Unlocked!';
+      case AchievementRarity.COMMON: return t('achievements.celebration.rarity_common') || 'Achievement Unlocked!';
+      case AchievementRarity.RARE: return t('achievements.celebration.rarity_rare') || 'Rare Achievement!';
+      case AchievementRarity.EPIC: return t('achievements.celebration.rarity_epic') || 'Epic Achievement!';
+      case AchievementRarity.LEGENDARY: return t('achievements.celebration.rarity_legendary') || 'Legendary Achievement!';
+      default: return t('achievements.celebration.rarity_common') || 'Achievement Unlocked!';
     }
   };
 
@@ -337,7 +337,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
             styles.xpBadge,
             { borderColor: rarityColor }
           ]}>
-            <Text style={styles.xpLabel}>XP Earned</Text>
+            <Text style={styles.xpLabel}>{t('achievements.celebration.xp_earned')}</Text>
             <Text style={[
               styles.xpAmount,
               { color: rarityColor }

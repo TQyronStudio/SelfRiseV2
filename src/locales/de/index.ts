@@ -363,6 +363,13 @@ const de: Partial<TranslationKeys> = {
       level_up_message: 'Herzlichen Glückwunsch zum Erreichen eines neuen Levels!',
       default_title: 'Herzlichen Glückwunsch!',
       default_message: 'Gut gemacht!',
+      xp_earned: 'XP Verdient',
+      rewards_title: 'Neue Belohnungen:',
+      milestone_suffix: ' Meilenstein!',
+      unlocked_prefix: 'Du hast freigeschaltet',
+      milestone_first: 'Erste',
+      milestone_fifth: 'Fünfte',
+      milestone_tenth: 'Zehnte',
     },
 
     export: {
@@ -495,6 +502,37 @@ const de: Partial<TranslationKeys> = {
       startFresh: {
         title: 'Neu beginnen?',
         message: '⚠️ Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden.',
+      },
+
+      modals: {
+        success: {
+          title: 'Erfolg!',
+          message: 'Vorgang erfolgreich abgeschlossen.',
+          button: 'OK',
+        },
+        error: {
+          title: 'Fehler',
+          message: 'Etwas ist schief gelaufen. Bitte versuche es erneut.',
+          button: 'OK',
+        },
+        confirmation: {
+          title: 'Bestätigung',
+          message: 'Möchtest du wirklich fortfahren?',
+          confirm: 'Bestätigen',
+          cancel: 'Abbrechen',
+        },
+        issue: {
+          title: 'Problem erkannt',
+          message: 'Es gibt ein Problem. Wähle, wie du fortfahren möchtest.',
+          primaryAction: 'Erneut versuchen',
+          secondaryAction: 'Schnelle Aufwärmung',
+        },
+        quickWarmUp: {
+          title: 'Schnelle Aufwärmung',
+          message: 'Dies wärmt deine eingefrorene Serie auf, ohne dass du Werbungen ansehen musst. Deine Serie wird normal fortgesetzt. Fortfahren?',
+          confirm: 'Aufwärmen',
+          cancel: 'Abbrechen',
+        },
       },
     },
 
@@ -1120,6 +1158,43 @@ const de: Partial<TranslationKeys> = {
     share: 'Teilen',
     startFresh: 'Neu beginnen',
 
+    // Modal defaults
+    modals: {
+      errorTitle: 'Fehler',
+      confirmTitle: 'Aktion bestätigen',
+      confirm: 'Bestätigen',
+      closeButton: 'Schließen',
+    },
+
+    // Error messages
+    errors: {
+      goals: {
+        failedToSave: 'Ziel konnte nicht gespeichert werden',
+        failedToDelete: 'Ziel konnte nicht gelöscht werden',
+        failedToReorder: 'Ziele konnten nicht neu geordnet werden',
+        failedToAddProgress: 'Fortschritt konnte nicht hinzugefügt werden',
+        noProgressData: 'Noch keine Fortschrittsdaten. Fügen Sie einige Fortschritte hinzu, um Statistiken zu sehen.',
+      },
+      habits: {
+        failedToSave: 'Gewohnheit konnte nicht gespeichert werden',
+        failedToDelete: 'Gewohnheit konnte nicht gelöscht werden',
+        failedToUpdate: 'Gewohnheit konnte nicht aktualisiert werden',
+        failedToReorder: 'Gewohnheiten konnten nicht neu geordnet werden',
+        failedToToggleCompletion: 'Abschluss konnte nicht umgeschaltet werden',
+        loadingHabits: 'Gewohnheiten werden geladen...',
+        activeHabits: 'Aktive Gewohnheiten',
+        inactiveHabits: 'Inaktive Gewohnheiten',
+        noHabitsFound: 'Keine Gewohnheiten gefunden',
+        createHabitsFirst: 'Erstellen Sie zunächst einige Gewohnheiten, um ihre Statistiken anzuzeigen',
+      },
+      gratitude: {
+        failedToSave: 'Dankbarkeit konnte nicht gespeichert werden',
+      },
+      social: {
+        failedToLoadHeroes: 'Tägliche Helden konnten nicht geladen werden',
+      },
+    },
+
     // Celebration support
     celebration: {
       general_announcement: 'Glückwunsch zu deinem Erfolg!',
@@ -1224,6 +1299,32 @@ const de: Partial<TranslationKeys> = {
       rare: 'Selten',
       epic: 'Episch',
       legendary: 'Legendär',
+    },
+
+    // Celebration Modal
+    celebration: {
+      announcement: '{{rarity}} Erfolg freigeschaltet: {{name}}! Du hast {{xp}} Erfahrungspunkte verdient.',
+      continue_button: 'Fortfahren',
+      continue_hint: 'Erfolgsfeier schließen und zur App zurückkehren',
+      rarity_common: 'Erfolg Freigeschaltet!',
+      rarity_rare: 'Seltener Erfolg!',
+      rarity_epic: 'Epischer Erfolg!',
+      rarity_legendary: 'Legendärer Erfolg!',
+      xp_earned: 'XP Verdient',
+    },
+
+    // Achievement Detail Modal
+    detail: {
+      unlockedYesterday: 'Gestern freigeschaltet',
+      unlockedDaysAgo: 'Vor {{days}} Tagen freigeschaltet',
+      unlockedWeeksAgo: 'Vor {{weeks}} Wochen freigeschaltet',
+      unlockedRecently: 'Kürzlich freigeschaltet',
+      titleUnlocked: 'Erfolg Freigeschaltet',
+      titleDetails: 'Erfolg-Details',
+      detailsSection: 'Erfolg-Details',
+      progressToUnlock: 'Fortschritt zum Freischalten',
+      howToUnlock: 'Wie man freischaltet',
+      lockedMessage: 'Dieser Erfolg ist gesperrt. Verwende die App weiter, um ihn freizuschalten!',
     },
 
     // Filtering and Search
@@ -2548,6 +2649,43 @@ const de: Partial<TranslationKeys> = {
   } as any,
 
   social: {
+    // Phase 7: DailyHeroesSection
+    dailyHeroes: {
+      title: 'Tägliche Helden 🦸‍♀️',
+      subtitle: 'Anonyme Erfolge zum Inspirieren',
+      loading: 'Inspirierende Erfolge werden geladen...',
+      tryAgain: 'Erneut versuchen',
+      noHeroes: 'Keine Helden verfügbar',
+      noHeroesSubtitle: 'Schau später vorbei für neue Inspiration!',
+      footer: 'Jede Errungenschaft hier ist aus einer echten Benutzerreise. Du bist nicht allein! 💪',
+      inspiring: 'Inspirierend',
+      daysActive: 'Tage aktiv',
+      today: '🟢 Heute',
+      yesterday: '🟡 Gestern',
+      recent: '🔵 Kürzlich',
+    },
+    // Phase 8: NotificationSettings & LoyaltyCard
+    notifications: {
+      disabled: 'Benachrichtigungen deaktiviert',
+      enableTap: 'Tippe zum Aktivieren von Benachrichtigungen',
+      settingsTap: 'Tippe zum Öffnen der Systemeinstellungen',
+      afternoonReminder: 'Nachmittagserinnerung',
+      afternoonDescription: 'Motivierender Check-in',
+      eveningReminder: 'Abenderinnerung',
+      eveningDescription: 'Intelligente Aufgabenerinnerung',
+    },
+    loyalty: {
+      loadingData: 'Treuedaten werden geladen...',
+      unavailableData: '⚠️ Treuedaten nicht verfügbar',
+      journeyTitle: '🏆 Treue-Reise',
+      activeDays: 'Aktive Tage',
+      daysRemaining: 'Verbleibende Tage',
+      maxReached: 'Du hast maximale Treue erreicht!',
+      daysOfDedication: 'Tage Hingabe',
+      currentStreak: 'Aktuelle Serie',
+      longestStreak: 'Längste Serie',
+      level: 'Level',
+    },
     quote: {
       copy: 'Kopieren',
       share: 'Teilen',

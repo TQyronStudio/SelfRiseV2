@@ -354,6 +354,13 @@ const en: TranslationKeys = {
       level_up_message: 'Congratulations on reaching a new level!',
       default_title: 'Congratulations!',
       default_message: 'Great job!',
+      xp_earned: 'XP Earned',
+      rewards_title: 'New Rewards:',
+      milestone_suffix: ' Milestone!',
+      unlocked_prefix: 'You\'ve unlocked',
+      milestone_first: 'First',
+      milestone_fifth: 'Fifth',
+      milestone_tenth: 'Tenth',
     },
 
     // Export functionality
@@ -488,6 +495,37 @@ const en: TranslationKeys = {
       startFresh: {
         title: 'Start Fresh?',
         message: '⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone.',
+      },
+
+      modals: {
+        success: {
+          title: 'Success!',
+          message: 'Operation completed successfully.',
+          button: 'OK',
+        },
+        error: {
+          title: 'Error',
+          message: 'Something went wrong. Please try again.',
+          button: 'OK',
+        },
+        confirmation: {
+          title: 'Confirmation',
+          message: 'Are you sure you want to continue?',
+          confirm: 'Confirm',
+          cancel: 'Cancel',
+        },
+        issue: {
+          title: 'Issue Detected',
+          message: 'There seems to be an issue. Choose how to proceed.',
+          primaryAction: 'Try Again',
+          secondaryAction: 'Quick Warm Up',
+        },
+        quickWarmUp: {
+          title: 'Quick Warm Up',
+          message: 'This will warm up your frozen streak without watching ads. Your streak will continue normally. Continue?',
+          confirm: 'Warm Up',
+          cancel: 'Cancel',
+        },
       },
     },
 
@@ -1064,7 +1102,7 @@ const en: TranslationKeys = {
       epic: 'Epic',
       legendary: 'Legendary',
     },
-    
+
     // Filtering and Search
     filter: {
       showAll: 'Show All',
@@ -1232,6 +1270,25 @@ const en: TranslationKeys = {
       announcement: '{{rarity}} achievement unlocked: {{name}}! You earned {{xp}} experience points.',
       continue_button: 'Continue',
       continue_hint: 'Close achievement celebration and return to app',
+      rarity_common: 'Achievement Unlocked!',
+      rarity_rare: 'Rare Achievement!',
+      rarity_epic: 'Epic Achievement!',
+      rarity_legendary: 'Legendary Achievement!',
+      xp_earned: 'XP Earned',
+    },
+
+    // Achievement Detail Modal
+    detail: {
+      unlockedYesterday: 'Unlocked yesterday',
+      unlockedDaysAgo: 'Unlocked {{days}} days ago',
+      unlockedWeeksAgo: 'Unlocked {{weeks}} weeks ago',
+      unlockedRecently: 'Unlocked recently',
+      titleUnlocked: 'Achievement Unlocked',
+      titleDetails: 'Achievement Details',
+      detailsSection: 'Achievement Details',
+      progressToUnlock: 'Progress to Unlock',
+      howToUnlock: 'How to Unlock',
+      lockedMessage: 'This achievement is locked. Keep using the app to unlock it!',
     },
 
     // Accessibility
@@ -2344,6 +2401,43 @@ const en: TranslationKeys = {
     share: 'Share',
     startFresh: 'Start Fresh',
 
+    // Modal defaults
+    modals: {
+      errorTitle: 'Error',
+      confirmTitle: 'Confirm Action',
+      confirm: 'Confirm',
+      closeButton: 'Close',
+    },
+
+    // Error messages
+    errors: {
+      goals: {
+        failedToSave: 'Failed to save goal',
+        failedToDelete: 'Failed to delete goal',
+        failedToReorder: 'Failed to reorder goals',
+        failedToAddProgress: 'Failed to add progress',
+        noProgressData: 'No progress data yet. Add some progress to see statistics.',
+      },
+      habits: {
+        failedToSave: 'Failed to save habit',
+        failedToDelete: 'Failed to delete habit',
+        failedToUpdate: 'Failed to update habit',
+        failedToReorder: 'Failed to reorder habits',
+        failedToToggleCompletion: 'Failed to toggle completion',
+        loadingHabits: 'Loading habits...',
+        activeHabits: 'Active Habits',
+        inactiveHabits: 'Inactive Habits',
+        noHabitsFound: 'No habits found',
+        createHabitsFirst: 'Create some habits first to view their statistics',
+      },
+      gratitude: {
+        failedToSave: 'Failed to save gratitude',
+      },
+      social: {
+        failedToLoadHeroes: 'Failed to load daily heroes',
+      },
+    },
+
     // Celebration support
     celebration: {
       general_announcement: 'Congratulations on your achievement!',
@@ -2969,6 +3063,43 @@ const en: TranslationKeys = {
 
   // Social features
   social: {
+    // Phase 7: DailyHeroesSection
+    dailyHeroes: {
+      title: 'Daily Heroes 🦸‍♀️',
+      subtitle: 'Anonymous achievements to inspire you',
+      loading: 'Loading inspiring achievements...',
+      tryAgain: 'Try Again',
+      noHeroes: 'No heroes available right now',
+      noHeroesSubtitle: 'Check back later for new inspiration!',
+      footer: 'Every achievement shared here is from a real user journey. You\'re not alone! 💪',
+      inspiring: 'Inspiring',
+      daysActive: 'days active',
+      today: '🟢 Today',
+      yesterday: '🟡 Yesterday',
+      recent: '🔵 Recent',
+    },
+    // Phase 8: NotificationSettings & LoyaltyCard
+    notifications: {
+      disabled: 'Notifications Disabled',
+      enableTap: 'Tap to enable notifications',
+      settingsTap: 'Tap to open system settings',
+      afternoonReminder: 'Afternoon Reminder',
+      afternoonDescription: 'Motivational check-in',
+      eveningReminder: 'Evening Reminder',
+      eveningDescription: 'Smart task reminder',
+    },
+    loyalty: {
+      loadingData: 'Loading loyalty data...',
+      unavailableData: '⚠️ Loyalty data unavailable',
+      journeyTitle: '🏆 Loyalty Journey',
+      activeDays: 'Active Days',
+      daysRemaining: 'days remaining',
+      maxReached: 'You\'ve reached maximum loyalty!',
+      daysOfDedication: 'days of dedication',
+      currentStreak: 'Current Streak',
+      longestStreak: 'Longest Streak',
+      level: 'Level',
+    },
     quote: {
       copy: 'Copy',
       share: 'Share',
