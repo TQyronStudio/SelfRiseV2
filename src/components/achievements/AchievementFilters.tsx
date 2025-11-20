@@ -52,11 +52,11 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   ];
 
   const RARITIES = [
-    { key: 'all' as const, label: t('social.achievements_filters.allRarities'), color: colors.gray },
-    { key: AchievementRarity.COMMON, label: t('social.achievements_filters.commonRarity'), color: '#9E9E9E' },
-    { key: AchievementRarity.RARE, label: t('social.achievements_filters.rareRarity'), color: '#2196F3' },
-    { key: AchievementRarity.EPIC, label: t('social.achievements_filters.epicRarity'), color: '#9C27B0' },
-    { key: AchievementRarity.LEGENDARY, label: t('social.achievements_filters.legendaryRarity'), color: '#FFD700' },
+    { key: 'all' as const, label: 'All Rarities', color: colors.gray },
+    { key: AchievementRarity.COMMON, label: 'Common', color: '#9E9E9E' },
+    { key: AchievementRarity.RARE, label: 'Rare', color: '#2196F3' },
+    { key: AchievementRarity.EPIC, label: 'Epic', color: '#9C27B0' },
+    { key: AchievementRarity.LEGENDARY, label: 'Legendary', color: '#FFD700' },
   ];
 
   const updateFilters = (update: Partial<FilterOptions>) => {

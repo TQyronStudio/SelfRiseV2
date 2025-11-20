@@ -260,15 +260,22 @@ export default function AchievementsScreen() {
   
   const rarityStats = useMemo(() => {
     if (!achievementStats) return [];
-    
+
+    const rarityNames: Record<string, string> = {
+      [AchievementRarity.COMMON]: 'Common',
+      [AchievementRarity.RARE]: 'Rare',
+      [AchievementRarity.EPIC]: 'Epic',
+      [AchievementRarity.LEGENDARY]: 'Legendary',
+    };
+
     return Object.entries(achievementStats.rarityBreakdown).map(([rarity, data]) => ({
       rarity: rarity as AchievementRarity,
-      name: t(`achievements.rarity.${rarity}`),
+      name: rarityNames[rarity] || rarity,
       unlocked: data.unlocked,
       total: data.total,
       completionRate: data.completionRate,
     }));
-  }, [achievementStats, t]);
+  }, [achievementStats]);
   
   // ========================================
   // FILTERING AND SORTING LOGIC

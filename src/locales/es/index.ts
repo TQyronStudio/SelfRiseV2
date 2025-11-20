@@ -238,7 +238,23 @@ const es: Partial<TranslationKeys> = {
     premiumTrophy: {
       label: 'Trofeos',
     },
+    // Screen labels
+    streakHistoryLoading: 'Cargando...',
   } as any,
+
+  // Levels & Navigation screens
+  screens: {
+    levelOverview: 'Descripción General de Niveles',
+    levelsLoading: 'Cargando niveles...',
+    goBack: 'Atrás',
+  },
+
+  // UI Labels
+  ui: {
+    progressStep: 'Paso {current} de {total}',
+    skipTutorial: 'Omitir tutorial',
+    nextStep: 'Siguiente paso',
+  },
 
   // Habits screen
   habits: {

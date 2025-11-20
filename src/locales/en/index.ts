@@ -227,8 +227,24 @@ const en: TranslationKeys = {
     },
     // Today's Habits
     todayHabits: "Today's Habits",
+    // Screen labels
+    streakHistoryLoading: 'Loading...',
   },
-  
+
+  // Levels & Navigation screens
+  screens: {
+    levelOverview: 'Level Overview',
+    levelsLoading: 'Loading levels...',
+    goBack: 'Go back',
+  },
+
+  // UI Labels
+  ui: {
+    progressStep: 'Step {current} of {total}',
+    skipTutorial: 'Skip tutorial',
+    nextStep: 'Next step',
+  },
+
   // Habits screen
   habits: {
     title: 'My Habits',

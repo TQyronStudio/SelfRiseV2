@@ -185,11 +185,11 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
 
   const getRarityTitle = (rarity: AchievementRarity): string => {
     switch (rarity) {
-      case AchievementRarity.COMMON: return t('achievements.celebration.rarity_common') || 'Achievement Unlocked!';
-      case AchievementRarity.RARE: return t('achievements.celebration.rarity_rare') || 'Rare Achievement!';
-      case AchievementRarity.EPIC: return t('achievements.celebration.rarity_epic') || 'Epic Achievement!';
-      case AchievementRarity.LEGENDARY: return t('achievements.celebration.rarity_legendary') || 'Legendary Achievement!';
-      default: return t('achievements.celebration.rarity_common') || 'Achievement Unlocked!';
+      case AchievementRarity.COMMON: return 'Achievement Unlocked!';
+      case AchievementRarity.RARE: return 'Rare Achievement!';
+      case AchievementRarity.EPIC: return 'Epic Achievement!';
+      case AchievementRarity.LEGENDARY: return 'Legendary Achievement!';
+      default: return 'Achievement Unlocked!';
     }
   };
 
@@ -225,11 +225,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   useEffect(() => {
     if (visible) {
       // Accessibility announcement
-      const announcement = t('achievements.celebration.announcement', { 
-        name: t(achievement.nameKey),
-        rarity: achievement.rarity.toLowerCase(),
-        xp: xpAwarded
-      }) || `Achievement unlocked: ${t(achievement.nameKey)}! ${achievement.rarity} rarity achievement earned ${xpAwarded} XP.`;
+      const announcement = `Achievement unlocked: ${t(achievement.nameKey)}! ${achievement.rarity} rarity achievement earned ${xpAwarded} XP.`;
       
       AccessibilityInfo.announceForAccessibility(announcement);
 

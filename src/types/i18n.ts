@@ -226,6 +226,22 @@ export interface TranslationKeys {
     };
     // Today's Habits
     todayHabits: string;
+    // Screen labels
+    streakHistoryLoading: string;
+  };
+
+  // Levels & Navigation screens
+  screens: {
+    levelOverview: string;
+    levelsLoading: string;
+    goBack: string;
+  };
+
+  // UI Labels
+  ui: {
+    progressStep: string;
+    skipTutorial: string;
+    nextStep: string;
   };
   
   // Habits screen
