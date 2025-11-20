@@ -4,6 +4,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter, AppState, NativeEventSubscription } from 'react-native';
+import { TFunction } from 'i18next';
 import { MonthlyChallengeService } from './monthlyChallengeService';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
 import { UserActivityTracker } from './userActivityTracker';
@@ -240,13 +241,15 @@ export class MonthlyChallengeLifecycleManager {
       
       let result: MonthlyChallengeGenerationResult;
       
+      const t = this.getTranslationFunction();
+
       if (preview && preview.isReady) {
         this.log('Using preview for challenge generation');
         // Use preview as seed for generation
-        result = await MonthlyChallengeService.generateChallengeForCurrentMonth();
+        result = await MonthlyChallengeService.generateChallengeForCurrentMonth('local_user', t);
       } else {
         this.log('Performing fresh challenge generation');
-        result = await MonthlyChallengeService.generateChallengeForCurrentMonth();
+        result = await MonthlyChallengeService.generateChallengeForCurrentMonth('local_user', t);
       }
       
       if (result.success && result.challenge) {
@@ -325,17 +328,18 @@ export class MonthlyChallengeLifecycleManager {
       const starRatings = await StarRatingService.getCurrentStarRatings();
       
       // Select category for preview (avoid recent categories)
+      const t = this.getTranslationFunction();
       const recentCategories = await this.getRecentCategoryHistory(3);
-      const availableCategories = Object.values(AchievementCategory).filter(cat => 
-        !recentCategories.includes(cat) && 
-        MonthlyChallengeService.getTemplatesForCategory(cat).length > 0
+      const availableCategories = Object.values(AchievementCategory).filter(cat =>
+        !recentCategories.includes(cat) &&
+        MonthlyChallengeService.getTemplatesForCategory(cat, t).length > 0
       );
-      
-      const selectedCategory = availableCategories[Math.floor(Math.random() * availableCategories.length)] 
+
+      const selectedCategory = availableCategories[Math.floor(Math.random() * availableCategories.length)]
         || AchievementCategory.HABITS;
-      
+
       // Select template
-      const templates = MonthlyChallengeService.getTemplatesForCategory(selectedCategory);
+      const templates = MonthlyChallengeService.getTemplatesForCategory(selectedCategory, t);
       const selectedTemplate = templates[Math.floor(Math.random() * templates.length)];
       
       if (!selectedTemplate) {
@@ -802,7 +806,8 @@ export class MonthlyChallengeLifecycleManager {
       }
       
       // Force regeneration
-      const result = await MonthlyChallengeService.generateChallengeForCurrentMonth();
+      const t = this.getTranslationFunction();
+      const result = await MonthlyChallengeService.generateChallengeForCurrentMonth('local_user', t);
       
       if (result.success) {
         await this.setState(ChallengeLifecycleState.ACTIVE);
@@ -951,6 +956,15 @@ export class MonthlyChallengeLifecycleManager {
     this.log('Updating system metrics');
   }
   
+  /**
+   * Get a translation function (mock if not available)
+   */
+  private static getTranslationFunction(): TFunction {
+    // Return a mock t function that returns the key itself
+    // This is used when i18next is not readily available
+    return ((key: string) => key) as unknown as TFunction;
+  }
+
   /**
    * Cleanup resources on app shutdown
    */

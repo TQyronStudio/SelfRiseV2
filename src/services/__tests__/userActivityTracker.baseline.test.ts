@@ -3,6 +3,7 @@
 // Focus: Template selection, star-level scaling, and baseline-driven challenge generation
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TFunction } from 'i18next';
 import { UserActivityTracker, UserActivityBaseline } from '../userActivityTracker';
 import { MonthlyChallengeService } from '../monthlyChallengeService';
 import { StarRatingService } from '../starRatingService';
@@ -26,7 +27,7 @@ jest.mock('../gamificationService', () => ({
   }
 }));
 
-// Mock StarRatingService  
+// Mock StarRatingService
 jest.mock('../starRatingService', () => ({
   StarRatingService: {
     getCurrentStarRatings: jest.fn(),
@@ -35,6 +36,14 @@ jest.mock('../starRatingService', () => ({
     generateStarRatingAnalysis: jest.fn()
   }
 }));
+
+// Mock i18next - provide a simple translation function
+jest.mock('i18next', () => ({
+  t: (key: string) => key
+}));
+
+// Global mock translation function
+const tFunction = ((key: string) => key) as TFunction;
 
 // Global mock data storage
 let mockHabitData: Map<string, any[]> = new Map();
@@ -446,7 +455,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     });
 
     test('should return all 16 templates across 4 categories', () => {
-      const allTemplates = MonthlyChallengeService.getAllTemplates();
+      const allTemplates = MonthlyChallengeService.getAllTemplates(tFunction);
       
       expect(allTemplates[AchievementCategory.HABITS]).toHaveLength(4);
       expect(allTemplates[AchievementCategory.JOURNAL]).toHaveLength(4);
@@ -461,7 +470,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
     });
 
     test('should select templates based on star level requirements', () => {
-      const habitsTemplates = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS);
+      const habitsTemplates = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS, tFunction);
       
       // Test star level filtering
       const beginnerTemplates = habitsTemplates.filter(t => t.starLevelRequirements.minLevel === 1);
@@ -516,7 +525,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         AchievementCategory.HABITS,
         minimalBaseline,
         1, // 1-star level for new user
-        []
+        [],
+        tFunction
       );
 
       expect(templateSelection.selectedTemplate).toBeDefined();
@@ -534,7 +544,8 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         AchievementCategory.HABITS,
         null, // No baseline
         2,    // 2-star level
-        recentTemplateIds
+        recentTemplateIds,
+        tFunction
       );
 
       expect(templateSelection.selectedTemplate).toBeDefined();
@@ -683,7 +694,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         goalsCompleted: 0
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS, tFunction)[0]!;
       const challengeParams = MonthlyChallengeService.generateChallengeParameters(
         habitsTemplate,
         minimalBaseline,
@@ -737,7 +748,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         goalsCompleted: 4
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS, tFunction)[0]!;
       const challengeParams = MonthlyChallengeService.generateChallengeParameters(
         habitsTemplate,
         completeBaseline,
@@ -791,7 +802,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         goalsCompleted: 2
       };
 
-      const journalTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.JOURNAL)[0]!;
+      const journalTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.JOURNAL, tFunction)[0]!;
       const calculation = MonthlyChallengeService.calculateTargetFromBaseline(
         journalTemplate,
         testBaseline,
@@ -851,7 +862,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         goalsCompleted: 0
       };
 
-      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS)[0]!;
+      const habitsTemplate = MonthlyChallengeService.getTemplatesForCategory(AchievementCategory.HABITS, tFunction)[0]!;
       const calculation = MonthlyChallengeService.calculateTargetFromBaseline(
         habitsTemplate,
         lowBaseline,
