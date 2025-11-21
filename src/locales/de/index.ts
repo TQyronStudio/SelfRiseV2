@@ -2742,6 +2742,8 @@ const de: Partial<TranslationKeys> = {
       rarityLabel: 'Seltenheit',
       recentLabel: 'Kürzlich',
       alphabeticalLabel: 'A-Z',
+      sortByLabel: 'Sortieren nach',
+      unlockedOnlyLabel: 'Nur entsperrt',
       allRarities: 'Alle Seltenheiten',
       commonRarity: 'Gewöhnlich',
       rareRarity: 'Selten',
@@ -2758,6 +2760,17 @@ const de: Partial<TranslationKeys> = {
       consistencyMaster: 'Meistern der Kunst der Beständigkeit',
       timeMaster: 'Exzellenz in zeitbasierten Errungenschaften',
     },
+    trophy_combinations: {
+      title: 'Pokal-Sammlungen',
+      subtitle: 'Vervollständige thematische Sets für Bonusbelohnungen',
+      collectionsCompleted: 'Sammlungen\nAbgeschlossen',
+      bonusXPEarned: 'Bonus-XP\nVerdient',
+      collectionRate: 'Sammlungs-\nQuote',
+    },
+    loyalty_progress: {
+      keepGrowing: 'Weiter wachsen!',
+      level: 'Stufe',
+    },
     days: {
       monday: 'Mo',
       tuesday: 'Di',
@@ -2766,6 +2779,26 @@ const de: Partial<TranslationKeys> = {
       friday: 'Fr',
       saturday: 'Sa',
       sunday: 'So',
+    },
+    // Filters - labels for header
+    filterLabels: {
+      category: 'Kategorie',
+      rarity: 'Seltenheit',
+      sortBy: 'Sortieren nach',
+    },
+    // Trophy combinations
+    combinations: {
+      collections: 'Sammlungen',
+      completed: 'Abgeschlossen',
+      earned: 'Verdient',
+      collection: 'Sammlung',
+      rate: 'Quote',
+    },
+    // Achievement states
+    states: {
+      new: 'NEU',
+      keepGrowing: 'Weiter wachsen!',
+      level: 'Stufe',
     },
   } as any,
 

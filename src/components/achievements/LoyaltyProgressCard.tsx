@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 import {
   LoyaltyTracking,
   LoyaltyLevel,
@@ -30,6 +31,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
   expanded = false
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [loyaltyData, setLoyaltyData] = useState<LoyaltyTracking | null>(null);
   const [loyaltyProgress, setLoyaltyProgress] = useState<LoyaltyProgress | null>(null);
   const [levelDisplay, setLevelDisplay] = useState<LoyaltyLevelDisplay | null>(null);
@@ -68,9 +70,9 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
   };
 
   const getMotivationMessage = () => {
-    if (!loyaltyProgress || !nextMilestone) return 'Keep growing!';
+    if (!loyaltyProgress || !nextMilestone) return t('social.loyalty_progress.keepGrowing');
     return LoyaltyService.getLoyaltyMotivationMessage(
-      loyaltyProgress.daysRemaining, 
+      loyaltyProgress.daysRemaining,
       nextMilestone.name
     );
   };
@@ -396,7 +398,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
               <Text style={[styles.statValue, { color: levelDisplay.color }]}>
                 {levelDisplay.name}
               </Text>
-              <Text style={styles.statLabel}>Level</Text>
+              <Text style={styles.statLabel}>{t('social.loyalty_progress.level')}</Text>
             </View>
           </View>
         </View>

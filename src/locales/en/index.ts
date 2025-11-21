@@ -1167,29 +1167,6 @@ const en: TranslationKeys = {
       descending: 'Z-A',
     },
 
-    // Filters - labels for header
-    filterLabels: {
-      category: 'Category',
-      rarity: 'Rarity',
-      sortBy: 'Sort By',
-    },
-
-    // Trophy combinations
-    combinations: {
-      collections: 'Collections',
-      completed: 'Completed',
-      earned: 'Earned',
-      collection: 'Collection',
-      rate: 'Rate',
-    },
-
-    // Achievement states
-    states: {
-      new: 'NEW',
-      keepGrowing: 'Keep growing!',
-      level: 'Level',
-    },
-    
     // Achievement Card
     card: {
       locked: 'Locked',
@@ -3184,6 +3161,8 @@ const en: TranslationKeys = {
       rarityLabel: 'Rarity',
       recentLabel: 'Recent',
       alphabeticalLabel: 'A-Z',
+      sortByLabel: 'Sort By',
+      unlockedOnlyLabel: 'Unlocked Only',
       allRarities: 'All Rarities',
       commonRarity: 'Common',
       rareRarity: 'Rare',
@@ -3200,6 +3179,17 @@ const en: TranslationKeys = {
       consistencyMaster: 'Master the art of consistency',
       timeMaster: 'Excel in time-based achievements',
     },
+    trophy_combinations: {
+      title: 'Trophy Collections',
+      subtitle: 'Complete themed sets for bonus rewards',
+      collectionsCompleted: 'Collections\nCompleted',
+      bonusXPEarned: 'Bonus XP\nEarned',
+      collectionRate: 'Collection\nRate',
+    },
+    loyalty_progress: {
+      keepGrowing: 'Keep growing!',
+      level: 'Level',
+    },
     days: {
       monday: 'Mo',
       tuesday: 'Tu',
@@ -3208,6 +3198,26 @@ const en: TranslationKeys = {
       friday: 'Fr',
       saturday: 'Sa',
       sunday: 'Su',
+    },
+    // Filters - labels for header
+    filterLabels: {
+      category: 'Category',
+      rarity: 'Rarity',
+      sortBy: 'Sort By',
+    },
+    // Trophy combinations
+    combinations: {
+      collections: 'Collections',
+      completed: 'Completed',
+      earned: 'Earned',
+      collection: 'Collection',
+      rate: 'Rate',
+    },
+    // Achievement states
+    states: {
+      new: 'NEW',
+      keepGrowing: 'Keep growing!',
+      level: 'Level',
     },
   },
 

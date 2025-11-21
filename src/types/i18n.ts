@@ -1920,6 +1920,8 @@ export interface TranslationKeys {
       rarityLabel: string;
       recentLabel: string;
       alphabeticalLabel: string;
+      sortByLabel: string;
+      unlockedOnlyLabel: string;
       allRarities: string;
       commonRarity: string;
       rareRarity: string;
@@ -1955,6 +1957,17 @@ export interface TranslationKeys {
       universalBeginning: string;
       consistencyMaster: string;
       timeMaster: string;
+    };
+    trophy_combinations: {
+      title: string;
+      subtitle: string;
+      collectionsCompleted: string;
+      bonusXPEarned: string;
+      collectionRate: string;
+    };
+    loyalty_progress: {
+      keepGrowing: string;
+      level: string;
     };
     days: {
       monday: string;

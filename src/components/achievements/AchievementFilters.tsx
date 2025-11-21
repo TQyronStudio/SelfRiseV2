@@ -204,14 +204,14 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
               styles.filterButtonText,
               filters.unlockedOnly && styles.filterButtonTextActive
             ]}>
-              🔓 Unlocked Only
+              🔓 {t('social.achievements_filters.unlockedOnlyLabel')}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Category Filters */}
         <View style={styles.filterGroup}>
-          <Text style={styles.filterGroupTitle}>Category</Text>
+          <Text style={styles.filterGroupTitle}>{t('social.achievements_filters.categoryLabel')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {CATEGORIES.map((category) => (
               <TouchableOpacity
@@ -236,7 +236,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
 
         {/* Rarity Filters */}
         <View style={styles.filterGroup}>
-          <Text style={styles.filterGroupTitle}>Rarity</Text>
+          <Text style={styles.filterGroupTitle}>{t('social.achievements_filters.rarityLabel')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {RARITIES.map((rarity) => (
               <TouchableOpacity
@@ -267,7 +267,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
 
         {/* Sort Options */}
         <View style={styles.filterGroup}>
-          <Text style={styles.filterGroupTitle}>Sort By</Text>
+          <Text style={styles.filterGroupTitle}>{t('social.achievements_filters.sortByLabel')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {SORT_OPTIONS.map((option) => (
               <TouchableOpacity

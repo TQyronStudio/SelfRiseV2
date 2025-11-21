@@ -374,9 +374,9 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>🏆 Trophy Collections</Text>
+        <Text style={styles.headerTitle}>🏆 {t('social.trophy_combinations.title')}</Text>
         <Text style={styles.headerSubtitle}>
-          Complete themed sets for bonus rewards
+          {t('social.trophy_combinations.subtitle')}
         </Text>
       </View>
 
@@ -384,20 +384,17 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
       <View style={styles.summaryContainer}>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryValue}>{completedCollections.length}</Text>
-          <Text style={styles.summaryLabel}>Collections</Text>
-          <Text style={styles.summaryLabel}>Completed</Text>
+          <Text style={styles.summaryLabel}>{t('social.trophy_combinations.collectionsCompleted')}</Text>
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryValue}>{totalBonusXP.toLocaleString()}</Text>
-          <Text style={styles.summaryLabel}>Bonus XP</Text>
-          <Text style={styles.summaryLabel}>Earned</Text>
+          <Text style={styles.summaryLabel}>{t('social.trophy_combinations.bonusXPEarned')}</Text>
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryValue}>
             {Math.round((completedCollections.length / collectionsWithProgress.length) * 100)}%
           </Text>
-          <Text style={styles.summaryLabel}>Collection</Text>
-          <Text style={styles.summaryLabel}>Rate</Text>
+          <Text style={styles.summaryLabel}>{t('social.trophy_combinations.collectionRate')}</Text>
         </View>
       </View>
 

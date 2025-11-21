@@ -2742,6 +2742,8 @@ const es: Partial<TranslationKeys> = {
       rarityLabel: 'Rareza',
       recentLabel: 'Reciente',
       alphabeticalLabel: 'A-Z',
+      sortByLabel: 'Ordenar por',
+      unlockedOnlyLabel: 'Solo Desbloqueados',
       allRarities: 'Todas las Rarezas',
       commonRarity: 'Común',
       rareRarity: 'Raro',
@@ -2758,6 +2760,17 @@ const es: Partial<TranslationKeys> = {
       consistencyMaster: 'Dominar el arte de la consistencia',
       timeMaster: 'Destacar en logros basados en el tiempo',
     },
+    trophy_combinations: {
+      title: 'Colecciones de Trofeos',
+      subtitle: 'Completa conjuntos temáticos para recompensas adicionales',
+      collectionsCompleted: 'Colecciones\nCompletadas',
+      bonusXPEarned: 'XP Adicional\nGanado',
+      collectionRate: 'Tasa de\nColección',
+    },
+    loyalty_progress: {
+      keepGrowing: '¡Sigue creciendo!',
+      level: 'Nivel',
+    },
     days: {
       monday: 'Lu',
       tuesday: 'Ma',
@@ -2766,6 +2779,26 @@ const es: Partial<TranslationKeys> = {
       friday: 'Vi',
       saturday: 'Sá',
       sunday: 'Do',
+    },
+    // Filters - labels for header
+    filterLabels: {
+      category: 'Categoría',
+      rarity: 'Rareza',
+      sortBy: 'Ordenar por',
+    },
+    // Trophy combinations
+    combinations: {
+      collections: 'Colecciones',
+      completed: 'Completado',
+      earned: 'Ganado',
+      collection: 'Colección',
+      rate: 'Tasa',
+    },
+    // Achievement states
+    states: {
+      new: 'NUEVO',
+      keepGrowing: '¡Sigue creciendo!',
+      level: 'Nivel',
     },
   } as any,
 
