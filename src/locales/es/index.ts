@@ -254,6 +254,15 @@ const es: Partial<TranslationKeys> = {
     progressStep: 'Paso {current} de {total}',
     skipTutorial: 'Omitir tutorial',
     nextStep: 'Siguiente paso',
+    continue: 'Continuar',
+    next: 'Siguiente',
+    cancel: 'Cancelar',
+    save: 'Guardar',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    retry: 'Reintentar',
+    tutorialComplete: 'Tutorial Completado',
+    readyToRise: 'Listo para Subir',
   },
 
   // Habits screen
@@ -267,6 +276,8 @@ const es: Partial<TranslationKeys> = {
     addNewHabit: 'Añadir Nuevo Hábito',
     done: 'Hecho',
     reorder: 'Reordenar',
+    bonus: 'Bonificación',
+    scheduled: 'Programado',
     habitName: 'Nombre del Hábito',
     habitNamePlaceholder: 'Introduce el nombre del hábito...',
     selectColor: 'Seleccionar Color',
@@ -2757,6 +2768,21 @@ const es: Partial<TranslationKeys> = {
       sunday: 'Do',
     },
   } as any,
+
+  // Accessibility
+  accessibility: {
+    activateMultiplier: 'Activar multiplicador de XP 2x',
+    tapToContinueTutorial: 'Toca para continuar el tutorial',
+    achievementGrid: 'Cuadrícula de logros',
+    closeAchievementDetails: 'Cerrar detalles del logro',
+    shareAchievement: 'Compartir logro',
+    shareYourAchievement: 'Comparte tu logro',
+    continueWithMultiplier: 'Continúa usando la aplicación con multiplicador activo',
+    multiplierCelebration: 'Celebración de activación del multiplicador de XP',
+    getNewQuote: 'Obtener nueva cita',
+    copyQuoteToClipboard: 'Copiar cita al portapapeles',
+    shareQuote: 'Compartir cita',
+  },
 };
 
 export default es;

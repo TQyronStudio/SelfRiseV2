@@ -369,11 +369,11 @@ export const NotificationSettings: React.FC = () => {
         >
           <Ionicons name="alert-circle" size={24} color={colors.warning} />
           <View style={styles.permissionWarningContent}>
-            <Text style={styles.permissionWarningTitle}>Notifications Disabled</Text>
+            <Text style={styles.permissionWarningTitle}>{t('notifications.disabled')}</Text>
             <Text style={styles.permissionWarningText}>
               {permissionStatus.canAskAgain
-                ? 'Tap to enable notifications'
-                : 'Tap to open system settings'}
+                ? t('notifications.enablePrompt')
+                : t('notifications.settingsPrompt')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -386,8 +386,8 @@ export const NotificationSettings: React.FC = () => {
           <View style={styles.settingHeaderLeft}>
             <Ionicons name="sunny" size={24} color={colors.primary} />
             <View style={styles.settingHeaderText}>
-              <Text style={styles.settingTitle}>Afternoon Reminder</Text>
-              <Text style={styles.settingDescription}>Motivational check-in</Text>
+              <Text style={styles.settingTitle}>{t('notifications.afternoonReminder')}</Text>
+              <Text style={styles.settingDescription}>{t('notifications.afternoonDescription')}</Text>
             </View>
           </View>
           <Switch
@@ -416,8 +416,8 @@ export const NotificationSettings: React.FC = () => {
           <View style={styles.settingHeaderLeft}>
             <Ionicons name="moon" size={24} color={colors.primary} />
             <View style={styles.settingHeaderText}>
-              <Text style={styles.settingTitle}>Evening Reminder</Text>
-              <Text style={styles.settingDescription}>Smart task reminder</Text>
+              <Text style={styles.settingTitle}>{t('notifications.eveningReminder')}</Text>
+              <Text style={styles.settingDescription}>{t('notifications.eveningDescription')}</Text>
             </View>
           </View>
           <Switch

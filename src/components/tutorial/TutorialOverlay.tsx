@@ -677,7 +677,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                     }
                   ]} />
                 </View>
-                <Text style={styles.progressText}>Step {state.currentStep} of {state.totalSteps}</Text>
+                <Text style={styles.progressText}>{t('ui.progressStep', { current: state.currentStep, total: state.totalSteps })}</Text>
               </View>
 
               {/* Next Button - Show when appropriate */}
@@ -687,10 +687,10 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   onPress={handleNext}
                   accessible={true}
                   accessibilityRole="button"
-                  accessibilityLabel="Next step"
+                  accessibilityLabel={t('ui.nextStep')}
                 >
                   <Text style={styles.nextButtonText}>
-                    {state.currentStepData.content.button || 'Next'}
+                    {state.currentStepData.content.button || t('ui.next')}
                   </Text>
                   <Ionicons name="arrow-forward" size={getIconSize(16)} color={colors.white} />
                 </TouchableOpacity>

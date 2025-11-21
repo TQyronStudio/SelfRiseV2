@@ -328,7 +328,7 @@ export const LevelsOverviewScreen: React.FC = () => {
           >
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Level Overview</Text>
+          <Text style={styles.headerTitle}>{t('screens.levelOverview')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
@@ -351,18 +351,18 @@ export const LevelsOverviewScreen: React.FC = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Level Overview</Text>
+        <Text style={styles.headerTitle}>{t('screens.levelOverview')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
         {/* Current level summary */}
         <View style={styles.currentLevelSummary}>
-          <Text style={styles.summaryTitle}>Your Progress</Text>
+          <Text style={styles.summaryTitle}>{t('home.yourProgress')}</Text>
           <Text style={styles.summaryText}>
-            You're currently level {currentLevel} out of 100 levels
+            {t('home.currentLevelSummary', { currentLevel })}
           </Text>
           <Text style={styles.summarySubtext}>
-            Keep earning XP to unlock higher levels!
+            {t('home.keepEarningXp')}
           </Text>
         </View>
 

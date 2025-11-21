@@ -254,6 +254,15 @@ const de: Partial<TranslationKeys> = {
     progressStep: 'Schritt {current} von {total}',
     skipTutorial: 'Tutorial überspringen',
     nextStep: 'Nächster Schritt',
+    continue: 'Fortfahren',
+    next: 'Weiter',
+    cancel: 'Abbrechen',
+    save: 'Speichern',
+    edit: 'Bearbeiten',
+    delete: 'Löschen',
+    retry: 'Erneut versuchen',
+    tutorialComplete: 'Tutorial abgeschlossen',
+    readyToRise: 'Bereit zu steigen',
   },
 
   // Habits screen
@@ -267,6 +276,8 @@ const de: Partial<TranslationKeys> = {
     addNewHabit: 'Neue Gewohnheit hinzufügen',
     done: 'Fertig',
     reorder: 'Neu ordnen',
+    bonus: 'Bonus',
+    scheduled: 'Geplant',
     habitName: 'Gewohnheitsname',
     habitNamePlaceholder: 'Gewohnheitsname eingeben...',
     selectColor: 'Farbe wählen',
@@ -2757,6 +2768,21 @@ const de: Partial<TranslationKeys> = {
       sunday: 'So',
     },
   } as any,
+
+  // Accessibility
+  accessibility: {
+    activateMultiplier: 'Aktiviere 2x XP Multiplikator',
+    tapToContinueTutorial: 'Tippe zum Fortfahren des Tutorials',
+    achievementGrid: 'Errungenschaftsgitter',
+    closeAchievementDetails: 'Errungenschaftsdetails schließen',
+    shareAchievement: 'Errungenschaft teilen',
+    shareYourAchievement: 'Teile deine Errungenschaft',
+    continueWithMultiplier: 'App mit aktivem Multiplikator weiter verwenden',
+    multiplierCelebration: 'XP Multiplikator Aktivierungsfeier',
+    getNewQuote: 'Neues Zitat abrufen',
+    copyQuoteToClipboard: 'Zitat in Zwischenablage kopieren',
+    shareQuote: 'Zitat teilen',
+  },
 };
 
 export default de;

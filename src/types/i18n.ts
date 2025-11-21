@@ -226,6 +226,10 @@ export interface TranslationKeys {
     };
     // Today's Habits
     todayHabits: string;
+    // Level Progress
+    yourProgress: string;
+    currentLevelSummary: string;
+    keepEarningXp: string;
     // Screen labels
     streakHistoryLoading: string;
   };
@@ -242,8 +246,18 @@ export interface TranslationKeys {
     progressStep: string;
     skipTutorial: string;
     nextStep: string;
+    continue: string;
+    next: string;
+    cancel: string;
+    save: string;
+    edit: string;
+    delete: string;
+    retry: string;
+    // Tutorial Completion
+    tutorialComplete: string;
+    readyToRise: string;
   };
-  
+
   // Habits screen
   habits: {
     title: string;
@@ -255,6 +269,8 @@ export interface TranslationKeys {
     addNewHabit: string;
     done: string;
     reorder: string;
+    bonus: string;
+    scheduled: string;
     habitName: string;
     habitNamePlaceholder: string;
     selectColor: string;
@@ -1910,6 +1926,26 @@ export interface TranslationKeys {
       epicRarity: string;
       legendaryRarity: string;
     };
+    // Achievement Filters
+    filterLabels: {
+      category: string;
+      rarity: string;
+      sortBy: string;
+    };
+    // Trophy combinations
+    combinations: {
+      collections: string;
+      completed: string;
+      earned: string;
+      collection: string;
+      rate: string;
+    };
+    // Achievement states
+    states: {
+      new: string;
+      keepGrowing: string;
+      level: string;
+    };
     achievements_trophies: {
       habitMastery: string;
       journalMastery: string;
@@ -1929,6 +1965,21 @@ export interface TranslationKeys {
       saturday: string;
       sunday: string;
     };
+  };
+
+  // Accessibility labels
+  accessibility: {
+    activateMultiplier: string;
+    tapToContinueTutorial: string;
+    achievementGrid: string;
+    closeAchievementDetails: string;
+    shareAchievement: string;
+    shareYourAchievement: string;
+    continueWithMultiplier: string;
+    multiplierCelebration: string;
+    getNewQuote: string;
+    copyQuoteToClipboard: string;
+    shareQuote: string;
   };
 }
 

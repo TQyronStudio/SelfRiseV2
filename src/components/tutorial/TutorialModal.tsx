@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TutorialStep } from '@/src/contexts/TutorialContext';
 import { Fonts } from '@/src/constants/fonts';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import {
   getModalWidth,
   getModalPadding,
@@ -46,6 +47,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   onSkip,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   // Animation values
@@ -324,11 +326,11 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
                 <View style={styles.completionStats}>
                   <View style={styles.statItem}>
                     <Ionicons name="checkmark-circle" size={getIconSize(24)} color="#4CAF50" />
-                    <Text style={styles.statText}>Tutorial Complete</Text>
+                    <Text style={styles.statText}>{t('ui.tutorialComplete')}</Text>
                   </View>
                   <View style={styles.statItem}>
                     <Ionicons name="rocket" size={getIconSize(24)} color="#FF9800" />
-                    <Text style={styles.statText}>Ready to Rise</Text>
+                    <Text style={styles.statText}>{t('ui.readyToRise')}</Text>
                   </View>
                 </View>
               </View>

@@ -229,6 +229,10 @@ const en: TranslationKeys = {
     todayHabits: "Today's Habits",
     // Screen labels
     streakHistoryLoading: 'Loading...',
+    // Level Progress
+    yourProgress: 'Your Progress',
+    currentLevelSummary: 'You\'re currently level {currentLevel} out of 100 levels',
+    keepEarningXp: 'Keep earning XP to unlock higher levels!',
   },
 
   // Levels & Navigation screens
@@ -243,6 +247,16 @@ const en: TranslationKeys = {
     progressStep: 'Step {current} of {total}',
     skipTutorial: 'Skip tutorial',
     nextStep: 'Next step',
+    continue: 'Continue',
+    next: 'Next',
+    cancel: 'Cancel',
+    save: 'Save',
+    edit: 'Edit',
+    delete: 'Delete',
+    retry: 'Retry',
+    // Tutorial Completion
+    tutorialComplete: 'Tutorial Complete',
+    readyToRise: 'Ready to Rise',
   },
 
   // Habits screen
@@ -256,6 +270,8 @@ const en: TranslationKeys = {
     addNewHabit: 'Add New Habit',
     done: 'Done',
     reorder: 'Reorder',
+    bonus: 'Bonus',
+    scheduled: 'Scheduled',
     habitName: 'Habit Name',
     habitNamePlaceholder: 'Enter habit name...',
     selectColor: 'Select Color',
@@ -1149,6 +1165,29 @@ const en: TranslationKeys = {
       byProgress: 'Progress',
       ascending: 'A-Z',
       descending: 'Z-A',
+    },
+
+    // Filters - labels for header
+    filterLabels: {
+      category: 'Category',
+      rarity: 'Rarity',
+      sortBy: 'Sort By',
+    },
+
+    // Trophy combinations
+    combinations: {
+      collections: 'Collections',
+      completed: 'Completed',
+      earned: 'Earned',
+      collection: 'Collection',
+      rate: 'Rate',
+    },
+
+    // Achievement states
+    states: {
+      new: 'NEW',
+      keepGrowing: 'Keep growing!',
+      level: 'Level',
     },
     
     // Achievement Card
@@ -3170,6 +3209,21 @@ const en: TranslationKeys = {
       saturday: 'Sa',
       sunday: 'Su',
     },
+  },
+
+  // Accessibility labels
+  accessibility: {
+    activateMultiplier: 'Activate 2x XP multiplier',
+    tapToContinueTutorial: 'Tap to continue tutorial',
+    achievementGrid: 'Achievement grid',
+    closeAchievementDetails: 'Close achievement details',
+    shareAchievement: 'Share achievement',
+    shareYourAchievement: 'Share your achievement',
+    continueWithMultiplier: 'Continue using the app with multiplier active',
+    multiplierCelebration: 'XP Multiplier activation celebration',
+    getNewQuote: 'Get new quote',
+    copyQuoteToClipboard: 'Copy quote to clipboard',
+    shareQuote: 'Share quote',
   },
 
 };
