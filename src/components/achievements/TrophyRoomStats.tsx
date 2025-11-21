@@ -219,8 +219,8 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
     <View style={styles.container}>
       {/* Main Trophy Room Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>🏆 Trophy Room</Text>
-        <Text style={styles.headerSubtitle}>Your Personal Hall of Fame</Text>
+        <Text style={styles.headerTitle}>🏆 {t('social.trophyRoom.title')}</Text>
+        <Text style={styles.headerSubtitle}>{t('social.trophyRoom.subtitle')}</Text>
       </View>
 
       {/* Loyalty Progress Card - Sub-checkpoint 4.5.10.C */}
@@ -248,7 +248,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
 
       {/* Achievement Quality Stats */}
       <View style={styles.qualityStatsContainer}>
-        <Text style={styles.sectionTitle}>Trophy Quality</Text>
+        <Text style={styles.sectionTitle}>{t('social.trophyRoom.qualitySection')}</Text>
         <View style={styles.qualityStatsRow}>
           {rarityStats.map((rarity) => {
             const color = getRarityColor(rarity.rarity);

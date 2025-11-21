@@ -260,7 +260,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading habits...</Text>
+        <Text style={styles.loadingText}>{t('common.errors.habits.loadingHabits')}</Text>
       </View>
     );
   }
@@ -338,7 +338,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                       {!isScheduled && (
                         <View style={styles.bonusIndicator}>
                           <Ionicons name="star" size={12} color={colors.primary} />
-                          <Text style={styles.bonusText}>Bonus</Text>
+                          <Text style={styles.bonusText}>{t('habits.bonus')}</Text>
                         </View>
                       )}
                       {isScheduled && (

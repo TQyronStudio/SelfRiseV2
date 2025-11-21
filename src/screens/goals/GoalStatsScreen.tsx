@@ -144,7 +144,7 @@ export function GoalStatsScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={styles.title}>Loading...</Text>
+          <Text style={styles.title}>{t('screens.goalStats.loading')}</Text>
           <View style={styles.shareButton} />
         </View>
         <View style={styles.loadingContainer}>

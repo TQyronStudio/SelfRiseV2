@@ -239,6 +239,19 @@ export interface TranslationKeys {
     levelOverview: string;
     levelsLoading: string;
     goBack: string;
+    reorderHabits: {
+      title: string;
+      instructions: string;
+    };
+    habitStats: {
+      activeHabits: string;
+      inactiveHabits: string;
+      noHabitsFound: string;
+      noHabitsSubtext: string;
+    };
+    goalStats: {
+      loading: string;
+    };
   };
 
   // UI Labels
@@ -320,6 +333,7 @@ export interface TranslationKeys {
       legendCompleted: string;
       legendMissed: string;
       legendMakeup: string;
+      bonus?: string;
     };
   };
 
@@ -1273,7 +1287,7 @@ export interface TranslationKeys {
     create: string;
     update: string;
     confirm: string;
-    loading: string;
+    loading: string | { default: string; levels: string; habits: string; progress: string; };
     error: string;
     success: string;
     retry: string;
@@ -1291,6 +1305,13 @@ export interface TranslationKeys {
     startFresh: string;
     help: string;
     helpNotAvailable: string;
+    tryAgain?: string;
+    level?: string;
+    totalXP?: string;
+    achievements?: string;
+    category?: string;
+    rarity?: string;
+    xpReward?: string;
     modals: {
       errorTitle: string;
       confirmTitle: string;
@@ -1562,6 +1583,21 @@ export interface TranslationKeys {
     };
     multiplier: {
       continue: string;
+      harmonyActivated: string;
+      achievementUnlocked: string;
+      harmonyStreakLabel: string;
+      bonusXP: string;
+      duration: string;
+      activated: string;
+      activateButton: string;
+      duration24h: string;
+    };
+    analysis: {
+      title: string;
+      overallRating: string;
+      trend: string;
+      successRate: string;
+      strongest: string;
     };
   };
 
@@ -1955,6 +1991,42 @@ export interface TranslationKeys {
       keepGrowing: string;
       level: string;
     };
+    // Achievement History
+    history: {
+      newBadge: string;
+      emptyTitle: string;
+      recentVictories: string;
+    };
+    // Achievement Tooltip
+    tooltip: {
+      completed: string;
+      progressAndRequirements: string;
+      requirement: string;
+      currentProgress: string;
+      nextSteps: string;
+      smartTips: string;
+    };
+    // Achievement Detail Modal
+    detail: {
+      category: string;
+      rarity: string;
+      xpReward: string;
+    };
+    // Trophy Room
+    trophyRoom: {
+      title: string;
+      subtitle: string;
+      qualitySection: string;
+    };
+    // Share Achievement Modal
+    shareModal: {
+      title: string;
+      subtitle: string;
+      preparing: string;
+      messagePreview: string;
+      sharingOptions: string;
+      privacyProtected: string;
+    };
     achievements_trophies: {
       habitMastery: string;
       journalMastery: string;
@@ -1984,6 +2056,44 @@ export interface TranslationKeys {
       friday: string;
       saturday: string;
       sunday: string;
+    };
+  };
+
+  // Challenges
+  challenges: {
+    calendar: {
+      dailyProgress: string;
+      title: string;
+      noActivity: string;
+      someActivity: string;
+      goodProgress: string;
+      perfectDay: string;
+      weeklyBreakdown: string;
+      week: string;
+    };
+    completion: {
+      requirements: string;
+      activeDays: string;
+      milestones: string;
+    };
+  };
+
+  // Gratitude/Journal
+  gratitude: {
+    daily: {
+      title: string;
+    };
+    export: {
+      title: string;
+      textFormat: string;
+      jsonFormat: string;
+      exporting: string;
+    };
+    edit: {
+      title: string;
+    };
+    bonus: {
+      label: string;
     };
   };
 

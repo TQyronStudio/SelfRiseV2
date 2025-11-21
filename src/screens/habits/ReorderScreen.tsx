@@ -122,18 +122,18 @@ export function ReorderScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={handleCancel}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={styles.cancelButtonText}>{t('ui.cancel')}</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reorder Habits</Text>
+        <Text style={styles.headerTitle}>{t('screens.reorderHabits.title')}</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save</Text>
+          <Text style={styles.saveButtonText}>{t('ui.save')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Instructions */}
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructionsText}>
-          Hold and drag any habit to reorder them
+          {t('screens.reorderHabits.instructions')}
         </Text>
       </View>
 

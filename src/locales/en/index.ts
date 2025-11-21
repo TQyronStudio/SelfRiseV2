@@ -240,6 +240,99 @@ const en: TranslationKeys = {
     levelOverview: 'Level Overview',
     levelsLoading: 'Loading levels...',
     goBack: 'Go back',
+    reorderHabits: {
+      title: 'Reorder Habits',
+      instructions: 'Hold and drag any habit to reorder them',
+    },
+    habitStats: {
+      activeHabits: 'Active Habits',
+      inactiveHabits: 'Inactive Habits',
+      noHabitsFound: 'No habits found',
+      noHabitsSubtext: 'Create some habits first to view their statistics',
+    },
+    goalStats: {
+      loading: 'Loading...',
+    },
+  },
+
+  // Common labels
+  common: {
+    ok: 'OK',
+    cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving...',
+    edit: 'Edit',
+    delete: 'Delete',
+    retry: 'Retry',
+    tryAgain: 'Try Again',
+    add: 'Add',
+    create: 'Create',
+    update: 'Update',
+    confirm: 'Confirm',
+    error: 'Error',
+    success: 'Success',
+    done: 'Done',
+    back: 'Back',
+    next: 'Next',
+    skip: 'Skip',
+    close: 'Close',
+    continue: 'Continue',
+    yes: 'Yes',
+    no: 'No',
+    copy: 'Copy',
+    share: 'Share',
+    startFresh: 'Start Fresh',
+    level: 'Level',
+    totalXP: 'Total XP',
+    achievements: 'Achievements',
+    category: 'Category',
+    rarity: 'Rarity',
+    xpReward: 'XP Reward',
+    loading: {
+      default: 'Loading...',
+      levels: 'Loading levels...',
+      habits: 'Loading habits...',
+      progress: 'Loading progress...',
+    },
+    modals: {
+      errorTitle: 'Error',
+      confirmTitle: 'Confirm Action',
+      confirm: 'Confirm',
+      closeButton: 'Close',
+    },
+    errors: {
+      goals: {
+        failedToSave: 'Failed to save goal',
+        failedToDelete: 'Failed to delete goal',
+        failedToReorder: 'Failed to reorder goals',
+        failedToAddProgress: 'Failed to add progress',
+        noProgressData: 'No progress data yet. Add some progress to see statistics.',
+      },
+      habits: {
+        failedToSave: 'Failed to save habit',
+        failedToDelete: 'Failed to delete habit',
+        failedToUpdate: 'Failed to update habit',
+        failedToReorder: 'Failed to reorder habits',
+        failedToToggleCompletion: 'Failed to toggle completion',
+        loadingHabits: 'Loading habits...',
+        activeHabits: 'Active Habits',
+        inactiveHabits: 'Inactive Habits',
+        noHabitsFound: 'No habits found',
+        createHabitsFirst: 'Create some habits first to view their statistics',
+      },
+      gratitude: {
+        failedToSave: 'Failed to save gratitude',
+      },
+      social: {
+        failedToLoadHeroes: 'Failed to load daily heroes',
+      },
+    },
+    celebration: {
+      general_announcement: 'Congratulations on your achievement!',
+      modal: 'Achievement celebration',
+    },
+    help: 'Help',
+    helpNotAvailable: 'Help information not available for this feature.',
   },
 
   // UI Labels
@@ -321,6 +414,7 @@ const en: TranslationKeys = {
       legendCompleted: 'Completed',
       legendMissed: 'Missed',
       legendMakeup: 'Makeup',
+      bonus: 'Bonus',
     },
   },
   
@@ -2339,6 +2433,22 @@ const en: TranslationKeys = {
     // XP Multiplier
     multiplier: {
       continue: 'Continue',
+      harmonyActivated: 'Harmony Streak Activated!',
+      achievementUnlocked: '🎯 Achievement Unlocked!',
+      harmonyStreakLabel: 'Day Harmony Streak',
+      bonusXP: 'Bonus XP',
+      duration: 'Multiplier Duration',
+      activated: '🚀 MULTIPLIER ACTIVATED!',
+      activateButton: 'Activate 2x XP',
+      duration24h: '24 hours',
+    },
+
+    analysis: {
+      title: 'Performance Analysis',
+      overallRating: 'Overall Rating',
+      trend: 'Trend',
+      successRate: 'Success Rate',
+      strongest: 'Strongest',
     },
 
     // Achievement System
@@ -2404,83 +2514,7 @@ const en: TranslationKeys = {
       },
     },
   },
-  
-  // Common (enhanced with celebration support)
-  common: {
-    save: 'Save',
-    saving: 'Saving...',
-    cancel: 'Cancel',
-    delete: 'Delete',
-    edit: 'Edit',
-    add: 'Add',
-    create: 'Create',
-    update: 'Update',
-    confirm: 'Confirm',
-    loading: 'Loading...',
-    error: 'Error',
-    success: 'Success',
-    retry: 'Retry',
-    ok: 'OK',
-    done: 'Done',
-    back: 'Back',
-    next: 'Next',
-    skip: 'Skip',
-    close: 'Close',
-    continue: 'Continue',
-    yes: 'Yes',
-    no: 'No',
-    copy: 'Copy',
-    share: 'Share',
-    startFresh: 'Start Fresh',
 
-    // Modal defaults
-    modals: {
-      errorTitle: 'Error',
-      confirmTitle: 'Confirm Action',
-      confirm: 'Confirm',
-      closeButton: 'Close',
-    },
-
-    // Error messages
-    errors: {
-      goals: {
-        failedToSave: 'Failed to save goal',
-        failedToDelete: 'Failed to delete goal',
-        failedToReorder: 'Failed to reorder goals',
-        failedToAddProgress: 'Failed to add progress',
-        noProgressData: 'No progress data yet. Add some progress to see statistics.',
-      },
-      habits: {
-        failedToSave: 'Failed to save habit',
-        failedToDelete: 'Failed to delete habit',
-        failedToUpdate: 'Failed to update habit',
-        failedToReorder: 'Failed to reorder habits',
-        failedToToggleCompletion: 'Failed to toggle completion',
-        loadingHabits: 'Loading habits...',
-        activeHabits: 'Active Habits',
-        inactiveHabits: 'Inactive Habits',
-        noHabitsFound: 'No habits found',
-        createHabitsFirst: 'Create some habits first to view their statistics',
-      },
-      gratitude: {
-        failedToSave: 'Failed to save gratitude',
-      },
-      social: {
-        failedToLoadHeroes: 'Failed to load daily heroes',
-      },
-    },
-
-    // Celebration support
-    celebration: {
-      general_announcement: 'Congratulations on your achievement!',
-      modal: 'Achievement celebration',
-    },
-
-    // Help tooltip fallback
-    help: 'Help',
-    helpNotAvailable: 'Help information not available for this feature.',
-  },
-  
   // Days of week
   days: {
     monday: 'Monday',
@@ -3227,6 +3261,80 @@ const en: TranslationKeys = {
       new: 'NEW',
       keepGrowing: 'Keep growing!',
       level: 'Level',
+    },
+    // Achievement History
+    history: {
+      newBadge: 'NEW',
+      emptyTitle: 'No Trophies Yet',
+      recentVictories: 'Recent Victories',
+    },
+    // Achievement Tooltip
+    tooltip: {
+      completed: '✅ Achievement Completed',
+      progressAndRequirements: '📊 Progress & Requirements',
+      requirement: 'Requirement:',
+      currentProgress: 'Current Progress:',
+      nextSteps: '💡 Next Steps:',
+      smartTips: '💡 Smart Tips',
+    },
+    // Achievement Detail Modal
+    detail: {
+      category: 'Category:',
+      rarity: 'Rarity:',
+      xpReward: 'XP Reward:',
+    },
+    // Trophy Room
+    trophyRoom: {
+      title: '🏆 Trophy Room',
+      subtitle: 'Your Personal Hall of Fame',
+      qualitySection: 'Trophy Quality',
+    },
+    // Share Achievement Modal
+    shareModal: {
+      title: 'Share Achievement',
+      subtitle: 'Celebrate your progress! 🎉',
+      preparing: 'Preparing your achievement... 🏆',
+      messagePreview: 'Share Message Preview',
+      sharingOptions: 'Sharing Options',
+      privacyProtected: 'Privacy Protected',
+    },
+  },
+
+  // Challenges
+  challenges: {
+    calendar: {
+      dailyProgress: 'Daily Progress',
+      title: 'Monthly Progress Calendar',
+      noActivity: 'No Activity (<10%)',
+      someActivity: 'Some Activity (10-50%)',
+      goodProgress: 'Good Progress (51-90%)',
+      perfectDay: 'Perfect Day (91%+)',
+      weeklyBreakdown: 'Weekly Breakdown',
+      week: 'Week {week}',
+    },
+    completion: {
+      requirements: 'Requirements',
+      activeDays: 'Active Days',
+      milestones: 'Milestones',
+    },
+  },
+
+  // Gratitude/Journal
+  gratitude: {
+    daily: {
+      title: 'Today\'s Journal Progress',
+    },
+    export: {
+      title: 'Export Journal',
+      textFormat: 'Text Format',
+      jsonFormat: 'JSON Format',
+      exporting: 'Exporting your journal...',
+    },
+    edit: {
+      title: 'Edit Journal Entry',
+    },
+    bonus: {
+      label: 'BONUS ⭐',
     },
   },
 

@@ -327,7 +327,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             {/* Unlocked Achievement Info */}
             {isUnlocked && completionInfo && (
               <View style={styles.completionSection}>
-                <Text style={styles.sectionTitle}>✅ Achievement Completed</Text>
+                <Text style={styles.sectionTitle}>✅ {t('social.tooltip.completed')}</Text>
                 <View style={styles.completionDetails}>
                   <Text style={styles.accomplishmentText}>
                     {completionInfo.accomplishment}
@@ -345,11 +345,11 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             {/* Locked Achievement Progress */}
             {!isUnlocked && progressHint && (
               <View style={styles.progressSection}>
-                <Text style={styles.sectionTitle}>📊 Progress & Requirements</Text>
-                
+                <Text style={styles.sectionTitle}>📊 {t('social.tooltip.progressAndRequirements')}</Text>
+
                 {/* Requirements */}
                 <View style={styles.requirementBox}>
-                  <Text style={styles.requirementTitle}>Requirement:</Text>
+                  <Text style={styles.requirementTitle}>{t('social.tooltip.requirement')}:</Text>
                   <Text style={styles.requirementText}>
                     {progressHint.requirementText}
                   </Text>
@@ -357,7 +357,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
                 
                 {/* Current Progress */}
                 <View style={styles.progressBox}>
-                  <Text style={styles.progressTitle}>Current Progress:</Text>
+                  <Text style={styles.progressTitle}>{t('social.tooltip.currentProgress')}:</Text>
                   <Text style={[styles.progressText, { color: rarityColor }]}>
                     {progressHint.progressText}
                   </Text>
@@ -390,7 +390,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
                 
                 {/* Action Hint */}
                 <View style={styles.actionHintBox}>
-                  <Text style={styles.actionHintTitle}>💡 Next Steps:</Text>
+                  <Text style={styles.actionHintTitle}>💡 {t('social.tooltip.nextSteps')}:</Text>
                   <Text style={styles.actionHintText}>
                     {progressHint.actionHint}
                   </Text>
@@ -401,7 +401,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             {/* Smart Tooltip */}
             {smartTooltip && (
               <View style={styles.tipSection}>
-                <Text style={styles.sectionTitle}>💡 Smart Tips</Text>
+                <Text style={styles.sectionTitle}>💡 {t('social.tooltip.smartTips')}</Text>
                 <Text style={styles.primaryTip}>
                   {smartTooltip.primaryTip}
                 </Text>
@@ -421,7 +421,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             
             {/* XP Reward */}
             <View style={styles.xpSection}>
-              <Text style={styles.xpLabel}>XP Reward:</Text>
+              <Text style={styles.xpLabel}>{t('social.detail.xpReward')}:</Text>
               <Text style={[styles.xpAmount, { color: rarityColor }]}>
                 +{achievement.xpReward} XP
               </Text>

@@ -405,7 +405,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Share Achievement</Text>
+            <Text style={styles.headerTitle}>{t('social.shareModal.title')}</Text>
             <Text style={styles.headerSubtitle}>Celebrate your progress! 🎉</Text>
           </View>
           <TouchableOpacity

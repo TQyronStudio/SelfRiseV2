@@ -247,6 +247,99 @@ const es: Partial<TranslationKeys> = {
     levelOverview: 'Descripción General de Niveles',
     levelsLoading: 'Cargando niveles...',
     goBack: 'Atrás',
+    reorderHabits: {
+      title: 'Reordenar Hábitos',
+      instructions: 'Mantén presionado y arrastra cualquier hábito para reordenarlos',
+    },
+    habitStats: {
+      activeHabits: 'Hábitos Activos',
+      inactiveHabits: 'Hábitos Inactivos',
+      noHabitsFound: 'No se encontraron hábitos',
+      noHabitsSubtext: 'Crea algunos hábitos primero para ver sus estadísticas',
+    },
+    goalStats: {
+      loading: 'Cargando...',
+    },
+  },
+
+  // Common labels
+  common: {
+    ok: 'OK',
+    cancel: 'Cancelar',
+    save: 'Guardar',
+    saving: 'Guardando...',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    retry: 'Reintentar',
+    tryAgain: 'Reintentar',
+    add: 'Añadir',
+    create: 'Crear',
+    update: 'Actualizar',
+    confirm: 'Confirmar',
+    error: 'Error',
+    success: 'Éxito',
+    done: 'Hecho',
+    back: 'Atrás',
+    next: 'Siguiente',
+    skip: 'Saltar',
+    close: 'Cerrar',
+    continue: 'Continuar',
+    yes: 'Sí',
+    no: 'No',
+    copy: 'Copiar',
+    share: 'Compartir',
+    startFresh: 'Empezar de nuevo',
+    level: 'Nivel',
+    totalXP: 'XP Total',
+    achievements: 'Logros',
+    category: 'Categoría',
+    rarity: 'Rareza',
+    xpReward: 'Recompensa XP',
+    loading: {
+      default: 'Cargando...',
+      levels: 'Cargando niveles...',
+      habits: 'Cargando hábitos...',
+      progress: 'Cargando progreso...',
+    },
+    modals: {
+      errorTitle: 'Error',
+      confirmTitle: 'Confirmar Acción',
+      confirm: 'Confirmar',
+      closeButton: 'Cerrar',
+    },
+    errors: {
+      goals: {
+        failedToSave: 'No se pudo guardar el objetivo',
+        failedToDelete: 'No se pudo eliminar el objetivo',
+        failedToReorder: 'No se pudieron reordenar los objetivos',
+        failedToAddProgress: 'No se pudo agregar el progreso',
+        noProgressData: 'Sin datos de progreso aún. Agregue algo de progreso para ver estadísticas.',
+      },
+      habits: {
+        failedToSave: 'No se pudo guardar el hábito',
+        failedToDelete: 'No se pudo eliminar el hábito',
+        failedToUpdate: 'No se pudo actualizar el hábito',
+        failedToReorder: 'No se pudieron reordenar los hábitos',
+        failedToToggleCompletion: 'No se pudo cambiar la finalización',
+        loadingHabits: 'Cargando hábitos...',
+        activeHabits: 'Hábitos Activos',
+        inactiveHabits: 'Hábitos Inactivos',
+        noHabitsFound: 'No se encontraron hábitos',
+        createHabitsFirst: 'Cree algunos hábitos primero para ver sus estadísticas',
+      },
+      gratitude: {
+        failedToSave: 'No se pudo guardar la gratitud',
+      },
+      social: {
+        failedToLoadHeroes: 'No se pudieron cargar los héroes diarios',
+      },
+    },
+    celebration: {
+      general_announcement: '¡Felicidades por tu logro!',
+      modal: 'Celebración de logro',
+    },
+    help: 'Ayuda',
+    helpNotAvailable: 'Información de ayuda no disponible para esta función.',
   },
 
   // UI Labels
@@ -327,6 +420,7 @@ const es: Partial<TranslationKeys> = {
       legendCompleted: 'Completado',
       legendMissed: 'Perdido',
       legendMakeup: 'Recuperado',
+      bonus: 'Bonificación',
     },
   } as any,
 
@@ -1155,82 +1249,6 @@ const es: Partial<TranslationKeys> = {
     success: 'Éxito',
     errorTitle: 'Error',
     resetting: 'Reiniciando...',
-  } as any,
-
-  // Common
-  common: {
-    save: 'Guardar',
-    saving: 'Guardando...',
-    cancel: 'Cancelar',
-    delete: 'Eliminar',
-    edit: 'Editar',
-    add: 'Añadir',
-    create: 'Crear',
-    update: 'Actualizar',
-    confirm: 'Confirmar',
-    loading: 'Cargando...',
-    error: 'Error',
-    success: 'Éxito',
-    retry: 'Reintentar',
-    ok: 'OK',
-    done: 'Hecho',
-    back: 'Atrás',
-    next: 'Siguiente',
-    skip: 'Saltar',
-    close: 'Cerrar',
-    continue: 'Continuar',
-    yes: 'Sí',
-    no: 'No',
-    copy: 'Copiar',
-    share: 'Compartir',
-    startFresh: 'Empezar de nuevo',
-
-    // Modal defaults
-    modals: {
-      errorTitle: 'Error',
-      confirmTitle: 'Confirmar Acción',
-      confirm: 'Confirmar',
-      closeButton: 'Cerrar',
-    },
-
-    // Error messages
-    errors: {
-      goals: {
-        failedToSave: 'No se pudo guardar el objetivo',
-        failedToDelete: 'No se pudo eliminar el objetivo',
-        failedToReorder: 'No se pudieron reordenar los objetivos',
-        failedToAddProgress: 'No se pudo agregar el progreso',
-        noProgressData: 'Sin datos de progreso aún. Agregue algo de progreso para ver estadísticas.',
-      },
-      habits: {
-        failedToSave: 'No se pudo guardar el hábito',
-        failedToDelete: 'No se pudo eliminar el hábito',
-        failedToUpdate: 'No se pudo actualizar el hábito',
-        failedToReorder: 'No se pudieron reordenar los hábitos',
-        failedToToggleCompletion: 'No se pudo cambiar la finalización',
-        loadingHabits: 'Cargando hábitos...',
-        activeHabits: 'Hábitos Activos',
-        inactiveHabits: 'Hábitos Inactivos',
-        noHabitsFound: 'No se encontraron hábitos',
-        createHabitsFirst: 'Cree algunos hábitos primero para ver sus estadísticas',
-      },
-      gratitude: {
-        failedToSave: 'No se pudo guardar la gratitud',
-      },
-      social: {
-        failedToLoadHeroes: 'No se pudieron cargar los héroes diarios',
-      },
-    },
-
-    // Celebration support
-    celebration: {
-      general_announcement: '¡Felicidades por tu logro!',
-      modal: 'Celebración de logro',
-    },
-
-    // Help tooltip fallback
-    help: 'Ayuda',
-    helpNotAvailable: 'Información de ayuda no disponible para esta función.',
   } as any,
 
   // Days of week
@@ -2283,6 +2301,22 @@ const es: Partial<TranslationKeys> = {
     // XP Multiplier
     multiplier: {
       continue: 'Continuar',
+      harmonyActivated: '¡Racha de Armonía Activada!',
+      achievementUnlocked: '🎯 ¡Logro Desbloqueado!',
+      harmonyStreakLabel: 'Días de Racha de Armonía',
+      bonusXP: 'XP Bonificación',
+      duration: 'Duración del Multiplicador',
+      activated: '🚀 ¡MULTIPLICADOR ACTIVADO!',
+      activateButton: 'Activar 2x XP',
+      duration24h: '24 horas',
+    },
+
+    analysis: {
+      title: 'Análisis de Rendimiento',
+      overallRating: 'Calificación General',
+      trend: 'Tendencia',
+      successRate: 'Tasa de Éxito',
+      strongest: 'Más Fuerte',
     },
 
     achievement: {
@@ -2807,6 +2841,80 @@ const es: Partial<TranslationKeys> = {
       new: 'NUEVO',
       keepGrowing: '¡Sigue creciendo!',
       level: 'Nivel',
+    },
+    // Achievement History
+    history: {
+      newBadge: 'NUEVO',
+      emptyTitle: 'Sin Trofeos Aún',
+      recentVictories: 'Victorias Recientes',
+    },
+    // Achievement Tooltip
+    tooltip: {
+      completed: '✅ Logro Desbloqueado',
+      progressAndRequirements: '📊 Progreso y Requisitos',
+      requirement: 'Requisito:',
+      currentProgress: 'Progreso Actual:',
+      nextSteps: '💡 Próximos Pasos:',
+      smartTips: '💡 Consejos Inteligentes',
+    },
+    // Achievement Detail Modal
+    detail: {
+      category: 'Categoría:',
+      rarity: 'Rareza:',
+      xpReward: 'Recompensa XP:',
+    },
+    // Trophy Room
+    trophyRoom: {
+      title: '🏆 Sala de Trofeos',
+      subtitle: 'Tu Galería Personal de la Fama',
+      qualitySection: 'Calidad del Trofeo',
+    },
+    // Share Achievement Modal
+    shareModal: {
+      title: 'Compartir Logro',
+      subtitle: '¡Celebra tu progreso! 🎉',
+      preparing: 'Preparando tu logro... 🏆',
+      messagePreview: 'Vista previa del mensaje compartido',
+      sharingOptions: 'Opciones de Compartir',
+      privacyProtected: 'Privacidad Protegida',
+    },
+  } as any,
+
+  // Challenges
+  challenges: {
+    calendar: {
+      dailyProgress: 'Progreso Diario',
+      title: 'Calendario de Progreso Mensual',
+      noActivity: 'Sin Actividad (<10%)',
+      someActivity: 'Alguna Actividad (10-50%)',
+      goodProgress: 'Buen Progreso (51-90%)',
+      perfectDay: 'Día Perfecto (91%+)',
+      weeklyBreakdown: 'Desglose Semanal',
+      week: 'Semana {week}',
+    },
+    completion: {
+      requirements: 'Requisitos',
+      activeDays: 'Días Activos',
+      milestones: 'Hitos',
+    },
+  } as any,
+
+  // Gratitude/Journal
+  gratitude: {
+    daily: {
+      title: 'Progreso del Diario Hoy',
+    },
+    export: {
+      title: 'Exportar Diario',
+      textFormat: 'Formato de Texto',
+      jsonFormat: 'Formato JSON',
+      exporting: 'Exportando tu diario...',
+    },
+    edit: {
+      title: 'Editar Entrada del Diario',
+    },
+    bonus: {
+      label: 'BONIFICACIÓN ⭐',
     },
   } as any,
 

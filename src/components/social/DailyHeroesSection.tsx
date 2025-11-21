@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SocialSharingService, DailyHeroEntry } from '../../services/socialSharingService';
 import { Layout } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 // ========================================
 // INTERFACES
@@ -244,6 +245,7 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
   maxVisible = 5
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [heroes, setHeroes] = useState<DailyHeroEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -400,11 +402,11 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Daily Heroes 🦸‍♀️</Text>
-          <Text style={styles.subtitle}>Anonymous achievements to inspire you</Text>
+          <Text style={styles.title}>{t('social.dailyHeroes.title')} 🦸‍♀️</Text>
+          <Text style={styles.subtitle}>{t('social.dailyHeroes.subtitle')}</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading inspiring achievements...</Text>
+          <Text style={styles.loadingText}>{t('social.dailyHeroes.loading')}</Text>
         </View>
       </View>
     );
@@ -414,13 +416,13 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Daily Heroes 🦸‍♀️</Text>
-          <Text style={styles.subtitle}>Anonymous achievements to inspire you</Text>
+          <Text style={styles.title}>{t('social.dailyHeroes.title')} 🦸‍♀️</Text>
+          <Text style={styles.subtitle}>{t('social.dailyHeroes.subtitle')}</Text>
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => loadDailyHeroes()}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>{t('social.dailyHeroes.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -431,12 +433,12 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Daily Heroes 🦸‍♀️</Text>
-          <Text style={styles.subtitle}>Anonymous achievements to inspire you</Text>
+          <Text style={styles.title}>{t('social.dailyHeroes.title')} 🦸‍♀️</Text>
+          <Text style={styles.subtitle}>{t('social.dailyHeroes.subtitle')}</Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No heroes available right now</Text>
-          <Text style={styles.emptySubtext}>Check back later for new inspiration!</Text>
+          <Text style={styles.emptyText}>{t('social.dailyHeroes.noHeroes')}</Text>
+          <Text style={styles.emptySubtext}>{t('social.dailyHeroes.noHeroesSubtitle')}</Text>
         </View>
       </View>
     );
@@ -447,9 +449,9 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>Daily Heroes 🦸‍♀️</Text>
+          <Text style={styles.title}>{t('social.dailyHeroes.title')} 🦸‍♀️</Text>
           <Text style={styles.subtitle}>
-            Anonymous achievements to inspire you ({heroes.length})
+            {t('social.dailyHeroes.subtitle')} ({heroes.length})
           </Text>
         </View>
         <TouchableOpacity

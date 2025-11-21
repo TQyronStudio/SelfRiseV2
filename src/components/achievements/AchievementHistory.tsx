@@ -232,7 +232,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
         
         <View style={styles.rewardContainer}>
           <Text style={styles.rewardText}>+{achievement.xpReward} XP</Text>
-          {isRecent && <Text style={styles.newBadge}>NEW</Text>}
+          {isRecent && <Text style={styles.newBadge}>{t('social.history.newBadge')}</Text>}
         </View>
       </View>
     </TouchableOpacity>
@@ -245,6 +245,7 @@ export const AchievementHistory: React.FC<AchievementHistoryProps> = ({
   onAchievementPress,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   // Get unlocked achievements in reverse order (most recent first)
   const unlockedAchievements = userAchievements.unlockedAchievements
@@ -337,9 +338,9 @@ export const AchievementHistory: React.FC<AchievementHistoryProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🏆</Text>
-        <Text style={styles.emptyTitle}>No Trophies Yet</Text>
+        <Text style={styles.emptyTitle}>{t('social.history.emptyTitle')}</Text>
         <Text style={styles.emptySubtitle}>
-          Complete habits, write journal entries, and achieve goals to unlock your first trophies!
+          {t('achievements.overview.noAchievements')}
         </Text>
       </View>
     );
@@ -348,7 +349,7 @@ export const AchievementHistory: React.FC<AchievementHistoryProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Recent Victories</Text>
+        <Text style={styles.headerTitle}>{t('social.history.recentVictories')}</Text>
         <Text style={styles.headerSubtitle}>
           Your latest {recentUnlocks.length} achievement{recentUnlocks.length !== 1 ? 's' : ''}
         </Text>

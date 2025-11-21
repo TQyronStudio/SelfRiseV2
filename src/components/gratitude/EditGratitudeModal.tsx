@@ -166,7 +166,7 @@ export default function EditGratitudeModal({
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Journal Entry</Text>
+          <Text style={styles.headerTitle}>{t('gratitude.edit.title')}</Text>
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={!content.trim() || isSubmitting}
@@ -176,7 +176,7 @@ export default function EditGratitudeModal({
               styles.saveButtonText,
               (!content.trim() || isSubmitting) && styles.saveButtonTextDisabled
             ]}>
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -188,7 +188,7 @@ export default function EditGratitudeModal({
               {gratitude.type === 'gratitude' ? '🙏 Gratitude' : '💪 Self-Praise'}
             </Text>
             {gratitude.isBonus && (
-              <Text style={styles.bonusText}>BONUS ⭐</Text>
+              <Text style={styles.bonusText}>{t('gratitude.bonus.label')} ⭐</Text>
             )}
           </View>
 

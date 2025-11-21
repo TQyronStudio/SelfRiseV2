@@ -253,7 +253,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
     return (
       <View style={[styles.container, compact && styles.containerCompact]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading inspiration...</Text>
+          <Text style={styles.loadingText}>{t('social.quote.title')}...</Text>
         </View>
       </View>
     );
