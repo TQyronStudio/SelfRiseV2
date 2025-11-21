@@ -2943,6 +2943,13 @@ const en: TranslationKeys = {
         button: 'All set!',
       },
 
+      // Step 14b: Create Goal Button
+      createGoalButton: {
+        title: 'Create Your First Goal',
+        content: 'Click + Add Goal to set your first meaningful target!',
+        button: 'Click Here',
+      },
+
       // Step 15: XP System Introduction
       xpIntro: {
         title: 'You\'re Earning XP! ⚡',
@@ -2995,6 +3002,8 @@ const en: TranslationKeys = {
       goalCreationFailed: 'We couldn\'t create your goal. Please try again.',
       journalEntryFailed: 'We couldn\'t save your journal entry. Please try again.',
       genericError: 'Something unexpected happened. Please try again.',
+      recoveryMode: 'Tutorial experienced issues. Running in simplified mode.',
+      reset: 'Tutorial encountered an error and was reset.',
       retry: 'Try Again',
     },
 

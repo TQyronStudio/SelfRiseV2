@@ -92,7 +92,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       type: DebtModalType.SUCCESS,
       title,
       message,
-      primaryText: 'OK',
+      primaryText: t('common.ok'),
       onPrimaryAction: closeModal,
     });
   };
@@ -102,7 +102,7 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       type: DebtModalType.ERROR,
       title,
       message,
-      primaryText: 'OK',
+      primaryText: t('common.ok'),
       onPrimaryAction: closeModal,
     });
   };

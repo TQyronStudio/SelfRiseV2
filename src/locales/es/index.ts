@@ -2606,9 +2606,17 @@ const es: Partial<TranslationKeys> = {
     finish: 'Finalizar Tutorial',
     progressText: 'Paso {{current}} de {{total}}',
     loading: 'Configurando tu tutorial...',
-    steps: {} as any,
+    steps: {
+      createGoalButton: {
+        title: 'Crea Tu Primer Objetivo',
+        content: '¡Haz clic en + Agregar Objetivo para establecer tu primer objetivo significativo!',
+        button: 'Haz clic aquí',
+      },
+    } as any,
     validation: {} as any,
     errors: {
+      recoveryMode: 'El tutorial experimentó problemas. Ejecutándose en modo simplificado.',
+      reset: 'El tutorial encontró un error y fue reiniciado.',
       retry: 'Intentar de Nuevo'
     },
     skipConfirmation: {

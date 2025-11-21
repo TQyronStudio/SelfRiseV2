@@ -2606,9 +2606,17 @@ const de: Partial<TranslationKeys> = {
     finish: 'Tutorial beenden',
     progressText: 'Schritt {{current}} von {{total}}',
     loading: 'Tutorial wird eingerichtet...',
-    steps: {} as any,
+    steps: {
+      createGoalButton: {
+        title: 'Erstelle Dein Erstes Ziel',
+        content: 'Klicke auf + Ziel hinzufügen, um dein erstes bedeutungsvolles Ziel zu setzen!',
+        button: 'Hier klicken',
+      },
+    } as any,
     validation: {} as any,
     errors: {
+      recoveryMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
+      reset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
       retry: 'Erneut versuchen',
     },
     skipConfirmation: {

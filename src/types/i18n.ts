@@ -1713,6 +1713,11 @@ export interface TranslationKeys {
         content: string;
         button: string;
       };
+      createGoalButton: {
+        title: string;
+        content: string;
+        button: string;
+      };
     };
 
     // Validation Messages
@@ -1752,6 +1757,8 @@ export interface TranslationKeys {
       goalCreationFailed: string;
       journalEntryFailed: string;
       genericError: string;
+      recoveryMode: string;
+      reset: string;
       retry: string;
     };
 

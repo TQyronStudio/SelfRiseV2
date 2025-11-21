@@ -328,9 +328,9 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
     type: 'spotlight',
     target: 'add-goal-button',
     content: {
-      title: 'Create Your First Goal',
-      content: 'Click + Add Goal to set your first meaningful target!',
-      button: 'Click Here'
+      title: t('tutorial.steps.createGoalButton.title'),
+      content: t('tutorial.steps.createGoalButton.content'),
+      button: t('tutorial.steps.createGoalButton.button')
     },
     action: 'click_element'
   },
