@@ -252,6 +252,9 @@ export interface TranslationKeys {
     goalStats: {
       loading: string;
     };
+    trophyRoom: {
+      title: string;
+    };
   };
 
   // UI Labels
@@ -348,8 +351,17 @@ export interface TranslationKeys {
     bonusGratitude: string;
     currentStreak: string;
     longestStreak: string;
+    frozenStreak: string;
     history: string;
     statistics: string;
+    progress: {
+      title: string;
+      complete: string;
+      bonusAmazing: string;
+      dailyComplete: string;
+      entriesNeeded_one: string;
+      entriesNeeded_other: string;
+    };
     // --- BONUS MILESTONE SYSTEM ---
     // Bonus count milestones: 1st, 5th, 10th bonus entries
     bonusMilestone1_title: string;
@@ -1312,6 +1324,7 @@ export interface TranslationKeys {
     category?: string;
     rarity?: string;
     xpReward?: string;
+    completed?: string;
     modals: {
       errorTitle: string;
       confirmTitle: string;
@@ -1361,6 +1374,15 @@ export interface TranslationKeys {
     saturday: string;
     sunday: string;
     short: {
+      monday: string;
+      tuesday: string;
+      wednesday: string;
+      thursday: string;
+      friday: string;
+      saturday: string;
+      sunday: string;
+    };
+    shortest: {
       monday: string;
       tuesday: string;
       wednesday: string;

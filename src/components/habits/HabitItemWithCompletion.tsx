@@ -56,14 +56,18 @@ const ICON_MAP = {
   [HabitIcon.HOME]: 'home-outline',
 } as const;
 
-const DAY_LABELS = {
-  [DayOfWeek.MONDAY]: 'Mo',
-  [DayOfWeek.TUESDAY]: 'Tu',
-  [DayOfWeek.WEDNESDAY]: 'We',
-  [DayOfWeek.THURSDAY]: 'Th',
-  [DayOfWeek.FRIDAY]: 'Fr',
-  [DayOfWeek.SATURDAY]: 'Sa',
-  [DayOfWeek.SUNDAY]: 'Su',
+// Day labels are now handled dynamically via i18n
+const getDayLabel = (day: DayOfWeek, t: (key: string) => string): string => {
+  const dayMap = {
+    [DayOfWeek.MONDAY]: 'days.shortest.monday',
+    [DayOfWeek.TUESDAY]: 'days.shortest.tuesday',
+    [DayOfWeek.WEDNESDAY]: 'days.shortest.wednesday',
+    [DayOfWeek.THURSDAY]: 'days.shortest.thursday',
+    [DayOfWeek.FRIDAY]: 'days.shortest.friday',
+    [DayOfWeek.SATURDAY]: 'days.shortest.saturday',
+    [DayOfWeek.SUNDAY]: 'days.shortest.sunday',
+  };
+  return t(dayMap[day]);
 };
 
 export const HabitItemWithCompletion = React.memo(({ 
@@ -502,7 +506,7 @@ export const HabitItemWithCompletion = React.memo(({
                     isTodayUnscheduled && styles.todayUnscheduledDayLabel,
                   ]}
                 >
-                  {DAY_LABELS[day]}
+                  {getDayLabel(day, t)}
                 </Text>
               </View>
             );

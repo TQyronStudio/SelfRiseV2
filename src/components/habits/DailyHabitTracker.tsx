@@ -282,7 +282,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
             />
           </View>
           <Text style={styles.progressText}>
-            {dailyProgress.completed} of {dailyProgress.total} completed
+            {t('common.completed', { completed: dailyProgress.completed, total: dailyProgress.total })}
           </Text>
         </View>
       </View>

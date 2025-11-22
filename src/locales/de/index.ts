@@ -260,6 +260,9 @@ const de: Partial<TranslationKeys> = {
     goalStats: {
       loading: 'Wird geladen...',
     },
+    trophyRoom: {
+      title: 'Trophäenzimmer',
+    },
   },
 
   // Common labels
@@ -295,6 +298,7 @@ const de: Partial<TranslationKeys> = {
     category: 'Kategorie',
     rarity: 'Seltenheit',
     xpReward: 'XP-Belohnung',
+    completed: '{{completed}} von {{total}} abgeschlossen',
     loading: {
       default: 'Wird geladen...',
       levels: 'Level werden geladen...',
@@ -435,8 +439,18 @@ const de: Partial<TranslationKeys> = {
     bonusGratitude: 'Bonus-Eintrag',
     currentStreak: 'Aktuelle Serie',
     longestStreak: 'Längste Serie',
+    frozenStreak: 'Gefrorene Serie',
     history: 'Historie',
     statistics: 'Statistiken',
+    // Daily Progress Display
+    progress: {
+      title: 'Fortschritt meines Tagebuchs heute',
+      complete: 'Fertig ✓',
+      bonusAmazing: 'Fantastisch! Du hast Bonus-Einträge hinzugefügt! 🌟',
+      dailyComplete: 'Tagebuch heute abgeschlossen! Halte deine Serie am Leben! 🔥',
+      entriesNeeded_one: '{{count}} weiterer Eintrag erforderlich',
+      entriesNeeded_other: '{{count}} weitere Einträge erforderlich',
+    },
     // --- BONUS MILESTONE SYSTEM ---
     bonusMilestone1_title: 'Erster Bonus-Eintrag! ⭐',
     bonusMilestone1_text: 'Fantastisch! Du hast heute deinen ersten Bonus-Eintrag geschrieben! Mach weiter so!',
@@ -1261,6 +1275,15 @@ const de: Partial<TranslationKeys> = {
     saturday: 'Samstag',
     sunday: 'Sonntag',
     short: {
+      monday: 'Mo',
+      tuesday: 'Di',
+      wednesday: 'Mi',
+      thursday: 'Do',
+      friday: 'Fr',
+      saturday: 'Sa',
+      sunday: 'So',
+    },
+    shortest: {
       monday: 'Mo',
       tuesday: 'Di',
       wednesday: 'Mi',

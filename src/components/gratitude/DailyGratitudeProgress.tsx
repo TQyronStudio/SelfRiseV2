@@ -50,20 +50,20 @@ export default function DailyGratitudeProgress({
       return `${currentCount}/3+ ${t('journal.bonusGratitude')}`;
     }
     if (isComplete) {
-      return `${currentCount}/3 Complete ✓`;
+      return `${currentCount}/3 ${t('journal.progress.complete')}`;
     }
     return `${currentCount}/3`;
   };
 
   const getSubText = () => {
     if (hasBonus) {
-      return 'Amazing! You\'ve added bonus entries! 🌟';
+      return t('journal.progress.bonusAmazing');
     }
     if (isComplete) {
-      return 'Daily journal complete! Keep your streak alive! 🔥';
+      return t('journal.progress.dailyComplete');
     }
     const remaining = 3 - currentCount;
-    return `${remaining} more ${remaining !== 1 ? 'entries' : 'entry'} needed`;
+    return t('journal.progress.entriesNeeded', { count: remaining });
   };
 
   const styles = StyleSheet.create({
@@ -221,7 +221,7 @@ export default function DailyGratitudeProgress({
   return (
     <View ref={progressRef} style={styles.container} nativeID="todays-journal-progress">
       <View style={styles.header}>
-        <Text style={styles.title}>Today's Journal Progress</Text>
+        <Text style={styles.title}>{t('journal.progress.title')}</Text>
         <Text style={[styles.progressText, { color: getProgressColor() }]}>
           {getProgressText()}
         </Text>
@@ -296,7 +296,7 @@ export default function DailyGratitudeProgress({
                   styles.streakLabel,
                   streakInfo.isFrozen && styles.frozenStreakLabel
                 ]}>
-                  {streakInfo.isFrozen ? 'Frozen Streak' : t('journal.currentStreak')}
+                  {streakInfo.isFrozen ? t('journal.frozenStreak') : t('journal.currentStreak')}
                 </Text>
               </View>
               <View style={styles.streakDivider} />

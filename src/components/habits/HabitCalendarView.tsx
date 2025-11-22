@@ -313,7 +313,15 @@ export function HabitCalendarView({
     );
   }
 
-  const dayHeaders = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const dayHeaders = [
+    t('days.shortest.monday'),
+    t('days.shortest.tuesday'),
+    t('days.shortest.wednesday'),
+    t('days.shortest.thursday'),
+    t('days.shortest.friday'),
+    t('days.shortest.saturday'),
+    t('days.shortest.sunday'),
+  ];
 
   return (
     <View style={styles.container}>

@@ -5,6 +5,7 @@ import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../ut
 import { Habit } from '../../types/habit';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
+import { useI18n } from '../../hooks/useI18n';
 
 interface DailyHabitProgressProps {
   date?: string;
@@ -13,6 +14,7 @@ interface DailyHabitProgressProps {
 export const DailyHabitProgress: React.FC<DailyHabitProgressProps> = ({
   date = formatDateToString(new Date())
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const { habits, completions } = useHabitsData();
 
@@ -96,7 +98,7 @@ export const DailyHabitProgress: React.FC<DailyHabitProgressProps> = ({
           {formatDateForDisplay(date, 'long')}
         </Text>
         <Text style={styles.progressText}>
-          {dailyProgress.completed} of {dailyProgress.total} completed
+          {t('common.completed', { completed: dailyProgress.completed, total: dailyProgress.total })}
         </Text>
       </View>
       

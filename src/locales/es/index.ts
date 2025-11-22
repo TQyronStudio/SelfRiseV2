@@ -260,6 +260,9 @@ const es: Partial<TranslationKeys> = {
     goalStats: {
       loading: 'Cargando...',
     },
+    trophyRoom: {
+      title: 'Sala de Trofeos',
+    },
   },
 
   // Common labels
@@ -295,6 +298,7 @@ const es: Partial<TranslationKeys> = {
     category: 'Categoría',
     rarity: 'Rareza',
     xpReward: 'Recompensa XP',
+    completed: '{{completed}} de {{total}} completado',
     loading: {
       default: 'Cargando...',
       levels: 'Cargando niveles...',
@@ -435,8 +439,18 @@ const es: Partial<TranslationKeys> = {
     bonusGratitude: 'Entrada Bonus',
     currentStreak: 'Racha Actual',
     longestStreak: 'Racha Más Larga',
+    frozenStreak: 'Racha Congelada',
     history: 'Historial',
     statistics: 'Estadísticas',
+    // Daily Progress Display
+    progress: {
+      title: 'Progreso del Diario Hoy',
+      complete: 'Completo ✓',
+      bonusAmazing: '¡Increíble! ¡Has agregado entradas bonus! 🌟',
+      dailyComplete: '¡Diario completado hoy! ¡Mantén tu racha viva! 🔥',
+      entriesNeeded_one: '{{count}} entrada más requerida',
+      entriesNeeded_other: '{{count}} entradas más requeridas',
+    },
     // --- BONUS MILESTONE SYSTEM ---
     bonusMilestone1_title: '¡Primera Entrada Bonus! ⭐',
     bonusMilestone1_text: '¡Increíble! ¡Has escrito tu primera entrada bonus hoy! ¡Sigue así!',
@@ -1268,6 +1282,15 @@ const es: Partial<TranslationKeys> = {
       friday: 'Vie',
       saturday: 'Sáb',
       sunday: 'Dom',
+    },
+    shortest: {
+      monday: 'L',
+      tuesday: 'M',
+      wednesday: 'M',
+      thursday: 'J',
+      friday: 'V',
+      saturday: 'S',
+      sunday: 'D',
     },
   } as any,
 

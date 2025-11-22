@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface DailyProgressBarProps {
   completed: number;
@@ -21,6 +22,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   backgroundColor,
   animated = true,
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
   const progressAnim = useRef(new Animated.Value(0)).current;
 
@@ -114,7 +116,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
       {showPercentage && (
         <View style={styles.textContainer}>
           <Text style={[styles.progressText, { color: progressColor }]}>
-            {completed} of {total} completed
+            {t('common.completed', { completed, total })}
           </Text>
           <Text style={[styles.percentageText, { color: progressColor }]}>
             {Math.round(percentage)}%

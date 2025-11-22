@@ -253,6 +253,9 @@ const en: TranslationKeys = {
     goalStats: {
       loading: 'Loading...',
     },
+    trophyRoom: {
+      title: 'Trophy Room',
+    },
   },
 
   // Common labels
@@ -288,6 +291,7 @@ const en: TranslationKeys = {
     category: 'Category',
     rarity: 'Rarity',
     xpReward: 'XP Reward',
+    completed: '{{completed}} of {{total}} completed',
     loading: {
       default: 'Loading...',
       levels: 'Loading levels...',
@@ -429,8 +433,18 @@ const en: TranslationKeys = {
     bonusGratitude: 'Bonus Entry',
     currentStreak: 'Current Streak',
     longestStreak: 'Longest Streak',
+    frozenStreak: 'Frozen Streak',
     history: 'History',
     statistics: 'Statistics',
+    // Daily Progress Display
+    progress: {
+      title: 'Today\'s Journal Progress',
+      complete: 'Complete ✓',
+      bonusAmazing: 'Amazing! You\'ve added bonus entries! 🌟',
+      dailyComplete: 'Daily journal complete! Keep your streak alive! 🔥',
+      entriesNeeded_one: '{{count}} more entry needed',
+      entriesNeeded_other: '{{count}} more entries needed',
+    },
     // --- BONUS MILESTONE SYSTEM ---
     // Bonus count milestones: 1st, 5th, 10th bonus entries
     bonusMilestone1_title: 'First Bonus Entry! ⭐',
@@ -2532,6 +2546,15 @@ const en: TranslationKeys = {
       friday: 'Fri',
       saturday: 'Sat',
       sunday: 'Sun',
+    },
+    shortest: {
+      monday: 'Mo',
+      tuesday: 'Tu',
+      wednesday: 'We',
+      thursday: 'Th',
+      friday: 'Fr',
+      saturday: 'Sa',
+      sunday: 'Su',
     },
   },
 

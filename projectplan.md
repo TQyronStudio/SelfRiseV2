@@ -1,5 +1,49 @@
 # SelfRise V2 - Project Plan
 
+## 🚨 IN PROGRESS: COMPREHENSIVE i18n AUDIT & FIX (Phase 11)
+
+**Goal**: Achieve TRUE 100% i18n coverage by finding and translating ALL remaining hardcoded user-visible strings
+
+**Critical User-Reported Bugs**:
+- Habits Screen: "Saturday, November 22 0 of 0 completed" - date formatting + count hardcoded
+- Habits Screen: "Mo, Tu, We..." - day abbreviations hardcoded
+- Journal Screen: "Today's Journal Progress" (line 224) - HARDCODED
+- Journal Screen: "X more entries needed" (line 66) - HARDCODED
+- Journal Screen: "Complete ✓" (line 53) - HARDCODED
+- Journal Screen: "Frozen Streak" (line 299) - partially hardcoded
+- Navigation: "Home", "Trophy Room", all tab/screen titles - HARDCODED
+
+**Phases**:
+- [x] **Phase 1**: Comprehensive File Scan - Found 40+ hardcoded strings across 10+ files
+- [x] **Phase 2**: Categorize Findings - Grouped into 5 categories (journal, navigation, dates, day abbreviations, completion counts)
+- [x] **Phase 3**: Create Translation Keys - Added missing keys to i18n.ts type definitions (EN complete)
+  - [x] Added `days.shortest.*` (Mo, Tu, We, Th, Fr, Sa, Su)
+  - [x] Added `journal.frozenStreak`, `journal.progress.*` (6 keys)
+  - [x] Added `common.completed`
+  - [x] Added `screens.trophyRoom.title`
+  - [x] Updated TypeScript types in i18n.ts
+- [ ] **Phase 4**: Add Translations - Add DE/ES strings to all 3 locale files (IN PROGRESS)
+  - [ ] German (DE): Add all new keys with translations
+  - [ ] Spanish (ES): Add all new keys with translations
+- [ ] **Phase 5**: Update Components - Replace ALL hardcoded strings with t()
+  - [ ] DailyGratitudeProgress.tsx (6 strings)
+  - [ ] HabitItem.tsx, HabitItemWithCompletion.tsx, HabitCalendarView.tsx (day abbreviations)
+  - [ ] DailyHabitTracker.tsx, DailyHabitProgress.tsx, DailyProgressBar.tsx (completion counts)
+  - [ ] app/_layout.tsx (navigation titles)
+- [ ] **Phase 6**: Update Date Utilities - Make formatDateForDisplay() i18n-aware
+- [ ] **Phase 7**: Verification - TypeScript compilation + manual testing
+
+**Confirmed Hardcoded Strings Found** (40+ total):
+1. Journal Progress (6): "Complete ✓", "Today's Journal Progress", "Frozen Streak", etc.
+2. Day Abbreviations (21): "Mo, Tu, We..." in 3 files - MUST use existing days.short.* keys
+3. Completion Counts (3): "X of Y completed" in DailyHabitTracker, DailyHabitProgress, DailyProgressBar
+4. Navigation (2): "Trophy Room", "Home" in app/_layout.tsx
+5. Date Formatting (10+): Hardcoded 'en-US' locale in date.ts formatDateForDisplay()
+
+**Expected Outcome**: Zero hardcoded user-visible strings, full i18n support across all screens
+
+---
+
 ## ✅ COMPLETED: Achievement i18n Migration (100%)
 
 Successfully completed full internationalization of achievement system with German and Spanish translations.

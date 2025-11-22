@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import '../src/config/i18n';
 import { RootProvider } from '../src/contexts';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useI18n } from '../src/hooks/useI18n';
 
 // Initialize Monthly Progress Integration for challenge tracking
 import '../src/services';
@@ -45,6 +46,7 @@ function LayoutContent() {
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   return (
     <TutorialProvider>
@@ -55,7 +57,7 @@ function LayoutContent() {
             name="achievements"
             options={{
               headerShown: true,
-              title: 'Trophy Room',
+              title: t('screens.trophyRoom.title'),
               headerBackTitle: 'Home',
               headerStyle: {
                 backgroundColor: colors.primary,

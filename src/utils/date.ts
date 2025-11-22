@@ -1,5 +1,6 @@
 import { DateString, DayOfWeek } from '../types/common';
 import { WarmUpPayment } from '../types/gratitude';
+import i18next from 'i18next';
 
 // Date formatting constants
 export const DATE_FORMAT = 'YYYY-MM-DD';
@@ -361,51 +362,55 @@ export const getRelativeDateText = (dateString: DateString): string => {
   if (isToday(dateString)) return 'Today';
   if (isYesterday(dateString)) return 'Yesterday';
   if (isTomorrow(dateString)) return 'Tomorrow';
-  
+
   const date = parseDate(dateString);
   const daysDiff = daysBetween(today(), dateString);
-  
+  const locale = i18next.language || 'en';
+
   if (Math.abs(daysDiff) <= 7) {
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayName = date.toLocaleDateString(locale, { weekday: 'long' });
     return daysDiff > 0 ? `Next ${dayName}` : `Last ${dayName}`;
   }
-  
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
+
+  return date.toLocaleDateString(locale, {
+    month: 'short',
     day: 'numeric',
-    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
+    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
   });
 };
 
 export const formatDate = (date: Date, format: string): string => {
+  const locale = i18next.language || 'en';
+
   switch (format) {
     case 'YYYY-MM-DD':
       return formatDateToString(date);
     case 'dd':
-      return date.toLocaleDateString('en-US', { weekday: 'long' });
+      return date.toLocaleDateString(locale, { weekday: 'long' });
     default:
-      return date.toLocaleDateString();
+      return date.toLocaleDateString(locale);
   }
 };
 
 export const formatDateForDisplay = (dateString: DateString, format: 'short' | 'long' | 'full' = 'short'): string => {
   const date = parseDate(dateString);
-  
+  const locale = i18next.language || 'en';
+
   switch (format) {
     case 'short':
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
     case 'long':
-      return date.toLocaleDateString('en-US', { 
+      return date.toLocaleDateString(locale, {
         weekday: 'long',
-        month: 'long', 
-        day: 'numeric' 
+        month: 'long',
+        day: 'numeric'
       });
     case 'full':
-      return date.toLocaleDateString('en-US', { 
+      return date.toLocaleDateString(locale, {
         weekday: 'long',
         year: 'numeric',
-        month: 'long', 
-        day: 'numeric' 
+        month: 'long',
+        day: 'numeric'
       });
     default:
       return dateString;
