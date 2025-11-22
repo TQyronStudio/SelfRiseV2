@@ -594,22 +594,22 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                   <View style={styles.achievementDetails}>
                     <Text style={styles.detailTitle}>{t('achievements.detail.detailsSection') || 'Achievement Details'}</Text>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>{t('social.detail.category')}:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.details.category')}:</Text>
                       <Text style={styles.detailValue}>
-                        {achievement?.category ? 
+                        {achievement?.category ?
                           achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
                           'Category'
                         }
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>{t('social.detail.rarity')}:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.details.rarity')}:</Text>
                       <Text style={[styles.detailValue, { color: rarityColor }]}>
                         {achievement?.rarity || 'common'}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>{t('social.detail.xpReward')}:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.details.xpReward')}:</Text>
                       <Text style={styles.detailValue}>
                         {achievement?.xpReward || 50} points
                       </Text>

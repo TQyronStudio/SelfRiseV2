@@ -4,23 +4,120 @@
 
 ## Table of Contents
 
-1. [Theme & Color System](#theme--color-system)
-2. [Data Storage Architecture](#data-storage-architecture)
-3. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
-4. [Development Standards](#development-standards)
-5. [Code Standards](#code-standards)
-6. [Performance Considerations](#performance-considerations)
-7. [User Interface & Celebrations](#user-interface--celebrations)
-8. [Security Guidelines](#security-guidelines)
-9. [Accessibility Standards](#accessibility-standards)
-10. [Configuration Management](#configuration-management)
-11. [Technical Stack & Architecture](#technical-stack--architecture)
-12. [My Journal System](#my-journal-system)
-13. [Gamification System](#gamification-system)
-14. [Achievements System](#achievements-system)
-15. [Screen Creation Guidelines](#screen-creation-guidelines)
-16. [Help Tooltip System](#help-tooltip-system)
-17. [Onboarding Tutorial System](#onboarding-tutorial-system)
+1. [Internationalization (i18n) Guidelines](#internationalization-i18n-guidelines)
+2. [Theme & Color System](#theme--color-system)
+3. [Data Storage Architecture](#data-storage-architecture)
+4. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
+5. [Development Standards](#development-standards)
+6. [Code Standards](#code-standards)
+7. [Performance Considerations](#performance-considerations)
+8. [User Interface & Celebrations](#user-interface--celebrations)
+9. [Security Guidelines](#security-guidelines)
+10. [Accessibility Standards](#accessibility-standards)
+11. [Configuration Management](#configuration-management)
+12. [Technical Stack & Architecture](#technical-stack--architecture)
+13. [My Journal System](#my-journal-system)
+14. [Gamification System](#gamification-system)
+15. [Achievements System](#achievements-system)
+16. [Screen Creation Guidelines](#screen-creation-guidelines)
+17. [Help Tooltip System](#help-tooltip-system)
+18. [Onboarding Tutorial System](#onboarding-tutorial-system)
+
+---
+
+## Internationalization (i18n) Guidelines
+
+### Critical Requirement: Multi-Language Support
+
+**SelfRise V2 supports THREE languages**:
+- 🇬🇧 **English (EN)** - Master language, primary implementation
+- 🇩🇪 **German (DE)** - Full translation support
+- 🇪🇸 **Spanish (ES)** - Full translation support
+
+**Location**:
+- Type Definitions: `src/types/i18n.ts`
+- English Locale: `src/locales/en/index.ts`
+- German Locale: `src/locales/de/index.ts`
+- Spanish Locale: `src/locales/es/index.ts`
+
+---
+
+### MANDATORY RULE: All User-Visible Strings Must Be Translated
+
+**When creating ANY new user-visible content**:
+
+1. ✅ **Add translation key to `src/types/i18n.ts`**
+2. ✅ **Add English text to `src/locales/en/index.ts`**
+3. ✅ **Add German translation to `src/locales/de/index.ts`**
+4. ✅ **Add Spanish translation to `src/locales/es/index.ts`**
+5. ✅ **Use `useI18n()` hook and `t()` function in components**
+
+**NO EXCEPTIONS for user-visible text** - Every string must be translatable
+
+---
+
+### HARDCODED EXCEPTION: Rarity Tiers (Always English)
+
+**These 5 terms are INTENTIONALLY hardcoded in English** and should NEVER be translated:
+
+```typescript
+// ❌ DO NOT TRANSLATE - These are universal game terminology
+const rarity = 'Common'      // NOT: "Allgemein", "Común"
+const rarity = 'Rare'        // NOT: "Selten", "Raro"
+const rarity = 'Epic'        // NOT: "Episch", "Épico"
+const rarity = 'Legendary'   // NOT: "Legendär", "Legendario"
+const rarity = 'Exotic'      // NOT: "Exotisch", "Exótico"
+```
+
+**Why?** Rarity tiers are standardized gaming terminology understood globally in English, maintaining consistency with international gaming conventions.
+
+**Implementation Pattern**:
+```typescript
+// ✅ CORRECT - Hardcoded rarity, translatable context
+<Text>{rarity} Achievement: {t('achievements.unlocked')}</Text>
+
+// ❌ WRONG - Translating rarity tier
+<Text>{t('rarity.rare')} Achievement: {t('achievements.unlocked')}</Text>
+```
+
+---
+
+### Implementation Checklist
+
+**Before implementing new feature with text**:
+
+- [ ] **Identify all user-visible strings** (titles, descriptions, labels, messages)
+- [ ] **Check if any are rarity tiers** (Common/Rare/Epic/Legendary/Exotic) - these stay hardcoded
+- [ ] **Add ALL other strings to types/i18n.ts**
+- [ ] **Translate to EN, DE, ES in corresponding locale files**
+- [ ] **Import `useI18n` hook in component**
+- [ ] **Replace hardcoded strings with `t()` calls**
+- [ ] **Test in all 3 languages** (EN/DE/ES)
+
+**Example - New Achievement Card**:
+```typescript
+// ❌ WRONG - Hardcoded strings
+<Text>Epic Achievement Unlocked!</Text>
+<Text>You earned the "Marathon Runner" achievement</Text>
+
+// ✅ CORRECT - Translatable except rarity
+<Text>{rarity} {t('achievements.unlocked')}</Text>
+<Text>{t('achievements.marathonRunner')}</Text>
+```
+
+---
+
+### Search for Hardcoded Strings
+
+To audit for missing translations:
+
+```bash
+# Find potential hardcoded user-visible strings
+grep -r "Common\|Rare\|Epic\|Legendary\|Exotic" src/ --include="*.tsx" --include="*.ts" | grep -v "node_modules"
+
+# The ONLY results should be rarity tier usage (expected/hardcoded)
+# Any other user-visible strings found = translation needed
+```
 
 ---
 

@@ -421,7 +421,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             
             {/* XP Reward */}
             <View style={styles.xpSection}>
-              <Text style={styles.xpLabel}>{t('social.detail.xpReward')}:</Text>
+              <Text style={styles.xpLabel}>{t('achievements.details.xpReward')}:</Text>
               <Text style={[styles.xpAmount, { color: rarityColor }]}>
                 +{achievement.xpReward} XP
               </Text>
