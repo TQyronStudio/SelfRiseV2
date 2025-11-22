@@ -1373,6 +1373,13 @@ export interface TranslationKeys {
   
   // Notifications
   notifications: {
+    disabled: string;
+    enableTap: string;
+    settingsTap: string;
+    afternoonReminder: string;
+    afternoonDescription: string;
+    eveningReminder: string;
+    eveningDescription: string;
     morning: {
       variant1: string;
       variant2: string;

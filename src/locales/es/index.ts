@@ -2663,6 +2663,13 @@ const es: Partial<TranslationKeys> = {
 
   // Notifications
   notifications: {
+    disabled: 'Notificaciones deshabilitadas',
+    enableTap: 'Toca para habilitar notificaciones',
+    settingsTap: 'Toca para abrir configuración del sistema',
+    afternoonReminder: 'Recordatorio Vespertino',
+    afternoonDescription: 'Chequeo motivacional',
+    eveningReminder: 'Recordatorio Nocturno',
+    eveningDescription: 'Recordatorio de tareas inteligente',
     morning: {
       variant1: '¡Buenos días! Comienza tu día con gratitud 🌅',
       variant2: '¡Despierta y brilla! ¿Por qué estás agradecido hoy? ✨',
@@ -2734,15 +2741,6 @@ const es: Partial<TranslationKeys> = {
       recent: '🔵 Reciente',
     },
     // Phase 8: NotificationSettings & LoyaltyCard
-    notifications: {
-      disabled: 'Notificaciones deshabilitadas',
-      enableTap: 'Toca para habilitar notificaciones',
-      settingsTap: 'Toca para abrir configuración del sistema',
-      afternoonReminder: 'Recordatorio Vespertino',
-      afternoonDescription: 'Chequeo motivacional',
-      eveningReminder: 'Recordatorio Nocturno',
-      eveningDescription: 'Recordatorio de tareas inteligente',
-    },
     loyalty: {
       loadingData: 'Cargando datos de lealtad...',
       unavailableData: '⚠️ Datos de lealtad no disponibles',

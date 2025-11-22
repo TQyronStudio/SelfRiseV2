@@ -2663,6 +2663,13 @@ const de: Partial<TranslationKeys> = {
 
   // Notifications
   notifications: {
+    disabled: 'Benachrichtigungen deaktiviert',
+    enableTap: 'Tippe zum Aktivieren von Benachrichtigungen',
+    settingsTap: 'Tippe zum Öffnen der Systemeinstellungen',
+    afternoonReminder: 'Nachmittagserinnerung',
+    afternoonDescription: 'Motivierender Check-in',
+    eveningReminder: 'Abenderinnerung',
+    eveningDescription: 'Intelligente Aufgabenerinnerung',
     morning: {
       variant1: 'Guten Morgen! Starte deinen Tag mit Dankbarkeit 🌅',
       variant2: 'Aufwachen! Wofür bist du heute dankbar? ✨',
@@ -2732,16 +2739,6 @@ const de: Partial<TranslationKeys> = {
       today: '🟢 Heute',
       yesterday: '🟡 Gestern',
       recent: '🔵 Kürzlich',
-    },
-    // Phase 8: NotificationSettings & LoyaltyCard
-    notifications: {
-      disabled: 'Benachrichtigungen deaktiviert',
-      enableTap: 'Tippe zum Aktivieren von Benachrichtigungen',
-      settingsTap: 'Tippe zum Öffnen der Systemeinstellungen',
-      afternoonReminder: 'Nachmittagserinnerung',
-      afternoonDescription: 'Motivierender Check-in',
-      eveningReminder: 'Abenderinnerung',
-      eveningDescription: 'Intelligente Aufgabenerinnerung',
     },
     loyalty: {
       loadingData: 'Treuedaten werden geladen...',

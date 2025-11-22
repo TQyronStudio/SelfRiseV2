@@ -3081,6 +3081,13 @@ const en: TranslationKeys = {
 
   // Notifications
   notifications: {
+    disabled: 'Notifications Disabled',
+    enableTap: 'Tap to enable notifications',
+    settingsTap: 'Tap to open system settings',
+    afternoonReminder: 'Afternoon Reminder',
+    afternoonDescription: 'Motivational check-in',
+    eveningReminder: 'Evening Reminder',
+    eveningDescription: 'Smart task reminder',
     morning: {
       variant1: 'Good morning! Start your day with gratitude 🌅',
       variant2: 'Rise and shine! What are you grateful for today? ✨',
