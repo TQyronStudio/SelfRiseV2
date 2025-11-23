@@ -188,7 +188,7 @@ export default function EditGratitudeModal({
               {gratitude.type === 'gratitude' ? `🙏 ${t('journal.input.typeGratitude')}` : `💪 ${t('journal.input.typeSelfPraise')}`}
             </Text>
             {gratitude.isBonus && (
-              <Text style={styles.bonusText}>{t('gratitude.bonus.label')} ⭐</Text>
+              <Text style={styles.bonusText}>{t('gratitude.bonus.label')}</Text>
             )}
           </View>
 

@@ -192,7 +192,7 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
           <View style={styles.labelContainer}>
             {item.isBonus && (
               <Text style={styles.bonusLabel}>
-                {t('gratitude.bonus.label')} ⭐
+                {t('gratitude.bonus.label')}
               </Text>
             )}
             <Text style={[
