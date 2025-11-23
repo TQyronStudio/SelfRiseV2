@@ -240,6 +240,10 @@ const es: Partial<TranslationKeys> = {
     },
     // Screen labels
     streakHistoryLoading: 'Cargando...',
+    // Level Progress
+    yourProgress: 'Tu Progreso',
+    currentLevelSummary: 'Actualmente estás en el nivel {currentLevel} de 100 niveles',
+    keepEarningXp: '¡Sigue ganando XP para desbloquear niveles superiores!',
   } as any,
 
   // Levels & Navigation screens
