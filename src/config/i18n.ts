@@ -3,10 +3,10 @@ import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Import translation files
-import en from '../locales/en';
-import de from '../locales/de';
-import es from '../locales/es';
+// Import translation files (with explicit index paths for better bundler compatibility)
+import en from '../locales/en/index';
+import de from '../locales/de/index';
+import es from '../locales/es/index';
 
 // Storage key for language preference
 const LANGUAGE_STORAGE_KEY = 'user_language';
@@ -42,6 +42,17 @@ const languageDetector = {
     }
   },
 };
+
+// Validate locale imports
+if (!en || typeof en !== 'object') {
+  console.error('[i18n] EN locale is invalid:', typeof en, en);
+}
+if (!de || typeof de !== 'object') {
+  console.error('[i18n] DE locale is invalid:', typeof de, de);
+}
+if (!es || typeof es !== 'object') {
+  console.error('[i18n] ES locale is invalid:', typeof es, es);
+}
 
 // Initialize i18next
 i18n

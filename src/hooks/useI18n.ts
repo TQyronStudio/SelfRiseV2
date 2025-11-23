@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
-import { 
-  changeLanguage, 
-  getCurrentLanguage, 
-  getAvailableLanguages, 
+import {
+  changeLanguage,
+  getCurrentLanguage,
+  getAvailableLanguages,
   getLanguageDisplayName,
-  type SupportedLanguage 
+  type SupportedLanguage
 } from '../utils/i18n';
 
 // Custom hook for i18n functionality
