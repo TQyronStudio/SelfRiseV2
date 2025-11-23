@@ -1214,11 +1214,11 @@ const calculateTimeToComplete = (achievement: Achievement, userStats: UserStats)
 // COMPLETION INFORMATION
 // ========================================
 
-export const generateCompletionInfo = (achievement: Achievement, userStats: UserStats): CompletionInfo => {
-  const accomplishment = getAccomplishmentText(achievement);
+export const generateCompletionInfo = (achievement: Achievement, userStats: UserStats, t?: TFunction): CompletionInfo => {
+  const accomplishment = getAccomplishmentText(achievement, t);
   const category = getCategoryDisplayName(achievement.category);
   const difficulty = getDifficultyLevel(achievement.rarity);
-  
+
   return {
     accomplishment,
     completionDate: formatCompletionDate(achievement.unlockedAt), // PHASE 3: Real completion date
@@ -1228,65 +1228,100 @@ export const generateCompletionInfo = (achievement: Achievement, userStats: User
   };
 };
 
-const getAccomplishmentText = (achievement: Achievement): string => {
+const getAccomplishmentText = (achievement: Achievement, t?: TFunction): string => {
+  // If t function provided, use i18n keys for localized accomplishment text
+  if (t) {
+    const accomplishment = t(`achievements.achievementRequirements.${achievement.id}`);
+    if (accomplishment && !accomplishment.includes('achievements.achievementRequirements')) {
+      return accomplishment;
+    }
+  }
+
+  // Fallback to hardcoded texts (for backward compatibility)
   const accomplishments: Record<string, string> = {
     // Habits
     'first-habit': "Created your first habit",
-    'habit-builder': "Created 5 different habits", 
+    'habit-builder': "Created 5 different habits",
     'century-club': "Completed 100 habits total",
     'consistency-king': "Completed 1000 habits total",
-    'streak-champion': "Achieved 21-day habit streak",
+    'habit-streak-champion': "Achieved 21-day habit streak",
     'century-streak': "Maintained 75-day habit streak",
     'multi-tasker': "Completed 5 habits in one day",
     'habit-legend': "Reached Level 50 with 50%+ habit XP",
-    
+
     // Journal
     'first-journal': "Wrote your first journal entry",
     'deep-thinker': "Wrote detailed 200+ character entry",
     'journal-enthusiast': "Wrote 100 journal entries",
     'grateful-heart': "Maintained 7-day journal streak",
-    'journal-streaker': "Achieved 21-day journal streak", 
+    'first-star': "Earned a star",
+    'five-stars': "Earned 5 stars",
+    'flame-achiever': "Earned your first flame",
+    'bonus-week': "1 bonus daily for 7 days",
+    'crown-royalty': "Earned your first crown",
+    'flame-collector': "Earned 5 flames total",
+    'golden-bonus-streak': "3+ bonuses daily for 7 days",
+    'triple-crown-master': "Earned 3 crowns total",
+    'bonus-century': "Wrote 200 bonus entries",
+    'star-beginner': "Earned 10 stars total",
+    'star-collector': "Earned 25 stars total",
+    'star-master': "Earned 50 stars total",
+    'star-champion': "Earned 100 stars total",
+    'star-legend': "Earned 200 stars total",
+    'flame-starter': "Earned 5 flames total",
+    'flame-accumulator': "Earned 10 flames total",
+    'flame-master': "Earned 25 flames total",
+    'flame-champion': "Earned 50 flames total",
+    'flame-legend': "Earned 100 flames total",
+    'crown-achiever': "Earned 3 crowns total",
+    'crown-collector': "Earned 5 crowns total",
+    'crown-master': "Earned 10 crowns total",
+    'crown-champion': "Earned 25 crowns total",
+    'crown-emperor': "Earned 50 crowns total",
     'gratitude-guru': "Maintained 30-day journal streak",
     'eternal-gratitude': "Achieved 100-day journal streak",
     'bonus-seeker': "Wrote 50 bonus journal entries",
-    
+    'gratitude-guardian': "Wrote 21 days in a row",
+
     // Goals
     'first-goal': "Set your first goal",
     'goal-getter': "Completed your first goal",
-    'goal-achiever': "Completed 3 goals",
-    'goal-champion': "Completed 5 goals",
-    'achievement-unlocked': "Completed 10 goals",
     'ambitious': "Set ambitious goal (≥1000 target)",
+    'goal-champion': "Completed 5 goals",
     'progress-tracker': "Made progress 7 days straight",
-    
+    'mega-dreamer': "Set mega goal (≥1M target)",
+    'achievement-unlocked': "Completed 10 goals",
+    'million-achiever': "Completed 1M+ goal",
+
     // Consistency
-    'weekly-warrior': "Maintained 7-day habit streak", 
+    'weekly-warrior': "Maintained 7-day habit streak",
     'monthly-master': "Achieved 30-day habit streak",
-    'hundred-days': "Reached 100 days of consistency",
+    'centurion': "Reached 100 days of consistency",
     'daily-visitor': "Used app for 7 consecutive days",
     'dedicated-user': "Used app for 30 consecutive days",
-    'perfect-month': "Completed all 3 features for 28+ days in a month",
-    'triple-crown': "Maintained 7+ day streaks in all areas simultaneously",
-    
+    'perfect-month': "Completed all 3 features for 28+ days",
+    'triple-crown': "Maintained 7+ day streaks in all areas",
+
     // Mastery
+    'dream-fulfiller': "Completed 3 goals",
     'level-up': "Reached level 10",
-    'selfrise-expert': "Reached level 25", 
+    'selfrise-expert': "Reached level 25",
     'selfrise-master': "Reached level 50",
     'ultimate-selfrise-legend': "Reached level 100",
+    'recommendation-master': "Followed 20 recommendations",
+    'balance-master': "Used all 3 features 10 times in a day",
     'trophy-collector-basic': "Unlocked 10 achievements",
     'trophy-collector-master': "Unlocked 25 achievements",
-    'recommendation-master': "Followed 20 personalized recommendations",
-    'balance-master': "Used all 3 features in a single day 10 times",
-    
+
     // Special
     'lightning-start': "Created and completed habit same day 3 times",
     'seven-wonder': "Had 7+ active habits simultaneously",
     'persistence-pays': "Completed 7 activities after 3+ day break",
-    'legendary-master': "Achieved mastery in all areas (10 goals + 500 habits + 365 entries)",
-    
+    'selfrise-legend': "Achieved mastery in all areas",
+
     // Loyalty
     'loyalty-first-week': "Stayed active for 7 days total",
-    'loyalty-two-weeks-strong': "Stayed active for 14 days total", 
+    'loyalty-two-weeks-strong': "Stayed active for 14 days total",
     'loyalty-three-weeks-committed': "Stayed active for 21 days total",
     'loyalty-month-explorer': "Stayed active for 30 days total",
     'loyalty-two-month-veteran': "Stayed active for 60 days total",
@@ -1296,7 +1331,7 @@ const getAccomplishmentText = (achievement: Achievement): string => {
     'loyalty-ultimate-veteran': "Stayed active for 500 days total",
     'loyalty-master': "Achieved ultimate loyalty with 1000 active days"
   };
-  
+
   return accomplishments[achievement.id] || "Completed achievement requirements";
 };
 

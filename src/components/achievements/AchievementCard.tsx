@@ -90,7 +90,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     : undefined;
 
   const completionInfo = showPreview && userStats && isUnlocked
-    ? generateCompletionInfo(achievement, userStats)
+    ? generateCompletionInfo(achievement, userStats, t)
     : undefined;
 
   const smartTooltip = showPreview && userStats

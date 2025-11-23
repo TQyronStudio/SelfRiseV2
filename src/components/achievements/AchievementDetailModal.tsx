@@ -549,7 +549,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     styles.achievementName,
                     !isUnlocked && styles.achievementNameLocked
                   ]}>
-                    {String(achievement?.name || 'Achievement')}
+                    {achievement ? t(`achievements.achievementNames.${achievement.id}`) || achievement.name || 'Achievement' : 'Achievement'}
                   </Text>
                   
                   <View style={styles.metaContainer}>
@@ -576,7 +576,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
               {/* Description */}
               <Text style={styles.description}>
-                {String(achievement?.description || 'Achievement description')}
+                {achievement ? t(`achievements.achievementRequirements.${achievement.id}`) || achievement.description || 'Achievement description' : 'Achievement description'}
               </Text>
 
               {/* Conditional Content */}
