@@ -383,7 +383,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
                   {/* Estimated Time */}
                   {progressHint.estimatedDays && (
                     <Text style={styles.estimatedTime}>
-                      ⏱️ Estimated: ~{progressHint.estimatedDays} days
+                      {t('achievements.detail.estimatedDays', { days: progressHint.estimatedDays })}
                     </Text>
                   )}
                 </View>
@@ -421,7 +421,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             
             {/* XP Reward */}
             <View style={styles.xpSection}>
-              <Text style={styles.xpLabel}>XP Reward:</Text>
+              <Text style={styles.xpLabel}>{t('achievements.detail.xpRewardLabel')}</Text>
               <Text style={[styles.xpAmount, { color: rarityColor }]}>
                 +{achievement.xpReward} XP
               </Text>

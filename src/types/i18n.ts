@@ -1037,12 +1037,30 @@ export interface TranslationKeys {
       unlockedDaysAgo: string;
       unlockedWeeksAgo: string;
       unlockedRecently: string;
+      recentlyUnlocked: string;
       titleUnlocked: string;
       titleDetails: string;
       detailsSection: string;
+      categoryLabel: string;
+      rarityLabel: string;
+      xpRewardLabel: string;
+      xpPointsUnit: string;
       progressToUnlock: string;
+      progressLoading: string;
       howToUnlock: string;
+      estimatedDays: string;
       lockedMessage: string;
+      requirementFallback: string;
+      actionHint: string;
+    };
+    history: {
+      justNow: string;
+      today: string;
+      yesterday: string;
+      thisWeek: string;
+      lastWeek: string;
+      thisMonth: string;
+      aWhileAgo: string;
     };
     filter: {
       showAll: string;

@@ -183,13 +183,13 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
     }
   };
 
-  const getRarityTitle = (rarity: AchievementRarity): string => {
+  const getRarityTitle = (rarity: AchievementRarity, t: any): string => {
     switch (rarity) {
-      case AchievementRarity.COMMON: return 'Achievement Unlocked!';
-      case AchievementRarity.RARE: return 'Rare Achievement!';
-      case AchievementRarity.EPIC: return 'Epic Achievement!';
-      case AchievementRarity.LEGENDARY: return 'Legendary Achievement!';
-      default: return 'Achievement Unlocked!';
+      case AchievementRarity.COMMON: return t('achievements.celebration.rarity_common');
+      case AchievementRarity.RARE: return t('achievements.celebration.rarity_rare');
+      case AchievementRarity.EPIC: return t('achievements.celebration.rarity_epic');
+      case AchievementRarity.LEGENDARY: return t('achievements.celebration.rarity_legendary');
+      default: return t('achievements.celebration.rarity_common');
     }
   };
 
@@ -299,13 +299,13 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
           </Text>
 
           {/* Title with rarity theming */}
-          <Text 
+          <Text
             style={[
               styles.title,
               { color: rarityColor }
             ]}
           >
-            {getRarityTitle(achievement.rarity)}
+            {getRarityTitle(achievement.rarity, t)}
           </Text>
 
           {/* Achievement name */}

@@ -163,7 +163,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   const accessibilityLabel = `${t(achievement.nameKey)}, ${achievement.rarity.toLowerCase()} rarity achievement, ${status}. ${t(achievement.descriptionKey)}`;
 
   const accessibilityHint = t('achievements.card.accessibility_hint') ||
-    `${isUnlocked ? 'Completed achievement' : 'In progress achievement'}. Tap for more details.`;
+    (isUnlocked ? t('achievements.detail.titleUnlocked') : t('achievements.detail.titleDetails'));
 
   // Styles - moved inside component to access colors
   const styles = StyleSheet.create({

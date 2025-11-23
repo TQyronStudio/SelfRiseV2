@@ -33,18 +33,18 @@ const getRarityColor = (rarity: AchievementRarity): string => {
   }
 };
 
-const getTimeAgo = (index: number, total: number): string => {
+const getTimeAgo = (index: number, total: number, t: any): string => {
   // Simulate realistic unlock timing based on position in array
   // More recent unlocks (higher index) show as more recent
   const position = index / total;
-  
-  if (position > 0.9) return 'Just now';
-  if (position > 0.8) return 'Today';
-  if (position > 0.7) return 'Yesterday'; 
-  if (position > 0.5) return 'This week';
-  if (position > 0.3) return 'Last week';
-  if (position > 0.1) return 'This month';
-  return 'A while ago';
+
+  if (position > 0.9) return t('achievements.history.justNow');
+  if (position > 0.8) return t('achievements.history.today');
+  if (position > 0.7) return t('achievements.history.yesterday');
+  if (position > 0.5) return t('achievements.history.thisWeek');
+  if (position > 0.3) return t('achievements.history.lastWeek');
+  if (position > 0.1) return t('achievements.history.thisMonth');
+  return t('achievements.history.aWhileAgo');
 };
 
 const HistoryItem: React.FC<HistoryItemProps> = ({
@@ -56,7 +56,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
   const rarityColor = getRarityColor(achievement.rarity);
-  const timeAgo = getTimeAgo(unlockIndex, totalUnlocked);
+  const timeAgo = getTimeAgo(unlockIndex, totalUnlocked, t);
   const isRecent = unlockIndex >= totalUnlocked * 0.8;
 
   const styles = StyleSheet.create({

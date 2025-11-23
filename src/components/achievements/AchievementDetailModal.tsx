@@ -92,10 +92,10 @@ const getCategoryIcon = (category: string): keyof typeof Ionicons.glyphMap => {
 const formatUnlockDate = (achievement: Achievement, t: any): string => {
   // For now, simulate unlock date - in real app this would come from user data
   const daysAgo = Math.floor(Math.random() * 30) + 1;
-  if (daysAgo === 1) return t('achievements.detail.unlockedYesterday') || 'Unlocked yesterday';
-  if (daysAgo <= 7) return t('achievements.detail.unlockedDaysAgo', { days: daysAgo }) || `Unlocked ${daysAgo} days ago`;
-  if (daysAgo <= 30) return t('achievements.detail.unlockedWeeksAgo', { weeks: Math.ceil(daysAgo / 7) }) || `Unlocked ${Math.ceil(daysAgo / 7)} weeks ago`;
-  return t('achievements.detail.unlockedRecently') || 'Unlocked recently';
+  if (daysAgo === 1) return t('achievements.detail.unlockedYesterday');
+  if (daysAgo <= 7) return t('achievements.detail.unlockedDaysAgo', { days: daysAgo });
+  if (daysAgo <= 30) return t('achievements.detail.unlockedWeeksAgo', { weeks: Math.ceil(daysAgo / 7) });
+  return t('achievements.detail.unlockedRecently');
 };
 
 // ========================================
@@ -143,12 +143,12 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
         progressText: `${Math.round(progress)}% complete`,
         progressPercentage: progress,
         isCompleted: progress >= 100,
-        requirementText: achievement?.description || 'Achievement requirement',
-        actionHint: 'Keep working towards this goal!',
+        requirementText: achievement?.description || t('achievements.detail.requirementFallback'),
+        actionHint: t('achievements.detail.actionHint'),
         estimatedDays: progress < 100 ? Math.ceil((100 - progress) / 10) : 0
       });
     }
-  }, [isUnlocked, progress, achievement?.description]);
+  }, [isUnlocked, progress, achievement?.description, t]);
 
   // Accessibility announcement for screen readers
   useEffect(() => {
@@ -504,7 +504,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
           </TouchableOpacity>
           
           <Text style={styles.modalTitle}>
-            {isUnlocked ? (t('achievements.detail.titleUnlocked') || 'Achievement Unlocked') : (t('achievements.detail.titleDetails') || 'Achievement Details')}
+            {isUnlocked ? t('achievements.detail.titleUnlocked') : t('achievements.detail.titleDetails')}
           </Text>
           
           {isUnlocked && onSharePress && (
@@ -586,16 +586,16 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                   <View style={styles.completionInfo}>
                     <Ionicons name="checkmark-circle" size={20} color={rarityColor} />
                     <Text style={styles.completionText}>
-                      {achievement ? formatUnlockDate(achievement, t) : t('achievements.detail.unlockedRecently') || 'Recently unlocked'}
+                      {achievement ? formatUnlockDate(achievement, t) : t('achievements.detail.recentlyUnlocked')}
                     </Text>
                   </View>
-                  
+
                   <View style={styles.separator} />
-                  
+
                   <View style={styles.achievementDetails}>
-                    <Text style={styles.detailTitle}>{t('achievements.detail.detailsSection') || 'Achievement Details'}</Text>
+                    <Text style={styles.detailTitle}>{t('achievements.detail.detailsSection')}</Text>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}> Category:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.detail.categoryLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {achievement?.category ?
                           achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
@@ -604,15 +604,15 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Rarity:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.detail.rarityLabel')}</Text>
                       <Text style={[styles.detailValue, { color: rarityColor }]}>
                         {achievement?.rarity || 'common'}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>XP Reward:</Text>
+                      <Text style={styles.detailLabel}>{t('achievements.detail.xpRewardLabel')}</Text>
                       <Text style={styles.detailValue}>
-                        {achievement?.xpReward || 50} points
+                        {achievement?.xpReward || 50} {t('achievements.detail.xpPointsUnit')}
                       </Text>
                     </View>
                   </View>
@@ -623,21 +623,21 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                   {progressHint ? (
                     <>
                       <View style={styles.progressSection}>
-                        <Text style={styles.progressTitle}>{t('achievements.detail.progressToUnlock') || 'Progress to Unlock'}</Text>
+                        <Text style={styles.progressTitle}>{t('achievements.detail.progressToUnlock')}</Text>
                         <Text style={styles.progressText}>
-                          {progressHint?.progressText || 'Progress loading...'}
+                          {progressHint?.progressText || t('achievements.detail.progressLoading')}
                         </Text>
-                        
+
                         <View style={styles.progressBarContainer}>
                           <View style={styles.progressTrack}>
-                            <View 
+                            <View
                               style={[
                                 styles.progressFill,
-                                { 
+                                {
                                   width: `${Number(progressHint?.progressPercentage || 0)}%`,
                                   backgroundColor: rarityColor
                                 }
-                              ]} 
+                              ]}
                             />
                           </View>
                           <Text style={styles.progressPercentage}>
@@ -645,20 +645,20 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                           </Text>
                         </View>
                       </View>
-                      
+
                       <View style={styles.separator} />
-                      
+
                       <View style={styles.guidanceSection}>
-                        <Text style={styles.guidanceTitle}>{t('achievements.detail.howToUnlock') || 'How to Unlock'}</Text>
+                        <Text style={styles.guidanceTitle}>{t('achievements.detail.howToUnlock')}</Text>
                         <Text style={styles.requirementText}>
-                          {progressHint?.requirementText || 'Achievement requirement'}
+                          {progressHint?.requirementText || t('achievements.detail.requirementFallback')}
                         </Text>
                         <Text style={styles.actionHint}>
-                          💡 {progressHint?.actionHint || 'Keep working towards this goal!'}
+                          💡 {progressHint?.actionHint || t('achievements.detail.actionHint')}
                         </Text>
                         {progressHint?.estimatedDays && progressHint.estimatedDays > 0 && (
                           <Text style={styles.estimatedTime}>
-                            📅 Estimated: {progressHint.estimatedDays} days remaining
+                            📅 {t('achievements.detail.estimatedDays', { days: progressHint.estimatedDays })}
                           </Text>
                         )}
                       </View>
@@ -667,7 +667,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                     <View style={styles.noProgressContainer}>
                       <Ionicons name="lock-closed" size={32} color={colors.textSecondary} />
                       <Text style={styles.lockedMessage}>
-                        {t('achievements.detail.lockedMessage') || 'This achievement is locked. Keep using the app to unlock it!'}
+                        {t('achievements.detail.lockedMessage')}
                       </Text>
                     </View>
                   )}
