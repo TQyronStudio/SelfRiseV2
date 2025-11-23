@@ -229,6 +229,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
 
     collectionsContent: {
       padding: 16,
+      backgroundColor: colors.cardBackgroundElevated, // Prevent transparency when cards are pressed
     },
 
     collectionCard: {

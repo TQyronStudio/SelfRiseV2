@@ -209,6 +209,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
     container: {
       marginBottom: 16,
       position: 'relative',
+      backgroundColor: colors.cardBackgroundElevated, // Prevent transparency when pressed
     },
 
     particleContainer: {
@@ -248,7 +249,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
 
     cardHighContrast: {
       borderWidth: 3,
-      borderColor: '#000',
+      borderColor: '#CCCCCC', // Light gray for better visibility in dark theme with high contrast
     },
 
     depthLayer: {
@@ -435,7 +436,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
         </View>
       )}
       
-      <TouchableOpacity
+      <View
         style={[
           styles.card,
           {
@@ -447,18 +448,16 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
           collection.isCompleted && styles.cardCompleted,
           isHighContrastEnabled && styles.cardHighContrast,
         ]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        accessible={true}
-        accessibilityRole="button"
-        accessibilityLabel={`${collection.name} collection, ${collection.completedCount} of ${collection.totalCount} completed, ${collection.rarity} rarity`}
-        accessibilityHint="Double tap to view collection details"
       >
         {/* 3D depth layer - back shadow */}
         <View style={[
           styles.depthLayer,
-          { backgroundColor: `${rarityColor}20` }
+          {
+            // Use a safe color that's never black, even in high contrast mode
+            backgroundColor: isHighContrastEnabled
+              ? 'rgba(255, 255, 255, 0.08)'  // Light semi-transparent white instead of rarity color
+              : `${rarityColor}20`
+          }
         ]} />
         
         {/* Completion badge */}
@@ -543,7 +542,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
             </Text>
           )}
         </View>
-      </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 };
