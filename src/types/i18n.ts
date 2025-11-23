@@ -1218,6 +1218,7 @@ export interface TranslationKeys {
       'consistency-king': string;
       'habit-streak-champion': string;
       'century-streak': string;
+      'streak-champion': string;
       'multi-tasker': string;
       'habit-legend': string;
       'first-journal': string;
@@ -1226,6 +1227,7 @@ export interface TranslationKeys {
       'grateful-heart': string;
       'gratitude-guru': string;
       'eternal-gratitude': string;
+      'journal-streaker': string;
       'bonus-seeker': string;
       'first-star': string;
       'five-stars': string;
@@ -1262,12 +1264,14 @@ export interface TranslationKeys {
       'weekly-warrior': string;
       'monthly-master': string;
       'centurion': string;
+      'hundred-days': string;
       'daily-visitor': string;
       'dedicated-user': string;
       'perfect-month': string;
       'triple-crown': string;
       'gratitude-guardian': string;
       'dream-fulfiller': string;
+      'goal-achiever': string;
       'level-up': string;
       'selfrise-expert': string;
       'selfrise-master': string;
@@ -1279,6 +1283,7 @@ export interface TranslationKeys {
       'lightning-start': string;
       'seven-wonder': string;
       'persistence-pays': string;
+      'legendary-master': string;
       'selfrise-legend': string;
       'loyalty-first-week': string;
       'loyalty-two-weeks-strong': string;
@@ -1300,6 +1305,7 @@ export interface TranslationKeys {
       'consistency-king': string;
       'habit-streak-champion': string;
       'century-streak': string;
+      'streak-champion': string;
       'multi-tasker': string;
       'habit-legend': string;
       'first-journal': string;
@@ -1308,6 +1314,7 @@ export interface TranslationKeys {
       'grateful-heart': string;
       'gratitude-guru': string;
       'eternal-gratitude': string;
+      'journal-streaker': string;
       'bonus-seeker': string;
       'first-star': string;
       'five-stars': string;
@@ -1344,12 +1351,14 @@ export interface TranslationKeys {
       'weekly-warrior': string;
       'monthly-master': string;
       'centurion': string;
+      'hundred-days': string;
       'daily-visitor': string;
       'dedicated-user': string;
       'perfect-month': string;
       'triple-crown': string;
       'gratitude-guardian': string;
       'dream-fulfiller': string;
+      'goal-achiever': string;
       'level-up': string;
       'selfrise-expert': string;
       'selfrise-master': string;
@@ -1361,6 +1370,7 @@ export interface TranslationKeys {
       'lightning-start': string;
       'seven-wonder': string;
       'persistence-pays': string;
+      'legendary-master': string;
       'selfrise-legend': string;
       'loyalty-first-week': string;
       'loyalty-two-weeks-strong': string;
