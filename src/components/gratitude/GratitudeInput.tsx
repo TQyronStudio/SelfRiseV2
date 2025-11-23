@@ -39,10 +39,22 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentPlaceholder] = useState(() => {
-    const placeholders = inputType === 'gratitude'
+    let placeholders: any = inputType === 'gratitude'
       ? t('journal.input.gratitudePlaceholders')
       : t('journal.input.selfPraisePlaceholders');
-    return placeholders[Math.floor(Math.random() * placeholders.length)];
+
+    // Ensure placeholders is an array (handle ESM default export case)
+    if (!Array.isArray(placeholders)) {
+      if (placeholders && typeof placeholders === 'object' && 'default' in placeholders) {
+        placeholders = (placeholders as any).default;
+      }
+      if (!Array.isArray(placeholders)) {
+        // Fallback to default placeholders if something goes wrong
+        placeholders = ['What are you grateful for today?'];
+      }
+    }
+
+    return (placeholders as string[])[Math.floor(Math.random() * (placeholders as string[]).length)];
   });
 
   const handleSubmit = async () => {
