@@ -176,7 +176,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder={t('achievements.searchPlaceholder')}
+          placeholder={t('achievements.filter.searchPlaceholder')}
           value={filters.searchQuery}
           onChangeText={(text) => updateFilters({ searchQuery: text })}
           placeholderTextColor={colors.textSecondary}

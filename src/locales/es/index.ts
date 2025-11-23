@@ -1984,6 +1984,7 @@ const es: Partial<TranslationKeys> = {
         action: '¡Eres un campeón logrando metas!'
       },
       achievement_unlocked: {
+        progress: 'Completa 10 metas ({{current}}/{{target}})',
         progress_incomplete: '¡Completa tu primera meta!',
         progress_complete: '✅ ¡Primera meta completada!',
         requirement: 'Completa tu primera meta',

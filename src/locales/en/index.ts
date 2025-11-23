@@ -2018,6 +2018,7 @@ const en: TranslationKeys = {
         action: 'You\'re a goal-achieving champion!'
       },
       achievement_unlocked: {
+        progress: 'Complete 10 goals ({{current}}/{{target}})',
         progress_incomplete: 'Complete your first goal!',
         progress_complete: '✅ First goal completed!',
         requirement: 'Complete your first goal',

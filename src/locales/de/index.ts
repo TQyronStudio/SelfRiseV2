@@ -1984,6 +1984,7 @@ const de: Partial<TranslationKeys> = {
         action: 'Du bist ein Ziel-Champion!'
       },
       achievement_unlocked: {
+        progress: 'Absolviere 10 Ziele ({{current}}/{{target}})',
         progress_incomplete: 'Schließe dein erstes Ziel ab!',
         progress_complete: '✅ Erstes Ziel abgeschlossen!',
         requirement: 'Schließe dein erstes Ziel ab',
