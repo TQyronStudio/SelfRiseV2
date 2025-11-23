@@ -40,15 +40,16 @@ interface AchievementDetailModalProps {
 
 const getRarityColor = (rarity: AchievementRarity, isHighContrast: boolean): string => {
   if (isHighContrast) {
+    // For high contrast in dark theme, use brighter, more visible colors
     switch (rarity) {
-      case AchievementRarity.COMMON: return '#000000';
-      case AchievementRarity.RARE: return '#000080';
-      case AchievementRarity.EPIC: return '#800080';
-      case AchievementRarity.LEGENDARY: return '#B8860B';
-      default: return '#000000';
+      case AchievementRarity.COMMON: return '#CCCCCC'; // Light gray instead of black
+      case AchievementRarity.RARE: return '#4CB8FF'; // Bright blue instead of dark blue
+      case AchievementRarity.EPIC: return '#E040FB'; // Bright purple instead of dark purple
+      case AchievementRarity.LEGENDARY: return '#FFD700'; // Keep golden
+      default: return '#CCCCCC';
     }
   }
-  
+
   switch (rarity) {
     case AchievementRarity.COMMON: return '#9E9E9E';
     case AchievementRarity.RARE: return '#2196F3';

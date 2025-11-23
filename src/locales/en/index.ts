@@ -240,6 +240,7 @@ const en: TranslationKeys = {
     levelOverview: 'Level Overview',
     levelsLoading: 'Loading levels...',
     goBack: 'Go back',
+    backNavigation: 'Home',
     reorderHabits: {
       title: 'Reorder Habits',
       instructions: 'Hold and drag any habit to reorder them',
@@ -1262,6 +1263,7 @@ const en: TranslationKeys = {
       collected: 'Collected',
       completionRate: 'Completion Rate',
       overallProgress: 'Overall Progress',
+      showingResults: 'Showing {{filtered}} of {{total}} Achievements',
     },
     
     // Sorting
@@ -3259,10 +3261,21 @@ const en: TranslationKeys = {
       collectionsCompleted: 'Collections\nCompleted',
       bonusXPEarned: 'Bonus XP\nEarned',
       collectionRate: 'Collection\nRate',
+      collectionComplete: '🎉 Collection Complete!',
     },
     loyalty_progress: {
       keepGrowing: 'Keep growing!',
       level: 'Level',
+      loadingData: 'Loading loyalty data...',
+      unavailableData: '⚠️ Loyalty data unavailable',
+      journeyTitle: '🏆 Loyalty Journey',
+      activeDays: 'Active Days',
+      progressNext: 'Next: {{name}} ({{days}} days)',
+      daysRemaining: 'days remaining',
+      maximumReached: "You've reached maximum loyalty!",
+      daysOfDedication: 'days of dedication',
+      currentStreak: 'Current Streak',
+      longestStreak: 'Longest Streak',
     },
     days: {
       monday: 'Mo',

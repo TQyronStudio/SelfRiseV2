@@ -58,7 +58,7 @@ function LayoutContent() {
             options={{
               headerShown: true,
               title: t('screens.trophyRoom.title'),
-              headerBackTitle: 'Home',
+              headerBackTitle: t('screens.backNavigation'),
               headerStyle: {
                 backgroundColor: colors.primary,
               },

@@ -9,6 +9,7 @@ import {
 import { AchievementRarity } from '@/src/types/gamification';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 // Simple device capability replacement
 const getDeviceCapability = () => ({
   tier: 'medium' as const,
@@ -50,6 +51,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
   onPress,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const { isReduceMotionEnabled, isHighContrastEnabled } = useAccessibility();
   const deviceCapability = getDeviceCapability();
   
@@ -533,7 +535,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
         <View style={styles.statusContainer}>
           {collection.isCompleted ? (
             <Text style={[styles.statusCompleted, { color: rarityColor }]}>
-              🎉 Collection Complete!
+              {t('social.trophy_combinations.collectionComplete')}
             </Text>
           ) : (
             <Text style={styles.statusIncomplete}>

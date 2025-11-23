@@ -251,6 +251,7 @@ const es: Partial<TranslationKeys> = {
     levelOverview: 'Descripción General de Niveles',
     levelsLoading: 'Cargando niveles...',
     goBack: 'Atrás',
+    backNavigation: 'Inicio',
     reorderHabits: {
       title: 'Reordenar Hábitos',
       instructions: 'Mantén presionado y arrastra cualquier hábito para reordenarlos',
@@ -1397,6 +1398,15 @@ const es: Partial<TranslationKeys> = {
       progressToUnlock: 'Progreso para Desbloquear',
       howToUnlock: 'Cómo Desbloquear',
       lockedMessage: 'Este logro está bloqueado. ¡Sigue usando la app para desbloquearlo!',
+    },
+
+    // Trophy Room Stats
+    trophyRoom: {
+      totalTrophies: 'Total de Trofeos',
+      collected: 'Recogidos',
+      completionRate: 'Tasa de Finalización',
+      overallProgress: 'Progreso General',
+      showingResults: 'Mostrando {{filtered}} de {{total}} Logros',
     },
 
     // Filtering and Search
@@ -2834,10 +2844,21 @@ const es: Partial<TranslationKeys> = {
       collectionsCompleted: 'Colecciones\nCompletadas',
       bonusXPEarned: 'XP Adicional\nGanado',
       collectionRate: 'Tasa de\nColección',
+      collectionComplete: '🎉 ¡Colección Completada!',
     },
     loyalty_progress: {
       keepGrowing: '¡Sigue creciendo!',
       level: 'Nivel',
+      loadingData: 'Cargando datos de lealtad...',
+      unavailableData: '⚠️ Datos de lealtad no disponibles',
+      journeyTitle: '🏆 Viaje de Lealtad',
+      activeDays: 'Días Activos',
+      progressNext: 'Siguiente: {{name}} ({{days}} días)',
+      daysRemaining: 'días restantes',
+      maximumReached: '¡Has alcanzado la lealtad máxima!',
+      daysOfDedication: 'días de dedicación',
+      currentStreak: 'Serie Actual',
+      longestStreak: 'Serie Más Larga',
     },
     days: {
       monday: 'Lu',

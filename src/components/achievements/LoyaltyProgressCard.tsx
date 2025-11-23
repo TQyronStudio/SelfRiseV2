@@ -301,7 +301,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading loyalty data...</Text>
+        <Text style={styles.loadingText}>{t('social.loyalty_progress.loadingData')}</Text>
       </View>
     );
   }
@@ -309,7 +309,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
   if (!loyaltyData || !loyaltyProgress || !levelDisplay) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>⚠️ Loyalty data unavailable</Text>
+        <Text style={styles.errorText}>{t('social.loyalty_progress.unavailableData')}</Text>
       </View>
     );
   }
@@ -327,7 +327,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
             {levelDisplay.icon}
           </Text>
           <View style={styles.headerText}>
-            <Text style={styles.cardTitle}>🏆 Loyalty Journey</Text>
+            <Text style={styles.cardTitle}>{t('social.loyalty_progress.journeyTitle')}</Text>
             <Text style={[styles.levelName, { color: levelDisplay.color }]}>
               {levelDisplay.name}
             </Text>
@@ -335,7 +335,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
         </View>
         <View style={styles.headerRight}>
           <Text style={styles.activeDaysValue}>{loyaltyData.totalActiveDays}</Text>
-          <Text style={styles.activeDaysLabel}>Active Days</Text>
+          <Text style={styles.activeDaysLabel}>{t('social.loyalty_progress.activeDays')}</Text>
         </View>
       </View>
 
@@ -344,7 +344,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressText}>
-              Next: {nextMilestone.name} ({loyaltyProgress.nextTarget} days)
+              {t('social.loyalty_progress.progressNext', { name: nextMilestone.name, days: loyaltyProgress.nextTarget })}
             </Text>
             <Text style={styles.progressPercentage}>
               {Math.round(loyaltyProgress.progress)}%
@@ -364,7 +364,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
           </View>
 
           <Text style={styles.daysRemaining}>
-            {loyaltyProgress.daysRemaining} days remaining
+            {loyaltyProgress.daysRemaining} {t('social.loyalty_progress.daysRemaining')}
           </Text>
         </View>
       )}
@@ -374,10 +374,10 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
         <View style={styles.completeSection}>
           <Text style={styles.completeIcon}>🎉</Text>
           <Text style={styles.completeText}>
-            You've reached maximum loyalty!
+            {t('social.loyalty_progress.maximumReached')}
           </Text>
           <Text style={styles.completeSubtext}>
-            {loyaltyData.totalActiveDays} days of dedication
+            {loyaltyData.totalActiveDays} {t('social.loyalty_progress.daysOfDedication')}
           </Text>
         </View>
       )}
@@ -388,11 +388,11 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{loyaltyData.currentActiveStreak}</Text>
-              <Text style={styles.statLabel}>Current Streak</Text>
+              <Text style={styles.statLabel}>{t('social.loyalty_progress.currentStreak')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{loyaltyData.longestActiveStreak}</Text>
-              <Text style={styles.statLabel}>Longest Streak</Text>
+              <Text style={styles.statLabel}>{t('social.loyalty_progress.longestStreak')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: levelDisplay.color }]}>

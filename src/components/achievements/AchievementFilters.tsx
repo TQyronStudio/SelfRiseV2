@@ -294,7 +294,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
       {/* Results Count */}
       <View style={styles.resultsContainer}>
         <Text style={styles.resultsText}>
-          Showing {filteredCount} of {totalCount} achievements
+          {t('achievements.trophyRoom.showingResults', { filtered: filteredCount, total: totalCount })}
         </Text>
       </View>
     </View>

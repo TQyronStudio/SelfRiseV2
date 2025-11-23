@@ -251,6 +251,7 @@ const de: Partial<TranslationKeys> = {
     levelOverview: 'Level-Übersicht',
     levelsLoading: 'Level werden geladen...',
     goBack: 'Zurück',
+    backNavigation: 'Startseite',
     reorderHabits: {
       title: 'Gewohnheiten neu ordnen',
       instructions: 'Halte eine Gewohnheit und ziehe sie, um sie neu zu ordnen',
@@ -1397,6 +1398,15 @@ const de: Partial<TranslationKeys> = {
       progressToUnlock: 'Fortschritt zum Freischalten',
       howToUnlock: 'Wie man freischaltet',
       lockedMessage: 'Dieser Erfolg ist gesperrt. Verwende die App weiter, um ihn freizuschalten!',
+    },
+
+    // Trophy Room Stats
+    trophyRoom: {
+      totalTrophies: 'Gesamttrophäen',
+      collected: 'Gesammelt',
+      completionRate: 'Abschlussrate',
+      overallProgress: 'Gesamtfortschritt',
+      showingResults: 'Zeige {{filtered}} von {{total}} Erfolgen',
     },
 
     // Filtering and Search
@@ -2833,10 +2843,21 @@ const de: Partial<TranslationKeys> = {
       collectionsCompleted: 'Sammlungen\nAbgeschlossen',
       bonusXPEarned: 'Bonus-XP\nVerdient',
       collectionRate: 'Sammlungs-\nQuote',
+      collectionComplete: '🎉 Sammlung abgeschlossen!',
     },
     loyalty_progress: {
       keepGrowing: 'Weiter wachsen!',
       level: 'Stufe',
+      loadingData: 'Loyalitätsdaten werden geladen...',
+      unavailableData: '⚠️ Loyalitätsdaten nicht verfügbar',
+      journeyTitle: '🏆 Loyalitätsreise',
+      activeDays: 'Aktive Tage',
+      progressNext: 'Nächstes: {{name}} ({{days}} Tage)',
+      daysRemaining: 'verbleibende Tage',
+      maximumReached: 'Du hast maximale Loyalität erreicht!',
+      daysOfDedication: 'Tage der Hingabe',
+      currentStreak: 'Aktuelle Serie',
+      longestStreak: 'Längste Serie',
     },
     days: {
       monday: 'Mo',

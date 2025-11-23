@@ -239,6 +239,7 @@ export interface TranslationKeys {
     levelOverview: string;
     levelsLoading: string;
     goBack: string;
+    backNavigation: string;
     reorderHabits: {
       title: string;
       instructions: string;
@@ -1188,6 +1189,7 @@ export interface TranslationKeys {
       collected: string;
       completionRate: string;
       overallProgress: string;
+      showingResults: string;
     };
 
     // Individual achievement translations (78 achievements - 156 keys)
@@ -2072,10 +2074,21 @@ export interface TranslationKeys {
       collectionsCompleted: string;
       bonusXPEarned: string;
       collectionRate: string;
+      collectionComplete: string;
     };
     loyalty_progress: {
       keepGrowing: string;
       level: string;
+      loadingData: string;
+      unavailableData: string;
+      journeyTitle: string;
+      activeDays: string;
+      progressNext: string;
+      daysRemaining: string;
+      maximumReached: string;
+      daysOfDedication: string;
+      currentStreak: string;
+      longestStreak: string;
     };
     days: {
       monday: string;
