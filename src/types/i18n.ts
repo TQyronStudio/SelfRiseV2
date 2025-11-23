@@ -464,6 +464,8 @@ export interface TranslationKeys {
     input: {
       addGratitudeTitle: string;
       addSelfPraiseTitle: string;
+      typeGratitude: string;
+      typeSelfPraise: string;
       emptyError: string;
       minLengthError: string;
       frozenStreakError_one: string;

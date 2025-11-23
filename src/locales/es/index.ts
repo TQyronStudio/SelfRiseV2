@@ -570,6 +570,10 @@ const es: Partial<TranslationKeys> = {
       addGratitudeTitle: 'Agregar gratitud',
       addSelfPraiseTitle: 'Agregar autoelogio',
 
+      // Entry type labels (used in list and edit modal)
+      typeGratitude: 'Gratitud',
+      typeSelfPraise: 'Autoelogio',
+
       // Error messages
       emptyError: 'Por favor, escribe tu gratitud',
       minLengthError: 'La gratitud debe tener al menos 3 caracteres',

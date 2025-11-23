@@ -570,6 +570,10 @@ const de: Partial<TranslationKeys> = {
       addGratitudeTitle: 'Dankbarkeit hinzufügen',
       addSelfPraiseTitle: 'Selbstlob hinzufügen',
 
+      // Entry type labels (used in list and edit modal)
+      typeGratitude: 'Dankbarkeit',
+      typeSelfPraise: 'Selbstlob',
+
       // Error messages
       emptyError: 'Bitte gib deine Dankbarkeit ein',
       minLengthError: 'Dankbarkeit muss mindestens 3 Zeichen lang sein',

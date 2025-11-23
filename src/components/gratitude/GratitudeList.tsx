@@ -199,7 +199,7 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
               styles.typeLabel,
               item.type === 'self-praise' && styles.selfPraiseTypeLabel
             ]}>
-              {item.type === 'gratitude' ? 'Gratitude' : 'Self-Praise'}
+              {item.type === 'gratitude' ? t('journal.input.typeGratitude') : t('journal.input.typeSelfPraise')}
             </Text>
           </View>
         </View>

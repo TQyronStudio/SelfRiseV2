@@ -564,6 +564,10 @@ const en: TranslationKeys = {
       addGratitudeTitle: 'Add Gratitude',
       addSelfPraiseTitle: 'Add Self-Praise',
 
+      // Entry type labels (used in list and edit modal)
+      typeGratitude: 'Gratitude',
+      typeSelfPraise: 'Self-Praise',
+
       // Error messages
       emptyError: 'Please enter your gratitude',
       minLengthError: 'Gratitude must be at least 3 characters long',
