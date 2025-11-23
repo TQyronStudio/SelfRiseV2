@@ -360,7 +360,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
         <Text style={styles.sectionTitle}>{t('goals.details.predictions')}</Text>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>
-            {isLoading ? `${t('common.loading')}...` : 'No progress data yet. Add some progress to see predictions.'}
+            {isLoading ? `${t('common.loading.default')}...` : 'No progress data yet. Add some progress to see predictions.'}
           </Text>
         </View>
       </View>

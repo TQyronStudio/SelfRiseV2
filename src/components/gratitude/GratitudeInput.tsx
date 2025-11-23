@@ -258,7 +258,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
             styles.submitButtonText,
             (gratitudeText.trim().length < 3 || isSubmitting) && styles.submitButtonTextDisabled
           ]}>
-            {isSubmitting ? t('common.loading') : t('common.add')}
+            {isSubmitting ? t('common.loading.default') : t('common.add')}
           </Text>
         </TouchableOpacity>
       </View>

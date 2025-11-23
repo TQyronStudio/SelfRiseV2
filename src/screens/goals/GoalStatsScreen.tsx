@@ -148,7 +148,7 @@ export function GoalStatsScreen() {
           <View style={styles.shareButton} />
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('common.loading')}</Text>
+          <Text style={styles.loadingText}>{t('common.loading.default')}</Text>
         </View>
       </View>
     );
