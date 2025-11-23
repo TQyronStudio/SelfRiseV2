@@ -245,27 +245,27 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
 
   const generateNotificationText = (data: BatchedNotification): string => {
     const netXP = data.totalXP;
-    
+
     // Handle different XP outcomes with appropriate messaging
     if (netXP <= 0) {
       // For zero or negative net XP, show neutral/informative message
       if (netXP === 0) {
-        return `📊 Activities balanced (no net progress)`;
+        return `📊 ${t('gamification.xp.notifications.balanced') || 'Activities balanced (no net progress)'}`;
       } else {
-        return `📉 Progress reversed`;
+        return `📉 ${t('gamification.xp.notifications.reversed') || 'Progress reversed'}`;
       }
     }
-    
+
     // Only show congratulatory messages for NET POSITIVE XP
     if (data.sources.length === 1) {
       const source = data.sources[0];
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-      
+
       if (source?.count === 1) {
         const singularName = sourceInfo.name && sourceInfo.name.length > 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name;
-        return `${sourceInfo.icon} ${singularName} completed`;
+        return `${sourceInfo.icon} ${singularName} ${t('gamification.xp.notifications.completed') || 'completed'}`;
       } else {
-        return `${sourceInfo.icon} ${source?.count || 0} ${sourceInfo.name} completed`;
+        return `${sourceInfo.icon} ${source?.count || 0} ${sourceInfo.name} ${t('gamification.xp.notifications.completed') || 'completed'}`;
       }
     } else {
       // Multiple sources - create summary (only for positive gains)
@@ -274,21 +274,21 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         .map(source => {
           const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
           const count = source?.count || 0;
-          const sourceName = count === 1 && sourceInfo.name && sourceInfo.name.length > 1 
-            ? sourceInfo.name.slice(0, -1) 
+          const sourceName = count === 1 && sourceInfo.name && sourceInfo.name.length > 1
+            ? sourceInfo.name.slice(0, -1)
             : sourceInfo.name;
           return `${count} ${sourceName}`;
         });
-      
+
       if (sourceTexts.length === 0) {
-        return `📊 Activities updated`;
+        return `📊 ${t('gamification.xp.notifications.updated') || 'Activities updated'}`;
       } else if (sourceTexts.length === 1) {
-        return `🎉 ${sourceTexts[0]} completed`;
+        return `🎉 ${sourceTexts[0]} ${t('gamification.xp.notifications.completed') || 'completed'}`;
       } else if (sourceTexts.length === 2) {
-        return `🎉 ${sourceTexts.join(' and ')} completed`;
+        return `🎉 ${sourceTexts.join(` ${t('gamification.xp.notifications.and') || 'and'} `)} ${t('gamification.xp.notifications.completed') || 'completed'}`;
       } else {
         const lastSource = sourceTexts.pop();
-        return `🎉 ${sourceTexts.join(', ')}, and ${lastSource || ''} completed`;
+        return `🎉 ${sourceTexts.join(', ')}, ${t('gamification.xp.notifications.and') || 'and'} ${lastSource || ''} ${t('gamification.xp.notifications.completed') || 'completed'}`;
       }
     }
   };

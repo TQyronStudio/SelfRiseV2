@@ -2556,6 +2556,15 @@ const en: TranslationKeys = {
         lost: 'Lost {{amount}} experience points from {{source}}',
         amount_label: '{{sign}} {{amount}} experience points',
       },
+
+      // Notification messages
+      notifications: {
+        completed: 'completed',
+        balanced: 'Activities balanced (no net progress)',
+        reversed: 'Progress reversed',
+        updated: 'Activities updated',
+        and: 'and',
+      },
     },
 
     // Progress and Levels

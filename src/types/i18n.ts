@@ -1679,6 +1679,13 @@ export interface TranslationKeys {
         lost: string;
         amount_label: string;
       };
+      notifications: {
+        completed: string;
+        balanced: string;
+        reversed: string;
+        updated: string;
+        and: string;
+      };
     };
     progress: {
       level: string;

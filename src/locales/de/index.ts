@@ -2463,6 +2463,15 @@ const de: Partial<TranslationKeys> = {
         lost: '{{amount}} Erfahrungspunkte aus {{source}} verloren',
         amount_label: '{{sign}} {{amount}} Erfahrungspunkte',
       },
+
+      // Notification messages
+      notifications: {
+        completed: 'abgeschlossen',
+        balanced: 'Aktivitäten ausgeglichen (kein Netto-Fortschritt)',
+        reversed: 'Fortschritt umgekehrt',
+        updated: 'Aktivitäten aktualisiert',
+        and: 'und',
+      },
     },
 
     progress: {
