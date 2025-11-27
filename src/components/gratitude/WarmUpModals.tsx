@@ -108,12 +108,12 @@ export function WarmUpSuccessModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>✅</Text>
-          <Text style={styles.title}>{title || t('journal.warmup.modals.success.title')}</Text>
+          <Text style={styles.title}>{title || t('journal.warmUp.modals.success.title')}</Text>
           <Text style={styles.message}>
-            {message || t('journal.warmup.modals.success.message')}
+            {message || t('journal.warmUp.modals.success.message')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText || t('journal.warmup.modals.success.button')}</Text>
+            <Text style={styles.buttonText}>{buttonText || t('journal.warmUp.modals.success.button')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -192,12 +192,12 @@ export function WarmUpErrorModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>{title || t('journal.warmup.modals.error.title')}</Text>
+          <Text style={styles.title}>{title || t('journal.warmUp.modals.error.title')}</Text>
           <Text style={styles.message}>
-            {message || t('journal.warmup.modals.error.message')}
+            {message || t('journal.warmUp.modals.error.message')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText || t('journal.warmup.modals.error.button')}</Text>
+            <Text style={styles.buttonText}>{buttonText || t('journal.warmUp.modals.error.button')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -288,9 +288,9 @@ export function WarmUpConfirmationModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🔄</Text>
-          <Text style={styles.title}>{title || t('journal.warmup.modals.confirmation.title')}</Text>
+          <Text style={styles.title}>{title || t('journal.warmUp.modals.confirmation.title')}</Text>
           <Text style={styles.message}>
-            {message || t('journal.warmup.modals.confirmation.message')}
+            {message || t('journal.warmUp.modals.confirmation.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -298,11 +298,11 @@ export function WarmUpConfirmationModal({
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {cancelText || t('journal.warmup.modals.confirmation.cancel')}
+                {cancelText || t('journal.warmUp.modals.confirmation.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onConfirm}>
-              <Text style={styles.buttonText}>{confirmText || t('journal.warmup.modals.confirmation.confirm')}</Text>
+              <Text style={styles.buttonText}>{confirmText || t('journal.warmUp.modals.confirmation.confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -395,9 +395,9 @@ export function WarmUpIssueModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🛠️</Text>
-          <Text style={styles.title}>{title || t('journal.warmup.modals.issue.title')}</Text>
+          <Text style={styles.title}>{title || t('journal.warmUp.modals.issue.title')}</Text>
           <Text style={styles.message}>
-            {message || t('journal.warmup.modals.issue.message')}
+            {message || t('journal.warmUp.modals.issue.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -405,11 +405,11 @@ export function WarmUpIssueModal({
               onPress={onPrimaryAction}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {primaryActionText || t('journal.warmup.modals.issue.primaryAction')}
+                {primaryActionText || t('journal.warmUp.modals.issue.primaryAction')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onSecondaryAction}>
-              <Text style={styles.buttonText}>{secondaryActionText || t('journal.warmup.modals.issue.secondaryAction')}</Text>
+              <Text style={styles.buttonText}>{secondaryActionText || t('journal.warmUp.modals.issue.secondaryAction')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -501,9 +501,9 @@ export function QuickWarmUpModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.emoji}>🔄</Text>
-          <Text style={styles.title}>{title || t('journal.warmup.modals.quickWarmUp.title')}</Text>
+          <Text style={styles.title}>{title || t('journal.warmUp.modals.quickWarmUp.title')}</Text>
           <Text style={styles.message}>
-            {message || t('journal.warmup.modals.quickWarmUp.message')}
+            {message || t('journal.warmUp.modals.quickWarmUp.message')}
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -511,11 +511,11 @@ export function QuickWarmUpModal({
               onPress={onClose}
             >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                {cancelText || t('journal.warmup.modals.quickWarmUp.cancel')}
+                {cancelText || t('journal.warmUp.modals.quickWarmUp.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={onConfirm}>
-              <Text style={styles.buttonText}>{confirmText || t('journal.warmup.modals.quickWarmUp.confirm')}</Text>
+              <Text style={styles.buttonText}>{confirmText || t('journal.warmUp.modals.quickWarmUp.confirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>
