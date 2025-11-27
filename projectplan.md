@@ -30,20 +30,29 @@
 - Hardcoded: "Congratulations! 🎉" and "You've completed your daily journal practice!"
 - Bonus milestones (1st/5th/10th) already had correct i18n keys
 
+**Root Cause Analysis**:
+1. **First Issue**: Hardcoded strings in component (FIXED in commit 1)
+2. **Second Issue**: Wrong i18n key path - used `journal.daily_complete_*` instead of `journal.celebration.daily_complete_*`
+   - Keys are nested in `celebration` object in all locale files
+   - Component was calling wrong path causing "missingKey" errors in dev logs
+
 **Completion Summary**:
 - ✅ Audited `CelebrationModal.tsx` for all celebration types
-- ✅ Found all i18n keys existed in EN/DE/ES:
-  - `journal.daily_complete_title` & `journal.daily_complete_message` ✅
-  - `journal.bonusMilestone1/5/10_title` & `_text` ✅
-- ✅ Fixed: Changed hardcoded strings to use i18n keys in `getDefaultContent()` case
+- ✅ Found all i18n keys existed in EN/DE/ES under **`journal.celebration.*`**:
+  - `journal.celebration.daily_complete_title` & `journal.celebration.daily_complete_message` ✅
+  - `journal.celebration.bonusMilestone1/5/10_title` & `_text` ✅
+- ✅ Fixed: Corrected key paths to include `.celebration` prefix (commit 2)
 - ✅ Verified: All 3 languages have complete translations
 - ✅ TypeScript compilation: 0 errors
 
 **Files Modified**:
-- `src/components/gratitude/CelebrationModal.tsx` (2 lines changed)
+- `src/components/gratitude/CelebrationModal.tsx` (2 commits, 4 lines total changed)
+  - Commit 1: Changed hardcoded strings to t() calls
+  - Commit 2: Fixed i18n key paths to use `.celebration.` prefix
 
-**Technical Details**: All keys already existed with full translations:
-- EN, DE, ES: Complete translations for daily_complete and bonus milestones
+**Technical Details**: All keys exist in nested `celebration` object:
+- Structure: `journal.celebration.{daily_complete_title, daily_complete_message, bonusMilestone1/5/10_*}`
+- EN, DE, ES: 100% complete translations
 
 ---
 
