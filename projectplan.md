@@ -21,7 +21,7 @@
 
 ---
 
-### Part B: Journal Completion Modals ✅
+### Part B: Journal Completion & WarmUp Modals ✅
 
 **Goal**: Fix hardcoded strings in journal celebration modals (3 entries, 1st/5th/10th bonus)
 
@@ -56,7 +56,49 @@
 
 ---
 
-## 🚨 IN PROGRESS: COMPREHENSIVE i18n AUDIT & FIX (Phase 11 - Part C)
+### Part C: WarmUp Modal Popup Translations ✅
+
+**Goal**: Fix 4th entry milestone popup and all other WarmUp/StreakWarmUp modals localization
+
+**Root Cause Found**:
+- Components used **LOWERCASE** `journal.warmup.modals.*` for i18n keys
+- All locale files defined keys with **CAMELCASE** `journal.warmUp.modals.*`
+- This inconsistency caused all WarmUp popups to show in English only
+
+**Affected Modals** (18 incorrect references fixed):
+1. **WarmUpSuccessModal**: success.title/message/button
+2. **WarmUpErrorModal**: error.title/message/button
+3. **WarmUpConfirmationModal**: confirmation.title/message/cancel/confirm
+4. **WarmUpIssueModal**: issue.title/message/primaryAction/secondaryAction
+5. **QuickWarmUpModal**: quickWarmUp.title/message/cancel/confirm
+
+**Completion Summary**:
+- ✅ Identified naming convention mismatch (lowercase vs camelCase)
+- ✅ Fixed all 18 i18n key references in WarmUpModals.tsx
+- ✅ Changed: `journal.warmup.modals.*` → `journal.warmUp.modals.*`
+- ✅ Verified: All keys exist in EN/DE/ES with proper translations
+- ✅ TypeScript compilation: 0 errors
+- ✅ **Result**: All popups now properly localized (4th entry milestone, warm-up dialogs, etc.)
+
+**Files Modified**:
+- `src/components/gratitude/WarmUpModals.tsx` (18 lines changed - all modal references)
+
+**Locale Key Structure**:
+```
+journal.warmUp: {
+  modals: {
+    success: { title, message, button }
+    error: { title, message, button }
+    confirmation: { title, message, cancel, confirm }
+    issue: { title, message, primaryAction, secondaryAction }
+    quickWarmUp: { title, message, cancel, confirm }
+  }
+}
+```
+
+---
+
+## 🚨 IN PROGRESS: COMPREHENSIVE i18n AUDIT & FIX (Phase 11 - Part D)
 
 **Goal**: Achieve TRUE 100% i18n coverage by finding and translating ALL remaining hardcoded user-visible strings
 
