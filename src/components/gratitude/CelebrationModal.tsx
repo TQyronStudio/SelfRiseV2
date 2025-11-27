@@ -159,8 +159,8 @@ export default function CelebrationModal({
     switch (type) {
       case 'daily_complete':
         return {
-          title: 'Congratulations! 🎉',
-          message: 'You\'ve completed your daily journal practice!',
+          title: t('journal.daily_complete_title'),
+          message: t('journal.daily_complete_message'),
           emoji: '🎉',
         };
       case 'streak_milestone':
