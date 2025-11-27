@@ -1,5 +1,6 @@
 import i18n from '../config/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notificationScheduler } from '../services/notifications/notificationScheduler';
 
 // Storage key for language preference
 const LANGUAGE_STORAGE_KEY = 'user_language';
@@ -23,6 +24,15 @@ export const changeLanguage = async (language: SupportedLanguage): Promise<void>
   try {
     await i18n.changeLanguage(language);
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+
+    // Reschedule all notifications with new language
+    try {
+      await notificationScheduler.rescheduleAll();
+      console.log('[i18n] Notifications rescheduled for language:', language);
+    } catch (error) {
+      console.warn('[i18n] Failed to reschedule notifications on language change:', error);
+      // Don't throw - language change should succeed even if notification rescheduling fails
+    }
   } catch (error) {
     console.error('Error changing language:', error);
     throw error;

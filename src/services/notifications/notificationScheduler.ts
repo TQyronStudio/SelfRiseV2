@@ -15,6 +15,7 @@ import {
   NotificationPriority,
 } from '../../types/notification';
 import { BaseStorage, STORAGE_KEYS } from '../storage/base';
+import i18n from '../../config/i18n';
 
 // Storage key for notification preferences
 const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
@@ -33,25 +34,38 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   eveningReminderTime: '20:00',
 };
 
-// Afternoon reminder message variants (rotate randomly)
-const AFTERNOON_MESSAGES = [
-  {
-    title: 'SelfRise Check-in ☀️',
-    body: "How's your day going? Don't forget your goals and habits! 🚀",
-  },
-  {
-    title: 'Afternoon Motivation 💪',
-    body: "You still have time! Check your habits and goals 💪",
-  },
-  {
-    title: 'Progress Time 🎯',
-    body: "Afternoon check-in: How are you doing with your goals? 🎯",
-  },
-  {
-    title: 'Micro-win Moment ✨',
-    body: "Time for a micro-win! Can you complete one more habit? 🏃‍♂️",
-  },
-];
+// Helper function to get afternoon messages from i18n
+const getAfternoonMessages = (): Array<{ title: string; body: string }> => {
+  const reminders = i18n.t('notifications.reminders.afternoon', { returnObjects: true }) as any;
+  if (reminders && typeof reminders === 'object') {
+    return [
+      { title: reminders.variant1?.title || '', body: reminders.variant1?.body || '' },
+      { title: reminders.variant2?.title || '', body: reminders.variant2?.body || '' },
+      { title: reminders.variant3?.title || '', body: reminders.variant3?.body || '' },
+      { title: reminders.variant4?.title || '', body: reminders.variant4?.body || '' },
+    ].filter(m => m.title && m.body);
+  }
+
+  // Fallback to English if i18n fails
+  return [
+    {
+      title: 'SelfRise Check-in ☀️',
+      body: "How's your day going? Don't forget your goals and habits! 🚀",
+    },
+    {
+      title: 'Afternoon Motivation 💪',
+      body: "You still have time! Check your habits and goals 💪",
+    },
+    {
+      title: 'Progress Time 🎯',
+      body: "Afternoon check-in: How are you doing with your goals? 🎯",
+    },
+    {
+      title: 'Micro-win Moment ✨',
+      body: "Time for a micro-win! Can you complete one more habit? 🏃‍♂️",
+    },
+  ];
+};
 
 class NotificationScheduler {
   private static instance: NotificationScheduler;
@@ -238,10 +252,11 @@ class NotificationScheduler {
    * Get random afternoon message
    */
   private getRandomAfternoonMessage(): { title: string; body: string } {
-    const randomIndex = Math.floor(Math.random() * AFTERNOON_MESSAGES.length);
-    const message = AFTERNOON_MESSAGES[randomIndex];
+    const messages = getAfternoonMessages();
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    const message = messages[randomIndex];
     if (!message) {
-      return AFTERNOON_MESSAGES[0]!; // Fallback to first message
+      return messages[0]!; // Fallback to first message
     }
     return message;
   }
@@ -262,17 +277,24 @@ class NotificationScheduler {
 
     const options: NotificationOption[] = [];
 
+    // Get evening notification templates from i18n
+    const eveningTemplates = i18n.t('notifications.reminders.evening', { returnObjects: true }) as any;
+
     // Option 1: Incomplete habits (if any scheduled today)
     if (progress.incompletedHabitsCount > 0 && progress.scheduledTodayCount > 0) {
       const weight = (progress.incompletedHabitsCount / progress.scheduledTodayCount) * 100;
-      const habitWord = progress.incompletedHabitsCount === 1 ? 'habit' : 'habits';
+      const template = eveningTemplates?.incomplete_habits || {};
+      const titleKey = template.title || 'You still have habits to complete! 🏃‍♂️';
+      const bodyKey = progress.incompletedHabitsCount === 1 ? template.body_one : template.body_other;
+      const bodyText = (bodyKey || 'You have {{count}} habits left to complete. Let\'s do this!')
+        .replace('{{count}}', progress.incompletedHabitsCount.toString());
 
       options.push({
         type: 'habits',
         weight: weight,
         message: {
-          title: 'You still have habits to complete! 🏃‍♂️',
-          body: `You have ${progress.incompletedHabitsCount} ${habitWord} left to complete. Let's do this!`,
+          title: titleKey,
+          body: bodyText,
           priority: NotificationPriority.HIGH,
         },
       });
@@ -282,14 +304,18 @@ class NotificationScheduler {
     if (!progress.hasThreeBasicEntries) {
       const missing = 3 - progress.journalEntriesCount;
       const weight = (missing / 3) * 100;
-      const entryWord = missing === 1 ? 'entry' : 'entries';
+      const template = eveningTemplates?.missing_journal || {};
+      const titleKey = template.title || 'Evening reflection time 📝';
+      const bodyKey = missing === 1 ? template.body_one : template.body_other;
+      const bodyText = (bodyKey || 'Don\'t forget to write {{count}} more journal entries!')
+        .replace('{{count}}', missing.toString());
 
       options.push({
         type: 'journal',
         weight: weight,
         message: {
-          title: 'Evening reflection time 📝',
-          body: `Don't forget to write ${missing} more journal ${entryWord}!`,
+          title: titleKey,
+          body: bodyText,
           priority: NotificationPriority.HIGH,
         },
       });
@@ -297,12 +323,17 @@ class NotificationScheduler {
 
     // Option 3: Bonus entries (ONLY if 3+ basic entries already written)
     if (progress.hasThreeBasicEntries && progress.bonusEntriesCount < 10) {
+      const template = eveningTemplates?.bonus_opportunity || {};
+      const titleKey = template.title || 'Bonus opportunity! ⭐';
+      const bodyKey = template.body || 'You still have time for bonus entries! (currently {{count}}/10)';
+      const bodyText = bodyKey.replace('{{count}}', progress.bonusEntriesCount.toString());
+
       options.push({
         type: 'bonus',
         weight: 15, // Fixed nice-to-have weight
         message: {
-          title: 'Bonus opportunity! ⭐',
-          body: `You still have time for bonus entries! (currently ${progress.bonusEntriesCount}/10)`,
+          title: titleKey,
+          body: bodyText,
           priority: NotificationPriority.DEFAULT,
         },
       });
@@ -352,9 +383,10 @@ class NotificationScheduler {
    * Used when progress data is unavailable (app not opened all day)
    */
   private getFallbackEveningMessage(): SmartNotificationContent {
+    const template = i18n.t('notifications.reminders.evening.fallback', { returnObjects: true }) as any;
     return {
-      title: 'Evening check-in 🌙',
-      body: 'Time for evening reflection! What did you accomplish today? 📝',
+      title: template?.title || 'Evening check-in 🌙',
+      body: template?.body || 'Time for evening reflection! What did you accomplish today? 📝',
       priority: NotificationPriority.DEFAULT,
     };
   }
