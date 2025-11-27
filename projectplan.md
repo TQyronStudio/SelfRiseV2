@@ -1,6 +1,27 @@
 # SelfRise V2 - Project Plan
 
-## 🚨 IN PROGRESS: COMPREHENSIVE i18n AUDIT & FIX (Phase 11)
+## ✅ COMPLETED: Monthly Challenges Localization (Phase 11 - Part A)
+
+**Goal**: Verify and achieve 100% i18n coverage for Monthly Challenges in EN/DE/ES
+
+**Completion Summary**:
+- ✅ Comprehensive audit of all 5 Monthly Challenge components
+- ✅ Extracted all 28 translation keys used across components
+- ✅ Cross-referenced against all 3 locale files (EN/DE/ES)
+- ✅ Fixed critical issue: Changed 14 lines in MonthlyChallengeDetailModal.tsx
+  - **Root cause**: Component used `t('challenges.detail.*')` keys that didn't exist
+  - **Solution**: Corrected to use `t('help.detail.*')` which have full EN/DE/ES coverage
+- ✅ Verified: TypeScript compilation with 0 errors
+- ✅ **Result**: Monthly Challenges now **100% localized** across all 3 languages
+
+**Technical Details**: @projectplan-archive.md - "Monthly Challenges Localization Analysis"
+
+**Files Modified**:
+- `src/components/challenges/MonthlyChallengeDetailModal.tsx` (14 lines changed)
+
+---
+
+## 🚨 IN PROGRESS: COMPREHENSIVE i18n AUDIT & FIX (Phase 11 - Part B)
 
 **Goal**: Achieve TRUE 100% i18n coverage by finding and translating ALL remaining hardcoded user-visible strings
 
