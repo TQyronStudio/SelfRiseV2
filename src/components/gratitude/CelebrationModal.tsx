@@ -159,8 +159,8 @@ export default function CelebrationModal({
     switch (type) {
       case 'daily_complete':
         return {
-          title: t('journal.daily_complete_title'),
-          message: t('journal.daily_complete_message'),
+          title: t('journal.celebration.daily_complete_title'),
+          message: t('journal.celebration.daily_complete_message'),
           emoji: '🎉',
         };
       case 'streak_milestone':
