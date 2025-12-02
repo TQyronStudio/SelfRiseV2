@@ -2276,6 +2276,16 @@ export interface TranslationKeys {
       bonusXPEarned: string;
       collectionRate: string;
       collectionComplete: string;
+      collections: {
+        'habits-master': string;
+        'journal-sage': string;
+        'goal-champion': string;
+        'legendary-collector': string;
+        'epic-hunter': string;
+        'first-steps': string;
+        'consistency-king': string;
+        'time-master': string;
+      };
     };
     loyalty_progress: {
       keepGrowing: string;

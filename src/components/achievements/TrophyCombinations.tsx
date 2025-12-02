@@ -19,7 +19,7 @@ interface TrophyCombinationsProps {
 
 interface TrophyCollection {
   id: string;
-  name: string;
+  nameKey: string;
   description: string;
   icon: string;
   requiredAchievements: string[];
@@ -35,7 +35,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   // Category-based collections
   {
     id: 'habits-master',
-    name: 'Habits Master',
+    nameKey: 'social.trophy_combinations.collections.habits-master',
     description: t('social.achievements_trophies.habitMastery'),
     icon: '🏃‍♂️',
     requiredAchievements: ['first-habit', 'weekly-warrior', 'habit-collector', 'completion-machine'],
@@ -45,7 +45,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   },
   {
     id: 'journal-sage',
-    name: 'Journal Sage',
+    nameKey: 'social.trophy_combinations.collections.journal-sage',
     description: t('social.achievements_trophies.journalMastery'),
     icon: '📖',
     requiredAchievements: ['first-journal', 'journal-streaker', 'journal-master'],
@@ -55,7 +55,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   },
   {
     id: 'goal-champion',
-    name: 'Goal Champion',
+    nameKey: 'social.trophy_combinations.collections.goal-champion',
     description: t('social.achievements_trophies.goalMastery'),
     icon: '🎯',
     requiredAchievements: ['first-goal', 'goal-achiever'],
@@ -67,7 +67,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   // Rarity-based collections
   {
     id: 'legendary-collector',
-    name: 'Legendary Collector',
+    nameKey: 'social.trophy_combinations.collections.legendary-collector',
     description: t('social.achievements_trophies.legendaryCollector'),
     icon: '👑',
     requiredAchievements: ['hundred-days', 'legendary-master'],
@@ -76,7 +76,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   },
   {
     id: 'epic-hunter',
-    name: 'Epic Hunter',
+    nameKey: 'social.trophy_combinations.collections.epic-hunter',
     description: t('social.achievements_trophies.epicCollector'),
     icon: '⚔️',
     requiredAchievements: ['monthly-master', 'completion-machine', 'journal-master', 'goal-achiever', 'perfect-week', 'weekend-warrior'],
@@ -87,7 +87,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   // Special themed collections
   {
     id: 'first-steps',
-    name: 'Foundation Builder',
+    nameKey: 'social.trophy_combinations.collections.first-steps',
     description: t('social.achievements_trophies.universalBeginning'),
     icon: '🌱',
     requiredAchievements: ['first-habit', 'first-journal', 'first-goal'],
@@ -96,7 +96,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   },
   {
     id: 'consistency-king',
-    name: 'Consistency King',
+    nameKey: 'social.trophy_combinations.collections.consistency-king',
     description: t('social.achievements_trophies.consistencyMaster'),
     icon: '👑',
     requiredAchievements: ['weekly-warrior', 'monthly-master', 'journal-streaker'],
@@ -106,7 +106,7 @@ const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'c
   },
   {
     id: 'time-master',
-    name: 'Time Master',
+    nameKey: 'social.trophy_combinations.collections.time-master',
     description: t('social.achievements_trophies.timeMaster'),
     icon: '⏰',
     requiredAchievements: ['early-bird', 'perfect-week', 'weekend-warrior'],

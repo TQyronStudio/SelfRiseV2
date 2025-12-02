@@ -20,7 +20,7 @@ const getDeviceCapability = () => ({
 
 interface TrophyCollection {
   id: string;
-  name: string;
+  nameKey: string;
   description: string;
   icon: string;
   requiredAchievements: string[];
@@ -483,7 +483,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
               styles.collectionName,
               collection.isCompleted && { color: rarityColor }
             ]}>
-              {collection.name}
+              {t(collection.nameKey)}
             </Text>
             <View style={styles.collectionMeta}>
               <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>

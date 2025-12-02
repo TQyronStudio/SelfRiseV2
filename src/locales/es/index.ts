@@ -3064,6 +3064,16 @@ const es: Partial<TranslationKeys> = {
       bonusXPEarned: 'XP Adicional\nGanado',
       collectionRate: 'Tasa de\nColección',
       collectionComplete: '🎉 ¡Colección Completada!',
+      collections: {
+        'habits-master': 'Maestro de Hábitos',
+        'journal-sage': 'Sabio del Diario',
+        'goal-champion': 'Campeón de Objetivos',
+        'legendary-collector': 'Coleccionista Legendario',
+        'epic-hunter': 'Cazador Épico',
+        'first-steps': 'Constructor de Fundamentos',
+        'consistency-king': 'Rey de la Consistencia',
+        'time-master': 'Maestro del Tiempo',
+      },
     },
     loyalty_progress: {
       keepGrowing: '¡Sigue creciendo!',

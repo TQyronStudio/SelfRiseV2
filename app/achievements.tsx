@@ -1100,7 +1100,7 @@ export default function AchievementsScreen() {
           userAchievements={userAchievements}
           allAchievements={CORE_ACHIEVEMENTS}
           onCollectionPress={(collection) => {
-            console.log('Collection pressed:', collection.name);
+            console.log('Collection pressed:', collection.nameKey);
             // TODO: Open collection detail modal
           }}
         />

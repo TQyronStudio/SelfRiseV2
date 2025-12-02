@@ -3467,6 +3467,16 @@ const en: TranslationKeys = {
       bonusXPEarned: 'Bonus XP\nEarned',
       collectionRate: 'Collection\nRate',
       collectionComplete: '🎉 Collection Complete!',
+      collections: {
+        'habits-master': 'Habits Master',
+        'journal-sage': 'Journal Sage',
+        'goal-champion': 'Goal Champion',
+        'legendary-collector': 'Legendary Collector',
+        'epic-hunter': 'Epic Hunter',
+        'first-steps': 'Foundation Builder',
+        'consistency-king': 'Consistency King',
+        'time-master': 'Time Master',
+      },
     },
     loyalty_progress: {
       keepGrowing: 'Keep growing!',
