@@ -1080,6 +1080,7 @@ const en: TranslationKeys = {
     daysLeftCompact: 'd left',
     level: 'Level',
     difficulty: 'Difficulty',
+    difficultyLabel: 'Difficulty',
     activeDays: 'Active Days',
     maxXP: 'Max XP',
     milestones: 'Milestones',

@@ -1067,6 +1067,7 @@ const es: Partial<TranslationKeys> = {
     daysLeftCompact: 'd rest.',
     level: 'Nivel',
     difficulty: 'Dificultad',
+    difficultyLabel: 'Dificultad',
     activeDays: 'Días Activos',
     maxXP: 'XP Máx.',
     milestones: 'Hitos',

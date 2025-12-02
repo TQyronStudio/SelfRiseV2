@@ -695,7 +695,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
             <Text style={[styles.statNumber, { color: categoryColor }]}>
               {challenge.baseXPReward}
             </Text>
-            <Text style={styles.statLabel}>{t('monthlyChallenge.maxXp')}</Text>
+            <Text style={styles.statLabel}>{t('monthlyChallenge.maxXP')}</Text>
           </View>
         </View>
 

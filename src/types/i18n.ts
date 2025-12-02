@@ -897,6 +897,7 @@ export interface TranslationKeys {
     daysLeftCompact: string;
     level: string;
     difficulty: string;
+    difficultyLabel: string;
     activeDays: string;
     maxXP: string;
     milestones: string;
