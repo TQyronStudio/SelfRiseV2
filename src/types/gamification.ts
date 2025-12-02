@@ -369,10 +369,10 @@ export interface LoyaltyProgress {
  * Display information for loyalty levels
  */
 export interface LoyaltyLevelDisplay {
-  name: string;                      // Display name (e.g., "Explorer")
+  nameKey: string;                   // i18n key for display name (e.g., "social.loyalty_progress.levels.explorer.name")
   icon: string;                      // Emoji icon
   color: string;                     // Hex color code
-  description: string;               // Short description
+  descriptionKey: string;            // i18n key for short description
 }
 
 /**
@@ -380,7 +380,8 @@ export interface LoyaltyLevelDisplay {
  */
 export interface LoyaltyMilestone {
   days: number;                      // Active days required
-  name: string;                      // Achievement name
+  name: string;                      // Achievement name (English fallback)
+  nameKey: string;                   // i18n key for achievement name
   xpReward: number;                  // XP reward amount
   rarity: AchievementRarity;         // Achievement rarity level
   isSecret: boolean;                 // Whether achievement is hidden until unlocked

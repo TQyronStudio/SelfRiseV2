@@ -3072,12 +3072,34 @@ const es: Partial<TranslationKeys> = {
       unavailableData: '⚠️ Datos de lealtad no disponibles',
       journeyTitle: '🏆 Viaje de Lealtad',
       activeDays: 'Días Activos',
-      progressNext: 'Siguiente: {{name}} ({{days}} días)',
+      progressNext: 'Camino a {{name}}: {{days}} días activos restantes',
       daysRemaining: 'días restantes',
       maximumReached: '¡Has alcanzado la lealtad máxima!',
       daysOfDedication: 'días de dedicación',
       currentStreak: 'Serie Actual',
       longestStreak: 'Serie Más Larga',
+      levels: {
+        newcomer: {
+          name: 'Recién Llegado',
+          description: 'Comenzando tu viaje'
+        },
+        explorer: {
+          name: 'Explorador',
+          description: 'Descubriendo tu potencial'
+        },
+        veteran: {
+          name: 'Veterano',
+          description: 'Experimentado en el crecimiento'
+        },
+        legend: {
+          name: 'Leyenda',
+          description: 'Compromiso legendario'
+        },
+        master: {
+          name: 'Maestro de Lealtad',
+          description: 'Dedicación suprema'
+        }
+      }
     },
     days: {
       monday: 'Lu',

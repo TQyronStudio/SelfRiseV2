@@ -219,7 +219,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
     <View style={styles.container}>
       {/* Main Trophy Room Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>🏆 {t('social.trophyRoom.title')}</Text>
+        <Text style={styles.headerTitle}>{t('social.trophyRoom.title')}</Text>
         <Text style={styles.headerSubtitle}>{t('social.trophyRoom.subtitle')}</Text>
       </View>
 

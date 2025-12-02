@@ -329,7 +329,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
           <View style={styles.headerText}>
             <Text style={styles.cardTitle}>{t('social.loyalty_progress.journeyTitle')}</Text>
             <Text style={[styles.levelName, { color: levelDisplay.color }]}>
-              {levelDisplay.name}
+              {t(levelDisplay.nameKey)}
             </Text>
           </View>
         </View>
@@ -344,7 +344,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressText}>
-              {t('social.loyalty_progress.progressNext', { name: nextMilestone.name, days: loyaltyProgress.nextTarget })}
+              {t('social.loyalty_progress.progressNext', { name: t(nextMilestone.nameKey), days: loyaltyProgress.nextTarget })}
             </Text>
             <Text style={styles.progressPercentage}>
               {Math.round(loyaltyProgress.progress)}%
@@ -396,7 +396,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: levelDisplay.color }]}>
-                {levelDisplay.name}
+                {t(levelDisplay.nameKey)}
               </Text>
               <Text style={styles.statLabel}>{t('social.loyalty_progress.level')}</Text>
             </View>
@@ -414,7 +414,7 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
       {/* Level Description */}
       <View style={styles.descriptionSection}>
         <Text style={styles.descriptionText}>
-          {levelDisplay.description}
+          {t(levelDisplay.descriptionKey)}
         </Text>
       </View>
     </TouchableOpacity>

@@ -3071,12 +3071,34 @@ const de: Partial<TranslationKeys> = {
       unavailableData: '⚠️ Loyalitätsdaten nicht verfügbar',
       journeyTitle: '🏆 Loyalitätsreise',
       activeDays: 'Aktive Tage',
-      progressNext: 'Nächstes: {{name}} ({{days}} Tage)',
+      progressNext: 'Auf dem Weg zu {{name}}: Noch {{days}} aktive Tage',
       daysRemaining: 'verbleibende Tage',
       maximumReached: 'Du hast maximale Loyalität erreicht!',
       daysOfDedication: 'Tage der Hingabe',
       currentStreak: 'Aktuelle Serie',
       longestStreak: 'Längste Serie',
+      levels: {
+        newcomer: {
+          name: 'Neuling',
+          description: 'Beginne deine Reise'
+        },
+        explorer: {
+          name: 'Entdecker',
+          description: 'Entdecke dein Potenzial'
+        },
+        veteran: {
+          name: 'Veteran',
+          description: 'Erfahren im Wachstum'
+        },
+        legend: {
+          name: 'Legende',
+          description: 'Legendäre Hingabe'
+        },
+        master: {
+          name: 'Loyalitätsmeister',
+          description: 'Ultimative Hingabe'
+        }
+      }
     },
     days: {
       monday: 'Mo',

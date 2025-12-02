@@ -22,16 +22,16 @@ export class LoyaltyService {
   
   // Loyalty milestones (matching technical-guides:Achievements.md exactly)
   static readonly LOYALTY_MILESTONES: LoyaltyMilestone[] = [
-    { days: 7, name: 'First Week', xpReward: 75, rarity: AchievementRarity.COMMON, isSecret: false },
-    { days: 14, name: 'Two Weeks Strong', xpReward: 100, rarity: AchievementRarity.RARE, isSecret: false },
-    { days: 21, name: 'Three Weeks Committed', xpReward: 125, rarity: AchievementRarity.RARE, isSecret: false },
-    { days: 30, name: 'Month Explorer', xpReward: 150, rarity: AchievementRarity.EPIC, isSecret: false },
-    { days: 60, name: 'Two Month Veteran', xpReward: 200, rarity: AchievementRarity.EPIC, isSecret: false },
-    { days: 100, name: 'Century User', xpReward: 300, rarity: AchievementRarity.EPIC, isSecret: false },
-    { days: 183, name: 'Half Year Hero', xpReward: 500, rarity: AchievementRarity.LEGENDARY, isSecret: false },
-    { days: 365, name: 'Year Legend', xpReward: 1000, rarity: AchievementRarity.LEGENDARY, isSecret: false },
-    { days: 500, name: 'Ultimate Veteran', xpReward: 1500, rarity: AchievementRarity.LEGENDARY, isSecret: false },
-    { days: 1000, name: 'Loyalty Master', xpReward: 2000, rarity: AchievementRarity.LEGENDARY, isSecret: true },
+    { days: 7, name: 'First Week', nameKey: 'achievements.achievementNames.loyalty-first-week', xpReward: 75, rarity: AchievementRarity.COMMON, isSecret: false },
+    { days: 14, name: 'Two Weeks Strong', nameKey: 'achievements.achievementNames.loyalty-two-weeks-strong', xpReward: 100, rarity: AchievementRarity.RARE, isSecret: false },
+    { days: 21, name: 'Three Weeks Committed', nameKey: 'achievements.achievementNames.loyalty-three-weeks-committed', xpReward: 125, rarity: AchievementRarity.RARE, isSecret: false },
+    { days: 30, name: 'Month Explorer', nameKey: 'achievements.achievementNames.loyalty-month-explorer', xpReward: 150, rarity: AchievementRarity.EPIC, isSecret: false },
+    { days: 60, name: 'Two Month Veteran', nameKey: 'achievements.achievementNames.loyalty-two-month-veteran', xpReward: 200, rarity: AchievementRarity.EPIC, isSecret: false },
+    { days: 100, name: 'Century User', nameKey: 'achievements.achievementNames.loyalty-century-user', xpReward: 300, rarity: AchievementRarity.EPIC, isSecret: false },
+    { days: 183, name: 'Half Year Hero', nameKey: 'achievements.achievementNames.loyalty-half-year-hero', xpReward: 500, rarity: AchievementRarity.LEGENDARY, isSecret: false },
+    { days: 365, name: 'Year Legend', nameKey: 'achievements.achievementNames.loyalty-year-legend', xpReward: 1000, rarity: AchievementRarity.LEGENDARY, isSecret: false },
+    { days: 500, name: 'Ultimate Veteran', nameKey: 'achievements.achievementNames.loyalty-ultimate-veteran', xpReward: 1500, rarity: AchievementRarity.LEGENDARY, isSecret: false },
+    { days: 1000, name: 'Loyalty Master', nameKey: 'achievements.achievementNames.loyalty-master', xpReward: 2000, rarity: AchievementRarity.LEGENDARY, isSecret: true },
   ];
 
   // ========================================
@@ -229,37 +229,37 @@ export class LoyaltyService {
   static getLoyaltyLevelDisplay(level: LoyaltyLevel): LoyaltyLevelDisplay {
     const displays = {
       [LoyaltyLevel.NEWCOMER]: {
-        name: "Newcomer",
+        nameKey: "social.loyalty_progress.levels.newcomer.name",
         icon: "🌱",
         color: "#9E9E9E",
-        description: "Beginning your journey"
+        descriptionKey: "social.loyalty_progress.levels.newcomer.description"
       },
       [LoyaltyLevel.EXPLORER]: {
-        name: "Explorer", 
+        nameKey: "social.loyalty_progress.levels.explorer.name",
         icon: "🗺️",
         color: "#2196F3",
-        description: "Discovering your potential"
+        descriptionKey: "social.loyalty_progress.levels.explorer.description"
       },
       [LoyaltyLevel.VETERAN]: {
-        name: "Veteran",
-        icon: "⚔️", 
+        nameKey: "social.loyalty_progress.levels.veteran.name",
+        icon: "⚔️",
         color: "#9C27B0",
-        description: "Seasoned in growth"
+        descriptionKey: "social.loyalty_progress.levels.veteran.description"
       },
       [LoyaltyLevel.LEGEND]: {
-        name: "Legend",
+        nameKey: "social.loyalty_progress.levels.legend.name",
         icon: "👑",
-        color: "#FFD700", 
-        description: "Legendary commitment"
+        color: "#FFD700",
+        descriptionKey: "social.loyalty_progress.levels.legend.description"
       },
       [LoyaltyLevel.MASTER]: {
-        name: "Loyalty Master",
+        nameKey: "social.loyalty_progress.levels.master.name",
         icon: "🏆",
         color: "#FF6B35",
-        description: "Ultimate dedication"
+        descriptionKey: "social.loyalty_progress.levels.master.description"
       }
     };
-    
+
     return displays[level];
   }
 

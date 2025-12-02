@@ -2290,6 +2290,28 @@ export interface TranslationKeys {
       daysOfDedication: string;
       currentStreak: string;
       longestStreak: string;
+      levels: {
+        newcomer: {
+          name: string;
+          description: string;
+        };
+        explorer: {
+          name: string;
+          description: string;
+        };
+        veteran: {
+          name: string;
+          description: string;
+        };
+        legend: {
+          name: string;
+          description: string;
+        };
+        master: {
+          name: string;
+          description: string;
+        };
+      };
     };
     days: {
       monday: string;

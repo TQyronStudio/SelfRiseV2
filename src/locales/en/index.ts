@@ -3475,12 +3475,34 @@ const en: TranslationKeys = {
       unavailableData: '⚠️ Loyalty data unavailable',
       journeyTitle: '🏆 Loyalty Journey',
       activeDays: 'Active Days',
-      progressNext: 'Next: {{name}} ({{days}} days)',
+      progressNext: 'Building toward {{name}}: {{days}} active days remaining',
       daysRemaining: 'days remaining',
       maximumReached: "You've reached maximum loyalty!",
       daysOfDedication: 'days of dedication',
       currentStreak: 'Current Streak',
       longestStreak: 'Longest Streak',
+      levels: {
+        newcomer: {
+          name: 'Newcomer',
+          description: 'Beginning your journey'
+        },
+        explorer: {
+          name: 'Explorer',
+          description: 'Discovering your potential'
+        },
+        veteran: {
+          name: 'Veteran',
+          description: 'Seasoned in growth'
+        },
+        legend: {
+          name: 'Legend',
+          description: 'Legendary commitment'
+        },
+        master: {
+          name: 'Loyalty Master',
+          description: 'Ultimate dedication'
+        }
+      }
     },
     days: {
       monday: 'Mo',
