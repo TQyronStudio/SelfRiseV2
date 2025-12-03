@@ -64,12 +64,30 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
   if (!challenge || !progress) return null;
 
+  // Helper function to translate text that might be an i18n key
+  const translateIfKey = (text: string): string => {
+    if (!text) return text;
+
+    // Check if text looks like an i18n key
+    if (text.includes('challenges.templates.') || text.includes('help.challenges.templates.')) {
+      // Fix old key format to new format
+      const fixedKey = text.replace('challenges.templates.', 'help.challenges.templates.');
+      const translated = t(fixedKey);
+      // If translation failed, return original text
+      return translated === fixedKey ? text : translated;
+    }
+
+    return text;
+  };
+
   // Clean up any "Beginner-friendly target" text from challenge requirements
   const cleanedChallenge = {
     ...challenge,
+    title: translateIfKey(challenge.title),
+    description: translateIfKey(challenge.description),
     requirements: challenge.requirements.map(req => ({
       ...req,
-      description: req.description
+      description: translateIfKey(req.description)
         .replace(/\(?\s*beginner-?friendly\s+target\s*\)?/gi, '')
         .replace(/\(?\s*beginner\s+friendly\s+target\s*\)?/gi, '')
         .replace(/beginner-?friendly\s+target/gi, 'target')

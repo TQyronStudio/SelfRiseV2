@@ -26,6 +26,26 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
 
+  // Helper function to translate text that might be an i18n key
+  const translateIfKey = (text: string): string => {
+    if (!text) return text;
+
+    // Check if text looks like an i18n key
+    if (text.includes('challenges.templates.') || text.includes('help.challenges.templates.')) {
+      // Fix old key format to new format
+      const fixedKey = text.replace('challenges.templates.', 'help.challenges.templates.');
+      const translated = t(fixedKey);
+      // If translation failed, return original text
+      return translated === fixedKey ? text : translated;
+    }
+
+    return text;
+  };
+
+  // Translate challenge fields if they contain i18n keys
+  const displayTitle = translateIfKey(challenge.title);
+  const displayDescription = translateIfKey(challenge.description);
+
   const completedRequirements = challenge.requirements.filter(req =>
     (progress.progress[req.trackingKey] || 0) >= req.target
   ).length;
@@ -278,7 +298,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
           <View style={styles.compactContent}>
             <View style={styles.compactTitleRow}>
               <Text style={styles.compactTitle} numberOfLines={1}>
-                {challenge.title}
+                {displayTitle}
               </Text>
               <View style={styles.starDifficultyContainer}>
                 <StarRatingDisplay
@@ -338,7 +358,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
           <View style={styles.headerLeft}>
             <Text style={styles.categoryIcon}>{getCategoryIcon(challenge.category)}</Text>
             <View>
-              <Text style={styles.title}>{challenge.title}</Text>
+              <Text style={styles.title}>{displayTitle}</Text>
               <View style={styles.metaRow}>
                 <Text style={[styles.category, { color: categoryColor }]}>
                   {challenge.category.toUpperCase()}
@@ -375,7 +395,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         </View>
 
         {/* Description */}
-        <Text style={styles.description}>{challenge.description}</Text>
+        <Text style={styles.description}>{displayDescription}</Text>
 
 
 
