@@ -59,14 +59,14 @@ export class MonthlyChallengeService {
         {
           id: 'habits_consistency_master',
           category: AchievementCategory.HABITS,
-          title: t('challenges.templates.habits_consistency_master.title'),
-          description: t('challenges.templates.habits_consistency_master.description'),
+          title: t('help.challenges.templates.habits_consistency_master.title'),
+          description: t('help.challenges.templates.habits_consistency_master.description'),
           baselineMetricKey: 'totalHabitCompletions',
           baselineMultiplierRange: [1.05, 1.25],
           requirementTemplates: [
             {
               type: 'habits',
-              description: t('challenges.templates.habits_consistency_master.requirement'),
+              description: t('help.challenges.templates.habits_consistency_master.requirement'),
               trackingKey: 'scheduled_habit_completions',
               progressMilestones: [0.25, 0.50, 0.75]
             }
@@ -77,9 +77,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 500,
           bonusXPConditions: [
-            t('challenges.templates.habits_consistency_master.bonus1'),
-            t('challenges.templates.habits_consistency_master.bonus2'),
-            t('challenges.templates.habits_consistency_master.bonus3')
+            t('help.challenges.templates.habits_consistency_master.bonus1'),
+            t('help.challenges.templates.habits_consistency_master.bonus2'),
+            t('help.challenges.templates.habits_consistency_master.bonus3')
           ],
           tags: ['consistency', 'routine', 'discipline'],
           priority: 100,
@@ -89,14 +89,14 @@ export class MonthlyChallengeService {
         {
           id: 'habits_variety_champion',
           category: AchievementCategory.HABITS,
-          title: t('challenges.templates.habits_variety_champion.title'),
-          description: t('challenges.templates.habits_variety_champion.description'),
+          title: t('help.challenges.templates.habits_variety_champion.title'),
+          description: t('help.challenges.templates.habits_variety_champion.description'),
           baselineMetricKey: 'avgHabitVariety',
           baselineMultiplierRange: [1.10, 1.30],
           requirementTemplates: [
             {
               type: 'habits',
-              description: t('challenges.templates.habits_variety_champion.requirement'),
+              description: t('help.challenges.templates.habits_variety_champion.requirement'),
               trackingKey: 'unique_weekly_habits',
               progressMilestones: [0.25, 0.50, 0.75],
               weeklyTarget: 5
@@ -108,9 +108,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 550,
           bonusXPConditions: [
-            t('challenges.templates.habits_variety_champion.bonus1'),
-            t('challenges.templates.habits_variety_champion.bonus2'),
-            t('challenges.templates.habits_variety_champion.bonus3')
+            t('help.challenges.templates.habits_variety_champion.bonus1'),
+            t('help.challenges.templates.habits_variety_champion.bonus2'),
+            t('help.challenges.templates.habits_variety_champion.bonus3')
           ],
           tags: ['variety', 'exploration', 'growth'],
           priority: 85,
@@ -119,14 +119,14 @@ export class MonthlyChallengeService {
         {
           id: 'habits_streak_builder',
           category: AchievementCategory.HABITS,
-          title: t('challenges.templates.habits_streak_builder.title'),
-          description: t('challenges.templates.habits_streak_builder.description'),
+          title: t('help.challenges.templates.habits_streak_builder.title'),
+          description: t('help.challenges.templates.habits_streak_builder.description'),
           baselineMetricKey: 'longestHabitStreak',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
               type: 'habits',
-              description: t('challenges.templates.habits_streak_builder.requirement'),
+              description: t('help.challenges.templates.habits_streak_builder.requirement'),
               trackingKey: 'habit_streak_days',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 1
@@ -138,9 +138,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 600,
           bonusXPConditions: [
-            t('challenges.templates.habits_streak_builder.bonus1'),
-            t('challenges.templates.habits_streak_builder.bonus2'),
-            t('challenges.templates.habits_streak_builder.bonus3')
+            t('help.challenges.templates.habits_streak_builder.bonus1'),
+            t('help.challenges.templates.habits_streak_builder.bonus2'),
+            t('help.challenges.templates.habits_streak_builder.bonus3')
           ],
           tags: ['streaks', 'momentum', 'persistence'],
           priority: 90,
@@ -149,14 +149,14 @@ export class MonthlyChallengeService {
         {
           id: 'habits_bonus_hunter',
           category: AchievementCategory.HABITS,
-          title: t('challenges.templates.habits_bonus_hunter.title'),
-          description: t('challenges.templates.habits_bonus_hunter.description'),
+          title: t('help.challenges.templates.habits_bonus_hunter.title'),
+          description: t('help.challenges.templates.habits_bonus_hunter.description'),
           baselineMetricKey: 'avgDailyBonusHabits',
           baselineMultiplierRange: [1.20, 1.40],
           requirementTemplates: [
             {
               type: 'habits',
-              description: t('challenges.templates.habits_bonus_hunter.requirement'),
+              description: t('help.challenges.templates.habits_bonus_hunter.requirement'),
               trackingKey: 'bonus_habit_completions',
               progressMilestones: [0.25, 0.50, 0.75]
             }
@@ -167,9 +167,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 525,
           bonusXPConditions: [
-            t('challenges.templates.habits_bonus_hunter.bonus1'),
-            t('challenges.templates.habits_bonus_hunter.bonus2'),
-            t('challenges.templates.habits_bonus_hunter.bonus3')
+            t('help.challenges.templates.habits_bonus_hunter.bonus1'),
+            t('help.challenges.templates.habits_bonus_hunter.bonus2'),
+            t('help.challenges.templates.habits_bonus_hunter.bonus3')
           ],
           tags: ['bonus', 'exceeding', 'ambitious'],
           priority: 75,
@@ -180,14 +180,14 @@ export class MonthlyChallengeService {
         {
           id: 'journal_reflection_expert',
           category: AchievementCategory.JOURNAL,
-          title: t('challenges.templates.journal_reflection_expert.title'),
-          description: t('challenges.templates.journal_reflection_expert.description'),
+          title: t('help.challenges.templates.journal_reflection_expert.title'),
+          description: t('help.challenges.templates.journal_reflection_expert.description'),
           baselineMetricKey: 'totalJournalEntries',
           baselineMultiplierRange: [1.05, 1.25],
           requirementTemplates: [
             {
               type: 'journal',
-              description: t('challenges.templates.journal_reflection_expert.requirement'),
+              description: t('help.challenges.templates.journal_reflection_expert.requirement'),
               trackingKey: 'quality_journal_entries',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 3
@@ -199,9 +199,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 500,
           bonusXPConditions: [
-            t('challenges.templates.journal_reflection_expert.bonus1'),
-            t('challenges.templates.journal_reflection_expert.bonus2'),
-            t('challenges.templates.journal_reflection_expert.bonus3')
+            t('help.challenges.templates.journal_reflection_expert.bonus1'),
+            t('help.challenges.templates.journal_reflection_expert.bonus2'),
+            t('help.challenges.templates.journal_reflection_expert.bonus3')
           ],
           tags: ['reflection', 'quality', 'mindfulness'],
           priority: 95,
@@ -210,14 +210,14 @@ export class MonthlyChallengeService {
         {
           id: 'journal_gratitude_guru',
           category: AchievementCategory.JOURNAL,
-          title: t('challenges.templates.journal_gratitude_guru.title'),
-          description: t('challenges.templates.journal_gratitude_guru.description'),
+          title: t('help.challenges.templates.journal_gratitude_guru.title'),
+          description: t('help.challenges.templates.journal_gratitude_guru.description'),
           baselineMetricKey: 'avgDailyBonusEntries',
           baselineMultiplierRange: [1.10, 1.30],
           requirementTemplates: [
             {
               type: 'journal',
-              description: t('challenges.templates.journal_gratitude_guru.requirement'),
+              description: t('help.challenges.templates.journal_gratitude_guru.requirement'),
               trackingKey: 'total_journal_entries_with_bonus',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 4
@@ -229,9 +229,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 550,
           bonusXPConditions: [
-            t('challenges.templates.journal_gratitude_guru.bonus1'),
-            t('challenges.templates.journal_gratitude_guru.bonus2'),
-            t('challenges.templates.journal_gratitude_guru.bonus3')
+            t('help.challenges.templates.journal_gratitude_guru.bonus1'),
+            t('help.challenges.templates.journal_gratitude_guru.bonus2'),
+            t('help.challenges.templates.journal_gratitude_guru.bonus3')
           ],
           tags: ['gratitude', 'bonus', 'abundance'],
           priority: 85,
@@ -240,14 +240,14 @@ export class MonthlyChallengeService {
         {
           id: 'journal_consistency_writer',
           category: AchievementCategory.JOURNAL,
-          title: t('challenges.templates.journal_consistency_writer.title'),
-          description: t('challenges.templates.journal_consistency_writer.description'),
+          title: t('help.challenges.templates.journal_consistency_writer.title'),
+          description: t('help.challenges.templates.journal_consistency_writer.description'),
           baselineMetricKey: 'journalConsistencyDays',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
               type: 'journal',
-              description: t('challenges.templates.journal_consistency_writer.requirement'),
+              description: t('help.challenges.templates.journal_consistency_writer.requirement'),
               trackingKey: 'daily_journal_streak',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 1
@@ -259,9 +259,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 600,
           bonusXPConditions: [
-            t('challenges.templates.journal_consistency_writer.bonus1'),
-            t('challenges.templates.journal_consistency_writer.bonus2'),
-            t('challenges.templates.journal_consistency_writer.bonus3')
+            t('help.challenges.templates.journal_consistency_writer.bonus1'),
+            t('help.challenges.templates.journal_consistency_writer.bonus2'),
+            t('help.challenges.templates.journal_consistency_writer.bonus3')
           ],
           tags: ['daily', 'consistency', 'streak'],
           priority: 90,
@@ -270,14 +270,14 @@ export class MonthlyChallengeService {
         {
           id: 'journal_depth_explorer',
           category: AchievementCategory.JOURNAL,
-          title: t('challenges.templates.journal_depth_explorer.title'),
-          description: t('challenges.templates.journal_depth_explorer.description'),
+          title: t('help.challenges.templates.journal_depth_explorer.title'),
+          description: t('help.challenges.templates.journal_depth_explorer.description'),
           baselineMetricKey: 'avgEntryLength',
           baselineMultiplierRange: [1.20, 1.40],
           requirementTemplates: [
             {
               type: 'journal',
-              description: t('challenges.templates.journal_depth_explorer.requirement'),
+              description: t('help.challenges.templates.journal_depth_explorer.requirement'),
               trackingKey: 'avg_entry_length',
               progressMilestones: [0.25, 0.50, 0.75]
             }
@@ -288,9 +288,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 575,
           bonusXPConditions: [
-            t('challenges.templates.journal_depth_explorer.bonus1'),
-            t('challenges.templates.journal_depth_explorer.bonus2'),
-            t('challenges.templates.journal_depth_explorer.bonus3')
+            t('help.challenges.templates.journal_depth_explorer.bonus1'),
+            t('help.challenges.templates.journal_depth_explorer.bonus2'),
+            t('help.challenges.templates.journal_depth_explorer.bonus3')
           ],
           tags: ['depth', 'detail', 'insight'],
           priority: 75,
@@ -301,14 +301,14 @@ export class MonthlyChallengeService {
         {
           id: 'goals_progress_champion',
           category: AchievementCategory.GOALS,
-          title: t('challenges.templates.goals_progress_champion.title'),
-          description: t('challenges.templates.goals_progress_champion.description'),
+          title: t('help.challenges.templates.goals_progress_champion.title'),
+          description: t('help.challenges.templates.goals_progress_champion.description'),
           baselineMetricKey: 'totalGoalProgressDays',
           baselineMultiplierRange: [1.05, 1.25],
           requirementTemplates: [
             {
               type: 'goals',
-              description: t('challenges.templates.goals_progress_champion.requirement'),
+              description: t('help.challenges.templates.goals_progress_champion.requirement'),
               trackingKey: 'daily_goal_progress',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 1
@@ -320,9 +320,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 525,
           bonusXPConditions: [
-            t('challenges.templates.goals_progress_champion.bonus1'),
-            t('challenges.templates.goals_progress_champion.bonus2'),
-            t('challenges.templates.goals_progress_champion.bonus3')
+            t('help.challenges.templates.goals_progress_champion.bonus1'),
+            t('help.challenges.templates.goals_progress_champion.bonus2'),
+            t('help.challenges.templates.goals_progress_champion.bonus3')
           ],
           tags: ['progress', 'consistency', 'achievement'],
           priority: 95,
@@ -331,14 +331,14 @@ export class MonthlyChallengeService {
         {
           id: 'goals_completion_master',
           category: AchievementCategory.GOALS,
-          title: t('challenges.templates.goals_completion_master.title'),
-          description: t('challenges.templates.goals_completion_master.description'),
+          title: t('help.challenges.templates.goals_completion_master.title'),
+          description: t('help.challenges.templates.goals_completion_master.description'),
           baselineMetricKey: 'goalsCompleted',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
               type: 'goals',
-              description: t('challenges.templates.goals_completion_master.requirement'),
+              description: t('help.challenges.templates.goals_completion_master.requirement'),
               trackingKey: 'goal_completions',
               progressMilestones: [0.25, 0.50, 0.75]
             }
@@ -349,9 +349,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 625,
           bonusXPConditions: [
-            t('challenges.templates.goals_completion_master.bonus1'),
-            t('challenges.templates.goals_completion_master.bonus2'),
-            t('challenges.templates.goals_completion_master.bonus3')
+            t('help.challenges.templates.goals_completion_master.bonus1'),
+            t('help.challenges.templates.goals_completion_master.bonus2'),
+            t('help.challenges.templates.goals_completion_master.bonus3')
           ],
           tags: ['completion', 'achievement', 'success'],
           priority: 85,
@@ -362,14 +362,14 @@ export class MonthlyChallengeService {
         {
           id: 'consistency_triple_master',
           category: AchievementCategory.CONSISTENCY,
-          title: t('challenges.templates.consistency_triple_master.title'),
-          description: t('challenges.templates.consistency_triple_master.description'),
+          title: t('help.challenges.templates.consistency_triple_master.title'),
+          description: t('help.challenges.templates.consistency_triple_master.description'),
           baselineMetricKey: 'tripleFeatureDays',
           baselineMultiplierRange: [1.05, 1.25],
           requirementTemplates: [
             {
               type: 'consistency',
-              description: t('challenges.templates.consistency_triple_master.requirement'),
+              description: t('help.challenges.templates.consistency_triple_master.requirement'),
               trackingKey: 'triple_feature_days',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 1
@@ -381,9 +381,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 600,
           bonusXPConditions: [
-            t('challenges.templates.consistency_triple_master.bonus1'),
-            t('challenges.templates.consistency_triple_master.bonus2'),
-            t('challenges.templates.consistency_triple_master.bonus3')
+            t('help.challenges.templates.consistency_triple_master.bonus1'),
+            t('help.challenges.templates.consistency_triple_master.bonus2'),
+            t('help.challenges.templates.consistency_triple_master.bonus3')
           ],
           tags: ['triple', 'balance', 'comprehensive'],
           priority: 100,
@@ -392,14 +392,14 @@ export class MonthlyChallengeService {
         {
           id: 'consistency_perfect_month',
           category: AchievementCategory.CONSISTENCY,
-          title: t('challenges.templates.consistency_perfect_month.title'),
-          description: t('challenges.templates.consistency_perfect_month.description'),
+          title: t('help.challenges.templates.consistency_perfect_month.title'),
+          description: t('help.challenges.templates.consistency_perfect_month.description'),
           baselineMetricKey: 'perfectDays',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
               type: 'consistency',
-              description: t('challenges.templates.consistency_perfect_month.requirement'),
+              description: t('help.challenges.templates.consistency_perfect_month.requirement'),
               trackingKey: 'perfect_days',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: 1
@@ -411,9 +411,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 675,
           bonusXPConditions: [
-            t('challenges.templates.consistency_perfect_month.bonus1'),
-            t('challenges.templates.consistency_perfect_month.bonus2'),
-            t('challenges.templates.consistency_perfect_month.bonus3')
+            t('help.challenges.templates.consistency_perfect_month.bonus1'),
+            t('help.challenges.templates.consistency_perfect_month.bonus2'),
+            t('help.challenges.templates.consistency_perfect_month.bonus3')
           ],
           tags: ['perfect', 'minimums', 'excellence'],
           priority: 90,
@@ -422,14 +422,14 @@ export class MonthlyChallengeService {
         {
           id: 'consistency_xp_champion',
           category: AchievementCategory.CONSISTENCY,
-          title: t('challenges.templates.consistency_xp_champion.title'),
-          description: t('challenges.templates.consistency_xp_champion.description'),
+          title: t('help.challenges.templates.consistency_xp_champion.title'),
+          description: t('help.challenges.templates.consistency_xp_champion.description'),
           baselineMetricKey: 'avgDailyXP',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
               type: 'consistency',
-              description: t('challenges.templates.consistency_xp_champion.requirement'),
+              description: t('help.challenges.templates.consistency_xp_champion.requirement'),
               trackingKey: 'monthly_xp_total',
               progressMilestones: [0.25, 0.50, 0.75],
               dailyTarget: undefined // No daily target for monthly accumulation
@@ -441,9 +441,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 675,
           bonusXPConditions: [
-            t('challenges.templates.consistency_xp_champion.bonus1'),
-            t('challenges.templates.consistency_xp_champion.bonus2'),
-            t('challenges.templates.consistency_xp_champion.bonus3')
+            t('help.challenges.templates.consistency_xp_champion.bonus1'),
+            t('help.challenges.templates.consistency_xp_champion.bonus2'),
+            t('help.challenges.templates.consistency_xp_champion.bonus3')
           ],
           tags: ['engagement', 'daily', 'active'],
           priority: 85,
@@ -452,14 +452,14 @@ export class MonthlyChallengeService {
         {
           id: 'consistency_balance_expert',
           category: AchievementCategory.CONSISTENCY,
-          title: t('challenges.templates.consistency_balance_expert.title'),
-          description: t('challenges.templates.consistency_balance_expert.description'),
+          title: t('help.challenges.templates.consistency_balance_expert.title'),
+          description: t('help.challenges.templates.consistency_balance_expert.description'),
           baselineMetricKey: 'balanceScore',
           baselineMultiplierRange: [1.20, 1.40],
           requirementTemplates: [
             {
               type: 'consistency',
-              description: t('challenges.templates.consistency_balance_expert.requirement'),
+              description: t('help.challenges.templates.consistency_balance_expert.requirement'),
               trackingKey: 'balance_score',
               progressMilestones: [0.25, 0.50, 0.75]
             }
@@ -470,9 +470,9 @@ export class MonthlyChallengeService {
           },
           baseXPReward: 700,
           bonusXPConditions: [
-            t('challenges.templates.consistency_balance_expert.bonus1'),
-            t('challenges.templates.consistency_balance_expert.bonus2'),
-            t('challenges.templates.consistency_balance_expert.bonus3')
+            t('help.challenges.templates.consistency_balance_expert.bonus1'),
+            t('help.challenges.templates.consistency_balance_expert.bonus2'),
+            t('help.challenges.templates.consistency_balance_expert.bonus3')
           ],
           tags: ['balance', 'variety', 'harmony'],
           priority: 65,
