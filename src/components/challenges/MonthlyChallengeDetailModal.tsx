@@ -68,13 +68,26 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const translateIfKey = (text: string): string => {
     if (!text) return text;
 
-    // Check if text looks like an i18n key
+    // Check if text contains i18n key patterns
     if (text.includes('challenges.templates.') || text.includes('help.challenges.templates.')) {
-      // Fix old key format to new format
-      const fixedKey = text.replace('challenges.templates.', 'help.challenges.templates.');
-      const translated = t(fixedKey);
-      // If translation failed, return original text
-      return translated === fixedKey ? text : translated;
+      // Extract any prefix (like "🌱 First Month: ") and the key
+      const keyMatch = text.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
+
+      if (keyMatch && keyMatch[2]) {
+        const prefix = keyMatch[1] || '';
+        let key = keyMatch[2];
+
+        // Fix old key format to new format
+        if (key.startsWith('challenges.templates.')) {
+          key = key.replace('challenges.templates.', 'help.challenges.templates.');
+        }
+
+        const translated = t(key);
+        // If translation succeeded, return prefix + translated text
+        if (translated !== key) {
+          return prefix + translated;
+        }
+      }
     }
 
     return text;
