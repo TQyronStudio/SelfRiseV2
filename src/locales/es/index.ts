@@ -1081,7 +1081,7 @@ const es: Partial<TranslationKeys> = {
     // Completion
     monthComplete: '✓ Mes Completo',
     completed: '¡Desafío Mensual Completado! 🎉',
-    endsDate: 'Termina: {date}',
+    endsDate: 'Termina: {{date}}',
 
     // Star rarity labels
     rarity: {
@@ -1109,11 +1109,11 @@ const es: Partial<TranslationKeys> = {
 
       // Completion messages
       messages: {
-        perfect: '¡Increíble! Has logrado una finalización perfecta en este desafío {rarity} de {category}. ¡Tu dedicación es verdaderamente inspiradora!',
-        outstanding: '¡Trabajo increíble! Casi has dominado este desafío {rarity} de {category} con una consistencia sobresaliente.',
-        great: '¡Excelente progreso! Has mostrado gran compromiso con este desafío {rarity} de {category} este mes.',
-        completed: '¡Bien hecho! Has completado exitosamente este desafío {rarity} de {category} y ganado tus recompensas.',
-        progress: '¡Buen esfuerzo! Has hecho un progreso significativo en este desafío {rarity} de {category} este mes.',
+        perfect: '¡Increíble! Has logrado una finalización perfecta en este desafío {{rarity}} de {{category}}. ¡Tu dedicación es verdaderamente inspiradora!',
+        outstanding: '¡Trabajo increíble! Casi has dominado este desafío {{rarity}} de {{category}} con una consistencia sobresaliente.',
+        great: '¡Excelente progreso! Has mostrado gran compromiso con este desafío {{rarity}} de {{category}} este mes.',
+        completed: '¡Bien hecho! Has completado exitosamente este desafío {{rarity}} de {{category}} y ganado tus recompensas.',
+        progress: '¡Buen esfuerzo! Has hecho un progreso significativo en este desafío {{rarity}} de {{category}} este mes.',
       },
 
       // Rewards
@@ -1152,10 +1152,10 @@ const es: Partial<TranslationKeys> = {
 
     // Detail Modal
     detailModal: {
-      strategyDescription: 'Este es un desafío de dificultad {rarity} ({stars}★) diseñado para ayudarte a crecer consistentemente.',
+      strategyDescription: 'Este es un desafío de dificultad {{rarity}} ({{stars}}★) diseñado para ayudarte a crecer consistentemente.',
       strategyDescriptionAdvance: '¡Completa este desafío para avanzar al siguiente nivel de estrellas y desbloquear mayores recompensas de XP!',
-      rewardTitle: '{xp} Puntos de Experiencia',
-      streakBonus: '🔥 Bonificación de Racha: +{bonus} XP por {count} meses de racha',
+      rewardTitle: '{{xp}} Puntos de Experiencia',
+      streakBonus: '🔥 Bonificación de Racha: +{{bonus}} XP por {{count}} meses de racha',
 
       // Category-specific tips
       tips: {

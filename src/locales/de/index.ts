@@ -1081,7 +1081,7 @@ const de: Partial<TranslationKeys> = {
     // Completion
     monthComplete: '✓ Monat abgeschlossen',
     completed: 'Monatsherausforderung abgeschlossen! 🎉',
-    endsDate: 'Endet: {date}',
+    endsDate: 'Endet: {{date}}',
 
     // Star rarity labels
     rarity: {
@@ -1109,11 +1109,11 @@ const de: Partial<TranslationKeys> = {
 
       // Completion messages
       messages: {
-        perfect: 'Unglaublich! Du hast eine perfekte Vollendung bei dieser {rarity} {category} Herausforderung erreicht. Deine Hingabe ist wirklich inspirierend!',
-        outstanding: 'Großartige Arbeit! Du hast diese {rarity} {category} Herausforderung mit herausragender Beständigkeit fast gemeistert.',
-        great: 'Ausgezeichneter Fortschritt! Du hast großes Engagement für diese {rarity} {category} Herausforderung diesen Monat gezeigt.',
-        completed: 'Gut gemacht! Du hast diese {rarity} {category} Herausforderung erfolgreich abgeschlossen und deine Belohnungen verdient.',
-        progress: 'Gute Leistung! Du hast bedeutsamen Fortschritt bei dieser {rarity} {category} Herausforderung diesen Monat gemacht.',
+        perfect: 'Unglaublich! Du hast eine perfekte Vollendung bei dieser {{rarity}} {{category}} Herausforderung erreicht. Deine Hingabe ist wirklich inspirierend!',
+        outstanding: 'Großartige Arbeit! Du hast diese {{rarity}} {{category}} Herausforderung mit herausragender Beständigkeit fast gemeistert.',
+        great: 'Ausgezeichneter Fortschritt! Du hast großes Engagement für diese {{rarity}} {{category}} Herausforderung diesen Monat gezeigt.',
+        completed: 'Gut gemacht! Du hast diese {{rarity}} {{category}} Herausforderung erfolgreich abgeschlossen und deine Belohnungen verdient.',
+        progress: 'Gute Leistung! Du hast bedeutsamen Fortschritt bei dieser {{rarity}} {{category}} Herausforderung diesen Monat gemacht.',
       },
 
       // Rewards
@@ -1152,10 +1152,10 @@ const de: Partial<TranslationKeys> = {
 
     // Detail Modal
     detailModal: {
-      strategyDescription: 'Dies ist eine {rarity} ({stars}★) Schwierigkeitsherausforderung, die dir helfen soll, beständig zu wachsen.',
+      strategyDescription: 'Dies ist eine {{rarity}} ({{stars}}★) Schwierigkeitsherausforderung, die dir helfen soll, beständig zu wachsen.',
       strategyDescriptionAdvance: 'Schließe diese Herausforderung ab, um zur nächsten Sternstufe aufzusteigen und höhere EP-Belohnungen freizuschalten!',
-      rewardTitle: '{xp} Erfahrungspunkte',
-      streakBonus: '🔥 Serien-Bonus: +{bonus} EP für {count} Monate Serie',
+      rewardTitle: '{{xp}} Erfahrungspunkte',
+      streakBonus: '🔥 Serien-Bonus: +{{bonus}} EP für {{count}} Monate Serie',
 
       // Category-specific tips
       tips: {

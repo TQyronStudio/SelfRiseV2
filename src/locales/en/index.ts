@@ -1094,7 +1094,7 @@ const en: TranslationKeys = {
     // Completion
     monthComplete: '✓ Month Complete',
     completed: 'Monthly Challenge Completed! 🎉',
-    endsDate: 'Ends: {date}',
+    endsDate: 'Ends: {{date}}',
 
     // Star rarity
     rarity: {
@@ -1120,11 +1120,11 @@ const en: TranslationKeys = {
       },
 
       messages: {
-        perfect: 'Incredible! You\'ve achieved perfect completion on this {rarity} {category} challenge. Your dedication is truly inspiring!',
-        outstanding: 'Amazing work! You\'ve nearly mastered this {rarity} {category} challenge with outstanding consistency.',
-        great: 'Excellent progress! You\'ve shown great commitment to this {rarity} {category} challenge this month.',
-        completed: 'Well done! You\'ve successfully completed this {rarity} {category} challenge and earned your rewards.',
-        progress: 'Good effort! You\'ve made meaningful progress on this {rarity} {category} challenge this month.',
+        perfect: 'Incredible! You\'ve achieved perfect completion on this {{rarity}} {{category}} challenge. Your dedication is truly inspiring!',
+        outstanding: 'Amazing work! You\'ve nearly mastered this {{rarity}} {{category}} challenge with outstanding consistency.',
+        great: 'Excellent progress! You\'ve shown great commitment to this {{rarity}} {{category}} challenge this month.',
+        completed: 'Well done! You\'ve successfully completed this {{rarity}} {{category}} challenge and earned your rewards.',
+        progress: 'Good effort! You\'ve made meaningful progress on this {{rarity}} {{category}} challenge this month.',
       },
 
       rewards: {
@@ -1159,10 +1159,10 @@ const en: TranslationKeys = {
 
     // Detail modal
     detailModal: {
-      strategyDescription: 'This is a {rarity} ({stars}★) difficulty challenge designed to help you grow consistently.',
+      strategyDescription: 'This is a {{rarity}} ({{stars}}★) difficulty challenge designed to help you grow consistently.',
       strategyDescriptionAdvance: 'Complete this challenge to advance to the next star level and unlock higher XP rewards!',
-      rewardTitle: '{xp} Experience Points',
-      streakBonus: '🔥 Streak Bonus: +{bonus} XP for {count} month streak',
+      rewardTitle: '{{xp}} Experience Points',
+      streakBonus: '🔥 Streak Bonus: +{{bonus}} XP for {{count}} month streak',
 
       tips: {
         habits: [
