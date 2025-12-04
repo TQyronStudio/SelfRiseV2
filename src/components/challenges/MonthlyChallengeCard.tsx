@@ -425,7 +425,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
           </Text>
           {isCompleted ? (
             <Text style={[styles.completedText, { color: categoryColor }]}>
-              {t('monthlyChallenge.challengeCompleted')}
+              {t('monthlyChallenge.completed')}
             </Text>
           ) : (
             <Text style={[styles.footerText, { color: starColor }]}>
