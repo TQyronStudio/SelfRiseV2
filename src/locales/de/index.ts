@@ -1116,6 +1116,15 @@ const de: Partial<TranslationKeys> = {
       unknown: 'Unbekannt',
     },
 
+    // Star level names
+    starLevels: {
+      novice: 'Anfänger',
+      explorer: 'Entdecker',
+      challenger: 'Herausforderer',
+      expert: 'Experte',
+      master: 'Meister',
+    },
+
     // Completion Modal
     completionModal: {
       subtitle: 'Monatsherausforderung',

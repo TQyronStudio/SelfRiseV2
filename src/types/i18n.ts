@@ -946,6 +946,15 @@ export interface TranslationKeys {
       unknown: string;
     };
 
+    // Star level names
+    starLevels: {
+      novice: string;
+      explorer: string;
+      challenger: string;
+      expert: string;
+      master: string;
+    };
+
     // Completion Modal
     completionModal: {
       subtitle: string;

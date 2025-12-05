@@ -1129,6 +1129,15 @@ const en: TranslationKeys = {
       unknown: 'Unknown',
     },
 
+    // Star level names
+    starLevels: {
+      novice: 'Novice',
+      explorer: 'Explorer',
+      challenger: 'Challenger',
+      expert: 'Expert',
+      master: 'Master',
+    },
+
     // Completion modal
     completionModal: {
       subtitle: 'Monthly Challenge',

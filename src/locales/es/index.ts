@@ -1116,6 +1116,15 @@ const es: Partial<TranslationKeys> = {
       unknown: 'Desconocido',
     },
 
+    // Star level names
+    starLevels: {
+      novice: 'Principiante',
+      explorer: 'Explorador',
+      challenger: 'Retador',
+      expert: 'Experto',
+      master: 'Maestro',
+    },
+
     // Completion Modal
     completionModal: {
       subtitle: 'Desafío Mensual',

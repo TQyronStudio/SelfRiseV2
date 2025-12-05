@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { AchievementCategory } from '../../types/gamification';
 import { StarRatingService } from '../../services/starRatingService';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 // ========================================
 // INTERFACES
@@ -85,6 +86,7 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
   animateChanges = false,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   // Animation value for star changes
   const animationValue = React.useRef(new Animated.Value(0)).current;
@@ -126,9 +128,15 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
     }
   }, [starLevel, previousStarLevel, animateChanges, animationValue]);
 
-  // Format category name
-  const formatCategoryName = (cat: AchievementCategory) => {
-    return cat.charAt(0).toUpperCase() + cat.slice(1);
+  // Translate category name
+  const translateCategory = (cat: AchievementCategory) => {
+    return t(`monthlyChallenge.categories.${cat}`);
+  };
+
+  // Translate star level name
+  const translateStarLevel = (levelName: string) => {
+    const levelKey = levelName.toLowerCase();
+    return t(`monthlyChallenge.starLevels.${levelKey}`);
   };
 
   // Handle press
@@ -192,14 +200,14 @@ export const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
       {/* Category Label */}
       {showLabel && (
         <Text style={[
-          styles.categoryLabel, 
-          { 
+          styles.categoryLabel,
+          {
             fontSize: sizeConfig.text,
             color: starInfo.color,
             fontWeight: '600'
           }
         ]}>
-          {formatCategoryName(category)} {starInfo.name}
+          {translateCategory(category)} {translateStarLevel(starInfo.name)}
         </Text>
       )}
 
