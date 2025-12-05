@@ -1100,6 +1100,7 @@ const en: TranslationKeys = {
 
     // Calendar
     calendar: {
+      title: 'Monthly Progress Calendar',
       dailyProgress: 'Daily Progress',
       weeklyBreakdown: 'Weekly Breakdown',
       week: 'Week {{number}}',
@@ -1107,6 +1108,19 @@ const en: TranslationKeys = {
       someActivity: 'Some Activity (10-50%)',
       goodProgress: 'Good Progress (51-90%)',
       perfectDay: 'Perfect Day (91%+)',
+      weekDays: {
+        mon: 'Mon',
+        tue: 'Tue',
+        wed: 'Wed',
+        thu: 'Thu',
+        fri: 'Fri',
+        sat: 'Sat',
+        sun: 'Sun',
+      },
+      active: 'active',
+      some: 'some',
+      good: 'good',
+      perfect: 'perfect',
     },
 
     // Progress

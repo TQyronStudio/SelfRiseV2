@@ -506,7 +506,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Monthly Progress Calendar</Text>
+        <Text style={styles.title}>{t('monthlyChallenge.calendar.title')}</Text>
         <Text style={styles.subtitle}>
           {new Date(challenge.startDate).toLocaleDateString(currentLanguage, {
             month: 'long',
@@ -539,8 +539,8 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       <View style={styles.calendar}>
         {/* Week headers */}
         <View style={styles.weekHeader}>
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-            <Text key={day} style={styles.weekHeaderText}>{day}</Text>
+          {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => (
+            <Text key={day} style={styles.weekHeaderText}>{t(`monthlyChallenge.calendar.weekDays.${day}`)}</Text>
           ))}
         </View>
 
@@ -609,16 +609,16 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
               <Text style={styles.weekSummaryLabel}>{t('monthlyChallenge.calendar.week', { number: weekIndex + 1 })}</Text>
               <View style={styles.weekSummaryStats}>
                 <Text style={styles.weekSummaryText}>
-                  {weekDaysWithActivity}/{week.length} active
+                  {weekDaysWithActivity}/{week.length} {t('monthlyChallenge.calendar.active')}
                 </Text>
                 <Text style={[styles.weekSummaryText, { color: categoryColor + '40' }]}>
-                  {someDays} some
+                  {someDays} {t('monthlyChallenge.calendar.some')}
                 </Text>
                 <Text style={[styles.weekSummaryText, { color: categoryColor + '80' }]}>
-                  {goodDays} good
+                  {goodDays} {t('monthlyChallenge.calendar.good')}
                 </Text>
                 <Text style={[styles.weekSummaryText, { color: categoryColor }]}>
-                  {perfectDays} perfect
+                  {perfectDays} {t('monthlyChallenge.calendar.perfect')}
                 </Text>
                 <Text style={styles.weekSummaryPercent}>
                   {weekProgress}%

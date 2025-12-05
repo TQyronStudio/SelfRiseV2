@@ -30,10 +30,14 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   const translateIfKey = (text: string): string => {
     if (!text) return text;
 
+    // Strip hardcoded "First Month: " prefix (including variations with emojis)
+    // This handles legacy challenges created before i18n implementation
+    let cleanedText = text.replace(/^(🌱\s*)?First Month:\s*/i, '');
+
     // Check if text contains i18n key patterns
-    if (text.includes('challenges.templates.') || text.includes('help.challenges.templates.')) {
-      // Extract any prefix (like "🌱 First Month: ") and the key
-      const keyMatch = text.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
+    if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
+      // Extract any prefix and the key
+      const keyMatch = cleanedText.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
 
       if (keyMatch && keyMatch[2]) {
         const prefix = keyMatch[1] || '';
@@ -52,7 +56,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       }
     }
 
-    return text;
+    return cleanedText;
   };
 
   // Helper function to translate category

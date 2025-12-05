@@ -917,6 +917,7 @@ export interface TranslationKeys {
 
     // Calendar
     calendar: {
+      title: string;
       dailyProgress: string;
       weeklyBreakdown: string;
       week: string;
@@ -924,6 +925,19 @@ export interface TranslationKeys {
       someActivity: string;
       goodProgress: string;
       perfectDay: string;
+      weekDays: {
+        mon: string;
+        tue: string;
+        wed: string;
+        thu: string;
+        fri: string;
+        sat: string;
+        sun: string;
+      };
+      active: string;
+      some: string;
+      good: string;
+      perfect: string;
     };
 
     // Progress

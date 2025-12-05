@@ -68,10 +68,14 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const translateIfKey = (text: string): string => {
     if (!text) return text;
 
+    // Strip hardcoded "First Month: " prefix (including variations with emojis)
+    // This handles legacy challenges created before i18n implementation
+    let cleanedText = text.replace(/^(🌱\s*)?First Month:\s*/i, '');
+
     // Check if text contains i18n key patterns
-    if (text.includes('challenges.templates.') || text.includes('help.challenges.templates.')) {
-      // Extract any prefix (like "🌱 First Month: ") and the key
-      const keyMatch = text.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
+    if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
+      // Extract any prefix and the key
+      const keyMatch = cleanedText.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
 
       if (keyMatch && keyMatch[2]) {
         const prefix = keyMatch[1] || '';
@@ -90,7 +94,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       }
     }
 
-    return text;
+    return cleanedText;
   };
 
   // Clean up any "Beginner-friendly target" text from challenge requirements
@@ -725,7 +729,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                 <Text style={styles.title}>{displayChallenge.title}</Text>
                 <View style={styles.headerMeta}>
                   <Text style={styles.category}>
-                    {displayChallenge.category.toUpperCase()}
+                    {t(`monthlyChallenge.categories.${displayChallenge.category}`)}
                   </Text>
                   <StarRatingDisplay
                     category={displayChallenge.category}

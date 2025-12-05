@@ -1087,6 +1087,7 @@ const de: Partial<TranslationKeys> = {
 
     // Calendar
     calendar: {
+      title: 'Monatsfortschritt-Kalender',
       dailyProgress: 'Täglicher Fortschritt',
       weeklyBreakdown: 'Wöchentliche Aufschlüsselung',
       week: 'Woche {{number}}',
@@ -1094,6 +1095,19 @@ const de: Partial<TranslationKeys> = {
       someActivity: 'Etwas Aktivität (10-50%)',
       goodProgress: 'Guter Fortschritt (51-90%)',
       perfectDay: 'Perfekter Tag (91%+)',
+      weekDays: {
+        mon: 'Mo',
+        tue: 'Di',
+        wed: 'Mi',
+        thu: 'Do',
+        fri: 'Fr',
+        sat: 'Sa',
+        sun: 'So',
+      },
+      active: 'aktiv',
+      some: 'etwas',
+      good: 'gut',
+      perfect: 'perfekt',
     },
 
     // Progress
