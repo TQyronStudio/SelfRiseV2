@@ -903,6 +903,29 @@ export interface TranslationKeys {
     milestones: string;
     requirements: string;
 
+    // First Month
+    firstMonthPrefix: string;
+    firstMonthDescription: string;
+
+    // Categories
+    categories: {
+      habits: string;
+      journal: string;
+      goals: string;
+      consistency: string;
+    };
+
+    // Calendar
+    calendar: {
+      dailyProgress: string;
+      weeklyBreakdown: string;
+      week: string;
+      noActivity: string;
+      someActivity: string;
+      goodProgress: string;
+      perfectDay: string;
+    };
+
     // Progress
     monthlyProgress: string;
     monthStreak: string;

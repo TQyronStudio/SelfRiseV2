@@ -1073,6 +1073,29 @@ const de: Partial<TranslationKeys> = {
     milestones: 'Meilensteine',
     requirements: 'Anforderungen',
 
+    // First Month
+    firstMonthPrefix: 'Erster Monat',
+    firstMonthDescription: 'Dies ist deine Einführung in monatliche Herausforderungen! Wir haben es extra erreichbar gemacht, um dir zu helfen, Vertrauen aufzubauen.',
+
+    // Categories
+    categories: {
+      habits: 'GEWOHNHEITEN',
+      journal: 'TAGEBUCH',
+      goals: 'ZIELE',
+      consistency: 'BESTÄNDIGKEIT',
+    },
+
+    // Calendar
+    calendar: {
+      dailyProgress: 'Täglicher Fortschritt',
+      weeklyBreakdown: 'Wöchentliche Aufschlüsselung',
+      week: 'Woche {{number}}',
+      noActivity: 'Keine Aktivität (<10%)',
+      someActivity: 'Etwas Aktivität (10-50%)',
+      goodProgress: 'Guter Fortschritt (51-90%)',
+      perfectDay: 'Perfekter Tag (91%+)',
+    },
+
     // Progress
     monthlyProgress: 'Monatsfortschritt',
     monthStreak: 'Monatsserie',

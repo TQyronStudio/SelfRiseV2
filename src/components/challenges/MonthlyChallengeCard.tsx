@@ -24,7 +24,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   compact = false
 }) => {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
 
   // Helper function to translate text that might be an i18n key
   const translateIfKey = (text: string): string => {
@@ -55,9 +55,20 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
     return text;
   };
 
+  // Helper function to translate category
+  const translateCategory = (category: AchievementCategory): string => {
+    return t(`monthlyChallenge.categories.${category}`);
+  };
+
   // Translate challenge fields if they contain i18n keys
-  const displayTitle = translateIfKey(challenge.title);
-  const displayDescription = translateIfKey(challenge.description);
+  let displayTitle = translateIfKey(challenge.title);
+  let displayDescription = translateIfKey(challenge.description);
+
+  // Add First Month prefix if this is a first month challenge
+  if (challenge.generationReason === 'first_month') {
+    displayTitle = `🌱 ${t('monthlyChallenge.firstMonthPrefix')}: ${displayTitle}`;
+    displayDescription = `${displayDescription}\n\n✨ ${t('monthlyChallenge.firstMonthDescription')}`;
+  }
 
   const completedRequirements = challenge.requirements.filter(req =>
     (progress.progress[req.trackingKey] || 0) >= req.target
@@ -374,7 +385,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
               <Text style={styles.title}>{displayTitle}</Text>
               <View style={styles.metaRow}>
                 <Text style={[styles.category, { color: categoryColor }]}>
-                  {challenge.category.toUpperCase()}
+                  {translateCategory(challenge.category)}
                 </Text>
                 <View style={styles.starDifficultyContainer}>
                   <StarRatingDisplay
@@ -416,7 +427,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {t('monthlyChallenge.endsDate', {
-              date: new Date(challenge.endDate).toLocaleDateString('en-US', {
+              date: new Date(challenge.endDate).toLocaleDateString(currentLanguage, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'

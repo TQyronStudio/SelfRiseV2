@@ -1086,6 +1086,29 @@ const en: TranslationKeys = {
     milestones: 'Milestones',
     requirements: 'Requirements',
 
+    // First Month
+    firstMonthPrefix: 'First Month',
+    firstMonthDescription: 'This is your introduction to monthly challenges! We\'ve made it extra achievable to help you build confidence.',
+
+    // Categories
+    categories: {
+      habits: 'HABITS',
+      journal: 'JOURNAL',
+      goals: 'GOALS',
+      consistency: 'CONSISTENCY',
+    },
+
+    // Calendar
+    calendar: {
+      dailyProgress: 'Daily Progress',
+      weeklyBreakdown: 'Weekly Breakdown',
+      week: 'Week {{number}}',
+      noActivity: 'No Activity (<10%)',
+      someActivity: 'Some Activity (10-50%)',
+      goodProgress: 'Good Progress (51-90%)',
+      perfectDay: 'Perfect Day (91%+)',
+    },
+
     // Progress
     monthlyProgress: 'Monthly Progress',
     monthStreak: 'Month Streak',

@@ -1171,8 +1171,8 @@ export class MonthlyChallengeService {
 
     return {
       id: generateUUID(),
-      title: `🌱 First Month: ${template.title}`,
-      description: `${template.description}\n\n✨ This is your introduction to monthly challenges! We've made it extra achievable to help you build confidence.`,
+      title: template.title, // Will be prefixed with "First Month" in components based on generationReason
+      description: template.description, // First month description will be appended in components
       startDate: startDateStr,
       endDate: endDateStr,
       baseXPReward: 400, // Fixed first-month XP (between 1★ and 2★)

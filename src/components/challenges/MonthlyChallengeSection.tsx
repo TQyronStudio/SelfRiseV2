@@ -23,7 +23,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   compact = false
 }) => {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const [challenge, setChallenge] = useState<MonthlyChallenge | null>(null);
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -215,7 +215,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   const getMonthName = () => {
     if (!challenge) return '';
     
-    return new Date(challenge.startDate).toLocaleDateString('en-US', {
+    return new Date(challenge.startDate).toLocaleDateString(currentLanguage, {
       month: 'long',
       year: 'numeric'
     });

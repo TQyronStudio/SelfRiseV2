@@ -10,6 +10,7 @@ import {
 import { addDays, parseDate, formatDateToString } from '../../utils/date';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface MonthlyProgressCalendarProps {
   challenge: MonthlyChallenge;
@@ -40,6 +41,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   compact = false
 }) => {
   const { colors } = useTheme();
+  const { t, currentLanguage } = useI18n();
 
   // Load real daily snapshots instead of using fake weekly estimates
   const [dailySnapshots, setDailySnapshots] = useState<Record<string, any>>({});
@@ -480,7 +482,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   if (compact) {
     return (
       <View style={styles.compactContainer}>
-        <Text style={styles.compactTitle}>Daily Progress</Text>
+        <Text style={styles.compactTitle}>{t('monthlyChallenge.calendar.dailyProgress')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -506,7 +508,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>Monthly Progress Calendar</Text>
         <Text style={styles.subtitle}>
-          {new Date(challenge.startDate).toLocaleDateString('en-US', {
+          {new Date(challenge.startDate).toLocaleDateString(currentLanguage, {
             month: 'long',
             year: 'numeric'
           })}
@@ -517,19 +519,19 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.noActivityDay]} />
-          <Text style={styles.legendText}>No Activity (&lt;10%)</Text>
+          <Text style={styles.legendText}>{t('monthlyChallenge.calendar.noActivity')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.lowActivityDay, { backgroundColor: categoryColor + '40' }]} />
-          <Text style={styles.legendText}>Some Activity (10-50%)</Text>
+          <Text style={styles.legendText}>{t('monthlyChallenge.calendar.someActivity')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.mediumActivityDay, { backgroundColor: categoryColor + '80' }]} />
-          <Text style={styles.legendText}>Good Progress (51-90%)</Text>
+          <Text style={styles.legendText}>{t('monthlyChallenge.calendar.goodProgress')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendColor, styles.highActivityDay, { backgroundColor: categoryColor }]} />
-          <Text style={styles.legendText}>Perfect Day (91%+)</Text>
+          <Text style={styles.legendText}>{t('monthlyChallenge.calendar.perfectDay')}</Text>
         </View>
       </View>
 
@@ -576,7 +578,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
 
       {/* Weekly summary - Enhanced with real progress calculation */}
       <View style={styles.weeklySummary}>
-        <Text style={styles.weeklySummaryTitle}>Weekly Breakdown</Text>
+        <Text style={styles.weeklySummaryTitle}>{t('monthlyChallenge.calendar.weeklyBreakdown')}</Text>
         {weekGroups.map((week, weekIndex) => {
           const weekDaysWithActivity = week.filter(day => day.hasActivity).length;
           const perfectDays = week.filter(day => day.isPerfectDay).length;
@@ -604,7 +606,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
 
           return (
             <View key={weekIndex} style={styles.weekSummaryRow}>
-              <Text style={styles.weekSummaryLabel}>Week {weekIndex + 1}</Text>
+              <Text style={styles.weekSummaryLabel}>{t('monthlyChallenge.calendar.week', { number: weekIndex + 1 })}</Text>
               <View style={styles.weekSummaryStats}>
                 <Text style={styles.weekSummaryText}>
                   {weekDaysWithActivity}/{week.length} active

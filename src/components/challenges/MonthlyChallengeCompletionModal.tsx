@@ -49,7 +49,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   onContinue
 }) => {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const particleAnims = useRef<Animated.Value[]>([]).current;
   const slideUpAnim = useRef(new Animated.Value(50)).current;
@@ -210,8 +210,8 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   };
 
   const getCompletionMessage = (completionPercentage: number, starLevel: number, category: string) => {
-    const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
     const rarityName = getStarRarity(starLevel);
+    const categoryName = t(`monthlyChallenge.categories.${category}`);
 
     if (completionPercentage >= 100) {
       return t('monthlyChallenge.completionModal.messages.perfect', { rarity: rarityName, category: categoryName });
@@ -608,7 +608,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 {getCompletionTitle(completionPercentage)}
               </Text>
               <Text style={styles.completionSubtitle}>
-                {t('monthlyChallenge.completionModal.subtitle')} • {new Date(challenge.endDate).toLocaleDateString('en-US', {
+                {t('monthlyChallenge.completionModal.subtitle')} • {new Date(challenge.endDate).toLocaleDateString(currentLanguage, {
                   month: 'long',
                   year: 'numeric'
                 })}
@@ -623,7 +623,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                   <Text style={styles.challengeName}>{challenge.title}</Text>
                   <View style={styles.challengeMeta}>
                     <Text style={[styles.challengeCategory, { color: categoryColor }]}>
-                      {challenge.category.toUpperCase()}
+                      {t(`monthlyChallenge.categories.${challenge.category}`)}
                     </Text>
                     <StarRatingDisplay
                       category={challenge.category}

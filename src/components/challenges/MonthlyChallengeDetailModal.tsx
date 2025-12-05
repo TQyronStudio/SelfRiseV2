@@ -33,7 +33,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   visible,
   onClose
 }) => {
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(initialProgress);
@@ -94,10 +94,19 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   };
 
   // Clean up any "Beginner-friendly target" text from challenge requirements
+  let cleanedTitle = translateIfKey(challenge.title);
+  let cleanedDescription = translateIfKey(challenge.description);
+
+  // Add First Month prefix if this is a first month challenge
+  if (challenge.generationReason === 'first_month') {
+    cleanedTitle = `🌱 ${t('monthlyChallenge.firstMonthPrefix')}: ${cleanedTitle}`;
+    cleanedDescription = `${cleanedDescription}\n\n✨ ${t('monthlyChallenge.firstMonthDescription')}`;
+  }
+
   const cleanedChallenge = {
     ...challenge,
-    title: translateIfKey(challenge.title),
-    description: translateIfKey(challenge.description),
+    title: cleanedTitle,
+    description: cleanedDescription,
     requirements: challenge.requirements.map(req => ({
       ...req,
       description: translateIfKey(req.description)
@@ -542,10 +551,10 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             </View>
           </View>
           <Text style={styles.timeDetails}>
-            {new Date(displayChallenge.startDate).toLocaleDateString('en-US', {
+            {new Date(displayChallenge.startDate).toLocaleDateString(currentLanguage, {
               month: 'long',
               day: 'numeric'
-            })} - {new Date(displayChallenge.endDate).toLocaleDateString('en-US', {
+            })} - {new Date(displayChallenge.endDate).toLocaleDateString(currentLanguage, {
               month: 'long',
               day: 'numeric',
               year: 'numeric'
