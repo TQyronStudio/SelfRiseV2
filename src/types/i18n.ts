@@ -1749,12 +1749,16 @@ export interface TranslationKeys {
         journal_bonus_milestone: string;
         goal_progress: string;
         goal_completion: string;
+        goal_milestone: string;
         habit_streak_milestone: string;
         journal_streak_milestone: string;
         achievement_unlock: string;
         general_activity: string;
         daily_engagement: string;
+        daily_launch: string;
         monthly_challenge: string;
+        recommendation_follow: string;
+        xp_multiplier_bonus: string;
         XP_MULTIPLIER_BONUS: string;
       };
       notification: {

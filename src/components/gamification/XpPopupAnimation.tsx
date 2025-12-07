@@ -131,37 +131,37 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     const sourceName = (() => {
       switch (source) {
         case XPSourceType.HABIT_COMPLETION:
-          return t('gamification.sources.habit_completion') || 'habit completion';
+          return t('gamification.xp.sources.habit_completion') || 'habit completion';
         case XPSourceType.HABIT_BONUS:
-          return t('gamification.sources.habit_bonus') || 'habit bonus';
+          return t('gamification.xp.sources.habit_bonus') || 'habit bonus';
         case XPSourceType.JOURNAL_ENTRY:
-          return t('gamification.sources.journal_entry') || 'journal entry';
+          return t('gamification.xp.sources.journal_entry') || 'journal entry';
         case XPSourceType.JOURNAL_BONUS:
-          return t('gamification.sources.journal_bonus') || 'journal bonus';
+          return t('gamification.xp.sources.journal_bonus') || 'journal bonus';
         case XPSourceType.GOAL_PROGRESS:
-          return t('gamification.sources.goal_progress') || 'goal progress';
+          return t('gamification.xp.sources.goal_progress') || 'goal progress';
         case XPSourceType.GOAL_COMPLETION:
-          return t('gamification.sources.goal_completion') || 'goal completion';
+          return t('gamification.xp.sources.goal_completion') || 'goal completion';
         case XPSourceType.HABIT_STREAK_MILESTONE:
-          return t('gamification.sources.habit_streak_milestone') || 'habit streak milestone';
+          return t('gamification.xp.sources.habit_streak_milestone') || 'habit streak milestone';
         case XPSourceType.JOURNAL_STREAK_MILESTONE:
-          return t('gamification.sources.journal_streak_milestone') || 'journal streak milestone';
+          return t('gamification.xp.sources.journal_streak_milestone') || 'journal streak milestone';
         case XPSourceType.ACHIEVEMENT_UNLOCK:
-          return t('gamification.sources.achievement_unlock') || 'achievement unlock';
+          return t('gamification.xp.sources.achievement_unlock') || 'achievement unlock';
         case XPSourceType.JOURNAL_BONUS_MILESTONE:
-          return t('gamification.sources.journal_bonus_milestone') || 'journal milestone';
+          return t('gamification.xp.sources.journal_bonus_milestone') || 'journal milestone';
         case XPSourceType.GOAL_MILESTONE:
-          return t('gamification.sources.goal_milestone') || 'goal milestone';
+          return t('gamification.xp.sources.goal_milestone') || 'goal milestone';
         case XPSourceType.MONTHLY_CHALLENGE:
-          return t('gamification.sources.monthly_challenge') || 'monthly challenge';
+          return t('gamification.xp.sources.monthly_challenge') || 'monthly challenge';
         case XPSourceType.XP_MULTIPLIER_BONUS:
-          return t('gamification.sources.xp_multiplier_bonus') || 'multiplier bonus';
+          return t('gamification.xp.sources.xp_multiplier_bonus') || 'multiplier bonus';
         case XPSourceType.DAILY_LAUNCH:
-          return t('gamification.sources.daily_launch') || 'daily launch';
+          return t('gamification.xp.sources.daily_launch') || 'daily launch';
         case XPSourceType.RECOMMENDATION_FOLLOW:
-          return t('gamification.sources.recommendation_follow') || 'recommendation follow';
+          return t('gamification.xp.sources.recommendation_follow') || 'recommendation follow';
         default:
-          return t('gamification.sources.general_activity') || 'activity';
+          return t('gamification.xp.sources.general_activity') || 'activity';
       }
     })();
 
