@@ -60,7 +60,7 @@ export function IndividualHabitStatsScreen() {
         {/* Active Habits Section */}
         {activeHabits.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Active Habits</Text>
+            <Text style={styles.sectionTitle}>{t('screens.habitStats.activeHabits')}</Text>
             {activeHabits.map((habit) => (
               <HabitStatsAccordionItem
                 key={habit.id}
@@ -74,7 +74,7 @@ export function IndividualHabitStatsScreen() {
         {/* Inactive Habits Section */}
         {inactiveHabits.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Inactive Habits</Text>
+            <Text style={styles.sectionTitle}>{t('screens.habitStats.inactiveHabits')}</Text>
             {inactiveHabits.map((habit) => (
               <HabitStatsAccordionItem
                 key={habit.id}
@@ -88,9 +88,9 @@ export function IndividualHabitStatsScreen() {
         {/* Empty State */}
         {habits.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No habits found</Text>
+            <Text style={styles.emptyStateText}>{t('screens.habitStats.noHabitsFound')}</Text>
             <Text style={styles.emptyStateSubtext}>
-              Create some habits first to view their statistics
+              {t('screens.habitStats.noHabitsSubtext')}
             </Text>
           </View>
         )}

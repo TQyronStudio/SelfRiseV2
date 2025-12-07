@@ -105,82 +105,82 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   // SOURCE STYLING
   // ========================================
 
-  const getSourceInfo = (source: XPSourceType): { icon: string; name: string; color: string } => {
+  const getSourceInfo = (source: XPSourceType): { icon: string; nameKey: string; color: string } => {
     switch (source) {
       case XPSourceType.HABIT_COMPLETION:
       case XPSourceType.HABIT_BONUS:
         return {
           icon: '🏃‍♂️',
-          name: 'habits',
+          nameKey: 'habits',
           color: '#4CAF50',
         };
       case XPSourceType.JOURNAL_ENTRY:
       case XPSourceType.JOURNAL_BONUS:
         return {
           icon: '📝',
-          name: 'journal entries',
+          nameKey: 'journalEntries',
           color: '#2196F3',
         };
       case XPSourceType.JOURNAL_BONUS_MILESTONE:
         return {
           icon: '⭐',
-          name: 'journal milestones',
+          nameKey: 'journalMilestones',
           color: '#2196F3',
         };
       case XPSourceType.GOAL_PROGRESS:
       case XPSourceType.GOAL_COMPLETION:
         return {
           icon: '🎯',
-          name: 'goals',
+          nameKey: 'goals',
           color: '#FF9800',
         };
       case XPSourceType.GOAL_MILESTONE:
         return {
           icon: '🎯',
-          name: 'goal milestones',
+          nameKey: 'goalMilestones',
           color: '#FF9800',
         };
       case XPSourceType.HABIT_STREAK_MILESTONE:
       case XPSourceType.JOURNAL_STREAK_MILESTONE:
         return {
           icon: '🔥',
-          name: 'streaks',
+          nameKey: 'streaks',
           color: '#9C27B0',
         };
       case XPSourceType.ACHIEVEMENT_UNLOCK:
         return {
           icon: '🏆',
-          name: 'achievements',
+          nameKey: 'achievements',
           color: '#FFD700',
         };
       case XPSourceType.MONTHLY_CHALLENGE:
         return {
           icon: '📅',
-          name: 'monthly challenges',
+          nameKey: 'monthlyChallenges',
           color: '#673AB7',
         };
       case XPSourceType.XP_MULTIPLIER_BONUS:
         return {
           icon: '⚡',
-          name: 'multiplier bonuses',
+          nameKey: 'multiplierBonuses',
           color: '#E91E63',
         };
       case XPSourceType.DAILY_LAUNCH:
         return {
           icon: '🌅',
-          name: 'daily launches',
+          nameKey: 'dailyLaunches',
           color: '#00BCD4',
         };
       case XPSourceType.RECOMMENDATION_FOLLOW:
         return {
           icon: '💡',
-          name: 'recommendations',
+          nameKey: 'recommendations',
           color: '#8BC34A',
         };
       default:
         return {
           icon: '✨',
-          name: 'activities',
+          nameKey: 'activities',
           color: colors.primary,
         };
     }
@@ -192,40 +192,40 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
 
   const generateAccessibilityAnnouncement = (data: BatchedNotification): string => {
     const netXP = data.totalXP;
-    
+
     if (netXP <= 0) {
       if (netXP === 0) {
-        return t('gamification.xp.announcement.balanced', { xp: Math.abs(netXP) }) || `No net experience points gained or lost from recent activities`;
+        return t('gamification.xp.xpNotification.announcements.balanced', { xp: Math.abs(netXP) });
       } else {
-        return t('gamification.xp.announcement.decreased', { xp: Math.abs(netXP) }) || `Lost ${Math.abs(netXP)} experience points from recent activities`;
+        return t('gamification.xp.xpNotification.announcements.decreased', { xp: Math.abs(netXP) });
       }
     }
-    
+
     if (data.sources.length === 1) {
       const source = data.sources[0];
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-      const sourceName = (t(`gamification.sources.${source?.source}`) || sourceInfo.name || 'activities').toString();
-      
+      const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
+
       if (source?.count === 1) {
         const singularSource = sourceName && sourceName.length > 1 ? sourceName.slice(0, -1) : sourceName;
-        return t('gamification.xp.announcement.single', { 
-          xp: netXP, 
+        return t('gamification.xp.xpNotification.announcements.single', {
+          xp: netXP,
           source: singularSource,
           count: 1
-        }) || `Gained ${netXP} experience points from completing 1 ${singularSource}`;
+        });
       } else {
-        return t('gamification.xp.announcement.multiple_same', {
+        return t('gamification.xp.xpNotification.announcements.multipleSame', {
           xp: netXP,
           count: source?.count || 0,
           source: sourceName
-        }) || `Gained ${netXP} experience points from completing ${source?.count || 0} ${sourceName}`;
+        });
       }
     } else {
       const positiveSourceCount = data.sources.filter(s => s.totalXP > 0).length;
-      return t('gamification.xp.announcement.multiple_mixed', {
+      return t('gamification.xp.xpNotification.announcements.multipleMixed', {
         xp: netXP,
         sourceCount: positiveSourceCount
-      }) || `Gained ${netXP} experience points from completing multiple activities`;
+      });
     }
   };
 
@@ -250,9 +250,9 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     if (netXP <= 0) {
       // For zero or negative net XP, show neutral/informative message
       if (netXP === 0) {
-        return `📊 ${t('gamification.xp.notifications.balanced') || 'Activities balanced (no net progress)'}`;
+        return `📊 ${t('gamification.xp.xpNotification.messages.balanced')}`;
       } else {
-        return `📉 ${t('gamification.xp.notifications.reversed') || 'Progress reversed'}`;
+        return `📉 ${t('gamification.xp.xpNotification.messages.reversed')}`;
       }
     }
 
@@ -260,12 +260,13 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     if (data.sources.length === 1) {
       const source = data.sources[0];
       const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
+      const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
 
       if (source?.count === 1) {
-        const singularName = sourceInfo.name && sourceInfo.name.length > 1 ? sourceInfo.name.slice(0, -1) : sourceInfo.name;
-        return `${sourceInfo.icon} ${singularName} ${t('gamification.xp.notifications.completed') || 'completed'}`;
+        const singularName = sourceName && sourceName.length > 1 ? sourceName.slice(0, -1) : sourceName;
+        return `${sourceInfo.icon} ${singularName} ${t('gamification.xp.xpNotification.messages.completed')}`;
       } else {
-        return `${sourceInfo.icon} ${source?.count || 0} ${sourceInfo.name} ${t('gamification.xp.notifications.completed') || 'completed'}`;
+        return `${sourceInfo.icon} ${source?.count || 0} ${sourceName} ${t('gamification.xp.xpNotification.messages.completed')}`;
       }
     } else {
       // Multiple sources - create summary (only for positive gains)
@@ -273,22 +274,23 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         .filter(source => source.totalXP > 0) // Only include sources with positive contribution
         .map(source => {
           const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
+          const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
           const count = source?.count || 0;
-          const sourceName = count === 1 && sourceInfo.name && sourceInfo.name.length > 1
-            ? sourceInfo.name.slice(0, -1)
-            : sourceInfo.name;
-          return `${count} ${sourceName}`;
+          const displayName = count === 1 && sourceName && sourceName.length > 1
+            ? sourceName.slice(0, -1)
+            : sourceName;
+          return `${count} ${displayName}`;
         });
 
       if (sourceTexts.length === 0) {
-        return `📊 ${t('gamification.xp.notifications.updated') || 'Activities updated'}`;
+        return `📊 ${t('gamification.xp.xpNotification.messages.updated')}`;
       } else if (sourceTexts.length === 1) {
-        return `🎉 ${sourceTexts[0]} ${t('gamification.xp.notifications.completed') || 'completed'}`;
+        return `🎉 ${sourceTexts[0]} ${t('gamification.xp.xpNotification.messages.completed')}`;
       } else if (sourceTexts.length === 2) {
-        return `🎉 ${sourceTexts.join(` ${t('gamification.xp.notifications.and') || 'and'} `)} ${t('gamification.xp.notifications.completed') || 'completed'}`;
+        return `🎉 ${sourceTexts.join(` ${t('gamification.xp.xpNotification.messages.and')} `)} ${t('gamification.xp.xpNotification.messages.completed')}`;
       } else {
         const lastSource = sourceTexts.pop();
-        return `🎉 ${sourceTexts.join(', ')}, ${t('gamification.xp.notifications.and') || 'and'} ${lastSource || ''} ${t('gamification.xp.notifications.completed') || 'completed'}`;
+        return `🎉 ${sourceTexts.join(', ')}, ${t('gamification.xp.xpNotification.messages.and')} ${lastSource || ''} ${t('gamification.xp.xpNotification.messages.completed')}`;
       }
     }
   };
@@ -415,7 +417,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           numberOfLines={2}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={t('gamification.xp.notification.message', { message: notificationText }) || `Experience points notification: ${notificationText}`}
+          accessibilityLabel={t('gamification.xp.xpNotification.accessibility.notification', { message: notificationText })}
         >
           {notificationText}
         </Text>
@@ -429,10 +431,14 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           ]}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={t('gamification.xp.notification.amount', {
+          accessibilityLabel={t('gamification.xp.xpNotification.accessibility.amount', {
             amount: batchedData.totalXP,
-            type: batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'
-          }) || `Experience points ${batchedData.totalXP > 0 ? 'gained' : batchedData.totalXP < 0 ? 'lost' : 'balanced'}: ${Math.abs(batchedData.totalXP)}`}
+            type: batchedData.totalXP > 0
+              ? t('gamification.xp.xpNotification.accessibility.typeGained')
+              : batchedData.totalXP < 0
+                ? t('gamification.xp.xpNotification.accessibility.typeLost')
+                : t('gamification.xp.xpNotification.accessibility.typeBalanced')
+          })}
         >
           <Text
             style={[
@@ -451,7 +457,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
               batchedData.totalXP === 0 && styles.xpSuffixNeutral
             ]}
             importantForAccessibility="no"
-          >XP</Text>
+          >{t('gamification.xp.xpNotification.unit')}</Text>
         </View>
       </View>
     </Animated.View>

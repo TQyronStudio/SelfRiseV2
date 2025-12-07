@@ -224,9 +224,16 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   // Celebration effects
   useEffect(() => {
     if (visible) {
+      // Get rarity capitalized for translation key
+      const rarityCapitalized = achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1).toLowerCase();
+
       // Accessibility announcement
-      const announcement = `Achievement unlocked: ${t(achievement.nameKey)}! ${achievement.rarity} rarity achievement earned ${xpAwarded} XP.`;
-      
+      const announcement = t('achievements.celebration.announcement', {
+        rarity: t(`achievements.detail.rarity${rarityCapitalized}`),
+        name: t(achievement.nameKey),
+        xp: xpAwarded.toString()
+      });
+
       AccessibilityInfo.announceForAccessibility(announcement);
 
       // Trigger effects
@@ -324,7 +331,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
             { backgroundColor: rarityColor }
           ]}>
             <Text style={styles.rarityText}>
-              {achievement.rarity.toUpperCase()}
+              {t(`achievements.detail.rarity${achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1).toLowerCase()}`)}
             </Text>
           </View>
 
@@ -343,19 +350,19 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
           </View>
 
           {/* Continue button with rarity theming */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
               styles.button,
               { backgroundColor: rarityColor }
-            ]} 
+            ]}
             onPress={handleClose}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel={t('achievements.celebration.continue_button') || 'Continue'}
-            accessibilityHint={t('achievements.celebration.continue_hint') || 'Close achievement celebration and return to app'}
+            accessibilityLabel={t('achievements.celebration.continue_button')}
+            accessibilityHint={t('achievements.celebration.continue_hint')}
           >
             <Text style={styles.buttonText}>
-              {t('common.continue') || 'Continue'}
+              {t('common.continue')}
             </Text>
           </TouchableOpacity>
         </Animated.View>

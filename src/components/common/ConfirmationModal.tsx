@@ -8,9 +8,24 @@ interface ConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  /**
+   * Modal title text. Should be a translated string, e.g. t('common.confirmAction')
+   * Default: 'Confirm Action' (for backwards compatibility - callers should provide translated text)
+   */
   title?: string;
+  /**
+   * Confirmation message text. Should be a translated string, e.g. t('habits.deleteConfirmMessage')
+   */
   message: string;
+  /**
+   * Confirm button text. Should be a translated string, e.g. t('common.confirm')
+   * Default: 'Confirm' (for backwards compatibility - callers should provide translated text)
+   */
   confirmText?: string;
+  /**
+   * Cancel button text. Should be a translated string, e.g. t('common.cancel')
+   * Default: 'Cancel' (for backwards compatibility - callers should provide translated text)
+   */
   cancelText?: string;
   confirmButtonColor?: string;
   emoji?: string;

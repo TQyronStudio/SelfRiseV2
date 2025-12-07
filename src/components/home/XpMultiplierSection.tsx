@@ -284,7 +284,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
             disabled={isLoading}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Activate 2x XP multiplier"
+            accessibilityLabel={t('accessibility.activateMultiplier')}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />

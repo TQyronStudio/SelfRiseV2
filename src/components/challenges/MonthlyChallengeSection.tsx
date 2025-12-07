@@ -733,19 +733,19 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         {/* Current Streak */}
         {progress.currentStreak > 0 && (
           <View style={styles.streakBadge}>
-            <Text style={styles.streakText}>🔥 {progress.currentStreak} Month Streak</Text>
+            <Text style={styles.streakText}>🔥 {progress.currentStreak} {t('monthlyChallenge.monthStreak')}</Text>
           </View>
         )}
       </View>
 
       {/* Star Level Display for All Categories */}
       <View style={styles.starRatingOverview}>
-        <Text style={styles.starRatingTitle}>Your Challenge Levels</Text>
+        <Text style={styles.starRatingTitle}>{t('monthlyChallenge.yourChallengeLevels')}</Text>
         <View style={styles.starRatingGrid}>
           {Object.entries(userStarRatings).map(([category, stars]) => (
             <View key={category} style={styles.starRatingItem}>
               <Text style={styles.starRatingCategory}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
+                {t(`monthlyChallenge.categories.${category}`)}
               </Text>
               <StarRatingDisplay
                 category={category as AchievementCategory}

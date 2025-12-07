@@ -39,6 +39,7 @@ interface HeroCardProps {
 
 const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const getRarityColor = (rarity: string) => {
     const rarityColors = {
       'Common': '#9E9E9E',
@@ -195,7 +196,7 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
             <Ionicons name="trending-up" size={14} color={colors.primary} />
             <Text style={styles.heroLevelText}>Level {hero.level}</Text>
           </View>
-          <Text style={styles.heroDaysActive}>{hero.daysActive} days active</Text>
+          <Text style={styles.heroDaysActive}>{t('social.dailyHeroes.daysActive', { days: hero.daysActive })}</Text>
         </View>
       </View>
 
@@ -228,7 +229,7 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
         <Text style={styles.heroTimestamp}>{getTimeDisplay(hero.anonymizedTimestamp)}</Text>
         <View style={styles.inspirationBadge}>
           <Ionicons name="heart" size={12} color="#FF6B6B" />
-          <Text style={styles.inspirationText}>Inspiring</Text>
+          <Text style={styles.inspirationText}>{t('social.dailyHeroes.inspiring')}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -500,7 +501,7 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
           <Ionicons name="bulb" size={16} color="#FFA500" />
         </View>
         <Text style={styles.inspirationFooterText}>
-          Every achievement shared here is from a real user journey. You're not alone! 💪
+          {t('social.dailyHeroes.footer')}
         </Text>
       </View>
     </View>

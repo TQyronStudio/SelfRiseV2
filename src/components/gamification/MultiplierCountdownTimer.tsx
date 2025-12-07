@@ -332,7 +332,7 @@ export const MultiplierCountdownTimer: React.FC<MultiplierCountdownTimerProps> =
       return (
         <View style={styles.inactiveContainer}>
           <Text style={[styles.inactiveText, { fontSize: sizeConfig.fontSize, color: colorConfig.textColor }]}>
-            No Multiplier
+            {t('gamification.multiplier.noMultiplier')}
           </Text>
         </View>
       );
@@ -393,9 +393,12 @@ export const MultiplierCountdownTimer: React.FC<MultiplierCountdownTimerProps> =
       accessible={true}
       accessibilityRole="timer"
       accessibilityLabel={
-        activeMultiplier?.isActive 
-          ? `XP Multiplier: ${activeMultiplier.multiplier}x, ${timeRemaining} remaining`
-          : 'No active XP multiplier'
+        activeMultiplier?.isActive
+          ? t('gamification.multiplier.timerAccessibility', {
+              multiplier: activeMultiplier.multiplier,
+              time: timeRemaining
+            })
+          : t('gamification.multiplier.noActiveMultiplier')
       }
       testID="multiplier-countdown-timer"
     >

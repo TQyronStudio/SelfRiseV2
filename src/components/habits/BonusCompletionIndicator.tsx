@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface BonusCompletionIndicatorProps {
   isVisible: boolean;
@@ -14,6 +15,7 @@ export const BonusCompletionIndicator: React.FC<BonusCompletionIndicatorProps> =
   size = 'medium',
   showText = true,
 }) => {
+  const { t } = useI18n();
   const { colors } = useTheme();
 
   if (!isVisible) return null;
@@ -56,7 +58,7 @@ export const BonusCompletionIndicator: React.FC<BonusCompletionIndicatorProps> =
       />
       {showText && (
         <Text style={[styles.text, { fontSize: config.text }]}>
-          Bonus
+          {t('habits.bonus')}
         </Text>
       )}
     </View>

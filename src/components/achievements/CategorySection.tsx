@@ -6,6 +6,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, AchievementCategory, UserAchievements } from '@/src/types/gamification';
 import { UserStats } from '@/src/utils/achievementPreviewUtils';
@@ -52,6 +53,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   batchUserStats,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   if (achievements.length === 0) {
     return null;
@@ -162,7 +164,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
           <View>
             <Text style={styles.categoryName}>{categoryName}</Text>
             <Text style={styles.categoryStats}>
-              {unlockedCount} of {achievements.length} unlocked
+              {t('social.trophyRoom.categoryProgress', { unlocked: unlockedCount, total: achievements.length })}
             </Text>
           </View>
         </View>

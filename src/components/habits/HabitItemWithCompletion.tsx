@@ -420,7 +420,7 @@ export const HabitItemWithCompletion = React.memo(({
             {completion?.isBonus && (
               <View style={styles.bonusLabelContainer}>
                 <View style={styles.bonusLabel}>
-                  <Text style={styles.bonusLabelText}>BONUS</Text>
+                  <Text style={styles.bonusLabelText}>{t('habits.bonus').toUpperCase()}</Text>
                 </View>
                 <HelpTooltip
                   helpKey="habits.bonusConversion"

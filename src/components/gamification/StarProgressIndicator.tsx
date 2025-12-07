@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AchievementCategory, StarRatingHistoryEntry } from '../../types/gamification';
 import { StarRatingService, StarRatingAnalysis } from '../../services/starRatingService';
@@ -305,18 +306,21 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
   compactMode
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(colors);
 
   if (history.length === 0) {
     return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyStateText}>
-          {category 
-            ? `No ${category} challenge history yet` 
-            : 'No challenge history yet'}
+          {category
+            ? t('monthlyChallenge.starProgress.emptyState.noCategoryHistory', {
+                category: t(`monthlyChallenge.categories.${category}`)
+              })
+            : t('monthlyChallenge.starProgress.emptyState.noChallengeHistory')}
         </Text>
         <Text style={styles.emptyStateSubtext}>
-          Complete monthly challenges to see your progress
+          {t('monthlyChallenge.starProgress.emptyState.completeToSeeProgress')}
         </Text>
       </View>
     );
@@ -389,13 +393,13 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
               </Text>
             </View>
           </View>
-          
+
           <Text style={styles.categoryName}>
-            {entry.category.charAt(0).toUpperCase() + entry.category.slice(1)}
+            {t(`monthlyChallenge.categories.${entry.category}`)}
           </Text>
-          
+
           <View style={styles.completionBar}>
-            <View 
+            <View
               style={[
                 styles.completionFill,
                 {
@@ -405,9 +409,11 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
               ]}
             />
           </View>
-          
+
           <Text style={styles.completionText}>
-            {Math.round(entry.completionPercentage)}% completed
+            {t('monthlyChallenge.starProgress.percentageCompleted', {
+              percentage: Math.round(entry.completionPercentage)
+            })}
           </Text>
         </View>
       </View>
@@ -442,12 +448,13 @@ const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({
   compactMode
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(colors);
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
       case 'improving': return '#4CAF50';
-      case 'declining': return '#F44336'; 
+      case 'declining': return '#F44336';
       default: return '#FF9800';
     }
   };
@@ -475,37 +482,47 @@ const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({
 
   return (
     <View style={styles.analysisContainer}>
-      <Text style={styles.analysisTitle}>Performance Analysis</Text>
-      
+      <Text style={styles.analysisTitle}>
+        {t('monthlyChallenge.starProgress.performanceAnalysis.title')}
+      </Text>
+
       <View style={styles.analysisGrid}>
         <View style={styles.analysisItem}>
-          <Text style={styles.analysisLabel}>Overall Rating</Text>
+          <Text style={styles.analysisLabel}>
+            {t('monthlyChallenge.starProgress.performanceAnalysis.overallRating')}
+          </Text>
           <Text style={styles.analysisValue}>{analysis.overallRating.toFixed(1)}★</Text>
         </View>
-        
+
         <View style={styles.analysisItem}>
-          <Text style={styles.analysisLabel}>Trend</Text>
+          <Text style={styles.analysisLabel}>
+            {t('monthlyChallenge.starProgress.performanceAnalysis.trend')}
+          </Text>
           <View style={styles.trendContainer}>
             <Text style={styles.trendIcon}>{getTrendIcon(analysis.recentTrend)}</Text>
             <Text style={[styles.trendText, { color: getTrendColor(analysis.recentTrend) }]}>
-              {analysis.recentTrend}
+              {t(`monthlyChallenge.starProgress.trends.${analysis.recentTrend}`)}
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.analysisItem}>
-          <Text style={styles.analysisLabel}>Success Rate</Text>
+          <Text style={styles.analysisLabel}>
+            {t('monthlyChallenge.starProgress.performanceAnalysis.successRate')}
+          </Text>
           <Text style={styles.analysisValue}>
             {analysis.totalCompletions + analysis.totalFailures > 0
               ? Math.round((analysis.totalCompletions / (analysis.totalCompletions + analysis.totalFailures)) * 100)
               : 0}%
           </Text>
         </View>
-        
+
         <View style={styles.analysisItem}>
-          <Text style={styles.analysisLabel}>Strongest</Text>
+          <Text style={styles.analysisLabel}>
+            {t('monthlyChallenge.starProgress.performanceAnalysis.strongest')}
+          </Text>
           <Text style={[styles.analysisValue, styles.categoryValue]}>
-            {analysis.strongestCategory}
+            {t(`monthlyChallenge.categories.${analysis.strongestCategory}`)}
           </Text>
         </View>
       </View>
@@ -526,6 +543,7 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
   style,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [history, setHistory] = useState<StarRatingHistoryEntry[]>([]);
   const [analysis, setAnalysis] = useState<StarRatingAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -559,7 +577,9 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
     return (
       <View style={[createStyles(colors).container, style]}>
         <View style={createStyles(colors).loadingState}>
-          <Text style={createStyles(colors).loadingText}>Loading progress...</Text>
+          <Text style={createStyles(colors).loadingText}>
+            {t('monthlyChallenge.starProgress.loadingProgress')}
+          </Text>
         </View>
       </View>
     );
@@ -573,8 +593,10 @@ export const StarProgressIndicator: React.FC<StarProgressIndicatorProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>
           {category
-            ? `${category.charAt(0).toUpperCase() + category.slice(1)} Progress`
-            : 'Star Progression'}
+            ? t('monthlyChallenge.starProgress.categoryProgress', {
+                category: t(`monthlyChallenge.categories.${category}`)
+              })
+            : t('monthlyChallenge.starProgress.title')}
         </Text>
         {!compactMode && (
           <TouchableOpacity onPress={loadData} style={styles.refreshButton}>

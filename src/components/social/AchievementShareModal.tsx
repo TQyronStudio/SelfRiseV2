@@ -406,7 +406,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>{t('social.shareModal.title')}</Text>
-            <Text style={styles.headerSubtitle}>Celebrate your progress! 🎉</Text>
+            <Text style={styles.headerSubtitle}>{t('social.shareModal.subtitle')}</Text>
           </View>
           <TouchableOpacity
             style={styles.closeButton}
@@ -424,7 +424,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Preparing your achievement... 🏆</Text>
+              <Text style={styles.loadingText}>{t('social.shareModal.preparing')}</Text>
             </View>
           ) : shareData && achievement ? (
             <>
@@ -456,24 +456,24 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
                 <View style={styles.achievementStats}>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>{shareData.currentLevel}</Text>
-                    <Text style={styles.statLabel}>Level</Text>
+                    <Text style={styles.statLabel}>{t('common.level')}</Text>
                   </View>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>{shareData.totalXP.toLocaleString()}</Text>
-                    <Text style={styles.statLabel}>Total XP</Text>
+                    <Text style={styles.statLabel}>{t('common.totalXP')}</Text>
                   </View>
                   <View style={styles.statItem}>
                     <Text style={styles.statValue}>
                       {shareData.anonymizedStats?.achievementsCount || 0}
                     </Text>
-                    <Text style={styles.statLabel}>Achievements</Text>
+                    <Text style={styles.statLabel}>{t('common.achievements')}</Text>
                   </View>
                 </View>
               </View>
 
               {/* Share Message Preview */}
               <View style={styles.messagePreview}>
-                <Text style={styles.messageTitle}>Share Message Preview</Text>
+                <Text style={styles.messageTitle}>{t('social.shareModal.messagePreview')}</Text>
                 <View style={styles.messageContainer}>
                   <Text style={styles.messageText}>{shareData.shareMessage}</Text>
                   <View style={styles.hashtagContainer}>
@@ -488,7 +488,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
 
               {/* Sharing Options */}
               <View style={styles.sharingOptions}>
-                <Text style={styles.optionsTitle}>Sharing Options</Text>
+                <Text style={styles.optionsTitle}>{t('social.shareModal.sharingOptions')}</Text>
                 {shareOptions.map((option) => (
                   <TouchableOpacity
                     key={option.id}
@@ -514,21 +514,21 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
               <View style={styles.privacyNotice}>
                 <View style={styles.privacyHeader}>
                   <Ionicons name="shield-checkmark" size={20} color={colors.success} />
-                  <Text style={styles.privacyTitle}>Privacy Protected</Text>
+                  <Text style={styles.privacyTitle}>{t('social.shareModal.privacyProtected')}</Text>
                 </View>
                 <Text style={styles.privacyText}>
-                  Your personal information is never shared. Only achievement progress and motivational content are included in shares.
+                  {t('social.shareModal.privacyDescription')}
                 </Text>
               </View>
             </>
           ) : (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>Unable to load achievement data</Text>
+              <Text style={styles.errorText}>{t('social.shareModal.loadError')}</Text>
               <TouchableOpacity 
                 style={styles.retryButton}
                 onPress={loadSharingData}
               >
-                <Text style={styles.retryButtonText}>Retry</Text>
+                <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
               </TouchableOpacity>
             </View>
           )}

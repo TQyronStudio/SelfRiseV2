@@ -1162,6 +1162,12 @@ const es: Partial<TranslationKeys> = {
         progress: '¡Buen esfuerzo! Has hecho un progreso significativo en este desafío {{rarity}} de {{category}} este mes.',
       },
 
+      progressStats: {
+        requirements: 'Requisitos',
+        activeDays: 'Días Activos',
+        milestones: 'Hitos',
+      },
+
       // Rewards
       rewards: {
         title: 'Recompensas de XP Ganadas',
@@ -1241,6 +1247,39 @@ const es: Partial<TranslationKeys> = {
           'Recuerda por qué empezaste cuando surjan desafíos.',
         ],
       },
+    },
+
+    // Star Progress Indicator
+    starProgress: {
+      title: 'Progresión de Estrellas',
+      categoryProgress: 'Progreso de {{category}}',
+      loadingProgress: 'Cargando progreso...',
+
+      // Empty state
+      emptyState: {
+        noChallengeHistory: 'Sin historial de desafíos aún',
+        noCategoryHistory: 'Sin historial de desafíos de {{category}} aún',
+        completeToSeeProgress: 'Completa desafíos mensuales para ver tu progreso',
+      },
+
+      // Performance Analysis
+      performanceAnalysis: {
+        title: 'Análisis de Rendimiento',
+        overallRating: 'Calificación General',
+        trend: 'Tendencia',
+        successRate: 'Tasa de Éxito',
+        strongest: 'Más Fuerte',
+      },
+
+      // Trend labels
+      trends: {
+        improving: 'mejorando',
+        declining: 'decreciendo',
+        stable: 'estable',
+      },
+
+      // Progress display
+      percentageCompleted: '{{percentage}}% completado',
     },
   } as any,
 
@@ -1425,6 +1464,20 @@ const es: Partial<TranslationKeys> = {
       legendary: 'Legendario',
     },
 
+    // Achievement Card
+    card: {
+      locked: 'Bloqueado',
+      unlocked: 'Desbloqueado',
+      unlockedOn: 'Desbloqueado el {{date}}',
+      progress: 'Progreso: {{current}}/{{target}}',
+      xpReward: '+{{xp}} XP',
+      viewDetails: 'Ver Detalles',
+      almostThere: '¡Casi lo logras!',
+      keepGoing: '¡Sigue adelante!',
+      accessibility_label: '{{name}}, logro de rareza {{rarity}}. Estado: {{status}}. {{description}}',
+      accessibility_hint: 'Toca para ver más detalles sobre este logro',
+    },
+
     // Celebration Modal
     celebration: {
       announcement: '¡Logro {{rarity}} desbloqueado: {{name}}! Has ganado {{xp}} puntos de experiencia.',
@@ -1458,6 +1511,12 @@ const es: Partial<TranslationKeys> = {
       lockedMessage: 'Este logro está bloqueado. ¡Sigue usando la app para desbloquearlo!',
       requirementFallback: 'Requisito del logro',
       actionHint: '¡Sigue trabajando hacia este objetivo!',
+      closeButton: 'Cerrar detalles del logro',
+      shareButton: 'Compartir logro',
+      rarityCommon: 'COMÚN',
+      rarityRare: 'RARO',
+      rarityEpic: 'ÉPICO',
+      rarityLegendary: 'LEGENDARIO',
     },
     history: {
       justNow: 'Justo ahora',
@@ -1476,6 +1535,103 @@ const es: Partial<TranslationKeys> = {
       completionRate: 'Tasa de Finalización',
       overallProgress: 'Progreso General',
       showingResults: 'Mostrando {{filtered}} de {{total}} Logros',
+    },
+
+    // Sorting
+    sort: {
+      byName: 'Nombre',
+      byUnlockDate: 'Fecha de Desbloqueo',
+      byRarity: 'Rareza',
+      byCategory: 'Categoría',
+      byProgress: 'Progreso',
+      ascending: 'A-Z',
+      descending: 'Z-A',
+    },
+
+    // Achievement Details Modal
+    details: {
+      title: 'Detalles del Logro',
+      description: 'Descripción',
+      category: 'Categoría',
+      rarity: 'Rareza',
+      xpReward: 'Recompensa XP',
+      unlockCondition: 'Cómo Desbloquear',
+      progress: 'Tu Progreso',
+      unlockedDate: 'Fecha de Desbloqueo',
+      timeToUnlock: 'Tiempo para Desbloquear',
+      tips: 'Consejos',
+      close: 'Cerrar',
+      shareAchievement: 'Compartir Logro',
+    },
+
+    // Interactive Features
+    interactive: {
+      celebrationHistory: 'Celebraciones Recientes',
+      achievementSpotlight: 'Logro Destacado',
+      featuredAchievement: 'Logro Destacado',
+      dailyChallenge: 'Desafío de Hoy',
+      progressPreview: 'Vista Previa de Progreso',
+      upcomingRewards: 'Recompensas Próximas',
+    },
+
+    // Statistics Panel
+    stats: {
+      title: 'Estadísticas de Logros',
+      breakdown: 'Desglose por Categoría',
+      rarityDistribution: 'Distribución de Rareza',
+      unlockTimeline: 'Línea de Tiempo de Desbloqueos',
+      averageTimeToUnlock: 'Tiempo Promedio para Desbloquear',
+      totalXPEarned: 'XP Total de Logros',
+      achievementRate: 'Tasa de Logros',
+      consistencyScore: 'Puntuación de Consistencia',
+      nextMilestone: 'Próximo Hito',
+      daysActive: '{{days}} días activos',
+      thisWeek: 'Esta Semana',
+      thisMonth: 'Este Mes',
+      allTime: 'Todo el Tiempo',
+    },
+
+    // Empty States
+    empty: {
+      noAchievements: 'Aún No Hay Logros',
+      noAchievementsSubtitle: '¡Completa tu primer hábito, entrada de diario o meta para comenzar a ganar logros!',
+      noSearchResults: 'No Se Encontraron Resultados',
+      noSearchResultsSubtitle: 'Intenta ajustar tus términos de búsqueda o filtros.',
+      noCategory: 'Aún no hay logros en esta categoría.',
+      noCategorySubtitle: '¡Sigue usando la app y los logros aparecerán aquí!',
+    },
+
+    // Achievement Names (will be used for individual achievements)
+    names: {
+      firstSteps: 'Primeros Pasos',
+      habitBuilder: 'Constructor de Hábitos',
+      streakMaster: 'Maestro de Rachas',
+      deepThinker: 'Pensador Profundo',
+      goalGetter: 'Conseguidor de Metas',
+      consistent: 'Consistente',
+      dedicated: 'Dedicado',
+      perfectMonth: 'Mes Perfecto',
+    },
+
+    // Achievement Descriptions (will be used for individual achievements)
+    descriptions: {
+      firstSteps: 'Creaste tu primer hábito, entrada de diario o meta.',
+      habitBuilder: 'Creaste 5 hábitos diferentes.',
+      streakMaster: 'Mantuviste una racha de 30 días.',
+      deepThinker: 'Escribiste una entrada de diario con más de 200 caracteres.',
+      goalGetter: 'Completaste tu primera meta.',
+      consistent: 'Usaste la app durante 7 días consecutivos.',
+      dedicated: 'Usaste la app durante 30 días consecutivos.',
+      perfectMonth: 'Completaste todas las actividades durante 30 días.',
+    },
+
+    // Sharing
+    sharing: {
+      shareTitle: '¡Acabo de desbloquear un logro!',
+      shareText: '¡Acabo de desbloquear "{{name}}" en SelfRise! 🏆 {{description}}',
+      shareError: 'Error al compartir el logro. Por favor, inténtalo de nuevo.',
+      copySuccess: '¡Detalles del logro copiados al portapapeles!',
+      copyError: 'Error al copiar los detalles del logro.',
     },
 
     // Filtering and Search
@@ -2523,6 +2679,46 @@ const es: Partial<TranslationKeys> = {
         updated: 'Actividades actualizadas',
         and: 'y',
       },
+
+      // XP Notification Component - Source Names (plural forms for display)
+      xpNotification: {
+        sources: {
+          habits: 'hábitos',
+          journalEntries: 'entradas de diario',
+          journalMilestones: 'hitos de diario',
+          goals: 'metas',
+          goalMilestones: 'hitos de meta',
+          streaks: 'rachas',
+          achievements: 'logros',
+          monthlyChallenges: 'desafíos mensuales',
+          multiplierBonuses: 'bonos de multiplicador',
+          dailyLaunches: 'inicios diarios',
+          recommendations: 'recomendaciones',
+          activities: 'actividades',
+        },
+        messages: {
+          completed: 'completado',
+          balanced: 'Actividades balanceadas (sin progreso neto)',
+          reversed: 'Progreso revertido',
+          updated: 'Actividades actualizadas',
+          and: 'y',
+        },
+        announcements: {
+          balanced: 'No se ganaron ni perdieron puntos de experiencia netos de actividades recientes',
+          decreased: 'Se perdieron {{xp}} puntos de experiencia de actividades recientes',
+          single: 'Se ganaron {{xp}} puntos de experiencia al completar {{count}} {{source}}',
+          multipleSame: 'Se ganaron {{xp}} puntos de experiencia al completar {{count}} {{source}}',
+          multipleMixed: 'Se ganaron {{xp}} puntos de experiencia al completar múltiples actividades',
+        },
+        accessibility: {
+          notification: 'Notificación de puntos de experiencia: {{message}}',
+          amount: 'Puntos de experiencia {{type}}: {{amount}}',
+          typeGained: 'ganados',
+          typeLost: 'perdidos',
+          typeBalanced: 'balanceados',
+        },
+        unit: 'EXP',
+      },
     },
 
     progress: {
@@ -2613,6 +2809,42 @@ const es: Partial<TranslationKeys> = {
       activated: '🚀 ¡MULTIPLICADOR ACTIVADO!',
       activateButton: 'Activar 2x XP',
       duration24h: '24 horas',
+
+      // XP Multiplier Indicator
+      harmonyStreak: 'Racha de Armonía',
+      harmonyStreakProgress: 'Racha de Armonía: {{current}}/7',
+      activeMultiplier: 'Multiplicador de XP activo: {{multiplier}}x, {{time}} restante',
+      multiplierValue: '{{multiplier}}x XP',
+      progressSubtext: 'Usa las 3 funciones diariamente para desbloquear 2x XP',
+      noMultiplier: 'Sin Multiplicador',
+
+      // Activation Messages
+      activatingMultiplier: 'Activando multiplicador de racha de armonía',
+      multiplierActivatedMessage: '¡Multiplicador activado! {{multiplier}}x XP por {{hours}} horas',
+      activationFailed: 'Activación fallida: {{error}}',
+      unknownError: 'Error desconocido',
+
+      // Accessibility Labels
+      activateMultiplierAccessibility: 'Activar multiplicador de 2x XP por 24 horas. Racha de armonía actual: {{streak}} días',
+      activateMultiplierHint: 'Toca dos veces para activar el multiplicador',
+      harmonyProgressAccessibility: 'Progreso de racha de armonía: {{current}} de 7 días necesarios',
+
+      // Modal Content
+      achievementDescription: '¡Has usado las tres funciones (Hábitos, Diario, Metas) diariamente durante {{days}} días consecutivos! Disfruta de recompensas de XP dobles durante las próximas 24 horas.',
+      shareButton: '🎉 Compartir',
+      shareAccessibility: 'Compartir tu logro',
+
+      // Timer Display
+      timeFormat: {
+        hoursMinutes: '{{hours}}h {{minutes}}m',
+        minutesSeconds: '{{minutes}}m {{seconds}}s',
+        seconds: '{{seconds}}s',
+        hoursOnly: '{{hours}}h',
+      },
+
+      // Countdown Timer
+      timerAccessibility: 'Multiplicador de XP: {{multiplier}}x, {{time}} restante',
+      noActiveMultiplier: 'Sin multiplicador de XP activo',
     },
 
     analysis: {
@@ -3039,7 +3271,7 @@ const es: Partial<TranslationKeys> = {
       noHeroesSubtitle: '¡Vuelve más tarde para nueva inspiración!',
       footer: 'Cada logro compartido aquí es del viaje real de un usuario. ¡No estás solo! 💪',
       inspiring: 'Inspirador',
-      daysActive: 'días activos',
+      daysActive: '{{days}} días activos',
       today: '🟢 Hoy',
       yesterday: '🟡 Ayer',
       recent: '🔵 Reciente',
@@ -3192,6 +3424,9 @@ const es: Partial<TranslationKeys> = {
       newBadge: 'NUEVO',
       emptyTitle: 'Sin Trofeos Aún',
       recentVictories: 'Victorias Recientes',
+      latestAchievements_one: 'Tu último {{count}} logro',
+      latestAchievements_other: 'Tus últimos {{count}} logros',
+      moreAchievements: 'Y {{count}} más en tu colección...',
     },
     // Achievement Tooltip
     tooltip: {
@@ -3213,6 +3448,7 @@ const es: Partial<TranslationKeys> = {
       title: '🏆 Sala de Trofeos',
       subtitle: 'Tu Galería Personal de la Fama',
       qualitySection: 'Calidad del Trofeo',
+      categoryProgress: '{{unlocked}} de {{total}} desbloqueados',
     },
     // Share Achievement Modal
     shareModal: {
@@ -3222,6 +3458,8 @@ const es: Partial<TranslationKeys> = {
       messagePreview: 'Vista previa del mensaje compartido',
       sharingOptions: 'Opciones de Compartir',
       privacyProtected: 'Privacidad Protegida',
+      privacyDescription: 'Tu información personal nunca se comparte. Solo se incluyen el progreso del logro y contenido motivacional en las comparticiones.',
+      loadError: 'No se pueden cargar los datos del logro',
     },
   } as any,
 

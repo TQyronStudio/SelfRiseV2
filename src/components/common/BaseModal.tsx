@@ -17,9 +17,16 @@ const { width: screenWidth } = Dimensions.get('window');
 interface BaseModalProps {
   visible: boolean;
   onClose: () => void;
+  /**
+   * Modal title text. Should be a translated string, e.g. t('common.title')
+   */
   title?: string;
   children: ReactNode;
   showCloseButton?: boolean;
+  /**
+   * Close button text. Should be a translated string, e.g. t('common.close')
+   * Default: 'Close' (for backwards compatibility - callers should provide translated text)
+   */
   closeButtonText?: string;
   maxWidth?: number;
   animationType?: 'none' | 'slide' | 'fade';

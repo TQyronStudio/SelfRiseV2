@@ -1162,6 +1162,12 @@ const de: Partial<TranslationKeys> = {
         progress: 'Gute Leistung! Du hast bedeutsamen Fortschritt bei dieser {{rarity}} {{category}} Herausforderung diesen Monat gemacht.',
       },
 
+      progressStats: {
+        requirements: 'Anforderungen',
+        activeDays: 'Aktive Tage',
+        milestones: 'Meilensteine',
+      },
+
       // Rewards
       rewards: {
         title: 'Verdiente EP-Belohnungen',
@@ -1241,6 +1247,39 @@ const de: Partial<TranslationKeys> = {
           'Erinnere dich daran, warum du angefangen hast, wenn Herausforderungen auftreten.',
         ],
       },
+    },
+
+    // Star Progress section
+    starProgress: {
+      title: 'Stern-Progression',
+      categoryProgress: '{{category}} Fortschritt',
+      loadingProgress: 'Lade Fortschritt...',
+
+      // Empty state
+      emptyState: {
+        noChallengeHistory: 'Noch keine Herausforderungshistorie',
+        noCategoryHistory: 'Noch keine {{category}} Herausforderungshistorie',
+        completeToSeeProgress: 'Schließe monatliche Herausforderungen ab, um deinen Fortschritt zu sehen',
+      },
+
+      // Performance Analysis
+      performanceAnalysis: {
+        title: 'Leistungsanalyse',
+        overallRating: 'Gesamtbewertung',
+        trend: 'Trend',
+        successRate: 'Erfolgsrate',
+        strongest: 'Am stärksten',
+      },
+
+      // Trend labels
+      trends: {
+        improving: 'verbessernd',
+        declining: 'rückläufig',
+        stable: 'stabil',
+      },
+
+      // Progress display
+      percentageCompleted: '{{percentage}}% abgeschlossen',
     },
   } as any,
 
@@ -1425,6 +1464,139 @@ const de: Partial<TranslationKeys> = {
       legendary: 'Legendär',
     },
 
+    // Filtering and Search
+    filter: {
+      showAll: 'Alle anzeigen',
+      unlockedOnly: 'Nur Freigeschaltete',
+      lockedOnly: 'Nur Gesperrte',
+      byCategory: 'Nach Kategorie',
+      byRarity: 'Nach Seltenheit',
+      searchPlaceholder: 'Erfolge suchen...',
+      noResults: 'Keine Erfolge gefunden',
+      noResultsSubtitle: 'Versuche, deine Filter oder Suchkriterien anzupassen',
+      clearFilters: 'Filter löschen',
+    },
+
+    // Trophy Room Stats
+    trophyRoom: {
+      totalTrophies: 'Gesamttrophäen',
+      collected: 'Gesammelt',
+      completionRate: 'Abschlussrate',
+      overallProgress: 'Gesamtfortschritt',
+      showingResults: 'Zeige {{filtered}} von {{total}} Erfolgen',
+    },
+
+    // Sorting
+    sort: {
+      byName: 'Name',
+      byUnlockDate: 'Freischaltdatum',
+      byRarity: 'Seltenheit',
+      byCategory: 'Kategorie',
+      byProgress: 'Fortschritt',
+      ascending: 'A-Z',
+      descending: 'Z-A',
+    },
+
+    // Achievement Card
+    card: {
+      locked: 'Gesperrt',
+      unlocked: 'Freigeschaltet',
+      unlockedOn: 'Freigeschaltet am {{date}}',
+      progress: 'Fortschritt: {{current}}/{{target}}',
+      xpReward: '+{{xp}} XP',
+      viewDetails: 'Details anzeigen',
+      almostThere: 'Fast geschafft!',
+      keepGoing: 'Weiter so!',
+      accessibility_label: '{{name}}, {{rarity}} Seltenheit Erfolg. Status: {{status}}. {{description}}',
+      accessibility_hint: 'Tippen, um mehr Details zu diesem Erfolg anzuzeigen',
+    },
+
+    // Achievement Details Modal
+    details: {
+      title: 'Erfolg-Details',
+      description: 'Beschreibung',
+      category: 'Kategorie',
+      rarity: 'Seltenheit',
+      xpReward: 'XP-Belohnung',
+      unlockCondition: 'Wie man freischaltet',
+      progress: 'Dein Fortschritt',
+      unlockedDate: 'Freischaltdatum',
+      timeToUnlock: 'Zeit zum Freischalten',
+      tips: 'Tipps',
+      close: 'Schließen',
+      shareAchievement: 'Erfolg teilen',
+    },
+
+    // Interactive Features
+    interactive: {
+      celebrationHistory: 'Letzte Feiern',
+      achievementSpotlight: 'Erfolgs-Spotlight',
+      featuredAchievement: 'Ausgewählter Erfolg',
+      dailyChallenge: 'Heutige Herausforderung',
+      progressPreview: 'Fortschrittsvorschau',
+      upcomingRewards: 'Kommende Belohnungen',
+    },
+
+    // Statistics Panel
+    stats: {
+      title: 'Erfolgsstatistiken',
+      breakdown: 'Kategorieaufschlüsselung',
+      rarityDistribution: 'Seltenheitsverteilung',
+      unlockTimeline: 'Freischalt-Zeitleiste',
+      averageTimeToUnlock: 'Ø Zeit zum Freischalten',
+      totalXPEarned: 'Gesamt-XP aus Erfolgen',
+      achievementRate: 'Erfolgsrate',
+      consistencyScore: 'Beständigkeitswert',
+      nextMilestone: 'Nächster Meilenstein',
+      daysActive: '{{days}} Tage aktiv',
+      thisWeek: 'Diese Woche',
+      thisMonth: 'Diesen Monat',
+      allTime: 'Alle Zeit',
+    },
+
+    // Empty States
+    empty: {
+      noAchievements: 'Noch keine Erfolge',
+      noAchievementsSubtitle: 'Erledige deine erste Gewohnheit, schreibe einen Tagebucheintrag oder erreiche ein Ziel, um Erfolge freizuschalten!',
+      noSearchResults: 'Keine Ergebnisse gefunden',
+      noSearchResultsSubtitle: 'Versuche, deine Suchbegriffe oder Filter anzupassen.',
+      noCategory: 'Noch keine Erfolge in dieser Kategorie.',
+      noCategorySubtitle: 'Verwende die App weiter und Erfolge werden hier erscheinen!',
+    },
+
+    // Achievement Names (will be used for individual achievements)
+    names: {
+      firstSteps: 'Erste Schritte',
+      habitBuilder: 'Gewohnheits-Baumeister',
+      streakMaster: 'Serien-Meister',
+      deepThinker: 'Tiefgründiger Denker',
+      goalGetter: 'Zielerfüller',
+      consistent: 'Beständig',
+      dedicated: 'Engagiert',
+      perfectMonth: 'Perfekter Monat',
+    },
+
+    // Achievement Descriptions (will be used for individual achievements)
+    descriptions: {
+      firstSteps: 'Hast deine erste Gewohnheit, deinen ersten Tagebucheintrag oder dein erstes Ziel erstellt.',
+      habitBuilder: 'Hast 5 verschiedene Gewohnheiten erstellt.',
+      streakMaster: 'Hast eine 30-Tage-Serie aufrechterhalten.',
+      deepThinker: 'Hast einen Tagebucheintrag mit mehr als 200 Zeichen geschrieben.',
+      goalGetter: 'Hast dein erstes Ziel abgeschlossen.',
+      consistent: 'Hast die App 7 aufeinanderfolgende Tage verwendet.',
+      dedicated: 'Hast die App 30 aufeinanderfolgende Tage verwendet.',
+      perfectMonth: 'Hast alle Aktivitäten für 30 Tage abgeschlossen.',
+    },
+
+    // Sharing
+    sharing: {
+      shareTitle: 'Ich habe gerade einen Erfolg freigeschaltet!',
+      shareText: 'Habe gerade "{{name}}" in SelfRise freigeschaltet! 🏆 {{description}}',
+      shareError: 'Erfolg konnte nicht geteilt werden. Bitte versuche es erneut.',
+      copySuccess: 'Erfolgsdetails in die Zwischenablage kopiert!',
+      copyError: 'Erfolgsdetails konnten nicht kopiert werden.',
+    },
+
     // Celebration Modal
     celebration: {
       announcement: '{{rarity}} Erfolg freigeschaltet: {{name}}! Du hast {{xp}} Erfahrungspunkte verdient.',
@@ -1458,6 +1630,12 @@ const de: Partial<TranslationKeys> = {
       lockedMessage: 'Dieser Erfolg ist gesperrt. Verwende die App weiter, um ihn freizuschalten!',
       requirementFallback: 'Erfolganforderung',
       actionHint: 'Arbeite weiter auf dieses Ziel hin!',
+      closeButton: 'Erfolgsdetails schließen',
+      shareButton: 'Erfolg teilen',
+      rarityCommon: 'GEWÖHNLICH',
+      rarityRare: 'SELTEN',
+      rarityEpic: 'EPISCH',
+      rarityLegendary: 'LEGENDÄR',
     },
     history: {
       justNow: 'Gerade eben',
@@ -1467,28 +1645,6 @@ const de: Partial<TranslationKeys> = {
       lastWeek: 'Letzte Woche',
       thisMonth: 'Diesen Monat',
       aWhileAgo: 'Vor einer Weile',
-    },
-
-    // Trophy Room Stats
-    trophyRoom: {
-      totalTrophies: 'Gesamttrophäen',
-      collected: 'Gesammelt',
-      completionRate: 'Abschlussrate',
-      overallProgress: 'Gesamtfortschritt',
-      showingResults: 'Zeige {{filtered}} von {{total}} Erfolgen',
-    },
-
-    // Filtering and Search
-    filter: {
-      showAll: 'Alle anzeigen',
-      unlockedOnly: 'Nur Freigeschaltete',
-      lockedOnly: 'Nur Gesperrte',
-      byCategory: 'Nach Kategorie',
-      byRarity: 'Nach Seltenheit',
-      searchPlaceholder: 'Erfolge suchen...',
-      noResults: 'Keine Erfolge gefunden',
-      noResultsSubtitle: 'Versuche, deine Filter oder Suchkriterien anzupassen',
-      clearFilters: 'Filter löschen',
     },
 
     // Accessibility
@@ -2523,8 +2679,49 @@ const de: Partial<TranslationKeys> = {
         updated: 'Aktivitäten aktualisiert',
         and: 'und',
       },
+
+      // XP Notification Component - Source Names (plural forms for display)
+      xpNotification: {
+        sources: {
+          habits: 'Gewohnheiten',
+          journalEntries: 'Tagebuch-Einträge',
+          journalMilestones: 'Tagebuch-Meilensteine',
+          goals: 'Ziele',
+          goalMilestones: 'Ziel-Meilensteine',
+          streaks: 'Serien',
+          achievements: 'Erfolge',
+          monthlyChallenges: 'Monatsherausforderungen',
+          multiplierBonuses: 'Multiplikator-Boni',
+          dailyLaunches: 'Tägliche Starts',
+          recommendations: 'Empfehlungen',
+          activities: 'Aktivitäten',
+        },
+        messages: {
+          completed: 'abgeschlossen',
+          balanced: 'Aktivitäten ausgeglichen (kein Netto-Fortschritt)',
+          reversed: 'Fortschritt umgekehrt',
+          updated: 'Aktivitäten aktualisiert',
+          and: 'und',
+        },
+        announcements: {
+          balanced: 'Keine Netto-Erfahrungspunkte aus kürzlichen Aktivitäten gewonnen oder verloren',
+          decreased: '{{xp}} Erfahrungspunkte aus kürzlichen Aktivitäten verloren',
+          single: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
+          multipleSame: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
+          multipleMixed: '{{xp}} Erfahrungspunkte aus mehreren Aktivitäten erhalten',
+        },
+        accessibility: {
+          notification: 'Erfahrungspunkte-Benachrichtigung: {{message}}',
+          amount: 'Erfahrungspunkte {{type}}: {{amount}}',
+          typeGained: 'erhalten',
+          typeLost: 'verloren',
+          typeBalanced: 'ausgeglichen',
+        },
+        unit: 'EP',
+      },
     },
 
+    // Progress and Levels
     progress: {
       level: 'Level',
       progress: 'Fortschritt',
@@ -2613,6 +2810,42 @@ const de: Partial<TranslationKeys> = {
       activated: '🚀 MULTIPLIKATOR AKTIVIERT!',
       activateButton: '2x XP aktivieren',
       duration24h: '24 Stunden',
+
+      // XP Multiplier Indicator
+      harmonyStreak: 'Harmonie-Serie',
+      harmonyStreakProgress: 'Harmonie-Serie: {{current}}/7',
+      activeMultiplier: 'Aktiver XP-Multiplikator: {{multiplier}}x, {{time}} verbleibend',
+      multiplierValue: '{{multiplier}}x XP',
+      progressSubtext: 'Nutze alle 3 Funktionen täglich, um 2x XP freizuschalten',
+      noMultiplier: 'Kein Multiplikator',
+
+      // Activation Messages
+      activatingMultiplier: 'Harmonie-Serien-Multiplikator wird aktiviert',
+      multiplierActivatedMessage: 'Multiplikator aktiviert! {{multiplier}}x XP für {{hours}} Stunden',
+      activationFailed: 'Aktivierung fehlgeschlagen: {{error}}',
+      unknownError: 'Unbekannter Fehler',
+
+      // Accessibility Labels
+      activateMultiplierAccessibility: '2x XP-Multiplikator für 24 Stunden aktivieren. Aktuelle Harmonie-Serie: {{streak}} Tage',
+      activateMultiplierHint: 'Doppeltippen, um Multiplikator zu aktivieren',
+      harmonyProgressAccessibility: 'Harmonie-Serien-Fortschritt: {{current}} von 7 benötigten Tagen',
+
+      // Modal Content
+      achievementDescription: 'Du hast alle drei Funktionen (Gewohnheiten, Tagebuch, Ziele) täglich für {{days}} aufeinanderfolgende Tage genutzt! Genieße doppelte XP-Belohnungen für die nächsten 24 Stunden.',
+      shareButton: '🎉 Teilen',
+      shareAccessibility: 'Teile deinen Erfolg',
+
+      // Timer Display
+      timeFormat: {
+        hoursMinutes: '{{hours}}h {{minutes}}m',
+        minutesSeconds: '{{minutes}}m {{seconds}}s',
+        seconds: '{{seconds}}s',
+        hoursOnly: '{{hours}}h',
+      },
+
+      // Countdown Timer
+      timerAccessibility: 'XP-Multiplikator: {{multiplier}}x, {{time}} verbleibend',
+      noActiveMultiplier: 'Kein aktiver XP-Multiplikator',
     },
 
     analysis: {
@@ -3039,7 +3272,7 @@ const de: Partial<TranslationKeys> = {
       noHeroesSubtitle: 'Schau später vorbei für neue Inspiration!',
       footer: 'Jede Errungenschaft hier ist aus einer echten Benutzerreise. Du bist nicht allein! 💪',
       inspiring: 'Inspirierend',
-      daysActive: 'Tage aktiv',
+      daysActive: '{{days}} Tage aktiv',
       today: '🟢 Heute',
       yesterday: '🟡 Gestern',
       recent: '🔵 Kürzlich',
@@ -3191,6 +3424,9 @@ const de: Partial<TranslationKeys> = {
       newBadge: 'NEU',
       emptyTitle: 'Noch keine Trophäen',
       recentVictories: 'Letzte Erfolge',
+      latestAchievements_one: 'Dein neuester {{count}} Erfolg',
+      latestAchievements_other: 'Deine neuesten {{count}} Erfolge',
+      moreAchievements: 'Und {{count}} weitere in deiner Sammlung...',
     },
     // Achievement Tooltip
     tooltip: {
@@ -3212,6 +3448,7 @@ const de: Partial<TranslationKeys> = {
       title: '🏆 Trophäenkammer',
       subtitle: 'Deine persönliche Ruhmeshalle',
       qualitySection: 'Trophäenqualität',
+      categoryProgress: '{{unlocked}} von {{total}} freigeschaltet',
     },
     // Share Achievement Modal
     shareModal: {
@@ -3221,6 +3458,8 @@ const de: Partial<TranslationKeys> = {
       messagePreview: 'Vorschau der Freigabemeldung',
       sharingOptions: 'Freigabeoptionen',
       privacyProtected: 'Datenschutz geschützt',
+      privacyDescription: 'Ihre persönlichen Informationen werden niemals geteilt. Nur Erfolgsfortschritt und motivierende Inhalte sind in Freigaben enthalten.',
+      loadError: 'Erfolgsdaten konnten nicht geladen werden',
     },
   } as any,
 

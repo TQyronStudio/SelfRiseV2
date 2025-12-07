@@ -350,7 +350,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
                 {Math.round(overallProgress)}%
               </Text>
               <Text style={styles.compactDays}>
-                {daysRemaining}d left
+                {daysRemaining}{t('monthlyChallenge.daysLeftCompact')}
               </Text>
             </View>
           </View>

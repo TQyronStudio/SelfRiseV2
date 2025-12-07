@@ -7,6 +7,7 @@ import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { HabitCalendarView } from './HabitCalendarView';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface HabitStatsAccordionItemProps {
   habit: Habit;
@@ -31,6 +32,7 @@ const ICON_MAP = {
 } as const;
 
 export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: HabitStatsAccordionItemProps) {
+  const { t } = useI18n();
   const { colors } = useTheme();
 
   const COLOR_MAP = {
@@ -221,7 +223,10 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
               styles.statLabel,
               !habit.isActive && styles.inactiveText
             ]}>
-              Success{stats.bonusCompletions > 0 ? ' + Bonus' : ''}
+              {stats.bonusCompletions > 0
+                ? `${t('common.success')} + ${t('habits.bonus')}`
+                : t('common.success')
+              }
             </Text>
           </View>
 

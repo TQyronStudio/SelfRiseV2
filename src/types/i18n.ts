@@ -990,6 +990,12 @@ export interface TranslationKeys {
         progress: string;
       };
 
+      progressStats: {
+        requirements: string;
+        activeDays: string;
+        milestones: string;
+      };
+
       rewards: {
         title: string;
         baseXP: string;
@@ -1034,6 +1040,39 @@ export interface TranslationKeys {
         consistency: string[];
         default: string[];
       };
+    };
+
+    // Star Progress Indicator
+    starProgress: {
+      title: string;
+      categoryProgress: string;
+      loadingProgress: string;
+
+      // Empty state
+      emptyState: {
+        noChallengeHistory: string;
+        noCategoryHistory: string;
+        completeToSeeProgress: string;
+      };
+
+      // Performance Analysis
+      performanceAnalysis: {
+        title: string;
+        overallRating: string;
+        trend: string;
+        successRate: string;
+        strongest: string;
+      };
+
+      // Trend labels
+      trends: {
+        improving: string;
+        declining: string;
+        stable: string;
+      };
+
+      // Progress display
+      percentageCompleted: string;
     };
   };
 
@@ -1101,6 +1140,12 @@ export interface TranslationKeys {
       lockedMessage: string;
       requirementFallback: string;
       actionHint: string;
+      closeButton: string;
+      shareButton: string;
+      rarityCommon: string;
+      rarityRare: string;
+      rarityEpic: string;
+      rarityLegendary: string;
     };
     history: {
       justNow: string;
@@ -1735,6 +1780,46 @@ export interface TranslationKeys {
         updated: string;
         and: string;
       };
+
+      // XP Notification Component - Source Names (plural forms for display)
+      xpNotification: {
+        sources: {
+          habits: string;
+          journalEntries: string;
+          journalMilestones: string;
+          goals: string;
+          goalMilestones: string;
+          streaks: string;
+          achievements: string;
+          monthlyChallenges: string;
+          multiplierBonuses: string;
+          dailyLaunches: string;
+          recommendations: string;
+          activities: string;
+        };
+        messages: {
+          completed: string;
+          balanced: string;
+          reversed: string;
+          updated: string;
+          and: string;
+        };
+        announcements: {
+          balanced: string;
+          decreased: string;
+          single: string;
+          multipleSame: string;
+          multipleMixed: string;
+        };
+        accessibility: {
+          notification: string;
+          amount: string;
+          typeGained: string;
+          typeLost: string;
+          typeBalanced: string;
+        };
+        unit: string;
+      };
     };
     progress: {
       level: string;
@@ -1870,6 +1955,42 @@ export interface TranslationKeys {
       activated: string;
       activateButton: string;
       duration24h: string;
+
+      // XP Multiplier Indicator
+      harmonyStreak: string;
+      harmonyStreakProgress: string;
+      activeMultiplier: string;
+      multiplierValue: string;
+      progressSubtext: string;
+      noMultiplier: string;
+
+      // Activation Messages
+      activatingMultiplier: string;
+      multiplierActivatedMessage: string;
+      activationFailed: string;
+      unknownError: string;
+
+      // Accessibility Labels
+      activateMultiplierAccessibility: string;
+      activateMultiplierHint: string;
+      harmonyProgressAccessibility: string;
+
+      // Modal Content
+      achievementDescription: string;
+      shareButton: string;
+      shareAccessibility: string;
+
+      // Timer Display
+      timeFormat: {
+        hoursMinutes: string;
+        minutesSeconds: string;
+        seconds: string;
+        hoursOnly: string;
+      };
+
+      // Countdown Timer
+      timerAccessibility: string;
+      noActiveMultiplier: string;
     };
     analysis: {
       title: string;
@@ -2275,6 +2396,9 @@ export interface TranslationKeys {
       newBadge: string;
       emptyTitle: string;
       recentVictories: string;
+      latestAchievements_one: string;
+      latestAchievements_other: string;
+      moreAchievements: string;
     };
     // Achievement Tooltip
     tooltip: {
@@ -2296,6 +2420,7 @@ export interface TranslationKeys {
       title: string;
       subtitle: string;
       qualitySection: string;
+      categoryProgress: string;
     };
     // Share Achievement Modal
     shareModal: {
@@ -2305,6 +2430,8 @@ export interface TranslationKeys {
       messagePreview: string;
       sharingOptions: string;
       privacyProtected: string;
+      privacyDescription: string;
+      loadError: string;
     };
     achievements_trophies: {
       habitMastery: string;

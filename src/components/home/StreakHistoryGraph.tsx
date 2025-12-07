@@ -311,7 +311,7 @@ export function StreakHistoryGraph() {
       <View style={styles.container}>
         <Text style={styles.title}>{t('home.journalHistory')}</Text>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('home.streakHistoryLoading')}</Text>
         </View>
       </View>
     );

@@ -211,7 +211,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
             <View style={styles.achievementText}>
               <Text style={styles.achievementName}>{t(achievement.nameKey)}</Text>
               <Text style={styles.achievementCategory}>
-                {achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1)}
+                {t(`social.achievements_filters.${achievement.category}Category`)}
               </Text>
             </View>
           </View>
@@ -219,7 +219,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
           <View style={styles.historyMeta}>
             <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
               <Text style={styles.rarityText}>
-                {achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}
+                {t(`achievements.detail.rarity${achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}`)}
               </Text>
             </View>
             <Text style={styles.timeAgo}>{timeAgo}</Text>
@@ -351,7 +351,7 @@ export const AchievementHistory: React.FC<AchievementHistoryProps> = ({
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('social.history.recentVictories')}</Text>
         <Text style={styles.headerSubtitle}>
-          Your latest {recentUnlocks.length} achievement{recentUnlocks.length !== 1 ? 's' : ''}
+          {t(`social.history.latestAchievements_${recentUnlocks.length === 1 ? 'one' : 'other'}`, { count: recentUnlocks.length })}
         </Text>
       </View>
       
@@ -373,7 +373,7 @@ export const AchievementHistory: React.FC<AchievementHistoryProps> = ({
         {unlockedAchievements.length > 10 && (
           <View style={styles.moreContainer}>
             <Text style={styles.moreText}>
-              And {unlockedAchievements.length - 10} more achievements in your collection...
+              {t('social.history.moreAchievements', { count: unlockedAchievements.length - 10 })}
             </Text>
           </View>
         )}

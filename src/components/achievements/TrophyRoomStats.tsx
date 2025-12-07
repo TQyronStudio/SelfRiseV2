@@ -259,7 +259,7 @@ export const TrophyRoomStats: React.FC<TrophyRoomStatsProps> = ({
                 <View style={[styles.qualityIndicator, { backgroundColor: color }]} />
                 <Text style={styles.qualityCount}>{rarity.unlocked}</Text>
                 <Text style={styles.qualityLabel}>
-                  {rarity.rarity.charAt(0).toUpperCase() + rarity.rarity.slice(1)}
+                  {t(`social.achievements_filters.${rarity.rarity}Rarity`)}
                 </Text>
                 <View style={styles.qualityProgressContainer}>
                   <View style={styles.qualityProgressTrack}>
@@ -313,12 +313,4 @@ const getCategoryIcon = (category: AchievementCategory): string => {
   }
 };
 
-const getCategoryName = (category: AchievementCategory): string => {
-  switch (category) {
-    case AchievementCategory.HABITS: return 'Habits';
-    case AchievementCategory.JOURNAL: return 'Journal';
-    case AchievementCategory.GOALS: return 'Goals';
-    case AchievementCategory.CONSISTENCY: return 'Consistency';
-    default: return 'Achievement';
-  }
-};
+// getCategoryName is no longer used - use t('social.achievements_filters.${category}Category') instead

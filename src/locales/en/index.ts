@@ -1173,6 +1173,12 @@ const en: TranslationKeys = {
         progress: 'Good effort! You\'ve made meaningful progress on this {{rarity}} {{category}} challenge this month.',
       },
 
+      progressStats: {
+        requirements: 'Requirements',
+        activeDays: 'Active Days',
+        milestones: 'Milestones',
+      },
+
       rewards: {
         title: 'XP Rewards Earned',
         baseXP: 'Base Challenge XP',
@@ -1247,6 +1253,39 @@ const en: TranslationKeys = {
           'Remember why you started when challenges arise.',
         ],
       },
+    },
+
+    // Star Progress Indicator
+    starProgress: {
+      title: 'Star Progression',
+      categoryProgress: '{{category}} Progress',
+      loadingProgress: 'Loading progress...',
+
+      // Empty state
+      emptyState: {
+        noChallengeHistory: 'No challenge history yet',
+        noCategoryHistory: 'No {{category}} challenge history yet',
+        completeToSeeProgress: 'Complete monthly challenges to see your progress',
+      },
+
+      // Performance Analysis
+      performanceAnalysis: {
+        title: 'Performance Analysis',
+        overallRating: 'Overall Rating',
+        trend: 'Trend',
+        successRate: 'Success Rate',
+        strongest: 'Strongest',
+      },
+
+      // Trend labels
+      trends: {
+        improving: 'improving',
+        declining: 'declining',
+        stable: 'stable',
+      },
+
+      // Progress display
+      percentageCompleted: '{{percentage}}% completed',
     },
   },
 
@@ -1491,6 +1530,12 @@ const en: TranslationKeys = {
       lockedMessage: 'This achievement is locked. Keep using the app to unlock it!',
       requirementFallback: 'Achievement requirement',
       actionHint: 'Keep working towards this goal!',
+      closeButton: 'Close achievement details',
+      shareButton: 'Share achievement',
+      rarityCommon: 'COMMON',
+      rarityRare: 'RARE',
+      rarityEpic: 'EPIC',
+      rarityLegendary: 'LEGENDARY',
     },
     history: {
       justNow: 'Just now',
@@ -2616,6 +2661,46 @@ const en: TranslationKeys = {
         updated: 'Activities updated',
         and: 'and',
       },
+
+      // XP Notification Component - Source Names (plural forms for display)
+      xpNotification: {
+        sources: {
+          habits: 'habits',
+          journalEntries: 'journal entries',
+          journalMilestones: 'journal milestones',
+          goals: 'goals',
+          goalMilestones: 'goal milestones',
+          streaks: 'streaks',
+          achievements: 'achievements',
+          monthlyChallenges: 'monthly challenges',
+          multiplierBonuses: 'multiplier bonuses',
+          dailyLaunches: 'daily launches',
+          recommendations: 'recommendations',
+          activities: 'activities',
+        },
+        messages: {
+          completed: 'completed',
+          balanced: 'Activities balanced (no net progress)',
+          reversed: 'Progress reversed',
+          updated: 'Activities updated',
+          and: 'and',
+        },
+        announcements: {
+          balanced: 'No net experience points gained or lost from recent activities',
+          decreased: 'Lost {{xp}} experience points from recent activities',
+          single: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
+          multipleSame: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
+          multipleMixed: 'Gained {{xp}} experience points from completing multiple activities',
+        },
+        accessibility: {
+          notification: 'Experience points notification: {{message}}',
+          amount: 'Experience points {{type}}: {{amount}}',
+          typeGained: 'gained',
+          typeLost: 'lost',
+          typeBalanced: 'balanced',
+        },
+        unit: 'XP',
+      },
     },
 
     // Progress and Levels
@@ -2710,6 +2795,42 @@ const en: TranslationKeys = {
       activated: '🚀 MULTIPLIER ACTIVATED!',
       activateButton: 'Activate 2x XP',
       duration24h: '24 hours',
+
+      // XP Multiplier Indicator
+      harmonyStreak: 'Harmony Streak',
+      harmonyStreakProgress: 'Harmony Streak: {{current}}/7',
+      activeMultiplier: 'Active XP multiplier: {{multiplier}}x, {{time}} remaining',
+      multiplierValue: '{{multiplier}}x XP',
+      progressSubtext: 'Use all 3 features daily to unlock 2x XP',
+      noMultiplier: 'No Multiplier',
+
+      // Activation Messages
+      activatingMultiplier: 'Activating harmony streak multiplier',
+      multiplierActivatedMessage: 'Multiplier activated! {{multiplier}}x XP for {{hours}} hours',
+      activationFailed: 'Activation failed: {{error}}',
+      unknownError: 'Unknown error',
+
+      // Accessibility Labels
+      activateMultiplierAccessibility: 'Activate 2x XP multiplier for 24 hours. Current harmony streak: {{streak}} days',
+      activateMultiplierHint: 'Double tap to activate multiplier',
+      harmonyProgressAccessibility: 'Harmony streak progress: {{current}} of 7 days needed',
+
+      // Modal Content
+      achievementDescription: 'You\'ve used all three features (Habits, Journal, Goals) daily for {{days}} consecutive days! Enjoy double XP rewards for the next 24 hours.',
+      shareButton: '🎉 Share',
+      shareAccessibility: 'Share your achievement',
+
+      // Timer Display
+      timeFormat: {
+        hoursMinutes: '{{hours}}h {{minutes}}m',
+        minutesSeconds: '{{minutes}}m {{seconds}}s',
+        seconds: '{{seconds}}s',
+        hoursOnly: '{{hours}}h',
+      },
+
+      // Countdown Timer
+      timerAccessibility: 'XP Multiplier: {{multiplier}}x, {{time}} remaining',
+      noActiveMultiplier: 'No active XP multiplier',
     },
 
     analysis: {
@@ -3433,7 +3554,7 @@ const en: TranslationKeys = {
       noHeroesSubtitle: 'Check back later for new inspiration!',
       footer: 'Every achievement shared here is from a real user journey. You\'re not alone! 💪',
       inspiring: 'Inspiring',
-      daysActive: 'days active',
+      daysActive: '{{days}} days active',
       today: '🟢 Today',
       yesterday: '🟡 Yesterday',
       recent: '🔵 Recent',
@@ -3595,6 +3716,9 @@ const en: TranslationKeys = {
       newBadge: 'NEW',
       emptyTitle: 'No Trophies Yet',
       recentVictories: 'Recent Victories',
+      latestAchievements_one: 'Your latest {{count}} achievement',
+      latestAchievements_other: 'Your latest {{count}} achievements',
+      moreAchievements: 'And {{count}} more in your collection...',
     },
     // Achievement Tooltip
     tooltip: {
@@ -3616,6 +3740,7 @@ const en: TranslationKeys = {
       title: '🏆 Trophy Room',
       subtitle: 'Your Personal Hall of Fame',
       qualitySection: 'Trophy Quality',
+      categoryProgress: '{{unlocked}} of {{total}} unlocked',
     },
     // Share Achievement Modal
     shareModal: {
@@ -3625,6 +3750,8 @@ const en: TranslationKeys = {
       messagePreview: 'Share Message Preview',
       sharingOptions: 'Sharing Options',
       privacyProtected: 'Privacy Protected',
+      privacyDescription: 'Your personal information is never shared. Only achievement progress and motivational content are included in shares.',
+      loadError: 'Unable to load achievement data',
     },
   },
 

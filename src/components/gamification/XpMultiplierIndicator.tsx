@@ -312,33 +312,41 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
       setIsLoading(true);
       
       // Announce action for accessibility
-      AccessibilityInfo.announceForAccessibility('Activating harmony streak multiplier');
-      
+      AccessibilityInfo.announceForAccessibility(t('gamification.multiplier.activatingMultiplier'));
+
       const result = await XPMultiplierService.activateHarmonyMultiplier();
-      
+
       if (result.success && result.multiplier) {
         setActiveMultiplier(result.multiplier);
         onMultiplierActivated?.(result.multiplier);
-        
+
         // Reload data to get updated state
         await loadMultiplierData();
-        
+
         // Announce success
+        const hours = Math.ceil((result.multiplier.timeRemaining || 0) / (1000 * 60 * 60));
         AccessibilityInfo.announceForAccessibility(
-          `Multiplier activated! ${result.multiplier.multiplier}x XP for ${Math.ceil((result.multiplier.timeRemaining || 0) / (1000 * 60 * 60))} hours`
+          t('gamification.multiplier.multiplierActivatedMessage', {
+            multiplier: result.multiplier.multiplier,
+            hours
+          })
         );
       } else {
-        const errorMessage = result.reason || result.error || 'Unknown error';
+        const errorMessage = result.reason || result.error || t('gamification.multiplier.unknownError');
         onActivationError?.(errorMessage);
-        
+
         // Announce error
-        AccessibilityInfo.announceForAccessibility(`Activation failed: ${errorMessage}`);
+        AccessibilityInfo.announceForAccessibility(
+          t('gamification.multiplier.activationFailed', { error: errorMessage })
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : t('gamification.multiplier.unknownError');
       onActivationError?.(errorMessage);
-      
-      AccessibilityInfo.announceForAccessibility(`Activation failed: ${errorMessage}`);
+
+      AccessibilityInfo.announceForAccessibility(
+        t('gamification.multiplier.activationFailed', { error: errorMessage })
+      );
     } finally {
       setIsLoading(false);
     }
@@ -360,7 +368,7 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
     });
     
     return (
-      <Animated.View 
+      <Animated.View
         style={[
           styles.multiplierContainer,
           styles.activeMultiplier,
@@ -371,19 +379,24 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
         ]}
         accessible={true}
         accessibilityRole="text"
-        accessibilityLabel={`Active XP multiplier: ${activeMultiplier.multiplier}x, ${timeRemaining} remaining`}
+        accessibilityLabel={t('gamification.multiplier.activeMultiplier', {
+          multiplier: activeMultiplier.multiplier,
+          time: timeRemaining
+        })}
       >
         <View style={styles.multiplierHeader}>
           <Text style={styles.multiplierIcon}>⚡</Text>
           <Text style={styles.multiplierText}>
-            {activeMultiplier.multiplier}x XP
+            {t('gamification.multiplier.multiplierValue', { multiplier: activeMultiplier.multiplier })}
           </Text>
         </View>
-        
+
         <Text style={styles.timeRemaining}>{timeRemaining}</Text>
-        
+
         <Text style={styles.multiplierSource}>
-          {activeMultiplier.source === 'harmony_streak' ? 'Harmony Streak' : 'Multiplier Active'}
+          {activeMultiplier.source === 'harmony_streak'
+            ? t('gamification.multiplier.harmonyStreak')
+            : t('home.xpMultiplier.multiplierActive')}
         </Text>
       </Animated.View>
     );
@@ -413,16 +426,18 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
             disabled={isLoading}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel={`Activate 2x XP multiplier for 24 hours. Current harmony streak: ${harmonyStreak.currentStreak} days`}
-            accessibilityHint="Double tap to activate multiplier"
+            accessibilityLabel={t('gamification.multiplier.activateMultiplierAccessibility', {
+              streak: harmonyStreak.currentStreak
+            })}
+            accessibilityHint={t('gamification.multiplier.activateMultiplierHint')}
           >
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
                 <Text style={styles.activateIcon}>🚀</Text>
-                <Text style={styles.activateText}>Activate 2x XP</Text>
-                <Text style={styles.activateSubtext}>24 hours</Text>
+                <Text style={styles.activateText}>{t('gamification.multiplier.activateButton')}</Text>
+                <Text style={styles.activateSubtext}>{t('gamification.multiplier.duration24h')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -430,15 +445,17 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
           <View
             accessible={true}
             accessibilityRole="text"
-            accessibilityLabel={`Harmony streak progress: ${harmonyStreak.currentStreak} of 7 days needed`}
+            accessibilityLabel={t('gamification.multiplier.harmonyProgressAccessibility', {
+              current: harmonyStreak.currentStreak
+            })}
           >
             <View style={styles.progressHeader}>
               <Text style={styles.progressIcon}>🎯</Text>
               <Text style={styles.progressText}>
-                Harmony Streak: {harmonyStreak.currentStreak}/7
+                {t('gamification.multiplier.harmonyStreakProgress', { current: harmonyStreak.currentStreak })}
               </Text>
             </View>
-            
+
             <View style={styles.progressBarContainer}>
               <Animated.View
                 style={[
@@ -452,9 +469,9 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
                 ]}
               />
             </View>
-            
+
             <Text style={styles.progressSubtext}>
-              Use all 3 features daily to unlock 2x XP
+              {t('gamification.multiplier.progressSubtext')}
             </Text>
           </View>
         )}

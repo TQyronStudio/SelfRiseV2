@@ -386,7 +386,7 @@ export function HabitCalendarView({
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.warning }]} />
-            <Text style={styles.legendText}>Bonus</Text>
+            <Text style={styles.legendText}>{t('habits.calendar.bonus')}</Text>
           </View>
         </View>
       </View>

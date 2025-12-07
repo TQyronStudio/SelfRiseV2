@@ -342,7 +342,7 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                         </View>
                       )}
                       {isScheduled && (
-                        <Text style={styles.scheduledText}>Scheduled</Text>
+                        <Text style={styles.scheduledText}>{t('habits.scheduled')}</Text>
                       )}
                     </View>
                   </View>

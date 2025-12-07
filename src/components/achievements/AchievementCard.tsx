@@ -154,16 +154,19 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   };
   
   // Accessibility label for the achievement card
-  const status = isUnlocked 
-    ? 'unlocked' 
-    : achievement.isProgressive 
-      ? `${Math.round(progress)}% progress`
-      : 'locked';
-      
-  const accessibilityLabel = `${t(achievement.nameKey)}, ${achievement.rarity.toLowerCase()} rarity achievement, ${status}. ${t(achievement.descriptionKey)}`;
+  const status = isUnlocked
+    ? t('achievements.card.unlocked')
+    : achievement.isProgressive
+      ? t('achievements.card.progress', { current: Math.round(progress), target: 100 })
+      : t('achievements.card.locked');
 
-  const accessibilityHint = t('achievements.card.accessibility_hint') ||
-    (isUnlocked ? t('achievements.detail.titleUnlocked') : t('achievements.detail.titleDetails'));
+  // Get rarity translation key
+  const rarityKey = `achievements.rarity.${achievement.rarity.toLowerCase()}` as const;
+  const rarityLabel = t(rarityKey);
+
+  const accessibilityLabel = `${t(achievement.nameKey)}, ${rarityLabel} rarity achievement, ${status}. ${t(achievement.descriptionKey)}`;
+
+  const accessibilityHint = t('achievements.card.accessibility_hint');
 
   // Styles - moved inside component to access colors
   const styles = StyleSheet.create({
@@ -396,7 +399,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
           {/* Rarity badge */}
           <View style={[styles.rarityBadge, { backgroundColor: isUnlocked ? rarityColor : colors.gray }]}>
             <Text style={styles.rarityText}>
-              {achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}
+              {rarityLabel}
             </Text>
           </View>
         </View>

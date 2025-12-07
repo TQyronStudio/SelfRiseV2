@@ -498,7 +498,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
             onPress={onClose}
             accessible
             accessibilityRole="button"
-            accessibilityLabel="Close achievement details"
+            accessibilityLabel={t('achievements.detail.closeButton')}
           >
             <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -513,7 +513,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
               onPress={handleSharePress}
               accessible
               accessibilityRole="button"
-              accessibilityLabel="Share achievement"
+              accessibilityLabel={t('achievements.detail.shareButton')}
             >
               <Ionicons name="share-outline" size={24} color={rarityColor} />
             </TouchableOpacity>
@@ -555,16 +555,16 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                   <View style={styles.metaContainer}>
                     <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
                       <Text style={styles.rarityText}>
-                        {achievement?.rarity?.toUpperCase() || 'COMMON'}
+                        {t(`achievements.detail.rarity${(achievement?.rarity || 'common').charAt(0).toUpperCase() + (achievement?.rarity || 'common').slice(1)}`)}
                       </Text>
                     </View>
-                    
+
                     <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
                       <Ionicons name={categoryIcon} size={12} color={colors.white} />
                       <Text style={styles.categoryText}>
-                        {achievement?.category ? 
-                          achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
-                          'Category'
+                        {achievement?.category ?
+                          t(`social.achievements_filters.${achievement.category}Category`) :
+                          t('achievements.detail.categoryLabel')
                         }
                       </Text>
                     </View>

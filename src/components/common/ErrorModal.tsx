@@ -7,8 +7,19 @@ import { Fonts, Layout } from '@/src/constants';
 interface ErrorModalProps {
   visible: boolean;
   onClose: () => void;
+  /**
+   * Error modal title text. Should be a translated string, e.g. t('common.error')
+   * Default: 'Error' (for backwards compatibility - callers should provide translated text)
+   */
   title?: string;
+  /**
+   * Error message text. Should be a translated string, e.g. t('errors.saveFailed')
+   */
   message: string;
+  /**
+   * Close button text. Should be a translated string, e.g. t('common.ok')
+   * Default: 'OK' (for backwards compatibility - callers should provide translated text)
+   */
   closeButtonText?: string;
 }
 

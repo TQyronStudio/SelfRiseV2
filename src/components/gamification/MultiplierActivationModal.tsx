@@ -320,8 +320,12 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
       startEntranceAnimation();
       
       // Announce for accessibility
+      const hours = Math.ceil((multiplier.timeRemaining || 0) / (1000 * 60 * 60));
       AccessibilityInfo.announceForAccessibility(
-        `XP Multiplier activated! ${multiplier.multiplier}x XP for ${Math.ceil((multiplier.timeRemaining || 0) / (1000 * 60 * 60))} hours`
+        t('gamification.multiplier.multiplierActivatedMessage', {
+          multiplier: multiplier.multiplier,
+          hours
+        })
       );
       
       // Start timer
@@ -409,11 +413,13 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
         ]}
       >
         <Text style={styles.multiplierIcon}>⚡</Text>
-        <Text style={styles.multiplierValue}>{multiplier.multiplier}x XP</Text>
+        <Text style={styles.multiplierValue}>
+          {t('gamification.multiplier.multiplierValue', { multiplier: multiplier.multiplier })}
+        </Text>
         <Text style={styles.multiplierDuration}>{timeRemaining}</Text>
-        
+
         {multiplier.source === 'harmony_streak' && (
-          <Text style={styles.multiplierSource}>Harmony Streak Activated!</Text>
+          <Text style={styles.multiplierSource}>{t('gamification.multiplier.harmonyActivated')}</Text>
         )}
       </Animated.View>
     );
@@ -425,28 +431,27 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
   const renderAchievementSummary = () => {
     return (
       <View style={styles.achievementSummary}>
-        <Text style={styles.achievementTitle}>🎯 Achievement Unlocked!</Text>
-        
+        <Text style={styles.achievementTitle}>{t('gamification.multiplier.achievementUnlocked')}</Text>
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{harmonyStreakLength}</Text>
-            <Text style={styles.statLabel}>Day Harmony Streak</Text>
+            <Text style={styles.statLabel}>{t('gamification.multiplier.harmonyStreakLabel')}</Text>
           </View>
-          
+
           <View style={styles.statItem}>
             <Text style={styles.statValue}>+{bonusXP}</Text>
-            <Text style={styles.statLabel}>Bonus XP</Text>
+            <Text style={styles.statLabel}>{t('gamification.multiplier.bonusXP')}</Text>
           </View>
-          
+
           <View style={styles.statItem}>
             <Text style={styles.statValue}>24h</Text>
-            <Text style={styles.statLabel}>Multiplier Duration</Text>
+            <Text style={styles.statLabel}>{t('gamification.multiplier.duration')}</Text>
           </View>
         </View>
-        
+
         <Text style={styles.achievementDescription}>
-          You've used all three features (Habits, Journal, Goals) daily for {harmonyStreakLength} consecutive days! 
-          Enjoy double XP rewards for the next 24 hours.
+          {t('gamification.multiplier.achievementDescription', { days: harmonyStreakLength })}
         </Text>
       </View>
     );
@@ -464,18 +469,18 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
             onPress={handleShare}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Share your achievement"
+            accessibilityLabel={t('gamification.multiplier.shareAccessibility')}
           >
-            <Text style={styles.shareButtonText}>🎉 Share</Text>
+            <Text style={styles.shareButtonText}>{t('gamification.multiplier.shareButton')}</Text>
           </TouchableOpacity>
         )}
-        
+
         <TouchableOpacity
           style={[styles.button, styles.continueButton]}
           onPress={handleClose}
           accessible={true}
           accessibilityRole="button"
-          accessibilityLabel="Continue using the app with multiplier active"
+          accessibilityLabel={t('accessibility.continueWithMultiplier')}
         >
           <Text style={styles.continueButtonText}>{t('gamification.multiplier.continue')}</Text>
         </TouchableOpacity>
@@ -521,14 +526,14 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
           ]}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel="XP Multiplier activation celebration"
+          accessibilityLabel={t('accessibility.multiplierCelebration')}
         >
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <Text style={styles.celebrationTitle}>🚀 MULTIPLIER ACTIVATED!</Text>
+            <Text style={styles.celebrationTitle}>{t('gamification.multiplier.activated')}</Text>
 
             {/* Multiplier details */}
             {renderMultiplierDetails()}

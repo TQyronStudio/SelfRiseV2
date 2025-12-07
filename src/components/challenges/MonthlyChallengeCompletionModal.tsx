@@ -664,15 +664,15 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
               <View style={styles.progressStats}>
                 <View style={styles.progressStat}>
                   <Text style={styles.progressStatValue}>{completionResult?.requirementsCompleted || 0}</Text>
-                  <Text style={styles.progressStatLabel}>Requirements</Text>
+                  <Text style={styles.progressStatLabel}>{t('monthlyChallenge.completionModal.progressStats.requirements')}</Text>
                 </View>
                 <View style={styles.progressStat}>
                   <Text style={styles.progressStatValue}>{completionResult?.activeDays || 0}</Text>
-                  <Text style={styles.progressStatLabel}>Active Days</Text>
+                  <Text style={styles.progressStatLabel}>{t('monthlyChallenge.completionModal.progressStats.activeDays')}</Text>
                 </View>
                 <View style={styles.progressStat}>
                   <Text style={styles.progressStatValue}>{completionResult?.milestonesReached || 0}</Text>
-                  <Text style={styles.progressStatLabel}>Milestones</Text>
+                  <Text style={styles.progressStatLabel}>{t('monthlyChallenge.completionModal.progressStats.milestones')}</Text>
                 </View>
               </View>
             </View>
