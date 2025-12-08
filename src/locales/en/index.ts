@@ -1135,6 +1135,12 @@ const en: TranslationKeys = {
     completed: 'Monthly Challenge Completed! 🎉',
     endsDate: 'Ends: {{date}}',
 
+    // Fallback challenge (shown when generation has issues)
+    fallback: {
+      titlePrefix: '🔧 Fallback',
+      descriptionSuffix: '⚠️ This is a simplified challenge due to generation issues.',
+    },
+
     // Star rarity
     rarity: {
       common: 'Common',

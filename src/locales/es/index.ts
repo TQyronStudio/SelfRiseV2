@@ -1122,6 +1122,12 @@ const es: Partial<TranslationKeys> = {
     completed: '¡Desafío Mensual Completado! 🎉',
     endsDate: 'Termina: {{date}}',
 
+    // Fallback challenge (shown when generation has issues)
+    fallback: {
+      titlePrefix: '🔧 Respaldo',
+      descriptionSuffix: '⚠️ Este es un desafío simplificado debido a problemas de generación.',
+    },
+
     // Star rarity labels
     rarity: {
       common: 'Común',

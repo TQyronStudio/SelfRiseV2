@@ -2128,8 +2128,8 @@ export class MonthlyChallengeService {
 
     return {
       id: generateUUID(),
-      title: `🔧 Fallback: ${template!.title}`,
-      description: `${template!.description}\n\n⚠️ This is a simplified challenge due to generation issues.`,
+      title: `${t('monthlyChallenge.fallback.titlePrefix')}: ${template!.title}`,
+      description: `${template!.description}\n\n${t('monthlyChallenge.fallback.descriptionSuffix')}`,
       startDate: startDateStr,
       endDate: endDateStr,
       baseXPReward: 300,

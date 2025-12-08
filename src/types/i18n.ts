@@ -950,6 +950,12 @@ export interface TranslationKeys {
     completed: string;
     endsDate: string;
 
+    // Fallback challenge
+    fallback: {
+      titlePrefix: string;
+      descriptionSuffix: string;
+    };
+
     // Star rarity labels
     rarity: {
       common: string;
