@@ -152,12 +152,15 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
   // Accessibility announcement for screen readers
   useEffect(() => {
-    const announcement = isUnlocked 
-      ? `Achievement details: ${achievement?.name || 'Achievement'}. This ${achievement?.rarity || 'common'} achievement is unlocked.`
-      : `Achievement details: ${achievement?.name || 'Achievement'}. This ${achievement?.rarity || 'common'} achievement is locked. Progress information available.`;
-    
+    const achievementName = achievement ? t(achievement.nameKey) : t('achievements.detail.titleDetails');
+    const rarityTranslated = t(`achievements.detail.rarity${(achievement?.rarity || 'common').charAt(0).toUpperCase() + (achievement?.rarity || 'common').slice(1)}`);
+
+    const announcement = isUnlocked
+      ? t('achievements.detail.accessibilityUnlocked', { name: achievementName, rarity: rarityTranslated })
+      : t('achievements.detail.accessibilityLocked', { name: achievementName, rarity: rarityTranslated });
+
     AccessibilityInfo.announceForAccessibility(announcement);
-  }, [achievement?.name, achievement?.rarity, isUnlocked]);
+  }, [achievement?.name, achievement?.rarity, isUnlocked, t]);
 
   const handleSharePress = () => {
     if (onSharePress && achievement && isUnlocked) {
@@ -598,15 +601,15 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
                       <Text style={styles.detailLabel}>{t('achievements.detail.categoryLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {achievement?.category ?
-                          achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1) :
-                          'Category'
+                          t(`social.achievements_filters.${achievement.category}Category`) :
+                          t('achievements.detail.categoryLabel')
                         }
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>{t('achievements.detail.rarityLabel')}</Text>
                       <Text style={[styles.detailValue, { color: rarityColor }]}>
-                        {achievement?.rarity || 'common'}
+                        {t(`achievements.detail.rarity${(achievement?.rarity || 'common').charAt(0).toUpperCase() + (achievement?.rarity || 'common').slice(1)}`)}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>

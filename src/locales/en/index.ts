@@ -335,6 +335,8 @@ const en: TranslationKeys = {
     celebration: {
       general_announcement: 'Congratulations on your achievement!',
       modal: 'Achievement celebration',
+      default_title: 'Congratulations!',
+      default_message: 'Great job!',
     },
     help: 'Help',
     helpNotAvailable: 'Help information not available for this feature.',
@@ -1536,6 +1538,9 @@ const en: TranslationKeys = {
       rarityRare: 'RARE',
       rarityEpic: 'EPIC',
       rarityLegendary: 'LEGENDARY',
+      // Accessibility announcements
+      accessibilityUnlocked: 'Achievement details: {{name}}. This {{rarity}} achievement is unlocked.',
+      accessibilityLocked: 'Achievement details: {{name}}. This {{rarity}} achievement is locked. Progress information available.',
     },
     history: {
       justNow: 'Just now',
@@ -3639,6 +3644,8 @@ const en: TranslationKeys = {
       bonusXPEarned: 'Bonus XP\nEarned',
       collectionRate: 'Collection\nRate',
       collectionComplete: '🎉 Collection Complete!',
+      completedProgress: '{{completed}}/{{total}} completed',
+      moreToUnlock: '{{count}} more to unlock',
       collections: {
         'habits-master': 'Habits Master',
         'journal-sage': 'Journal Sage',
@@ -3663,6 +3670,14 @@ const en: TranslationKeys = {
       daysOfDedication: 'days of dedication',
       currentStreak: 'Current Streak',
       longestStreak: 'Longest Streak',
+      // Motivation messages based on days remaining
+      motivation: {
+        oneDay: 'Just 1 more active day to unlock {{name}}!',
+        fewDays: '{{days}} active days to {{name}} - so close!',
+        withinReach: '{{name}} is within reach: {{days}} days to go!',
+        building: 'Building toward {{name}}: {{days}} active days remaining',
+        continuing: 'Your loyalty journey continues toward {{name}}',
+      },
       levels: {
         newcomer: {
           name: 'Newcomer',

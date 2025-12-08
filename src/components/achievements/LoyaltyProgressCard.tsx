@@ -71,10 +71,23 @@ export const LoyaltyProgressCard: React.FC<LoyaltyProgressCardProps> = ({
 
   const getMotivationMessage = () => {
     if (!loyaltyProgress || !nextMilestone) return t('social.loyalty_progress.keepGrowing');
-    return LoyaltyService.getLoyaltyMotivationMessage(
-      loyaltyProgress.daysRemaining,
-      nextMilestone.name
-    );
+
+    const daysRemaining = loyaltyProgress.daysRemaining;
+    const name = t(nextMilestone.nameKey);
+
+    if (daysRemaining === 1) {
+      return t('social.loyalty_progress.motivation.oneDay', { name });
+    }
+    if (daysRemaining <= 5) {
+      return t('social.loyalty_progress.motivation.fewDays', { days: daysRemaining, name });
+    }
+    if (daysRemaining <= 20) {
+      return t('social.loyalty_progress.motivation.withinReach', { days: daysRemaining, name });
+    }
+    if (daysRemaining <= 50) {
+      return t('social.loyalty_progress.motivation.building', { days: daysRemaining, name });
+    }
+    return t('social.loyalty_progress.motivation.continuing', { name });
   };
 
   // Create styles inside component to access theme colors

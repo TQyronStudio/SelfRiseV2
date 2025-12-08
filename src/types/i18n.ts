@@ -1146,6 +1146,8 @@ export interface TranslationKeys {
       rarityRare: string;
       rarityEpic: string;
       rarityLegendary: string;
+      accessibilityUnlocked: string;
+      accessibilityLocked: string;
     };
     history: {
       justNow: string;
@@ -1649,9 +1651,11 @@ export interface TranslationKeys {
     celebration: {
       general_announcement: string;
       modal: string;
+      default_title: string;
+      default_message: string;
     };
   };
-  
+
   // Days of week
   days: {
     monday: string;
@@ -2454,6 +2458,8 @@ export interface TranslationKeys {
       bonusXPEarned: string;
       collectionRate: string;
       collectionComplete: string;
+      completedProgress: string;
+      moreToUnlock: string;
       collections: {
         'habits-master': string;
         'journal-sage': string;
@@ -2478,6 +2484,13 @@ export interface TranslationKeys {
       daysOfDedication: string;
       currentStreak: string;
       longestStreak: string;
+      motivation: {
+        oneDay: string;
+        fewDays: string;
+        withinReach: string;
+        building: string;
+        continuing: string;
+      };
       levels: {
         newcomer: {
           name: string;

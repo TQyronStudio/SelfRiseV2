@@ -61,12 +61,13 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
   };
 
   const getTimeDisplay = (timestamp: string) => {
-    const displays = {
-      'today': '🟢 Today',
-      'yesterday': '🟡 Yesterday',
-      'recent': '🔵 Recent'
+    const displayKeys: Record<string, string> = {
+      'today': 'social.dailyHeroes.today',
+      'yesterday': 'social.dailyHeroes.yesterday',
+      'recent': 'social.dailyHeroes.recent'
     };
-    return displays[timestamp as keyof typeof displays] || '🔵 Recent';
+    const key = displayKeys[timestamp] || 'social.dailyHeroes.recent';
+    return t(key);
   };
 
   const { width: screenWidth } = Dimensions.get('window');

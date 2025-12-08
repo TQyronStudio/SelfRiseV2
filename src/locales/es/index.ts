@@ -346,6 +346,8 @@ const es: Partial<TranslationKeys> = {
     celebration: {
       general_announcement: '¡Felicidades por tu logro!',
       modal: 'Celebración de logro',
+      default_title: '¡Felicidades!',
+      default_message: '¡Buen trabajo!',
     },
     help: 'Ayuda',
     helpNotAvailable: 'Información de ayuda no disponible para esta función.',
@@ -1517,6 +1519,9 @@ const es: Partial<TranslationKeys> = {
       rarityRare: 'RARO',
       rarityEpic: 'ÉPICO',
       rarityLegendary: 'LEGENDARIO',
+      // Accessibility announcements
+      accessibilityUnlocked: 'Detalles del logro: {{name}}. Este logro {{rarity}} está desbloqueado.',
+      accessibilityLocked: 'Detalles del logro: {{name}}. Este logro {{rarity}} está bloqueado. Información de progreso disponible.',
     },
     history: {
       justNow: 'Justo ahora',
@@ -3347,6 +3352,8 @@ const es: Partial<TranslationKeys> = {
       bonusXPEarned: 'XP Adicional\nGanado',
       collectionRate: 'Tasa de\nColección',
       collectionComplete: '🎉 ¡Colección Completada!',
+      completedProgress: '{{completed}}/{{total}} completado',
+      moreToUnlock: '{{count}} más para desbloquear',
       collections: {
         'habits-master': 'Maestro de Hábitos',
         'journal-sage': 'Sabio del Diario',
@@ -3371,6 +3378,14 @@ const es: Partial<TranslationKeys> = {
       daysOfDedication: 'días de dedicación',
       currentStreak: 'Serie Actual',
       longestStreak: 'Serie Más Larga',
+      // Motivation messages based on days remaining
+      motivation: {
+        oneDay: '¡Solo 1 día activo más para desbloquear {{name}}!',
+        fewDays: '{{days}} días activos para {{name}} - ¡tan cerca!',
+        withinReach: '{{name}} está al alcance: ¡{{days}} días más!',
+        building: 'Camino a {{name}}: {{days}} días activos restantes',
+        continuing: 'Tu viaje de lealtad continúa hacia {{name}}',
+      },
       levels: {
         newcomer: {
           name: 'Recién Llegado',

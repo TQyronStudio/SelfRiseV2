@@ -346,6 +346,8 @@ const de: Partial<TranslationKeys> = {
     celebration: {
       general_announcement: 'Glückwunsch zu deinem Erfolg!',
       modal: 'Erfolg-Feier',
+      default_title: 'Herzlichen Glückwunsch!',
+      default_message: 'Toll gemacht!',
     },
     help: 'Hilfe',
     helpNotAvailable: 'Hilfeinformationen nicht verfügbar für diese Funktion.',
@@ -1636,6 +1638,9 @@ const de: Partial<TranslationKeys> = {
       rarityRare: 'SELTEN',
       rarityEpic: 'EPISCH',
       rarityLegendary: 'LEGENDÄR',
+      // Accessibility announcements
+      accessibilityUnlocked: 'Erfolgsdetails: {{name}}. Dieser {{rarity}} Erfolg ist freigeschaltet.',
+      accessibilityLocked: 'Erfolgsdetails: {{name}}. Dieser {{rarity}} Erfolg ist gesperrt. Fortschrittsinformationen verfügbar.',
     },
     history: {
       justNow: 'Gerade eben',
@@ -3347,6 +3352,8 @@ const de: Partial<TranslationKeys> = {
       bonusXPEarned: 'Bonus-XP\nVerdient',
       collectionRate: 'Sammlungs-\nQuote',
       collectionComplete: '🎉 Sammlung abgeschlossen!',
+      completedProgress: '{{completed}}/{{total}} abgeschlossen',
+      moreToUnlock: 'Noch {{count}} freizuschalten',
       collections: {
         'habits-master': 'Gewohnheitsmeister',
         'journal-sage': 'Journal-Weiser',
@@ -3371,6 +3378,14 @@ const de: Partial<TranslationKeys> = {
       daysOfDedication: 'Tage der Hingabe',
       currentStreak: 'Aktuelle Serie',
       longestStreak: 'Längste Serie',
+      // Motivation messages based on days remaining
+      motivation: {
+        oneDay: 'Nur noch 1 aktiver Tag bis {{name}}!',
+        fewDays: '{{days}} aktive Tage bis {{name}} - so nah!',
+        withinReach: '{{name}} ist in Reichweite: Noch {{days}} Tage!',
+        building: 'Auf dem Weg zu {{name}}: Noch {{days}} aktive Tage',
+        continuing: 'Deine Loyalitätsreise führt weiter zu {{name}}',
+      },
       levels: {
         newcomer: {
           name: 'Neuling',

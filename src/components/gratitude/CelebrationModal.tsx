@@ -206,8 +206,8 @@ export default function CelebrationModal({
         };
       default:
         return {
-          title: 'Congratulations!',
-          message: 'Great job!',
+          title: t('common.celebration.default_title'),
+          message: t('common.celebration.default_message'),
           emoji: '✨',
         };
     }

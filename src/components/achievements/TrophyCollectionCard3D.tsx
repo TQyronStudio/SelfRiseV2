@@ -505,7 +505,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressText}>
-              {collection.completedCount}/{collection.totalCount} completed
+              {t('social.trophy_combinations.completedProgress', { completed: collection.completedCount, total: collection.totalCount })}
             </Text>
             <Text style={[styles.progressPercentage, { color: rarityColor }]}>
               {Math.round(progressPercentage)}%
@@ -538,7 +538,7 @@ export const TrophyCollectionCard3D: React.FC<TrophyCollectionCard3DProps> = ({
             </Text>
           ) : (
             <Text style={styles.statusIncomplete}>
-              {collection.totalCount - collection.completedCount} more to unlock
+              {t('social.trophy_combinations.moreToUnlock', { count: collection.totalCount - collection.completedCount })}
             </Text>
           )}
         </View>
