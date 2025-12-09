@@ -169,7 +169,7 @@ export function HabitList({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.subtitle}>
-            {activeHabits.length} active • {inactiveHabits.length} inactive
+            {t('habits.listSummary', { active: activeHabits.length, inactive: inactiveHabits.length })}
           </Text>
         </View>
 

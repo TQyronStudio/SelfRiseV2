@@ -241,7 +241,7 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
               styles.statLabel,
               !habit.isActive && styles.inactiveText
             ]}>
-              Days
+              {t('habits.days')}
             </Text>
           </View>
 

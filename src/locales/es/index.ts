@@ -433,6 +433,17 @@ const es: Partial<TranslationKeys> = {
       legendMakeup: 'Recuperado',
       bonus: 'Bonificación',
     },
+    // Habit list summary
+    days: 'Días',
+    listSummary: '{{active}} activos • {{inactive}} inactivos',
+    // Error messages
+    errors: {
+      failedToSave: 'No se pudo guardar el hábito',
+      failedToDelete: 'No se pudo eliminar el hábito',
+      failedToUpdate: 'No se pudo actualizar el hábito',
+      failedToReorder: 'No se pudieron reordenar los hábitos',
+      failedToToggle: 'No se pudo cambiar el estado de finalización',
+    },
   } as any,
 
   // Journal screen

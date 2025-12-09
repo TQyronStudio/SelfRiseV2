@@ -24,14 +24,14 @@ export function HabitCalendarView({
   onPrevMonth,
   onNextMonth
 }: HabitCalendarViewProps) {
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const { colors } = useTheme();
   const { getHabitCompletionsWithConversion } = useHabitsData();
 
   // Get month info
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthName = currentDate.toLocaleDateString(currentLanguage, { month: 'long', year: 'numeric' });
 
   // Get first day of month and number of days
   const firstDayOfMonth = new Date(year, month, 1);

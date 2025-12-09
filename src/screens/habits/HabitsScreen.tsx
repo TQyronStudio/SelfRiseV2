@@ -120,7 +120,7 @@ export function HabitsScreen() {
       }
       handleCloseModal();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to save habit');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.errors.failedToSave'));
       setShowError(true);
     }
   };
@@ -130,7 +130,7 @@ export function HabitsScreen() {
     try {
       await actions.deleteHabit(habitId);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete habit');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.errors.failedToDelete'));
       setShowError(true);
     }
   };
@@ -139,7 +139,7 @@ export function HabitsScreen() {
     try {
       await actions.updateHabit(habitId, { isActive });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update habit');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.errors.failedToUpdate'));
       setShowError(true);
     }
   };
@@ -148,7 +148,7 @@ export function HabitsScreen() {
     try {
       await actions.updateHabitOrder(habitOrders);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to reorder habits');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.errors.failedToReorder'));
       setShowError(true);
     }
   };
@@ -162,7 +162,7 @@ export function HabitsScreen() {
       // XP is now handled entirely by HabitStorage - no dual system
       console.log(`✅ Habit completion toggled successfully - XP handled by storage layer`);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to toggle completion');
+      setErrorMessage(error instanceof Error ? error.message : t('habits.errors.failedToToggle'));
       setShowError(true);
     }
   };

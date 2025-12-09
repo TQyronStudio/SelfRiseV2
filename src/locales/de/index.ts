@@ -433,6 +433,17 @@ const de: Partial<TranslationKeys> = {
       legendMakeup: 'Nachgeholt',
       bonus: 'Bonus',
     },
+    // Habit list summary
+    days: 'Tage',
+    listSummary: '{{active}} aktiv • {{inactive}} inaktiv',
+    // Error messages
+    errors: {
+      failedToSave: 'Gewohnheit konnte nicht gespeichert werden',
+      failedToDelete: 'Gewohnheit konnte nicht gelöscht werden',
+      failedToUpdate: 'Gewohnheit konnte nicht aktualisiert werden',
+      failedToReorder: 'Gewohnheiten konnten nicht neu angeordnet werden',
+      failedToToggle: 'Abschluss konnte nicht umgeschaltet werden',
+    },
   } as any,
 
   // Journal screen

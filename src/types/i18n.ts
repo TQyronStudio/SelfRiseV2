@@ -339,6 +339,17 @@ export interface TranslationKeys {
       legendMakeup: string;
       bonus?: string;
     };
+    // Habit list summary
+    days: string;
+    listSummary: string;
+    // Error messages
+    errors: {
+      failedToSave: string;
+      failedToDelete: string;
+      failedToUpdate: string;
+      failedToReorder: string;
+      failedToToggle: string;
+    };
   };
 
   // Journal screen

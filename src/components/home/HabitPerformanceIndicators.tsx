@@ -142,7 +142,7 @@ const calculatePeriodCompletionRate = (
 };
 
 export const HabitPerformanceIndicators: React.FC = () => {
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const { colors } = useTheme();
   const { habits, getHabitsByDate, getHabitStats, getRelevantDatesForHabit } = useHabitsData();
 
@@ -392,7 +392,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           if (ageInfo.canShowPerformance) {
             return (
               <PerformanceIndicator
-                title={new Date().toLocaleDateString('en-US', { month: 'long' })}
+                title={new Date().toLocaleDateString(currentLanguage, { month: 'long' })}
                 value={`${Math.round(performanceData.monthlyTopPerformer.completionRate)}%`}
                 subtitle={performanceData.monthlyTopPerformer.habit.name}
                 icon="👑"
@@ -408,7 +408,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
           if (ageInfo.isEstablishedHabit && performanceData.strugglingHabit.completionRate < 50) {
             return (
               <PerformanceIndicator
-                title={t('home.habitPerformance.monthlyFocus', { month: new Date().toLocaleDateString('en-US', { month: 'long' }) })}
+                title={t('home.habitPerformance.monthlyFocus', { month: new Date().toLocaleDateString(currentLanguage, { month: 'long' }) })}
                 value={`${Math.round(performanceData.strugglingHabit.completionRate)}%`}
                 subtitle={performanceData.strugglingHabit.habit.name}
                 icon="💪"

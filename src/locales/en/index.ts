@@ -423,8 +423,19 @@ const en: TranslationKeys = {
       legendMakeup: 'Makeup',
       bonus: 'Bonus',
     },
+    // Habit list summary
+    days: 'Days',
+    listSummary: '{{active}} active • {{inactive}} inactive',
+    // Error messages
+    errors: {
+      failedToSave: 'Failed to save habit',
+      failedToDelete: 'Failed to delete habit',
+      failedToUpdate: 'Failed to update habit',
+      failedToReorder: 'Failed to reorder habits',
+      failedToToggle: 'Failed to toggle completion',
+    },
   },
-  
+
   // Journal screen
   journal: {
     title: 'My Journal',
