@@ -460,7 +460,7 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
           style={styles.refreshButton}
           onPress={handleRefresh}
           disabled={refreshing}
-          accessibilityLabel="Refresh daily heroes"
+          accessibilityLabel={t('accessibility.refreshDailyHeroes')}
         >
           <Ionicons
             name="refresh"

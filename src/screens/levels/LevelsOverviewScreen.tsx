@@ -324,7 +324,7 @@ export const LevelsOverviewScreen: React.FC = () => {
             onPress={handleBack}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('screens.goBack')}
           >
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
@@ -332,7 +332,7 @@ export const LevelsOverviewScreen: React.FC = () => {
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading levels...</Text>
+          <Text style={styles.loadingText}>{t('screens.levelsLoading')}</Text>
         </View>
       </View>
     );
@@ -347,7 +347,7 @@ export const LevelsOverviewScreen: React.FC = () => {
           onPress={handleBack}
           accessible={true}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('screens.goBack')}
         >
           <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>

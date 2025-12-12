@@ -306,7 +306,7 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
   compactMode
 }) => {
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = createStyles(colors);
 
   if (history.length === 0) {
@@ -339,9 +339,9 @@ const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
 
     // Format month display
     const monthDate = new Date(entry.month + '-01');
-    const monthDisplay = monthDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      year: 'numeric' 
+    const monthDisplay = monthDate.toLocaleDateString(i18n.language, {
+      month: 'short',
+      year: 'numeric'
     });
 
     // Get reason icon and color

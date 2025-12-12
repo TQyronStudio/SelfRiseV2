@@ -41,7 +41,7 @@ export function GoalStatsScreen() {
       await goalsActions.deleteProgress(progressId);
       // No need to reload - the global state will automatically update
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete progress');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
       setShowError(true);
     }
   };

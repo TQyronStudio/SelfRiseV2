@@ -7,6 +7,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { TUTORIAL_ANIMATIONS } from '@/src/contexts/TutorialContext';
+import { useI18n } from '@/src/hooks/useI18n';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -30,6 +31,8 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
   targetId,
   onTargetPress,
 }) => {
+  const { t } = useI18n();
+
   // 🔍 DEBUG: Log what's being rendered for Goal create button
   if (targetId === 'create-goal-submit') {
     console.log(`🔍 [SPOTLIGHT] Rendering for create-goal-submit:`, {
@@ -227,7 +230,7 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
             activeOpacity={0.8}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Tap to continue tutorial"
+            accessibilityLabel={t('accessibility.tapToContinueTutorial')}
           />
           );
         })()}

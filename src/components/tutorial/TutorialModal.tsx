@@ -276,7 +276,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
               onPress={onSkip}
               accessible={true}
               accessibilityRole="button"
-              accessibilityLabel="Skip tutorial"
+              accessibilityLabel={t('accessibility.skipTutorial')}
             >
               <Ionicons name="close" size={getIconSize(20)} color={colors.textSecondary} />
             </TouchableOpacity>

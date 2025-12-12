@@ -429,12 +429,12 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
           </ScrollView>
           
           {/* Close Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.closeButton, { backgroundColor: rarityColor }]}
             onPress={onClose}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Close achievement details"
+            accessibilityLabel={t('accessibility.closeAchievementDetails')}
           >
             <Text style={styles.closeButtonText}>
               {t('common.close') || 'Close'}

@@ -177,7 +177,7 @@ export function GoalsScreen() {
       }
       handleCloseModal();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to save goal');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToSave'));
       setShowError(true);
     }
   };
@@ -186,7 +186,7 @@ export function GoalsScreen() {
     try {
       await actions.deleteGoal(goalId);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete goal');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToDelete'));
       setShowError(true);
     }
   };
@@ -195,7 +195,7 @@ export function GoalsScreen() {
     try {
       await actions.updateGoalOrder(goalOrders);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to reorder goals');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToReorder'));
       setShowError(true);
     }
   };
@@ -255,7 +255,7 @@ export function GoalsScreen() {
         }
       }
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to add progress');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
       setShowError(true);
     }
   };

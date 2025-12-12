@@ -411,7 +411,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
           <TouchableOpacity
             style={styles.closeButton}
             onPress={onClose}
-            accessibilityLabel="Close sharing modal"
+            accessibilityLabel={t('accessibility.closeSharingModal')}
           >
             <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>

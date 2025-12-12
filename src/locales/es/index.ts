@@ -529,6 +529,13 @@ const es: Partial<TranslationKeys> = {
       title: 'Exportación de Diario - Formato {{format}}',
       truncated: '[Contenido truncado para visualización]',
       error: 'No se pudieron exportar los datos del diario',
+      modalTitle: 'Exportar Diario',
+      description: 'Exporta tus entradas de diario y estadísticas. Los datos se mostrarán en una ventana emergente para que puedas copiarlos y guardarlos.',
+      textFormat: 'Formato de Texto',
+      textFormatDescription: 'Formato legible perfecto para compartir y leer',
+      jsonFormat: 'Formato JSON',
+      jsonFormatDescription: 'Formato de datos estructurado para respaldo o uso técnico',
+      exporting: 'Exportando tu diario...',
     },
 
     errors: {
@@ -592,6 +599,11 @@ const es: Partial<TranslationKeys> = {
       minLengthError: 'La gratitud debe tener al menos 3 caracteres',
       frozenStreakError_one: 'Tu racha está congelada desde hace {{count}} día. ¡Caliéntala en la pantalla de Inicio y luego continúa escribiendo! 🔥',
       frozenStreakError_other: 'Tu racha está congelada desde hace {{count}} días. ¡Caliéntala en la pantalla de Inicio y luego continúa escribiendo! 🔥',
+
+      // Fallback placeholder
+      defaultPlaceholder: '¿Por qué estás agradecido hoy?',
+      // Optional suffix for bonus entries
+      optional: '(opcional)',
 
       // Gratitude placeholders (rotating)
       gratitudePlaceholders: [
@@ -814,6 +826,7 @@ const es: Partial<TranslationKeys> = {
         targetValueTooLarge: 'El valor objetivo debe ser menor que 1.000.000',
         descriptionTooLong: 'La descripción debe tener menos de 300 caracteres',
         submitFailed: 'No se pudo guardar la meta. Por favor, inténtalo de nuevo.',
+        pastDate: 'La fecha seleccionada no puede estar en el pasado',
       },
     },
 
@@ -3322,6 +3335,8 @@ const es: Partial<TranslationKeys> = {
       copiedMessage: 'Cita copiada al portapapeles.',
       copyError: 'No se pudo copiar la cita. Por favor, inténtalo de nuevo.',
       title: '✨ Cita Motivadora',
+      dailyInspiration: 'Inspiración diaria',
+      personalizedJourney: 'Personalizado para tu viaje',
     },
     achievements: {
       shareSuccessTitle: '🎉 ¡Compartido Exitosamente!',
@@ -3550,6 +3565,11 @@ const es: Partial<TranslationKeys> = {
     getNewQuote: 'Obtener nueva cita',
     copyQuoteToClipboard: 'Copiar cita al portapapeles',
     shareQuote: 'Compartir cita',
+    skipTutorial: 'Omitir tutorial',
+    viewAllLevels: 'Ver todos los niveles',
+    refreshDailyHeroes: 'Actualizar héroes del día',
+    closeSharingModal: 'Cerrar modal de compartir',
+    closeHelp: 'Cerrar ayuda',
   },
 };
 

@@ -432,6 +432,13 @@ export interface TranslationKeys {
       title: string;
       truncated: string;
       error: string;
+      modalTitle: string;
+      description: string;
+      textFormat: string;
+      textFormatDescription: string;
+      jsonFormat: string;
+      jsonFormatDescription: string;
+      exporting: string;
     };
     errors: {
       searchFailed: string;
@@ -483,6 +490,8 @@ export interface TranslationKeys {
       frozenStreakError_other: string;
       gratitudePlaceholders: string[];
       selfPraisePlaceholders: string[];
+      defaultPlaceholder: string;
+      optional: string;
     };
     warmUp: {
       title: string;
@@ -658,6 +667,7 @@ export interface TranslationKeys {
         targetValueTooLarge: string;
         descriptionTooLong: string;
         submitFailed: string;
+        pastDate: string;
       };
     };
     progress: {
@@ -2366,6 +2376,8 @@ export interface TranslationKeys {
       copyError: string;
       copy: string;
       share: string;
+      dailyInspiration: string;
+      personalizedJourney: string;
     };
     achievements: {
       shareSuccessTitle: string;
@@ -2593,6 +2605,11 @@ export interface TranslationKeys {
     getNewQuote: string;
     copyQuoteToClipboard: string;
     shareQuote: string;
+    skipTutorial: string;
+    viewAllLevels: string;
+    refreshDailyHeroes: string;
+    closeSharingModal: string;
+    closeHelp: string;
   };
 }
 

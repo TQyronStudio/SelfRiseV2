@@ -278,7 +278,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
           <TouchableOpacity
             style={styles.refreshButton}
             onPress={loadMotivationalQuote}
-            accessibilityLabel="Get new quote"
+            accessibilityLabel={t('accessibility.getNewQuote')}
           >
             <Ionicons name="refresh" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -312,7 +312,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
           <TouchableOpacity
             style={styles.actionButton}
             onPress={handleCopyToClipboard}
-            accessibilityLabel="Copy quote to clipboard"
+            accessibilityLabel={t('accessibility.copyQuoteToClipboard')}
           >
             <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
             <Text style={styles.actionText}>{t('social.quote.copy')}</Text>
@@ -322,7 +322,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
             style={styles.actionButton}
             onPress={handleShare}
             disabled={sharing}
-            accessibilityLabel="Share quote"
+            accessibilityLabel={t('accessibility.shareQuote')}
           >
             <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
             <Text style={styles.actionText}>{t('social.quote.share')}</Text>
@@ -334,7 +334,7 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
       <View style={styles.inspirationIndicator}>
         <Ionicons name="heart" size={12} color="#FF6B6B" />
         <Text style={styles.inspirationText}>
-          {compact ? 'Daily inspiration' : 'Personalized for your journey'}
+          {compact ? t('social.quote.dailyInspiration') : t('social.quote.personalizedJourney')}
         </Text>
       </View>
     </View>

@@ -8,6 +8,7 @@ import {
 import { AchievementCard } from './AchievementCard';
 import { Achievement, UserAchievements } from '@/src/types/gamification';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../hooks/useI18n';
 
 interface AchievementGridProps {
   achievements: Achievement[];
@@ -26,6 +27,7 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
   onAchievementPress,
 }) => {
   const { colors } = useTheme();
+  const { t } = useI18n();
 
   const styles = StyleSheet.create({
     container: {
@@ -65,7 +67,7 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
       accessible={true}
-      accessibilityLabel="Achievement grid"
+      accessibilityLabel={t('accessibility.achievementGrid')}
     />
   );
 };

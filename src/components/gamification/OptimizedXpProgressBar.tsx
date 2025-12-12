@@ -668,7 +668,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         onPress={() => router.push('/levels-overview')}
         accessible={true}
         accessibilityRole="button"
-        accessibilityLabel="View all levels"
+        accessibilityLabel={t('accessibility.viewAllLevels')}
         accessibilityHint="Opens level overview screen"
       >
         <Ionicons

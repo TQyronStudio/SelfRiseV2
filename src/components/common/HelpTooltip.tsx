@@ -474,7 +474,7 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
                   onPress={handleHideTooltip}
                   accessible={true}
                   accessibilityRole="button"
-                  accessibilityLabel="Close help"
+                  accessibilityLabel={t('accessibility.closeHelp')}
                 >
                   <Ionicons
                     name="close"

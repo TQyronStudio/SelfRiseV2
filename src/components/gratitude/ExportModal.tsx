@@ -226,7 +226,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
-            <Text style={styles.title}>Export Journal</Text>
+            <Text style={styles.title}>{t('journal.export.modalTitle')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -234,7 +234,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
 
           <View style={styles.content}>
             <Text style={styles.description}>
-              Export your journal entries and statistics. The data will be displayed in a popup for you to copy and save.
+              {t('journal.export.description')}
             </Text>
 
             <View style={styles.exportOptions}>
@@ -245,9 +245,9 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
               >
                 <View style={styles.exportButtonContent}>
                   <IconSymbol name="doc.text" size={24} color={colors.primary} />
-                  <Text style={styles.exportButtonTitle}>Text Format</Text>
+                  <Text style={styles.exportButtonTitle}>{t('journal.export.textFormat')}</Text>
                   <Text style={styles.exportButtonDescription}>
-                    Human-readable format perfect for sharing and reading
+                    {t('journal.export.textFormatDescription')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -259,9 +259,9 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
               >
                 <View style={styles.exportButtonContent}>
                   <IconSymbol name="chevron.left.slash.chevron.right" size={24} color={colors.primary} />
-                  <Text style={styles.exportButtonTitle}>JSON Format</Text>
+                  <Text style={styles.exportButtonTitle}>{t('journal.export.jsonFormat')}</Text>
                   <Text style={styles.exportButtonDescription}>
-                    Structured data format for backup or technical use
+                    {t('journal.export.jsonFormatDescription')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -270,7 +270,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
             {isExporting && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.loadingText}>Exporting your journal...</Text>
+                <Text style={styles.loadingText}>{t('journal.export.exporting')}</Text>
               </View>
             )}
           </View>

@@ -529,6 +529,13 @@ const de: Partial<TranslationKeys> = {
       title: 'Tagebuch-Export - {{format}}-Format',
       truncated: '[Inhalt für Anzeige gekürzt]',
       error: 'Tagebuchdaten konnten nicht exportiert werden',
+      modalTitle: 'Tagebuch exportieren',
+      description: 'Exportiere deine Tagebucheinträge und Statistiken. Die Daten werden in einem Popup angezeigt, damit du sie kopieren und speichern kannst.',
+      textFormat: 'Textformat',
+      textFormatDescription: 'Lesbares Format zum Teilen und Lesen',
+      jsonFormat: 'JSON-Format',
+      jsonFormatDescription: 'Strukturiertes Datenformat für Backup oder technische Nutzung',
+      exporting: 'Dein Tagebuch wird exportiert...',
     },
 
     errors: {
@@ -592,6 +599,11 @@ const de: Partial<TranslationKeys> = {
       minLengthError: 'Dankbarkeit muss mindestens 3 Zeichen lang sein',
       frozenStreakError_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
       frozenStreakError_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
+
+      // Fallback placeholder
+      defaultPlaceholder: 'Wofür bist du heute dankbar?',
+      // Optional suffix for bonus entries
+      optional: '(optional)',
 
       // Gratitude placeholders (rotating)
       gratitudePlaceholders: [
@@ -814,6 +826,7 @@ const de: Partial<TranslationKeys> = {
         targetValueTooLarge: 'Zielwert muss kleiner als 1.000.000 sein',
         descriptionTooLong: 'Beschreibung muss weniger als 300 Zeichen lang sein',
         submitFailed: 'Ziel konnte nicht gespeichert werden. Bitte versuche es erneut.',
+        pastDate: 'Das ausgewählte Datum kann nicht in der Vergangenheit liegen',
       },
     },
 
@@ -3322,6 +3335,8 @@ const de: Partial<TranslationKeys> = {
       copiedMessage: 'Zitat in Zwischenablage kopiert.',
       copyError: 'Zitat konnte nicht kopiert werden. Bitte versuche es erneut.',
       title: '✨ Motivierendes Zitat',
+      dailyInspiration: 'Tägliche Inspiration',
+      personalizedJourney: 'Personalisiert für deine Reise',
     },
     achievements: {
       shareSuccessTitle: '🎉 Erfolgreich geteilt!',
@@ -3550,6 +3565,11 @@ const de: Partial<TranslationKeys> = {
     getNewQuote: 'Neues Zitat abrufen',
     copyQuoteToClipboard: 'Zitat in Zwischenablage kopieren',
     shareQuote: 'Zitat teilen',
+    skipTutorial: 'Tutorial überspringen',
+    viewAllLevels: 'Alle Level anzeigen',
+    refreshDailyHeroes: 'Tägliche Helden aktualisieren',
+    closeSharingModal: 'Freigabedialog schließen',
+    closeHelp: 'Hilfe schließen',
   },
 };
 

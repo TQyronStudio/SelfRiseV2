@@ -527,7 +527,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             onPress={handleSkip}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Skip tutorial"
+            accessibilityLabel={t('accessibility.skipTutorial')}
           >
             <Ionicons name="close" size={getIconSize(24)} color={colors.white} />
           </TouchableOpacity>

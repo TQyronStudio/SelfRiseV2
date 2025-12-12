@@ -55,7 +55,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       if (!Array.isArray(placeholders)) {
         // Fallback to default placeholders if something goes wrong
         console.log('[GratitudeInput] Not an array after all checks, using fallback');
-        placeholders = ['What are you grateful for today?'];
+        placeholders = [t('journal.input.defaultPlaceholder')];
       }
     }
 
@@ -129,7 +129,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       setGratitudeText('');
       onSubmitSuccess?.();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to save gratitude');
+      setErrorMessage(error instanceof Error ? error.message : t('common.errors.gratitude.failedToSave'));
       setShowError(true);
     } finally {
       setIsSubmitting(false);
@@ -229,7 +229,7 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       
       <TextInput
         style={styles.textInput}
-        placeholder={isBonus ? `${currentPlaceholder} (optional)` : currentPlaceholder}
+        placeholder={isBonus ? `${currentPlaceholder} ${t('journal.input.optional')}` : currentPlaceholder}
         placeholderTextColor={colors.textSecondary}
         value={gratitudeText}
         onChangeText={setGratitudeText}

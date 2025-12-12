@@ -522,6 +522,13 @@ const en: TranslationKeys = {
       title: 'Journal Export - {{format}} Format',
       truncated: '[Content truncated for display]',
       error: 'Failed to export journal data',
+      modalTitle: 'Export Journal',
+      description: 'Export your journal entries and statistics. The data will be displayed in a popup for you to copy and save.',
+      textFormat: 'Text Format',
+      textFormatDescription: 'Human-readable format perfect for sharing and reading',
+      jsonFormat: 'JSON Format',
+      jsonFormatDescription: 'Structured data format for backup or technical use',
+      exporting: 'Exporting your journal...',
     },
 
     // Error messages
@@ -586,6 +593,11 @@ const en: TranslationKeys = {
       minLengthError: 'Gratitude must be at least 3 characters long',
       frozenStreakError_one: 'Your streak is frozen for {{count}} day. Warm it up on the Home screen first, then continue journaling! 🔥',
       frozenStreakError_other: 'Your streak is frozen for {{count}} days. Warm it up on the Home screen first, then continue journaling! 🔥',
+
+      // Fallback placeholder
+      defaultPlaceholder: 'What are you grateful for today?',
+      // Optional suffix for bonus entries
+      optional: '(optional)',
 
       // Gratitude placeholders (rotating)
       gratitudePlaceholders: [
@@ -810,6 +822,7 @@ const en: TranslationKeys = {
         targetValueTooLarge: 'Target value must be less than 1,000,000',
         descriptionTooLong: 'Description must be less than 300 characters',
         submitFailed: 'Failed to save goal. Please try again.',
+        pastDate: 'Selected date cannot be in the past',
       },
     },
     
@@ -3614,6 +3627,8 @@ const en: TranslationKeys = {
       copiedMessage: 'Quote copied to clipboard.',
       copyError: 'Failed to copy quote. Please try again.',
       title: '✨ Motivational Quote',
+      dailyInspiration: 'Daily inspiration',
+      personalizedJourney: 'Personalized for your journey',
     },
     achievements: {
       shareSuccessTitle: '🎉 Shared Successfully!',
@@ -3842,6 +3857,11 @@ const en: TranslationKeys = {
     getNewQuote: 'Get new quote',
     copyQuoteToClipboard: 'Copy quote to clipboard',
     shareQuote: 'Share quote',
+    skipTutorial: 'Skip tutorial',
+    viewAllLevels: 'View all levels',
+    refreshDailyHeroes: 'Refresh daily heroes',
+    closeSharingModal: 'Close sharing modal',
+    closeHelp: 'Close help',
   },
 
 };

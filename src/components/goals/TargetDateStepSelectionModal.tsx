@@ -212,7 +212,7 @@ export function TargetDateStepSelectionModal({
     today.setHours(0, 0, 0, 0);
     
     if (selectedDate < today) {
-      setErrorMessage('Selected date cannot be in the past');
+      setErrorMessage(t('goals.form.errors.pastDate'));
       setShowError(true);
       return;
     }
