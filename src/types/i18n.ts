@@ -2231,6 +2231,8 @@ export interface TranslationKeys {
       recoveryMode: string;
       reset: string;
       retry: string;
+      generalError: string;
+      alreadyCompleted: string;
     };
 
     // Skip Confirmation
@@ -2269,6 +2271,9 @@ export interface TranslationKeys {
       continue: string;
       restart: string;
     };
+
+    // Tutorial step progress
+    stepProgress: string;
   };
 
   // Help system
@@ -2346,6 +2351,8 @@ export interface TranslationKeys {
       today: string;
       yesterday: string;
       recent: string;
+      heroAccessibilityLabel: string;
+      loadError: string;
     };
     // Phase 8: NotificationSettings & LoyaltyCard
     notifications: {
@@ -2610,6 +2617,11 @@ export interface TranslationKeys {
     refreshDailyHeroes: string;
     closeSharingModal: string;
     closeHelp: string;
+    hints: {
+      openLevelOverview: string;
+      doubleTapShowHelp: string;
+      tapForInspiration: string;
+    };
   };
 }
 

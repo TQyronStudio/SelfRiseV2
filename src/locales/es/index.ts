@@ -3226,8 +3226,11 @@ const es: Partial<TranslationKeys> = {
     errors: {
       recoveryMode: 'El tutorial experimentó problemas. Ejecutándose en modo simplificado.',
       reset: 'El tutorial encontró un error y fue reiniciado.',
-      retry: 'Intentar de Nuevo'
+      retry: 'Intentar de Nuevo',
+      generalError: 'El tutorial encontró un error. Por favor, inténtalo de nuevo.',
+      alreadyCompleted: 'Tutorial ya completado u omitido',
     },
+    stepProgress: 'Paso {{current}} de {{total}}',
     skipConfirmation: {
       title: '¿Saltar Tutorial?',
       message: '¿Estás seguro de que quieres saltar el tutorial? Siempre puedes reiniciarlo más tarde desde Ajustes.',
@@ -3314,6 +3317,8 @@ const es: Partial<TranslationKeys> = {
       today: '🟢 Hoy',
       yesterday: '🟡 Ayer',
       recent: '🔵 Reciente',
+      heroAccessibilityLabel: 'Héroe anónimo logró {{achievement}}',
+      loadError: 'Error al cargar los héroes del día',
     },
     // Phase 8: NotificationSettings & LoyaltyCard
     loyalty: {
@@ -3570,6 +3575,11 @@ const es: Partial<TranslationKeys> = {
     refreshDailyHeroes: 'Actualizar héroes del día',
     closeSharingModal: 'Cerrar modal de compartir',
     closeHelp: 'Cerrar ayuda',
+    hints: {
+      openLevelOverview: 'Abre la vista general de niveles',
+      doubleTapShowHelp: 'Toca dos veces para mostrar información de ayuda',
+      tapForInspiration: 'Toca para ver más inspiración',
+    },
   },
 };
 

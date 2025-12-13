@@ -393,8 +393,8 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
           onPress={handleShowTooltip}
           accessible={true}
           accessibilityRole="button"
-          accessibilityLabel={`Help: ${title}`}
-          accessibilityHint="Double tap to show help information"
+          accessibilityLabel={`${t('common.help')}: ${title}`}
+          accessibilityHint={t('accessibility.hints.doubleTapShowHelp')}
         >
           {children}
         </TouchableOpacity>
@@ -408,8 +408,8 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
         onPress={handleShowTooltip}
         accessible={true}
         accessibilityRole="button"
-        accessibilityLabel={`Help: ${title}`}
-        accessibilityHint="Double tap to show help information"
+        accessibilityLabel={`${t('common.help')}: ${title}`}
+        accessibilityHint={t('accessibility.hints.doubleTapShowHelp')}
       >
         <Ionicons
           name="help-circle-outline"

@@ -437,7 +437,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
             accessibilityLabel={t('accessibility.closeAchievementDetails')}
           >
             <Text style={styles.closeButtonText}>
-              {t('common.close') || 'Close'}
+              {t('common.close')}
             </Text>
           </TouchableOpacity>
         </View>

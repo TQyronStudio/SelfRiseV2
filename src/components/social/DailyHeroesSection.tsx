@@ -184,8 +184,8 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
     <TouchableOpacity
       style={[styles.heroCard, compact && styles.heroCardCompact]}
       onPress={onPress}
-      accessibilityLabel={`Anonymous hero achieved ${hero.achievementName}`}
-      accessibilityHint="Tap to see more inspiration"
+      accessibilityLabel={t('social.dailyHeroes.heroAccessibilityLabel', { achievement: hero.achievementName })}
+      accessibilityHint={t('accessibility.hints.tapForInspiration')}
     >
       {/* Achievement Icon & Rarity */}
       <View style={styles.heroHeader}>
@@ -383,7 +383,7 @@ export const DailyHeroesSection: React.FC<DailyHeroesSectionProps> = ({
 
     } catch (error) {
       console.error('DailyHeroesSection.loadDailyHeroes error:', error);
-      setError('Failed to load daily heroes');
+      setError(t('social.dailyHeroes.loadError'));
     } finally {
       setLoading(false);
       setRefreshing(false);

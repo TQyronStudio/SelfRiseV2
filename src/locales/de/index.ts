@@ -3228,7 +3228,10 @@ const de: Partial<TranslationKeys> = {
       recoveryMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
       reset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
       retry: 'Erneut versuchen',
+      generalError: 'Das Tutorial ist auf einen Fehler gestoßen. Bitte versuche es erneut.',
+      alreadyCompleted: 'Tutorial bereits abgeschlossen oder übersprungen',
     },
+    stepProgress: 'Schritt {{current}} von {{total}}',
     skipConfirmation: {
       title: 'Tutorial überspringen?',
       message: 'Bist du sicher, dass du das Tutorial überspringen möchtest? Du kannst es später jederzeit über den Hilfebereich aufrufen.',
@@ -3315,6 +3318,8 @@ const de: Partial<TranslationKeys> = {
       today: '🟢 Heute',
       yesterday: '🟡 Gestern',
       recent: '🔵 Kürzlich',
+      heroAccessibilityLabel: 'Anonymer Held erreichte {{achievement}}',
+      loadError: 'Fehler beim Laden der täglichen Helden',
     },
     loyalty: {
       loadingData: 'Treuedaten werden geladen...',
@@ -3570,6 +3575,11 @@ const de: Partial<TranslationKeys> = {
     refreshDailyHeroes: 'Tägliche Helden aktualisieren',
     closeSharingModal: 'Freigabedialog schließen',
     closeHelp: 'Hilfe schließen',
+    hints: {
+      openLevelOverview: 'Öffnet Level-Übersicht',
+      doubleTapShowHelp: 'Doppeltippen, um Hilfeinformationen anzuzeigen',
+      tapForInspiration: 'Tippe für mehr Inspiration',
+    },
   },
 };
 

@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts, Layout } from '@/src/constants';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -38,11 +39,14 @@ export default function BaseModal({
   title,
   children,
   showCloseButton = true,
-  closeButtonText = 'Close',
+  closeButtonText,
   maxWidth = screenWidth * 0.85,
   animationType = 'fade',
 }: BaseModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
+
+  const resolvedCloseButtonText = closeButtonText || t('common.close');
 
   const styles = StyleSheet.create({
     keyboardView: {
@@ -108,7 +112,7 @@ export default function BaseModal({
             
             {showCloseButton && (
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeButtonText}>{closeButtonText}</Text>
+                <Text style={styles.closeButtonText}>{resolvedCloseButtonText}</Text>
               </TouchableOpacity>
             )}
           </View>

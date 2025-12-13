@@ -131,49 +131,47 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     const sourceName = (() => {
       switch (source) {
         case XPSourceType.HABIT_COMPLETION:
-          return t('gamification.xp.sources.habit_completion') || 'habit completion';
+          return t('gamification.xp.sources.habit_completion');
         case XPSourceType.HABIT_BONUS:
-          return t('gamification.xp.sources.habit_bonus') || 'habit bonus';
+          return t('gamification.xp.sources.habit_bonus');
         case XPSourceType.JOURNAL_ENTRY:
-          return t('gamification.xp.sources.journal_entry') || 'journal entry';
+          return t('gamification.xp.sources.journal_entry');
         case XPSourceType.JOURNAL_BONUS:
-          return t('gamification.xp.sources.journal_bonus') || 'journal bonus';
+          return t('gamification.xp.sources.journal_bonus');
         case XPSourceType.GOAL_PROGRESS:
-          return t('gamification.xp.sources.goal_progress') || 'goal progress';
+          return t('gamification.xp.sources.goal_progress');
         case XPSourceType.GOAL_COMPLETION:
-          return t('gamification.xp.sources.goal_completion') || 'goal completion';
+          return t('gamification.xp.sources.goal_completion');
         case XPSourceType.HABIT_STREAK_MILESTONE:
-          return t('gamification.xp.sources.habit_streak_milestone') || 'habit streak milestone';
+          return t('gamification.xp.sources.habit_streak_milestone');
         case XPSourceType.JOURNAL_STREAK_MILESTONE:
-          return t('gamification.xp.sources.journal_streak_milestone') || 'journal streak milestone';
+          return t('gamification.xp.sources.journal_streak_milestone');
         case XPSourceType.ACHIEVEMENT_UNLOCK:
-          return t('gamification.xp.sources.achievement_unlock') || 'achievement unlock';
+          return t('gamification.xp.sources.achievement_unlock');
         case XPSourceType.JOURNAL_BONUS_MILESTONE:
-          return t('gamification.xp.sources.journal_bonus_milestone') || 'journal milestone';
+          return t('gamification.xp.sources.journal_bonus_milestone');
         case XPSourceType.GOAL_MILESTONE:
-          return t('gamification.xp.sources.goal_milestone') || 'goal milestone';
+          return t('gamification.xp.sources.goal_milestone');
         case XPSourceType.MONTHLY_CHALLENGE:
-          return t('gamification.xp.sources.monthly_challenge') || 'monthly challenge';
+          return t('gamification.xp.sources.monthly_challenge');
         case XPSourceType.XP_MULTIPLIER_BONUS:
-          return t('gamification.xp.sources.xp_multiplier_bonus') || 'multiplier bonus';
+          return t('gamification.xp.sources.xp_multiplier_bonus');
         case XPSourceType.DAILY_LAUNCH:
-          return t('gamification.xp.sources.daily_launch') || 'daily launch';
+          return t('gamification.xp.sources.daily_launch');
         case XPSourceType.RECOMMENDATION_FOLLOW:
-          return t('gamification.xp.sources.recommendation_follow') || 'recommendation follow';
+          return t('gamification.xp.sources.recommendation_follow');
         default:
-          return t('gamification.xp.sources.general_activity') || 'activity';
+          return t('gamification.xp.sources.general_activity');
       }
     })();
 
     // Ensure sourceName is always a string to prevent .slice() errors
-    const safeSourceName = (sourceName || 'activity').toString();
+    const safeSourceName = (sourceName || t('gamification.xp.sources.general_activity')).toString();
 
     if (amount >= 0) {
-      return t('gamification.xp.popup.gained', { amount, source: safeSourceName }) || 
-             `Gained ${amount} experience points from ${safeSourceName}`;
+      return t('gamification.xp.popup.gained', { amount, source: safeSourceName });
     } else {
-      return t('gamification.xp.popup.lost', { amount: Math.abs(amount), source: safeSourceName }) || 
-             `Lost ${Math.abs(amount)} experience points from ${safeSourceName}`;
+      return t('gamification.xp.popup.lost', { amount: Math.abs(amount), source: safeSourceName });
     }
   };
 
@@ -285,7 +283,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           style={styles.icon}
           accessible={true}
           accessibilityRole="image"
-          accessibilityLabel={t(`gamification.sources.${source}.icon_description`) || `${sourceStyle.icon} icon representing the activity type`}
+          accessibilityLabel={t(`gamification.sources.${source}.icon_description`)}
         >
           {sourceStyle.icon}
         </Text>
@@ -296,7 +294,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           accessibilityLabel={t('gamification.xp.popup.amount_label', {
             amount: Math.abs(amount),
             sign: amount >= 0 ? 'plus' : 'minus'
-          }) || `${amount >= 0 ? 'Plus' : 'Minus'} ${Math.abs(amount)} experience points`}
+          })}
         >
           {amount >= 0 ? '+' : ''}{amount} XP
         </Text>

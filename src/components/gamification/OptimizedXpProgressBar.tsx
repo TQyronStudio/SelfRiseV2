@@ -535,7 +535,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
     return (
       <View style={[themeStyles, spacingStyles, compactMode && dynamicStyles.containerCompact]}>
         <View style={dynamicStyles.loadingContainer}>
-          <Text style={dynamicStyles.loadingText}>{t('gamification.progress.loading') || 'Loading XP...'}</Text>
+          <Text style={dynamicStyles.loadingText}>{t('gamification.progress.loading')}</Text>
         </View>
       </View>
     );
@@ -669,7 +669,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel={t('accessibility.viewAllLevels')}
-        accessibilityHint="Opens level overview screen"
+        accessibilityHint={t('accessibility.hints.openLevelOverview')}
       >
         <Ionicons
           name="information-circle"

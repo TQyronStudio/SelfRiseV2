@@ -955,7 +955,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       // State is valid, try simple recovery
       const recovered = await attemptRecovery(error);
       if (!recovered) {
-        setError('Tutorial encountered an error. Please try again.');
+        setError(t('tutorial.errors.generalError'));
       }
     }
   };
@@ -968,7 +968,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       const shouldShow = await shouldShowTutorial();
       if (!shouldShow) {
-        setError('Tutorial already completed or skipped');
+        setError(t('tutorial.errors.alreadyCompleted'));
         return;
       }
 
@@ -1064,7 +1064,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       const shouldShow = await shouldShowTutorial();
       if (!shouldShow) {
-        setError('Tutorial already completed or skipped');
+        setError(t('tutorial.errors.alreadyCompleted'));
         return;
       }
 

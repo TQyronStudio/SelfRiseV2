@@ -375,13 +375,13 @@ export function TargetDateStepSelectionModal({
   const getStepTitle = (): string => {
     switch (currentStep) {
       case SelectionStep.YEAR:
-        return t('goals.selectYear') || 'Select Year';
+        return t('goals.selectYear');
       case SelectionStep.MONTH:
-        return t('goals.selectMonth') || 'Select Month';
+        return t('goals.selectMonth');
       case SelectionStep.DAY:
-        return t('goals.selectDay') || 'Select Day';
+        return t('goals.selectDay');
       default:
-        return t('goals.selectTargetDate') || 'Select Target Date';
+        return t('goals.selectTargetDate');
     }
   };
 

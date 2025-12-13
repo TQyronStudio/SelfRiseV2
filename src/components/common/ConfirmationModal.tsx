@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BaseModal from './BaseModal';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts, Layout } from '@/src/constants';
 
 interface ConfirmationModalProps {
@@ -35,14 +36,19 @@ export default function ConfirmationModal({
   visible,
   onClose,
   onConfirm,
-  title = 'Confirm Action',
+  title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   confirmButtonColor,
   emoji = '❓',
 }: ConfirmationModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
+
+  const resolvedTitle = title || t('common.confirmAction');
+  const resolvedConfirmText = confirmText || t('common.confirm');
+  const resolvedCancelText = cancelText || t('common.cancel');
   const defaultConfirmColor = confirmButtonColor || colors.error;
 
   const styles = StyleSheet.create({
@@ -110,19 +116,19 @@ export default function ConfirmationModal({
     >
       <View style={styles.container}>
         <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{resolvedTitle}</Text>
         <Text style={styles.message}>{message}</Text>
-        
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>{cancelText}</Text>
+            <Text style={styles.cancelButtonText}>{resolvedCancelText}</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[styles.confirmButton, { backgroundColor: defaultConfirmColor }]}
             onPress={handleConfirm}
           >
-            <Text style={styles.confirmButtonText}>{confirmText}</Text>
+            <Text style={styles.confirmButtonText}>{resolvedConfirmText}</Text>
           </TouchableOpacity>
         </View>
       </View>

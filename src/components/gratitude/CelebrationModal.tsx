@@ -72,23 +72,23 @@ export default function CelebrationModal({
       const celebrationAnnouncement = (() => {
         switch (type) {
           case 'daily_complete':
-            return t('journal.celebration.daily_complete_announcement') || 'Congratulations! You have completed your daily journal practice!';
+            return t('journal.celebration.daily_complete_announcement');
           case 'streak_milestone':
-            return t('journal.celebration.streak_milestone_announcement', { days: streakDays }) || `Amazing! You have reached a ${streakDays} day streak milestone!`;
+            return t('journal.celebration.streak_milestone_announcement', { days: streakDays });
           case 'bonus_milestone':
             // Epic crown celebration announcement for 10th bonus
             if (bonusCount === 10) {
-              return t('journal.celebration.epic_crown_announcement') || 'Legendary achievement! You have reached the ultimate 10th bonus milestone with royal crown celebration!';
+              return t('journal.celebration.epic_crown_announcement');
             }
-            return t('journal.celebration.bonus_milestone_announcement', { count: bonusCount || 0 }) || `Excellent! You have completed ${bonusCount || 0} bonus journal entries!`;
+            return t('journal.celebration.bonus_milestone_announcement', { count: bonusCount || 0 });
           case 'level_up':
-            return t('gamification.celebration.level_up_announcement', { 
+            return t('gamification.celebration.level_up_announcement', {
               level: levelUpData?.newLevel,
               title: levelUpData?.levelTitle,
               isMilestone: levelUpData?.isMilestone
-            }) || `Congratulations! You have reached level ${levelUpData?.newLevel}${levelUpData?.isMilestone ? ', a milestone level' : ''}!`;
+            });
           default:
-            return t('common.celebration.general_announcement') || 'Congratulations on your achievement!';
+            return t('common.celebration.general_announcement');
         }
       })();
 
@@ -180,18 +180,18 @@ export default function CelebrationModal({
         const bonusEmoji = bonusCount === 1 ? '⭐' : bonusCount === 5 ? '🔥' : '👑';
         const bonusCountSafe = bonusCount || 1; // Fallback to 1 if null
         const milestoneNameMap = { 1: 'milestone_first', 5: 'milestone_fifth', 10: 'milestone_tenth' };
-        const milestoneName = t(`journal.celebration.${milestoneNameMap[bonusCountSafe as keyof typeof milestoneNameMap] || 'milestone_first'}`) || 'Bonus';
+        const milestoneName = t(`journal.celebration.${milestoneNameMap[bonusCountSafe as keyof typeof milestoneNameMap] || 'milestone_first'}`);
 
         return {
-          title: t(`journal.bonusMilestone${bonusCountSafe}_title`) || `${milestoneName} Bonus Entry!`,
-          message: t(`journal.bonusMilestone${bonusCountSafe}_text`) || `Amazing! You've written ${bonusCountSafe} bonus ${bonusCountSafe === 1 ? 'entry' : 'entries'} today!`,
+          title: t(`journal.bonusMilestone${bonusCountSafe}_title`),
+          message: t(`journal.bonusMilestone${bonusCountSafe}_text`),
           emoji: bonusEmoji,
         };
       case 'level_up':
         if (!levelUpData) {
           return {
-            title: t('journal.celebration.level_up_title') || 'Level Up! 🎉',
-            message: t('journal.celebration.level_up_message') || 'Congratulations on reaching a new level!',
+            title: t('journal.celebration.level_up_title'),
+            message: t('journal.celebration.level_up_message'),
             emoji: '🎉',
           };
         }
@@ -223,22 +223,22 @@ export default function CelebrationModal({
   const modalAccessibilityLabel = (() => {
     switch (type) {
       case 'daily_complete':
-        return t('journal.celebration.daily_complete_modal') || 'Daily journal completion celebration';
+        return t('journal.celebration.daily_complete_modal');
       case 'streak_milestone':
-        return t('journal.celebration.streak_milestone_modal', { days: streakDays }) || `${streakDays} day streak milestone celebration`;
+        return t('journal.celebration.streak_milestone_modal', { days: streakDays });
       case 'bonus_milestone':
         // Epic crown celebration modal accessibility
         if (bonusCount === 10) {
-          return t('journal.celebration.epic_crown_modal') || 'Epic royal crown celebration for 10th bonus milestone achievement';
+          return t('journal.celebration.epic_crown_modal');
         }
-        return t('journal.celebration.bonus_milestone_modal', { count: bonusCount || 0 }) || `${bonusCount || 0} bonus entries celebration`;
+        return t('journal.celebration.bonus_milestone_modal', { count: bonusCount || 0 });
       case 'level_up':
         return t('gamification.celebration.level_up_modal', {
           level: levelUpData?.newLevel,
           isMilestone: levelUpData?.isMilestone
-        }) || `Level ${levelUpData?.newLevel} achievement${levelUpData?.isMilestone ? ' milestone' : ''} celebration`;
+        });
       default:
-        return t('common.celebration.modal') || 'Achievement celebration';
+        return t('common.celebration.modal');
     }
   })();
 
@@ -651,31 +651,31 @@ export default function CelebrationModal({
               </Text>
               
               {levelUpData.rewards && levelUpData.rewards.length > 0 && (
-                <View 
+                <View
                   style={styles.rewardsContainer}
                   accessible={true}
                   accessibilityRole="list"
-                  accessibilityLabel={t('gamification.celebration.rewards_section_accessibility', { 
+                  accessibilityLabel={t('gamification.celebration.rewards_section_accessibility', {
                     count: levelUpData.rewards.length
-                  }) || `New rewards list with ${levelUpData.rewards.length} items`}
+                  })}
                 >
                   <Text
                     style={styles.rewardsTitle}
                     accessible={true}
                     accessibilityRole="header"
                   >
-                    {t('gamification.celebration.rewards_title') || t('journal.celebration.rewards_title') || 'New Rewards:'}
+                    {t('gamification.celebration.rewards_title')}
                   </Text>
                   {levelUpData.rewards.map((reward, index) => (
-                    <Text 
-                      key={index} 
+                    <Text
+                      key={index}
                       style={styles.rewardItem}
                       accessible={true}
                       accessibilityRole="text"
-                      accessibilityLabel={t('gamification.celebration.reward_item_accessibility', { 
+                      accessibilityLabel={t('gamification.celebration.reward_item_accessibility', {
                         index: index + 1,
                         reward
-                      }) || `Reward ${index + 1}: ${reward}`}
+                      })}
                     >
                       • {reward}
                     </Text>
@@ -685,13 +685,13 @@ export default function CelebrationModal({
             </View>
           )}
           
-          <TouchableOpacity 
-            style={styles.button} 
+          <TouchableOpacity
+            style={styles.button}
             onPress={onClose}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel={t('gamification.celebration.continue_button_accessibility') || 'Continue and close celebration'}
-            accessibilityHint={t('gamification.celebration.continue_button_hint') || 'Tap to close this celebration and return to the app'}
+            accessibilityLabel={t('gamification.celebration.continue_button_accessibility')}
+            accessibilityHint={t('gamification.celebration.continue_button_hint')}
           >
             <Text 
               style={styles.buttonText}

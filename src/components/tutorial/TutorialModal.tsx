@@ -303,7 +303,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
                   }
                 ]} />
               </View>
-              <Text style={styles.progressText}>Step {currentStep} of {totalSteps}</Text>
+              <Text style={styles.progressText}>{t('tutorial.stepProgress', { current: currentStep, total: totalSteps })}</Text>
             </View>
 
             {/* Action Button */}
@@ -312,10 +312,10 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
               onPress={onNext}
               accessible={true}
               accessibilityRole="button"
-              accessibilityLabel={step.content.button || 'Continue'}
+              accessibilityLabel={step.content.button || t('common.continue')}
             >
               <Text style={styles.actionButtonText}>
-                {step.content.button || 'Continue'}
+                {step.content.button || t('common.continue')}
               </Text>
               <Ionicons name="arrow-forward" size={getIconSize(20)} color={colors.white} />
             </TouchableOpacity>

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import BaseModal from './BaseModal';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts, Layout } from '@/src/constants';
 
 interface ErrorModalProps {
@@ -26,11 +27,15 @@ interface ErrorModalProps {
 export default function ErrorModal({
   visible,
   onClose,
-  title = 'Error',
+  title,
   message,
-  closeButtonText = 'OK',
+  closeButtonText,
 }: ErrorModalProps) {
   const { colors } = useTheme();
+  const { t } = useI18n();
+
+  const resolvedTitle = title || t('common.error');
+  const resolvedCloseButtonText = closeButtonText || t('common.ok');
 
   const styles = StyleSheet.create({
     container: {
@@ -59,11 +64,11 @@ export default function ErrorModal({
     <BaseModal
       visible={visible}
       onClose={onClose}
-      closeButtonText={closeButtonText}
+      closeButtonText={resolvedCloseButtonText}
     >
       <View style={styles.container}>
         <Text style={styles.emoji}>⚠️</Text>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{resolvedTitle}</Text>
         <Text style={styles.message}>{message}</Text>
       </View>
     </BaseModal>

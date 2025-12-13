@@ -3477,6 +3477,8 @@ const en: TranslationKeys = {
       recoveryMode: 'Tutorial experienced issues. Running in simplified mode.',
       reset: 'Tutorial encountered an error and was reset.',
       retry: 'Try Again',
+      generalError: 'Tutorial encountered an error. Please try again.',
+      alreadyCompleted: 'Tutorial already completed or skipped',
     },
 
     // Skip Confirmation
@@ -3515,6 +3517,9 @@ const en: TranslationKeys = {
       continue: 'Continue Tutorial',
       restart: 'Start Over',
     },
+
+    // Tutorial step progress (for modal)
+    stepProgress: 'Step {{current}} of {{total}}',
   },
 
   // Notifications
@@ -3597,6 +3602,8 @@ const en: TranslationKeys = {
       today: '🟢 Today',
       yesterday: '🟡 Yesterday',
       recent: '🔵 Recent',
+      heroAccessibilityLabel: 'Anonymous hero achieved {{achievement}}',
+      loadError: 'Failed to load daily heroes',
     },
     // Phase 8: NotificationSettings & LoyaltyCard
     notifications: {
@@ -3862,6 +3869,11 @@ const en: TranslationKeys = {
     refreshDailyHeroes: 'Refresh daily heroes',
     closeSharingModal: 'Close sharing modal',
     closeHelp: 'Close help',
+    hints: {
+      openLevelOverview: 'Opens level overview screen',
+      doubleTapShowHelp: 'Double tap to show help information',
+      tapForInspiration: 'Tap to see more inspiration',
+    },
   },
 
 };
