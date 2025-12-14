@@ -444,7 +444,7 @@ export const AchievementShareModal: React.FC<AchievementShareModalProps> = ({
                         { color: getRarityColor(achievement.rarity) }
                       ]}
                     >
-                      {achievement.rarity.toUpperCase()}
+                      {t(`achievements.rarity.${achievement.rarity}`)}
                     </Text>
                   </View>
                 </View>

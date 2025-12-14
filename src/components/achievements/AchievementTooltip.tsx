@@ -314,7 +314,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
               </Text>
               <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
                 <Text style={styles.rarityText}>
-                  {achievement.rarity.toUpperCase()}
+                  {t(`achievements.rarity.${achievement.rarity}`)}
                 </Text>
               </View>
             </View>

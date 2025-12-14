@@ -292,6 +292,13 @@ const en: TranslationKeys = {
     category: 'Category',
     rarity: 'Rarity',
     xpReward: 'XP Reward',
+    // Uppercase labels for celebration badges
+    dayUppercase: 'DAY',
+    daysUppercase: 'DAYS',
+    bonusUppercase: 'BONUS',
+    bonusesUppercase: 'BONUSES',
+    levelUppercase: 'LEVEL',
+    createdLabel: 'Created',
     completed: '{{completed}} of {{total}} completed',
     loading: {
       default: 'Loading...',
@@ -1569,6 +1576,7 @@ const en: TranslationKeys = {
       xpPointsUnit: 'points',
       progressToUnlock: 'Progress to Unlock',
       progressLoading: 'Progress loading...',
+      progressPercent: '{{percent}}% complete',
       howToUnlock: 'How to Unlock',
       estimatedDays: 'Estimated: {{days}} days remaining',
       lockedMessage: 'This achievement is locked. Keep using the app to unlock it!',

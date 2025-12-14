@@ -208,7 +208,7 @@ export default function EditGratitudeModal({
               {content.length}/500
             </Text>
             <Text style={styles.timestamp}>
-              Created: {new Date(gratitude.createdAt).toLocaleString()}
+              {t('common.createdLabel')}: {new Date(gratitude.createdAt).toLocaleString()}
             </Text>
           </View>
         </View>

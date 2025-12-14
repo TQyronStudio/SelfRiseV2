@@ -140,7 +140,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   useEffect(() => {
     if (!isUnlocked) {
       setProgressHint({
-        progressText: `${Math.round(progress)}% complete`,
+        progressText: t('achievements.detail.progressPercent', { percent: Math.round(progress) }),
         progressPercentage: progress,
         isCompleted: progress >= 100,
         requirementText: achievement?.description || t('achievements.detail.requirementFallback'),

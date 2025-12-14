@@ -1174,6 +1174,7 @@ export interface TranslationKeys {
       xpPointsUnit: string;
       progressToUnlock: string;
       progressLoading: string;
+      progressPercent: string;
       howToUnlock: string;
       estimatedDays: string;
       lockedMessage: string;
@@ -1654,6 +1655,13 @@ export interface TranslationKeys {
     rarity?: string;
     xpReward?: string;
     completed?: string;
+    // Uppercase labels for celebration badges
+    dayUppercase?: string;
+    daysUppercase?: string;
+    bonusUppercase?: string;
+    bonusesUppercase?: string;
+    levelUppercase?: string;
+    createdLabel?: string;
     modals: {
       errorTitle: string;
       confirmTitle: string;

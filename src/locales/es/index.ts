@@ -303,6 +303,13 @@ const es: Partial<TranslationKeys> = {
     category: 'Categoría',
     rarity: 'Rareza',
     xpReward: 'Recompensa XP',
+    // Uppercase labels for celebration badges
+    dayUppercase: 'DÍA',
+    daysUppercase: 'DÍAS',
+    bonusUppercase: 'BONO',
+    bonusesUppercase: 'BONOS',
+    levelUppercase: 'NIVEL',
+    createdLabel: 'Creado',
     completed: '{{completed}} de {{total}} completado',
     loading: {
       default: 'Cargando...',
@@ -1550,6 +1557,7 @@ const es: Partial<TranslationKeys> = {
       xpPointsUnit: 'puntos',
       progressToUnlock: 'Progreso para Desbloquear',
       progressLoading: 'Cargando progreso...',
+      progressPercent: '{{percent}}% completado',
       howToUnlock: 'Cómo Desbloquear',
       estimatedDays: 'Estimado: {{days}} días restantes',
       lockedMessage: 'Este logro está bloqueado. ¡Sigue usando la app para desbloquearlo!',

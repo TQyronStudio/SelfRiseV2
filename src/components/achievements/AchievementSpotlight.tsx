@@ -353,11 +353,11 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
           <View style={styles.achievementHeader}>
             <Text style={styles.achievementIcon}>{spotlightAchievement.icon}</Text>
             <View style={styles.achievementInfo}>
-              <Text style={styles.achievementName}>{spotlightAchievement.name}</Text>
+              <Text style={styles.achievementName}>{t(spotlightAchievement.nameKey)}</Text>
               <View style={styles.achievementMeta}>
                 <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
                   <Text style={styles.rarityText}>
-                    {spotlightAchievement.rarity.toUpperCase()}
+                    {t(`achievements.rarity.${spotlightAchievement.rarity}`)}
                   </Text>
                 </View>
                 <Text style={styles.xpReward}>+{spotlightAchievement.xpReward} XP</Text>
@@ -367,7 +367,7 @@ export const AchievementSpotlight: React.FC<AchievementSpotlightProps> = ({
 
           {/* Achievement description */}
           <Text style={styles.achievementDescription}>
-            {spotlightAchievement.description}
+            {t(spotlightAchievement.descriptionKey)}
           </Text>
 
           {/* Inspirational story */}

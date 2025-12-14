@@ -262,10 +262,10 @@ export default function AchievementsScreen() {
     if (!achievementStats) return [];
 
     const rarityNames: Record<string, string> = {
-      [AchievementRarity.COMMON]: 'Common',
-      [AchievementRarity.RARE]: 'Rare',
-      [AchievementRarity.EPIC]: 'Epic',
-      [AchievementRarity.LEGENDARY]: 'Legendary',
+      [AchievementRarity.COMMON]: t('achievements.rarity.common'),
+      [AchievementRarity.RARE]: t('achievements.rarity.rare'),
+      [AchievementRarity.EPIC]: t('achievements.rarity.epic'),
+      [AchievementRarity.LEGENDARY]: t('achievements.rarity.legendary'),
     };
 
     return Object.entries(achievementStats.rarityBreakdown).map(([rarity, data]) => ({

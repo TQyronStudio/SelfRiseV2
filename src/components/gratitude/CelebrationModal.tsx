@@ -200,7 +200,7 @@ export default function CelebrationModal({
         const milestoneText = levelUpData.isMilestone ? t('journal.celebration.milestone_suffix') : '';
 
         return {
-          title: `Level ${levelUpData.newLevel}${milestoneText} ${levelEmoji}`,
+          title: `${t('gamification.level')} ${levelUpData.newLevel}${milestoneText} ${levelEmoji}`,
           message: levelUpData.levelDescription || `${t('journal.celebration.unlocked_prefix')} ${levelUpData.levelTitle}!`,
           emoji: levelEmoji,
         };
@@ -550,11 +550,11 @@ export default function CelebrationModal({
               >
                 {streakDays}
               </Text>
-              <Text 
+              <Text
                 style={styles.streakLabel}
                 importantForAccessibility="no"
               >
-                DAY{streakDays !== 1 ? 'S' : ''}
+                {streakDays !== 1 ? t('common.daysUppercase') : t('common.dayUppercase')}
               </Text>
             </View>
           )}
@@ -578,14 +578,14 @@ export default function CelebrationModal({
               >
                 {bonusCount}
               </Text>
-              <Text 
+              <Text
                 style={[
                   styles.streakLabel,
                   bonusCount === 10 && styles.epicBadgeLabel, // Epic styling for crown label
                 ]}
                 importantForAccessibility="no"
               >
-                BONUS{bonusCount !== 1 ? 'ES' : ''}
+                {bonusCount !== 1 ? t('common.bonusesUppercase') : t('common.bonusUppercase')}
               </Text>
             </View>
           )}
@@ -633,11 +633,11 @@ export default function CelebrationModal({
                 >
                   {levelUpData.newLevel}
                 </Text>
-                <Text 
+                <Text
                   style={styles.streakLabel}
                   importantForAccessibility="no"
                 >
-                  LEVEL
+                  {t('common.levelUppercase')}
                 </Text>
               </View>
               

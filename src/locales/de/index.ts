@@ -303,6 +303,13 @@ const de: Partial<TranslationKeys> = {
     category: 'Kategorie',
     rarity: 'Seltenheit',
     xpReward: 'XP-Belohnung',
+    // Uppercase labels for celebration badges
+    dayUppercase: 'TAG',
+    daysUppercase: 'TAGE',
+    bonusUppercase: 'BONUS',
+    bonusesUppercase: 'BONUSSE',
+    levelUppercase: 'LEVEL',
+    createdLabel: 'Erstellt',
     completed: '{{completed}} von {{total}} abgeschlossen',
     loading: {
       default: 'Wird geladen...',
@@ -1669,6 +1676,7 @@ const de: Partial<TranslationKeys> = {
       xpPointsUnit: 'Punkte',
       progressToUnlock: 'Fortschritt zum Freischalten',
       progressLoading: 'Fortschritt wird geladen...',
+      progressPercent: '{{percent}}% abgeschlossen',
       howToUnlock: 'Wie man freischaltet',
       estimatedDays: 'Geschätzt: {{days}} Tage verbleibend',
       lockedMessage: 'Dieser Erfolg ist gesperrt. Verwende die App weiter, um ihn freizuschalten!',
