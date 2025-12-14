@@ -1064,6 +1064,18 @@ const de: Partial<TranslationKeys> = {
       message4: 'Gut gemacht! Deine Hingabe hat sich ausgezahlt!',
       message5: 'Ausgezeichnet! Ein weiteres Ziel erobert!',
     },
+
+    // Target Date Confirmation Modal
+    targetDateConfirmation: {
+      title: 'Zieldatum hinzufügen?',
+      message: 'Ein Ziel ohne Datum ist nur ein Traum. Ein Zieldatum hilft dir, motiviert und auf Kurs zu bleiben.',
+      addDate: 'Datum hinzufügen',
+      continueWithout: 'Ohne Datum fortfahren',
+    },
+
+    // No progress data messages
+    noProgressStats: 'Noch keine Fortschrittsdaten. Füge Fortschritt hinzu, um Statistiken zu sehen.',
+    noProgressPredictions: 'Noch keine Fortschrittsdaten. Füge Fortschritt hinzu, um Vorhersagen zu sehen.',
   } as any,
 
   // Monthly Challenge

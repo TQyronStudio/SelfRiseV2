@@ -1077,6 +1077,18 @@ const en: TranslationKeys = {
       message4: 'Well done! Your dedication paid off!',
       message5: 'Excellent! Another goal conquered!',
     },
+
+    // Target Date Confirmation Modal
+    targetDateConfirmation: {
+      title: 'Add Target Date?',
+      message: 'A goal without a date is just a dream. Setting a target date will help you stay motivated and on track.',
+      addDate: 'Add Date',
+      continueWithout: 'Continue Without Date',
+    },
+
+    // No progress data messages
+    noProgressStats: 'No progress data yet. Add some progress to see statistics.',
+    noProgressPredictions: 'No progress data yet. Add some progress to see predictions.',
   },
 
   // Monthly Challenge

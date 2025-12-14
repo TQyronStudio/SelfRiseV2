@@ -885,6 +885,18 @@ export interface TranslationKeys {
       message5: string;
     };
 
+    // Target Date Confirmation Modal
+    targetDateConfirmation: {
+      title: string;
+      message: string;
+      addDate: string;
+      continueWithout: string;
+    };
+
+    // No progress data messages
+    noProgressStats: string;
+    noProgressPredictions: string;
+
     // Step-by-step date selection
     selectYear: string;
     selectMonth: string;

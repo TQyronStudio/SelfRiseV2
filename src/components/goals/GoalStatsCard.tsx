@@ -180,7 +180,7 @@ export function GoalStatsCard({ goal, stats, isLoading = false }: GoalStatsCardP
         </View>
         <View style={styles.content}>
           <Text style={styles.loadingText}>
-            {isLoading ? `${t('common.loading.default')}...` : 'No progress data yet. Add some progress to see statistics.'}
+            {isLoading ? `${t('common.loading.default')}...` : t('goals.noProgressStats')}
           </Text>
         </View>
       </View>

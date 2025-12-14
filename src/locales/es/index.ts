@@ -1064,6 +1064,18 @@ const es: Partial<TranslationKeys> = {
       message4: '¡Bien hecho! ¡Tu dedicación dio frutos!',
       message5: '¡Excelente! ¡Otra meta conquistada!',
     },
+
+    // Target Date Confirmation Modal
+    targetDateConfirmation: {
+      title: '¿Añadir Fecha Objetivo?',
+      message: 'Una meta sin fecha es solo un sueño. Establecer una fecha objetivo te ayudará a mantenerte motivado y en el camino.',
+      addDate: 'Añadir Fecha',
+      continueWithout: 'Continuar Sin Fecha',
+    },
+
+    // No progress data messages
+    noProgressStats: 'Aún no hay datos de progreso. Añade progreso para ver estadísticas.',
+    noProgressPredictions: 'Aún no hay datos de progreso. Añade progreso para ver predicciones.',
   } as any,
 
   // Monthly Challenge
