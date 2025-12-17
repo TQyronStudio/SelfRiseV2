@@ -870,7 +870,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         dispatch({
           type: 'SHOW_USER_FEEDBACK',
           payload: {
-            message: 'Tutorial experienced issues. Running in simplified mode.',
+            message: t('tutorial.feedback.simplifiedMode'),
             type: 'warning'
           }
         });
@@ -946,7 +946,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         dispatch({
           type: 'SHOW_USER_FEEDBACK',
           payload: {
-            message: 'Tutorial encountered an error and was reset.',
+            message: t('tutorial.feedback.errorReset'),
             type: 'error'
           }
         });
@@ -1302,7 +1302,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       console.log(`✅ First character typed in ${stepData.id}, enabling Next button`);
       showNextButton(true);
       setFieldValidation(stepData.id, 'valid');
-      showUserFeedback('Great start! Continue typing...', 'success');
+      showUserFeedback(t('tutorial.feedback.greatStart'), 'success');
     }
 
     // Validate text input based on step type with visual feedback
@@ -1341,7 +1341,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setFieldValidation(stepData.id, 'valid');
-        showUserFeedback('Perfect choice! 👌', 'success');
+        showUserFeedback(t('tutorial.feedback.perfectChoice'), 'success');
         showNextButton(true);
       }
 
@@ -1376,7 +1376,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           }
         } else {
           setFieldValidation(stepData.id, 'valid');
-          showUserFeedback(`Great! Target date: ${value.toDateString()} 📅`, 'success');
+          showUserFeedback(t('tutorial.feedback.targetDateSet', { date: value.toDateString() }), 'success');
           showNextButton(true);
         }
 
@@ -1389,7 +1389,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         if (stepData.id === 'goal-date') {
           validateGoalDate(value);
         } else {
-          showUserFeedback('Please choose a future date for your goal! 🔮', 'warning');
+          showUserFeedback(t('tutorial.feedback.chooseFutureDate'), 'warning');
         }
       }
     }
@@ -1408,9 +1408,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       // Provide encouraging feedback based on selection
       if (value.length <= 3) {
-        showUserFeedback(`Perfect! Starting with ${value.length} day(s) builds consistency! 💪`, 'success');
+        showUserFeedback(t('tutorial.feedback.daysConsistency', { count: value.length }), 'success');
       } else {
-        showUserFeedback(`Ambitious! ${value.length} days is great for building momentum! 🚀`, 'success');
+        showUserFeedback(t('tutorial.feedback.daysMomentum', { count: value.length }), 'success');
       }
 
       setTimeout(() => clearFieldHighlight(), 500);
@@ -1437,13 +1437,13 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         // Note: validateGoalValue already shows appropriate feedback
       } else {
         setFieldValidation(stepData.id, 'valid');
-        showUserFeedback(`Great! ${numValue} is a perfect target! ✨`, 'success');
+        showUserFeedback(t('tutorial.feedback.perfectTarget', { value: numValue }), 'success');
       }
 
       setTimeout(() => clearFieldHighlight(), 500);
     } else {
       setFieldValidation(stepData.id, 'invalid');
-      showUserFeedback('Please enter a positive number! 🔢', 'warning');
+      showUserFeedback(t('tutorial.feedback.enterPositiveNumber'), 'warning');
     }
   };
 
@@ -1481,18 +1481,18 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const validateGoalValue = (value: number) => {
     if (value <= 0) {
       console.log(`💡 Goal value guidance: Your target should be a positive number!`);
-      showUserFeedback('Please enter a positive number for your goal! 🎯', 'warning');
+      showUserFeedback(t('tutorial.feedback.enterPositiveGoal'), 'warning');
       return false;
     }
 
     if (value > 10000) {
       console.log(`💡 Goal value guidance: That's ambitious! Consider breaking it down into smaller milestones.`);
-      showUserFeedback('That\'s very ambitious! Consider smaller milestones for better success! 🚀', 'info');
+      showUserFeedback(t('tutorial.feedback.veryAmbitious'), 'info');
     } else if (value < 1) {
-      showUserFeedback('Your goal should be at least 1! Aim higher! ⭐', 'warning');
+      showUserFeedback(t('tutorial.feedback.goalAtLeastOne'), 'warning');
       return false;
     } else {
-      showUserFeedback(`Perfect target: ${value}! This looks achievable and motivating! 🎯`, 'success');
+      showUserFeedback(t('tutorial.feedback.achievableTarget', { value }), 'success');
     }
 
     return true;
@@ -1507,12 +1507,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
     if (selectedDate < today) {
-      showUserFeedback('Please choose a future date for your goal! 🔮', 'warning');
+      showUserFeedback(t('tutorial.feedback.chooseFutureDate'), 'warning');
       return false;
     }
 
     if (selectedDate > oneYearFromNow) {
-      showUserFeedback('That\'s quite far ahead! Consider shorter-term goals for better momentum! 📅', 'info');
+      showUserFeedback(t('tutorial.feedback.farAhead'), 'info');
     }
 
     // Calculate days until goal
@@ -1520,13 +1520,13 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
     if (daysDiff <= 7) {
-      showUserFeedback(`${daysDiff} days - a quick sprint goal! Perfect for building momentum! ⚡`, 'success');
+      showUserFeedback(t('tutorial.feedback.sprintGoal', { days: daysDiff }), 'success');
     } else if (daysDiff <= 30) {
-      showUserFeedback(`${daysDiff} days - great monthly challenge! Achievable and motivating! 📅`, 'success');
+      showUserFeedback(t('tutorial.feedback.monthlyChallenge', { days: daysDiff }), 'success');
     } else if (daysDiff <= 90) {
-      showUserFeedback(`${daysDiff} days - excellent quarterly goal! Perfect timeframe! 🎯`, 'success');
+      showUserFeedback(t('tutorial.feedback.quarterlyGoal', { days: daysDiff }), 'success');
     } else {
-      showUserFeedback(`${daysDiff} days - ambitious long-term goal! Consider milestone checkpoints! 🏔️`, 'success');
+      showUserFeedback(t('tutorial.feedback.longTermGoal', { days: daysDiff }), 'success');
     }
 
     return true;
@@ -1536,14 +1536,14 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     const validCategories = ['personal', 'health', 'career', 'finance', 'learning', 'creative'];
 
     if (!category || category.trim().length === 0) {
-      showUserFeedback('Please select a category to organize your goal! 📂', 'warning');
+      showUserFeedback(t('tutorial.feedback.selectCategory'), 'warning');
       return false;
     }
 
     if (validCategories.includes(category.toLowerCase())) {
-      showUserFeedback(`Great choice! ${category} goals are very important for balanced growth! 🌟`, 'success');
+      showUserFeedback(t('tutorial.feedback.greatCategoryChoice', { category }), 'success');
     } else {
-      showUserFeedback('Perfect! This category will help you track progress! 📊', 'success');
+      showUserFeedback(t('tutorial.feedback.categoryHelpsTrack'), 'success');
     }
 
     return true;
@@ -1551,12 +1551,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   const validateGoalUnit = (unit: string): boolean => {
     if (!unit || unit.trim().length === 0) {
-      showUserFeedback('Please specify what unit you\'ll measure! 📏', 'warning');
+      showUserFeedback(t('tutorial.feedback.specifyUnit'), 'warning');
       return false;
     };
 
     if (unit.length < 2) {
-      showUserFeedback('Try a more descriptive unit like "books" or "hours"! 📚', 'warning');
+      showUserFeedback(t('tutorial.feedback.descriptiveUnit'), 'warning');
       return false;
     }
 
@@ -1564,9 +1564,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     const isCommonUnit = commonUnits.some(u => unit.toLowerCase().includes(u.toLowerCase()));
 
     if (isCommonUnit) {
-      showUserFeedback(`Excellent unit choice: "${unit}" - very clear and measurable! 📊`, 'success');
+      showUserFeedback(t('tutorial.feedback.excellentUnit', { unit }), 'success');
     } else {
-      showUserFeedback(`Good unit: "${unit}" - make sure it\'s easy to track! ✅`, 'success');
+      showUserFeedback(t('tutorial.feedback.goodUnit', { unit }), 'success');
     }
 
     return true;

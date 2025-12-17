@@ -246,7 +246,7 @@ export default function JournalStatsScreen() {
           {/* Current Streak */}
           <StatisticsCard
             title={t('journal.stats.currentStreak')}
-            value={`${state.streakInfo?.currentStreak || 0} days`}
+            value={t('common.daysCount', { count: state.streakInfo?.currentStreak || 0 })}
             subtitle={getStreakDescription()}
             icon="🔥"
             color={colors.habitOrange}
@@ -272,16 +272,16 @@ export default function JournalStatsScreen() {
 
           {/* Gratitude vs Self-Praise Breakdown */}
           <View style={styles.breakdownCard}>
-            <Text style={styles.breakdownTitle}>📋 Entry Types</Text>
+            <Text style={styles.breakdownTitle}>📋 {t('journal.stats.entryTypes')}</Text>
             <View style={styles.breakdownContent}>
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownLabel}>🙏 Gratitude</Text>
+                <Text style={styles.breakdownLabel}>🙏 {t('journal.input.typeGratitude')}</Text>
                 <Text style={[styles.breakdownValue, { color: colors.primary }]}>
                   {typeBreakdown.gratitude}
                 </Text>
               </View>
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownLabel}>💪 Self-Praise</Text>
+                <Text style={styles.breakdownLabel}>💪 {t('journal.input.typeSelfPraise')}</Text>
                 <Text style={[styles.breakdownValue, { color: colors.success }]}>
                   {typeBreakdown.selfPraise}
                 </Text>

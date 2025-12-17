@@ -438,11 +438,16 @@ export default function AchievementsScreen() {
   // ========================================
   
   const renderOverviewStats = () => (
-    <View 
+    <View
       style={styles.overviewContainer}
       accessible={true}
       accessibilityRole="summary"
-      accessibilityLabel={`Achievement overview: ${overviewStats.unlockedCount} of ${overviewStats.totalCount} achievements unlocked, ${Math.round(overviewStats.completionRate)}% complete, ${overviewStats.totalXP} total XP earned`}
+      accessibilityLabel={t('achievements.overview.accessibilityLabel', {
+        unlocked: overviewStats.unlockedCount,
+        total: overviewStats.totalCount,
+        percent: Math.round(overviewStats.completionRate),
+        xp: overviewStats.totalXP
+      })}
     >
       <Text style={styles.overviewTitle}>{t('achievements.overview.unlockedCount')}</Text>
       <View style={styles.overviewStatsRow}>

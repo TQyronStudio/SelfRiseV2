@@ -30,18 +30,18 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     const gratitudes = await actions.searchGratitudes(''); // Get all gratitudes
     const stats = state.stats;
     const streakInfo = state.streakInfo;
-    
-    let exportText = `📖 My Journal Export\n`;
-    exportText += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
-    
+
+    let exportText = `📖 ${t('journal.export.content.title')}\n`;
+    exportText += `${t('journal.export.content.generatedOn')}: ${new Date().toLocaleDateString()}\n\n`;
+
     // Statistics
-    exportText += `📊 STATISTICS\n`;
-    exportText += `Total entries: ${stats?.totalGratitudes || 0}\n`;
-    exportText += `Active days: ${stats?.totalDays || 0}\n`;
-    exportText += `Average per day: ${stats?.averagePerDay?.toFixed(1) || '0.0'}\n`;
-    exportText += `Current streak: ${streakInfo?.currentStreak || 0} days\n`;
-    exportText += `Longest streak: ${streakInfo?.longestStreak || 0} days\n\n`;
-    
+    exportText += `📊 ${t('journal.export.content.statistics')}\n`;
+    exportText += `${t('journal.export.content.totalEntries')}: ${stats?.totalGratitudes || 0}\n`;
+    exportText += `${t('journal.export.content.activeDays')}: ${stats?.totalDays || 0}\n`;
+    exportText += `${t('journal.export.content.averagePerDay')}: ${stats?.averagePerDay?.toFixed(1) || '0.0'}\n`;
+    exportText += `${t('journal.export.content.currentStreak')}: ${t('common.daysCount', { count: streakInfo?.currentStreak || 0 })}\n`;
+    exportText += `${t('journal.export.content.longestStreak')}: ${t('common.daysCount', { count: streakInfo?.longestStreak || 0 })}\n\n`;
+
     // Entries grouped by date
     const groupedByDate = gratitudes.reduce((acc, gratitude) => {
       const date = gratitude.date;
@@ -53,25 +53,25 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     }, {} as Record<string, any[]>);
 
     const sortedDates = Object.keys(groupedByDate).sort().reverse();
-    
-    exportText += `📝 JOURNAL ENTRIES\n\n`;
-    
+
+    exportText += `📝 ${t('journal.export.content.journalEntries')}\n\n`;
+
     sortedDates.forEach(date => {
       const entries = groupedByDate[date];
       if (!entries) return;
-      
+
       exportText += `${new Date(date).toLocaleDateString()}\n`;
       exportText += `${'-'.repeat(20)}\n`;
-      
+
       entries.forEach((entry, index) => {
         const typeEmoji = entry.type === 'gratitude' ? '🙏' : '💪';
-        const bonusText = entry.isBonus ? ' [BONUS ⭐]' : '';
+        const bonusText = entry.isBonus ? ` [${t('journal.export.content.bonus')} ⭐]` : '';
         exportText += `${index + 1}. ${typeEmoji} ${entry.content}${bonusText}\n`;
       });
-      
+
       exportText += `\n`;
     });
-    
+
     return exportText;
   };
 
@@ -111,16 +111,16 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
   const exportData = async (format: 'text' | 'json') => {
     try {
       setIsExporting(true);
-      
+
       let content: string;
       let formatName: string;
-      
+
       if (format === 'text') {
         content = await generateTextExport();
-        formatName = 'Text';
+        formatName = t('journal.export.formatText');
       } else {
         content = await generateJSONExport();
-        formatName = 'JSON';
+        formatName = t('journal.export.formatJson');
       }
       
       // Show the exported data in an alert (since clipboard is not available)

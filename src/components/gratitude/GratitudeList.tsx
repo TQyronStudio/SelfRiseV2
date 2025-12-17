@@ -227,19 +227,19 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
       {(onEdit || onDelete) && (
         <View style={styles.actionButtons}>
           {onEdit && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.actionButton, styles.editButton]}
               onPress={() => onEdit(item)}
             >
-              <Text style={styles.editButtonText}>Edit</Text>
+              <Text style={styles.editButtonText}>{t('common.edit')}</Text>
             </TouchableOpacity>
           )}
           {onDelete && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
               onPress={() => onDelete(item)}
             >
-              <Text style={styles.deleteButtonText}>Delete</Text>
+              <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
             </TouchableOpacity>
           )}
         </View>

@@ -299,6 +299,7 @@ const en: TranslationKeys = {
     bonusesUppercase: 'BONUSES',
     levelUppercase: 'LEVEL',
     createdLabel: 'Created',
+    daysCount: '{{count}} days',
     completed: '{{completed}} of {{total}} completed',
     loading: {
       default: 'Loading...',
@@ -347,6 +348,15 @@ const en: TranslationKeys = {
     },
     help: 'Help',
     helpNotAvailable: 'Help information not available for this feature.',
+  },
+
+  // Global errors
+  errors: {
+    notFound: {
+      title: 'Oops!',
+      message: 'This screen does not exist.',
+      goHome: 'Go to home screen!',
+    },
   },
 
   // UI Labels
@@ -536,6 +546,20 @@ const en: TranslationKeys = {
       jsonFormat: 'JSON Format',
       jsonFormatDescription: 'Structured data format for backup or technical use',
       exporting: 'Exporting your journal...',
+      formatText: 'Text',
+      formatJson: 'JSON',
+      content: {
+        title: 'My Journal Export',
+        generatedOn: 'Generated on',
+        statistics: 'STATISTICS',
+        totalEntries: 'Total entries',
+        activeDays: 'Active days',
+        averagePerDay: 'Average per day',
+        currentStreak: 'Current streak',
+        longestStreak: 'Longest streak',
+        journalEntries: 'JOURNAL ENTRIES',
+        bonus: 'BONUS',
+      },
     },
 
     // Error messages
@@ -583,6 +607,7 @@ const en: TranslationKeys = {
       motivationNoStreak: "Every journey begins with a single step. Start your journaling streak today!",
       motivationDay1: "Great start! One day down, many more to go. Keep up the momentum!",
       motivationDays: "Amazing {{days}}-day streak! You're building a powerful habit.",
+      entryTypes: 'Entry Types',
     },
 
     // Gratitude Input Component
@@ -1363,6 +1388,7 @@ const en: TranslationKeys = {
       nextToUnlock: 'Coming Up',
       noAchievements: 'No achievements unlocked yet',
       getStarted: 'Start completing habits, writing in your journal, and achieving goals to unlock your first achievement!',
+      accessibilityLabel: 'Achievement overview: {{unlocked}} of {{total}} achievements unlocked, {{percent}}% complete, {{xp}} total XP earned',
     },
     
     // Categories
@@ -3499,6 +3525,36 @@ const en: TranslationKeys = {
       retry: 'Try Again',
       generalError: 'Tutorial encountered an error. Please try again.',
       alreadyCompleted: 'Tutorial already completed or skipped',
+    },
+
+    // User feedback messages
+    feedback: {
+      simplifiedMode: 'Tutorial experienced issues. Running in simplified mode.',
+      errorReset: 'Tutorial encountered an error and was reset.',
+      greatStart: 'Great start! Continue typing...',
+      perfectChoice: 'Perfect choice! 👌',
+      targetDateSet: 'Great! Target date: {{date}} 📅',
+      chooseFutureDate: 'Please choose a future date for your goal! 🔮',
+      daysConsistency: 'Perfect! Starting with {{count}} day(s) builds consistency! 💪',
+      daysMomentum: 'Ambitious! {{count}} days is great for building momentum! 🚀',
+      perfectTarget: 'Great! {{value}} is a perfect target! ✨',
+      enterPositiveNumber: 'Please enter a positive number! 🔢',
+      enterPositiveGoal: 'Please enter a positive number for your goal! 🎯',
+      veryAmbitious: "That's very ambitious! Consider smaller milestones for better success! 🚀",
+      goalAtLeastOne: 'Your goal should be at least 1! Aim higher! ⭐',
+      achievableTarget: 'Perfect target: {{value}}! This looks achievable and motivating! 🎯',
+      farAhead: "That's quite far ahead! Consider shorter-term goals for better momentum! 📅",
+      sprintGoal: '{{days}} days - a quick sprint goal! Perfect for building momentum! ⚡',
+      monthlyChallenge: '{{days}} days - great monthly challenge! Achievable and motivating! 📅',
+      quarterlyGoal: '{{days}} days - excellent quarterly goal! Perfect timeframe! 🎯',
+      longTermGoal: '{{days}} days - ambitious long-term goal! Consider milestone checkpoints! 🏔️',
+      selectCategory: 'Please select a category to organize your goal! 📂',
+      greatCategoryChoice: 'Great choice! {{category}} goals are very important for balanced growth! 🌟',
+      categoryHelpsTrack: 'Perfect! This category will help you track progress! 📊',
+      specifyUnit: "Please specify what unit you'll measure! 📏",
+      descriptiveUnit: 'Try a more descriptive unit like "books" or "hours"! 📚',
+      excellentUnit: 'Excellent unit choice: "{{unit}}" - very clear and measurable! 📊',
+      goodUnit: 'Good unit: "{{unit}}" - make sure it\'s easy to track! ✅',
     },
 
     // Skip Confirmation

@@ -439,6 +439,20 @@ export interface TranslationKeys {
       jsonFormat: string;
       jsonFormatDescription: string;
       exporting: string;
+      formatText?: string;
+      formatJson?: string;
+      content?: {
+        title: string;
+        generatedOn: string;
+        statistics: string;
+        totalEntries: string;
+        activeDays: string;
+        averagePerDay: string;
+        currentStreak: string;
+        longestStreak: string;
+        journalEntries: string;
+        bonus: string;
+      };
     };
     errors: {
       searchFailed: string;
@@ -478,6 +492,7 @@ export interface TranslationKeys {
       motivationNoStreak: string;
       motivationDay1: string;
       motivationDays: string;
+      entryTypes?: string;
     };
     input: {
       addGratitudeTitle: string;
@@ -1132,6 +1147,7 @@ export interface TranslationKeys {
       nextToUnlock: string;
       noAchievements: string;
       getStarted: string;
+      accessibilityLabel?: string;
     };
     categories: {
       all: string;
@@ -1662,6 +1678,7 @@ export interface TranslationKeys {
     bonusesUppercase?: string;
     levelUppercase?: string;
     createdLabel?: string;
+    daysCount?: string;
     modals: {
       errorTitle: string;
       confirmTitle: string;
@@ -1731,7 +1748,16 @@ export interface TranslationKeys {
       sunday: string;
     };
   };
-  
+
+  // Global errors
+  errors: {
+    notFound: {
+      title: string;
+      message: string;
+      goHome: string;
+    };
+  };
+
   // Notifications
   notifications: {
     disabled: string;
@@ -2290,6 +2316,36 @@ export interface TranslationKeys {
       message: string;
       continue: string;
       restart: string;
+    };
+
+    // Tutorial Feedback Messages
+    feedback?: {
+      simplifiedMode: string;
+      errorReset: string;
+      greatStart: string;
+      perfectChoice: string;
+      targetDateSet: string;
+      chooseFutureDate: string;
+      daysConsistency: string;
+      daysMomentum: string;
+      perfectTarget: string;
+      enterPositiveNumber: string;
+      enterPositiveGoal: string;
+      veryAmbitious: string;
+      goalAtLeastOne: string;
+      achievableTarget: string;
+      farAhead: string;
+      sprintGoal: string;
+      monthlyChallenge: string;
+      quarterlyGoal: string;
+      longTermGoal: string;
+      selectCategory: string;
+      greatCategoryChoice: string;
+      categoryHelpsTrack: string;
+      specifyUnit: string;
+      descriptiveUnit: string;
+      excellentUnit: string;
+      goodUnit: string;
     };
 
     // Tutorial step progress
