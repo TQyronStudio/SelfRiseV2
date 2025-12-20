@@ -1205,6 +1205,40 @@ export interface TranslationKeys {
       accessibilityUnlocked: string;
       accessibilityLocked: string;
     };
+    preview?: {
+      recentlyUnlocked: string;
+      justNow: string;
+      daysAgo_one: string;
+      daysAgo_other: string;
+      hoursAgo_one: string;
+      hoursAgo_other: string;
+      minutesAgo_one: string;
+      minutesAgo_other: string;
+      achievedThroughDedication: string;
+      achievedInDays_one: string;
+      achievedInDays_other: string;
+      achievedInWeeks_one: string;
+      achievedInWeeks_other: string;
+      achievedInMonths_one: string;
+      achievedInMonths_other: string;
+      difficultyEasy: string;
+      difficultyMedium: string;
+      difficultyHard: string;
+      difficultyLegendary: string;
+      difficultyUnknown: string;
+      tips: {
+        habits: { starting: string; building: string; advancing: string; nearly_there: string; };
+        journal: { starting: string; building: string; advancing: string; nearly_there: string; };
+        goals: { starting: string; building: string; advancing: string; nearly_there: string; };
+        consistency: { starting: string; building: string; advancing: string; nearly_there: string; };
+        mastery: { starting: string; building: string; advancing: string; nearly_there: string; };
+        special: { starting: string; building: string; advancing: string; nearly_there: string; };
+      };
+      motivation: { starting: string; building: string; advancing: string; nearly_there: string; };
+      advice: { habits: string; journal: string; goals: string; consistency: string; mastery: string; special: string; };
+      effort: { almostThere: string; fewMoreDays: string; oneToTwoWeeks: string; twoToFourWeeks: string; severalWeeks: string; };
+      default: { progress: string; action: string; };
+    };
     history: {
       justNow: string;
       today: string;
@@ -1636,6 +1670,7 @@ export interface TranslationKeys {
   
   // Common
   common: {
+    locale?: string;
     save: string;
     saving: string;
     cancel: string;

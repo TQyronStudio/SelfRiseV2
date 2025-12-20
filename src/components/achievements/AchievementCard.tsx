@@ -94,7 +94,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
     : undefined;
 
   const smartTooltip = showPreview && userStats
-    ? generateSmartTooltip(achievement, progress)
+    ? generateSmartTooltip(achievement, progress, t)
     : undefined;
   
   const handlePressIn = () => {

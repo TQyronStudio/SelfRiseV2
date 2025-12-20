@@ -272,6 +272,7 @@ const de: Partial<TranslationKeys> = {
 
   // Common labels
   common: {
+    locale: 'de-DE',
     ok: 'OK',
     cancel: 'Abbrechen',
     save: 'Speichern',
@@ -1718,6 +1719,108 @@ const de: Partial<TranslationKeys> = {
       accessibilityUnlocked: 'Erfolgsdetails: {{name}}. Dieser {{rarity}} Erfolg ist freigeschaltet.',
       accessibilityLocked: 'Erfolgsdetails: {{name}}. Dieser {{rarity}} Erfolg ist gesperrt. Fortschrittsinformationen verfügbar.',
     },
+
+    // Achievement Preview System
+    preview: {
+      // Completion date formatting
+      recentlyUnlocked: 'Kürzlich freigeschaltet',
+      justNow: 'Gerade eben',
+      daysAgo_one: 'Vor {{count}} Tag',
+      daysAgo_other: 'Vor {{count}} Tagen',
+      hoursAgo_one: 'Vor {{count}} Stunde',
+      hoursAgo_other: 'Vor {{count}} Stunden',
+      minutesAgo_one: 'Vor {{count}} Minute',
+      minutesAgo_other: 'Vor {{count}} Minuten',
+
+      // Time to complete
+      achievedThroughDedication: 'Durch Hingabe erreicht',
+      achievedInDays_one: 'In {{count}} Tag erreicht',
+      achievedInDays_other: 'In {{count}} Tagen erreicht',
+      achievedInWeeks_one: 'In {{count}} Woche erreicht',
+      achievedInWeeks_other: 'In {{count}} Wochen erreicht',
+      achievedInMonths_one: 'In {{count}} Monat erreicht',
+      achievedInMonths_other: 'In {{count}} Monaten erreicht',
+
+      // Difficulty levels
+      difficultyEasy: 'Einfach',
+      difficultyMedium: 'Mittel',
+      difficultyHard: 'Schwer',
+      difficultyLegendary: 'Legendär',
+      difficultyUnknown: 'Unbekannt',
+
+      // Progress tips by category and level
+      tips: {
+        habits: {
+          starting: 'Beginne mit dem täglichen Erstellen und Abschließen von Gewohnheiten',
+          building: 'Konzentriere dich auf Beständigkeit bei deinen bestehenden Gewohnheiten',
+          advancing: 'Du baust großartiges Gewohnheits-Momentum auf!',
+          nearly_there: 'So nah an diesem Gewohnheits-Erfolg!',
+        },
+        journal: {
+          starting: 'Beginne mit täglichen Dankbarkeitseinträgen',
+          building: 'Halte deine Tagebuch-Schreibpraxis aufrecht',
+          advancing: 'Deine Dankbarkeitspraxis wird stärker!',
+          nearly_there: 'Fast diesen Tagebuch-Erfolg freigeschaltet!',
+        },
+        goals: {
+          starting: 'Beginne damit, Ziele zu setzen und daran zu arbeiten',
+          building: 'Mache weiter Fortschritte bei deinen Zielen',
+          advancing: 'Ausgezeichneter Zielfortschritt!',
+          nearly_there: 'Fast diesen Ziel-Erfolg abgeschlossen!',
+        },
+        consistency: {
+          starting: 'Konzentriere dich auf den Aufbau täglicher Beständigkeit',
+          building: 'Deine Beständigkeit verbessert sich!',
+          advancing: 'Toller Beständigkeits-Streak im Aufbau!',
+          nearly_there: 'So nah daran, Beständigkeit zu meistern!',
+        },
+        mastery: {
+          starting: 'Erkunde alle Funktionen, um Meisterschaft zu erlangen',
+          building: 'Du lernst die App gut kennen!',
+          advancing: 'Werde ein echter SelfRise-Experte!',
+          nearly_there: 'Fast das Meisterschaftslevel erreicht!',
+        },
+        special: {
+          starting: 'Erkunde spezielle App-Funktionen',
+          building: 'Gute Nutzung spezieller Funktionen!',
+          advancing: 'Spezielle Fähigkeiten werden freigeschaltet!',
+          nearly_there: 'Fast diesen speziellen Erfolg verdient!',
+        },
+      },
+
+      // Motivational messages
+      motivation: {
+        starting: 'Jede Reise beginnt mit einem einzigen Schritt!',
+        building: 'Du baust großartiges Momentum auf!',
+        advancing: 'Ausgezeichneter Fortschritt - weiter so!',
+        nearly_there: 'So nah daran, diesen Erfolg freizuschalten!',
+      },
+
+      // Action advice
+      advice: {
+        habits: 'Schließe täglich Gewohnheiten ab, um Fortschritte zu machen',
+        journal: 'Schreibe regelmäßig Tagebucheinträge',
+        goals: 'Setze Ziele und arbeite darauf hin',
+        consistency: 'Halte tägliche Streaks aufrecht',
+        mastery: 'Verdiene XP und steige im Level auf',
+        special: 'Erkunde alle App-Funktionen',
+      },
+
+      // Effort estimates
+      effort: {
+        almostThere: 'Fast geschafft!',
+        fewMoreDays: 'Noch ein paar Tage',
+        oneToTwoWeeks: '~1-2 Wochen',
+        twoToFourWeeks: '~2-4 Wochen',
+        severalWeeks: 'Mehrere Wochen Aufwand',
+      },
+
+      // Default fallbacks
+      default: {
+        progress: 'Fortschrittsverfolgung...',
+        action: 'Arbeite weiter auf dieses Ziel hin!',
+      },
+    },
     history: {
       justNow: 'Gerade eben',
       today: 'Heute',
@@ -2240,8 +2343,8 @@ const de: Partial<TranslationKeys> = {
       description: 'Insgesamt 1000 aktive Tage - du hast ultimative Loyalität erreicht'
     },
 
-    // Achievement Progress Preview Hints (245+ keys for progress tracking)
-    preview: {
+    // Achievement Progress Hints (245+ keys for progress tracking)
+    progressHints: {
       // Default fallback
       default: {
         progress: 'Fortschritt für diese Errungenschaft',

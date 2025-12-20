@@ -261,6 +261,7 @@ const en: TranslationKeys = {
 
   // Common labels
   common: {
+    locale: 'en-US',
     ok: 'OK',
     cancel: 'Cancel',
     save: 'Save',
@@ -1618,6 +1619,108 @@ const en: TranslationKeys = {
       accessibilityUnlocked: 'Achievement details: {{name}}. This {{rarity}} achievement is unlocked.',
       accessibilityLocked: 'Achievement details: {{name}}. This {{rarity}} achievement is locked. Progress information available.',
     },
+
+    // Achievement Preview System
+    preview: {
+      // Completion date formatting
+      recentlyUnlocked: 'Recently unlocked',
+      justNow: 'Just now',
+      daysAgo_one: '{{count}} day ago',
+      daysAgo_other: '{{count}} days ago',
+      hoursAgo_one: '{{count}} hour ago',
+      hoursAgo_other: '{{count}} hours ago',
+      minutesAgo_one: '{{count}} minute ago',
+      minutesAgo_other: '{{count}} minutes ago',
+
+      // Time to complete
+      achievedThroughDedication: 'Achieved through dedication',
+      achievedInDays_one: 'Achieved in {{count}} day',
+      achievedInDays_other: 'Achieved in {{count}} days',
+      achievedInWeeks_one: 'Achieved in {{count}} week',
+      achievedInWeeks_other: 'Achieved in {{count}} weeks',
+      achievedInMonths_one: 'Achieved in {{count}} month',
+      achievedInMonths_other: 'Achieved in {{count}} months',
+
+      // Difficulty levels
+      difficultyEasy: 'Easy',
+      difficultyMedium: 'Medium',
+      difficultyHard: 'Hard',
+      difficultyLegendary: 'Legendary',
+      difficultyUnknown: 'Unknown',
+
+      // Progress tips by category and level
+      tips: {
+        habits: {
+          starting: 'Start by creating and completing habits daily',
+          building: 'Focus on consistency with your existing habits',
+          advancing: "You're building great habit momentum!",
+          nearly_there: 'So close to this habit achievement!',
+        },
+        journal: {
+          starting: 'Begin with daily gratitude entries',
+          building: 'Keep up your journal writing practice',
+          advancing: 'Your gratitude practice is growing strong!',
+          nearly_there: 'Almost unlocked this journal achievement!',
+        },
+        goals: {
+          starting: 'Start by setting and working on your goals',
+          building: 'Keep making progress on your goals',
+          advancing: 'Excellent goal progress!',
+          nearly_there: 'Almost completed this goal achievement!',
+        },
+        consistency: {
+          starting: 'Focus on building daily consistency',
+          building: 'Your consistency is improving!',
+          advancing: 'Great consistency streak building!',
+          nearly_there: 'So close to mastering consistency!',
+        },
+        mastery: {
+          starting: 'Explore all features to gain mastery',
+          building: "You're learning the app well!",
+          advancing: 'Becoming a true SelfRise expert!',
+          nearly_there: 'Almost achieved mastery level!',
+        },
+        special: {
+          starting: 'Explore special app features',
+          building: 'Making good use of special features!',
+          advancing: 'Unlocking special capabilities!',
+          nearly_there: 'Almost earned this special achievement!',
+        },
+      },
+
+      // Motivational messages
+      motivation: {
+        starting: 'Every journey begins with a single step!',
+        building: "You're building great momentum!",
+        advancing: 'Excellent progress - keep it up!',
+        nearly_there: 'So close to unlocking this achievement!',
+      },
+
+      // Action advice
+      advice: {
+        habits: 'Complete habits daily to make progress',
+        journal: 'Write journal entries regularly',
+        goals: 'Set and work towards your goals',
+        consistency: 'Maintain daily streaks',
+        mastery: 'Earn XP and level up',
+        special: 'Explore all app features',
+      },
+
+      // Effort estimates
+      effort: {
+        almostThere: 'Almost there!',
+        fewMoreDays: 'A few more days',
+        oneToTwoWeeks: '~1-2 weeks',
+        twoToFourWeeks: '~2-4 weeks',
+        severalWeeks: 'Several weeks of effort',
+      },
+
+      // Default fallbacks
+      default: {
+        progress: 'Progress tracking...',
+        action: 'Keep working towards this goal!',
+      },
+    },
     history: {
       justNow: 'Just now',
       today: 'Today',
@@ -2141,8 +2244,8 @@ const en: TranslationKeys = {
       description: '1000 active days total - you have achieved ultimate loyalty'
     },
 
-    // Achievement Progress Preview Hints (245+ keys for progress tracking)
-    preview: {
+    // Achievement Progress Hints (245+ keys for progress tracking)
+    progressHints: {
       // Default fallback
       default: {
         progress: 'Progress towards this achievement',
