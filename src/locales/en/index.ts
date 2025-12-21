@@ -113,6 +113,12 @@ const en: TranslationKeys = {
       readyToActivate: 'Ready to activate 2x XP!',
       moreDays: '{days, plural, one {# more day} other {# more days}} for 2x XP',
       activateButton: 'Activate 2x XP',
+      timeRemaining: {
+        hoursMinutes: '({{hours}}h {{minutes}}m remaining)',
+        hoursOnly: '({{hours}}h remaining)',
+        minutesOnly: '({{minutes}}m remaining)',
+        secondsOnly: '({{seconds}}s remaining)',
+      },
     },
     // Monthly 30 Day Chart
     monthly30Day: {
@@ -198,6 +204,65 @@ const en: TranslationKeys = {
     recommendations: 'For You',
     noRecommendations: 'Great job! You\'re on track with everything.',
     journalPrompt: 'Try this prompt',
+    // Recommendation Card Content
+    recommendationCards: {
+      habits: {
+        adjustSchedule: {
+          title: 'Adjust Schedule',
+          description: '{{habitName}} showing {{completionRate}}% completion. Consider reducing frequency.',
+          action: 'Adjust Schedule',
+        },
+        levelUp: {
+          title: 'Level Up',
+          description: 'You\'re crushing {{habitName}} at {{completionRate}}%! Ready for a new challenge?',
+          action: 'Add Challenge',
+        },
+        addNewHabit: {
+          title: 'Add New Habit',
+          description: 'You\'re doing great with existing habits! {{successfulDays}} are your strongest days.',
+          action: 'Create Habit',
+        },
+      },
+      journal: {
+        buildStreak: {
+          title: 'Build Your Streak',
+          description: 'Regular journaling builds mindfulness. Start with just 3 entries today.',
+          prompt: 'What made you smile today?',
+        },
+        onFire: {
+          title: 'You\'re on Fire!',
+          description: 'Your journaling consistency is impressive. Keep the momentum!',
+          prompt: 'Reflect on how journaling has impacted your mindset this week.',
+        },
+        trySelfPraise: {
+          title: 'Try Self-Praise',
+          description: 'Balance gratitude with self-recognition. What did you do well today?',
+          prompt: 'What personal quality helped you succeed today?',
+        },
+      },
+      goals: {
+        startProgress: {
+          title: 'Start Making Progress',
+          description: '{{goalTitle}} needs attention. Start making some progress!',
+          action: 'Log Progress',
+        },
+        almostThere: {
+          title: 'Almost There!',
+          description: '{{goalTitle}} is {{progressPercent}}% complete. Push to finish!',
+          action: 'Final Push',
+        },
+        timelineCheck: {
+          title: 'Timeline Check',
+          description: '{{goalTitle}} may need timeline adjustment. {{daysRemaining}} days remaining.',
+          action: 'Adjust Timeline',
+        },
+        setNewGoal: {
+          title: 'Set New Goal',
+          description: 'Goals provide direction and motivation. What would you like to achieve?',
+          action: 'Create Goal',
+        },
+      },
+    },
     // Home Customization
     customization: {
       title: 'Customize Home',
@@ -233,6 +298,49 @@ const en: TranslationKeys = {
     yourProgress: 'Your Progress',
     currentLevelSummary: 'You\'re currently level {currentLevel} out of 100 levels',
     keepEarningXp: 'Keep earning XP to unlock higher levels!',
+    // Habit Feedback Messages (from habitCalculations.ts)
+    habitFeedback: {
+      buildingMomentum: {
+        title: '🌱 Building Momentum',
+        description: 'Great start with {{habitName}}! Keep going to establish the pattern.',
+      },
+      excellentEarlyProgress: {
+        title: '🚀 Excellent Early Progress',
+        description: '{{completionRate}}% completion! You\'re building a strong foundation.',
+      },
+      goodEarlyPattern: {
+        title: '📈 Good Early Pattern',
+        description: '{{completionRate}}% completion. You\'re on the right track!',
+      },
+      earlyLearningPhase: {
+        title: '💪 Early Learning Phase',
+        description: '{{completionRate}}% completion. Every step counts in building habits!',
+      },
+      exceptionalPerformance: {
+        title: '⭐ Exceptional Performance',
+        description: '{{completionRate}}% completion rate! Your dedication to {{habitName}} is extraordinary.',
+      },
+      outstandingPerformance: {
+        title: '🏆 Outstanding Performance',
+        description: '{{completionRate}}% completion with bonus effort. Excellent consistency!',
+      },
+      strongConsistency: {
+        title: '✅ Strong Consistency',
+        description: '{{completionRate}}% completion rate. Well done maintaining {{habitName}}!',
+      },
+      steadyProgress: {
+        title: '📊 Steady Progress',
+        description: '{{completionRate}}% completion. Consider small adjustments to improve consistency.',
+      },
+      focusOpportunity: {
+        title: '💪 Focus Opportunity',
+        description: '{{completionRate}}% completion for {{habitName}}. Try breaking it into smaller steps.',
+      },
+      progressTracking: {
+        title: '📈 Progress Tracking',
+        description: '{{completionRate}}% completion rate.',
+      },
+    },
   },
 
   // Levels & Navigation screens
@@ -307,6 +415,13 @@ const en: TranslationKeys = {
       levels: 'Loading levels...',
       habits: 'Loading habits...',
       progress: 'Loading progress...',
+    },
+    dates: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      tomorrow: 'Tomorrow',
+      nextDay: 'Next {{dayName}}',
+      lastDay: 'Last {{dayName}}',
     },
     modals: {
       errorTitle: 'Error',
@@ -2898,6 +3013,9 @@ const en: TranslationKeys = {
       to_next_level: 'to Level {{level}}',
       xp_remaining: '{{xp}} XP remaining',
       loading: 'Loading XP...',
+      levelProgressFull: 'Level {{currentLevel}} {{progress}}% to level {{nextLevel}}',
+      xpProgressText: '{{current}}/{{total}} XP',
+      levelProgressCompact: 'Level {{level}} • {{progress}}%',
       
       accessibility: {
         label: 'Experience level {{currentLevel}}, {{levelTitle}}. {{progress}} percent progress to level {{nextLevel}}. {{xpRemaining}} experience points remaining.{{#isMilestone}} This is a milestone level.{{/isMilestone}}',
@@ -3778,6 +3896,7 @@ const en: TranslationKeys = {
       footer: 'Every achievement shared here is from a real user journey. You\'re not alone! 💪',
       inspiring: 'Inspiring',
       daysActive: '{{days}} days active',
+      heroLevel: 'Level {{level}}',
       today: '🟢 Today',
       yesterday: '🟡 Yesterday',
       recent: '🔵 Recent',

@@ -97,96 +97,113 @@ export function getHabitAgeInfo(habit: Habit, currentDate?: Date) {
 }
 
 /**
+ * Message result with translation keys for i18n support
+ */
+export interface HabitFeedbackMessage {
+  titleKey: string;
+  descriptionKey: string;
+  descriptionParams: Record<string, string | number>;
+  tone: 'positive' | 'neutral' | 'encouraging' | 'warning';
+}
+
+/**
  * Get appropriate completion rate message based on habit age and performance
- * 
+ *
  * @param completionResult - Result from calculateHabitCompletionRate
  * @param ageInfo - Result from getHabitAgeInfo
  * @param habitName - Name of the habit for personalized messaging
- * @returns Appropriate message with tone based on habit maturity
+ * @returns Translation keys and params with tone based on habit maturity
  */
 export function getCompletionRateMessage(
   completionResult: HabitCompletionResult,
   ageInfo: ReturnType<typeof getHabitAgeInfo>,
   habitName: string
-): {
-  title: string;
-  description: string;
-  tone: 'positive' | 'neutral' | 'encouraging' | 'warning';
-} {
-  const { totalCompletionRate, isMaxedOut } = completionResult;
+): HabitFeedbackMessage {
+  const { totalCompletionRate } = completionResult;
   const { isNewHabit, isEarlyHabit, isEstablishedHabit } = ageInfo;
-  
+  const completionRate = Math.round(totalCompletionRate);
+
   // New habits (0-6 days) - Always encouraging
   if (isNewHabit) {
     return {
-      title: '🌱 Building Momentum',
-      description: `Great start with ${habitName}! Keep going to establish the pattern.`,
+      titleKey: 'home.habitFeedback.buildingMomentum.title',
+      descriptionKey: 'home.habitFeedback.buildingMomentum.description',
+      descriptionParams: { habitName },
       tone: 'encouraging'
     };
   }
-  
+
   // Early habits (7-13 days) - Positive reinforcement
   if (isEarlyHabit) {
     if (totalCompletionRate >= 100) {
       return {
-        title: '🚀 Excellent Early Progress',
-        description: `${Math.round(totalCompletionRate)}% completion! You're building a strong foundation.`,
+        titleKey: 'home.habitFeedback.excellentEarlyProgress.title',
+        descriptionKey: 'home.habitFeedback.excellentEarlyProgress.description',
+        descriptionParams: { completionRate },
         tone: 'positive'
       };
     } else if (totalCompletionRate >= 50) {
       return {
-        title: '📈 Good Early Pattern',
-        description: `${Math.round(totalCompletionRate)}% completion. You're on the right track!`,
+        titleKey: 'home.habitFeedback.goodEarlyPattern.title',
+        descriptionKey: 'home.habitFeedback.goodEarlyPattern.description',
+        descriptionParams: { completionRate },
         tone: 'encouraging'
       };
     } else {
       return {
-        title: '💪 Early Learning Phase',
-        description: `${Math.round(totalCompletionRate)}% completion. Every step counts in building habits!`,
+        titleKey: 'home.habitFeedback.earlyLearningPhase.title',
+        descriptionKey: 'home.habitFeedback.earlyLearningPhase.description',
+        descriptionParams: { completionRate },
         tone: 'encouraging'
       };
     }
   }
-  
+
   // Established habits (14+ days) - Full analysis
   if (isEstablishedHabit) {
     if (totalCompletionRate >= 200) {
       return {
-        title: '⭐ Exceptional Performance',
-        description: `${Math.round(totalCompletionRate)}% completion rate! Your dedication to ${habitName} is extraordinary.`,
+        titleKey: 'home.habitFeedback.exceptionalPerformance.title',
+        descriptionKey: 'home.habitFeedback.exceptionalPerformance.description',
+        descriptionParams: { completionRate, habitName },
         tone: 'positive'
       };
     } else if (totalCompletionRate >= 120) {
       return {
-        title: '🏆 Outstanding Performance',
-        description: `${Math.round(totalCompletionRate)}% completion with bonus effort. Excellent consistency!`,
+        titleKey: 'home.habitFeedback.outstandingPerformance.title',
+        descriptionKey: 'home.habitFeedback.outstandingPerformance.description',
+        descriptionParams: { completionRate },
         tone: 'positive'
       };
     } else if (totalCompletionRate >= 80) {
       return {
-        title: '✅ Strong Consistency',
-        description: `${Math.round(totalCompletionRate)}% completion rate. Well done maintaining ${habitName}!`,
+        titleKey: 'home.habitFeedback.strongConsistency.title',
+        descriptionKey: 'home.habitFeedback.strongConsistency.description',
+        descriptionParams: { completionRate, habitName },
         tone: 'positive'
       };
     } else if (totalCompletionRate >= 50) {
       return {
-        title: '📊 Steady Progress',
-        description: `${Math.round(totalCompletionRate)}% completion. Consider small adjustments to improve consistency.`,
+        titleKey: 'home.habitFeedback.steadyProgress.title',
+        descriptionKey: 'home.habitFeedback.steadyProgress.description',
+        descriptionParams: { completionRate },
         tone: 'neutral'
       };
     } else {
       return {
-        title: '💪 Focus Opportunity',
-        description: `${Math.round(totalCompletionRate)}% completion for ${habitName}. Try breaking it into smaller steps.`,
+        titleKey: 'home.habitFeedback.focusOpportunity.title',
+        descriptionKey: 'home.habitFeedback.focusOpportunity.description',
+        descriptionParams: { completionRate, habitName },
         tone: 'warning'
       };
     }
   }
-  
+
   // Fallback (shouldn't reach here)
   return {
-    title: '📈 Progress Tracking',
-    description: `${Math.round(totalCompletionRate)}% completion rate.`,
+    titleKey: 'home.habitFeedback.progressTracking.title',
+    descriptionKey: 'home.habitFeedback.progressTracking.description',
+    descriptionParams: { completionRate },
     tone: 'neutral'
   };
 }

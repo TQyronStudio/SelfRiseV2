@@ -298,7 +298,7 @@ export const HabitTrendAnalysis: React.FC = () => {
         const message = getCompletionRateMessage(bestPerformer.completionResult, bestPerformer.ageInfo, bestPerformer.habit.name);
         trends.push({
           title: t('home.habitTrends.starPerformer'),
-          description: `${bestPerformer.habit.name}: ${message.description}`,
+          description: `${bestPerformer.habit.name}: ${t(message.descriptionKey, message.descriptionParams)}`,
           icon: '⭐',
           color: colors.success,
           trend: 'improving' as const
@@ -313,8 +313,8 @@ export const HabitTrendAnalysis: React.FC = () => {
       if (strugglingHabit) {
         const message = getCompletionRateMessage(strugglingHabit.completionResult, strugglingHabit.ageInfo, strugglingHabit.habit.name);
         trends.push({
-          title: message.title,
-          description: message.description,
+          title: t(message.titleKey),
+          description: t(message.descriptionKey, message.descriptionParams),
           icon: '🎯',
           color: message.tone === 'warning' ? colors.warning : colors.primary,
           trend: 'declining' as const

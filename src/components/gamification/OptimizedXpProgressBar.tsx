@@ -646,17 +646,17 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         {showXPText && !compactMode && (
           <View style={dynamicStyles.xpTextContainer}>
             <Text style={[dynamicStyles.xpText, { fontSize: fontSizes.xpText }]}>
-              Level {currentLevel} {Math.round(xpProgress)}% to level {currentLevel + 1}
+              {t('gamification.progress.levelProgressFull', { currentLevel, progress: Math.round(xpProgress), nextLevel: currentLevel + 1 })}
             </Text>
             <Text style={[dynamicStyles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}>
-              {formatNumber(totalXP)}/{formatNumber(totalXP + xpToNextLevel)} XP
+              {t('gamification.progress.xpProgressText', { current: formatNumber(totalXP), total: formatNumber(totalXP + xpToNextLevel) })}
             </Text>
           </View>
         )}
 
         {showXPText && compactMode && (
           <Text style={[dynamicStyles.xpTextCompact, { fontSize: fontSizes.xpNumbers }]}>
-            Level {currentLevel} • {Math.round(xpProgress)}%
+            {t('gamification.progress.levelProgressCompact', { level: currentLevel, progress: Math.round(xpProgress) })}
           </Text>
         )}
       </View>

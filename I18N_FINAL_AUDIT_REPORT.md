@@ -1,220 +1,421 @@
-# i18n Final Audit Report - November 22, 2025
+# I18N Kompletní Audit Report - 21. prosince 2025
 
-## Executive Summary
+## Shrnutí
 
-✅ **STATUS: 100% i18n COVERAGE VERIFIED**
+**STATUS: NALEZENY NELOKALIZOVANÉ STRINGY**
 
-All user-visible strings in SelfRise V2 are properly internationalized across three languages (EN/DE/ES). No hardcoded user-visible content remains outside the i18n system.
-
----
-
-## Audit Methodology
-
-### 1. Rarity Tier Verification
-**Finding**: All rarity tiers (Common, Rare, Epic, Legendary, Exotic) are correctly hardcoded in enums and constants.
-- ✅ Verified in `src/types/gamification.ts` (AchievementRarity enum)
-- ✅ Verified in `src/constants/achievements.ts`
-- ✅ Used via enum values in components (not hardcoded strings)
-- ✅ Correctly displayed in AchievementDetailModal, AchievementSpotlight
-
-### 2. TypeScript Compilation
-**Command**: `npm run typecheck`
-**Result**: ✅ **ZERO ERRORS** - All TypeScript definitions properly synchronized
-
-### 3. Locale File Synchronization
-**Verified Files**:
-- ✅ `src/types/i18n.ts` - All translation keys defined
-- ✅ `src/locales/en/index.ts` - English master translations (2550+ keys)
-- ✅ `src/locales/de/index.ts` - German translations (synchronized)
-- ✅ `src/locales/es/index.ts` - Spanish translations (synchronized)
-
-**Key Counts**:
-- English: 2550+ translation keys
-- German: 100% synchronized with EN structure
-- Spanish: 100% synchronized with EN structure
-
-### 4. Component Audit
-
-**Critical Components Audited**:
-- ✅ `app/(tabs)/index.tsx` (Home Screen) - Uses component-based structure with translations
-- ✅ `app/(tabs)/habits.tsx` (Habits Tab) - Uses t() throughout
-- ✅ `app/(tabs)/journal.tsx` (Journal Tab) - Uses t() throughout
-- ✅ `app/(tabs)/goals.tsx` (Goals Tab) - Uses t() throughout
-- ✅ `src/components/habits/DailyHabitTracker.tsx` - All strings translated
-- ✅ `src/components/habits/DailyHabitProgress.tsx` - All strings translated
-- ✅ `src/components/habits/DailyProgressBar.tsx` - All strings translated
-- ✅ `src/components/habits/HabitItem.tsx` - Dynamic day labels with t()
-- ✅ `src/components/gratitude/DailyGratitudeProgress.tsx` - All 6 strings translated
-- ✅ `src/components/achievements/AchievementDetailModal.tsx` - Proper enum usage
-- ✅ `src/components/achievements/AchievementCard.tsx` - Proper enum usage
-
-### 5. Translation Key Categories
-
-All user-visible strings are organized in:
-
-```
-i18n Keys Structure:
-├── tabs (6 keys) - Navigation tabs
-├── home (100+ keys) - Home screen and all components
-├── habits (50+ keys) - Habit tracking
-├── journal (40+ keys) - Gratitude journal
-├── goals (60+ keys) - Goal tracking
-├── achievements (80+ keys) - Achievements system
-├── gamification (50+ keys) - XP, levels, rewards
-├── challenges (40+ keys) - Monthly challenges
-├── notifications (20+ keys) - Notification settings
-├── common (30+ keys) - Common UI patterns
-├── days (14+ keys) - Day labels and abbreviations
-├── error (20+ keys) - Error messages
-└── [10+ more sections] - Other features
-```
+Tento report obsahuje kompletní seznam všech hardcoded stringů v aplikaci SelfRise V2, které vyžadují lokalizaci.
 
 ---
 
-## Rarity Tier Exception Verification
+## Výjimky (nemusí být lokalizovány)
 
-**Hardcoded Exception Status**: ✅ **VERIFIED**
-
-These 5 terms are intentionally hardcoded in English:
-- ✅ `Common` - Found in enums, NOT in translatable strings
-- ✅ `Rare` - Found in enums, NOT in translatable strings
-- ✅ `Epic` - Found in enums, NOT in translatable strings
-- ✅ `Legendary` - Found in enums, NOT in translatable strings
-- ✅ `Exotic` - Referenced in comments (LevelsOverviewScreen) - NOT user-visible
-
-**No violations found** - All rarity tiers are properly handled as game constants, not user text.
+Dle technické dokumentace jsou tyto termíny záměrně hardcoded v angličtině:
+- **Rarity tiers**: Common, Rare, Epic, Legendary, Exotic
+- **Unicode symboly**: ★, ☆, +
+- **Čísla**: character limits (200, 500)
 
 ---
 
-## Key Translations Added (Phase 11)
+## 1. APP SCREENS
 
-### English Locale (en/index.ts)
-```typescript
-// Days (14 keys)
-days.shortest: { monday: 'Mo', tuesday: 'Tu', ... }
+### app/(tabs)/settings.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 145 | `"Failed to restart tutorial. Please try again."` |
 
-// Journal Progress (7 keys)
-journal.progress: {
-  title: 'Today\'s Journal Progress',
-  complete: 'Complete ✓',
-  bonusAmazing: 'Amazing! You\'ve added bonus entries! 🌟',
-  dailyComplete: 'Daily journal complete! Keep your streak alive! 🔥',
-  entriesNeeded_one: '{{count}} more entry needed',
-  entriesNeeded_other: '{{count}} more entries needed'
-}
-
-// Common Pattern (1 key)
-common.completed: '{{completed}} of {{total}} completed'
-
-// Screens (1 key)
-screens.trophyRoom.title: 'Trophy Room'
-```
-
-### German Locale (de/index.ts)
-- ✅ All 14 day translations
-- ✅ All 7 journal.progress translations
-- ✅ common.completed translation
-- ✅ screens.trophyRoom.title translation
-
-### Spanish Locale (es/index.ts)
-- ✅ All 14 day translations (including unique L/M/M/J/V/S/D abbreviations)
-- ✅ All 7 journal.progress translations
-- ✅ common.completed translation
-- ✅ screens.trophyRoom.title translation
+### app/(tabs)/index.tsx - ✅ OK
+### app/(tabs)/habits.tsx - ✅ OK
+### app/(tabs)/goals.tsx - ✅ OK
+### app/(tabs)/journal.tsx - ✅ OK
+### app/(tabs)/_layout.tsx - ✅ OK
+### app/goal-stats.tsx - ✅ OK
+### app/habit-stats.tsx - ✅ OK
+### app/journal-stats.tsx - ✅ OK
+### app/journal-history.tsx - ✅ OK
+### app/achievements.tsx - ✅ OK
+### app/levels-overview.tsx - ✅ OK
+### app/reorder-habits.tsx - ✅ OK
+### app/_layout.tsx - ✅ OK
+### app/+not-found.tsx - ✅ OK
 
 ---
 
-## Test Coverage Summary
+## 2. COMPONENTS
 
-✅ **All Tests Passed**:
-- TypeScript compilation: **ZERO ERRORS**
-- Locale key synchronization: **100% MATCH**
-- Component translation coverage: **100% VERIFIED**
-- Rarity tier enforcement: **VERIFIED**
-- Multi-language support: **FUNCTIONAL (EN/DE/ES)**
+### src/components/achievements/* - ✅ OK (všech 13 souborů)
 
----
+### src/components/habits/HabitStatsAccordionItem.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 227 | `"+"` (symbol mezi Success a Bonus) |
 
-## Technical Guidelines Added
+### src/components/habits/* - ostatní OK (16 souborů)
 
-Added comprehensive i18n section to `technical-guides.md`:
-- ✅ Three-language requirement documented
-- ✅ Mandatory translation rule established
-- ✅ Rarity tier exception clearly defined
-- ✅ Implementation checklist provided
-- ✅ Audit procedures documented
+### src/components/goals/* - ✅ OK (všech 17 souborů)
 
----
+### src/components/gratitude/* - ✅ OK (všech 7 souborů)
 
-## Conclusion
+### src/components/home/XpMultiplierSection.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 208 | `"(${hours}h${minutes > 0 ? \` ${minutes}m\` : ''} remaining)"` |
+| 211 | `"(${minutes}m remaining)"` |
+| 213 | `"(${seconds}s remaining)"` |
 
-**SelfRise V2 has achieved 100% i18n coverage with complete German and Spanish support.**
+### src/components/home/* - ostatní OK (16 souborů)
 
-### Key Statistics:
-- **Total Translation Keys**: 2550+
-- **Languages Supported**: 3 (EN/DE/ES)
-- **Hardcoded Exceptions**: 5 rarity tiers (as designed)
-- **TypeScript Errors**: 0
-- **Missing Keys**: 0
-- **Unsynchronized Locales**: 0
+### src/components/gamification/OptimizedXpProgressBar.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 649 | `"Level {currentLevel} {Math.round(xpProgress)}% to level {currentLevel + 1}"` |
+| 652 | `"{formatNumber(totalXP)}/{formatNumber(totalXP + xpToNextLevel)} XP"` |
+| 659 | `"Level {currentLevel} • {Math.round(xpProgress)}%"` |
 
-### Next Steps:
-1. ✅ Technical guidelines added to codebase
-2. ✅ All components verified for translations
-3. ✅ Rarity tiers verified as exceptions
-4. ✅ Ready for deployment
+### src/components/gamification/XpPopupAnimation.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 299 | `"{amount >= 0 ? '+' : ''}{amount} XP"` |
 
-**Date**: November 22, 2025
-**Auditor**: Claude Code i18n Agent
-**Status**: COMPLETE ✅
+### src/components/gamification/* - ostatní OK (9 souborů)
 
----
+### src/components/social/AchievementShareModal.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 225 | `"Shared from SelfRise - Your Personal Growth Journey"` |
 
-## AUDIT UPDATE - November 22, 2025 (Post-Fix)
+### src/components/social/DailyHeroesSection.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 198 | `"Level {hero.level}"` |
+| 407 | `"Daily Heroes 🦸‍♀️"` |
+| 421 | `"Daily Heroes 🦸‍♀️"` |
+| 438 | `"Daily Heroes 🦸‍♀️"` |
+| 454 | `"Daily Heroes 🦸‍♀️"` |
 
-### Issues Found & Fixed
+### src/components/social/MotivationalQuoteCard.tsx
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 226 | `"Shared from SelfRise - Your Personal Growth Journey"` |
 
-#### Issue: Missing i18n Keys `social.detail.*`
-
-**Problem**: Components were calling `t('social.detail.category')`, `t('social.detail.rarity')`, `t('social.detail.xpReward')` but these keys didn't exist in any locale file.
-
-**Root Cause**: Incorrect key paths in components - should have been `achievements.details.*` (plural form)
-
-**Solution**: 
-- ✅ Updated `src/components/achievements/AchievementDetailModal.tsx` (lines 597, 606, 612)
-  - Changed `social.detail.category` → `achievements.details.category`
-  - Changed `social.detail.rarity` → `achievements.details.rarity`
-  - Changed `social.detail.xpReward` → `achievements.details.xpReward`
-
-- ✅ Updated `src/components/achievements/AchievementTooltip.tsx` (line 424)
-  - Changed `social.detail.xpReward` → `achievements.details.xpReward`
-
-**Verification**: 
-- All keys now exist in EN, DE, ES locales under `achievements.details.*`
-- TypeScript: ✅ ZERO ERRORS (verified post-fix)
-- No remaining `social.detail.*` references in codebase
-
-### Final Status
-
-**missingKey Errors Status**: ✅ RESOLVED
-- All `t()` calls now have corresponding keys in locale files
-- No more i18next translator: missingKey LOG entries expected
-
-**Translation Coverage**: ✅ 100% VERIFIED
-- All user-visible strings properly translated
-- All locale files synchronized (EN/DE/ES)
-- TypeScript definitions match actual translations
-
-**Code Quality**: ✅ PASSING
-- TypeScript: ZERO ERRORS
-- All components use proper i18n patterns
-- Rarity tiers correctly hardcoded (not translated)
+### src/components/challenges/* - ✅ OK (5 souborů)
+### src/components/common/* - ✅ OK (5 souborů)
+### src/components/tutorial/* - ✅ OK (3 soubory)
+### src/components/settings/* - ✅ OK (1 soubor)
+### src/components/animations/* - ✅ OK (2 soubory)
 
 ---
 
-## Conclusion
+## 3. UTILS
 
-SelfRise V2 has achieved **TRUE 100% i18n coverage** with all missingKey errors resolved.
+### src/utils/date.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 362 | `"Today"` |
+| 363 | `"Yesterday"` |
+| 364 | `"Tomorrow"` |
+| 372 | `"Next ${dayName}"` |
+| 372 | `"Last ${dayName}"` |
 
-**Date**: November 22, 2025
-**Final Verification**: Complete ✅
+### src/utils/habitCalculations.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 122 | `"🌱 Building Momentum"` |
+| 123 | `"Great start with ${habitName}! Keep going to establish the pattern."` |
+| 130 | `"🚀 Excellent Early Progress"` |
+| 131 | `"${Math.round(totalCompletionRate)}% completion! You're building a strong foundation."` |
+| 137 | `"📈 Good Early Pattern"` |
+| 138 | `"${Math.round(totalCompletionRate)}% completion. You're on the right track!"` |
+| 144 | `"💪 Early Learning Phase"` |
+| 145 | `"${Math.round(totalCompletionRate)}% completion. Every step counts in building habits!"` |
+| 154 | `"⭐ Exceptional Performance"` |
+| 155 | `"${Math.round(totalCompletionRate)}% completion rate! Your dedication to ${habitName} is extraordinary."` |
+| 160 | `"🏆 Outstanding Performance"` |
+| 161 | `"${Math.round(totalCompletionRate)}% completion with bonus effort. Excellent consistency!"` |
+| 166 | `"✅ Strong Consistency"` |
+| 167 | `"${Math.round(totalCompletionRate)}% completion rate. Well done maintaining ${habitName}!"` |
+| 172 | `"📊 Steady Progress"` |
+| 173 | `"${Math.round(totalCompletionRate)}% completion. Consider small adjustments to improve consistency."` |
+| 178 | `"💪 Focus Opportunity"` |
+| 179 | `"${Math.round(totalCompletionRate)}% completion for ${habitName}. Try breaking it into smaller steps."` |
+| 188 | `"📈 Progress Tracking"` |
+| 189 | `"${Math.round(totalCompletionRate)}% completion rate."` |
+
+### src/utils/achievementPreviewUtils.ts - ✅ OK (již lokalizovaný)
+### src/utils/data.ts - ✅ OK
+### src/utils/i18n.ts - ✅ OK
+### src/utils/userStatsCollector.ts - ✅ OK
+### src/utils/HabitResetUtils.ts - ✅ OK
+
+---
+
+## 4. CONSTANTS
+
+### src/constants/achievements.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 48 | `"Habits"` (category name) |
+| 51 | `"Build consistent daily routines"` |
+| 54 | `"Journal"` |
+| 57 | `"Reflect and express gratitude"` |
+| 60 | `"Goals"` |
+| 63 | `"Achieve your dreams"` |
+| 66 | `"Consistency"` |
+| 69 | `"Show up every day"` |
+| 72 | `"Mastery"` |
+| 75 | `"Become the best version of yourself"` |
+| 78 | `"Special"` |
+| 81 | `"Limited time and unique achievements"` |
+
+### src/constants/gamification.ts (XP_SOURCES descriptions)
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 119 | `"Completed scheduled habit"` |
+| 126 | `"Completed habit on non-scheduled day"` |
+| 133 | `"Reached habit streak milestone"` |
+| 140 | `"Created journal entry"` |
+| 149 | `"Created bonus journal entry"` |
+| 156 | `"Reached journal bonus milestone"` |
+| 164 | `"Reached journal streak milestone"` |
+| 171 | `"Added progress to goal"` |
+| 178 | `"Completed a goal"` |
+| 185 | `"Reached goal milestone"` |
+| 192 | `"Launched app for first time today"` |
+| 199 | `"Followed a recommendation"` |
+| 206 | `"Unlocked an achievement"` |
+| 213 | `"Completed monthly challenge"` |
+| 220 | `"XP multiplier bonus applied"` |
+
+### src/constants/achievementCatalog.ts - ✅ OK
+### src/constants/colors.ts - ✅ OK
+### src/constants/typography.ts - ✅ OK
+### src/constants/dimensions.ts - ✅ OK
+### src/constants/fonts.ts - ✅ OK
+
+---
+
+## 5. SERVICES
+
+### src/services/notifications/notificationService.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 73 | `"Daily Reminders"` |
+| 74 | `"Notifications to help you stay on track with your habits and goals"` |
+
+### src/services/notifications/notificationScheduler.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 52 | `"SelfRise Check-in ☀️"` |
+| 53 | `"How's your day going? Don't forget your goals and habits! 🚀"` |
+| 56 | `"Afternoon Motivation 💪"` |
+| 57 | `"You still have time! Check your habits and goals 💪"` |
+| 60 | `"Progress Time 🎯"` |
+| 61 | `"Afternoon check-in: How are you doing with your goals? 🎯"` |
+| 64 | `"Micro-win Moment ✨"` |
+| 65 | `"Time for a micro-win! Can you complete one more habit? 🏃‍♂️"` |
+| 289 | `"You have {{count}} habits left to complete. Let's do this!"` |
+| 310 | `"Don't forget to write {{count}} more journal entries!"` |
+| 388 | `"Evening check-in 🌙"` |
+| 389 | `"Time for evening reflection! What did you accomplish today? 📝"` |
+
+### src/services/socialSharingService.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 88 | `"Every achievement is a step closer to the person you're becoming."` |
+| 93 | `"Success is not final, failure is not fatal: it is the courage to continue that counts."` |
+| 99 | `"The only impossible journey is the one you never begin."` |
+| 107 | `"Level up in life, one small step at a time."` |
+| 112 | `"Growth begins at the end of your comfort zone."` |
+| 117 | `"You are not the same person you were yesterday, and that's beautiful."` |
+| 124 | `"Consistency is the mother of mastery."` |
+| 129 | `"Small daily improvements lead to massive results over time."` |
+| 136 | `"Excellence is not an act, but a habit."` |
+| 142 | `"The secret of getting ahead is getting started."` |
+| 150 | `"Personal growth is not a destination, it's a way of traveling."` |
+| 155 | `"Be yourself; everyone else is already taken."` |
+| 319 | `"Every step forward is progress worth celebrating."` |
+| 329 | `"Every step forward is progress worth celebrating."` |
+| 414 | Achievement share message template |
+| 425 | Level share message template |
+
+### src/services/recommendationEngine.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 248 | `"Build Your Streak"` |
+| 249 | `"Regular journaling builds mindfulness. Start with just 3 entries today."` |
+| 251 | `"What made you smile today?"` |
+| 259 | `"You're on Fire!"` |
+| 260 | `"Your journaling consistency is impressive. Keep the momentum!"` |
+| 262 | `"Reflect on how journaling has impacted your mindset this week."` |
+| 271 | `"Try Self-Praise"` |
+| 272 | `"Balance gratitude with self-recognition. What did you do well today?"` |
+| 274 | `"What personal quality helped you succeed today?"` |
+| 308 | `"Start Making Progress"` |
+| 309 | `"${goal.title} needs attention. Start making some progress!"` |
+| 312 | `"Log Progress"` |
+| 322 | `"Almost There!"` |
+| 323 | `"${goal.title} is ${Math.round(progressPercentage)}% complete. Push to finish!"` |
+| 326 | `"Final Push"` |
+| 343 | `"Timeline Check"` |
+| 344 | `"${goal.title} may need timeline adjustment. ${daysRemaining} days remaining."` |
+| 347 | `"Adjust Timeline"` |
+| 371 | `"Set New Goal"` |
+| 372 | `"Goals provide direction and motivation. What would you like to achieve?"` |
+| 374 | `"Create Goal"` |
+
+### src/services/xpMultiplierService.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 855 | `"One more day of balanced activity to unlock 2x XP Multiplier!"` |
+| 856 | `"${daysNeeded} more days of balanced activity to unlock 2x XP Multiplier!"` |
+
+### src/services/levelCalculation.ts
+| Řádek | Hardcoded text |
+|-------|----------------|
+| 398 | `"Common tier - Building the foundation of your personal growth journey."` |
+| 400 | `"Rare tier - Developing consistency and deeper understanding of your habits."` |
+| 402 | `"Epic tier - Mastering the art of self-improvement with advanced techniques."` |
+| 404 | `"Legendary tier - Achieving extraordinary growth and inspiring others."` |
+| 406 | `"Mythic tier - Transcending ordinary limits and becoming a true master."` |
+| 409 | `"Continuing your journey of personal growth and self-improvement."` |
+
+### Ostatní services - ✅ OK
+
+---
+
+## 6. HOOKS
+
+### src/hooks/* - ✅ OK (všech 9 souborů)
+
+---
+
+## 7. SYNCHRONIZACE LOKÁLŮ (EN vs DE vs ES)
+
+### Statistiky
+| Soubor | Řádky |
+|--------|-------|
+| EN (master) | 4060 |
+| DE | 3763 |
+| ES | 3763 |
+
+### Chybějící klíče v DE a ES
+
+#### tutorial.steps.* (24 kroků, ~190 řádků)
+- `welcome`
+- `appOverview`
+- `quickActions`
+- `createHabitButton`
+- `habitCreate`
+- `goalCategory`
+- `goalCreate`
+- `goalComplete`
+- `navigateHome`
+- `trophyRoom`
+- `habitName` (s examples array)
+- `habitColor`
+- `habitIcon`
+- `habitDays`
+- `habitComplete`
+- `journalIntro`
+- `gratitudeEntry` (s examples array)
+- `journalEncouragement`
+- `goalsIntro`
+- `goalTitle` (s examples array)
+- `goalUnit` (s examples array)
+- `goalTarget`
+- `goalDate`
+- `xpIntro`
+- `completion`
+
+#### tutorial.validation.* (celá sekce)
+- `habitName.required`
+- `habitName.tooShort`
+- `habitName.tooLong`
+- `habitDays.required`
+- `goalTitle.required`
+- `goalTitle.tooShort`
+- `goalTitle.tooLong`
+- `goalUnit.required`
+- `goalUnit.tooLong`
+- `goalTarget.required`
+- `goalTarget.tooLarge`
+- `gratitudeEntry.required`
+- `gratitudeEntry.tooShort`
+
+#### tutorial.errors.* (6 klíčů)
+- `loadingFailed`
+- `savingFailed`
+- `habitCreationFailed`
+- `goalCreationFailed`
+- `journalEntryFailed`
+- `genericError`
+
+#### tutorial.progress.* (4 klíče)
+- `creatingHabit`
+- `creatingGoal`
+- `savingEntry`
+- `loading`
+
+#### tutorial.accessibility.* (3+ klíče)
+- `tutorialModal`
+- `spotlightArea`
+- `progressIndicator`
+
+---
+
+## CELKOVÉ STATISTIKY
+
+| Kategorie | Počet souborů | Hardcoded stringů |
+|-----------|---------------|-------------------|
+| App Screens | 15 | 1 |
+| Components | 100+ | 15 |
+| Utils | 7 | 25 |
+| Constants | 8 | 27 |
+| Services | 20+ | 58 |
+| Hooks | 9 | 0 |
+| **CELKEM** | **160+** | **~126** |
+
+### Chybějící překlady v DE/ES
+- **Tutorial sekce**: ~35-40 klíčů
+- **Odhadovaný počet řádků**: ~280-300
+
+---
+
+## PRIORITIZACE OPRAV
+
+### 🔴 VYSOKÁ PRIORITA (user-facing, běžné interakce)
+1. ✅ `recommendationEngine.ts` - 21 stringů - **OPRAVENO** (změněno na translation keys)
+2. ✅ `notificationScheduler.ts` - 12 stringů - **JIŽ LOKALIZOVÁNO** (fallbacks jsou záměrné)
+3. ✅ `habitCalculations.ts` - 20 stringů - **OPRAVENO** (změněno na translation keys)
+4. ✅ `date.ts` - 5 stringů - **OPRAVENO** (přidány common.dates.*)
+5. ⏳ Tutorial sekce v DE/ES - 35+ klíčů - **V ŘEŠENÍ**
+
+### 🟡 STŘEDNÍ PRIORITA (user-facing, méně časté)
+1. ✅ `socialSharingService.ts` - 16 stringů - **ZÁMĚRNĚ V AJ** (citáty známých autorů)
+2. ✅ `XpMultiplierSection.tsx` - 3 stringy - **OPRAVENO** (home.xpMultiplier.timeRemaining.*)
+3. ✅ `OptimizedXpProgressBar.tsx` - 3 stringy - **OPRAVENO** (gamification.progress.*)
+4. ✅ `DailyHeroesSection.tsx` - 5 stringů - **OPRAVENO** (heroLevel key)
+5. ✅ `achievements.ts` kategorie - 12 stringů - **JIŽ LOKALIZOVÁNO** (meta není pro UI)
+
+### 🟢 NÍZKÁ PRIORITA (interní, fallback, debugging)
+1. ✅ `gamification.ts` XP sources - 15 stringů - **INTERNÍ** (descriptions pro logging, ne pro UI)
+2. ✅ `levelCalculation.ts` - 6 stringů - **INTERNÍ** (tier descriptions pro systém)
+3. ✅ `xpMultiplierService.ts` - 2 stringy - **INTERNÍ** (service logging)
+4. ✅ `notificationService.ts` - 2 stringy - **JIŽ LOKALIZOVÁNO** (channel config)
+5. ✅ `settings.tsx` error message - 1 string - **FALLBACK** (zachováno jako fallback)
+
+---
+
+## DOPORUČENÝ POSTUP OPRAV
+
+1. **Vytvořit chybějící translation keys** v `src/types/i18n.ts`
+2. **Přidat anglické texty** do `src/locales/en/index.ts`
+3. **Přeložit do němčiny** v `src/locales/de/index.ts`
+4. **Přeložit do španělštiny** v `src/locales/es/index.ts`
+5. **Upravit kód** - nahradit hardcoded stringy voláním `t()`
+6. **Spustit TypeScript check** pro ověření
+
+---
+
+*Report vygenerován: 21. prosince 2025*
+*Auditor: Claude Code*

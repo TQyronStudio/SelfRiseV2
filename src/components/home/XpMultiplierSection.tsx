@@ -204,13 +204,15 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
     const hours = Math.floor(remaining / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
 
-    if (hours > 0) {
-      return `(${hours}h${minutes > 0 ? ` ${minutes}m` : ''} remaining)`;
+    if (hours > 0 && minutes > 0) {
+      return t('home.xpMultiplier.timeRemaining.hoursMinutes', { hours, minutes });
+    } else if (hours > 0) {
+      return t('home.xpMultiplier.timeRemaining.hoursOnly', { hours });
     } else if (minutes > 0) {
-      return `(${minutes}m remaining)`;
+      return t('home.xpMultiplier.timeRemaining.minutesOnly', { minutes });
     } else {
       const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-      return `(${seconds}s remaining)`;
+      return t('home.xpMultiplier.timeRemaining.secondsOnly', { seconds });
     }
   };
 

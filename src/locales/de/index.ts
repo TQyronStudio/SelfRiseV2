@@ -107,6 +107,65 @@ const de: Partial<TranslationKeys> = {
     recommendations: 'Für dich',
     noRecommendations: 'Gut gemacht! Du bist bei allem auf Kurs.',
     journalPrompt: 'Versuche diese Eingabeaufforderung',
+    // Recommendation Card Content
+    recommendationCards: {
+      habits: {
+        adjustSchedule: {
+          title: 'Zeitplan anpassen',
+          description: '{{habitName}} zeigt {{completionRate}}% Erfüllung. Erwäge die Häufigkeit zu reduzieren.',
+          action: 'Zeitplan anpassen',
+        },
+        levelUp: {
+          title: 'Level Up',
+          description: 'Du rockst {{habitName}} mit {{completionRate}}%! Bereit für eine neue Herausforderung?',
+          action: 'Herausforderung hinzufügen',
+        },
+        addNewHabit: {
+          title: 'Neue Gewohnheit hinzufügen',
+          description: 'Du machst das großartig mit bestehenden Gewohnheiten! {{successfulDays}} sind deine stärksten Tage.',
+          action: 'Gewohnheit erstellen',
+        },
+      },
+      journal: {
+        buildStreak: {
+          title: 'Baue deinen Streak auf',
+          description: 'Regelmäßiges Journaling fördert Achtsamkeit. Beginne heute mit nur 3 Einträgen.',
+          prompt: 'Was hat dich heute zum Lächeln gebracht?',
+        },
+        onFire: {
+          title: 'Du bist on Fire!',
+          description: 'Deine Journaling-Kontinuität ist beeindruckend. Halte den Schwung!',
+          prompt: 'Reflektiere, wie das Journaling diese Woche deine Denkweise beeinflusst hat.',
+        },
+        trySelfPraise: {
+          title: 'Versuche Selbstlob',
+          description: 'Balance Dankbarkeit mit Selbstanerkennung. Was hast du heute gut gemacht?',
+          prompt: 'Welche persönliche Eigenschaft hat dir heute zum Erfolg verholfen?',
+        },
+      },
+      goals: {
+        startProgress: {
+          title: 'Beginne mit Fortschritt',
+          description: '{{goalTitle}} braucht Aufmerksamkeit. Fange an, Fortschritte zu machen!',
+          action: 'Fortschritt protokollieren',
+        },
+        almostThere: {
+          title: 'Fast geschafft!',
+          description: '{{goalTitle}} ist zu {{progressPercent}}% abgeschlossen. Gib den letzten Schub!',
+          action: 'Letzter Schub',
+        },
+        timelineCheck: {
+          title: 'Zeitplan-Check',
+          description: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{daysRemaining}} Tage.',
+          action: 'Zeitplan anpassen',
+        },
+        setNewGoal: {
+          title: 'Neues Ziel setzen',
+          description: 'Ziele geben Richtung und Motivation. Was möchtest du erreichen?',
+          action: 'Ziel erstellen',
+        },
+      },
+    },
     // Home Customization
     customization: {
       title: 'Startseite anpassen',
@@ -185,6 +244,12 @@ const de: Partial<TranslationKeys> = {
       readyToActivate: 'Bereit, 2x XP zu aktivieren!',
       moreDays: '{days, plural, one {# weiterer Tag} other {# weitere Tage}} für 2x XP',
       activateButton: '2x XP aktivieren',
+      timeRemaining: {
+        hoursMinutes: '({{hours}}h {{minutes}}m verbleibend)',
+        hoursOnly: '({{hours}}h verbleibend)',
+        minutesOnly: '({{minutes}}m verbleibend)',
+        secondsOnly: '({{seconds}}s verbleibend)',
+      },
     },
     // Monthly 30 Day Chart
     monthly30Day: {
@@ -244,6 +309,49 @@ const de: Partial<TranslationKeys> = {
     yourProgress: 'Dein Fortschritt',
     currentLevelSummary: 'Du befindest dich derzeit auf Level {currentLevel} von 100 Leveln',
     keepEarningXp: 'Verdiene weiterhin XP, um höhere Level freizuschalten!',
+    // Habit Feedback Messages (from habitCalculations.ts)
+    habitFeedback: {
+      buildingMomentum: {
+        title: '🌱 Schwung aufbauen',
+        description: 'Toller Start mit {{habitName}}! Mach weiter, um das Muster zu etablieren.',
+      },
+      excellentEarlyProgress: {
+        title: '🚀 Exzellenter früher Fortschritt',
+        description: '{{completionRate}}% Abschluss! Du baust ein starkes Fundament auf.',
+      },
+      goodEarlyPattern: {
+        title: '📈 Gutes frühes Muster',
+        description: '{{completionRate}}% Abschluss. Du bist auf dem richtigen Weg!',
+      },
+      earlyLearningPhase: {
+        title: '💪 Frühe Lernphase',
+        description: '{{completionRate}}% Abschluss. Jeder Schritt zählt beim Aufbau von Gewohnheiten!',
+      },
+      exceptionalPerformance: {
+        title: '⭐ Außergewöhnliche Leistung',
+        description: '{{completionRate}}% Abschlussrate! Dein Engagement für {{habitName}} ist außergewöhnlich.',
+      },
+      outstandingPerformance: {
+        title: '🏆 Herausragende Leistung',
+        description: '{{completionRate}}% Abschluss mit Bonuseinsatz. Exzellente Konstanz!',
+      },
+      strongConsistency: {
+        title: '✅ Starke Konstanz',
+        description: '{{completionRate}}% Abschlussrate. Gut gemacht bei {{habitName}}!',
+      },
+      steadyProgress: {
+        title: '📊 Stetiger Fortschritt',
+        description: '{{completionRate}}% Abschluss. Erwäge kleine Anpassungen für mehr Konstanz.',
+      },
+      focusOpportunity: {
+        title: '💪 Fokus-Möglichkeit',
+        description: '{{completionRate}}% Abschluss für {{habitName}}. Versuche es in kleinere Schritte aufzuteilen.',
+      },
+      progressTracking: {
+        title: '📈 Fortschrittsverfolgung',
+        description: '{{completionRate}}% Abschlussrate.',
+      },
+    },
   } as any,
 
   // Levels & Navigation screens
@@ -318,6 +426,13 @@ const de: Partial<TranslationKeys> = {
       levels: 'Level werden geladen...',
       habits: 'Gewohnheiten werden geladen...',
       progress: 'Fortschritt wird geladen...',
+    },
+    dates: {
+      today: 'Heute',
+      yesterday: 'Gestern',
+      tomorrow: 'Morgen',
+      nextDay: 'Nächsten {{dayName}}',
+      lastDay: 'Letzten {{dayName}}',
     },
     modals: {
       errorTitle: 'Fehler',
@@ -2916,6 +3031,9 @@ const de: Partial<TranslationKeys> = {
       to_next_level: 'bis Level {{level}}',
       xp_remaining: '{{xp}} EP verbleibend',
       loading: 'EP werden geladen...',
+      levelProgressFull: 'Level {{currentLevel}} {{progress}}% bis Level {{nextLevel}}',
+      xpProgressText: '{{current}}/{{total}} EP',
+      levelProgressCompact: 'Level {{level}} • {{progress}}%',
 
       accessibility: {
         label: 'Erfahrungslevel {{currentLevel}}, {{levelTitle}}. {{progress}} Prozent Fortschritt bis Level {{nextLevel}}. {{xpRemaining}} Erfahrungspunkte verbleibend.{{#isMilestone}} Dies ist ein Meilenstein-Level.{{/isMilestone}}',
@@ -3365,21 +3483,246 @@ const de: Partial<TranslationKeys> = {
     finish: 'Tutorial beenden',
     progressText: 'Schritt {{current}} von {{total}}',
     loading: 'Tutorial wird eingerichtet...',
+
     steps: {
+      // Schritt 1: Willkommen & Grundlagen
+      welcome: {
+        title: 'Willkommen bei SelfRise! 🌟',
+        content: 'Mach dich bereit für eine erstaunliche Reise des persönlichen Wachstums! Wir führen dich durch das Erstellen deiner ersten Gewohnheit, das Schreiben in deinem Tagebuch und das Setzen eines bedeutungsvollen Ziels. Am Ende hast du alles, was du brauchst, um das Leben aufzubauen, das du willst! ✨',
+        button: 'Los geht\'s!',
+      },
+
+      // App-Übersicht
+      appOverview: {
+        title: 'Dein Persönliches Wachstums-Dashboard 📊',
+        content: 'Dies ist dein Startbildschirm, auf dem du deinen Fortschritt, Serien und Erfolge siehst. Schau täglich vorbei, um motiviert zu bleiben!',
+        button: 'Zeig mir mehr',
+      },
+
+      // Schnellaktionen
+      quickActions: {
+        title: 'Schnellaktionen 🚀',
+        content: 'Diese Schaltflächen ermöglichen dir, schnell Gewohnheiten, Tagebucheinträge oder Ziele hinzuzufügen. Tippe sie jederzeit an, wenn du Fortschritte machen möchtest!',
+        button: 'Verstanden!',
+      },
+
+      // Gewohnheit erstellen Button
+      createHabitButton: {
+        title: 'Lass uns deine erste Gewohnheit erstellen! 🌱',
+        content: 'Tippe auf diese Schaltfläche, um deine erste positive Gewohnheit aufzubauen. Wir führen dich Schritt für Schritt durch den Prozess.',
+        button: 'Gewohnheit erstellen',
+      },
+
+      // Gewohnheit erstellen (Speichern-Button)
+      habitCreate: {
+        title: 'Speichere deine Gewohnheit 💾',
+        content: 'Fertig mit Anpassen? Tippe auf die Speichern-Schaltfläche, um deine Gewohnheit zu erstellen und deine Serie zu starten!',
+        button: 'Weiter',
+      },
+
+      // Zielkategorie
+      goalCategory: {
+        title: 'Wähle eine Kategorie 🏷️',
+        content: 'Wähle eine Kategorie, die dein Ziel am besten beschreibt. Dies hilft, deine Ziele zu organisieren und den Fortschritt in verschiedenen Lebensbereichen zu verfolgen.',
+        button: 'Nächster Schritt',
+      },
+
+      // Ziel erstellen (Speichern-Button)
+      goalCreate: {
+        title: 'Erstelle dein Ziel 🎯',
+        content: 'Bereit zum Verfolgen zu starten? Tippe auf die Erstellen-Schaltfläche, um dein Ziel zu speichern und deine Reise zu beginnen!',
+        button: 'Los geht\'s!',
+      },
+
+      // Ziel abgeschlossen
+      goalComplete: {
+        title: 'Ziel erstellt! 🎉',
+        content: 'Fantastisch! Dein Ziel ist jetzt aktiv. Füge Fortschrittsaktualisierungen hinzu, um Vorhersagen zu sehen und deine Reise zu verfolgen!',
+        button: 'Weiter',
+      },
+
+      // Zur Startseite navigieren
+      navigateHome: {
+        title: 'Lass uns nach Hause gehen 🏠',
+        content: 'Tippe auf den Home-Tab, um dein Dashboard mit all deinen Fortschritten, Gewohnheiten und Erfolgen zu sehen!',
+        button: 'Bring mich nach Hause',
+      },
+
+      // Trophäenraum
+      trophyRoom: {
+        title: 'Dein Trophäenraum 🏆',
+        content: 'Hier leben all deine Erfolge! Schließe Herausforderungen ab, um Abzeichen freizuschalten und deine Siege zu feiern!',
+        button: 'Großartig!',
+      },
+
+      // Schritt 2: Gewohnheitsname eingeben
+      habitName: {
+        title: 'Erstelle deine erste Gewohnheit 🌱',
+        content: 'Lass uns mit etwas beginnen, das du jeden Tag tun möchtest! Das könnte Lesen, Sport, Meditieren oder alles sein, was dir guttut. Welche positive Gewohnheit möchtest du aufbauen?',
+        placeholder: 'z.B. 10 Minuten lesen',
+        examples: ['Morgenmeditation', 'Täglicher Spaziergang', '8 Gläser Wasser trinken', 'In Dankbarkeitstagebuch schreiben', '20 Liegestütze machen'],
+        button: 'Tolle Wahl!',
+      },
+
+      // Schritt 3: Gewohnheitsfarbe auswählen
+      habitColor: {
+        title: 'Mach es zu deinem! 🎨',
+        content: 'Wähle eine Farbe, die dich begeistert! Jedes Mal, wenn du diese Farbe siehst, wirst du an deine großartige neue Gewohnheit denken. Wähle, was sich für dich richtig anfühlt!',
+        button: 'Perfekt!',
+      },
+
+      // Schritt 4: Gewohnheitssymbol auswählen
+      habitIcon: {
+        title: 'Wähle dein Symbol ✨',
+        content: 'Zeit, ein Symbol auszuwählen, das deine Gewohnheit repräsentiert! Dieses visuelle Zeichen hilft dir, deine Gewohnheit sofort zu erkennen und macht sie persönlicher. Was spricht dich an?',
+        button: 'Ich liebe es!',
+      },
+
+      // Schritt 5: Gewohnheitstage planen
+      habitDays: {
+        title: 'Wann wirst du dies tun? 📅',
+        content: 'Du hast die Kontrolle! Wähle die Tage, die am besten zu deinem Lebensstil passen. Möchtest du mit täglicher Praxis Schwung aufbauen? Oder bevorzugst du nur Wochentage? Was auch immer du wählst, wir helfen dir dabei zu bleiben!',
+        button: 'Klingt gut!',
+      },
+
+      // Schritt 6: Gewohnheit erfolgreich erstellt
+      habitComplete: {
+        title: 'Gewohnheit erfolgreich erstellt! 🎉',
+        content: 'Fantastisch! Du hast gerade deine erste Gewohnheit erstellt. Du kannst sie unten mit deiner gewählten Farbe und deinem Symbol sehen. Morgen kannst du sie abhaken und eine unglaubliche Serie starten!',
+        button: 'Was kommt als Nächstes?',
+      },
+
+      // Schritt 7: Tagebuch-Einführung
+      journalIntro: {
+        title: 'Lass uns jetzt das Tagebuchschreiben ausprobieren! 📝',
+        content: 'Tagebuchschreiben ist eines der mächtigsten Werkzeuge für persönliches Wachstum. Es hilft dir, gute Dinge in deinem Leben zu schätzen und baut eine positive Denkweise auf. Lass uns deinen ersten Dankbarkeitseintrag schreiben!',
+        button: 'Ich bin bereit!',
+      },
+
+      // Schritt 8: Erster Dankbarkeitseintrag
+      gratitudeEntry: {
+        title: 'Wofür bist du dankbar? 🙏',
+        content: 'Denke an etwas - groß oder klein - das du in deinem Leben gerade jetzt schätzt. Es könnte eine Person, eine Erfahrung, eine Gelegenheit oder sogar etwas so Einfaches wie dein Morgenkaffee sein! ☕',
+        placeholder: 'Ich bin dankbar für...',
+        examples: ['Die Unterstützung meiner Familie', 'Ein Dach über dem Kopf zu haben', 'Die Fähigkeit, neue Dinge zu lernen', 'Einen sonnigen Tag', 'Meine Gesundheit'],
+        button: 'Diesen Eintrag hinzufügen',
+      },
+
+      // Schritt 9: Tagebuch-Ermutigung
+      journalEncouragement: {
+        title: 'Du bist ein Naturtalent! ⭐',
+        content: 'Wunderschöner Eintrag! Das tägliche Schreiben von 3 Dankbarkeitseinträgen hilft, deine SelfRise-Serie aufrechtzuerhalten und füllt deinen Geist mit Positivität. Du kannst auch jederzeit Bonus-Einträge für zusätzliche XP hinzufügen!',
+        button: 'Verstanden!',
+      },
+
+      // Schritt 10: Ziele-Einführung
+      goalsIntro: {
+        title: 'Zeit, ein Ziel zu setzen! 🎯',
+        content: 'Ziele geben deinem Leben Richtung und Zweck. Ob es darum geht, Geld zu sparen, Bücher zu lesen, Gewicht zu verlieren oder eine Fähigkeit zu lernen - wir helfen dir, den Fortschritt zu verfolgen und vorherzusagen, wann du es erreichen wirst!',
+        button: 'Lass uns eines erstellen!',
+      },
+
+      // Schritt 11: Zieltitel
+      goalTitle: {
+        title: 'Was ist dein Ziel? 🏆',
+        content: 'Denke an etwas Bedeutungsvolles, das du erreichen möchtest. Mach es spezifisch und aufregend! Dies sollte etwas sein, worauf du stolz wärst, wenn du es abschließt.',
+        placeholder: 'z.B. 24 Bücher dieses Jahr lesen',
+        examples: ['5.000€ für Urlaub sparen', 'Spanisch fließend lernen', 'Einen 5K-Marathon laufen', 'Ein Buch schreiben', 'Gitarre lernen'],
+        button: 'Das ist ein tolles Ziel!',
+      },
+
+      // Schritt 12: Zieleinheit
+      goalUnit: {
+        title: 'Wie wirst du den Fortschritt messen? 📊',
+        content: 'Welche Einheit macht Sinn für die Verfolgung deines Ziels? Dies hilft uns, deinen Fortschritt klar zu zeigen und vorherzusagen, wann du erfolgreich sein wirst!',
+        placeholder: 'z.B. Bücher',
+        examples: ['Bücher', 'Euro', 'Kilogramm', 'Stunden', 'Kilometer', 'Seiten', 'Tage'],
+        button: 'Perfekt!',
+      },
+
+      // Schritt 13: Zielzahl
+      goalTarget: {
+        title: 'Was ist deine Zielzahl? 🎯',
+        content: 'Wie viele {{unit}} möchtest du erreichen? Mach es herausfordernd, aber realistisch. Du kannst dies später jederzeit anpassen, wenn du mehr über dein Tempo lernst!',
+        placeholder: 'z.B. 24',
+        button: 'Klingt erreichbar!',
+      },
+
+      // Schritt 14: Zieldatum (Optional)
+      goalDate: {
+        title: 'Wann möchtest du dies erreichen? 📅',
+        content: 'Das Setzen eines Zieldatums schafft Dringlichkeit und ermöglicht uns, dir intelligente Vorhersagen zu geben! Keine Sorge - dies ist optional und du kannst es später jederzeit ändern.',
+        placeholder: 'Zieldatum auswählen (optional)',
+        button: 'Alles bereit!',
+      },
+
+      // Schritt 14b: Ziel erstellen Button
       createGoalButton: {
-        title: 'Erstelle Dein Erstes Ziel',
+        title: 'Erstelle dein erstes Ziel',
         content: 'Klicke auf + Ziel hinzufügen, um dein erstes bedeutungsvolles Ziel zu setzen!',
         button: 'Hier klicken',
       },
-    } as any,
-    validation: {} as any,
+
+      // Schritt 15: XP-System-Einführung
+      xpIntro: {
+        title: 'Du verdienst XP! ⚡',
+        content: 'Schau dir das an! Du hast bereits Erfahrungspunkte für das Erstellen deiner Gewohnheit und deines Ziels verdient. Jede Aktion, die du in SelfRise durchführst, bringt XP und hilft dir, von Level 1 auf Level 100 aufzusteigen. Es ist wie ein Spiel, aber für dein echtes Leben! 🎮',
+        button: 'So cool!',
+      },
+
+      // Schritt 16: Tutorial abgeschlossen
+      completion: {
+        title: 'Du bist bereit zum Aufstieg! 🚀',
+        content: 'Herzlichen Glückwunsch! Du hast deine erste Gewohnheit erstellt, in dein Tagebuch geschrieben und ein bedeutungsvolles Ziel gesetzt. Du bist jetzt bereit, deine unglaubliche Reise des persönlichen Wachstums zu beginnen. Schau täglich vorbei, um Serien aufrechtzuerhalten, XP zu verdienen und Erfolge freizuschalten! Willkommen in der SelfRise-Community! 🌟',
+        button: 'Starte meine Reise!',
+      },
+    },
+
+    // Validierungsnachrichten
+    validation: {
+      habitName: {
+        required: 'Bitte gib einen Gewohnheitsnamen ein, um fortzufahren',
+        tooShort: 'Gib deiner Gewohnheit einen aussagekräftigeren Namen (mindestens 2 Zeichen)',
+        tooLong: 'Halte deinen Gewohnheitsnamen unter 50 Zeichen',
+      },
+      habitDays: {
+        required: 'Bitte wähle mindestens einen Tag für deine Gewohnheit',
+      },
+      goalTitle: {
+        required: 'Bitte gib einen Zieltitel ein, um fortzufahren',
+        tooShort: 'Gib deinem Ziel einen aussagekräftigeren Titel (mindestens 2 Zeichen)',
+        tooLong: 'Halte deinen Zieltitel unter 100 Zeichen',
+      },
+      goalUnit: {
+        required: 'Bitte gib eine Einheit für die Fortschrittsmessung an',
+        tooLong: 'Halte deine Einheit unter 20 Zeichen',
+      },
+      goalTarget: {
+        required: 'Bitte gib einen Zielwert größer als 0 ein',
+        tooLarge: 'Zielwert sollte kleiner als 1.000.000 sein',
+      },
+      gratitudeEntry: {
+        required: 'Bitte schreibe, wofür du dankbar bist',
+        tooShort: 'Teile ein bisschen mehr Details darüber, wofür du dankbar bist',
+      },
+    },
+
+    // Fehlermeldungen
     errors: {
+      loadingFailed: 'Hoppla! Beim Laden des Tutorials ist etwas schiefgelaufen. Bitte versuche es erneut.',
+      savingFailed: 'Wir konnten deinen Fortschritt nicht speichern. Bitte überprüfe deine Verbindung und versuche es erneut.',
+      habitCreationFailed: 'Wir konnten deine Gewohnheit nicht erstellen. Bitte versuche es erneut.',
+      goalCreationFailed: 'Wir konnten dein Ziel nicht erstellen. Bitte versuche es erneut.',
+      journalEntryFailed: 'Wir konnten deinen Tagebucheintrag nicht speichern. Bitte versuche es erneut.',
+      genericError: 'Etwas Unerwartetes ist passiert. Bitte versuche es erneut.',
       recoveryMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
       reset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
       retry: 'Erneut versuchen',
       generalError: 'Das Tutorial ist auf einen Fehler gestoßen. Bitte versuche es erneut.',
       alreadyCompleted: 'Tutorial bereits abgeschlossen oder übersprungen',
     },
+
+    // Benutzerfeedback-Nachrichten
     feedback: {
       simplifiedMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
       errorReset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
@@ -3408,14 +3751,46 @@ const de: Partial<TranslationKeys> = {
       excellentUnit: 'Ausgezeichnete Einheitswahl: "{{unit}}" - sehr klar und messbar! 📊',
       goodUnit: 'Gute Einheit: "{{unit}}" - stelle sicher, dass sie leicht zu verfolgen ist! ✅',
     },
-    stepProgress: 'Schritt {{current}} von {{total}}',
+
+    // Überspringen-Bestätigung
     skipConfirmation: {
       title: 'Tutorial überspringen?',
       message: 'Bist du sicher, dass du das Tutorial überspringen möchtest? Du kannst es später jederzeit über den Hilfebereich aufrufen.',
       skip: 'Ja, überspringen',
       continue: 'Tutorial fortsetzen',
     },
-  } as any,
+
+    // Fortschrittsnachrichten
+    progress: {
+      creatingHabit: 'Erstelle deine großartige Gewohnheit...',
+      creatingGoal: 'Richte dein Ziel ein...',
+      savingEntry: 'Speichere deinen Dankbarkeitseintrag...',
+      loading: 'Lade nächsten Schritt...',
+    },
+
+    // Barrierefreiheit
+    accessibility: {
+      tutorialModal: 'Tutorial-Schritt {{step}} von {{total}}: {{title}}',
+      spotlightArea: 'Tutorial-Spotlight hebt {{target}} hervor',
+      progressIndicator: 'Tutorial-Fortschritt: {{progress}} Prozent abgeschlossen',
+      skipButton: 'Tutorial überspringen und zur Haupt-App wechseln',
+      nextButton: 'Weiter zum nächsten Tutorial-Schritt',
+      formField: 'Tutorial-Eingabefeld für {{field}}',
+      colorSelector: 'Farbauswahl für Gewohnheitsanpassung',
+      iconSelector: 'Symbolauswahl für Gewohnheitsanpassung',
+      daySelector: 'Tagesauswahl für Gewohnheitsplanung',
+    },
+
+    // Tutorial Recovery (for crash recovery)
+    recovery: {
+      title: 'Willkommen zurück! 👋',
+      message: 'Es sieht so aus, als ob du mitten im Tutorial warst. Möchtest du dort weitermachen oder neu beginnen?',
+      continue: 'Tutorial fortsetzen',
+      restart: 'Neu starten',
+    },
+
+    stepProgress: 'Schritt {{current}} von {{total}}',
+  },
 
   // Notifications
   notifications: {
@@ -3492,6 +3867,7 @@ const de: Partial<TranslationKeys> = {
       footer: 'Jede Errungenschaft hier ist aus einer echten Benutzerreise. Du bist nicht allein! 💪',
       inspiring: 'Inspirierend',
       daysActive: '{{days}} Tage aktiv',
+      heroLevel: 'Level {{level}}',
       today: '🟢 Heute',
       yesterday: '🟡 Gestern',
       recent: '🔵 Kürzlich',

@@ -112,6 +112,12 @@ export interface TranslationKeys {
       readyToActivate: string;
       moreDays: string;
       activateButton: string;
+      timeRemaining: {
+        hoursMinutes: string;
+        hoursOnly: string;
+        minutesOnly: string;
+        secondsOnly: string;
+      };
     };
     // Monthly 30 Day Chart
     monthly30Day: {
@@ -197,6 +203,25 @@ export interface TranslationKeys {
     recommendations: string;
     noRecommendations: string;
     journalPrompt: string;
+    // Recommendation Cards
+    recommendationCards?: {
+      habits: {
+        adjustSchedule: { title: string; description: string; action: string; };
+        levelUp: { title: string; description: string; action: string; };
+        addNewHabit: { title: string; description: string; action: string; };
+      };
+      journal: {
+        buildStreak: { title: string; description: string; prompt: string; };
+        onFire: { title: string; description: string; prompt: string; };
+        trySelfPraise: { title: string; description: string; prompt: string; };
+      };
+      goals: {
+        startProgress: { title: string; description: string; action: string; };
+        almostThere: { title: string; description: string; action: string; };
+        timelineCheck: { title: string; description: string; action: string; };
+        setNewGoal: { title: string; description: string; action: string; };
+      };
+    };
     // Home Customization
     customization: {
       title: string;
@@ -232,6 +257,19 @@ export interface TranslationKeys {
     keepEarningXp: string;
     // Screen labels
     streakHistoryLoading: string;
+    // Habit Feedback Messages
+    habitFeedback?: {
+      buildingMomentum: { title: string; description: string; };
+      excellentEarlyProgress: { title: string; description: string; };
+      goodEarlyPattern: { title: string; description: string; };
+      earlyLearningPhase: { title: string; description: string; };
+      exceptionalPerformance: { title: string; description: string; };
+      outstandingPerformance: { title: string; description: string; };
+      strongConsistency: { title: string; description: string; };
+      steadyProgress: { title: string; description: string; };
+      focusOpportunity: { title: string; description: string; };
+      progressTracking: { title: string; description: string; };
+    };
   };
 
   // Levels & Navigation screens
@@ -1714,6 +1752,13 @@ export interface TranslationKeys {
     levelUppercase?: string;
     createdLabel?: string;
     daysCount?: string;
+    dates?: {
+      today: string;
+      yesterday: string;
+      tomorrow: string;
+      nextDay: string;
+      lastDay: string;
+    };
     modals: {
       errorTitle: string;
       confirmTitle: string;
@@ -1943,6 +1988,9 @@ export interface TranslationKeys {
       to_next_level: string;
       xp_remaining: string;
       loading: string;
+      levelProgressFull?: string;
+      xpProgressText?: string;
+      levelProgressCompact?: string;
       accessibility: {
         label: string;
         hint: string;
@@ -2459,6 +2507,7 @@ export interface TranslationKeys {
       footer: string;
       inspiring: string;
       daysActive: string;
+      heroLevel?: string;
       today: string;
       yesterday: string;
       recent: string;

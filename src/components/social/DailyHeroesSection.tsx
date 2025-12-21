@@ -195,7 +195,7 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, onPress, compact = false }) =
         <View style={styles.heroMetrics}>
           <View style={styles.heroLevel}>
             <Ionicons name="trending-up" size={14} color={colors.primary} />
-            <Text style={styles.heroLevelText}>Level {hero.level}</Text>
+            <Text style={styles.heroLevelText}>{t('social.dailyHeroes.heroLevel', { level: hero.level })}</Text>
           </View>
           <Text style={styles.heroDaysActive}>{t('social.dailyHeroes.daysActive', { days: hero.daysActive })}</Text>
         </View>

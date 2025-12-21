@@ -359,9 +359,9 @@ export const calculateLongestStreak = (dates: DateString[]): number => {
 
 // Display utilities
 export const getRelativeDateText = (dateString: DateString): string => {
-  if (isToday(dateString)) return 'Today';
-  if (isYesterday(dateString)) return 'Yesterday';
-  if (isTomorrow(dateString)) return 'Tomorrow';
+  if (isToday(dateString)) return i18next.t('common.dates.today');
+  if (isYesterday(dateString)) return i18next.t('common.dates.yesterday');
+  if (isTomorrow(dateString)) return i18next.t('common.dates.tomorrow');
 
   const date = parseDate(dateString);
   const daysDiff = daysBetween(today(), dateString);
@@ -369,7 +369,9 @@ export const getRelativeDateText = (dateString: DateString): string => {
 
   if (Math.abs(daysDiff) <= 7) {
     const dayName = date.toLocaleDateString(locale, { weekday: 'long' });
-    return daysDiff > 0 ? `Next ${dayName}` : `Last ${dayName}`;
+    return daysDiff > 0
+      ? i18next.t('common.dates.nextDay', { dayName })
+      : i18next.t('common.dates.lastDay', { dayName });
   }
 
   return date.toLocaleDateString(locale, {

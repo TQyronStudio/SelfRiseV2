@@ -260,27 +260,27 @@ export function PersonalizedRecommendations() {
             </View>
 
             <Text style={styles.recommendationTitle} numberOfLines={2}>
-              {recommendation.title}
+              {t(recommendation.titleKey)}
             </Text>
 
             <Text style={styles.recommendationDescription} numberOfLines={3}>
-              {recommendation.description}
+              {t(recommendation.descriptionKey, recommendation.descriptionParams || {})}
             </Text>
 
-            {(recommendation as any).actionText && (
+            {(recommendation as any).actionKey && (
               <View style={styles.actionContainer}>
                 <Text style={styles.actionText}>
-                  {(recommendation as any).actionText}
+                  {t((recommendation as any).actionKey)}
                 </Text>
                 <Ionicons name="arrow-forward" size={14} color={colors.primary} />
               </View>
             )}
 
-            {(recommendation as any).prompt && (
+            {(recommendation as any).promptKey && (
               <View style={styles.promptContainer}>
                 <Text style={styles.promptLabel}>{t('home.journalPrompt')}:</Text>
                 <Text style={styles.promptText} numberOfLines={2}>
-                  "{(recommendation as any).prompt}"
+                  "{t((recommendation as any).promptKey)}"
                 </Text>
               </View>
             )}

@@ -9,10 +9,11 @@ import { wasScheduledOnDate } from '../utils/habitImmutability';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string | number>;
   priority: 'high' | 'medium' | 'low';
-  actionText?: string;
+  actionKey?: string;
   habitId?: string;
   suggestedDays?: DayOfWeek[];
   category?: string;
@@ -20,19 +21,21 @@ export interface HabitRecommendation {
 
 export interface JournalRecommendation {
   type: 'journal_prompt' | 'streak_motivation' | 'milestone_celebration';
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string | number>;
   priority: 'high' | 'medium' | 'low';
-  prompt?: string;
+  promptKey?: string;
 }
 
 export interface GoalRecommendation {
   type: 'goal_progress' | 'goal_adjustment' | 'new_goal';
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string | number>;
   priority: 'high' | 'medium' | 'low';
   goalId?: string;
-  suggestedAction?: string;
+  actionKey?: string;
 }
 
 export type PersonalizedRecommendation = 
@@ -151,11 +154,12 @@ export class RecommendationEngine {
       if (completionRate < 0.3 && habit.isActive && ageInfo.isEstablishedHabit) {
         recommendations.push({
           type: 'habit_schedule',
-          title: 'Adjust Schedule',
-          description: `${habit.name} showing ${Math.round(completionResult.totalCompletionRate)}% completion. Consider reducing frequency.`,
+          titleKey: 'home.recommendationCards.habits.adjustSchedule.title',
+          descriptionKey: 'home.recommendationCards.habits.adjustSchedule.description',
+          descriptionParams: { habitName: habit.name, completionRate: Math.round(completionResult.totalCompletionRate) },
           priority: 'medium',
           habitId: habit.id,
-          actionText: 'Adjust Schedule',
+          actionKey: 'home.recommendationCards.habits.adjustSchedule.action',
         });
       }
 
@@ -164,11 +168,12 @@ export class RecommendationEngine {
       if (completionRate > 0.8 && habit.isActive && !levelUpRecommendationAdded && ageInfo.isEstablishedHabit) {
         recommendations.push({
           type: 'habit_adjustment',
-          title: 'Level Up',
-          description: `You're crushing ${habit.name} at ${Math.round(completionResult.totalCompletionRate)}%! Ready for a new challenge?`,
+          titleKey: 'home.recommendationCards.habits.levelUp.title',
+          descriptionKey: 'home.recommendationCards.habits.levelUp.description',
+          descriptionParams: { habitName: habit.name, completionRate: Math.round(completionResult.totalCompletionRate) },
           priority: 'low',
           habitId: habit.id,
-          actionText: 'Add Challenge',
+          actionKey: 'home.recommendationCards.habits.levelUp.action',
         });
         levelUpRecommendationAdded = true; // Only one Level Up recommendation
       }
@@ -215,14 +220,15 @@ export class RecommendationEngine {
 
     if (establishedSuccessfulHabits.length > 0 && activeHabits.length < 5) {
       const successfulDays = this.findBestDaysForHabits(completions);
-      
+
       recommendations.push({
         type: 'new_habit',
-        title: 'Add New Habit',
-        description: `You're doing great with existing habits! ${successfulDays.join(', ')} are your strongest days.`,
+        titleKey: 'home.recommendationCards.habits.addNewHabit.title',
+        descriptionKey: 'home.recommendationCards.habits.addNewHabit.description',
+        descriptionParams: { successfulDays: successfulDays.join(', ') },
         priority: 'low',
         suggestedDays: successfulDays,
-        actionText: 'Create Habit',
+        actionKey: 'home.recommendationCards.habits.addNewHabit.action',
       });
     }
 
@@ -245,10 +251,10 @@ export class RecommendationEngine {
     if (recentEntries.length < 3) {
       recommendations.push({
         type: 'streak_motivation',
-        title: 'Build Your Streak',
-        description: 'Regular journaling builds mindfulness. Start with just 3 entries today.',
+        titleKey: 'home.recommendationCards.journal.buildStreak.title',
+        descriptionKey: 'home.recommendationCards.journal.buildStreak.description',
         priority: 'high',
-        prompt: 'What made you smile today?',
+        promptKey: 'home.recommendationCards.journal.buildStreak.prompt',
       });
     }
 
@@ -256,10 +262,10 @@ export class RecommendationEngine {
     if (recentEntries.length >= 5) {
       recommendations.push({
         type: 'milestone_celebration',
-        title: 'You\'re on Fire!',
-        description: 'Your journaling consistency is impressive. Keep the momentum!',
+        titleKey: 'home.recommendationCards.journal.onFire.title',
+        descriptionKey: 'home.recommendationCards.journal.onFire.description',
         priority: 'medium',
-        prompt: 'Reflect on how journaling has impacted your mindset this week.',
+        promptKey: 'home.recommendationCards.journal.onFire.prompt',
       });
     }
 
@@ -268,10 +274,10 @@ export class RecommendationEngine {
     if (hasGratitudeOnly && recentEntries.length > 0) {
       recommendations.push({
         type: 'journal_prompt',
-        title: 'Try Self-Praise',
-        description: 'Balance gratitude with self-recognition. What did you do well today?',
+        titleKey: 'home.recommendationCards.journal.trySelfPraise.title',
+        descriptionKey: 'home.recommendationCards.journal.trySelfPraise.description',
         priority: 'medium',
-        prompt: 'What personal quality helped you succeed today?',
+        promptKey: 'home.recommendationCards.journal.trySelfPraise.prompt',
       });
     }
 
@@ -305,11 +311,12 @@ export class RecommendationEngine {
           if (timeElapsedPercentage > 10) {
             recommendations.push({
               type: 'goal_progress',
-              title: 'Start Making Progress',
-              description: `${goal.title} needs attention. Start making some progress!`,
+              titleKey: 'home.recommendationCards.goals.startProgress.title',
+              descriptionKey: 'home.recommendationCards.goals.startProgress.description',
+              descriptionParams: { goalTitle: goal.title },
               priority: 'medium',
               goalId: goal.id,
-              suggestedAction: 'Log Progress',
+              actionKey: 'home.recommendationCards.goals.startProgress.action',
             });
           }
         }
@@ -319,11 +326,12 @@ export class RecommendationEngine {
       if (progressPercentage > 80) {
         recommendations.push({
           type: 'goal_progress',
-          title: 'Almost There!',
-          description: `${goal.title} is ${Math.round(progressPercentage)}% complete. Push to finish!`,
+          titleKey: 'home.recommendationCards.goals.almostThere.title',
+          descriptionKey: 'home.recommendationCards.goals.almostThere.description',
+          descriptionParams: { goalTitle: goal.title, progressPercent: Math.round(progressPercentage) },
           priority: 'high',
           goalId: goal.id,
-          suggestedAction: 'Final Push',
+          actionKey: 'home.recommendationCards.goals.almostThere.action',
         });
       }
 
@@ -332,7 +340,7 @@ export class RecommendationEngine {
         const todayDate = new Date();
         const targetDate = new Date(goal.targetDate);
         const daysRemaining = Math.ceil((targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         if (daysRemaining > 0 && progressPercentage < 50 && daysRemaining < 30) {
           // Add third condition: only show if estimated completion is later than target date
           try {
@@ -340,11 +348,12 @@ export class RecommendationEngine {
             if (goalStats.estimatedCompletionDate && goalStats.estimatedCompletionDate > goal.targetDate) {
               recommendations.push({
                 type: 'goal_adjustment',
-                title: 'Timeline Check',
-                description: `${goal.title} may need timeline adjustment. ${daysRemaining} days remaining.`,
+                titleKey: 'home.recommendationCards.goals.timelineCheck.title',
+                descriptionKey: 'home.recommendationCards.goals.timelineCheck.description',
+                descriptionParams: { goalTitle: goal.title, daysRemaining },
                 priority: 'medium',
                 goalId: goal.id,
-                suggestedAction: 'Adjust Timeline',
+                actionKey: 'home.recommendationCards.goals.timelineCheck.action',
               });
             }
           } catch (error) {
@@ -352,11 +361,12 @@ export class RecommendationEngine {
             console.warn('Failed to fetch goal stats for Timeline Check:', error);
             recommendations.push({
               type: 'goal_adjustment',
-              title: 'Timeline Check',
-              description: `${goal.title} may need timeline adjustment. ${daysRemaining} days remaining.`,
+              titleKey: 'home.recommendationCards.goals.timelineCheck.title',
+              descriptionKey: 'home.recommendationCards.goals.timelineCheck.description',
+              descriptionParams: { goalTitle: goal.title, daysRemaining },
               priority: 'medium',
               goalId: goal.id,
-              suggestedAction: 'Adjust Timeline',
+              actionKey: 'home.recommendationCards.goals.timelineCheck.action',
             });
           }
         }
@@ -368,10 +378,10 @@ export class RecommendationEngine {
     if (activeGoals.length < 2) {
       recommendations.push({
         type: 'new_goal',
-        title: 'Set New Goal',
-        description: 'Goals provide direction and motivation. What would you like to achieve?',
+        titleKey: 'home.recommendationCards.goals.setNewGoal.title',
+        descriptionKey: 'home.recommendationCards.goals.setNewGoal.description',
         priority: 'low',
-        suggestedAction: 'Create Goal',
+        actionKey: 'home.recommendationCards.goals.setNewGoal.action',
       });
     }
 
