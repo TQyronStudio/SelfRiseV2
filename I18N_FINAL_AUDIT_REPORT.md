@@ -2,9 +2,9 @@
 
 ## Shrnutí
 
-**STATUS: NALEZENY NELOKALIZOVANÉ STRINGY**
+**STATUS: ✅ VŠECHNY POLOŽKY OPRAVENY**
 
-Tento report obsahuje kompletní seznam všech hardcoded stringů v aplikaci SelfRise V2, které vyžadují lokalizaci.
+Tento report obsahoval kompletní seznam všech hardcoded stringů v aplikaci SelfRise V2. Všechny položky byly opraveny nebo označeny jako záměrné (citáty, interní logging).
 
 ---
 
@@ -388,7 +388,7 @@ Dle technické dokumentace jsou tyto termíny záměrně hardcoded v angličtin�
 2. ✅ `notificationScheduler.ts` - 12 stringů - **JIŽ LOKALIZOVÁNO** (fallbacks jsou záměrné)
 3. ✅ `habitCalculations.ts` - 20 stringů - **OPRAVENO** (změněno na translation keys)
 4. ✅ `date.ts` - 5 stringů - **OPRAVENO** (přidány common.dates.*)
-5. ⏳ Tutorial sekce v DE/ES - 35+ klíčů - **V ŘEŠENÍ**
+5. ✅ Tutorial sekce v DE/ES - 35+ klíčů - **OPRAVENO** (kompletní překlad všech kroků)
 
 ### 🟡 STŘEDNÍ PRIORITA (user-facing, méně časté)
 1. ✅ `socialSharingService.ts` - 16 stringů - **ZÁMĚRNĚ V AJ** (citáty známých autorů)

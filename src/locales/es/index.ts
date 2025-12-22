@@ -3473,8 +3473,9 @@ const es: Partial<TranslationKeys> = {
     }
   } as any,
 
-  // Tutorial System (UI elements only, detailed content falls back to EN)
+  // Tutorial System
   tutorial: {
+    // General Tutorial UI
     skip: 'Saltar Tutorial',
     next: 'Siguiente',
     continue: 'Continuar',
@@ -3482,21 +3483,247 @@ const es: Partial<TranslationKeys> = {
     finish: 'Finalizar Tutorial',
     progressText: 'Paso {{current}} de {{total}}',
     loading: 'Configurando tu tutorial...',
+
+    // Tutorial Step Content
     steps: {
+      // Paso 1: Bienvenida y Fundamentos
+      welcome: {
+        title: '¡Bienvenido a SelfRise! 🌟',
+        content: '¡Prepárate para un increíble viaje de crecimiento personal! Te guiaremos a través de la creación de tu primer hábito, escribir en tu diario y establecer una meta significativa. ¡Al final, tendrás todo lo que necesitas para empezar a construir la vida que deseas! ✨',
+        button: '¡Comencemos!',
+      },
+
+      // Resumen de la App
+      appOverview: {
+        title: 'Tu Panel de Crecimiento Personal 📊',
+        content: 'Esta es tu pantalla principal donde verás tu progreso, rachas y logros. ¡Vuelve diariamente para mantenerte motivado!',
+        button: 'Muéstrame más',
+      },
+
+      // Acciones Rápidas
+      quickActions: {
+        title: 'Acciones Rápidas 🚀',
+        content: 'Estos botones te permiten agregar rápidamente hábitos, entradas de diario u objetivos. ¡Tócalos cuando quieras hacer progreso!',
+        button: '¡Entendido!',
+      },
+
+      // Botón Crear Hábito
+      createHabitButton: {
+        title: '¡Vamos a crear tu primer hábito! 🌱',
+        content: 'Toca este botón para empezar a construir tu primer hábito positivo. Te guiaremos paso a paso.',
+        button: 'Crear hábito',
+      },
+
+      // Crear Hábito (Botón Guardar)
+      habitCreate: {
+        title: 'Guarda Tu Hábito 💾',
+        content: '¿Terminaste de personalizar? ¡Toca el botón guardar para crear tu hábito y empezar a construir tu racha!',
+        button: 'Continuar',
+      },
+
+      // Categoría de Meta
+      goalCategory: {
+        title: 'Elige una Categoría 🏷️',
+        content: 'Selecciona una categoría que mejor describa tu meta. Esto ayuda a organizar tus metas y seguir el progreso en diferentes áreas de tu vida.',
+        button: 'Siguiente paso',
+      },
+
+      // Crear Meta (Botón Guardar)
+      goalCreate: {
+        title: 'Crea Tu Meta 🎯',
+        content: '¿Listo para empezar a seguir? ¡Toca el botón crear para guardar tu meta y comenzar tu viaje!',
+        button: '¡Hagámoslo!',
+      },
+
+      // Meta Completada
+      goalComplete: {
+        title: '¡Meta Creada! 🎉',
+        content: '¡Increíble! Tu meta está activa. ¡Agrega actualizaciones de progreso para ver predicciones y seguir tu viaje!',
+        button: 'Continuar',
+      },
+
+      // Navegar a Inicio
+      navigateHome: {
+        title: 'Vamos a Casa 🏠',
+        content: '¡Toca la pestaña inicio para ver tu panel con todo tu progreso, hábitos y logros!',
+        button: 'Llévame a casa',
+      },
+
+      // Sala de Trofeos
+      trophyRoom: {
+        title: 'Tu Sala de Trofeos 🏆',
+        content: '¡Aquí es donde viven todos tus logros! ¡Completa desafíos para desbloquear insignias y celebrar tus victorias!',
+        button: '¡Increíble!',
+      },
+
+      // Paso 2: Entrada de Nombre del Hábito
+      habitName: {
+        title: 'Crea Tu Primer Hábito 🌱',
+        content: '¡Empecemos con algo que quieras hacer todos los días! Podría ser leer, ejercitarte, meditar, o cualquier cosa que te haga sentir bien. ¿Qué hábito positivo quieres construir?',
+        placeholder: 'ej., Leer 10 minutos',
+        examples: ['Meditación matutina', 'Caminata diaria', 'Beber 8 vasos de agua', 'Escribir en diario de gratitud', 'Hacer 20 flexiones'],
+        button: '¡Gran elección!',
+      },
+
+      // Paso 3: Selección de Color del Hábito
+      habitColor: {
+        title: '¡Hazlo Tuyo! 🎨',
+        content: '¡Elige un color que te emocione! Cada vez que veas este color, pensarás en tu increíble nuevo hábito. ¡Elige lo que se sienta correcto para ti!',
+        button: '¡Perfecto!',
+      },
+
+      // Paso 4: Selección de Icono del Hábito
+      habitIcon: {
+        title: 'Elige Tu Icono ✨',
+        content: '¡Es hora de elegir un icono que represente tu hábito! Este visual te ayudará a reconocer tu hábito al instante y hacerlo más personal. ¿Qué te llama la atención?',
+        button: '¡Me encanta!',
+      },
+
+      // Paso 5: Días del Hábito
+      habitDays: {
+        title: '¿Cuándo Harás Esto? 📅',
+        content: '¡Tú tienes el control! Elige qué días funcionan mejor para tu estilo de vida. ¿Quieres construir impulso con práctica diaria? ¿O prefieres solo días laborables? ¡Lo que elijas, te ayudaremos a mantenerlo!',
+        button: '¡Suena bien!',
+      },
+
+      // Paso 6: Hábito Creado Exitosamente
+      habitComplete: {
+        title: '¡Hábito Creado Exitosamente! 🎉',
+        content: '¡Increíble! Acabas de crear tu primer hábito. Puedes verlo abajo con tu color e icono elegidos. ¡Mañana podrás marcarlo y empezar a construir una racha increíble!',
+        button: '¿Qué sigue?',
+      },
+
+      // Paso 7: Introducción al Diario
+      journalIntro: {
+        title: '¡Ahora Probemos el Diario! 📝',
+        content: 'El diario es una de las herramientas más poderosas para el crecimiento personal. Te ayuda a apreciar las cosas buenas en tu vida y construye una mentalidad positiva. ¡Escribamos tu primera entrada de gratitud!',
+        button: '¡Estoy listo!',
+      },
+
+      // Paso 8: Primera Entrada de Gratitud
+      gratitudeEntry: {
+        title: '¿Por Qué Estás Agradecido? 🙏',
+        content: 'Piensa en algo - grande o pequeño - que aprecies en tu vida ahora mismo. ¡Podría ser una persona, experiencia, oportunidad, o incluso algo tan simple como tu café de la mañana! ☕',
+        placeholder: 'Estoy agradecido por...',
+        examples: ['El apoyo de mi familia', 'Tener un techo sobre mi cabeza', 'La capacidad de aprender cosas nuevas', 'Un día soleado', 'Mi salud'],
+        button: 'Agregar esta entrada',
+      },
+
+      // Paso 9: Ánimo del Diario
+      journalEncouragement: {
+        title: '¡Eres un Natural! ⭐',
+        content: '¡Hermosa entrada! Escribir 3 entradas de gratitud diarias ayuda a mantener tu racha de SelfRise y llena tu mente de positividad. ¡También puedes agregar entradas extra para XP adicional!',
+        button: '¡Entendido!',
+      },
+
+      // Paso 10: Introducción a Metas
+      goalsIntro: {
+        title: '¡Hora de Establecer una Meta! 🎯',
+        content: 'Las metas dan dirección y propósito a tu vida. Ya sea ahorrar dinero, leer libros, perder peso o aprender una habilidad - ¡te ayudaremos a seguir el progreso y predecir cuándo lo lograrás!',
+        button: '¡Creemos una!',
+      },
+
+      // Paso 11: Título de la Meta
+      goalTitle: {
+        title: '¿Cuál es Tu Meta? 🏆',
+        content: 'Piensa en algo significativo que quieras lograr. ¡Hazlo específico y emocionante! Esto debería ser algo de lo que te sientas orgulloso cuando lo completes.',
+        placeholder: 'ej., Leer 24 libros este año',
+        examples: ['Ahorrar $5,000 para vacaciones', 'Aprender español fluido', 'Correr un maratón de 5K', 'Escribir un libro', 'Aprender guitarra'],
+        button: '¡Gran meta!',
+      },
+
+      // Paso 12: Unidad de la Meta
+      goalUnit: {
+        title: '¿Cómo Medirás el Progreso? 📊',
+        content: '¿Qué unidad tiene sentido para seguir tu meta? ¡Esto nos ayuda a mostrar tu progreso claramente y predecir cuándo tendrás éxito!',
+        placeholder: 'ej., libros',
+        examples: ['libros', 'dólares', 'kilos', 'horas', 'kilómetros', 'páginas', 'días'],
+        button: '¡Perfecto!',
+      },
+
+      // Paso 13: Número Objetivo
+      goalTarget: {
+        title: '¿Cuál es Tu Número Objetivo? 🎯',
+        content: '¿Cuántas {{unit}} quieres lograr? Hazlo desafiante pero realista. ¡Siempre puedes ajustarlo después mientras aprendes más sobre tu ritmo!',
+        placeholder: 'ej., 24',
+        button: '¡Parece alcanzable!',
+      },
+
+      // Paso 14: Fecha de la Meta (Opcional)
+      goalDate: {
+        title: '¿Cuándo Quieres Lograr Esto? 📅',
+        content: '¡Establecer una fecha objetivo crea urgencia y nos permite darte predicciones inteligentes! No te preocupes - esto es opcional y siempre puedes cambiarlo después.',
+        placeholder: 'Seleccionar fecha objetivo (opcional)',
+        button: '¡Listo!',
+      },
+
+      // Paso 14b: Botón Crear Meta
       createGoalButton: {
-        title: 'Crea Tu Primer Objetivo',
-        content: '¡Haz clic en + Agregar Objetivo para establecer tu primer objetivo significativo!',
+        title: 'Crea Tu Primera Meta',
+        content: '¡Haz clic en + Agregar Meta para establecer tu primer objetivo significativo!',
         button: 'Haz clic aquí',
       },
-    } as any,
-    validation: {} as any,
+
+      // Paso 15: Introducción al Sistema XP
+      xpIntro: {
+        title: '¡Estás Ganando XP! ⚡',
+        content: '¡Mira eso! Ya ganaste puntos de experiencia por crear tu hábito y meta. Cada acción que tomas en SelfRise gana XP, ayudándote a subir del Nivel 1 al Nivel 100. ¡Es como un juego, pero para tu vida real! 🎮',
+        button: '¡Genial!',
+      },
+
+      // Paso 16: Tutorial Completado
+      completion: {
+        title: '¡Estás Listo para Elevarte! 🚀',
+        content: '¡Felicitaciones! Has creado tu primer hábito, escrito en tu diario y establecido una meta significativa. Ahora estás listo para comenzar tu increíble viaje de crecimiento personal. ¡Vuelve diariamente para mantener rachas, ganar XP y desbloquear logros! ¡Bienvenido a la comunidad SelfRise! 🌟',
+        button: '¡Comenzar Mi Viaje!',
+      },
+    },
+
+    // Mensajes de Validación
+    validation: {
+      habitName: {
+        required: 'Por favor ingresa un nombre de hábito para continuar',
+        tooShort: 'Dale a tu hábito un nombre más descriptivo (al menos 2 caracteres)',
+        tooLong: 'Mantén el nombre del hábito bajo 50 caracteres',
+      },
+      habitDays: {
+        required: 'Por favor selecciona al menos un día para tu hábito',
+      },
+      goalTitle: {
+        required: 'Por favor ingresa un título de meta para continuar',
+        tooShort: 'Dale a tu meta un título más descriptivo (al menos 2 caracteres)',
+        tooLong: 'Mantén el título de la meta bajo 100 caracteres',
+      },
+      goalUnit: {
+        required: 'Por favor especifica una unidad para medir el progreso',
+        tooLong: 'Mantén tu unidad bajo 20 caracteres',
+      },
+      goalTarget: {
+        required: 'Por favor ingresa un valor objetivo mayor que 0',
+        tooLarge: 'El valor objetivo debe ser menor que 1,000,000',
+      },
+      gratitudeEntry: {
+        required: 'Por favor escribe por qué estás agradecido',
+        tooShort: 'Comparte un poco más de detalle sobre por qué estás agradecido',
+      },
+    },
+
+    // Mensajes de Error
     errors: {
+      loadingFailed: '¡Ups! Algo salió mal al cargar el tutorial. Por favor intenta de nuevo.',
+      savingFailed: 'No pudimos guardar tu progreso. Por favor revisa tu conexión e intenta de nuevo.',
+      habitCreationFailed: 'No pudimos crear tu hábito. Por favor intenta de nuevo.',
+      goalCreationFailed: 'No pudimos crear tu meta. Por favor intenta de nuevo.',
+      journalEntryFailed: 'No pudimos guardar tu entrada de diario. Por favor intenta de nuevo.',
+      genericError: 'Algo inesperado pasó. Por favor intenta de nuevo.',
       recoveryMode: 'El tutorial experimentó problemas. Ejecutándose en modo simplificado.',
       reset: 'El tutorial encontró un error y fue reiniciado.',
       retry: 'Intentar de Nuevo',
-      generalError: 'El tutorial encontró un error. Por favor, inténtalo de nuevo.',
+      generalError: 'El tutorial encontró un error. Por favor intenta de nuevo.',
       alreadyCompleted: 'Tutorial ya completado u omitido',
     },
+
+    // Mensajes de Feedback
     feedback: {
       simplifiedMode: 'El tutorial experimentó problemas. Ejecutándose en modo simplificado.',
       errorReset: 'El tutorial encontró un error y fue reiniciado.',
@@ -3525,14 +3752,46 @@ const es: Partial<TranslationKeys> = {
       excellentUnit: '¡Excelente elección de unidad: "{{unit}}" - muy clara y medible! 📊',
       goodUnit: '¡Buena unidad: "{{unit}}" - asegúrate de que sea fácil de rastrear! ✅',
     },
-    stepProgress: 'Paso {{current}} de {{total}}',
+
+    // Confirmación de Saltar
     skipConfirmation: {
       title: '¿Saltar Tutorial?',
-      message: '¿Estás seguro de que quieres saltar el tutorial? Siempre puedes reiniciarlo más tarde desde Ajustes.',
+      message: '¿Estás seguro de que quieres saltar el tutorial? Siempre puedes accederlo después desde la sección de ayuda.',
       skip: 'Sí, Saltar',
-      continue: 'Continuar Tutorial'
-    }
-  } as any,
+      continue: 'Continuar Tutorial',
+    },
+
+    // Mensajes de Progreso
+    progress: {
+      creatingHabit: 'Creando tu increíble hábito...',
+      creatingGoal: 'Configurando tu meta...',
+      savingEntry: 'Guardando tu entrada de gratitud...',
+      loading: 'Cargando siguiente paso...',
+    },
+
+    // Accesibilidad
+    accessibility: {
+      tutorialModal: 'Paso {{step}} de {{total}} del tutorial: {{title}}',
+      spotlightArea: 'Spotlight del tutorial destacando {{target}}',
+      progressIndicator: 'Progreso del tutorial: {{progress}} por ciento completado',
+      skipButton: 'Saltar tutorial e ir a la app principal',
+      nextButton: 'Continuar al siguiente paso del tutorial',
+      formField: 'Campo de entrada del tutorial para {{field}}',
+      colorSelector: 'Selección de color para personalización del hábito',
+      iconSelector: 'Selección de icono para personalización del hábito',
+      daySelector: 'Selección de día para programación del hábito',
+    },
+
+    // Recuperación del Tutorial
+    recovery: {
+      title: '¡Bienvenido de Vuelta! 👋',
+      message: 'Parece que estabas en medio del tutorial. ¿Te gustaría continuar donde lo dejaste o empezar de nuevo?',
+      continue: 'Continuar Tutorial',
+      restart: 'Empezar de Nuevo',
+    },
+
+    stepProgress: 'Paso {{current}} de {{total}}',
+  },
 
   // Notifications
   notifications: {
