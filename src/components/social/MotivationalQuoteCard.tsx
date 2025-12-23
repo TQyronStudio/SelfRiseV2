@@ -217,13 +217,13 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
 
   const formatQuoteForSharing = (quote: MotivationalQuote): string => {
     let formatted = `"${quote.text}"`;
-    
+
     if (quote.author) {
       formatted += `\n\n— ${quote.author}`;
     }
-    
-    formatted += '\n\n✨ Shared from SelfRise - Your Personal Growth Journey';
-    
+
+    formatted += `\n\n✨ ${t('social.quote.sharedFrom')}`;
+
     return formatted;
   };
 

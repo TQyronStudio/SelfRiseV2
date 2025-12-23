@@ -7,6 +7,7 @@ import {
   Easing,
   AccessibilityInfo
 } from 'react-native';
+import i18next from 'i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -156,7 +157,7 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
     // Announce for accessibility (defer this too)
     if (intensity === 'high' || type === 'milestone') {
       setTimeout(() => {
-        const announcement = `${type} celebration with ${intensity} intensity particle effects`;
+        const announcement = i18next.t('accessibility.particleEffects', { type, intensity });
         AccessibilityInfo.announceForAccessibility(announcement);
       }, 100);
     }

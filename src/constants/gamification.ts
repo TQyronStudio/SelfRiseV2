@@ -1,5 +1,6 @@
 // Gamification system constants and XP values
 import { XPSourceType, AchievementRarity } from '../types/gamification';
+import i18next from 'i18next';
 
 // ========================================
 // XP REWARD VALUES
@@ -116,112 +117,120 @@ export const DAILY_XP_LIMITS = {
 export const XP_SOURCES = {
   [XPSourceType.HABIT_COMPLETION]: {
     baseAmount: XP_REWARDS.HABIT.SCHEDULED_COMPLETION,
-    description: 'Completed scheduled habit',
+    descriptionKey: 'gamification.xpSources.habitCompletion',
     dailyLimit: undefined, // No limit on habit completions
     requirements: ['habit must be scheduled for today'],
   },
 
   [XPSourceType.HABIT_BONUS]: {
     baseAmount: XP_REWARDS.HABIT.BONUS_COMPLETION,
-    description: 'Completed habit on non-scheduled day',
+    descriptionKey: 'gamification.xpSources.habitBonus',
     dailyLimit: undefined, // No limit on bonus completions
     requirements: ['habit must not be scheduled for today'],
   },
 
   [XPSourceType.HABIT_STREAK_MILESTONE]: {
     baseAmount: XP_REWARDS.HABIT.STREAK_7_DAYS, // Base value, varies by milestone
-    description: 'Reached habit streak milestone',
+    descriptionKey: 'gamification.xpSources.habitStreakMilestone',
     dailyLimit: 1000, // Max one major milestone per day
     requirements: ['consecutive days of habit completion'],
   },
 
   [XPSourceType.JOURNAL_ENTRY]: {
     baseAmount: XP_REWARDS.JOURNAL.FIRST_ENTRY,
-    description: 'Created journal entry',
-    dailyLimit: XP_REWARDS.JOURNAL.FIRST_ENTRY * 3 + XP_REWARDS.JOURNAL.BONUS_ENTRY * 10 + 
-                XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE + 
+    descriptionKey: 'gamification.xpSources.journalEntry',
+    dailyLimit: XP_REWARDS.JOURNAL.FIRST_ENTRY * 3 + XP_REWARDS.JOURNAL.BONUS_ENTRY * 10 +
+                XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE +
                 XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // 3 required + 10 bonus + 3 milestones = 415 XP max
     requirements: ['entry must have minimum 10 characters'],
   },
 
   [XPSourceType.JOURNAL_BONUS]: {
     baseAmount: XP_REWARDS.JOURNAL.BONUS_ENTRY,
-    description: 'Created bonus journal entry',
+    descriptionKey: 'gamification.xpSources.journalBonus',
     dailyLimit: XP_REWARDS.JOURNAL.BONUS_ENTRY * 10, // Just the bonus entries themselves
     requirements: ['already completed 3 daily entries'],
   },
 
   [XPSourceType.JOURNAL_BONUS_MILESTONE]: {
     baseAmount: XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE, // Base value, varies by milestone
-    description: 'Reached journal bonus milestone',
-    dailyLimit: XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE + 
+    descriptionKey: 'gamification.xpSources.journalBonusMilestone',
+    dailyLimit: XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE +
                 XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // All three milestones per day max
     requirements: ['reached specific bonus entry milestone (⭐🔥👑)'],
   },
 
   [XPSourceType.JOURNAL_STREAK_MILESTONE]: {
     baseAmount: XP_REWARDS.JOURNAL.STREAK_7_DAYS,
-    description: 'Reached journal streak milestone',
+    descriptionKey: 'gamification.xpSources.journalStreakMilestone',
     dailyLimit: 1000, // Max one major milestone per day
     requirements: ['consecutive days with 3+ journal entries'],
   },
 
   [XPSourceType.GOAL_PROGRESS]: {
     baseAmount: XP_REWARDS.GOALS.PROGRESS_ENTRY,
-    description: 'Added progress to goal',
+    descriptionKey: 'gamification.xpSources.goalProgress',
     dailyLimit: XP_REWARDS.GOALS.PROGRESS_ENTRY * 10, // Max 10 goals per day
     requirements: ['max once per goal per day'],
   },
 
   [XPSourceType.GOAL_COMPLETION]: {
     baseAmount: XP_REWARDS.GOALS.GOAL_COMPLETION,
-    description: 'Completed a goal',
+    descriptionKey: 'gamification.xpSources.goalCompletion',
     dailyLimit: undefined, // No limit on completions
     requirements: ['goal progress must reach 100%'],
   },
 
   [XPSourceType.GOAL_MILESTONE]: {
     baseAmount: XP_REWARDS.GOALS.MILESTONE_25_PERCENT,
-    description: 'Reached goal milestone',
+    descriptionKey: 'gamification.xpSources.goalMilestone',
     dailyLimit: 500, // Max milestone XP per day
     requirements: ['goal progress crosses milestone threshold'],
   },
 
   [XPSourceType.DAILY_LAUNCH]: {
     baseAmount: XP_REWARDS.ENGAGEMENT.DAILY_APP_LAUNCH,
-    description: 'Launched app for first time today',
+    descriptionKey: 'gamification.xpSources.dailyLaunch',
     dailyLimit: XP_REWARDS.ENGAGEMENT.DAILY_APP_LAUNCH, // Once per day
     requirements: ['first app launch of the day'],
   },
 
   [XPSourceType.RECOMMENDATION_FOLLOW]: {
     baseAmount: XP_REWARDS.ENGAGEMENT.RECOMMENDATION_FOLLOW,
-    description: 'Followed a recommendation',
+    descriptionKey: 'gamification.xpSources.recommendationFollow',
     dailyLimit: XP_REWARDS.ENGAGEMENT.RECOMMENDATION_FOLLOW * 5, // Max 5 recommendations per day
     requirements: ['acted on personalized recommendation'],
   },
 
   [XPSourceType.ACHIEVEMENT_UNLOCK]: {
     baseAmount: XP_REWARDS.ACHIEVEMENTS.UNLOCK_COMMON, // Base value, varies by rarity
-    description: 'Unlocked an achievement',
+    descriptionKey: 'gamification.xpSources.achievementUnlock',
     dailyLimit: 2000, // Max achievement XP per day
     requirements: ['achievement conditions must be met'],
   },
 
   [XPSourceType.MONTHLY_CHALLENGE]: {
     baseAmount: XP_REWARDS.MONTHLY_CHALLENGES.ONE_STAR,
-    description: 'Completed monthly challenge',
+    descriptionKey: 'gamification.xpSources.monthlyChallenge',
     dailyLimit: 3000, // Max one challenge completion per day
     requirements: ['all challenge requirements must be met'],
   },
 
   [XPSourceType.XP_MULTIPLIER_BONUS]: {
     baseAmount: 0, // Variable based on multiplied actions
-    description: 'XP multiplier bonus applied',
+    descriptionKey: 'gamification.xpSources.xpMultiplierBonus',
     dailyLimit: undefined, // No specific limit (naturally limited by base actions)
     requirements: ['active XP multiplier must be present'],
   },
 } as const;
+
+/**
+ * Get localized XP source description
+ */
+export function getXPSourceDescription(sourceType: XPSourceType): string {
+  const source = (XP_SOURCES as Record<string, { descriptionKey: string }>)[sourceType];
+  return source?.descriptionKey ? i18next.t(source.descriptionKey) : '';
+}
 
 // ========================================
 // LEVEL PROGRESSION CONSTANTS

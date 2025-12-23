@@ -3,6 +3,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TFunction } from 'i18next';
+import i18next from 'i18next';
 import { UserActivityTracker, UserActivityBaseline } from './userActivityTracker';
 import { StarRatingService, ChallengeCompletionData } from './starRatingService';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
@@ -1292,27 +1293,28 @@ export class MonthlyChallengeService {
    */
   private static generateProgressGuidance(requirements: MonthlyChallengeRequirement[]): string[] {
     const guidance: string[] = [];
-    
+
     for (const req of requirements) {
+      const dailyTarget = req.dailyTarget || Math.ceil(req.target / 30);
       if (req.type === 'habits') {
-        guidance.push(`🎯 Target: ${req.target} habit completions this month (about ${req.dailyTarget || Math.ceil(req.target / 30)} per day)`);
-        guidance.push('💡 Tip: Start with 1-2 habits and build consistency before adding more');
+        guidance.push(i18next.t('challenges.guidance.habitsTarget', { target: req.target, daily: dailyTarget }));
+        guidance.push(i18next.t('challenges.guidance.habitsTip'));
       } else if (req.type === 'journal') {
-        guidance.push(`📝 Target: ${req.target} journal entries this month (about ${req.dailyTarget || Math.ceil(req.target / 30)} per day)`);
-        guidance.push('💡 Tip: Even short entries count - focus on the habit of daily writing');
+        guidance.push(i18next.t('challenges.guidance.journalTarget', { target: req.target, daily: dailyTarget }));
+        guidance.push(i18next.t('challenges.guidance.journalTip'));
       } else if (req.type === 'goals') {
-        guidance.push(`🎯 Target: ${req.target} days of goal progress this month`);
-        guidance.push('💡 Tip: Make progress daily, even if it\'s just updating your goals');
+        guidance.push(i18next.t('challenges.guidance.goalsTarget', { target: req.target }));
+        guidance.push(i18next.t('challenges.guidance.goalsTip'));
       } else if (req.type === 'consistency') {
-        guidance.push(`⭐ Target: ${req.target} consistent activity days this month`);
-        guidance.push('💡 Tip: Try to use multiple features each day for maximum consistency');
+        guidance.push(i18next.t('challenges.guidance.consistencyTarget', { target: req.target }));
+        guidance.push(i18next.t('challenges.guidance.consistencyTip'));
       }
     }
 
     // Add general guidance
-    guidance.push('📊 Check your progress weekly to stay on track');
-    guidance.push('🎉 Remember: This first month is about building the habit, not perfection');
-    
+    guidance.push(i18next.t('challenges.guidance.checkProgress'));
+    guidance.push(i18next.t('challenges.guidance.buildHabit'));
+
     return guidance;
   }
 

@@ -1,6 +1,7 @@
 // Mathematical level calculation system for gamification
 import { LEVEL_PROGRESSION } from '../constants/gamification';
 import { LevelInfo, LevelRequirement } from '../types/gamification';
+import i18next from 'i18next';
 
 // ========================================
 // PERFORMANCE CACHING SYSTEM
@@ -395,18 +396,18 @@ function getLevelTitle(level: number, phase: 'beginner' | 'intermediate' | 'adva
 function getLevelDescription(level: number, phase: 'beginner' | 'intermediate' | 'advanced' | 'master'): string {
   // Descriptions based on rarity tiers
   if (level >= 1 && level <= 20) {
-    return 'Common tier - Building the foundation of your personal growth journey.';
+    return i18next.t('gamification.levelTiers.common');
   } else if (level >= 21 && level <= 40) {
-    return 'Rare tier - Developing consistency and deeper understanding of your habits.';
+    return i18next.t('gamification.levelTiers.rare');
   } else if (level >= 41 && level <= 60) {
-    return 'Epic tier - Mastering the art of self-improvement with advanced techniques.';
+    return i18next.t('gamification.levelTiers.epic');
   } else if (level >= 61 && level <= 80) {
-    return 'Legendary tier - Achieving extraordinary growth and inspiring others.';
+    return i18next.t('gamification.levelTiers.legendary');
   } else if (level >= 81 && level <= 100) {
-    return 'Mythic tier - Transcending ordinary limits and becoming a true master.';
+    return i18next.t('gamification.levelTiers.mythic');
   }
-  
-  return 'Continuing your journey of personal growth and self-improvement.';
+
+  return i18next.t('gamification.levelTiers.default');
 }
 
 /**
@@ -426,14 +427,35 @@ function getPhaseStartLevel(phase: 'beginner' | 'intermediate' | 'advanced' | 'm
  */
 function getMilestoneRewards(level: number): string[] {
   const rewards: Record<number, string[]> = {
-    10: ['Achievement Badge: Beginner V', 'Custom Color Theme Unlock', 'Bonus XP Multiplier (1 hour)'],
-    25: ['Achievement Badge: Adept V', 'Trophy Room Expansion', 'Weekly Challenge Unlock'],
-    50: ['Achievement Badge: Specialist V', 'Prestige System Access', 'Advanced Statistics Unlock'],
-    75: ['Achievement Badge: Challenger V', 'Legacy Features Unlock', 'Mentor Mode Unlock'],
-    100: ['Achievement Badge: Mythic V Ultimate', 'Hall of Fame Entry', 'Ultimate Title Unlock', 'Custom Achievement Creation'],
+    10: [
+      i18next.t('gamification.milestoneRewards.level10.badge'),
+      i18next.t('gamification.milestoneRewards.level10.theme'),
+      i18next.t('gamification.milestoneRewards.level10.multiplier'),
+    ],
+    25: [
+      i18next.t('gamification.milestoneRewards.level25.badge'),
+      i18next.t('gamification.milestoneRewards.level25.trophy'),
+      i18next.t('gamification.milestoneRewards.level25.challenge'),
+    ],
+    50: [
+      i18next.t('gamification.milestoneRewards.level50.badge'),
+      i18next.t('gamification.milestoneRewards.level50.prestige'),
+      i18next.t('gamification.milestoneRewards.level50.stats'),
+    ],
+    75: [
+      i18next.t('gamification.milestoneRewards.level75.badge'),
+      i18next.t('gamification.milestoneRewards.level75.legacy'),
+      i18next.t('gamification.milestoneRewards.level75.mentor'),
+    ],
+    100: [
+      i18next.t('gamification.milestoneRewards.level100.badge'),
+      i18next.t('gamification.milestoneRewards.level100.hallOfFame'),
+      i18next.t('gamification.milestoneRewards.level100.title'),
+      i18next.t('gamification.milestoneRewards.level100.customAchievement'),
+    ],
   };
-  
-  return rewards[level] || [`Level ${level} Achievement Badge`];
+
+  return rewards[level] || [i18next.t('gamification.milestoneRewards.default', { level })];
 }
 
 // ========================================

@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import i18next from 'i18next';
 import { ProductionMonitoringService } from '../services/productionMonitoring';
 import { AtomicStorage } from '../services/atomicStorage';
 
@@ -141,7 +142,7 @@ export function useProductionMonitoring(options: Partial<MonitoringHookOptions> 
       console.log('✅ Production monitoring hook initialized');
       
     } catch (initError) {
-      const errorMessage = initError instanceof Error ? initError.message : 'Failed to initialize monitoring';
+      const errorMessage = initError instanceof Error ? initError.message : i18next.t('monitoring.errors.initFailed');
       console.error('❌ Monitoring initialization failed:', initError);
       setError(errorMessage);
     } finally {
@@ -223,7 +224,7 @@ export function useProductionMonitoring(options: Partial<MonitoringHookOptions> 
       console.log(`📊 Dashboard data updated - Health: ${healthStatus} (${dashboardData.overallHealthScore}/100)`);
       
     } catch (refreshError) {
-      const errorMessage = refreshError instanceof Error ? refreshError.message : 'Failed to refresh monitoring data';
+      const errorMessage = refreshError instanceof Error ? refreshError.message : i18next.t('monitoring.errors.refreshFailed');
       console.error('❌ Failed to refresh monitoring data:', refreshError);
       setError(errorMessage);
     }

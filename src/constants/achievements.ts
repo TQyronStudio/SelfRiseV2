@@ -1,6 +1,7 @@
 // Achievement system constants and configuration
 
 import { AchievementRarity, AchievementCategory } from '../types/gamification';
+import i18next from 'i18next';
 
 // ========================================
 // ACHIEVEMENT XP REWARDS
@@ -38,90 +39,128 @@ export const ACHIEVEMENT_EVALUATION = {
 // ACHIEVEMENT CATEGORIES METADATA
 // ========================================
 
-export const ACHIEVEMENT_CATEGORY_META: Record<AchievementCategory, {
+export const ACHIEVEMENT_CATEGORY_CONFIG: Record<AchievementCategory, {
+  nameKey: string;
+  icon: string;
+  color: string;
+  descriptionKey: string;
+}> = {
+  [AchievementCategory.HABITS]: {
+    nameKey: 'achievements.categoryMeta.habits.name',
+    icon: '🏃‍♂️',
+    color: '#4CAF50',
+    descriptionKey: 'achievements.categoryMeta.habits.description',
+  },
+  [AchievementCategory.JOURNAL]: {
+    nameKey: 'achievements.categoryMeta.journal.name',
+    icon: '📝',
+    color: '#2196F3',
+    descriptionKey: 'achievements.categoryMeta.journal.description',
+  },
+  [AchievementCategory.GOALS]: {
+    nameKey: 'achievements.categoryMeta.goals.name',
+    icon: '🎯',
+    color: '#FF9800',
+    descriptionKey: 'achievements.categoryMeta.goals.description',
+  },
+  [AchievementCategory.CONSISTENCY]: {
+    nameKey: 'achievements.categoryMeta.consistency.name',
+    icon: '🔥',
+    color: '#F44336',
+    descriptionKey: 'achievements.categoryMeta.consistency.description',
+  },
+  [AchievementCategory.MASTERY]: {
+    nameKey: 'achievements.categoryMeta.mastery.name',
+    icon: '👑',
+    color: '#9C27B0',
+    descriptionKey: 'achievements.categoryMeta.mastery.description',
+  },
+  [AchievementCategory.SPECIAL]: {
+    nameKey: 'achievements.categoryMeta.special.name',
+    icon: '✨',
+    color: '#FFD700',
+    descriptionKey: 'achievements.categoryMeta.special.description',
+  },
+} as const;
+
+/**
+ * Get localized category metadata
+ */
+export function getAchievementCategoryMeta(category: AchievementCategory): {
   name: string;
   icon: string;
   color: string;
   description: string;
-}> = {
-  [AchievementCategory.HABITS]: {
-    name: 'Habits',
-    icon: '🏃‍♂️',
-    color: '#4CAF50',
-    description: 'Build consistent daily routines',
-  },
-  [AchievementCategory.JOURNAL]: {
-    name: 'Journal',
-    icon: '📝',
-    color: '#2196F3',
-    description: 'Reflect and express gratitude',
-  },
-  [AchievementCategory.GOALS]: {
-    name: 'Goals',
-    icon: '🎯',
-    color: '#FF9800',
-    description: 'Achieve your dreams',
-  },
-  [AchievementCategory.CONSISTENCY]: {
-    name: 'Consistency',
-    icon: '🔥',
-    color: '#F44336',
-    description: 'Show up every day',
-  },
-  [AchievementCategory.MASTERY]: {
-    name: 'Mastery',
-    icon: '👑',
-    color: '#9C27B0',
-    description: 'Become the best version of yourself',
-  },
-  [AchievementCategory.SPECIAL]: {
-    name: 'Special',
-    icon: '✨',
-    color: '#FFD700',
-    description: 'Limited time and unique achievements',
-  },
-} as const;
+} {
+  const config = ACHIEVEMENT_CATEGORY_CONFIG[category];
+  return {
+    name: i18next.t(config.nameKey),
+    icon: config.icon,
+    color: config.color,
+    description: i18next.t(config.descriptionKey),
+  };
+}
 
 // ========================================
 // ACHIEVEMENT RARITY METADATA
 // ========================================
 
-export const ACHIEVEMENT_RARITY_META: Record<AchievementRarity, {
-  name: string;
+export const ACHIEVEMENT_RARITY_CONFIG: Record<AchievementRarity, {
+  nameKey: string;
   color: string;
   borderColor: string;
   glowColor: string;
   probability: number; // Estimated percentage of users who will unlock
 }> = {
   [AchievementRarity.COMMON]: {
-    name: 'Common',
+    nameKey: 'achievements.rarityMeta.common',
     color: '#9E9E9E',
     borderColor: '#757575',
     glowColor: '#BDBDBD',
     probability: 80, // 80% of users expected to unlock
   },
   [AchievementRarity.RARE]: {
-    name: 'Rare', 
+    nameKey: 'achievements.rarityMeta.rare',
     color: '#2196F3',
     borderColor: '#1976D2',
     glowColor: '#64B5F6',
     probability: 40, // 40% of users expected to unlock
   },
   [AchievementRarity.EPIC]: {
-    name: 'Epic',
+    nameKey: 'achievements.rarityMeta.epic',
     color: '#9C27B0',
     borderColor: '#7B1FA2',
     glowColor: '#BA68C8',
     probability: 15, // 15% of users expected to unlock
   },
   [AchievementRarity.LEGENDARY]: {
-    name: 'Legendary',
+    nameKey: 'achievements.rarityMeta.legendary',
     color: '#FFD700',
     borderColor: '#FFA000',
     glowColor: '#FFEB3B',
     probability: 5, // 5% of users expected to unlock
   },
 } as const;
+
+/**
+ * Get localized rarity metadata
+ */
+export function getAchievementRarityMeta(rarity: AchievementRarity): {
+  name: string;
+  color: string;
+  borderColor: string;
+  glowColor: string;
+  probability: number;
+} {
+  const config = ACHIEVEMENT_RARITY_CONFIG[rarity];
+  return {
+    name: i18next.t(config.nameKey),
+    color: config.color,
+    borderColor: config.borderColor,
+    glowColor: config.glowColor,
+    probability: config.probability,
+  };
+}
 
 // ========================================
 // ACHIEVEMENT UNLOCK CONDITIONS

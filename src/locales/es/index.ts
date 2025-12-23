@@ -1657,6 +1657,42 @@ const es: Partial<TranslationKeys> = {
       legendary: 'Legendario',
     },
 
+    // Category metadata (for constants)
+    categoryMeta: {
+      habits: {
+        name: 'Hábitos',
+        description: 'Construir rutinas diarias consistentes',
+      },
+      journal: {
+        name: 'Diario',
+        description: 'Reflexionar y expresar gratitud',
+      },
+      goals: {
+        name: 'Metas',
+        description: 'Alcanzar tus sueños',
+      },
+      consistency: {
+        name: 'Consistencia',
+        description: 'Presentarte cada día',
+      },
+      mastery: {
+        name: 'Maestría',
+        description: 'Convertirte en la mejor versión de ti mismo',
+      },
+      special: {
+        name: 'Especial',
+        description: 'Logros únicos y de tiempo limitado',
+      },
+    },
+
+    // Rarity metadata (for constants)
+    rarityMeta: {
+      common: 'Común',
+      rare: 'Raro',
+      epic: 'Épico',
+      legendary: 'Legendario',
+    },
+
     // Achievement Card
     card: {
       locked: 'Bloqueado',
@@ -3151,6 +3187,34 @@ const es: Partial<TranslationKeys> = {
       // Countdown Timer
       timerAccessibility: 'Multiplicador de XP: {{multiplier}}x, {{time}} restante',
       noActiveMultiplier: 'Sin multiplicador de XP activo',
+
+      // Service-level messages
+      errors: {
+        alreadyActive: 'Multiplicador ya activo',
+        alreadyRunning: 'Multiplicador {{source}} ya está activo',
+        needHarmonyStreak: 'Se requieren {{days}} días de racha de armonía (actual: {{current}})',
+        onCooldown: 'El multiplicador de armonía está en enfriamiento',
+        cannotActivate: 'No se puede activar el multiplicador de armonía',
+        cannotActivateInactive: 'No se puede activar el boost de usuario inactivo',
+        userInactiveButActive: 'El usuario está inactivo pero el multiplicador ya está activo',
+        userNotInactive: 'El usuario no está inactivo ({{days}} días desde la última actividad, se necesitan 4+)',
+      },
+      descriptions: {
+        harmonyStreak: 'Racha de Armonía: {{multiplier}}x XP ({{hours}}h restantes)',
+        challengeReward: 'Recompensa de Desafío: {{multiplier}}x XP ({{hours}}h restantes)',
+        achievementBonus: 'Bonus de Logro: {{multiplier}}x XP ({{hours}}h restantes)',
+        specialEvent: 'Evento Especial: {{multiplier}}x XP ({{hours}}h restantes)',
+        welcomeBack: '¡Bienvenido de nuevo! {{multiplier}}x XP ({{hours}}h restantes)',
+        default: 'Multiplicador {{multiplier}}x XP ({{hours}}h restantes)',
+        harmonyActivated: '¡Racha de Armonía activada! {{hours}}h de 2x XP',
+        welcomeBackBoost: '¡Bienvenido de nuevo! 2x XP por {{hours}} horas',
+        xpFor: '2x XP por {{hours}} horas',
+        comebackBonus: 'Bonus de regreso: {{days}} días ausente',
+      },
+      notifications: {
+        oneMoreDay: '¡Un día más de actividad equilibrada para desbloquear el Multiplicador 2x XP!',
+        moreDays: '¡{{days}} días más de actividad equilibrada para desbloquear el Multiplicador 2x XP!',
+      },
     },
 
     analysis: {
@@ -3159,6 +3223,66 @@ const es: Partial<TranslationKeys> = {
       trend: 'Tendencia',
       successRate: 'Tasa de Éxito',
       strongest: 'Más Fuerte',
+    },
+
+    // Level tier descriptions
+    levelTiers: {
+      common: 'Nivel Común - Construyendo la base de tu viaje de crecimiento personal.',
+      rare: 'Nivel Raro - Desarrollando consistencia y comprensión más profunda de tus hábitos.',
+      epic: 'Nivel Épico - Dominando el arte de la superación personal con técnicas avanzadas.',
+      legendary: 'Nivel Legendario - Logrando un crecimiento extraordinario e inspirando a otros.',
+      mythic: 'Nivel Mítico - Trascendiendo límites ordinarios y convirtiéndote en un verdadero maestro.',
+      default: 'Continuando tu viaje de crecimiento personal y superación.',
+    },
+
+    // Milestone rewards
+    milestoneRewards: {
+      level10: {
+        badge: 'Insignia de Logro: Principiante V',
+        theme: 'Desbloqueo de Tema de Color Personalizado',
+        multiplier: 'Multiplicador de XP Bonus (1 hora)',
+      },
+      level25: {
+        badge: 'Insignia de Logro: Adepto V',
+        trophy: 'Expansión de Sala de Trofeos',
+        challenge: 'Desbloqueo de Desafío Semanal',
+      },
+      level50: {
+        badge: 'Insignia de Logro: Especialista V',
+        prestige: 'Acceso al Sistema de Prestigio',
+        stats: 'Desbloqueo de Estadísticas Avanzadas',
+      },
+      level75: {
+        badge: 'Insignia de Logro: Retador V',
+        legacy: 'Desbloqueo de Funciones Legado',
+        mentor: 'Desbloqueo de Modo Mentor',
+      },
+      level100: {
+        badge: 'Insignia de Logro: Mítico V Definitivo',
+        hallOfFame: 'Entrada al Salón de la Fama',
+        title: 'Desbloqueo de Título Definitivo',
+        customAchievement: 'Creación de Logros Personalizados',
+      },
+      default: 'Insignia de Logro Nivel {{level}}',
+    },
+
+    // XP Source descriptions
+    xpSources: {
+      habitCompletion: 'Hábito programado completado',
+      habitBonus: 'Hábito completado en día no programado',
+      habitStreakMilestone: 'Hito de racha de hábito alcanzado',
+      journalEntry: 'Entrada de diario creada',
+      journalBonus: 'Entrada de diario bonus creada',
+      journalBonusMilestone: 'Hito de bonus de diario alcanzado',
+      journalStreakMilestone: 'Hito de racha de diario alcanzado',
+      goalProgress: 'Progreso añadido a la meta',
+      goalCompletion: 'Meta completada',
+      goalMilestone: 'Hito de meta alcanzado',
+      dailyLaunch: 'App iniciada por primera vez hoy',
+      recommendationFollow: 'Recomendación seguida',
+      achievementUnlock: 'Logro desbloqueado',
+      monthlyChallenge: 'Desafío mensual completado',
+      xpMultiplierBonus: 'Bonus de multiplicador de XP aplicado',
     },
 
     achievement: {
@@ -3220,6 +3344,12 @@ const es: Partial<TranslationKeys> = {
       XP_MULTIPLIER_BONUS: {
         icon_description: 'Icono de rayo que representa el multiplicador de bonus de regreso',
       },
+    },
+
+    // Mensajes de validación
+    validation: {
+      xpMustBePositive: 'La cantidad de XP debe ser positiva',
+      xpSubtractMustBePositive: 'La cantidad de XP a restar debe ser positiva',
     },
   } as any,
 
@@ -3802,6 +3932,13 @@ const es: Partial<TranslationKeys> = {
     afternoonDescription: 'Chequeo motivacional',
     eveningReminder: 'Recordatorio Nocturno',
     eveningDescription: 'Recordatorio de tareas inteligente',
+    // Canales de notificación Android
+    channels: {
+      reminders: {
+        name: 'Recordatorios Diarios',
+        description: 'Notificaciones para ayudarte a mantener el rumbo con tus hábitos y metas',
+      },
+    },
     morning: {
       variant1: '¡Buenos días! Comienza tu día con gratitud 🌅',
       variant2: '¡Despierta y brilla! ¿Por qué estás agradecido hoy? ✨',
@@ -3857,6 +3994,10 @@ const es: Partial<TranslationKeys> = {
   } as any,
 
   social: {
+    // Share feature
+    share: {
+      achievementUnlockedTitle: '🏆 ¡Logro Desbloqueado: {{name}}!',
+    },
     // Phase 7: DailyHeroesSection
     dailyHeroes: {
       title: 'Héroes Diarios 🦸‍♀️',
@@ -3897,6 +4038,7 @@ const es: Partial<TranslationKeys> = {
       title: '✨ Cita Motivadora',
       dailyInspiration: 'Inspiración diaria',
       personalizedJourney: 'Personalizado para tu viaje',
+      sharedFrom: 'Compartido desde SelfRise - Tu Viaje de Crecimiento Personal',
     },
     achievements: {
       shareSuccessTitle: '🎉 ¡Compartido Exitosamente!',
@@ -4091,6 +4233,18 @@ const es: Partial<TranslationKeys> = {
       activeDays: 'Días Activos',
       milestones: 'Hitos',
     },
+    guidance: {
+      habitsTarget: '🎯 Objetivo: {{target}} hábitos completados este mes (aprox. {{daily}} por día)',
+      habitsTip: '💡 Consejo: Comienza con 1-2 hábitos y construye consistencia antes de añadir más',
+      journalTarget: '📝 Objetivo: {{target}} entradas de diario este mes (aprox. {{daily}} por día)',
+      journalTip: '💡 Consejo: Incluso las entradas cortas cuentan - enfócate en el hábito de escribir diariamente',
+      goalsTarget: '🎯 Objetivo: {{target}} días de progreso en metas este mes',
+      goalsTip: '💡 Consejo: Avanza diariamente, aunque solo sea actualizando tus metas',
+      consistencyTarget: '⭐ Objetivo: {{target}} días de actividad consistente este mes',
+      consistencyTip: '💡 Consejo: Intenta usar múltiples funciones cada día para máxima consistencia',
+      checkProgress: '📊 Revisa tu progreso semanalmente para mantenerte en el camino',
+      buildHabit: '🎉 Recuerda: Este primer mes es sobre construir el hábito, no la perfección',
+    },
   } as any,
 
   // Gratitude/Journal
@@ -4112,6 +4266,14 @@ const es: Partial<TranslationKeys> = {
     },
   } as any,
 
+  // Sistema de monitoreo
+  monitoring: {
+    errors: {
+      initFailed: 'Error al inicializar el monitoreo',
+      refreshFailed: 'Error al actualizar los datos de monitoreo',
+    },
+  },
+
   // Accessibility
   accessibility: {
     activateMultiplier: 'Activar multiplicador de XP 2x',
@@ -4130,6 +4292,7 @@ const es: Partial<TranslationKeys> = {
     refreshDailyHeroes: 'Actualizar héroes del día',
     closeSharingModal: 'Cerrar modal de compartir',
     closeHelp: 'Cerrar ayuda',
+    particleEffects: 'Celebración de {{type}} con efectos de partículas de intensidad {{intensity}}',
     hints: {
       openLevelOverview: 'Abre la vista general de niveles',
       doubleTapShowHelp: 'Toca dos veces para mostrar información de ayuda',

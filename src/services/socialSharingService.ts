@@ -4,6 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Share, Platform } from 'react-native';
 import { Clipboard } from 'react-native';
+import i18next from 'i18next';
 import { 
   Achievement, 
   UserAchievements,
@@ -266,7 +267,7 @@ export class SocialSharingService {
 
       const shareOptions = {
         message: fullMessage,
-        title: `🏆 Achievement Unlocked: ${shareData.achievement.nameKey}!`
+        title: i18next.t('social.share.achievementUnlockedTitle', { name: shareData.achievement.nameKey })
       };
 
       const result = await Share.share(shareOptions);

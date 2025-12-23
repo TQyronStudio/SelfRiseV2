@@ -11,6 +11,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
+import i18next from 'i18next';
 import {
   NotificationCategory,
   NotificationPermissionStatus,
@@ -70,8 +71,8 @@ class NotificationService {
     try {
       // Reminder channel (for daily reminders)
       await Notifications.setNotificationChannelAsync('reminders', {
-        name: 'Daily Reminders',
-        description: 'Notifications to help you stay on track with your habits and goals',
+        name: i18next.t('notifications.channels.reminders.name'),
+        description: i18next.t('notifications.channels.reminders.description'),
         importance: Notifications.AndroidImportance.HIGH,
         sound: 'default',
         vibrationPattern: [0, 250, 250, 250],

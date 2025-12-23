@@ -1847,6 +1847,13 @@ export interface TranslationKeys {
     afternoonDescription: string;
     eveningReminder: string;
     eveningDescription: string;
+    // Android notification channels
+    channels?: {
+      reminders: {
+        name: string;
+        description: string;
+      };
+    };
     morning: {
       variant1: string;
       variant2: string;
@@ -2155,6 +2162,11 @@ export interface TranslationKeys {
       // Countdown Timer
       timerAccessibility: string;
       noActiveMultiplier: string;
+
+      // Service-level messages
+      errors?: Record<string, string>;
+      descriptions?: Record<string, string>;
+      notifications?: Record<string, string>;
     };
     analysis: {
       title: string;
@@ -2162,6 +2174,17 @@ export interface TranslationKeys {
       trend: string;
       successRate: string;
       strongest: string;
+    };
+    // Level tier descriptions
+    levelTiers?: Record<string, string>;
+    // Milestone rewards
+    milestoneRewards?: Record<string, any>;
+    // XP Source descriptions
+    xpSources?: Record<string, string>;
+    // Validation messages
+    validation?: {
+      xpMustBePositive: string;
+      xpSubtractMustBePositive: string;
     };
   };
 
@@ -2496,6 +2519,10 @@ export interface TranslationKeys {
 
   // Social features
   social: {
+    // Share feature
+    share?: {
+      achievementUnlockedTitle: string;
+    };
     // Phase 7: DailyHeroesSection
     dailyHeroes: {
       title: string;
@@ -2545,6 +2572,7 @@ export interface TranslationKeys {
       share: string;
       dailyInspiration: string;
       personalizedJourney: string;
+      sharedFrom?: string;
     };
     achievements: {
       shareSuccessTitle: string;
@@ -2738,6 +2766,7 @@ export interface TranslationKeys {
       activeDays: string;
       milestones: string;
     };
+    guidance?: Record<string, string>;
   };
 
   // Gratitude/Journal
@@ -2759,6 +2788,14 @@ export interface TranslationKeys {
     };
   };
 
+  // Monitoring system
+  monitoring?: {
+    errors: {
+      initFailed: string;
+      refreshFailed: string;
+    };
+  };
+
   // Accessibility labels
   accessibility: {
     activateMultiplier: string;
@@ -2777,6 +2814,7 @@ export interface TranslationKeys {
     refreshDailyHeroes: string;
     closeSharingModal: string;
     closeHelp: string;
+    particleEffects?: string;
     hints: {
       openLevelOverview: string;
       doubleTapShowHelp: string;

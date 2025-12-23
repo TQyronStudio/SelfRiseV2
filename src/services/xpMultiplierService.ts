@@ -14,6 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
+import i18next from 'i18next';
 import { DateString } from '../types/common';
 import { XPMultiplier, MultiplierCondition } from '../types/gamification';
 import { XP_MULTIPLIERS } from '../constants/gamification';
@@ -416,21 +417,21 @@ export class XPMultiplierService {
       if (currentMultiplier.isActive) {
         return {
           success: false,
-          error: 'Multiplier already active',
-          reason: `${currentMultiplier.source} multiplier is already running`,
+          error: i18next.t('gamification.multiplier.errors.alreadyActive'),
+          reason: i18next.t('gamification.multiplier.errors.alreadyRunning', { source: currentMultiplier.source }),
         };
       }
-      
+
       // Check harmony streak eligibility
       const harmonyStreak = await this.calculateHarmonyStreak();
       if (!harmonyStreak.canActivateMultiplier) {
-        const reason = !harmonyStreak.isActive 
-          ? `Need ${XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED} day harmony streak (current: ${harmonyStreak.currentStreak})`
-          : 'Harmony multiplier is on cooldown';
-        
+        const reason = !harmonyStreak.isActive
+          ? i18next.t('gamification.multiplier.errors.needHarmonyStreak', { days: XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED, current: harmonyStreak.currentStreak })
+          : i18next.t('gamification.multiplier.errors.onCooldown');
+
         return {
           success: false,
-          error: 'Cannot activate harmony multiplier',
+          error: i18next.t('gamification.multiplier.errors.cannotActivate'),
           reason,
         };
       }
@@ -461,7 +462,7 @@ export class XPMultiplierService {
         const { GamificationService } = await import('./gamificationService');
         await GamificationService.addXP(bonusXP, {
           source: 'xp_multiplier_bonus' as any,
-          description: `Harmony Streak activated! ${XP_MULTIPLIERS.HARMONY_STREAK_DURATION}h of 2x XP`,
+          description: i18next.t('gamification.multiplier.descriptions.harmonyActivated', { hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION }),
           metadata: {
             multiplierSource: 'harmony_streak',
             harmonyStreakLength: harmonyStreak.currentStreak,
@@ -470,18 +471,18 @@ export class XPMultiplierService {
       } catch (error) {
         console.error('Failed to award multiplier activation bonus XP:', error);
       }
-      
+
       // Record activation history
       await this.recordMultiplierActivation(multiplier, harmonyStreak.currentStreak, bonusXP);
-      
+
       // Set cooldown
       await this.setMultiplierCooldown('harmony_streak', XP_MULTIPLIERS.HARMONY_STREAK_COOLDOWN);
-      
+
       // Trigger celebration event
       this.triggerMultiplierActivationEvent(multiplier, harmonyStreak.currentStreak);
-      
+
       console.log(`🚀 Harmony Multiplier activated! 2x XP for ${XP_MULTIPLIERS.HARMONY_STREAK_DURATION} hours`);
-      
+
       return {
         success: true,
         multiplier: {
@@ -491,7 +492,7 @@ export class XPMultiplierService {
           expiresAt: multiplier.expiresAt,
           source: multiplier.source,
           timeRemaining: expiresAt.getTime() - now.getTime(),
-          description: `2x XP for ${XP_MULTIPLIERS.HARMONY_STREAK_DURATION} hours`,
+          description: i18next.t('gamification.multiplier.descriptions.xpFor', { hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION }),
         },
         xpBonusAwarded: bonusXP,
       };
@@ -591,20 +592,21 @@ export class XPMultiplierService {
    */
   private static getMultiplierDescription(multiplierData: XPMultiplier): string {
     const hoursLeft = Math.ceil((new Date(multiplierData.expiresAt).getTime() - Date.now()) / (60 * 60 * 1000));
-    
+    const params = { multiplier: multiplierData.multiplier, hours: hoursLeft };
+
     switch (multiplierData.source) {
       case 'harmony_streak':
-        return `Harmony Streak: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.harmonyStreak', params);
       case 'weekly_challenge':
-        return `Challenge Reward: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.challengeReward', params);
       case 'achievement':
-        return `Achievement Bonus: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.achievementBonus', params);
       case 'special_event':
-        return `Special Event: ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.specialEvent', params);
       case 'inactive_user_return':
-        return `Welcome Back! ${multiplierData.multiplier}x XP (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.welcomeBack', params);
       default:
-        return `${multiplierData.multiplier}x XP Multiplier (${hoursLeft}h remaining)`;
+        return i18next.t('gamification.multiplier.descriptions.default', params);
     }
   }
 
@@ -851,9 +853,9 @@ export class XPMultiplierService {
         const daysNeeded = XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED - currentStreak;
         return {
           shouldNotify: true,
-          message: daysNeeded === 1 
-            ? 'One more day of balanced activity to unlock 2x XP Multiplier!'
-            : `${daysNeeded} more days of balanced activity to unlock 2x XP Multiplier!`,
+          message: daysNeeded === 1
+            ? i18next.t('gamification.multiplier.notifications.oneMoreDay')
+            : i18next.t('gamification.multiplier.notifications.moreDays', { days: daysNeeded }),
           daysNeeded,
           currentStreak,
         };
@@ -986,21 +988,21 @@ export class XPMultiplierService {
       if (currentMultiplier.isActive) {
         return {
           success: false,
-          error: 'Multiplier already active',
-          reason: `${currentMultiplier.source} multiplier is already running`,
+          error: i18next.t('gamification.multiplier.errors.alreadyActive'),
+          reason: i18next.t('gamification.multiplier.errors.alreadyRunning', { source: currentMultiplier.source }),
         };
       }
 
       // Check inactive user status
       const inactiveStatus = await this.checkInactiveUserStatus();
       if (!inactiveStatus.shouldActivateBoost) {
-        const reason = inactiveStatus.isInactive 
-          ? 'User is inactive but multiplier already active'
-          : `User is not inactive (${inactiveStatus.daysSinceLastActivity} days since last activity, need 4+)`;
-        
+        const reason = inactiveStatus.isInactive
+          ? i18next.t('gamification.multiplier.errors.userInactiveButActive')
+          : i18next.t('gamification.multiplier.errors.userNotInactive', { days: inactiveStatus.daysSinceLastActivity });
+
         return {
           success: false,
-          error: 'Cannot activate inactive user boost',
+          error: i18next.t('gamification.multiplier.errors.cannotActivateInactive'),
           reason,
         };
       }
@@ -1040,7 +1042,7 @@ export class XPMultiplierService {
       await GamificationService.addXP(bonusXP, {
         source: 'XP_MULTIPLIER_BONUS' as any,
         sourceId: multiplier.id,
-        description: `Comeback bonus: ${inactiveStatus.daysSinceLastActivity} days away`,
+        description: i18next.t('gamification.multiplier.descriptions.comebackBonus', { days: inactiveStatus.daysSinceLastActivity }),
         skipLimits: true,
         metadata: {
           type: 'inactive_user_return_bonus',
@@ -1063,7 +1065,7 @@ export class XPMultiplierService {
           expiresAt: multiplier.expiresAt,
           source: multiplier.source,
           timeRemaining: expiresAt.getTime() - now.getTime(),
-          description: `Welcome back! 2x XP for ${BOOST_DURATION_HOURS} hours`,
+          description: i18next.t('gamification.multiplier.descriptions.welcomeBackBoost', { hours: BOOST_DURATION_HOURS }),
         },
         xpBonusAwarded: bonusXP,
       };

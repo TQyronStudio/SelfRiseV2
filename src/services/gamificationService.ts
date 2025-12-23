@@ -1,5 +1,6 @@
 // Core gamification service for XP management and level progression
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18next from 'i18next';
 import { DeviceEventEmitter } from 'react-native';
 import { 
   XPTransaction, 
@@ -673,7 +674,7 @@ export class GamificationService {
               newLevel: getCurrentLevel(totalXP),
               leveledUp: false,
               milestoneReached: false,
-              error: 'XP amount must be positive'
+              error: i18next.t('gamification.validation.xpMustBePositive')
             };
           }
 
@@ -978,7 +979,7 @@ export class GamificationService {
           newLevel: getCurrentLevel(totalXP),
           leveledUp: false,
           milestoneReached: false,
-          error: 'XP amount to subtract must be positive'
+          error: i18next.t('gamification.validation.xpSubtractMustBePositive')
         };
       }
 

@@ -1527,6 +1527,42 @@ const en: TranslationKeys = {
       legendary: 'Legendary',
     },
 
+    // Category metadata (for constants)
+    categoryMeta: {
+      habits: {
+        name: 'Habits',
+        description: 'Build consistent daily routines',
+      },
+      journal: {
+        name: 'Journal',
+        description: 'Reflect and express gratitude',
+      },
+      goals: {
+        name: 'Goals',
+        description: 'Achieve your dreams',
+      },
+      consistency: {
+        name: 'Consistency',
+        description: 'Show up every day',
+      },
+      mastery: {
+        name: 'Mastery',
+        description: 'Become the best version of yourself',
+      },
+      special: {
+        name: 'Special',
+        description: 'Limited time and unique achievements',
+      },
+    },
+
+    // Rarity metadata (for constants)
+    rarityMeta: {
+      common: 'Common',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+    },
+
     // Filtering and Search
     filter: {
       showAll: 'Show All',
@@ -3137,6 +3173,34 @@ const en: TranslationKeys = {
       // Countdown Timer
       timerAccessibility: 'XP Multiplier: {{multiplier}}x, {{time}} remaining',
       noActiveMultiplier: 'No active XP multiplier',
+
+      // Service-level messages
+      errors: {
+        alreadyActive: 'Multiplier already active',
+        alreadyRunning: '{{source}} multiplier is already running',
+        needHarmonyStreak: 'Need {{days}} day harmony streak (current: {{current}})',
+        onCooldown: 'Harmony multiplier is on cooldown',
+        cannotActivate: 'Cannot activate harmony multiplier',
+        cannotActivateInactive: 'Cannot activate inactive user boost',
+        userInactiveButActive: 'User is inactive but multiplier already active',
+        userNotInactive: 'User is not inactive ({{days}} days since last activity, need 4+)',
+      },
+      descriptions: {
+        harmonyStreak: 'Harmony Streak: {{multiplier}}x XP ({{hours}}h remaining)',
+        challengeReward: 'Challenge Reward: {{multiplier}}x XP ({{hours}}h remaining)',
+        achievementBonus: 'Achievement Bonus: {{multiplier}}x XP ({{hours}}h remaining)',
+        specialEvent: 'Special Event: {{multiplier}}x XP ({{hours}}h remaining)',
+        welcomeBack: 'Welcome Back! {{multiplier}}x XP ({{hours}}h remaining)',
+        default: '{{multiplier}}x XP Multiplier ({{hours}}h remaining)',
+        harmonyActivated: 'Harmony Streak activated! {{hours}}h of 2x XP',
+        welcomeBackBoost: 'Welcome back! 2x XP for {{hours}} hours',
+        xpFor: '2x XP for {{hours}} hours',
+        comebackBonus: 'Comeback bonus: {{days}} days away',
+      },
+      notifications: {
+        oneMoreDay: 'One more day of balanced activity to unlock 2x XP Multiplier!',
+        moreDays: '{{days}} more days of balanced activity to unlock 2x XP Multiplier!',
+      },
     },
 
     analysis: {
@@ -3145,6 +3209,66 @@ const en: TranslationKeys = {
       trend: 'Trend',
       successRate: 'Success Rate',
       strongest: 'Strongest',
+    },
+
+    // Level tier descriptions
+    levelTiers: {
+      common: 'Common tier - Building the foundation of your personal growth journey.',
+      rare: 'Rare tier - Developing consistency and deeper understanding of your habits.',
+      epic: 'Epic tier - Mastering the art of self-improvement with advanced techniques.',
+      legendary: 'Legendary tier - Achieving extraordinary growth and inspiring others.',
+      mythic: 'Mythic tier - Transcending ordinary limits and becoming a true master.',
+      default: 'Continuing your journey of personal growth and self-improvement.',
+    },
+
+    // Milestone rewards
+    milestoneRewards: {
+      level10: {
+        badge: 'Achievement Badge: Beginner V',
+        theme: 'Custom Color Theme Unlock',
+        multiplier: 'Bonus XP Multiplier (1 hour)',
+      },
+      level25: {
+        badge: 'Achievement Badge: Adept V',
+        trophy: 'Trophy Room Expansion',
+        challenge: 'Weekly Challenge Unlock',
+      },
+      level50: {
+        badge: 'Achievement Badge: Specialist V',
+        prestige: 'Prestige System Access',
+        stats: 'Advanced Statistics Unlock',
+      },
+      level75: {
+        badge: 'Achievement Badge: Challenger V',
+        legacy: 'Legacy Features Unlock',
+        mentor: 'Mentor Mode Unlock',
+      },
+      level100: {
+        badge: 'Achievement Badge: Mythic V Ultimate',
+        hallOfFame: 'Hall of Fame Entry',
+        title: 'Ultimate Title Unlock',
+        customAchievement: 'Custom Achievement Creation',
+      },
+      default: 'Level {{level}} Achievement Badge',
+    },
+
+    // XP Source descriptions
+    xpSources: {
+      habitCompletion: 'Completed scheduled habit',
+      habitBonus: 'Completed habit on non-scheduled day',
+      habitStreakMilestone: 'Reached habit streak milestone',
+      journalEntry: 'Created journal entry',
+      journalBonus: 'Created bonus journal entry',
+      journalBonusMilestone: 'Reached journal bonus milestone',
+      journalStreakMilestone: 'Reached journal streak milestone',
+      goalProgress: 'Added progress to goal',
+      goalCompletion: 'Completed a goal',
+      goalMilestone: 'Reached goal milestone',
+      dailyLaunch: 'Launched app for first time today',
+      recommendationFollow: 'Followed a recommendation',
+      achievementUnlock: 'Unlocked an achievement',
+      monthlyChallenge: 'Completed monthly challenge',
+      xpMultiplierBonus: 'XP multiplier bonus applied',
     },
 
     // Achievement System
@@ -3208,6 +3332,12 @@ const en: TranslationKeys = {
       XP_MULTIPLIER_BONUS: {
         icon_description: 'Lightning bolt icon representing comeback bonus multiplier',
       },
+    },
+
+    // Validation messages
+    validation: {
+      xpMustBePositive: 'XP amount must be positive',
+      xpSubtractMustBePositive: 'XP amount to subtract must be positive',
     },
   },
 
@@ -3828,6 +3958,13 @@ const en: TranslationKeys = {
     afternoonDescription: 'Motivational check-in',
     eveningReminder: 'Evening Reminder',
     eveningDescription: 'Smart task reminder',
+    // Android notification channels
+    channels: {
+      reminders: {
+        name: 'Daily Reminders',
+        description: 'Notifications to help you stay on track with your habits and goals',
+      },
+    },
     morning: {
       variant1: 'Good morning! Start your day with gratitude 🌅',
       variant2: 'Rise and shine! What are you grateful for today? ✨',
@@ -3885,6 +4022,10 @@ const en: TranslationKeys = {
 
   // Social features
   social: {
+    // Share feature
+    share: {
+      achievementUnlockedTitle: '🏆 Achievement Unlocked: {{name}}!',
+    },
     // Phase 7: DailyHeroesSection
     dailyHeroes: {
       title: 'Daily Heroes 🦸‍♀️',
@@ -3934,6 +4075,7 @@ const en: TranslationKeys = {
       title: '✨ Motivational Quote',
       dailyInspiration: 'Daily inspiration',
       personalizedJourney: 'Personalized for your journey',
+      sharedFrom: 'Shared from SelfRise - Your Personal Growth Journey',
     },
     achievements: {
       shareSuccessTitle: '🎉 Shared Successfully!',
@@ -4128,6 +4270,18 @@ const en: TranslationKeys = {
       activeDays: 'Active Days',
       milestones: 'Milestones',
     },
+    guidance: {
+      habitsTarget: '🎯 Target: {{target}} habit completions this month (about {{daily}} per day)',
+      habitsTip: '💡 Tip: Start with 1-2 habits and build consistency before adding more',
+      journalTarget: '📝 Target: {{target}} journal entries this month (about {{daily}} per day)',
+      journalTip: '💡 Tip: Even short entries count - focus on the habit of daily writing',
+      goalsTarget: '🎯 Target: {{target}} days of goal progress this month',
+      goalsTip: "💡 Tip: Make progress daily, even if it's just updating your goals",
+      consistencyTarget: '⭐ Target: {{target}} consistent activity days this month',
+      consistencyTip: '💡 Tip: Try to use multiple features each day for maximum consistency',
+      checkProgress: '📊 Check your progress weekly to stay on track',
+      buildHabit: '🎉 Remember: This first month is about building the habit, not perfection',
+    },
   },
 
   // Gratitude/Journal
@@ -4149,6 +4303,14 @@ const en: TranslationKeys = {
     },
   },
 
+  // Monitoring system
+  monitoring: {
+    errors: {
+      initFailed: 'Failed to initialize monitoring',
+      refreshFailed: 'Failed to refresh monitoring data',
+    },
+  },
+
   // Accessibility labels
   accessibility: {
     activateMultiplier: 'Activate 2x XP multiplier',
@@ -4167,6 +4329,7 @@ const en: TranslationKeys = {
     refreshDailyHeroes: 'Refresh daily heroes',
     closeSharingModal: 'Close sharing modal',
     closeHelp: 'Close help',
+    particleEffects: '{{type}} celebration with {{intensity}} intensity particle effects',
     hints: {
       openLevelOverview: 'Opens level overview screen',
       doubleTapShowHelp: 'Double tap to show help information',
