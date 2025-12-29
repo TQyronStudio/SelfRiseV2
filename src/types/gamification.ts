@@ -510,7 +510,7 @@ export interface MonthlyChallenge extends BaseEntity {
   isActive: boolean;
   
   // Generation context
-  generationReason: 'scheduled' | 'manual' | 'first_month' | 'retry';
+  generationReason: 'scheduled' | 'manual' | 'warm_up' | 'retry';
   categoryRotation: AchievementCategory[]; // Last 3 months for variety
 }
 
@@ -634,7 +634,7 @@ export interface StarRatingHistoryEntry {
   newStars: number;
   challengeCompleted: boolean;
   completionPercentage: number;
-  reason: 'success' | 'failure' | 'double_failure' | 'reset';
+  reason: 'success' | 'failure' | 'double_failure' | 'reset' | 'warm_up';
   timestamp: Date;
 }
 

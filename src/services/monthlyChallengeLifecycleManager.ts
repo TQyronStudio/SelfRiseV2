@@ -207,12 +207,12 @@ export class MonthlyChallengeLifecycleManager {
       // Check if we have a preview for this month
       const preview = await this.getPreviewForMonth(newMonth);
       
-      // 🎯 Grace Period Support: Allow challenge generation in first 7 days of month
+      // 🎯 Grace Period Support: Allow challenge generation in first 10 days of month
       // If user starts later, they have less time to complete - their problem!
-      const gracePeriodDays = this.config.gracePeriodDays || 7;
+      const gracePeriodDays = this.config.gracePeriodDays || 10;
 
       if (dayOfMonth <= gracePeriodDays) {
-        // Within grace period (days 1-7) - generate challenge
+        // Within grace period (days 1-10) - generate challenge
         this.log(`✅ Within grace period (day ${dayOfMonth}/${gracePeriodDays}) - generating challenge`);
         this.log(`⚠️  User started on day ${dayOfMonth}, has ${31 - dayOfMonth} days remaining to complete`);
         await this.setState(ChallengeLifecycleState.GENERATION_NEEDED);

@@ -69,6 +69,7 @@ export interface ChallengeCompletionData {
   wasCompleted: boolean;
   targetValue: number;
   actualValue: number;
+  isWarmUp?: boolean; // If true, don't award star for this challenge
 }
 
 // ========================================
@@ -166,8 +167,8 @@ export class StarRatingService {
   ): Promise<StarRatingHistoryEntry> {
     try {
       const currentRatings = await this.getCurrentStarRatings();
-      const { category, completionPercentage, month } = completionData;
-      
+      const { category, completionPercentage, month, isWarmUp } = completionData;
+
       // Map category to rating key - only support the 4 main categories
       const categoryKey = this.mapCategoryToKey(category);
       if (!categoryKey) {
@@ -183,8 +184,30 @@ export class StarRatingService {
           timestamp: new Date()
         };
       }
-      
+
       const previousStars = currentRatings[categoryKey];
+
+      // WARM-UP CHALLENGES: Don't affect star rating
+      // Users with < 14 days of activity get easier "warm-up" challenges
+      // that don't count toward difficulty progression
+      if (isWarmUp) {
+        console.log(`⚠️ [StarRatingService] Warm-up challenge completed - NO star progression`);
+        const warmUpEntry: StarRatingHistoryEntry = {
+          month,
+          category,
+          previousStars,
+          newStars: previousStars, // No change
+          challengeCompleted: completionPercentage >= this.PROGRESSION_RULES.successThreshold,
+          completionPercentage,
+          reason: 'warm_up', // Warm-up challenge - no star progression
+          timestamp: new Date()
+        };
+
+        // Save to history (for tracking) but don't update stars
+        await this.addToHistory(warmUpEntry);
+        return warmUpEntry;
+      }
+
       let newStars = previousStars;
       let reason: StarRatingHistoryEntry['reason'] = 'failure';
 

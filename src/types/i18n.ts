@@ -989,9 +989,9 @@ export interface TranslationKeys {
     milestones: string;
     requirements: string;
 
-    // First Month
-    firstMonthPrefix: string;
-    firstMonthDescription: string;
+    // Warm-Up Challenge
+    warmUpPrefix: string;
+    warmUpDescription: string;
 
     // Categories
     categories: {
@@ -999,6 +999,8 @@ export interface TranslationKeys {
       journal: string;
       goals: string;
       consistency: string;
+      mastery: string;
+      special: string;
     };
 
     // Calendar
@@ -1115,6 +1117,7 @@ export interface TranslationKeys {
         title: string;
         description: string;
         descriptionWithLevel: string;
+        continue: string;
       };
     };
 
@@ -1898,6 +1901,9 @@ export interface TranslationKeys {
 
   // Gamification System
   gamification: {
+    // Level label (used in level up modals)
+    level: string;
+
     xp: {
       label: string;
       short: string;

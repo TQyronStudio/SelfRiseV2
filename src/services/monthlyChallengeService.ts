@@ -581,9 +581,10 @@ export class MonthlyChallengeService {
    * Update star rating for a category based on challenge completion using StarRatingService
    */
   static async updateStarRatings(
-    category: AchievementCategory, 
+    category: AchievementCategory,
     completionPercentage: number,
-    month: string = formatDateToString(new Date()).substring(0, 7)
+    month: string = formatDateToString(new Date()).substring(0, 7),
+    isWarmUp: boolean = false
   ): Promise<StarRatingHistoryEntry> {
     // Create challenge completion data for StarRatingService
     const completionData: ChallengeCompletionData = {
@@ -593,7 +594,8 @@ export class MonthlyChallengeService {
       month,
       wasCompleted: completionPercentage >= 70,
       targetValue: 100, // Placeholder, will be filled by actual challenge data
-      actualValue: completionPercentage
+      actualValue: completionPercentage,
+      isWarmUp
     };
 
     return await StarRatingService.updateStarRatingForCompletion(completionData);
@@ -1031,7 +1033,7 @@ export class MonthlyChallengeService {
       dataQualityUsed = 'fallback';
       
       return {
-        requirements: this.createFirstMonthRequirements(template, starLevel),
+        requirements: this.createWarmUpRequirements(template, starLevel),
         xpReward: this.getXPRewardForStarLevel(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5), // Slightly easier XP for first month
         generationWarnings: warnings,
         dataQualityUsed,
@@ -1048,7 +1050,7 @@ export class MonthlyChallengeService {
       warnings.push('Baseline data insufficient, using conservative fallback parameters');
       dataQualityUsed = 'fallback';
       return {
-        requirements: this.createFirstMonthRequirements(template, Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5),
+        requirements: this.createWarmUpRequirements(template, Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5),
         xpReward: this.getXPRewardForStarLevel(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5),
         generationWarnings: warnings,
         dataQualityUsed
@@ -1084,7 +1086,7 @@ export class MonthlyChallengeService {
   /**
    * Generate a complete first-month challenge experience for new users
    */
-  static generateFirstMonthChallenge(
+  static generateWarmUpChallenge(
     preferredCategory?: AchievementCategory,
     userId: string = 'local_user',
     t?: TFunction
@@ -1106,10 +1108,10 @@ export class MonthlyChallengeService {
     const template = this.selectBeginnerTemplate(selectedCategory, t);
     
     // Create first-month requirements (extra conservative)
-    const requirements = this.createFirstMonthRequirements(template, 1); // Force level 1
+    const requirements = this.createWarmUpRequirements(template, 1); // Force level 1
     
     // Generate challenge with special first-month adjustments
-    const challenge = this.createFirstMonthChallengeObject(
+    const challenge = this.createWarmUpChallengeObject(
       template,
       requirements,
       selectedCategory,
@@ -1118,10 +1120,10 @@ export class MonthlyChallengeService {
 
     return {
       challenge,
-      welcomeMessage: this.generateFirstMonthWelcomeMessage(selectedCategory, template.title),
+      welcomeMessage: this.generateWarmUpWelcomeMessage(selectedCategory, template.title),
       onboardingTips: this.generateOnboardingTips(selectedCategory),
       progressGuidance: this.generateProgressGuidance(requirements),
-      expectations: this.getFirstMonthExpectations(selectedCategory)
+      expectations: this.getWarmUpExpectations(selectedCategory)
     };
   }
 
@@ -1153,21 +1155,25 @@ export class MonthlyChallengeService {
   /**
    * Create the actual first-month challenge object
    */
-  private static createFirstMonthChallengeObject(
+  private static createWarmUpChallengeObject(
     template: MonthlyChallengeTemplate,
     requirements: MonthlyChallengeRequirement[],
     category: AchievementCategory,
     userId: string
   ): MonthlyChallenge {
     // CRITICAL: Use month utility functions to avoid timezone issues
-    // (creating Date objects with local time causes UTC conversion problems)
+    // Challenge should always be for CURRENT CALENDAR MONTH (1st to last day)
     const todayDate = today();
-    const startDate = parseDate(todayDate);
-    startDate.setUTCDate(1);
-    const startDateStr = formatDateToString(startDate);
+    const currentMonth = todayDate.substring(0, 7); // YYYY-MM
 
-    const endDate = parseDate(todayDate);
-    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    // Start date = 1st day of current month
+    const startDateStr = currentMonth + '-01';
+
+    // End date = last day of current month
+    // Calculate by going to 1st of NEXT month, then back 1 day
+    const endDate = parseDate(startDateStr);
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1); // Go to next month
+    endDate.setUTCDate(0); // Day 0 = last day of previous month
     const endDateStr = formatDateToString(endDate);
 
     return {
@@ -1187,9 +1193,9 @@ export class MonthlyChallengeService {
         dataQuality: 'minimal',
         totalActiveDays: 0
       },
-      scalingFormula: 'first_month_conservative * 0.8',
+      scalingFormula: 'warm_up_conservative * 0.8',
       isActive: true,
-      generationReason: 'first_month',
+      generationReason: 'warm_up',
       categoryRotation: [],
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1199,7 +1205,7 @@ export class MonthlyChallengeService {
   /**
    * Generate personalized welcome message for first-month users
    */
-  private static generateFirstMonthWelcomeMessage(
+  private static generateWarmUpWelcomeMessage(
     category: AchievementCategory, 
     templateTitle: string
   ): string {
@@ -1321,7 +1327,7 @@ export class MonthlyChallengeService {
   /**
    * Set appropriate expectations for first-month users
    */
-  private static getFirstMonthExpectations(category: AchievementCategory): {
+  private static getWarmUpExpectations(category: AchievementCategory): {
     difficulty: string;
     timeCommitment: string;
     successRate: string;
@@ -1374,7 +1380,7 @@ export class MonthlyChallengeService {
   /**
    * Create conservative first-month requirements for new users
    */
-  private static createFirstMonthRequirements(
+  private static createWarmUpRequirements(
     template: MonthlyChallengeTemplate,
     starLevel: 1 | 2 | 3 | 4 | 5
   ): MonthlyChallengeRequirement[] {
@@ -1389,7 +1395,7 @@ export class MonthlyChallengeService {
 
       const firstMonthRequirement: MonthlyChallengeRequirement = {
         ...reqTemplate,
-        target: Math.max(target, this.getMinimumFirstMonthTarget(reqTemplate.type)),
+        target: Math.max(target, this.getMinimumWarmUpTarget(reqTemplate.type)),
         baselineValue: baseTarget,
         scalingMultiplier: conservativeMultiplier,
         dailyTarget: reqTemplate.dailyTarget ? Math.ceil(target / 30) : undefined,
@@ -1406,7 +1412,7 @@ export class MonthlyChallengeService {
   /**
    * Get absolute minimum targets for first-month users to ensure achievability
    */
-  private static getMinimumFirstMonthTarget(requirementType: string): number {
+  private static getMinimumWarmUpTarget(requirementType: string): number {
     const minimums: Record<string, number> = {
       'habits': 15,        // 15 habit completions/month (very achievable)
       'journal': 20,       // 20 journal entries/month (less than 1/day)
@@ -1418,33 +1424,25 @@ export class MonthlyChallengeService {
   }
 
   /**
-   * Check if user qualifies for first-month treatment
+   * Check if user qualifies for warm-up treatment (< 14 days of activity)
    */
-  static shouldUseFirstMonthTreatment(userBaseline: UserActivityBaseline | null): boolean {
+  static shouldUseWarmUpTreatment(userBaseline: UserActivityBaseline | null): boolean {
     if (!userBaseline) {
-      console.log('🔍 [First Month Check] No baseline → First Month Treatment');
+      console.log('🔍 [Warm-Up Check] No baseline → Warm-Up Treatment');
       return true; // No baseline = new user
     }
 
-    const isFirst = userBaseline.isFirstMonth;
-    const hasLowActivity = userBaseline.totalActiveDays < 7;
-    const isMinimal = userBaseline.dataQuality === 'minimal';
+    // Warm-up if user has < 14 days of activity (isFirstMonth flag uses WARM_UP_THRESHOLD)
+    const isWarmUp = userBaseline.isFirstMonth;
 
-    console.log('🔍 [First Month Check]', {
-      isFirstMonth: isFirst,
+    console.log('🔍 [Warm-Up Check]', {
+      isWarmUp,
       totalActiveDays: userBaseline.totalActiveDays,
       dataQuality: userBaseline.dataQuality,
-      hasLowActivity,
-      isMinimal,
-      result: isFirst || hasLowActivity || isMinimal
+      result: isWarmUp
     });
 
-    // Consider first-month treatment if:
-    return (
-      isFirst ||                    // Explicitly marked as first month
-      hasLowActivity ||            // Less than a week of activity
-      isMinimal                    // Very limited data
-    );
+    return isWarmUp;
   }
 
   // ===============================================
@@ -1849,29 +1847,29 @@ export class MonthlyChallengeService {
     const alternatives: string[] = [];
 
     try {
-      // Check if user qualifies for first-month treatment
-      if (context.isFirstMonth || this.shouldUseFirstMonthTreatment(context.userBaseline)) {
-        const firstMonthResult = this.generateFirstMonthChallenge(context.forceCategory, context.userId, t);
+      // Check if user qualifies for warm-up treatment (< 14 days of activity)
+      if (context.isFirstMonth || this.shouldUseWarmUpTreatment(context.userBaseline)) {
+        const warmUpResult = this.generateWarmUpChallenge(context.forceCategory, context.userId, t);
 
-        // Save first month challenge to storage if not dry run
+        // Save warm-up challenge to storage if not dry run
         if (!context.dryRun) {
-          console.log('📝 [MonthlyChallengeService] Saving FIRST MONTH challenge:', firstMonthResult.challenge.id);
-          await this.saveGeneratedChallenge(firstMonthResult.challenge);
-          console.log('📝 [MonthlyChallengeService] First month challenge saved, now updating history');
-          await this.updateChallengeHistory(context.userId, firstMonthResult.challenge);
-          console.log('📝 [MonthlyChallengeService] First month history updated successfully');
+          console.log('📝 [MonthlyChallengeService] Saving WARM-UP challenge:', warmUpResult.challenge.id);
+          await this.saveGeneratedChallenge(warmUpResult.challenge);
+          console.log('📝 [MonthlyChallengeService] Warm-up challenge saved, now updating history');
+          await this.updateChallengeHistory(context.userId, warmUpResult.challenge);
+          console.log('📝 [MonthlyChallengeService] Warm-up history updated successfully');
         }
 
         return {
-          challenge: firstMonthResult.challenge,
+          challenge: warmUpResult.challenge,
           generationMetadata: {
-            selectedTemplate: 'first_month_special',
+            selectedTemplate: 'warm_up_special',
             appliedStarLevel: 1,
             baselineUsed: 0,
             scalingApplied: 0.7,
-            alternativesConsidered: ['first_month_onboarding'],
+            alternativesConsidered: ['warm_up_onboarding'],
             generationTimeMs: Date.now() - startTime,
-            warnings: ['First month challenge generated with beginner-friendly settings']
+            warnings: ['Warm-up challenge generated with beginner-friendly settings']
           },
           success: true
         };
@@ -1981,14 +1979,15 @@ export class MonthlyChallengeService {
     starLevel: 1 | 2 | 3 | 4 | 5,
     context: MonthlyChallengeGenerationContext
   ): MonthlyChallenge {
-    // CRITICAL: Use UTC methods to avoid timezone issues
-    const monthDate = parseDate(context.month + '-01');
-    const startDate = parseDate(context.month + '-01');
-    startDate.setUTCDate(1);
-    const startDateStr = formatDateToString(startDate);
+    // CRITICAL: Challenge should be for the FULL CALENDAR MONTH (1st to last day)
+    // Start date = 1st day of target month
+    const startDateStr = context.month + '-01';
 
-    const endDate = parseDate(context.month + '-01');
-    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    // End date = last day of target month
+    // Calculate by going to 1st of NEXT month, then back 1 day
+    const endDate = parseDate(startDateStr);
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1); // Go to next month
+    endDate.setUTCDate(0); // Day 0 = last day of previous month
     const endDateStr = formatDateToString(endDate);
 
     return {
@@ -2012,7 +2011,7 @@ export class MonthlyChallengeService {
       },
       scalingFormula: `baseline * ${params.requirements[0]?.scalingMultiplier || 1.0}`,
       isActive: true,
-      generationReason: context.isFirstMonth ? 'first_month' : 'scheduled',
+      generationReason: context.isFirstMonth ? 'warm_up' : 'scheduled',
       categoryRotation: [...context.recentCategoryHistory, category].slice(-3),
       createdAt: new Date(),
       updatedAt: new Date()
@@ -2117,15 +2116,17 @@ export class MonthlyChallengeService {
     if (!template) {
       throw new Error('No fallback template available');
     }
-    const requirements = this.createFirstMonthRequirements(template, 1);
+    const requirements = this.createWarmUpRequirements(template, 1);
 
-    // CRITICAL: Use UTC methods to avoid timezone issues
-    const startDate = parseDate(month + '-01');
-    startDate.setUTCDate(1);
-    const startDateStr = formatDateToString(startDate);
+    // CRITICAL: Challenge should be for the FULL CALENDAR MONTH (1st to last day)
+    // Start date = 1st day of target month
+    const startDateStr = month + '-01';
 
-    const endDate = parseDate(month + '-01');
-    endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+    // End date = last day of target month
+    // Calculate by going to 1st of NEXT month, then back 1 day
+    const endDate = parseDate(startDateStr);
+    endDate.setUTCMonth(endDate.getUTCMonth() + 1); // Go to next month
+    endDate.setUTCDate(0); // Day 0 = last day of previous month
     const endDateStr = formatDateToString(endDate);
 
     return {
@@ -2194,7 +2195,7 @@ export class MonthlyChallengeService {
       userBaseline,
       currentStarRatings: await this.getUserStarRatings(),
       recentCategoryHistory: recentCategories,
-      isFirstMonth: this.shouldUseFirstMonthTreatment(userBaseline),
+      isFirstMonth: this.shouldUseWarmUpTreatment(userBaseline),
       dryRun: false
     };
 

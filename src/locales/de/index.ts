@@ -1259,9 +1259,9 @@ const de: Partial<TranslationKeys> = {
     milestones: 'Meilensteine',
     requirements: 'Anforderungen',
 
-    // First Month
-    firstMonthPrefix: 'Erster Monat',
-    firstMonthDescription: 'Dies ist deine Einführung in monatliche Herausforderungen! Wir haben es extra erreichbar gemacht, um dir zu helfen, Vertrauen aufzubauen.',
+    // Warm-Up Challenge (for users with < 14 days of activity)
+    warmUpPrefix: 'Aufwärm-Challenge',
+    warmUpDescription: 'Dies ist deine Einführung in monatliche Herausforderungen! Wir haben es extra erreichbar gemacht, um dir zu helfen, Vertrauen aufzubauen.',
 
     // Categories
     categories: {
@@ -1269,6 +1269,8 @@ const de: Partial<TranslationKeys> = {
       journal: 'TAGEBUCH',
       goals: 'ZIELE',
       consistency: 'BESTÄNDIGKEIT',
+      mastery: 'MEISTERSCHAFT',
+      special: 'BESONDERS',
     },
 
     // Calendar
@@ -1391,6 +1393,7 @@ const de: Partial<TranslationKeys> = {
         title: 'Bereit für nächsten Monat?',
         description: 'Deine nächste Herausforderung wird automatisch am 1. generiert.',
         descriptionWithLevel: 'Deine nächste Herausforderung wird automatisch am 1. generiert. Mit deiner neuen Sternstufe erwarte eine größere Herausforderung und höhere Belohnungen!',
+        continue: 'Weiter',
       },
     },
 
@@ -2962,6 +2965,9 @@ const de: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    // Level label (used in level up modals)
+    level: 'Level',
+
     xp: {
       label: 'Erfahrungspunkte',
       short: 'EP',

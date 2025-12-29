@@ -68,9 +68,9 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   const translateIfKey = (text: string): string => {
     if (!text) return text;
 
-    // Strip hardcoded "First Month: " prefix (including variations with emojis)
+    // Strip hardcoded "First Month: " or "Warm-Up: " prefix (including variations with emojis)
     // This handles legacy challenges created before i18n implementation
-    let cleanedText = text.replace(/^(🌱\s*)?First Month:\s*/i, '');
+    let cleanedText = text.replace(/^(🌱\s*)?(First Month|Warm-Up):\s*/i, '');
 
     // Check if text contains i18n key patterns
     if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
@@ -101,10 +101,10 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   let cleanedTitle = translateIfKey(challenge.title);
   let cleanedDescription = translateIfKey(challenge.description);
 
-  // Add First Month prefix if this is a first month challenge
-  if (challenge.generationReason === 'first_month') {
-    cleanedTitle = `🌱 ${t('monthlyChallenge.firstMonthPrefix')}: ${cleanedTitle}`;
-    cleanedDescription = `${cleanedDescription}\n\n✨ ${t('monthlyChallenge.firstMonthDescription')}`;
+  // Add Warm-Up prefix if this is a warm-up challenge (user has < 14 days of activity)
+  if (challenge.generationReason === 'warm_up') {
+    cleanedTitle = `🌱 ${t('monthlyChallenge.warmUpPrefix')}: ${cleanedTitle}`;
+    cleanedDescription = `${cleanedDescription}\n\n✨ ${t('monthlyChallenge.warmUpDescription')}`;
   }
 
   const cleanedChallenge = {

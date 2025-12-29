@@ -30,9 +30,9 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   const translateIfKey = (text: string): string => {
     if (!text) return text;
 
-    // Strip hardcoded "First Month: " prefix (including variations with emojis)
+    // Strip hardcoded "First Month: " or "Warm-Up: " prefix (including variations with emojis)
     // This handles legacy challenges created before i18n implementation
-    let cleanedText = text.replace(/^(🌱\s*)?First Month:\s*/i, '');
+    let cleanedText = text.replace(/^(🌱\s*)?(First Month|Warm-Up):\s*/i, '');
 
     // Check if text contains i18n key patterns
     if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
@@ -68,10 +68,10 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   let displayTitle = translateIfKey(challenge.title);
   let displayDescription = translateIfKey(challenge.description);
 
-  // Add First Month prefix if this is a first month challenge
-  if (challenge.generationReason === 'first_month') {
-    displayTitle = `🌱 ${t('monthlyChallenge.firstMonthPrefix')}: ${displayTitle}`;
-    displayDescription = `${displayDescription}\n\n✨ ${t('monthlyChallenge.firstMonthDescription')}`;
+  // Add Warm-Up prefix if this is a warm-up challenge (user has < 14 days of activity)
+  if (challenge.generationReason === 'warm_up') {
+    displayTitle = `🌱 ${t('monthlyChallenge.warmUpPrefix')}: ${displayTitle}`;
+    displayDescription = `${displayDescription}\n\n✨ ${t('monthlyChallenge.warmUpDescription')}`;
   }
 
   const completedRequirements = challenge.requirements.filter(req =>

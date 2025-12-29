@@ -6,6 +6,7 @@ import { GamificationService } from './gamificationService';
 import { UserActivityTracker } from './userActivityTracker';
 import { StarRatingService } from './starRatingService';
 import { MonthlyProgressTracker } from './monthlyProgressTracker';
+import { MonthlyProgressIntegration } from './monthlyProgressIntegration';
 import { LoyaltyService } from './loyaltyService';
 
 // ========================================
@@ -201,12 +202,22 @@ export class AppInitializationService {
         optional: false,
         timeout: 3000
       });
-      
+
+      // Monthly progress integration - CRITICAL: Must initialize early to catch all XP events
+      // This "listener" captures user activities and forwards them to progress tracker
+      services.push({
+        name: 'MonthlyProgressIntegration',
+        initializer: () => this.initializeMonthlyProgressIntegration(),
+        dependsOn: ['MonthlyProgressTracker'],
+        optional: false,
+        timeout: 2000
+      });
+
       // Monthly challenge lifecycle manager (depends on all monthly challenge services)
       services.push({
         name: 'MonthlyChallengeLifecycleManager',
         initializer: () => this.initializeMonthlyChallengeLifecycleManager(),
-        dependsOn: ['UserActivityTracker', 'StarRatingService', 'MonthlyProgressTracker'],
+        dependsOn: ['UserActivityTracker', 'StarRatingService', 'MonthlyProgressTracker', 'MonthlyProgressIntegration'],
         optional: false,
         timeout: 8000
       });
@@ -326,7 +337,7 @@ export class AppInitializationService {
    */
   private static async initializeMonthlyProgressTracker(): Promise<void> {
     this.log('Initializing MonthlyProgressTracker');
-    
+
     try {
       // MonthlyProgressTracker doesn't have explicit init, but we can validate
       // its core functionality is available
@@ -336,7 +347,42 @@ export class AppInitializationService {
       throw error;
     }
   }
-  
+
+  /**
+   * Initialize MonthlyProgressIntegration
+   * CRITICAL: This service listens for XP events and forwards them to progress tracker
+   * Must be initialized early to catch all user activities from app start
+   */
+  private static async initializeMonthlyProgressIntegration(): Promise<void> {
+    this.log('Initializing MonthlyProgressIntegration');
+
+    try {
+      // Check if already initialized to prevent duplicate listeners
+      const status = MonthlyProgressIntegration.getStatus();
+      if (status.isInitialized) {
+        this.log('MonthlyProgressIntegration already initialized, skipping');
+        return;
+      }
+
+      // Initialize the XP event listener
+      await MonthlyProgressIntegration.initialize();
+
+      // Verify initialization was successful
+      const newStatus = MonthlyProgressIntegration.getStatus();
+      if (!newStatus.isInitialized) {
+        throw new Error('MonthlyProgressIntegration failed to initialize properly');
+      }
+
+      this.log('MonthlyProgressIntegration initialized successfully', {
+        isActive: newStatus.isActive,
+        pendingEvents: newStatus.pendingEvents
+      });
+    } catch (error) {
+      this.log('MonthlyProgressIntegration initialization failed:', error);
+      throw error;
+    }
+  }
+
   /**
    * Initialize MonthlyChallengeLifecycleManager
    */
@@ -348,7 +394,7 @@ export class AppInitializationService {
       await MonthlyChallengeLifecycleManager.initialize({
         enablePreviewGeneration: true,
         enableGracePeriod: true,
-        gracePeriodDays: 7,
+        gracePeriodDays: 10, // User has 10 days to start monthly challenge
         enableAutoArchival: true,
         debugMode: __DEV__
       });

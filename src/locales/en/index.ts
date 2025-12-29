@@ -1272,9 +1272,9 @@ const en: TranslationKeys = {
     milestones: 'Milestones',
     requirements: 'Requirements',
 
-    // First Month
-    firstMonthPrefix: 'First Month',
-    firstMonthDescription: 'This is your introduction to monthly challenges! We\'ve made it extra achievable to help you build confidence.',
+    // Warm-Up Challenge (for users with < 14 days of activity)
+    warmUpPrefix: 'Warm-Up',
+    warmUpDescription: 'This is your introduction to monthly challenges! We\'ve made it extra achievable to help you build confidence.',
 
     // Categories
     categories: {
@@ -1282,6 +1282,8 @@ const en: TranslationKeys = {
       journal: 'JOURNAL',
       goals: 'GOALS',
       consistency: 'CONSISTENCY',
+      mastery: 'MASTERY',
+      special: 'SPECIAL',
     },
 
     // Calendar
@@ -1398,6 +1400,7 @@ const en: TranslationKeys = {
         title: 'Ready for Next Month?',
         description: 'Your next challenge will be generated automatically on the 1st.',
         descriptionWithLevel: 'Your next challenge will be generated automatically on the 1st. With your new star level, expect a greater challenge and bigger rewards!',
+        continue: 'Continue',
       },
     },
 
@@ -2940,6 +2943,9 @@ const en: TranslationKeys = {
 
   // Gamification System
   gamification: {
+    // Level label (used in level up modals)
+    level: 'Level',
+
     // XP System
     xp: {
       label: 'Experience Points',

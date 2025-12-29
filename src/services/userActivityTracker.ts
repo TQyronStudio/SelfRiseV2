@@ -141,9 +141,12 @@ export class UserActivityTracker {
   // Data quality thresholds
   private static readonly QUALITY_THRESHOLDS = {
     MINIMAL: 5,   // < 5 days of data
-    PARTIAL: 15,  // 5-15 days of data  
+    PARTIAL: 15,  // 5-15 days of data
     COMPLETE: 20  // 20+ days of data
   };
+
+  // Warm-up threshold: Users with < 14 days get easier "warm-up" challenges
+  private static readonly WARM_UP_THRESHOLD = 14;
 
   // ========================================
   // PUBLIC API METHODS
@@ -479,7 +482,7 @@ export class UserActivityTracker {
         // Generation context
         generatedAt: new Date(),
         dataQuality,
-        isFirstMonth: context.totalActiveDays < this.QUALITY_THRESHOLDS.MINIMAL, // Changed from PARTIAL (15) to MINIMAL (5)
+        isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD, // < 14 days = warm-up challenge
         totalActiveDays: context.totalActiveDays,
         analysisStartDate: context.analysisStartDate,
         analysisEndDate: context.analysisEndDate

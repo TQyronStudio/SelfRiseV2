@@ -1390,6 +1390,7 @@ export class MonthlyProgressTracker {
       });
 
       // Update star rating for this category
+      // IMPORTANT: Warm-up challenges don't award stars (isWarmUp flag)
       const completionData = {
         challengeId,
         category: challenge.category,
@@ -1397,7 +1398,8 @@ export class MonthlyProgressTracker {
         month: challenge.startDate.substring(0, 7), // YYYY-MM format
         wasCompleted: true,
         targetValue: challenge.requirements.reduce((sum, req) => sum + req.target, 0),
-        actualValue: Object.values(progress.progress).reduce((sum, val) => sum + val, 0)
+        actualValue: Object.values(progress.progress).reduce((sum, val) => sum + val, 0),
+        isWarmUp: challenge.generationReason === 'warm_up'
       };
 
       await StarRatingService.updateStarRatingForCompletion(completionData);
