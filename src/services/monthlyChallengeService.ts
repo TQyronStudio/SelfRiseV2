@@ -33,10 +33,19 @@ export class MonthlyChallengeService {
     return FEATURE_FLAGS.USE_SQLITE_CHALLENGES ? sqliteChallengeStorage : null;
   }
 
-  // Star-based XP reward structure
+  // Star-based XP reward structure for FULL challenges (10x multiplier for engagement)
   private static readonly MONTHLY_XP_REWARDS = {
+    1: 5000,   // 1★ Easy
+    2: 7500,   // 2★ Medium
+    3: 12000,  // 3★ Hard
+    4: 17500,  // 4★ Expert
+    5: 25000   // 5★ Master
+  } as const;
+
+  // Original XP values for WARM-UP challenges (new users < 14 days)
+  private static readonly WARM_UP_XP_REWARDS = {
     1: 500,   // 1★ Easy
-    2: 750,   // 2★ Medium  
+    2: 750,   // 2★ Medium
     3: 1125,  // 3★ Hard
     4: 1688,  // 4★ Expert
     5: 2532   // 5★ Master
@@ -519,10 +528,17 @@ export class MonthlyChallengeService {
   }
 
   /**
-   * Get star-based XP reward for a given star level
+   * Get star-based XP reward for FULL challenges (10x values)
    */
   static getXPRewardForStarLevel(starLevel: 1 | 2 | 3 | 4 | 5): number {
     return this.MONTHLY_XP_REWARDS[starLevel];
+  }
+
+  /**
+   * Get XP reward for WARM-UP challenges (original values, for new users < 14 days)
+   */
+  static getWarmUpXPReward(starLevel: 1 | 2 | 3 | 4 | 5): number {
+    return this.WARM_UP_XP_REWARDS[starLevel];
   }
 
   // ===============================================
@@ -1034,7 +1050,7 @@ export class MonthlyChallengeService {
       
       return {
         requirements: this.createWarmUpRequirements(template, starLevel),
-        xpReward: this.getXPRewardForStarLevel(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5), // Slightly easier XP for first month
+        xpReward: this.getWarmUpXPReward(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5), // Warm-up uses original XP values
         generationWarnings: warnings,
         dataQualityUsed,
         recommendedDifficulty: starLevel > 2 ? 'easier' : undefined
@@ -1051,7 +1067,7 @@ export class MonthlyChallengeService {
       dataQualityUsed = 'fallback';
       return {
         requirements: this.createWarmUpRequirements(template, Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5),
-        xpReward: this.getXPRewardForStarLevel(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5),
+        xpReward: this.getWarmUpXPReward(Math.max(1, starLevel - 1) as 1 | 2 | 3 | 4 | 5), // Fallback uses original XP values
         generationWarnings: warnings,
         dataQualityUsed
       };

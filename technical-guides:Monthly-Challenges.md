@@ -473,7 +473,7 @@ if (totalActiveDays < 14) {
   template = weightedRandomTemplate()
   target = baseline * starMultiplier  // Plně personalizované
   starLevel = 1-5                     // Celý rozsah hvězdičkové obtížnosti
-  xpReward = 500-2532                 // Progresivní XP systém
+  xpReward = 5000-25000               // 10x XP systém!
   generationReason = 'scheduled'      // ✅ Dává hvězdu
 }
 ```
@@ -487,11 +487,13 @@ Den 14:    Uživatel překročí 14 aktivních dní - přechod na Full!
            → ⭐ Full Challenge: Personalizované, dává hvězdičky
 
 Měsíc 1:   🌱 Warm-Up: Journal → Gratitude Guru (1⭐) - 8 aktivních dní
+           → XP: 500 (Warm-Up hodnota), bez hvězdičky
 Měsíc 2:   🌱 Warm-Up: Habits → Streak Builder (1⭐) - 12 aktivních dní
+           → XP: 500 (Warm-Up hodnota), bez hvězdičky
 Měsíc 3:   ⭐ Full: Habits → Consistency Master (2⭐) - 18 aktivních dní
-           → První hvězda! Baseline: 20 návyků → Target: 22 návyků (+10%)
+           → XP: 7,500 (Full 10x!), první hvězda! Target: +10% nad baseline
 Měsíc 4:   ⭐ Full: Journal → Reflection Expert (3⭐) - 25 aktivních dní
-           → Plná personalizace, progresivní obtížnost
+           → XP: 12,000 (Full 10x!), plná personalizace
 ```
 
 **Výsledek**: Každá výzva je **precizně nastavena** na uživatelovu skutečnou úroveň aktivity, ne na generické hodnoty.
@@ -499,13 +501,27 @@ Měsíc 4:   ⭐ Full: Journal → Reflection Expert (3⭐) - 25 aktivních dní
 ### **🤖 Automatická personalizace**
 Na základě 30-denní analýzy systém automaticky vytváří personalizované výzvy přizpůsobené behavioral patterns každého uživatele.
 
-### **⭐ 5-hvězdičková obtížnost**
-Každá výzva má 5 úrovní obtížnosti s progresivním XP systémem:
-- **1⭐ Common** (Novice): +5% nad baseline → **500 XP**
-- **2⭐ Rare** (Explorer): +10% nad baseline → **750 XP**  
-- **3⭐ Epic** (Challenger): +15% nad baseline → **1,125 XP**
-- **4⭐ Legendary** (Expert): +20% nad baseline → **1,688 XP**
-- **5⭐ Master** (Master): +25% nad baseline → **2,532 XP**
+### **⭐ 5-hvězdičková obtížnost + XP odměny**
+
+#### **FULL Challenge XP (10x multiplier pro engagement!)**
+Uživatelé s 14+ aktivními dny dostávají plnohodnotné výzvy s vysokými XP odměnami:
+- **1⭐ Common** (Novice): +5% nad baseline → **5,000 XP**
+- **2⭐ Rare** (Explorer): +10% nad baseline → **7,500 XP**
+- **3⭐ Epic** (Challenger): +15% nad baseline → **12,000 XP**
+- **4⭐ Legendary** (Expert): +20% nad baseline → **17,500 XP**
+- **5⭐ Master** (Master): +25% nad baseline → **25,000 XP**
+
+> **💡 Business Logic**: 10x XP motivuje uživatele používat aplikaci celý měsíc aby splnili výzvu. Jedna 5⭐ výzva = více XP než celý měsíc denních aktivit!
+
+#### **WARM-UP Challenge XP (původní hodnoty)**
+Noví uživatelé (<14 aktivních dní) dostávají Warm-Up výzvy s nižšími XP:
+- **1⭐**: 500 XP
+- **2⭐**: 750 XP
+- **3⭐**: 1,125 XP
+- **4⭐**: 1,688 XP
+- **5⭐**: 2,532 XP
+
+> **⚠️ Warm-Up omezení**: Nedává hvězdičky, vždy 1⭐ obtížnost, nižší XP = motivace k přechodu na Full challenge
 
 ### **📈 Inteligentní progrese**
 Star level se upravuje na základě výsledků:

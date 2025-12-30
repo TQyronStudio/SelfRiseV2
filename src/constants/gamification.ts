@@ -69,13 +69,22 @@ export const XP_REWARDS = {
     UNLOCK_LEGENDARY: 500,      // Unlocking legendary achievement
   },
 
-  // Monthly Challenge System
+  // Monthly Challenge System (10x multiplier for FULL challenges - drives engagement!)
   MONTHLY_CHALLENGES: {
-    ONE_STAR: 500,      // 1★ Monthly challenge
-    TWO_STAR: 750,      // 2★ Monthly challenge
-    THREE_STAR: 1125,   // 3★ Monthly challenge
-    FOUR_STAR: 1556,    // 4★ Monthly challenge
-    FIVE_STAR: 2532,    // 5★ Monthly challenge
+    ONE_STAR: 5000,      // 1★ Full challenge
+    TWO_STAR: 7500,      // 2★ Full challenge
+    THREE_STAR: 12000,   // 3★ Full challenge
+    FOUR_STAR: 17500,    // 4★ Full challenge
+    FIVE_STAR: 25000,    // 5★ Full challenge
+  },
+
+  // Warm-Up Challenge XP (original values for new users < 14 days)
+  WARM_UP_CHALLENGES: {
+    ONE_STAR: 500,      // 1★ Warm-up challenge
+    TWO_STAR: 750,      // 2★ Warm-up challenge
+    THREE_STAR: 1125,   // 3★ Warm-up challenge
+    FOUR_STAR: 1688,    // 4★ Warm-up challenge
+    FIVE_STAR: 2532,    // 5★ Warm-up challenge
   },
 
   // Special Event Bonuses
