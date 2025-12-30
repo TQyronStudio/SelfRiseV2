@@ -331,17 +331,24 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
 
   /**
    * Add achievement to celebration queue
-   * Skip during tutorial - tutorial shows its own completion modals
+   * Skip during tutorial EXCEPT for first-habit and first-goal achievements
    */
   const addToCelebrationQueue = useCallback(async (achievement: Achievement, xpAwarded: number) => {
     // Check if tutorial is active
     const { isTutorialActive } = await import('./TutorialContext');
     const tutorialActive = await isTutorialActive();
 
-    if (tutorialActive) {
-      console.log(`🎓 [TUTORIAL] Skipping achievement modal for "${achievement.name}" - tutorial is active`);
+    // Allow first-habit and first-goal achievements to show during tutorial
+    const isFirstStepAchievement = achievement.id === 'first-habit' || achievement.id === 'first-goal';
+
+    if (tutorialActive && !isFirstStepAchievement) {
+      console.log(`🎓 [TUTORIAL] Skipping achievement modal for "${achievement.id}" - tutorial is active`);
       // Achievement is still unlocked and XP awarded, just no modal during tutorial
       return;
+    }
+
+    if (tutorialActive && isFirstStepAchievement) {
+      console.log(`🎓 [TUTORIAL] Showing achievement modal for "${achievement.id}" - first step achievement during tutorial`);
     }
 
     setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
@@ -366,10 +373,13 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     console.log('✅ Closing Achievement Celebration Modal (Tier 2)');
     notifyAchievementModalEnded();
     setShowingCelebration(false);
-    
+
     // Remove the first item from queue
     setCelebrationQueue(prev => prev.slice(1));
-    
+
+    // Emit event for tutorial coordination - allows tutorial to advance after achievement modal closes
+    DeviceEventEmitter.emit('achievementCelebrationClosed');
+
     // Show next celebration after 2 second delay (respects 3-Tier Modal Priority System)
     setTimeout(() => {
       showNextCelebration();
@@ -392,7 +402,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     const achievementUnlockedListener = DeviceEventEmitter.addListener(
       'achievementUnlocked',
       (eventData: { achievement: Achievement; xpAwarded: number; timestamp: number }) => {
-        console.log('🏆 Achievement unlocked notification received:', eventData.achievement.name);
+        console.log('🏆 Achievement unlocked notification received:', eventData.achievement.id);
         
         // Add to recent unlocks
         const unlockEvent: AchievementUnlockEvent = {
@@ -427,8 +437,8 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
         // This creates escalating joy - starting with common, building to legendary finale
         const sortedAchievements = sortAchievementsForDisplay(eventData.achievements);
         
-        console.log('🎭 Achievement display order (crescendo effect):', 
-          sortedAchievements.map(a => `${a.name} (${a.rarity.toUpperCase()}, ${a.xpReward} XP)`));
+        console.log('🎭 Achievement display order (crescendo effect):',
+          sortedAchievements.map(a => `${a.id} (${a.rarity.toUpperCase()}, ${a.xpReward} XP)`));
         
         // Add all achievements to celebration queue in crescendo order
         sortedAchievements.forEach(achievement => {

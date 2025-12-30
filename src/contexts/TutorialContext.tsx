@@ -932,7 +932,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     await logCrash(error, {
       step: context?.step || state.currentStep,
       stepId: state.currentStepData?.id || 'unknown',
-      userAgent: navigator.userAgent
+      userAgent: 'React Native App'
     });
 
     // Validate current state

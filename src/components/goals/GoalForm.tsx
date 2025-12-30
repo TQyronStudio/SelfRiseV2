@@ -20,7 +20,7 @@ import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useTutorial } from '@/src/contexts/TutorialContext';
+import { useTutorial, isTutorialRestarted } from '@/src/contexts/TutorialContext';
 
 export type GoalFormData = {
   title: string;
@@ -378,12 +378,33 @@ export function GoalForm({
         tutorialState.currentStepData?.action === 'click_element' &&
         tutorialState.currentStepData?.target === 'create-goal-submit'
       ) {
-        console.log(`🎯 [TUTORIAL] Goal created via Create button, waiting for modal close...`);
+        const isRestarted = await isTutorialRestarted();
 
-        // Wait for modal close animation (300ms) before advancing tutorial
-        await new Promise(resolve => setTimeout(resolve, 400));
+        if (!isRestarted) {
+          // First tutorial - wait for achievement celebration modal to close
+          console.log(`🎯 [TUTORIAL] First tutorial - waiting for achievement celebration to close...`);
 
-        console.log(`🎯 [TUTORIAL] Modal closed, advancing tutorial...`);
+          await new Promise<void>(resolve => {
+            const listener = DeviceEventEmitter.addListener('achievementCelebrationClosed', () => {
+              console.log(`🎯 [TUTORIAL] Achievement celebration closed, advancing tutorial...`);
+              listener.remove();
+              resolve();
+            });
+
+            // Fallback timeout in case achievement wasn't shown (shouldn't happen)
+            setTimeout(() => {
+              console.log(`🎯 [TUTORIAL] Fallback timeout reached, advancing tutorial...`);
+              listener.remove();
+              resolve();
+            }, 10000);
+          });
+        } else {
+          // Restarted tutorial - no achievement modal, just wait for form close animation
+          console.log(`🎯 [TUTORIAL] Restarted tutorial - waiting for modal close...`);
+          await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        console.log(`🎯 [TUTORIAL] Advancing to next step...`);
         tutorialActions.handleStepAction('click_element');
       }
     } catch (error) {
