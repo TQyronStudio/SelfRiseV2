@@ -7,7 +7,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Share,
   Alert,
   Clipboard
 } from 'react-native';
@@ -43,7 +42,6 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
   const [currentQuote, setCurrentQuote] = useState<MotivationalQuote | null>(null);
-  const [sharing, setSharing] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -174,29 +172,6 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
     }
   };
 
-  const handleShare = async () => {
-    if (!currentQuote) return;
-
-    try {
-      setSharing(true);
-      
-      const shareMessage = formatQuoteForSharing(currentQuote);
-      const result = await Share.share({
-        message: shareMessage,
-        title: t('social.quote.title')
-      });
-
-      if (result.action === Share.sharedAction) {
-        // Quote shared successfully
-      }
-    } catch (error) {
-      console.error('Failed to share quote:', error);
-      Alert.alert(t('common.error'), t('social.quote.copyError'));
-    } finally {
-      setSharing(false);
-    }
-  };
-
   const handleCopyToClipboard = async () => {
     if (!currentQuote) return;
 
@@ -316,16 +291,6 @@ export const MotivationalQuoteCard: React.FC<MotivationalQuoteCardProps> = ({
           >
             <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
             <Text style={styles.actionText}>{t('social.quote.copy')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleShare}
-            disabled={sharing}
-            accessibilityLabel={t('accessibility.shareQuote')}
-          >
-            <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
-            <Text style={styles.actionText}>{t('social.quote.share')}</Text>
           </TouchableOpacity>
         </View>
       )}

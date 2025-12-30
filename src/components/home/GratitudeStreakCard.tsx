@@ -14,7 +14,6 @@ import { useI18n } from '../../hooks/useI18n';
 import { useGratitude } from '../../contexts/GratitudeContext';
 import { GratitudeStreak, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS } from '../../services/storage/base';
-import { StreakSharingModal } from './StreakSharingModal';
 import StreakWarmUpModal from '../gratitude/StreakWarmUpModal';
 import {
   WarmUpSuccessModal,
@@ -38,7 +37,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   const { state, actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showSharingModal, setShowSharingModal] = useState(false);
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [adsWatched, setAdsWatched] = useState(0);
   const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
@@ -207,9 +205,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-    },
-    shareButton: {
-      padding: 4,
     },
     title: {
       fontSize: 18,
@@ -565,11 +560,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     }
   };
 
-  const handleSharePress = (e: any) => {
-    e.stopPropagation(); // Prevent triggering card onPress
-    setShowSharingModal(true);
-  };
-
   return (
     <TouchableOpacity 
       style={styles.container} 
@@ -584,15 +574,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
         </View>
 
         <View style={styles.headerActions}>
-          {/* Share button */}
-          <TouchableOpacity
-            onPress={handleSharePress}
-            style={styles.shareButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="share-outline" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </View>
       </View>
@@ -680,13 +661,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
           <Text style={styles.recoveryText}>{t('home.canRecover')}</Text>
         </View>
       ) : null}
-      
-      {/* Sharing Modal */}
-      <StreakSharingModal 
-        visible={showSharingModal}
-        onClose={() => setShowSharingModal(false)}
-        streak={streakData}
-      />
       
       {/* Debt Recovery Modal */}
       <StreakWarmUpModal

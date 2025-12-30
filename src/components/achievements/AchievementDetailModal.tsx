@@ -29,7 +29,6 @@ interface AchievementDetailModalProps {
   onClose: () => void;
   achievement: Achievement | null;
   userAchievements: UserAchievements | null;
-  onSharePress?: (achievement: Achievement) => void;
   batchUserStats?: any; // Pre-loaded user stats for performance
   realTimeProgress?: number | undefined; // Real-time progress from batch system
 }
@@ -107,7 +106,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   onClose,
   achievement,
   userAchievements,
-  onSharePress,
   batchUserStats,
   realTimeProgress,
 }) => {
@@ -161,12 +159,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
     AccessibilityInfo.announceForAccessibility(announcement);
   }, [achievement?.name, achievement?.rarity, isUnlocked, t]);
-
-  const handleSharePress = () => {
-    if (onSharePress && achievement && isUnlocked) {
-      onSharePress(achievement);
-    }
-  };
 
   // Return nothing if modal not visible - allows smooth slide animation
   if (!visible) {
@@ -226,15 +218,9 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       flex: 1,
       textAlign: 'center',
     },
-    shareButton: {
+    headerSpacer: {
       width: 40,
       height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.cardBackgroundElevated,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     achievementCard: {
       margin: 16,
@@ -458,20 +444,6 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       paddingHorizontal: 16,
       gap: 12,
     },
-    shareActionButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 12,
-      borderRadius: 8,
-    },
-    shareButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.white,
-      marginLeft: 8,
-    },
     closeActionButton: {
       flex: 1,
       alignItems: 'center',
@@ -509,18 +481,8 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
           <Text style={styles.modalTitle}>
             {isUnlocked ? t('achievements.detail.titleUnlocked') : t('achievements.detail.titleDetails')}
           </Text>
-          
-          {isUnlocked && onSharePress && (
-            <TouchableOpacity
-              style={styles.shareButton}
-              onPress={handleSharePress}
-              accessible
-              accessibilityRole="button"
-              accessibilityLabel={t('achievements.detail.shareButton')}
-            >
-              <Ionicons name="share-outline" size={24} color={rarityColor} />
-            </TouchableOpacity>
-          )}
+
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Main Content ScrollView */}

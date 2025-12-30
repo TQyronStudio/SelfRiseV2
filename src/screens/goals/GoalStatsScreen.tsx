@@ -8,7 +8,6 @@ import { ProgressHistoryList } from '@/src/components/goals/ProgressHistoryList'
 import { GoalStatsCard } from '@/src/components/goals/GoalStatsCard';
 import { ProgressTrendAnalysis } from '@/src/components/goals/ProgressTrendAnalysis';
 import { GoalCompletionPredictions } from '@/src/components/goals/GoalCompletionPredictions';
-import { GoalSharingModal } from '@/src/components/goals/GoalSharingModal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useGoals } from '@/src/contexts/GoalsContext';
 import { Fonts } from '@/src/constants/fonts';
@@ -27,7 +26,6 @@ export function GoalStatsScreen() {
   
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showSharingModal, setShowSharingModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'stats' | 'trends' | 'predictions'>('stats');
 
   // Get data directly from the global state via useGoalsData hook
@@ -75,8 +73,8 @@ export function GoalStatsScreen() {
       fontFamily: Fonts.semibold,
       color: colors.white,
     },
-    shareButton: {
-      padding: 8,
+    headerSpacer: {
+      width: 40,
     },
     tabContainer: {
       flexDirection: 'row',
@@ -145,7 +143,7 @@ export function GoalStatsScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('screens.goalStats.loading')}</Text>
-          <View style={styles.shareButton} />
+          <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>{t('common.loading.default')}</Text>
@@ -162,7 +160,7 @@ export function GoalStatsScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('goals.error')}</Text>
-          <View style={styles.shareButton} />
+          <View style={styles.headerSpacer} />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('goals.goalNotFound')}</Text>
@@ -181,9 +179,7 @@ export function GoalStatsScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{goal.title}</Text>
-        <TouchableOpacity style={styles.shareButton} onPress={() => setShowSharingModal(true)}>
-          <Ionicons name="share-outline" size={24} color={colors.white} />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Tab Navigation */}
@@ -241,17 +237,6 @@ export function GoalStatsScreen() {
         title={t('common.error')}
         message={errorMessage}
       />
-
-      {/* Sharing Modal */}
-      {showSharingModal && (
-        <GoalSharingModal
-          visible={showSharingModal}
-          goal={goal}
-          stats={stats}
-          progressHistory={progress}
-          onClose={() => setShowSharingModal(false)}
-        />
-      )}
     </View>
   );
 }

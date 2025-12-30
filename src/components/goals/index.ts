@@ -11,5 +11,4 @@ export { GoalCompletionModal } from './GoalCompletionModal';
 export { GoalPerformanceDashboard } from './GoalPerformanceDashboard';
 export { ProgressTrendAnalysis } from './ProgressTrendAnalysis';
 export { GoalCompletionPredictions } from './GoalCompletionPredictions';
-export { GoalSharingModal } from './GoalSharingModal';
 export { GoalTemplatesModal } from './GoalTemplatesModal';

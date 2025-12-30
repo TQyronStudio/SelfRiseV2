@@ -29,7 +29,6 @@ import { TrophyRoomStats } from '@/src/components/achievements/TrophyRoomStats';
 import { AchievementHistory } from '@/src/components/achievements/AchievementHistory';
 import { AchievementSpotlight } from '@/src/components/achievements/AchievementSpotlight';
 import { TrophyCombinations } from '@/src/components/achievements/TrophyCombinations';
-import { AchievementShareModal } from '@/src/components/social';
 import { AchievementDetailModal } from '@/src/components/achievements/AchievementDetailModal';
 import { 
   Achievement, 
@@ -80,11 +79,7 @@ export default function AchievementsScreen() {
   
   // View mode state
   const [viewMode, setViewMode] = useState<'overview' | 'achievements'>('overview');
-  
-  // Social features state
-  const [selectedAchievementForShare, setSelectedAchievementForShare] = useState<Achievement | null>(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  
+
   // Detail modal state
   const [selectedAchievementForDetail, setSelectedAchievementForDetail] = useState<Achievement | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -414,18 +409,6 @@ export default function AchievementsScreen() {
     // Always open detail modal (works for both locked and unlocked achievements)
     setSelectedAchievementForDetail(achievement);
     setShowDetailModal(true);
-  };
-
-  const handleShareFromDetail = (achievement: Achievement) => {
-    // Close detail modal and open share modal
-    setShowDetailModal(false);
-    setSelectedAchievementForShare(achievement);
-    setShowShareModal(true);
-  };
-
-  const handleCloseShareModal = () => {
-    setShowShareModal(false);
-    setSelectedAchievementForShare(null);
   };
 
   const handleCloseDetailModal = () => {
@@ -1173,19 +1156,11 @@ export default function AchievementsScreen() {
         }}
       />
       
-      {/* Achievement Sharing Modal */}
-      <AchievementShareModal
-        visible={showShareModal}
-        achievement={selectedAchievementForShare}
-        onClose={handleCloseShareModal}
-      />
-
       <AchievementDetailModal
         visible={showDetailModal}
         achievement={selectedAchievementForDetail}
         userAchievements={userAchievements}
         onClose={handleCloseDetailModal}
-        onSharePress={handleShareFromDetail}
         batchUserStats={batchUserStats}
         realTimeProgress={selectedAchievementForDetail ? realTimeProgressMap[selectedAchievementForDetail.id] : undefined}
       />
