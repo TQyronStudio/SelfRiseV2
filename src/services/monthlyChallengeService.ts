@@ -1128,28 +1128,56 @@ export class MonthlyChallengeService {
   }
 
   /**
-   * Select the most beginner-friendly category
+   * Select a beginner-friendly category with random variety
+   * Only picks from simple categories: HABITS, JOURNAL, GOALS
+   * Excludes advanced categories: MASTERY, CONSISTENCY, SPECIAL
    */
   private static selectBeginnerFriendlyCategory(): AchievementCategory {
-    // Habits are most fundamental and easiest to understand for new users
-    return AchievementCategory.HABITS;
+    // Beginner-friendly categories only (easy to understand for new users)
+    const beginnerCategories: AchievementCategory[] = [
+      AchievementCategory.HABITS,   // Most fundamental
+      AchievementCategory.JOURNAL,  // Simple self-reflection
+      AchievementCategory.GOALS     // Clear objectives
+    ];
+
+    // Random selection for variety
+    const randomIndex = Math.floor(Math.random() * beginnerCategories.length);
+    const selected = beginnerCategories[randomIndex] ?? AchievementCategory.HABITS;
+
+    console.log(`🎲 [Warm-Up] Random category selected: ${selected}`);
+    return selected;
   }
 
   /**
-   * Select the most beginner-friendly template within a category
+   * Select a beginner-friendly template with random variety
+   * Picks randomly from templates with minLevel = 1 (easiest)
    */
   private static selectBeginnerTemplate(category: AchievementCategory, t?: TFunction): MonthlyChallengeTemplate {
     // Create a dummy t function if not provided (for backward compatibility)
     const tFunc = t || ((key: string) => key) as TFunction;
     const categoryTemplates = this.getTemplatesForCategory(category, tFunc);
-    
-    // Find template with lowest minimum level requirement
-    const beginnerTemplate = categoryTemplates.reduce((easiest, current) => 
-      current.starLevelRequirements.minLevel < easiest.starLevelRequirements.minLevel 
-        ? current : easiest
+
+    // Filter to only beginner-level templates (minLevel = 1)
+    const beginnerTemplates = categoryTemplates.filter(
+      template => template.starLevelRequirements.minLevel === 1
     );
 
-    return beginnerTemplate;
+    // If no level-1 templates, fall back to lowest available
+    if (beginnerTemplates.length === 0) {
+      const fallback = categoryTemplates.reduce((easiest, current) =>
+        current.starLevelRequirements.minLevel < easiest.starLevelRequirements.minLevel
+          ? current : easiest
+      );
+      console.log(`🎲 [Warm-Up] No level-1 templates, using fallback: ${fallback.id}`);
+      return fallback;
+    }
+
+    // Random selection from beginner templates for variety
+    const randomIndex = Math.floor(Math.random() * beginnerTemplates.length);
+    const selected = beginnerTemplates[randomIndex]!; // Safe: array is guaranteed non-empty
+
+    console.log(`🎲 [Warm-Up] Random template selected: ${selected.id} (from ${beginnerTemplates.length} options)`);
+    return selected;
   }
 
   /**

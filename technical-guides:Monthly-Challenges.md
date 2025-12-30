@@ -450,35 +450,48 @@ useEffect(() => {
 
 #### **🎲 Challenge Generation Logic**
 ```typescript
-if (dataQuality === 'minimal' || isFirstMonth) {
-  // FIRST MONTH TREATMENT
-  title = "🌱 First Month: Consistency Master"
-  target = fixedBeginnerTarget  // Extra konzervativní
-  starLevel = 1                // Vždy nejlehčí
-  xpReward = 400               // Pevná odměna
-  
+if (totalActiveDays < 14) {
+  // 🌱 WARM-UP TREATMENT (< 14 aktivních dní)
+  category = randomFrom([HABITS, JOURNAL, GOALS])  // Náhodná variabilita
+  template = randomFrom(templates.filter(t => t.minLevel === 1))
+  title = "🌱 Warm-Up: " + template.title
+  target = fixedBeginnerTarget * 0.8  // Extra konzervativní (80%)
+  starLevel = 1                       // Vždy nejlehčí
+  generationReason = 'warm_up'        // ❌ Nedává hvězdu!
+
 } else if (dataQuality === 'partial') {
-  // ČÁSTEČNÁ PERSONALIZACE  
-  title = "Consistency Master"
+  // ČÁSTEČNÁ PERSONALIZACE (14-20 aktivních dní)
+  category = weightedCategorySelection()
+  template = weightedRandomTemplate()
   target = baseline * lightScaling    // Lehká personalizace
   starLevel = 1-3                     // Omezený rozsah
-  
+  generationReason = 'scheduled'      // ✅ Dává hvězdu
+
 } else {
-  // PLNÁ PERSONALIZACE
-  title = "Consistency Master" 
+  // PLNÁ PERSONALIZACE (20+ aktivních dní)
+  category = weightedCategorySelection()
+  template = weightedRandomTemplate()
   target = baseline * starMultiplier  // Plně personalizované
   starLevel = 1-5                     // Celý rozsah hvězdičkové obtížnosti
   xpReward = 500-2532                 // Progresivní XP systém
+  generationReason = 'scheduled'      // ✅ Dává hvězdu
 }
 ```
 
 #### **📅 Praktický příklad uživatelského journey**
 ```
-Den 1-30:  Uživatel používá aplikace, systém analyzuje
-Den 31:    1. září - systém vyhodnotí baseline (např. 20 návyků/měsíc)  
-           → Vygeneruje "Consistency Master" 3⭐ = 23 návyků (baseline +15%)
-Den 32-61: Uživatel plní výzvu po celý září
-Den 62:    1. října - nová výzva na základě výsledků září
+Den 1-13:  Uživatel je nový, má < 14 aktivních dní
+           → 🌱 Warm-Up: Náhodná kategorie, 1⭐, bez hvězdičky
+
+Den 14:    Uživatel překročí 14 aktivních dní - přechod na Full!
+           → ⭐ Full Challenge: Personalizované, dává hvězdičky
+
+Měsíc 1:   🌱 Warm-Up: Journal → Gratitude Guru (1⭐) - 8 aktivních dní
+Měsíc 2:   🌱 Warm-Up: Habits → Streak Builder (1⭐) - 12 aktivních dní
+Měsíc 3:   ⭐ Full: Habits → Consistency Master (2⭐) - 18 aktivních dní
+           → První hvězda! Baseline: 20 návyků → Target: 22 návyků (+10%)
+Měsíc 4:   ⭐ Full: Journal → Reflection Expert (3⭐) - 25 aktivních dní
+           → Plná personalizace, progresivní obtížnost
 ```
 
 **Výsledek**: Každá výzva je **precizně nastavena** na uživatelovu skutečnou úroveň aktivity, ne na generické hodnoty.
@@ -708,17 +721,143 @@ Každá výzva má 3 mezicíle pro udržení motivace:
 
 ## 🔧 **ADVANCED FEATURES**
 
-### **🆕 First Month Special Handling**
-Pro nové uživatele speciální onboarding experience:
+### **🌱 WARM-UP vs FULL CHALLENGE SYSTEM (December 2025)**
+
+Systém rozlišuje dva typy výzev podle aktivity uživatele:
+
+#### **📊 Rozhodovací logika**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Uživatel otevře aplikaci 1. den v měsíci                   │
+│                         ↓                                    │
+│  Systém zkontroluje: Kolik aktivních dní má uživatel?       │
+│                         ↓                                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  < 14 aktivních dní  │  ≥ 14 aktivních dní          │    │
+│  │         ↓            │           ↓                   │    │
+│  │   🌱 WARM-UP         │    ⭐ FULL CHALLENGE          │    │
+│  │   CHALLENGE          │                               │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### **🌱 WARM-UP CHALLENGE (< 14 dnů aktivity)**
+
+**Kdy se aktivuje:**
+- Uživatel má méně než 14 aktivních dní v historii
+- Nový uživatel bez dat
+- Uživatel s mezerami v aktivitě
+
+**Charakteristiky:**
+
+| Vlastnost | Warm-Up Challenge |
+|-----------|-------------------|
+| **Práh** | < 14 aktivních dní |
+| **Kategorie** | Náhodně: HABITS, JOURNAL, nebo GOALS |
+| **Šablona** | Náhodně z `minLevel = 1` šablon |
+| **Obtížnost** | Vždy 1⭐ (nejlehčí) |
+| **Scaling** | 80% normálních cílů (extra konzervativní) |
+| **XP odměna** | Standardní XP za dokončení |
+| **Hvězdička** | ❌ **NEDÁVÁ hvězdu obtížnosti** |
+| **generationReason** | `'warm_up'` |
+
+**Proč nedává hvězdu:**
+- Zabraňuje "gamingu" systému
+- Uživatel nemůže získat 5⭐ s lehkými výzvami
+- První "pravá" hvězda přijde až po 14+ dnech aktivity
+
+**Náhodná variabilita (December 2025):**
 ```typescript
-generateFirstMonthChallenge() {
-  // Extra konzervativní targety (30% snížení)
-  // Vždy 1⭐ obtížnost pro sebevědomí
-  // Beginner-friendly kategorie (především Habits)
-  // Onboarding tips a guidance
-  // Success rate 85%+ expected
+// Kategorie - náhodný výběr ze 3 jednoduchých
+const beginnerCategories = [HABITS, JOURNAL, GOALS];
+const selected = beginnerCategories[Math.random() * 3];
+
+// Šablona - náhodný výběr z lehkých
+const beginnerTemplates = templates.filter(t => t.minLevel === 1);
+const selected = beginnerTemplates[Math.random() * count];
+```
+
+#### **⭐ FULL CHALLENGE (≥ 14 dnů aktivity)**
+
+**Kdy se aktivuje:**
+- Uživatel má 14 nebo více aktivních dní
+- Systém má dostatek dat pro personalizaci
+
+**Charakteristiky:**
+
+| Vlastnost | Full Challenge |
+|-----------|----------------|
+| **Práh** | ≥ 14 aktivních dní |
+| **Kategorie** | Inteligentní výběr (váhy, historie, engagement) |
+| **Šablona** | Weighted random s priority, seasonal bonus, anti-repeat |
+| **Obtížnost** | 1-5⭐ podle star ratingu uživatele |
+| **Scaling** | Personalizované: baseline × star multiplier |
+| **XP odměna** | Progresivní: 500-2,532 XP podle ⭐ |
+| **Hvězdička** | ✅ Dává hvězdu (success = +1⭐, failure = potenciálně -1⭐) |
+| **generationReason** | `'scheduled'` nebo `'manual'` |
+
+**Inteligentní výběr kategorie:**
+- User engagement multiplier (0.5-1.5×)
+- Recent usage penalty (80%/40%/10% pro poslední 3 měsíce)
+- Star level bonus (preference kategorií s prostorem pro růst)
+- Data quality bonus (preference kategorií s dostatkem dat)
+
+**Weighted random výběr šablony:**
+- Base priority: 65-100 bodů
+- Seasonal bonus: +30 bodů
+- Anti-repeat penalty: -40 bodů
+- Random variance: ±20 bodů
+
+#### **📈 Přechod z Warm-Up na Full**
+
+```
+Den 1-13:  Uživatel dostává Warm-Up výzvy
+           → Žádné hvězdy, variabilní kategorie, lehké cíle
+
+Den 14+:   Uživatel přechází na Full výzvy
+           → Plná personalizace, hvězdy, progresivní obtížnost
+```
+
+**Praktický příklad:**
+```
+Měsíc 1 (5 aktivních dní):   🌱 Warm-Up: Habits → Consistency Master (1⭐)
+Měsíc 2 (12 aktivních dní):  🌱 Warm-Up: Journal → Gratitude Guru (1⭐)
+Měsíc 3 (18 aktivních dní):  ⭐ Full: Habits → Streak Builder (2⭐) ← První hvězda!
+Měsíc 4 (25 aktivních dní):  ⭐ Full: Journal → Reflection Expert (3⭐)
+```
+
+#### **🔧 Technická implementace**
+
+**Threshold konstanta:**
+```typescript
+// userActivityTracker.ts
+private static readonly WARM_UP_THRESHOLD = 14;
+
+// Rozhodování
+isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD
+```
+
+**Star blocking v starRatingService.ts:**
+```typescript
+if (isWarmUp) {
+  console.log('⚠️ Warm-up challenge - NO star progression');
+  return {
+    ...historyEntry,
+    reason: 'warm_up',
+    newStars: previousStars // Beze změny
+  };
 }
 ```
+
+**Lokalizace:**
+| Jazyk | Prefix |
+|-------|--------|
+| EN | "Warm-Up" |
+| DE | "Aufwärm-Challenge" |
+| ES | "Calentamiento" |
+
+---
 
 ### **🎲 Template Selection Algorithm**  
 Inteligentní výběr výzev na základě:
