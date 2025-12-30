@@ -96,8 +96,13 @@ interface AchievementProviderProps {
  * Manages achievement state and provides real-time updates
  */
 export const AchievementProvider: React.FC<AchievementProviderProps> = ({ children }) => {
-  // 3-Tier Modal Priority System coordination
-  const { notifyAchievementModalStarted, notifyAchievementModalEnded } = useXpAnimation();
+  // 4-Tier Modal Priority System coordination
+  const { notifyAchievementModalStarted, notifyAchievementModalEnded, state: xpAnimationState } = useXpAnimation();
+
+  // Check if higher priority modals (Tier 1-2) are blocking
+  const isHigherPriorityModalActive =
+    xpAnimationState.modalCoordination.isActivityModalActive ||
+    xpAnimationState.modalCoordination.isMonthlyChallengeModalActive;
   
   // State management
   const [userAchievements, setUserAchievements] = useState<UserAchievements>({
@@ -355,27 +360,45 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   }, []);
 
   /**
-   * Show next celebration from queue with 3-Tier Modal Priority System coordination
+   * Show next celebration from queue with 4-Tier Modal Priority System coordination
    */
   const showNextCelebration = useCallback(() => {
+    // Don't show achievements if higher priority modals (Tier 1-2) are active
+    if (isHigherPriorityModalActive) {
+      console.log('⏸️ Achievement modal delayed - higher priority modal active (Tier 1-2)');
+      return;
+    }
+
     if (!showingCelebration && celebrationQueue.length > 0) {
-      console.log('🏆 Starting Achievement Celebration Modal (Tier 2)');
+      console.log('🏆 Starting Achievement Celebration Modal (Tier 3)');
       notifyAchievementModalStarted('achievement');
       setShowingCelebration(true);
       setCurrentCelebrationIndex(0);
     }
-  }, [showingCelebration, celebrationQueue.length, notifyAchievementModalStarted]);
+  }, [showingCelebration, celebrationQueue.length, notifyAchievementModalStarted, isHigherPriorityModalActive]);
 
   /**
    * Close current celebration modal and show next in queue with 3-Tier Modal Priority System coordination
    */
   const closeCelebrationModal = useCallback(() => {
-    console.log('✅ Closing Achievement Celebration Modal (Tier 2)');
-    notifyAchievementModalEnded();
+    console.log('✅ Closing Achievement Celebration Modal (Tier 3)');
     setShowingCelebration(false);
 
-    // Remove the first item from queue
-    setCelebrationQueue(prev => prev.slice(1));
+    // Remove the first item from queue and check if more achievements remain
+    setCelebrationQueue(prev => {
+      const remaining = prev.slice(1);
+
+      // CRITICAL: Only notify achievement modal ended when ALL achievements are shown
+      // This prevents level-up modals (Tier 4) from interrupting achievement queue
+      if (remaining.length === 0) {
+        console.log('🏁 All achievements shown - notifying Tier 3 ended, Tier 4 level-ups can start');
+        notifyAchievementModalEnded();
+      } else {
+        console.log(`📋 ${remaining.length} more achievement(s) in queue - keeping Tier 3 active`);
+      }
+
+      return remaining;
+    });
 
     // Emit event for tutorial coordination - allows tutorial to advance after achievement modal closes
     DeviceEventEmitter.emit('achievementCelebrationClosed');
@@ -386,12 +409,13 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     }, 2000); // 2-second interval as specified in project plan
   }, [notifyAchievementModalEnded, showNextCelebration]);
 
-  // Auto-trigger next celebration when queue is updated
+  // Auto-trigger next celebration when queue is updated OR higher priority modals end
   useEffect(() => {
-    if (!showingCelebration && celebrationQueue.length > 0) {
+    if (!showingCelebration && celebrationQueue.length > 0 && !isHigherPriorityModalActive) {
+      console.log('🎬 Auto-triggering achievement celebration (queue has items, no higher priority modals)');
       showNextCelebration();
     }
-  }, [celebrationQueue.length, showingCelebration, showNextCelebration]);
+  }, [celebrationQueue.length, showingCelebration, showNextCelebration, isHigherPriorityModalActive]);
 
   // ========================================
   // EVENT LISTENERS

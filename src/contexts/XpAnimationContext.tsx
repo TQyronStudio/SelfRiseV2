@@ -593,7 +593,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
   const hideLevelUpModal = useCallback(() => {
     console.log(`💫 Hiding level-up modal`);
-    
+
     setState(prev => ({
       ...prev,
       levelUpModal: {
@@ -601,7 +601,12 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         visible: false,
       },
     }));
-  }, []);
+
+    // Process next level-up modal in queue after a short delay
+    setTimeout(() => {
+      processLevelUpModals();
+    }, 500); // 500ms delay between level-up modals
+  }, [processLevelUpModals]);
   
   // Listen for global XP animation events from GamificationService
   useEffect(() => {

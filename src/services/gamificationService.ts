@@ -910,40 +910,47 @@ export class GamificationService {
       // Log the XP addition
       console.log(`💰 XP added: +${finalAmount} XP from ${options.source} (${previousTotalXP} → ${newTotalXP})`);
       if (leveledUp) {
-        console.log(`🎉 Level up! ${previousLevel} → ${newLevel}`);
-        
+        const levelsGained = newLevel - previousLevel;
+        console.log(`🎉 Level up! ${previousLevel} → ${newLevel} (${levelsGained} level${levelsGained > 1 ? 's' : ''})`);
+
         // ENHANCED LOGGING: Detailed level-up flow tracking
         console.log(`📊 Level-up Flow Tracking:`, {
           event: 'LEVEL_UP_DETECTED',
           previousLevel,
           newLevel,
+          levelsGained,
           totalXP: newTotalXP,
           xpGained: finalAmount,
           source: options.source,
           timestamp: Date.now(),
           flowId: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
         });
-        
-        // CRITICAL: Emit level-up event for modal celebration
-        const levelInfo = getLevelInfo(newLevel);
-        const levelUpEventData = {
-          newLevel,
-          previousLevel,
-          levelTitle: levelInfo.title,
-          levelDescription: levelInfo.description || '',
-          isMilestone: levelInfo.isMilestone,
-          timestamp: Date.now()
-        };
-        
-        console.log(`🎯 Emitting levelUp event:`, {
-          event: 'LEVEL_UP_EVENT_EMIT',
-          eventData: levelUpEventData,
-          timestamp: Date.now()
-        });
-        
-        DeviceEventEmitter.emit('levelUp', levelUpEventData);
-        
-        console.log(`✅ Level-up event emission completed successfully`);
+
+        // CRITICAL: Emit level-up event for EACH level gained (not just the final one)
+        // This ensures user sees every level transition: 10→11, 11→12, 12→13, etc.
+        for (let level = previousLevel + 1; level <= newLevel; level++) {
+          const levelInfo = getLevelInfo(level);
+          const prevLevelForThisStep = level - 1;
+
+          const levelUpEventData = {
+            newLevel: level,
+            previousLevel: prevLevelForThisStep,
+            levelTitle: levelInfo.title,
+            levelDescription: levelInfo.description || '',
+            isMilestone: levelInfo.isMilestone,
+            timestamp: Date.now() + (level - previousLevel - 1) * 100 // Slight offset for ordering
+          };
+
+          console.log(`🎯 Emitting levelUp event (${level - previousLevel}/${levelsGained}):`, {
+            event: 'LEVEL_UP_EVENT_EMIT',
+            eventData: levelUpEventData,
+            timestamp: Date.now()
+          });
+
+          DeviceEventEmitter.emit('levelUp', levelUpEventData);
+        }
+
+        console.log(`✅ All ${levelsGained} level-up event(s) emitted successfully`);
       }
       
       return result;
