@@ -15,22 +15,22 @@ import { TranslationKeys } from '../../types/i18n';
 const de: Partial<TranslationKeys> = {
   // Navigation
   tabs: {
-    home: 'Startseite',
-    habits: 'Gewohnheiten',
-    journal: 'Mein Tagebuch',
+    home: 'Home',
+    habits: 'Routine',
+    journal: 'Tagebuch',
     goals: 'Ziele',
     achievements: 'Erfolge',
-    settings: 'Einstellungen',
+    settings: 'Menü',
   },
 
   // Home screen
   home: {
-    title: 'Willkommen zurück!',
-    journalStreak: 'Meine Tagebuch-Serie',
-    habitStatistics: 'Gewohnheitsstatistiken',
-    weeklyProgress: 'Wöchentlicher Fortschritt',
-    monthlyProgress: 'Monatlicher Fortschritt',
-    dayDetail: 'Tagesdetail',
+    title: 'Willkommen!',
+    journalStreak: 'Serie',
+    habitStatistics: 'Statistik',
+    weeklyProgress: 'Woche',
+    monthlyProgress: 'Monat',
+    dayDetail: 'Details',
     // Streak display
     day: 'Tag',
     days: 'Tage',
@@ -56,15 +56,15 @@ const de: Partial<TranslationKeys> = {
     bonusDays: 'Bonus',
     // Habit Statistics Dashboard
     habitStats: {
-      weeklyChart: 'Wöchentliche Gewohnheitserfüllung',
+      weeklyChart: 'Wochenübersicht',
       monthlyOverview: 'Monatsübersicht',
       performanceIndicators: 'Leistung',
-      trendAnalysis: 'Trends - Gewohnheiten',
-      totalHabits: 'Gewohnheiten gesamt',
-      activeHabits: 'Aktive Gewohnheiten',
-      completedToday: 'Heute erledigt',
-      weeklyAverage: 'Wochendurchschnitt',
-      monthlyAverage: 'Monatsdurchschnitt',
+      trendAnalysis: 'Trends',
+      totalHabits: 'Gesamt',
+      activeHabits: 'Aktiv',
+      completedToday: 'Heute',
+      weeklyAverage: 'Ø Woche',
+      monthlyAverage: 'Ø Monat',
       bestDay: 'Bester Tag',
       improvingTrend: 'Aufwärtstrend',
       decliningTrend: 'Abwärtstrend',
@@ -180,17 +180,17 @@ const de: Partial<TranslationKeys> = {
         visibilityFailed: 'Sichtbarkeit der Komponente konnte nicht aktualisiert werden. Bitte versuche es erneut.',
       },
       componentNames: {
-        xpProgressBar: 'XP-Fortschritt',
-        xpMultiplier: 'XP-Multiplikator',
-        journalStreak: 'Tagebuch-Streak',
-        quickActions: 'Schnellaktionen',
-        dailyQuote: 'Tägliche Inspiration',
-        recommendations: 'Für dich',
-        streakHistory: 'Streak-Verlauf',
-        habitStats: 'Gewohnheitsstatistiken',
+        xpProgressBar: 'XP-Status',
+        xpMultiplier: 'Multiplikator',
+        journalStreak: 'Serie',
+        quickActions: 'Aktionen',
+        dailyQuote: 'Inspiration',
+        recommendations: 'Tipps',
+        streakHistory: 'Verlauf',
+        habitStats: 'Statistik',
         habitPerformance: 'Leistung',
         habitTrends: 'Trends',
-        monthlyChallenges: 'Monatsherausforderungen',
+        monthlyChallenges: 'Monatsziel',
       },
     },
     // Habit Performance Indicators
@@ -272,12 +272,12 @@ const de: Partial<TranslationKeys> = {
       bonusLabel: 'Bonus',
     },
     // Quick Actions
-    quickActionsTitle: 'Schnellaktionen',
+    quickActionsTitle: 'Aktionen',
     quickActions: {
-      addHabit: 'Gewohnheit hinzufügen',
-      gratitude: 'Dankbarkeit',
-      selfPraise: 'Selbstlob',
-      addGoal: 'Ziel hinzufügen',
+      addHabit: '+ Routine',
+      gratitude: 'Dank',
+      selfPraise: 'Lob',
+      addGoal: '+ Ziel',
     },
     // Yearly Habit Overview
     yearlyOverview: {
@@ -387,12 +387,12 @@ const de: Partial<TranslationKeys> = {
     saving: 'Speichern...',
     edit: 'Bearbeiten',
     delete: 'Löschen',
-    retry: 'Erneut versuchen',
-    tryAgain: 'Erneut versuchen',
-    add: 'Hinzufügen',
-    create: 'Erstellen',
-    update: 'Aktualisieren',
-    confirm: 'Bestätigen',
+    retry: 'Nochmal',
+    tryAgain: 'Nochmal',
+    add: '+ Neu',
+    create: 'Neu',
+    update: 'Update',
+    confirm: 'OK',
     error: 'Fehler',
     success: 'Erfolg',
     done: 'Fertig',
@@ -422,10 +422,10 @@ const de: Partial<TranslationKeys> = {
     daysCount: '{{count}} Tage',
     completed: '{{completed}} von {{total}} abgeschlossen',
     loading: {
-      default: 'Wird geladen...',
-      levels: 'Level werden geladen...',
-      habits: 'Gewohnheiten werden geladen...',
-      progress: 'Fortschritt wird geladen...',
+      default: 'Lade...',
+      levels: 'Lade Level...',
+      habits: 'Lade Routine...',
+      progress: 'Lade...',
     },
     dates: {
       today: 'Heute',
@@ -442,75 +442,75 @@ const de: Partial<TranslationKeys> = {
     },
     errors: {
       goals: {
-        failedToSave: 'Ziel konnte nicht gespeichert werden',
-        failedToDelete: 'Ziel konnte nicht gelöscht werden',
-        failedToReorder: 'Ziele konnten nicht neu geordnet werden',
-        failedToAddProgress: 'Fortschritt konnte nicht hinzugefügt werden',
-        noProgressData: 'Noch keine Fortschrittsdaten. Fügen Sie einige Fortschritte hinzu, um Statistiken zu sehen.',
+        failedToSave: 'Speichern fehlgeschlagen',
+        failedToDelete: 'Löschen fehlgeschlagen',
+        failedToReorder: 'Sortieren fehlgeschlagen',
+        failedToAddProgress: 'Fortschritt fehlgeschlagen',
+        noProgressData: 'Keine Daten. Füge Fortschritt hinzu.',
       },
       habits: {
-        failedToSave: 'Gewohnheit konnte nicht gespeichert werden',
-        failedToDelete: 'Gewohnheit konnte nicht gelöscht werden',
-        failedToUpdate: 'Gewohnheit konnte nicht aktualisiert werden',
-        failedToReorder: 'Gewohnheiten konnten nicht neu geordnet werden',
-        failedToToggleCompletion: 'Abschluss konnte nicht umgeschaltet werden',
-        loadingHabits: 'Gewohnheiten werden geladen...',
-        activeHabits: 'Aktive Gewohnheiten',
-        inactiveHabits: 'Inaktive Gewohnheiten',
-        noHabitsFound: 'Keine Gewohnheiten gefunden',
-        createHabitsFirst: 'Erstellen Sie zunächst einige Gewohnheiten, um ihre Statistiken anzuzeigen',
+        failedToSave: 'Speichern fehlgeschlagen',
+        failedToDelete: 'Löschen fehlgeschlagen',
+        failedToUpdate: 'Update fehlgeschlagen',
+        failedToReorder: 'Sortieren fehlgeschlagen',
+        failedToToggleCompletion: 'Aktion fehlgeschlagen',
+        loadingHabits: 'Lade Routine...',
+        activeHabits: 'Aktiv',
+        inactiveHabits: 'Inaktiv',
+        noHabitsFound: 'Keine Routine',
+        createHabitsFirst: 'Erstelle Routinen für Statistiken',
       },
       gratitude: {
-        failedToSave: 'Dankbarkeit konnte nicht gespeichert werden',
+        failedToSave: 'Speichern fehlgeschlagen',
       },
       social: {
-        failedToLoadHeroes: 'Tägliche Helden konnten nicht geladen werden',
+        failedToLoadHeroes: 'Laden fehlgeschlagen',
       },
     },
     celebration: {
-      general_announcement: 'Glückwunsch zu deinem Erfolg!',
-      modal: 'Erfolg-Feier',
-      default_title: 'Herzlichen Glückwunsch!',
-      default_message: 'Toll gemacht!',
+      general_announcement: 'Glückwunsch!',
+      modal: 'Feier',
+      default_title: 'Glückwunsch!',
+      default_message: 'Super!',
     },
     help: 'Hilfe',
-    helpNotAvailable: 'Hilfeinformationen nicht verfügbar für diese Funktion.',
+    helpNotAvailable: 'Keine Hilfe verfügbar.',
   },
 
   // Global errors
   errors: {
     notFound: {
       title: 'Hoppla!',
-      message: 'Diese Seite existiert nicht.',
-      goHome: 'Zur Startseite!',
+      message: 'Seite existiert nicht.',
+      goHome: 'Home',
     },
   },
 
   // UI Labels
   ui: {
-    progressStep: 'Schritt {{current}} von {{total}}',
-    skipTutorial: 'Tutorial überspringen',
-    nextStep: 'Nächster Schritt',
-    continue: 'Fortfahren',
+    progressStep: '{{current}}/{{total}}',
+    skipTutorial: 'Überspringen',
+    nextStep: 'Weiter',
+    continue: 'Weiter',
     next: 'Weiter',
     cancel: 'Abbrechen',
     save: 'Speichern',
     edit: 'Bearbeiten',
     delete: 'Löschen',
-    retry: 'Erneut versuchen',
-    tutorialComplete: 'Tutorial abgeschlossen',
-    readyToRise: 'Bereit zu steigen',
+    retry: 'Nochmal',
+    tutorialComplete: 'Fertig!',
+    readyToRise: 'Los geht\'s',
   },
 
   // Habits screen
   habits: {
-    title: 'Meine Gewohnheiten',
-    addHabit: 'Gewohnheit hinzufügen',
-    editHabit: 'Gewohnheit bearbeiten',
-    deleteHabit: 'Gewohnheit löschen',
-    activeHabits: 'Aktive Gewohnheiten',
-    inactiveHabits: 'Inaktive Gewohnheiten',
-    addNewHabit: 'Neue Gewohnheit hinzufügen',
+    title: 'Meine Routine',
+    addHabit: '+ Neue Routine',
+    editHabit: 'Bearbeiten',
+    deleteHabit: 'Löschen',
+    activeHabits: 'Aktiv',
+    inactiveHabits: 'Inaktiv',
+    addNewHabit: '+ Neue Routine',
     done: 'Fertig',
     reorder: 'Neu ordnen',
     bonus: 'Bonus',
@@ -581,10 +581,10 @@ const de: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
-    title: 'Mein Tagebuch',
-    addGratitude: 'Dankbarkeit hinzufügen',
-    addGratitudeButton: '+ Dankbarkeit hinzufügen',
-    addSelfPraiseButton: '+ Selbstlob hinzufügen',
+    title: 'Tagebuch',
+    addGratitude: '+ Dankbarkeit',
+    addGratitudeButton: '+ Dank',
+    addSelfPraiseButton: '+ Lob',
     gratitudePlaceholder: 'Wofür bist du heute dankbar?',
     minimumRequired: 'Schreibe mindestens 3 Einträge, um deine Serie aufrechtzuerhalten',
     bonusGratitude: 'Bonus-Eintrag',
@@ -904,9 +904,9 @@ const de: Partial<TranslationKeys> = {
   // Goals screen
   goals: {
     title: 'Meine Ziele',
-    addGoal: 'Ziel hinzufügen',
-    editGoal: 'Ziel bearbeiten',
-    deleteGoal: 'Ziel löschen',
+    addGoal: '+ Neues Ziel',
+    editGoal: 'Bearbeiten',
+    deleteGoal: 'Löschen',
     noGoals: 'Noch keine Ziele. Beginne mit der Erstellung deines ersten Ziels!',
 
     // Error states
@@ -917,7 +917,7 @@ const de: Partial<TranslationKeys> = {
     unitLabel: 'Einheit',
     unitPlaceholder: 'z.B. €, kg, Stunden...',
     targetValueLabel: 'Zielwert',
-    addProgressButton: 'Fortschritt hinzufügen',
+    addProgressButton: '+ Fortschritt',
     progressValue: 'Fortschrittswert',
     progressNote: 'Notiz',
     progressNotePlaceholder: 'Füge eine Notiz zu deinem Fortschritt hinzu...',
@@ -1082,24 +1082,24 @@ const de: Partial<TranslationKeys> = {
       behindSchedule: 'Hinter dem Zeitplan',
       categories: 'Kategorien',
       active: 'Aktiv',
-      completed: 'Abgeschlossen',
-      completion: 'Fertigstellung',
-      quickActions: 'Schnellaktionen',
-      complete: 'Abschließen',
-      wayAhead: 'Weit voraus',
+      completed: 'Erledigt',
+      completion: 'Status',
+      quickActions: 'Aktionen',
+      complete: 'Erledigt',
+      wayAhead: 'Voraus++',
       ahead: 'Voraus',
       behind: 'Zurück',
-      wayBehind: 'Weit zurück',
+      wayBehind: 'Zurück--',
     },
 
     sections: {
-      activeGoals: 'Aktive Ziele',
-      completedGoals: 'Abgeschlossene Ziele',
-      otherGoals: 'Andere Ziele',
+      activeGoals: 'Aktiv',
+      completedGoals: 'Erledigt',
+      otherGoals: 'Andere',
     },
 
     actions: {
-      reorder: 'Neu ordnen',
+      reorder: 'Sortieren',
       done: 'Fertig',
     },
 
@@ -1229,35 +1229,35 @@ const de: Partial<TranslationKeys> = {
   // Monthly Challenge
   monthlyChallenge: {
     // Section title
-    title: 'Monatsherausforderung',
+    title: 'Monatsziel',
 
     // States
-    loading: 'Lade Herausforderung...',
-    preparing: '🗓️ Bereite deine Monatsherausforderung vor...',
-    noActiveChallenge: 'Keine aktive Herausforderung',
-    challengePreparing: '⏳ Herausforderung wird vorbereitet',
-    errorLoading: 'Fehler beim Laden der Herausforderung',
-    failedToLoad: 'Monatsherausforderung konnte nicht geladen werden',
-    retry: 'Erneut versuchen',
+    loading: 'Lade...',
+    preparing: '🗓️ Vorbereitung...',
+    noActiveChallenge: 'Keine aktive',
+    challengePreparing: '⏳ Vorbereitung',
+    errorLoading: 'Fehler',
+    failedToLoad: 'Laden fehlgeschlagen',
+    retry: 'Nochmal',
 
     // Actions
-    view: 'Ansehen',
+    view: 'Öffnen',
     close: 'Schließen',
-    awesome: 'Großartig!',
-    continueJourney: 'Reise fortsetzen',
+    awesome: 'Super!',
+    continueJourney: 'Weiter',
 
     // Labels
-    complete: 'Abgeschlossen',
-    completePercentage: 'Abgeschlossen',
-    daysLeft: 'Tage übrig',
-    daysLeftCompact: 'T übrig',
+    complete: 'Erledigt',
+    completePercentage: 'Erledigt',
+    daysLeft: 'Tage',
+    daysLeftCompact: 'T',
     level: 'Stufe',
-    difficulty: 'Schwierigkeit',
-    difficultyLabel: 'Schwierigkeit',
-    activeDays: 'Aktive Tage',
-    maxXP: 'Max. EP',
-    milestones: 'Meilensteine',
-    requirements: 'Anforderungen',
+    difficulty: 'Level',
+    difficultyLabel: 'Level',
+    activeDays: 'Aktiv',
+    maxXP: 'Max XP',
+    milestones: 'Ziele',
+    requirements: 'Bedingung',
 
     // Warm-Up Challenge (for users with < 14 days of activity)
     warmUpPrefix: 'Aufwärm-Challenge',
@@ -1275,14 +1275,14 @@ const de: Partial<TranslationKeys> = {
 
     // Calendar
     calendar: {
-      title: 'Monatsfortschritt-Kalender',
-      dailyProgress: 'Täglicher Fortschritt',
-      weeklyBreakdown: 'Wöchentliche Aufschlüsselung',
-      week: 'Woche {{number}}',
-      noActivity: 'Keine Aktivität (<10%)',
-      someActivity: 'Etwas Aktivität (10-50%)',
-      goodProgress: 'Guter Fortschritt (51-90%)',
-      perfectDay: 'Perfekter Tag (91%+)',
+      title: 'Kalender',
+      dailyProgress: 'Täglich',
+      weeklyBreakdown: 'Wöchentlich',
+      week: 'W{{number}}',
+      noActivity: 'Inaktiv (<10%)',
+      someActivity: 'Etwas (10-50%)',
+      goodProgress: 'Gut (51-90%)',
+      perfectDay: 'Perfekt (91%+)',
       weekDays: {
         mon: 'Mo',
         tue: 'Di',
@@ -1299,13 +1299,13 @@ const de: Partial<TranslationKeys> = {
     },
 
     // Progress
-    monthlyProgress: 'Monatsfortschritt',
-    monthStreak: 'Monatsserie',
-    yourChallengeLevels: 'Deine Herausforderungsstufen',
+    monthlyProgress: 'Fortschritt',
+    monthStreak: 'Serie',
+    yourChallengeLevels: 'Deine Stufen',
 
     // Completion
-    monthComplete: '✓ Monat abgeschlossen',
-    completed: 'Monatsherausforderung abgeschlossen! 🎉',
+    monthComplete: '✓ Erledigt',
+    completed: 'Geschafft! 🎉',
     endsDate: 'Endet: {{date}}',
 
     // Fallback challenge (shown when generation has issues)
@@ -1480,32 +1480,32 @@ const de: Partial<TranslationKeys> = {
 
   // Settings screen - Language section (PRIORITY 1)
   settings: {
-    title: 'Einstellungen',
+    title: 'Menü',
 
     // Appearance
-    appearance: 'Erscheinungsbild',
+    appearance: 'Aussehen',
     theme: 'Theme',
     themeLight: 'Hell',
     themeDark: 'Dunkel',
-    themeSystem: 'System Auto',
-    themeDescription: 'Wählen Sie Ihr bevorzugtes Farbschema',
-    themeSystemDescription: 'Entspricht Ihren Geräteeinstellungen',
-    lightMode: 'Heller Modus',
-    darkMode: 'Dunkler Modus',
-    systemAuto: 'System Auto',
-    systemAutoDescription: 'Entspricht Ihren Geräteeinstellungen',
+    themeSystem: 'Auto',
+    themeDescription: 'Wähle dein Farbschema',
+    themeSystemDescription: 'Folgt Geräte-Einstellung',
+    lightMode: 'Hell',
+    darkMode: 'Dunkel',
+    systemAuto: 'Auto',
+    systemAutoDescription: 'Folgt Geräte-Einstellung',
 
     // Language
     language: 'Sprache',
-    languageDescription: 'Wählen Sie Ihre bevorzugte Sprache',
+    languageDescription: 'Wähle deine Sprache',
     languageEnglish: 'English',
     languageGerman: 'Deutsch',
     languageSpanish: 'Español',
 
     // Notifications
-    notifications: 'Benachrichtigungen',
-    morningNotification: 'Morgenbenachrichtigung',
-    eveningNotification: 'Abendbenachrichtigung',
+    notifications: 'Mitteilungen',
+    morningNotification: 'Morgens',
+    eveningNotification: 'Abends',
     notificationSettings: {
       errors: {
         loadFailed: 'Benachrichtigungseinstellungen konnten nicht geladen werden',
@@ -1524,8 +1524,8 @@ const de: Partial<TranslationKeys> = {
     },
 
     // Analytics
-    habitAnalytics: 'Gewohnheitsanalytik',
-    individualHabitStats: 'Individuelle Gewohnheitsstatistiken',
+    habitAnalytics: 'Analytik',
+    individualHabitStats: 'Statistiken',
 
     // Account
     account: 'Konto',
@@ -1586,16 +1586,16 @@ const de: Partial<TranslationKeys> = {
 
   // Achievements - All 78 achievements translated to German
   achievements: {
-    title: 'Trophäenzimmer',
-    subtitle: 'Deine persönliche Ruhmeshalle',
+    title: 'Trophäen',
+    subtitle: 'Deine Ruhmeshalle',
 
     // View mode toggle
-    viewModeTrophyRoom: '🏠 Trophäenzimmer',
-    viewModeBrowseAll: '🏆 Alle durchsuchen',
+    viewModeTrophyRoom: '🏠 Trophäen',
+    viewModeBrowseAll: '🏆 Alle',
 
     // Loading states
-    loadingTitle: 'Trophäenzimmer wird geladen',
-    loadingText: 'Erfolge werden poliert...',
+    loadingTitle: 'Lade Trophäen...',
+    loadingText: 'Erfolge polieren...',
 
     // Overview Statistics
     overview: {
@@ -1698,30 +1698,30 @@ const de: Partial<TranslationKeys> = {
 
     // Filtering and Search
     filter: {
-      showAll: 'Alle anzeigen',
-      unlockedOnly: 'Nur Freigeschaltete',
-      lockedOnly: 'Nur Gesperrte',
-      byCategory: 'Nach Kategorie',
-      byRarity: 'Nach Seltenheit',
-      searchPlaceholder: 'Erfolge suchen...',
-      noResults: 'Keine Erfolge gefunden',
-      noResultsSubtitle: 'Versuche, deine Filter oder Suchkriterien anzupassen',
-      clearFilters: 'Filter löschen',
+      showAll: 'Alle',
+      unlockedOnly: 'Offen',
+      lockedOnly: 'Gesperrt',
+      byCategory: 'Kategorie',
+      byRarity: 'Seltenheit',
+      searchPlaceholder: 'Suchen...',
+      noResults: 'Keine Treffer',
+      noResultsSubtitle: 'Passe Filter oder Suche an',
+      clearFilters: 'Filter ×',
     },
 
     // Trophy Room Stats
     trophyRoom: {
-      totalTrophies: 'Gesamttrophäen',
+      totalTrophies: 'Trophäen',
       collected: 'Gesammelt',
-      completionRate: 'Abschlussrate',
-      overallProgress: 'Gesamtfortschritt',
-      showingResults: 'Zeige {{filtered}} von {{total}} Erfolgen',
+      completionRate: 'Quote',
+      overallProgress: 'Fortschritt',
+      showingResults: '{{filtered}}/{{total}} Erfolge',
     },
 
     // Sorting
     sort: {
       byName: 'Name',
-      byUnlockDate: 'Freischaltdatum',
+      byUnlockDate: 'Datum',
       byRarity: 'Seltenheit',
       byCategory: 'Kategorie',
       byProgress: 'Fortschritt',
@@ -1732,58 +1732,58 @@ const de: Partial<TranslationKeys> = {
     // Achievement Card
     card: {
       locked: 'Gesperrt',
-      unlocked: 'Freigeschaltet',
-      unlockedOn: 'Freigeschaltet am {{date}}',
-      progress: 'Fortschritt: {{current}}/{{target}}',
+      unlocked: 'Offen',
+      unlockedOn: 'Offen am {{date}}',
+      progress: '{{current}}/{{target}}',
       xpReward: '+{{xp}} XP',
-      viewDetails: 'Details anzeigen',
-      almostThere: 'Fast geschafft!',
-      keepGoing: 'Weiter so!',
-      accessibility_label: '{{name}}, {{rarity}} Seltenheit Erfolg. Status: {{status}}. {{description}}',
-      accessibility_hint: 'Tippen, um mehr Details zu diesem Erfolg anzuzeigen',
+      viewDetails: 'Details',
+      almostThere: 'Fast da!',
+      keepGoing: 'Weiter!',
+      accessibility_label: '{{name}}, {{rarity}} Erfolg. Status: {{status}}. {{description}}',
+      accessibility_hint: 'Tippen für Details',
     },
 
     // Achievement Details Modal
     details: {
-      title: 'Erfolg-Details',
-      description: 'Beschreibung',
+      title: 'Details',
+      description: 'Info',
       category: 'Kategorie',
       rarity: 'Seltenheit',
-      xpReward: 'XP-Belohnung',
-      unlockCondition: 'Wie man freischaltet',
-      progress: 'Dein Fortschritt',
-      unlockedDate: 'Freischaltdatum',
-      timeToUnlock: 'Zeit zum Freischalten',
+      xpReward: 'XP-Bonus',
+      unlockCondition: 'Bedingung',
+      progress: 'Fortschritt',
+      unlockedDate: 'Datum',
+      timeToUnlock: 'Dauer',
       tips: 'Tipps',
       close: 'Schließen',
-      shareAchievement: 'Erfolg teilen',
+      shareAchievement: 'Teilen',
     },
 
     // Interactive Features
     interactive: {
-      celebrationHistory: 'Letzte Feiern',
-      achievementSpotlight: 'Erfolgs-Spotlight',
-      featuredAchievement: 'Ausgewählter Erfolg',
-      dailyChallenge: 'Heutige Herausforderung',
-      progressPreview: 'Fortschrittsvorschau',
-      upcomingRewards: 'Kommende Belohnungen',
+      celebrationHistory: 'Feiern',
+      achievementSpotlight: 'Spotlight',
+      featuredAchievement: 'Featured',
+      dailyChallenge: 'Tagesaufgabe',
+      progressPreview: 'Vorschau',
+      upcomingRewards: 'Belohnungen',
     },
 
     // Statistics Panel
     stats: {
-      title: 'Erfolgsstatistiken',
-      breakdown: 'Kategorieaufschlüsselung',
-      rarityDistribution: 'Seltenheitsverteilung',
-      unlockTimeline: 'Freischalt-Zeitleiste',
-      averageTimeToUnlock: 'Ø Zeit zum Freischalten',
-      totalXPEarned: 'Gesamt-XP aus Erfolgen',
-      achievementRate: 'Erfolgsrate',
-      consistencyScore: 'Beständigkeitswert',
-      nextMilestone: 'Nächster Meilenstein',
-      daysActive: '{{days}} Tage aktiv',
-      thisWeek: 'Diese Woche',
-      thisMonth: 'Diesen Monat',
-      allTime: 'Alle Zeit',
+      title: 'Statistik',
+      breakdown: 'Kategorien',
+      rarityDistribution: 'Seltenheit',
+      unlockTimeline: 'Zeitleiste',
+      averageTimeToUnlock: 'Ø Dauer',
+      totalXPEarned: 'Gesamt-XP',
+      achievementRate: 'Quote',
+      consistencyScore: 'Konstanz',
+      nextMilestone: 'Nächster',
+      daysActive: '{{days}} Tage',
+      thisWeek: 'Woche',
+      thisMonth: 'Monat',
+      allTime: 'Gesamt',
     },
 
     // Empty States
@@ -2969,51 +2969,51 @@ const de: Partial<TranslationKeys> = {
     level: 'Level',
 
     xp: {
-      label: 'Erfahrungspunkte',
-      short: 'EP',
-      gained: 'EP erhalten',
-      lost: 'EP verloren',
-      total: 'Gesamt-EP',
-      loading: 'EP werden geladen...',
+      label: 'XP',
+      short: 'XP',
+      gained: '+XP',
+      lost: '-XP',
+      total: 'Gesamt',
+      loading: 'Lade XP...',
 
       sources: {
-        habit_completion: 'Gewohnheit abgeschlossen',
-        habit_bonus: 'Gewohnheits-Bonus',
-        journal_entry: 'Tagebuch-Eintrag',
-        journal_bonus: 'Tagebuch-Bonus',
-        journal_bonus_milestone: 'Tagebuch-Bonus-Meilenstein',
-        goal_progress: 'Zielfortschritt',
-        goal_completion: 'Ziel abgeschlossen',
-        goal_milestone: 'Ziel-Meilenstein',
-        habit_streak_milestone: 'Gewohnheits-Serien-Meilenstein',
-        journal_streak_milestone: 'Tagebuch-Serien-Meilenstein',
-        achievement_unlock: 'Erfolg freigeschaltet',
+        habit_completion: 'Routine',
+        habit_bonus: 'Bonus',
+        journal_entry: 'Tagebuch',
+        journal_bonus: 'Bonus',
+        journal_bonus_milestone: 'Meilenstein',
+        goal_progress: 'Fortschritt',
+        goal_completion: 'Ziel',
+        goal_milestone: 'Meilenstein',
+        habit_streak_milestone: 'Serie',
+        journal_streak_milestone: 'Serie',
+        achievement_unlock: 'Erfolg',
         general_activity: 'Aktivität',
-        daily_engagement: 'Tägliches Engagement',
-        daily_launch: 'Täglicher Start',
-        monthly_challenge: 'Monatsherausforderung',
-        recommendation_follow: 'Empfehlung',
-        xp_multiplier_bonus: 'Multiplikator-Bonus',
-        XP_MULTIPLIER_BONUS: 'Comeback-Bonus',
+        daily_engagement: 'Engagement',
+        daily_launch: 'Start',
+        monthly_challenge: 'Monat',
+        recommendation_follow: 'Tipp',
+        xp_multiplier_bonus: 'Bonus',
+        XP_MULTIPLIER_BONUS: 'Comeback',
       },
 
       notification: {
-        message: 'Erfahrungspunkte-Benachrichtigung: {{message}}',
-        amount: 'Erfahrungspunkte {{type}}: {{amount}}',
+        message: 'XP: {{message}}',
+        amount: 'XP {{type}}: {{amount}}',
       },
 
       announcement: {
-        balanced: 'Keine Netto-Erfahrungspunkte aus kürzlichen Aktivitäten gewonnen oder verloren',
-        decreased: '{{xp}} Erfahrungspunkte aus kürzlichen Aktivitäten verloren',
-        single: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
-        multiple_same: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
-        multiple_mixed: '{{xp}} Erfahrungspunkte aus mehreren Aktivitäten erhalten',
+        balanced: 'Keine Netto-XP',
+        decreased: '-{{xp}} XP',
+        single: '+{{xp}} XP: {{count}}× {{source}}',
+        multiple_same: '+{{xp}} XP: {{count}}× {{source}}',
+        multiple_mixed: '+{{xp}} XP',
       },
 
       popup: {
-        gained: '{{amount}} Erfahrungspunkte aus {{source}} erhalten',
-        lost: '{{amount}} Erfahrungspunkte aus {{source}} verloren',
-        amount_label: '{{sign}} {{amount}} Erfahrungspunkte',
+        gained: '+{{amount}} XP: {{source}}',
+        lost: '-{{amount}} XP: {{source}}',
+        amount_label: '{{sign}}{{amount}} XP',
       },
 
       // Notification messages
@@ -3028,18 +3028,18 @@ const de: Partial<TranslationKeys> = {
       // XP Notification Component - Source Names (plural forms for display)
       xpNotification: {
         sources: {
-          habits: 'Gewohnheiten',
-          journalEntries: 'Tagebuch-Einträge',
-          journalMilestones: 'Tagebuch-Meilensteine',
+          habits: 'Routinen',
+          journalEntries: 'Einträge',
+          journalMilestones: 'Meilensteine',
           goals: 'Ziele',
-          goalMilestones: 'Ziel-Meilensteine',
+          goalMilestones: 'Meilensteine',
           streaks: 'Serien',
           achievements: 'Erfolge',
-          monthlyChallenges: 'Monatsherausforderungen',
-          multiplierBonuses: 'Multiplikator-Boni',
-          dailyLaunches: 'Tägliche Starts',
-          recommendations: 'Empfehlungen',
-          activities: 'Aktivitäten',
+          monthlyChallenges: 'Monat',
+          multiplierBonuses: 'Boni',
+          dailyLaunches: 'Starts',
+          recommendations: 'Tipps',
+          activities: 'Aktivität',
         },
         messages: {
           completed: 'abgeschlossen',
@@ -3049,33 +3049,33 @@ const de: Partial<TranslationKeys> = {
           and: 'und',
         },
         announcements: {
-          balanced: 'Keine Netto-Erfahrungspunkte aus kürzlichen Aktivitäten gewonnen oder verloren',
-          decreased: '{{xp}} Erfahrungspunkte aus kürzlichen Aktivitäten verloren',
-          single: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
-          multipleSame: '{{xp}} Erfahrungspunkte aus {{count}} {{source}} erhalten',
-          multipleMixed: '{{xp}} Erfahrungspunkte aus mehreren Aktivitäten erhalten',
+          balanced: 'Keine Netto-XP',
+          decreased: '-{{xp}} XP',
+          single: '+{{xp}} XP: {{count}}× {{source}}',
+          multipleSame: '+{{xp}} XP: {{count}}× {{source}}',
+          multipleMixed: '+{{xp}} XP',
         },
         accessibility: {
-          notification: 'Erfahrungspunkte-Benachrichtigung: {{message}}',
-          amount: 'Erfahrungspunkte {{type}}: {{amount}}',
+          notification: 'XP: {{message}}',
+          amount: 'XP {{type}}: {{amount}}',
           typeGained: 'erhalten',
           typeLost: 'verloren',
-          typeBalanced: 'ausgeglichen',
+          typeBalanced: 'gleich',
         },
-        unit: 'EP',
+        unit: 'XP',
       },
     },
 
     // Progress and Levels
     progress: {
       level: 'Level',
-      progress: 'Fortschritt',
-      to_next_level: 'bis Level {{level}}',
-      xp_remaining: '{{xp}} EP verbleibend',
-      loading: 'EP werden geladen...',
-      levelProgressFull: 'Level {{currentLevel}} {{progress}}% bis Level {{nextLevel}}',
-      xpProgressText: '{{current}}/{{total}} EP',
-      levelProgressCompact: 'Level {{level}} • {{progress}}%',
+      progress: 'Status',
+      to_next_level: 'bis Lv.{{level}}',
+      xp_remaining: '{{xp}} XP übrig',
+      loading: 'Lade...',
+      levelProgressFull: 'Lv.{{currentLevel}} {{progress}}% → Lv.{{nextLevel}}',
+      xpProgressText: '{{current}}/{{total}} XP',
+      levelProgressCompact: 'Lv.{{level}} • {{progress}}%',
 
       accessibility: {
         label: 'Erfahrungslevel {{currentLevel}}, {{levelTitle}}. {{progress}} Prozent Fortschritt bis Level {{nextLevel}}. {{xpRemaining}} Erfahrungspunkte verbleibend.{{#isMilestone}} Dies ist ein Meilenstein-Level.{{/isMilestone}}',
@@ -3096,35 +3096,35 @@ const de: Partial<TranslationKeys> = {
     },
 
     levels: {
-      current: 'Aktuelles Level',
-      next: 'Nächstes Level',
-      milestone: 'Meilenstein-Level',
-      rewards: 'Level-Belohnungen',
-      title: 'Level-Titel',
-      description: 'Level-Beschreibung',
+      current: 'Aktuell',
+      next: 'Nächstes',
+      milestone: 'Meilenstein',
+      rewards: 'Bonus',
+      title: 'Titel',
+      description: 'Info',
 
       // Level Overview Screen
       overview: {
-        currentBadge: 'Aktuell',
-        xpRequiredSuffix: 'XP erforderlich',
+        currentBadge: 'Jetzt',
+        xpRequiredSuffix: 'XP nötig',
         rarity: {
           mythic: 'Mythisch',
           legendary: 'Legendär',
           epic: 'Episch',
           rare: 'Selten',
           growing: 'Wachsend',
-          beginner: 'Anfänger',
+          beginner: 'Start',
         },
       },
     },
 
     effects: {
-      level_up: 'Level-Up-Feier',
-      milestone: 'Meilenstein-Erfolg-Feier',
-      achievement: 'Erfolgsfreischaltung-Feier',
-      celebration: 'Allgemeine Feier',
-      general: 'Feiereffekte',
-      accessibility_label: '{{type}} mit {{intensity}} Intensität Partikeleffekte',
+      level_up: 'Level-Up',
+      milestone: 'Meilenstein',
+      achievement: 'Erfolg',
+      celebration: 'Feier',
+      general: 'Effekte',
+      accessibility_label: '{{type}} {{intensity}} Partikel',
     },
 
     celebration: {
@@ -3930,18 +3930,18 @@ const de: Partial<TranslationKeys> = {
 
   // Notifications
   notifications: {
-    disabled: 'Benachrichtigungen deaktiviert',
-    enableTap: 'Tippe zum Aktivieren von Benachrichtigungen',
-    settingsTap: 'Tippe zum Öffnen der Systemeinstellungen',
-    afternoonReminder: 'Nachmittagserinnerung',
-    afternoonDescription: 'Motivierender Check-in',
-    eveningReminder: 'Abenderinnerung',
-    eveningDescription: 'Intelligente Aufgabenerinnerung',
+    disabled: 'Deaktiviert',
+    enableTap: 'Tippen zum Aktivieren',
+    settingsTap: 'Einstellungen öffnen',
+    afternoonReminder: 'Nachmittag',
+    afternoonDescription: 'Check-in',
+    eveningReminder: 'Abend',
+    eveningDescription: 'Erinnerung',
     // Android-Benachrichtigungskanäle
     channels: {
       reminders: {
-        name: 'Tägliche Erinnerungen',
-        description: 'Benachrichtigungen, um dich bei deinen Gewohnheiten und Zielen auf Kurs zu halten',
+        name: 'Erinnerungen',
+        description: 'Tägliche Erinnerungen',
       },
     },
     morning: {
