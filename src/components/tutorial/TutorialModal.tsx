@@ -169,18 +169,18 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       fontSize: scaleFont(40),
     },
     title: {
-      fontSize: scaleFont(Fonts.sizes.xxl),
+      fontSize: scaleFont(Fonts.sizes.xl),
       fontWeight: 'bold',
       color: colors.textPrimary,
       textAlign: 'center',
       marginBottom: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
-      lineHeight: scaleFont(Fonts.sizes.xxl) * 1.2,
+      lineHeight: scaleFont(Fonts.sizes.xl) * 1.2,
     },
     content: {
-      fontSize: scaleFont(Fonts.sizes.md),
+      fontSize: scaleFont(Fonts.sizes.sm),
       color: colors.textSecondary,
       textAlign: 'center',
-      lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
+      lineHeight: scaleFont(Fonts.sizes.sm) * 1.5,
       marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
     },
     progressContainer: {
@@ -198,7 +198,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       borderRadius: isTablet() ? 3 : 2,
     },
     progressText: {
-      fontSize: scaleFont(Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.xs),
       color: colors.textSecondary,
       textAlign: 'center',
     },
@@ -212,7 +212,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       minWidth: isTablet() ? 240 : (getScreenSize() === ScreenSize.SMALL ? 160 : 200),
     },
     actionButtonText: {
-      fontSize: scaleFont(Fonts.sizes.md),
+      fontSize: scaleFont(Fonts.sizes.sm),
       fontWeight: '600',
       color: colors.white,
       marginRight: 8,
@@ -229,7 +229,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       alignItems: 'center',
     },
     statText: {
-      fontSize: scaleFont(Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.xs),
       color: colors.textSecondary,
       marginTop: isTablet() ? 6 : 4,
       fontWeight: '500',
