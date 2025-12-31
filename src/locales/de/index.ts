@@ -3624,7 +3624,7 @@ const de: Partial<TranslationKeys> = {
       // Schritt 1: Willkommen & Grundlagen
       welcome: {
         title: 'Willkommen bei SelfRise! 🌟',
-        content: 'Mach dich bereit für eine erstaunliche Reise des persönlichen Wachstums! Wir führen dich durch das Erstellen deiner ersten Gewohnheit, das Schreiben in deinem Tagebuch und das Setzen eines bedeutungsvollen Ziels. Am Ende hast du alles, was du brauchst, um das Leben aufzubauen, das du willst! ✨',
+        content: 'Starte deine Reise des Wachstums! Wir zeigen dir, wie du Gewohnheiten erstellst, Tagebuch führst und Ziele setzt. Alles, was du brauchst, um dein bestes Leben zu leben! ✨',
         button: 'Los geht\'s!',
       },
 
@@ -3694,7 +3694,7 @@ const de: Partial<TranslationKeys> = {
       // Schritt 2: Gewohnheitsname eingeben
       habitName: {
         title: 'Erstelle deine erste Gewohnheit 🌱',
-        content: 'Lass uns mit etwas beginnen, das du jeden Tag tun möchtest! Das könnte Lesen, Sport, Meditieren oder alles sein, was dir guttut. Welche positive Gewohnheit möchtest du aufbauen?',
+        content: 'Was möchtest du täglich tun? Lesen, Sport, Meditation - wähle eine positive Gewohnheit, die dir guttut!',
         placeholder: 'z.B. 10 Minuten lesen',
         examples: ['Morgenmeditation', 'Täglicher Spaziergang', '8 Gläser Wasser trinken', 'In Dankbarkeitstagebuch schreiben', '20 Liegestütze machen'],
         button: 'Tolle Wahl!',
@@ -3703,74 +3703,74 @@ const de: Partial<TranslationKeys> = {
       // Schritt 3: Gewohnheitsfarbe auswählen
       habitColor: {
         title: 'Mach es zu deinem! 🎨',
-        content: 'Wähle eine Farbe, die dich begeistert! Jedes Mal, wenn du diese Farbe siehst, wirst du an deine großartige neue Gewohnheit denken. Wähle, was sich für dich richtig anfühlt!',
+        content: 'Wähle eine Farbe, die dich begeistert! Sie wird dich an deine neue Gewohnheit erinnern.',
         button: 'Perfekt!',
       },
 
       // Schritt 4: Gewohnheitssymbol auswählen
       habitIcon: {
         title: 'Wähle dein Symbol ✨',
-        content: 'Zeit, ein Symbol auszuwählen, das deine Gewohnheit repräsentiert! Dieses visuelle Zeichen hilft dir, deine Gewohnheit sofort zu erkennen und macht sie persönlicher. Was spricht dich an?',
+        content: 'Wähle ein Symbol für deine Gewohnheit! Es hilft dir, sie sofort zu erkennen.',
         button: 'Ich liebe es!',
       },
 
       // Schritt 5: Gewohnheitstage planen
       habitDays: {
         title: 'Wann wirst du dies tun? 📅',
-        content: 'Du hast die Kontrolle! Wähle die Tage, die am besten zu deinem Lebensstil passen. Möchtest du mit täglicher Praxis Schwung aufbauen? Oder bevorzugst du nur Wochentage? Was auch immer du wählst, wir helfen dir dabei zu bleiben!',
+        content: 'Wähle die Tage, die zu deinem Leben passen. Täglich oder nur an bestimmten Tagen - du entscheidest!',
         button: 'Klingt gut!',
       },
 
       // Schritt 6: Gewohnheit erfolgreich erstellt
       habitComplete: {
-        title: 'Gewohnheit erfolgreich erstellt! 🎉',
-        content: 'Fantastisch! Du hast gerade deine erste Gewohnheit erstellt. Du kannst sie unten mit deiner gewählten Farbe und deinem Symbol sehen. Morgen kannst du sie abhaken und eine unglaubliche Serie starten!',
+        title: 'Gewohnheit erstellt! 🎉',
+        content: 'Fantastisch! Deine erste Gewohnheit ist bereit. Morgen kannst du sie abhaken und deine Serie starten!',
         button: 'Was kommt als Nächstes?',
       },
 
       // Schritt 7: Tagebuch-Einführung
       journalIntro: {
-        title: 'Lass uns jetzt das Tagebuchschreiben ausprobieren! 📝',
-        content: 'Tagebuchschreiben ist eines der mächtigsten Werkzeuge für persönliches Wachstum. Es hilft dir, gute Dinge in deinem Leben zu schätzen und baut eine positive Denkweise auf. Lass uns deinen ersten Dankbarkeitseintrag schreiben!',
+        title: 'Probiere das Tagebuch aus! 📝',
+        content: 'Dankbarkeit aufschreiben stärkt positive Gedanken. Lass uns deinen ersten Eintrag schreiben!',
         button: 'Ich bin bereit!',
       },
 
       // Schritt 8: Erster Dankbarkeitseintrag
       gratitudeEntry: {
         title: 'Wofür bist du dankbar? 🙏',
-        content: 'Denke an etwas - groß oder klein - das du in deinem Leben gerade jetzt schätzt. Es könnte eine Person, eine Erfahrung, eine Gelegenheit oder sogar etwas so Einfaches wie dein Morgenkaffee sein! ☕',
+        content: 'Denke an etwas, das du schätzt - groß oder klein. Eine Person, Erfahrung oder etwas Einfaches wie Morgenkaffee! ☕',
         placeholder: 'Ich bin dankbar für...',
         examples: ['Die Unterstützung meiner Familie', 'Ein Dach über dem Kopf zu haben', 'Die Fähigkeit, neue Dinge zu lernen', 'Einen sonnigen Tag', 'Meine Gesundheit'],
-        button: 'Diesen Eintrag hinzufügen',
+        button: 'Eintrag hinzufügen',
       },
 
       // Schritt 9: Tagebuch-Ermutigung
       journalEncouragement: {
         title: 'Du bist ein Naturtalent! ⭐',
-        content: 'Wunderschöner Eintrag! Das tägliche Schreiben von 3 Dankbarkeitseinträgen hilft, deine SelfRise-Serie aufrechtzuerhalten und füllt deinen Geist mit Positivität. Du kannst auch jederzeit Bonus-Einträge für zusätzliche XP hinzufügen!',
+        content: 'Super Eintrag! 3 tägliche Einträge halten deine Serie. Bonus-Einträge bringen extra XP!',
         button: 'Verstanden!',
       },
 
       // Schritt 10: Ziele-Einführung
       goalsIntro: {
-        title: 'Zeit, ein Ziel zu setzen! 🎯',
-        content: 'Ziele geben deinem Leben Richtung und Zweck. Ob es darum geht, Geld zu sparen, Bücher zu lesen, Gewicht zu verlieren oder eine Fähigkeit zu lernen - wir helfen dir, den Fortschritt zu verfolgen und vorherzusagen, wann du es erreichen wirst!',
+        title: 'Zeit für ein Ziel! 🎯',
+        content: 'Ziele geben Richtung. Wir helfen dir, Fortschritte zu verfolgen und vorherzusagen, wann du es erreichst!',
         button: 'Lass uns eines erstellen!',
       },
 
       // Schritt 11: Zieltitel
       goalTitle: {
         title: 'Was ist dein Ziel? 🏆',
-        content: 'Denke an etwas Bedeutungsvolles, das du erreichen möchtest. Mach es spezifisch und aufregend! Dies sollte etwas sein, worauf du stolz wärst, wenn du es abschließt.',
+        content: 'Wähle etwas Bedeutungsvolles und Spezifisches, worauf du stolz wärst!',
         placeholder: 'z.B. 24 Bücher dieses Jahr lesen',
         examples: ['5.000€ für Urlaub sparen', 'Spanisch fließend lernen', 'Einen 5K-Marathon laufen', 'Ein Buch schreiben', 'Gitarre lernen'],
-        button: 'Das ist ein tolles Ziel!',
+        button: 'Tolles Ziel!',
       },
 
       // Schritt 12: Zieleinheit
       goalUnit: {
-        title: 'Wie wirst du den Fortschritt messen? 📊',
-        content: 'Welche Einheit macht Sinn für die Verfolgung deines Ziels? Dies hilft uns, deinen Fortschritt klar zu zeigen und vorherzusagen, wann du erfolgreich sein wirst!',
+        title: 'Wie misst du den Fortschritt? 📊',
+        content: 'Wähle eine Einheit für dein Ziel. Das hilft uns, deinen Fortschritt zu zeigen!',
         placeholder: 'z.B. Bücher',
         examples: ['Bücher', 'Euro', 'Kilogramm', 'Stunden', 'Kilometer', 'Seiten', 'Tage'],
         button: 'Perfekt!',
@@ -3779,15 +3779,15 @@ const de: Partial<TranslationKeys> = {
       // Schritt 13: Zielzahl
       goalTarget: {
         title: 'Was ist deine Zielzahl? 🎯',
-        content: 'Wie viele {{unit}} möchtest du erreichen? Mach es herausfordernd, aber realistisch. Du kannst dies später jederzeit anpassen, wenn du mehr über dein Tempo lernst!',
+        content: 'Wie viele {{unit}} möchtest du erreichen? Herausfordernd aber realistisch!',
         placeholder: 'z.B. 24',
         button: 'Klingt erreichbar!',
       },
 
       // Schritt 14: Zieldatum (Optional)
       goalDate: {
-        title: 'Wann möchtest du dies erreichen? 📅',
-        content: 'Das Setzen eines Zieldatums schafft Dringlichkeit und ermöglicht uns, dir intelligente Vorhersagen zu geben! Keine Sorge - dies ist optional und du kannst es später jederzeit ändern.',
+        title: 'Wann möchtest du fertig sein? 📅',
+        content: 'Ein Zieldatum hilft bei Vorhersagen. Optional - du kannst es später ändern.',
         placeholder: 'Zieldatum auswählen (optional)',
         button: 'Alles bereit!',
       },
@@ -3802,14 +3802,14 @@ const de: Partial<TranslationKeys> = {
       // Schritt 15: XP-System-Einführung
       xpIntro: {
         title: 'Du verdienst XP! ⚡',
-        content: 'Schau dir das an! Du hast bereits Erfahrungspunkte für das Erstellen deiner Gewohnheit und deines Ziels verdient. Jede Aktion, die du in SelfRise durchführst, bringt XP und hilft dir, von Level 1 auf Level 100 aufzusteigen. Es ist wie ein Spiel, aber für dein echtes Leben! 🎮',
+        content: 'Du sammelst Erfahrungspunkte! Jede Aktion bringt XP und hilft dir, Level aufzusteigen. Wie ein Spiel für dein Leben! 🎮',
         button: 'So cool!',
       },
 
       // Schritt 16: Tutorial abgeschlossen
       completion: {
-        title: 'Du bist bereit zum Aufstieg! 🚀',
-        content: 'Herzlichen Glückwunsch! Du hast deine erste Gewohnheit erstellt, in dein Tagebuch geschrieben und ein bedeutungsvolles Ziel gesetzt. Du bist jetzt bereit, deine unglaubliche Reise des persönlichen Wachstums zu beginnen. Schau täglich vorbei, um Serien aufrechtzuerhalten, XP zu verdienen und Erfolge freizuschalten! Willkommen in der SelfRise-Community! 🌟',
+        title: 'Du bist bereit! 🚀',
+        content: 'Glückwunsch! Gewohnheit, Tagebuch und Ziel sind erstellt. Schau täglich vorbei für Serien, XP und Erfolge! Willkommen bei SelfRise! 🌟',
         button: 'Starte meine Reise!',
       },
     },

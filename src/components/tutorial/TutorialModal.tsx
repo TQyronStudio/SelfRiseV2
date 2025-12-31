@@ -47,7 +47,10 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   onSkip,
 }) => {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
+
+  // Locale-specific font sizing - German needs smaller fonts due to longer words
+  const isGerman = currentLanguage === 'de';
   const insets = useSafeAreaInsets();
 
   // Animation values
@@ -169,18 +172,18 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       fontSize: scaleFont(40),
     },
     title: {
-      fontSize: scaleFont(Fonts.sizes.xl),
+      fontSize: scaleFont(isGerman ? Fonts.sizes.lg : Fonts.sizes.xl),
       fontWeight: 'bold',
       color: colors.textPrimary,
       textAlign: 'center',
       marginBottom: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
-      lineHeight: scaleFont(Fonts.sizes.xl) * 1.2,
+      lineHeight: scaleFont(isGerman ? Fonts.sizes.lg : Fonts.sizes.xl) * 1.2,
     },
     content: {
-      fontSize: scaleFont(Fonts.sizes.sm),
+      fontSize: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm),
       color: colors.textSecondary,
       textAlign: 'center',
-      lineHeight: scaleFont(Fonts.sizes.sm) * 1.5,
+      lineHeight: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm) * 1.5,
       marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
     },
     progressContainer: {
@@ -287,10 +290,24 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>{step.content.title}</Text>
+            <Text
+              style={styles.title}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {step.content.title}
+            </Text>
 
             {/* Content */}
-            <Text style={styles.content}>{step.content.content}</Text>
+            <Text
+              style={styles.content}
+              numberOfLines={6}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {step.content.content}
+            </Text>
 
             {/* Progress indicator for all modal steps */}
             <View style={styles.progressContainer}>
