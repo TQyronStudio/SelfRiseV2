@@ -296,7 +296,7 @@ const en: TranslationKeys = {
     streakHistoryLoading: 'Loading...',
     // Level Progress
     yourProgress: 'Your Progress',
-    currentLevelSummary: 'You\'re currently level {currentLevel} out of 100 levels',
+    currentLevelSummary: 'You\'re currently level {{currentLevel}} out of 100 levels',
     keepEarningXp: 'Keep earning XP to unlock higher levels!',
     // Habit Feedback Messages (from habitCalculations.ts)
     habitFeedback: {
@@ -477,7 +477,7 @@ const en: TranslationKeys = {
 
   // UI Labels
   ui: {
-    progressStep: 'Step {current} of {total}',
+    progressStep: 'Step {{current}} of {{total}}',
     skipTutorial: 'Skip tutorial',
     nextStep: 'Next step',
     continue: 'Continue',
@@ -4269,7 +4269,7 @@ const en: TranslationKeys = {
       goodProgress: 'Good Progress (51-90%)',
       perfectDay: 'Perfect Day (91%+)',
       weeklyBreakdown: 'Weekly Breakdown',
-      week: 'Week {week}',
+      week: 'Week {{week}}',
     },
     completion: {
       requirements: 'Requirements',

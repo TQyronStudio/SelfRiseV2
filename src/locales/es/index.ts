@@ -307,7 +307,7 @@ const es: Partial<TranslationKeys> = {
     streakHistoryLoading: 'Cargando...',
     // Level Progress
     yourProgress: 'Tu Progreso',
-    currentLevelSummary: 'Actualmente estás en el nivel {currentLevel} de 100 niveles',
+    currentLevelSummary: 'Actualmente estás en el nivel {{currentLevel}} de 100 niveles',
     keepEarningXp: '¡Sigue ganando XP para desbloquear niveles superiores!',
     // Habit Feedback Messages (from habitCalculations.ts)
     habitFeedback: {
@@ -488,7 +488,7 @@ const es: Partial<TranslationKeys> = {
 
   // UI Labels
   ui: {
-    progressStep: 'Paso {current} de {total}',
+    progressStep: 'Paso {{current}} de {{total}}',
     skipTutorial: 'Omitir tutorial',
     nextStep: 'Siguiente paso',
     continue: 'Continuar',
@@ -4232,7 +4232,7 @@ const es: Partial<TranslationKeys> = {
       goodProgress: 'Buen Progreso (51-90%)',
       perfectDay: 'Día Perfecto (91%+)',
       weeklyBreakdown: 'Desglose Semanal',
-      week: 'Semana {week}',
+      week: 'Semana {{week}}',
     },
     completion: {
       requirements: 'Requisitos',
