@@ -453,6 +453,21 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   // MONTHLY CHALLENGES TABLES (Phase 3)
   // ========================================
 
+  // ========================================
+  // CHALLENGE_DAILY_SNAPSHOTS MIGRATION - Add daily_contributions column
+  // ========================================
+  const snapshotsTableInfo = await database.getAllAsync(`PRAGMA table_info(challenge_daily_snapshots)`);
+
+  if (snapshotsTableInfo.length > 0) {
+    const snapshotColumns = new Set(snapshotsTableInfo.map((col: any) => col.name));
+
+    if (!snapshotColumns.has('daily_contributions')) {
+      console.log('🔄 Adding challenge_daily_snapshots.daily_contributions column...');
+      await database.execAsync(`ALTER TABLE challenge_daily_snapshots ADD COLUMN daily_contributions TEXT;`);
+      console.log('✅ daily_contributions column added to challenge_daily_snapshots');
+    }
+  }
+
   // Migrate challenge_lifecycle_state to add new states
   const lifecycleTableInfo = await database.getAllAsync(`PRAGMA table_info(challenge_lifecycle_state)`);
 
