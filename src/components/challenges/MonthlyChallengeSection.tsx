@@ -215,7 +215,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   const getMonthName = () => {
     if (!challenge) return '';
     
-    return new Date(challenge.startDate).toLocaleDateString(currentLanguage, {
+    return new Date(challenge.startDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
       month: 'long',
       year: 'numeric'
     });

@@ -608,7 +608,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 {getCompletionTitle(completionPercentage)}
               </Text>
               <Text style={styles.completionSubtitle}>
-                {t('monthlyChallenge.completionModal.subtitle')} • {new Date(challenge.endDate).toLocaleDateString(currentLanguage, {
+                {t('monthlyChallenge.completionModal.subtitle')} • {new Date(challenge.endDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
                   month: 'long',
                   year: 'numeric'
                 })}

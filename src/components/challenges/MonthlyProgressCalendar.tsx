@@ -508,7 +508,7 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>{t('monthlyChallenge.calendar.title')}</Text>
         <Text style={styles.subtitle}>
-          {new Date(challenge.startDate).toLocaleDateString(currentLanguage, {
+          {new Date(challenge.startDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
             month: 'long',
             year: 'numeric'
           })}

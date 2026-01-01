@@ -431,7 +431,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {t('monthlyChallenge.endsDate', {
-              date: new Date(challenge.endDate).toLocaleDateString(currentLanguage, {
+              date: new Date(challenge.endDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'

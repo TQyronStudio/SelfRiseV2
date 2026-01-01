@@ -102,7 +102,9 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   let cleanedDescription = translateIfKey(challenge.description);
 
   // Add Warm-Up prefix if this is a warm-up challenge (user has < 14 days of activity)
-  if (challenge.generationReason === 'warm_up') {
+  // Check both generationReason AND baseXPReward as fallback (400 XP is warm-up specific value)
+  const isWarmUpChallenge = challenge.generationReason === 'warm_up' || challenge.baseXPReward === 400;
+  if (isWarmUpChallenge) {
     cleanedTitle = `🌱 ${t('monthlyChallenge.warmUpPrefix')}: ${cleanedTitle}`;
     cleanedDescription = `${cleanedDescription}\n\n✨ ${t('monthlyChallenge.warmUpDescription')}`;
   }
@@ -179,8 +181,9 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
   };
 
   const getTotalDays = () => {
-    const startDate = new Date(displayChallenge.startDate);
-    const endDate = new Date(displayChallenge.endDate);
+    // Parse as local time to avoid UTC timezone issues
+    const startDate = new Date(displayChallenge.startDate + 'T00:00:00');
+    const endDate = new Date(displayChallenge.endDate + 'T00:00:00');
     return Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   };
 
@@ -555,10 +558,10 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
             </View>
           </View>
           <Text style={styles.timeDetails}>
-            {new Date(displayChallenge.startDate).toLocaleDateString(currentLanguage, {
+            {new Date(displayChallenge.startDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
               month: 'long',
               day: 'numeric'
-            })} - {new Date(displayChallenge.endDate).toLocaleDateString(currentLanguage, {
+            })} - {new Date(displayChallenge.endDate + 'T00:00:00').toLocaleDateString(currentLanguage, {
               month: 'long',
               day: 'numeric',
               year: 'numeric'
