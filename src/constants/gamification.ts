@@ -78,7 +78,7 @@ export const XP_REWARDS = {
     FIVE_STAR: 25000,    // 5★ Full challenge
   },
 
-  // Warm-Up Challenge XP (original values for new users < 14 days)
+  // Warm-Up Challenge XP (original values for new users < 20 days)
   WARM_UP_CHALLENGES: {
     ONE_STAR: 500,      // 1★ Warm-up challenge
     TWO_STAR: 750,      // 2★ Warm-up challenge

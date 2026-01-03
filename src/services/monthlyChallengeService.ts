@@ -42,7 +42,7 @@ export class MonthlyChallengeService {
     5: 25000   // 5★ Master
   } as const;
 
-  // Original XP values for WARM-UP challenges (new users < 14 days)
+  // Original XP values for WARM-UP challenges (new users < 20 days)
   private static readonly WARM_UP_XP_REWARDS = {
     1: 500,   // 1★ Easy
     2: 750,   // 2★ Medium
@@ -535,7 +535,7 @@ export class MonthlyChallengeService {
   }
 
   /**
-   * Get XP reward for WARM-UP challenges (original values, for new users < 14 days)
+   * Get XP reward for WARM-UP challenges (original values, for new users < 20 days)
    */
   static getWarmUpXPReward(starLevel: 1 | 2 | 3 | 4 | 5): number {
     return this.WARM_UP_XP_REWARDS[starLevel];
@@ -1468,7 +1468,7 @@ export class MonthlyChallengeService {
   }
 
   /**
-   * Check if user qualifies for warm-up treatment (< 14 days of activity)
+   * Check if user qualifies for warm-up treatment (< 20 days of activity)
    */
   static shouldUseWarmUpTreatment(userBaseline: UserActivityBaseline | null): boolean {
     if (!userBaseline) {
@@ -1476,7 +1476,7 @@ export class MonthlyChallengeService {
       return true; // No baseline = new user
     }
 
-    // Warm-up if user has < 14 days of activity (isFirstMonth flag uses WARM_UP_THRESHOLD)
+    // Warm-up if user has < 20 days of activity (isFirstMonth flag uses WARM_UP_THRESHOLD)
     const isWarmUp = userBaseline.isFirstMonth;
 
     console.log('🔍 [Warm-Up Check]', {
@@ -1891,7 +1891,7 @@ export class MonthlyChallengeService {
     const alternatives: string[] = [];
 
     try {
-      // Check if user qualifies for warm-up treatment (< 14 days of activity)
+      // Check if user qualifies for warm-up treatment (< 20 days of activity)
       if (context.isFirstMonth || this.shouldUseWarmUpTreatment(context.userBaseline)) {
         const warmUpResult = this.generateWarmUpChallenge(context.forceCategory, context.userId, t);
 

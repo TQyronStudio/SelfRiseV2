@@ -145,8 +145,9 @@ export class UserActivityTracker {
     COMPLETE: 20  // 20+ days of data
   };
 
-  // Warm-up threshold: Users with < 14 days get easier "warm-up" challenges
-  private static readonly WARM_UP_THRESHOLD = 14;
+  // Warm-up threshold: Users with < 20 days get easier "warm-up" challenges
+  // Full challenges (10x XP, star progression) require 20+ active days
+  private static readonly WARM_UP_THRESHOLD = 20;
 
   // ========================================
   // PUBLIC API METHODS

@@ -188,8 +188,8 @@ export class StarRatingService {
       const previousStars = currentRatings[categoryKey];
 
       // WARM-UP CHALLENGES: Don't affect star rating
-      // Users with < 14 days of activity get easier "warm-up" challenges
-      // that don't count toward difficulty progression
+      // Users with < 20 days of activity get easier "warm-up" challenges
+      // that don't count toward difficulty progression (no star gain/loss)
       if (isWarmUp) {
         console.log(`⚠️ [StarRatingService] Warm-up challenge completed - NO star progression`);
         const warmUpEntry: StarRatingHistoryEntry = {
