@@ -126,10 +126,6 @@ export default function SettingsScreen() {
     },
   });
 
-  const handleViewHabitStats = () => {
-    router.push('/habit-stats' as any);
-  };
-
   const handleRestartTutorial = () => {
     setShowResetConfirmation(true);
   };
@@ -216,21 +212,6 @@ export default function SettingsScreen() {
             {themeMode === 'system' && (
               <Ionicons name="checkmark-circle" size={24} color={colors.success} />
             )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Habit Statistics Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.habitAnalytics')}</Text>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleViewHabitStats}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="bar-chart" size={24} color={colors.primary} />
-              <Text style={styles.menuItemText}>{t('settings.individualHabitStats')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 

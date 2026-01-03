@@ -524,18 +524,118 @@ settings: {
 - [ ] User acceptance testing
 - [ ] Bug fixes and refinements
 
-### Phase 10: App Store Preparation
+### Phase 10: App Store & Google Play Preparation
+
+**Target Platforms**: iOS (App Store) + Android (Google Play)
 
 #### Checkpoint 10.1: Assets & Metadata
-- [ ] App icon design and generation
-- [ ] Screenshots for App Store and Google Play
-- [ ] App descriptions and metadata
-- [ ] Privacy policy and terms of service
 
-#### Checkpoint 10.2: Build & Deploy
-- [ ] Production builds for iOS and Android
-- [ ] Beta testing with TestFlight and Google Play Internal Testing
-- [ ] Final submission to App Store and Google Play
+**10.1.1: App Icons**
+- [ ] Design app icon (1024x1024 master)
+- [ ] Generate iOS icon set (all required sizes: 20pt - 1024pt)
+- [ ] Generate Android adaptive icon (foreground + background layers)
+- [ ] Test icons on both light and dark backgrounds
+
+**10.1.2: Screenshots & Promotional Assets**
+- [ ] iOS Screenshots:
+  - [ ] iPhone 6.7" (Pro Max) - required
+  - [ ] iPhone 6.5" (Plus) - required
+  - [ ] iPad Pro 12.9" - required
+  - [ ] Capture 5-10 key screens in EN/DE/ES
+- [ ] Android Screenshots:
+  - [ ] Phone (1080x1920 or higher)
+  - [ ] 7" Tablet
+  - [ ] 10" Tablet
+  - [ ] Capture 4-8 key screens in EN/DE/ES
+- [ ] Feature graphic for Google Play (1024x500)
+- [ ] Promotional video (optional but recommended)
+
+**10.1.3: App Descriptions & Metadata**
+- [ ] App title (max 30 chars) - EN/DE/ES
+- [ ] Subtitle/short description - EN/DE/ES
+- [ ] Full description - EN/DE/ES
+- [ ] Keywords/tags for ASO (App Store Optimization)
+- [ ] Categories: Health & Fitness, Productivity
+- [ ] Age rating: 4+ (no objectionable content)
+- [ ] Support URL and marketing website
+
+**10.1.4: Legal & Compliance**
+- [ ] Privacy policy (GDPR compliant)
+- [ ] Terms of service
+- [ ] Data handling disclosure (App Privacy Details)
+- [ ] AdMob compliance documentation
+
+#### Checkpoint 10.2: Build Configuration
+
+**10.2.1: iOS Build Setup**
+- [ ] Configure app.json/app.config.js for iOS production
+- [ ] Set bundle identifier (com.yourcompany.selfrise)
+- [ ] Configure version number and build number
+- [ ] Setup signing certificates (Apple Developer account)
+- [ ] Configure App Store Connect app record
+
+**10.2.2: Android Build Setup**
+- [ ] Configure app.json/app.config.js for Android production
+- [ ] Set package name (com.yourcompany.selfrise)
+- [ ] Configure versionCode and versionName
+- [ ] Generate upload keystore for signing
+- [ ] Configure Google Play Console app record
+
+**10.2.3: Production Builds**
+- [ ] Build iOS production .ipa with EAS Build
+- [ ] Build Android production .aab with EAS Build
+- [ ] Verify builds install and run correctly
+- [ ] Test critical user flows on both platforms
+
+#### Checkpoint 10.3: Beta Testing
+
+**10.3.1: iOS Beta (TestFlight)**
+- [ ] Upload build to TestFlight
+- [ ] Configure beta testing groups (internal + external)
+- [ ] Invite 5-20 beta testers
+- [ ] Collect feedback and crash reports
+- [ ] Fix critical issues found in beta
+
+**10.3.2: Android Beta (Google Play Internal Testing)**
+- [ ] Upload build to Google Play Console
+- [ ] Configure internal testing track
+- [ ] Invite 5-20 beta testers
+- [ ] Collect feedback and crash reports
+- [ ] Fix critical issues found in beta
+
+**10.3.3: Beta Testing Checklist**
+- [ ] Test on iOS (minimum iOS 13, test on iOS 16+)
+- [ ] Test on Android (minimum Android 5, test on Android 11+)
+- [ ] Test on different screen sizes (small phone, large phone, tablet)
+- [ ] Test all 3 languages (EN/DE/ES)
+- [ ] Test both light and dark themes
+- [ ] Verify AdMob ads display correctly (test ads only)
+- [ ] Verify push notifications work
+- [ ] Performance testing (smooth 60fps, no lag)
+- [ ] Memory leak testing (no crashes after extended use)
+
+#### Checkpoint 10.4: Final Submission
+
+**10.4.1: App Store Submission (iOS)**
+- [ ] Complete App Store Connect metadata
+- [ ] Upload final production build
+- [ ] Submit for App Review
+- [ ] Respond to any review feedback/rejections
+- [ ] Release to App Store (manual or automatic)
+
+**10.4.2: Google Play Submission (Android)**
+- [ ] Complete Google Play Console metadata
+- [ ] Upload final production build to production track
+- [ ] Submit for review
+- [ ] Respond to any review feedback/rejections
+- [ ] Release to Google Play (staged rollout recommended)
+
+**10.4.3: Post-Launch Monitoring**
+- [ ] Monitor crash reports (first 24-48 hours critical)
+- [ ] Monitor user reviews and ratings
+- [ ] Monitor analytics (user acquisition, retention)
+- [ ] Prepare hotfix build if critical issues found
+- [ ] Plan first update (v1.1) based on user feedback
 
 ---
 

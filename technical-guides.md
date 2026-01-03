@@ -4,24 +4,64 @@
 
 ## Table of Contents
 
-1. [Internationalization (i18n) Guidelines](#internationalization-i18n-guidelines)
-2. [Theme & Color System](#theme--color-system)
-3. [Data Storage Architecture](#data-storage-architecture)
-4. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
-5. [Development Standards](#development-standards)
-6. [Code Standards](#code-standards)
-7. [Performance Considerations](#performance-considerations)
-8. [User Interface & Celebrations](#user-interface--celebrations)
-9. [Security Guidelines](#security-guidelines)
-10. [Accessibility Standards](#accessibility-standards)
-11. [Configuration Management](#configuration-management)
-12. [Technical Stack & Architecture](#technical-stack--architecture)
-13. [My Journal System](#my-journal-system)
-14. [Gamification System](#gamification-system)
-15. [Achievements System](#achievements-system)
-16. [Screen Creation Guidelines](#screen-creation-guidelines)
-17. [Help Tooltip System](#help-tooltip-system)
-18. [Onboarding Tutorial System](#onboarding-tutorial-system)
+1. [Platform Support](#platform-support)
+2. [Internationalization (i18n) Guidelines](#internationalization-i18n-guidelines)
+3. [Theme & Color System](#theme--color-system)
+4. [Data Storage Architecture](#data-storage-architecture)
+5. [Smart Logic Design Guidelines](#smart-logic-design-guidelines)
+6. [Development Standards](#development-standards)
+7. [Code Standards](#code-standards)
+8. [Performance Considerations](#performance-considerations)
+9. [User Interface & Celebrations](#user-interface--celebrations)
+10. [Security Guidelines](#security-guidelines)
+11. [Accessibility Standards](#accessibility-standards)
+12. [Configuration Management](#configuration-management)
+13. [Technical Stack & Architecture](#technical-stack--architecture)
+14. [My Journal System](#my-journal-system)
+15. [Gamification System](#gamification-system)
+16. [Achievements System](#achievements-system)
+17. [Screen Creation Guidelines](#screen-creation-guidelines)
+18. [Help Tooltip System](#help-tooltip-system)
+19. [Onboarding Tutorial System](#onboarding-tutorial-system)
+
+---
+
+## Platform Support
+
+### Supported Platforms
+
+**SelfRise V2 is a cross-platform mobile application built with React Native and Expo**:
+
+- 📱 **iOS** (iPhone & iPad)
+  - Minimum version: iOS 13.0+
+  - Target: Latest iOS version
+  - Distribution: Apple App Store
+
+- 🤖 **Android** (Phone & Tablet)
+  - Minimum version: Android 5.0 (API level 21)+
+  - Target: Latest Android version
+  - Distribution: Google Play Store
+
+### Platform-Specific Considerations
+
+**Development & Testing:**
+- Primary development and testing on iOS simulator/device
+- Android testing via Android Studio emulator or Expo Go on real devices
+- Cross-platform UI testing required before production release
+
+**Build & Deployment:**
+- iOS builds: EAS Build → TestFlight → App Store
+- Android builds: EAS Build → Google Play Internal Testing → Google Play Store
+
+**Platform-Specific Features:**
+- AdMob integration with separate app IDs and ad unit IDs for iOS/Android
+- Push notifications configured for both APNs (iOS) and FCM (Android)
+- Platform-specific icons and splash screens (adaptive icons for Android)
+
+**Performance:**
+- SQLite database works identically on both platforms
+- AsyncStorage fallback available for both platforms
+- React Native performance optimizations apply to both platforms
 
 ---
 
