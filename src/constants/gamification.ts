@@ -214,14 +214,14 @@ export const XP_SOURCES = {
   [XPSourceType.ACHIEVEMENT_UNLOCK]: {
     baseAmount: XP_REWARDS.ACHIEVEMENTS.UNLOCK_COMMON, // Base value, varies by rarity
     descriptionKey: 'gamification.xpSources.achievementUnlock',
-    dailyLimit: 2000, // Max achievement XP per day
+    dailyLimit: undefined, // No limit - milestone reward (can unlock multiple achievements)
     requirements: ['achievement conditions must be met'],
   },
 
   [XPSourceType.MONTHLY_CHALLENGE]: {
     baseAmount: XP_REWARDS.MONTHLY_CHALLENGES.ONE_STAR,
     descriptionKey: 'gamification.xpSources.monthlyChallenge',
-    dailyLimit: 3000, // Max one challenge completion per day
+    dailyLimit: undefined, // No limit - milestone reward (one per month, Full = 10x XP)
     requirements: ['all challenge requirements must be met'],
   },
 

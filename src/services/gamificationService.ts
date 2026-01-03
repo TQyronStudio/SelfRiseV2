@@ -1630,8 +1630,13 @@ export class GamificationService {
       // STANDARD XP VALIDATION
       // ========================================
 
-      // Check maximum single transaction
-      if (amount > BALANCE_VALIDATION.MAX_SINGLE_TRANSACTION_XP) {
+      // Check if source is exempt from daily limits (sources with null limit)
+      // Monthly Challenge, Achievement Unlock, Goal Completion, etc. are milestone rewards
+      // that should not be capped by daily limits
+      const sourceHasNoLimit = this.getSourceDailyLimit(source) === null;
+
+      // Check maximum single transaction (skip for exempt sources)
+      if (!sourceHasNoLimit && amount > BALANCE_VALIDATION.MAX_SINGLE_TRANSACTION_XP) {
         return {
           isValid: false,
           allowedAmount: 0,
@@ -1645,8 +1650,8 @@ export class GamificationService {
       const currentDailyTotal = dailyData.totalXP;
       const currentSourceTotal = dailyData.xpBySource[source] || 0;
 
-      // Check total daily limit (adjusted for multiplier)
-      if (currentDailyTotal + amount > adjustedLimits.totalDaily) {
+      // Check total daily limit (skip for exempt sources like Monthly Challenge)
+      if (!sourceHasNoLimit && currentDailyTotal + amount > adjustedLimits.totalDaily) {
         const allowedAmount = Math.max(0, adjustedLimits.totalDaily - currentDailyTotal);
         if (allowedAmount === 0) {
           return {
