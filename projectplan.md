@@ -497,6 +497,9 @@ settings: {
 
 #### Checkpoint 9.2: XP System Testing ⚡ PENDING
 **Goal**: Create comprehensive test suite for gamification/XP system
+
+**Note**: XP system is manually tested and working correctly - this checkpoint is about creating automated test coverage.
+
 - [ ] Install Jest and React Native Testing Library dependencies
 - [ ] Create GamificationService unit tests with full coverage
 - [ ] Test level calculation mathematical model accuracy
@@ -701,29 +704,16 @@ settings: {
 
 ---
 
-## 🐛 KNOWN ISSUES - To be fixed later
+## 🐛 KNOWN ISSUES - Resolved
 
-### Issue: Habit Statistics Home Screen - Make Up červená nesynchronizovaná
+### ✅ RESOLVED: Habit Statistics Home Screen - Make Up synchronization
 
-**Popis problému**:
-V Habit Statistics na Home screenu se po provedení Make Up (bonus completion pokrývající zmeškaný den) nezobrazuje stav správně. I když v jednotlivých kalendářích návyků není červené políčko (zmeškaný den byl pokrytý bonusem), v Home Screen statistikách stále zůstává červená.
+**Původní problém**:
+V Habit Statistics na Home screenu se po provedení Make Up (bonus completion pokrývající zmeškaný den) nezobrazoval stav správně. I když v jednotlivých kalendářích návyků nebylo červené políčko (zmeškaný den byl pokrytý bonusem), v Home Screen statistikách stále zůstávala červená.
 
-**Příklad**:
-- Pondělí: Téměř nic nesplněno → ve sloupci hodně červené
-- Sobota: Splněny všechny návyky + Make Up od první vynechávky
-- Očekávané chování: Červená by měla zmizet z pondělí, zelená přibývat v sobotu
-- Skutečné chování: I přesto že kalendáře jednotlivých návyků nemají červenou v pondělí, Home Screen statistiky ji stále zobrazují
+**Řešení**: ✅ Opraveno a otestováno - Make Up logika nyní funguje správně napříč všemi zobrazení (kalendáře i Home Screen statistiky). Synchronizace dat mezi komponentami funguje bez problémů.
 
-**Postup na opravu**:
-1. Zkontrolovat komponenty `WeeklyHabitChart.tsx` a `Monthly30DayChart.tsx`
-2. Ověřit že správně čtou `isCovered` a `isConverted` fields z completions
-3. Ujistit se že Make Up logika v `useHabitsData.ts` správně persistuje změny do SQLite pomocí `updateCompletion()`
-4. Otestovat že po restartu aplikace zůstávají Make Up změny zachované
-5. Debug log přidat pro tracking které completions mají `isCovered=true` vs. které se zobrazují jako červené
-
-**Poznámka**: Tento bug existoval pravděpodobně i před SQLite migrací, není způsobený přechodem na SQLite.
-
-**Status**: 📋 Zdokumentováno, opraví se později
+**Status**: ✅ RESOLVED - Funkční a otestováno
 
 ---
 
