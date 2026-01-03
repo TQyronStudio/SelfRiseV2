@@ -81,6 +81,11 @@ export class StarRatingService {
   private static readonly STORAGE_KEY = 'user_star_ratings';
   private static readonly HISTORY_STORAGE_KEY = 'star_rating_history';
   private static readonly FAILURE_TRACKING_KEY = 'consecutive_failures_tracking';
+  private static readonly WARMUP_TRACKING_KEY = 'consecutive_warmups_tracking';
+
+  // Warm-up penalty configuration
+  // 3 consecutive warm-up challenges = star demotion (highest star, priority: CONSISTENCY)
+  private static readonly CONSECUTIVE_WARMUPS_FOR_DEMOTION = 3;
 
   // Star progression configuration
   private static readonly PROGRESSION_RULES: StarProgressionRules = {
@@ -187,11 +192,61 @@ export class StarRatingService {
 
       const previousStars = currentRatings[categoryKey];
 
-      // WARM-UP CHALLENGES: Don't affect star rating
+      // WARM-UP CHALLENGES: Track consecutive warm-ups for potential demotion
       // Users with < 20 days of activity get easier "warm-up" challenges
-      // that don't count toward difficulty progression (no star gain/loss)
+      // Normal warm-ups don't affect star progression
+      // BUT: 3 consecutive warm-ups = demotion of highest star (priority: CONSISTENCY)
       if (isWarmUp) {
-        console.log(`⚠️ [StarRatingService] Warm-up challenge completed - NO star progression`);
+        const consecutiveWarmups = await this.incrementConsecutiveWarmups();
+        console.log(`⚠️ [StarRatingService] Warm-up challenge #${consecutiveWarmups} - checking for penalty...`);
+
+        // Check if 3 consecutive warm-ups reached
+        if (consecutiveWarmups >= this.CONSECUTIVE_WARMUPS_FOR_DEMOTION) {
+          // Find highest star category (with CONSISTENCY priority for ties)
+          const targetCategory = this.findHighestStarCategory(currentRatings);
+          const targetKey = this.mapCategoryToKey(targetCategory);
+
+          if (targetKey) {
+            const targetPreviousStars = currentRatings[targetKey];
+            const targetNewStars = Math.max(targetPreviousStars - 1, this.PROGRESSION_RULES.minStarLevel);
+
+            console.log(`🔻 [StarRatingService] 3x warm-up penalty: ${targetCategory} ${targetPreviousStars}★ → ${targetNewStars}★`);
+
+            // Update the rating
+            currentRatings[targetKey] = targetNewStars;
+            currentRatings.lastUpdated = new Date();
+            await this.saveStarRatings(currentRatings);
+
+            // Reset warm-up counter after penalty
+            await this.resetConsecutiveWarmups();
+
+            // Create history entry for the demotion
+            const warmUpPenaltyEntry: StarRatingHistoryEntry = {
+              month,
+              category: targetCategory,
+              previousStars: targetPreviousStars,
+              newStars: targetNewStars,
+              challengeCompleted: completionPercentage >= this.PROGRESSION_RULES.successThreshold,
+              completionPercentage,
+              reason: 'warmup_penalty', // 3x consecutive warm-up penalty
+              timestamp: new Date()
+            };
+
+            await this.addToHistory(warmUpPenaltyEntry);
+
+            // Emit event
+            DeviceEventEmitter.emit(this.EVENTS.STAR_LEVEL_CHANGED, {
+              category: targetCategory,
+              previousStars: targetPreviousStars,
+              newStars: targetNewStars,
+              reason: 'warmup_penalty'
+            });
+
+            return warmUpPenaltyEntry;
+          }
+        }
+
+        // Normal warm-up: no star change
         const warmUpEntry: StarRatingHistoryEntry = {
           month,
           category,
@@ -207,6 +262,9 @@ export class StarRatingService {
         await this.addToHistory(warmUpEntry);
         return warmUpEntry;
       }
+
+      // Full challenge received - reset warm-up counter
+      await this.resetConsecutiveWarmups();
 
       let newStars = previousStars;
       let reason: StarRatingHistoryEntry['reason'] = 'failure';
@@ -590,7 +648,8 @@ export class StarRatingService {
       await AsyncStorage.multiRemove([
         this.STORAGE_KEY,
         this.HISTORY_STORAGE_KEY,
-        this.FAILURE_TRACKING_KEY
+        this.FAILURE_TRACKING_KEY,
+        this.WARMUP_TRACKING_KEY
       ]);
       
       // Clear cache
@@ -737,6 +796,86 @@ export class StarRatingService {
       console.error('Error resetting consecutive failures:', error);
       // Don't throw - not critical
     }
+  }
+
+  /**
+   * Track consecutive warm-up challenges for demotion logic
+   * 3 consecutive warm-ups = demotion of highest star
+   */
+  private static async incrementConsecutiveWarmups(): Promise<number> {
+    try {
+      const stored = await AsyncStorage.getItem(this.WARMUP_TRACKING_KEY);
+      const currentCount = stored ? parseInt(stored, 10) : 0;
+      const newCount = currentCount + 1;
+
+      await AsyncStorage.setItem(this.WARMUP_TRACKING_KEY, newCount.toString());
+      return newCount;
+    } catch (error) {
+      console.error('Error incrementing consecutive warmups:', error);
+      return 1; // Safe fallback
+    }
+  }
+
+  /**
+   * Reset consecutive warm-ups counter
+   * Called when user receives a Full challenge or after warm-up penalty
+   */
+  private static async resetConsecutiveWarmups(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(this.WARMUP_TRACKING_KEY, '0');
+    } catch (error) {
+      console.error('Error resetting consecutive warmups:', error);
+      // Don't throw - not critical
+    }
+  }
+
+  /**
+   * Find the category with the highest star rating
+   * Priority order when tied: CONSISTENCY > HABITS > JOURNAL > GOALS > others
+   */
+  private static findHighestStarCategory(ratings: UserChallengeRatings): AchievementCategory {
+    // Priority order for tie-breaking (CONSISTENCY first when tied)
+    const priorityOrder: AchievementCategory[] = [
+      AchievementCategory.CONSISTENCY,
+      AchievementCategory.HABITS,
+      AchievementCategory.JOURNAL,
+      AchievementCategory.GOALS,
+      AchievementCategory.MASTERY,
+      AchievementCategory.SPECIAL,
+    ];
+
+    let highestStar = 0;
+    let highestCategory = AchievementCategory.CONSISTENCY;
+
+    // Find the maximum star level
+    const categoryStars: { category: AchievementCategory; stars: number }[] = [
+      { category: AchievementCategory.HABITS, stars: ratings.habits },
+      { category: AchievementCategory.JOURNAL, stars: ratings.journal },
+      { category: AchievementCategory.GOALS, stars: ratings.goals },
+      { category: AchievementCategory.CONSISTENCY, stars: ratings.consistency },
+      { category: AchievementCategory.MASTERY, stars: ratings.mastery },
+      { category: AchievementCategory.SPECIAL, stars: ratings.special },
+    ];
+
+    // Find max star level
+    for (const { stars } of categoryStars) {
+      if (stars > highestStar) {
+        highestStar = stars;
+      }
+    }
+
+    // Find the category with highest star that comes first in priority order
+    for (const priorityCategory of priorityOrder) {
+      const found = categoryStars.find(
+        cs => cs.category === priorityCategory && cs.stars === highestStar
+      );
+      if (found) {
+        highestCategory = found.category;
+        break;
+      }
+    }
+
+    return highestCategory;
   }
 
   /**

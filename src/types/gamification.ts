@@ -634,7 +634,7 @@ export interface StarRatingHistoryEntry {
   newStars: number;
   challengeCompleted: boolean;
   completionPercentage: number;
-  reason: 'success' | 'failure' | 'double_failure' | 'reset' | 'warm_up';
+  reason: 'success' | 'failure' | 'double_failure' | 'reset' | 'warm_up' | 'warmup_penalty';
   timestamp: Date;
 }
 
