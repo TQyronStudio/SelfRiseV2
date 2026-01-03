@@ -1408,6 +1408,8 @@ const en: TranslationKeys = {
     detailModal: {
       strategyDescription: 'This is a {{rarity}} ({{stars}}★) difficulty challenge designed to help you grow consistently.',
       strategyDescriptionAdvance: 'Complete this challenge to advance to the next star level and unlock higher XP rewards!',
+      strategyStarSystem: '⭐ Star System: 100% completion = +1 star. Two consecutive failures (<100%) in same category = -1 star.',
+      strategyWarmUp: '🔥 Full challenges unlock after 20+ active days. Warm-up challenges help you prepare, but 3 consecutive warm-ups = -1 star penalty.',
       rewardTitle: '{{xp}} Experience Points',
       streakBonus: '🔥 Streak Bonus: +{{bonus}} XP for {{count}} month streak',
 

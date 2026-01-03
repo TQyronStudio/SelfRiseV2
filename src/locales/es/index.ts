@@ -1401,6 +1401,8 @@ const es: Partial<TranslationKeys> = {
     detailModal: {
       strategyDescription: 'Este es un desafío de dificultad {{rarity}} ({{stars}}★) diseñado para ayudarte a crecer consistentemente.',
       strategyDescriptionAdvance: '¡Completa este desafío para avanzar al siguiente nivel de estrellas y desbloquear mayores recompensas de XP!',
+      strategyStarSystem: '⭐ Sistema de Estrellas: 100% = +1 estrella. Dos fallos consecutivos (<100%) en misma categoría = -1 estrella.',
+      strategyWarmUp: '🔥 Desafíos completos se desbloquean tras 20+ días activos. 3 calentamientos consecutivos = -1 estrella.',
       rewardTitle: '{{xp}} Puntos de Experiencia',
       streakBonus: '🔥 Bonificación de Racha: +{{bonus}} XP por {{count}} meses de racha',
 

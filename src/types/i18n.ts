@@ -1125,6 +1125,8 @@ export interface TranslationKeys {
     detailModal: {
       strategyDescription: string;
       strategyDescriptionAdvance: string;
+      strategyStarSystem: string;
+      strategyWarmUp: string;
       rewardTitle: string;
       streakBonus: string;
 

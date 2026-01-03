@@ -662,42 +662,17 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
         <Text style={styles.sectionTitle}>{t('help.challenges.detail.sectionStrategy')}</Text>
         <View style={styles.strategyCard}>
           <Text style={styles.strategyText}>
-            {t('monthlyChallenge.detailModal.strategyDescription', {
-              rarity: getStarRarity(displayChallenge.starLevel),
-              stars: displayChallenge.starLevel
-            })}
+            {t('monthlyChallenge.detailModal.strategyDescriptionAdvance')}
+          </Text>
+          <Text style={[styles.strategyText, { marginTop: 8 }]}>
+            {t('monthlyChallenge.detailModal.strategyStarSystem')}
           </Text>
           <Text style={styles.strategyText}>
-            {t('monthlyChallenge.detailModal.strategyDescriptionAdvance')}
+            {t('monthlyChallenge.detailModal.strategyWarmUp')}
           </Text>
         </View>
       </View>
 
-      {/* Reward Information */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('help.challenges.detail.sectionRewards')}</Text>
-        <View style={[styles.rewardCard, { borderColor: categoryColor + '30' }]}>
-          <View style={[styles.rewardIcon, { backgroundColor: categoryColor + '20' }]}>
-            <Text style={[styles.rewardIconText, { color: categoryColor }]}>🎁</Text>
-          </View>
-          <View style={styles.rewardContent}>
-            <Text style={styles.rewardTitle}>
-              {t('monthlyChallenge.detailModal.rewardTitle', { xp: displayChallenge.baseXPReward })}
-            </Text>
-            <Text style={styles.rewardDescription}>
-              {t('help.challenges.detail.rewardDescription')}
-            </Text>
-            {progress.currentStreak > 0 && (
-              <Text style={styles.rewardBonus}>
-                {t('monthlyChallenge.detailModal.streakBonus', {
-                  xp: progress.currentStreak * 100,
-                  months: progress.currentStreak
-                })}
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
     </View>
   );
 

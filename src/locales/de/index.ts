@@ -1401,6 +1401,8 @@ const de: Partial<TranslationKeys> = {
     detailModal: {
       strategyDescription: 'Dies ist eine {{rarity}} ({{stars}}★) Schwierigkeitsherausforderung, die dir helfen soll, beständig zu wachsen.',
       strategyDescriptionAdvance: 'Schließe diese Herausforderung ab, um zur nächsten Sternstufe aufzusteigen und höhere EP-Belohnungen freizuschalten!',
+      strategyStarSystem: '⭐ Sterne: 100% = +1 Stern. Zweimal unter 100% in gleicher Kategorie = -1 Stern.',
+      strategyWarmUp: '🔥 Volle Challenges ab 20+ Tagen. 3× Aufwärm-Challenges = -1 Stern.',
       rewardTitle: '{{xp}} Erfahrungspunkte',
       streakBonus: '🔥 Serien-Bonus: +{{bonus}} EP für {{count}} Monate Serie',
 
