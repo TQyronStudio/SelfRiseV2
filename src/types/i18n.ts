@@ -1897,6 +1897,12 @@ export interface TranslationKeys {
           title: string;
           body: string;
         };
+        generic: {
+          variant1: { title: string; body: string };
+          variant2: { title: string; body: string };
+          variant3: { title: string; body: string };
+          variant4: { title: string; body: string };
+        };
       };
     };
   };

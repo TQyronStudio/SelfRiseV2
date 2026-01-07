@@ -4024,6 +4024,25 @@ const en: TranslationKeys = {
           title: 'Evening check-in 🌙',
           body: 'Time for evening reflection! What did you accomplish today? 📝',
         },
+        // Generic messages for future days (no specific numbers - always truthful)
+        generic: {
+          variant1: {
+            title: 'Evening Check-in 🌙',
+            body: 'How did your day go? Check your habits and journal! 📝',
+          },
+          variant2: {
+            title: 'Time for Reflection ✨',
+            body: "Don't forget to review your habits and add a journal entry!",
+          },
+          variant3: {
+            title: 'Daily Progress 🎯',
+            body: 'Have you completed your habits today? Take a moment to reflect.',
+          },
+          variant4: {
+            title: 'Evening Reminder 💫',
+            body: 'Your habits and journal are waiting! End the day strong.',
+          },
+        },
       },
     },
   },

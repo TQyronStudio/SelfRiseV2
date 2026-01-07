@@ -229,6 +229,85 @@ class NotificationService {
   }
 
   /**
+   * Schedule a one-time notification for a specific date and time
+   *
+   * @param identifier Unique identifier for the notification
+   * @param title Notification title
+   * @param body Notification body
+   * @param date Target date and time for the notification
+   * @param category Notification category
+   */
+  async scheduleOneTimeNotification(
+    identifier: string,
+    title: string,
+    body: string,
+    date: Date,
+    category: NotificationCategory
+  ): Promise<string> {
+    try {
+      // Schedule notification for specific date
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: {
+          title,
+          body,
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+          ...(Platform.OS === 'android' && { channelId: 'reminders' }),
+          categoryIdentifier: category,
+          data: {
+            category,
+            scheduledAt: new Date().toISOString(),
+            targetDate: date.toISOString(),
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: date,
+        },
+      });
+
+      console.log(`[NotificationService] Scheduled one-time notification:`, {
+        identifier,
+        notificationId,
+        date: date.toISOString(),
+        category,
+      });
+
+      return notificationId;
+    } catch (error) {
+      console.error('[NotificationService] Failed to schedule one-time notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel all notifications with a specific prefix
+   * Useful for cancelling all evening reminders (evening-reminder-day-0, evening-reminder-day-1, etc.)
+   */
+  async cancelNotificationsWithPrefix(prefix: string): Promise<number> {
+    try {
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const matchingNotifications = scheduledNotifications.filter(
+        (notification) => notification.identifier.startsWith(prefix)
+      );
+
+      for (const notification of matchingNotifications) {
+        await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+      }
+
+      if (matchingNotifications.length > 0) {
+        console.log(`[NotificationService] Cancelled ${matchingNotifications.length} notification(s) with prefix: ${prefix}`);
+      }
+
+      return matchingNotifications.length;
+    } catch (error) {
+      console.error('[NotificationService] Failed to cancel notifications with prefix:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Cancel a specific notification by identifier
    */
   async cancelNotification(identifier: string): Promise<void> {

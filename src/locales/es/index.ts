@@ -3996,6 +3996,25 @@ const es: Partial<TranslationKeys> = {
         fallback: {
           title: '¡Termina tu día fuerte! 🌟',
           body: 'Revisa tus hábitos y reflexiona sobre tu día en tu diario.'
+        },
+        // Mensajes genéricos para días futuros (sin números específicos - siempre veraces)
+        generic: {
+          variant1: {
+            title: 'Check-in Nocturno 🌙',
+            body: '¿Cómo fue tu día? ¡Revisa tus hábitos y diario! 📝'
+          },
+          variant2: {
+            title: 'Tiempo de Reflexión ✨',
+            body: '¡No olvides revisar tus hábitos y añadir una entrada al diario!'
+          },
+          variant3: {
+            title: 'Progreso Diario 🎯',
+            body: '¿Completaste tus hábitos hoy? Tómate un momento para reflexionar.'
+          },
+          variant4: {
+            title: 'Recordatorio Nocturno 💫',
+            body: '¡Tus hábitos y diario te esperan! Termina el día con fuerza.'
+          }
         }
       }
     }

@@ -3996,6 +3996,25 @@ const de: Partial<TranslationKeys> = {
           title: 'Abend-Check-in 🌙',
           body: 'Zeit für Abendreflexion! Was hast du heute erreicht? 📝',
         },
+        // Generische Nachrichten für zukünftige Tage (keine spezifischen Zahlen - immer wahrheitsgemäß)
+        generic: {
+          variant1: {
+            title: 'Abend-Check-in 🌙',
+            body: 'Wie war dein Tag? Überprüfe deine Gewohnheiten und dein Tagebuch! 📝',
+          },
+          variant2: {
+            title: 'Zeit für Reflexion ✨',
+            body: 'Vergiss nicht, deine Gewohnheiten zu überprüfen und einen Tagebucheintrag hinzuzufügen!',
+          },
+          variant3: {
+            title: 'Täglicher Fortschritt 🎯',
+            body: 'Hast du heute deine Gewohnheiten erfüllt? Nimm dir einen Moment zum Nachdenken.',
+          },
+          variant4: {
+            title: 'Abendeinnnerung 💫',
+            body: 'Deine Gewohnheiten und dein Tagebuch warten! Beende den Tag stark.',
+          },
+        },
       },
     },
   } as any,

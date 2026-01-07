@@ -23,8 +23,11 @@ const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
 // Notification identifiers
 const NOTIFICATION_IDS = {
   AFTERNOON: 'daily_afternoon_reminder',
-  EVENING: 'daily_evening_reminder',
+  EVENING_PREFIX: 'evening_reminder_', // Prefix for evening notifications (evening_reminder_day_0, evening_reminder_day_1, etc.)
 };
+
+// How many days to schedule generic evening notifications in advance
+const DAYS_TO_SCHEDULE_AHEAD = 30;
 
 // Default notification settings
 const DEFAULT_SETTINGS: NotificationSettings = {
@@ -166,7 +169,13 @@ class NotificationScheduler {
   }
 
   /**
-   * Schedule evening reminder (smart contextual)
+   * Schedule evening reminders using hybrid approach:
+   * - TODAY: Personalized message based on current progress (if time hasn't passed)
+   * - TOMORROW to +30 days: Generic messages (fallback for days when app isn't opened)
+   *
+   * This ensures users always get relevant notifications:
+   * - If they open the app: personalized notification for today
+   * - If they don't open the app: generic but truthful notification
    */
   async scheduleEveningReminder(
     enabled: boolean,
@@ -174,38 +183,75 @@ class NotificationScheduler {
     progress?: DailyTaskProgress
   ): Promise<void> {
     try {
+      // Cancel all existing evening notifications first
+      await notificationService.cancelNotificationsWithPrefix(NOTIFICATION_IDS.EVENING_PREFIX);
+
       if (!enabled) {
-        await notificationService.cancelNotification(NOTIFICATION_IDS.EVENING);
         console.log('[NotificationScheduler] Evening reminder disabled');
         return;
       }
 
       // Parse time
       const { hour, minute } = notificationService.parseTime(time);
+      const now = new Date();
 
-      // Generate smart message based on progress
-      const message = progress
-        ? this.generateSmartEveningMessage(progress)
-        : this.getFallbackEveningMessage();
+      // Check if today's notification time has already passed
+      const todayNotificationTime = new Date(now);
+      todayNotificationTime.setHours(hour, minute, 0, 0);
+      const isTodayTimePassed = now >= todayNotificationTime;
 
-      // If all tasks complete, don't send notification (user earned rest)
-      if (!message) {
-        await notificationService.cancelNotification(NOTIFICATION_IDS.EVENING);
-        console.log('[NotificationScheduler] All tasks complete - no evening notification');
-        return;
+      // Schedule TODAY's notification (personalized) if time hasn't passed
+      if (!isTodayTimePassed) {
+        const personalizedMessage = progress
+          ? this.generateSmartEveningMessage(progress)
+          : null;
+
+        // Only schedule if there are incomplete tasks (or no progress data)
+        if (personalizedMessage) {
+          await notificationService.scheduleOneTimeNotification(
+            `${NOTIFICATION_IDS.EVENING_PREFIX}day_0`,
+            personalizedMessage.title,
+            personalizedMessage.body,
+            todayNotificationTime,
+            NotificationCategory.EVENING_REMINDER
+          );
+          console.log('[NotificationScheduler] Today\'s personalized evening reminder scheduled:', personalizedMessage);
+        } else if (!progress) {
+          // No progress data - schedule generic for today
+          const genericMessage = this.getGenericEveningMessage();
+          await notificationService.scheduleOneTimeNotification(
+            `${NOTIFICATION_IDS.EVENING_PREFIX}day_0`,
+            genericMessage.title,
+            genericMessage.body,
+            todayNotificationTime,
+            NotificationCategory.EVENING_REMINDER
+          );
+          console.log('[NotificationScheduler] Today\'s generic evening reminder scheduled (no progress data)');
+        } else {
+          console.log('[NotificationScheduler] All tasks complete for today - no evening notification');
+        }
       }
 
-      // Schedule notification
-      await notificationService.scheduleDailyNotification(
-        NOTIFICATION_IDS.EVENING,
-        message.title,
-        message.body,
-        hour,
-        minute,
-        NotificationCategory.EVENING_REMINDER
-      );
+      // Schedule FUTURE notifications (generic) for the next 30 days
+      // Each day gets a randomly selected message variant for variety
+      for (let dayOffset = 1; dayOffset <= DAYS_TO_SCHEDULE_AHEAD; dayOffset++) {
+        const futureDate = new Date(now);
+        futureDate.setDate(futureDate.getDate() + dayOffset);
+        futureDate.setHours(hour, minute, 0, 0);
 
-      console.log('[NotificationScheduler] Evening reminder scheduled:', { time, message });
+        // Get a random message for each day (provides variety if user doesn't open app for multiple days)
+        const genericMessage = this.getGenericEveningMessage();
+
+        await notificationService.scheduleOneTimeNotification(
+          `${NOTIFICATION_IDS.EVENING_PREFIX}day_${dayOffset}`,
+          genericMessage.title,
+          genericMessage.body,
+          futureDate,
+          NotificationCategory.EVENING_REMINDER
+        );
+      }
+
+      console.log(`[NotificationScheduler] Scheduled ${DAYS_TO_SCHEDULE_AHEAD} generic evening reminders for future days (random variants)`);
     } catch (error) {
       console.error('[NotificationScheduler] Failed to schedule evening reminder:', error);
       throw error;
@@ -387,6 +433,60 @@ class NotificationScheduler {
     return {
       title: template?.title || 'Evening check-in 🌙',
       body: template?.body || 'Time for evening reflection! What did you accomplish today? 📝',
+      priority: NotificationPriority.DEFAULT,
+    };
+  }
+
+  /**
+   * Get generic evening message for future days
+   * Used for days when app hasn't been opened - always truthful, no specific numbers
+   * Rotates between different message variants for variety
+   */
+  private getGenericEveningMessage(): SmartNotificationContent {
+    const templates = i18n.t('notifications.reminders.evening.generic', { returnObjects: true }) as any;
+
+    // Get all available generic message variants
+    const variants: Array<{ title: string; body: string }> = [];
+
+    if (templates && typeof templates === 'object') {
+      // Support multiple variants (generic.variant1, generic.variant2, etc.)
+      for (let i = 1; i <= 4; i++) {
+        const variant = templates[`variant${i}`];
+        if (variant?.title && variant?.body) {
+          variants.push({ title: variant.title, body: variant.body });
+        }
+      }
+    }
+
+    // Fallback messages if i18n fails
+    if (variants.length === 0) {
+      variants.push(
+        {
+          title: 'Evening Check-in 🌙',
+          body: 'How did your day go? Check your habits and journal! 📝',
+        },
+        {
+          title: 'Time for Reflection ✨',
+          body: 'Don\'t forget to review your habits and add a journal entry!',
+        },
+        {
+          title: 'Daily Progress 🎯',
+          body: 'Have you completed your habits today? Take a moment to reflect.',
+        },
+        {
+          title: 'Evening Reminder 💫',
+          body: 'Your habits and journal are waiting! End the day strong.',
+        }
+      );
+    }
+
+    // Pick a random variant
+    const randomIndex = Math.floor(Math.random() * variants.length);
+    const selected = variants[randomIndex] || variants[0]!;
+
+    return {
+      title: selected.title,
+      body: selected.body,
       priority: NotificationPriority.DEFAULT,
     };
   }
