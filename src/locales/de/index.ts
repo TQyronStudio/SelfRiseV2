@@ -4324,6 +4324,25 @@ const de: Partial<TranslationKeys> = {
       tapForInspiration: 'Tippe für mehr Inspiration',
     },
   },
+
+  // AdMob Werbung
+  ads: {
+    banner: {
+      loading: 'Werbung lädt...',
+      failed: 'Werbung konnte nicht geladen werden',
+    },
+    rewarded: {
+      title: 'Stelle deine Serie wieder her',
+      description: 'Schaue eine kurze Werbung, um deine Tagebuch-Serie wiederherzustellen',
+      buttonWatch: 'Werbung ansehen',
+      buttonCancel: 'Nicht jetzt',
+      loading: 'Werbung lädt...',
+      playing: 'Werbung läuft...',
+      success: 'Serie wiederhergestellt!',
+      failed: 'Werbung konnte nicht geladen werden. Bitte versuche es erneut.',
+      dismissed: 'Werbung wurde abgebrochen. Keine Belohnung erhalten.',
+    },
+  },
 };
 
 export default de;

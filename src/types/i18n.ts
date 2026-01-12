@@ -2835,6 +2835,25 @@ export interface TranslationKeys {
       tapForInspiration: string;
     };
   };
+
+  // AdMob Ads
+  ads: {
+    banner: {
+      loading: string;
+      failed: string;
+    };
+    rewarded: {
+      title: string;
+      description: string;
+      buttonWatch: string;
+      buttonCancel: string;
+      loading: string;
+      playing: string;
+      success: string;
+      failed: string;
+      dismissed: string;
+    };
+  };
 }
 
 // Extend i18next module for TypeScript support

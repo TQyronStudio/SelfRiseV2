@@ -23,6 +23,7 @@
 17. [Screen Creation Guidelines](#screen-creation-guidelines)
 18. [Help Tooltip System](#help-tooltip-system)
 19. [Onboarding Tutorial System](#onboarding-tutorial-system)
+20. [AdMob Integration](#admob-integration)
 
 ---
 
@@ -1577,6 +1578,12 @@ This 4-tier system specifically resolves:
 ## Onboarding Tutorial System
 
 **Technická pravidla a logika pro Onboarding Tutorial**: @technical-guides:Tutorial.md
+
+---
+
+## AdMob Integration
+
+**Technická pravidla a logika pro AdMob systém**: @technical-guides:AdMob.md
 
 ---
 

@@ -4326,6 +4326,25 @@ const es: Partial<TranslationKeys> = {
       tapForInspiration: 'Toca para ver más inspiración',
     },
   },
+
+  // Anuncios AdMob
+  ads: {
+    banner: {
+      loading: 'Cargando anuncio...',
+      failed: 'Error al cargar el anuncio',
+    },
+    rewarded: {
+      title: 'Restaura tu racha',
+      description: 'Mira un anuncio breve para restaurar tu racha de diario',
+      buttonWatch: 'Ver anuncio',
+      buttonCancel: 'Ahora no',
+      loading: 'Cargando anuncio...',
+      playing: 'Reproduciendo anuncio...',
+      success: '¡Racha restaurada!',
+      failed: 'Error al cargar el anuncio. Inténtalo de nuevo.',
+      dismissed: 'Anuncio cancelado. No se obtuvo recompensa.',
+    },
+  },
 };
 
 export default es;

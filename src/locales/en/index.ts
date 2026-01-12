@@ -4364,6 +4364,25 @@ const en: TranslationKeys = {
     },
   },
 
+  // AdMob Ads
+  ads: {
+    banner: {
+      loading: 'Loading ad...',
+      failed: 'Ad failed to load',
+    },
+    rewarded: {
+      title: 'Restore Your Streak',
+      description: 'Watch a short ad to restore your journal streak',
+      buttonWatch: 'Watch Ad',
+      buttonCancel: 'Not Now',
+      loading: 'Loading ad...',
+      playing: 'Ad is playing...',
+      success: 'Streak Restored!',
+      failed: 'Failed to load ad. Please try again.',
+      dismissed: 'Ad was dismissed. No reward earned.',
+    },
+  },
+
 };
 
 export default en;

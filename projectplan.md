@@ -447,6 +447,7 @@ settings: {
 - [ ] Cloud storage preparation (for app analytics and crash reporting)
 
 #### Checkpoint 8.2: AdMob Integration Prep
+**Technical Documentation**: @technical-guides:AdMob.md
 - [ ] AdMob account setup and ad unit creation
 - [ ] Ad integration for streak recovery system
 - [ ] Revenue tracking and analytics

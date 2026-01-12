@@ -1,8 +1,10 @@
 // src/screens/habits/HabitsScreen.tsx
 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
 import { 
@@ -39,6 +41,14 @@ export function HabitsScreen() {
     },
     listContainer: {
       flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
+      paddingBottom: 60, // Extra padding for banner
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
     buttonsRow: {
       flexDirection: 'row',
@@ -190,7 +200,7 @@ export function HabitsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Tlačítka Add a Edit/Reorder */}
       <View style={styles.addButtonContainer}>
         <View style={styles.buttonsRow}>
@@ -227,6 +237,11 @@ export function HabitsScreen() {
           onViewHabitStats={handleViewHabitStats}
           ListHeaderComponent={<DailyHabitProgress />}
         />
+      </View>
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
       </View>
 
       <HabitModal

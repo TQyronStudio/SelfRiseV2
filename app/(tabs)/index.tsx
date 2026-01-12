@@ -39,6 +39,7 @@ import {
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 
 export default function HomeScreen() {
   // const { t } = useI18n(); // Unused for now
@@ -61,38 +62,18 @@ export default function HomeScreen() {
   // Tutorial scroll reference
   const mainScrollRef = useRef<ScrollView>(null);
 
-  // Tutorial target refs
-  const trophyButtonRef = useRef<View>(null);
-  const xpProgressBarRef = useRef<View>(null);
-
   // Tutorial target registration for main scroll area
   const { registerTarget: registerMainContent, unregisterTarget: unregisterMainContent } = useTutorialTarget(
     'main-content',
     mainScrollRef as any
   );
 
-  // Tutorial target registration for trophy button
-  const { registerTarget: registerTrophyButton, unregisterTarget: unregisterTrophyButton } = useTutorialTarget(
-    'trophy-button',
-    trophyButtonRef as any
-  );
-
-  // Tutorial target registration for XP progress bar
-  const { registerTarget: registerXpProgressBar, unregisterTarget: unregisterXpProgressBar } = useTutorialTarget(
-    'xp-progress-bar',
-    xpProgressBarRef as any
-  );
-
   useEffect(() => {
     registerMainContent();
-    registerTrophyButton();
-    registerXpProgressBar();
     return () => {
       unregisterMainContent();
-      unregisterTrophyButton();
-      unregisterXpProgressBar();
     };
-  }, [registerMainContent, unregisterMainContent, registerTrophyButton, unregisterTrophyButton, registerXpProgressBar, unregisterXpProgressBar]);
+  }, [registerMainContent, unregisterMainContent]);
 
   // Tutorial auto-scroll listener
   useEffect(() => {
@@ -115,6 +96,20 @@ export default function HomeScreen() {
 
     return () => {
       scrollListener.remove();
+    };
+  }, []);
+
+  // Listen for customize button press from header
+  useEffect(() => {
+    const customizeListener = DeviceEventEmitter.addListener(
+      'openHomeCustomization',
+      () => {
+        setShowCustomizationModal(true);
+      }
+    );
+
+    return () => {
+      customizeListener.remove();
     };
   }, []);
   
@@ -264,7 +259,7 @@ export default function HomeScreen() {
   const renderComponent = (componentId: string) => {
     switch (componentId) {
       case 'xpProgressBar':
-        return <OptimizedXpProgressBar key={componentId} ref={xpProgressBarRef} />;
+        return <OptimizedXpProgressBar key={componentId} />;
       case 'xpMultiplier':
         return <XpMultiplierSection key={componentId} />;
       case 'quickActions':
@@ -334,68 +329,24 @@ export default function HomeScreen() {
       flex: 1,
       backgroundColor: colors.backgroundSecondary,
     },
-    headerActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: Layout.spacing.md,
-      paddingTop: Layout.spacing.xs,
-      paddingBottom: Layout.spacing.xs,
-    },
-    trophyButton: {
-      flex: 1,
-      alignItems: 'flex-start',
-      padding: Layout.spacing.xs,
-      borderRadius: Layout.borderRadius.md,
-    },
-    headerTimer: {
-      // Centered item - no flex, will be naturally centered
-    },
-    customizeButton: {
-      flex: 1,
-      alignItems: 'flex-end',
-      padding: Layout.spacing.sm,
-      borderRadius: Layout.borderRadius.sm,
-    },
     scrollView: {
       flex: 1,
     },
     content: {
       paddingVertical: Layout.spacing.md,
-      paddingBottom: Layout.spacing.xl,
+      paddingBottom: 80, // Extra padding for banner (50px banner + 30px spacing)
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header Actions */}
-      <View style={styles.headerActions}>
-        {/* Trophy Room Button */}
-        <View ref={trophyButtonRef} nativeID="trophy-button">
-          <TouchableOpacity
-            style={styles.trophyButton}
-            onPress={() => router.push('/achievements')}
-          >
-            <PremiumTrophyIcon size={32} />
-          </TouchableOpacity>
-        </View>
-        
-        {/* XP Multiplier Timer */}
-        <MultiplierCountdownTimer
-          size="small"
-          variant="light"
-          showMultiplier={false}
-          style={styles.headerTimer}
-        />
-        
-        {/* Customization Button */}
-        <TouchableOpacity
-          style={styles.customizeButton}
-          onPress={() => setShowCustomizationModal(true)}
-        >
-          <Ionicons name="options" size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
         ref={mainScrollRef}
         style={styles.scrollView}
@@ -406,6 +357,11 @@ export default function HomeScreen() {
         {/* Dynamic component rendering based on user order preferences */}
         {visibleComponents.map(component => renderComponent(component.id))}
       </ScrollView>
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
 
       {/* Customization Modal */}
       <HomeCustomizationModal

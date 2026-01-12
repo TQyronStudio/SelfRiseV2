@@ -2,15 +2,21 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TouchableOpacity, View, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
+import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
+import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
 
 function TabLayoutContent() {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const router = useRouter();
 
   return (
     <>
@@ -46,6 +52,38 @@ function TabLayoutContent() {
           title: t('tabs.home'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="house.fill" color={color} />,
           tabBarButton: (props) => <HapticTab {...props} nativeID="home-tab" />,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/achievements')}
+              style={{ marginLeft: 16 }}
+            >
+              <PremiumTrophyIcon size={28} />
+            </TouchableOpacity>
+          ),
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ color: colors.textInverse, fontSize: 17, fontWeight: 'bold' }}>
+                {t('tabs.home')}
+              </Text>
+              <MultiplierCountdownTimer
+                size="small"
+                variant="light"
+                showMultiplier={false}
+              />
+            </View>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                // Emit event to open customization modal in HomeScreen
+                const { DeviceEventEmitter } = require('react-native');
+                DeviceEventEmitter.emit('openHomeCustomization');
+              }}
+              style={{ marginRight: 16 }}
+            >
+              <Ionicons name="options" size={22} color={colors.textInverse} />
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen
