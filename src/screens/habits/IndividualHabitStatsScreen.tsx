@@ -56,7 +56,7 @@ export function IndividualHabitStatsScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={true}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={true}>
         {/* Active Habits Section */}
         {activeHabits.length > 0 && (
           <View style={styles.section}>

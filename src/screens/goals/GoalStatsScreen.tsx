@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Goal, GoalProgress, GoalStats } from '@/src/types/goal';
 import { ProgressHistoryList } from '@/src/components/goals/ProgressHistoryList';
 import { GoalStatsCard } from '@/src/components/goals/GoalStatsCard';
@@ -133,6 +134,13 @@ export function GoalStatsScreen() {
       fontSize: 16,
       color: colors.primary,
     },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
+    },
   });
 
   if (isLoading) {
@@ -210,7 +218,7 @@ export function GoalStatsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: insets.bottom }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 60) }} showsVerticalScrollIndicator={false}>
         {activeTab === 'stats' && (
           <>
             <GoalStatsCard goal={goal} stats={stats} isLoading={isLoading} />
@@ -230,6 +238,11 @@ export function GoalStatsScreen() {
           <GoalCompletionPredictions goal={goal} stats={stats} progressHistory={progress} isLoading={isLoading} />
         )}
       </ScrollView>
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
 
       <ErrorModal
         visible={showError}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -34,6 +35,14 @@ export default function SettingsScreen() {
     },
     contentContainer: {
       padding: 16,
+      paddingBottom: 80, // Extra padding for banner
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
     section: {
       marginBottom: 32,
@@ -155,7 +164,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Notifications Section */}
         <View style={styles.section}>
@@ -294,6 +303,11 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
 
       {/* Reset Confirmation Modal */}
       <ConfirmationModal

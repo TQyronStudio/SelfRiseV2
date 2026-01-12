@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
@@ -232,9 +233,17 @@ export default function JournalScreen() {
     content: {
       flexGrow: 1,
       paddingTop: Layout.spacing.md,
+      paddingBottom: 60, // Extra padding for banner
     },
     contentWithInput: {
       paddingBottom: 100, // Extra padding when input is shown to ensure scrollability
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
     addButtonContainer: {
       paddingHorizontal: Layout.spacing.md,
@@ -427,18 +436,23 @@ export default function JournalScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
+
       <CelebrationModal
         visible={showCelebration}
         onClose={() => {
           console.log('🎭 Journal modal closed - processing next in queue');
-          
+
           // COORDINATION: Notify activity modal ended (Tier 1 priority)
           notifyActivityModalEnded();
-          
+
           setShowCelebration(false);
           setBonusMilestone(null);
           setBonusXpAmount(null);
-          
+
           // Process next Journal modal in queue after a short delay
           setTimeout(() => {
             processModalQueue();
@@ -451,7 +465,7 @@ export default function JournalScreen() {
         title={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_title`) || t('journal.streakMilestone_generic_title') : undefined}
         message={milestoneStreak ? t(`journal.streakMilestone${milestoneStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(milestoneStreak)) : undefined}
       />
-      
+
       {/* GHOST SYSTEM REMOVED: Level-up celebration modal eliminado - XpAnimationContext handles level-up modals centrally */}
     </SafeAreaView>
   );

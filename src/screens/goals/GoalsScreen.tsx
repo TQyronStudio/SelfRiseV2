@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
@@ -43,6 +45,14 @@ export function GoalsScreen() {
     },
     listContainer: {
       flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
+      paddingBottom: 60, // Extra padding for banner
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
     addButton: {
       flexDirection: 'row',
@@ -266,7 +276,7 @@ export function GoalsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Tlačítka Add, Template a Edit */}
       <View style={styles.addButtonContainer}>
         {!isEditMode && (
@@ -308,6 +318,11 @@ export function GoalsScreen() {
           onAddProgress={handleAddProgress}
           onReorderGoals={handleReorderGoals}
         />
+      </View>
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
       </View>
 
       <GoalModal

@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -618,6 +619,14 @@ export default function AchievementsScreen() {
       backgroundColor: colors.backgroundSecondary,
     },
 
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
+    },
+
     // View mode toggle
     viewModeContainer: {
       flexDirection: 'row',
@@ -655,7 +664,7 @@ export default function AchievementsScreen() {
     },
 
     scrollContent: {
-      paddingBottom: 100,
+      paddingBottom: 120, // Extra padding for banner
       paddingTop: 16,
     },
 
@@ -1155,7 +1164,12 @@ export default function AchievementsScreen() {
           return null;
         }}
       />
-      
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
+
       <AchievementDetailModal
         visible={showDetailModal}
         achievement={selectedAchievementForDetail}

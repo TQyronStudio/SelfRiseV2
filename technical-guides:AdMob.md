@@ -113,8 +113,14 @@ SelfRise V2 integrates Google AdMob for monetization through:
 |--------|----------|-------------|------------|--------|
 | **Home Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
 | **Habits Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Settings** | Bottom | 320x50 | Always | 🔴 Planned |
-| **Trophy Room** | Bottom | 320x50 | When scrolled | 🔴 Planned |
+| **Journal Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
+| **Goals Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
+| **Settings Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
+| **Trophy Room** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
+| **Active Habits Stats** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
+| **Journal History** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
+| **Journal Statistics** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
+| **Goal Detail** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
 
 **Design Guidelines**:
 - ✅ **Safe Area**: All banners respect safe area insets
@@ -126,30 +132,27 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Component**: `src/components/ads/AdBanner.tsx`
 
-**Implementation Status**: ✅ Banner component created and integrated into Home screen (test mode)
+**Implementation Status**: ✅ Banner component created and integrated into all major screens (test mode)
 
 ---
 
 ### Banner Placement Rules
 
-1. **Home Screen**:
-   - Position: Fixed bottom (above tab navigation)
-   - Display: Always visible
-   - Refresh: Every 60 seconds (AdMob auto-refresh)
+All banners follow the same consistent pattern:
+- **Position**: Fixed at bottom using absolute positioning
+- **Display**: Always visible
+- **Content Padding**: ScrollView/FlatList has 60-80px paddingBottom to prevent content overlap
+- **Container Style**: Background matches theme (colors.backgroundSecondary)
 
-2. **Settings Screen**:
-   - Position: Bottom of ScrollView
-   - Display: Always visible
-   - Refresh: On screen focus
+#### Screen-Specific Notes:
 
-3. **Trophy Room**:
-   - Position: Bottom after achievement list
-   - Display: Visible when user scrolls down
-   - Refresh: On screen focus
+1. **Tab Screens** (Home, Habits, Journal, Goals, Settings):
+   - Banner appears above the tab navigation
+   - SafeAreaView with edges={['bottom']} ensures proper spacing
 
-**Future Considerations**:
-- Goals screen (low priority)
-- Habits screen (evaluate UX impact first)
+2. **Modal Screens** (Journal History, Journal Stats, Habit Stats, Goal Detail, Trophy Room):
+   - Banner appears at absolute bottom of screen
+   - Content scrolls above the banner
 
 ---
 

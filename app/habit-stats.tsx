@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Layout } from '@/src/constants';
@@ -40,6 +41,17 @@ export default function HabitStatsPage() {
     headerPlaceholder: {
       width: 40, // Same width as back button for centered title
     },
+    contentContainer: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
+    },
   });
 
   return (
@@ -62,7 +74,14 @@ export default function HabitStatsPage() {
           <View style={styles.headerPlaceholder} />
         </View>
 
-        <IndividualHabitStatsScreen />
+        <View style={styles.contentContainer}>
+          <IndividualHabitStatsScreen />
+        </View>
+
+        {/* AdMob Banner - Fixed at bottom */}
+        <View style={styles.bannerContainer}>
+          <AdBanner />
+        </View>
       </SafeAreaView>
     </>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -132,6 +133,14 @@ export default function JournalStatsScreen() {
     },
     contentContainer: {
       flexGrow: 1,
+      paddingBottom: 60, // Extra padding for banner
+    },
+    bannerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.backgroundSecondary,
     },
     statsGrid: {
       padding: Layout.spacing.md,
@@ -305,7 +314,12 @@ export default function JournalStatsScreen() {
         </View>
       </ScrollView>
         )}
-      
+
+      {/* AdMob Banner - Fixed at bottom */}
+      <View style={styles.bannerContainer}>
+        <AdBanner />
+      </View>
+
       <ExportModal
         visible={showExportModal}
         onClose={() => setShowExportModal(false)}
