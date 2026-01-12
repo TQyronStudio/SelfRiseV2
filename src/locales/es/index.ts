@@ -888,6 +888,18 @@ const es: Partial<TranslationKeys> = {
         title: 'Reinicio fallido',
         message: 'No se pudo reiniciar la deuda. Por favor contacta con el soporte.',
       },
+      adDismissed: {
+        title: 'Anuncio no completado',
+        message: 'Debes ver el anuncio completo para restaurar tu día de racha. Por favor, inténtalo de nuevo.',
+      },
+      adLoadFailed: {
+        title: 'Anuncio no disponible',
+        message: 'No se puede cargar el anuncio ahora. Por favor, verifica tu conexión a internet e inténtalo de nuevo.',
+      },
+      adError: {
+        title: 'Error de anuncio',
+        message: 'Algo salió mal al mostrar el anuncio. Por favor, inténtalo de nuevo.',
+      },
     },
 
     // Fallback messages

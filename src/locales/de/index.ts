@@ -888,6 +888,18 @@ const de: Partial<TranslationKeys> = {
         title: 'Zurücksetzen fehlgeschlagen',
         message: 'Schuld konnte nicht zurückgesetzt werden. Bitte kontaktiere den Support.',
       },
+      adDismissed: {
+        title: 'Werbung nicht abgeschlossen',
+        message: 'Du musst die Werbung vollständig ansehen, um deinen Streak-Tag zu retten. Bitte versuche es erneut.',
+      },
+      adLoadFailed: {
+        title: 'Werbung nicht verfügbar',
+        message: 'Die Werbung konnte nicht geladen werden. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
+      },
+      adError: {
+        title: 'Werbungsfehler',
+        message: 'Beim Anzeigen der Werbung ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+      },
     },
 
     // Fallback messages

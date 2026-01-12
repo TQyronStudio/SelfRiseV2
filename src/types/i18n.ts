@@ -644,6 +644,18 @@ export interface TranslationKeys {
         title: string;
         message: string;
       };
+      adDismissed: {
+        title: string;
+        message: string;
+      };
+      adLoadFailed: {
+        title: string;
+        message: string;
+      };
+      adError: {
+        title: string;
+        message: string;
+      };
     };
     fallback: {
       success: string;

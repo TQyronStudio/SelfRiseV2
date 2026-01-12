@@ -882,6 +882,18 @@ const en: TranslationKeys = {
         title: 'Reset Failed',
         message: 'Failed to reset debt. Please contact support.',
       },
+      adDismissed: {
+        title: 'Ad Not Completed',
+        message: 'You need to watch the full ad to restore your streak day. Please try again.',
+      },
+      adLoadFailed: {
+        title: 'Ad Not Available',
+        message: 'Unable to load the ad right now. Please check your internet connection and try again.',
+      },
+      adError: {
+        title: 'Ad Error',
+        message: 'Something went wrong while showing the ad. Please try again.',
+      },
     },
 
     // Fallback messages

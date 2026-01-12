@@ -2,7 +2,7 @@
 
 **SelfRise V2 - Advertising System Documentation**
 
-*Last Updated: 2026-01-11*
+*Last Updated: 2026-01-12*
 
 ---
 
@@ -58,8 +58,8 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Platform | App ID | Bundle/Package ID | Status |
 |----------|--------|-------------------|--------|
-| **iOS** | `[TO_BE_FILLED]` | `com.turage.SelfRiseV2` | 🔴 Pending |
-| **Android** | `[TO_BE_FILLED]` | `com.turage.SelfRiseV2` | 🔴 Pending |
+| **iOS** | `ca-app-pub-2983534520735805~8056003193` | `com.turage.SelfRiseV2` | ✅ Active |
+| **Android** | `ca-app-pub-2983534520735805~5721661502` | `com.turage.SelfRiseV2` | ✅ Active |
 
 ### Test IDs (For Development)
 
@@ -78,11 +78,12 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Purpose**: Standard banner advertising displayed across multiple screens
 
-| Environment | Ad Unit ID | Size | Status |
-|-------------|-----------|------|--------|
-| **Production** | `[TO_BE_FILLED]` | 320x50 (Standard) | 🔴 Pending |
-| **Test (iOS)** | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ Active |
-| **Test (Android)** | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ Active |
+| Environment | Platform | Ad Unit ID | Size | Status |
+|-------------|----------|-----------|------|--------|
+| **Production** | iOS | `ca-app-pub-2983534520735805/2803676517` | 320x50 (Standard) | ✅ Active |
+| **Production** | Android | `ca-app-pub-2983534520735805/1782416491` | 320x50 (Standard) | ✅ Active |
+| **Test** | iOS | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ For Dev |
+| **Test** | Android | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ For Dev |
 
 **Supported Banner Sizes**:
 - **Standard** (320x50) - Default for most screens
@@ -95,11 +96,12 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Purpose**: User watches full ad to restore journal streak (WarmUp system)
 
-| Environment | Ad Unit ID | Reward | Status |
-|-------------|-----------|--------|--------|
-| **Production** | `[TO_BE_FILLED]` | 1 Streak Restore | 🔴 Pending |
-| **Test (iOS)** | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ Active |
-| **Test (Android)** | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ Active |
+| Environment | Platform | Ad Unit ID | Reward | Status |
+|-------------|----------|-----------|--------|--------|
+| **Production** | iOS | `ca-app-pub-2983534520735805/2719065972` | 1 Streak Restore | ✅ Active |
+| **Production** | Android | `ca-app-pub-2983534520735805/5557832361` | 1 Streak Restore | ✅ Active |
+| **Test** | iOS | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ For Dev |
+| **Test** | Android | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ For Dev |
 
 **Reward Logic**: See [WarmUp System Documentation](#rewarded-ads-system)
 
@@ -111,16 +113,16 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Screen | Location | Banner Size | Visibility | Status |
 |--------|----------|-------------|------------|--------|
-| **Home Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Habits Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Journal Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Goals Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Settings Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Active (Test ID) |
-| **Trophy Room** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
-| **Active Habits Stats** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
-| **Journal History** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
-| **Journal Statistics** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
-| **Goal Detail** | Bottom | 320x50 | Always | ✅ Active (Test ID) |
+| **Home Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Production |
+| **Habits Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Production |
+| **Journal Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Production |
+| **Goals Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Production |
+| **Settings Screen** | Bottom (above tab bar) | 320x50 | Always | ✅ Production |
+| **Trophy Room** | Bottom | 320x50 | Always | ✅ Production |
+| **Active Habits Stats** | Bottom | 320x50 | Always | ✅ Production |
+| **Journal History** | Bottom | 320x50 | Always | ✅ Production |
+| **Journal Statistics** | Bottom | 320x50 | Always | ✅ Production |
+| **Goal Detail** | Bottom | 320x50 | Always | ✅ Production |
 
 **Design Guidelines**:
 - ✅ **Safe Area**: All banners respect safe area insets
@@ -132,7 +134,7 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Component**: `src/components/ads/AdBanner.tsx`
 
-**Implementation Status**: ✅ Banner component created and integrated into all major screens (test mode)
+**Implementation Status**: ✅ Banner component created and integrated into all major screens (PRODUCTION IDs active)
 
 ---
 
@@ -224,6 +226,11 @@ async function handleWatchAd() {
 - Network offline → Graceful fallback message
 
 **Localization**: All error messages and UI text support EN/DE/ES
+
+**Implementation Status**: ✅ Rewarded ads fully implemented (PRODUCTION IDs active)
+- `src/services/adService.ts` - Rewarded ad service with preloading
+- `src/components/home/GratitudeStreakCard.tsx` - Integration point
+- Translation keys added for all ad-related errors (EN/DE/ES)
 
 ---
 
@@ -339,7 +346,7 @@ export default new AdService();
 
 ### Pre-Production Checklist
 
-- [ ] Replace all test IDs with production IDs
+- [x] Replace all test IDs with production IDs ✅ (2026-01-12)
 - [ ] Test on iOS physical device
 - [ ] Test on Android physical device
 - [ ] Verify AdMob dashboard shows impressions

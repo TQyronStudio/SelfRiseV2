@@ -21,6 +21,7 @@ import {
   WarmUpIssueModal,
   QuickWarmUpModal,
 } from '../gratitude/WarmUpModals';
+import { adService } from '../../services/adService';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -401,30 +402,67 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   };
 
   const handleWatchAd = async (): Promise<boolean> => {
-    // 🚨 DŮLEŽITÉ: TESTING MOCK - Replace with real AdMob integration before production
-    // Simuluje úspěšné zhlédnutí reklamy pro testovací účely
-    // V produkci nahradit skutečnou AdMob implementací
-    
+    // 🚨 CRITICAL: Prevent multiple simultaneous ad watches
+    if (isWatchingAd) {
+      console.log('[DEBUG] handleWatchAd: Already watching ad, ignoring');
+      return false;
+    }
+
     try {
-      // Simulace loading času reklamy
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ENHANCED: Apply single ad payment immediately after successful ad watch
+      setIsWatchingAd(true);
+      console.log('[DEBUG] handleWatchAd: Starting rewarded ad flow...');
+
+      // Show the rewarded ad using AdService
+      const adResult = await adService.showRewardedAd();
+      console.log('[DEBUG] handleWatchAd: Ad result:', adResult);
+
+      // Check if user earned the reward (watched full ad)
+      if (!adResult.rewarded) {
+        console.log('[DEBUG] handleWatchAd: Ad not rewarded:', adResult.error);
+
+        // Show appropriate error message based on what happened
+        if (adResult.error === 'AD_DISMISSED_EARLY') {
+          showErrorModal(
+            t('journal.rescue.adDismissed.title'),
+            t('journal.rescue.adDismissed.message')
+          );
+        } else if (adResult.error === 'AD_LOAD_FAILED') {
+          showErrorModal(
+            t('journal.rescue.adLoadFailed.title'),
+            t('journal.rescue.adLoadFailed.message')
+          );
+        } else {
+          showErrorModal(
+            t('journal.rescue.adError.title'),
+            t('journal.rescue.adError.message')
+          );
+        }
+
+        return false;
+      }
+
+      // User watched full ad - apply the payment
       const paymentResult = await actions.applySingleWarmUpPayment();
-      console.log(`[DEBUG] handleWatchAd: Payment result`, paymentResult);
-      
+      console.log('[DEBUG] handleWatchAd: Payment result', paymentResult);
+
       // Update local state to reflect the payment
       setAdsWatched(prev => prev + 1);
-      
+
       // If fully paid, update total needed (for UI consistency)
       if (paymentResult.isFullyWarmed) {
         setTotalAdsNeeded(adsWatched + 1);
       }
-      
+
       return true; // Successful ad watch and payment
     } catch (error) {
-      console.error(`[DEBUG] handleWatchAd: Error applying ad payment:`, error);
-      return false; // Failed to apply payment
+      console.error('[DEBUG] handleWatchAd: Error:', error);
+      showErrorModal(
+        t('journal.rescue.adError.title'),
+        t('journal.rescue.adError.message')
+      );
+      return false;
+    } finally {
+      setIsWatchingAd(false);
     }
   };
 
