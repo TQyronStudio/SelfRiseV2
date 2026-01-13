@@ -12,7 +12,6 @@ import { Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import StatisticsCard from '@/src/components/gratitude/StatisticsCard';
-import ExportModal from '@/src/components/gratitude/ExportModal';
 
 export default function JournalStatsScreen() {
   const { t } = useI18n();
@@ -21,7 +20,6 @@ export default function JournalStatsScreen() {
   const { state, actions } = useGratitude();
   const [stats, setStats] = useState<GratitudeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showExportModal, setShowExportModal] = useState(false);
   const [typeBreakdown, setTypeBreakdown] = useState<{ gratitude: number; selfPraise: number }>({ gratitude: 0, selfPraise: 0 });
 
   useEffect(() => {
@@ -120,10 +118,6 @@ export default function JournalStatsScreen() {
       fontSize: 16,
       color: colors.textSecondary,
     },
-    headerActions: {
-      flexDirection: 'row',
-      gap: Layout.spacing.xs,
-    },
     headerButton: {
       padding: Layout.spacing.xs,
     },
@@ -217,14 +211,9 @@ export default function JournalStatsScreen() {
             <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('journal.stats.title')}</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setShowExportModal(true)} style={styles.headerButton}>
-              <IconSymbol name="square.and.arrow.up" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={loadStats} style={styles.headerButton}>
-              <IconSymbol name="arrow.clockwise" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={loadStats} style={styles.headerButton}>
+            <IconSymbol name="arrow.clockwise" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
         {isLoading ? (
@@ -319,11 +308,6 @@ export default function JournalStatsScreen() {
       <View style={styles.bannerContainer}>
         <AdBanner />
       </View>
-
-      <ExportModal
-        visible={showExportModal}
-        onClose={() => setShowExportModal(false)}
-      />
       </SafeAreaView>
     </>
   );

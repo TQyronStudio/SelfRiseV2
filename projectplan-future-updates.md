@@ -447,7 +447,8 @@ Social sharing buttons were present in the app but were incomplete/unpolished. T
 - `StreakSharingModal.tsx` - Modal for sharing streak
 - `AchievementShareModal.tsx` - Modal for sharing achievements
 - `GoalSharingModal.tsx` - Modal for sharing goal stats
-- Share buttons in: `GratitudeStreakCard`, `AchievementDetailModal`, `MotivationalQuoteCard`, `GoalStatsScreen`
+- `ExportModal.tsx` - Journal data export (text/JSON) from JournalStatsScreen
+- Share buttons in: `GratitudeStreakCard`, `AchievementDetailModal`, `MotivationalQuoteCard`, `GoalStatsScreen`, `JournalStatsScreen`
 
 ### Why Postponed:
 - Core app functionality takes priority
