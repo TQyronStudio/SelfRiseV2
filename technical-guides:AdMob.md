@@ -2,7 +2,19 @@
 
 **SelfRise V2 - Advertising System Documentation**
 
-*Last Updated: 2026-01-12*
+*Last Updated: 2026-01-13*
+
+---
+
+## 🚨 CURRENT STATUS
+
+**Active Ad Unit IDs**: ⚠️ **TEST IDs** (Development Mode)
+
+All banner and rewarded ads are currently using **Google test IDs** that always show ads. This allows testing without "no-fill" errors during development.
+
+**Before App Store submission**: Change back to production IDs in:
+- `src/components/ads/AdBanner.tsx`
+- `src/services/adService.ts`
 
 ---
 
@@ -80,10 +92,10 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Environment | Platform | Ad Unit ID | Size | Status |
 |-------------|----------|-----------|------|--------|
-| **Production** | iOS | `ca-app-pub-2983534520735805/2803676517` | 320x50 (Standard) | ✅ Active |
-| **Production** | Android | `ca-app-pub-2983534520735805/1782416491` | 320x50 (Standard) | ✅ Active |
-| **Test** | iOS | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ For Dev |
-| **Test** | Android | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ For Dev |
+| **Production** | iOS | `ca-app-pub-2983534520735805/2803676517` | 320x50 (Standard) | ⚠️ Not Active |
+| **Production** | Android | `ca-app-pub-2983534520735805/1782416491` | 320x50 (Standard) | ⚠️ Not Active |
+| **Test** | iOS | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ **ACTIVE NOW** |
+| **Test** | Android | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ **ACTIVE NOW** |
 
 **Supported Banner Sizes**:
 - **Standard** (320x50) - Default for most screens
@@ -98,10 +110,10 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Environment | Platform | Ad Unit ID | Reward | Status |
 |-------------|----------|-----------|--------|--------|
-| **Production** | iOS | `ca-app-pub-2983534520735805/2719065972` | 1 Streak Restore | ✅ Active |
-| **Production** | Android | `ca-app-pub-2983534520735805/5557832361` | 1 Streak Restore | ✅ Active |
-| **Test** | iOS | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ For Dev |
-| **Test** | Android | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ For Dev |
+| **Production** | iOS | `ca-app-pub-2983534520735805/2719065972` | 1 Streak Restore | ⚠️ Not Active |
+| **Production** | Android | `ca-app-pub-2983534520735805/5557832361` | 1 Streak Restore | ⚠️ Not Active |
+| **Test** | iOS | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ **ACTIVE NOW** |
+| **Test** | Android | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ **ACTIVE NOW** |
 
 **Reward Logic**: See [WarmUp System Documentation](#rewarded-ads-system)
 
@@ -134,7 +146,7 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Component**: `src/components/ads/AdBanner.tsx`
 
-**Implementation Status**: ✅ Banner component created and integrated into all major screens (PRODUCTION IDs active)
+**Implementation Status**: ✅ Banner component created and integrated into all major screens (⚠️ TEST IDs active - for development)
 
 ---
 
@@ -227,7 +239,7 @@ async function handleWatchAd() {
 
 **Localization**: All error messages and UI text support EN/DE/ES
 
-**Implementation Status**: ✅ Rewarded ads fully implemented (PRODUCTION IDs active)
+**Implementation Status**: ✅ Rewarded ads fully implemented (⚠️ TEST IDs active - for development)
 - `src/services/adService.ts` - Rewarded ad service with preloading
 - `src/components/home/GratitudeStreakCard.tsx` - Integration point
 - Translation keys added for all ad-related errors (EN/DE/ES)
@@ -346,7 +358,9 @@ export default new AdService();
 
 ### Pre-Production Checklist
 
-- [x] Replace all test IDs with production IDs ✅ (2026-01-12)
+- [ ] **CRITICAL**: Replace all test IDs with production IDs in code:
+  - `src/components/ads/AdBanner.tsx` (banner IDs)
+  - `src/services/adService.ts` (rewarded ad IDs)
 - [ ] Test on iOS physical device
 - [ ] Test on Android physical device
 - [ ] Verify AdMob dashboard shows impressions

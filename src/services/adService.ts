@@ -11,10 +11,10 @@ import {
  * Used when users need to restore their journal streak by watching ads.
  */
 
-// Production AdMob Rewarded Ad Unit IDs
+// Test AdMob Rewarded Ad Unit IDs (for development - always show ads)
 const REWARDED_AD_UNIT_IDS = {
-  ios: 'ca-app-pub-2983534520735805/2719065972',
-  android: 'ca-app-pub-2983534520735805/5557832361',
+  ios: 'ca-app-pub-3940256099942544/1712485313',
+  android: 'ca-app-pub-3940256099942544/5224354917',
 };
 
 // Get the correct ad unit ID based on platform

@@ -9,14 +9,14 @@ import { useTheme } from '@/src/contexts/ThemeContext';
  * Displays Google AdMob banner ads with theme support and error handling.
  * Optimized for minimal spacing to preserve screen real estate.
  *
- * @param adUnitId - AdMob Ad Unit ID (optional - uses production ID by platform)
+ * @param adUnitId - AdMob Ad Unit ID (optional - uses test ID by platform)
  * @param size - Banner size (default: BANNER 320x50)
  */
 
-// Production AdMob Banner Unit IDs
+// Test AdMob Banner Unit IDs (for development - always show ads)
 const BANNER_AD_UNIT_IDS = {
-  ios: 'ca-app-pub-2983534520735805/2803676517',
-  android: 'ca-app-pub-2983534520735805/1782416491',
+  ios: 'ca-app-pub-3940256099942544/2934735716',
+  android: 'ca-app-pub-3940256099942544/6300978111',
 };
 
 interface AdBannerProps {
@@ -32,7 +32,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Use production ID based on platform
+  // Use test ID based on platform
   const bannerAdUnitId = adUnitId || (
     Platform.OS === 'ios'
       ? BANNER_AD_UNIT_IDS.ios
