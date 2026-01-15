@@ -186,6 +186,9 @@ class NotificationScheduler {
       // Cancel all existing evening notifications first
       await notificationService.cancelNotificationsWithPrefix(NOTIFICATION_IDS.EVENING_PREFIX);
 
+      // Also cancel legacy notification identifier (from old implementation with repeats: true)
+      await notificationService.cancelNotification('daily_evening_reminder');
+
       if (!enabled) {
         console.log('[NotificationScheduler] Evening reminder disabled');
         return;
