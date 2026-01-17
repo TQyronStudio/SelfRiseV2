@@ -818,6 +818,60 @@ V Habit Statistics na Home screenu se po provedení Make Up (bonus completion po
 
 ---
 
+## 🔥 CURRENT: Firebase Analytics + ATT Integration (Phase 12)
+
+**Goal**: Integrate Firebase Analytics with iOS App Tracking Transparency for Google Ads conversion tracking
+
+**Status**: 🚧 IN PROGRESS
+
+---
+
+### Checkpoint 12.1: Firebase Analytics + ATT Implementation
+
+**Tasks**:
+- [x] 12.1.1: Install required packages ✅
+  - `@react-native-firebase/app` v23.8.3
+  - `@react-native-firebase/analytics` v23.8.3
+  - `expo-tracking-transparency` v5.2.4
+
+- [ ] 12.1.2: Place Firebase configuration files ⏳ (USER ACTION REQUIRED)
+  - `GoogleService-Info.plist` → project root `/`
+  - `google-services.json` → project root `/`
+
+- [x] 12.1.3: Update app.json configuration ✅
+  - ✅ `@react-native-firebase/app` plugin
+  - ✅ `expo-tracking-transparency` plugin
+  - ✅ `NSUserTrackingUsageDescription` for ATT dialog
+  - ✅ `SKAdNetworkItems` (50 Google Ads network IDs)
+  - ✅ `googleServicesFile` paths for iOS/Android
+  - ✅ `AD_ID` permission for Android
+
+- [x] 12.1.4: Create Firebase Analytics hook ✅
+  - ✅ `src/hooks/useFirebaseAnalytics.ts` (182 lines)
+  - ✅ ATT permission request (iOS 14+)
+  - ✅ Analytics initialization after ATT
+  - ✅ `app_open` event logging
+  - ✅ `logEvent()`, `setUserId()`, `setUserProperty()` functions
+
+- [x] 12.1.5: Integrate hook into app startup ✅
+  - ✅ Added to `app/_layout.tsx`
+
+- [x] 12.1.6: TypeScript compilation verification ✅
+
+- [ ] 12.1.7: Build & test (requires new EAS build)
+
+**File Structure**:
+```
+/SelfRiseV2/
+├── GoogleService-Info.plist  ← iOS (place here)
+├── google-services.json      ← Android (place here)
+├── app.json                  ← Will be updated
+└── src/hooks/
+    └── useFirebaseAnalytics.ts  ← New hook
+```
+
+---
+
 ## 🔮 FUTURE UPDATES - Plánované funkce
 
 ### Data Export & Backup System 💾

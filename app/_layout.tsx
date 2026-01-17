@@ -23,6 +23,9 @@ import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
 // Notification Lifecycle
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
 
+// Firebase Analytics with ATT
+import { useFirebaseAnalytics } from '../src/hooks/useFirebaseAnalytics';
+
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
 
@@ -45,6 +48,11 @@ function LayoutContent() {
   // Initialize notification lifecycle management (unconditional hook)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
+
+  // Initialize Firebase Analytics with ATT (App Tracking Transparency)
+  // Requests ATT permission on iOS 14+, then logs 'app_open' event
+  useFirebaseAnalytics();
+
   const { colors } = useTheme();
   const { t } = useI18n();
 
