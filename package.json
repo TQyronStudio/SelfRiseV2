@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
-    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
     "@react-native-firebase/analytics": "^23.8.3",
     "@react-native-firebase/app": "^23.8.3",
@@ -31,6 +31,7 @@
     "ajv": "^8.17.1",
     "expo": "~53.0.25",
     "expo-blur": "~14.1.5",
+    "expo-build-properties": "^1.0.10",
     "expo-constants": "~17.1.8",
     "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.1",
