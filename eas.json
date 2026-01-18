@@ -6,7 +6,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "postPrebuild": "node scripts/fix-podfile.js"
+      }
     },
     "preview": {
       "distribution": "internal"
