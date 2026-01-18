@@ -1572,24 +1572,33 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  // Check tutorial status on mount
+  // Auto-start tutorial on first app launch
   useEffect(() => {
-    const checkTutorialStatus = async () => {
+    const autoStartTutorial = async () => {
       try {
         const shouldShow = await shouldShowTutorial();
         if (shouldShow) {
           const resumeStep = await getTutorialResumeStep();
           if (resumeStep > 1) {
-            // User has an interrupted tutorial, they can choose to resume
-            console.log(`Tutorial can be resumed from step ${resumeStep}`);
+            // User has an interrupted tutorial - resume from where they left off
+            console.log(`🎓 [TUTORIAL] Resuming interrupted tutorial from step ${resumeStep}`);
+            dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+            dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
+          } else {
+            // New user - start tutorial from beginning
+            console.log(`🎓 [TUTORIAL] First app launch detected - starting tutorial automatically`);
+            dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+            await saveTutorialProgress(1);
           }
         }
       } catch (error) {
-        console.warn('Failed to check tutorial status on mount:', error);
+        console.warn('Failed to auto-start tutorial:', error);
       }
     };
 
-    checkTutorialStatus();
+    // Small delay to ensure app is fully loaded before starting tutorial
+    const timer = setTimeout(autoStartTutorial, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Achievement Modal Coordination - Auto proceed when achievement modals complete
