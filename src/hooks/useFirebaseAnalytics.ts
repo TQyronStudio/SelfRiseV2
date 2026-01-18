@@ -11,7 +11,13 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { Platform } from 'react-native';
-import analytics from '@react-native-firebase/analytics';
+import {
+  getAnalytics,
+  logEvent,
+  setAnalyticsCollectionEnabled,
+  setUserId as firebaseSetUserId,
+  setUserProperty as firebaseSetUserProperty,
+} from '@react-native-firebase/analytics';
 import {
   requestTrackingPermissionsAsync,
   getTrackingPermissionsAsync,
@@ -55,6 +61,9 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
    */
   const initializeAnalytics = async () => {
     try {
+      // Get Analytics instance
+      const analytics = getAnalytics();
+
       // Step 1: Handle ATT on iOS
       if (Platform.OS === 'ios') {
         await handleATTPermission();
@@ -63,10 +72,10 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
       // Step 2: Enable analytics collection
       // Analytics works on both iOS and Android, but tracking data
       // is limited on iOS if user denies ATT
-      await analytics().setAnalyticsCollectionEnabled(true);
+      await setAnalyticsCollectionEnabled(analytics, true);
 
       // Step 3: Log app_open event
-      await analytics().logEvent('app_open', {
+      await logEvent(analytics, 'app_open', {
         platform: Platform.OS,
         timestamp: new Date().toISOString(),
       });
@@ -94,7 +103,8 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
         console.log(`📱 ATT Permission result: ${status}`);
 
         // Log ATT response to analytics (for your own tracking)
-        await analytics().logEvent('att_permission_response', {
+        const analytics = getAnalytics();
+        await logEvent(analytics, 'att_permission_response', {
           status: status,
           granted: status === 'granted' ? 1 : 0,
         });
@@ -118,9 +128,10 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
    * @example
    * logEvent('habit_completed', { habit_name: 'Exercise', streak: 5 });
    */
-  const logEvent = useCallback(async (eventName: string, params?: AnalyticsEventParams) => {
+  const logEventWrapper = useCallback(async (eventName: string, params?: AnalyticsEventParams) => {
     try {
-      await analytics().logEvent(eventName, params);
+      const analytics = getAnalytics();
+      await logEvent(analytics, eventName, params);
     } catch (error) {
       console.error(`❌ Analytics logEvent error (${eventName}):`, error);
     }
@@ -132,9 +143,10 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
    *
    * @param userId - Unique user identifier or null to clear
    */
-  const setUserId = useCallback(async (userId: string | null) => {
+  const setUserIdWrapper = useCallback(async (userId: string | null) => {
     try {
-      await analytics().setUserId(userId);
+      const analytics = getAnalytics();
+      await firebaseSetUserId(analytics, userId);
     } catch (error) {
       console.error('❌ Analytics setUserId error:', error);
     }
@@ -149,18 +161,19 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
    * @example
    * setUserProperty('language', 'en');
    */
-  const setUserProperty = useCallback(async (name: string, value: string | null) => {
+  const setUserPropertyWrapper = useCallback(async (name: string, value: string | null) => {
     try {
-      await analytics().setUserProperty(name, value);
+      const analytics = getAnalytics();
+      await firebaseSetUserProperty(analytics, name, value);
     } catch (error) {
       console.error(`❌ Analytics setUserProperty error (${name}):`, error);
     }
   }, []);
 
   return {
-    logEvent,
-    setUserId,
-    setUserProperty,
+    logEvent: logEventWrapper,
+    setUserId: setUserIdWrapper,
+    setUserProperty: setUserPropertyWrapper,
     trackingStatus: trackingStatusRef.current,
   };
 }
@@ -173,7 +186,8 @@ export const FirebaseAnalytics = {
    */
   logEvent: async (eventName: string, params?: AnalyticsEventParams) => {
     try {
-      await analytics().logEvent(eventName, params);
+      const analytics = getAnalytics();
+      await logEvent(analytics, eventName, params);
     } catch (error) {
       console.error(`❌ Analytics logEvent error (${eventName}):`, error);
     }
