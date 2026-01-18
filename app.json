@@ -118,7 +118,8 @@
         }
       ],
       "expo-tracking-transparency",
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      "./plugins/withModularHeaders.js"
     ],
     "experiments": {
       "typedRoutes": true
