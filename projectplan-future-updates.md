@@ -419,7 +419,47 @@ const isUnlocked = !theme.unlockLevel || level >= theme.unlockLevel;
 
 ---
 
-## Phase 4: Social Sharing System 📤
+## Phase 4: Firebase Cloud Messaging (FCM) - Remote Push Notifications 📲
+
+**Status**: Planned for future
+**Priority**: Low | **Complexity**: Medium | **Estimated**: 8-12 hours
+
+**Goal**: Enable server-sent push notifications for marketing campaigns, announcements, and re-engagement.
+
+### What FCM Enables:
+- 📢 **Announcements**: "New version released! Update now for new achievements"
+- 🎄 **Promotional campaigns**: "Holiday bonus! 3x XP this weekend"
+- 🔙 **Re-engagement**: "We miss you! Come back for a special bonus"
+- 📊 **Targeted messages**: Send notifications to specific user segments
+
+### Prerequisites:
+- Backend server (Firebase Cloud Functions, Node.js, or similar)
+- APNs certificate for iOS (Apple Push Notification service)
+- Firebase Cloud Messaging setup in Firebase Console
+
+### Technical Implementation Required:
+- [ ] Install `@react-native-firebase/messaging`
+- [ ] Configure APNs for iOS in Apple Developer account
+- [ ] Upload APNs certificate to Firebase Console
+- [ ] Create backend service for sending messages
+- [ ] Implement notification handling in app
+- [ ] Add user opt-in/opt-out for marketing notifications
+- [ ] Create notification analytics tracking
+
+### Why Postponed:
+- Requires backend infrastructure (server to send messages)
+- Local notifications already cover daily reminders
+- Not needed for initial app launch
+- Can be added anytime without app update (server-side)
+
+### When to Implement:
+- After reaching 1,000+ active users
+- When marketing campaigns become priority
+- When re-engagement automation is needed
+
+---
+
+## Phase 5: Social Sharing System 📤
 
 **Status**: Temporarily removed from app (December 2024)
 **Priority**: Low | **Complexity**: Medium | **Estimated**: 6-8 hours
