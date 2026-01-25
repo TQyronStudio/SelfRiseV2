@@ -3218,6 +3218,7 @@ const es: Partial<TranslationKeys> = {
         cannotActivateInactive: 'No se puede activar el boost de usuario inactivo',
         userInactiveButActive: 'El usuario está inactivo pero el multiplicador ya está activo',
         userNotInactive: 'El usuario no está inactivo ({{days}} días desde la última actividad, se necesitan 4+)',
+        challengeCooldownActive: 'El multiplicador de desafío está en enfriamiento, intenta más tarde',
       },
       descriptions: {
         harmonyStreak: 'Racha de Armonía: {{multiplier}}x XP ({{hours}}h restantes)',
@@ -3230,6 +3231,9 @@ const es: Partial<TranslationKeys> = {
         welcomeBackBoost: '¡Bienvenido de nuevo! 2x XP por {{hours}} horas',
         xpFor: '2x XP por {{hours}} horas',
         comebackBonus: 'Bonus de regreso: {{days}} días ausente',
+        achievementComboActivated: '¡Combo de Logros! {{count}} logros desbloqueados - {{hours}}h de {{multiplier}}x XP',
+        achievementCombo: 'Combo de Logros: {{multiplier}}x XP ({{hours}}h restantes)',
+        challengeCompletedActivated: '¡Desafío Mensual Completado! {{stars}}★ - {{hours}}h de 1.5x XP',
       },
       notifications: {
         oneMoreDay: '¡Un día más de actividad equilibrada para desbloquear el Multiplicador 2x XP!',

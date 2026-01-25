@@ -280,27 +280,37 @@ export class XPMultiplierService {
 
   /**
    * Get goal activity for specific date
+   * Queries the goal_progress table directly to find actual progress entries for the date
    */
   private static async getGoalActivityForDate(
-    goalStorage: GoalStorage,
+    _goalStorage: GoalStorage,
     date: DateString
   ): Promise<number> {
     try {
-      // Check if any goals had progress added on this date
-      // Note: This is a simplified implementation. In real app, you'd track goal progress timestamps
-      const goals = await goalStorage.getAll();
-      
-      // For now, we'll use a heuristic: if goals exist and it's a recent date, assume some activity
-      // This should be replaced with proper goal progress tracking by date
-      const recentDays = 7;
-      const daysSinceDate = Math.floor((Date.now() - new Date(date).getTime()) / (24 * 60 * 60 * 1000));
-      
-      if (goals.length > 0 && daysSinceDate <= recentDays) {
-        // Return 1 to indicate goal activity (this is a placeholder)
-        return goals.filter(goal => goal.currentValue > 0).length > 0 ? 1 : 0;
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
+        // SQLite: Query goal_progress table directly for accurate date-based tracking
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        const result = await db.getFirstAsync<{ count: number }>(
+          `SELECT COUNT(*) as count FROM goal_progress WHERE date = ? AND value > 0`,
+          [date]
+        );
+
+        return result?.count || 0;
+      } else {
+        // AsyncStorage fallback: Check progress entries via getAllProgress
+        const { goalStorage } = await import('./storage/goalStorage');
+        const allProgress = await goalStorage.getAllProgress();
+
+        const entriesForDate = allProgress.filter(
+          (entry) => entry.date === date && entry.value > 0
+        );
+
+        return entriesForDate.length;
       }
-      
-      return 0;
     } catch (error) {
       console.error(`Error getting goal activity for ${date}:`, error);
       return 0;
@@ -1096,6 +1106,375 @@ export class XPMultiplierService {
     } catch (error) {
       console.error('XPMultiplierService.checkAndActivateInactiveUserBoost error:', error);
       return null;
+    }
+  }
+
+  // ========================================
+  // ACHIEVEMENT COMBO MULTIPLIER SYSTEM
+  // ========================================
+
+  /**
+   * Check if user has unlocked 3+ achievements in last 24 hours
+   * and activate 2.5x XP multiplier if eligible
+   */
+  static async checkAndActivateAchievementCombo(): Promise<MultiplierActivationResult | null> {
+    try {
+      // Check if multiplier is already active
+      const currentMultiplier = await this.getActiveMultiplier();
+      if (currentMultiplier.isActive) {
+        return null; // Don't interrupt existing multiplier
+      }
+
+      // Check cooldown
+      const cooldownInfo = await this.getAchievementComboCooldownInfo();
+      if (cooldownInfo.isOnCooldown) {
+        return null;
+      }
+
+      // Get achievements unlocked in last 24 hours
+      const { AchievementStorage } = await import('./achievementStorage');
+      const unlockEvents = await AchievementStorage.getUnlockEvents();
+
+      const now = Date.now();
+      const last24Hours = now - (24 * 60 * 60 * 1000);
+
+      const recentUnlocks = unlockEvents.filter(event => {
+        const unlockedAt = typeof event.unlockedAt === 'number'
+          ? event.unlockedAt
+          : new Date(event.unlockedAt).getTime();
+        return unlockedAt >= last24Hours;
+      });
+
+      // Need 3 or more achievements for combo
+      if (recentUnlocks.length >= XP_MULTIPLIERS.ACHIEVEMENT_COMBO_COUNT) {
+        console.log(`🎯 Achievement Combo detected: ${recentUnlocks.length} achievements in 24h`);
+        return await this.activateAchievementComboMultiplier(recentUnlocks.length);
+      }
+
+      return null;
+    } catch (error) {
+      console.error('XPMultiplierService.checkAndActivateAchievementCombo error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Activate 2.5x XP multiplier for achievement combo
+   */
+  static async activateAchievementComboMultiplier(achievementCount: number): Promise<MultiplierActivationResult> {
+    try {
+      console.log('🚀 Attempting to activate Achievement Combo Multiplier...');
+
+      // Check if multiplier is already active
+      const currentMultiplier = await this.getActiveMultiplier();
+      if (currentMultiplier.isActive) {
+        return {
+          success: false,
+          error: i18next.t('gamification.multiplier.errors.alreadyActive'),
+          reason: i18next.t('gamification.multiplier.errors.alreadyRunning', { source: currentMultiplier.source }),
+        };
+      }
+
+      // Create multiplier
+      const now = new Date();
+      const durationHours = XP_MULTIPLIERS.ACHIEVEMENT_COMBO_DURATION;
+      const expiresAt = new Date(now.getTime() + (durationHours * 60 * 60 * 1000));
+
+      const multiplier: XPMultiplier = {
+        id: `achievement_combo_${now.getTime()}`,
+        createdAt: now,
+        updatedAt: now,
+        multiplier: XP_MULTIPLIERS.ACHIEVEMENT_COMBO_MULTIPLIER,
+        duration: durationHours,
+        activatedAt: now,
+        expiresAt,
+        source: 'achievement',
+        isActive: true,
+        metadata: {
+          achievementCount,
+          activationReason: 'Achievement combo - 3+ achievements in 24h',
+        },
+      };
+
+      // Store active multiplier
+      await AsyncStorage.setItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER, JSON.stringify(multiplier));
+
+      // Award bonus XP for activation (10 XP per hour)
+      const bonusXP = durationHours * 10;
+
+      try {
+        const { GamificationService } = await import('./gamificationService');
+        await GamificationService.addXP(bonusXP, {
+          source: 'xp_multiplier_bonus' as any,
+          description: i18next.t('gamification.multiplier.descriptions.achievementComboActivated', { count: achievementCount, hours: durationHours }),
+          metadata: {
+            multiplierSource: 'achievement_combo',
+            achievementCount,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to award achievement combo bonus XP:', error);
+      }
+
+      // Record activation history
+      await this.recordMultiplierActivation(multiplier, achievementCount, bonusXP);
+
+      // Set cooldown
+      await this.setAchievementComboCooldown(XP_MULTIPLIERS.ACHIEVEMENT_COMBO_COOLDOWN);
+
+      // Trigger celebration event
+      DeviceEventEmitter.emit('xpMultiplierActivated', {
+        multiplier: multiplier.multiplier,
+        duration: multiplier.duration,
+        source: multiplier.source,
+        achievementCount,
+        expiresAt: multiplier.expiresAt,
+        timestamp: Date.now(),
+      });
+
+      console.log(`🚀 Achievement Combo Multiplier activated! ${XP_MULTIPLIERS.ACHIEVEMENT_COMBO_MULTIPLIER}x XP for ${durationHours} hours`);
+
+      return {
+        success: true,
+        multiplier: {
+          isActive: true,
+          multiplier: multiplier.multiplier,
+          activatedAt: multiplier.activatedAt,
+          expiresAt: multiplier.expiresAt,
+          source: multiplier.source,
+          timeRemaining: expiresAt.getTime() - now.getTime(),
+          description: i18next.t('gamification.multiplier.descriptions.achievementCombo', { multiplier: multiplier.multiplier, hours: durationHours }),
+        },
+        xpBonusAwarded: bonusXP,
+      };
+
+    } catch (error) {
+      console.error('XPMultiplierService.activateAchievementComboMultiplier error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Get achievement combo cooldown info
+   */
+  private static async getAchievementComboCooldownInfo(): Promise<{
+    isOnCooldown: boolean;
+    cooldownEndsAt?: Date;
+    timeRemaining?: number;
+  }> {
+    try {
+      const stored = await AsyncStorage.getItem('xp_multiplier_achievement_combo_cooldown');
+      if (!stored) {
+        return { isOnCooldown: false };
+      }
+
+      const cooldownData = JSON.parse(stored);
+      const cooldownEndsAt = new Date(cooldownData.endsAt);
+      const now = new Date();
+
+      if (cooldownEndsAt <= now) {
+        await AsyncStorage.removeItem('xp_multiplier_achievement_combo_cooldown');
+        return { isOnCooldown: false };
+      }
+
+      return {
+        isOnCooldown: true,
+        cooldownEndsAt,
+        timeRemaining: cooldownEndsAt.getTime() - now.getTime(),
+      };
+    } catch (error) {
+      console.error('XPMultiplierService.getAchievementComboCooldownInfo error:', error);
+      return { isOnCooldown: false };
+    }
+  }
+
+  /**
+   * Set achievement combo cooldown
+   */
+  private static async setAchievementComboCooldown(hours: number): Promise<void> {
+    try {
+      const endsAt = new Date(Date.now() + (hours * 60 * 60 * 1000));
+      const cooldownData = {
+        source: 'achievement_combo',
+        startedAt: new Date().toISOString(),
+        endsAt: endsAt.toISOString(),
+        durationHours: hours,
+      };
+      await AsyncStorage.setItem('xp_multiplier_achievement_combo_cooldown', JSON.stringify(cooldownData));
+    } catch (error) {
+      console.error('XPMultiplierService.setAchievementComboCooldown error:', error);
+    }
+  }
+
+  // ========================================
+  // CHALLENGE COMPLETION MULTIPLIER SYSTEM
+  // ========================================
+
+  /**
+   * Activate 1.5x XP multiplier after completing a monthly challenge
+   * Called from MonthlyChallengeService when challenge is completed
+   */
+  static async activateChallengeCompletionMultiplier(challengeId: string, starRating: number): Promise<MultiplierActivationResult> {
+    try {
+      console.log('🚀 Attempting to activate Challenge Completion Multiplier...');
+
+      // Check if multiplier is already active
+      const currentMultiplier = await this.getActiveMultiplier();
+      if (currentMultiplier.isActive) {
+        return {
+          success: false,
+          error: i18next.t('gamification.multiplier.errors.alreadyActive'),
+          reason: i18next.t('gamification.multiplier.errors.alreadyRunning', { source: currentMultiplier.source }),
+        };
+      }
+
+      // Check cooldown
+      const cooldownInfo = await this.getChallengeCompletionCooldownInfo();
+      if (cooldownInfo.isOnCooldown) {
+        return {
+          success: false,
+          error: i18next.t('gamification.multiplier.errors.onCooldown'),
+          reason: i18next.t('gamification.multiplier.errors.challengeCooldownActive'),
+        };
+      }
+
+      // Create multiplier
+      const now = new Date();
+      const durationHours = XP_MULTIPLIERS.CHALLENGE_COMPLETION_DURATION;
+      const expiresAt = new Date(now.getTime() + (durationHours * 60 * 60 * 1000));
+
+      const multiplier: XPMultiplier = {
+        id: `challenge_completion_${now.getTime()}`,
+        createdAt: now,
+        updatedAt: now,
+        multiplier: XP_MULTIPLIERS.CHALLENGE_COMPLETION_MULTIPLIER,
+        duration: durationHours,
+        activatedAt: now,
+        expiresAt,
+        source: 'weekly_challenge',
+        isActive: true,
+        metadata: {
+          challengeId,
+          starRating,
+          activationReason: 'Monthly challenge completed',
+        },
+      };
+
+      // Store active multiplier
+      await AsyncStorage.setItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER, JSON.stringify(multiplier));
+
+      // Award bonus XP for activation (10 XP per hour)
+      const bonusXP = durationHours * 10;
+
+      try {
+        const { GamificationService } = await import('./gamificationService');
+        await GamificationService.addXP(bonusXP, {
+          source: 'xp_multiplier_bonus' as any,
+          description: i18next.t('gamification.multiplier.descriptions.challengeCompletedActivated', { stars: starRating, hours: durationHours }),
+          metadata: {
+            multiplierSource: 'challenge_completion',
+            challengeId,
+            starRating,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to award challenge completion bonus XP:', error);
+      }
+
+      // Record activation history
+      await this.recordMultiplierActivation(multiplier, starRating, bonusXP);
+
+      // Set cooldown
+      await this.setChallengeCompletionCooldown(XP_MULTIPLIERS.CHALLENGE_COMPLETION_COOLDOWN);
+
+      // Trigger celebration event
+      DeviceEventEmitter.emit('xpMultiplierActivated', {
+        multiplier: multiplier.multiplier,
+        duration: multiplier.duration,
+        source: multiplier.source,
+        challengeId,
+        starRating,
+        expiresAt: multiplier.expiresAt,
+        timestamp: Date.now(),
+      });
+
+      console.log(`🚀 Challenge Completion Multiplier activated! ${XP_MULTIPLIERS.CHALLENGE_COMPLETION_MULTIPLIER}x XP for ${durationHours} hours`);
+
+      return {
+        success: true,
+        multiplier: {
+          isActive: true,
+          multiplier: multiplier.multiplier,
+          activatedAt: multiplier.activatedAt,
+          expiresAt: multiplier.expiresAt,
+          source: multiplier.source,
+          timeRemaining: expiresAt.getTime() - now.getTime(),
+          description: i18next.t('gamification.multiplier.descriptions.challengeReward', { multiplier: multiplier.multiplier, hours: durationHours }),
+        },
+        xpBonusAwarded: bonusXP,
+      };
+
+    } catch (error) {
+      console.error('XPMultiplierService.activateChallengeCompletionMultiplier error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Get challenge completion cooldown info
+   */
+  private static async getChallengeCompletionCooldownInfo(): Promise<{
+    isOnCooldown: boolean;
+    cooldownEndsAt?: Date;
+    timeRemaining?: number;
+  }> {
+    try {
+      const stored = await AsyncStorage.getItem('xp_multiplier_challenge_cooldown');
+      if (!stored) {
+        return { isOnCooldown: false };
+      }
+
+      const cooldownData = JSON.parse(stored);
+      const cooldownEndsAt = new Date(cooldownData.endsAt);
+      const now = new Date();
+
+      if (cooldownEndsAt <= now) {
+        await AsyncStorage.removeItem('xp_multiplier_challenge_cooldown');
+        return { isOnCooldown: false };
+      }
+
+      return {
+        isOnCooldown: true,
+        cooldownEndsAt,
+        timeRemaining: cooldownEndsAt.getTime() - now.getTime(),
+      };
+    } catch (error) {
+      console.error('XPMultiplierService.getChallengeCompletionCooldownInfo error:', error);
+      return { isOnCooldown: false };
+    }
+  }
+
+  /**
+   * Set challenge completion cooldown
+   */
+  private static async setChallengeCompletionCooldown(hours: number): Promise<void> {
+    try {
+      const endsAt = new Date(Date.now() + (hours * 60 * 60 * 1000));
+      const cooldownData = {
+        source: 'challenge_completion',
+        startedAt: new Date().toISOString(),
+        endsAt: endsAt.toISOString(),
+        durationHours: hours,
+      };
+      await AsyncStorage.setItem('xp_multiplier_challenge_cooldown', JSON.stringify(cooldownData));
+    } catch (error) {
+      console.error('XPMultiplierService.setChallengeCompletionCooldown error:', error);
     }
   }
 }

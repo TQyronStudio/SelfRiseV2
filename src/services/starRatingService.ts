@@ -339,6 +339,22 @@ export class StarRatingService {
         completionData
       });
 
+      // Activate Challenge Completion Multiplier on successful completion
+      if (reason === 'success' && historyEntry.challengeCompleted) {
+        try {
+          const { XPMultiplierService } = await import('./xpMultiplierService');
+          const multiplierResult = await XPMultiplierService.activateChallengeCompletionMultiplier(
+            completionData.challengeId,
+            newStars
+          );
+          if (multiplierResult.success) {
+            console.log(`🚀 Challenge Completion Multiplier activated: ${multiplierResult.multiplier?.multiplier}x XP for ${multiplierResult.multiplier?.timeRemaining ? Math.ceil(multiplierResult.multiplier.timeRemaining / (1000 * 60 * 60)) : 0}h`);
+          }
+        } catch (multiplierError) {
+          console.error('Failed to activate challenge completion multiplier:', multiplierError);
+        }
+      }
+
       return historyEntry;
     } catch (error) {
       console.error('Error updating star rating for completion:', error);

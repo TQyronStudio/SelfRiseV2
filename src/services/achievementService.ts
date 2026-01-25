@@ -555,6 +555,14 @@ export class AchievementService {
       // Trigger achievement unlock notifications
       if (newlyUnlocked.length > 0) {
         this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, leveledUp, newLevel);
+
+        // Check for Achievement Combo Multiplier (3+ achievements in 24h)
+        try {
+          const { XPMultiplierService } = await import('./xpMultiplierService');
+          await XPMultiplierService.checkAndActivateAchievementCombo();
+        } catch (comboError) {
+          console.error('Achievement combo check failed:', comboError);
+        }
       }
 
       const result: AchievementUnlockResult = {
@@ -758,6 +766,14 @@ export class AchievementService {
         setTimeout(() => {
           this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, false);
         }, 3000); // 3-second delay for background notifications
+
+        // Check for Achievement Combo Multiplier (3+ achievements in 24h)
+        try {
+          const { XPMultiplierService } = require('./xpMultiplierService');
+          XPMultiplierService.checkAndActivateAchievementCombo();
+        } catch (comboError) {
+          console.error('Achievement combo check failed:', comboError);
+        }
       }
 
       console.log(`✅ Background processing complete: ${newlyUnlocked.length} unlocked, ${totalXPAwarded} XP awarded`);

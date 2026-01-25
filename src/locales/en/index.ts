@@ -3204,6 +3204,7 @@ const en: TranslationKeys = {
         cannotActivateInactive: 'Cannot activate inactive user boost',
         userInactiveButActive: 'User is inactive but multiplier already active',
         userNotInactive: 'User is not inactive ({{days}} days since last activity, need 4+)',
+        challengeCooldownActive: 'Challenge multiplier on cooldown, try again later',
       },
       descriptions: {
         harmonyStreak: 'Harmony Streak: {{multiplier}}x XP ({{hours}}h remaining)',
@@ -3216,6 +3217,9 @@ const en: TranslationKeys = {
         welcomeBackBoost: 'Welcome back! 2x XP for {{hours}} hours',
         xpFor: '2x XP for {{hours}} hours',
         comebackBonus: 'Comeback bonus: {{days}} days away',
+        achievementComboActivated: 'Achievement Combo! {{count}} achievements unlocked - {{hours}}h of {{multiplier}}x XP',
+        achievementCombo: 'Achievement Combo: {{multiplier}}x XP ({{hours}}h remaining)',
+        challengeCompletedActivated: 'Monthly Challenge Complete! {{stars}}★ - {{hours}}h of 1.5x XP',
       },
       notifications: {
         oneMoreDay: 'One more day of balanced activity to unlock 2x XP Multiplier!',
