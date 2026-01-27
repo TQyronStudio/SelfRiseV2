@@ -71,6 +71,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.2.2",
     "@types/i18next": "^12.1.0",
