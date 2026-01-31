@@ -324,8 +324,6 @@ export function GoalForm({
 
     if (formData.targetValue <= 0) {
       newErrors.targetValue = t('goals.form.errors.targetValueRequired');
-    } else if (formData.targetValue > 1000000) {
-      newErrors.targetValue = t('goals.form.errors.targetValueTooLarge');
     }
 
     if (formData.description && formData.description.length > 300) {
