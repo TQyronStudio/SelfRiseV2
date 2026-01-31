@@ -1579,14 +1579,23 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         const shouldShow = await shouldShowTutorial();
         if (shouldShow) {
           const resumeStep = await getTutorialResumeStep();
+
+          // Ensure we're on home screen before starting tutorial
+          router.push('/(tabs)' as any);
+
+          // Wait for navigation to complete
+          await new Promise(resolve => setTimeout(resolve, 300));
+
           if (resumeStep > 1) {
             // User has an interrupted tutorial - resume from where they left off
             console.log(`🎓 [TUTORIAL] Resuming interrupted tutorial from step ${resumeStep}`);
+            dispatch({ type: 'RESET_TUTORIAL' });
             dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
             dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
           } else {
             // New user - start tutorial from beginning
             console.log(`🎓 [TUTORIAL] First app launch detected - starting tutorial automatically`);
+            dispatch({ type: 'RESET_TUTORIAL' });
             dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
             await saveTutorialProgress(1);
           }
@@ -1596,8 +1605,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Small delay to ensure app is fully loaded before starting tutorial
-    const timer = setTimeout(autoStartTutorial, 500);
+    // Longer delay to ensure app and all contexts are fully initialized
+    const timer = setTimeout(autoStartTutorial, 1000);
     return () => clearTimeout(timer);
   }, []);
 

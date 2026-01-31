@@ -47,10 +47,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   onSkip,
 }) => {
   const { colors } = useTheme();
-  const { t, currentLanguage } = useI18n();
-
-  // Locale-specific font sizing - German needs smaller fonts due to longer words
-  const isGerman = currentLanguage === 'de';
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   // Animation values
@@ -172,18 +169,18 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       fontSize: scaleFont(40),
     },
     title: {
-      fontSize: scaleFont(isGerman ? Fonts.sizes.lg : Fonts.sizes.xl),
+      fontSize: scaleFont(Fonts.sizes.xxl),
       fontWeight: 'bold',
       color: colors.textPrimary,
       textAlign: 'center',
       marginBottom: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
-      lineHeight: scaleFont(isGerman ? Fonts.sizes.lg : Fonts.sizes.xl) * 1.2,
+      lineHeight: scaleFont(Fonts.sizes.xxl) * 1.2,
     },
     content: {
-      fontSize: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.md),
       color: colors.textSecondary,
       textAlign: 'center',
-      lineHeight: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm) * 1.5,
+      lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
       marginBottom: isTablet() ? 30 : (getScreenSize() === ScreenSize.SMALL ? 20 : 24),
     },
     progressContainer: {
@@ -201,7 +198,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       borderRadius: isTablet() ? 3 : 2,
     },
     progressText: {
-      fontSize: scaleFont(Fonts.sizes.xs),
+      fontSize: scaleFont(Fonts.sizes.sm),
       color: colors.textSecondary,
       textAlign: 'center',
     },
@@ -215,7 +212,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       minWidth: isTablet() ? 240 : (getScreenSize() === ScreenSize.SMALL ? 160 : 200),
     },
     actionButtonText: {
-      fontSize: scaleFont(Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.md),
       fontWeight: '600',
       color: colors.white,
       marginRight: 8,
@@ -232,7 +229,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
       alignItems: 'center',
     },
     statText: {
-      fontSize: scaleFont(Fonts.sizes.xs),
+      fontSize: scaleFont(Fonts.sizes.sm),
       color: colors.textSecondary,
       marginTop: isTablet() ? 6 : 4,
       fontWeight: '500',
@@ -290,24 +287,10 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
             </View>
 
             {/* Title */}
-            <Text
-              style={styles.title}
-              numberOfLines={2}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-            >
-              {step.content.title}
-            </Text>
+            <Text style={styles.title}>{step.content.title}</Text>
 
             {/* Content */}
-            <Text
-              style={styles.content}
-              numberOfLines={6}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}
-            >
-              {step.content.content}
-            </Text>
+            <Text style={styles.content}>{step.content.content}</Text>
 
             {/* Progress indicator for all modal steps */}
             <View style={styles.progressContainer}>

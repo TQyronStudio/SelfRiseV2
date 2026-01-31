@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TouchableOpacity, View, Text } from 'react-native';
@@ -12,6 +12,29 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
+import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+
+// Trophy button with tutorial target registration
+function TrophyButton() {
+  const router = useRouter();
+  const trophyRef = useRef<View>(null);
+  const { registerTarget, unregisterTarget } = useTutorialTarget('trophy-button', trophyRef);
+
+  useEffect(() => {
+    registerTarget();
+    return () => unregisterTarget();
+  }, [registerTarget, unregisterTarget]);
+
+  return (
+    <TouchableOpacity
+      ref={trophyRef}
+      onPress={() => router.push('/achievements')}
+      style={{ marginLeft: 16 }}
+    >
+      <PremiumTrophyIcon size={28} />
+    </TouchableOpacity>
+  );
+}
 
 function TabLayoutContent() {
   const { t } = useI18n();
@@ -52,14 +75,7 @@ function TabLayoutContent() {
           title: t('tabs.home'),
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="house.fill" color={color} />,
           tabBarButton: (props) => <HapticTab {...props} nativeID="home-tab" />,
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.push('/achievements')}
-              style={{ marginLeft: 16 }}
-            >
-              <PremiumTrophyIcon size={28} />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <TrophyButton />,
           headerTitle: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={{ color: colors.textInverse, fontSize: 17, fontWeight: 'bold' }}>

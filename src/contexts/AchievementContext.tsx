@@ -1,5 +1,5 @@
 // Achievement Context - React Context for achievement system state management
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import {
   Achievement,
@@ -99,10 +99,17 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   // 4-Tier Modal Priority System coordination
   const { notifyAchievementModalStarted, notifyAchievementModalEnded, state: xpAnimationState } = useXpAnimation();
 
-  // Check if higher priority modals (Tier 1-2) are blocking
-  const isHigherPriorityModalActive =
-    xpAnimationState.modalCoordination.isActivityModalActive ||
-    xpAnimationState.modalCoordination.isMonthlyChallengeModalActive;
+  // Store modal state in ref to avoid re-renders and setState during render issues
+  const xpAnimationStateRef = useRef(xpAnimationState);
+  useEffect(() => {
+    xpAnimationStateRef.current = xpAnimationState;
+  }, [xpAnimationState]);
+
+  // Helper function to check if higher priority modals are active (called from callbacks, not render)
+  const isHigherPriorityModalActive = useCallback(() => {
+    return xpAnimationStateRef.current.modalCoordination.isActivityModalActive ||
+           xpAnimationStateRef.current.modalCoordination.isMonthlyChallengeModalActive;
+  }, []);
   
   // State management
   const [userAchievements, setUserAchievements] = useState<UserAchievements>({
@@ -364,7 +371,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
    */
   const showNextCelebration = useCallback(() => {
     // Don't show achievements if higher priority modals (Tier 1-2) are active
-    if (isHigherPriorityModalActive) {
+    if (isHigherPriorityModalActive()) {
       console.log('⏸️ Achievement modal delayed - higher priority modal active (Tier 1-2)');
       return;
     }
@@ -411,11 +418,13 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
 
   // Auto-trigger next celebration when queue is updated OR higher priority modals end
   useEffect(() => {
-    if (!showingCelebration && celebrationQueue.length > 0 && !isHigherPriorityModalActive) {
+    if (!showingCelebration && celebrationQueue.length > 0 && !isHigherPriorityModalActive()) {
       console.log('🎬 Auto-triggering achievement celebration (queue has items, no higher priority modals)');
       showNextCelebration();
     }
-  }, [celebrationQueue.length, showingCelebration, showNextCelebration, isHigherPriorityModalActive]);
+  }, [celebrationQueue.length, showingCelebration, showNextCelebration, isHigherPriorityModalActive,
+      xpAnimationState.modalCoordination.isActivityModalActive,
+      xpAnimationState.modalCoordination.isMonthlyChallengeModalActive]);
 
   // ========================================
   // EVENT LISTENERS

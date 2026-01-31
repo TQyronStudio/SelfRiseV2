@@ -43,11 +43,8 @@ interface TutorialOverlayProps {
 export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) => {
   const { colors } = useTheme();
   const { state, actions } = useTutorial();
-  const { t, currentLanguage } = useI18n();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
-
-  // Locale-specific font sizing - German needs smaller fonts due to longer words
-  const isGerman = currentLanguage === 'de';
 
   // Animation values
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -391,17 +388,17 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       padding: getCardPadding(),
     },
     title: {
-      fontSize: scaleFont(isGerman ? Fonts.sizes.md : Fonts.sizes.lg),
+      fontSize: scaleFont(Fonts.sizes.xl),
       fontWeight: 'bold',
       color: colors.textPrimary,
       marginBottom: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 10 : 12),
       textAlign: 'center',
-      lineHeight: scaleFont(isGerman ? Fonts.sizes.md : Fonts.sizes.lg) * 1.3,
+      lineHeight: scaleFont(Fonts.sizes.xl) * 1.3,
     },
     content: {
-      fontSize: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.md),
       color: colors.textSecondary,
-      lineHeight: scaleFont(isGerman ? Fonts.sizes.xs : Fonts.sizes.sm) * 1.5,
+      lineHeight: scaleFont(Fonts.sizes.md) * 1.5,
       textAlign: 'center',
       marginBottom: isTablet() ? 16 : (getScreenSize() === ScreenSize.SMALL ? 12 : 14),
     },
@@ -417,7 +414,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       marginTop: 0,
     },
     nextButtonText: {
-      fontSize: scaleFont(Fonts.sizes.xs),
+      fontSize: scaleFont(Fonts.sizes.sm),
       fontWeight: '600',
       color: colors.white,
       marginRight: 6,
@@ -433,7 +430,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       zIndex: 10002,
     },
     loadingText: {
-      fontSize: scaleFont(Fonts.sizes.sm),
+      fontSize: scaleFont(Fonts.sizes.md),
       color: colors.white,
       textAlign: 'center',
     },
@@ -660,22 +657,12 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           >
             <View style={styles.contentCard}>
               {/* Title */}
-              <Text
-                style={styles.title}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.75}
-              >
+              <Text style={styles.title}>
                 {state.currentStepData.content.title}
               </Text>
 
               {/* Content */}
-              <Text
-                style={styles.content}
-                numberOfLines={5}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-              >
+              <Text style={styles.content}>
                 {state.currentStepData.content.content}
               </Text>
 

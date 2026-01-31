@@ -193,24 +193,24 @@ class TutorialTargetManager {
         pageY: SCREEN_HEIGHT - 83,
       },
 
-      // XP Progress Section
-      'xp-progress-section': {
+      // XP Progress Bar (matches tutorial target ID)
+      'xp-progress-bar': {
         x: 16,
-        y: 240,
+        y: 180,
         width: SCREEN_WIDTH - 32,
-        height: 120,
+        height: 140,
         pageX: 16,
-        pageY: 240,
+        pageY: 180,
       },
 
-      // Trophy Room Button
-      'trophy-room-button': {
-        x: SCREEN_WIDTH - 70,
-        y: 100,
-        width: 54,
-        height: 54,
-        pageX: SCREEN_WIDTH - 70,
-        pageY: 100,
+      // Trophy Button in header (matches tutorial target ID)
+      'trophy-button': {
+        x: 16,
+        y: 44,
+        width: 44,
+        height: 44,
+        pageX: 16,
+        pageY: 44,
       },
 
       // Journal Actions
