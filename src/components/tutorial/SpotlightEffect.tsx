@@ -1,15 +1,34 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
+import { StyleSheet, Dimensions, TouchableOpacity, View } from 'react-native';
 import {
-  View,
-  Animated,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
-import { TUTORIAL_ANIMATIONS } from '@/src/contexts/TutorialContext';
+  Canvas,
+  RoundedRect,
+  Group,
+  Rect,
+  BlurMask,
+} from '@shopify/react-native-skia';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  useDerivedValue,
+  interpolate,
+  Extrapolation,
+  Easing,
+  cancelAnimation,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useI18n } from '@/src/hooks/useI18n';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Animation configuration for smooth, professional feel
+const SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 150,
+  mass: 0.8,
+};
 
 interface SpotlightTarget {
   x: number;
@@ -33,235 +52,231 @@ export const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
 }) => {
   const { t } = useI18n();
 
-  // 🔍 DEBUG: Log what's being rendered for Goal create button
-  if (targetId === 'create-goal-submit') {
-    console.log(`🔍 [SPOTLIGHT] Rendering for create-goal-submit:`, {
-      action,
-      targetId,
-      hasOnTargetPress: !!onTargetPress,
-      targetX: target.x,
-      targetY: target.y,
-      targetWidth: target.width,
-      targetHeight: target.height
-    });
-  }
+  // Padding around target for "breathing room"
+  const PADDING = 10;
+  const CORNER_RADIUS = 14;
+  const BLUR_AMOUNT = 8;
+  const OVERLAY_OPACITY = 0.75;
 
-  // Animation values
-  const pulseScale = useRef(new Animated.Value(1)).current;
-  const spotlightOpacity = useRef(new Animated.Value(0)).current;
-  const targetHighlight = useRef(new Animated.Value(0)).current;
+  // Screen dimensions with listener for rotation
+  const screenWidth = useSharedValue(Dimensions.get('window').width);
+  const screenHeight = useSharedValue(Dimensions.get('window').height);
 
-  // Start animations when component mounts
+  // Entrance fade-in animation
+  const entranceOpacity = useSharedValue(0);
+
+  // Reanimated SharedValues for smooth position/size transitions
+  const animatedX = useSharedValue(target.x - PADDING);
+  const animatedY = useSharedValue(target.y - PADDING);
+  const animatedWidth = useSharedValue(target.width + PADDING * 2);
+  const animatedHeight = useSharedValue(target.height + PADDING * 2);
+
+  // Pulse animation value (0-1 cycle)
+  const pulseProgress = useSharedValue(0);
+
+  // Listen for dimension changes (rotation)
   useEffect(() => {
-    startAnimations();
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      screenWidth.value = window.width;
+      screenHeight.value = window.height;
+    });
+
     return () => {
-      // Clean up animations
-      pulseScale.removeAllListeners();
-      spotlightOpacity.removeAllListeners();
-      targetHighlight.removeAllListeners();
+      subscription?.remove();
     };
   }, []);
 
-  const startAnimations = () => {
-    // Fade in spotlight
-    Animated.timing(spotlightOpacity, {
-      toValue: 1,
-      duration: TUTORIAL_ANIMATIONS.spotlightTransition.duration,
-      useNativeDriver: true,
-    }).start();
+  // Entrance fade-in on mount
+  useEffect(() => {
+    entranceOpacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+  }, []);
 
-    // Target highlight animation
-    Animated.timing(targetHighlight, {
-      toValue: 1,
-      duration: TUTORIAL_ANIMATIONS.elementHighlight.duration,
-      useNativeDriver: true,
-    }).start();
+  // Glow opacity for pulse effect
+  const glowOpacity = useDerivedValue(() => {
+    return interpolate(
+      pulseProgress.value,
+      [0, 0.5, 1],
+      [0.3, 0.7, 0.3],
+      Extrapolation.CLAMP
+    );
+  });
 
-    // Pulse animation (infinite)
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseScale, {
-          toValue: 1.1,
-          duration: TUTORIAL_ANIMATIONS.pulseAnimation.duration / 2,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseScale, {
-          toValue: 1,
-          duration: TUTORIAL_ANIMATIONS.pulseAnimation.duration / 2,
-          useNativeDriver: true,
-        }),
-      ])
+  // Glow scale for pulse effect
+  const glowScale = useDerivedValue(() => {
+    return interpolate(
+      pulseProgress.value,
+      [0, 0.5, 1],
+      [1, 1.08, 1],
+      Extrapolation.CLAMP
+    );
+  });
+
+  // Update position when target changes - smooth transition
+  useEffect(() => {
+    animatedX.value = withSpring(target.x - PADDING, SPRING_CONFIG);
+    animatedY.value = withSpring(target.y - PADDING, SPRING_CONFIG);
+    animatedWidth.value = withSpring(target.width + PADDING * 2, SPRING_CONFIG);
+    animatedHeight.value = withSpring(target.height + PADDING * 2, SPRING_CONFIG);
+  }, [target.x, target.y, target.width, target.height]);
+
+  // Start pulse animation loop with proper cleanup
+  useEffect(() => {
+    pulseProgress.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1, // infinite
+      false
     );
 
-    pulseAnimation.start();
-  };
+    // Cleanup: cancel animation on unmount
+    return () => {
+      cancelAnimation(pulseProgress);
+    };
+  }, []);
 
-  // Calculate spotlight dimensions
-  const spotlightRadius = Math.max(target.width, target.height) / 2 + 20;
-  const spotlightCenterX = target.x + target.width / 2;
-  const spotlightCenterY = target.y + target.height / 2;
+  // Derived values for Skia - defined OUTSIDE of JSX (fix anti-pattern)
+  const cutoutX = useDerivedValue(() => animatedX.value);
+  const cutoutY = useDerivedValue(() => animatedY.value);
+  const cutoutWidth = useDerivedValue(() => animatedWidth.value);
+  const cutoutHeight = useDerivedValue(() => animatedHeight.value);
 
-  // Spotlight with cut-out overlay - creates light area inside target
-  const createSpotlightMask = () => {
-    // Add padding to the target area for the cut-out
-    const cutoutPadding = 8;
-    const cutoutX = target.x - cutoutPadding;
-    const cutoutY = target.y - cutoutPadding;
-    const cutoutWidth = target.width + (cutoutPadding * 2);
-    const cutoutHeight = target.height + (cutoutPadding * 2);
+  // Glow ring dimensions (slightly larger than cutout) - defined OUTSIDE of JSX
+  const glowPadding = useDerivedValue(() => {
+    const baseGlow = 6;
+    return baseGlow * glowScale.value;
+  });
 
-    // Determine pointer events for spotlight container
-    const spotlightPointerEvents =
-      action === 'select_option' ||
-      action === 'select_days' ||
-      action === 'select_date' ||
-      (action === 'click_element' && targetId === 'create-habit-submit') ||
-      (action === 'click_element' && targetId === 'create-goal-submit')
-        ? 'none'
-        : 'auto';
+  // Pre-computed glow ring values (fix: no useDerivedValue in JSX)
+  const glowX = useDerivedValue(() => cutoutX.value - glowPadding.value);
+  const glowY = useDerivedValue(() => cutoutY.value - glowPadding.value);
+  const glowWidth = useDerivedValue(() => cutoutWidth.value + glowPadding.value * 2);
+  const glowHeight = useDerivedValue(() => cutoutHeight.value + glowPadding.value * 2);
+  const glowColor = useDerivedValue(() => {
+    const opacity = glowOpacity.value;
+    return `rgba(255, 107, 53, ${opacity})`;
+  });
 
-    if (targetId === 'create-goal-submit') {
-      console.log(`🔍 [SPOTLIGHT] Container pointerEvents for create-goal-submit: "${spotlightPointerEvents}"`);
-    }
+  // Canvas opacity for entrance animation
+  const canvasOpacity = useDerivedValue(() => entranceOpacity.value);
 
-    return (
-      <View
-        style={styles.spotlightContainer}
-        pointerEvents={spotlightPointerEvents}
-      >
-        {/* Top overlay - above the target */}
-        <View
-          style={[
-            styles.overlayPart,
-            {
-              top: 0,
-              left: 0,
-              width: SCREEN_WIDTH,
-              height: Math.max(0, cutoutY),
-            },
-          ]}
+  // Determine if touch should pass through
+  const shouldPassThrough =
+    action === 'select_option' ||
+    action === 'select_days' ||
+    action === 'select_date' ||
+    action === 'type_text' ||
+    action === 'type_number' ||
+    (action === 'click_element' && targetId === 'create-habit-submit') ||
+    (action === 'click_element' && targetId === 'create-goal-submit');
+
+  // Animated style for clickable overlay (to match Skia cutout position)
+  const clickableAreaStyle = useAnimatedStyle(() => {
+    return {
+      position: 'absolute' as const,
+      left: animatedX.value + PADDING,
+      top: animatedY.value + PADDING,
+      width: animatedWidth.value - PADDING * 2,
+      height: animatedHeight.value - PADDING * 2,
+      zIndex: 10001,
+    };
+  });
+
+  // Animated container style for entrance fade
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: entranceOpacity.value,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[styles.container, containerStyle]}
+      pointerEvents={shouldPassThrough ? 'none' : 'box-none'}
+    >
+      {/* Skia Canvas for high-performance rendering */}
+      <Canvas style={styles.canvas}>
+        {/* Dark overlay with cutout */}
+        <Group>
+          {/* Full screen dark overlay */}
+          <Rect
+            x={0}
+            y={0}
+            width={screenWidth}
+            height={screenHeight}
+            color={`rgba(0, 0, 0, ${OVERLAY_OPACITY})`}
+          />
+
+          {/* Cutout (clear the spotlight area) */}
+          <Group blendMode="dstOut">
+            <RoundedRect
+              x={cutoutX}
+              y={cutoutY}
+              width={cutoutWidth}
+              height={cutoutHeight}
+              r={CORNER_RADIUS}
+              color="white"
+            >
+              <BlurMask blur={BLUR_AMOUNT} style="normal" />
+            </RoundedRect>
+          </Group>
+        </Group>
+
+        {/* Glow ring around spotlight (pulsing) - values defined outside JSX */}
+        <RoundedRect
+          x={glowX}
+          y={glowY}
+          width={glowWidth}
+          height={glowHeight}
+          r={CORNER_RADIUS + 4}
+          color={glowColor}
+          style="stroke"
+          strokeWidth={3}
+        >
+          <BlurMask blur={4} style="normal" />
+        </RoundedRect>
+
+        {/* Inner highlight border */}
+        <RoundedRect
+          x={cutoutX}
+          y={cutoutY}
+          width={cutoutWidth}
+          height={cutoutHeight}
+          r={CORNER_RADIUS}
+          color="rgba(255, 255, 255, 0.4)"
+          style="stroke"
+          strokeWidth={2}
         />
+      </Canvas>
 
-        {/* Bottom overlay - below the target */}
-        <View
-          style={[
-            styles.overlayPart,
-            {
-              top: cutoutY + cutoutHeight,
-              left: 0,
-              width: SCREEN_WIDTH,
-              height: Math.max(0, SCREEN_HEIGHT - (cutoutY + cutoutHeight)),
-            },
-          ]}
-        />
-
-        {/* Left overlay - to the left of target */}
-        <View
-          style={[
-            styles.overlayPart,
-            {
-              top: cutoutY,
-              left: 0,
-              width: Math.max(0, cutoutX),
-              height: cutoutHeight,
-            },
-          ]}
-        />
-
-        {/* Right overlay - to the right of target */}
-        <View
-          style={[
-            styles.overlayPart,
-            {
-              top: cutoutY,
-              left: cutoutX + cutoutWidth,
-              width: Math.max(0, SCREEN_WIDTH - (cutoutX + cutoutWidth)),
-              height: cutoutHeight,
-            },
-          ]}
-        />
-
-        {/* Target highlight - pulzující rámeček kolem světlé oblasti */}
-        <Animated.View
-          style={[
-            styles.targetHighlight,
-            {
-              left: target.x - 4,
-              top: target.y - 4,
-              width: target.width + 8,
-              height: target.height + 8,
-              borderRadius: Math.min(target.width, target.height) / 4,
-              opacity: targetHighlight,
-              transform: [{ scale: pulseScale }],
-            },
-          ]}
-          pointerEvents={
-            action === 'select_option' ||
-            action === 'select_days' ||
-            (action === 'click_element' && targetId === 'create-habit-submit') ||
-            (action === 'click_element' && targetId === 'create-goal-submit')
-              ? 'none'
-              : 'auto'
-          }
-        />
-
-        {/* Clickable area - only for click actions, not for text input, select options, or form submissions */}
-        {(() => {
-          const shouldRenderClickableArea = action !== 'type_text' && action !== 'select_option' && action !== 'select_days' &&
-           !(action === 'click_element' && targetId === 'create-habit-submit') &&
-           !(action === 'click_element' && targetId === 'create-goal-submit');
-
-          if (targetId === 'create-goal-submit') {
-            console.log(`🔍 [SPOTLIGHT] Clickable area for create-goal-submit: shouldRender=${shouldRenderClickableArea}`);
-          }
-
-          return shouldRenderClickableArea && (
+      {/* Clickable area for interactions (not for pass-through actions) */}
+      {!shouldPassThrough && onTargetPress && (
+        <Animated.View style={clickableAreaStyle}>
           <TouchableOpacity
-            style={[
-              styles.clickableArea,
-              {
-                left: target.x,
-                top: target.y,
-                width: target.width,
-                height: target.height,
-              },
-            ]}
+            style={styles.touchable}
             onPress={onTargetPress}
             activeOpacity={0.8}
             accessible={true}
             accessibilityRole="button"
             accessibilityLabel={t('accessibility.tapToContinueTutorial')}
+            accessibilityHint={t('accessibility.tapToContinueTutorial')}
           />
-          );
-        })()}
-      </View>
-    );
-  };
-
-  const styles = StyleSheet.create({
-    spotlightContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: SCREEN_WIDTH,
-      height: SCREEN_HEIGHT,
-      zIndex: 10000,
-    },
-    overlayPart: {
-      position: 'absolute',
-      backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    },
-    targetHighlight: {
-      position: 'absolute',
-      borderWidth: 3,
-      borderColor: '#FF6B35',
-      backgroundColor: 'rgba(255, 107, 53, 0.1)',
-    },
-    clickableArea: {
-      position: 'absolute',
-      zIndex: 10001,
-    },
-  });
-
-  return createSpotlightMask();
+        </Animated.View>
+      )}
+    </Animated.View>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10000,
+  },
+  canvas: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  touchable: {
+    flex: 1,
+  },
+});
