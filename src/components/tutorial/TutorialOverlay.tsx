@@ -605,9 +605,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   console.log(`📍 [TUTORIAL] Using top positioning for submit button: ${state.currentStepData?.id}`);
                   return styles.contentContainerTopFixed;
                 } else if (state.currentStepData?.id === 'quick-actions') {
-                  // Quick Actions step needs top positioning to avoid overlap
-                  console.log(`📍 [TUTORIAL] Using top positioning for Quick Actions step`);
-                  return styles.contentContainerTopFixed;
+                  // Quick Actions: dynamic position below the spotlight target
+                  console.log(`📍 [TUTORIAL] Using dynamic positioning below Quick Actions`);
+                  return styles.contentContainerModalDynamic;
                 } else if (isTabNavigationStep) {
                   // Tab navigation steps need top positioning to avoid overlap with bottom tab bar
                   console.log(`📍 [TUTORIAL] Using top positioning for tab navigation step: ${state.currentStepData?.id}`);
@@ -627,14 +627,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
               },
               // 🔧 DYNAMIC POSITIONING for top text input steps - below the field
               (() => {
-                const isTopTextInputStep = (
+                const isDynamicPositionStep = (
                   state.currentStepData?.id === 'habit-name' ||
-                  state.currentStepData?.id === 'goal-title'
+                  state.currentStepData?.id === 'goal-title' ||
+                  state.currentStepData?.id === 'quick-actions'
                 );
                 // NOTE: Goal lower fields (goal-unit, goal-target) use TOP positioning,
                 // because they're lower in modal and need auto-scroll
 
-                if (isTopTextInputStep && spotlightTarget) {
+                if (isDynamicPositionStep && spotlightTarget) {
                   const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
 
                   // Calculate dynamic tutorial card height instead of fixed 250px
