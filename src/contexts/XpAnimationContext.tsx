@@ -635,9 +635,17 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     };
 
-    const handleLevelUp = (eventData: any) => {
+    const handleLevelUp = async (eventData: any) => {
       try {
         if (eventData && eventData.newLevel && eventData.levelTitle) {
+          // Suppress level-up modal during tutorial — XP and level are already saved
+          const { isTutorialActive } = await import('./TutorialContext');
+          const tutorialActive = await isTutorialActive();
+          if (tutorialActive) {
+            console.log(`🎓 [TUTORIAL] Suppressing level-up modal (Level ${eventData.newLevel}) - tutorial is active`);
+            return;
+          }
+
           // ENHANCED LOGGING: 3-tier modal coordination tracking
           console.log(`📊 Modal Flow Tracking:`, {
             event: 'LEVEL_UP_EVENT_RECEIVED',
