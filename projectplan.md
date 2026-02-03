@@ -876,6 +876,82 @@ V Habit Statistics na Home screenu se po provedení Make Up (bonus completion po
 
 ---
 
+## 🎯 AKTUÁLNÍ ÚKOL: Tutorial Spotlight Refaktoring (Skia + Reanimated)
+
+**Cíl**: Přepsat SpotlightEffect.tsx na vysokovýkonné Skia renderování pro profesionální, plynulý tutoriál
+
+**Status**: 📋 PLÁNOVÁNÍ
+
+---
+
+### PHASE 1: Analýza & Příprava ✅ COMPLETE
+
+- [x] 1.1: Analyzovat SpotlightEffect.tsx props a logiku
+  - Props: `target`, `action`, `targetId`, `onTargetPress`
+  - Animace: `pulseScale`, `spotlightOpacity`, `targetHighlight`
+- [x] 1.2: Analyzovat TutorialTargetHelper.ts data strukturu
+  - `TargetElementInfo`: x, y, width, height, pageX, pageY
+- [x] 1.3: Ověřit babel.config.js pro reanimated plugin
+  - ✅ `react-native-reanimated/plugin` již přidán
+
+### PHASE 2: Implementační strategie ✅ COMPLETE
+
+**Vizuální & Technické požadavky:**
+- ✅ **Canvas Layer**: Jeden Skia `<Canvas>` přes celou obrazovku (`StyleSheet.absoluteFill`)
+- ✅ **Overlay**: Tmavý obdélník (černá, opacity 0.75) přes celou obrazovku
+- ✅ **Cutout (Spotlight)**: `BlendMode.dstOut` pro vytvoření "díry" v overlay
+- ✅ **Shape**: `RoundedRect` s corner radius 14px (squircle feel)
+- ✅ **Soft Edges**: `<BlurMask blur={8} style="normal" />` pro měkké hrany
+- ✅ **Padding**: 10px padding kolem targetu pro "dýchání"
+
+**Animace (react-native-reanimated v3):**
+- [x] Mapovat `target` props na SharedValues
+- [x] `withSpring` pro plynulé přechody pozice (damping: 20, stiffness: 150)
+- [x] Spotlight "glide" efekt při změně targetu
+- [x] Sophisticated pulse animace (opacity záře 0.3↔0.7 + scale 1.0↔1.08)
+
+**Zachovat kompatibilitu:**
+- ✅ Stejné props jako původní komponenta
+- ✅ Nenarušit TutorialOverlay.tsx
+
+### PHASE 3: Implementace ✅ COMPLETE
+
+- [x] 3.1: Nainstalovat `@shopify/react-native-skia` (již bylo v projektu v2.0.0-next.4)
+- [x] 3.2: Kompletně přepsat SpotlightEffect.tsx
+  - [x] Skia Canvas s absoluteFill
+  - [x] Dark overlay + RoundedRect cutout s BlendMode.dstOut
+  - [x] BlurMask blur={8} pro měkké hrany
+  - [x] Reanimated SharedValues pro x, y, width, height
+  - [x] withSpring pro plynulé přechody
+  - [x] Pulse animace s glow efektem (oranžový rámeček)
+- [x] 3.3: Striktní TypeScript typování ✅ (0 errors)
+- [x] 3.4: Code review & opravy ✅
+  - [x] Odstraněn dead code (TIMING_CONFIG)
+  - [x] Přesunuty useDerivedValue z JSX (anti-pattern fix)
+  - [x] Přidána entrance fade-in animace (200ms)
+  - [x] Přidán Dimensions listener pro rotaci obrazovky
+  - [x] Přidán cleanup pro pulse animaci (cancelAnimation)
+  - [x] Přidán accessibilityHint
+- [ ] 3.5: Testování v aplikaci
+
+**Očekávané výsledky:**
+- ✨ Plynulé přechody spotlightu mezi kroky (glide effect)
+- ✨ Měkké hrany díky BlurMask
+- ✨ Profesionální glow pulse animace
+- ✨ 60fps rendering díky Skia GPU akceleraci
+- ✨ Squircle tvar (zaoblený obdélník) místo ostrých rohů
+
+**Závislosti:**
+```
+@shopify/react-native-skia
+```
+
+**Soubory k úpravě:**
+- `src/components/tutorial/SpotlightEffect.tsx` (kompletní přepis)
+- `TutorialOverlay.tsx` (minimální změny - možná žádné)
+
+---
+
 ## 🔮 FUTURE UPDATES - Plánované funkce
 
 ### Data Export & Backup System 💾
