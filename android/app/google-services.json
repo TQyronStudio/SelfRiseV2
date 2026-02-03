@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "121613815291",
+    "project_id": "selfrise-e7fc1",
+    "storage_bucket": "selfrise-e7fc1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:121613815291:android:edba7dd0b9e88a542a0f5e",
+        "android_client_info": {
+          "package_name": "com.petrturek.selfrise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMBNmulOwNHA3I1JJhmjDJ6ZVJBzHjK_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
