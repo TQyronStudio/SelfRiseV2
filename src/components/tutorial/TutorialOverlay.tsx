@@ -563,8 +563,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 const isPickerStep = (
                   state.currentStepData?.id === 'habit-color' ||
                   state.currentStepData?.id === 'habit-icon' ||
-                  state.currentStepData?.id === 'habit-days' ||
-                  state.currentStepData?.id === 'goal-date'
+                  state.currentStepData?.id === 'habit-days'
                 );
 
                 // Submit button steps that need TOP positioning (button is at bottom of modal)
@@ -604,9 +603,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   // Submit button: TOP positioning (button is at bottom)
                   console.log(`📍 [TUTORIAL] Using top positioning for submit button: ${state.currentStepData?.id}`);
                   return styles.contentContainerTopFixed;
-                } else if (state.currentStepData?.id === 'quick-actions') {
-                  // Quick Actions: dynamic position below the spotlight target
-                  console.log(`📍 [TUTORIAL] Using dynamic positioning below Quick Actions`);
+                } else if (state.currentStepData?.id === 'quick-actions' || state.currentStepData?.id === 'goal-date') {
+                  // Dynamic position below the spotlight target
+                  console.log(`📍 [TUTORIAL] Using dynamic positioning below target for: ${state.currentStepData?.id}`);
                   return styles.contentContainerModalDynamic;
                 } else if (isTabNavigationStep) {
                   // Tab navigation steps need top positioning to avoid overlap with bottom tab bar
@@ -630,7 +629,8 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 const isDynamicPositionStep = (
                   state.currentStepData?.id === 'habit-name' ||
                   state.currentStepData?.id === 'goal-title' ||
-                  state.currentStepData?.id === 'quick-actions'
+                  state.currentStepData?.id === 'quick-actions' ||
+                  state.currentStepData?.id === 'goal-date'
                 );
                 // NOTE: Goal lower fields (goal-unit, goal-target) use TOP positioning,
                 // because they're lower in modal and need auto-scroll
