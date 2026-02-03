@@ -363,7 +363,13 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       console.log(`🎓 [TUTORIAL] Showing achievement modal for "${achievement.id}" - first step achievement during tutorial`);
     }
 
-    setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
+    setCelebrationQueue(prev => {
+      // Deduplicate: don't add if already in queue (single + batch events both fire)
+      if (prev.some(item => item.achievement.id === achievement.id)) {
+        return prev;
+      }
+      return [...prev, { achievement, xpAwarded }];
+    });
   }, []);
 
   /**
@@ -395,11 +401,10 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     setCelebrationQueue(prev => {
       const remaining = prev.slice(1);
 
-      // CRITICAL: Only notify achievement modal ended when ALL achievements are shown
-      // This prevents level-up modals (Tier 4) from interrupting achievement queue
       if (remaining.length === 0) {
         console.log('🏁 All achievements shown - notifying Tier 3 ended, Tier 4 level-ups can start');
-        notifyAchievementModalEnded();
+        // Schedule outside setState updater to avoid cross-component setState warning
+        setTimeout(() => notifyAchievementModalEnded(), 0);
       } else {
         console.log(`📋 ${remaining.length} more achievement(s) in queue - keeping Tier 3 active`);
       }
