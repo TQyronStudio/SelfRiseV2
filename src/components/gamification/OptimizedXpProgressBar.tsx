@@ -572,7 +572,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       accessible={true}
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
-      accessibilityValue={{ min: 0, max: 100, now: xpProgress }}
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(xpProgress) }}
       nativeID="xp-progress-bar"
     >
       {/* Level Title and Roman Numerals - Top Center */}

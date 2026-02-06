@@ -1,8 +1,13 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { XPSourceType } from '../types/gamification';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
+
+// Tutorial storage keys (duplicated here to avoid circular dependency with TutorialContext)
+const TUTORIAL_COMPLETED_KEY = 'onboarding_tutorial_completed';
+const TUTORIAL_SKIPPED_KEY = 'onboarding_tutorial_skipped';
 
 // ========================================
 // TYPES AND INTERFACES
@@ -161,6 +166,10 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
   // Create a ref for the showXpPopup function to avoid dependency issues
   const showXpPopupRef = useRef<((amount: number, source: XPSourceType, position?: { x: number; y: number }) => void) | undefined>(undefined);
+
+  // Ref for modalCoordination — keeps handleLevelUp always reading fresh state (avoids stale closure)
+  const modalCoordinationRef = useRef(state.modalCoordination);
+  modalCoordinationRef.current = state.modalCoordination;
 
   // ========================================
   // SMART NOTIFICATION SYSTEM WITH PERFORMANCE OPTIMIZATION
@@ -635,52 +644,56 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       }
     };
 
+    // SYNCHRONOUS handler for achievementQueueStarting event
+    // This sets isAchievementModalActive BEFORE individual achievement events are processed
+    const handleAchievementQueueStarting = (eventData: { count: number }) => {
+      if (eventData && eventData.count > 0) {
+        console.log(`🎯 Achievement queue starting (${eventData.count} achievements) - setting Tier 3 active SYNCHRONOUSLY`);
+        setState(prev => ({
+          ...prev,
+          modalCoordination: {
+            ...prev.modalCoordination,
+            isAchievementModalActive: true,
+          }
+        }));
+        // Also update ref immediately for synchronous access
+        modalCoordinationRef.current = {
+          ...modalCoordinationRef.current,
+          isAchievementModalActive: true,
+        };
+      }
+    };
+
     const handleLevelUp = async (eventData: any) => {
       try {
         if (eventData && eventData.newLevel && eventData.levelTitle) {
           // Suppress level-up modal during tutorial — XP and level are already saved
-          const { isTutorialActive } = await import('./TutorialContext');
-          const tutorialActive = await isTutorialActive();
+          // NOTE: Direct AsyncStorage check to avoid circular dependency with TutorialContext
+          const tutorialCompleted = await AsyncStorage.getItem(TUTORIAL_COMPLETED_KEY);
+          const tutorialSkipped = await AsyncStorage.getItem(TUTORIAL_SKIPPED_KEY);
+          const tutorialActive = tutorialCompleted !== 'true' && tutorialSkipped !== 'true';
+
           if (tutorialActive) {
             console.log(`🎓 [TUTORIAL] Suppressing level-up modal (Level ${eventData.newLevel}) - tutorial is active`);
             return;
           }
 
-          // ENHANCED LOGGING: 3-tier modal coordination tracking
-          console.log(`📊 Modal Flow Tracking:`, {
-            event: 'LEVEL_UP_EVENT_RECEIVED',
-            eventData,
-            modalState: {
-              isActivityModalActive: state.modalCoordination.isActivityModalActive,
-              currentActivityModalType: state.modalCoordination.currentActivityModalType,
-              isMonthlyChallengeModalActive: state.modalCoordination.isMonthlyChallengeModalActive,
-              isAchievementModalActive: state.modalCoordination.isAchievementModalActive,
-              pendingLevelUpModals: state.modalCoordination.pendingLevelUpModals.length
-            },
-            timestamp: Date.now()
-          });
-          
+          // Use ref for fresh modal state (avoids stale closure in useEffect)
+          const currentModalCoordination = modalCoordinationRef.current;
+
           console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
-          
+
           // 4-TIER PRIORITY SYSTEM: Check if higher priority modals are active
-          if (state.modalCoordination.isActivityModalActive ||
-              state.modalCoordination.isMonthlyChallengeModalActive ||
-              state.modalCoordination.isAchievementModalActive) {
-            const activeModalType = state.modalCoordination.isActivityModalActive
-              ? `Activity (${state.modalCoordination.currentActivityModalType})`
-              : state.modalCoordination.isMonthlyChallengeModalActive
+          if (currentModalCoordination.isActivityModalActive ||
+              currentModalCoordination.isMonthlyChallengeModalActive ||
+              currentModalCoordination.isAchievementModalActive) {
+            const activeModalType = currentModalCoordination.isActivityModalActive
+              ? `Activity (${currentModalCoordination.currentActivityModalType})`
+              : currentModalCoordination.isMonthlyChallengeModalActive
                 ? 'Monthly Challenge'
                 : 'Achievement';
-            
-            console.log(`⏸️ Level-up modal queued - higher priority modal active: ${activeModalType}`);
 
-            console.log(`📊 Modal Flow Tracking:`, {
-              event: 'LEVEL_UP_QUEUED',
-              reason: 'HIGHER_PRIORITY_MODAL_ACTIVE',
-              activeModalType,
-              queueLength: state.modalCoordination.pendingLevelUpModals.length + 1,
-              timestamp: Date.now()
-            });
+            console.log(`⏸️ Level-up modal queued - higher priority modal active: ${activeModalType}`);
 
             // Add to tier 4 level-up modal queue
             setState(prev => ({
@@ -744,12 +757,15 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     const smartNotificationSubscription = DeviceEventEmitter.addListener('xpSmartNotification', handleSmartNotification);
     const batchCommittedSubscription = DeviceEventEmitter.addListener('xpBatchCommitted', handleBatchCommitted);
     const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', handleLevelUp);
+    // CRITICAL: Listen for achievement queue starting - sets Tier 3 active BEFORE level-up event is processed
+    const achievementQueueStartingSubscription = DeviceEventEmitter.addListener('achievementQueueStarting', handleAchievementQueueStarting);
 
     return () => {
       xpGainedSubscription?.remove();
       smartNotificationSubscription?.remove();
       batchCommittedSubscription?.remove();
       levelUpSubscription?.remove();
+      achievementQueueStartingSubscription?.remove();
     };
   }, [showSmartNotification, showLevelUpModal]);
 

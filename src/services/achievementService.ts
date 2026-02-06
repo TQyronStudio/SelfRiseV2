@@ -23,6 +23,7 @@ import { GamificationService } from './gamificationService';
 import { AchievementStorage } from './achievementStorage';
 import { DateString } from '../types/common';
 import { today, formatDateToString } from '../utils/date';
+import { getLevelInfo } from './levelCalculation';
 
 // Achievement unlock result
 export interface AchievementUnlockResult {
@@ -435,8 +436,15 @@ export class AchievementService {
     metadata?: Record<string, any>
   ): Promise<AchievementUnlockResult> {
     try {
+      // CRITICAL: Prevent recursive loops - skip achievement check for ACHIEVEMENT_UNLOCK source
+      // When achievements award XP, we don't want to trigger more achievement checks
+      if (xpSource === XPSourceType.ACHIEVEMENT_UNLOCK) {
+        console.log(`🛡️ Skipping achievement check for ACHIEVEMENT_UNLOCK source (recursion prevention)`);
+        return { unlocked: [], progress: [], xpAwarded: 0, leveledUp: false };
+      }
+
       console.log(`🔍 Checking achievements after XP action: ${xpSource} (+${amount} XP)`);
-      
+
       // Get relevant achievements for this XP source
       const relevantAchievements = this.getRelevantAchievements(xpSource);
       
@@ -498,24 +506,26 @@ export class AchievementService {
 
         // If achievement is newly unlocked
         if (conditionResult.isMet) {
-          newlyUnlocked.push(achievement);
-          totalXPAwarded += achievement.xpReward;
-          
-          // Store unlock event
-          await AchievementStorage.storeUnlockEvent(
+          // Store unlock event - returns false if already unlocked (duplicate)
+          const wasUnlocked = await AchievementStorage.storeUnlockEvent(
             achievement.id,
             achievement,
             xpSource,
-            { 
+            {
               evaluationResult,
               xpSource,
               amount,
               sourceId,
-              ...metadata 
+              ...metadata
             }
           );
-          
-          console.log(`🏆 Achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+
+          // Only add to unlocked list and award XP if actually unlocked (not duplicate)
+          if (wasUnlocked) {
+            newlyUnlocked.push(achievement);
+            totalXPAwarded += achievement.xpReward;
+            console.log(`🏆 Achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+          }
         } else if (evaluationResult.progressDelta > 0) {
           // Store progress update
           await AchievementStorage.storeProgressUpdate(
@@ -555,6 +565,31 @@ export class AchievementService {
       // Trigger achievement unlock notifications
       if (newlyUnlocked.length > 0) {
         this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, leveledUp, newLevel);
+
+        // Emit xpGained event so XP bar refreshes (addXP was called with skipNotification to avoid popup during achievement modal)
+        if (totalXPAwarded > 0) {
+          DeviceEventEmitter.emit('xpGained', {
+            amount: totalXPAwarded,
+            source: 'achievement_unlock',
+            timestamp: Date.now(),
+          });
+        }
+
+        // Level-up event can now be emitted SYNCHRONOUSLY because:
+        // 1. triggerAchievementNotifications emits 'achievementQueueStarting' FIRST
+        // 2. XpAnimationContext's handleAchievementQueueStarting sets isAchievementModalActive = true SYNCHRONOUSLY
+        // 3. This levelUp event is processed AFTER, sees isAchievementModalActive = true, and queues properly
+        if (leveledUp && newLevel !== undefined) {
+          const levelInfo = getLevelInfo(newLevel);
+          DeviceEventEmitter.emit('levelUp', {
+            newLevel,
+            previousLevel: newLevel - 1,
+            levelTitle: levelInfo.title,
+            levelDescription: levelInfo.description || '',
+            isMilestone: levelInfo.isMilestone,
+            timestamp: Date.now(),
+          });
+        }
 
         // Check for Achievement Combo Multiplier (3+ achievements in 24h)
         try {
@@ -711,25 +746,27 @@ export class AchievementService {
 
         // If achievement is newly unlocked
         if (conditionResult.isMet) {
-          newlyUnlocked.push(achievement);
-          totalXPAwarded += achievement.xpReward;
-          
-          // Store unlock event
-          await AchievementStorage.storeUnlockEvent(
+          // Store unlock event - returns false if already unlocked (duplicate)
+          const wasUnlocked = await AchievementStorage.storeUnlockEvent(
             achievement.id,
             achievement,
             xpSource,
-            { 
+            {
               evaluationResult,
               xpSource,
               amount,
               sourceId,
               processedInBackground: true,
-              ...metadata 
+              ...metadata
             }
           );
-          
-          console.log(`🏆 Background achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+
+          // Only add to unlocked list and award XP if actually unlocked (not duplicate)
+          if (wasUnlocked) {
+            newlyUnlocked.push(achievement);
+            totalXPAwarded += achievement.xpReward;
+            console.log(`🏆 Background achievement unlocked: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+          }
         } else if (evaluationResult.progressDelta > 0) {
           // Store progress update
           await AchievementStorage.storeProgressUpdate(
@@ -753,18 +790,47 @@ export class AchievementService {
       }
 
       // Award XP for unlocked achievements
+      let bgLeveledUp = false;
+      let bgNewLevel: number | undefined;
       if (totalXPAwarded > 0) {
-        await GamificationService.addXP(totalXPAwarded, {
+        const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
           description: `Background unlocked ${newlyUnlocked.length} achievement(s)`,
           skipNotification: true // Background achievements don't interrupt user
         });
+        bgLeveledUp = xpResult.leveledUp;
+        bgNewLevel = xpResult.newLevel;
       }
 
       // Queue delayed notifications for background achievements
       if (newlyUnlocked.length > 0) {
         setTimeout(() => {
-          this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, false);
+          // triggerAchievementNotifications now emits 'achievementQueueStarting' FIRST,
+          // which SYNCHRONOUSLY sets isAchievementModalActive = true in XpAnimationContext
+          this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, bgLeveledUp, bgNewLevel);
+
+          // Emit xpGained so XP bar refreshes after background achievements
+          if (totalXPAwarded > 0) {
+            DeviceEventEmitter.emit('xpGained', {
+              amount: totalXPAwarded,
+              source: 'achievement_unlock',
+              timestamp: Date.now(),
+            });
+          }
+
+          // Level-up event can now be emitted SYNCHRONOUSLY because:
+          // triggerAchievementNotifications already set isAchievementModalActive = true via 'achievementQueueStarting'
+          if (bgLeveledUp && bgNewLevel !== undefined) {
+            const levelInfo = getLevelInfo(bgNewLevel);
+            DeviceEventEmitter.emit('levelUp', {
+              newLevel: bgNewLevel,
+              previousLevel: bgNewLevel - 1,
+              levelTitle: levelInfo.title,
+              levelDescription: levelInfo.description || '',
+              isMilestone: levelInfo.isMilestone,
+              timestamp: Date.now(),
+            });
+          }
         }, 3000); // 3-second delay for background notifications
 
         // Check for Achievement Combo Multiplier (3+ achievements in 24h)
@@ -877,23 +943,25 @@ export class AchievementService {
         sources.add(XPSourceType.GOAL_PROGRESS);
         sources.add(XPSourceType.DAILY_LAUNCH);
         break;
-        
-      case AchievementCategory.CONSISTENCY:
+
+      case AchievementCategory.MASTERY:
         // Mastery achievements often track overall progress
-        sources.add(XPSourceType.ACHIEVEMENT_UNLOCK);
+        // NOTE: ACHIEVEMENT_UNLOCK removed to prevent recursive loops
         sources.add(XPSourceType.RECOMMENDATION_FOLLOW);
         sources.add(XPSourceType.MONTHLY_CHALLENGE);
-        // Also include all other sources for level-based achievements
-        for (const sourceType of Object.values(XPSourceType)) {
-          sources.add(sourceType);
-        }
+        // Include level-related sources for level-based achievements
+        sources.add(XPSourceType.HABIT_COMPLETION);
+        sources.add(XPSourceType.JOURNAL_ENTRY);
+        sources.add(XPSourceType.GOAL_PROGRESS);
+        sources.add(XPSourceType.GOAL_COMPLETION);
         break;
-        
-      case AchievementCategory.CONSISTENCY:
+
+      case AchievementCategory.SPECIAL:
         // Special achievements may have unique triggering conditions
-        for (const sourceType of Object.values(XPSourceType)) {
-          sources.add(sourceType);
-        }
+        sources.add(XPSourceType.DAILY_LAUNCH);
+        sources.add(XPSourceType.HABIT_COMPLETION);
+        sources.add(XPSourceType.JOURNAL_ENTRY);
+        sources.add(XPSourceType.GOAL_COMPLETION);
         break;
     }
     
@@ -1032,16 +1100,20 @@ export class AchievementService {
         evaluationResults.push(evaluationResult);
 
         if (conditionResult.isMet) {
-          newlyUnlocked.push(achievement);
-          totalXPAwarded += achievement.xpReward;
-          
-          await AchievementStorage.storeUnlockEvent(
+          // Store unlock event - returns false if already unlocked (duplicate)
+          const wasUnlocked = await AchievementStorage.storeUnlockEvent(
             achievement.id,
             achievement,
             'daily_batch',
             { evaluationResult, triggerType: 'batch' }
           );
-          console.log(`🏆 Batch unlock: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+
+          // Only add to unlocked list and award XP if actually unlocked (not duplicate)
+          if (wasUnlocked) {
+            newlyUnlocked.push(achievement);
+            totalXPAwarded += achievement.xpReward;
+            console.log(`🏆 Batch unlock: ${achievement.nameKey} (+${achievement.xpReward} XP)`);
+          }
         }
       }
 
@@ -1152,6 +1224,17 @@ export class AchievementService {
     newLevel?: number
   ): void {
     try {
+      // CRITICAL FIX: Emit achievementQueueStarting SYNCHRONOUSLY BEFORE individual achievement events
+      // This ensures XpAnimationContext sets isAchievementModalActive = true BEFORE
+      // any levelUp event is processed, maintaining proper 4-Tier Modal Priority System
+      if (unlockedAchievements.length > 0) {
+        DeviceEventEmitter.emit('achievementQueueStarting', {
+          count: unlockedAchievements.length,
+          timestamp: Date.now()
+        });
+        console.log(`🎯 Achievement queue starting signal emitted (${unlockedAchievements.length} achievements)`);
+      }
+
       // Trigger achievement unlock celebration for each achievement
       for (const achievement of unlockedAchievements) {
         DeviceEventEmitter.emit('achievementUnlocked', {
@@ -1160,10 +1243,10 @@ export class AchievementService {
           timestamp: Date.now(),
           showCelebration: true
         });
-        
+
         console.log(`🎉 Achievement notification triggered: ${achievement.nameKey}`);
       }
-      
+
       // If multiple achievements unlocked, also trigger summary notification
       if (unlockedAchievements.length > 1) {
         DeviceEventEmitter.emit('multipleAchievementsUnlocked', {

@@ -779,9 +779,9 @@ export class GamificationService {
             ]
           );
 
-          // 2. UPDATE xp_state
+          // 2. UPSERT xp_state (INSERT OR REPLACE handles both fresh install and existing row)
           await db.runAsync(
-            'UPDATE xp_state SET total_xp = ?, current_level = ?, last_activity = ?, updated_at = ? WHERE id = 1',
+            'INSERT OR REPLACE INTO xp_state (id, total_xp, current_level, last_activity, updated_at) VALUES (1, ?, ?, ?, ?)',
             [newTotalXP, newLevel, timestamp, timestamp]
           );
 
@@ -913,44 +913,26 @@ export class GamificationService {
         const levelsGained = newLevel - previousLevel;
         console.log(`🎉 Level up! ${previousLevel} → ${newLevel} (${levelsGained} level${levelsGained > 1 ? 's' : ''})`);
 
-        // ENHANCED LOGGING: Detailed level-up flow tracking
-        console.log(`📊 Level-up Flow Tracking:`, {
-          event: 'LEVEL_UP_DETECTED',
-          previousLevel,
-          newLevel,
-          levelsGained,
-          totalXP: newTotalXP,
-          xpGained: finalAmount,
-          source: options.source,
-          timestamp: Date.now(),
-          flowId: `levelup_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
-        });
+        // Only emit levelUp events if notifications are not skipped.
+        // When skipNotification=true (e.g. achievement_unlock), the caller (achievementService)
+        // is responsible for emitting levelUp after achievement modals are coordinated.
+        if (!options.skipNotification) {
+          for (let level = previousLevel + 1; level <= newLevel; level++) {
+            const levelInfo = getLevelInfo(level);
+            const prevLevelForThisStep = level - 1;
 
-        // CRITICAL: Emit level-up event for EACH level gained (not just the final one)
-        // This ensures user sees every level transition: 10→11, 11→12, 12→13, etc.
-        for (let level = previousLevel + 1; level <= newLevel; level++) {
-          const levelInfo = getLevelInfo(level);
-          const prevLevelForThisStep = level - 1;
+            const levelUpEventData = {
+              newLevel: level,
+              previousLevel: prevLevelForThisStep,
+              levelTitle: levelInfo.title,
+              levelDescription: levelInfo.description || '',
+              isMilestone: levelInfo.isMilestone,
+              timestamp: Date.now() + (level - previousLevel - 1) * 100
+            };
 
-          const levelUpEventData = {
-            newLevel: level,
-            previousLevel: prevLevelForThisStep,
-            levelTitle: levelInfo.title,
-            levelDescription: levelInfo.description || '',
-            isMilestone: levelInfo.isMilestone,
-            timestamp: Date.now() + (level - previousLevel - 1) * 100 // Slight offset for ordering
-          };
-
-          console.log(`🎯 Emitting levelUp event (${level - previousLevel}/${levelsGained}):`, {
-            event: 'LEVEL_UP_EVENT_EMIT',
-            eventData: levelUpEventData,
-            timestamp: Date.now()
-          });
-
-          DeviceEventEmitter.emit('levelUp', levelUpEventData);
+            DeviceEventEmitter.emit('levelUp', levelUpEventData);
+          }
         }
-
-        console.log(`✅ All ${levelsGained} level-up event(s) emitted successfully`);
       }
       
       return result;
@@ -1009,18 +991,84 @@ export class GamificationService {
       const newTotalXP = Math.max(0, currentTotalXP - amount);
       const newLevel = getCurrentLevel(newTotalXP);
       const leveledDown = newLevel < previousLevel;
-      
-      // Store transaction
-      await this.saveTransaction(transaction);
-      
-      // Update total XP
-      await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
-      
-      // Update source tracking (subtract from source)
+
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - ACID transaction for subtraction
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+        const timestamp = Date.now();
+        const todayDate = today();
+
+        await db.execAsync('BEGIN TRANSACTION');
+
+        try {
+          // 1. INSERT negative XP transaction
+          await db.runAsync(
+            `INSERT INTO xp_transactions (
+              id, amount, source, source_id, timestamp, description, metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              transaction.id,
+              transaction.amount, // Already negative
+              transaction.source,
+              transaction.sourceId || null,
+              timestamp,
+              transaction.description || null,
+              options.metadata ? JSON.stringify(options.metadata) : null,
+            ]
+          );
+
+          // 2. UPDATE xp_state with new total
+          await db.runAsync(
+            'UPDATE xp_state SET total_xp = ?, current_level = ?, last_activity = ?, updated_at = ? WHERE id = 1',
+            [newTotalXP, newLevel, timestamp, timestamp]
+          );
+
+          // 3. UPDATE daily summary (subtract from totals)
+          const sourceColumn = options.source.includes('HABIT') ? 'habit_xp'
+            : options.source.includes('JOURNAL') ? 'journal_xp'
+            : options.source.includes('GOAL') ? 'goal_xp'
+            : options.source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
+            : null;
+
+          if (sourceColumn) {
+            await db.runAsync(
+              `UPDATE xp_daily_summary SET
+                total_xp = MAX(0, total_xp - ?),
+                ${sourceColumn} = MAX(0, ${sourceColumn} - ?),
+                transaction_count = MAX(0, transaction_count - 1),
+                updated_at = ?
+              WHERE date = ?`,
+              [amount, amount, timestamp, todayDate]
+            );
+          }
+
+          await db.execAsync('COMMIT');
+          console.log(`✅ XP subtracted via SQLite (ACID): ${currentTotalXP} → ${newTotalXP}`);
+
+          // Update cache for optimistic reads
+          this.cachedXPData = {
+            totalXP: newTotalXP,
+            level: newLevel,
+            timestamp: Date.now()
+          };
+
+        } catch (error) {
+          await db.execAsync('ROLLBACK');
+          console.error('SQLite subtraction transaction failed, rolled back:', error);
+          throw error;
+        }
+      } else {
+        // Legacy AsyncStorage implementation
+        await this.saveTransaction(transaction);
+        await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
+        await this.updateDailyXPTracking(-amount, options.source, options.sourceId);
+      }
+
+      // Update legacy source tracking (still needed for some features)
       await this.updateXPBySource(options.source, -amount);
-      
-      // Update daily XP tracking (reduce daily limits)
-      await this.updateDailyXPTracking(-amount, options.source, options.sourceId);
       
       // Log the subtraction
       console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);

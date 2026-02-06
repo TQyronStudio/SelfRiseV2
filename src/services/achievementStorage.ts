@@ -273,55 +273,122 @@ export class AchievementStorage {
 
   /**
    * Store achievement unlock event with timestamp
+   * @returns true if unlock was stored, false if already unlocked (duplicate prevented)
    */
   static async storeUnlockEvent(
     achievementId: string,
     achievement: Achievement,
     triggerSource: XPSourceType | string,
     metadata?: Record<string, any>
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
-      const unlockEvent: AchievementUnlockEvent = {
-        achievementId,
-        unlockedAt: new Date(),
-        trigger: triggerSource as any,
-        xpAwarded: achievement.xpReward,
-        previousProgress: 0, // Will be filled by caller
-        finalProgress: 100,
-        context: {
-          achievementNameKey: achievement.nameKey,
-          achievementRarity: achievement.rarity,
-          achievementCategory: achievement.category,
-          ...metadata
-        }
-      };
+      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+      const now = Date.now();
 
-      // Get existing events
-      const events = await this.getUnlockEvents();
-      
-      // Check for duplicates
-      const isDuplicate = events.some(event => 
-        event.achievementId === achievementId
-      );
-      
-      if (isDuplicate) {
-        console.warn(`Duplicate unlock prevented for achievement: ${achievementId}`);
-        return;
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation - ATOMIC deduplication using INSERT ... WHERE NOT EXISTS
+        const { getDatabase } = await import('./database/init');
+        const db = getDatabase();
+
+        // ATOMIC INSERT - only inserts if achievement_id doesn't exist or unlocked != 1
+        // This prevents race conditions where multiple tasks read unlocked=0 simultaneously
+        const insertResult = await db.runAsync(
+          `INSERT INTO achievement_progress (
+            achievement_id, current_value, target_value, unlocked, unlocked_at, xp_awarded, updated_at
+          )
+          SELECT ?, 100, 100, 1, ?, ?, ?
+          WHERE NOT EXISTS (
+            SELECT 1 FROM achievement_progress WHERE achievement_id = ? AND unlocked = 1
+          )`,
+          [achievementId, now, achievement.xpReward, now, achievementId]
+        );
+
+        // Check if the row was actually inserted (changes > 0)
+        if (insertResult.changes === 0) {
+          // Either already exists with unlocked=1, or race condition lost
+          // Check if it's actually unlocked already
+          const existing = await db.getFirstAsync<{ unlocked: number }>(
+            'SELECT unlocked FROM achievement_progress WHERE achievement_id = ?',
+            [achievementId]
+          );
+
+          if (existing && existing.unlocked === 1) {
+            console.warn(`🛡️ Duplicate unlock prevented (atomic check): ${achievementId}`);
+            return false;
+          }
+
+          // Row exists but not unlocked - update it atomically
+          const updateResult = await db.runAsync(
+            `UPDATE achievement_progress
+             SET unlocked = 1, unlocked_at = ?, xp_awarded = ?, current_value = 100, updated_at = ?
+             WHERE achievement_id = ? AND unlocked = 0`,
+            [now, achievement.xpReward, now, achievementId]
+          );
+
+          if (updateResult.changes === 0) {
+            // Another task won the race
+            console.warn(`🛡️ Duplicate unlock prevented (race lost): ${achievementId}`);
+            return false;
+          }
+        }
+
+        // Successfully marked as unlocked - now insert the event record
+        const eventId = `${achievementId}_unlock_${now}`;
+        await db.runAsync(
+          `INSERT OR IGNORE INTO achievement_unlock_events (
+            id, achievement_id, unlocked_at, xp_awarded, category
+          ) VALUES (?, ?, ?, ?, ?)`,
+          [eventId, achievementId, now, achievement.xpReward, achievement.category]
+        );
+
+        console.log(`📦 Stored unlock event for achievement: ${achievement.nameKey} (SQLite, atomic)`);
+        return true;
+
+      } else {
+        // Legacy AsyncStorage implementation
+        const unlockEvent: AchievementUnlockEvent = {
+          achievementId,
+          unlockedAt: new Date(),
+          trigger: triggerSource as any,
+          xpAwarded: achievement.xpReward,
+          previousProgress: 0, // Will be filled by caller
+          finalProgress: 100,
+          context: {
+            achievementNameKey: achievement.nameKey,
+            achievementRarity: achievement.rarity,
+            achievementCategory: achievement.category,
+            ...metadata
+          }
+        };
+
+        // Get existing events
+        const events = await this.getUnlockEvents();
+
+        // Check for duplicates
+        const isDuplicate = events.some(event =>
+          event.achievementId === achievementId
+        );
+
+        if (isDuplicate) {
+          console.warn(`Duplicate unlock prevented for achievement: ${achievementId}`);
+          return false;
+        }
+
+        // Add new event
+        events.push(unlockEvent);
+
+        // Keep only last 1000 events for performance
+        const trimmedEvents = events.slice(-1000);
+
+        await AsyncStorage.setItem(
+          ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS,
+          JSON.stringify(trimmedEvents)
+        );
+
+        console.log(`📦 Stored unlock event for achievement: ${achievement.nameKey}`);
+        return true;
       }
 
-      // Add new event
-      events.push(unlockEvent);
-      
-      // Keep only last 1000 events for performance
-      const trimmedEvents = events.slice(-1000);
-      
-      await AsyncStorage.setItem(
-        ACHIEVEMENT_STORAGE_KEYS.UNLOCK_EVENTS,
-        JSON.stringify(trimmedEvents)
-      );
-
-      console.log(`📦 Stored unlock event for achievement: ${achievement.nameKey}`);
-      
     } catch (error) {
       console.error('AchievementStorage.storeUnlockEvent error:', error);
       throw error;
@@ -483,17 +550,32 @@ export class AchievementStorage {
       const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
-        // SQLite implementation - UPDATE achievement_progress
+        // SQLite implementation - INSERT OR REPLACE to handle non-existent rows
         const { getDatabase } = await import('./database/init');
         const db = getDatabase();
 
-        const clampedProgress = Math.max(0, Math.min(100, progress));
+        const clampedProgress = Math.round(Math.max(0, Math.min(100, progress)));
+        const now = Date.now();
+
+        // Use INSERT OR REPLACE to create row if it doesn't exist
+        // Preserve unlocked status if row exists
+        const existing = await db.getFirstAsync<{ unlocked: number; unlocked_at: number | null; xp_awarded: number }>(
+          'SELECT unlocked, unlocked_at, xp_awarded FROM achievement_progress WHERE achievement_id = ?',
+          [achievementId]
+        );
 
         await db.runAsync(
-          `UPDATE achievement_progress
-           SET current_value = ?, updated_at = ?
-           WHERE achievement_id = ?`,
-          [clampedProgress, Date.now(), achievementId]
+          `INSERT OR REPLACE INTO achievement_progress (
+            achievement_id, current_value, target_value, unlocked, unlocked_at, xp_awarded, updated_at
+          ) VALUES (?, ?, 100, ?, ?, ?, ?)`,
+          [
+            achievementId,
+            clampedProgress,
+            existing?.unlocked ?? 0,
+            existing?.unlocked_at ?? null,
+            existing?.xp_awarded ?? 0,
+            now
+          ]
         );
       } else {
         // Legacy AsyncStorage implementation
