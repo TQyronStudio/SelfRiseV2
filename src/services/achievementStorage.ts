@@ -84,6 +84,13 @@ export class AchievementStorage {
           xp_awarded: number;
         }>('SELECT achievement_id, current_value, unlocked, xp_awarded FROM achievement_progress');
 
+        // DEBUG: Log what's in the database
+        const unlockedRows = progressRows.filter(r => r.unlocked === 1);
+        console.log(`🔍 [DEBUG] achievement_progress table: ${progressRows.length} total rows, ${unlockedRows.length} unlocked`);
+        if (unlockedRows.length > 0) {
+          console.log(`🔍 [DEBUG] Unlocked achievements in DB: ${unlockedRows.map(r => r.achievement_id).join(', ')}`);
+        }
+
         // Get stats cache
         const statsCache = await db.getFirstAsync<{
           total_unlocked: number;
@@ -290,6 +297,13 @@ export class AchievementStorage {
         const { getDatabase } = await import('./database/init');
         const db = getDatabase();
 
+        // DEBUG: Check what's in the table BEFORE the INSERT attempt
+        const preCheck = await db.getFirstAsync<{ unlocked: number; xp_awarded: number }>(
+          'SELECT unlocked, xp_awarded FROM achievement_progress WHERE achievement_id = ?',
+          [achievementId]
+        );
+        console.log(`🔍 [DEBUG] storeUnlockEvent PRE-CHECK for ${achievementId}: ${preCheck ? `exists (unlocked=${preCheck.unlocked}, xp=${preCheck.xp_awarded})` : 'NOT IN DB'}`);
+
         // ATOMIC INSERT - only inserts if achievement_id doesn't exist or unlocked != 1
         // This prevents race conditions where multiple tasks read unlocked=0 simultaneously
         const insertResult = await db.runAsync(
@@ -302,6 +316,8 @@ export class AchievementStorage {
           )`,
           [achievementId, now, achievement.xpReward, now, achievementId]
         );
+
+        console.log(`🔍 [DEBUG] storeUnlockEvent INSERT result for ${achievementId}: changes=${insertResult.changes}`);
 
         // Check if the row was actually inserted (changes > 0)
         if (insertResult.changes === 0) {
