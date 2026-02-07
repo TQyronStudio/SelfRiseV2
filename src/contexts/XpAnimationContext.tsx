@@ -438,7 +438,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   }, []);
   
   const notifyActivityModalEnded = useCallback(() => {
-    console.log(`✅ Activity modal ended (Tier 1) - tier 2 monthly challenge modals checked by system`);
+    console.log(`✅ Activity modal ended (Tier 1) - checking queued modals`);
     setState(prev => ({
       ...prev,
       modalCoordination: {
@@ -447,7 +447,15 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         currentActivityModalType: null,
       }
     }));
-  }, []);
+
+    // Process queued level-up modals if no other higher-priority modals are active
+    setTimeout(() => {
+      const current = modalCoordinationRef.current;
+      if (!current.isMonthlyChallengeModalActive && !current.isAchievementModalActive) {
+        processLevelUpModals();
+      }
+    }, 500);
+  }, [processLevelUpModals]);
 
   // Tier 2: Monthly Challenge Completion modals (second priority)
   const notifyMonthlyChallengeModalStarted = useCallback(() => {
@@ -462,7 +470,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   }, []);
 
   const notifyMonthlyChallengeModalEnded = useCallback(() => {
-    console.log(`✅ Monthly Challenge Completion modal ended (Tier 2) - processing tier 3 achievement modals`);
+    console.log(`✅ Monthly Challenge Completion modal ended (Tier 2) - checking queued modals`);
     setState(prev => ({
       ...prev,
       modalCoordination: {
@@ -470,7 +478,15 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         isMonthlyChallengeModalActive: false,
       }
     }));
-  }, []);
+
+    // Process queued level-up modals if no other higher-priority modals are active
+    setTimeout(() => {
+      const current = modalCoordinationRef.current;
+      if (!current.isActivityModalActive && !current.isAchievementModalActive) {
+        processLevelUpModals();
+      }
+    }, 500);
+  }, [processLevelUpModals]);
 
   // Tier 3: Achievement modals (third priority)
   const notifyAchievementModalStarted = useCallback((type: 'achievement') => {

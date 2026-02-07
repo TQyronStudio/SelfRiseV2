@@ -55,7 +55,7 @@ export class AchievementService {
   
   private static isBackgroundProcessing = false;
   private static backgroundProcessingInterval: NodeJS.Timeout | null = null;
-  private static readonly BACKGROUND_PROCESSING_INTERVAL = 2000; // 2 seconds
+  private static readonly BACKGROUND_PROCESSING_INTERVAL = 1000; // 1 second
   private static readonly MAX_BACKGROUND_TASKS_PER_CYCLE = 3;
 
   /**
@@ -831,7 +831,7 @@ export class AchievementService {
               timestamp: Date.now(),
             });
           }
-        }, 3000); // 3-second delay for background notifications
+        }, 500); // 500ms delay for background notifications
 
         // Check for Achievement Combo Multiplier (3+ achievements in 24h)
         try {

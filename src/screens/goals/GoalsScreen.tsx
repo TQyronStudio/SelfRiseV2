@@ -16,6 +16,7 @@ import { XP_REWARDS } from '@/src/constants/gamification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goalStorage } from '@/src/services/storage/goalStorage';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
 import { dropGoalsTables } from '@/src/utils/dropGoalsTables';
 import { getDatabase } from '@/src/services/database/init';
 
@@ -25,6 +26,7 @@ export function GoalsScreen() {
   const { goals, isLoading, actions } = useGoalsData();
   // addXP removed - XP handled by goalStorage
   const params = useLocalSearchParams();
+  const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
 
   // Styles inside component to access theme colors
   const styles = StyleSheet.create({
@@ -216,6 +218,7 @@ export function GoalsScreen() {
   };
 
   const handleAddProgress = (goal: Goal) => {
+    notifyActivityModalStarted('goal');
     setProgressGoal(goal);
     setProgressModalVisible(true);
   };
@@ -223,33 +226,42 @@ export function GoalsScreen() {
   const handleCloseProgressModal = () => {
     setProgressModalVisible(false);
     setProgressGoal(undefined);
+    // Delay notifyActivityModalEnded to let Modal close animation finish
+    // This prevents level-up modal from showing while ProgressModal is still animating
+    setTimeout(() => {
+      notifyActivityModalEnded();
+    }, 500);
   };
 
   const handleSubmitProgress = async (data: AddGoalProgressInput) => {
     try {
       const previousGoal = progressGoal;
       const newProgress = await actions.addProgress(data);
-      
+
       // XP is now handled entirely by GoalStorage.awardGoalProgressXP - no dual system
       console.log(`✅ Goal progress added successfully - XP handled by storage layer`);
-      
-      handleCloseProgressModal();
-      
+
+      // Close progress modal visually (DON'T call handleCloseProgressModal - it notifies activity ended)
+      // We keep activity modal registered until the entire flow is done
+      setProgressModalVisible(false);
+      setProgressGoal(undefined);
+
       // Check if goal was completed by this progress - IMMEDIATE detection
+      let goalCompleted = false;
       if (previousGoal) {
-        // Get fresh goal data from storage immediately 
+        // Get fresh goal data from storage immediately
         const freshGoal = await goalStorage.getById(previousGoal.id);
-        
-        if (freshGoal && 
-            freshGoal.status === GoalStatus.COMPLETED && 
+
+        if (freshGoal &&
+            freshGoal.status === GoalStatus.COMPLETED &&
             previousGoal.status !== GoalStatus.COMPLETED) {
-          
+          goalCompleted = true;
           console.log(`🎉 IMMEDIATE goal completion detected: ${freshGoal.title}`);
-          
-          // IMMEDIATELY show celebration modal to ensure priority
+
+          // Show completion modal - activity modal stays registered
           setCompletedGoal(freshGoal);
           setCompletionModalVisible(true);
-          
+
           // Save to persistent storage to prevent re-showing
           const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
           const storedCelebrations = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
@@ -259,20 +271,33 @@ export function GoalsScreen() {
           const celebrationKey = `${freshGoal.id}_${freshGoal.completedDate}`;
           shownCelebrations.add(celebrationKey);
           await AsyncStorage.setItem(
-            SHOWN_CELEBRATIONS_KEY, 
+            SHOWN_CELEBRATIONS_KEY,
             JSON.stringify(Array.from(shownCelebrations))
           );
         }
       }
+
+      // Only notify activity ended if no completion modal was opened
+      // If completion modal opened, it will notify when it closes
+      if (!goalCompleted) {
+        setTimeout(() => {
+          notifyActivityModalEnded();
+        }, 500);
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
       setShowError(true);
+      // On error, still notify activity ended
+      setTimeout(() => {
+        notifyActivityModalEnded();
+      }, 500);
     }
   };
 
   const handleCloseCompletionModal = () => {
     setCompletionModalVisible(false);
     setCompletedGoal(undefined);
+    // GoalCompletionModal handles notifyActivityModalEnded internally via notifyPrimaryModalEnded
   };
 
   return (

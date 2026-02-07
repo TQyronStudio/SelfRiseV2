@@ -415,10 +415,10 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     // Emit event for tutorial coordination - allows tutorial to advance after achievement modal closes
     DeviceEventEmitter.emit('achievementCelebrationClosed');
 
-    // Show next celebration after 2 second delay (respects 3-Tier Modal Priority System)
+    // Show next celebration after short delay (just enough for close animation)
     setTimeout(() => {
       showNextCelebration();
-    }, 2000); // 2-second interval as specified in project plan
+    }, 400); // 400ms - snappy transition between achievement modals
   }, [notifyAchievementModalEnded, showNextCelebration]);
 
   // Auto-trigger next celebration when queue is updated OR higher priority modals end
