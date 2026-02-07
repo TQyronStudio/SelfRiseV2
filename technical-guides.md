@@ -1305,6 +1305,62 @@ All modals should follow the CelebrationModal pattern with:
 
 ## Technical Stack & Architecture
 
+### GPU Rendering (Skia)
+
+**Package**: `@shopify/react-native-skia`
+
+**Momentální použití**: Tutorial spotlight efekt (`src/components/tutorial/SpotlightEffect.tsx`) — GPU-accelerated dark overlay s cutout, BlurMask soft edges, pulsující glow ring. Detaily: @technical-guides:Tutorial.md
+
+**Kdy použít Skia místo standardních RN Views:**
+- Komplexní overlays s průsvitnost a blend modes (`BlendMode.dstOut`, `multiply`, …)
+- Soft/blurred edges (blur masks) — RN nemá native equivalent
+- Canvas-based drawings (shapes, paths, gradients)
+- Animace, které potřebují 60fps a nesmí zatížovat JS thread
+
+**Kdy Skia nepoužívat:**
+- Jednoduché Views s backgroundColor/borderRadius — standardní RN je efektivnější
+- Text rendering — `<Text>` komponent je optimalnější
+- Layout a positioning — Flexbox je správná cesta
+
+**Kritická omezení:**
+- Skia vyžaduje **native module** → nelze testovat v Expo Go
+- Každá změna Skia komponent vyžaduje `eas build` (development profile) pro otestování na zařízení
+- Package je v projektu jako `@shopify/react-native-skia` (aktuální verze: `2.0.0-next.4`)
+
+**Klíčové Skia API (guida):**
+```typescript
+import { Canvas, Rect, RoundedRect, Group, BlurMask } from '@shopify/react-native-skia';
+
+// Canvas musí mít absoluteFill style — renderuje se nad everything
+<Canvas style={StyleSheet.absoluteFillObject}>
+  {/* Temný overlay */}
+  <Rect x={0} y={0} width={screenW} height={screenH} color="rgba(0,0,0,0.75)" />
+
+  {/* Cutout (díra) v overlay — BlendMode.dstOut vymazá ven */}
+  <Group blendMode="dstOut">
+    <RoundedRect x={x} y={y} width={w} height={h} r={14} color="white">
+      <BlurMask blur={8} style="normal" />  {/* Měkké hrany */}
+    </RoundedRect>
+  </Group>
+
+  {/* Stroke-only rámeček (glow ring) */}
+  <RoundedRect x={…} y={…} width={…} height={…} r={18}
+    color="rgba(255,107,53,0.5)" style="stroke" strokeWidth={3}>
+    <BlurMask blur={4} style="normal" />
+  </RoundedRect>
+</Canvas>
+```
+
+**Integrace s Reanimated:** Skia props přijímají Reanimated `SharedValue` přímo — pozice/velikost se animují na UI thread bez re-renderu React:
+```typescript
+import { useSharedValue, withSpring } from 'react-native-reanimated';
+
+const animX = useSharedValue(0);
+animX.value = withSpring(newX); // Skia <RoundedRect x={animX} /> se animuje automaticky
+```
+
+---
+
 ## Build History & Testing Environment
 
 ### iPhone Development Build - 2025-10-10
@@ -1342,6 +1398,8 @@ All modals should follow the CelebrationModal pattern with:
 - **Language**: TypeScript
 - **Navigation**: Bottom tab navigation
 - **Styling**: Consistent light theme design
+- **GPU Rendering**: `@shopify/react-native-skia` — see [GPU Rendering (Skia)](#gpu-rendering-skia) below
+- **Animations**: `react-native-reanimated` v3 — UI-thread animations via SharedValues
 
 ### Project Focus
 SelfRise V2 is a React Native mobile application built with Expo and TypeScript, focused on goal tracking, habit formation, and gratitude journaling. The app features internationalization (i18n) support with English as the default language and future support for German and Spanish.

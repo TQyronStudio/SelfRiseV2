@@ -304,36 +304,14 @@ export class AchievementStorage {
         );
         console.log(`🔍 [DEBUG] storeUnlockEvent PRE-CHECK for ${achievementId}: ${preCheck ? `exists (unlocked=${preCheck.unlocked}, xp=${preCheck.xp_awarded})` : 'NOT IN DB'}`);
 
-        // ATOMIC INSERT - only inserts if achievement_id doesn't exist or unlocked != 1
-        // This prevents race conditions where multiple tasks read unlocked=0 simultaneously
-        const insertResult = await db.runAsync(
-          `INSERT INTO achievement_progress (
-            achievement_id, current_value, target_value, unlocked, unlocked_at, xp_awarded, updated_at
-          )
-          SELECT ?, 100, 100, 1, ?, ?, ?
-          WHERE NOT EXISTS (
-            SELECT 1 FROM achievement_progress WHERE achievement_id = ? AND unlocked = 1
-          )`,
-          [achievementId, now, achievement.xpReward, now, achievementId]
-        );
+        // Check if already unlocked
+        if (preCheck && preCheck.unlocked === 1) {
+          console.warn(`🛡️ Duplicate unlock prevented (pre-check): ${achievementId}`);
+          return false;
+        }
 
-        console.log(`🔍 [DEBUG] storeUnlockEvent INSERT result for ${achievementId}: changes=${insertResult.changes}`);
-
-        // Check if the row was actually inserted (changes > 0)
-        if (insertResult.changes === 0) {
-          // Either already exists with unlocked=1, or race condition lost
-          // Check if it's actually unlocked already
-          const existing = await db.getFirstAsync<{ unlocked: number }>(
-            'SELECT unlocked FROM achievement_progress WHERE achievement_id = ?',
-            [achievementId]
-          );
-
-          if (existing && existing.unlocked === 1) {
-            console.warn(`🛡️ Duplicate unlock prevented (atomic check): ${achievementId}`);
-            return false;
-          }
-
-          // Row exists but not unlocked - update it atomically
+        if (preCheck) {
+          // Row exists with unlocked=0 - UPDATE it atomically
           const updateResult = await db.runAsync(
             `UPDATE achievement_progress
              SET unlocked = 1, unlocked_at = ?, xp_awarded = ?, current_value = 100, updated_at = ?
@@ -342,10 +320,17 @@ export class AchievementStorage {
           );
 
           if (updateResult.changes === 0) {
-            // Another task won the race
             console.warn(`🛡️ Duplicate unlock prevented (race lost): ${achievementId}`);
             return false;
           }
+        } else {
+          // Row doesn't exist - INSERT new row
+          await db.runAsync(
+            `INSERT OR IGNORE INTO achievement_progress (
+              achievement_id, current_value, target_value, unlocked, unlocked_at, xp_awarded, updated_at
+            ) VALUES (?, 100, 100, 1, ?, ?, ?)`,
+            [achievementId, now, achievement.xpReward, now]
+          );
         }
 
         // Successfully marked as unlocked - now insert the event record

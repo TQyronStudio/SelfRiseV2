@@ -7,9 +7,14 @@ Onboarding Tutorial je interaktivní průvodce pro nové uživatele, který je p
 ## Design Specifikace
 
 ### 1. Visual Design
-- **Overlay**: Tmavý overlay (rgba(0,0,0,0.8)) přes celou obrazovku
-- **Spotlight Effect**: Postupně se zužující světlý kruh na cílový element
-- **Pulsing Animation**: Zvýrazněné elementy pulzují pro lepší viditelnost
+- **Overlay**: GPU-rendered Skia `<Canvas>` s tmavým `<Rect>` (rgba(0,0,0,0.75)) přes celou obrazovku
+- **Spotlight Cutout**: `<RoundedRect>` s `BlendMode.dstOut` vytvoří "díru" v overlay — GPU-accelerated, žádné CSS clip-path
+- **Soft Edges**: `<BlurMask blur={8} style="normal" />` na cutout pro plynné hrany
+- **Glow Ring**: Pulsující oranžový rámeček (`rgba(255, 107, 53, …)`) kolem spotlight, rámeček se škáli 1.0→1.08 a opacity 0.3→0.7
+- **Inner Border**: Bílý semi-transparentní border (`rgba(255,255,255,0.4)`, strokeWidth 2) na hraně cutout
+- **Corner Radius**: 14px na cutout (squircle feel), 18px na glow ring
+- **Padding**: 10px kolem targetu pro "dýchání"
+- **Entrance Animation**: Celý Canvas fade-in za 200ms při zobrazení
 - **Skip Button**: Křížek v pravém horním rohu (slabě viditelný během celého tutoriálu)
 - **Next Button**: Zobrazuje se když není vyžadována specifická akce od uživatele
 
@@ -298,10 +303,11 @@ button: "Start My Journey!"
    Reasoning: Tab bar je DOLE → text NAHOŘE aby se nepřekrýval
    Examples: navigate-journal, navigate-goals
 
-3️⃣ QUICK ACTIONS STEP
-   Strategy: TOP FIXED
-   Position: 70-100px from top
-   Reasoning: Quick actions section je uprostřed/dole
+3️⃣ QUICK ACTIONS + GOAL-DATE STEPS
+   Strategy: DYNAMIC BELOW TARGET
+   Calculation: spotlightTarget.y + spotlightTarget.height + 16px
+   Reasoning: Quick actions sekce a goal-date picker mohou být na různých pozicích → dynamické umístění pod target vyhýbá se overlaps
+   Examples: quick-actions, goal-date
 
 4️⃣ SMART AUTO-DETECTION (any spotlight step)
    Strategy: TOP if target.y > screen.height/2, else BOTTOM
@@ -427,8 +433,23 @@ interface TutorialStep {
 ```typescript
 <TutorialProvider>
   <TutorialOverlay>
-    <SpotlightEffect targetRef={currentStepTarget} />
-    <TutorialContent step={currentStep} />
+    {/* SpotlightEffect — Skia Canvas-based, GPU-rendered */}
+    <SpotlightEffect target={spotlightTarget} action={...} targetId={...} onTargetPress={...}>
+      {/* Internally renders: */}
+      <Canvas style={absoluteFill}>
+        <Rect … />                          {/* Dark overlay (0.75 opacity) */}
+        <Group blendMode="dstOut">
+          <RoundedRect … >                  {/* Spotlight cutout */}
+            <BlurMask blur={8} />           {/* Soft edges */}
+          </RoundedRect>
+        </Group>
+        <RoundedRect … style="stroke" />    {/* Pulsing glow ring (orange) */}
+        <RoundedRect … style="stroke" />    {/* Inner white border */}
+      </Canvas>
+      {/* Clickable overlay (Animated.View) — only when action requires tap */}
+    </SpotlightEffect>
+
+    <TutorialContent step={currentStep} />  {/* Tutorial card with title/content/buttons */}
     <SkipButton onSkip={handleSkip} />
     <NextButton visible={showNext} onNext={handleNext} />
   </TutorialOverlay>
@@ -436,20 +457,45 @@ interface TutorialStep {
 </TutorialProvider>
 ```
 
-### 3. Animation Specifications
+**Klíčové aspekty architektury:**
+- `SpotlightEffect` je **jeden komponent** — Canvas + clickable overlay vše v jednom
+- Pozice spotlight se přenáša přes `target` prop (`{ x, y, width, height }`) z `TutorialTargetHelper`
+- Přechody mezi kroky jsou GPU-accelerated přes Reanimated `withSpring` SharedValues
+- `pointerEvents="none"` na Canvas umožňuje prosvítnout tappy na elementy pod ním (form fields, pickers)
+
+### 3. Animation Specifications (Reanimated v3 + Skia)
+
+Všechny animace běží na **UI thread** přes react-native-reanimated SharedValues — žádný JS-thread overhead.
+
 ```typescript
-const ANIMATIONS = {
-  overlayFadeIn: { duration: 300, easing: 'ease-out' },
-  spotlightTransition: { duration: 500, easing: 'ease-in-out' },
-  pulseAnimation: {
-    duration: 1500,
-    easing: 'ease-in-out',
-    iterationCount: 'infinite',
-    direction: 'alternate'
-  },
-  elementHighlight: { duration: 200, easing: 'ease-out' }
-};
+// --- Entrance fade-in ---
+// Celý Canvas se zobrazuje za 200ms při prvním renderu
+entranceOpacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+
+// --- Spotlight position/size transitions (glide effect mezi kroky) ---
+// withSpring pro přirozený přechod na nový target
+const SPRING_CONFIG = { damping: 20, stiffness: 150, mass: 0.8 };
+animatedX.value     = withSpring(target.x - PADDING, SPRING_CONFIG);
+animatedY.value     = withSpring(target.y - PADDING, SPRING_CONFIG);
+animatedWidth.value = withSpring(target.width  + PADDING * 2, SPRING_CONFIG);
+animatedHeight.value= withSpring(target.height + PADDING * 2, SPRING_CONFIG);
+
+// --- Pulse animation (glow ring) ---
+// Infinite loop: 0→1 za 1200ms, pak 1→0 za 1200ms, opakování
+pulseProgress.value = withRepeat(
+  withSequence(
+    withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+    withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+  ),
+  -1  // infinite
+);
+
+// Derived values z pulseProgress:
+//   glowOpacity: interpolate [0, 0.5, 1] → [0.3, 0.7, 0.3]  (fade in/out)
+//   glowScale:   interpolate [0, 0.5, 1] → [1.0, 1.08, 1.0]  (subtle scale)
 ```
+
+**Cleanup:** `cancelAnimation(pulseProgress)` se zavolá při unmount komponenty.
 
 ### 4. Interaction Blocking
 ```typescript
@@ -602,7 +648,9 @@ interface TutorialMetrics {
 ## Implementation Decisions & Clarifications
 
 ### 1. Technology Stack
-**React Native** - Tutorial implementace bude používat React Native specifické řešení pro spotlight efekty a overlay system.
+- **@shopify/react-native-skia** — GPU-accelerated Canvas rendering pro spotlight overlay (dark overlay + cutout via `BlendMode.dstOut` + BlurMask + glow ring). Vyžaduje native module → nelze testovat v Expo Go, nutný EAS development build.
+- **react-native-reanimated v3** — Všechny animace (position transitions, pulse, entrance fade) běží na UI thread přes SharedValues + `useDerivedValue`. Žádný JS-thread overhead.
+- **TutorialTargetHelper** — Utility pro měření pozice target elementů na screen (`onLayout` → `{ x, y, width, height }`), přenáša do `SpotlightEffect` přes props.
 
 ### 2. Form Validation Requirements
 **První znak trigger** - Pro všechny text input fieldy (habit název, goal název, unit) stačí napsat první znak pro aktivaci Next tlačítka.
