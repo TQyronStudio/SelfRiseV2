@@ -2280,7 +2280,7 @@ const es: Partial<TranslationKeys> = {
     },
     flame_collector: {
       name: 'Coleccionista de Llamas',
-      description: 'Gana llamas 5 veces en total - maestro de días intensos de gratitud'
+      description: 'Gana llamas 25 veces en total - maestro de días intensos de gratitud'
     },
     golden_bonus_streak: {
       name: 'Racha Dorada de Bonos',
@@ -2635,8 +2635,8 @@ const es: Partial<TranslationKeys> = {
         action: '¡Ve por el estatus real con 13+ entradas de diario en un día!'
       },
       flame_collector: {
-        progress: 'Colecciona 5 llamas en total ({{current}}/{{target}})',
-        requirement: 'Gana hito 🔥 5 veces en total',
+        progress: 'Colecciona 25 llamas en total ({{current}}/{{target}})',
+        requirement: 'Gana hito 🔥 25 veces en total',
         action: '¡Sigue teniendo días intensos de gratitud con 5+ entradas bonus!'
       },
       golden_bonus_streak: {

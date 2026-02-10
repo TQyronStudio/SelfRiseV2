@@ -2280,7 +2280,7 @@ const de: Partial<TranslationKeys> = {
     },
     flame_collector: {
       name: 'Flammen-Sammler',
-      description: 'Erhalte insgesamt 5 Mal Flammen - Meister der intensiven Dankbarkeitstage'
+      description: 'Erhalte insgesamt 25 Mal Flammen - Meister der intensiven Dankbarkeitstage'
     },
     golden_bonus_streak: {
       name: 'Goldene Bonus-Serie',
@@ -2635,8 +2635,8 @@ const de: Partial<TranslationKeys> = {
         action: 'Erreiche königlichen Status mit 13+ Tagebucheinträgen an einem Tag!'
       },
       flame_collector: {
-        progress: 'Sammle insgesamt 5 Flammen ({{current}}/{{target}})',
-        requirement: 'Verdiene 5 Mal insgesamt 🔥 Meilenstein',
+        progress: 'Sammle insgesamt 25 Flammen ({{current}}/{{target}})',
+        requirement: 'Verdiene 25 Mal insgesamt 🔥 Meilenstein',
         action: 'Hab weiter intensive Dankbarkeitstage mit 5+ Bonus-Einträgen!'
       },
       golden_bonus_streak: {

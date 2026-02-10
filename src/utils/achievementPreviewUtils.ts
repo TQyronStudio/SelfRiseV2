@@ -420,14 +420,14 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
       };
 
     case 'flame-collector':
-      const flameCollector = Math.min(userStats.flameCount, 5);
+      const flameCollector = Math.min(userStats.flameCount, 25);
       return {
-        progressText: t('achievements.progressHints.flame_collector.progress', { current: flameCollector, target: 5 }),
-        progressPercentage: (flameCollector / 5) * 100,
-        isCompleted: flameCollector >= 5,
+        progressText: t('achievements.progressHints.flame_collector.progress', { current: flameCollector, target: 25 }),
+        progressPercentage: (flameCollector / 25) * 100,
+        isCompleted: flameCollector >= 25,
         requirementText: t('achievements.progressHints.flame_collector.requirement'),
         actionHint: t('achievements.progressHints.flame_collector.action'),
-        estimatedDays: Math.max(0, 5 - flameCollector) * 7 // Rough estimate
+        estimatedDays: Math.max(0, 25 - flameCollector) * 7 // Rough estimate
       };
 
     case 'golden-bonus-streak':
@@ -1250,7 +1250,7 @@ const getAccomplishmentText = (achievement: Achievement, t?: TFunction): string 
     'flame-achiever': "Earned your first flame",
     'bonus-week': "1 bonus daily for 7 days",
     'crown-royalty': "Earned your first crown",
-    'flame-collector': "Earned 5 flames total",
+    'flame-collector': "Earned 25 flames total",
     'golden-bonus-streak': "3+ bonuses daily for 7 days",
     'triple-crown-master': "Earned 3 crowns total",
     'bonus-century': "Wrote 200 bonus entries",

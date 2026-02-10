@@ -1,0 +1,323 @@
+# Plan oprav - Hloubkovy audit gamifikace
+
+Tento dokument obsahuje vsechny nalezene problemy z auditu gamifikace, achievementu, modalu a event systemu. Kazdy bod obsahuje popis problemu srozumitelny pro neodbornika a navrh opravy.
+
+---
+
+## FAZE 1: Bugy ovlivnujici uzivatele (nejvyssi priorita)
+
+Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere by meli, nebo se neco zobrazuje spatne.
+
+---
+
+### 1.1 Duplicitni achievement: `flame-starter` a `flame-collector`
+
+**Problem z reportu:** OBA maji identicke podminky (target=5, source=journal_flame_count) - oba se odemknou soucasne.
+
+**Vysvetleni:** Existuji dva achievementy za plaminek v deniku, ale oba vyzaduji presne to same - ziskat plaminek 5krat. To znamena, ze uzivatel dostane oba naraz ve stejnou chvili, coz nedava smysl. Kazdy achievement by mel mit jinou obtiznost.
+
+**Navrh opravy:** Projit celou progresi plaminku (1, 5, 10, 25, 50, 100) a rozhodnout, ktery z techto dvou achievementu ma mit jakou hodnotu. Napriklad `flame-starter` by mohl vyzadovat 3 plaminky a `flame-collector` 5. Nebo jeden z nich uplne odstranit, pokud je nadbytecny. Opravit v kodu i v dokumentaci.
+
+**Status:** [x] OPRAVENO - flame-collector zmenen na target=25. Aktualizovan katalog, preview utils, 3 lokalizace (EN/DE/ES), technicka dokumentace.
+
+---
+
+### 1.2 Dvojity level-up modal (dvojity emit `levelUp` eventu)
+
+**Problem z reportu:** `performXPAddition` emituje `levelUp` ze DVOU mist - potencialne duplicitni level-up modaly.
+
+**Vysvetleni:** Kdyz uzivatel ziska dost XP na novy level, system omylem odesle zpravu "dosahl jsi noveho levelu" DVAKRAT. To muze zpusobit, ze se uzivateli zobrazi level-up oslava dvakrat za sebou pro ten samy level.
+
+**Navrh opravy:** Odstranit jeden z techto dvou emisnich bodu, aby se level-up udalost odeslala vzdy jen jednou. Ponechat tu cestu, ktera obsahuje vsechna potrebna data (cislo predchoziho i noveho levelu).
+
+**Status:** [ ] K oprave
+
+---
+
+### 1.3 Goal milestones se nikdy neprideli (mrtvy kod)
+
+**Problem z reportu:** Goal milestone system (25%, 50%, 75%) - konstanty existuji, ale nikdy se nevolaji. Uzivatele prichazeji o 225-325 XP za kazdy cil.
+
+**Vysvetleni:** Kdyz uzivatel plni svuj cil postupne (napriklad dokonci 25%, pak 50%, pak 75%), mel by za kazdy takovy milnik dostat bonusove XP. Pravidla pro tyto bonusy existuji v systemu, ale nikdy se realne nevolaji. Uzivatel tak za celou cestu k dokonceni cile dostava mnohem mene XP, nez by mel.
+
+**Navrh opravy:** Implementovat kontrolu milniku pri pridani progressu u cilu. Kdyz procento dokonceni prekroci 25%, 50% nebo 75%, pridelit odpovidajici bonusove XP (50, 75, 100 XP).
+
+**Status:** [ ] K prodiskutovani - chceme to implementovat, nebo radeji odstranit konstanty a aktualizovat docs?
+
+---
+
+### 1.4 Daily Launch XP nesouhlasi
+
+**Problem z reportu:** Dokumentace rika 5 XP, kod dava 10 XP.
+
+**Vysvetleni:** Kdyz uzivatel otevre aplikaci, dostane odmenu za prihlaseni. Ale pravidla rikaji 5 XP a aplikace dava 10 XP. Jedno z toho je spatne.
+
+**Navrh opravy:** Rozhodnout, ktera hodnota je spravna (5 nebo 10 XP) a sjednotit kod i dokumentaci.
+
+**Status:** [ ] K rozhodnuti - kolik XP chceme davat?
+
+---
+
+### 1.5 Harmony Streak aktivacni bonus chybi
+
+**Problem z reportu:** Dokumentace rika +240 XP pri aktivaci Harmony Streak, ale neni to nikde implementovano.
+
+**Vysvetleni:** Kdyz uzivatel splni vsechny navyky 7 dni v rade a aktivuje se mu Harmony Streak (2x multiplikator), mel by podle pravidel dostat jednorazy bonus 240 XP. Tento bonus ale nikdy nebyl naprogramovan.
+
+**Navrh opravy:** Rozhodnout, jestli tento bonus chceme (muze byt prilis stedry) nebo ho z dokumentace odstranit. Pokud ano, implementovat jednoraze pridani 240 XP pri aktivaci multiplikatoru.
+
+**Status:** [ ] K rozhodnuti - chceme tento bonus, nebo ho z pravidel odstranime?
+
+---
+
+### 1.6 Goal 100% milestone chybi
+
+**Problem z reportu:** Dokumentace zminuje 200 XP za dosazeni 100% u cile (oddelene od completion bonusu 250 XP), ale v kodu to neexistuje.
+
+**Vysvetleni:** Podle pravidel by uzivatel mel dostat extra 200 XP, kdyz dosahne 100% cile, NAVIC k 250 XP za samotne dokonceni. Tento 100% milnik ale nebyl nikdy naprogramovan. Souvisi s bodem 1.3 - cely milnikovy system u cilu nefunguje.
+
+**Navrh opravy:** Resit spolecne s bodem 1.3. Pokud implementujeme milniky, pridat i 100%. Pokud ne, odstranit z dokumentace.
+
+**Status:** [ ] Souvisi s 1.3 - resit spolecne
+
+---
+
+## FAZE 2: Nekonzistence v kodu (stredni priorita)
+
+Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim problemum a ztezuji udrzbu.
+
+---
+
+### 2.1 Nekonzistentni data v `levelUp` eventu
+
+**Problem z reportu:** 3 emisni mista posilaji ruzna data - `previousLevel` chybi v jednom, `source` pridano v jednom, `totalXP` chybi ve vsech.
+
+**Vysvetleni:** Kdyz system hlasi novy level, jsou tri ruzna mista v kodu, kde se tato zprava vytvari. Kazde z nich posila trochu jine informace. To muze vest k tomu, ze level-up oslava obcas nezobrazi spravne informace (napriklad predchozi level).
+
+**Navrh opravy:** Sjednotit vsechna tri mista tak, aby vzdy posilala stejnou sadu dat. Opravit spolecne s bodem 1.2 (po odstraneni duplicity zustane mene mist k sjednoceni).
+
+**Status:** [ ] K oprave (po bode 1.2)
+
+---
+
+### 2.2 Comeback Bonus - zavadejici konstanta
+
+**Problem z reportu:** Dokumentace rika 25 XP, konstanta v kodu rika 150 XP, ale skutecna implementace pouziva hardcoded 25 XP.
+
+**Vysvetleni:** Existuje odmena pro uzivatele, kteri se vrati do aplikace po delsi nepritomnosti. Pravidla rikaji 25 XP a aplikace skutecne dava 25 XP, ale v nastaveni systemu je omylem napsana hodnota 150 XP, ktera se nikdy nepouzije. To je matouci pro budouci upravu.
+
+**Navrh opravy:** Opravit konstantu na 25 XP a pouzivat ji misto hardcoded hodnoty.
+
+**Status:** [ ] K oprave
+
+---
+
+### 2.3 BIG_GOAL_COMPLETION neni zdokumentovany
+
+**Problem z reportu:** V kodu existuje bonus 350 XP pro cile s hodnotou >= 1000, ale dokumentace o nem nerika nic.
+
+**Vysvetleni:** Kdyz uzivatel dokonci velky cil (s cilovou hodnotou 1000 a vice), dostane extra bonus 350 XP namisto standardnich 250 XP. Tato funkce funguje, ale neni nikde zdokumentovana v pravidlech.
+
+**Navrh opravy:** Pridat tento bonus do dokumentace Gamification-Core, aby pravidla odpovidala realite.
+
+**Status:** [ ] K oprave (jen dokumentace)
+
+---
+
+### 2.4 Warm-up 4-star XP nekonzistence
+
+**Problem z reportu:** Hodnota pro 4. hvezdu je 1688 v konstantach, ale 1556 v enhanced engine.
+
+**Vysvetleni:** Existuji dve mista, kde je definovana odmena za 4. hvezdu v warm-up vyzve, a kazde rika neco jineho. Zalezi na tom, ktera cesta se pouzije - uzivatel muze dostat ruzny pocet XP.
+
+**Navrh opravy:** Sjednotit hodnotu na jedno misto. Rozhodnout, ktera hodnota je spravna (1688 nebo 1556).
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 2.5 Achievement `xpGained` pouziva raw string misto enum
+
+**Problem z reportu:** `source: 'achievement_unlock'` misto `XPSourceType.ACHIEVEMENT_UNLOCK`.
+
+**Vysvetleni:** Kdyz achievement system hlasi ziskane XP, pouziva textovy retezec misto spravneho datoveho typu. Momentalne to funguje, protoze text je nahodou stejny, ale kdyz se typ nekdy prejmenuji, prestane to fungovat.
+
+**Navrh opravy:** Nahradit raw string za spravny enum typ.
+
+**Status:** [ ] K oprave
+
+---
+
+### 2.6 Interni nekonzistence v AchievementContext
+
+**Problem z reportu:** `closeCelebrationModal` rika "3-Tier", `showNextCelebration` rika "4-Tier" ve stejnem souboru.
+
+**Vysvetleni:** V jednom souboru jsou dva ruzne komentare, ktere si odporuji - jeden tvrdi, ze system ma 3 urovne priority, druhy 4. To mate vyvojare pri budouci praci.
+
+**Navrh opravy:** Opravit oba komentare na "4-Tier" - coz je aktualni stav systemu.
+
+**Status:** [ ] K oprave
+
+---
+
+## FAZE 3: Zastarala dokumentace (nizsi priorita, ale dulezita)
+
+Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To muze zpusobit problemy pri budouci praci.
+
+---
+
+### 3.1 Modal system - cela dokumentace je zastarala
+
+**Problem z reportu:** Dokumentace popisuje 3-Tier system, kod implementuje 4-Tier. Vsechny nazvy funkci a state properties jsou deprecated.
+
+**Vysvetleni:** Dokumentace pro zobrazovani modalu (gratulacnich oken) popisuje starsi verzi systemu. Od te doby byl system rozsiren o novou uroven priority pro mesicni vyzvy, ale dokumentace se neaktualizovala. Kdokoli bude cist tuto dokumentaci, bude pracovat se spatnymi informacemi.
+
+**Navrh opravy:** Kompletne prepsat sekci o modal priority systemu v `technical-guides:Gamification-UI.md`:
+- Aktualizovat na 4-Tier system
+- Nahradit vsechny deprecated nazvy funkci za aktualni
+- Aktualizovat state properties
+- Pridat chybejici timing hodnoty
+- Zdokumentovat achievementQueueStarting pre-registraci
+- Zdokumentovat crescendo razeni
+- Zdokumentovat tutorial suppression
+
+**Status:** [ ] K prepisu
+
+---
+
+### 3.2 Achievement pocty v dokumentaci
+
+**Problem z reportu:** Header rika 78, stats sekce rika 76, technicka sekce rika 52. Goals kategorie - stats rika 6, skutecne je 8.
+
+**Vysvetleni:** Dokumentace achievementu byla psana v ruznych dobach a cisla se nikdy neaktualizovala. Nekde se rika 52, nekde 76, nekde 78 achievementu. Spravne cislo je 78. Podobne u kategorie Cilu - rika se 6, ale je jich 8.
+
+**Navrh opravy:** Projit celou dokumentaci achievementu a sjednotit vsechny pocty na aktualni stav (78 achievementu, Goals: 8).
+
+**Status:** [ ] K oprave (jen dokumentace)
+
+---
+
+### 3.3 Komentar v kodu achievementu
+
+**Problem z reportu:** Radek 2 souboru achievementCatalog.ts rika "76 Total", JSDoc rika 78, skutecne je 78.
+
+**Vysvetleni:** Podobne jako bod 3.2, ale primo v kodu. Jeden komentar rika 76, druhy spravne 78.
+
+**Navrh opravy:** Opravit komentar na radku 2 z "76" na "78".
+
+**Status:** [ ] K oprave
+
+---
+
+### 3.4 Event system - 16 nedokumentovanych eventu
+
+**Problem z reportu:** Dokumentace listuje 4 eventy, kod pouziva 20+ eventu.
+
+**Vysvetleni:** System komunikuje pomoci "udalosti" (napriklad "uzivatel ziskal XP", "uzivatel dosahl noveho levelu"). Dokumentace zna jen 4 takove udalosti, ale ve skutecnosti jich system pouziva pres 20. Kdyz nekdo bude chtit neco menit nebo opravovat, nebude vedet o existenci vetsiny techto udalosti.
+
+**Navrh opravy:** Doplnit do `technical-guides:Gamification-Events.md` vsechny chybejici eventy:
+- xpSmartNotification
+- achievementQueueStarting
+- multipleAchievementsUnlocked
+- achievementCelebrationClosed
+- xpMultiplierActivated
+- star_level_changed, star_progression_updated, difficulty_recalculated
+- monthly_progress_updated, monthly_milestone_reached, monthly_week_completed
+- daily_snapshot_created, monthly_challenge_completed
+- tutorial_scroll_to, tutorial_scroll_completed
+
+**Status:** [ ] K oprave (jen dokumentace)
+
+---
+
+### 3.5 TypeScript interfaces pro eventy neexistuji
+
+**Problem z reportu:** `XPEventData`, `LevelUpEventData`, `XPBatchEventData` jsou dokumentovany, ale v kodu neexistuji. Vsechny handlery pouzivaji typ `any`.
+
+**Vysvetleni:** Dokumentace definuje presne struktury dat pro jednotlive udalosti, ale v kodu tyto definice nikdy nebyly vytvoreny. To znamena, ze neni zadna kontrola, jestli se posilaji spravna data - vse je "cokoliv".
+
+**Navrh opravy:** Vytvorit TypeScript interfaces podle dokumentace a pouzit je v event handlerech. To zajisti, ze chyby v datech se odhali pri vyvoji, ne az u uzivatele. Resit az po bode 1.2 a 2.1, protoze tam se meni co se posila.
+
+**Status:** [ ] K implementaci (po Fazi 1 a 2)
+
+---
+
+### 3.6 Event data structures - chybejici a prebytecna pole
+
+**Problem z reportu:** `totalXP` se nikde neemituje, `position` pole neni dokumentovano, `description` se nikdy neposila.
+
+**Vysvetleni:** Nektere informace, ktere by se melo posilat (celkove XP), se neposilaji. A nektere, ktere se posilaji (pozice na obrazovce), nejsou v pravidlech. Dokumentace a realita se rozchazeji.
+
+**Navrh opravy:** Resit spolecne s bodem 3.5 - pri vytvareni interfaces definovat, co je opravdu potreba, a sjednotit kod i dokumentaci.
+
+**Status:** [ ] Souvisi s 3.5
+
+---
+
+### 3.7 Validacni a logovaci funkce neexistuji
+
+**Problem z reportu:** `validateXPEventData()`, `logGamificationError()`, `XPSystemRecovery` retry system - vse dokumentovano, ale neexistuje v kodu.
+
+**Vysvetleni:** Dokumentace popisuje bezpecnostni mechanismy - kontrolu spravnosti dat, systematicke logovani chyb a automaticke zotaveni po selhani. Nic z toho ale nebylo nikdy naprogramovano. Aplikace funguje, ale bez techto ochran.
+
+**Navrh opravy:** Rozhodnout, jestli tyto mechanismy chceme implementovat, nebo je z dokumentace odstranit. Doporucuji je zatim z dokumentace odstranit (znacit jako "planned for future") a implementovat az bude potreba - aplikace funguje i bez nich.
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+## FAZE 4: Nizka priorita / kosmeticke
+
+Tyto body nemaji vliv na funkcnost, ale je dobre je mit na pameti.
+
+---
+
+### 4.1 Timing hodnoty v dokumentaci
+
+**Problem z reportu:** Dokumentace rika 300ms po zavreni Activity modalu, kod pouziva 500ms. Ruzne dalsni timing hodnoty nejsou dokumentovany.
+
+**Vysvetleni:** Cas, ktery system ceka mezi zobrazenim jednotlivych oken, je v dokumentaci jiny nez ve skutecnosti. Nemeni to chovani pro uzivatele, ale mate vyvojare.
+
+**Navrh opravy:** Resit v ramci bodu 3.1 (kompletni prepis modal dokumentace).
+
+**Status:** [ ] Souvisi s 3.1
+
+---
+
+### 4.2 Nazvy achievementu v docs vs. ID v kodu
+
+**Problem z reportu:** Dokumentace pouziva zobrazovane nazvy ("First Steps", "Centurion", "Dream Fulfiller"), kod pouziva technicke ID ("first-habit", "hundred-days", "goal-achiever").
+
+**Vysvetleni:** To je ocekavane chovani - dokumentace pouziva jmena, ktera vidi uzivatel, a kod pouziva technicka ID. Nejde o bug, ale pro prehlednost by bylo dobre pridat do dokumentace i technicke ID vedle nazvu.
+
+**Navrh opravy:** V achievement dokumentaci pridat sloupec s technickym ID ke kazdemu achievementu.
+
+**Status:** [ ] Volitelne vylepseni
+
+---
+
+## Prehled vsech bodu
+
+| Faze | # | Problem | Rozhodnuti |
+|------|---|---------|------------|
+| 1 | 1.1 | Duplicitni flame achievement | K prodiskutovani |
+| 1 | 1.2 | Dvojity level-up modal | K oprave |
+| 1 | 1.3 | Goal milestones nefungují | K prodiskutovani |
+| 1 | 1.4 | Daily Launch XP (5 vs 10) | K rozhodnuti |
+| 1 | 1.5 | Harmony Streak bonus chybi | K rozhodnuti |
+| 1 | 1.6 | Goal 100% milestone chybi | Souvisi s 1.3 |
+| 2 | 2.1 | Nekonzistentni levelUp data | K oprave (po 1.2) |
+| 2 | 2.2 | Comeback Bonus zavadejici | K oprave |
+| 2 | 2.3 | BIG_GOAL_COMPLETION v docs | K oprave (docs) |
+| 2 | 2.4 | Warm-up 4-star nekonzistence | K rozhodnuti |
+| 2 | 2.5 | Raw string misto enum | K oprave |
+| 2 | 2.6 | 3-Tier vs 4-Tier komentare | K oprave |
+| 3 | 3.1 | Modal docs zastarala | K prepisu |
+| 3 | 3.2 | Achievement pocty v docs | K oprave (docs) |
+| 3 | 3.3 | Komentar v kodu (76 vs 78) | K oprave |
+| 3 | 3.4 | 16 nedokumentovanych eventu | K oprave (docs) |
+| 3 | 3.5 | TypeScript interfaces chybi | K implementaci |
+| 3 | 3.6 | Event data nesouhlasi | Souvisi s 3.5 |
+| 3 | 3.7 | Validace/logovani neexistuje | K rozhodnuti |
+| 4 | 4.1 | Timing hodnoty v docs | Souvisi s 3.1 |
+| 4 | 4.2 | Achievement nazvy vs ID | Volitelne |

@@ -1360,7 +1360,7 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
     xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
     condition: {
       type: 'count',
-      target: 5,
+      target: 25,
       source: 'journal_flame_count',
       operator: 'gte',
       timeframe: 'all_time'

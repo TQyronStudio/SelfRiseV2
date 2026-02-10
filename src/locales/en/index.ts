@@ -2181,7 +2181,7 @@ const en: TranslationKeys = {
     },
     flame_collector: {
       name: 'Flame Collector',
-      description: 'Get flames 5 times total - master of intensive gratitude days'
+      description: 'Get flames 25 times total - master of intensive gratitude days'
     },
     golden_bonus_streak: {
       name: 'Golden Bonus Streak',
@@ -2536,8 +2536,8 @@ const en: TranslationKeys = {
         action: 'Go for royal status with 13+ journal entries in one day!'
       },
       flame_collector: {
-        progress: 'Collect 5 flames total ({{current}}/{{target}})',
-        requirement: 'Earn 🔥 milestone 5 times total',
+        progress: 'Collect 25 flames total ({{current}}/{{target}})',
+        requirement: 'Earn 🔥 milestone 25 times total',
         action: 'Keep having intense gratitude days with 5+ bonus entries!'
       },
       golden_bonus_streak: {

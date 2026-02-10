@@ -101,7 +101,7 @@
 **Výsledek**: Vrcholný den reflexe s královským statusem
 
 ### **Flame Collector** 🔥 • 200 XP • Epic
-**Co musí udělat**: Získat plamínek celkem 5krát
+**Co musí udělat**: Získat plamínek celkem 25krát
 **Výsledek**: Mistr intenzivních dní vděčnosti
 
 ### **Golden Bonus Streak** ⭐ • 200 XP • Epic
