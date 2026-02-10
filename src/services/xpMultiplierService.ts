@@ -145,15 +145,19 @@ export class XPMultiplierService {
   static async calculateHarmonyStreak(): Promise<HarmonyStreakResult> {
     try {
       console.log('🎯 Calculating Harmony Streak...');
-      
-      // Get activity data for last 30 days to calculate streak properly
-      const activityData = await this.getRecentActivityData(30);
-      
-      // Calculate current streak (consecutive days from most recent)
+
+      // Fast path: fetch days with early termination (stops at first non-harmony day)
+      const activityData = await this.getRecentActivityData(30, true);
+
+      // Current streak = number of consecutive harmony days fetched before break
       const currentStreak = this.calculateStreakFromActivityData(activityData);
-      
-      // Calculate longest streak in history
-      const longestStreak = this.calculateLongestStreakFromData(activityData);
+
+      // Longest streak comes from cache (updated only when current streak is longer)
+      const cachedLongest = await this.getCachedLongestStreak();
+      const longestStreak = Math.max(cachedLongest, currentStreak);
+      if (longestStreak > cachedLongest) {
+        await AsyncStorage.setItem('harmony_longest_streak', String(longestStreak));
+      }
       
       // Determine streak start date
       let streakStartDate: DateString | undefined;
@@ -202,26 +206,26 @@ export class XPMultiplierService {
   /**
    * Get activity data for recent days
    */
-  private static async getRecentActivityData(days: number): Promise<DailyActivityData[]> {
+  private static async getRecentActivityData(days: number, stopOnBreak: boolean = false): Promise<DailyActivityData[]> {
     try {
       const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags');
       const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
-      
+
       const activityData: DailyActivityData[] = [];
       const todayString = today();
-      
+
       for (let i = 0; i < days; i++) {
         const dateString = subtractDays(todayString, i);
-        
+
         // Get activity for this date
         const [habitCompletions, journalEntries, goalProgress] = await Promise.all([
           this.getHabitActivityForDate(habitStorage, dateString),
           this.getJournalActivityForDate(gratitudeStorage, dateString),
           this.getGoalActivityForDate(goalStorage, dateString),
         ]);
-        
+
         const dailyActivity: DailyActivityData = {
           date: dateString,
           hasHabitActivity: habitCompletions > 0,
@@ -231,15 +235,17 @@ export class XPMultiplierService {
           journalEntries,
           goalProgressUpdates: goalProgress,
         };
-        
+
         activityData.push(dailyActivity);
+
+        // Early termination: stop fetching once streak is broken (saves async calls)
+        if (stopOnBreak && !(dailyActivity.hasHabitActivity && dailyActivity.hasJournalActivity && dailyActivity.hasGoalActivity)) {
+          break;
+        }
       }
-      
-      // Sort by date (most recent first)
-      activityData.sort((a, b) => b.date.localeCompare(a.date));
-      
+
       return activityData;
-      
+
     } catch (error) {
       console.error('XPMultiplierService.getRecentActivityData error:', error);
       return [];
@@ -363,6 +369,18 @@ export class XPMultiplierService {
     }
     
     return longestStreak;
+  }
+
+  /**
+   * Get cached longest harmony streak (persisted across sessions)
+   */
+  private static async getCachedLongestStreak(): Promise<number> {
+    try {
+      const stored = await AsyncStorage.getItem('harmony_longest_streak');
+      return stored ? parseInt(stored, 10) : 0;
+    } catch {
+      return 0;
+    }
   }
 
   /**
@@ -769,7 +787,7 @@ export class XPMultiplierService {
     try {
       const [history, harmonyStreak, cooldownInfo] = await Promise.all([
         this.getMultiplierHistory(),
-        this.calculateHarmonyStreak(),
+        this.getCachedHarmonyStreak().then(cached => cached || this.calculateHarmonyStreak()),
         this.getMultiplierCooldownInfo(),
       ]);
       
@@ -851,7 +869,7 @@ export class XPMultiplierService {
     currentStreak: number;
   }> {
     try {
-      const harmonyStreak = await this.calculateHarmonyStreak();
+      const harmonyStreak = await this.getCachedHarmonyStreak() || await this.calculateHarmonyStreak();
       const { currentStreak } = harmonyStreak;
       
       // Notify at specific milestones
@@ -901,6 +919,7 @@ export class XPMultiplierService {
         MULTIPLIER_STORAGE_KEYS.MULTIPLIER_STATS,
         MULTIPLIER_STORAGE_KEYS.LAST_HARMONY_CHECK,
         MULTIPLIER_STORAGE_KEYS.COOLDOWN_DATA,
+        'harmony_longest_streak',
       ]);
       
       console.log('🧹 All XP Multiplier data reset');
@@ -914,10 +933,11 @@ export class XPMultiplierService {
    */
   static async getDebugInfo(): Promise<any> {
     try {
-      const [activeMultiplier, harmonyStreak, stats, cooldownInfo] = await Promise.all([
+      // Calculate harmony streak first, then stats will use cached result
+      const harmonyStreak = await this.calculateHarmonyStreak();
+      const [activeMultiplier, stats, cooldownInfo] = await Promise.all([
         this.getActiveMultiplier(),
-        this.calculateHarmonyStreak(),
-        this.getMultiplierStats(),
+        this.getMultiplierStats(), // Uses cached harmony streak from above
         this.getMultiplierCooldownInfo(),
       ]);
       

@@ -66,7 +66,7 @@ Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere 
 
 **Navrh opravy:** Rozhodnout, jestli tento bonus chceme (muze byt prilis stedry) nebo ho z dokumentace odstranit. Pokud ano, implementovat jednoraze pridani 240 XP pri aktivaci multiplikatoru.
 
-**Status:** [ ] K rozhodnuti - chceme tento bonus, nebo ho z pravidel odstranime?
+**Status:** [x] OVERENO - Bonus 240 XP JE implementovan (xpMultiplierService.ts radek ~469: bonusXP = HARMONY_STREAK_DURATION * 10 = 240). Audit byl falesny poplach. Navic optimalizovan vypocet Harmony Streak (early termination, cache konzistence).
 
 ---
 
