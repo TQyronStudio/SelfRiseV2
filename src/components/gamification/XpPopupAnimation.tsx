@@ -103,12 +103,6 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           icon: '⚡',
           shadowColor: '#E91E63',
         };
-      case XPSourceType.DAILY_LAUNCH:
-        return {
-          color: '#00BCD4',
-          icon: '🌅',
-          shadowColor: '#00BCD4',
-        };
       case XPSourceType.RECOMMENDATION_FOLLOW:
         return {
           color: '#8BC34A',
@@ -156,8 +150,6 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
           return t('gamification.xp.sources.monthly_challenge');
         case XPSourceType.XP_MULTIPLIER_BONUS:
           return t('gamification.xp.sources.xp_multiplier_bonus');
-        case XPSourceType.DAILY_LAUNCH:
-          return t('gamification.xp.sources.daily_launch');
         case XPSourceType.RECOMMENDATION_FOLLOW:
           return t('gamification.xp.sources.recommendation_follow');
         default:

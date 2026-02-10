@@ -55,7 +55,6 @@ export const XP_REWARDS = {
 
   // Engagement & Meta Actions XP
   ENGAGEMENT: {
-    DAILY_APP_LAUNCH: 10,       // First app launch each day
     RECOMMENDATION_FOLLOW: 30,   // Following a "For You" recommendation
     CUSTOMIZATION_USE: 20,      // Using home screen customization
     SHARING_ACTION: 25,         // Sharing streak or achievement
@@ -195,13 +194,6 @@ export const XP_SOURCES = {
     descriptionKey: 'gamification.xpSources.goalMilestone',
     dailyLimit: 500, // Max milestone XP per day
     requirements: ['goal progress crosses milestone threshold'],
-  },
-
-  [XPSourceType.DAILY_LAUNCH]: {
-    baseAmount: XP_REWARDS.ENGAGEMENT.DAILY_APP_LAUNCH,
-    descriptionKey: 'gamification.xpSources.dailyLaunch',
-    dailyLimit: XP_REWARDS.ENGAGEMENT.DAILY_APP_LAUNCH, // Once per day
-    requirements: ['first app launch of the day'],
   },
 
   [XPSourceType.RECOMMENDATION_FOLLOW]: {

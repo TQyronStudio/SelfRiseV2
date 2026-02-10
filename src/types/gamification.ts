@@ -19,7 +19,6 @@ export enum XPSourceType {
   GOAL_PROGRESS = 'goal_progress',
   GOAL_COMPLETION = 'goal_completion',
   GOAL_MILESTONE = 'goal_milestone',
-  DAILY_LAUNCH = 'daily_launch',
   RECOMMENDATION_FOLLOW = 'recommendation_follow',
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
   MONTHLY_CHALLENGE = 'monthly_challenge',

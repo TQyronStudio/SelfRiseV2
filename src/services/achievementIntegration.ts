@@ -654,8 +654,8 @@ export class AchievementIntegration {
       const transactions = await GamificationService.getAllTransactions();
       
       // Count engagement transactions (placeholder logic)
-      const engagementTransactions = transactions.filter(t => 
-        t.source === XPSourceType.DAILY_LAUNCH && t.amount > 0
+      const engagementTransactions = transactions.filter(t =>
+        t.source === XPSourceType.RECOMMENDATION_FOLLOW && t.amount > 0
       );
       
       // Filter by timeframe if specified  

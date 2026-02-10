@@ -54,7 +54,7 @@ Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere 
 
 **Navrh opravy:** Rozhodnout, ktera hodnota je spravna (5 nebo 10 XP) a sjednotit kod i dokumentaci.
 
-**Status:** [ ] K rozhodnuti - kolik XP chceme davat?
+**Status:** [x] OPRAVENO - Cely Daily Launch XP system odstranen (byl mrtvy kod - nikdy se nepriděloval). Odstraneno: enum, konstanta, konfigurace, 3x mapa v gamificationService, achievementService, achievementIntegration, 2x UI komponenta, 3x lokalizace (EN/DE/ES), i18n typy, technicka dokumentace.
 
 ---
 

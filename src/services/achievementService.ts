@@ -220,10 +220,7 @@ export class AchievementService {
           break;
           
         case 'streak':
-          if (condition.source === XPSourceType.DAILY_LAUNCH) {
-            const stats = await GamificationService.getGamificationStats();
-            currentValue = stats.currentStreak;
-          } else {
+          {
             // Handle custom sources using integration layer
             const { AchievementIntegration } = await import('./achievementIntegration');
             currentValue = await AchievementIntegration.getStreakValueForAchievement(condition.source, condition.timeframe);
@@ -941,7 +938,6 @@ export class AchievementService {
         sources.add(XPSourceType.HABIT_COMPLETION);
         sources.add(XPSourceType.JOURNAL_ENTRY);
         sources.add(XPSourceType.GOAL_PROGRESS);
-        sources.add(XPSourceType.DAILY_LAUNCH);
         break;
 
       case AchievementCategory.MASTERY:
@@ -958,7 +954,6 @@ export class AchievementService {
 
       case AchievementCategory.SPECIAL:
         // Special achievements may have unique triggering conditions
-        sources.add(XPSourceType.DAILY_LAUNCH);
         sources.add(XPSourceType.HABIT_COMPLETION);
         sources.add(XPSourceType.JOURNAL_ENTRY);
         sources.add(XPSourceType.GOAL_COMPLETION);

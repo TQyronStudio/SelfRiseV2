@@ -1768,7 +1768,6 @@ export class GamificationService {
       [XPSourceType.GOAL_PROGRESS]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
       [XPSourceType.GOAL_COMPLETION]: null, // No daily limit - milestone achievement
       [XPSourceType.GOAL_MILESTONE]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
-      [XPSourceType.DAILY_LAUNCH]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
       [XPSourceType.RECOMMENDATION_FOLLOW]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
       [XPSourceType.ACHIEVEMENT_UNLOCK]: null, // No daily limit
       [XPSourceType.MONTHLY_CHALLENGE]: null, // No daily limit (one per month)
@@ -2391,7 +2390,6 @@ export class GamificationService {
       [XPSourceType.GOAL_PROGRESS]: 0,
       [XPSourceType.GOAL_COMPLETION]: 0,
       [XPSourceType.GOAL_MILESTONE]: 0,
-      [XPSourceType.DAILY_LAUNCH]: 0,
       [XPSourceType.RECOMMENDATION_FOLLOW]: 0,
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 0,
       [XPSourceType.MONTHLY_CHALLENGE]: 0,
@@ -2521,7 +2519,6 @@ export class GamificationService {
       [XPSourceType.GOAL_PROGRESS]: 'Added progress to goal',
       [XPSourceType.GOAL_COMPLETION]: 'Completed goal',
       [XPSourceType.GOAL_MILESTONE]: 'Reached goal milestone',
-      [XPSourceType.DAILY_LAUNCH]: 'Launched app for first time today',
       [XPSourceType.RECOMMENDATION_FOLLOW]: 'Followed recommendation',
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 'Unlocked achievement',
       [XPSourceType.MONTHLY_CHALLENGE]: 'Completed monthly challenge',

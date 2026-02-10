@@ -165,12 +165,6 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           nameKey: 'multiplierBonuses',
           color: '#E91E63',
         };
-      case XPSourceType.DAILY_LAUNCH:
-        return {
-          icon: '🌅',
-          nameKey: 'dailyLaunches',
-          color: '#00BCD4',
-        };
       case XPSourceType.RECOMMENDATION_FOLLOW:
         return {
           icon: '💡',

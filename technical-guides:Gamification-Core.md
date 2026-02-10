@@ -76,7 +76,6 @@ XPSourceType.GOAL_COMPLETION: 250 XP     // Goal completed (NO daily limits - mi
 
 ### System XP
 ```typescript
-XPSourceType.DAILY_LAUNCH: 5 XP         // Daily app launch
 XPSourceType.ACHIEVEMENT_UNLOCK: Variable // Based on rarity (50-500 XP)
 ```
 

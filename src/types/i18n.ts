@@ -1945,7 +1945,6 @@ export interface TranslationKeys {
         achievement_unlock: string;
         general_activity: string;
         daily_engagement: string;
-        daily_launch: string;
         monthly_challenge: string;
         recommendation_follow: string;
         xp_multiplier_bonus: string;
@@ -1987,7 +1986,6 @@ export interface TranslationKeys {
           achievements: string;
           monthlyChallenges: string;
           multiplierBonuses: string;
-          dailyLaunches: string;
           recommendations: string;
           activities: string;
         };
