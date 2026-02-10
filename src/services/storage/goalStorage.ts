@@ -6,6 +6,7 @@ import { today } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export class GoalStorage implements EntityStorage<Goal> {
@@ -278,6 +279,34 @@ export class GoalStorage implements EntityStorage<Goal> {
         console.log(`🎯 Goal positive progress: ${goal.title} (+${input.value}, +${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
       } else if (input.progressType === 'subtract') {
         console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value})`);
+      }
+
+      // Check for milestone XP (only for positive progress that crosses a threshold)
+      if (input.progressType !== 'subtract' && newCompletionPercentage > previousCompletionPercentage) {
+        const milestones = [
+          { threshold: 25, xp: XP_REWARDS.GOALS.MILESTONE_25_PERCENT, label: '25%' },
+          { threshold: 50, xp: XP_REWARDS.GOALS.MILESTONE_50_PERCENT, label: '50%' },
+          { threshold: 75, xp: XP_REWARDS.GOALS.MILESTONE_75_PERCENT, label: '75%' },
+        ];
+
+        // Load already-awarded milestones to prevent duplicate awards after progress deletion
+        const milestoneKey = `goal_milestones_${goal.id}`;
+        const awardedRaw = await AsyncStorage.getItem(milestoneKey);
+        const awarded = awardedRaw ? JSON.parse(awardedRaw) as number[] : [];
+
+        for (const milestone of milestones) {
+          if (previousCompletionPercentage < milestone.threshold && newCompletionPercentage >= milestone.threshold && !awarded.includes(milestone.threshold)) {
+            await GamificationService.addXP(milestone.xp, {
+              source: XPSourceType.GOAL_MILESTONE,
+              description: `Goal ${milestone.label} milestone: ${goal.title}`,
+              sourceId: goal.id
+            });
+            awarded.push(milestone.threshold);
+            console.log(`🎯 Goal milestone ${milestone.label}: ${goal.title} (+${milestone.xp} XP)`);
+          }
+        }
+
+        await AsyncStorage.setItem(milestoneKey, JSON.stringify(awarded));
       }
 
       // ALWAYS check for goal completion (regardless of progress type)

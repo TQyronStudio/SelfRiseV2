@@ -42,7 +42,7 @@ Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere 
 
 **Navrh opravy:** Implementovat kontrolu milniku pri pridani progressu u cilu. Kdyz procento dokonceni prekroci 25%, 50% nebo 75%, pridelit odpovidajici bonusove XP (50, 75, 100 XP).
 
-**Status:** [ ] K prodiskutovani - chceme to implementovat, nebo radeji odstranit konstanty a aktualizovat docs?
+**Status:** [x] OPRAVENO - Implementovana kontrola milniku v goalStorage.addProgress(). Pri prekroceni 25% (+50 XP), 50% (+75 XP), 75% (+100 XP) se prideluje bonusove XP. Kazdy milnik se prideluje presne jednou.
 
 ---
 
@@ -78,7 +78,7 @@ Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere 
 
 **Navrh opravy:** Resit spolecne s bodem 1.3. Pokud implementujeme milniky, pridat i 100%. Pokud ne, odstranit z dokumentace.
 
-**Status:** [ ] Souvisi s 1.3 - resit spolecne
+**Status:** [x] ROZHODNUTO - 100% milestone NEIMPLEMENTOVAN. 100% = GOAL_COMPLETION (250 XP), coz je dostatecna odmena. Pridani dalsich 200 XP by bylo prilis. Dokumentace a kod jsou konzistentni (25%, 50%, 75% milniky + 250 XP za completion).
 
 ---
 
