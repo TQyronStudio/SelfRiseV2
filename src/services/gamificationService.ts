@@ -2452,23 +2452,9 @@ export class GamificationService {
     milestoneReached: boolean
   ): Promise<void> {
     try {
-      if (leveledUp) {
-        const newLevel = getCurrentLevel(await this.getTotalXP());
-        const levelInfo = getLevelInfo(newLevel);
-        
-        // Trigger level-up celebration via event system
-        DeviceEventEmitter.emit('levelUp', {
-          newLevel,
-          levelTitle: levelInfo.title,
-          levelDescription: levelInfo.description || '',
-          isMilestone: levelInfo.isMilestone,
-          source: transaction.source,
-          timestamp: Date.now()
-        });
-        
-        console.log(`🎉 Level up celebration triggered: Level ${newLevel} (${levelInfo.title})`);
-      }
-      
+      // NOTE: levelUp event is emitted by performXPAdditionInternal (inline loop at line ~920)
+      // which handles multi-level-ups and includes previousLevel. Do NOT emit here to avoid duplicates.
+
       if (milestoneReached) {
         console.log(`🏆 Milestone reached! Transaction: ${transaction.amount} XP from ${transaction.source}`);
       }

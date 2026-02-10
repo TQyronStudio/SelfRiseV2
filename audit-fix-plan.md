@@ -30,7 +30,7 @@ Tyto problemy primo ovlivnuji zazitek uzivatele - bud nedostavaji odmeny, ktere 
 
 **Navrh opravy:** Odstranit jeden z techto dvou emisnich bodu, aby se level-up udalost odeslala vzdy jen jednou. Ponechat tu cestu, ktera obsahuje vsechna potrebna data (cislo predchoziho i noveho levelu).
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Odstranen duplicitni levelUp emit z queueXPNotification. Ponechana inline loop (radek ~920) ktera ma kompletni data vcetne previousLevel a podporuje multi-level-up.
 
 ---
 
