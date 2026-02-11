@@ -120,7 +120,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Pridat tento bonus do dokumentace Gamification-Core, aby pravidla odpovidala realite.
 
-**Status:** [ ] K oprave (jen dokumentace)
+**Status:** [x] OPRAVENO - Konstanta BIG_GOAL_COMPLETION byla mrtvy kod (nikdy se nepouzivala). Implementovana v goalStorage + SQLiteGoalStorage (addProgress + recalculate). Threshold zmenen na >= 10000. bigGoalsCompleted stat aktualizovan. Dokumentace doplnena.
 
 ---
 

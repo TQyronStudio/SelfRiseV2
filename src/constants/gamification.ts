@@ -50,7 +50,7 @@ export const XP_REWARDS = {
     MILESTONE_50_PERCENT: 75,   // Reaching 50% completion
     MILESTONE_75_PERCENT: 100,  // Reaching 75% completion
     GOAL_COMPLETION: 250,       // Completing a goal entirely
-    BIG_GOAL_COMPLETION: 350,   // Completing goal with value ≥ 1000
+    BIG_GOAL_COMPLETION: 350,   // Completing goal with targetValue ≥ 10000
   },
 
   // Engagement & Meta Actions XP

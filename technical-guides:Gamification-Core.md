@@ -72,6 +72,7 @@ XPSourceType.GOAL_MILESTONE:
 - 100% completion: 200 XP
 
 XPSourceType.GOAL_COMPLETION: 250 XP     // Goal completed (NO daily limits - milestone achievement)
+XPSourceType.GOAL_COMPLETION: 350 XP     // BIG goal completed (targetValue ≥ 10000)
 ```
 
 ### System XP

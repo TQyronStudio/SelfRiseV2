@@ -500,12 +500,13 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
 
       if (justCompleted) {
-        await GamificationService.addXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+        const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
+        await GamificationService.addXP(completionXP, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `🎉 Goal completed: ${goal.title}`,
           sourceId: goal.id
         });
-        console.log(`🏆 Goal completed: ${goal.title} (+${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
+        console.log(`🏆 Goal completed: ${goal.title} (+${completionXP} XP${goal.targetValue >= 10000 ? ' BIG GOAL' : ''})`);
       }
 
       return newProgress;
@@ -702,20 +703,21 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       }
 
       // Handle XP for goal completion status changes
+      const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
       if (shouldBeCompleted) {
-        await GamificationService.addXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+        await GamificationService.addXP(completionXP, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `🎉 Goal completed: ${goal.title}`,
           sourceId: goal.id
         });
-        console.log(`🏆 Goal completed during recalculation: ${goal.title} (+${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
+        console.log(`🏆 Goal completed during recalculation: ${goal.title} (+${completionXP} XP)`);
       } else if (shouldBeActive && wasCompleted) {
-        await GamificationService.subtractXP(XP_REWARDS.GOALS.GOAL_COMPLETION, {
+        await GamificationService.subtractXP(completionXP, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `📉 Goal dropped below completion: ${goal.title}`,
           sourceId: goal.id
         });
-        console.log(`📉 Goal completion reversed: ${goal.title} (-${XP_REWARDS.GOALS.GOAL_COMPLETION} XP)`);
+        console.log(`📉 Goal completion reversed: ${goal.title} (-${completionXP} XP)`);
       }
 
       await this.update(goalId, {
@@ -913,7 +915,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       const totalGoalsCreated = allGoals.length;
       const completedGoals = allGoals.filter(g => g.status === GoalStatus.COMPLETED);
       const totalGoalsCompleted = completedGoals.length;
-      const bigGoalsCompleted = completedGoals.filter(g => g.targetValue >= 1000).length;
+      const bigGoalsCompleted = completedGoals.filter(g => g.targetValue >= 10000).length;
 
       const averageGoalValue = totalGoalsCreated > 0
         ? allGoals.reduce((sum, g) => sum + g.targetValue, 0) / totalGoalsCreated
