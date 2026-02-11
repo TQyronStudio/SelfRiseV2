@@ -91,7 +91,7 @@ export const XP_REWARDS = {
     LEVEL_UP_BONUS: 100,        // Bonus XP for leveling up
     PERFECT_DAY: 200,           // All three features used in one day
     HARMONY_STREAK_7: 300,      // 7 days of balanced app usage
-    COMEBACK_BONUS: 150,        // Returning after 30+ days absence
+    COMEBACK_BONUS: 25,         // Returning after 3+ days absence
   },
 } as const;
 

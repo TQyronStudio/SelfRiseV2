@@ -17,7 +17,7 @@ import { DeviceEventEmitter } from 'react-native';
 import i18next from 'i18next';
 import { DateString } from '../types/common';
 import { XPMultiplier, MultiplierCondition } from '../types/gamification';
-import { XP_MULTIPLIERS } from '../constants/gamification';
+import { XP_MULTIPLIERS, XP_REWARDS } from '../constants/gamification';
 import { formatDateToString, today, addDays, subtractDays } from '../utils/date';
 import { GoalStorage } from './storage/goalStorage';
 import { GratitudeStorage } from './storage/gratitudeStorage';
@@ -1065,8 +1065,8 @@ export class XPMultiplierService {
         JSON.stringify(multiplier)
       );
       
-      // Award bonus XP for comeback (25 XP bonus)
-      const bonusXP = 25;
+      // Award bonus XP for comeback
+      const bonusXP = XP_REWARDS.SPECIAL.COMEBACK_BONUS;
       const { GamificationService } = require('./gamificationService');
       
       await GamificationService.addXP(bonusXP, {

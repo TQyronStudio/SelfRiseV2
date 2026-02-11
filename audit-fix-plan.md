@@ -108,7 +108,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Opravit konstantu na 25 XP a pouzivat ji misto hardcoded hodnoty.
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Konstanta COMEBACK_BONUS opravena z 150 na 25. Hardcoded hodnota v xpMultiplierService nahrazena odkazem na konstantu XP_REWARDS.SPECIAL.COMEBACK_BONUS.
 
 ---
 
