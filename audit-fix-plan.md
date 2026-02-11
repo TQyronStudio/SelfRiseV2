@@ -96,7 +96,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Sjednotit vsechna tri mista tak, aby vzdy posilala stejnou sadu dat. Opravit spolecne s bodem 1.2 (po odstraneni duplicity zustane mene mist k sjednoceni).
 
-**Status:** [ ] K oprave (po bode 1.2)
+**Status:** [x] OPRAVENO - Vsechna 3 emisni mista sjednocena. achievementService (foreground + background) nyni zachytava xpResult.previousLevel a pouziva loop pro multi-level-up (shodny vzor s gamificationService). Data: { newLevel, previousLevel, levelTitle, levelDescription, isMilestone, timestamp }.
 
 ---
 

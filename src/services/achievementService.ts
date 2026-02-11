@@ -547,16 +547,18 @@ export class AchievementService {
       // Award XP for unlocked achievements
       let leveledUp = false;
       let newLevel: number | undefined;
-      
+      let previousLevel: number | undefined;
+
       if (totalXPAwarded > 0) {
         const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
           description: `Unlocked ${newlyUnlocked.length} achievement(s)`,
           skipNotification: true // We'll handle notifications separately
         });
-        
+
         leveledUp = xpResult.leveledUp;
         newLevel = xpResult.newLevel;
+        previousLevel = xpResult.previousLevel;
       }
 
       // Trigger achievement unlock notifications
@@ -572,20 +574,23 @@ export class AchievementService {
           });
         }
 
-        // Level-up event can now be emitted SYNCHRONOUSLY because:
+        // Level-up events emitted SYNCHRONOUSLY because:
         // 1. triggerAchievementNotifications emits 'achievementQueueStarting' FIRST
         // 2. XpAnimationContext's handleAchievementQueueStarting sets isAchievementModalActive = true SYNCHRONOUSLY
-        // 3. This levelUp event is processed AFTER, sees isAchievementModalActive = true, and queues properly
-        if (leveledUp && newLevel !== undefined) {
-          const levelInfo = getLevelInfo(newLevel);
-          DeviceEventEmitter.emit('levelUp', {
-            newLevel,
-            previousLevel: newLevel - 1,
-            levelTitle: levelInfo.title,
-            levelDescription: levelInfo.description || '',
-            isMilestone: levelInfo.isMilestone,
-            timestamp: Date.now(),
-          });
+        // 3. These levelUp events are processed AFTER, see isAchievementModalActive = true, and queue properly
+        // Loop handles multi-level-up (matching gamificationService pattern)
+        if (leveledUp && newLevel !== undefined && previousLevel !== undefined) {
+          for (let level = previousLevel + 1; level <= newLevel; level++) {
+            const levelInfo = getLevelInfo(level);
+            DeviceEventEmitter.emit('levelUp', {
+              newLevel: level,
+              previousLevel: level - 1,
+              levelTitle: levelInfo.title,
+              levelDescription: levelInfo.description || '',
+              isMilestone: levelInfo.isMilestone,
+              timestamp: Date.now() + (level - previousLevel - 1) * 100,
+            });
+          }
         }
 
         // Check for Achievement Combo Multiplier (3+ achievements in 24h)
@@ -789,6 +794,7 @@ export class AchievementService {
       // Award XP for unlocked achievements
       let bgLeveledUp = false;
       let bgNewLevel: number | undefined;
+      let bgPreviousLevel: number | undefined;
       if (totalXPAwarded > 0) {
         const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
@@ -797,6 +803,7 @@ export class AchievementService {
         });
         bgLeveledUp = xpResult.leveledUp;
         bgNewLevel = xpResult.newLevel;
+        bgPreviousLevel = xpResult.previousLevel;
       }
 
       // Queue delayed notifications for background achievements
@@ -815,18 +822,21 @@ export class AchievementService {
             });
           }
 
-          // Level-up event can now be emitted SYNCHRONOUSLY because:
+          // Level-up events emitted SYNCHRONOUSLY because:
           // triggerAchievementNotifications already set isAchievementModalActive = true via 'achievementQueueStarting'
-          if (bgLeveledUp && bgNewLevel !== undefined) {
-            const levelInfo = getLevelInfo(bgNewLevel);
-            DeviceEventEmitter.emit('levelUp', {
-              newLevel: bgNewLevel,
-              previousLevel: bgNewLevel - 1,
-              levelTitle: levelInfo.title,
-              levelDescription: levelInfo.description || '',
-              isMilestone: levelInfo.isMilestone,
-              timestamp: Date.now(),
-            });
+          // Loop handles multi-level-up (matching gamificationService pattern)
+          if (bgLeveledUp && bgNewLevel !== undefined && bgPreviousLevel !== undefined) {
+            for (let level = bgPreviousLevel + 1; level <= bgNewLevel; level++) {
+              const levelInfo = getLevelInfo(level);
+              DeviceEventEmitter.emit('levelUp', {
+                newLevel: level,
+                previousLevel: level - 1,
+                levelTitle: levelInfo.title,
+                levelDescription: levelInfo.description || '',
+                isMilestone: levelInfo.isMilestone,
+                timestamp: Date.now() + (level - bgPreviousLevel - 1) * 100,
+              });
+            }
           }
         }, 500); // 500ms delay for background notifications
 
