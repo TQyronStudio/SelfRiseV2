@@ -16,14 +16,56 @@
 
 ## Event System
 
-### Standardized Events Only
+### Kompletni seznam gamifikacnich eventu (18 eventu)
+
+#### Core XP & Level eventy (4)
 ```typescript
-'xpGained'           // Every XP addition/subtraction
-'levelUp'            // Level progression  
-'xpBatchCommitted'   // Batched operations complete
-'achievementUnlocked' // Achievement triggers
+'xpGained'              // Kazde pridani/odebrani XP → XpAnimationContext, OptimizedXpProgressBar
+'levelUp'               // Level-up detekce → XpAnimationContext, OptimizedXpProgressBar
+'xpBatchCommitted'      // Batch operace dokoncena → XpAnimationContext
+'xpSmartNotification'   // Smart notifikace pro XP → XpAnimationContext
+```
+
+#### Achievement eventy (4)
+```typescript
+'achievementQueueStarting'      // Synchronni pre-registrace pred achievement modaly → XpAnimationContext
+'achievementUnlocked'           // Jednotlivy achievement odemcen → AchievementContext
+'multipleAchievementsUnlocked'  // Vice achievementu najednou (crescendo razeni) → AchievementContext
+'achievementCelebrationClosed'  // Achievement modal zavren → HabitForm, GoalForm (cekaji na zavření)
+```
+
+#### XP Multiplier eventy (1)
+```typescript
+'xpMultiplierActivated'  // Multiplier aktivovan (napr. 1.5x za 4h) → BEZ LISTENERU
+```
+
+#### Monthly Challenge eventy (5)
+```typescript
+'monthly_progress_updated'      // Pokrok vyzvy aktualizovan → index.tsx, MonthlyChallengeSection
+'monthly_challenge_completed'   // Vyzva dokoncena → MonthlyChallengeSection (zobrazi modal)
+'monthly_milestone_reached'     // Milnik 25/50/75% dosazeny → BEZ LISTENERU
+'monthly_week_completed'        // Cely tyden (7/7 dnu) dokoncen → BEZ LISTENERU
+'daily_snapshot_created'        // Denni snapshot pokroku vytvoren → BEZ LISTENERU
+```
+
+#### Star Rating eventy (3)
+```typescript
+'star_level_changed'         // Zmena urovne hvezd → BEZ LISTENERU
+'star_progression_updated'   // Aktualizace star progrese → BEZ LISTENERU
+'difficulty_recalculated'    // Prepocet obtiznosti → BEZ LISTENERU
+```
+
+#### UI/Tutorial eventy (ne-gamifikacni, pro uplnost)
+```typescript
+'tutorial_scroll_to'         // Scrollovani na pozici v tutorialu
+'tutorial_scroll_completed'  // Tutorial krok dokoncen
+'openHomeCustomization'      // Otevreni home customization modalu
+```
+
+> **Poznamka:** 7 eventu (oznacenych BEZ LISTENERU) se emituje, ale zadna komponenta je neposlouchá. Jsou pripraveny pro budouci UI featury (celebrace milniku, multiplier notifikace, star rating vizualy).
 
 // ❌ FORBIDDEN: Custom XP events
+```typescript
 'enhanced_xp_awarded' // DEPRECATED - use 'xpGained'
 'custom_xp_event'     // FORBIDDEN - use standard events
 ```
@@ -239,13 +281,14 @@ console.log(`📊 Modal Flow Tracking:`, {
   timestamp: Date.now()
 });
 
-// 3. Modal Coordination (XpAnimationContext)
+// 3. Modal Coordination (XpAnimationContext) - 4-Tier system
 console.log(`📊 Modal Flow Tracking:`, {
   event: 'LEVEL_UP_EVENT_RECEIVED',
   modalState: {
-    isPrimaryModalActive,
-    currentPrimaryModalType,
-    pendingSecondaryModals: queue.length
+    isActivityModalActive,        // Tier 1
+    isMonthlyChallengeModalActive, // Tier 2
+    isAchievementModalActive,      // Tier 3
+    pendingLevelUpModals: queue.length // Tier 4
   },
   timestamp: Date.now()
 });
@@ -445,28 +488,29 @@ const XPSystemRecovery = {
    ┌─────────────────────────┐            │ XpAnimationContext      │
    │ Priority System Check   │◀───────────│ .handleLevelUp()        │
    │                         │            │                         │
-   │ Primary Modal Active?   │            │ • Enhanced Logging ✓    │
-   │ ├─ YES: Queue Modal     │            │ • Error Handling ✓     │
-   │ └─ NO: Show Immediately │            │ • State Tracking       │
-   └─────────────────────────┘            └─────────────────────────┘
+   │ Higher Tier Active?  │            │ • Enhanced Logging ✓    │
+   │ (Tier 1/2/3)        │            │ • Error Handling ✓     │
+   │ ├─ YES: Queue Modal  │            │ • State Tracking       │
+   │ └─ NO: Show Now      │            └─────────────────────────┘
+   └─────────────────────────┘                      │
            │                                         │
            ▼                                         ▼
    ┌─────────────────────┐              ┌─────────────────────────┐
-   │ Secondary Queue     │              │ Immediate Display       │
+   │ Tier 4 Queue        │              │ Immediate Display       │
    │                     │              │                         │
-   │ • Pending Modal     │              │ showLevelUpModal()      │
-   │ • Timestamp         │              │ • Enhanced Logging ✓    │
-   │ • Wait for Primary  │              │ • Error Handling ✓     │
+   │ • pendingLevelUp    │              │ showLevelUpModal()      │
+   │   Modals[]          │              │ • Enhanced Logging ✓    │
+   │ • Wait for Tier 1-3 │              │ • Error Handling ✓     │
    │   to finish         │              │ • Haptic Feedback      │
    └─────────────────────┘              │ • Visual Celebration   │
            │                            └─────────────────────────┘
-           │ primary modal ends                      │
+           │ higher tier ends                         │
            ▼                                         ▼
    ┌─────────────────────┐                ┌─────────────────────────┐
    │ Process Queue       │                │ User Sees Modal        │
    │                     │                │                         │
-   │ processSecondary    │                │ 🎉 Level 9 Achieved!   │
-   │ Modals()           │                │ 'Rising Star'           │
+   │ processLevelUp      │                │ 🎉 Level 9 Achieved!   │
+   │ Modals()            │                │ 'Rising Star'           │
    │ • Enhanced Logging ✓│                │                         │
    │ • Error Handling ✓ │                │ [Celebration Effects]   │
    │ • Queue Management  │                │ • Haptics              │

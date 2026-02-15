@@ -226,7 +226,7 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 - daily_snapshot_created, monthly_challenge_completed
 - tutorial_scroll_to, tutorial_scroll_completed
 
-**Status:** [ ] K oprave (jen dokumentace)
+**Status:** [x] OPRAVENO - Doplnen kompletni seznam 18 gamifikacnich eventu do technical-guides:Gamification-Events.md. Aktualizovany deprecated nazvy v logging a flow diagramu (Primary/Secondary → 4-Tier). Identifikovano 7 eventu bez listeneru (viz Faze 5).
 
 ---
 
@@ -293,6 +293,110 @@ Tyto body nemaji vliv na funkcnost, ale je dobre je mit na pameti.
 **Navrh opravy:** V achievement dokumentaci pridat sloupec s technickym ID ke kazdemu achievementu.
 
 **Status:** [ ] Volitelne vylepseni
+
+---
+
+## FAZE 5: Mrtve eventy - emituji se, ale nikdo je neposlouchá
+
+Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do prazdna. Zadna komponenta je neposlouchá. Nejde o bugy - aplikace funguje - ale uzivatel prichazi o vizualni zpetnou vazbu.
+
+---
+
+### 5.1 `xpMultiplierActivated` - uzivatel nevidi aktivaci multiplikatoru
+
+**Problem:** Event se emituje na 3 mistech v xpMultiplierService.ts (radky 847, 1246, 1414), ale zadna UI komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat uzivatele, ze se mu aktivoval XP multiplikator (napr. "1.5× XP bonus na 4 hodiny!"). Bez toho uzivatel nevi, ze bonus bezi.
+
+**Dopad:** Stredni. Uzivatel ziska bonus XP, ale nevi o tom. Chybi motivacni efekt.
+
+**Navrh opravy:** Pridat listener v XpAnimationContext nebo dedickem komponente, ktery zobrazi notifikaci/toast o aktivaci multiplikatoru.
+
+**Status:** [ ] K implementaci
+
+---
+
+### 5.2 `monthly_milestone_reached` - chybi celebrace milniku 25/50/75%
+
+**Problem:** Event se emituje v monthlyProgressTracker.ts (radek 1337), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Zobrazit uzivateli celebraci, kdyz dosahne 25%, 50% nebo 75% mesicni vyzvy. XP se prideluje spravne, ale uzivatel nedostane vizualni oslavu.
+
+**Dopad:** Stredni. Uzivatel prichazi o motivacni milniky behem mesice. Jedina celebrace je az pri 100% dokonceni.
+
+**Navrh opravy:** Pridat listener v MonthlyChallengeSection nebo na Home screenu, ktery zobrazi milestone celebraci (toast nebo mini-modal).
+
+**Status:** [ ] K implementaci
+
+---
+
+### 5.3 `monthly_week_completed` - chybi zpetna vazba za dokonceny tyden
+
+**Problem:** Event se emituje v monthlyProgressTracker.ts (radek 1206), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat uzivatele, ze uspesne dokoncil cely tyden mesicni vyzvy (7/7 aktivnich dnu).
+
+**Dopad:** Nizky. Tydenni data se spravne ukladaji. Chybi jen vizualni potvrzeni pro uzivatele.
+
+**Navrh opravy:** Pridat listener ktery zobrazi kratkou notifikaci "Tyden X dokoncen!" nebo to integrovat do progress baru vyzvy.
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 5.4 `daily_snapshot_created` - interni diagnosticky event
+
+**Problem:** Event se emituje v monthlyProgressTracker.ts (radek 1080), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat o vytvoreni denniho snapshotu pokroku vyzvy. Jde o interni diagnosticky event.
+
+**Dopad:** Zadny pro uzivatele. Tento event je spise pro interni logging/debugging.
+
+**Navrh opravy:** Bud odstranit emit (zbytecny overhead), nebo ponechat pro budouci analytics. Neni potreba listener.
+
+**Status:** [ ] K rozhodnuti (mozna smazat)
+
+---
+
+### 5.5 `star_level_changed` - zmena hvezd bez vizualni zpetne vazby
+
+**Problem:** Event se emituje na 3 mistech v starRatingService.ts (radky 238, 324, 647), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat UI o zmene urovne hvezd uzivatele (napr. z 2★ na 3★). UI by mohlo zobrazit celebraci nebo aktualizovat hvezdickovy indikator.
+
+**Dopad:** Nizky-stredni. Star rating se meni na pozadi, UI se refreshuje manualne pri nacitani screenu. Chybi okamzita zpetna vazba.
+
+**Navrh opravy:** Pridat listener v MonthlyChallengeSection pro okamzity refresh star ratingu, pripadne kratka celebrace pri povyseni hvezdy.
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 5.6 `star_progression_updated` - aktualizace progrese hvezd
+
+**Problem:** Event se emituje v starRatingService.ts (radek 336), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat UI o aktualizaci progrese smerem k dalsi hvezde.
+
+**Dopad:** Nizky. Jde o granularni update - uzivatel vidi progress pri nacitani screenu.
+
+**Navrh opravy:** Pridat listener pro real-time progress bar aktualizaci, nebo ponechat bez listeneru (manual refresh staci).
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 5.7 `difficulty_recalculated` - prepocet obtiznosti
+
+**Problem:** Event se emituje v starRatingService.ts (radek 429), ale zadna komponenta ho neposlouchá.
+
+**Co to ma delat:** Informovat o prepoctu obtiznosti vyzvy na zaklade vykonnosti uzivatele.
+
+**Dopad:** Zadny pro uzivatele. Interni event pro analytics/debugging.
+
+**Navrh opravy:** Bud odstranit emit, nebo ponechat pro budouci analytics. Neni potreba listener pro uzivatele.
+
+**Status:** [ ] K rozhodnuti (mozna smazat)
 
 ---
 
