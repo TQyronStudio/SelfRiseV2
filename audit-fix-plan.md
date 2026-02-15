@@ -132,7 +132,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Sjednotit hodnotu na jedno misto. Rozhodnout, ktera hodnota je spravna (1688 nebo 1556).
 
-**Status:** [ ] K rozhodnuti
+**Status:** [x] OPRAVENO - ENHANCED_STAR_BASE_REWARDS[4] opraven z 1556 na 1688 (spravna ×1.5 progrese). WARM_UP_CHALLENGES konstanta smazana (mrtvy kod, nikde neimportovana).
 
 ---
 
@@ -144,7 +144,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Nahradit raw string za spravny enum typ.
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Nahrazeny 2 raw stringy 'achievement_unlock' za XPSourceType.ACHIEVEMENT_UNLOCK v achievementService.ts (radky 572 a 820).
 
 ---
 

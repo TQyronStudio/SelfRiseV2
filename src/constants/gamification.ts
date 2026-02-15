@@ -77,15 +77,6 @@ export const XP_REWARDS = {
     FIVE_STAR: 25000,    // 5★ Full challenge
   },
 
-  // Warm-Up Challenge XP (original values for new users < 20 days)
-  WARM_UP_CHALLENGES: {
-    ONE_STAR: 500,      // 1★ Warm-up challenge
-    TWO_STAR: 750,      // 2★ Warm-up challenge
-    THREE_STAR: 1125,   // 3★ Warm-up challenge
-    FOUR_STAR: 1688,    // 4★ Warm-up challenge
-    FIVE_STAR: 2532,    // 5★ Warm-up challenge
-  },
-
   // Special Event Bonuses
   SPECIAL: {
     LEVEL_UP_BONUS: 100,        // Bonus XP for leveling up

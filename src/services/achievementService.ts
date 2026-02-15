@@ -569,7 +569,7 @@ export class AchievementService {
         if (totalXPAwarded > 0) {
           DeviceEventEmitter.emit('xpGained', {
             amount: totalXPAwarded,
-            source: 'achievement_unlock',
+            source: XPSourceType.ACHIEVEMENT_UNLOCK,
             timestamp: Date.now(),
           });
         }
@@ -817,7 +817,7 @@ export class AchievementService {
           if (totalXPAwarded > 0) {
             DeviceEventEmitter.emit('xpGained', {
               amount: totalXPAwarded,
-              source: 'achievement_unlock',
+              source: XPSourceType.ACHIEVEMENT_UNLOCK,
               timestamp: Date.now(),
             });
           }

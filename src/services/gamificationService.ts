@@ -3479,7 +3479,7 @@ export class GamificationService {
     1: 500,   // 1★ Easy
     2: 750,   // 2★ Medium
     3: 1125,  // 3★ Hard
-    4: 1556,  // 4★ Expert
+    4: 1688,  // 4★ Expert
     5: 2532   // 5★ Master
   } as const;
 
