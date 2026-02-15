@@ -370,15 +370,15 @@
 ## 📊 **STATISTIKY PRO MAJITELE**
 
 ### **Celkový Přehled**
-- **Celkem Achievements**: 76
-- **Celkové možné XP**: 26,675 XP
-- **Kategorie**: 6 (Habits: 8, Journal: 31, Goals: 6, Consistency: 8, Mastery: 9, Special: 14)
+- **Celkem Achievements**: 78
+- **Celkové možné XP**: 25,050 XP
+- **Kategorie**: 6 (Habits: 8, Journal: 31, Goals: 8, Consistency: 8, Mastery: 9, Special: 14)
 
 ### **Rozložení podle obtížnosti**
 - **Common (Běžné)**: 5 achievements • 50 XP každý
-- **Rare (Vzácné)**: 17 achievements • 100-125 XP každý  
+- **Rare (Vzácné)**: 18 achievements • 100-125 XP každý
 - **Epic (Epické)**: 29 achievements • 150-300 XP každý
-- **Legendary (Legendární)**: 25 achievements • 350-2000 XP každý
+- **Legendary (Legendární)**: 26 achievements • 350-2000 XP každý
 
 ### **Motivační strategie**
 - **Rychlé výhry**: Common achievements pro nové uživatele
@@ -418,13 +418,15 @@
 
 ### Complete Achievement System Overview
 
-The SelfRise V2 achievement system consists of **52 achievements** across **6 categories**:
+The SelfRise V2 achievement system consists of **78 achievements** across **6 categories**:
 
 #### **System Breakdown**
-- **Existing System**: 42 achievements (fully implemented)
-- **Loyalty System**: 10 achievements (Sub-checkpoint 4.5.10.C)
-- **Total Possible XP**: 18,625 XP from all achievements
-- **Categories**: 6 (Habits, Journal, Goals, Consistency, Mastery, Special)
+- **Core System**: 42 achievements (original)
+- **Loyalty System**: 10 achievements
+- **Journal Bonus Achievements**: 24 achievements (⭐🔥👑 milestones)
+- **Goals Expansion**: 2 additional achievements
+- **Total Possible XP**: 25,050 XP from all achievements
+- **Categories**: 6 (Habits: 8, Journal: 31, Goals: 8, Consistency: 8, Mastery: 9, Special: 14)
 
 #### **User Experience Types**
 ```typescript
@@ -469,7 +471,7 @@ Collectors → Meta achievements (Trophy Collector, Trophy Master)
 'first habit'          // spaces - NOT ALLOWED
 ```
 
-#### **ID Pattern Analysis (52 Achievements)**
+#### **ID Pattern Analysis (78 Achievements)**
 
 Based on analysis of all existing achievements in `achievementCatalog.ts`:
 
@@ -604,7 +606,7 @@ validateAchievementId('-first-habit');          // ❌ false (starts with hyphen
 3. ✅ Is it consistent with similar achievement naming?
 4. ✅ Does it include appropriate category context?
 5. ✅ Does it follow progression patterns if part of a series?
-6. ✅ Is it unique across all 52 existing achievements?
+6. ✅ Is it unique across all 78 existing achievements?
 7. ✅ Would a new developer understand its purpose?
 ```
 
@@ -675,7 +677,7 @@ interface Achievement {
 
 #### **Existing Achievement Compliance (VERIFIED)**
 ```typescript
-// ALL 52 existing achievements verified as compliant:
+// ALL 78 existing achievements verified as compliant:
 ✅ Habits Category (8 achievements): All kebab-case
 ✅ Journal Category (8 achievements): All kebab-case  
 ✅ Goals Category (7 achievements): All kebab-case
@@ -796,14 +798,14 @@ LOYALTY_LEGENDARY: 500-2000 XP
 ```typescript
 describe('Achievement System Complete Testing', () => {
   describe('Achievement ID Compliance', () => {
-    it('should validate all 52 achievement IDs follow kebab-case', () => {
+    it('should validate all 78 achievement IDs follow kebab-case', () => {
       // Test ID format compliance
     });
   });
-  
+
   describe('Preview System Integration', () => {
     it('should show progress hints for all locked achievements', () => {
-      // Test progress hint generation for all 52 achievements
+      // Test progress hint generation for all 78 achievements
     });
     
     it('should display completion requirements clearly', () => {
@@ -1076,4 +1078,4 @@ return <Modal visible={visible}...>
 
 ---
 
-*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of all 52 achievements creates a robust ecosystem designed for sustained user engagement.*
+*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of all 78 achievements creates a robust ecosystem designed for sustained user engagement.*

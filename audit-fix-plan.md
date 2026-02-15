@@ -193,7 +193,7 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 
 **Navrh opravy:** Projit celou dokumentaci achievementu a sjednotit vsechny pocty na aktualni stav (78 achievementu, Goals: 8).
 
-**Status:** [ ] K oprave (jen dokumentace)
+**Status:** [x] OPRAVENO - Sjednoceny vsechny pocty v technical-guides:Achievements.md: 78 achievements, Goals: 8, Rare: 18, Legendary: 26, Total XP: 25,050. Opraveno 7 vyskytu cisla 52 na 78.
 
 ---
 
@@ -205,7 +205,7 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 
 **Navrh opravy:** Opravit komentar na radku 2 z "76" na "78".
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Komentar na radku 2 achievementCatalog.ts opraven z "76" na "78".
 
 ---
 
