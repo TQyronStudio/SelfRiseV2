@@ -252,7 +252,9 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 
 **Navrh opravy:** Resit spolecne s bodem 3.5 - pri vytvareni interfaces definovat, co je opravdu potreba, a sjednotit kod i dokumentaci.
 
-**Status:** [ ] Souvisi s 3.5
+**Reseni:** Vsechny 3 problemy vyreseny v ramci bodu 3.5. Dokumentace nyni presne odpovidala realite: `totalXP` a `description` odstraneny (nikdy se neposilaly), `position` pridano (realne se posila v xpGained).
+
+**Status:** [x] OPRAVENO - vyreseno v ramci 3.5
 
 ---
 
@@ -264,7 +266,9 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 
 **Navrh opravy:** Rozhodnout, jestli tyto mechanismy chceme implementovat, nebo je z dokumentace odstranit. Doporucuji je zatim z dokumentace odstranit (znacit jako "planned for future") a implementovat az bude potreba - aplikace funguje i bez nich.
 
-**Status:** [ ] K rozhodnuti
+**Reseni:** Fiktivni funkce `logGamificationError()` a `XPSystemRecovery` odstraneny z dokumentace. `validateXPEventData()` jiz odstranena v 3.5. Ponechany realne error handling patterny (try/catch), ktere odpovidaji kodu (55 try/catch v gamificationService, 6 v XpAnimationContext). Opraven i zastaraly odkaz "Primary vs Secondary" → 4-Tier.
+
+**Status:** [x] OPRAVENO - fiktivni funkce odstraneny, realne patterny ponechany
 
 ---
 

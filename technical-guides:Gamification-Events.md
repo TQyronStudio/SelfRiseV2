@@ -303,39 +303,6 @@ console.log(`📊 Memory Cleanup Results:`, {
 });
 ```
 
-### Diagnostic Logging Standards
-```typescript
-// COMPREHENSIVE ERROR LOGGING for gamification issues
-const logGamificationError = (error: any, context: string, data?: any) => {
-  console.error(`🚨 Gamification Error - ${context}:`, {
-    error: error.message || error,
-    stack: error.stack,
-    context,
-    data: data || {},
-    timestamp: new Date().toISOString(),
-    userAgent: 'SelfRise Mobile App'
-  });
-  
-  // Optional: Send to crash reporting service
-  // crashlytics().recordError(error);
-};
-
-// USAGE PATTERN:
-const handleXPOperation = async () => {
-  try {
-    await somXPOperation();
-  } catch (error) {
-    logGamificationError(error, 'XP Addition Failed', { 
-      operation: 'addXP',
-      source: 'HABIT_COMPLETION',
-      amount: 25 
-    });
-    
-    // Continue without throwing
-  }
-};
-```
-
 ---
 
 ## Complete Level-up Flow Architecture
@@ -354,8 +321,8 @@ const handleXPOperation = async () => {
 2. Event Processing (XpAnimationContext.handleLevelUp)  
    ├── Enhanced Logging: Modal coordination state tracking
    ├── Error Handling: Modal failures don't break core functionality
-   ├── Priority System: Primary vs Secondary modal coordination
-   └── Queue Management: Pending secondary modals with timestamps
+   ├── Priority System: 4-Tier modal coordination (Activity → Monthly → Achievement → Level-up)
+   └── Queue Management: Pending level-up modals with timestamps
 
 3. Modal Display (showLevelUpModal)
    ├── Enhanced Logging: Modal display lifecycle tracking  
@@ -398,40 +365,6 @@ try {
   console.error('🚨 Cleanup failed, but app continues normally:', error);
   // Cleanup will retry on next app launch
 }
-```
-
----
-
-## Recovery Strategies
-
-### Automatic Recovery Patterns
-```typescript
-// AUTOMATIC RECOVERY PATTERNS
-const XPSystemRecovery = {
-  // Strategy 1: Retry failed operations
-  retryWithBackoff: async (operation: () => Promise<void>, maxRetries = 3) => {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await operation();
-        return; // Success
-      } catch (error) {
-        if (attempt === maxRetries) {
-          logGamificationError(error, 'Max retries exceeded');
-          return; // Give up gracefully
-        }
-        
-        // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
-      }
-    }
-  },
-  
-  // Strategy 2: Queue failed operations for later
-  queueFailedOperation: (operation: () => Promise<void>) => {
-    // Implementation would store operation in AsyncStorage
-    // and retry during next app launch or network recovery
-  }
-};
 ```
 
 ---
