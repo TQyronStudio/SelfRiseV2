@@ -391,7 +391,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   }, [showingCelebration, celebrationQueue.length, notifyAchievementModalStarted, isHigherPriorityModalActive]);
 
   /**
-   * Close current celebration modal and show next in queue with 3-Tier Modal Priority System coordination
+   * Close current celebration modal and show next in queue with 4-Tier Modal Priority System coordination
    */
   const closeCelebrationModal = useCallback(() => {
     console.log('✅ Closing Achievement Celebration Modal (Tier 3)');

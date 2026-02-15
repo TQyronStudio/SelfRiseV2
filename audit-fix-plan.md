@@ -156,7 +156,7 @@ Tyto problemy nezpusobuji prime chyby pro uzivatele, ale mohou vest k budoucim p
 
 **Navrh opravy:** Opravit oba komentare na "4-Tier" - coz je aktualni stav systemu.
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Opraven komentar v AchievementContext.tsx radek 394: "3-Tier" -> "4-Tier".
 
 ---
 
