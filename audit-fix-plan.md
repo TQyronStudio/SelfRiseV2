@@ -181,7 +181,7 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 - Zdokumentovat crescendo razeni
 - Zdokumentovat tutorial suppression
 
-**Status:** [ ] K prepisu
+**Status:** [x] OPRAVENO - Kompletne prepsana sekce Modal Priority System v technical-guides:Gamification-UI.md na 4-Tier. Aktualizovany vsechny nazvy funkci, state properties, timing hodnoty, pridana achievementQueueStarting pre-registrace a legacy aliasy.
 
 ---
 

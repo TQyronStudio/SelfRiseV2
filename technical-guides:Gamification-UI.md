@@ -200,37 +200,42 @@ borderColor: getRarityColor(currentLevel)
 ## Level-up Modal System - Global Celebration Architecture
 
 ### 🎯 FUNDAMENTAL PRINCIPLE
-**Modal Priority System: Primary modaly (uživatelské akce) mají OKAMŽITOU PRIORITU. Secondary modaly (systémové celebrations) ČEKAJÍ až primary skončí.**
+**4-Tier Modal Priority System: Každý tier má svou prioritu. Vyšší tier blokuje nižší. Nižší tiery čekají ve frontě dokud vyšší neskončí.**
 
 ### 🚫 ANTI-CONCURRENT MODAL RULE
-**NIKDY se nezobrazují 2 modaly současně! Primary modaly blokují secondary modaly dokud neskončí.**
+**NIKDY se nezobrazují 2 modaly současně! Vyšší priorita blokuje nižší dokud neskončí.**
 
-### Core Modal Priority Rules - 3-Tier System
+### Core Modal Priority Rules - 4-Tier System
 ```typescript
-// 3-TIER MODAL PRIORITY SYSTEM - Modal Display Rules:
-1. ACTIVITY MODALS (1st Priority - Immediate User Actions): OKAMŽITÁ PRIORITA
+// 4-TIER MODAL PRIORITY SYSTEM - Modal Display Rules:
+1. ACTIVITY MODALS (Tier 1 - Immediate User Actions): NEJVYŠŠÍ PRIORITA
    - Journal: Daily complete, bonus milestones (⭐🔥👑), streak milestones
-   - Habit: Completion celebrations, streak achievements  
+   - Habit: Completion celebrations, streak achievements
    - Goal: Milestone celebrations, completion rewards
-   - Progress: Direct user action results (add/delete progress, complete/uncomplete habits)
+   - Progress: Direct user action results
 
-2. ACHIEVEMENT MODALS (2nd Priority - Achievement Unlocks): DRUHÁ PRIORITA
+2. MONTHLY CHALLENGE MODALS (Tier 2 - Challenge Completion): VYSOKÁ PRIORITA
+   - Monthly challenge completion celebration
+   - Řízeno přes MonthlyChallengeCompletionModal
+
+3. ACHIEVEMENT MODALS (Tier 3 - Achievement Unlocks): STŘEDNÍ PRIORITA
    - Achievement unlocks triggered by user activities
    - Rarity-based celebrations (Common, Rare, Epic, Legendary)
-   - Achievement milestone rewards
+   - Crescendo řazení: achievementy se zobrazují od Common → Legendary
+   - Pre-registrace přes 'achievementQueueStarting' event
 
-3. LEVEL-UP MODALS (3rd Priority - System Celebrations): TŘETÍ PRIORITA
+4. LEVEL-UP MODALS (Tier 4 - System Celebrations): NEJNIŽŠÍ PRIORITA
    - Level-up celebrations (XP způsobí level-up)
    - Level milestone rewards
-   - XP multiplier activations 
-   - Background system notifications
+   - Multi-level-up: každý level se zobrazí zvlášť ve smyčce
 
-4. COORDINATION RULES:
+5. COORDINATION RULES:
    - SINGLE: Pouze 1 modal active at any time
-   - QUEUING: Lower priority modals wait in queue
-   - SEQUENCE: Activity → Achievement → Level-up → Next queued item
-   - GLOBAL: Řízený centrálně přes XpAnimationContext with 3-tier support
-   - ANTI-FREEZE: Each tier has independent error handling to prevent app freeze
+   - QUEUING: Nižší tiery čekají ve frontě (pendingLevelUpModals)
+   - SEQUENCE: Activity → Monthly Challenge → Achievement → Level-up
+   - GLOBAL: Řízený centrálně přes XpAnimationContext
+   - ANTI-FREEZE: Každý tier má nezávislé error handling
+   - TIMING: 500ms delay po Tier 1/2, 300ms delay po Tier 3
 ```
 
 ### Screen-Specific vs Global Celebrations
@@ -239,7 +244,7 @@ borderColor: getRarityColor(currentLevel)
 ```typescript
 // Journal má vlastní modaly pro Journal-specific akce:
 - Daily completion (3 gratitude entries) → Journal modal
-- Streak milestones (7, 14, 30 days) → Journal modal  
+- Streak milestones (7, 14, 30 days) → Journal modal
 - Bonus milestones (⭐🔥👑 positions 4, 8, 13) → Journal modal
 
 // Modal queue system pro Journal celebrations
@@ -251,40 +256,45 @@ const [modalQueue, setModalQueue] = useState<Array<{
 
 #### ✅ GLOBAL (XpAnimationContext.tsx)
 ```typescript
-// XpAnimationContext řídí globální level-up celebrations:
-- Level-up achievements → Global modal na jakémkoliv screenu
-- Level milestone rewards → Global modal
-- XP multiplier activations → Global modal
+// XpAnimationContext řídí globální celebrations:
+- Monthly Challenge completion → Global modal (Tier 2)
+- Achievement unlocks → Global modal (Tier 3, řízeno AchievementContext)
+- Level-up celebrations → Global modal (Tier 4)
 
-// Centralized level-up handling
+// Centralized level-up handling s 4-tier koordinací
 const handleLevelUp = (eventData: any) => {
-  if (eventData?.newLevel && eventData?.levelTitle) {
-    showLevelUpModal(
-      eventData.newLevel,
-      eventData.levelTitle,
-      eventData.levelDescription,
-      eventData.isMilestone || false
-    );
+  // Pokud je aktivní Tier 1, 2 nebo 3 → level-up jde do fronty
+  const current = modalCoordinationRef.current;
+  if (current.isActivityModalActive ||
+      current.isMonthlyChallengeModalActive ||
+      current.isAchievementModalActive) {
+    // ADD TO QUEUE (pendingLevelUpModals)
+  } else {
+    // SHOW IMMEDIATELY
+    showLevelUpModal(eventData.newLevel, eventData.levelTitle, ...);
   }
 }
 ```
 
 ### User Experience Flow Examples
 
-#### Scenario 1: Journal Bonus Level-up (PRIORITY SYSTEM)
+#### Scenario 1: Journal Bonus → Achievement → Level-up (FULL 4-TIER)
 ```typescript
 // User na Journal screenu:
 1. Napíše 10. bonus gratitude entry → +8 XP (basic) + 100 XP (👑 milestone)
-2. Total +108 XP způsobí level-up 15 → 16
+2. Akce odemkne achievement + způsobí level-up 15 → 16
 
 3. MODAL COORDINATION:
-   a) 👑 Bonus milestone modal = PRIMARY → ZOBRAZÍ SE OKAMŽITĚ
-   b) 🎉 Level-up modal = SECONDARY → JDE DO FRONTY
+   a) 👑 Bonus milestone modal = Tier 1 → ZOBRAZÍ SE OKAMŽITĚ
+   b) 🏆 Achievement modal = Tier 3 → JDE DO FRONTY
+   c) 🎉 Level-up modal = Tier 4 → JDE DO FRONTY
 
 4. USER EXPERIENCE:
-   - ⚡ IMMEDIATE: "👑 Tenth Bonus Milestone! +100 XP" (primary modal)
+   - ⚡ IMMEDIATE: "👑 Tenth Bonus Milestone! +100 XP" (Tier 1)
    - User closes bonus modal
-   - ⏱️ AFTER 300ms delay: "🎉 Level 16 achieved!" (secondary modal)
+   - ⏱️ AFTER 500ms: "🏆 Achievement Unlocked!" (Tier 3)
+   - User closes achievement modal
+   - ⏱️ AFTER 300ms: "🎉 Level 16 achieved!" (Tier 4)
    - ✅ RESULT: Perfect sequence, no concurrent modals
 ```
 
@@ -292,86 +302,105 @@ const handleLevelUp = (eventData: any) => {
 
 #### XpAnimationContext (Modal Coordination Center)
 ```typescript
-// PRIORITY SYSTEM STATE
-const [state, setState] = useState({
-  modalCoordination: {
-    isPrimaryModalActive: false,
-    pendingSecondaryModals: [],
-    currentPrimaryModalType: null,
-  }
-});
+// 4-TIER PRIORITY SYSTEM STATE
+modalCoordination: {
+  // Tier 1: Activity modals
+  isActivityModalActive: boolean;
+  currentActivityModalType?: 'journal' | 'habit' | 'goal' | null;
 
-// COORDINATION FUNCTIONS
-const notifyPrimaryModalStarted = (type: 'journal' | 'habit' | 'goal') => {
+  // Tier 2: Monthly Challenge modals
+  isMonthlyChallengeModalActive: boolean;
+
+  // Tier 3: Achievement modals (řízeno AchievementContext)
+  isAchievementModalActive: boolean;
+
+  // Tier 4: Level-up modals
+  pendingLevelUpModals: Array<{ type: 'levelUp' | 'multiplier'; data: any; timestamp: number }>;
+  isLevelUpModalActive: boolean;
+}
+
+// TIER 1: Activity modals
+const notifyActivityModalStarted = (type: 'journal' | 'habit' | 'goal') => {
   setState(prev => ({
     ...prev,
     modalCoordination: {
       ...prev.modalCoordination,
-      isPrimaryModalActive: true,
-      currentPrimaryModalType: type,
+      isActivityModalActive: true,
+      currentActivityModalType: type,
     }
   }));
 };
 
-const notifyPrimaryModalEnded = () => {
-  setState(prev => ({ ...prev, modalCoordination: { isPrimaryModalActive: false } }));
-  setTimeout(() => processSecondaryModals(), 300); // Process queue after delay
+const notifyActivityModalEnded = () => {
+  setState(prev => ({ ...prev, modalCoordination: { ...prev.modalCoordination, isActivityModalActive: false } }));
+  setTimeout(() => {
+    // Process queued modals if no Tier 2/3 active
+    if (!current.isMonthlyChallengeModalActive && !current.isAchievementModalActive) {
+      processLevelUpModals();
+    }
+  }, 500);
 };
 
-// PRIORITY-AWARE LEVEL-UP HANDLER
-const handleLevelUp = (eventData: any) => {
-  if (state.modalCoordination.isPrimaryModalActive) {
-    // ADD TO SECONDARY QUEUE
+// TIER 2: Monthly Challenge modals
+const notifyMonthlyChallengeModalStarted = () => { /* sets isMonthlyChallengeModalActive = true */ };
+const notifyMonthlyChallengeModalEnded = () => {
+  /* sets isMonthlyChallengeModalActive = false, after 500ms processes level-up queue */
+};
+
+// TIER 3: Achievement modals
+const notifyAchievementModalStarted = (type: 'achievement') => { /* sets isAchievementModalActive = true */ };
+const notifyAchievementModalEnded = () => {
+  /* sets isAchievementModalActive = false, after 300ms processes level-up queue */
+};
+
+// TIER 4: Level-up modals are processed automatically by processLevelUpModals()
+```
+
+#### achievementQueueStarting Pre-registrace
+```typescript
+// CRITICAL: Synchronní pre-registrace achievementů
+// Zajišťuje, že level-up modaly čekají na achievement modaly
+// i když level-up event přijde PŘED prvním achievement modalem
+
+// achievementService.ts emituje PŘED jednotlivými achievementy:
+DeviceEventEmitter.emit('achievementQueueStarting', { count: unlockedAchievements.length });
+
+// XpAnimationContext SYNCHRONNĚ nastaví Tier 3 jako aktivní:
+const handleAchievementQueueStarting = (eventData: { count: number }) => {
+  if (eventData.count > 0) {
     setState(prev => ({
       ...prev,
-      modalCoordination: {
-        ...prev.modalCoordination,
-        pendingSecondaryModals: [...prev.modalCoordination.pendingSecondaryModals, {
-          type: 'levelUp',
-          data: eventData,
-          timestamp: Date.now()
-        }]
-      }
+      modalCoordination: { ...prev.modalCoordination, isAchievementModalActive: true }
     }));
-  } else {
-    // SHOW IMMEDIATELY
-    showLevelUpModal(eventData.newLevel, eventData.levelTitle, ...);
   }
 };
 ```
 
-#### Journal.tsx (Primary Modal Coordination)
+#### Journal.tsx (Tier 1 Modal Coordination)
 ```typescript
 // COORDINATION INTEGRATION
-const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
 
-// PRIMARY MODAL START - Notify coordination system
-if (newCount === 3) {
-  setCelebrationType('daily_complete');
-  notifyPrimaryModalStarted('journal'); // ⚡ COORDINATION
-  setShowCelebration(true);
-}
+// TIER 1 MODAL START
+notifyActivityModalStarted('journal');
+setShowCelebration(true);
 
-if (bonusCount === 1 || bonusCount === 5 || bonusCount === 10) {
-  setBonusMilestone(bonusCount);
-  setCelebrationType('bonus_milestone');
-  notifyPrimaryModalStarted('journal'); // ⚡ COORDINATION
-  setShowCelebration(true);
-}
-
-// PRIMARY MODAL END - Release coordination lock
+// TIER 1 MODAL END - Release lock, triggers lower tier processing
 <CelebrationModal
   visible={showCelebration}
   onClose={() => {
-    notifyPrimaryModalEnded(); // ⚡ COORDINATION - triggers secondary modals
+    notifyActivityModalEnded();
     setShowCelebration(false);
-    // Process next Journal modal in queue
     setTimeout(() => processModalQueue(), 500);
   }}
 />
+```
 
-// ❌ FORBIDDEN: Level-up detection v Journal.tsx
-// Level-up je handled globálně přes XpAnimationContext coordination
+#### Legacy Support
+```typescript
+// Deprecated aliasy (stále funkční, ale nepoužívat v novém kódu):
+notifyPrimaryModalStarted → použij notifyActivityModalStarted
+notifyPrimaryModalEnded   → použij notifyActivityModalEnded
 ```
 
 ### Anti-Pattern Prevention
