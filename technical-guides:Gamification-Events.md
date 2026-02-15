@@ -138,120 +138,119 @@ useEffect(() => {
 
 ---
 
-## Standard Event Data Structures
+## Realna datova struktura eventu
 
-### 🚨 FUNDAMENTAL DATA PRINCIPLE
-**All gamification events MUST use consistent, typed data structures. Ad-hoc event data is FORBIDDEN.**
+> **Poznamka:** Typy nize NEJSOU TypeScript interfaces v kodu. Jsou to popisy toho, co kod skutecne posila. Handlery pouzivaji `(eventData: any)` a rucne kontroluji pritomnost poli.
 
-### Core Event Data Types
+### xpGained
+Emituje: `gamificationService.triggerXPAnimation()`, `achievementService` (foreground + background)
 ```typescript
-// STANDARD XP EVENT DATA STRUCTURE
-interface XPEventData {
-  amount: number;              // XP amount (positive or negative)
-  source: XPSourceType;        // Standardized source enum
-  timestamp: number;           // Event creation time
-  sourceId?: string;          // Optional: Related entity ID
-  description?: string;        // Optional: Human-readable description
-  metadata?: Record<string, any>; // Optional: Additional context
+{
+  amount: number;              // XP castka (kladna i zaporna)
+  source: XPSourceType;        // Enum zdroje XP
+  sourceId?: string;           // ID souvisejici entity
+  metadata?: Record<string, any>; // Doplnkovy kontext
+  position?: { x: number; y: number }; // Souradnice pro popup (default: { x: 50, y: 130 })
+  timestamp: number;           // Cas vytvoreni
 }
+```
 
-// LEVEL-UP EVENT DATA STRUCTURE  
-interface LevelUpEventData {
-  newLevel: number;           // User's new level
-  previousLevel: number;      // Previous level  
-  levelTitle: string;         // Level display name
-  levelDescription?: string;  // Optional level description
-  isMilestone: boolean;       // Special milestone level
-  timestamp: number;          // Event creation time
-  totalXP: number;           // User's total XP
+### xpSmartNotification
+Emituje: `gamificationService.triggerXPAnimation()` (vzdy spolu s xpGained)
+```typescript
+{
+  amount: number;              // XP castka
+  source: XPSourceType;        // Enum zdroje XP
+  timestamp: number;           // Cas vytvoreni
 }
+```
 
-// BATCH COMMITTED EVENT DATA STRUCTURE
-interface XPBatchEventData {
-  totalAmount: number;        // Sum of all XP in batch
-  sources: Array<{           // Breakdown by source
+### levelUp
+Emituje: `gamificationService.addXP()`, `achievementService` (foreground + background)
+```typescript
+{
+  newLevel: number;            // Novy level uzivatele
+  previousLevel: number;       // Predchozi level
+  levelTitle: string;          // Nazev levelu
+  levelDescription: string;    // Popis levelu (prazdny string pokud chybi)
+  isMilestone: boolean;        // Zda jde o milnikovy level
+  timestamp: number;           // Cas vytvoreni (+ offset pro multi-level-up)
+}
+```
+
+### xpBatchCommitted
+Emituje: `gamificationService.triggerBatchedXPAnimation()`
+```typescript
+{
+  totalAmount: number;         // Celkova XP v batchi
+  sources: Array<{            // Rozpad podle zdroju
     source: XPSourceType;
     amount: number;
     count: number;
   }>;
-  leveledUp: boolean;        // Whether batch caused level-up
-  newLevel: number;          // Current level after batch
-  timestamp: number;         // Batch completion time
+  leveledUp: boolean;          // Zda batch zpusobil level-up
+  newLevel: number;            // Aktualni level po batchi
+  timestamp: number;           // Cas dokonceni batche
 }
 ```
 
-### Event Validation Requirements
+### achievementQueueStarting
+Emituje: `achievementService.triggerAchievementNotifications()`
 ```typescript
-// MANDATORY EVENT DATA VALIDATION
-const validateXPEventData = (eventData: any): boolean => {
-  return !!(
-    eventData &&
-    typeof eventData.amount === 'number' &&
-    eventData.source &&
-    Object.values(XPSourceType).includes(eventData.source) &&
-    typeof eventData.timestamp === 'number'
-  );
-};
-
-// USE VALIDATION in all event handlers:
-const handleXPGained = (eventData: any) => {
-  if (!validateXPEventData(eventData)) {
-    console.warn('Invalid XP event data:', eventData);
-    return; // FAIL GRACEFULLY
-  }
-  
-  // Process valid event
-  processXPGain(eventData);
-};
+{
+  count: number;               // Pocet achievementu ve fronte
+  timestamp: number;           // Cas vytvoreni
+}
 ```
 
-### Event Emission Standards
+### achievementUnlocked
+Emituje: `achievementService.triggerAchievementNotifications()` (pro kazdy achievement zvlast)
 ```typescript
-// STANDARD EVENT EMISSION PATTERN (GamificationService)
-const emitXPEvent = (amount: number, source: XPSourceType, options?: any) => {
-  const eventData: XPEventData = {
-    amount,
-    source,
-    timestamp: Date.now(),
-    sourceId: options?.sourceId,
-    description: options?.description,
-    metadata: options?.metadata || {},
-  };
-  
-  // Emit standardized event
-  DeviceEventEmitter.emit('xpGained', eventData);
-  
-  // Log for debugging
-  console.log(`🎯 XP Event: ${amount} from ${source}`, eventData);
-};
+{
+  achievement: Achievement;    // Cely achievement objekt
+  xpAwarded: number;           // XP odmena za achievement
+  timestamp: number;           // Cas vytvoreni
+  showCelebration: boolean;    // Zda zobrazit celebraci (vzdy true)
+}
+```
 
-// FORBIDDEN: Custom or inconsistent event data
-// DeviceEventEmitter.emit('xpGained', { xp: 25, type: 'habit' }); ❌ WRONG
+### multipleAchievementsUnlocked
+Emituje: `achievementService.triggerAchievementNotifications()` (po vsech jednotlivych)
+```typescript
+{
+  count: number;               // Pocet achievementu
+  totalXP: number;             // Celkove XP za vsechny achievementy
+  achievements: Achievement[]; // Vsechny odemcene achievementy
+  leveledUp: boolean;          // Zda doslo k level-upu
+  newLevel: number;            // Novy level (pokud level-up)
+  timestamp: number;           // Cas vytvoreni
+}
+```
+
+### achievementCelebrationClosed
+Emituje: `AchievementContext.handleCelebrationClose()`
+```typescript
+// Zadna data - pouze signal ze modal byl zavren
 ```
 
 ---
 
 ## Event Handler Naming Conventions
 
-### Standard Event Handler Pattern
+### Realne handlery v XpAnimationContext
 ```typescript
-// STANDARD NAMING PATTERN for gamification event handlers:
-handleXPGained(eventData)           // Individual XP gains
-handleXPBatchCommitted(eventData)   // Batched XP operations  
-handleLevelUp(eventData)           // Level progression events
-handleAchievementUnlocked(eventData) // Achievement rewards
-handleModalCoordination(eventData)  // Modal priority management
+// Skutecne nazvy handleru v kodu:
+handleXPGained(eventData)              // xpGained → zobrazeni XP popup
+handleSmartNotification(eventData)     // xpSmartNotification → batched notifikace
+handleBatchCommitted(eventData)        // xpBatchCommitted → batched XP popup
+handleLevelUp(eventData)              // levelUp → level-up modal (async)
+handleAchievementQueueStarting(eventData) // achievementQueueStarting → Tier 3 pre-registrace
 
-// EVENT HANDLER STRUCTURE:
+// PRIKLAD REALNEHO HANDLERU:
 const handleXPGained = (eventData: any) => {
-  // 1. Validate event data
-  if (!eventData?.amount || !eventData?.source) return;
-  
-  // 2. Process event
-  showXpPopup(eventData.amount, eventData.source, eventData.position);
-  
-  // 3. Trigger feedback (haptics, sounds)
-  triggerHapticFeedback('light');
+  if (eventData && eventData.amount && eventData.source && showXpPopupRef.current) {
+    showXpPopupRef.current(eventData.amount, eventData.source, eventData.position);
+  }
 };
 ```
 

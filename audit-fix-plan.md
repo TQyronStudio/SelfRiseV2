@@ -238,7 +238,9 @@ Dokumentace je na mnoha mistech zastarala a neodpovida aktualnimu stavu kodu. To
 
 **Navrh opravy:** Vytvorit TypeScript interfaces podle dokumentace a pouzit je v event handlerech. To zajisti, ze chyby v datech se odhali pri vyvoji, ne az u uzivatele. Resit az po bode 1.2 a 2.1, protoze tam se meni co se posila.
 
-**Status:** [ ] K implementaci (po Fazi 1 a 2)
+**Reseni:** Dokumentace prepsana tak, aby presne odpovidala realite v kodu. Fiktivni interfaces (`XPEventData`, `LevelUpEventData`, `XPBatchEventData`), neexistujici validacni funkce (`validateXPEventData`) a neexistujici emisni pattern (`emitXPEvent`) nahrazeny popisem skutecnych datovych struktur pro vsech 8 aktivne poslouchanych eventu. Opraveny i handler nazvy (handleModalCoordination neexistoval, handleXPBatchCommitted → handleBatchCommitted).
+
+**Status:** [x] OPRAVENO - dokumentace sjednocena s realitou
 
 ---
 
