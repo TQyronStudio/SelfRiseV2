@@ -286,7 +286,9 @@ Tyto body nemaji vliv na funkcnost, ale je dobre je mit na pameti.
 
 **Navrh opravy:** Resit v ramci bodu 3.1 (kompletni prepis modal dokumentace).
 
-**Status:** [ ] Souvisi s 3.1
+**Reseni:** Vyreseno v ramci 3.1. Vsechny timing hodnoty v dokumentaci nyni odpovidaji kodu: Tier 1/2 → 500ms, Tier 3 → 300ms, mezi level-up modaly → 500ms.
+
+**Status:** [x] OPRAVENO - vyreseno v ramci 3.1
 
 ---
 
@@ -298,7 +300,7 @@ Tyto body nemaji vliv na funkcnost, ale je dobre je mit na pameti.
 
 **Navrh opravy:** V achievement dokumentaci pridat sloupec s technickym ID ke kazdemu achievementu.
 
-**Status:** [ ] Volitelne vylepseni
+**Status:** [x] PRESKOCENO - ocekavane chovani, neni potreba menit
 
 ---
 
@@ -318,7 +320,9 @@ Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do pra
 
 **Navrh opravy:** Pridat listener v XpAnimationContext nebo dedickem komponente, ktery zobrazi notifikaci/toast o aktivaci multiplikatoru.
 
-**Status:** [ ] K implementaci
+**Reseni:** Pridan listener v XpMultiplierSection pro `xpMultiplierActivated`. Pro achievement combo a challenge completion (automaticke aktivace) se nacte aktualni multiplier info a zobrazi existujici MultiplierActivationModal. Pro harmony streak (rucni aktivace) se preskakuje - modal uz bezi pres primy UI flow. V MultiplierActivationModal pridana podminka: harmony-specificka sekce (streak summary) se zobrazi jen pro harmony_streak zdroj. Lokalizace (EN, DE, ES) uz existovaly.
+
+**Status:** [x] OPRAVENO - listener pridan, modal se zobrazuje pro vsechny zdroje
 
 ---
 

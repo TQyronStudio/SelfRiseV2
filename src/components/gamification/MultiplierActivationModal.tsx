@@ -538,8 +538,8 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
             {/* Multiplier details */}
             {renderMultiplierDetails()}
 
-            {/* Achievement summary */}
-            {renderAchievementSummary()}
+            {/* Achievement summary (harmony streak specific) */}
+            {multiplier?.source === 'harmony_streak' && renderAchievementSummary()}
 
             {/* Action buttons */}
             {renderActionButtons()}

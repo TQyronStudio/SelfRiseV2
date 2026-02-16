@@ -20,6 +20,7 @@ import {
   StyleSheet,
   Animated,
   ActivityIndicator,
+  DeviceEventEmitter,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -143,10 +144,28 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   useEffect(() => {
     if (visible) {
       loadData();
-      
+
       // Refresh data periodically
       const interval = setInterval(loadData, 60000); // Every minute
-      return () => clearInterval(interval);
+
+      // Listen for background multiplier activations (achievement combo, challenge completion)
+      // Harmony streak is handled via direct UI flow (handleActivateMultiplier), so skip it
+      const multiplierSub = DeviceEventEmitter.addListener('xpMultiplierActivated', async (eventData) => {
+        if (eventData?.source === 'harmony_streak') return; // Already handled by direct UI
+
+        await loadData(); // Refresh to get new ActiveMultiplierInfo
+
+        const multiplierInfo = await XPMultiplierService.getActiveMultiplier();
+        if (multiplierInfo.isActive) {
+          setActivationResult({ success: true, multiplier: multiplierInfo });
+          setShowActivationModal(true);
+        }
+      });
+
+      return () => {
+        clearInterval(interval);
+        multiplierSub.remove();
+      };
     }
     return undefined; // Explicit return for non-visible case
   }, [visible, loadData]);
