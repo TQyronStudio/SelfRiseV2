@@ -8,9 +8,14 @@ import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from 
 import MonthlyChallengeCard from './MonthlyChallengeCard';
 import MonthlyChallengeCompletionModal from './MonthlyChallengeCompletionModal';
 import MonthlyChallengeMilestoneModal from './MonthlyChallengeMilestoneModal';
+import StarLevelChangeModal from './StarLevelChangeModal';
+import type { StarLevelChangeData } from './StarLevelChangeModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
+
+const PENDING_STAR_DEMOTION_KEY = 'pending_star_demotion';
 
 interface MonthlychallengeSectionProps {
   onChallengePress?: (challenge: MonthlyChallenge) => void;
@@ -42,6 +47,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionResult, setCompletionResult] = useState<any>(null);
 
+  // Star level change modal state
+  const [showStarChangeModal, setShowStarChangeModal] = useState(false);
+  const [starChangeData, setStarChangeData] = useState<StarLevelChangeData | null>(null);
+  const [pendingStarChange, setPendingStarChange] = useState<StarLevelChangeData | null>(null);
+
   // Milestone modal state
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [milestoneData, setMilestoneData] = useState<{
@@ -53,6 +63,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   useEffect(() => {
     loadMonthlyChallenge();
     loadUserStarRatings();
+    checkPendingDemotion();
   }, []);
 
   // Real-time progress updates listener
@@ -161,6 +172,57 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     };
   }, [challenge?.id]);
 
+  // Star level change listener
+  useEffect(() => {
+    const starChangeListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'star_level_changed',
+      (eventData: { category: AchievementCategory; previousStars: number; newStars: number; reason: string }) => {
+        console.log('⭐ Star level changed event received:', eventData);
+
+        // Ignore reset events (admin/debug only)
+        if (eventData.reason === 'reset') return;
+
+        // Only handle actual changes
+        if (eventData.previousStars === eventData.newStars) return;
+
+        const changeData: StarLevelChangeData = {
+          category: eventData.category,
+          previousStars: eventData.previousStars,
+          newStars: eventData.newStars,
+          reason: eventData.reason as StarLevelChangeData['reason'],
+        };
+
+        const isPromotion = eventData.newStars > eventData.previousStars;
+
+        if (isPromotion) {
+          // Promotion: queue it to show after completion modal closes
+          setPendingStarChange(changeData);
+        } else {
+          // Demotion: save to AsyncStorage for next app open (handled in step 3)
+          savePendingDemotion(changeData);
+        }
+      }
+    );
+
+    return () => {
+      starChangeListener.remove();
+    };
+  }, []);
+
+  // Show pending star change after completion modal closes
+  useEffect(() => {
+    if (!showCompletionModal && pendingStarChange) {
+      // Small delay for smooth transition between modals
+      const timer = setTimeout(() => {
+        setStarChangeData(pendingStarChange);
+        setShowStarChangeModal(true);
+        setPendingStarChange(null);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [showCompletionModal, pendingStarChange]);
+
   const loadUserStarRatings = async () => {
     try {
       const ratingsData = await StarRatingService.getCurrentStarRatings();
@@ -176,6 +238,35 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     } catch (error) {
       console.error('MonthlyChallengeSection.loadUserStarRatings error:', error);
       // Use defaults on error
+    }
+  };
+
+  // Save demotion info for next app open
+  const savePendingDemotion = async (data: StarLevelChangeData) => {
+    try {
+      await AsyncStorage.setItem(PENDING_STAR_DEMOTION_KEY, JSON.stringify(data));
+      console.log('💾 Saved pending star demotion for next app open:', data);
+    } catch (error) {
+      console.error('Failed to save pending star demotion:', error);
+    }
+  };
+
+  // Check for pending demotion on mount (next app open scenario)
+  const checkPendingDemotion = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(PENDING_STAR_DEMOTION_KEY);
+      if (stored) {
+        const data: StarLevelChangeData = JSON.parse(stored);
+        await AsyncStorage.removeItem(PENDING_STAR_DEMOTION_KEY);
+        console.log('📋 Found pending star demotion, showing modal:', data);
+        // Small delay to let the screen load first
+        setTimeout(() => {
+          setStarChangeData(data);
+          setShowStarChangeModal(true);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Failed to check pending star demotion:', error);
     }
   };
 
@@ -820,6 +911,18 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
           }}
         />
       )}
+
+      {/* Star Level Change Modal */}
+      <StarLevelChangeModal
+        visible={showStarChangeModal}
+        data={starChangeData}
+        onClose={() => {
+          setShowStarChangeModal(false);
+          setStarChangeData(null);
+          // Refresh star ratings after modal closes
+          loadUserStarRatings();
+        }}
+      />
     </View>
   );
 };

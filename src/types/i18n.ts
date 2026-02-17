@@ -1085,6 +1085,25 @@ export interface TranslationKeys {
       master: string;
     };
 
+    // Star level change modal
+    starChange: {
+      promotionTitle: string;
+      demotionTitle: string;
+      promotionMotivation: string;
+      demotionMotivation: string;
+      buttonPromotion: string;
+      buttonDemotion: string;
+      reason: {
+        doubleFail: string;
+        warmupPenalty: string;
+        default: string;
+      };
+      accessibility: {
+        promotion: string;
+        demotion: string;
+      };
+    };
+
     // Completion Modal
     completionModal: {
       subtitle: string;

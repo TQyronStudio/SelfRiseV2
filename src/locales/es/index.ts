@@ -1355,6 +1355,25 @@ const es: Partial<TranslationKeys> = {
       master: 'Maestro',
     },
 
+    // Star level change modal
+    starChange: {
+      promotionTitle: '¡Nivel de Estrella Subió!',
+      demotionTitle: 'Nivel de Estrella Cambiado',
+      promotionMotivation: '¡Tu dedicación dio sus frutos! Estrellas más altas significan desafíos más difíciles y mayores recompensas el próximo mes.',
+      demotionMotivation: '¡No te preocupes! El próximo mes es un nuevo comienzo. Enfócate en la constancia y volverás a subir.',
+      buttonPromotion: '¡Genial!',
+      buttonDemotion: '¡Vamos!',
+      reason: {
+        doubleFail: 'Dos desafíos consecutivos por debajo del 70% de completitud.',
+        warmupPenalty: 'Tres desafíos de calentamiento consecutivos activaron un ajuste de estrellas.',
+        default: 'Tu nivel de estrellas se ha ajustado según tu rendimiento reciente.',
+      },
+      accessibility: {
+        promotion: 'Nivel de estrellas aumentado a {{stars}} estrellas, rango {{level}}, en la categoría {{category}}',
+        demotion: 'Nivel de estrellas disminuido a {{stars}} estrellas, rango {{level}}, en la categoría {{category}}',
+      },
+    },
+
     // Completion Modal
     completionModal: {
       subtitle: 'Desafío Mensual',

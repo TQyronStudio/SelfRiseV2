@@ -691,6 +691,50 @@ class StarRatingService {
 }
 ```
 
+### **⭐ Star Level Change Modal (StarLevelChangeModal)**
+
+Vizuální zpětná vazba pro uživatele při změně úrovně hvězd.
+
+**Kdy se zobrazí:**
+- **Povýšení (star UP)**: Ihned po zavření gratulačního modalu za splněnou výzvu (500ms delay)
+- **Sesazení (star DOWN)**: Při příštím otevření aplikace (uloženo v AsyncStorage pod klíčem `pending_star_demotion`)
+
+**Animace - Povýšení:**
+1. Modal se objeví se starými hvězdami
+2. Nová hvězda "vybuchne" do scény (bounce: scale 0 → 1.4 → 0.9 → 1.0)
+3. Glow efekt kolem hvězd
+4. Název nové úrovně se plynule objeví
+5. Haptic feedback: Heavy impact při "bouchnutí"
+
+**Animace - Sesazení:**
+1. Modal se objeví s aktuálními hvězdami
+2. Poslední hvězda ztmavne a zmenší se (fade out + scale down)
+3. Zbylé hvězdy změní barvu na nižší úroveň
+4. Zobrazí se důvod sesazení + motivační tip
+5. Haptic feedback: Warning notification
+
+**Barvy hvězd podle úrovně:**
+| Úroveň | Název | Barva | Hex |
+|---------|-------|-------|-----|
+| 1★ | Novice | Šedá | #9E9E9E |
+| 2★ | Explorer | Modrá | #2196F3 |
+| 3★ | Challenger | Fialová | #9C27B0 |
+| 4★ | Expert | Oranžová | #FF9800 |
+| 5★ | Master | Zlatá | #FFD700 |
+
+**Technické detaily:**
+- Komponenta: `src/components/challenges/StarLevelChangeModal.tsx`
+- Listener: v `MonthlyChallengeSection.tsx` na event `star_level_changed`
+- Ignoruje reason `reset` (admin/debug only)
+- Podporuje Light/Dark theme (barvy z ThemeContext)
+- Lokalizace: EN/DE/ES (`monthlyChallenge.starChange.*`)
+
+**Integrace s 4-Tier Modal Priority System:**
+- Povýšení: čeká na zavření Tier 2 completion modalu, pak se zobrazí
+- Sesazení: zobrazí se samostatně při startu appky (žádný konflikt s jinými modaly)
+
+---
+
 ### **📈 Real-time Progress Tracking**
 ```typescript
 // MonthlyProgressTracker - real-time pokrok

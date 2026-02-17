@@ -1368,6 +1368,25 @@ const en: TranslationKeys = {
       master: 'Master',
     },
 
+    // Star level change modal
+    starChange: {
+      promotionTitle: 'Star Level Up!',
+      demotionTitle: 'Star Level Changed',
+      promotionMotivation: 'Your dedication paid off! Higher stars mean tougher challenges and bigger rewards next month.',
+      demotionMotivation: 'Don\'t worry! Next month is a fresh start. Focus on consistency and you\'ll climb back up.',
+      buttonPromotion: 'Awesome!',
+      buttonDemotion: 'Let\'s go!',
+      reason: {
+        doubleFail: 'Two consecutive challenges below 70% completion.',
+        warmupPenalty: 'Three consecutive warm-up challenges triggered a star adjustment.',
+        default: 'Your star level has been adjusted based on recent performance.',
+      },
+      accessibility: {
+        promotion: 'Star level increased to {{stars}} stars, {{level}} rank, in {{category}} category',
+        demotion: 'Star level decreased to {{stars}} stars, {{level}} rank, in {{category}} category',
+      },
+    },
+
     // Completion modal
     completionModal: {
       subtitle: 'Monthly Challenge',

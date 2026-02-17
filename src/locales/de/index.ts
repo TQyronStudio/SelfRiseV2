@@ -1355,6 +1355,25 @@ const de: Partial<TranslationKeys> = {
       master: 'Meister',
     },
 
+    // Star level change modal
+    starChange: {
+      promotionTitle: 'Sternstufe gestiegen!',
+      demotionTitle: 'Sternstufe geändert',
+      promotionMotivation: 'Dein Einsatz hat sich gelohnt! Höhere Sterne bedeuten härtere Herausforderungen und größere Belohnungen nächsten Monat.',
+      demotionMotivation: 'Keine Sorge! Nächster Monat ist ein Neuanfang. Konzentriere dich auf Beständigkeit und du steigst wieder auf.',
+      buttonPromotion: 'Super!',
+      buttonDemotion: 'Los geht\'s!',
+      reason: {
+        doubleFail: 'Zwei aufeinanderfolgende Herausforderungen unter 70% Abschluss.',
+        warmupPenalty: 'Drei aufeinanderfolgende Aufwärm-Herausforderungen haben eine Sternanpassung ausgelöst.',
+        default: 'Deine Sternstufe wurde basierend auf deiner letzten Leistung angepasst.',
+      },
+      accessibility: {
+        promotion: 'Sternstufe auf {{stars}} Sterne erhöht, Rang {{level}}, in der Kategorie {{category}}',
+        demotion: 'Sternstufe auf {{stars}} Sterne gesunken, Rang {{level}}, in der Kategorie {{category}}',
+      },
+    },
+
     // Completion Modal
     completionModal: {
       subtitle: 'Monatsherausforderung',

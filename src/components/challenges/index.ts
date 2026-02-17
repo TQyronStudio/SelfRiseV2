@@ -6,3 +6,5 @@ export { default as MonthlyChallengeDetailModal } from './MonthlyChallengeDetail
 export { default as MonthlyChallengeCompletionModal } from './MonthlyChallengeCompletionModal';
 export { default as MonthlyChallengeMilestoneModal } from './MonthlyChallengeMilestoneModal';
 export { default as MonthlyProgressCalendar } from './MonthlyProgressCalendar';
+export { default as StarLevelChangeModal } from './StarLevelChangeModal';
+export type { StarLevelChangeData } from './StarLevelChangeModal';

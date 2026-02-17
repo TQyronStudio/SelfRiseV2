@@ -459,12 +459,14 @@ Animace pri otevreni:
 - Zadne hardcoded bile/cerne barvy - vse pres colors z ThemeContext
 
 **Implementace po krocich:**
-- [ ] 5.5.1: Vytvorit novy modal StarLevelChangeModal (design, animace, lokalizace EN/DE/ES)
-- [ ] 5.5.2: Povyseni - napojit modal tak, aby se zobrazil hned po gratulaci za splnenou vyzvu
-- [ ] 5.5.3: Sesazeni - ulozit info o zmene do pameti a zobrazit pri pristim otevreni aplikace
+- [x] 5.5.1: Vytvorit novy modal StarLevelChangeModal (design, animace, lokalizace EN/DE/ES)
+- [x] 5.5.2: Povyseni - napojit modal tak, aby se zobrazil hned po gratulaci za splnenou vyzvu
+- [x] 5.5.3: Sesazeni - ulozit info o zmene do pameti a zobrazit pri pristim otevreni aplikace
 - [ ] 5.5.4: Otestovat oba scenare (nahoru i dolu)
 
-**Status:** [ ] SCHVALENO - ceka na implementaci
+**Reseni:** Vytvorena nova komponenta StarLevelChangeModal s animacemi hvezd (bounce-in pro povyseni, fade-out pro sesazeni). Pridan listener v MonthlyChallengeSection pro `star_level_changed` event. Povyseni se zobrazi hned po zavreni completion modalu (500ms delay). Sesazeni se ulozi do AsyncStorage a zobrazi pri pristim otevreni appky (1s delay). Lokalizace pridany ve vsech 3 jazycich (EN, DE, ES). Typ pridan do i18n.ts.
+
+**Status:** [x] IMPLEMENTOVANO - ceka na testovani
 
 ---
 

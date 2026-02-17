@@ -43,12 +43,12 @@
 ```typescript
 'monthly_progress_updated'      // Pokrok vyzvy aktualizovan → index.tsx, MonthlyChallengeSection
 'monthly_challenge_completed'   // Vyzva dokoncena → MonthlyChallengeSection (zobrazi modal)
-'monthly_milestone_reached'     // Milnik 25/50/75% dosazeny → BEZ LISTENERU
+'monthly_milestone_reached'     // Milnik 25/50/75% dosazeny → MonthlyChallengeSection (MilestoneModal)
 ```
 
 #### Star Rating eventy (3)
 ```typescript
-'star_level_changed'         // Zmena urovne hvezd → BEZ LISTENERU
+'star_level_changed'         // Zmena urovne hvezd → MonthlyChallengeSection (StarLevelChangeModal)
 'star_progression_updated'   // Aktualizace star progrese → BEZ LISTENERU
 'difficulty_recalculated'    // Prepocet obtiznosti → BEZ LISTENERU
 ```
