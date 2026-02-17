@@ -144,8 +144,7 @@ export class MonthlyProgressTracker {
   // Event names for DeviceEventEmitter
   private static readonly EVENTS = {
     PROGRESS_UPDATED: 'monthly_progress_updated',
-    MILESTONE_REACHED: 'monthly_milestone_reached',
-    DAILY_SNAPSHOT_CREATED: 'daily_snapshot_created'
+    MILESTONE_REACHED: 'monthly_milestone_reached'
   } as const;
 
   // ========================================
@@ -1074,13 +1073,6 @@ export class MonthlyProgressTracker {
 
       // Save snapshot
       await this.saveDailySnapshot(snapshot);
-
-      // Emit snapshot created event
-      DeviceEventEmitter.emit(this.EVENTS.DAILY_SNAPSHOT_CREATED, {
-        challengeId,
-        snapshot,
-        timestamp: new Date()
-      });
 
     } catch (error) {
       console.error('MonthlyProgressTracker.createNewDailySnapshot error:', error);

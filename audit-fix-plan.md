@@ -366,7 +366,7 @@ Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do pra
 
 **Navrh opravy:** Bud odstranit emit (zbytecny overhead), nebo ponechat pro budouci analytics. Neni potreba listener.
 
-**Status:** [ ] K rozhodnuti (mozna smazat)
+**Status:** [x] SMAZANO - interni diagnosticky event odstranen jako zbytecny overhead
 
 ---
 

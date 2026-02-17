@@ -16,7 +16,7 @@
 
 ## Event System
 
-### Kompletni seznam gamifikacnich eventu (17 eventu)
+### Kompletni seznam gamifikacnich eventu (16 eventu)
 
 #### Core XP & Level eventy (4)
 ```typescript
@@ -39,12 +39,11 @@
 'xpMultiplierActivated'  // Multiplier aktivovan (napr. 1.5x za 4h) → BEZ LISTENERU
 ```
 
-#### Monthly Challenge eventy (4)
+#### Monthly Challenge eventy (3)
 ```typescript
 'monthly_progress_updated'      // Pokrok vyzvy aktualizovan → index.tsx, MonthlyChallengeSection
 'monthly_challenge_completed'   // Vyzva dokoncena → MonthlyChallengeSection (zobrazi modal)
 'monthly_milestone_reached'     // Milnik 25/50/75% dosazeny → BEZ LISTENERU
-'daily_snapshot_created'        // Denni snapshot pokroku vytvoren → BEZ LISTENERU
 ```
 
 #### Star Rating eventy (3)
@@ -61,7 +60,7 @@
 'openHomeCustomization'      // Otevreni home customization modalu
 ```
 
-> **Poznamka:** 6 eventu (oznacenych BEZ LISTENERU) se emituje, ale zadna komponenta je neposlouchá. Jsou pripraveny pro budouci UI featury (celebrace milniku, multiplier notifikace, star rating vizualy).
+> **Poznamka:** 5 eventu (oznacenych BEZ LISTENERU) se emituje, ale zadna komponenta je neposlouchá. Jsou pripraveny pro budouci UI featury (celebrace milniku, multiplier notifikace, star rating vizualy).
 
 // ❌ FORBIDDEN: Custom XP events
 ```typescript
