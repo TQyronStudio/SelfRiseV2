@@ -12,6 +12,9 @@ import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 import { changeLanguage, getCurrentLanguage } from '@/src/utils/i18n';
+import { StarLevelChangeModal } from '@/src/components/challenges';
+import type { StarLevelChangeData } from '@/src/components/challenges';
+import { AchievementCategory } from '@/src/types/gamification';
 
 export default function SettingsScreen() {
   const { t } = useI18n();
@@ -23,6 +26,10 @@ export default function SettingsScreen() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
+
+  // DEV: Star Level Change Modal testing
+  const [showStarChangeModal, setShowStarChangeModal] = useState(false);
+  const [starChangeData, setStarChangeData] = useState<StarLevelChangeData | null>(null);
 
   // Styles that depend on theme colors
   const styles = StyleSheet.create({
@@ -271,6 +278,47 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* DEV: Star Level Change Modal Testing */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>DEV Testing</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setStarChangeData({
+                category: AchievementCategory.HABITS,
+                previousStars: 3,
+                newStars: 4,
+                reason: 'success',
+              });
+              setShowStarChangeModal(true);
+            }}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="star" size={24} color="#FF9800" />
+              <Text style={styles.menuItemText}>Star Promotion (3 → 4)</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setStarChangeData({
+                category: AchievementCategory.HABITS,
+                previousStars: 3,
+                newStars: 2,
+                reason: 'double_failure',
+              });
+              setShowStarChangeModal(true);
+            }}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="star-half" size={24} color="#F44336" />
+              <Text style={styles.menuItemText}>Star Demotion (3 → 2)</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Tutorial */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.tutorial')}</Text>
@@ -359,6 +407,16 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </BaseModal>
+
+      {/* DEV: Star Level Change Modal */}
+      <StarLevelChangeModal
+        visible={showStarChangeModal}
+        data={starChangeData}
+        onClose={() => {
+          setShowStarChangeModal(false);
+          setStarChangeData(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
