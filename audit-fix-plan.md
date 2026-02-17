@@ -370,17 +370,101 @@ Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do pra
 
 ---
 
-### 5.5 `star_level_changed` - zmena hvezd bez vizualni zpetne vazby
+### 5.5 `star_level_changed` - uzivatel nevidi, ze se mu zmenila uroven hvezd
 
-**Problem:** Event se emituje na 3 mistech v starRatingService.ts (radky 238, 324, 647), ale zadna komponenta ho neposlouchá.
+**Co se deje:**
+Kazda mesicni vyzva patri do jedne kategorie (Navyky, Denik, Cile, Konzistence). Kazda kategorie ma svou uroven hvezd od 1★ do 5★:
+- 1★ Novice (seda) → 2★ Explorer (modra) → 3★ Challenger (fialova) → 4★ Expert (oranzova) → 5★ Master (zlata)
 
-**Co to ma delat:** Informovat UI o zmene urovne hvezd uzivatele (napr. z 2★ na 3★). UI by mohlo zobrazit celebraci nebo aktualizovat hvezdickovy indikator.
+Hvezdy se meni ve dvou situacich:
+- **Povyseni** - kdyz uzivatel splni mesicni vyzvu na 100%, jeho hvezda v dane kategorii stoupne o 1
+- **Sesazeni** - kdyz uzivatel 2× za sebou selze (pod 70%), nebo kdyz 3× za sebou dostane zjednoduseny warm-up
 
-**Dopad:** Nizky-stredni. Star rating se meni na pozadi, UI se refreshuje manualne pri nacitani screenu. Chybi okamzita zpetna vazba.
+**Problem:**
+Tyto zmeny se deji uplne POTICHRU. Uzivatel si toho vubec nevsimne! Nikdo mu nerekne "Postoupil jsi na 3★ Challenger!" ani "Tvoje hvezdy klesly na 1★".
 
-**Navrh opravy:** Pridat listener v MonthlyChallengeSection pro okamzity refresh star ratingu, pripadne kratka celebrace pri povyseni hvezdy.
+**Overene fakty:**
+- Vzdy se meni jen JEDNA kategorie naraz (jedna vyzva = jedna kategorie)
+- Nemuze nastat situace, ze by sly dve kategorie nahoru/dolu soucasne
+- Existuje funkce "reset hvezd", ale ta NENI nikde v aplikaci pristupna uzivateli (jen pro testovani)
 
-**Status:** [ ] K rozhodnuti
+**Plan opravy - novy modal "Zmena urovne hvezd":**
+
+🔼 **Kdyz hvezda STOUPNE (povyseni):**
+1. Uzivatel splni mesicni vyzvu na 100%
+2. Nejdriv se zobrazi gratulacni modal "Vyzva splnena!" (ten uz existuje)
+3. Uzivatel ho odklikne
+4. HNED NA TO se zobrazi novy modal "Postoupil jsi na 3★ Challenger!"
+   - S animaci, barvou nove urovne, motivacnim textem
+   - Pozitivni, slavnostni atmosfera
+
+🔽 **Kdyz hvezda KLESNE (sesazeni):**
+1. Vyzva skonci neuspechem (nebo 3× warm-up penalizace)
+2. Uzivatel ten den mozna ani neotevre apku
+3. DRUHY DEN (nebo pri pristim otevreni apky) se zobrazi modal
+   - "Tvoje hvezdy v kategorii Navyky klesly na 1★ Novice"
+   - S vysvetlenim proc (2× selhal / warm-up penalizace)
+   - S tipem na zlepseni
+   - Jemnejsi, informativni ton (ne depresivni)
+
+**Design modalu - vizualni podoba:**
+
+Modal bude mit DVE varianty - jednu slavnostni (povyseni) a jednu informativni (sesazeni).
+Obe varianty musi fungovat spravne v Light i Dark theme.
+
+🔼 **Povyseni (napr. 2★ → 3★ Challenger):**
+
+Obsah modalu:
+- Nazev kategorie (napr. "Navyky" / "Habits")
+- Animovane hvezdy v barve NOVE urovne (viz barvy nize)
+- Nazev nove urovne (napr. "Challenger")
+- Motivacni text
+- Tlacitko "Super!"
+
+Animace pri otevreni:
+1. Modal se objevi, uzivatel vidi 2 hvezdy (stare) zarovnane na stred
+2. BUM! - treti hvezda vybuchne do sceny (zvetseni z nuly + bounce efekt)
+3. Vsechny hvezdy se plynule presunou aby zustaly zarovnane na stred
+4. Hvezdy zmeni barvu na barvu nove urovne
+5. Nazev urovne se plynule zmeni (Explorer → Challenger)
+6. Jemny glow/zablesk kolem hvezd + haptic feedback pri "bouchnuti"
+
+🔽 **Sesazeni (napr. 3★ → 2★ Explorer):**
+
+Obsah modalu:
+- Nazev kategorie
+- Animovane hvezdy v barve NOVE (nizsi) urovne
+- Nazev nove urovne
+- Vysvetleni proc doslo k sesazeni (2× selhal / warm-up penalizace)
+- Motivacni tip na zlepseni
+- Tlacitko "Jdu do toho!"
+
+Animace pri otevreni:
+1. Modal se objevi, uzivatel vidi 3 hvezdy v puvodni barve
+2. Treti hvezda ztmavne a ZMENSI se (fade out + scale down)
+3. Zbyle 2 hvezdy se plynule presunou na stred
+4. Hvezdy zmeni barvu na barvu nizsi urovne
+5. Nazev urovne se plynule zmeni (Challenger → Explorer)
+
+**Barvy hvezd podle urovne** (tematicke - kazda uroven ma svou barvu):
+- 1★ Novice = seda (#9E9E9E)
+- 2★ Explorer = modra (#2196F3)
+- 3★ Challenger = fialova (#9C27B0)
+- 4★ Expert = oranzova (#FF9800)
+- 5★ Master = zlata (#FFD700)
+
+**Theme podpora:**
+- Pozadi modalu, texty a tlacitka pouzivaji barvy z naseho theme systemu (Light/Dark)
+- Barvy hvezd zustavaji stejne v obou themes (jsou dostatecne kontrastni)
+- Zadne hardcoded bile/cerne barvy - vse pres colors z ThemeContext
+
+**Implementace po krocich:**
+- [ ] 5.5.1: Vytvorit novy modal StarLevelChangeModal (design, animace, lokalizace EN/DE/ES)
+- [ ] 5.5.2: Povyseni - napojit modal tak, aby se zobrazil hned po gratulaci za splnenou vyzvu
+- [ ] 5.5.3: Sesazeni - ulozit info o zmene do pameti a zobrazit pri pristim otevreni aplikace
+- [ ] 5.5.4: Otestovat oba scenare (nahoru i dolu)
+
+**Status:** [ ] SCHVALENO - ceka na implementaci
 
 ---
 
