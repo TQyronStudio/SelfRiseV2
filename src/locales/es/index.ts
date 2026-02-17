@@ -1271,6 +1271,16 @@ const es: Partial<TranslationKeys> = {
     milestones: 'Hitos',
     requirements: 'Requisitos',
 
+    // Milestone celebration modal
+    milestone: {
+      title: '{{milestone}}% Hito Alcanzado!',
+      xpBonus: 'Bonus de Hito',
+      motivation_25: '¡Gran comienzo! Has completado un cuarto de tu desafío. ¡Sigue así!',
+      motivation_50: '¡A mitad de camino! Estás mostrando verdadera dedicación. ¡La meta está a la vista!',
+      motivation_75: '¡Casi lo logras! Solo un poco más de esfuerzo y completarás todo el desafío!',
+      accessibility: '{{milestone}} por ciento de hito alcanzado para {{title}}',
+    },
+
     // Warm-Up Challenge (for users with < 14 days of activity)
     warmUpPrefix: 'Calentamiento',
     warmUpDescription: '¡Esta es tu introducción a los desafíos mensuales! Lo hemos hecho extra alcanzable para ayudarte a ganar confianza.',

@@ -4,4 +4,5 @@ export { default as MonthlyChallengeCard } from './MonthlyChallengeCard';
 export { default as MonthlyChallengeSection } from './MonthlyChallengeSection';
 export { default as MonthlyChallengeDetailModal } from './MonthlyChallengeDetailModal';
 export { default as MonthlyChallengeCompletionModal } from './MonthlyChallengeCompletionModal';
+export { default as MonthlyChallengeMilestoneModal } from './MonthlyChallengeMilestoneModal';
 export { default as MonthlyProgressCalendar } from './MonthlyProgressCalendar';

@@ -1284,6 +1284,16 @@ const en: TranslationKeys = {
     milestones: 'Milestones',
     requirements: 'Requirements',
 
+    // Milestone celebration modal
+    milestone: {
+      title: '{{milestone}}% Milestone Reached!',
+      xpBonus: 'Milestone Bonus',
+      motivation_25: 'Great start! You\'ve completed a quarter of your challenge. Keep building momentum!',
+      motivation_50: 'Halfway there! You\'re showing real dedication. The finish line is in sight!',
+      motivation_75: 'Almost there! Just a little more effort and you\'ll complete the entire challenge!',
+      accessibility: '{{milestone}} percent milestone reached for {{title}}',
+    },
+
     // Warm-Up Challenge (for users with < 14 days of activity)
     warmUpPrefix: 'Warm-Up',
     warmUpDescription: 'This is your introduction to monthly challenges! We\'ve made it extra achievable to help you build confidence.',

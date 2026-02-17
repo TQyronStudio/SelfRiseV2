@@ -7,6 +7,7 @@ import { StarRatingService } from '../../services/starRatingService';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import MonthlyChallengeCard from './MonthlyChallengeCard';
 import MonthlyChallengeCompletionModal from './MonthlyChallengeCompletionModal';
+import MonthlyChallengeMilestoneModal from './MonthlyChallengeMilestoneModal';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -40,6 +41,14 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
   // Completion modal state
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionResult, setCompletionResult] = useState<any>(null);
+
+  // Milestone modal state
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [milestoneData, setMilestoneData] = useState<{
+    milestone: 25 | 50 | 75;
+    challengeTitle: string;
+    xpAwarded: number;
+  } | null>(null);
 
   useEffect(() => {
     loadMonthlyChallenge();
@@ -119,6 +128,36 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
     return () => {
       completionListener.remove();
+    };
+  }, [challenge?.id]);
+
+  // Milestone celebration listener (25%, 50%, 75%)
+  useEffect(() => {
+    const milestoneListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_milestone_reached',
+      (eventData: any) => {
+        console.log('🎯 Monthly milestone reached event received:', eventData);
+
+        if (eventData?.milestone && eventData?.challengeTitle) {
+          setMilestoneData({
+            milestone: eventData.milestone,
+            challengeTitle: eventData.challengeTitle,
+            xpAwarded: eventData.xpAwarded || 0,
+          });
+          setShowMilestoneModal(true);
+
+          // Also refresh progress
+          if (challenge && eventData.challengeId === challenge.id) {
+            MonthlyProgressTracker.getChallengeProgress(challenge.id).then(updatedProgress => {
+              if (updatedProgress) setProgress(updatedProgress);
+            });
+          }
+        }
+      }
+    );
+
+    return () => {
+      milestoneListener.remove();
     };
   }, [challenge?.id]);
 
@@ -768,6 +807,19 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
           setCompletionResult(null);
         }}
       />
+
+      {milestoneData && (
+        <MonthlyChallengeMilestoneModal
+          visible={showMilestoneModal}
+          milestone={milestoneData.milestone}
+          challengeTitle={milestoneData.challengeTitle}
+          xpAwarded={milestoneData.xpAwarded}
+          onClose={() => {
+            setShowMilestoneModal(false);
+            setMilestoneData(null);
+          }}
+        />
+      )}
     </View>
   );
 };

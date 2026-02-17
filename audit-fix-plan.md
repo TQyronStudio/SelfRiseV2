@@ -336,7 +336,9 @@ Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do pra
 
 **Navrh opravy:** Pridat listener v MonthlyChallengeSection nebo na Home screenu, ktery zobrazi milestone celebraci (toast nebo mini-modal).
 
-**Status:** [ ] K implementaci
+**Reseni:** Vytvorena nova komponenta MonthlyChallengeMilestoneModal s animacemi, progress barem a haptic feedbackem. Pridan listener v MonthlyChallengeSection pro `monthly_milestone_reached`. Kazdy milestone (25/50/75%) ma vlastni emoji (🌱/🔥/🚀), barvu a motivacni text. Lokalizace pridany ve vsech 3 jazycich (EN, DE, ES). Typ pridan do i18n.ts.
+
+**Status:** [x] OPRAVENO - milestone celebracni modal implementovan
 
 ---
 

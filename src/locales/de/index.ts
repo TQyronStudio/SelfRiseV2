@@ -1271,6 +1271,16 @@ const de: Partial<TranslationKeys> = {
     milestones: 'Ziele',
     requirements: 'Bedingung',
 
+    // Milestone celebration modal
+    milestone: {
+      title: '{{milestone}}% Meilenstein erreicht!',
+      xpBonus: 'Meilenstein-Bonus',
+      motivation_25: 'Toller Start! Du hast ein Viertel deiner Herausforderung geschafft. Bleib am Ball!',
+      motivation_50: 'Halbzeit! Du zeigst echtes Engagement. Das Ziel ist in Sicht!',
+      motivation_75: 'Fast geschafft! Nur noch ein kleines Stück und du hast die gesamte Herausforderung gemeistert!',
+      accessibility: '{{milestone}} Prozent Meilenstein erreicht für {{title}}',
+    },
+
     // Warm-Up Challenge (for users with < 14 days of activity)
     warmUpPrefix: 'Aufwärm-Challenge',
     warmUpDescription: 'Dies ist deine Einführung in monatliche Herausforderungen! Wir haben es extra erreichbar gemacht, um dir zu helfen, Vertrauen aufzubauen.',

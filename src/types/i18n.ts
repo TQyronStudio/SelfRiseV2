@@ -1001,6 +1001,16 @@ export interface TranslationKeys {
     milestones: string;
     requirements: string;
 
+    // Milestone celebration modal
+    milestone: {
+      title: string;
+      xpBonus: string;
+      motivation_25: string;
+      motivation_50: string;
+      motivation_75: string;
+      accessibility: string;
+    };
+
     // Warm-Up Challenge
     warmUpPrefix: string;
     warmUpDescription: string;
