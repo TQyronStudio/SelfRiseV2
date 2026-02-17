@@ -145,7 +145,6 @@ export class MonthlyProgressTracker {
   private static readonly EVENTS = {
     PROGRESS_UPDATED: 'monthly_progress_updated',
     MILESTONE_REACHED: 'monthly_milestone_reached',
-    WEEK_COMPLETED: 'monthly_week_completed',
     DAILY_SNAPSHOT_CREATED: 'daily_snapshot_created'
   } as const;
 
@@ -1201,15 +1200,6 @@ export class MonthlyProgressTracker {
         // Save updated weekly breakdown
         await this.saveWeeklyBreakdown(weeklyBreakdown);
 
-        // Emit week completed event if just completed
-        if (weeklyBreakdown.isCompleted && weeklyBreakdown.daysActive >= 7) {
-          DeviceEventEmitter.emit(this.EVENTS.WEEK_COMPLETED, {
-            challengeId,
-            weekNumber: currentWeekNumber,
-            weeklyBreakdown,
-            timestamp: new Date()
-          });
-        }
       }
 
       console.log(`📅 Weekly breakdown updated for ${challengeId}, week ${currentWeekNumber}`);

@@ -352,7 +352,7 @@ Behem proverovani bodu 3.4 bylo identifikovano 7 eventu, ktere se emituji do pra
 
 **Navrh opravy:** Pridat listener ktery zobrazi kratkou notifikaci "Tyden X dokoncen!" nebo to integrovat do progress baru vyzvy.
 
-**Status:** [ ] K rozhodnuti
+**Status:** [x] SMAZANO - event odstranen jako zbytecny
 
 ---
 
