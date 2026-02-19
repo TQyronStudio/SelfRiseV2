@@ -1,4 +1,5 @@
 // Star Level Change Modal - Celebration for star promotion / notification for demotion
+// Animation flow: Show OLD state first, then animate the transition to NEW state
 import React, { useEffect, useRef, useCallback } from 'react';
 import {
   View,
@@ -46,16 +47,29 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
 
-  // Animations
+  // Phase 1: Modal entrance
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
-  const starAnims = useRef<Animated.Value[]>([]).current;
+
+  // Phase 2: New star landing (promotion) or star removal (demotion)
   const newStarScale = useRef(new Animated.Value(0)).current;
   const removedStarScale = useRef(new Animated.Value(1)).current;
   const removedStarOpacity = useRef(new Animated.Value(1)).current;
-  const nameOpacity = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
+  const removedStarWidth = useRef(new Animated.Value(48)).current; // star fontSize 40 + gap 8
+
+  // Shockwave effect (promotion only)
+  const shockwaveScale = useRef(new Animated.Value(0)).current;
+  const shockwaveOpacity = useRef(new Animated.Value(0)).current;
+
+  // Phase 3: Color transition (0 = old color, 1 = new color)
   const colorAnim = useRef(new Animated.Value(0)).current;
+
+  // Phase 3: Name crossfade
+  const oldNameOpacity = useRef(new Animated.Value(1)).current;
+  const newNameOpacity = useRef(new Animated.Value(0)).current;
+
+  // Phase 4: Final elements (button, motivation, reason)
+  const finalOpacity = useRef(new Animated.Value(0)).current;
 
   const isPromotion = data ? data.newStars > data.previousStars : false;
   const getConfig = (level: number) => STAR_CONFIG[level] ?? STAR_CONFIG[1]!;
@@ -68,22 +82,18 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     newStarScale.setValue(0);
     removedStarScale.setValue(1);
     removedStarOpacity.setValue(1);
-    nameOpacity.setValue(0);
-    glowAnim.setValue(0);
+    removedStarWidth.setValue(48);
+    shockwaveScale.setValue(0);
+    shockwaveOpacity.setValue(0);
     colorAnim.setValue(0);
-    starAnims.length = 0;
-  }, [fadeAnim, scaleAnim, newStarScale, removedStarScale, removedStarOpacity, nameOpacity, glowAnim, colorAnim, starAnims]);
+    oldNameOpacity.setValue(1);
+    newNameOpacity.setValue(0);
+    finalOpacity.setValue(0);
+  }, [fadeAnim, scaleAnim, newStarScale, removedStarScale, removedStarOpacity, removedStarWidth, shockwaveScale, shockwaveOpacity, colorAnim, oldNameOpacity, newNameOpacity, finalOpacity]);
 
   useEffect(() => {
     if (visible && data) {
       resetAnimations();
-
-      // Initialize star position animations for repositioning
-      const maxStars = Math.max(data.previousStars, data.newStars);
-      for (let i = 0; i < maxStars; i++) {
-        starAnims.push(new Animated.Value(0));
-      }
-
       if (isPromotion) {
         runPromotionAnimation();
       } else {
@@ -97,107 +107,164 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const runPromotionAnimation = () => {
     if (!data) return;
 
-    // Haptic feedback
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     Animated.sequence([
-      // Phase 1: Modal appears with old stars
+      // Phase 1: Modal fades in showing OLD state (old stars, old color, old name)
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
           tension: 100,
           friction: 8,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]),
-      // Phase 2: New star BOOM! + reposition
-      Animated.delay(400),
+      // Hold old state for 800ms so user sees where they were
+      Animated.delay(800),
+
+      // Phase 2: New star LANDS with dramatic bounce + shockwave
       Animated.parallel([
-        // New star bounce in
+        // Star bounce: scale 0 -> 1.5 -> 0.9 -> 1.0
         Animated.spring(newStarScale, {
           toValue: 1,
-          tension: 120,
-          friction: 6,
-          useNativeDriver: true,
+          tension: 180,
+          friction: 5,
+          useNativeDriver: false,
         }),
-        // Glow effect
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        // Color transition
+        // Shockwave expands and fades
+        Animated.parallel([
+          Animated.timing(shockwaveOpacity, {
+            toValue: 0.7,
+            duration: 100,
+            useNativeDriver: false,
+          }),
+          Animated.timing(shockwaveScale, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: false,
+          }),
+        ]),
+      ]),
+      // Fade out shockwave
+      Animated.timing(shockwaveOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+
+      // Phase 3: Color transition triggered after shockwave
+      Animated.parallel([
+        // All colors transition from old to new over 600ms
         Animated.timing(colorAnim, {
           toValue: 1,
           duration: 600,
           useNativeDriver: false,
         }),
+        // Old name fades out
+        Animated.timing(oldNameOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+        // New name fades in (slightly delayed)
+        Animated.sequence([
+          Animated.delay(200),
+          Animated.timing(newNameOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: false,
+          }),
+        ]),
       ]),
-      // Phase 3: Name appears
-      Animated.timing(nameOpacity, {
+
+      // Phase 4: Button and motivation text fade in
+      Animated.timing(finalOpacity, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     ]).start();
 
-    // Extra haptic on star boom
+    // Extra haptic when star lands (after Phase 1 delay + entrance animation ~300ms + 800ms hold)
     setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }, 700);
+    }, 1100);
   };
 
   const runDemotionAnimation = () => {
     if (!data) return;
 
-    // Softer haptic for demotion
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
 
     Animated.sequence([
-      // Phase 1: Modal appears with current stars
+      // Phase 1: Modal fades in showing OLD state
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
           tension: 100,
           friction: 8,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]),
-      // Phase 2: Star fades out + shrinks
-      Animated.delay(400),
+      // Hold old state for 800ms
+      Animated.delay(800),
+
+      // Phase 2: Last star shrinks, fades out, and collapses its space
       Animated.parallel([
         Animated.timing(removedStarScale, {
           toValue: 0,
           duration: 500,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(removedStarOpacity, {
           toValue: 0,
           duration: 500,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
-        // Color transition
+        Animated.timing(removedStarWidth, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: false,
+        }),
+      ]),
+
+      // Phase 3: Color transition + name crossfade
+      Animated.parallel([
         Animated.timing(colorAnim, {
           toValue: 1,
           duration: 600,
           useNativeDriver: false,
         }),
+        Animated.timing(oldNameOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+        Animated.sequence([
+          Animated.delay(200),
+          Animated.timing(newNameOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: false,
+          }),
+        ]),
       ]),
-      // Phase 3: Name appears
-      Animated.timing(nameOpacity, {
+
+      // Phase 4: Reason, motivation, button fade in
+      Animated.timing(finalOpacity, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     ]).start();
   };
@@ -229,32 +296,44 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     }
   };
 
-  // Render stars for promotion: old stars + animated new star
+  // Animated color interpolation: old color -> new color
+  const accentColor = colorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [prevConfig.color, newConfig.color],
+  });
+
+  // Badge background: interpolate between old and new color with low alpha
+  const badgeBgColor = colorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [prevConfig.color + '15', newConfig.color + '15'],
+  });
+
+  // Render stars for promotion: old stars (color-transitioning) + animated new star
   const renderPromotionStars = () => {
     const stars: React.ReactNode[] = [];
 
-    // Existing stars (already there)
+    // Existing stars - start with old color, transition to new
     for (let i = 0; i < data.previousStars; i++) {
       stars.push(
-        <Text key={`old-${i}`} style={[styles.star, { color: newConfig.color }]}>
+        <Animated.Text key={`old-${i}`} style={[staticStyles.star, { color: accentColor }]}>
           ★
-        </Text>
+        </Animated.Text>
       );
     }
 
-    // New star with bounce animation
+    // New star with dramatic bounce animation
     stars.push(
       <Animated.Text
         key="new"
         style={[
-          styles.star,
+          staticStyles.star,
           {
-            color: newConfig.color,
+            color: accentColor,
             transform: [
               {
                 scale: newStarScale.interpolate({
-                  inputRange: [0, 0.5, 0.8, 1],
-                  outputRange: [0, 1.4, 0.9, 1],
+                  inputRange: [0, 0.4, 0.7, 0.85, 1],
+                  outputRange: [0, 1.5, 0.9, 1.05, 1.0],
                 }),
               },
             ],
@@ -269,42 +348,48 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     return stars;
   };
 
-  // Render stars for demotion: stars with last one fading out
+  // Render stars for demotion: remaining stars (color-transitioning) + fading star
   const renderDemotionStars = () => {
     const stars: React.ReactNode[] = [];
 
-    // Stars that stay
+    // Stars that stay - start with old color, transition to new
     for (let i = 0; i < data.newStars; i++) {
       stars.push(
-        <Text key={`stay-${i}`} style={[styles.star, { color: newConfig.color }]}>
+        <Animated.Text key={`stay-${i}`} style={[staticStyles.star, { color: accentColor }]}>
           ★
-        </Text>
+        </Animated.Text>
       );
     }
 
-    // Star that's being removed (fade + shrink)
+    // Star being removed - stays old color, shrinks, fades, and collapses width
     stars.push(
-      <Animated.Text
+      <Animated.View
         key="removed"
-        style={[
-          styles.star,
-          {
-            color: prevConfig.color,
-            transform: [{ scale: removedStarScale }],
-            opacity: removedStarOpacity,
-          },
-        ]}
+        style={{
+          width: removedStarWidth,
+          overflow: 'hidden',
+          alignItems: 'center',
+        }}
       >
-        ★
-      </Animated.Text>
+        <Animated.Text
+          style={[
+            staticStyles.star,
+            {
+              color: prevConfig.color,
+              transform: [{ scale: removedStarScale }],
+              opacity: removedStarOpacity,
+            },
+          ]}
+        >
+          ★
+        </Animated.Text>
+      </Animated.View>
     );
 
     return stars;
   };
 
-  const accentColor = newConfig.color;
-
-  const styles = createStyles(colors, accentColor, isPromotion);
+  const staticStyles = createStyles(colors);
 
   return (
     <Modal
@@ -314,11 +399,14 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+      <Animated.View style={[staticStyles.overlay, { opacity: fadeAnim }]}>
         <Animated.View
           style={[
-            styles.container,
-            { transform: [{ scale: scaleAnim }] },
+            staticStyles.container,
+            {
+              transform: [{ scale: scaleAnim }],
+              borderColor: accentColor,
+            },
           ]}
           accessible
           accessibilityRole="alert"
@@ -336,64 +424,79 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
                 })
           }
         >
-          {/* Category badge */}
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryEmoji}>{getCategoryEmoji(data.category)}</Text>
-            <Text style={styles.categoryText}>{getCategoryName(data.category)}</Text>
-          </View>
+          {/* Category badge - accent color transitions */}
+          <Animated.View style={[staticStyles.categoryBadge, { backgroundColor: badgeBgColor }]}>
+            <Text style={staticStyles.categoryEmoji}>{getCategoryEmoji(data.category)}</Text>
+            <Animated.Text style={[staticStyles.categoryText, { color: accentColor }]}>
+              {getCategoryName(data.category)}
+            </Animated.Text>
+          </Animated.View>
 
           {/* Title */}
-          <Text style={styles.title}>
+          <Text style={staticStyles.title}>
             {isPromotion
               ? t('monthlyChallenge.starChange.promotionTitle')
               : t('monthlyChallenge.starChange.demotionTitle')}
           </Text>
 
           {/* Stars display with animation */}
-          <View style={styles.starsRow}>
-            {isPromotion ? renderPromotionStars() : renderDemotionStars()}
+          <View style={staticStyles.starsContainer}>
+            <View style={staticStyles.starsRow}>
+              {isPromotion ? renderPromotionStars() : renderDemotionStars()}
+            </View>
+
+            {/* Shockwave ring - promotion only, positioned over stars row */}
+            {isPromotion && (
+              <Animated.View
+                style={[
+                  staticStyles.shockwave,
+                  {
+                    borderColor: prevConfig.color,
+                    opacity: shockwaveOpacity,
+                    transform: [
+                      {
+                        scale: shockwaveScale.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.2, 2.5],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
+            )}
           </View>
 
-          {/* Glow effect for promotion */}
-          {isPromotion && (
-            <Animated.View
+          {/* Level name crossfade: old name fades out, new name fades in */}
+          <View style={staticStyles.levelNameContainer}>
+            <Animated.Text
               style={[
-                styles.glowRing,
-                {
-                  opacity: glowAnim.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0, 0.6, 0.3],
-                  }),
-                  transform: [
-                    {
-                      scale: glowAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.8, 1.2],
-                      }),
-                    },
-                  ],
-                },
+                staticStyles.levelName,
+                { color: prevConfig.color, opacity: oldNameOpacity, position: 'absolute' },
               ]}
-            />
-          )}
-
-          {/* Level name with fade-in */}
-          <Animated.View style={[styles.levelNameContainer, { opacity: nameOpacity }]}>
-            <Text style={styles.levelName}>
+            >
+              {t(`monthlyChallenge.starLevels.${prevConfig.nameKey}`)}
+            </Animated.Text>
+            <Animated.Text
+              style={[
+                staticStyles.levelName,
+                { color: newConfig.color, opacity: newNameOpacity },
+              ]}
+            >
               {t(`monthlyChallenge.starLevels.${newConfig.nameKey}`)}
-            </Text>
-          </Animated.View>
+            </Animated.Text>
+          </View>
 
           {/* Demotion reason */}
           {!isPromotion && (
-            <Animated.View style={{ opacity: nameOpacity }}>
-              <Text style={styles.reasonText}>{getDemotionReason()}</Text>
+            <Animated.View style={{ opacity: finalOpacity }}>
+              <Text style={staticStyles.reasonText}>{getDemotionReason()}</Text>
             </Animated.View>
           )}
 
           {/* Motivation message */}
-          <Animated.View style={{ opacity: nameOpacity }}>
-            <Text style={styles.motivationText}>
+          <Animated.View style={{ opacity: finalOpacity }}>
+            <Text style={staticStyles.motivationText}>
               {isPromotion
                 ? t('monthlyChallenge.starChange.promotionMotivation')
                 : t('monthlyChallenge.starChange.demotionMotivation')}
@@ -401,9 +504,13 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
           </Animated.View>
 
           {/* Button */}
-          <Animated.View style={[styles.buttonWrapper, { opacity: nameOpacity }]}>
+          <Animated.View style={[staticStyles.buttonWrapper, { opacity: finalOpacity }]}>
             <Pressable
-              style={styles.button}
+              style={({ pressed }) => [
+                staticStyles.button,
+                { backgroundColor: isPromotion ? newConfig.color : colors.textSecondary },
+                pressed && { opacity: 0.8 },
+              ]}
               onPress={onClose}
               accessible
               accessibilityRole="button"
@@ -413,7 +520,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
                   : t('monthlyChallenge.starChange.buttonDemotion')
               }
             >
-              <Text style={styles.buttonText}>
+              <Text style={staticStyles.buttonText}>
                 {isPromotion
                   ? t('monthlyChallenge.starChange.buttonPromotion')
                   : t('monthlyChallenge.starChange.buttonDemotion')}
@@ -426,7 +533,8 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   );
 };
 
-const createStyles = (colors: any, accentColor: string, isPromotion: boolean) =>
+
+const createStyles = (colors: any) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -442,12 +550,11 @@ const createStyles = (colors: any, accentColor: string, isPromotion: boolean) =>
       width: Math.min(screenWidth - 48, 360),
       alignItems: 'center',
       borderWidth: 2,
-      borderColor: accentColor,
+      overflow: 'hidden',
     },
     categoryBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: accentColor + '15',
       paddingHorizontal: 14,
       paddingVertical: 6,
       borderRadius: 20,
@@ -460,7 +567,6 @@ const createStyles = (colors: any, accentColor: string, isPromotion: boolean) =>
     categoryText: {
       fontSize: 13,
       fontWeight: '600',
-      color: accentColor,
       letterSpacing: 0.5,
     },
     title: {
@@ -470,37 +576,39 @@ const createStyles = (colors: any, accentColor: string, isPromotion: boolean) =>
       textAlign: 'center',
       marginBottom: 20,
     },
+    starsContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+      minHeight: 60,
+    },
     starsRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      marginBottom: 8,
-      minHeight: 60,
     },
     star: {
       fontSize: 40,
-      textShadowColor: accentColor + '40',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 8,
     },
-    glowRing: {
+    shockwave: {
       position: 'absolute',
-      top: '40%',
-      width: 200,
-      height: 200,
-      borderRadius: 100,
-      backgroundColor: accentColor + '15',
-      alignSelf: 'center',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      borderWidth: 3,
+      backgroundColor: 'transparent',
     },
     levelNameContainer: {
       marginTop: 8,
       marginBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 36,
     },
     levelName: {
       fontSize: 28,
       fontWeight: 'bold',
-      color: accentColor,
       textAlign: 'center',
     },
     reasonText: {
@@ -522,7 +630,6 @@ const createStyles = (colors: any, accentColor: string, isPromotion: boolean) =>
       width: '100%',
     },
     button: {
-      backgroundColor: isPromotion ? accentColor : colors.textSecondary,
       borderRadius: 12,
       paddingVertical: 14,
       paddingHorizontal: 32,
