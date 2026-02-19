@@ -1309,7 +1309,11 @@ All modals should follow the CelebrationModal pattern with:
 
 **Package**: `@shopify/react-native-skia`
 
-**Momentální použití**: Tutorial spotlight efekt (`src/components/tutorial/SpotlightEffect.tsx`) — GPU-accelerated dark overlay s cutout, BlurMask soft edges, pulsující glow ring. Detaily: @technical-guides:Tutorial.md
+**Dostupné pro celý projekt** — není omezeno jen na Tutorial. Použít všude, kde je potřeba pokročilý vizuální efekt (částice, glow, blur, exploze, shader efekty).
+
+**Aktuální použití**:
+- Tutorial spotlight efekt (`src/components/tutorial/SpotlightEffect.tsx`) — GPU-accelerated dark overlay s cutout, BlurMask soft edges, pulsující glow ring. Detaily: @technical-guides:Tutorial.md
+- Star Level Change Modal (`src/components/challenges/StarLevelChangeModal.tsx`) — plánováno pro částicové efekty a glow animace
 
 **Kdy použít Skia místo standardních RN Views:**
 - Komplexní overlays s průsvitnost a blend modes (`BlendMode.dstOut`, `multiply`, …)

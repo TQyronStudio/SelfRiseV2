@@ -10,6 +10,14 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import ReAnimated, {
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
+import { Canvas, Circle } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -57,9 +65,13 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const removedStarOpacity = useRef(new Animated.Value(1)).current;
   const removedStarWidth = useRef(new Animated.Value(48)).current; // star fontSize 40 + gap 8
 
-  // Shockwave effect (promotion only)
-  const shockwaveScale = useRef(new Animated.Value(0)).current;
-  const shockwaveOpacity = useRef(new Animated.Value(0)).current;
+  // Reanimated SharedValues for promotion impact effects
+  const modalImpactScale = useSharedValue(1);
+  const modalImpactRotation = useSharedValue(0);
+  const starDropTranslateY = useSharedValue(-30);
+  const starDropScale = useSharedValue(0);
+  const glowRadius = useSharedValue(15);
+  const glowOpacity = useSharedValue(0);
 
   // Phase 3: Color transition (0 = old color, 1 = new color)
   const colorAnim = useRef(new Animated.Value(0)).current;
@@ -76,6 +88,23 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const newConfig = getConfig(data?.newStars ?? 1);
   const prevConfig = getConfig(data?.previousStars ?? 1);
 
+  // Reanimated animated styles for modal impact
+  const modalImpactStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: modalImpactScale.value },
+      { rotate: `${modalImpactRotation.value}deg` },
+    ],
+  }));
+
+  // Reanimated animated style for new star drop
+  const starDropStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: starDropTranslateY.value },
+      { scale: starDropScale.value },
+    ],
+    opacity: starDropScale.value,
+  }));
+
   const resetAnimations = useCallback(() => {
     fadeAnim.setValue(0);
     scaleAnim.setValue(0);
@@ -83,13 +112,18 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     removedStarScale.setValue(1);
     removedStarOpacity.setValue(1);
     removedStarWidth.setValue(48);
-    shockwaveScale.setValue(0);
-    shockwaveOpacity.setValue(0);
     colorAnim.setValue(0);
     oldNameOpacity.setValue(1);
     newNameOpacity.setValue(0);
     finalOpacity.setValue(0);
-  }, [fadeAnim, scaleAnim, newStarScale, removedStarScale, removedStarOpacity, removedStarWidth, shockwaveScale, shockwaveOpacity, colorAnim, oldNameOpacity, newNameOpacity, finalOpacity]);
+    // Reset Reanimated SharedValues
+    modalImpactScale.value = 1;
+    modalImpactRotation.value = 0;
+    starDropTranslateY.value = -30;
+    starDropScale.value = 0;
+    glowRadius.value = 15;
+    glowOpacity.value = 0;
+  }, [fadeAnim, scaleAnim, newStarScale, removedStarScale, removedStarOpacity, removedStarWidth, colorAnim, oldNameOpacity, newNameOpacity, finalOpacity]);
 
   useEffect(() => {
     if (visible && data) {
@@ -103,6 +137,39 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       resetAnimations();
     }
   }, [visible, data]);
+
+  // Trigger Reanimated impact effects (called via setTimeout after Phase 1 completes)
+  const triggerImpactEffects = useCallback(() => {
+    // Star bounce: drop from above with dramatic spring
+    starDropTranslateY.value = withSpring(0, { damping: 8, stiffness: 300 });
+    starDropScale.value = withSequence(
+      withSpring(1.5, { damping: 4, stiffness: 400 }),
+      withSpring(0.9, { damping: 10, stiffness: 300 }),
+      withSpring(1.05, { damping: 12, stiffness: 250 }),
+      withSpring(1.0, { damping: 14, stiffness: 200 }),
+    );
+
+    // Modal pressure wave: scale pulse + rotation wobble
+    modalImpactScale.value = withSequence(
+      withSpring(1.06, { damping: 4, stiffness: 500 }),
+      withSpring(0.97, { damping: 6, stiffness: 400 }),
+      withSpring(1.02, { damping: 10, stiffness: 300 }),
+      withSpring(1.0, { damping: 14, stiffness: 200 }),
+    );
+    modalImpactRotation.value = withSequence(
+      withSpring(-2, { damping: 4, stiffness: 500 }),
+      withSpring(2, { damping: 6, stiffness: 400 }),
+      withSpring(-0.5, { damping: 10, stiffness: 300 }),
+      withSpring(0, { damping: 14, stiffness: 200 }),
+    );
+
+    // Skia radial glow burst
+    glowOpacity.value = withSequence(
+      withTiming(0.6, { duration: 50 }),
+      withTiming(0, { duration: 450 }),
+    );
+    glowRadius.value = withTiming(120, { duration: 500 });
+  }, []);
 
   const runPromotionAnimation = () => {
     if (!data) return;
@@ -127,51 +194,26 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       // Hold old state for 800ms so user sees where they were
       Animated.delay(800),
 
-      // Phase 2: New star LANDS with dramatic bounce + shockwave
-      Animated.parallel([
-        // Star bounce: scale 0 -> 1.5 -> 0.9 -> 1.0
-        Animated.spring(newStarScale, {
-          toValue: 1,
-          tension: 180,
-          friction: 5,
-          useNativeDriver: false,
-        }),
-        // Shockwave expands and fades
-        Animated.parallel([
-          Animated.timing(shockwaveOpacity, {
-            toValue: 0.7,
-            duration: 100,
-            useNativeDriver: false,
-          }),
-          Animated.timing(shockwaveScale, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: false,
-          }),
-        ]),
-      ]),
-      // Fade out shockwave
-      Animated.timing(shockwaveOpacity, {
-        toValue: 0,
-        duration: 200,
+      // Phase 2: New star visibility via RN Animated (for color interpolation)
+      Animated.spring(newStarScale, {
+        toValue: 1,
+        tension: 180,
+        friction: 5,
         useNativeDriver: false,
       }),
 
-      // Phase 3: Color transition triggered after shockwave
+      // Phase 3: Color transition triggered after star lands
       Animated.parallel([
-        // All colors transition from old to new over 600ms
         Animated.timing(colorAnim, {
           toValue: 1,
           duration: 600,
           useNativeDriver: false,
         }),
-        // Old name fades out
         Animated.timing(oldNameOpacity, {
           toValue: 0,
           duration: 400,
           useNativeDriver: false,
         }),
-        // New name fades in (slightly delayed)
         Animated.sequence([
           Animated.delay(200),
           Animated.timing(newNameOpacity, {
@@ -190,9 +232,11 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       }),
     ]).start();
 
-    // Extra haptic when star lands (after Phase 1 delay + entrance animation ~300ms + 800ms hold)
+    // Trigger Reanimated impact effects at the same time Phase 2 starts
+    // Phase 1 entrance ~300ms + 800ms hold = ~1100ms
     setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      triggerImpactEffects();
     }, 1100);
   };
 
@@ -321,28 +365,20 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       );
     }
 
-    // New star with dramatic bounce animation
+    // New star with dramatic drop + bounce animation (Reanimated for physics, RN Animated for color)
     stars.push(
-      <Animated.Text
-        key="new"
-        style={[
-          staticStyles.star,
-          {
-            color: accentColor,
-            transform: [
-              {
-                scale: newStarScale.interpolate({
-                  inputRange: [0, 0.4, 0.7, 0.85, 1],
-                  outputRange: [0, 1.5, 0.9, 1.05, 1.0],
-                }),
-              },
-            ],
-            opacity: newStarScale,
-          },
-        ]}
-      >
-        ★
-      </Animated.Text>
+      <ReAnimated.View key="new" style={starDropStyle}>
+        <Animated.Text
+          style={[
+            staticStyles.star,
+            {
+              color: accentColor,
+            },
+          ]}
+        >
+          ★
+        </Animated.Text>
+      </ReAnimated.View>
     );
 
     return stars;
@@ -400,6 +436,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       onRequestClose={onClose}
     >
       <Animated.View style={[staticStyles.overlay, { opacity: fadeAnim }]}>
+        <ReAnimated.View style={modalImpactStyle}>
         <Animated.View
           style={[
             staticStyles.container,
@@ -439,32 +476,23 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
               : t('monthlyChallenge.starChange.demotionTitle')}
           </Text>
 
-          {/* Stars display with animation */}
+          {/* Stars display with animation + Skia glow */}
           <View style={staticStyles.starsContainer}>
+            {/* Skia radial glow burst behind stars - promotion only */}
+            {isPromotion && (
+              <Canvas style={StyleSheet.absoluteFillObject} pointerEvents="none">
+                <Circle
+                  cx={Math.min(screenWidth - 48, 360) / 2}
+                  cy={30}
+                  r={glowRadius}
+                  opacity={glowOpacity}
+                  color={newConfig.color + '40'}
+                />
+              </Canvas>
+            )}
             <View style={staticStyles.starsRow}>
               {isPromotion ? renderPromotionStars() : renderDemotionStars()}
             </View>
-
-            {/* Shockwave ring - promotion only, positioned over stars row */}
-            {isPromotion && (
-              <Animated.View
-                style={[
-                  staticStyles.shockwave,
-                  {
-                    borderColor: prevConfig.color,
-                    opacity: shockwaveOpacity,
-                    transform: [
-                      {
-                        scale: shockwaveScale.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.2, 2.5],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              />
-            )}
           </View>
 
           {/* Level name crossfade: old name fades out, new name fades in */}
@@ -528,6 +556,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
             </Pressable>
           </Animated.View>
         </Animated.View>
+        </ReAnimated.View>
       </Animated.View>
     </Modal>
   );
@@ -591,15 +620,7 @@ const createStyles = (colors: any) =>
     star: {
       fontSize: 40,
     },
-    shockwave: {
-      position: 'absolute',
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      borderWidth: 3,
-      backgroundColor: 'transparent',
-    },
-    levelNameContainer: {
+levelNameContainer: {
       marginTop: 8,
       marginBottom: 12,
       alignItems: 'center',
