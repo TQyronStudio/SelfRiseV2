@@ -157,10 +157,10 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
       withSpring(1.0, { damping: 14, stiffness: 200 }),
     );
     modalImpactRotation.value = withSequence(
-      withSpring(-2, { damping: 4, stiffness: 500 }),
-      withSpring(2, { damping: 6, stiffness: 400 }),
-      withSpring(-0.5, { damping: 10, stiffness: 300 }),
-      withSpring(0, { damping: 14, stiffness: 200 }),
+      withTiming(-1.2, { duration: 80 }),
+      withTiming(1.2, { duration: 80 }),
+      withTiming(-0.3, { duration: 60 }),
+      withTiming(0, { duration: 60 }),
     );
 
     // Skia radial glow burst
