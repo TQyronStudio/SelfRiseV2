@@ -462,11 +462,11 @@ Animace pri otevreni:
 - [x] 5.5.1: Vytvorit novy modal StarLevelChangeModal (design, animace, lokalizace EN/DE/ES)
 - [x] 5.5.2: Povyseni - napojit modal tak, aby se zobrazil hned po gratulaci za splnenou vyzvu
 - [x] 5.5.3: Sesazeni - ulozit info o zmene do pameti a zobrazit pri pristim otevreni aplikace
-- [ ] 5.5.4: Otestovat oba scenare (nahoru i dolu)
+- [x] 5.5.4: Otestovat oba scenare (nahoru i dolu)
 
-**Reseni:** Vytvorena nova komponenta StarLevelChangeModal s animacemi hvezd (bounce-in pro povyseni, fade-out pro sesazeni). Pridan listener v MonthlyChallengeSection pro `star_level_changed` event. Povyseni se zobrazi hned po zavreni completion modalu (500ms delay). Sesazeni se ulozi do AsyncStorage a zobrazi pri pristim otevreni appky (1s delay). Lokalizace pridany ve vsech 3 jazycich (EN, DE, ES). Typ pridan do i18n.ts.
+**Reseni:** Vytvorena nova komponenta StarLevelChangeModal s animacemi hvezd (bounce-in pro povyseni, fade-out pro sesazeni). Pridan listener v MonthlyChallengeSection pro `star_level_changed` event. Povyseni se zobrazi hned po zavreni completion modalu (500ms delay). Sesazeni se ulozi do AsyncStorage a zobrazi pri pristim otevreni appky (1s delay). Lokalizace pridany ve vsech 3 jazycich (EN, DE, ES). Typ pridan do i18n.ts. Animace vylepseny pomoci Reanimated (spring physics, modal impact shake) + Skia (radial glow burst).
 
-**Status:** [x] IMPLEMENTOVANO - ceka na testovani
+**Status:** [x] HOTOVO
 
 ---
 
@@ -478,9 +478,9 @@ Animace pri otevreni:
 
 **Dopad:** Nizky. Jde o granularni update - uzivatel vidi progress pri nacitani screenu.
 
-**Navrh opravy:** Pridat listener pro real-time progress bar aktualizaci, nebo ponechat bez listeneru (manual refresh staci).
+**Rozhodnuti:** NEPOTREBNY - listener neni nutny. Hvezdy se vyhodnocuji na konci mesice, uzivatel normalne prechazi mezi taby a obrazovka se nacte znovu. Real-time aktualizace by jen spinila kod bez realne pridane hodnoty pro uzivatele. Event ponechan pro pripadne budouci analytics.
 
-**Status:** [ ] K rozhodnuti
+**Status:** [x] UZAVRENO - nepotrebny
 
 ---
 
@@ -492,9 +492,9 @@ Animace pri otevreni:
 
 **Dopad:** Zadny pro uzivatele. Interni event pro analytics/debugging.
 
-**Navrh opravy:** Bud odstranit emit, nebo ponechat pro budouci analytics. Neni potreba listener pro uzivatele.
+**Rozhodnuti:** NEPOTREBNY - ciste interni event pro debugging. Uzivatel z nej nic nema. Event ponechan v kodu pro pripadne budouci analytics, ale listener neni potreba.
 
-**Status:** [ ] K rozhodnuti (mozna smazat)
+**Status:** [x] UZAVRENO - nepotrebny
 
 ---
 
