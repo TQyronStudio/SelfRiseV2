@@ -600,6 +600,27 @@ Kdyz prijde vice modalu naraz, zobrazi se v tomto poradi (1 = prvni):
 | 6 | Achievement | Odemceni achievementu |
 | 7 (nejnizsi) | Level-up | Dosazeni noveho levelu |
 
+### Zjistene mezery v soucasnem systemu (z review pred implementaci)
+
+Tyto problemy v soucasnem kodu POTVRZUJI nutnost centralniho queue a musi se zohlednit pri implementaci:
+
+1. **MonthlyChallengeSection - 3 modaly BEZ koordinace:**
+   - `MonthlyChallengeCompletionModal`, `MonthlyChallengeMilestoneModal` a `StarLevelChangeModal` jsou vsechny rizeny jen lokalnim stavem
+   - NEVOLAJI `notifyMonthlyChallengeModalStarted/Ended` - stary 4-Tier system je vubec nekoordinuje!
+   - Mohou se zobrazit soucasne s jakymkoliv jinym modalem → iOS freeze
+   - **Queue toto automaticky vyresi** - kazdy z nich bude enqueue a zobrazi se az kdyz je rady
+
+2. **MultiplierActivationModal - zadna koordinace:**
+   - V tabulce oznacen "Zadny!" tier - nema vubec zadnou prioritu v systemu
+   - Muze kolidovat s libovolnym jinym modalem
+   - **Queue toto automaticky vyresi**
+
+3. **`achievementQueueStarting` pre-registracni pattern:**
+   - Soucasny system pouziva event `achievementQueueStarting` ktery se emituje SYNCHRONNE pred jednotlivymi `achievementUnlocked` eventy
+   - Slouzi k tomu, aby XpAnimationContext vedel ze "achievements prichazi" a nastavil flag DRIVE nez dorazi prvni achievement
+   - **V novem queue systemu NENI POTREBA** - kazdy achievement se proste prida do fronty pres `enqueue()` a queue sam zajisti poradi. Zadne pre-registracni flagy.
+   - Pri migraci kroku 6.1.4 tento listener ODSTRANIT z XpAnimationContext
+
 ### Technicky plan implementace
 
 **Novy soubor: `src/contexts/ModalQueueContext.tsx`**
@@ -653,7 +674,11 @@ interface ModalQueueContextValue {
   - Ponechat XP popup/notification system (ten neni modal)
 - [ ] 6.1.10: Aktualizovat stress test v Settings aby pouzival `enqueue`
 - [ ] 6.1.11: Otestovat vse - simultanni eventy, sekvencni zobrazeni, zadne zamrznuti
-- [ ] 6.1.12: Aktualizovat dokumentaci (technical-guides:Gamification-UI.md, Gamification-Events.md)
+- [ ] 6.1.12: Kompletne prepsat technickou dokumentaci aby odpovidala novemu systemu:
+  - `technical-guides:Gamification-UI.md`: Nahradit celou sekci "4-Tier Modal Priority System" za "Centralni Modal Queue System" - popsat novy enqueue pattern, priority, rendering, bezpecnostni pravidla
+  - `technical-guides:Gamification-Events.md`: Aktualizovat event flow diagramy - eventy nyni volaji `enqueue()` misto `notifyXxxStarted/Ended`
+  - Odstranit vsechny zmninky o `modalCoordination`, `notifyActivityModalStarted`, `processLevelUpModals` atd.
+  - Pridat dokumentaci `ModalQueueContext` API (enqueue, closeCurrentModal, currentModal, queueLength)
 
 ### Co se SMAZE (zjednoduseni kodu)
 
