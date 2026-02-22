@@ -105,11 +105,15 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     xpAnimationStateRef.current = xpAnimationState;
   }, [xpAnimationState]);
 
-  // Helper function to check if higher priority modals are active (called from callbacks, not render)
-  const isHigherPriorityModalActive = useCallback(() => {
-    return xpAnimationStateRef.current.modalCoordination.isActivityModalActive ||
-           xpAnimationStateRef.current.modalCoordination.isMonthlyChallengeModalActive;
+  // Helper: check if ANY other modal is currently visible (prevents two <Modal> on iOS = freeze)
+  const isAnyOtherModalVisible = useCallback(() => {
+    const s = xpAnimationStateRef.current;
+    return s.modalCoordination.isActivityModalActive ||
+           s.modalCoordination.isMonthlyChallengeModalActive ||
+           s.levelUpModal.visible; // level-up is lower priority but can't have 2 modals at once
   }, []);
+  // Keep old name for backward compatibility
+  const isHigherPriorityModalActive = isAnyOtherModalVisible;
   
   // State management
   const [userAchievements, setUserAchievements] = useState<UserAchievements>({

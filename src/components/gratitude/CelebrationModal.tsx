@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   Dimensions,
   AccessibilityInfo,
@@ -487,18 +488,20 @@ export default function CelebrationModal({
       accessibilityLabel={modalAccessibilityLabel}
       accessibilityViewIsModal={true}
     >
-      <View 
+      <Pressable
         style={styles.overlay}
+        onPress={onClose}
         accessible={true}
         accessibilityRole="none"
         accessibilityElementsHidden={false}
       >
-        
-        <View 
+
+        <Pressable
           style={[
             styles.modal,
             type === 'bonus_milestone' && bonusCount === 10 && styles.epicModal, // Epic royal styling for 10th bonus
           ]}
+          onPress={(e) => e.stopPropagation()}
           accessible={true}
           accessibilityRole="alert"
           accessibilityLabel={modalAccessibilityLabel}
@@ -700,8 +703,8 @@ export default function CelebrationModal({
               {t('common.continue')}
             </Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions, DeviceEventEmitter } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, DeviceEventEmitter, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -60,24 +60,29 @@ export default function JournalScreen() {
       setModalQueue(prev => prev.slice(1));
       
       if (nextModal.type === 'bonus_milestone') {
-        // Show bonus milestone modal
+        Keyboard.dismiss();
         const bonusCount = nextModal.data.bonusCount;
         const xpAmount = nextModal.data.xpAmount;
         setBonusMilestone(bonusCount);
         setBonusXpAmount(xpAmount);
         setCelebrationType('bonus_milestone');
-        
+
         // COORDINATION: Notify activity modal started (Tier 1 priority)
+        // This also re-queues any visible level-up modal
         notifyActivityModalStarted('journal');
-        setShowCelebration(true);
-        
-        console.log(`🎉 Showing Journal bonus milestone modal for position ${bonusCount} (${nextModal.data.emoji})`);
-        
+
+        // Delay showing bonus modal to let level-up modal fully dismiss first
+        // iOS native Modal transitions conflict when two modals change visibility simultaneously
+        setTimeout(() => {
+          setShowCelebration(true);
+          console.log(`🎉 Showing Journal bonus milestone modal for position ${bonusCount} (${nextModal.data.emoji})`);
+        }, 400);
+
         // Process milestone counter increment
         setTimeout(async () => {
           await actions.incrementMilestoneCounter(bonusCount);
           await actions.refreshStats();
-        }, 100);
+        }, 500);
       }
     }
     
@@ -107,24 +112,11 @@ export default function JournalScreen() {
     setTodaysGratitudes(actions.getGratitudesByDate(todayDate));
   }, [state.gratitudes, todayDate, actions]);
 
-  // Smart scroll to position input in upper third of screen
-  const scrollToInputInUpperThird = useCallback(() => {
+  // Simple scroll to top - input is now right after progress bar
+  const scrollToTop = useCallback(() => {
     setTimeout(() => {
-      if (inputRef.current && scrollViewRef.current) {
-        inputRef.current.measureInWindow((x, y, width, height) => {
-          const screenHeight = Dimensions.get('window').height;
-          const upperThirdPosition = screenHeight / 3;
-          
-          // Calculate scroll offset to position input in upper third
-          const targetScrollY = Math.max(0, y - upperThirdPosition);
-          
-          scrollViewRef.current?.scrollTo({
-            y: targetScrollY,
-            animated: true
-          });
-        });
-      }
-    }, 200); // Delay to ensure input is rendered and measured
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }, 100);
   }, []);
 
 
@@ -133,8 +125,7 @@ export default function JournalScreen() {
     if (params.quickAction === 'addGratitude') {
       setInputType('gratitude');
       setShowInput(true);
-      // Smart scroll to position input in upper third
-      scrollToInputInUpperThird();
+      scrollToTop();
       // Clear the quick action parameter after a brief delay to prevent re-triggering
       setTimeout(() => {
         router.replace('/(tabs)/journal');
@@ -142,21 +133,22 @@ export default function JournalScreen() {
     } else if (params.quickAction === 'addSelfPraise') {
       setInputType('self-praise');
       setShowInput(true);
-      // Smart scroll to position input in upper third
-      scrollToInputInUpperThird();
+      scrollToTop();
       // Clear the quick action parameter after a brief delay to prevent re-triggering
       setTimeout(() => {
         router.replace('/(tabs)/journal');
       }, 100);
     }
-  }, [params.quickAction, scrollToInputInUpperThird]);
+  }, [params.quickAction, scrollToTop]);
 
   const handleInputSuccess = useCallback(async () => {
-    setShowInput(false);
+    // Keep input open after save - no hide/show cycle = no screen jumping
+    // User can close input manually via the × button when done
     const newCount = currentCount + 1;
 
     // Show celebration on 3rd gratitude
     if (newCount === 3) {
+      Keyboard.dismiss(); // Hide keyboard so modal close button is reachable
       setCelebrationType('daily_complete');
 
       // COORDINATION: Notify activity modal started (Tier 1 priority)
@@ -342,7 +334,52 @@ export default function JournalScreen() {
           isComplete={isComplete}
           hasBonus={hasBonus}
         />
-        
+
+        {/* Input moved to top - always visible above keyboard */}
+        {showInput && (
+          <View ref={inputRef}>
+            <GratitudeInput
+              onSubmitSuccess={handleInputSuccess}
+              onCancel={() => setShowInput(false)}
+              isBonus={isComplete}
+              inputType={inputType}
+              router={router}
+            />
+          </View>
+        )}
+
+        {!showInput && (
+          <View style={styles.addButtonContainer}>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.addButton, styles.gratitudeButton]}
+                onPress={() => {
+                  setInputType('gratitude');
+                  setShowInput(true);
+                  scrollToTop();
+                }}
+              >
+                <Text style={styles.addButtonText}>
+                  {t('journal.addGratitudeButton')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.addButton, styles.selfPraiseButton]}
+                onPress={() => {
+                  setInputType('self-praise');
+                  setShowInput(true);
+                  scrollToTop();
+                }}
+              >
+                <Text style={styles.addButtonText}>
+                  {t('journal.addSelfPraiseButton')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Badge Counters with Help */}
         {state.streakInfo && (
           <View style={styles.badgeContainer}>
@@ -364,7 +401,7 @@ export default function JournalScreen() {
             </View>
           </View>
         )}
-        
+
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
@@ -383,53 +420,7 @@ export default function JournalScreen() {
             <Text style={styles.actionButtonText}>{t('journal.statistics')}</Text>
           </TouchableOpacity>
         </View>
-        
-        {showInput && (
-          <View ref={inputRef}>
-            <GratitudeInput 
-              onSubmitSuccess={handleInputSuccess}
-              onCancel={() => setShowInput(false)}
-              isBonus={isComplete}
-              inputType={inputType}
-              router={router}
-            />
-          </View>
-        )}
-        
-        {!showInput && (
-          <View style={styles.addButtonContainer}>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity 
-                style={[styles.addButton, styles.gratitudeButton]}
-                onPress={() => {
-                  setInputType('gratitude');
-                  setShowInput(true);
-                  // Smart scroll to position input in upper third
-                  scrollToInputInUpperThird();
-                }}
-              >
-                <Text style={styles.addButtonText}>
-                  {t('journal.addGratitudeButton')}
-                </Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.addButton, styles.selfPraiseButton]}
-                onPress={() => {
-                  setInputType('self-praise');
-                  setShowInput(true);
-                  // Smart scroll to position input in upper third
-                  scrollToInputInUpperThird();
-                }}
-              >
-                <Text style={styles.addButtonText}>
-                  {t('journal.addSelfPraiseButton')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        
         <GratitudeList
           gratitudes={todaysGratitudes}
         />

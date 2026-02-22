@@ -427,14 +427,23 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // Tier 1: Activity modals (highest priority)
   const notifyActivityModalStarted = useCallback((type: 'journal' | 'habit' | 'goal') => {
     console.log(`🎯 Activity modal started (Tier 1): ${type}`);
-    setState(prev => ({
-      ...prev,
-      modalCoordination: {
-        ...prev.modalCoordination,
-        isActivityModalActive: true,
-        currentActivityModalType: type,
+    setState(prev => {
+      const updates: any = {
+        modalCoordination: {
+          ...prev.modalCoordination,
+          isActivityModalActive: true,
+          currentActivityModalType: type,
+        }
+      };
+
+      // If level-up modal is somehow visible, force-hide it (safety net)
+      if (prev.levelUpModal.visible) {
+        console.log(`⚠️ Force-hiding level-up modal - Tier 1 takes priority`);
+        updates.levelUpModal = { ...prev.levelUpModal, visible: false };
       }
-    }));
+
+      return { ...prev, ...updates };
+    });
   }, []);
   
   const notifyActivityModalEnded = useCallback(() => {
@@ -460,13 +469,22 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // Tier 2: Monthly Challenge Completion modals (second priority)
   const notifyMonthlyChallengeModalStarted = useCallback(() => {
     console.log(`🎯 Monthly Challenge Completion modal started (Tier 2)`);
-    setState(prev => ({
-      ...prev,
-      modalCoordination: {
-        ...prev.modalCoordination,
-        isMonthlyChallengeModalActive: true,
+    setState(prev => {
+      const updates: any = {
+        modalCoordination: {
+          ...prev.modalCoordination,
+          isMonthlyChallengeModalActive: true,
+        }
+      };
+
+      // If level-up modal is somehow visible, force-hide it (safety net)
+      if (prev.levelUpModal.visible) {
+        console.log(`⚠️ Force-hiding level-up modal - Tier 2 takes priority`);
+        updates.levelUpModal = { ...prev.levelUpModal, visible: false };
       }
-    }));
+
+      return { ...prev, ...updates };
+    });
   }, []);
 
   const notifyMonthlyChallengeModalEnded = useCallback(() => {
@@ -536,12 +554,26 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // No processing needed here - each handles its own celebration queue
 
   // Process Tier 4: Level-up modals
+  // ONLY shows if NO other modal is active (checks all tiers + own visibility)
   const processLevelUpModals = useCallback(() => {
     try {
-      // CRITICAL FIX: Extract modal data BEFORE setState to avoid setState-inside-setState
+      const coord = modalCoordinationRef.current;
+
+      // SAFETY: Don't show if ANY higher-priority modal is active
+      if (coord.isActivityModalActive || coord.isMonthlyChallengeModalActive || coord.isAchievementModalActive) {
+        console.log(`⏸️ processLevelUpModals: skipped - higher priority modal still active`);
+        return;
+      }
+
       let modalToShow: any = null;
 
       setState(prev => {
+        // Don't show if level-up modal is already visible
+        if (prev.levelUpModal.visible) {
+          console.log(`⏸️ processLevelUpModals: skipped - level-up modal already visible`);
+          return prev;
+        }
+
         if (prev.modalCoordination.pendingLevelUpModals.length === 0) {
           return prev;
         }
@@ -551,20 +583,9 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
         const remainingModals = prev.modalCoordination.pendingLevelUpModals.slice(1);
 
-        console.log(`🚀 Processing level-up modal (Tier 4): ${nextModal.type}`);
+        console.log(`🚀 Processing level-up modal (Tier 4): Level ${nextModal.data?.newLevel} (${remainingModals.length} remaining)`);
 
-        // ENHANCED LOGGING: Level-up modal processing tracking
-        console.log(`📊 Modal Flow Tracking:`, {
-          event: 'LEVEL_UP_MODAL_PROCESSING',
-          modalType: nextModal.type,
-          modalData: nextModal.data,
-          remainingInQueue: remainingModals.length,
-          timestamp: Date.now()
-        });
-
-        // Store modal data to show AFTER setState completes
         if (nextModal.type === 'levelUp') {
-          console.log(`🌟 Queued level-up modal for Level ${nextModal.data.newLevel} - will display after state update`);
           modalToShow = nextModal.data;
         }
 
@@ -577,7 +598,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
         };
       });
 
-      // CRITICAL FIX: Show modal AFTER setState completes (prevents setState-inside-setState race condition)
+      // Show modal AFTER setState completes
       if (modalToShow) {
         showLevelUpModal(
           modalToShow.newLevel,
@@ -585,21 +606,9 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
           modalToShow.levelDescription,
           modalToShow.isMilestone || false
         );
-
-        console.log(`📊 Modal Flow Tracking:`, {
-          event: 'LEVEL_UP_MODAL_PROCESSED',
-          modalType: 'levelUp',
-          level: modalToShow.newLevel,
-          success: true,
-          timestamp: Date.now()
-        });
       }
     } catch (error) {
-      // GRACEFUL DEGRADATION: Level-up modal processing failure doesn't break modal queue
-      console.error('🚨 Level-up modal processing failed, clearing queue to prevent infinite loops:', error instanceof Error ? error.message : String(error));
-      console.log('📱 Activity and achievement modal functionality remains unaffected');
-
-      // Clear the queue to prevent stuck state
+      console.error('🚨 Level-up modal processing failed:', error instanceof Error ? error.message : String(error));
       setState(prev => ({
         ...prev,
         modalCoordination: {
@@ -699,57 +708,30 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
           console.log(`🎉 Global Level-up celebration: Level ${eventData.newLevel} (${eventData.levelTitle})`);
 
-          // 4-TIER PRIORITY SYSTEM: Check if higher priority modals are active
-          if (currentModalCoordination.isActivityModalActive ||
-              currentModalCoordination.isMonthlyChallengeModalActive ||
-              currentModalCoordination.isAchievementModalActive) {
-            const activeModalType = currentModalCoordination.isActivityModalActive
-              ? `Activity (${currentModalCoordination.currentActivityModalType})`
-              : currentModalCoordination.isMonthlyChallengeModalActive
-                ? 'Monthly Challenge'
-                : 'Achievement';
+          // ALWAYS queue level-up - never show immediately
+          // The queue processor will show it when ALL higher priority modals are done
+          console.log(`📥 Level-up modal ALWAYS queued (Level ${eventData.newLevel}) - will show when safe`);
+          setState(prev => ({
+            ...prev,
+            modalCoordination: {
+              ...prev.modalCoordination,
+              pendingLevelUpModals: [...prev.modalCoordination.pendingLevelUpModals, {
+                type: 'levelUp',
+                data: {
+                  newLevel: eventData.newLevel,
+                  levelTitle: eventData.levelTitle,
+                  levelDescription: eventData.levelDescription,
+                  isMilestone: eventData.isMilestone || false
+                },
+                timestamp: Date.now()
+              }]
+            }
+          }));
 
-            console.log(`⏸️ Level-up modal queued - higher priority modal active: ${activeModalType}`);
-
-            // Add to tier 4 level-up modal queue
-            setState(prev => ({
-              ...prev,
-              modalCoordination: {
-                ...prev.modalCoordination,
-                pendingLevelUpModals: [...prev.modalCoordination.pendingLevelUpModals, {
-                  type: 'levelUp',
-                  data: {
-                    newLevel: eventData.newLevel,
-                    levelTitle: eventData.levelTitle,
-                    levelDescription: eventData.levelDescription,
-                    isMilestone: eventData.isMilestone || false
-                  },
-                  timestamp: Date.now()
-                }]
-              }
-            }));
-          } else {
-            // No higher priority modals active - show immediately
-            console.log(`⚡ Level-up modal showing immediately - no higher priority modals active`);
-            
-            console.log(`📊 Modal Flow Tracking:`, {
-              event: 'LEVEL_UP_IMMEDIATE_DISPLAY',
-              reason: 'NO_HIGHER_PRIORITY_MODALS_ACTIVE',
-              levelData: {
-                newLevel: eventData.newLevel,
-                title: eventData.levelTitle,
-                isMilestone: eventData.isMilestone
-              },
-              timestamp: Date.now()
-            });
-            
-            showLevelUpModal(
-              eventData.newLevel,
-              eventData.levelTitle,
-              eventData.levelDescription,
-              eventData.isMilestone || false
-            );
-          }
+          // Try to process queue after short delay (gives other modals time to register)
+          setTimeout(() => {
+            processLevelUpModals();
+          }, 500);
         } else {
           console.warn(`⚠️ Invalid level-up event data received:`, eventData);
         }

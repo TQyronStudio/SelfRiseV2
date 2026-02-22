@@ -523,3 +523,160 @@ Animace pri otevreni:
 | 3 | 3.7 | Validace/logovani neexistuje | K rozhodnuti |
 | 4 | 4.1 | Timing hodnoty v docs | Souvisi s 3.1 |
 | 4 | 4.2 | Achievement nazvy vs ID | Volitelne |
+| 5 | 5.1-5.7 | Mrtve eventy bez listeneru | Viz vyse |
+| **6** | **6.1** | **Centralni Modal Queue** | **K implementaci** |
+
+---
+
+## FAZE 6: Centralni Modal Queue - Nahrada 4-Tier systemu
+
+### Problem
+
+Soucasny "4-Tier Modal Priority System" nefunguje spolehlive. Hlavni duvody:
+
+1. **Zadna centralni kontrola** - 4 ruzna mista v kodu (XpAnimationContext, AchievementContext, MonthlyChallengeSection, journal.tsx) kazdy ridi svuj vlastni `<Modal>` komponent nezavisle
+2. **Koordinace pres flagy je krehka** - `isActivityModalActive`, `isAchievementModalActive` atd. se nastavuji rucne, s `setTimeout` zpozdenim, a snadno se zapomene nebo nastane race condition
+3. **Dva `<Modal>` naraz = zamrznuti na iOS** - React Native nativni Modal na iOS neumoznuje dva modaly soucasne. Kdyz se to stane, aplikace zamrzne (opakovane potvrzeno testem)
+4. **Nove modaly = novy chaos** - kazdy novy modal vyzaduje rucni integraci s flagy, coz je narusene a neskalnuje
+
+### Reseni: Centralni Modal Queue
+
+Jeden `ModalQueueContext` ktery:
+- Prijima pozadavky na modaly (`enqueue`)
+- Radi je podle priority
+- Zobrazuje VZDY jen JEDEN modal naraz
+- Kdyz uzivatel zavre modal, automaticky ukaze dalsi ve fronte
+- Zadne flagy, zadne setTimeout, zadne race conditions
+
+### Ktere modaly budou v queue (celebracni/odmenove)
+
+Pouze modaly ktere se mohou spustit AUTOMATICKY (bez akce uzivatele) a mohou kolidovat:
+
+| # | Modal | Soucasny Tier | Kde se renderuje | Trigger |
+|---|-------|---------------|------------------|---------|
+| 1 | CelebrationModal (daily_complete) | Tier 1 | journal.tsx | 3. zapis v deniku |
+| 2 | CelebrationModal (streak_milestone) | Tier 1 | journal.tsx | Streak milnik (7, 14, 21...) |
+| 3 | CelebrationModal (bonus_milestone) | Tier 1 | journal.tsx | 1./5./10. bonus zapis |
+| 4 | GoalCompletionModal | Tier 1 | GoalsScreen.tsx | Cil dosahne 100% |
+| 5 | MonthlyChallengeCompletionModal | Tier 2 | MonthlyChallengeSection.tsx | `monthly_challenge_completed` event |
+| 6 | MonthlyChallengeMilestoneModal | Tier 2 | MonthlyChallengeSection.tsx | `monthly_milestone_reached` event |
+| 7 | StarLevelChangeModal | Zadny! | MonthlyChallengeSection.tsx | `star_level_changed` event |
+| 8 | MultiplierActivationModal | Zadny! | XpMultiplierSection.tsx | `xpMultiplierActivated` event |
+| 9 | AchievementCelebrationModal | Tier 3 | AchievementContext.tsx | `achievementUnlocked` event |
+| 10 | CelebrationModal (level_up) | Tier 4 | XpAnimationContext.tsx | `levelUp` event |
+
+### Ktere modaly ZUSTANOU mimo queue (uzivatelske akce)
+
+Modaly ktere uzivatel otevre sam (kliknutim) se neradi do fronty - jsou primo svazane s UI akci:
+
+| Modal | Duvod proc neni ve fronte |
+|-------|---------------------------|
+| HabitModal (vytvoreni/editace) | Uzivatel ho sam otevira |
+| GoalModal (vytvoreni/editace) | Uzivatel ho sam otevira |
+| ProgressModal (logovani progressu) | Uzivatel ho sam otevira |
+| EditGratitudeModal | Uzivatel ho sam otevira |
+| ConfirmationModal (mazani) | Uzivatel ho sam otevira |
+| GoalTemplatesModal | Uzivatel ho sam otevira |
+| HomeCustomizationModal | Uzivatel ho sam otevira |
+| MonthlyChallengeDetailModal | Uzivatel ho sam otevira |
+| AchievementDetailModal | Uzivatel ho sam otevira |
+| StreakWarmUpModal + podmodaly | Uzivatel ho sam otevira |
+| TutorialOverlay/Modal | Samostatny onboarding system |
+| HelpTooltip | Singleton tooltip |
+| ErrorModal, BaseModal (settings) | Reakce na chybu/akci |
+| TargetDate modaly (uvnitr GoalModal) | Vnorene v GoalModal |
+
+### Prioritni poradi ve fronte
+
+Kdyz prijde vice modalu naraz, zobrazi se v tomto poradi (1 = prvni):
+
+| Priorita | Typ | Priklad |
+|----------|-----|---------|
+| 1 (nejvyssi) | Activity celebrations | Bonus milestone, Daily complete, Streak milestone |
+| 2 | Goal completion | Cil dosahne 100% |
+| 3 | Monthly challenge | Splneni vyzvy, milestone 25/50/75% |
+| 4 | Star level change | Povyseni/sesazeni hvezd |
+| 5 | Multiplier activation | XP multiplikator aktivovan |
+| 6 | Achievement | Odemceni achievementu |
+| 7 (nejnizsi) | Level-up | Dosazeni noveho levelu |
+
+### Technicky plan implementace
+
+**Novy soubor: `src/contexts/ModalQueueContext.tsx`**
+
+```
+interface QueuedModal {
+  id: string;                    // Unikatni ID (pro deduplikaci)
+  type: ModalType;               // Enum: 'celebration', 'achievement', 'level_up', ...
+  priority: number;              // 1-7 (nizsi = vyssi priorita)
+  component: string;             // Nazev komponenty k renderovani
+  props: Record<string, any>;    // Data pro komponentu
+  timestamp: number;             // Cas pridani
+}
+
+interface ModalQueueContextValue {
+  enqueue: (modal: QueuedModal) => void;  // Prida modal do fronty
+  closeCurrentModal: () => void;           // Zavre aktualni modal, ukaze dalsi
+  currentModal: QueuedModal | null;        // Aktualne zobrazeny modal
+  queueLength: number;                     // Pocet modalu ve fronte
+}
+```
+
+**Kroky implementace:**
+
+- [ ] 6.1.1: Vytvorit `ModalQueueContext.tsx` s frontou, prioritnim razenim a renderovanim
+- [ ] 6.1.2: Pridat ModalQueueProvider do `app/_layout.tsx` (obalit celou appku)
+- [ ] 6.1.3: Presunout CelebrationModal (level_up) z XpAnimationContext do queue
+  - Odstranit `levelUpModal` state, `showLevelUpModal`, `hideLevelUpModal`
+  - handleLevelUp event → `enqueue({ type: 'level_up', priority: 7, ... })`
+  - Odstranit `processLevelUpModals`, `pendingLevelUpModals`
+- [ ] 6.1.4: Presunout AchievementCelebrationModal z AchievementContext do queue
+  - Odstranit `celebrationQueue`, `showingCelebration`, `showNextCelebration`
+  - achievementUnlocked event → `enqueue({ type: 'achievement', priority: 6, ... })`
+  - Odstranit `notifyAchievementModalStarted/Ended`
+- [ ] 6.1.5: Presunout Journal celebrations (daily, streak, bonus) z journal.tsx do queue
+  - Odstranit lokalni `showCelebration`, `modalQueue`, `processModalQueue`
+  - handleInputSuccess → `enqueue({ type: 'bonus_milestone', priority: 1, ... })`
+  - Odstranit `notifyActivityModalStarted/Ended` pro journal
+- [ ] 6.1.6: Presunout GoalCompletionModal z GoalsScreen do queue
+  - handleGoalComplete → `enqueue({ type: 'goal_completion', priority: 2, ... })`
+  - Odstranit `notifyPrimaryModalStarted/Ended` pro goal
+- [ ] 6.1.7: Presunout Monthly modaly z MonthlyChallengeSection do queue
+  - monthly_challenge_completed → `enqueue({ type: 'monthly_completion', priority: 3, ... })`
+  - monthly_milestone_reached → `enqueue({ type: 'monthly_milestone', priority: 3, ... })`
+  - star_level_changed → `enqueue({ type: 'star_change', priority: 4, ... })`
+  - Odstranit `notifyMonthlyChallengeModalStarted/Ended`
+- [ ] 6.1.8: Presunout MultiplierActivationModal do queue
+  - xpMultiplierActivated → `enqueue({ type: 'multiplier', priority: 5, ... })`
+- [ ] 6.1.9: Odstranit stary 4-Tier system z XpAnimationContext
+  - Odstranit `modalCoordination` state, vsechny notify funkce, vsechny process funkce
+  - Ponechat XP popup/notification system (ten neni modal)
+- [ ] 6.1.10: Aktualizovat stress test v Settings aby pouzival `enqueue`
+- [ ] 6.1.11: Otestovat vse - simultanni eventy, sekvencni zobrazeni, zadne zamrznuti
+- [ ] 6.1.12: Aktualizovat dokumentaci (technical-guides:Gamification-UI.md, Gamification-Events.md)
+
+### Co se SMAZE (zjednoduseni kodu)
+
+Po implementaci se odstrani:
+- `modalCoordination` state v XpAnimationContext (~50 radku)
+- `notifyActivityModalStarted/Ended` (~30 radku)
+- `notifyMonthlyChallengeModalStarted/Ended` (~30 radku)
+- `notifyAchievementModalStarted/Ended` (~20 radku)
+- `processLevelUpModals` (~50 radku)
+- `pendingLevelUpModals` fronta (~20 radku)
+- `showLevelUpModal/hideLevelUpModal` (~50 radku)
+- `celebrationQueue` v AchievementContext (~60 radku)
+- `showNextCelebration/closeCelebrationModal` (~40 radku)
+- `isHigherPriorityModalActive` (~10 radku)
+- `modalQueue/processModalQueue` v journal.tsx (~40 radku)
+- Legacy `notifyPrimaryModalStarted/Ended` (~10 radku)
+
+**Celkem: ~410 radku smazano, nahrazeno ~150 radky v jednom souboru.**
+
+### Bezpecnostni pravidla
+
+1. VZDY jen JEDEN `<Modal visible={true}>` v cele aplikaci
+2. Kazdy modal ve fronte ma `id` pro deduplikaci (stejny modal se neprida dvakrat)
+3. Timeout: pokud uzivatel nezavre modal do 30s, automaticky se zavre a ukaze dalsi
+4. Pokud uzivatel naviguje pryc (zmeni tab), fronta se POZASTAVI (ne smaze)
+5. Tutorial overlay POTLACUJE vsechny celebration modaly (kontrola pred enqueue)
