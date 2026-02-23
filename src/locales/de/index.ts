@@ -505,12 +505,12 @@ const de: Partial<TranslationKeys> = {
   // Habits screen
   habits: {
     title: 'Meine Routine',
-    addHabit: '+ Neue Routine',
+    addHabit: 'Neue Routine',
     editHabit: 'Bearbeiten',
     deleteHabit: 'Löschen',
     activeHabits: 'Aktiv',
     inactiveHabits: 'Inaktiv',
-    addNewHabit: '+ Neue Routine',
+    addNewHabit: 'Neue Routine',
     done: 'Fertig',
     reorder: 'Neu ordnen',
     bonus: 'Bonus',
@@ -916,7 +916,7 @@ const de: Partial<TranslationKeys> = {
   // Goals screen
   goals: {
     title: 'Meine Ziele',
-    addGoal: '+ Neues Ziel',
+    addGoal: 'Neues Ziel',
     editGoal: 'Bearbeiten',
     deleteGoal: 'Löschen',
     noGoals: 'Noch keine Ziele. Beginne mit der Erstellung deines ersten Ziels!',
