@@ -430,51 +430,44 @@ Journal celebrations represent immediate user actions and MUST have highest prio
    - Level celebrations caused by journal XP
 ```
 
-### Journal Modal Coordination Implementation
+### Journal Modal Coordination (via ModalQueueContext)
 ```typescript
-// REQUIRED: Use Activity Modal methods (not Primary Modal methods)
-import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 
-const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
+const { enqueue: enqueueModal } = useModalQueue();
 
-// On Journal celebration modal show:
-notifyActivityModalStarted('journal');  // ✅ CORRECT - Tier 1 priority
-setShowCelebration(true);
+// Journal celebrations enqueued directly:
+enqueueModal({
+  type: 'celebration_daily_complete',
+  priority: ModalPriority.ACTIVITY_CELEBRATION,  // Priority 1 - highest
+  props: {},
+});
 
-// On Journal celebration modal close:
-notifyActivityModalEnded();  // ✅ Triggers Tier 2 & 3 processing
-setShowCelebration(false);
-
-// ❌ DEPRECATED - Do not use:
-// notifyPrimaryModalStarted() - Old 2-tier system
-// notifyPrimaryModalEnded()   - Old 2-tier system
+// No notify functions needed - queue handles priority ordering automatically
+// No local modal state needed - ModalRenderer in ModalQueueContext renders modals
 ```
 
 ### Modal Flow Priority Rules
 ```typescript
 // SEQUENCE GUARANTEE for Journal actions:
-User writes journal entry →
-1. Journal celebration modal shows IMMEDIATELY (Tier 1)
-2. After user closes journal modal → Achievement modal (if any) shows (Tier 2)  
-3. After achievement modal closes → Level-up modal (if any) shows (Tier 3)
+// All modals go through centralized ModalQueueContext
+// Queue sorts by priority number (lower = shown first)
 
-// ANTI-FREEZE PROTECTION:
-- Each tier has independent error handling
-- Modal failures don't break core Journal functionality
-- Queue clearing prevents infinite loops
-- User can still write entries even if celebrations fail
+User writes journal entry →
+1. celebration_bonus_milestone enqueued (priority 1) → shows first
+2. achievement enqueued (priority 6) → shows after bonus modal closed
+3. level_up enqueued (priority 7) → shows after achievement closed
+
+// ONE modal visible at any time - guaranteed by ModalQueueContext
 ```
 
 ### User Experience Impact
 ```
-❌ OLD SYSTEM: Journal → Achievement → Level-up could freeze app
-✅ NEW SYSTEM: Perfect sequential display, no freezing
-
-Example flow:
-User completes 10th bonus entry → Journal 👑 modal (immediate) → 
-User closes modal → Achievement unlock modal (if earned) →
-User closes modal → Level-up modal (if caused by XP) →
-Perfect user experience with proper priority sequencing
+Queue guarantees perfect sequential display:
+User completes 10th bonus entry → 👑 Bonus modal (priority 1) →
+User closes → 🏆 Achievement modal (priority 6) →
+User closes → 🎉 Level-up modal (priority 7) →
+No concurrent modals, no iOS freeze, no race conditions
 ```
 
 ---

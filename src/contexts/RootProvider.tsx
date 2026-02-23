@@ -9,6 +9,7 @@ import { GratitudeProvider } from './GratitudeContext';
 import { GoalsProvider } from './GoalsContext';
 import { HomeCustomizationProvider } from './HomeCustomizationContext';
 import { AchievementProvider } from './AchievementContext';
+import { ModalQueueProvider } from './ModalQueueContext';
 
 interface RootProviderProps {
   children: ReactNode;
@@ -18,21 +19,23 @@ export function RootProvider({ children }: RootProviderProps) {
   return (
     <ThemeProvider>
       <AppProvider>
-        <XpAnimationProvider>
-          <HabitsProvider>
-            <GratitudeProvider>
-              <GoalsProvider>
-                <AchievementProvider>
-                  <HomeCustomizationProvider>
-                    <XpAnimationContainer>
-                      {children}
-                    </XpAnimationContainer>
-                  </HomeCustomizationProvider>
-                </AchievementProvider>
-              </GoalsProvider>
-            </GratitudeProvider>
-          </HabitsProvider>
-        </XpAnimationProvider>
+        <ModalQueueProvider>
+          <XpAnimationProvider>
+            <HabitsProvider>
+              <GratitudeProvider>
+                <GoalsProvider>
+                  <AchievementProvider>
+                    <HomeCustomizationProvider>
+                      <XpAnimationContainer>
+                        {children}
+                      </XpAnimationContainer>
+                    </HomeCustomizationProvider>
+                  </AchievementProvider>
+                </GoalsProvider>
+              </GratitudeProvider>
+            </HabitsProvider>
+          </XpAnimationProvider>
+        </ModalQueueProvider>
       </AppProvider>
     </ThemeProvider>
   );

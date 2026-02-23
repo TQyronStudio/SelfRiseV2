@@ -12,8 +12,7 @@ import {
 import { AchievementService, AchievementUnlockResult } from '../services/achievementService';
 import { AchievementStorage } from '../services/achievementStorage';
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
-import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
-import { useXpAnimation } from './XpAnimationContext';
+import { useModalQueue, ModalPriority } from './ModalQueueContext';
 
 // Achievement context state interface
 interface AchievementContextState {
@@ -96,25 +95,11 @@ interface AchievementProviderProps {
  * Manages achievement state and provides real-time updates
  */
 export const AchievementProvider: React.FC<AchievementProviderProps> = ({ children }) => {
-  // 4-Tier Modal Priority System coordination
-  const { notifyAchievementModalStarted, notifyAchievementModalEnded, state: xpAnimationState } = useXpAnimation();
+  // Centralized Modal Queue - achievements are enqueued, queue handles priority
+  const { enqueue: enqueueModal } = useModalQueue();
+  const enqueueModalRef = useRef(enqueueModal);
+  enqueueModalRef.current = enqueueModal;
 
-  // Store modal state in ref to avoid re-renders and setState during render issues
-  const xpAnimationStateRef = useRef(xpAnimationState);
-  useEffect(() => {
-    xpAnimationStateRef.current = xpAnimationState;
-  }, [xpAnimationState]);
-
-  // Helper: check if ANY other modal is currently visible (prevents two <Modal> on iOS = freeze)
-  const isAnyOtherModalVisible = useCallback(() => {
-    const s = xpAnimationStateRef.current;
-    return s.modalCoordination.isActivityModalActive ||
-           s.modalCoordination.isMonthlyChallengeModalActive ||
-           s.levelUpModal.visible; // level-up is lower priority but can't have 2 modals at once
-  }, []);
-  // Keep old name for backward compatibility
-  const isHigherPriorityModalActive = isAnyOtherModalVisible;
-  
   // State management
   const [userAchievements, setUserAchievements] = useState<UserAchievements>({
     unlockedAchievements: [],
@@ -136,10 +121,10 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   const [selectedRarity, setSelectedRarity] = useState<AchievementRarity | undefined>();
   const [showOnlyUnlocked, setShowOnlyUnlocked] = useState(false);
   
-  // Celebration system states
-  const [celebrationQueue, setCelebrationQueue] = useState<Array<{ achievement: Achievement; xpAwarded: number }>>([]);
-  const [showingCelebration, setShowingCelebration] = useState(false);
-  const [currentCelebrationIndex, setCurrentCelebrationIndex] = useState(-1);
+  // Celebration system states - kept for interface compatibility but queue is now centralized
+  const [celebrationQueue] = useState<Array<{ achievement: Achievement; xpAwarded: number }>>([]);
+  const [showingCelebration] = useState(false);
+  const [currentCelebrationIndex] = useState(-1);
 
   // Derived state
   const allAchievements = CORE_ACHIEVEMENTS;
@@ -346,7 +331,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   // ========================================
 
   /**
-   * Add achievement to celebration queue
+   * Add achievement to celebration queue via centralized ModalQueue
    * Skip during tutorial EXCEPT for first-habit and first-goal achievements
    */
   const addToCelebrationQueue = useCallback(async (achievement: Achievement, xpAwarded: number) => {
@@ -359,81 +344,24 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
 
     if (tutorialActive && !isFirstStepAchievement) {
       console.log(`🎓 [TUTORIAL] Skipping achievement modal for "${achievement.id}" - tutorial is active`);
-      // Achievement is still unlocked and XP awarded, just no modal during tutorial
       return;
     }
 
-    if (tutorialActive && isFirstStepAchievement) {
-      console.log(`🎓 [TUTORIAL] Showing achievement modal for "${achievement.id}" - first step achievement during tutorial`);
-    }
+    console.log(`🏆 Achievement → ModalQueue: ${achievement.id} (+${xpAwarded} XP)`);
 
-    setCelebrationQueue(prev => {
-      // Deduplicate: don't add if already in queue (single + batch events both fire)
-      if (prev.some(item => item.achievement.id === achievement.id)) {
-        return prev;
-      }
-      return [...prev, { achievement, xpAwarded }];
+    // Enqueue to centralized modal queue
+    enqueueModalRef.current({
+      type: 'achievement',
+      priority: ModalPriority.ACHIEVEMENT,
+      props: { achievement, xpAwarded },
     });
   }, []);
 
-  /**
-   * Show next celebration from queue with 4-Tier Modal Priority System coordination
-   */
-  const showNextCelebration = useCallback(() => {
-    // Don't show achievements if higher priority modals (Tier 1-2) are active
-    if (isHigherPriorityModalActive()) {
-      console.log('⏸️ Achievement modal delayed - higher priority modal active (Tier 1-2)');
-      return;
-    }
-
-    if (!showingCelebration && celebrationQueue.length > 0) {
-      console.log('🏆 Starting Achievement Celebration Modal (Tier 3)');
-      notifyAchievementModalStarted('achievement');
-      setShowingCelebration(true);
-      setCurrentCelebrationIndex(0);
-    }
-  }, [showingCelebration, celebrationQueue.length, notifyAchievementModalStarted, isHigherPriorityModalActive]);
-
-  /**
-   * Close current celebration modal and show next in queue with 4-Tier Modal Priority System coordination
-   */
+  // showNextCelebration and closeCelebrationModal are no-ops now - queue handles everything
+  const showNextCelebration = useCallback(() => {}, []);
   const closeCelebrationModal = useCallback(() => {
-    console.log('✅ Closing Achievement Celebration Modal (Tier 3)');
-    setShowingCelebration(false);
-
-    // Remove the first item from queue and check if more achievements remain
-    setCelebrationQueue(prev => {
-      const remaining = prev.slice(1);
-
-      if (remaining.length === 0) {
-        console.log('🏁 All achievements shown - notifying Tier 3 ended, Tier 4 level-ups can start');
-        // Schedule outside setState updater to avoid cross-component setState warning
-        setTimeout(() => notifyAchievementModalEnded(), 0);
-      } else {
-        console.log(`📋 ${remaining.length} more achievement(s) in queue - keeping Tier 3 active`);
-      }
-
-      return remaining;
-    });
-
-    // Emit event for tutorial coordination - allows tutorial to advance after achievement modal closes
     DeviceEventEmitter.emit('achievementCelebrationClosed');
-
-    // Show next celebration after short delay (just enough for close animation)
-    setTimeout(() => {
-      showNextCelebration();
-    }, 400); // 400ms - snappy transition between achievement modals
-  }, [notifyAchievementModalEnded, showNextCelebration]);
-
-  // Auto-trigger next celebration when queue is updated OR higher priority modals end
-  useEffect(() => {
-    if (!showingCelebration && celebrationQueue.length > 0 && !isHigherPriorityModalActive()) {
-      console.log('🎬 Auto-triggering achievement celebration (queue has items, no higher priority modals)');
-      showNextCelebration();
-    }
-  }, [celebrationQueue.length, showingCelebration, showNextCelebration, isHigherPriorityModalActive,
-      xpAnimationState.modalCoordination.isActivityModalActive,
-      xpAnimationState.modalCoordination.isMonthlyChallengeModalActive]);
+  }, []);
 
   // ========================================
   // EVENT LISTENERS
@@ -560,16 +488,7 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   return (
     <AchievementContext.Provider value={contextValue}>
       {children}
-      
-      {/* Achievement Celebration Modal - Only render when valid data exists */}
-      {showingCelebration && celebrationQueue.length > 0 && celebrationQueue[0] && (
-        <AchievementCelebrationModal
-          visible={true}
-          onClose={closeCelebrationModal}
-          achievement={celebrationQueue[0].achievement}
-          xpAwarded={celebrationQueue[0].xpAwarded}
-        />
-      )}
+      {/* AchievementCelebrationModal removed - now rendered by ModalQueueContext */}
     </AchievementContext.Provider>
   );
 };

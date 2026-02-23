@@ -278,17 +278,9 @@ console.log(`📊 Modal Flow Tracking:`, {
   timestamp: Date.now()
 });
 
-// 3. Modal Coordination (XpAnimationContext) - 4-Tier system
-console.log(`📊 Modal Flow Tracking:`, {
-  event: 'LEVEL_UP_EVENT_RECEIVED',
-  modalState: {
-    isActivityModalActive,        // Tier 1
-    isMonthlyChallengeModalActive, // Tier 2
-    isAchievementModalActive,      // Tier 3
-    pendingLevelUpModals: queue.length // Tier 4
-  },
-  timestamp: Date.now()
-});
+// 3. Modal Queue (ModalQueueContext) - centralized priority queue
+// Level-up event received → enqueueModal({ type: 'level_up', priority: ModalPriority.LEVEL_UP })
+// Queue handles priority ordering automatically
 
 // 4. Memory Cleanup (cleanupDuplicateLevelUpRecords)
 console.log(`📊 Memory Cleanup Results:`, {
@@ -316,17 +308,16 @@ console.log(`📊 Memory Cleanup Results:`, {
    ├── Error Handling: Graceful degradation on XP operation failures
    └── Event Emission: 'levelUp' with complete metadata
 
-2. Event Processing (XpAnimationContext.handleLevelUp)  
-   ├── Enhanced Logging: Modal coordination state tracking
+2. Event Processing (XpAnimationContext.handleLevelUp)
+   ├── Tutorial suppression check (AsyncStorage)
    ├── Error Handling: Modal failures don't break core functionality
-   ├── Priority System: 4-Tier modal coordination (Activity → Monthly → Achievement → Level-up)
-   └── Queue Management: Pending level-up modals with timestamps
+   └── Enqueue to centralized ModalQueueContext with ModalPriority.LEVEL_UP
 
-3. Modal Display (showLevelUpModal)
-   ├── Enhanced Logging: Modal display lifecycle tracking  
-   ├── Error Handling: Display failures don't break level progression
-   ├── Haptic Feedback: Milestone vs regular level feedback
-   └── Success Confirmation: Modal display completion logging
+3. Modal Display (ModalQueueContext.ModalRenderer)
+   ├── Queue sorts by priority (lower number = shown first)
+   ├── Only ONE modal visible at any time
+   ├── closeCurrentModal() advances to next in queue
+   └── CelebrationModal rendered with type="level_up"
 
 4. Memory Management (cleanupDuplicateLevelUpRecords)
    ├── Startup Cleanup: Automatic duplicate removal on app initialization
@@ -348,13 +339,9 @@ try {
   // User data remains intact
 }
 
-// Pattern 2: Modal Display Resilience
-try {
-  showLevelUpModal(level, title, description, isMilestone);
-} catch (error) {
-  console.error('🚨 Level-up modal display failed, but XP and app functionality continues:', error);
-  console.log('📱 Level progression saved correctly, only celebration visual failed');
-}
+// Pattern 2: Modal Queue Resilience
+// enqueueModal() in ModalQueueContext handles display
+// If enqueue fails, XP and level progression are already saved
 
 // Pattern 3: Memory Cleanup Resilience
 try {
@@ -370,6 +357,7 @@ try {
 ## Level-up Architecture Diagram
 
 ### 🏗️ COMPLETE SYSTEM ARCHITECTURE
+> **NOTE**: The diagram below shows the old 4-Tier system. The current implementation uses `ModalQueueContext` - a centralized priority queue. See `technical-guides.md` "Centralized Modal Queue System" section for current architecture.
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           SelfRise V2 Level-up System Architecture              │

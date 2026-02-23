@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 
 const PENDING_STAR_DEMOTION_KEY = 'pending_star_demotion';
 
@@ -30,6 +31,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t, currentLanguage } = useI18n();
+  const { enqueue: enqueueModal } = useModalQueue();
   const [challenge, setChallenge] = useState<MonthlyChallenge | null>(null);
   const [progress, setProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,23 +44,6 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     mastery: 1,
     special: 1,
   });
-
-  // Completion modal state
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [completionResult, setCompletionResult] = useState<any>(null);
-
-  // Star level change modal state
-  const [showStarChangeModal, setShowStarChangeModal] = useState(false);
-  const [starChangeData, setStarChangeData] = useState<StarLevelChangeData | null>(null);
-  const [pendingStarChange, setPendingStarChange] = useState<StarLevelChangeData | null>(null);
-
-  // Milestone modal state
-  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
-  const [milestoneData, setMilestoneData] = useState<{
-    milestone: 25 | 50 | 75;
-    challengeTitle: string;
-    xpAwarded: number;
-  } | null>(null);
 
   useEffect(() => {
     loadMonthlyChallenge();
@@ -116,16 +101,18 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     };
   }, []);
 
-  // Completion event listener
+  // Completion event listener → enqueue to centralized modal queue
   useEffect(() => {
     const completionListener: EmitterSubscription = DeviceEventEmitter.addListener(
       'monthly_challenge_completed',
       (eventData: any) => {
-        console.log('🎉 Monthly challenge completed event received:', eventData);
+        console.log('🎉 Monthly challenge completed → ModalQueue');
 
-        // Show completion modal
-        setCompletionResult(eventData);
-        setShowCompletionModal(true);
+        enqueueModal({
+          type: 'monthly_challenge_completion',
+          priority: ModalPriority.MONTHLY_CHALLENGE,
+          props: { challenge, completionResult: eventData },
+        });
 
         // Refresh progress and star ratings
         if (challenge && eventData.challengeId === challenge.id) {
@@ -140,22 +127,25 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return () => {
       completionListener.remove();
     };
-  }, [challenge?.id]);
+  }, [challenge?.id, enqueueModal]);
 
-  // Milestone celebration listener (25%, 50%, 75%)
+  // Milestone celebration listener (25%, 50%, 75%) → enqueue
   useEffect(() => {
     const milestoneListener: EmitterSubscription = DeviceEventEmitter.addListener(
       'monthly_milestone_reached',
       (eventData: any) => {
-        console.log('🎯 Monthly milestone reached event received:', eventData);
+        console.log('🎯 Monthly milestone → ModalQueue:', eventData);
 
         if (eventData?.milestone && eventData?.challengeTitle) {
-          setMilestoneData({
-            milestone: eventData.milestone,
-            challengeTitle: eventData.challengeTitle,
-            xpAwarded: eventData.xpAwarded || 0,
+          enqueueModal({
+            type: 'monthly_challenge_milestone',
+            priority: ModalPriority.MONTHLY_CHALLENGE,
+            props: {
+              milestone: eventData.milestone,
+              challengeTitle: eventData.challengeTitle,
+              xpAwarded: eventData.xpAwarded || 0,
+            },
           });
-          setShowMilestoneModal(true);
 
           // Also refresh progress
           if (challenge && eventData.challengeId === challenge.id) {
@@ -170,19 +160,16 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return () => {
       milestoneListener.remove();
     };
-  }, [challenge?.id]);
+  }, [challenge?.id, enqueueModal]);
 
-  // Star level change listener
+  // Star level change listener → enqueue (promotions) or save for next open (demotions)
   useEffect(() => {
     const starChangeListener: EmitterSubscription = DeviceEventEmitter.addListener(
       'star_level_changed',
       (eventData: { category: AchievementCategory; previousStars: number; newStars: number; reason: string }) => {
-        console.log('⭐ Star level changed event received:', eventData);
+        console.log('⭐ Star level changed → ModalQueue:', eventData);
 
-        // Ignore reset events (admin/debug only)
         if (eventData.reason === 'reset') return;
-
-        // Only handle actual changes
         if (eventData.previousStars === eventData.newStars) return;
 
         const changeData: StarLevelChangeData = {
@@ -195,10 +182,13 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         const isPromotion = eventData.newStars > eventData.previousStars;
 
         if (isPromotion) {
-          // Promotion: queue it to show after completion modal closes
-          setPendingStarChange(changeData);
+          enqueueModal({
+            type: 'star_level_change',
+            priority: ModalPriority.STAR_LEVEL_CHANGE,
+            props: { data: changeData },
+          });
         } else {
-          // Demotion: save to AsyncStorage for next app open (handled in step 3)
+          // Demotion: save to AsyncStorage for next app open
           savePendingDemotion(changeData);
         }
       }
@@ -207,21 +197,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     return () => {
       starChangeListener.remove();
     };
-  }, []);
-
-  // Show pending star change after completion modal closes
-  useEffect(() => {
-    if (!showCompletionModal && pendingStarChange) {
-      // Small delay for smooth transition between modals
-      const timer = setTimeout(() => {
-        setStarChangeData(pendingStarChange);
-        setShowStarChangeModal(true);
-        setPendingStarChange(null);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [showCompletionModal, pendingStarChange]);
+  }, [enqueueModal]);
 
   const loadUserStarRatings = async () => {
     try {
@@ -258,11 +234,14 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       if (stored) {
         const data: StarLevelChangeData = JSON.parse(stored);
         await AsyncStorage.removeItem(PENDING_STAR_DEMOTION_KEY);
-        console.log('📋 Found pending star demotion, showing modal:', data);
+        console.log('📋 Found pending star demotion → ModalQueue:', data);
         // Small delay to let the screen load first
         setTimeout(() => {
-          setStarChangeData(data);
-          setShowStarChangeModal(true);
+          enqueueModal({
+            type: 'star_level_change',
+            priority: ModalPriority.STAR_LEVEL_CHANGE,
+            props: { data },
+          });
         }, 1000);
       }
     } catch (error) {
@@ -888,41 +867,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
         </View>
       </View>
 
-      {/* Completion Modal */}
-      <MonthlyChallengeCompletionModal
-        visible={showCompletionModal}
-        challenge={challenge}
-        completionResult={completionResult}
-        onClose={() => {
-          setShowCompletionModal(false);
-          setCompletionResult(null);
-        }}
-      />
-
-      {milestoneData && (
-        <MonthlyChallengeMilestoneModal
-          visible={showMilestoneModal}
-          milestone={milestoneData.milestone}
-          challengeTitle={milestoneData.challengeTitle}
-          xpAwarded={milestoneData.xpAwarded}
-          onClose={() => {
-            setShowMilestoneModal(false);
-            setMilestoneData(null);
-          }}
-        />
-      )}
-
-      {/* Star Level Change Modal */}
-      <StarLevelChangeModal
-        visible={showStarChangeModal}
-        data={starChangeData}
-        onClose={() => {
-          setShowStarChangeModal(false);
-          setStarChangeData(null);
-          // Refresh star ratings after modal closes
-          loadUserStarRatings();
-        }}
-      />
+      {/* All celebration modals rendered by ModalQueueContext */}
     </View>
   );
 };

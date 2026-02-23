@@ -873,23 +873,17 @@ if (shouldBeActive && wasCompleted) {
 
 #### Goal Completion Modal Integration
 ```typescript
-// MODAL PRIORITY: Goal completion modal is PRIMARY (shows before level-up)
-export function GoalCompletionModal({ visible, goal, onClose }) {
-  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
+// Goal completion is enqueued via centralized ModalQueueContext
+// GoalsScreen.tsx detects completion and enqueues:
+enqueueModal({
+  type: 'goal_completion',
+  priority: ModalPriority.GOAL_COMPLETION,  // Priority 2
+  props: { goal: freshGoal },
+});
 
-  useEffect(() => {
-    if (visible) {
-      notifyPrimaryModalStarted('goal'); // Coordinate with level-up modals
-    }
-  }, [visible]);
-
-  const handleClose = () => {
-    notifyPrimaryModalEnded(); // Release lock to allow level-up modals
-    onClose();
-  };
-
-  // Modal displays: Goal info + "+250 XP" reward + completion stats
-}
+// GoalCompletionModal rendered by ModalRenderer in ModalQueueContext
+// No notify functions needed - queue handles priority ordering
+// onClose calls closeCurrentModal() → next modal in queue shows
 ```
 
 #### User Experience Flow

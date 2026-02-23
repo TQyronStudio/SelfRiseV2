@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode, use
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useXpAnimation } from './XpAnimationContext';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { router } from 'expo-router';
 import { tutorialTargetManager } from '@/src/utils/TutorialTargetHelper';
@@ -600,7 +599,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const TUTORIAL_STEPS = createTutorialSteps(t);
 
   // Modal Coordination with XpAnimationContext - only for achievement modal detection
-  const { state: xpState } = useXpAnimation();
+  // useXpAnimation removed - achievement modal tracking via DeviceEventEmitter
 
 
   // Helper Functions
@@ -1619,17 +1618,20 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       state.currentStepData.id === 'first-habit-achievement' ||
       state.currentStepData.id === 'first-goal-achievement';
 
-    if (isAchievementWaitingStep) {
-      // If achievement modal was active and now finished, proceed to next step
-      if (!xpState.modalCoordination.isAchievementModalActive) {
-        console.log('🏆 Achievement modal completed, auto-proceeding to next tutorial step');
-        // Add small delay to ensure modal is fully closed
-        setTimeout(() => {
-          nextStep();
-        }, 500);
-      }
-    }
-  }, [xpState.modalCoordination.isAchievementModalActive, state.currentStepData, state.isActive]);
+    if (!isAchievementWaitingStep) return;
+
+    // Listen for achievement modal close event from centralized ModalQueueContext
+    const subscription = DeviceEventEmitter.addListener('achievementCelebrationClosed', () => {
+      console.log('🏆 Achievement modal completed, auto-proceeding to next tutorial step');
+      setTimeout(() => {
+        nextStep();
+      }, 500);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [state.currentStepData, state.isActive]);
 
   // Tutorial has its own overlay system and should not interfere with modal coordination
   // Removing modal coordination notification to prevent conflicts with Monthly Challenge modals

@@ -12,7 +12,6 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
-import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -33,22 +32,10 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
-  const { notifyMonthlyChallengeModalStarted, notifyMonthlyChallengeModalEnded } = useXpAnimation();
+  // 4-Tier Modal coordination removed - now handled by centralized ModalQueueContext
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-
-  // 4-Tier Modal Priority System Integration (Tier 2)
-  useEffect(() => {
-    if (visible) {
-      notifyMonthlyChallengeModalStarted();
-    }
-    return () => {
-      if (!visible) {
-        notifyMonthlyChallengeModalEnded();
-      }
-    };
-  }, [visible, notifyMonthlyChallengeModalStarted, notifyMonthlyChallengeModalEnded]);
 
   const getMilestoneConfig = () => {
     switch (milestone) {

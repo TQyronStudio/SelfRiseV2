@@ -24,8 +24,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { XPMultiplierService, ActiveMultiplierInfo, HarmonyStreakResult, MultiplierActivationResult } from '../../services/xpMultiplierService';
-import { MultiplierActivationModal } from '../gamification/MultiplierActivationModal';
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
+import { XPMultiplierService, ActiveMultiplierInfo, HarmonyStreakResult } from '../../services/xpMultiplierService';
 import { MultiplierCountdownTimer } from '../gamification/MultiplierCountdownTimer';
 
 // ========================================
@@ -65,6 +65,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { enqueue: enqueueModal } = useModalQueue();
   
   // ========================================
   // STATE & ANIMATIONS
@@ -73,8 +74,6 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   const [activeMultiplier, setActiveMultiplier] = useState<ActiveMultiplierInfo | null>(null);
   const [harmonyStreak, setHarmonyStreak] = useState<HarmonyStreakResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showActivationModal, setShowActivationModal] = useState(false);
-  const [activationResult, setActivationResult] = useState<MultiplierActivationResult | null>(null);
   
   // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -157,8 +156,15 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
 
         const multiplierInfo = await XPMultiplierService.getActiveMultiplier();
         if (multiplierInfo.isActive) {
-          setActivationResult({ success: true, multiplier: multiplierInfo });
-          setShowActivationModal(true);
+          enqueueModal({
+            type: 'multiplier_activation',
+            priority: ModalPriority.MULTIPLIER_ACTIVATION,
+            props: {
+              multiplier: multiplierInfo,
+              harmonyStreakLength: harmonyStreak?.currentStreak || 0,
+              bonusXP: eventData?.xpBonusAwarded || 0,
+            },
+          });
         }
       });
 
@@ -180,15 +186,21 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   const handleActivateMultiplier = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       const result = await XPMultiplierService.activateHarmonyMultiplier();
-      setActivationResult(result);
-      
+
       if (result.success) {
-        setShowActivationModal(true);
+        enqueueModal({
+          type: 'multiplier_activation',
+          priority: ModalPriority.MULTIPLIER_ACTIVATION,
+          props: {
+            multiplier: result.multiplier,
+            harmonyStreakLength: harmonyStreak?.currentStreak || 0,
+            bonusXP: result.xpBonusAwarded || 0,
+          },
+        });
         await loadData(); // Refresh data
       } else {
-        // Show error (could use a toast or alert)
         console.error('Multiplier activation failed:', result.reason || result.error);
       }
     } catch (error) {
@@ -196,16 +208,9 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [loadData]);
+  }, [loadData, enqueueModal, harmonyStreak]);
   
-  /**
-   * Handle modal close
-   */
-  const handleModalClose = useCallback(() => {
-    setShowActivationModal(false);
-    setActivationResult(null);
-    loadData(); // Refresh data after modal closes
-  }, [loadData]);
+  // MultiplierActivationModal moved to centralized ModalQueueContext
   
   // ========================================
   // RENDER HELPERS
@@ -469,37 +474,25 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
   }
 
   return (
-    <>
-      <Animated.View
-        style={[
-          styles.container,
-          compact && styles.compactContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-          style,
-        ]}
-        testID="xp-multiplier-section"
-      >
-        {/* Section Header */}
-        <Text style={styles.sectionTitle}>{t('home.xpMultiplier.sectionTitle')}</Text>
-        
-        {/* Content */}
-        {renderActiveMultiplier()}
-        {renderHarmonyProgress()}
-      </Animated.View>
-      
-      {/* Activation Modal */}
-      <MultiplierActivationModal
-        visible={showActivationModal}
-        multiplier={activationResult?.multiplier || null}
-        harmonyStreakLength={harmonyStreak?.currentStreak || 0}
-        bonusXP={activationResult?.xpBonusAwarded || 0}
-        onClose={handleModalClose}
-        showShare={false} // Can be enabled for social features
-      />
-    </>
+    <Animated.View
+      style={[
+        styles.container,
+        compact && styles.compactContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+        style,
+      ]}
+      testID="xp-multiplier-section"
+    >
+      {/* Section Header */}
+      <Text style={styles.sectionTitle}>{t('home.xpMultiplier.sectionTitle')}</Text>
+
+      {/* Content */}
+      {renderActiveMultiplier()}
+      {renderHarmonyProgress()}
+    </Animated.View>
   );
 };
 

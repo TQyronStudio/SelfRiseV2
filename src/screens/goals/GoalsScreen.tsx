@@ -16,7 +16,7 @@ import { XP_REWARDS } from '@/src/constants/gamification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goalStorage } from '@/src/services/storage/goalStorage';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useXpAnimation } from '@/src/contexts/XpAnimationContext';
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 import { dropGoalsTables } from '@/src/utils/dropGoalsTables';
 import { getDatabase } from '@/src/services/database/init';
 
@@ -26,7 +26,7 @@ export function GoalsScreen() {
   const { goals, isLoading, actions } = useGoalsData();
   // addXP removed - XP handled by goalStorage
   const params = useLocalSearchParams();
-  const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
+  const { enqueue: enqueueModal } = useModalQueue();
 
   // Styles inside component to access theme colors
   const styles = StyleSheet.create({
@@ -218,7 +218,6 @@ export function GoalsScreen() {
   };
 
   const handleAddProgress = (goal: Goal) => {
-    notifyActivityModalStarted('goal');
     setProgressGoal(goal);
     setProgressModalVisible(true);
   };
@@ -226,11 +225,6 @@ export function GoalsScreen() {
   const handleCloseProgressModal = () => {
     setProgressModalVisible(false);
     setProgressGoal(undefined);
-    // Delay notifyActivityModalEnded to let Modal close animation finish
-    // This prevents level-up modal from showing while ProgressModal is still animating
-    setTimeout(() => {
-      notifyActivityModalEnded();
-    }, 500);
   };
 
   const handleSubmitProgress = async (data: AddGoalProgressInput) => {
@@ -241,26 +235,24 @@ export function GoalsScreen() {
       // XP is now handled entirely by GoalStorage.awardGoalProgressXP - no dual system
       console.log(`✅ Goal progress added successfully - XP handled by storage layer`);
 
-      // Close progress modal visually (DON'T call handleCloseProgressModal - it notifies activity ended)
-      // We keep activity modal registered until the entire flow is done
       setProgressModalVisible(false);
       setProgressGoal(undefined);
 
       // Check if goal was completed by this progress - IMMEDIATE detection
-      let goalCompleted = false;
       if (previousGoal) {
-        // Get fresh goal data from storage immediately
         const freshGoal = await goalStorage.getById(previousGoal.id);
 
         if (freshGoal &&
             freshGoal.status === GoalStatus.COMPLETED &&
             previousGoal.status !== GoalStatus.COMPLETED) {
-          goalCompleted = true;
-          console.log(`🎉 IMMEDIATE goal completion detected: ${freshGoal.title}`);
+          console.log(`🎉 Goal completion → ModalQueue: ${freshGoal.title}`);
 
-          // Show completion modal - activity modal stays registered
-          setCompletedGoal(freshGoal);
-          setCompletionModalVisible(true);
+          // Enqueue goal completion modal to centralized queue
+          enqueueModal({
+            type: 'goal_completion',
+            priority: ModalPriority.GOAL_COMPLETION,
+            props: { goal: freshGoal },
+          });
 
           // Save to persistent storage to prevent re-showing
           const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
@@ -276,28 +268,15 @@ export function GoalsScreen() {
           );
         }
       }
-
-      // Only notify activity ended if no completion modal was opened
-      // If completion modal opened, it will notify when it closes
-      if (!goalCompleted) {
-        setTimeout(() => {
-          notifyActivityModalEnded();
-        }, 500);
-      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
       setShowError(true);
-      // On error, still notify activity ended
-      setTimeout(() => {
-        notifyActivityModalEnded();
-      }, 500);
     }
   };
 
   const handleCloseCompletionModal = () => {
     setCompletionModalVisible(false);
     setCompletedGoal(undefined);
-    // GoalCompletionModal handles notifyActivityModalEnded internally via notifyPrimaryModalEnded
   };
 
   return (
@@ -369,13 +348,7 @@ export function GoalsScreen() {
         />
       )}
 
-      {completedGoal && (
-        <GoalCompletionModal
-          visible={completionModalVisible}
-          goal={completedGoal}
-          onClose={handleCloseCompletionModal}
-        />
-      )}
+      {/* GoalCompletionModal removed - now rendered by ModalQueueContext */}
 
       <ErrorModal
         visible={showError}

@@ -17,7 +17,6 @@ import {
   AchievementCategory
 } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
-import { useXpAnimation } from '../../contexts/XpAnimationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -55,23 +54,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   const slideUpAnim = useRef(new Animated.Value(50)).current;
   const fadeInAnim = useRef(new Animated.Value(0)).current;
 
-  // 4-Tier Modal Priority System Integration
-  const { notifyMonthlyChallengeModalStarted, notifyMonthlyChallengeModalEnded } = useXpAnimation();
-
-  // Modal coordination for 4-tier priority system
-  useEffect(() => {
-    if (visible) {
-      console.log('🎯 Monthly Challenge Completion modal visible - notifying priority system');
-      notifyMonthlyChallengeModalStarted();
-    }
-
-    return () => {
-      if (!visible) {
-        console.log('✅ Monthly Challenge Completion modal closed - releasing priority');
-        notifyMonthlyChallengeModalEnded();
-      }
-    };
-  }, [visible, notifyMonthlyChallengeModalStarted, notifyMonthlyChallengeModalEnded]);
+  // 4-Tier Modal coordination removed - now handled by centralized ModalQueueContext
 
   useEffect(() => {
     if (visible && challenge && completionResult) {

@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
 import { Goal } from '../../types/goal';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { Layout } from '../../constants/dimensions';
 import { useI18n } from '../../hooks/useI18n';
-import { useXpAnimation } from '../../contexts/XpAnimationContext';
 import { XP_REWARDS } from '../../constants/gamification';
 
 interface GoalCompletionModalProps {
@@ -19,17 +18,9 @@ const { width: screenWidth } = Dimensions.get('window');
 export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionModalProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { notifyPrimaryModalStarted, notifyPrimaryModalEnded } = useXpAnimation();
-
-  // Modal priority coordination - goal completion is a PRIMARY modal
-  useEffect(() => {
-    if (visible) {
-      notifyPrimaryModalStarted('goal');
-    }
-  }, [visible, notifyPrimaryModalStarted]);
+  // Modal coordination removed - handled by ModalQueueContext
 
   const handleClose = () => {
-    notifyPrimaryModalEnded(); // Release coordination lock to allow level-up modals
     onClose();
   };
 

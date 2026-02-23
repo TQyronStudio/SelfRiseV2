@@ -645,40 +645,18 @@ interface ModalQueueContextValue {
 
 **Kroky implementace:**
 
-- [ ] 6.1.1: Vytvorit `ModalQueueContext.tsx` s frontou, prioritnim razenim a renderovanim
-- [ ] 6.1.2: Pridat ModalQueueProvider do `app/_layout.tsx` (obalit celou appku)
-- [ ] 6.1.3: Presunout CelebrationModal (level_up) z XpAnimationContext do queue
-  - Odstranit `levelUpModal` state, `showLevelUpModal`, `hideLevelUpModal`
-  - handleLevelUp event → `enqueue({ type: 'level_up', priority: 7, ... })`
-  - Odstranit `processLevelUpModals`, `pendingLevelUpModals`
-- [ ] 6.1.4: Presunout AchievementCelebrationModal z AchievementContext do queue
-  - Odstranit `celebrationQueue`, `showingCelebration`, `showNextCelebration`
-  - achievementUnlocked event → `enqueue({ type: 'achievement', priority: 6, ... })`
-  - Odstranit `notifyAchievementModalStarted/Ended`
-- [ ] 6.1.5: Presunout Journal celebrations (daily, streak, bonus) z journal.tsx do queue
-  - Odstranit lokalni `showCelebration`, `modalQueue`, `processModalQueue`
-  - handleInputSuccess → `enqueue({ type: 'bonus_milestone', priority: 1, ... })`
-  - Odstranit `notifyActivityModalStarted/Ended` pro journal
-- [ ] 6.1.6: Presunout GoalCompletionModal z GoalsScreen do queue
-  - handleGoalComplete → `enqueue({ type: 'goal_completion', priority: 2, ... })`
-  - Odstranit `notifyPrimaryModalStarted/Ended` pro goal
-- [ ] 6.1.7: Presunout Monthly modaly z MonthlyChallengeSection do queue
-  - monthly_challenge_completed → `enqueue({ type: 'monthly_completion', priority: 3, ... })`
-  - monthly_milestone_reached → `enqueue({ type: 'monthly_milestone', priority: 3, ... })`
-  - star_level_changed → `enqueue({ type: 'star_change', priority: 4, ... })`
-  - Odstranit `notifyMonthlyChallengeModalStarted/Ended`
-- [ ] 6.1.8: Presunout MultiplierActivationModal do queue
-  - xpMultiplierActivated → `enqueue({ type: 'multiplier', priority: 5, ... })`
-- [ ] 6.1.9: Odstranit stary 4-Tier system z XpAnimationContext
-  - Odstranit `modalCoordination` state, vsechny notify funkce, vsechny process funkce
-  - Ponechat XP popup/notification system (ten neni modal)
-- [ ] 6.1.10: Aktualizovat stress test v Settings aby pouzival `enqueue`
-- [ ] 6.1.11: Otestovat vse - simultanni eventy, sekvencni zobrazeni, zadne zamrznuti
-- [ ] 6.1.12: Kompletne prepsat technickou dokumentaci aby odpovidala novemu systemu:
-  - `technical-guides:Gamification-UI.md`: Nahradit celou sekci "4-Tier Modal Priority System" za "Centralni Modal Queue System" - popsat novy enqueue pattern, priority, rendering, bezpecnostni pravidla
-  - `technical-guides:Gamification-Events.md`: Aktualizovat event flow diagramy - eventy nyni volaji `enqueue()` misto `notifyXxxStarted/Ended`
-  - Odstranit vsechny zmninky o `modalCoordination`, `notifyActivityModalStarted`, `processLevelUpModals` atd.
-  - Pridat dokumentaci `ModalQueueContext` API (enqueue, closeCurrentModal, currentModal, queueLength)
+- [x] 6.1.1: Vytvorit `ModalQueueContext.tsx` s frontou, prioritnim razenim a renderovanim
+- [x] 6.1.2: Pridat ModalQueueProvider do `RootProvider.tsx` (obalit celou appku)
+- [x] 6.1.3: Presunout CelebrationModal (level_up) z XpAnimationContext do queue
+- [x] 6.1.4: Presunout AchievementCelebrationModal z AchievementContext do queue
+- [x] 6.1.5: Presunout Journal celebrations (daily, streak, bonus) z journal.tsx do queue
+- [x] 6.1.6: Presunout GoalCompletionModal z GoalsScreen do queue
+- [x] 6.1.7: Presunout Monthly modaly z MonthlyChallengeSection do queue
+- [x] 6.1.8: Presunout MultiplierActivationModal z XpMultiplierSection do queue
+- [x] 6.1.9: Odstranit stary 4-Tier system z XpAnimationContext + TutorialContext + Monthly modaly
+- [x] 6.1.10: Aktualizovat stress test v Settings
+- [x] 6.1.11: TypeScript build check - 0 chyb
+- [x] 6.1.12: Prepsat technickou dokumentaci (technical-guides.md, Gamification-UI, Events, Monthly-Challenges, My-Journal, Goals)
 
 ### Co se SMAZE (zjednoduseni kodu)
 

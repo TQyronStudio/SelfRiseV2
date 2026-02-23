@@ -160,11 +160,11 @@ export default function SettingsScreen() {
   // ========================================
   // DEV TEST: Realistic Modal Stress Test
   // Fires ALL events at once like the real app does
-  // Tests that the priority system handles them correctly
+  // Tests that the centralized ModalQueueContext handles priority ordering
   // ========================================
   const triggerModalStressTest = () => {
-    console.log('🧪 === MODAL STRESS TEST START ===');
-    console.log('🧪 Firing ALL events simultaneously (realistic simulation)');
+    console.log('🧪 === MODAL STRESS TEST START (Centralized Queue) ===');
+    console.log('🧪 Firing ALL events simultaneously - queue should order by priority');
 
     // Fake achievement for testing
     const fakeAchievement = {
@@ -184,9 +184,8 @@ export default function SettingsScreen() {
       updatedAt: new Date(),
     };
 
-    // ALL events fired at once - same as when user saves a journal entry
-    // that triggers bonus milestone + achievement + level-up simultaneously
-    DeviceEventEmitter.emit('achievementQueueStarting', { count: 1 });
+    // Fire all events at once - ModalQueueContext handles priority ordering
+    // Expected order: star_level_change (4) → achievement (6) → level_up (7)
     DeviceEventEmitter.emit('achievementUnlocked', {
       achievement: fakeAchievement,
       xpAwarded: 50,
@@ -207,7 +206,7 @@ export default function SettingsScreen() {
       isMilestone: true,
     });
 
-    console.log('🧪 All events fired at once. Expected: Achievement first, then Level-up after close.');
+    console.log('🧪 All events fired. Expected queue order: star_level_change → achievement → level_up');
   };
 
   const handleLanguageChange = async (language: 'en' | 'de' | 'es') => {

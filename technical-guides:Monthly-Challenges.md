@@ -729,9 +729,10 @@ Vizuální zpětná vazba pro uživatele při změně úrovně hvězd.
 - Podporuje Light/Dark theme (barvy z ThemeContext)
 - Lokalizace: EN/DE/ES (`monthlyChallenge.starChange.*`)
 
-**Integrace s 4-Tier Modal Priority System:**
-- Povýšení: čeká na zavření Tier 2 completion modalu, pak se zobrazí
-- Sesazení: zobrazí se samostatně při startu appky (žádný konflikt s jinými modaly)
+**Integrace s centralizovanou ModalQueueContext:**
+- Povýšení i sesazení: `enqueueModal({ type: 'star_level_change', priority: ModalPriority.STAR_LEVEL_CHANGE })`
+- Queue automaticky řadí podle priority - zobrazí se po vyšších prioritách
+- Sesazení: uloženo do AsyncStorage, zobrazí se při dalším otevření appky přes queue
 
 ---
 

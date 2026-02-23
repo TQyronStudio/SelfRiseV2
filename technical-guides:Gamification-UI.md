@@ -197,211 +197,71 @@ borderColor: getRarityColor(currentLevel)
 
 ---
 
-## Level-up Modal System - Global Celebration Architecture
+## Centralized Modal Queue System (ModalQueueContext)
 
 ### 🎯 FUNDAMENTAL PRINCIPLE
-**4-Tier Modal Priority System: Každý tier má svou prioritu. Vyšší tier blokuje nižší. Nižší tiery čekají ve frontě dokud vyšší neskončí.**
+**Centralizovaná fronta s prioritou: Pouze JEDEN `<Modal visible={true}>` v jakýkoli moment. Fronta automaticky řadí podle priority.**
 
 ### 🚫 ANTI-CONCURRENT MODAL RULE
-**NIKDY se nezobrazují 2 modaly současně! Vyšší priorita blokuje nižší dokud neskončí.**
+**NIKDY se nezobrazují 2 modaly současně! ModalQueueContext to garantuje architektonicky.**
 
-### Core Modal Priority Rules - 4-Tier System
+### Priority Hierarchy (ModalPriority enum)
 ```typescript
-// 4-TIER MODAL PRIORITY SYSTEM - Modal Display Rules:
-1. ACTIVITY MODALS (Tier 1 - Immediate User Actions): NEJVYŠŠÍ PRIORITA
-   - Journal: Daily complete, bonus milestones (⭐🔥👑), streak milestones
-   - Habit: Completion celebrations, streak achievements
-   - Goal: Milestone celebrations, completion rewards
-   - Progress: Direct user action results
-
-2. MONTHLY CHALLENGE MODALS (Tier 2 - Challenge Completion): VYSOKÁ PRIORITA
-   - Monthly challenge completion celebration
-   - Řízeno přes MonthlyChallengeCompletionModal
-
-3. ACHIEVEMENT MODALS (Tier 3 - Achievement Unlocks): STŘEDNÍ PRIORITA
-   - Achievement unlocks triggered by user activities
-   - Rarity-based celebrations (Common, Rare, Epic, Legendary)
-   - Crescendo řazení: achievementy se zobrazují od Common → Legendary
-   - Pre-registrace přes 'achievementQueueStarting' event
-
-4. LEVEL-UP MODALS (Tier 4 - System Celebrations): NEJNIŽŠÍ PRIORITA
-   - Level-up celebrations (XP způsobí level-up)
-   - Level milestone rewards
-   - Multi-level-up: každý level se zobrazí zvlášť ve smyčce
-
-5. COORDINATION RULES:
-   - SINGLE: Pouze 1 modal active at any time
-   - QUEUING: Nižší tiery čekají ve frontě (pendingLevelUpModals)
-   - SEQUENCE: Activity → Monthly Challenge → Achievement → Level-up
-   - GLOBAL: Řízený centrálně přes XpAnimationContext
-   - ANTI-FREEZE: Každý tier má nezávislé error handling
-   - TIMING: 500ms delay po Tier 1/2, 300ms delay po Tier 3
-```
-
-### Screen-Specific vs Global Celebrations
-
-#### ✅ SCREEN-SPECIFIC (Journal.tsx)
-```typescript
-// Journal má vlastní modaly pro Journal-specific akce:
-- Daily completion (3 gratitude entries) → Journal modal
-- Streak milestones (7, 14, 30 days) → Journal modal
-- Bonus milestones (⭐🔥👑 positions 4, 8, 13) → Journal modal
-
-// Modal queue system pro Journal celebrations
-const [modalQueue, setModalQueue] = useState<Array<{
-  type: 'bonus_milestone';
-  data: any;
-}>>([]);
-```
-
-#### ✅ GLOBAL (XpAnimationContext.tsx)
-```typescript
-// XpAnimationContext řídí globální celebrations:
-- Monthly Challenge completion → Global modal (Tier 2)
-- Achievement unlocks → Global modal (Tier 3, řízeno AchievementContext)
-- Level-up celebrations → Global modal (Tier 4)
-
-// Centralized level-up handling s 4-tier koordinací
-const handleLevelUp = (eventData: any) => {
-  // Pokud je aktivní Tier 1, 2 nebo 3 → level-up jde do fronty
-  const current = modalCoordinationRef.current;
-  if (current.isActivityModalActive ||
-      current.isMonthlyChallengeModalActive ||
-      current.isAchievementModalActive) {
-    // ADD TO QUEUE (pendingLevelUpModals)
-  } else {
-    // SHOW IMMEDIATELY
-    showLevelUpModal(eventData.newLevel, eventData.levelTitle, ...);
-  }
+enum ModalPriority {
+  ACTIVITY_CELEBRATION = 1,  // Journal daily_complete, streak_milestone, bonus_milestone
+  GOAL_COMPLETION = 2,       // Goal reaches 100%
+  MONTHLY_CHALLENGE = 3,     // Monthly challenge completion, milestone 25/50/75%
+  STAR_LEVEL_CHANGE = 4,     // Star promotion/demotion
+  MULTIPLIER_ACTIVATION = 5, // XP multiplier activated
+  ACHIEVEMENT = 6,           // Achievement unlocked
+  LEVEL_UP = 7,              // Level-up celebration (lowest priority)
 }
 ```
 
-### User Experience Flow Examples
+### How It Works
+1. Component calls `enqueueModal({ type, priority, props })`
+2. Queue sorts by priority (lower number = shown first), stable sort by timestamp
+3. `ModalRenderer` renders first item as `visible={true}`
+4. User closes modal → `closeCurrentModal()` → next in queue shows
+5. No flags, no setTimeout race conditions, no iOS freeze
 
-#### Scenario 1: Journal Bonus → Achievement → Level-up (FULL 4-TIER)
+### Usage Example
 ```typescript
-// User na Journal screenu:
-1. Napíše 10. bonus gratitude entry → +8 XP (basic) + 100 XP (👑 milestone)
-2. Akce odemkne achievement + způsobí level-up 15 → 16
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 
-3. MODAL COORDINATION:
-   a) 👑 Bonus milestone modal = Tier 1 → ZOBRAZÍ SE OKAMŽITĚ
-   b) 🏆 Achievement modal = Tier 3 → JDE DO FRONTY
-   c) 🎉 Level-up modal = Tier 4 → JDE DO FRONTY
+const { enqueue: enqueueModal } = useModalQueue();
 
-4. USER EXPERIENCE:
-   - ⚡ IMMEDIATE: "👑 Tenth Bonus Milestone! +100 XP" (Tier 1)
-   - User closes bonus modal
-   - ⏱️ AFTER 500ms: "🏆 Achievement Unlocked!" (Tier 3)
-   - User closes achievement modal
-   - ⏱️ AFTER 300ms: "🎉 Level 16 achieved!" (Tier 4)
-   - ✅ RESULT: Perfect sequence, no concurrent modals
+// Any component can enqueue
+enqueueModal({
+  type: 'celebration_bonus_milestone',
+  priority: ModalPriority.ACTIVITY_CELEBRATION,
+  props: { bonusCount: 5, xpAmount: 50 },
+});
 ```
 
-### Technical Implementation Architecture
+### User Experience Flow Example
+```
+User napíše 10. bonus gratitude → triggers achievement + level-up:
 
-#### XpAnimationContext (Modal Coordination Center)
-```typescript
-// 4-TIER PRIORITY SYSTEM STATE
-modalCoordination: {
-  // Tier 1: Activity modals
-  isActivityModalActive: boolean;
-  currentActivityModalType?: 'journal' | 'habit' | 'goal' | null;
+1. enqueue: celebration_bonus_milestone (priority 1)
+2. enqueue: achievement (priority 6)
+3. enqueue: level_up (priority 7)
 
-  // Tier 2: Monthly Challenge modals
-  isMonthlyChallengeModalActive: boolean;
+Queue sorts: [bonus(1), achievement(6), level_up(7)]
 
-  // Tier 3: Achievement modals (řízeno AchievementContext)
-  isAchievementModalActive: boolean;
-
-  // Tier 4: Level-up modals
-  pendingLevelUpModals: Array<{ type: 'levelUp' | 'multiplier'; data: any; timestamp: number }>;
-  isLevelUpModalActive: boolean;
-}
-
-// TIER 1: Activity modals
-const notifyActivityModalStarted = (type: 'journal' | 'habit' | 'goal') => {
-  setState(prev => ({
-    ...prev,
-    modalCoordination: {
-      ...prev.modalCoordination,
-      isActivityModalActive: true,
-      currentActivityModalType: type,
-    }
-  }));
-};
-
-const notifyActivityModalEnded = () => {
-  setState(prev => ({ ...prev, modalCoordination: { ...prev.modalCoordination, isActivityModalActive: false } }));
-  setTimeout(() => {
-    // Process queued modals if no Tier 2/3 active
-    if (!current.isMonthlyChallengeModalActive && !current.isAchievementModalActive) {
-      processLevelUpModals();
-    }
-  }, 500);
-};
-
-// TIER 2: Monthly Challenge modals
-const notifyMonthlyChallengeModalStarted = () => { /* sets isMonthlyChallengeModalActive = true */ };
-const notifyMonthlyChallengeModalEnded = () => {
-  /* sets isMonthlyChallengeModalActive = false, after 500ms processes level-up queue */
-};
-
-// TIER 3: Achievement modals
-const notifyAchievementModalStarted = (type: 'achievement') => { /* sets isAchievementModalActive = true */ };
-const notifyAchievementModalEnded = () => {
-  /* sets isAchievementModalActive = false, after 300ms processes level-up queue */
-};
-
-// TIER 4: Level-up modals are processed automatically by processLevelUpModals()
+User experience:
+- 👑 "Tenth Bonus Milestone!" → user closes
+- 🏆 "Achievement Unlocked!" → user closes
+- 🎉 "Level 16 achieved!" → user closes
+- ✅ Perfect sequence, no concurrent modals
 ```
 
-#### achievementQueueStarting Pre-registrace
-```typescript
-// CRITICAL: Synchronní pre-registrace achievementů
-// Zajišťuje, že level-up modaly čekají na achievement modaly
-// i když level-up event přijde PŘED prvním achievement modalem
-
-// achievementService.ts emituje PŘED jednotlivými achievementy:
-DeviceEventEmitter.emit('achievementQueueStarting', { count: unlockedAchievements.length });
-
-// XpAnimationContext SYNCHRONNĚ nastaví Tier 3 jako aktivní:
-const handleAchievementQueueStarting = (eventData: { count: number }) => {
-  if (eventData.count > 0) {
-    setState(prev => ({
-      ...prev,
-      modalCoordination: { ...prev.modalCoordination, isAchievementModalActive: true }
-    }));
-  }
-};
-```
-
-#### Journal.tsx (Tier 1 Modal Coordination)
-```typescript
-// COORDINATION INTEGRATION
-const { notifyActivityModalStarted, notifyActivityModalEnded } = useXpAnimation();
-
-// TIER 1 MODAL START
-notifyActivityModalStarted('journal');
-setShowCelebration(true);
-
-// TIER 1 MODAL END - Release lock, triggers lower tier processing
-<CelebrationModal
-  visible={showCelebration}
-  onClose={() => {
-    notifyActivityModalEnded();
-    setShowCelebration(false);
-    setTimeout(() => processModalQueue(), 500);
-  }}
-/>
-```
-
-#### Legacy Support
-```typescript
-// Deprecated aliasy (stále funkční, ale nepoužívat v novém kódu):
-notifyPrimaryModalStarted → použij notifyActivityModalStarted
-notifyPrimaryModalEnded   → použij notifyActivityModalEnded
-```
+### Architecture
+- **Provider**: `ModalQueueProvider` in `RootProvider.tsx`
+- **State**: Single `useState<QueuedModal[]>` sorted by priority
+- **Renderer**: `ModalRenderer` switch-case renders correct component
+- **Event Bridge**: `closeCurrentModal()` emits `achievementCelebrationClosed` and `star_level_modal_closed`
+- **10 modal types** managed: daily_complete, streak_milestone, bonus_milestone, goal_completion, monthly_challenge_completion, monthly_challenge_milestone, star_level_change, multiplier_activation, achievement, level_up
 
 ### Anti-Pattern Prevention
 
@@ -409,20 +269,19 @@ notifyPrimaryModalEnded   → použij notifyActivityModalEnded
 ```typescript
 // NIKDY nedělat v screen-specific komponentách:
 if (newXP > levelThreshold) {
-  showLevelUpModal(); // ❌ WRONG - causes duplicate modals
+  enqueueModal({ type: 'level_up', ... }); // ❌ WRONG - causes duplicate modals
 }
 
-// Level-up detection POUZE v GamificationService!
+// Level-up detection POUZE v GamificationService → DeviceEventEmitter → XpAnimationContext.handleLevelUp!
 ```
 
-#### ❌ FORBIDDEN: Screen-switching Modal Spam
+#### ❌ FORBIDDEN: Přímé renderování celebration modalů
 ```typescript
 // NIKDY nedělat:
-const checkUnshownLevelUps = async () => {
-  // ❌ Causes modal spam on screen returns
-};
+<CelebrationModal visible={showCelebration} /> // ❌ WRONG - bypasses queue
 
-// Level-up modal se zobrazí JEDNOU při level-up, ne při screen returns!
+// VŽDY použít:
+enqueueModal({ type: '...', priority: ModalPriority.X, props: {} }); // ✅ CORRECT
 ```
 
 ---
@@ -612,8 +471,8 @@ const handleLevelUp = (eventData: any) => {
   // 2. Trigger UI refresh
   fetchUpdatedUserData();          // Re-fetch with fresh data
   
-  // 3. Show celebration modal
-  showLevelUpModal(eventData);     // Display level-up celebration
+  // 3. Enqueue celebration modal
+  enqueueModal({ type: 'level_up', priority: ModalPriority.LEVEL_UP, props: eventData });
 };
 
 // CACHE INVALIDATION TIMING:
@@ -756,7 +615,7 @@ const GamificationComponent = () => {
 const healthCheck = async () => {
   try {
     await GamificationService.getCurrentXP();     // XP system operational
-    await showLevelUpModal(1, 'Test');           // Modal system operational  
+    // Modal system: enqueueModal() via ModalQueueContext
     return { healthy: true, systems: ['XP', 'Modals'] };
   } catch (error) {
     return { healthy: false, error: error.message };
