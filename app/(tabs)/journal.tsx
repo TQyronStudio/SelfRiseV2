@@ -72,7 +72,8 @@ export default function JournalScreen() {
   }, [params.quickAction, scrollToTop]);
 
   const handleInputSuccess = useCallback(async () => {
-    // Keep input open after save - no hide/show cycle = no screen jumping
+    // Hide input after save - user must re-select gratitude or self-praise
+    setShowInput(false);
     const newCount = currentCount + 1;
 
     // Show celebration on 3rd gratitude
