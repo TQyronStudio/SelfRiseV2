@@ -12,7 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 // XPSourceType removed - XP handled by goalStorage
-import { XP_REWARDS } from '@/src/constants/gamification';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goalStorage } from '@/src/services/storage/goalStorage';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
