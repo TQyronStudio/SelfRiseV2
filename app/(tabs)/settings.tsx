@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, DeviceEventEmitter } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,8 +12,6 @@ import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 import { changeLanguage, getCurrentLanguage } from '@/src/utils/i18n';
-// CelebrationModal & useXpAnimation not needed - test uses DeviceEventEmitter (realistic)
-
 export default function SettingsScreen() {
   const { t } = useI18n();
   const { colors, themeMode, setThemeMode } = useTheme();
@@ -25,7 +23,6 @@ export default function SettingsScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
 
-  // DEV TEST: used by stress test for star_level_changed event (needs to be on Home for full test)
 
   // Styles that depend on theme colors
   const styles = StyleSheet.create({
@@ -157,58 +154,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // ========================================
-  // DEV TEST: Realistic Modal Stress Test
-  // Fires ALL events at once like the real app does
-  // Tests that the centralized ModalQueueContext handles priority ordering
-  // ========================================
-  const triggerModalStressTest = () => {
-    console.log('🧪 === MODAL STRESS TEST START (Centralized Queue) ===');
-    console.log('🧪 Firing ALL events simultaneously - queue should order by priority');
-
-    // Fake achievement for testing
-    const fakeAchievement = {
-      id: 'test_achievement_' + Date.now(),
-      nameKey: 'Test Achievement',
-      descriptionKey: 'Unlocked via stress test',
-      name: 'Test Explorer',
-      description: 'You tested the modal system!',
-      icon: '🧪',
-      category: 'special',
-      rarity: 'epic',
-      xpReward: 50,
-      condition: { type: 'count', target: 1, source: 'test', operator: 'gte' },
-      isProgressive: false,
-      isSecret: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Fire all events at once - ModalQueueContext handles priority ordering
-    // Expected order: star_level_change (4) → achievement (6) → level_up (7)
-    DeviceEventEmitter.emit('achievementUnlocked', {
-      achievement: fakeAchievement,
-      xpAwarded: 50,
-      timestamp: Date.now(),
-    });
-
-    DeviceEventEmitter.emit('star_level_changed', {
-      category: 'journal',
-      previousStars: 2,
-      newStars: 3,
-      reason: 'challenge_success',
-    });
-
-    DeviceEventEmitter.emit('levelUp', {
-      newLevel: 10,
-      levelTitle: 'Test Champion',
-      levelDescription: 'Level 10 - stress test milestone!',
-      isMilestone: true,
-    });
-
-    console.log('🧪 All events fired. Expected queue order: star_level_change → achievement → level_up');
-  };
-
   const handleLanguageChange = async (language: 'en' | 'de' | 'es') => {
     try {
       await changeLanguage(language);
@@ -323,26 +268,6 @@ export default function SettingsScreen() {
             {currentLanguage === 'es' && (
               <Ionicons name="checkmark-circle" size={24} color={colors.success} />
             )}
-          </TouchableOpacity>
-        </View>
-
-        {/* DEV: Modal Stress Test */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DEV Tools</Text>
-          <TouchableOpacity
-            style={[styles.menuItem, { borderWidth: 2, borderColor: colors.warning }]}
-            onPress={triggerModalStressTest}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="bug" size={24} color={colors.warning} />
-              <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemText}>Modal Stress Test</Text>
-                <Text style={styles.menuItemDescription}>
-                  Bonus 5th + Achievement + Star Change + Level-up 10
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="play" size={20} color={colors.warning} />
           </TouchableOpacity>
         </View>
 
