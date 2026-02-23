@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import {
   View,
   Text,
@@ -44,13 +44,16 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   const [issueRetryCount, setIssueRetryCount] = useState(0);
   const [isWatchingAd, setIsWatchingAd] = useState(false); // 🚨 CRITICAL FIX: Prevent multiple clicks
   
+  // Ref to always hold the latest handleDebtPress — avoids stale closure in useImperativeHandle
+  // (handleDebtPress is defined after the early return, so it can't be captured directly)
+  const handleDebtPressRef = useRef<((e: any) => void) | undefined>(undefined);
+
   // 🚀 IMPERATIVE HANDLE: Expose triggerDebtModal method to parent component
   useImperativeHandle(ref, () => ({
     triggerDebtModal: () => {
       console.log('[DEBUG] JournalStreakCard: triggerDebtModal called from external trigger');
-      // Simulate debt press to open modal by calling the existing handler
       const mockEvent = { stopPropagation: () => {} };
-      handleDebtPress(mockEvent);
+      handleDebtPressRef.current?.(mockEvent);
     }
   }), []);
 
@@ -400,6 +403,8 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     
     setShowDebtModal(true);
   };
+  // Keep ref updated so useImperativeHandle's closure always calls the latest version
+  handleDebtPressRef.current = handleDebtPress;
 
   const handleWatchAd = async (): Promise<boolean> => {
     // 🚨 CRITICAL: Prevent multiple simultaneous ad watches
