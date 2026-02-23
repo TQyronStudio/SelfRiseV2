@@ -574,10 +574,8 @@ export class AchievementService {
           });
         }
 
-        // Level-up events emitted SYNCHRONOUSLY because:
-        // 1. triggerAchievementNotifications emits 'achievementQueueStarting' FIRST
-        // 2. XpAnimationContext's handleAchievementQueueStarting sets isAchievementModalActive = true SYNCHRONOUSLY
-        // 3. These levelUp events are processed AFTER, see isAchievementModalActive = true, and queue properly
+        // Level-up events emitted after achievements - ModalQueueContext handles priority ordering
+        // (achievements priority 6, level_up priority 7 - queue guarantees correct display order)
         // Loop handles multi-level-up (matching gamificationService pattern)
         if (leveledUp && newLevel !== undefined && previousLevel !== undefined) {
           for (let level = previousLevel + 1; level <= newLevel; level++) {
@@ -809,8 +807,7 @@ export class AchievementService {
       // Queue delayed notifications for background achievements
       if (newlyUnlocked.length > 0) {
         setTimeout(() => {
-          // triggerAchievementNotifications now emits 'achievementQueueStarting' FIRST,
-          // which SYNCHRONOUSLY sets isAchievementModalActive = true in XpAnimationContext
+          // Trigger achievement notifications - ModalQueueContext handles display priority
           this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, bgLeveledUp, bgNewLevel);
 
           // Emit xpGained so XP bar refreshes after background achievements
@@ -822,8 +819,7 @@ export class AchievementService {
             });
           }
 
-          // Level-up events emitted SYNCHRONOUSLY because:
-          // triggerAchievementNotifications already set isAchievementModalActive = true via 'achievementQueueStarting'
+          // Level-up events emitted after achievements - ModalQueueContext handles priority ordering
           // Loop handles multi-level-up (matching gamificationService pattern)
           if (bgLeveledUp && bgNewLevel !== undefined && bgPreviousLevel !== undefined) {
             for (let level = bgPreviousLevel + 1; level <= bgNewLevel; level++) {
@@ -1229,16 +1225,8 @@ export class AchievementService {
     newLevel?: number
   ): void {
     try {
-      // CRITICAL FIX: Emit achievementQueueStarting SYNCHRONOUSLY BEFORE individual achievement events
-      // This ensures XpAnimationContext sets isAchievementModalActive = true BEFORE
-      // any levelUp event is processed, maintaining proper 4-Tier Modal Priority System
-      if (unlockedAchievements.length > 0) {
-        DeviceEventEmitter.emit('achievementQueueStarting', {
-          count: unlockedAchievements.length,
-          timestamp: Date.now()
-        });
-        console.log(`🎯 Achievement queue starting signal emitted (${unlockedAchievements.length} achievements)`);
-      }
+      // Each achievement is enqueued individually into ModalQueueContext (priority 6)
+      // Level-up modals (priority 7) are enqueued separately - queue guarantees correct display order
 
       // Trigger achievement unlock celebration for each achievement
       for (const achievement of unlockedAchievements) {

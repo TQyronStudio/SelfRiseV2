@@ -5,7 +5,7 @@ import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
-import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalCompletionModal, GoalTemplatesModal } from '@/src/components/goals';
+import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalTemplatesModal } from '@/src/components/goals';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 // useEnhancedGamification removed - XP handled by goalStorage
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -118,8 +118,6 @@ export function GoalsScreen() {
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
   const [progressModalVisible, setProgressModalVisible] = useState(false);
   const [progressGoal, setProgressGoal] = useState<Goal | undefined>();
-  const [completionModalVisible, setCompletionModalVisible] = useState(false);
-  const [completedGoal, setCompletedGoal] = useState<Goal | undefined>();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
@@ -272,11 +270,6 @@ export function GoalsScreen() {
       setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
       setShowError(true);
     }
-  };
-
-  const handleCloseCompletionModal = () => {
-    setCompletionModalVisible(false);
-    setCompletedGoal(undefined);
   };
 
   return (
