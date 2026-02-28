@@ -1384,7 +1384,7 @@ export class MonthlyProgressTracker {
         isWarmUp: challenge.generationReason === 'warm_up'
       };
 
-      await StarRatingService.updateStarRatingForCompletion(completionData);
+      const starResult = await StarRatingService.updateStarRatingForCompletion(completionData);
 
       // Update streak
       await this.updateChallengeStreak(challengeId, true);
@@ -1397,14 +1397,45 @@ export class MonthlyProgressTracker {
 
       console.log(`✅ Monthly challenge completed: ${challenge.title} (${totalXP} XP awarded)`);
 
-      // Emit completion event
+      // Calculate completion stats for modal
+      const requirementsCompleted = challenge.requirements.filter(
+        req => (progress.progress[req.trackingKey] || 0) >= req.target
+      ).length;
+      const activeDays = Array.isArray(progress.activeDays) ? progress.activeDays.length : (progress.daysActive || 0);
+      const milestonesReached = progress.milestonesReached
+        ? Object.values(progress.milestonesReached).filter(m => m.reached).length
+        : 0;
+      const monthlyStreak = progress.currentStreak + 1;
+      const oldStarLevel = starResult.previousStars;
+      const newStarLevel = starResult.newStars;
+
+      // Emit completion event with full MonthlyChallengeCompletionResult data
       DeviceEventEmitter.emit('monthly_challenge_completed', {
         challengeId,
-        challengeTitle: challenge.title,
+        completed: true,
+        xpEarned: totalXP,
+        completedAt: progress.completedAt,
+        celebrationLevel: progress.completionPercentage >= 100 ? 'epic' : 'milestone',
+        // XP breakdown
+        baseXP: baseXPReward,
+        bonusXP: completionBonus,
+        streakBonus,
+        perfectCompletionBonus: 0,
+        totalXPEarned: totalXP,
+        // Completion statistics
         completionPercentage: progress.completionPercentage,
-        xpAwarded: totalXP,
-        streak: progress.currentStreak + 1,
-        timestamp: new Date()
+        requirementsCompleted,
+        activeDays,
+        milestonesReached,
+        // Star progression
+        oldStarLevel,
+        newStarLevel,
+        starLevelChanged: oldStarLevel !== newStarLevel,
+        // Streak
+        monthlyStreak,
+        // Next month
+        nextMonthEligible: true,
+        suggestedStarLevel: newStarLevel,
       });
 
     } catch (error) {

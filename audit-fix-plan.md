@@ -525,6 +525,9 @@ Animace pri otevreni:
 | 4 | 4.2 | Achievement nazvy vs ID | Volitelne |
 | 5 | 5.1-5.7 | Mrtve eventy bez listeneru | Viz vyse |
 | **6** | **6.1** | **Centralni Modal Queue** | **K implementaci** |
+| 7 | 7.1 | Modal vyzvy zobrazuje 0 XP vsude | OPRAVENO |
+| 7 | 7.2 | Perfect Completion Bonus neexistuje | K rozhodnuti |
+| 7 | 7.3 | Zastarala XP tabulka v dokumentaci | K oprave (docs) |
 
 ---
 
@@ -683,3 +686,52 @@ Po implementaci se odstrani:
 3. Timeout: pokud uzivatel nezavre modal do 30s, automaticky se zavre a ukaze dalsi
 4. Pokud uzivatel naviguje pryc (zmeni tab), fronta se POZASTAVI (ne smaze)
 5. Tutorial overlay POTLACUJE vsechny celebration modaly (kontrola pred enqueue)
+
+
+---
+
+## FAZE 7: Gratulacni modal za splneni mesicni vyzvy (vysoka priorita)
+
+Tyto problemy se tykaji modalu, ktery se zobrazi kdyz uzivatel splni mesicni vyzvu. Modal obsahuje sekci "XP Rewards Earned" kde by mely byt videt vsechny odmeny - kolik XP dostal za samotnou vyzvu, za streak, za perfektni splneni a celkem. Bohuzel kvuli technicke chybe v predavani dat modal zobrazuje nulove hodnoty a nektere sekce se vubec nezobrazi.
+
+---
+
+### 7.1 Modal za splneni mesicni vyzvy zobrazuje 0 XP vsude
+
+**Problem z reportu:** Sekce "XP Rewards Earned" v modalu ukazuje +0 za Base Challenge XP, +0 za Total XP Earned. Sekce "Monthly Streak", "Star Level Progression" a "Ready for Next Month?" se nikdy nezobrazi. Statistiky (Requirements, Active Days, Milestones) jsou vzdy 0.
+
+**Vysvetleni:** Kdyz uzivatel splni vyzvu, system spravne vypocita XP a prida je na jeho konto. Zaroven odesle zpravu do gratulacniho modalu - "tady jsou data k zobrazeni". Problem je, ze zprava pouziva jina pojmenovani nez co modal ocekava. Je to jako kdyby nekdo napsal dopis "Pro: Jan Novak" ale postou ho poslal na adresu "Pro: J. Novak" - nedorazi. Konkretne: system odesle data pod nazvem `xpAwarded`, ale modal hleda `totalXPEarned`. System posle `streak`, ale modal hleda `monthlyStreak`. A pole jako `baseXP`, `bonusXP`, `streakBonus`, `requirementsCompleted`, `activeDays`, `milestonesReached`, `starLevelChanged` a `nextMonthEligible` v odeslane zprave vubec neexistuji - takze modal vsude zobrazi 0 a podminene sekce (streak, hvezdy, dalsi mesic) se nikdy nezapnou.
+
+**Dopad:** Vysoky. Uzivatel vidi +0 XP misto realnych hodnot (ktere mohou byt i 5 000-25 000+ XP). XP mu spravne pribyde na profilu, takze neni financne poskozeny - ale motivacni efekt gratulacniho modalu je uplne ztracen. Uzivatel nevi, kolik presne dostal, nevi o svem streaku, nevi o zmene hvezd a nevi na co se tesit dalsi mesic.
+
+**Navrh opravy:** Opravit nazvy poli v odeslane zprave tak, aby odpovidaly tomu, co modal ocekava. Zaroven doplnit chybejici pole (baseXP, bonusXP, streakBonus, statistiky, info o hvezdach a dalsim mesici). Zmena se provede na jednom miste v kodu (funkce `completeMonthlyChallenge` v monthlyProgressTracker.ts).
+
+**Status:** [x] OPRAVENO - Event nyni emituje vsechna pole dle MonthlyChallengeCompletionResult (baseXP, bonusXP, streakBonus, totalXPEarned, requirementsCompleted, activeDays, milestonesReached, oldStarLevel, newStarLevel, starLevelChanged, monthlyStreak, nextMonthEligible). Zmena v monthlyProgressTracker.ts.
+
+---
+
+### 7.2 "Perfect Completion Bonus" v modalu nikdy nevznikne
+
+**Problem z reportu:** Modal za splneni vyzvy obsahuje radek "Perfect Completion 🏆" ktery by mel zobrazit bonus XP pro uzivatele co splni vyzvu na 100%. Tento radek se ale nikdy nezobrazi a bonus nikdy neni pridelit.
+
+**Vysvetleni:** V modalu je pripravena vizualni sekce "Perfect Completion 🏆 +??? XP" a v datovem modelu existuje pole `perfectCompletionBonus`. Ale v casti kodu, ktera vypocita odmeneni pri splneni vyzvy, toto pole neni nikdy vypocitano ani nastaveno. Je to jako kdybys mel v menu restaurace nabidku "Dezert zdarma pro ty co snedi cely talir" - ale kuchyn o tom nikdy nedostala instrukce, takze dezert nikdo nedostane. Uzivatel ktery splni vyzvu na 100% dostane stejnou odmenu jako kdyz ji splni na 80%.
+
+**Dopad:** Stredni. Uzivatel ktery odvede perfektni praci (100% splneni) nedostane zadny extra bonus, i kdyz modal naznacuje ze by mel existovat. Chybi motivace dotahnout vyzvu na 100% misto jen na 70%.
+
+**Navrh opravy:** Rozhodnout, jestli tento bonus chceme zachovat. Pokud ano - implementovat vypocet (napr. +20% extra za 100% splneni, stejne jak uz funguje "Completion Bonus"). Pokud ne - odstranit radek z modalu a pole z datoveho modelu, aby modal nesliboval neco co neexistuje.
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 7.3 Zastarala XP tabulka v technicke dokumentaci Monthly Challenges
+
+**Problem z reportu:** Technicka dokumentace `technical-guides:Monthly-Challenges.md` obsahuje dve sekce ktere si navzajem odporuji - uvadeji ruzne XP odmeny za stejne hvezdy.
+
+**Vysvetleni:** V dokumentaci jsou dve mista kde jsou napsany XP odmeny za mesicni vyzvy. Prvni sekce "FULL Challenge XP" rika spravne hodnoty (1★ = 5 000 XP, 2★ = 7 500 XP, az 5★ = 25 000 XP). Druha sekce "STAR_SCALING" rika uplne jine hodnoty (1★ = 500 XP, 2★ = 750 XP, az 5★ = 2 532 XP) - coz jsou ve skutecnosti XP pro zjednodusene Warm-Up vyzvy pro nove uzivatele, ne pro plnohodnotne Full vyzvy. Kod je v poradku a pouziva spravne hodnoty (5 000-25 000 XP pro Full, 500-2 532 XP pro Warm-Up). Problem je jen v dokumentaci.
+
+**Dopad:** Zadny pro uzivatele. Matouci pro vyvojare - pri cteni dokumentace nevedi, ktere cislo je spravne, a mohli by omylem implementovat vyzvu se spatnymi XP hodnotami.
+
+**Navrh opravy:** Aktualizovat sekci "STAR_SCALING" v `technical-guides:Monthly-Challenges.md` tak, aby zobrazovala spravne Full challenge hodnoty (5 000-25 000 XP). Nebo tuto sekci uplne smazat - jsou to stare hodnoty z doby pred 10x XP systemem a uz nejsou potreba.
+
+**Status:** [ ] K oprave (dokumentace)
