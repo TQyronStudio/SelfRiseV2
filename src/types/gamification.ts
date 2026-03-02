@@ -688,7 +688,6 @@ export interface CategorySelectionWeights {
 export interface MonthlyChallengeCompletionResult extends ChallengeCompletionResult {
   // Enhanced reward calculation
   baseXP: number;
-  bonusXP: number;
   streakBonus: number;
   totalXPEarned: number;
   

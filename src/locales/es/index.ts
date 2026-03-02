@@ -1407,7 +1407,6 @@ const es: Partial<TranslationKeys> = {
       rewards: {
         title: 'Recompensas de XP Ganadas',
         baseXP: 'XP Base del Desafío',
-        completionBonus: 'Bonificación de Finalización',
         streakBonus: 'Bonificación de Racha Mensual 🔥',
         totalEarned: 'Total de XP Ganado',
       },

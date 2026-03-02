@@ -527,7 +527,7 @@ Animace pri otevreni:
 | **6** | **6.1** | **Centralni Modal Queue** | **K implementaci** |
 | 7 | 7.1 | Modal vyzvy zobrazuje 0 XP vsude | OPRAVENO |
 | 7 | 7.2 | Perfect Completion Bonus neexistuje | ODSTRANENO |
-| 7 | 7.3 | Zastarala XP tabulka v dokumentaci | K oprave (docs) |
+| 7 | 7.3 | Zastarala XP tabulka v dokumentaci | OPRAVENO |
 
 ---
 
@@ -734,4 +734,4 @@ Tyto problemy se tykaji modalu, ktery se zobrazi kdyz uzivatel splni mesicni vyz
 
 **Navrh opravy:** Aktualizovat sekci "STAR_SCALING" v `technical-guides:Monthly-Challenges.md` tak, aby zobrazovala spravne Full challenge hodnoty (5 000-25 000 XP). Nebo tuto sekci uplne smazat - jsou to stare hodnoty z doby pred 10x XP systemem a uz nejsou potreba.
 
-**Status:** [ ] K oprave (dokumentace)
+**Status:** [x] OPRAVENO - Sekce STAR_SCALING v technical-guides:Monthly-Challenges.md aktualizovana: pridany obe XP tabulky (MONTHLY_XP_REWARDS 5000-25000 a WARM_UP_XP_REWARDS 500-2532) aby odpovidaly skutecnemu kodu.

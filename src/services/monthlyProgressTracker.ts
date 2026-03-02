@@ -1351,9 +1351,11 @@ export class MonthlyProgressTracker {
 
       // Calculate final XP reward
       const baseXPReward = challenge.baseXPReward;
-      const completionBonus = Math.round(baseXPReward * 0.2); // 20% bonus for 100% completion
-      const streakBonus = progress.currentStreak * 100; // 100 XP per consecutive month
-      const totalXP = baseXPReward + completionBonus + streakBonus;
+      // Milestone-based streak bonus: scales with base XP and consecutive months
+      const streak = progress.currentStreak;
+      const streakMultiplier = streak >= 12 ? 0.25 : streak >= 6 ? 0.15 : streak >= 4 ? 0.10 : streak >= 2 ? 0.05 : 0;
+      const streakBonus = Math.round(baseXPReward * streakMultiplier);
+      const totalXP = baseXPReward + streakBonus;
 
       progress.xpEarned = totalXP;
 
@@ -1362,12 +1364,11 @@ export class MonthlyProgressTracker {
         source: XPSourceType.MONTHLY_CHALLENGE,
         sourceId: challengeId,
         description: `Monthly challenge completed: ${challenge?.title}`,
-        metadata: { 
+        metadata: {
           type: 'monthly_challenge_completion',
           baseReward: baseXPReward,
-          completionBonus,
           streakBonus,
-          streak: progress.currentStreak
+          streak
         }
       });
 
@@ -1418,7 +1419,6 @@ export class MonthlyProgressTracker {
         celebrationLevel: progress.completionPercentage >= 100 ? 'epic' : 'milestone',
         // XP breakdown
         baseXP: baseXPReward,
-        bonusXP: completionBonus,
         streakBonus,
         totalXPEarned: totalXP,
         // Completion statistics

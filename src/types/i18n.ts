@@ -1134,7 +1134,6 @@ export interface TranslationKeys {
       rewards: {
         title: string;
         baseXP: string;
-        completionBonus: string;
         streakBonus: string;
         totalEarned: string;
       };

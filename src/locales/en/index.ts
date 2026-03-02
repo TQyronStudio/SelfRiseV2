@@ -1417,7 +1417,6 @@ const en: TranslationKeys = {
       rewards: {
         title: 'XP Rewards Earned',
         baseXP: 'Base Challenge XP',
-        completionBonus: 'Completion Bonus',
         streakBonus: 'Monthly Streak Bonus 🔥',
         totalEarned: 'Total XP Earned',
       },

@@ -513,6 +513,16 @@ Uživatelé s 14+ aktivními dny dostávají plnohodnotné výzvy s vysokými XP
 
 > **💡 Business Logic**: 10x XP motivuje uživatele používat aplikaci celý měsíc aby splnili výzvu. Jedna 5⭐ výzva = více XP než celý měsíc denních aktivit!
 
+#### **Monthly Streak Bonus (milníkový systém)**
+Bonus za po sobě jdoucí měsíce splněných výzev. Počítá se jako % z base XP:
+- **Streak 1**: žádný bonus (první splnění)
+- **Streak 2–3**: +5% z base XP
+- **Streak 4–5**: +10% z base XP
+- **Streak 6–11**: +15% z base XP
+- **Streak 12+**: +25% z base XP
+
+> **Příklad**: 3⭐ výzva (12,000 XP) se streakem 5 měsíců = 12,000 + 1,200 (10%) = **13,200 XP**
+
 #### **WARM-UP Challenge XP (původní hodnoty)**
 Noví uživatelé (<14 aktivních dní) dostávají Warm-Up výzvy s nižšími XP:
 - **1⭐**: 500 XP
@@ -665,13 +675,19 @@ class MonthlyChallengeService {
   static GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [2 typy];
   static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [5 typů];
   
-  // Star-based scaling system
+  // Star-based scaling system (Full challenge XP / Warm-Up XP)
+  static MONTHLY_XP_REWARDS = {
+    1: 5000, 2: 7500, 3: 12000, 4: 17500, 5: 25000
+  };
+  static WARM_UP_XP_REWARDS = {
+    1: 500, 2: 750, 3: 1125, 4: 1688, 5: 2532
+  };
   static STAR_SCALING = {
-    1: { multiplier: 1.05, xpReward: 500 },
-    2: { multiplier: 1.10, xpReward: 750 },
-    3: { multiplier: 1.15, xpReward: 1125 },
-    4: { multiplier: 1.20, xpReward: 1688 },
-    5: { multiplier: 1.25, xpReward: 2532 }
+    1: { multiplier: 1.05 },
+    2: { multiplier: 1.10 },
+    3: { multiplier: 1.15 },
+    4: { multiplier: 1.20 },
+    5: { multiplier: 1.25 }
   };
 }
 ```

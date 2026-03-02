@@ -1407,7 +1407,6 @@ const de: Partial<TranslationKeys> = {
       rewards: {
         title: 'Verdiente EP-Belohnungen',
         baseXP: 'Basis-Herausforderungs-EP',
-        completionBonus: 'Vollendungsbonus',
         streakBonus: 'Monatlicher Serien-Bonus 🔥',
         totalEarned: 'Gesamt verdiente EP',
       },

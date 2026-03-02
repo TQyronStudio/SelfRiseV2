@@ -671,15 +671,6 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 </Text>
               </View>
 
-              {(completionResult.bonusXP || 0) > 0 && (
-                <View style={styles.rewardItem}>
-                  <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.completionBonus')}</Text>
-                  <Text style={[styles.rewardValue, { color: '#22C55E' }]}>
-                    +{completionResult.bonusXP}
-                  </Text>
-                </View>
-              )}
-
               {(completionResult.streakBonus || 0) > 0 && (
                 <View style={styles.rewardItem}>
                   <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.streakBonus')}</Text>
