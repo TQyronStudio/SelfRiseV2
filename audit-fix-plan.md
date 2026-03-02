@@ -528,6 +528,14 @@ Animace pri otevreni:
 | 7 | 7.1 | Modal vyzvy zobrazuje 0 XP vsude | OPRAVENO |
 | 7 | 7.2 | Perfect Completion Bonus neexistuje | ODSTRANENO |
 | 7 | 7.3 | Zastarala XP tabulka v dokumentaci | OPRAVENO |
+| 8 | 8.1 | Vyzva se neuzavre na konci mesice | K oprave |
+| 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | K oprave |
+| 8 | 8.3 | Rovne vahy pozadavku | K rozhodnuti |
+| 8 | 8.4 | Hardcoded userId v progress trackeru | K oprave |
+| 8 | 8.5 | Potencialne chybejici preklady | K overeni |
+| 8 | 8.6 | Neefektivni prepocet aktivnich dnu | Nizka priorita |
+| 8 | 8.7 | Balance score nedokumentovany | Nizka priorita |
+| 8 | 8.8 | Weekly habit variety pouziva SYNC verzi | Nizka priorita |
 
 ---
 
@@ -735,3 +743,129 @@ Tyto problemy se tykaji modalu, ktery se zobrazi kdyz uzivatel splni mesicni vyz
 **Navrh opravy:** Aktualizovat sekci "STAR_SCALING" v `technical-guides:Monthly-Challenges.md` tak, aby zobrazovala spravne Full challenge hodnoty (5 000-25 000 XP). Nebo tuto sekci uplne smazat - jsou to stare hodnoty z doby pred 10x XP systemem a uz nejsou potreba.
 
 **Status:** [x] OPRAVENO - Sekce STAR_SCALING v technical-guides:Monthly-Challenges.md aktualizovana: pridany obe XP tabulky (MONTHLY_XP_REWARDS 5000-25000 a WARM_UP_XP_REWARDS 500-2532) aby odpovidaly skutecnemu kodu.
+
+---
+
+## FAZE 8: Celkova analyza Monthly Challenge systemu
+
+Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az po zobrazeni uzivateli. Kontrolovano: jak se vyzvy vytvarejí, jak se sleduje pokrok, co uzivatel vidi, a jestli data odpovidaji realite.
+
+**Pozitivni zjisteni:**
+- Baseline analyza pouziva REALNA data z aktivity uzivatele (zadne vymyslene hodnoty)
+- Tracking progresu je real-time a funkcni (habit, journal, goal eventy se okamzite promitnou)
+- Vsechna UI data v modalech a sekcich jsou realna (zadne hardcoded nuly nebo dummy data)
+- Event-driven architektura je cista - vsechny listenery maji cleanup, zadne memory leaky
+- Star rating system funguje spravne (100% = +1★, <70% 2x = -1★)
+- Kategorialni rotace penalizuje opakovani
+
+---
+
+### 8.1 Vyzva se neuzavre na konci mesice
+
+**Problem z auditu:** Kdyz mesic skonci a uzivatel nesplnil vyzvu na 100%, vyzva se nikdy neuzavre. Neprohlasi se ani za usech, ani za neuspech. Zustane "otevrenal" v pameti.
+
+**Vysvetleni:** System kontroluje pouze jednu podminku: `completionPercentage >= 100`. Pokud uzivatel dosahne treba 95% a mesic skonci, nic se nestane. Vyzva se neuzavre, star rating se neaktualizuje (takze uzivatel nedostane ani penalizaci za neuspech), a v UI muze zustat stary stav. Je to jako kdyby ucitel na konci semestru proste nehodnotil studenty, kteri nemaji 100% - ani je nenechá propadnout, ani projit. Proste se na ne zapomene.
+
+**Dopad:** Vysoky. Star rating system nefunguje spravne - uzivatel ktery opakavane neuspeje, nikdy nedostane penalizaci (-1★), protoze neuspech se nikdy nezaznamena. Navic lifecycle manager generuje novou vyzvu pro dalsi mesic, ale stara zustava ve stavu "aktivni".
+
+**Navrh opravy:** Pridat logiku pro konec mesice: kdyz zacne novy mesic (nebo kdyz lifecycle manager zjisti prechod), automaticky uzavrit predchozi vyzvu. Pokud splneni >= 70%, zaznamenat jako castecny uspech (zadna zmena hvezd). Pokud < 70%, zaznamenat jako neuspech (pocitat do consecutive failures pro potencialni demotion). Zmena v `monthlyChallengeLifecycleManager.ts`.
+
+**Status:** [ ] K oprave
+
+---
+
+### 8.2 Denni targety pocitaji vzdy s 30 dny
+
+**Problem z auditu:** Na 3 mistech v kodu `monthlyChallengeService.ts` (radky 936, 1348, 1445) se denni target vypocitava jako `Math.ceil(target / 30)`. Vzdycky se deli 30, bez ohledu na skutecnou delku mesice.
+
+**Vysvetleni:** Kdyz system generuje vyzvu a pocita kolik by mel uzivatel splnit denne, vzdy deli celkovy target cislem 30. Ale unor ma 28 dnu (nebo 29), a nektery mesice maji 31. Je to jako kdyby vam v praci rekli "rozdelete si 300 ukolu rovnomerne na 30 dnu" - ale mesic ma jen 28 dnu a vy nevite, ze byste meli pocitat s 28. Vysledek: v unoru jsou denni targety nizsi nez by mely byt (vyzva je lehci), v 31-dnovych mesicich mirne vyssi (vyzva je tezsi).
+
+**Dopad:** Stredni. Rozdil je maximalne ~7% (28 vs 30), takze to neni dramaticke, ale je to nepresnost ktera se da snadno opravit.
+
+**Navrh opravy:** Nahradit hardcoded `30` skutecnym poctem dnu v mesici. Informace o zacatku a konci mesice uz je dostupna v challenge objektu (`startDate`, `endDate`), staci je pouzit pro vypocet.
+
+**Status:** [ ] K oprave
+
+---
+
+### 8.3 Vsechny pozadavky maji stejnou vahu
+
+**Problem z auditu:** Funkce `calculateCompletionPercentage` v `monthlyProgressTracker.ts` (radek 514) vahuje vsechny pozadavky stejne - kazdy ma vahu 1, bez ohledu na obtiznost.
+
+**Vysvetleni:** Predstav si, ze mas vyzvu se dvema pozadavky: "Splnte 600 navyku" a "Splnte 10 dnu progressu na cilich". Oba pozadavky se pocitaji jako 50% celku. Kdyz splnis tech 10 dnu progressu (coz je relativne lehke) a neudejas ani jeden navyk, ukazuje se ti 50% splneni - i kdyz jsi neudelo to hlavni. Je to jako kdyby ve skole znamka z matiky a z telocviku mela stejnou vahu na vyslednem prumeru.
+
+**Dopad:** Stredni. Uzivatele vidi nepresnne procento dokonceni - lehke pozadavky nafukuji celkove procento. Ale protoze completion se spousti az pri 100%, funkcne to neovlivnuje - vsechny pozadavky musi byt splneny.
+
+**Navrh opravy:** Rozhodnout, jestli chceme vahy upravit (napr. podle pomeru target / kategoricky prumer) nebo nechat stejne. Protoze completion vyzaduje 100% a kazdy pozadavek musi byt splnen, realne je dopad jen vizualni - progress bar ukazuje mirne zavadejici procento.
+
+**Status:** [ ] K rozhodnuti
+
+---
+
+### 8.4 Hardcoded userId v progress trackeru
+
+**Problem z auditu:** V `monthlyProgressTracker.ts` (radek 746) je `userId: 'current_user' // TODO: Get from authentication context`. Podobne v `monthlyChallengeService.ts` se pouziva `'local_user'`.
+
+**Vysvetleni:** Kdyz se vytvari novy zaznam o pokroku vyzvy, system tam zapise uzivatelske ID jako pevny text "current_user" misto skutecneho ID uzivatele. Momentalne to nevadi, protoze aplikace podporuje jen jednoho uzivatele (offline aplikace). Ale kdyby se v budoucnu pridala podpora vice uzivatelu nebo cloudova synchronizace, toto by zpusobilo, ze vsichni uzivatele by sdileli stejny pokrok.
+
+**Dopad:** Zadny momentalne (single-user app). Potencialni problem pro budouci rozsireni.
+
+**Navrh opravy:** Zatim nechat - opravit az se bude implementovat multi-user podpora nebo Firebase autentizace. Zanechat TODO komentar jako pripominku.
+
+**Status:** [ ] Nizka priorita (budouci)
+
+---
+
+### 8.5 Potencialne chybejici preklady pro milestone modaly
+
+**Problem z auditu:** `MonthlyChallengeMilestoneModal.tsx` (radek 145) pouziva dynamicke i18n klice: `monthlyChallenge.milestone.motivation_25`, `motivation_50`, `motivation_75`. Pokud tyto klice chybi v nekterem jazykovem souboru (DE nebo ES), modal zobrazi nazev klice misto prelozeneho textu.
+
+**Vysvetleni:** Kdyz uzivatel dosahne 25%, 50% nebo 75% mesicni vyzvy, zobrazi se mu motivacni zprava. Tato zprava se vytvari dynamicky - system slozi nazev klice z cisla milniku. Pokud preklad pro dany klic v danem jazyce neexistuje, uzivatel misto "Skvely zacatek!" uvidi neco jako "monthlyChallenge.milestone.motivation_25" - technicky text ktery nedava smysl. Podobne riziko existuje pro klice kategorii (`monthlyChallenge.categories.mastery`, `monthlyChallenge.categories.special`).
+
+**Dopad:** Stredni. Uzivatel v nemecke nebo spanelske verzi muze videt anglicke klice misto prelozeneho textu v celebracnich modalech.
+
+**Navrh opravy:** Proverit vsechny 3 jazykove soubory (EN, DE, ES) a overit, ze vsechny dynamicky skladane klice pro monthly challenge existuji ve vsech jazycich. Doplnit chybejici.
+
+**Status:** [ ] K overeni
+
+---
+
+### 8.6 Neefektivni prepocet aktivnich dnu
+
+**Problem z auditu:** Funkce `recalculateActiveDays()` v `monthlyProgressTracker.ts` (radek 873) pri kazdem updatu pokroku nacte VSECHNY denni snapshoty vyzvy a prepocita aktivni dny od zacatku.
+
+**Vysvetleni:** Kdyz uzivatel splni navyk nebo napise do deniku, system aktualizuje pokrok vyzvy. Soucasti toho je i prepocet kolik dnu v mesici byl uzivatel aktivni. Misto toho aby si pamatoval predchozi hodnotu a jen pridal dnesni den, pokazde nacte vsechny zaznamy od zacatku mesice a spocita je znovu. Na zacatku mesice je to 1-5 zaznamu (rychle), ale ke konci mesice to muze byt 25-30 zaznamu. Je to jako kdyby ucitel pri kazdem novem domacim ukolu precetl VSECHNY predchozi ukoly znovu, misto aby se jen podival na posledni.
+
+**Dopad:** Nizky. Cache zmirniuje dopad a 30 zaznamu neni dramaticke mnozstvi. Uzivatel pravdepodobne nepozna zadny rozdil ve vykonu. Ale je to zbytecna prace.
+
+**Navrh opravy:** Optimalizovat na inkrementalni tracking - pri update pridat dnesni datum do seznamu aktivnich dnu, pokud tam jeste neni. Neni urgentni.
+
+**Status:** [ ] Nizka priorita
+
+---
+
+### 8.7 Balance score neni nikde dokumentovany
+
+**Problem z auditu:** V `monthlyProgressTracker.ts` (radky 956-962) se pocita "balance score" - metrika ktera meri, jak rovnomerne uzivatel pouziva ruzne funkce aplikace (navyky, denik, cile). Tato metrika se pouziva jako jeden z pozadavku nekterych konzistencnich vyzev, ale nikde v dokumentaci ani v UI neni vysvetlena.
+
+**Vysvetleni:** Kdyz ma uzivatel vyzvu typu "Consistency" s pozadavkem na balance score, vidi treba "Balance: 0.7 / 0.8" - ale nikde se nedozvi co to znamena, jak se to pocita, nebo jak to zlepsit. Je to jako kdyby vam ve skole dali znamku z predmetu "Rovnovaha" a nikdo vam nerekl co to je a jak se to uci.
+
+**Dopad:** Nizky. Uzivatel muze byt zmaten, kdyz vidi pozadavek na balance score bez vysvetleni. Ale vetsina vyzev tento pozadavek nepouziva.
+
+**Navrh opravy:** Pridat vysvetleni balance score do technicke dokumentace (`technical-guides:Monthly-Challenges.md`) a pripadne pridat tooltip v UI, kdyz se tento pozadavek objevi ve vyzve.
+
+**Status:** [ ] Nizka priorita (dokumentace)
+
+---
+
+### 8.8 Weekly habit variety pouziva SYNC verzi
+
+**Problem z auditu:** Funkce `calculateWeeklyHabitVarietyIncrement` v `monthlyProgressTracker.ts` (radky 445-447) pouziva synchronni cache-based vypocet uvnitr asynchronni funkce. Muze dojit k situaci, kde dva soucasne eventy (napr. uzivatel rychle splni dva ruzne navyky) nevidi navzajem sve zmeny.
+
+**Vysvetleni:** Kdyz system pocita kolik ruznych navyku uzivatel splnil v danem tydnu, pouziva "fotku" aktualniho stavu misto toho, aby se podival primo do uloziste. Pokud dva navyky dorazi v rychlem sledu (treba behem jedne sekundy), oba se mohou podivat na stejnou "fotku" a oba si mysli, ze jsou "novy unikatni navyk" - i kdyz uz jeden z nich byl zapocitan. Vysledek: weekly habit variety muze byt o 1 vyssi nez by mela.
+
+**Dopad:** Nizky. Realne se to muze stat jen pri velmi rychlem klikani a rozdil je maximalne +1 v jednom tydnu. Nema vyznamny vliv na celkovy pokrok vyzvy.
+
+**Navrh opravy:** Pouzit zamek (mutex) nebo serializovat updaty aby se zpracovavaly postupne. Nicmene uz existuje sequential queue v `updateMonthlyProgress` ktera by mela toto castecne resit. Neni urgentni.
+
+**Status:** [ ] Nizka priorita
