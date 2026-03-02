@@ -1409,7 +1409,6 @@ const es: Partial<TranslationKeys> = {
         baseXP: 'XP Base del Desafío',
         completionBonus: 'Bonificación de Finalización',
         streakBonus: 'Bonificación de Racha Mensual 🔥',
-        perfectBonus: 'Finalización Perfecta 🏆',
         totalEarned: 'Total de XP Ganado',
       },
 

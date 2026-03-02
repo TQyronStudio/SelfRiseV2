@@ -690,7 +690,6 @@ export interface MonthlyChallengeCompletionResult extends ChallengeCompletionRes
   baseXP: number;
   bonusXP: number;
   streakBonus: number;
-  perfectCompletionBonus: number;
   totalXPEarned: number;
   
   // Completion statistics

@@ -1420,7 +1420,6 @@ export class MonthlyProgressTracker {
         baseXP: baseXPReward,
         bonusXP: completionBonus,
         streakBonus,
-        perfectCompletionBonus: 0,
         totalXPEarned: totalXP,
         // Completion statistics
         completionPercentage: progress.completionPercentage,

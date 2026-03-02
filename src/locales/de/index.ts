@@ -1409,7 +1409,6 @@ const de: Partial<TranslationKeys> = {
         baseXP: 'Basis-Herausforderungs-EP',
         completionBonus: 'Vollendungsbonus',
         streakBonus: 'Monatlicher Serien-Bonus 🔥',
-        perfectBonus: 'Perfekte Vollendung 🏆',
         totalEarned: 'Gesamt verdiente EP',
       },
 

@@ -689,15 +689,6 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
                 </View>
               )}
 
-              {(completionResult.perfectCompletionBonus || 0) > 0 && (
-                <View style={styles.rewardItem}>
-                  <Text style={styles.rewardLabel}>{t('monthlyChallenge.completionModal.rewards.perfectBonus')}</Text>
-                  <Text style={[styles.rewardValue, { color: '#8B5CF6' }]}>
-                    +{completionResult.perfectCompletionBonus}
-                  </Text>
-                </View>
-              )}
-
               <View style={[styles.rewardItem, styles.totalReward]}>
                 <Text style={styles.totalRewardLabel}>{t('monthlyChallenge.completionModal.rewards.totalEarned')}</Text>
                 <Text style={[styles.totalRewardValue, { color: starColor }]}>

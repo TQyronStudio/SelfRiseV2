@@ -1136,7 +1136,6 @@ export interface TranslationKeys {
         baseXP: string;
         completionBonus: string;
         streakBonus: string;
-        perfectBonus: string;
         totalEarned: string;
       };
 

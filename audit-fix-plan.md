@@ -526,7 +526,7 @@ Animace pri otevreni:
 | 5 | 5.1-5.7 | Mrtve eventy bez listeneru | Viz vyse |
 | **6** | **6.1** | **Centralni Modal Queue** | **K implementaci** |
 | 7 | 7.1 | Modal vyzvy zobrazuje 0 XP vsude | OPRAVENO |
-| 7 | 7.2 | Perfect Completion Bonus neexistuje | K rozhodnuti |
+| 7 | 7.2 | Perfect Completion Bonus neexistuje | ODSTRANENO |
 | 7 | 7.3 | Zastarala XP tabulka v dokumentaci | K oprave (docs) |
 
 ---
@@ -720,7 +720,7 @@ Tyto problemy se tykaji modalu, ktery se zobrazi kdyz uzivatel splni mesicni vyz
 
 **Navrh opravy:** Rozhodnout, jestli tento bonus chceme zachovat. Pokud ano - implementovat vypocet (napr. +20% extra za 100% splneni, stejne jak uz funguje "Completion Bonus"). Pokud ne - odstranit radek z modalu a pole z datoveho modelu, aby modal nesliboval neco co neexistuje.
 
-**Status:** [ ] K rozhodnuti
+**Status:** [x] ODSTRANENO - Pole `perfectCompletionBonus` odebrano z typu, event emise, modal UI a vsech 4 lokalizaci (EN/DE/ES/CZ). Bonus neexistoval v logice, ted neexistuje ani v UI.
 
 ---
 

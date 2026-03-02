@@ -1419,7 +1419,6 @@ const en: TranslationKeys = {
         baseXP: 'Base Challenge XP',
         completionBonus: 'Completion Bonus',
         streakBonus: 'Monthly Streak Bonus 🔥',
-        perfectBonus: 'Perfect Completion 🏆',
         totalEarned: 'Total XP Earned',
       },
 
