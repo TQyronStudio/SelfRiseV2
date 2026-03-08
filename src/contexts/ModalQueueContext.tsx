@@ -18,6 +18,7 @@ import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
 import { GoalCompletionModal } from '../components/goals/GoalCompletionModal';
 import MonthlyChallengeCompletionModal from '../components/challenges/MonthlyChallengeCompletionModal';
+import MonthlyChallengeFailureModal from '../components/challenges/MonthlyChallengeFailureModal';
 import MonthlyChallengeMilestoneModal from '../components/challenges/MonthlyChallengeMilestoneModal';
 import StarLevelChangeModal from '../components/challenges/StarLevelChangeModal';
 import { MultiplierActivationModal } from '../components/gamification/MultiplierActivationModal';
@@ -46,6 +47,7 @@ export type ModalType =
   | 'celebration_bonus_milestone'
   | 'goal_completion'
   | 'monthly_challenge_completion'
+  | 'monthly_challenge_failure'
   | 'monthly_challenge_milestone'
   | 'star_level_change'
   | 'multiplier_activation'
@@ -235,6 +237,15 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
           visible={true}
           challenge={props.challenge}
           completionResult={props.completionResult}
+          onClose={onClose}
+        />
+      );
+
+    case 'monthly_challenge_failure':
+      return (
+        <MonthlyChallengeFailureModal
+          visible={true}
+          failureResult={props.failureResult}
           onClose={onClose}
         />
       );

@@ -126,6 +126,29 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     };
   }, [challenge?.id, enqueueModal]);
 
+  // Failure event listener (month ended without completion) → enqueue
+  useEffect(() => {
+    const failureListener: EmitterSubscription = DeviceEventEmitter.addListener(
+      'monthly_challenge_failed',
+      (eventData: any) => {
+        console.log('😤 Monthly challenge failed → ModalQueue:', eventData);
+
+        enqueueModal({
+          type: 'monthly_challenge_failure',
+          priority: ModalPriority.MONTHLY_CHALLENGE,
+          props: { failureResult: eventData },
+        });
+
+        // Refresh star ratings after failure
+        loadUserStarRatings();
+      }
+    );
+
+    return () => {
+      failureListener.remove();
+    };
+  }, [enqueueModal]);
+
   // Milestone celebration listener (25%, 50%, 75%) → enqueue
   useEffect(() => {
     const milestoneListener: EmitterSubscription = DeviceEventEmitter.addListener(

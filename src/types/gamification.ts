@@ -711,6 +711,34 @@ export interface MonthlyChallengeCompletionResult extends ChallengeCompletionRes
   suggestedStarLevel: number;
 }
 
+/**
+ * Result data for monthly challenge failure (month ended without 100% completion)
+ */
+export interface MonthlyChallengeFailureResult {
+  challengeId: string;
+  challengeTitle: string;
+  category: AchievementCategory;
+  month: string; // YYYY-MM format
+
+  // Completion statistics
+  completionPercentage: number;
+  requirementsCompleted: number;
+  totalRequirements: number;
+  activeDays: number;
+
+  // Star impact
+  oldStarLevel: number;
+  newStarLevel: number;
+  starLevelChanged: boolean;
+
+  // Failure classification
+  failureType: 'partial' | 'failure'; // partial = 70-99%, failure = <70%
+  consecutiveFailures: number;
+
+  // Streak reset
+  previousStreak: number;
+}
+
 // ========================================
 // MONTHLY CHALLENGE LIFECYCLE TYPES
 // ========================================

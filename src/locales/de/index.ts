@@ -1436,6 +1436,42 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
+    // Failure Modal
+    failureModal: {
+      title: 'Herausforderung beendet',
+      subtitle: 'Monatliche Herausforderung',
+
+      messages: {
+        partial: 'Du hast {{percentage}}% bei dieser {{category}}-Herausforderung erreicht. Fast geschafft — gib nächsten Monat alles!',
+        failure: 'Du hast {{percentage}}% bei dieser {{category}}-Herausforderung erreicht. Gib nicht auf — jeder Monat ist ein neuer Anfang!',
+      },
+
+      progressStats: {
+        completion: 'Abschluss',
+        requirements: 'Erfüllte Anforderungen',
+        activeDays: 'Aktive Tage',
+      },
+
+      starImpact: {
+        title: 'Stern-Auswirkung',
+        noChange: 'Dein Stern-Level bleibt bei {{stars}}★. Keine Strafe für teilweisen Abschluss.',
+        warning: 'Erste unvollständige Herausforderung. Ein weiteres Scheitern senkt dein Stern-Level.',
+        demotion: 'Dein Stern-Level ist von {{oldStars}}★ auf {{newStars}}★ gesunken wegen aufeinanderfolgender unvollständiger Herausforderungen.',
+      },
+
+      streakReset: {
+        title: 'Serie zurückgesetzt',
+        description: 'Deine {{previousStreak}}-Monats-Serie wurde zurückgesetzt. Starte eine neue!',
+      },
+
+      motivation: {
+        title: 'Nächster Monat wartet',
+        message: 'Eine neue Herausforderung wartet auf dich. Nutze was du diesen Monat gelernt hast und komm stärker zurück!',
+      },
+
+      button: 'Weiter',
+    },
+
     // Detail Modal
     detailModal: {
       strategyDescription: 'Dies ist eine {{rarity}} ({{stars}}★) Schwierigkeitsherausforderung, die dir helfen soll, beständig zu wachsen.',

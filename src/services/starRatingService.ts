@@ -657,6 +657,20 @@ export class StarRatingService {
   }
 
   /**
+   * Get current consecutive failure count for a category
+   */
+  public static async getConsecutiveFailures(category: AchievementCategory): Promise<number> {
+    try {
+      const key = `${this.FAILURE_TRACKING_KEY}_${category}`;
+      const stored = await AsyncStorage.getItem(key);
+      return stored ? parseInt(stored, 10) : 0;
+    } catch (error) {
+      console.error('Error getting consecutive failures:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Clear all star rating data (for testing/reset)
    */
   public static async clearAllStarData(): Promise<void> {

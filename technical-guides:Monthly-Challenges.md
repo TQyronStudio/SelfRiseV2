@@ -752,6 +752,42 @@ Vizuální zpětná vazba pro uživatele při změně úrovně hvězd.
 
 ---
 
+### **🔴 Month-End Challenge Closure (Failure Path)**
+
+Když měsíc skončí a výzva nebyla splněna na 100%, systém ji automaticky uzavře při dalším spuštění aplikace.
+
+**Kdy se spouští:**
+- Při startupu aplikace, když `MonthlyChallengeLifecycleManager.handleMonthTransition()` detekuje přechod měsíce
+- Metoda `closePreviousChallenge()` se volá PŘED generováním nové výzvy
+
+**Flow:**
+1. Načíst předchozí výzvu a její progress
+2. Pokud `progress.isCompleted === true` → skip (už bylo zpracováno při dosažení 100%)
+3. Pokud `isCompleted === false` → failure path:
+   - `StarRatingService.updateStarRatingForCompletion()` s reálným `completionPercentage`
+   - `GamificationService.updateMonthlyStreak(category, false)` → reset streak na 0
+   - Emit `monthly_challenge_failed` event s `MonthlyChallengeFailureResult`
+   - Archive challenge
+4. Generovat novou výzvu pro aktuální měsíc
+
+**Star Impact podle procenta:**
+| Procento | Klasifikace | Dopad na hvězdy |
+|----------|------------|-----------------|
+| 100% | Úspěch | +1★ (zpracováno ihned, ne při přechodu) |
+| 70-99% | Partial | Beze změny, ale počítá se jako consecutive failure |
+| <70% | Failure | Při 2 po sobě jdoucích failures → -1★ |
+
+**Failure Modal (`MonthlyChallengeFailureModal.tsx`):**
+- Zobrazí se jako první modal při startupu nového měsíce (priorita MONTHLY_CHALLENGE = 3)
+- Star Level Change modal se zobrazí po něm (priorita STAR_LEVEL_CHANGE = 4)
+- Ukazuje: procento dokončení, splněné požadavky, aktivní dny, dopad na hvězdy, streak reset
+- Event listener v `MonthlyChallengeSection.tsx` na `monthly_challenge_failed`
+- Lokalizace: EN/DE/ES (`monthlyChallenge.failureModal.*`)
+
+**Žádné XP při neúspěchu:** Uživatel nedostane žádné XP za nesplněnou výzvu.
+
+---
+
 ### **📈 Real-time Progress Tracking**
 ```typescript
 // MonthlyProgressTracker - real-time pokrok

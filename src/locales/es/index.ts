@@ -1436,6 +1436,42 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
+    // Failure Modal
+    failureModal: {
+      title: 'Desafío finalizado',
+      subtitle: 'Desafío Mensual',
+
+      messages: {
+        partial: 'Alcanzaste el {{percentage}}% en este desafío de {{category}}. ¡Casi lo logras — sigue adelante el próximo mes!',
+        failure: 'Alcanzaste el {{percentage}}% en este desafío de {{category}}. ¡No te rindas — cada mes es un nuevo comienzo!',
+      },
+
+      progressStats: {
+        completion: 'Completado',
+        requirements: 'Requisitos cumplidos',
+        activeDays: 'Días activos',
+      },
+
+      starImpact: {
+        title: 'Impacto en estrellas',
+        noChange: 'Tu nivel de estrellas se mantiene en {{stars}}★. Sin penalización por completado parcial.',
+        warning: 'Primer desafío incompleto. Un fallo más reducirá tu nivel de estrellas.',
+        demotion: 'Tu nivel de estrellas bajó de {{oldStars}}★ a {{newStars}}★ por desafíos incompletos consecutivos.',
+      },
+
+      streakReset: {
+        title: 'Racha reiniciada',
+        description: '¡Tu racha de {{previousStreak}} meses se ha reiniciado. Empieza a construir una nueva!',
+      },
+
+      motivation: {
+        title: 'El próximo mes te espera',
+        message: '¡Un nuevo desafío te espera. Usa lo que aprendiste este mes para volver más fuerte!',
+      },
+
+      button: 'Continuar',
+    },
+
     // Detail Modal
     detailModal: {
       strategyDescription: 'Este es un desafío de dificultad {{rarity}} ({{stars}}★) diseñado para ayudarte a crecer consistentemente.',

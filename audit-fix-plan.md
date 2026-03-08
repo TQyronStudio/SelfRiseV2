@@ -528,7 +528,7 @@ Animace pri otevreni:
 | 7 | 7.1 | Modal vyzvy zobrazuje 0 XP vsude | OPRAVENO |
 | 7 | 7.2 | Perfect Completion Bonus neexistuje | ODSTRANENO |
 | 7 | 7.3 | Zastarala XP tabulka v dokumentaci | OPRAVENO |
-| 8 | 8.1 | Vyzva se neuzavre na konci mesice | K oprave |
+| 8 | 8.1 | Vyzva se neuzavre na konci mesice | OPRAVENO |
 | 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | K oprave |
 | 8 | 8.3 | Rovne vahy pozadavku | K rozhodnuti |
 | 8 | 8.4 | Hardcoded userId v progress trackeru | K oprave |
@@ -770,7 +770,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Pridat logiku pro konec mesice: kdyz zacne novy mesic (nebo kdyz lifecycle manager zjisti prechod), automaticky uzavrit predchozi vyzvu. Pokud splneni >= 70%, zaznamenat jako castecny uspech (zadna zmena hvezd). Pokud < 70%, zaznamenat jako neuspech (pocitat do consecutive failures pro potencialni demotion). Zmena v `monthlyChallengeLifecycleManager.ts`.
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Implementována metoda `closePreviousChallenge()` v lifecycle manageru, nový `MonthlyChallengeFailureModal`, event `monthly_challenge_failed`, star rating update při neúspěchu, streak reset, lokalizace EN/DE/ES.
 
 ---
 

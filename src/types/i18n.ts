@@ -1160,6 +1160,42 @@ export interface TranslationKeys {
       };
     };
 
+    // Failure Modal (month ended without completion)
+    failureModal: {
+      title: string;
+      subtitle: string;
+
+      messages: {
+        partial: string;    // 70-99%
+        failure: string;    // <70%
+      };
+
+      progressStats: {
+        completion: string;
+        requirements: string;
+        activeDays: string;
+      };
+
+      starImpact: {
+        title: string;
+        noChange: string;
+        warning: string;
+        demotion: string;
+      };
+
+      streakReset: {
+        title: string;
+        description: string;
+      };
+
+      motivation: {
+        title: string;
+        message: string;
+      };
+
+      button: string;
+    };
+
     // Detail Modal
     detailModal: {
       strategyDescription: string;

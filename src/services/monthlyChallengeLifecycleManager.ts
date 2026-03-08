@@ -13,6 +13,7 @@ import { GamificationService } from './gamificationService';
 import {
   MonthlyChallenge,
   MonthlyChallengeGenerationResult,
+  MonthlyChallengeFailureResult,
   AchievementCategory,
   ChallengeLifecycleState,
   ChallengeLifecycleEvent,
@@ -199,14 +200,18 @@ export class MonthlyChallengeLifecycleManager {
    */
   private static async handleMonthTransition(newMonth: string): Promise<void> {
     this.log(`Handling month transition to ${newMonth}`);
-    
+
     const today = new Date();
     const dayOfMonth = today.getDate();
-    
+
     try {
+      // ── STEP 1: Close the previous month's challenge if it wasn't completed ──
+      await this.closePreviousChallenge(newMonth);
+
+      // ── STEP 2: Generate new challenge for the current month ──
       // Check if we have a preview for this month
       const preview = await this.getPreviewForMonth(newMonth);
-      
+
       // 🎯 Grace Period Support: Allow challenge generation in first 10 days of month
       // If user starts later, they have less time to complete - their problem!
       const gracePeriodDays = this.config.gracePeriodDays || 10;
@@ -224,10 +229,121 @@ export class MonthlyChallengeLifecycleManager {
         await this.setState(ChallengeLifecycleState.AWAITING_MONTH_START);
         await this.checkAndGeneratePreview();
       }
-      
+
     } catch (error) {
       console.error('Month transition failed:', error);
       await this.handleError('month_transition', error as Error, { newMonth, dayOfMonth });
+    }
+  }
+
+  /**
+   * Close the previous month's challenge if it wasn't completed at 100%.
+   * This handles the failure path: star rating update, streak reset, failure modal event.
+   * If the challenge was already completed (100% during the month), this is a no-op.
+   */
+  private static async closePreviousChallenge(newMonth: string): Promise<void> {
+    try {
+      // Get the challenge that's currently stored (from the previous month)
+      const previousChallenge = await MonthlyChallengeService.getCurrentChallenge();
+
+      if (!previousChallenge) {
+        this.log('No previous challenge found to close');
+        return;
+      }
+
+      // Check if it belongs to a previous month (not the current one)
+      const challengeMonth = previousChallenge.userBaselineSnapshot.month;
+      if (challengeMonth === newMonth) {
+        this.log('Challenge belongs to current month, not closing');
+        return;
+      }
+
+      // Get progress for the previous challenge
+      const progress = await MonthlyProgressTracker.getChallengeProgress(previousChallenge.id);
+
+      if (!progress) {
+        this.log(`No progress found for previous challenge ${previousChallenge.id}, skipping closure`);
+        return;
+      }
+
+      // If already completed (100% was reached during the month), nothing to do
+      if (progress.isCompleted) {
+        this.log(`Previous challenge already completed (${previousChallenge.title}), skipping closure`);
+        return;
+      }
+
+      // ── FAILURE PATH: Challenge was NOT completed ──
+      this.log(`🔴 Closing incomplete challenge: ${previousChallenge.title} (${Math.round(progress.completionPercentage)}%)`);
+      await this.setState(ChallengeLifecycleState.COMPLETING);
+
+      const completionPercentage = progress.completionPercentage;
+      const isPartial = completionPercentage >= 70;
+      const previousStreak = progress.currentStreak;
+
+      // 1. Update star rating (handles partial/failure/demotion logic)
+      const completionData = {
+        challengeId: previousChallenge.id,
+        category: previousChallenge.category,
+        completionPercentage,
+        month: challengeMonth,
+        wasCompleted: false,
+        targetValue: previousChallenge.requirements.reduce((sum, req) => sum + req.target, 0),
+        actualValue: Object.values(progress.progress).reduce((sum, val) => sum + val, 0),
+        isWarmUp: previousChallenge.generationReason === 'warm_up',
+      };
+
+      const starResult = await StarRatingService.updateStarRatingForCompletion(completionData);
+      this.log(`⭐ Star rating updated: ${starResult.previousStars}★ → ${starResult.newStars}★ (${starResult.reason})`);
+
+      // 2. Get consecutive failures count AFTER the update (for modal warning text)
+      const consecutiveFailures = await StarRatingService.getConsecutiveFailures(previousChallenge.category);
+
+      // 3. Reset streak (failed = streak goes to 0)
+      await GamificationService.updateMonthlyStreak(
+        previousChallenge.category,
+        false, // not completed
+        previousChallenge.starLevel
+      );
+      this.log(`📉 Monthly streak reset (was ${previousStreak})`);
+
+      // 4. Calculate stats for the failure modal
+      const requirementsCompleted = previousChallenge.requirements.filter(
+        req => (progress.progress[req.trackingKey] || 0) >= req.target
+      ).length;
+      const activeDays = Array.isArray(progress.activeDays)
+        ? progress.activeDays.length
+        : (progress.daysActive || 0);
+
+      // 5. Emit failure event for the UI modal
+      const failureResult: MonthlyChallengeFailureResult = {
+        challengeId: previousChallenge.id,
+        challengeTitle: previousChallenge.title,
+        category: previousChallenge.category,
+        month: challengeMonth,
+        completionPercentage,
+        requirementsCompleted,
+        totalRequirements: previousChallenge.requirements.length,
+        activeDays,
+        oldStarLevel: starResult.previousStars,
+        newStarLevel: starResult.newStars,
+        starLevelChanged: starResult.previousStars !== starResult.newStars,
+        failureType: isPartial ? 'partial' : 'failure',
+        consecutiveFailures,
+        previousStreak,
+      };
+
+      DeviceEventEmitter.emit('monthly_challenge_failed', failureResult);
+      this.log(`📢 Emitted monthly_challenge_failed event`);
+
+      // 6. Archive the failed challenge
+      await MonthlyChallengeService.archiveCompletedChallenge(previousChallenge.id);
+      this.log(`🗃️ Archived failed challenge: ${previousChallenge.title}`);
+
+      await this.setState(ChallengeLifecycleState.FAILED);
+
+    } catch (error) {
+      console.error('Failed to close previous challenge:', error);
+      // Don't throw - we still want to generate the new challenge even if closure fails
     }
   }
   

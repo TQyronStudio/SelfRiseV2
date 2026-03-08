@@ -1443,6 +1443,42 @@ const en: TranslationKeys = {
       },
     },
 
+    // Failure modal (month ended without completion)
+    failureModal: {
+      title: 'Challenge Ended',
+      subtitle: 'Monthly Challenge',
+
+      messages: {
+        partial: 'You reached {{percentage}}% on this {{category}} challenge. Almost there — keep pushing next month!',
+        failure: 'You reached {{percentage}}% on this {{category}} challenge. Don\'t give up — every month is a fresh start!',
+      },
+
+      progressStats: {
+        completion: 'Completion',
+        requirements: 'Requirements Met',
+        activeDays: 'Active Days',
+      },
+
+      starImpact: {
+        title: 'Star Impact',
+        noChange: 'Your star level stays at {{stars}}★. No penalty for partial completion.',
+        warning: 'First incomplete challenge. One more failure will reduce your star level.',
+        demotion: 'Your star level dropped from {{oldStars}}★ to {{newStars}}★ due to consecutive incomplete challenges.',
+      },
+
+      streakReset: {
+        title: 'Streak Reset',
+        description: 'Your {{previousStreak}}-month streak has been reset. Start building a new one!',
+      },
+
+      motivation: {
+        title: 'Next Month Awaits',
+        message: 'A new challenge is ready for you. Use what you learned this month to come back stronger!',
+      },
+
+      button: 'Continue',
+    },
+
     // Detail modal
     detailModal: {
       strategyDescription: 'This is a {{rarity}} ({{stars}}★) difficulty challenge designed to help you grow consistently.',
