@@ -933,7 +933,7 @@ export class MonthlyChallengeService {
         target: calculation.target,
         baselineValue: calculation.baselineValue,
         scalingMultiplier: calculation.scalingMultiplier,
-        dailyTarget: reqTemplate.dailyTarget ? Math.ceil(calculation.target / 30) : undefined,
+        dailyTarget: reqTemplate.dailyTarget ? Math.ceil(calculation.target / this.getDaysInMonth(targetMonth)) : undefined,
         weeklyTarget: reqTemplate.weeklyTarget ? Math.ceil(calculation.target / 4) : undefined
       };
 
@@ -953,6 +953,22 @@ export class MonthlyChallengeService {
   /**
    * Get default fallback value for a requirement type when baseline data is insufficient
    */
+  /**
+   * Get number of days in the target month (or current month as fallback)
+   */
+  private static getDaysInMonth(targetMonth?: string): number {
+    if (targetMonth) {
+      const parts = targetMonth.split('-').map(Number);
+      const year = parts[0];
+      const month = parts[1];
+      if (year && month) {
+        return new Date(year, month, 0).getDate();
+      }
+    }
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  }
+
   private static getDefaultFallbackForRequirement(requirementType: string): number {
     const fallbacks: Record<string, number> = {
       'habits': 25,        // 25 habit completions/month
@@ -1345,7 +1361,7 @@ export class MonthlyChallengeService {
     const guidance: string[] = [];
 
     for (const req of requirements) {
-      const dailyTarget = req.dailyTarget || Math.ceil(req.target / 30);
+      const dailyTarget = req.dailyTarget || Math.ceil(req.target / this.getDaysInMonth());
       if (req.type === 'habits') {
         guidance.push(i18next.t('challenges.guidance.habitsTarget', { target: req.target, daily: dailyTarget }));
         guidance.push(i18next.t('challenges.guidance.habitsTip'));
@@ -1442,7 +1458,7 @@ export class MonthlyChallengeService {
         target: Math.max(target, this.getMinimumWarmUpTarget(reqTemplate.type)),
         baselineValue: baseTarget,
         scalingMultiplier: conservativeMultiplier,
-        dailyTarget: reqTemplate.dailyTarget ? Math.ceil(target / 30) : undefined,
+        dailyTarget: reqTemplate.dailyTarget ? Math.ceil(target / this.getDaysInMonth()) : undefined,
         weeklyTarget: reqTemplate.weeklyTarget ? Math.ceil(target / 4) : undefined,
         description: reqTemplate.description
       };

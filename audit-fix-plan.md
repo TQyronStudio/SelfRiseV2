@@ -529,7 +529,7 @@ Animace pri otevreni:
 | 7 | 7.2 | Perfect Completion Bonus neexistuje | ODSTRANENO |
 | 7 | 7.3 | Zastarala XP tabulka v dokumentaci | OPRAVENO |
 | 8 | 8.1 | Vyzva se neuzavre na konci mesice | OPRAVENO |
-| 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | K oprave |
+| 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | OPRAVENO |
 | 8 | 8.3 | Rovne vahy pozadavku | K rozhodnuti |
 | 8 | 8.4 | Hardcoded userId v progress trackeru | K oprave |
 | 8 | 8.5 | Potencialne chybejici preklady | K overeni |
@@ -784,7 +784,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Nahradit hardcoded `30` skutecnym poctem dnu v mesici. Informace o zacatku a konci mesice uz je dostupna v challenge objektu (`startDate`, `endDate`), staci je pouzit pro vypocet.
 
-**Status:** [ ] K oprave
+**Status:** [x] OPRAVENO - Nová helper `getDaysInMonth()` nahradila hardcoded `/30` na všech 3 místech. Používá `new Date(year, month, 0).getDate()` - automaticky řeší přestupné roky.
 
 ---
 
