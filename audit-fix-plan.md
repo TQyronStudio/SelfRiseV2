@@ -531,7 +531,7 @@ Animace pri otevreni:
 | 8 | 8.1 | Vyzva se neuzavre na konci mesice | OPRAVENO |
 | 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | OPRAVENO |
 | 8 | 8.3 | Rovne vahy pozadavku | NEOPRAVOVAT (UI task naplánován) |
-| 8 | 8.4 | Hardcoded userId v progress trackeru | K oprave |
+| 8 | 8.4 | Hardcoded userId v progress trackeru | PŘESUNUTO (future-updates) |
 | 8 | 8.5 | Potencialne chybejici preklady | K overeni |
 | 8 | 8.6 | Neefektivni prepocet aktivnich dnu | Nizka priorita |
 | 8 | 8.7 | Balance score nedokumentovany | Nizka priorita |
@@ -812,7 +812,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Zatim nechat - opravit az se bude implementovat multi-user podpora nebo Firebase autentizace. Zanechat TODO komentar jako pripominku.
 
-**Status:** [ ] Nizka priorita (budouci)
+**Status:** [x] PŘESUNUTO do projectplan-future-updates.md (Phase 0.1.1.C) — řešit až při implementaci multi-user/auth
 
 ---
 

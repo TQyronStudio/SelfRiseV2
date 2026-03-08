@@ -35,6 +35,12 @@ Establish essential backend infrastructure for user management, data synchroniza
 - [ ] Profile management interface (name, email, avatar)
 - [ ] Account deletion and data export compliance (GDPR)
 
+##### Sub-checkpoint 0.1.1.C: Hardcoded userId Migration 🔑
+- [ ] Replace `'current_user'` in `monthlyProgressTracker.ts` (line 746) with real user ID from auth context
+- [ ] Replace `'local_user'` in `monthlyChallengeService.ts` with real user ID from auth context
+- [ ] Audit all services for hardcoded user identifiers and replace with auth-provided userId
+- **Context**: Discovered in audit 8.4 — currently harmless (single-user offline app), but must be resolved before multi-user or cloud sync support
+
 ##### Sub-checkpoint 0.1.1.B: Data Synchronization 📡
 - [ ] Local to cloud data migration system
 - [ ] Real-time data synchronization across devices
