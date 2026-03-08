@@ -530,7 +530,7 @@ Animace pri otevreni:
 | 7 | 7.3 | Zastarala XP tabulka v dokumentaci | OPRAVENO |
 | 8 | 8.1 | Vyzva se neuzavre na konci mesice | OPRAVENO |
 | 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | OPRAVENO |
-| 8 | 8.3 | Rovne vahy pozadavku | K rozhodnuti |
+| 8 | 8.3 | Rovne vahy pozadavku | NEOPRAVOVAT (UI task naplánován) |
 | 8 | 8.4 | Hardcoded userId v progress trackeru | K oprave |
 | 8 | 8.5 | Potencialne chybejici preklady | K overeni |
 | 8 | 8.6 | Neefektivni prepocet aktivnich dnu | Nizka priorita |
@@ -798,7 +798,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Rozhodnout, jestli chceme vahy upravit (napr. podle pomeru target / kategoricky prumer) nebo nechat stejne. Protoze completion vyzaduje 100% a kazdy pozadavek musi byt splnen, realne je dopad jen vizualni - progress bar ukazuje mirne zavadejici procento.
 
-**Status:** [ ] K rozhodnuti
+**Status:** [x] VYŘEŠENO - Logika výpočtu ponechána (funkčně správná). Přidány per-requirement progress bary do MonthlyChallengeSection — každý požadavek má vlastní bar s popisem, hodnotou (x/target) a statusem (✓/○). Celkový progress bar zůstává jako souhrn.
 
 ---
 

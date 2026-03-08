@@ -18,6 +18,7 @@ import { StarRatingService } from './starRatingService';
 import { generateUUID } from '../utils/uuid';
 import { FEATURE_FLAGS } from '../config/featureFlags';
 import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
+import { gratitudeStorage } from './storage/gratitudeStorage';
 
 // ========================================
 // INTERFACES & TYPES
@@ -487,7 +488,8 @@ export class MonthlyProgressTracker {
       case 'perfect_days':
       case 'monthly_xp_total':
       case 'balance_score':
-        // These require complex daily analysis - handled separately
+      case 'avg_entry_length':
+        // These require complex daily analysis - handled separately in recalculateComplexTrackingKeys
         return 0;
         
       default:
@@ -960,7 +962,26 @@ export class MonthlyProgressTracker {
             progress.progress[trackingKey] = balanceScore;
             console.log(`📊 Balance Score: ${previousBalanceScore.toFixed(2)} → ${balanceScore.toFixed(2)}`);
             break;
-            
+
+          case 'avg_entry_length':
+            // Calculate average journal entry length within challenge date range
+            try {
+              const entries = await gratitudeStorage.getEntriesInRange(
+                new Date(challenge.startDate + 'T00:00:00'),
+                new Date(challenge.endDate + 'T23:59:59')
+              );
+              const entriesWithContent = entries.filter(e => e.content && e.content.length > 0);
+              const avgLength = entriesWithContent.length > 0
+                ? Math.round(entriesWithContent.reduce((sum, e) => sum + e.content.length, 0) / entriesWithContent.length)
+                : 0;
+              const previousAvgLength = progress.progress[trackingKey] || 0;
+              progress.progress[trackingKey] = avgLength;
+              console.log(`📊 Avg Entry Length: ${previousAvgLength} → ${avgLength} (from ${entriesWithContent.length} entries)`);
+            } catch (avgError) {
+              console.error('Failed to calculate avg_entry_length:', avgError);
+            }
+            break;
+
           default:
             // Skip non-complex tracking keys
             break;

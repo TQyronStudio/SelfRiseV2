@@ -421,6 +421,43 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       height: '100%',
       borderRadius: 4,
     },
+    requirementsBreakdown: {
+      marginBottom: 16,
+      gap: 10,
+    },
+    requirementRow: {
+      gap: 4,
+    },
+    requirementRowHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    requirementRowStatus: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      width: 16,
+    },
+    requirementRowLabel: {
+      flex: 1,
+      fontSize: 13,
+      color: colors.text,
+    },
+    requirementRowValue: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    requirementRowBar: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+      marginLeft: 22,
+    },
+    requirementRowFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
     summaryStats: {
       flexDirection: 'row',
       justifyContent: 'space-around',
@@ -809,6 +846,47 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
               }
             ]}
           />
+        </View>
+
+        {/* Per-requirement progress bars */}
+        <View style={styles.requirementsBreakdown}>
+          {challenge.requirements.map((requirement, index) => {
+            const currentValue = progress.progress[requirement.trackingKey] || 0;
+            const reqPercent = Math.min(100, (currentValue / requirement.target) * 100);
+            const reqCompleted = currentValue >= requirement.target;
+            return (
+              <View key={index} style={styles.requirementRow}>
+                <View style={styles.requirementRowHeader}>
+                  <Text style={[
+                    styles.requirementRowStatus,
+                    { color: reqCompleted ? '#22C55E' : colors.textSecondary }
+                  ]}>
+                    {reqCompleted ? '✓' : '○'}
+                  </Text>
+                  <Text style={styles.requirementRowLabel} numberOfLines={1}>
+                    {requirement.description}
+                  </Text>
+                  <Text style={[
+                    styles.requirementRowValue,
+                    { color: reqCompleted ? '#22C55E' : categoryColor }
+                  ]}>
+                    {currentValue}/{requirement.target}
+                  </Text>
+                </View>
+                <View style={styles.requirementRowBar}>
+                  <View
+                    style={[
+                      styles.requirementRowFill,
+                      {
+                        width: `${reqPercent}%`,
+                        backgroundColor: reqCompleted ? '#22C55E' : categoryColor,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.summaryStats}>
