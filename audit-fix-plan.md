@@ -535,7 +535,7 @@ Animace pri otevreni:
 | 8 | 8.5 | Potencialne chybejici preklady | OVERENO - OK |
 | 8 | 8.6 | Neefektivni prepocet aktivnich dnu | OPRAVENO |
 | 8 | 8.7 | Balance score nedokumentovany | OPRAVENO |
-| 8 | 8.8 | Weekly habit variety pouziva SYNC verzi | Nizka priorita |
+| 8 | 8.8 | Weekly habit variety pouziva SYNC verzi | OVERENO - OK |
 
 ---
 
@@ -868,4 +868,4 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Pouzit zamek (mutex) nebo serializovat updaty aby se zpracovavaly postupne. Nicmene uz existuje sequential queue v `updateMonthlyProgress` ktera by mela toto castecne resit. Neni urgentni.
 
-**Status:** [ ] Nizka priorita
+**Status:** [x] OVERENO - Sequential queue (processProgressUpdate) jiz zajistuje serialni zpracovani. Race condition realne nehrozi. Zmena neni potreba.
