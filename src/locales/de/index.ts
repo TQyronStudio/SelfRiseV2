@@ -1295,6 +1295,11 @@ const de: Partial<TranslationKeys> = {
       special: 'BESONDERS',
     },
 
+    // Requirement tooltips for complex tracking keys
+    requirementTooltips: {
+      balance_score: 'Misst, wie gleichmäßig du alle App-Funktionen nutzt (Gewohnheiten, Tagebuch, Ziele). Nutze alle Funktionen regelmäßig, um deinen Score zu verbessern.',
+    },
+
     // Calendar
     calendar: {
       title: 'Kalender',

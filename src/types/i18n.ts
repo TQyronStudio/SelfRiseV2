@@ -1025,6 +1025,11 @@ export interface TranslationKeys {
       special: string;
     };
 
+    // Requirement tooltips for complex tracking keys
+    requirementTooltips: {
+      balance_score: string;
+    };
+
     // Calendar
     calendar: {
       title: string;

@@ -1486,4 +1486,31 @@ if (target > daysInMonth) {
 
 ---
 
+### **📊 Balance Score - Algoritmus a vysvětlení**
+
+Balance Score měří, jak rovnoměrně uživatel využívá všechny funkce aplikace. Používá se jako požadavek ve výzvě "Balance Expert" (kategorie Consistency, min. 4⭐).
+
+**Jak se počítá:**
+1. Načtou se všechny XP transakce za měsíc
+2. XP se seskupí podle zdroje: habits, journal, goals, achievements, challenges, other
+3. Zjistí se, který zdroj má nejvyšší % podíl na celkovém XP
+4. Score se vypočítá podle tabulky:
+
+| Max. zdroj (% celku) | Balance Score |
+|---|---|
+| ≤ 50% | 1.0 (perfektní) |
+| 50-60% | 1.0 → 0.75 (lineární pokles) |
+| 60-100% | 0.75 → 0.0 (strmější pokles) |
+
+**Příklady:**
+- Habits 40%, Journal 35%, Goals 25% → max 40% → Score: 1.0
+- Habits 55%, Journal 25%, Goals 20% → max 55% → Score: ~0.875
+- Habits 80%, Journal 10%, Goals 10% → max 80% → Score: ~0.375
+
+**UI tooltip:** Pod progress barem pro balance_score se zobrazuje vysvětlující text ve všech lokalizacích (EN/DE/ES).
+
+**Soubor:** `monthlyProgressTracker.ts` → `calculateBalanceScore()`
+
+---
+
 *Tato dokumentace je living document - aktualizuje se s rozšiřováním Monthly Challenge systému*

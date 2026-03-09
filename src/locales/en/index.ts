@@ -1308,6 +1308,11 @@ const en: TranslationKeys = {
       special: 'SPECIAL',
     },
 
+    // Requirement tooltips for complex tracking keys
+    requirementTooltips: {
+      balance_score: 'Measures how evenly you use all app features (habits, journal, goals). Use all features regularly to increase your score.',
+    },
+
     // Calendar
     calendar: {
       title: 'Monthly Progress Calendar',

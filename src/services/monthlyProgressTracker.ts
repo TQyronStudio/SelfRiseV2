@@ -293,13 +293,11 @@ export class MonthlyProgressTracker {
           currentProgress
         );
 
-        // Create daily snapshot FIRST (so recalculateActiveDays can see today's progress)
+        // Create daily snapshot
         await this.createDailySnapshot(challenge.id, currentProgress, source, amount);
 
-        // Recalculate active days dynamically based on actual progress (INCLUDING today's snapshot)
-        console.log(`🔍 [DEBUG] Active days before recalculation: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
+        // Incrementally update active days (adds today if not already tracked)
         await this.recalculateActiveDays(challenge.id, currentProgress);
-        console.log(`✅ [DEBUG] Active days after recalculation: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
 
         // Recalculate complex tracking keys (triple_feature_days, perfect_days, etc.)
         await this.recalculateComplexTrackingKeys(challenge, currentProgress);
@@ -866,38 +864,31 @@ export class MonthlyProgressTracker {
   }
 
   /**
-   * Recalculate active days dynamically based on actual daily progress
+   * Incrementally update active days - only checks today instead of reloading all snapshots
    */
   private static async recalculateActiveDays(
-    challengeId: string, 
+    challengeId: string,
     progress: MonthlyChallengeProgress
   ): Promise<void> {
     try {
-      // Get all daily snapshots for this challenge (using cached method)
-      const allSnapshots = await this.getAllSnapshots();
-      
-      // Filter snapshots for this challenge
-      const challengeSnapshots = allSnapshots.filter(s => s.challengeId === challengeId);
-      
-      // Find active days (days with any daily contributions > 0)
-      const activeDays: string[] = [];
-      
-      for (const snapshot of challengeSnapshots) {
-        const dailyContribs = Object.values(snapshot.dailyContributions || {});
-        const hasAnyProgress = dailyContribs.some(contrib => contrib > 0);
-        
-        if (hasAnyProgress) {
-          activeDays.push(snapshot.date);
-        }
+      const today = new Date().toISOString().split('T')[0];
+
+      // Initialize activeDays array if missing
+      if (!progress.activeDays) {
+        progress.activeDays = [];
       }
-      
-      // Sort active days chronologically
-      activeDays.sort();
-      
-      // Update progress object
-      progress.activeDays = activeDays;
-      progress.daysActive = activeDays.length;
-      
+
+      // If today is already tracked, nothing to do
+      if (progress.activeDays.includes(today)) {
+        return;
+      }
+
+      // Today had progress (this method is only called when progressUpdated is true),
+      // so add today to active days
+      progress.activeDays.push(today);
+      progress.activeDays.sort();
+      progress.daysActive = progress.activeDays.length;
+
     } catch (error) {
       console.error('MonthlyProgressTracker.recalculateActiveDays error:', error);
       // Don't throw - active days calculation should not break main flow

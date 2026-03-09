@@ -1295,6 +1295,11 @@ const es: Partial<TranslationKeys> = {
       special: 'ESPECIAL',
     },
 
+    // Requirement tooltips for complex tracking keys
+    requirementTooltips: {
+      balance_score: 'Mide qué tan equilibrado es tu uso de todas las funciones (hábitos, diario, metas). Usa todas las funciones regularmente para mejorar tu puntuación.',
+    },
+
     // Calendar
     calendar: {
       title: 'Calendario de Progreso Mensual',

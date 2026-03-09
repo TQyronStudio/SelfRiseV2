@@ -532,9 +532,9 @@ Animace pri otevreni:
 | 8 | 8.2 | Hardcoded 30 dnu v dennich targetech | OPRAVENO |
 | 8 | 8.3 | Rovne vahy pozadavku | NEOPRAVOVAT (UI task naplánován) |
 | 8 | 8.4 | Hardcoded userId v progress trackeru | PŘESUNUTO (future-updates) |
-| 8 | 8.5 | Potencialne chybejici preklady | K overeni |
-| 8 | 8.6 | Neefektivni prepocet aktivnich dnu | Nizka priorita |
-| 8 | 8.7 | Balance score nedokumentovany | Nizka priorita |
+| 8 | 8.5 | Potencialne chybejici preklady | OVERENO - OK |
+| 8 | 8.6 | Neefektivni prepocet aktivnich dnu | OPRAVENO |
+| 8 | 8.7 | Balance score nedokumentovany | OPRAVENO |
 | 8 | 8.8 | Weekly habit variety pouziva SYNC verzi | Nizka priorita |
 
 ---
@@ -826,7 +826,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Proverit vsechny 3 jazykove soubory (EN, DE, ES) a overit, ze vsechny dynamicky skladane klice pro monthly challenge existuji ve vsech jazycich. Doplnit chybejici.
 
-**Status:** [ ] K overeni
+**Status:** [x] OVERENO - Vsechny dynamicke klice (milestone.motivation_25/50/75, categories.mastery/special, milestone.title/xpBonus/accessibility) existuji ve vsech 3 jazycich (EN, DE, ES). Zadne chybejici preklady.
 
 ---
 
@@ -840,7 +840,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Optimalizovat na inkrementalni tracking - pri update pridat dnesni datum do seznamu aktivnich dnu, pokud tam jeste neni. Neni urgentni.
 
-**Status:** [ ] Nizka priorita
+**Status:** [x] OPRAVENO - Prepsano na inkrementalni tracking. Misto nacitani vsech snapshotu se pouze pridava dnesni datum do activeDays, pokud tam jeste neni.
 
 ---
 
@@ -854,7 +854,7 @@ Komplexni audit celeho systemu mesicnich vyzev - od generovani pres tracking az 
 
 **Navrh opravy:** Pridat vysvetleni balance score do technicke dokumentace (`technical-guides:Monthly-Challenges.md`) a pripadne pridat tooltip v UI, kdyz se tento pozadavek objevi ve vyzve.
 
-**Status:** [ ] Nizka priorita (dokumentace)
+**Status:** [x] OPRAVENO - Balance score zdokumentovan v technical-guides:Monthly-Challenges.md (algoritmus, tabulka, priklady). Pridan UI tooltip pod progress barem s lokalizacemi EN/DE/ES.
 
 ---
 

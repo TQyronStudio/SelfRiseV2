@@ -447,6 +447,13 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       fontSize: 13,
       fontWeight: '600',
     },
+    requirementTooltip: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+      marginTop: 2,
+      paddingLeft: 22,
+    },
     requirementRowBar: {
       height: 6,
       backgroundColor: colors.border,
@@ -884,6 +891,11 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
                     ]}
                   />
                 </View>
+                {requirement.trackingKey === 'balance_score' && (
+                  <Text style={styles.requirementTooltip}>
+                    {t('monthlyChallenge.requirementTooltips.balance_score')}
+                  </Text>
+                )}
               </View>
             );
           })}
