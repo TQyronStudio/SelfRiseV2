@@ -273,7 +273,7 @@ export function GoalsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       {/* Tlačítka Add, Template a Edit */}
       <View style={styles.addButtonContainer}>
         {!isEditMode && (

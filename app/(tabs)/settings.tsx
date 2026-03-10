@@ -164,7 +164,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Notifications Section */}
         <View style={styles.section}>

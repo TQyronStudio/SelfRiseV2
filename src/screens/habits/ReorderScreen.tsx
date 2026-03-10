@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,6 +15,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 export function ReorderScreen() {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { actions } = useHabitsData();
   const { initialItems } = useLocalSearchParams<{ initialItems: string }>();
 
@@ -111,6 +113,7 @@ export function ReorderScreen() {
       flex: 1,
       paddingHorizontal: 16,
       paddingTop: 16,
+      paddingBottom: insets.bottom,
     },
     itemContainer: {
       marginBottom: 8,

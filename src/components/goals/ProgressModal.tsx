@@ -4,12 +4,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, AddGoalProgressInput } from '../../types/goal';
 import { ProgressEntryForm } from './ProgressEntryForm';

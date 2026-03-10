@@ -222,7 +222,7 @@ export const LevelsOverviewScreen: React.FC = () => {
     },
     listContainer: {
       paddingHorizontal: Layout.spacing.md,
-      paddingBottom: Layout.spacing.xl,
+      paddingBottom: Layout.spacing.xl + insets.bottom,
     },
     levelItem: {
       backgroundColor: colors.cardBackgroundElevated,

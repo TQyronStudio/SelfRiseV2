@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,7 @@ export default function HabitStatsPage() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
 
   const styles = StyleSheet.create({
     container: {
@@ -47,7 +48,7 @@ export default function HabitStatsPage() {
     },
     bannerContainer: {
       position: 'absolute',
-      bottom: 0,
+      bottom: insets.bottom,
       left: 0,
       right: 0,
       backgroundColor: colors.backgroundSecondary,

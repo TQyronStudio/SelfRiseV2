@@ -6,11 +6,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaView,
   Platform,
   StatusBar,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { HabitForm, HabitFormData } from './HabitForm';

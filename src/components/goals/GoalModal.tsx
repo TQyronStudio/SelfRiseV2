@@ -4,12 +4,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Goal, CreateGoalInput, UpdateGoalInput } from '../../types/goal';
 import { GoalForm, GoalFormData } from './GoalForm';

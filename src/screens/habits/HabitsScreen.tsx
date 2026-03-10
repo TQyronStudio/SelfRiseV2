@@ -200,7 +200,7 @@ export function HabitsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       {/* Tlačítka Add a Edit/Reorder */}
       <View style={styles.addButtonContainer}>
         <View style={styles.buttonsRow}>

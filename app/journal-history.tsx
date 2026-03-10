@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
@@ -21,6 +21,7 @@ export default function JournalHistoryScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { state, actions } = useGratitude();
   const [selectedDate, setSelectedDate] = useState<DateString>(today());
   const [searchTerm, setSearchTerm] = useState('');
@@ -226,11 +227,11 @@ export default function JournalHistoryScreen() {
     },
     contentContainer: {
       flexGrow: 1,
-      paddingBottom: 60, // Extra padding for banner
+      paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area
     },
     bannerContainer: {
       position: 'absolute',
-      bottom: 0,
+      bottom: insets.bottom,
       left: 0,
       right: 0,
       backgroundColor: colors.backgroundSecondary,

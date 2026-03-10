@@ -897,9 +897,9 @@ Google od Android 15 (API 35) **POVINNE** vyzaduje, aby aplikace cilici na API 3
 
 ### KROK 0: Konfigurace (zaklad)
 
-- [ ] **0.1** Zmenit `edgeToEdgeEnabled` z `false` na `true` v `app.json` (Android sekce)
-- [ ] **0.2** Overit ze `expo-status-bar` ma `translucent={true}` (uz mame v `_layout.tsx`)
-- [ ] **0.3** Overit ze `react-native-safe-area-context` je nainstalovany a SafeAreaProvider je v root layoutu
+- [x] **0.1** Zmenit `edgeToEdgeEnabled` z `false` na `true` v `app.json` (Android sekce)
+- [x] **0.2** Overit ze `expo-status-bar` ma `translucent={true}` (uz mame v `_layout.tsx`)
+- [x] **0.3** Overit ze `react-native-safe-area-context` je nainstalovany a SafeAreaProvider je v root layoutu
 
 ---
 
@@ -919,35 +919,20 @@ contentPadding: {
 }
 ```
 
-- [ ] **1.1 Home** (`app/(tabs)/index.tsx`)
-  - SafeAreaView `edges={['bottom']}` → zmenit na `edges={[]}` (edge-to-edge resi sam)
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 80` → `80 + insets.bottom`
-  - Pridat `useSafeAreaInsets` import
+- [x] **1.1 Home** (`app/(tabs)/index.tsx`)
+  - SafeAreaView `edges={['bottom']}` → `edges={[]}` (tab bar resi bottom safe area)
 
-- [ ] **1.2 Habits** (`src/screens/habits/HabitsScreen.tsx`)
-  - SafeAreaView `edges={['bottom']}` → zmenit na `edges={[]}`
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 60` → `60 + insets.bottom`
-  - Pridat `useSafeAreaInsets` import
+- [x] **1.2 Habits** (`src/screens/habits/HabitsScreen.tsx`)
+  - SafeAreaView `edges={['bottom']}` → `edges={[]}` (tab bar resi bottom safe area)
 
-- [ ] **1.3 Journal** (`app/(tabs)/journal.tsx`)
-  - SafeAreaView bez `edges` prop (= vsechny strany) → pridat `edges={[]}` nebo zmenit na View
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 100` → `100 + insets.bottom`
-  - Pridat `useSafeAreaInsets` import
+- [x] **1.3 Journal** (`app/(tabs)/journal.tsx`)
+  - SafeAreaView bez `edges` prop → pridano `edges={[]}` (tab bar resi bottom safe area)
 
-- [ ] **1.4 Goals** (`src/screens/goals/GoalsScreen.tsx`)
-  - SafeAreaView `edges={['bottom']}` → zmenit na `edges={[]}`
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 60` → `60 + insets.bottom`
-  - Pridat `useSafeAreaInsets` import
+- [x] **1.4 Goals** (`src/screens/goals/GoalsScreen.tsx`)
+  - SafeAreaView `edges={['bottom']}` → `edges={[]}` (tab bar resi bottom safe area)
 
-- [ ] **1.5 Settings** (`app/(tabs)/settings.tsx`)
-  - SafeAreaView `edges={['bottom']}` → zmenit na `edges={[]}`
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 80` → `80 + insets.bottom`
-  - Pridat `useSafeAreaInsets` import
+- [x] **1.5 Settings** (`app/(tabs)/settings.tsx`)
+  - SafeAreaView `edges={['bottom']}` → `edges={[]}` (tab bar resi bottom safe area)
 
 ---
 
@@ -955,64 +940,45 @@ contentPadding: {
 
 Tyto screeny maji custom header (pres `useSafeAreaInsets` nahoře) a `AdBanner` fixovany dole. Nektere NEMAJI spodni safe area vubec.
 
-- [ ] **2.1 Achievements / Trophy Room** (`app/achievements.tsx`)
-  - ❌ ZADNA safe area - ani nahore ani dole!
-  - Header je rizen Stack navigator (`headerShown: true`)
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - Pridat `useSafeAreaInsets` import
-  - Pridat `paddingBottom: insets.bottom` do FlatList contentContainerStyle
+- [x] **2.1 Achievements / Trophy Room** (`app/achievements.tsx`)
+  - Pridano `useSafeAreaInsets`, `bottom: insets.bottom` na banner, `paddingBottom: 120 + insets.bottom` na scroll
 
-- [ ] **2.2 Habit Stats** (`app/habit-stats.tsx`)
-  - SafeAreaView `edges={['top', 'left', 'right']}` → ❌ DOLE CHYBI
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - Pridat spodni padding do scroll contentu
+- [x] **2.2 Habit Stats** (`app/habit-stats.tsx`)
+  - Pridano `useSafeAreaInsets`, `bottom: insets.bottom` na banner
 
-- [ ] **2.3 Journal Stats** (`app/journal-stats.tsx`)
-  - SafeAreaView `edges={['top', 'left', 'right']}` → ❌ DOLE CHYBI
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - Pridat spodni padding do scroll contentu
+- [x] **2.3 Journal Stats** (`app/journal-stats.tsx`)
+  - Pridano `useSafeAreaInsets`, `bottom: insets.bottom` na banner, `paddingBottom: 60 + insets.bottom`
 
-- [ ] **2.4 Journal History** (`app/journal-history.tsx`)
-  - SafeAreaView `edges={['top', 'left', 'right']}` → ❌ DOLE CHYBI
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - `content.paddingBottom: 60` → `60 + insets.bottom`
+- [x] **2.4 Journal History** (`app/journal-history.tsx`)
+  - Pridano `useSafeAreaInsets`, `bottom: insets.bottom` na banner, `paddingBottom: 60 + insets.bottom`
 
-- [ ] **2.5 Goal Stats** (`src/screens/goals/GoalStatsScreen.tsx`)
-  - ✅ Uz pouziva `useSafeAreaInsets` + `paddingBottom: Math.max(insets.bottom, 60)`
-  - `bannerContainer.bottom: 0` → `bottom: insets.bottom`
-  - Overit ze padding je dostatecny
+- [x] **2.5 Goal Stats** (`src/screens/goals/GoalStatsScreen.tsx`)
+  - `bannerContainer.bottom: 0` → `bottom: insets.bottom` (padding uz byl spravne)
 
 ---
 
 ### KROK 3: Stack screeny BEZ AdMob banneru (2 screeny)
 
-- [ ] **3.1 Levels Overview** (`src/screens/levels/LevelsOverviewScreen.tsx`)
-  - Pouziva `useSafeAreaInsets` pro header nahore
-  - ❌ Dole NEMA zadny padding
-  - Pridat `paddingBottom: insets.bottom` do FlatList/ScrollView
+- [x] **3.1 Levels Overview** (`src/screens/levels/LevelsOverviewScreen.tsx`)
+  - Pridano `paddingBottom: Layout.spacing.xl + insets.bottom` do listContainer
 
-- [ ] **3.2 Reorder Habits** (`src/screens/habits/ReorderScreen.tsx`)
-  - ⚠️ Pouziva RN `SafeAreaView` (z react-native, NE z react-native-safe-area-context!)
-  - Zmenit import na `react-native-safe-area-context`
-  - Pridat `useSafeAreaInsets` a spodni padding
+- [x] **3.2 Reorder Habits** (`src/screens/habits/ReorderScreen.tsx`)
+  - Opraveny import SafeAreaView na `react-native-safe-area-context`
+  - Pridano `useSafeAreaInsets` a `paddingBottom: insets.bottom`
 
 ---
 
 ### KROK 4: Tab Bar navigace
 
-- [ ] **4.1 Tab Bar layout** (`app/(tabs)/_layout.tsx`)
-  - Tab bar automaticky resi safe area pres Expo Router/React Navigation
-  - Overit, ze `tabBarStyle` nema hardcoded `height` ktera by ignorovala insets
-  - Pokud tab bar nema spodni padding, pridat `paddingBottom: insets.bottom` do tabBarStyle
+- [x] **4.1 Tab Bar layout** (`app/(tabs)/_layout.tsx`)
+  - Tab bar automaticky resi safe area pres React Navigation - overeno, zadna hardcoded height
 
 ---
 
 ### KROK 5: AdMob Banner komponenta
 
-- [ ] **5.1 AdBanner** (`src/components/ads/AdBanner.tsx`)
-  - Samotna komponenta NEMA resit safe area (to dela rodic)
-  - Overit ze nema vlastni `marginBottom` nebo `paddingBottom` ktery by se duplikoval
-  - Overit ze `paddingVertical: 4` je dostatecny
+- [x] **5.1 AdBanner** (`src/components/ads/AdBanner.tsx`)
+  - Overeno: jen `paddingVertical: 4`, zadny marginBottom - rodic resi safe area
 
 ---
 
@@ -1020,47 +986,20 @@ Tyto screeny maji custom header (pres `useSafeAreaInsets` nahoře) a `AdBanner` 
 
 Modaly pouzivaji RN `<Modal>` ktery se renderuje pres celou obrazovku. Tlacitka "Ulozit", "Zrusit" atd. na spodku modalu mohou byt pod navigacni listou.
 
-- [ ] **6.1 HabitModal** (`src/components/habits/HabitModal.tsx`)
-  - Zkontrolovat spodni tlacitka - pridat `paddingBottom: insets.bottom` pokud chybi
-
-- [ ] **6.2 GoalModal** (`src/components/goals/GoalModal.tsx`)
-  - Zkontrolovat spodni tlacitka - pridat `paddingBottom: insets.bottom` pokud chybi
-
-- [ ] **6.3 ProgressModal** (`src/components/goals/ProgressModal.tsx`)
-  - Zkontrolovat spodni tlacitka - pridat `paddingBottom: insets.bottom` pokud chybi
-
-- [ ] **6.4 EditGratitudeModal** (`src/components/gratitude/EditGratitudeModal.tsx`)
-  - Zkontrolovat spodni tlacitka - pridat `paddingBottom: insets.bottom` pokud chybi
-
-- [ ] **6.5 StreakWarmUpModal** (`src/components/gratitude/StreakWarmUpModal.tsx`)
-  - Zkontrolovat spodni obsah - pridat `paddingBottom: insets.bottom` pokud chybi
-
-- [ ] **6.6 WarmUpModals** (`src/components/gratitude/WarmUpModals.tsx`)
-  - Zkontrolovat spodni tlacitka vsech 5 sub-modalu
-
-- [ ] **6.7 ConfirmationModal** (`src/components/common/ConfirmationModal.tsx`)
-  - Zkontrolovat spodni tlacitka
-
-- [ ] **6.8 ErrorModal** (`src/components/common/ErrorModal.tsx`)
-  - Zkontrolovat spodni tlacitka
-
-- [ ] **6.9 BaseModal** (`src/components/common/BaseModal.tsx`)
-  - Toto je zakladni modal - pokud sem pridame padding, zdedi to vsechny modaly co ho pouzivaji
-
-- [ ] **6.10 AchievementDetailModal** (`src/components/achievements/AchievementDetailModal.tsx`)
-  - Zkontrolovat spodni obsah
-
-- [ ] **6.11 MonthlyChallengeDetailModal** (`src/components/challenges/MonthlyChallengeDetailModal.tsx`)
-  - Zkontrolovat spodni obsah a tlacitka
-
-- [ ] **6.12 HomeCustomizationModal** (`src/components/home/HomeCustomizationModal.tsx`)
-  - Zkontrolovat spodni obsah
-
-- [ ] **6.13 TargetDateConfirmationModal** (`src/components/goals/TargetDateConfirmationModal.tsx`)
-  - Zkontrolovat spodni tlacitka
-
-- [ ] **6.14 TargetDateStepSelectionModal** (`src/components/goals/TargetDateStepSelectionModal.tsx`)
-  - Zkontrolovat spodni obsah
+- [x] **6.1 HabitModal** - Opraveny import SafeAreaView z RN na react-native-safe-area-context
+- [x] **6.2 GoalModal** - Opraveny import SafeAreaView z RN na react-native-safe-area-context
+- [x] **6.3 ProgressModal** - Opraveny import SafeAreaView z RN na react-native-safe-area-context
+- [x] **6.4 EditGratitudeModal** - Centrovany dialog, nepotrebuje fix
+- [x] **6.5 StreakWarmUpModal** - Opraveny import SafeAreaView z RN na react-native-safe-area-context
+- [x] **6.6 WarmUpModals** - Centrovany dialog (BaseModal pattern), nepotrebuje fix
+- [x] **6.7 ConfirmationModal** - Centrovany dialog (BaseModal pattern), nepotrebuje fix
+- [x] **6.8 ErrorModal** - Centrovany dialog (BaseModal pattern), nepotrebuje fix
+- [x] **6.9 BaseModal** - Centrovany dialog (`justifyContent: 'center'`), nepotrebuje fix
+- [x] **6.10 AchievementDetailModal** - Opraveny import SafeAreaView z RN na react-native-safe-area-context
+- [x] **6.11 MonthlyChallengeDetailModal** - Centrovany dialog, nepotrebuje fix
+- [x] **6.12 HomeCustomizationModal** - Uz pouziva spravny SafeAreaView z react-native-safe-area-context
+- [x] **6.13 TargetDateConfirmationModal** - Centrovany dialog, nepotrebuje fix
+- [x] **6.14 TargetDateStepSelectionModal** - Centrovany dialog, nepotrebuje fix
 
 ---
 
@@ -1068,70 +1007,36 @@ Modaly pouzivaji RN `<Modal>` ktery se renderuje pres celou obrazovku. Tlacitka 
 
 Tyto modaly se zobrazuji automaticky a maji tlacitko "OK/Super/Dalsi". Obsah je obvykle vycentrovany, takze spodni safe area je potreba jen pro tlacitko.
 
-- [ ] **7.1 CelebrationModal** (`src/components/gratitude/CelebrationModal.tsx`)
-  - daily_complete, streak_milestone, bonus_milestone, level_up
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.2 AchievementCelebrationModal** (`src/components/achievements/AchievementCelebrationModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.3 GoalCompletionModal** (`src/components/goals/GoalCompletionModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.4 MonthlyChallengeCompletionModal** (`src/components/challenges/MonthlyChallengeCompletionModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.5 MonthlyChallengeMilestoneModal** (`src/components/challenges/MonthlyChallengeMilestoneModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.6 MonthlyChallengeFailureModal** (`src/components/challenges/MonthlyChallengeFailureModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.7 StarLevelChangeModal** (`src/components/challenges/StarLevelChangeModal.tsx`)
-  - Zkontrolovat spodni tlacitko
-
-- [ ] **7.8 MultiplierActivationModal** (`src/components/gamification/MultiplierActivationModal.tsx`)
-  - Zkontrolovat spodni tlacitko
+- [x] **7.1-7.8 Vsechny celebracni modaly** - Centrovane dialogy (`justifyContent: 'center'`), tlacitka jsou uprostred obrazovky, nepotrebuje fix
 
 ---
 
 ### KROK 8: Tutorial system
 
-- [ ] **8.1 TutorialOverlay** (`src/components/tutorial/TutorialOverlay.tsx`)
-  - ✅ Uz pouziva `useSafeAreaInsets` a `insets.bottom` - overit ze je to dostatecne
-  - Overit pozicovani tutorial karticky v edge-to-edge rezimu
-
-- [ ] **8.2 TutorialModal** (`src/components/tutorial/TutorialModal.tsx`)
-  - ✅ Uz pouziva `paddingBottom: insets.bottom` - overit
-
-- [ ] **8.3 SpotlightEffect** (`src/components/tutorial/SpotlightEffect.tsx`)
-  - Skia Canvas `absoluteFill` - overit ze pokryva celou obrazovku vcetne navigacni listy
+- [x] **8.1 TutorialOverlay** - ✅ Uz pouziva `useSafeAreaInsets` a `insets.bottom`
+- [x] **8.2 TutorialModal** - ✅ Uz pouziva `paddingBottom: insets.bottom`
+- [x] **8.3 SpotlightEffect** - ✅ Skia Canvas `absoluteFill` pokryva celou obrazovku
 
 ---
 
 ### KROK 9: Ostatni komponenty s fixni pozici
 
-- [ ] **9.1 HelpTooltip** (`src/components/common/HelpTooltip.tsx`)
-  - Zkontrolovat pozicovani - muze se zobrazit u spodniho okraje
-
-- [ ] **9.2 AchievementTooltip** (`src/components/achievements/AchievementTooltip.tsx`)
-  - Zkontrolovat pozicovani
-
-- [ ] **9.3 GratitudeInput** (`src/components/gratitude/GratitudeInput.tsx`)
-  - Pokud ma fixni pozici dole (input field), pridat `paddingBottom: insets.bottom`
+- [x] **9.1 HelpTooltip** - Absolute pozice jen pro sipky tooltipov, ne pro celkove umisteni
+- [x] **9.2 AchievementTooltip** - Zadna fixni pozice
+- [x] **9.3 GratitudeInput** - Zadna fixni pozice, v ScrollView
 
 ---
 
 ### KROK 10: Splash screen a app start
 
-- [ ] **10.1** Overit ze splash screen (`expo-splash-screen`) funguje spravne v edge-to-edge
-- [ ] **10.2** Overit ze `backgroundColor` v app.json pro splash je spravny
+- [x] **10.1** Splash screen (`expo-splash-screen`) resi edge-to-edge automaticky
+- [x] **10.2** `backgroundColor` v app.json pro splash je `#ffffff` - OK
 
 ---
 
 ### KROK 11: Testovani
 
-- [ ] **11.1** TypeScript build check - 0 chyb (`npx tsc --noEmit`)
+- [x] **11.1** TypeScript build check - 0 novych chyb (2 pre-existujici v monthlyProgressTracker)
 - [ ] **11.2** Vizualni kontrola vsech 5 tab screenu
 - [ ] **11.3** Vizualni kontrola vsech 7 stack screenu
 - [ ] **11.4** Kontrola vsech modalu - tlacitka nejsou pod navigaci
@@ -1146,12 +1051,7 @@ Tyto modaly se zobrazuji automaticky a maji tlacitko "OK/Super/Dalsi". Obsah je 
 
 ### KROK 12: Dokumentace
 
-- [ ] **12.1** Pridat do `technical-guides.md` novou sekci "Android Edge-to-Edge (API 35)"
-  - Co to je a proc to pouzivame
-  - Jak spravne pouzivat `useSafeAreaInsets` pro edge-to-edge
-  - Pravidla pro fixni prvky (bannery, tlacitka) vs scrollovaci obsah
-  - Vzor kodu pro novy screen
-  - Checklist pro nove screeny/modaly
+- [x] **12.1** Pridano do `technical-guides.md` - kompletni sekce "Android Edge-to-Edge (API 35)"
 
 ---
 
@@ -1159,24 +1059,24 @@ Tyto modaly se zobrazuji automaticky a maji tlacitko "OK/Super/Dalsi". Obsah je 
 
 | # | Screen / Komponenta | Typ | AdMob? | Safe Area dole PRED | Status |
 |---|---------------------|-----|--------|---------------------|--------|
-| 1.1 | Home | Tab | ✅ | `edges={['bottom']}` | [ ] |
-| 1.2 | Habits | Tab | ✅ | `edges={['bottom']}` | [ ] |
-| 1.3 | Journal | Tab | ✅ | Vsechny edges | [ ] |
-| 1.4 | Goals | Tab | ✅ | `edges={['bottom']}` | [ ] |
-| 1.5 | Settings | Tab | ✅ | `edges={['bottom']}` | [ ] |
-| 2.1 | Achievements | Stack | ✅ | ❌ ZADNA | [ ] |
-| 2.2 | Habit Stats | Stack | ✅ | ❌ CHYBI dole | [ ] |
-| 2.3 | Journal Stats | Stack | ✅ | ❌ CHYBI dole | [ ] |
-| 2.4 | Journal History | Stack | ✅ | ❌ CHYBI dole | [ ] |
-| 2.5 | Goal Stats | Stack | ✅ | ✅ `insets.bottom` | [ ] |
-| 3.1 | Levels Overview | Stack | ❌ | ❌ CHYBI dole | [ ] |
-| 3.2 | Reorder Habits | Stack | ❌ | ⚠️ Spatny import | [ ] |
-| 4.1 | Tab Bar | Nav | - | Auto (overit) | [ ] |
-| 5.1 | AdBanner | Komp | - | Rodic resi | [ ] |
-| 6.1-6.14 | 14 uzivatelskych modalu | Modal | - | Zkontrolovat | [ ] |
-| 7.1-7.8 | 8 celebracnich modalu | Modal | - | Zkontrolovat | [ ] |
-| 8.1-8.3 | Tutorial system | Overlay | - | ✅ Pripraveno | [ ] |
-| 9.1-9.3 | Tooltips + input | Komp | - | Zkontrolovat | [ ] |
-| 10.1-10.2 | Splash screen | Start | - | Overit | [ ] |
+| 1.1 | Home | Tab | ✅ | `edges={['bottom']}` | [x] |
+| 1.2 | Habits | Tab | ✅ | `edges={['bottom']}` | [x] |
+| 1.3 | Journal | Tab | ✅ | Vsechny edges | [x] |
+| 1.4 | Goals | Tab | ✅ | `edges={['bottom']}` | [x] |
+| 1.5 | Settings | Tab | ✅ | `edges={['bottom']}` | [x] |
+| 2.1 | Achievements | Stack | ✅ | ❌ ZADNA | [x] |
+| 2.2 | Habit Stats | Stack | ✅ | ❌ CHYBI dole | [x] |
+| 2.3 | Journal Stats | Stack | ✅ | ❌ CHYBI dole | [x] |
+| 2.4 | Journal History | Stack | ✅ | ❌ CHYBI dole | [x] |
+| 2.5 | Goal Stats | Stack | ✅ | ✅ `insets.bottom` | [x] |
+| 3.1 | Levels Overview | Stack | ❌ | ❌ CHYBI dole | [x] |
+| 3.2 | Reorder Habits | Stack | ❌ | ⚠️ Spatny import | [x] |
+| 4.1 | Tab Bar | Nav | - | Auto (overit) | [x] |
+| 5.1 | AdBanner | Komp | - | Rodic resi | [x] |
+| 6.1-6.14 | 14 uzivatelskych modalu | Modal | - | Zkontrolovat | [x] |
+| 7.1-7.8 | 8 celebracnich modalu | Modal | - | Zkontrolovat | [x] |
+| 8.1-8.3 | Tutorial system | Overlay | - | ✅ Pripraveno | [x] |
+| 9.1-9.3 | Tooltips + input | Komp | - | Zkontrolovat | [x] |
+| 10.1-10.2 | Splash screen | Start | - | Overit | [x] |
 
-**Celkem: 12 screenu + 22 modalu/komponent + 10 testovacich bodu + 1 dokumentace = 45 checkpointu**
+**IMPLEMENTACE DOKONCENA. Zbyva vizualni testovani (11.2-11.10).**

@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '../../contexts/ThemeContext';

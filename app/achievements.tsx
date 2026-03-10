@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -48,6 +49,7 @@ const { width: screenWidth } = Dimensions.get('window');
 export default function AchievementsScreen() {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   // ========================================
   // STATE MANAGEMENT
@@ -621,7 +623,7 @@ export default function AchievementsScreen() {
 
     bannerContainer: {
       position: 'absolute',
-      bottom: 0,
+      bottom: insets.bottom,
       left: 0,
       right: 0,
       backgroundColor: colors.backgroundSecondary,
@@ -664,7 +666,7 @@ export default function AchievementsScreen() {
     },
 
     scrollContent: {
-      paddingBottom: 120, // Extra padding for banner
+      paddingBottom: 120 + insets.bottom, // Extra padding for banner + safe area
       paddingTop: 16,
     },
 

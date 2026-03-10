@@ -1617,4 +1617,68 @@ The old 4-Tier system in XpAnimationContext was fully removed:
 
 ---
 
+## Android Edge-to-Edge (API 35)
+
+### Co to je
+
+Google od Android 15 (API 35) **povinne** vyzaduje edge-to-edge rendering. Aplikace se renderuje pres celou obrazovku vcetne oblasti za system navigation bar a status bar. Obe oblasti jsou pruhledne.
+
+### Konfigurace
+
+- `app.json`: `"edgeToEdgeEnabled": true` v Android sekci
+- `expo-status-bar`: `translucent={true}` v root `_layout.tsx`
+- `SafeAreaProvider` wrappuje celou aplikaci v `app/(tabs)/_layout.tsx`
+
+### Pravidla pro screeny
+
+**Tab screeny** (Home, Habits, Journal, Goals, Settings):
+- `SafeAreaView edges={[]}` - tab bar automaticky resi bottom safe area
+- Banner a content padding zustava bez zmeny (jsou nad tab barem)
+- NEPRIDAVAT `insets.bottom` - tab bar to handluje
+
+**Stack screeny** (Achievements, Habit Stats, Journal Stats, Journal History, Goal Stats, Levels, Reorder):
+- Pridat `useSafeAreaInsets()` hook
+- Banner: `bottom: insets.bottom` (ne `bottom: 0`)
+- Content: `paddingBottom: X + insets.bottom` kde X je prostor pro banner
+
+### Pravidla pro modaly
+
+**Centrovane dialogy** (BaseModal, ConfirmationModal, CelebrationModal, atd.):
+- `justifyContent: 'center'` - obsah je uprostred obrazovky
+- **Nepotrebuji** `insets.bottom` - tlacitka nejsou u spodniho okraje
+
+**Full-screen modaly** (HabitModal, GoalModal, ProgressModal, StreakWarmUpModal, AchievementDetailModal):
+- MUSI pouzivat `SafeAreaView` z `react-native-safe-area-context` (NE z `react-native`)
+- `SafeAreaView` automaticky prida padding pro vsechny edges vcetne bottom
+
+### Vzor kodu pro novy stack screen s bannerem
+
+```tsx
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export default function NewScreen() {
+  const insets = useSafeAreaInsets();
+
+  const styles = StyleSheet.create({
+    bannerContainer: {
+      position: 'absolute',
+      bottom: insets.bottom,
+      left: 0, right: 0,
+    },
+    contentContainer: {
+      paddingBottom: 60 + insets.bottom,
+    },
+  });
+}
+```
+
+### Checklist pro novy screen/modal
+
+1. Je to tab screen? -> `SafeAreaView edges={[]}`, zadny insets.bottom
+2. Je to stack screen s bannerem? -> `useSafeAreaInsets()`, `bottom: insets.bottom` na banner
+3. Je to centrovany modal? -> Zadny fix
+4. Je to full-screen modal? -> `SafeAreaView` z `react-native-safe-area-context`
+
+---
+
 *This document is continuously updated as new development patterns and guidelines are established in the SelfRise V2 project.*

@@ -7,9 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   AccessibilityInfo,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Achievement, AchievementRarity, UserAchievements } from '@/src/types/gamification';

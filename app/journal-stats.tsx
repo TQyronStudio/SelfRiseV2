@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
@@ -17,6 +17,7 @@ export default function JournalStatsScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { state, actions } = useGratitude();
   const [stats, setStats] = useState<GratitudeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,11 +128,11 @@ export default function JournalStatsScreen() {
     },
     contentContainer: {
       flexGrow: 1,
-      paddingBottom: 60, // Extra padding for banner
+      paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area
     },
     bannerContainer: {
       position: 'absolute',
-      bottom: 0,
+      bottom: insets.bottom,
       left: 0,
       right: 0,
       backgroundColor: colors.backgroundSecondary,

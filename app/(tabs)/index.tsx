@@ -346,7 +346,7 @@ export default function HomeScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView
         ref={mainScrollRef}
         style={styles.scrollView}
