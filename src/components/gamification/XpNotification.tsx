@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-  Platform,
   AccessibilityInfo
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
@@ -42,6 +42,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
 }) => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -376,7 +377,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     return null;
   }
 
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, insets.top);
   const notificationText = generateNotificationText(batchedData);
   const accessibilityLabel = generateAccessibilityAnnouncement(batchedData);
 
@@ -462,10 +463,10 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
 // STYLES
 // ========================================
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, topInset: number) => StyleSheet.create({
   container: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40, // Account for status bar
+    top: topInset + 10,
     left: 16,
     right: 16,
     zIndex: 1000,
