@@ -56,6 +56,7 @@ function TabLayoutContent() {
           headerTitleAlign: 'center',
           headerTitleStyle: {
             fontWeight: 'bold',
+            fontSize: 18,
           },
           tabBarStyle: {
             backgroundColor: colors.tabBarBackground,
@@ -76,29 +77,22 @@ function TabLayoutContent() {
           tabBarIcon: ({ color }) => <IconSymbol size={22} name="house.fill" color={color} />,
           tabBarButton: (props) => <HapticTab {...props} nativeID="home-tab" />,
           headerLeft: () => <TrophyButton />,
-          headerTitle: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: colors.textInverse, fontSize: 18, fontWeight: 'bold' }}>
-                {t('tabs.home')}
-              </Text>
+          headerRight: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 16 }}>
               <MultiplierCountdownTimer
                 size="small"
                 variant="light"
                 showMultiplier={false}
               />
+              <TouchableOpacity
+                onPress={() => {
+                  const { DeviceEventEmitter } = require('react-native');
+                  DeviceEventEmitter.emit('openHomeCustomization');
+                }}
+              >
+                <Ionicons name="options" size={22} color={colors.textInverse} />
+              </TouchableOpacity>
             </View>
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => {
-                // Emit event to open customization modal in HomeScreen
-                const { DeviceEventEmitter } = require('react-native');
-                DeviceEventEmitter.emit('openHomeCustomization');
-              }}
-              style={{ marginRight: 16 }}
-            >
-              <Ionicons name="options" size={22} color={colors.textInverse} />
-            </TouchableOpacity>
           ),
         }}
       />

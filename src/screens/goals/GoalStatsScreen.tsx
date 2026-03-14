@@ -70,9 +70,11 @@ export function GoalStatsScreen() {
       padding: 8,
     },
     title: {
-      fontSize: 20,
-      fontFamily: Fonts.semibold,
-      color: colors.white,
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.textInverse,
+      textAlign: 'center',
     },
     headerSpacer: {
       width: 40,

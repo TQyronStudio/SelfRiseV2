@@ -192,7 +192,7 @@ export const LevelsOverviewScreen: React.FC = () => {
       flex: 1,
       fontSize: Fonts.sizes.lg,
       fontWeight: 'bold',
-      color: colors.white,
+      color: colors.textInverse,
       textAlign: 'center',
     },
     headerSpacer: {
@@ -259,7 +259,7 @@ export const LevelsOverviewScreen: React.FC = () => {
     levelNumber: {
       fontSize: Fonts.sizes.md,
       fontWeight: 'bold',
-      color: colors.white,
+      color: colors.textInverse,
     },
     currentBadge: {
       backgroundColor: colors.primary,
@@ -270,7 +270,7 @@ export const LevelsOverviewScreen: React.FC = () => {
     currentText: {
       fontSize: Fonts.sizes.xs,
       fontWeight: 'bold',
-      color: colors.white,
+      color: colors.textInverse,
     },
     lockIcon: {
       marginTop: 4,
@@ -326,7 +326,7 @@ export const LevelsOverviewScreen: React.FC = () => {
             accessibilityRole="button"
             accessibilityLabel={t('screens.goBack')}
           >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
+            <Ionicons name="arrow-back" size={24} color={colors.textInverse} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('screens.levelOverview')}</Text>
           <View style={styles.headerSpacer} />
@@ -349,7 +349,7 @@ export const LevelsOverviewScreen: React.FC = () => {
           accessibilityRole="button"
           accessibilityLabel={t('screens.goBack')}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.white} />
+          <Ionicons name="arrow-back" size={24} color={colors.textInverse} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('screens.levelOverview')}</Text>
         <View style={styles.headerSpacer} />

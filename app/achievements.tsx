@@ -641,7 +641,7 @@ export default function AchievementsScreen() {
       flex: 1,
       fontSize: 18,
       fontWeight: 'bold',
-      color: colors.white,
+      color: colors.textInverse,
       textAlign: 'center',
     },
     headerPlaceholder: {
@@ -685,7 +685,7 @@ export default function AchievementsScreen() {
     },
 
     viewModeTextActive: {
-      color: colors.white,
+      color: colors.textInverse,
     },
 
     scrollView: {
@@ -1175,7 +1175,7 @@ export default function AchievementsScreen() {
         {/* Custom Header - same pattern as other stack screens */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color={colors.white} />
+            <IconSymbol name="chevron.left" size={24} color={colors.textInverse} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('screens.trophyRoom.title')}</Text>
           <View style={styles.headerPlaceholder} />
