@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useTutorial } from '@/src/contexts/TutorialContext';
 
 /**
  * AdBanner Component
@@ -29,6 +30,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   size = BannerAdSize.BANNER
 }) => {
   const { colors } = useTheme();
+  const { state: tutorialState } = useTutorial();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -51,8 +53,8 @@ export const AdBanner: React.FC<AdBannerProps> = ({
     console.error('❌ AdMob banner failed to load:', error.message);
   };
 
-  // Don't render container if ad failed to load (preserves space)
-  if (hasError) {
+  // Hide ads during tutorial and on error
+  if (hasError || tutorialState.isActive) {
     return null;
   }
 

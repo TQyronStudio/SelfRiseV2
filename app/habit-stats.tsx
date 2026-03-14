@@ -30,6 +30,7 @@ export default function HabitStatsPage() {
       backgroundColor: colors.primary,
     },
     backButton: {
+      width: 40,
       padding: Layout.spacing.xs,
     },
     headerTitle: {

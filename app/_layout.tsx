@@ -61,22 +61,7 @@ function LayoutContent() {
       <TutorialOverlay>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="achievements"
-            options={{
-              headerShown: true,
-              title: t('screens.trophyRoom.title'),
-              headerBackTitle: t('screens.backNavigation'),
-              headerStyle: {
-                backgroundColor: colors.primary,
-              },
-              headerTintColor: colors.textInverse,
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
-              presentation: 'card'
-            }}
-          />
+          <Stack.Screen name="achievements" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="journal-history" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="journal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="habit-stats" options={{ headerShown: false, presentation: 'card' }} />

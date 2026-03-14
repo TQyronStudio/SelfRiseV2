@@ -17,12 +17,21 @@ const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
   'repeat.circle.fill': 'repeat',
   'heart.fill': 'favorite',
   'book.fill': 'menu-book',
   'target': 'my-location',
   'gearshape.fill': 'settings',
+  'magnifyingglass': 'search',
+  'xmark.circle.fill': 'cancel',
+  'xmark': 'close',
+  'arrow.clockwise': 'refresh',
+  'clock': 'access-time',
+  'chart.bar': 'bar-chart',
+  'checkmark': 'check',
+  'info.circle': 'info-outline',
 } as IconMapping;
 
 /**

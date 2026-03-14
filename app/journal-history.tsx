@@ -140,6 +140,7 @@ export default function JournalHistoryScreen() {
       backgroundColor: colors.primary,
     },
     backButton: {
+      width: 40,
       padding: Layout.spacing.xs,
     },
     headerTitle: {

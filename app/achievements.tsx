@@ -13,11 +13,15 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { AdBanner } from '@/src/components/ads/AdBanner';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
+import { Layout } from '@/src/constants';
 import { HelpTooltip } from '@/src/components/common';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
@@ -50,6 +54,7 @@ export default function AchievementsScreen() {
   const { t } = useI18n();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   // ========================================
   // STATE MANAGEMENT
@@ -618,7 +623,29 @@ export default function AchievementsScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Layout.spacing.md,
+      paddingVertical: Layout.spacing.md,
+      backgroundColor: colors.primary,
+    },
+    backButton: {
+      width: 40,
+      padding: Layout.spacing.xs,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.white,
+      textAlign: 'center',
+    },
+    headerPlaceholder: {
+      width: 40,
     },
 
     bannerContainer: {
@@ -1136,41 +1163,61 @@ export default function AchievementsScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={['viewToggle', 'content']}
-        keyExtractor={(item) => item}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        renderItem={({ item }) => {
-          if (item === 'viewToggle') {
-            return renderViewModeToggle();
-          }
-          
-          if (item === 'content') {
-            if (viewMode === 'overview') {
-              return renderOverviewMode();
-            } else {
-              return renderAchievementsMode();
-            }
-          }
-          
-          return null;
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          presentation: 'card',
         }}
       />
+      <StatusBar style="light" />
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        {/* Custom Header - same pattern as other stack screens */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <IconSymbol name="chevron.left" size={24} color={colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('screens.trophyRoom.title')}</Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
 
-      {/* AdMob Banner - Fixed at bottom */}
-      <View style={styles.bannerContainer}>
-        <AdBanner />
-      </View>
+        <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
+          <FlatList
+            data={['viewToggle', 'content']}
+            keyExtractor={(item) => item}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                colors={[colors.primary]}
+                tintColor={colors.primary}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            renderItem={({ item }) => {
+              if (item === 'viewToggle') {
+                return renderViewModeToggle();
+              }
+
+              if (item === 'content') {
+                if (viewMode === 'overview') {
+                  return renderOverviewMode();
+                } else {
+                  return renderAchievementsMode();
+                }
+              }
+
+              return null;
+            }}
+          />
+        </View>
+
+        {/* AdMob Banner - Fixed at bottom */}
+        <View style={styles.bannerContainer}>
+          <AdBanner />
+        </View>
+      </SafeAreaView>
 
       <AchievementDetailModal
         visible={showDetailModal}
@@ -1180,7 +1227,7 @@ export default function AchievementsScreen() {
         batchUserStats={batchUserStats}
         realTimeProgress={selectedAchievementForDetail ? realTimeProgressMap[selectedAchievementForDetail.id] : undefined}
       />
-    </View>
+    </>
   );
 }
 
