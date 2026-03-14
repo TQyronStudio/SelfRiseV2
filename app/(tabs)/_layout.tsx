@@ -78,7 +78,7 @@ function TabLayoutContent() {
           headerLeft: () => <TrophyButton />,
           headerTitle: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: colors.textInverse, fontSize: 17, fontWeight: 'bold' }}>
+              <Text style={{ color: colors.textInverse, fontSize: 18, fontWeight: 'bold' }}>
                 {t('tabs.home')}
               </Text>
               <MultiplierCountdownTimer

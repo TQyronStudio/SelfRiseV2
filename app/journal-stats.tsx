@@ -107,7 +107,7 @@ export default function JournalStatsScreen() {
       flex: 1,
       fontSize: 18,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: colors.white,
       textAlign: 'center',
     },
     loadingContainer: {
@@ -210,11 +210,11 @@ export default function JournalStatsScreen() {
         {/* Custom Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
+            <IconSymbol name="chevron.left" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('journal.stats.title')}</Text>
           <TouchableOpacity onPress={loadStats} style={styles.headerButton}>
-            <IconSymbol name="arrow.clockwise" size={20} color="#FFFFFF" />
+            <IconSymbol name="arrow.clockwise" size={20} color={colors.white} />
           </TouchableOpacity>
         </View>
 
