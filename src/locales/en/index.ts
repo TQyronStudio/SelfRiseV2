@@ -3734,28 +3734,28 @@ const en: TranslationKeys = {
       welcome: {
         title: 'Welcome to SelfRise! 🌟',
         content: 'Get ready for an amazing journey of personal growth! We\'ll guide you through creating your first habit, writing in your journal, and setting a meaningful goal. By the end, you\'ll have everything you need to start building the life you want! ✨',
-        button: 'Let\'s Begin!',
+        button: 'Continue',
       },
 
       // App Overview
       appOverview: {
         title: 'Your Personal Growth Dashboard 📊',
         content: 'This is your home screen where you\'ll see your progress, streaks, and achievements. Check back daily to stay motivated!',
-        button: 'Show me around',
+        button: 'Continue',
       },
 
       // Quick Actions
       quickActions: {
         title: 'Quick Actions 🚀',
         content: 'These buttons let you quickly add habits, journal entries, or goals. Tap them anytime you want to make progress!',
-        button: 'Got it!',
+        button: 'Continue',
       },
 
       // Create Habit Button
       createHabitButton: {
         title: 'Let\'s Create Your First Habit! 🌱',
         content: 'Tap this button to start building your first positive habit. We\'ll guide you through the process step by step.',
-        button: 'Create habit',
+        button: 'Continue',
       },
 
       // Habit Create (Save Button)
@@ -3769,14 +3769,14 @@ const en: TranslationKeys = {
       goalCategory: {
         title: 'Choose a Category 🏷️',
         content: 'Pick a category that best describes your goal. This helps organize your goals and track progress in different areas of your life.',
-        button: 'Next step',
+        button: 'Continue',
       },
 
       // Goal Create (Save Button)
       goalCreate: {
         title: 'Create Your Goal 🎯',
         content: 'Ready to start tracking? Tap the create button to save your goal and begin your journey!',
-        button: 'Let\'s do it!',
+        button: 'Continue',
       },
 
       // Goal Complete
@@ -3790,14 +3790,14 @@ const en: TranslationKeys = {
       navigateHome: {
         title: 'Let\'s Go Home 🏠',
         content: 'Tap the home tab to see your dashboard with all your progress, habits, and achievements!',
-        button: 'Take me home',
+        button: 'Continue',
       },
 
       // Trophy Room
       trophyRoom: {
         title: 'Your Trophy Room 🏆',
         content: 'This is where all your achievements live! Complete challenges to unlock badges and celebrate your wins!',
-        button: 'Amazing!',
+        button: 'Continue',
       },
 
       // Step 2: Habit Name Input
@@ -3806,42 +3806,42 @@ const en: TranslationKeys = {
         content: 'Let\'s start with something you want to do every day! This could be reading, exercising, meditating, or anything that makes you feel good. What positive habit do you want to build?',
         placeholder: 'e.g., Read for 10 minutes',
         examples: ['Morning meditation', 'Daily walk', 'Drink 8 glasses of water', 'Write in gratitude journal', 'Do 20 push-ups'],
-        button: 'Great choice!',
+        button: 'Continue',
       },
 
       // Step 3: Habit Color Selection
       habitColor: {
         title: 'Make It Yours! 🎨',
         content: 'Pick a color that makes you excited! Every time you see this color, you\'ll think of your awesome new habit. Choose whatever feels right to you!',
-        button: 'Perfect!',
+        button: 'Continue',
       },
 
       // Step 4: Habit Icon Selection
       habitIcon: {
         title: 'Choose Your Icon ✨',
         content: 'Time to pick an icon that represents your habit! This visual will help you instantly recognize your habit and make it feel more personal. What speaks to you?',
-        button: 'Love it!',
+        button: 'Continue',
       },
 
       // Step 5: Habit Schedule Days
       habitDays: {
         title: 'When Will You Do This? 📅',
         content: 'You\'re in control! Choose which days work best for your lifestyle. Want to build momentum with daily practice? Or prefer weekdays only? Whatever you choose, we\'ll help you stick to it!',
-        button: 'Sounds good!',
+        button: 'Continue',
       },
 
       // Step 6: Habit Creation Complete
       habitComplete: {
         title: 'Habit Created Successfully! 🎉',
         content: 'Amazing! You\'ve just created your first habit. You can see it below with your chosen color and icon. Tomorrow, you\'ll be able to check it off and start building an incredible streak!',
-        button: 'What\'s next?',
+        button: 'Continue',
       },
 
       // Step 7: Journal Introduction
       journalIntro: {
         title: 'Now Let\'s Try Journaling! 📝',
         content: 'Journaling is one of the most powerful tools for personal growth. It helps you appreciate good things in your life and builds a positive mindset. Let\'s write your first gratitude entry!',
-        button: 'I\'m ready!',
+        button: 'Continue',
       },
 
       // Step 8: First Gratitude Entry
@@ -3850,21 +3850,21 @@ const en: TranslationKeys = {
         content: 'Think of something - big or small - that you appreciate in your life right now. It could be a person, experience, opportunity, or even something as simple as your morning coffee! ☕',
         placeholder: 'I\'m grateful for...',
         examples: ['My family\'s support', 'Having a roof over my head', 'The ability to learn new things', 'A sunny day', 'My health'],
-        button: 'Add this entry',
+        button: 'Continue',
       },
 
       // Step 9: Journal Encouragement
       journalEncouragement: {
         title: 'You\'re A Natural! ⭐',
         content: 'Beautiful entry! Writing 3 gratitude entries daily helps maintain your SelfRise streak and fills your mind with positivity. You can always add bonus entries for extra XP too!',
-        button: 'Got it!',
+        button: 'Continue',
       },
 
       // Step 10: Goals Introduction
       goalsIntro: {
         title: 'Time To Set A Goal! 🎯',
         content: 'Goals give your life direction and purpose. Whether it\'s saving money, reading books, losing weight, or learning a skill - we\'ll help you track progress and predict when you\'ll achieve it!',
-        button: 'Let\'s create one!',
+        button: 'Continue',
       },
 
       // Step 11: Goal Title
@@ -3873,7 +3873,7 @@ const en: TranslationKeys = {
         content: 'Think of something meaningful you want to achieve. Make it specific and exciting! This should be something that would make you proud when you complete it.',
         placeholder: 'e.g., Read 24 books this year',
         examples: ['Save $5,000 for vacation', 'Learn Spanish fluently', 'Run a 5K marathon', 'Write a book', 'Learn guitar'],
-        button: 'That\'s a great goal!',
+        button: 'Continue',
       },
 
       // Step 12: Goal Unit
@@ -3882,7 +3882,7 @@ const en: TranslationKeys = {
         content: 'What unit makes sense for tracking your goal? This helps us show your progress clearly and predict when you\'ll succeed!',
         placeholder: 'e.g., books',
         examples: ['books', 'dollars', 'pounds', 'hours', 'kilometers', 'pages', 'days'],
-        button: 'Perfect!',
+        button: 'Continue',
       },
 
       // Step 13: Goal Target
@@ -3890,7 +3890,7 @@ const en: TranslationKeys = {
         title: 'What\'s Your Target Number? 🎯',
         content: 'How many {{unit}} do you want to achieve? Make it challenging but realistic. You can always adjust this later as you learn more about your pace!',
         placeholder: 'e.g., 24',
-        button: 'Sounds achievable!',
+        button: 'Continue',
       },
 
       // Step 14: Goal Date (Optional)
@@ -3898,21 +3898,21 @@ const en: TranslationKeys = {
         title: 'When Do You Want To Achieve This? 📅',
         content: 'Setting a target date helps create urgency and allows us to give you smart predictions! Don\'t worry - this is optional and you can always change it later.',
         placeholder: 'Select target date (optional)',
-        button: 'All set!',
+        button: 'Continue',
       },
 
       // Step 14b: Create Goal Button
       createGoalButton: {
         title: 'Create Your First Goal',
         content: 'Click + Add Goal to set your first meaningful target!',
-        button: 'Click Here',
+        button: 'Continue',
       },
 
       // Step 15: XP System Introduction
       xpIntro: {
         title: 'You\'re Earning XP! ⚡',
         content: 'Look at that! You\'ve already earned experience points for creating your habit and goal. Every action you take in SelfRise earns XP, helping you level up from Level 1 to Level 100. It\'s like a game, but for your real life! 🎮',
-        button: 'So cool!',
+        button: 'Continue',
       },
 
       // Step 16: Tutorial Complete

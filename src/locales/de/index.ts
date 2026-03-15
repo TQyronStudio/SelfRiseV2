@@ -3708,28 +3708,28 @@ const de: Partial<TranslationKeys> = {
       welcome: {
         title: 'Willkommen bei SelfRise! 🌟',
         content: 'Starte deine Reise des Wachstums! Wir zeigen dir, wie du Gewohnheiten erstellst, Tagebuch führst und Ziele setzt. Alles, was du brauchst, um dein bestes Leben zu leben! ✨',
-        button: 'Los geht\'s!',
+        button: 'Weiter',
       },
 
       // App-Übersicht
       appOverview: {
         title: 'Dein Persönliches Wachstums-Dashboard 📊',
         content: 'Dies ist dein Startbildschirm, auf dem du deinen Fortschritt, Serien und Erfolge siehst. Schau täglich vorbei, um motiviert zu bleiben!',
-        button: 'Zeig mir mehr',
+        button: 'Weiter',
       },
 
       // Schnellaktionen
       quickActions: {
         title: 'Schnellaktionen 🚀',
         content: 'Diese Schaltflächen ermöglichen dir, schnell Gewohnheiten, Tagebucheinträge oder Ziele hinzuzufügen. Tippe sie jederzeit an, wenn du Fortschritte machen möchtest!',
-        button: 'Verstanden!',
+        button: 'Weiter',
       },
 
       // Gewohnheit erstellen Button
       createHabitButton: {
         title: 'Lass uns deine erste Gewohnheit erstellen! 🌱',
         content: 'Tippe auf diese Schaltfläche, um deine erste positive Gewohnheit aufzubauen. Wir führen dich Schritt für Schritt durch den Prozess.',
-        button: 'Gewohnheit erstellen',
+        button: 'Weiter',
       },
 
       // Gewohnheit erstellen (Speichern-Button)
@@ -3743,14 +3743,14 @@ const de: Partial<TranslationKeys> = {
       goalCategory: {
         title: 'Wähle eine Kategorie 🏷️',
         content: 'Wähle eine Kategorie, die dein Ziel am besten beschreibt. Dies hilft, deine Ziele zu organisieren und den Fortschritt in verschiedenen Lebensbereichen zu verfolgen.',
-        button: 'Nächster Schritt',
+        button: 'Weiter',
       },
 
       // Ziel erstellen (Speichern-Button)
       goalCreate: {
         title: 'Erstelle dein Ziel 🎯',
         content: 'Bereit zum Verfolgen zu starten? Tippe auf die Erstellen-Schaltfläche, um dein Ziel zu speichern und deine Reise zu beginnen!',
-        button: 'Los geht\'s!',
+        button: 'Weiter',
       },
 
       // Ziel abgeschlossen
@@ -3764,14 +3764,14 @@ const de: Partial<TranslationKeys> = {
       navigateHome: {
         title: 'Lass uns nach Hause gehen 🏠',
         content: 'Tippe auf den Home-Tab, um dein Dashboard mit all deinen Fortschritten, Gewohnheiten und Erfolgen zu sehen!',
-        button: 'Bring mich nach Hause',
+        button: 'Weiter',
       },
 
       // Trophäenraum
       trophyRoom: {
         title: 'Dein Trophäenraum 🏆',
         content: 'Hier leben all deine Erfolge! Schließe Herausforderungen ab, um Abzeichen freizuschalten und deine Siege zu feiern!',
-        button: 'Großartig!',
+        button: 'Weiter',
       },
 
       // Schritt 2: Gewohnheitsname eingeben
@@ -3780,42 +3780,42 @@ const de: Partial<TranslationKeys> = {
         content: 'Was möchtest du täglich tun? Lesen, Sport, Meditation - wähle eine positive Gewohnheit, die dir guttut!',
         placeholder: 'z.B. 10 Minuten lesen',
         examples: ['Morgenmeditation', 'Täglicher Spaziergang', '8 Gläser Wasser trinken', 'In Dankbarkeitstagebuch schreiben', '20 Liegestütze machen'],
-        button: 'Tolle Wahl!',
+        button: 'Weiter',
       },
 
       // Schritt 3: Gewohnheitsfarbe auswählen
       habitColor: {
         title: 'Mach es zu deinem! 🎨',
         content: 'Wähle eine Farbe, die dich begeistert! Sie wird dich an deine neue Gewohnheit erinnern.',
-        button: 'Perfekt!',
+        button: 'Weiter',
       },
 
       // Schritt 4: Gewohnheitssymbol auswählen
       habitIcon: {
         title: 'Wähle dein Symbol ✨',
         content: 'Wähle ein Symbol für deine Gewohnheit! Es hilft dir, sie sofort zu erkennen.',
-        button: 'Ich liebe es!',
+        button: 'Weiter',
       },
 
       // Schritt 5: Gewohnheitstage planen
       habitDays: {
         title: 'Wann wirst du dies tun? 📅',
         content: 'Wähle die Tage, die zu deinem Leben passen. Täglich oder nur an bestimmten Tagen - du entscheidest!',
-        button: 'Klingt gut!',
+        button: 'Weiter',
       },
 
       // Schritt 6: Gewohnheit erfolgreich erstellt
       habitComplete: {
         title: 'Gewohnheit erstellt! 🎉',
         content: 'Fantastisch! Deine erste Gewohnheit ist bereit. Morgen kannst du sie abhaken und deine Serie starten!',
-        button: 'Was kommt als Nächstes?',
+        button: 'Weiter',
       },
 
       // Schritt 7: Tagebuch-Einführung
       journalIntro: {
         title: 'Probiere das Tagebuch aus! 📝',
         content: 'Dankbarkeit aufschreiben stärkt positive Gedanken. Lass uns deinen ersten Eintrag schreiben!',
-        button: 'Ich bin bereit!',
+        button: 'Weiter',
       },
 
       // Schritt 8: Erster Dankbarkeitseintrag
@@ -3824,21 +3824,21 @@ const de: Partial<TranslationKeys> = {
         content: 'Denke an etwas, das du schätzt - groß oder klein. Eine Person, Erfahrung oder etwas Einfaches wie Morgenkaffee! ☕',
         placeholder: 'Ich bin dankbar für...',
         examples: ['Die Unterstützung meiner Familie', 'Ein Dach über dem Kopf zu haben', 'Die Fähigkeit, neue Dinge zu lernen', 'Einen sonnigen Tag', 'Meine Gesundheit'],
-        button: 'Eintrag hinzufügen',
+        button: 'Weiter',
       },
 
       // Schritt 9: Tagebuch-Ermutigung
       journalEncouragement: {
         title: 'Du bist ein Naturtalent! ⭐',
         content: 'Super Eintrag! 3 tägliche Einträge halten deine Serie. Bonus-Einträge bringen extra XP!',
-        button: 'Verstanden!',
+        button: 'Weiter',
       },
 
       // Schritt 10: Ziele-Einführung
       goalsIntro: {
         title: 'Zeit für ein Ziel! 🎯',
         content: 'Ziele geben Richtung. Wir helfen dir, Fortschritte zu verfolgen und vorherzusagen, wann du es erreichst!',
-        button: 'Lass uns eines erstellen!',
+        button: 'Weiter',
       },
 
       // Schritt 11: Zieltitel
@@ -3847,7 +3847,7 @@ const de: Partial<TranslationKeys> = {
         content: 'Wähle etwas Bedeutungsvolles und Spezifisches, worauf du stolz wärst!',
         placeholder: 'z.B. 24 Bücher dieses Jahr lesen',
         examples: ['5.000€ für Urlaub sparen', 'Spanisch fließend lernen', 'Einen 5K-Marathon laufen', 'Ein Buch schreiben', 'Gitarre lernen'],
-        button: 'Tolles Ziel!',
+        button: 'Weiter',
       },
 
       // Schritt 12: Zieleinheit
@@ -3856,7 +3856,7 @@ const de: Partial<TranslationKeys> = {
         content: 'Wähle eine Einheit für dein Ziel. Das hilft uns, deinen Fortschritt zu zeigen!',
         placeholder: 'z.B. Bücher',
         examples: ['Bücher', 'Euro', 'Kilogramm', 'Stunden', 'Kilometer', 'Seiten', 'Tage'],
-        button: 'Perfekt!',
+        button: 'Weiter',
       },
 
       // Schritt 13: Zielzahl
@@ -3864,7 +3864,7 @@ const de: Partial<TranslationKeys> = {
         title: 'Was ist deine Zielzahl? 🎯',
         content: 'Wie viele {{unit}} möchtest du erreichen? Herausfordernd aber realistisch!',
         placeholder: 'z.B. 24',
-        button: 'Klingt erreichbar!',
+        button: 'Weiter',
       },
 
       // Schritt 14: Zieldatum (Optional)
@@ -3872,21 +3872,21 @@ const de: Partial<TranslationKeys> = {
         title: 'Wann möchtest du fertig sein? 📅',
         content: 'Ein Zieldatum hilft bei Vorhersagen. Optional - du kannst es später ändern.',
         placeholder: 'Zieldatum auswählen (optional)',
-        button: 'Alles bereit!',
+        button: 'Weiter',
       },
 
       // Schritt 14b: Ziel erstellen Button
       createGoalButton: {
         title: 'Erstelle dein erstes Ziel',
         content: 'Klicke auf + Ziel hinzufügen, um dein erstes bedeutungsvolles Ziel zu setzen!',
-        button: 'Hier klicken',
+        button: 'Weiter',
       },
 
       // Schritt 15: XP-System-Einführung
       xpIntro: {
         title: 'Du verdienst XP! ⚡',
         content: 'Du sammelst Erfahrungspunkte! Jede Aktion bringt XP und hilft dir, Level aufzusteigen. Wie ein Spiel für dein Leben! 🎮',
-        button: 'So cool!',
+        button: 'Weiter',
       },
 
       // Schritt 16: Tutorial abgeschlossen

@@ -3709,28 +3709,28 @@ const es: Partial<TranslationKeys> = {
       welcome: {
         title: '¡Bienvenido a SelfRise! 🌟',
         content: '¡Prepárate para un increíble viaje de crecimiento personal! Te guiaremos a través de la creación de tu primer hábito, escribir en tu diario y establecer una meta significativa. ¡Al final, tendrás todo lo que necesitas para empezar a construir la vida que deseas! ✨',
-        button: '¡Comencemos!',
+        button: 'Continuar',
       },
 
       // Resumen de la App
       appOverview: {
         title: 'Tu Panel de Crecimiento Personal 📊',
         content: 'Esta es tu pantalla principal donde verás tu progreso, rachas y logros. ¡Vuelve diariamente para mantenerte motivado!',
-        button: 'Muéstrame más',
+        button: 'Continuar',
       },
 
       // Acciones Rápidas
       quickActions: {
         title: 'Acciones Rápidas 🚀',
         content: 'Estos botones te permiten agregar rápidamente hábitos, entradas de diario u objetivos. ¡Tócalos cuando quieras hacer progreso!',
-        button: '¡Entendido!',
+        button: 'Continuar',
       },
 
       // Botón Crear Hábito
       createHabitButton: {
         title: '¡Vamos a crear tu primer hábito! 🌱',
         content: 'Toca este botón para empezar a construir tu primer hábito positivo. Te guiaremos paso a paso.',
-        button: 'Crear hábito',
+        button: 'Continuar',
       },
 
       // Crear Hábito (Botón Guardar)
@@ -3744,14 +3744,14 @@ const es: Partial<TranslationKeys> = {
       goalCategory: {
         title: 'Elige una Categoría 🏷️',
         content: 'Selecciona una categoría que mejor describa tu meta. Esto ayuda a organizar tus metas y seguir el progreso en diferentes áreas de tu vida.',
-        button: 'Siguiente paso',
+        button: 'Continuar',
       },
 
       // Crear Meta (Botón Guardar)
       goalCreate: {
         title: 'Crea Tu Meta 🎯',
         content: '¿Listo para empezar a seguir? ¡Toca el botón crear para guardar tu meta y comenzar tu viaje!',
-        button: '¡Hagámoslo!',
+        button: 'Continuar',
       },
 
       // Meta Completada
@@ -3765,14 +3765,14 @@ const es: Partial<TranslationKeys> = {
       navigateHome: {
         title: 'Vamos a Casa 🏠',
         content: '¡Toca la pestaña inicio para ver tu panel con todo tu progreso, hábitos y logros!',
-        button: 'Llévame a casa',
+        button: 'Continuar',
       },
 
       // Sala de Trofeos
       trophyRoom: {
         title: 'Tu Sala de Trofeos 🏆',
         content: '¡Aquí es donde viven todos tus logros! ¡Completa desafíos para desbloquear insignias y celebrar tus victorias!',
-        button: '¡Increíble!',
+        button: 'Continuar',
       },
 
       // Paso 2: Entrada de Nombre del Hábito
@@ -3781,42 +3781,42 @@ const es: Partial<TranslationKeys> = {
         content: '¡Empecemos con algo que quieras hacer todos los días! Podría ser leer, ejercitarte, meditar, o cualquier cosa que te haga sentir bien. ¿Qué hábito positivo quieres construir?',
         placeholder: 'ej., Leer 10 minutos',
         examples: ['Meditación matutina', 'Caminata diaria', 'Beber 8 vasos de agua', 'Escribir en diario de gratitud', 'Hacer 20 flexiones'],
-        button: '¡Gran elección!',
+        button: 'Continuar',
       },
 
       // Paso 3: Selección de Color del Hábito
       habitColor: {
         title: '¡Hazlo Tuyo! 🎨',
         content: '¡Elige un color que te emocione! Cada vez que veas este color, pensarás en tu increíble nuevo hábito. ¡Elige lo que se sienta correcto para ti!',
-        button: '¡Perfecto!',
+        button: 'Continuar',
       },
 
       // Paso 4: Selección de Icono del Hábito
       habitIcon: {
         title: 'Elige Tu Icono ✨',
         content: '¡Es hora de elegir un icono que represente tu hábito! Este visual te ayudará a reconocer tu hábito al instante y hacerlo más personal. ¿Qué te llama la atención?',
-        button: '¡Me encanta!',
+        button: 'Continuar',
       },
 
       // Paso 5: Días del Hábito
       habitDays: {
         title: '¿Cuándo Harás Esto? 📅',
         content: '¡Tú tienes el control! Elige qué días funcionan mejor para tu estilo de vida. ¿Quieres construir impulso con práctica diaria? ¿O prefieres solo días laborables? ¡Lo que elijas, te ayudaremos a mantenerlo!',
-        button: '¡Suena bien!',
+        button: 'Continuar',
       },
 
       // Paso 6: Hábito Creado Exitosamente
       habitComplete: {
         title: '¡Hábito Creado Exitosamente! 🎉',
         content: '¡Increíble! Acabas de crear tu primer hábito. Puedes verlo abajo con tu color e icono elegidos. ¡Mañana podrás marcarlo y empezar a construir una racha increíble!',
-        button: '¿Qué sigue?',
+        button: 'Continuar',
       },
 
       // Paso 7: Introducción al Diario
       journalIntro: {
         title: '¡Ahora Probemos el Diario! 📝',
         content: 'El diario es una de las herramientas más poderosas para el crecimiento personal. Te ayuda a apreciar las cosas buenas en tu vida y construye una mentalidad positiva. ¡Escribamos tu primera entrada de gratitud!',
-        button: '¡Estoy listo!',
+        button: 'Continuar',
       },
 
       // Paso 8: Primera Entrada de Gratitud
@@ -3825,21 +3825,21 @@ const es: Partial<TranslationKeys> = {
         content: 'Piensa en algo - grande o pequeño - que aprecies en tu vida ahora mismo. ¡Podría ser una persona, experiencia, oportunidad, o incluso algo tan simple como tu café de la mañana! ☕',
         placeholder: 'Estoy agradecido por...',
         examples: ['El apoyo de mi familia', 'Tener un techo sobre mi cabeza', 'La capacidad de aprender cosas nuevas', 'Un día soleado', 'Mi salud'],
-        button: 'Agregar esta entrada',
+        button: 'Continuar',
       },
 
       // Paso 9: Ánimo del Diario
       journalEncouragement: {
         title: '¡Eres un Natural! ⭐',
         content: '¡Hermosa entrada! Escribir 3 entradas de gratitud diarias ayuda a mantener tu racha de SelfRise y llena tu mente de positividad. ¡También puedes agregar entradas extra para XP adicional!',
-        button: '¡Entendido!',
+        button: 'Continuar',
       },
 
       // Paso 10: Introducción a Metas
       goalsIntro: {
         title: '¡Hora de Establecer una Meta! 🎯',
         content: 'Las metas dan dirección y propósito a tu vida. Ya sea ahorrar dinero, leer libros, perder peso o aprender una habilidad - ¡te ayudaremos a seguir el progreso y predecir cuándo lo lograrás!',
-        button: '¡Creemos una!',
+        button: 'Continuar',
       },
 
       // Paso 11: Título de la Meta
@@ -3848,7 +3848,7 @@ const es: Partial<TranslationKeys> = {
         content: 'Piensa en algo significativo que quieras lograr. ¡Hazlo específico y emocionante! Esto debería ser algo de lo que te sientas orgulloso cuando lo completes.',
         placeholder: 'ej., Leer 24 libros este año',
         examples: ['Ahorrar $5,000 para vacaciones', 'Aprender español fluido', 'Correr un maratón de 5K', 'Escribir un libro', 'Aprender guitarra'],
-        button: '¡Gran meta!',
+        button: 'Continuar',
       },
 
       // Paso 12: Unidad de la Meta
@@ -3857,7 +3857,7 @@ const es: Partial<TranslationKeys> = {
         content: '¿Qué unidad tiene sentido para seguir tu meta? ¡Esto nos ayuda a mostrar tu progreso claramente y predecir cuándo tendrás éxito!',
         placeholder: 'ej., libros',
         examples: ['libros', 'dólares', 'kilos', 'horas', 'kilómetros', 'páginas', 'días'],
-        button: '¡Perfecto!',
+        button: 'Continuar',
       },
 
       // Paso 13: Número Objetivo
@@ -3865,7 +3865,7 @@ const es: Partial<TranslationKeys> = {
         title: '¿Cuál es Tu Número Objetivo? 🎯',
         content: '¿Cuántas {{unit}} quieres lograr? Hazlo desafiante pero realista. ¡Siempre puedes ajustarlo después mientras aprendes más sobre tu ritmo!',
         placeholder: 'ej., 24',
-        button: '¡Parece alcanzable!',
+        button: 'Continuar',
       },
 
       // Paso 14: Fecha de la Meta (Opcional)
@@ -3873,21 +3873,21 @@ const es: Partial<TranslationKeys> = {
         title: '¿Cuándo Quieres Lograr Esto? 📅',
         content: '¡Establecer una fecha objetivo crea urgencia y nos permite darte predicciones inteligentes! No te preocupes - esto es opcional y siempre puedes cambiarlo después.',
         placeholder: 'Seleccionar fecha objetivo (opcional)',
-        button: '¡Listo!',
+        button: 'Continuar',
       },
 
       // Paso 14b: Botón Crear Meta
       createGoalButton: {
         title: 'Crea Tu Primera Meta',
         content: '¡Haz clic en + Agregar Meta para establecer tu primer objetivo significativo!',
-        button: 'Haz clic aquí',
+        button: 'Continuar',
       },
 
       // Paso 15: Introducción al Sistema XP
       xpIntro: {
         title: '¡Estás Ganando XP! ⚡',
         content: '¡Mira eso! Ya ganaste puntos de experiencia por crear tu hábito y meta. Cada acción que tomas en SelfRise gana XP, ayudándote a subir del Nivel 1 al Nivel 100. ¡Es como un juego, pero para tu vida real! 🎮',
-        button: '¡Genial!',
+        button: 'Continuar',
       },
 
       // Paso 16: Tutorial Completado
