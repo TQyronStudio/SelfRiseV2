@@ -138,9 +138,8 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const contentHeight = scaleFont(Fonts.sizes.md) * 1.5 * 2; // Assume 2 lines max
     const contentMargin = isTabletDevice ? 16 : (screenSize === ScreenSize.SMALL ? 12 : 14);
     const progressContainerHeight = isTabletDevice ? 40 : (screenSize === ScreenSize.SMALL ? 30 : 35);
-    const nextButtonHeight = state.showNext || state.currentStepData?.action === 'next'
-      ? (isTabletDevice ? 36 : (screenSize === ScreenSize.SMALL ? 32 : 34))
-      : 0;
+    // Always include button height - button is always rendered (invisible when not active)
+    const nextButtonHeight = isTabletDevice ? 36 : (screenSize === ScreenSize.SMALL ? 32 : 34);
 
     // Total calculated height
     const totalHeight =
@@ -688,21 +687,23 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 <Text style={styles.progressText}>{t('ui.progressStep', { current: state.currentStep, total: state.totalSteps })}</Text>
               </View>
 
-              {/* Next Button - Show when appropriate */}
-              {(state.showNext || state.currentStepData.action === 'next') && (
-                <TouchableOpacity
-                  style={styles.nextButton}
-                  onPress={handleNext}
-                  accessible={true}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('ui.nextStep')}
-                >
-                  <Text style={styles.nextButtonText}>
-                    {state.currentStepData.content.button || t('ui.next')}
-                  </Text>
-                  <Ionicons name="arrow-forward" size={getIconSize(16)} color={colors.white} />
-                </TouchableOpacity>
-              )}
+              {/* Next Button - always rendered to reserve space, invisible when not active */}
+              <TouchableOpacity
+                style={[
+                  styles.nextButton,
+                  !(state.showNext || state.currentStepData.action === 'next') && { opacity: 0 }
+                ]}
+                onPress={handleNext}
+                disabled={!(state.showNext || state.currentStepData.action === 'next')}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('ui.nextStep')}
+              >
+                <Text style={styles.nextButtonText}>
+                  {state.currentStepData.content.button || t('ui.next')}
+                </Text>
+                <Ionicons name="arrow-forward" size={getIconSize(16)} color={colors.white} />
+              </TouchableOpacity>
             </View>
           </Animated.View>
         )}

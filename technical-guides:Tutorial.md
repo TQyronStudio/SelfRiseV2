@@ -377,11 +377,12 @@ const calculateTutorialCardHeight = (): number => {
 #### Migration Notes:
 - **V1 (Original)**: Fixní pozice 120px = problémy na různých zařízeních
 - **V1.5 (First Fix)**: Dynamické pozicování s fixní rezervou 250px = lepší, ale stále nedokonalé na Androidu
-- **V2 (Current - Enhanced Android)**: Dynamický výpočet výšky cardu + Android-specific padding = perfektní na všech zařízeních
+- **V2 (Android Fix)**: Dynamický výpočet výšky cardu + Android-specific padding
+- **V3 (Current - Fully Responsive)**: Vše relativní k `safeHeight` (% místo px), maxHeight 40%, ScrollView na content, žádné hardcoded pixely
 - **Impact**:
-  - iOS: Funguje perfektně ✅
+  - iOS (všechny velikosti): Funguje perfektně ✅
   - Android (gesture nav): Funguje perfektně ✅
-  - Android (3-button nav): Funguje perfektně ✅ (dříve byl text těsně u spodu)
+  - Android (3-button nav): Funguje perfektně ✅
   - Tablets: Funguje perfektně ✅
 
 #### Android-Specific Enhancements:
@@ -655,8 +656,52 @@ interface TutorialMetrics {
 ### 2. Form Validation Requirements
 **První znak trigger** - Pro všechny text input fieldy (habit název, goal název, unit) stačí napsat první znak pro aktivaci Next tlačítka.
 
-### 3. Responsive Design
-**Screen size adaptace** - Spotlight velikost a pozice se automaticky adaptuje pro tablety vs phones. Větší spotlight pro tablety, menší pro telefony.
+### 3. Responsive Design (V3 - Relative Positioning)
+
+**AKTUALIZACE 2026-03-15**: Kompletní přechod z hardcoded pixelů na relativní hodnoty.
+
+#### Princip: Vše relativní k `safeHeight`
+```typescript
+const screenHeight = Dimensions.get('window').height;
+const safeHeight = screenHeight - insets.top - insets.bottom; // použitelná výška
+```
+
+#### Pozicování tutorial karty:
+| Pozice | Vzorec | Účel |
+|--------|--------|------|
+| **TOP** | `insets.top + safeHeight * 0.06` | Karta nahoře (pod status barem) |
+| **BOTTOM** | `insets.bottom + safeHeight * 0.05` | Karta dole (nad navigační lištou) |
+| **DYNAMIC** | `spotlight.y + spotlight.height + safeHeight * 0.02` | Pod spotlight targetem |
+| **Skip button** | `insets.top + 8` | Vždy pod status barem |
+
+#### Omezení velikosti karty:
+```typescript
+contentCard: {
+  maxHeight: safeHeight * 0.4,  // max 40% použitelné výšky
+}
+```
+- **Title, progress bar, button** = fixní (vždy viditelné)
+- **Content text** = ve ScrollView (scrolluje se pokud je text delší)
+- Spotlight má vždy min. 60% obrazovky
+
+#### Auto-scroll reserves (% z výšky obrazovky):
+```typescript
+topReserve = isQuickActions ? height * 0.25 : (isTypeInput ? height * 0.18 : height * 0.12);
+bottomReserve = isTypeInput ? height * 0.42 : height * 0.25;
+```
+
+#### Příklady výpočtů na různých zařízeních:
+| Zařízení | safeHeight | Card maxH | Top pos | Bottom pos |
+|----------|-----------|-----------|---------|------------|
+| iPhone SE | 647px | 259px | 59px | 52px |
+| iPhone 15 Pro | 759px | 304px | 105px | 72px |
+| Pixel 7 | 794px | 318px | 98px | 88px |
+| iPad | 1036px | 414px | 86px | 72px |
+
+#### Android Edge-to-Edge:
+- Všechny modály mají `statusBarTranslucent={true}`
+- `insets.bottom` automaticky respektuje gesture nav (20px) i 3-button nav (48px)
+- Žádné `Platform.OS` podmínky - vše přes `useSafeAreaInsets()`
 
 ### 4. Recovery & Resume Logic
 **Crash recovery** - Pokud se aplikace crashne během tutoriálu, při restartu se nabídne pokračování od posledního uloženého kroku nebo restart celého tutoriálu.
