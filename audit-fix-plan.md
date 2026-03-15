@@ -1080,3 +1080,593 @@ Tyto modaly se zobrazuji automaticky a maji tlacitko "OK/Super/Dalsi". Obsah je 
 | 10.1-10.2 | Splash screen | Start | - | Overit | [x] |
 
 **IMPLEMENTACE DOKONCENA. Zbyva vizualni testovani (11.2-11.10).**
+
+---
+
+## FAZE 10: Optimalizace plynulosti - prvni habit completion lag
+
+### Problem
+
+Kdyz uzivatel poprve v session oznaci navyk jako splneny, aplikace se na chvili "kousne" (~75-200ms). Od druheho kliknuti je vse plynule. Jde o "studeny start" - pri prvnim kliknuti se probouzi cely retezec sluzeb, ktere se inicializuji az na posledni chvili (lazy loading).
+
+### Vysvetleni pro laiky
+
+Predstav si, ze pri kazdem zastaveni auta musis znovu nastartovat motor. Prvni start rana trvá dele, protoze motor je studeny. Dalsi starty uz jsou rychle, protoze motor je zahrity. Nase aplikace dela totez - pri prvnim kliknuti na navyk "startuje motory" pro XP system, achievementy a multiplikatory. Druhe kliknuti uz je bleskove, protoze vsechno bezi.
+
+**Reseni: Nastartovat motory predem pri otevreni aplikace + ukazat zavrtnuti OKAMZITE a pocitat XP na pozadi.**
+
+### Co presne zpusobuje zpozdeni (retezec operaci pri prvnim kliknuti)
+
+```
+Klik na navyk
+  └→ SQLiteHabitStorage.createCompletion()
+       └→ GamificationService.addXP()
+            └→ performXPAddition() [queued operation]
+                 ├→ getTotalXP() [DB read]
+                 ├→ validateXPAddition()
+                 │    ├→ getAdjustedDailyLimits()
+                 │    │    └→ getActiveXPMultiplier()
+                 │    │         └→ DYNAMIC IMPORT xpMultiplierService [5-15ms cold start]
+                 │    └→ getDailyXPData()
+                 │         └→ DYNAMIC IMPORT featureFlags [cold start]
+                 │         └→ DYNAMIC IMPORT database/init [cold start]
+                 │         └→ 4x SQLite queries [20-40ms celkem]
+                 ├→ getActiveXPMultiplier() [DRUHY volani - uz cached]
+                 ├→ DYNAMIC IMPORT featureFlags [cold start]
+                 ├→ DYNAMIC IMPORT database/init [cold start]
+                 ├→ SQLite ACID transakce (INSERT + UPSERT + UPSERT)
+                 ├→ updateXPBySource() [legacy tracking]
+                 ├→ updateLastActivity() [legacy tracking]
+                 ├→ triggerXPAnimation() [DeviceEventEmitter]
+                 └→ DYNAMIC IMPORT achievementService [5-15ms cold start]
+                      └→ checkAchievementsAfterXPAction() [50-150ms]
+```
+
+### Identifikovane problemy (4 vinici)
+
+**Vinik 1: Dynamicke importy (cold start penalty)**
+- `gamificationService.ts:2425` - `await import('./xpMultiplierService')` v `getActiveXPMultiplier()`
+- `gamificationService.ts:754` - `await import('../config/featureFlags')` v `performXPAdditionInternal()`
+- `gamificationService.ts:758` - `await import('./database/init')` v `performXPAdditionInternal()`
+- `gamificationService.ts:2242` - `await import('../config/featureFlags')` v `getDailyXPData()`
+- `gamificationService.ts:2246` - `await import('./database/init')` v `getDailyXPData()`
+- `gamificationService.ts:877` - `await import('./achievementService')` v achievement check
+- **Dopad**: Kazdy dynamicky import pri prvnim volani zabere 5-15ms na parsovani a inicializaci modulu
+
+**Vinik 2: 4 sekvencni DB dotazy v getDailyXPData()**
+- `gamificationService.ts:2251` - SELECT z xp_daily_summary
+- `gamificationService.ts:2271` - SELECT z xp_transactions s GROUP BY (goal anti-spam)
+- `gamificationService.ts:2287` - SELECT COUNT z xp_transactions (journal count)
+- `gamificationService.ts:2296` - SELECT z xp_transactions ORDER BY DESC LIMIT 1
+- **Dopad**: Dotazy bezi sekvencne (jeden po druhem), celkem 20-40ms
+
+**Vinik 3: Achievement check po XP pridani**
+- `gamificationService.ts:877-892` - Po KAZDEM pridani XP se kontroluji achievementy
+- Nacte vsechny achievementy, vyfiltruje relevantni, vyhodnoti podminky
+- Pri prvnim volani: inicializace AchievementService + AsyncStorage reads
+- **Dopad**: 50-150ms (nejvetsi vinik)
+
+**Vinik 4: Optimistic UI se nepouziva**
+- `HabitItemWithCompletion.tsx:146-161` - `handleToggleCompletion` ceka na `await onToggleCompletion()`
+- Checkbox se zaskrtne AZ po dokonceni cele operace (XP + achievementy + animace)
+- `HabitsContext.tsx:276` - `await habitStorage.toggleCompletion()` blokuje dispatch
+- **Dopad**: Uzivatel vidi "zamrzly" checkbox po celou dobu zpracovani
+
+---
+
+### Plan opravy (3 kroky)
+
+#### 10.1: Optimistic UI - okamzita vizualni odezva
+
+**Cil**: Checkbox se zaskrtne OKAMZITE po kliknuti, XP a achievementy se pocitaji na pozadi.
+
+**Co se zmeni**:
+- `HabitsContext.tsx` - `toggleCompletion()` provede dispatch PRED awaitovanim storage operace
+- Pokud storage operace selze, provede se rollback (odskrtnuti)
+- Uzivatel vidi okamzitou odezvu, tezke operace bezi na pozadi
+
+**Implementace**:
+- [ ] 10.1.1: V `toggleCompletion()` pridat optimistic dispatch PRED `await habitStorage.toggleCompletion()`
+- [ ] 10.1.2: Pridat rollback logiku pro pripad chyby (dispatch DELETE_COMPLETION)
+- [ ] 10.1.3: Overit ze vizualni stav checkboxu je okamzity
+
+**Soubory k uprave**: `src/contexts/HabitsContext.tsx` (1 soubor, ~15 radku zmena)
+
+---
+
+#### 10.2: Eager initialization - zahrivani motoru pri startu appky
+
+**Cil**: Predem nahrat moduly a inicializovat cache, ktere zpusobuji cold start pri prvnim kliknuti.
+
+**Co se zmeni**:
+- `appInitializationService.ts` - V ramci `initializeGamificationService()` pridat "warmup" volani
+- Konkretne: zavolat `GamificationService.getDailyXPData()` a `GamificationService.getActiveXPMultiplier()` aby se:
+  - Nacetly dynamicke importy (featureFlags, database/init, xpMultiplierService)
+  - Inicializovala SQLite spojeni
+  - Nacachovaly denni XP data
+- Vyuzijeme existujici `AppInitializationService` ktery uz bezi pri startu appky
+
+**Implementace**:
+- [ ] 10.2.1: Nahradit dynamicke importy v gamificationService.ts za staticke (top-level) importy pro: `featureFlags`, `database/init`
+- [ ] 10.2.2: V `initializeGamificationService()` pridat warmup volani pro XP multiplier a daily data
+- [ ] 10.2.3: Overit ze appka startuje bez regresu
+
+**Soubory k uprave**: `src/services/gamificationService.ts`, `src/services/appInitializationService.ts` (2 soubory)
+
+---
+
+#### 10.3: Achievement check optimalizace - presun na pozadi
+
+**Cil**: Achievement kontrola po pridani XP nebude blokovat vraceni vysledku. XP se pricte okamzite, achievementy se zkontroloji asynchronne.
+
+**Co se zmeni**:
+- `gamificationService.ts:871-892` - Achievement check se spusti bez `await` (fire-and-forget)
+- Result z `addXP()` se vrati OKAMZITE po zapsani XP do DB
+- Achievementy se vyhodnoti na pozadi a pripadne modaly se enqueuji do ModalQueue
+
+**Implementace**:
+- [ ] 10.3.1: Odstranit `await` pred `AchievementService.checkAchievementsAfterXPAction()`
+- [ ] 10.3.2: Pridat `.catch()` handler pro logovani chyb z pozadi
+- [ ] 10.3.3: Overit ze achievement modaly se stale spravne zobrazuji (pres ModalQueue)
+
+**Soubory k uprave**: `src/services/gamificationService.ts` (1 soubor, ~5 radku zmena)
+
+---
+
+---
+
+#### 10.4: Vytvoreni navyku - achievement check na pozadi
+
+**Cil**: Modal pro vytvoreni navyku se zavre OKAMZITE po ulozeni. Achievement check bezi na pozadi (stejne jako uz funguje u cilu).
+
+**Soucasny stav** (`HabitsContext.tsx:189-230`):
+```
+setLoading(true)
+→ habitStorage.create() [~5ms]
+→ dispatch ADD_HABIT [okamzite]
+→ isTutorialRestarted() [AsyncStorage ~5ms] ← ZBYTECNE BLOKUJE
+→ isTutorialActive() [2× AsyncStorage ~10ms] ← ZBYTECNE BLOKUJE
+→ await AchievementService.runBatchAchievementCheck() [50-150ms] ← BLOKUJE ZAVRENI MODALU
+→ return newHabit
+→ setLoading(false) ← TEPRVE TED SE MODAL ZAVRE
+```
+
+**Problem**: Achievement check (50-150ms) blokuje zavreni modalu. U GoalsContext.tsx je to UZ VYRESENE pres `setTimeout(() => ..., 100)`.
+
+**Co se zmeni**:
+- `HabitsContext.tsx:200-220` - Presunout tutorial check + achievement check do `setTimeout` (stejny pattern jako GoalsContext)
+- Modal se zavre hned po `dispatch({ type: 'ADD_HABIT' })`
+- Achievement check probehne na pozadi
+
+**Tutorial bezpecnost**:
+- Achievement modaly se behem tutorialu POTLACUJI (`AchievementContext.tsx:345-347`)
+- VYJIMKA: `first-habit` a `first-goal` se zobrazuji i behem tutorialu (`AchievementContext.tsx:343`)
+- `first-habit` achievement se odemkne pres `checkAchievementsAfterXPAction` (volane z `addXP` uvnitr `habitStorage.create`), NE pres `runBatchAchievementCheck`
+- Proto presunuti `runBatchAchievementCheck` do setTimeout NEOVLIVNI tutorial - `first-habit` modal se stale zobrazi spravne
+- Tutorial restarted check (`isTutorialRestarted`) slouzi jen k logovani, ne k blokaci - presun do setTimeout je bezpecny
+
+**Implementace**:
+- [ ] 10.4.1: Zabalit tutorial check + runBatchAchievementCheck do `setTimeout(() => ..., 100)` (kopie vzoru z GoalsContext)
+- [ ] 10.4.2: Overit ze `first-habit` achievement modal se stale zobrazi pri prvnim vytvoreni navyku (behem tutorialu)
+- [ ] 10.4.3: Overit ze modal pro vytvoreni navyku se zavre okamzite
+
+**Soubory k uprave**: `src/contexts/HabitsContext.tsx` (1 soubor, ~5 radku zmena - jen zabaleni do setTimeout)
+
+---
+
+#### 10.5: Zapis do deniku - XP na pozadi, streak zustava synchronni
+
+**Cil**: Tlacitko "Odeslat" v deniku se odblokuje rychleji. Pouze XP (nejvetsi vinik 75-200ms) bezi na pozadi. Milestone countery a streak update ZUSTAVAJI synchronni (jsou rychle a UI je potrebuje).
+
+**Soucasny stav** (`SQLiteGratitudeStorage.ts:201-316` + `GratitudeInput.tsx:82-136`):
+```
+GratitudeInput.handleSubmit():
+  → setIsSubmitting(true) ← tlacitko se zablokuje
+  → getStreak() [~5ms] ← NUTNE (debt check)
+  → calculateFrozenDays() [~5ms] ← NUTNE (debt check)
+  → actions.createGratitude()
+      → gratitudeStorage.create()
+          → SQLite INSERT [~5ms]
+          → GamificationService.addXP() [75-200ms] ← BLOKUJE (JEDINY VINIK)
+          → milestone counter update [~5ms] ← rychle, zustava sync
+          → calculateAndUpdateStreak() [~10ms] ← rychle, zustava sync
+      → dispatch ADD_GRATITUDE [okamzite]
+      → refreshStats() [uz na pozadi - OK]
+  → setIsSubmitting(false) ← TEPRVE TED SE TLACITKO ODBLOKUJE
+  → onSubmitSuccess() → celebration logic
+```
+
+**Problem**: `gratitudeStorage.create()` ceka na `addXP()` (75-200ms) PRED vracenim vysledku. To je jediny velky vinik.
+
+**Co se zmeni**:
+- `SQLiteGratitudeStorage.ts` - Presunout POUZE `addXP()` za `return` jako fire-and-forget
+- Milestone countery a `calculateAndUpdateStreak()` ZUSTAVAJI synchronni (pred return)
+- Duvod: Streak milestone modal v `journal.tsx` cte `state.streakInfo` po `refreshStats()`. Pokud by streak update bezel na pozadi, `refreshStats()` by mohla precist STARY streak a milestone modal by se nezobrazil.
+
+**Proc NESMI streak bezet na pozadi** (overeno v kodu):
+```
+journal.tsx handleInputSuccess():
+  → celebration modaly pouzivaji currentCount (lokalni stav) ← OK
+  → ALE: streak milestone modal (radek 89-105):
+      → setTimeout(1000ms)
+      → await actions.refreshStats() ← cte streak z DB
+      → if (milestones.includes(currentStreak)) ← rozhoduje o zobrazeni modalu
+      → Pokud streak update NEBYL dokoncen, cte STARY streak → modal se NEZOBRAZI!
+```
+
+**Tutorial bezpecnost**:
+- Journal nema tutorial-specificky achievement
+- Daily_complete modal pouziva `currentCount` (lokalni stav), ne storage result
+- Streak milestone modal: bezpecny protoze streak update zustava sync
+
+**Implementace**:
+- [ ] 10.5.1: V `SQLiteGratitudeStorage.create()` presunout POUZE `GamificationService.addXP()` za milestone/streak logiku jako fire-and-forget promise s `.catch()` handlerem
+- [ ] 10.5.2: Milestone counter update a `calculateAndUpdateStreak()` ZUSTAVAJI pred return (synchronni)
+- [ ] 10.5.3: Zachovat poradi: INSERT → milestones → streak → return → (pozadi: XP)
+- [ ] 10.5.4: Overit ze celebration modaly se stale zobrazuji spravne
+- [ ] 10.5.5: Overit ze XP popup animace se stale zobrazuje
+
+**Soubory k uprave**: `src/services/storage/SQLiteGratitudeStorage.ts` (1 soubor, ~10 radku zmena)
+
+**Poznamka k debt checku**: `getStreak()` a `calculateFrozenDays()` v GratitudeInput.tsx ZUSTAVAJI synchronni. Bezpecnostni check ktery MUSI probehnout pred ulozenim.
+
+---
+
+### Ocekavany vysledek (vsechny kroky dohromady)
+
+| Akce | PRED opravou | PO oprave |
+|------|-------------|-----------|
+| Zasrknuti navyku (prvni) | 75-200ms | <16ms (okamzite) |
+| Zasrknuti navyku (dalsi) | ~5ms | ~5ms (beze zmeny) |
+| Vytvoreni navyku (zavreni modalu) | 70-170ms | ~10ms |
+| Vytvoreni cile | ~10ms | ~10ms (uz je OK) |
+| Zapis do deniku (odblokování tlacitka) | 100-230ms | ~15ms |
+
+**Celkovy efekt**: Vsechny hlavni akce uzivatele reagují okamzite. XP, achievementy a streak updaty bezi na pozadi - uzivatel je nepozna, ale dostane vsechny odmeny.
+
+---
+
+### Poradi implementace
+
+1. **10.1 (Optimistic UI - habit toggle)** - Nejvetsi dopad, nejmensi zmena
+2. **10.2 (Eager init)** - Odstraneni cold start penalty pri startu appky
+3. **10.3 (Async achievements v addXP)** - Achievement check nebrzdi zadnou XP operaci
+4. **10.4 (Habit creation - async achievement)** - Zavreni modalu nebrzdi achievement check
+5. **10.5 (Journal - async XP+streak)** - Tlacitko reaguje okamzite
+
+Kroky 10.3, 10.4, 10.5 jsou na sobe NEZAVISLE a mohou se implementovat v libovolnem poradi.
+Krok 10.3 automaticky zrychluje i 10.5 (protoze addXP se vola uvnitr journal create).
+
+### Tutorial ochrana - souhrn
+
+| Krok | Tutorial riziko | Proc je to bezpecne |
+|------|----------------|---------------------|
+| 10.1 | ZADNE | Optimistic UI nemeni logiku, jen poradi dispatch vs storage |
+| 10.2 | ZADNE | Warmup pri startu - tutorial jeste nebezi |
+| 10.3 | ZADNE | Achievement modaly se behem tutorialu potlacuji (krome first-habit/first-goal). Ty se odemykaji pres `checkAchievementsAfterXPAction` v `addXP`, ne pres `runBatchAchievementCheck` |
+| 10.4 | ZADNE | `first-habit` achievement se odemyka uvnitr `habitStorage.create()` → `addXP()` → `checkAchievementsAfterXPAction()`. `runBatchAchievementCheck` v setTimeout je jen pojistka - i bez nej se first-habit odemkne |
+| 10.5 | ZADNE | Journal nema tutorial-specificke achievementy. Celebration modaly (daily_complete) se triggeri z `handleInputSuccess()` na zaklade `currentCount` stavu, ne z navratove hodnoty storage |
+
+### Rizika
+
+- **10.1**: Minimalni. Pokud storage selze, rollback vrati puvodni stav. Uz pouzivame tento pattern u `updateHabitOrder()`.
+- **10.2**: Zadne. Pridavame jen "zahrivaci" volani pri startu - nic se nemeni na logice.
+- **10.3**: Nizke. Achievement modaly uz pouzivaji ModalQueue. Jediny vedlejsi efekt: achievement modal se muze objevit o ~100ms pozdeji - uzivatel nepozna.
+- **10.4**: Zadne. Kopirujeme presny pattern z GoalsContext, ktery uz funguje mesice bez problemu.
+- **10.5**: Nizke. SQLite INSERT (data) probehne vzdy pred return. XP a streak se dopocitaji na pozadi. Nejhorsi scenar: uzivatel zavre appku behem 200ms po zapisu - XP se nepricte. Ale to je extrémne nepravdepodobne a pri dalsim otevreni se data zrekonciliuji.
+
+---
+
+## FAZE 11: Context memoization - zabraneni zbytecnym re-renderum
+
+### Problem
+
+React Context providers vytvari novy objekt `value` PRI KAZDEM renderovani. I kdyz se data NEZMENILA, vsechny consumer komponenty se znovu vykresli. Napriklad: zmena stavu v AppContext zpusobi re-render VSECH komponent pouzivajicich HabitsContext - i kdyz habits data se vubec nezmenila.
+
+### Vysvetleni pro laiky
+
+Predstav si, ze mas skrinky s ruznym obsahem. Pokazde kdyz otevres jednu skrinku, system prohlasi ze se VSECHNY zmenily - a tak se vsechny znovu kontroluji. S `useMemo` system rekne: "zkontroluj jestli se OBSAH opravdu zmenil - pokud ne, pouzij ten samy odkaz". Vysledek: komponenty se prekresluji JEN kdyz se jejich data skutecne zmeni.
+
+### Hloubkova analyza kazdeho kontextu (overeno proti kodu)
+
+Po detailnim precteni kodu bylo zjisteno, ze kontexty maji RUZNE state management patterny. Nelze pouzit jednotny pristup pro vsechny.
+
+**BEZPECNE pro useMemo (useReducer s jednim `state` objektem):**
+- HabitsContext, GoalsContext, GratitudeContext, AppContext pouzivaji `useReducer` → `state` je jediny objekt
+- Action funkce (createHabit, toggleCompletion...) jsou plain funkce uzavirajici nad:
+  - `dispatch` → stabilni reference z useReducer, NEMENI SE
+  - `habitsQueryCacheRef` a jine refs → stabilni reference, `.current` se cte az v call-time
+  - `state` → meni se pri kazdem dispatch → zachyceno v `[state]` dependency
+- Proto `useMemo([state])` JE BEZPECNE - funkce se znovu vytvori kdyz se state zmeni, a stabilni reference (dispatch, refs) jsou vzdy aktualni
+
+**BEZPECNE s upravenym dependency:**
+- ThemeContext - pouziva `useState` pro jednu promennou `themeMode`, `setThemeMode` je plain funkce → zabalit do useCallback + useMemo
+- ModalQueueContext - pouziva `useState` pro `queue`, `enqueue` a `closeCurrentModal` jsou uz useCallback s [] deps (pouzivaji `setQueue(prev => ...)` pattern) → `useMemo([queue, enqueue, closeCurrentModal])` je bezpecne
+
+**PRESKOCIT (prilis slozite, riziko stale closures):**
+- XpAnimationContext - pouziva `useState` s jednim state objektem, ALE ma 4 refs (`batchTimeoutRef`, `notificationQueueRef`...) a useCallback funkce s neuplnymi dependency arrays. useMemo by melo prilis mnoho dependencies a neresilo by existujici problem s neuplnymi deps
+- AchievementContext - pouziva VICE `useState` hooku (userAchievements, isLoading, celebrationQueue, showingCelebration...). contextValue ma 25+ poli → dependency array by mel 20+ polozek. Marginalni prinos, vysoke riziko chyby
+- TutorialContext - pouziva `useReducer`, ALE action funkce uzaviraji nad `t()` funkci z `useTranslation()`. Pri zmene jazyka by se `t()` zmenila ale useMemo by to nezachytil → tutorial texty by zustaly ve starem jazyce
+
+### Co se meni a co NESMI prestit fungovat
+
+**KRITICKE: useMemo NEMENI logiku - jen zabranuje zbytecnym re-renderum.**
+
+| Oblast | Overeni | Verdikt |
+|--------|---------|---------|
+| Habits: Smart Bonus Conversion, make-up system | Logika je uvnitr `useHabitsData.ts` a `applySmartBonusConversion()`, ne v context value | BEZ ZMENY |
+| Habits: XP integration (25/15 XP) | Logika je v `SQLiteHabitStorage.createCompletion()` → `GamificationService.addXP()` | BEZ ZMENY |
+| Goals: Milestone detection (25/50/75%) | Logika je v `SQLiteGoalStorage.addProgress()` | BEZ ZMENY |
+| Goals: Completion celebration modal | Triggeruje se z `GoalsScreen.tsx`, ne z context value | BEZ ZMENY |
+| Journal: Frozen streak, debt, warm-up | Logika je v action funkcich (`calculateFrozenDays`, `applySingleWarmUpPayment`) | BEZ ZMENY |
+| Journal: Celebration modaly | Triggeruji se z `journal.tsx handleInputSuccess()` na zaklade lokalniho stavu | BEZ ZMENY |
+| Theme: Light/dark switching | `setThemeMode` dostane useCallback wrapper → stale stabilni | BEZ ZMENY |
+| ModalQueue: Modal priority, sequential display | `enqueue` a `closeCurrentModal` uz jsou useCallback → stabilni | BEZ ZMENY |
+
+### Postizene kontexty (6 souboru - bezpecne)
+
+| # | Kontext | State management | Dependency pro useMemo |
+|---|---------|-----------------|----------------------|
+| 1 | HabitsContext.tsx | useReducer → `state` | `[state]` |
+| 2 | GoalsContext.tsx | useReducer → `state` | `[state]` |
+| 3 | GratitudeContext.tsx | useReducer → `state` | `[state]` |
+| 4 | AppContext.tsx | useReducer → `state` | `[state]` |
+| 5 | ThemeContext.tsx | useState → `themeMode` | `[colors, themeMode, isDark, setThemeModeCallback]` |
+| 6 | ModalQueueContext.tsx | useState → `queue` | `[queue, enqueue, closeCurrentModal]` |
+
+### Preskocene kontexty (3 soubory - prilis slozite)
+
+| # | Kontext | Duvod preskoceni |
+|---|---------|-----------------|
+| 1 | XpAnimationContext.tsx | 4 refs + useCallback s neuplnymi deps → useMemo nepomuze |
+| 2 | AchievementContext.tsx | 25+ poli v contextValue z vicenarych useState → prilis velka dependency array |
+| 3 | TutorialContext.tsx | Action funkce uzaviraji nad `t()` z useTranslation → zmena jazyka by nebyla zachycena |
+
+### Implementace
+
+**Vzor zmeny pro useReducer kontexty** (HabitsContext, GoalsContext, GratitudeContext, AppContext):
+```
+// PRED:
+return (
+  <Context.Provider value={{ state, actions: { ... } }}>
+
+// PO:
+const contextValue = useMemo(() => ({
+  state,
+  actions: { loadHabits, createHabit, ... }
+}), [state]);  // state z useReducer se meni referenci pri kazdem dispatch
+
+return (
+  <Context.Provider value={contextValue}>
+```
+
+**Vzor zmeny pro ThemeContext:**
+```
+// PRED:
+const setThemeMode = async (mode) => { ... };  // plain funkce
+
+// PO:
+const setThemeModeCallback = useCallback(async (mode) => {
+  await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+  setThemeModeState(mode);
+}, []);  // zadne external dependencies
+
+const value = useMemo(() => ({
+  colors, themeMode, isDark, setThemeMode: setThemeModeCallback
+}), [colors, themeMode, isDark, setThemeModeCallback]);
+```
+
+**Vzor zmeny pro ModalQueueContext:**
+```
+// PRED:
+const contextValue = { enqueue, closeCurrentModal, currentModal, queueLength };
+
+// PO:
+const contextValue = useMemo(() => ({
+  enqueue,           // uz je useCallback([])
+  closeCurrentModal, // uz je useCallback([])
+  currentModal: queue.length > 0 ? queue[0]! : null,
+  queueLength: queue.length,
+}), [queue, enqueue, closeCurrentModal]);
+```
+
+**Poradi implementace:**
+- [ ] 11.1: HabitsContext.tsx - useMemo na value (radek 332-343), dependency: `[state]`
+- [ ] 11.2: GoalsContext.tsx - useMemo na value (radek 353-367), dependency: `[state]`
+- [ ] 11.3: GratitudeContext.tsx - useMemo na value (radek 308-328), dependency: `[state]`
+- [ ] 11.4: AppContext.tsx - useMemo na value (radek 197-205), dependency: `[state]`
+- [ ] 11.5: ThemeContext.tsx - useCallback na setThemeMode + useMemo na value
+- [ ] 11.6: ModalQueueContext.tsx - useMemo na contextValue (radek 138-143), dependency: `[queue, enqueue, closeCurrentModal]`
+- [ ] 11.7: Overit ze vsechny kontexty stale spravne reaguji na zmeny stavu
+
+**Soubory k uprave**: 6 souboru v `src/contexts/`, kazdy zmena ~5-10 radku
+
+### Rizika
+
+- **ZADNE funkcni riziko** pro useReducer kontexty: `state` se meni referenci pri kazdem dispatch → useMemo se prepocita → vsechny consumer komponenty dostanou novy stav
+- **Jedine riziko u ThemeContext**: `setThemeModeCallback` s `useCallback([])` nema dependencies → funkce pouziva `setThemeModeState` ze useState (stabilni setter) a `AsyncStorage.setItem` (globalni) → BEZPECNE
+- **ModalQueueContext**: `enqueue` a `closeCurrentModal` pouzivaji `setQueue(prev => ...)` pattern → nezaviraji nad `queue` → BEZPECNE
+
+---
+
+## ~~FAZE 12: N+1 goal stats query~~ - ODSTRANENO (uz optimalizovano)
+
+### Puvodni plan
+
+Nahradit N+1 pattern v GoalsContext (N× `getGoalStats()` volani) jednim batch SQL dotazem.
+
+### Duvod odstraneni
+
+Po hloubkove analyze kodu bylo zjisteno, ze optimalizace NENI potreba:
+
+1. **`getGoalStats()` dela tezke JS vypocty** (sorting, timeline estimation, completion percentage) - ne SQL dotazy. Batch SQL dotaz by neusetril cas protoze bottleneck je v JavaScriptu, ne v databazi.
+2. **`Promise.all()` uz paralelizuje** - `GoalsContext.tsx` radky 143-144 a 335-336 uz pouzivaji `Promise.all(goals.map(...))`, takze N dotazu bezi soucasne.
+3. **Skutecny prinos by byl < 5ms** pro typickeho uzivatele (3-10 cilu). Slozitost implementace (nova batch metoda, interface zmena) neodpovida minimalnimu prinosu.
+
+**Status:** PRESKOCENO - soucasny kod uz je dostatecne optimalizovany.
+
+---
+
+## FAZE 13: FlatList optimalizace - plynulejsi scrollovani
+
+### Problem
+
+V aplikaci je vice FlatList komponent bez optimalizacnich props. React Native tak renderuje VSECHNY polozky naraz (misto jen tech viditelnych), coz muze zpusobit pomalejsi scroll a vyssi spotrebu pameti, zejmena na starsich telefonech.
+
+### Vysvetleni pro laiky
+
+Predstav si, ze mas knihu s 500 strankami. Misto toho abys otevrel jen aktualni stranku, system vytiskne VSECH 500 stranek naraz a drzi je v pameti. S optimalizaci system "vytiskne" jen 10 stranek kolem te aktualni a ostatni vytvori az kdyz k nim doscrollujes.
+
+### Co se meni a co NESMI prestit fungovat
+
+**Overeni proti technickym pruvodcum:**
+- Habits: Smart Bonus Conversion barevne kodovani v kalendari - BEZ ZMENY (je v HabitCalendarView, ne v FlatList)
+- Goals: GoalCard MA variabilni vysku (ruzne delky popisku) → `getItemLayout` NENASTAVOVAT
+- Achievements: AchievementGrid ma pevnou velikost karet → `getItemLayout` MOZNE
+- Levels: LevelsOverviewScreen uz MA `getItemLayout` - pridat jen chybejici props
+
+### KRITICKE: DraggableFlatList vyloucen
+
+Soubory `GoalListWithDragAndDrop.tsx`, `HabitList.tsx` a `HabitListWithCompletion.tsx` pouzivaji **`DraggableFlatList` z knihovny `react-native-draggable-flatlist`** (treti strana). Tento komponent ma JINE vnitrni API nez standardni FlatList:
+- Renderuje vlastni `Animated.FlatList` s reanimated gestury
+- Props jako `windowSize`, `maxToRenderPerBatch` NEMAJI garantovane chovani
+- `removeClippedSubviews` muze skryt prvky behem presunu
+
+**Proto se DraggableFlatList instance NEOPTIMALIZUJI.** Optimalizujeme POUZE standardni `<FlatList>` instance v techto souborech (pouzivane v view mode / Android fallback).
+
+### Postizene FlatList komponenty (JEN standardni FlatList)
+
+| # | Soubor | Radek | Typ obsahu | Doporucene props |
+|---|--------|-------|------------|-----------------|
+| 1 | AchievementGrid.tsx | 61 | Achievement karty (pevna vyska) | `getItemLayout`, `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 2 | GoalList.tsx | 74 | Goal karty (variabilni vyska) | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 3 | GoalListWithDragAndDrop.tsx | **198** | Goal karty (view mode FlatList, NE DnD) | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 4 | ProgressHistoryList.tsx | 217 | Progress zaznamy (pevna vyska) | `getItemLayout`, `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 5 | HabitList.tsx | **183** | Habit karty (Android FlatList) | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 6 | HabitList.tsx | **207** | Habit karty (view mode FlatList) | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 7 | HabitListWithCompletion.tsx | **230** | Habit checkboxy (non-edit FlatList) | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+| 8 | achievements.tsx | 1185 | Achievement seznam | `windowSize`, `maxToRenderPerBatch`, `initialNumToRender` |
+
+**Pozn.**: LevelsOverviewScreen.tsx (radek 370) uz MA `getItemLayout` - pridat `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
+
+### VYLOUCENE DraggableFlatList instance (NEDOTÝKAT SE)
+
+| Soubor | Radek | Duvod vylouceni |
+|--------|-------|-----------------|
+| GoalListWithDragAndDrop.tsx | 186 | DraggableFlatList - treti strana, edit mode |
+| HabitList.tsx | 191 | DraggableFlatList - treti strana, iOS edit mode |
+| HabitListWithCompletion.tsx | 217 | DraggableFlatList - treti strana, iOS edit mode |
+
+### Implementace
+
+- [ ] 13.1: AchievementGrid.tsx - pridat `getItemLayout`, `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={12}`
+- [ ] 13.2: GoalList.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
+- [ ] 13.3: GoalListWithDragAndDrop.tsx **radek 198** (view mode FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
+- [ ] 13.4: ProgressHistoryList.tsx - pridat `getItemLayout`, `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
+- [ ] 13.5: HabitList.tsx **radky 183 a 207** (oba standardni FlatListy) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}`
+- [ ] 13.6: HabitListWithCompletion.tsx **radek 230** (non-edit FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}`
+- [ ] 13.7: achievements.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
+- [ ] 13.8: LevelsOverviewScreen.tsx - doplnit chybejici `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
+- [ ] 13.9: Overit plynulost scrollovani na vsech zmenenych obrazovkach
+
+**Soubory k uprave**: 7 souboru (8 FlatList instanci), kazdy zmena ~3-5 radku (pridani props)
+
+### Rizika
+
+- **Velmi nizke**: Pridani props nemeni logiku, jen optimalizuje renderovani
+- **`getItemLayout` POUZE pro pevnou vysku**: Pouzivame JEN u AchievementGrid a ProgressHistoryList kde jsou polozky stejne velke. U GoalList, HabitList (variabilni vyska) se NEPOUZIVA → zadny glitchy scroll
+- **DraggableFlatList NEDOTKNUTY**: Vsechny tri DraggableFlatList instance (radky 186, 191, 217) zustavaji BEZ ZMENY → drag-and-drop funguje beze zmen
+
+---
+
+## FAZE 14: Console.log cleanup - selektivni odstraneni
+
+### Problem
+
+V produkcnim kodu aplikace je priblizne **1 192 console.log** volani. Kazde z nich zabira CPU cas na stringifikaci argumentu a na Androidu se zapisuje do logcat (I/O operace).
+
+### Vysvetleni pro laiky
+
+Predstav si, ze pri kazdem kroku zapisujes do deniku "Ted jsem sel doleva", "Ted jsem zvedl nohu". V produkci tyto zaznamy nikdo necte - jen zbytecne zatezuji telefon. Ale NEKTERE zaznamy jsou dulezite pro diagnostiku problemu u uzivatelu, takze je musime ponechat.
+
+### KRITICKE: Rozliseni mezi debug logy a diagnostickymi logy
+
+Po hloubkove analyze kodu bylo zjisteno, ze mnoho `console.log` volani NEJSOU obycejne debug logy, ale **strukturovane diagnosticke logy** s emoji prefixy (📥, ✅, 🔍, 🎯, 💥, ⚠️). Tyto logy slouzi k diagnostice produkcnich problemu a jejich slepé odstraneni by ztizilo debugging u uzivatelu.
+
+**Kategorie logu:**
+
+| Kategorie | Priklad | Akce |
+|-----------|---------|------|
+| Strukturovane diagnosticke | `📥 ModalQueue: enqueue celebration` | **PONECHAT** |
+| Error handling (`catch` bloky) | `console.error('[GamificationService] addXP failed:', e)` | **PONECHAT** |
+| `console.error` a `console.warn` | Vsechny | **PONECHAT** |
+| Migracni a testovaci soubory | `database/migration/`, `__tests__/`, `diagnoseBackup.ts` | **PONECHAT** |
+| Startup/init logy | `database/init.ts` (bezi 1× pri startu) | **PONECHAT** |
+| Genericke debug logy | `console.log('here')`, `console.log('value:', x)` | **ODSTRANIT** |
+| Verbose flow logy | `console.log('[DEBUG] entering function X')` | **ODSTRANIT** |
+| Data dump logy | `console.log('Full state:', JSON.stringify(bigObject))` | **ODSTRANIT** |
+
+### Co se meni a co NESMI prestit fungovat
+
+- **console.error** a **console.warn** ZUSTAVAJI vzdy
+- **Strukturovane diagnosticke logy** (s emoji prefixy) ZUSTAVAJI - pomahaji diagnostikovat produkcni problemy
+- **console.log v `catch` blocich** ZUSTAVAJI - error handling je kriticke
+- **Migracni, testovaci a diagnosticke skripty** BEZ ZMENY
+- **Genericke debug logy** se ODSTRANI - nemaji diagnostickou hodnotu v produkci
+
+### Top soubory k vycisteni
+
+| # | Soubor | Celkem logu | Odhadnuto k odstraneni | Poznamka |
+|---|--------|------------|----------------------|----------|
+| 1 | gamificationService.ts | 84 | ~40-50 | Ponechat strukturovane XP/level logy, odstranit verbose flow |
+| 2 | TutorialContext.tsx | 51 | ~30-35 | Ponechat error handling, odstranit step-by-step debug |
+| 3 | SQLiteGratitudeStorage.ts | 41 | ~20-25 | Ponechat streak/frozen diagnostiku, odstranit CRUD verbose |
+| 4 | achievementService.ts | 26 | ~10-15 | Ponechat achievement unlock logy, odstranit scan verbose |
+| 5 | GoalForm.tsx | 25 | ~20-23 | Formular - vetsina jsou validacni debug logy |
+| 6 | SQLiteGoalStorage.ts | 23 | ~10-15 | Ponechat milestone/completion logy, odstranit CRUD verbose |
+| 7 | HabitForm.tsx | 23 | ~20-23 | Formular - vetsina jsou validacni debug logy |
+
+**NECHAT BEZ ZMENY** (migrace, testy, diagnostika):
+- monthlyProgressTracker.ts (65) - kriticke pro debugging mesicnich vyzev
+- testJournalBackup.ts (60) - testovaci skript
+- diagnoseBackup.ts (45) - diagnosticky skript
+- Vsechny soubory v `database/migration/` - migrace bezi jen jednou
+- Vsechny soubory v `__tests__/` - testovaci soubory
+- performanceProfiler.ts (20) - profiling nastroj
+- database/init.ts (24) - bezi jen pri startu, dulezite pro diagnostiku
+
+### Implementace
+
+**Strategie**: Projit kazdy soubor MANUALNE a rozlisit:
+- ✅ PONECHAT: strukturovane logy s emoji/bracket prefixy, error handling, kriticke flow body
+- ❌ ODSTRANIT: genericke debug, verbose flow, data dumpy, `[DEBUG]` prefixy
+
+- [ ] 14.1: gamificationService.ts - selektivne odstranit ~40-50 verbose debug logu (ponechat XP/level strukturovane logy)
+- [ ] 14.2: TutorialContext.tsx - selektivne odstranit ~30-35 debug logu (ponechat error handling)
+- [ ] 14.3: SQLiteGratitudeStorage.ts - selektivne odstranit ~20-25 verbose CRUD logu (ponechat streak/frozen diagnostiku)
+- [ ] 14.4: achievementService.ts - selektivne odstranit ~10-15 scan verbose logu (ponechat unlock logy)
+- [ ] 14.5: GoalForm.tsx + HabitForm.tsx - odstranit ~40-46 validacnich debug logu
+- [ ] 14.6: SQLiteGoalStorage.ts - selektivne odstranit ~10-15 CRUD verbose logu (ponechat milestone/completion)
+- [ ] 14.7: Prochazet ostatni soubory s >10 console.log a selektivne vycistit
+- [ ] 14.8: Overit ze aplikace stale startuje a funguje spravne
+
+**Soubory k uprave**: ~7-10 souboru
+**Odhadovany pocet odstranenych logu**: ~150-200 z 1192 (cca 15%)
+
+### Rizika
+
+- **Zadne funkcni riziko**: console.log nema vliv na logiku aplikace
+- **Zachovana diagnostika**: Strukturovane logy s emoji prefixy zustavaji → produkcni debugging NENI ohrozen
+- **KRITICKE**: Pri manualni praci kontrolovat kazdy radek - nesmime smazat log ktery je jediny indikator chyby v catch bloku
+
+---
+
+## PRIORITNI PORADI IMPLEMENTACE FAZI 10-14
+
+| Poradi | Faze | Oblast | Dopad | Obtiznost | Riziko |
+|--------|------|--------|-------|-----------|--------|
+| A | 11 | Context memoization (6 bezpecnych kontextu) | VYSOKY (vsechny consumer komponenty) | NIZKA (5-10 radku na soubor) | ZADNE |
+| B | 10 | Habit completion + journal plynulost | VYSOKY (hlavni user akce) | STREDNI (10-15 radku na soubor) | NIZKE |
+| C | 13 | FlatList optimalizace (8 standardnich FlatListu) | STREDNI (scroll plynulost) | NIZKA (3-5 radku na soubor) | VELMI NIZKE |
+| D | 14 | Console.log selektivni cleanup (~150-200 logu) | NIZKY (micro-optimalizace) | NIZKA (manualni review) | ZADNE |
+| ~~E~~ | ~~12~~ | ~~N+1 goals stats~~ | ~~ODSTRANENO~~ | ~~uz optimalizovano (Promise.all)~~ | — |
