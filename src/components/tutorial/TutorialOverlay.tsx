@@ -138,8 +138,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const contentHeight = scaleFont(Fonts.sizes.md) * 1.5 * 2; // Assume 2 lines max
     const contentMargin = isTabletDevice ? 16 : (screenSize === ScreenSize.SMALL ? 12 : 14);
     const progressContainerHeight = isTabletDevice ? 40 : (screenSize === ScreenSize.SMALL ? 30 : 35);
-    // Always include button height - button is always rendered (invisible when not active)
-    const nextButtonHeight = isTabletDevice ? 36 : (screenSize === ScreenSize.SMALL ? 32 : 34);
+    const nextButtonHeight = state.showNext || state.currentStepData?.action === 'next'
+      ? (isTabletDevice ? 36 : (screenSize === ScreenSize.SMALL ? 32 : 34))
+      : 0;
 
     // Total calculated height
     const totalHeight =
@@ -391,7 +392,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       backgroundColor: colors.cardBackgroundElevated,
       borderRadius: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
       padding: getCardPadding(),
-      maxHeight: safeHeight * 0.4,
+      maxHeight: safeHeight * 0.3,
     },
     contentScroll: {
       flexShrink: 1,
@@ -641,20 +642,17 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                   state.currentStepData?.id === 'quick-actions' ||
                   state.currentStepData?.id === 'goal-date'
                 );
-                // NOTE: Goal lower fields (goal-unit, goal-target) use TOP positioning,
-                // because they're lower in modal and need auto-scroll
 
                 if (isDynamicPositionStep && spotlightTarget) {
                   const basePosition = spotlightTarget.y + spotlightTarget.height + safeHeight * 0.02;
-
-                  // Calculate dynamic tutorial card height instead of fixed value
                   const tutorialCardHeight = calculateTutorialCardHeight();
-
-                  // Ensure content doesn't go below safe area
                   const maxTop = screenHeight - insets.bottom - tutorialCardHeight - safeHeight * 0.03;
                   const finalPosition = Math.min(basePosition, maxTop);
-
                   return { top: finalPosition };
+                }
+                // Hide card until spotlight target is ready (prevents jump from top to final position)
+                if (isDynamicPositionStep && !spotlightTarget) {
+                  return { opacity: 0 };
                 }
                 return {};
               })()
@@ -667,7 +665,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
               </Text>
 
               {/* Content - scrollable if too long */}
-              <ScrollView style={styles.contentScroll} bounces={false} showsVerticalScrollIndicator={false}>
+              <ScrollView style={styles.contentScroll} bounces={false} showsVerticalScrollIndicator={true} persistentScrollbar={true} indicatorStyle="black">
                 <Text style={styles.content}>
                   {state.currentStepData.content.content}
                 </Text>
@@ -687,14 +685,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 <Text style={styles.progressText}>{t('ui.progressStep', { current: state.currentStep, total: state.totalSteps })}</Text>
               </View>
 
-              {/* Next Button - always rendered to reserve space, invisible when not active */}
+              {/* Next Button - conditionally rendered */}
+              {(state.showNext || state.currentStepData.action === 'next') && (
               <TouchableOpacity
-                style={[
-                  styles.nextButton,
-                  !(state.showNext || state.currentStepData.action === 'next') && { opacity: 0 }
-                ]}
+                style={styles.nextButton}
                 onPress={handleNext}
-                disabled={!(state.showNext || state.currentStepData.action === 'next')}
                 accessible={true}
                 accessibilityRole="button"
                 accessibilityLabel={t('ui.nextStep')}
@@ -704,6 +699,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 </Text>
                 <Ionicons name="arrow-forward" size={getIconSize(16)} color={colors.white} />
               </TouchableOpacity>
+              )}
             </View>
           </Animated.View>
         )}
