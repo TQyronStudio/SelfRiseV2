@@ -12,7 +12,7 @@
  * 5. No flags, no setTimeout race conditions, no iOS freeze
  */
 
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
@@ -133,20 +133,19 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
     });
   }, []);
 
-  const currentModal: QueuedModal | null = queue.length > 0 ? queue[0]! : null;
-
-  const contextValue: ModalQueueContextValue = {
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo<ModalQueueContextValue>(() => ({
     enqueue,
     closeCurrentModal,
-    currentModal,
+    currentModal: queue.length > 0 ? queue[0]! : null,
     queueLength: queue.length,
-  };
+  }), [queue, enqueue, closeCurrentModal]);
 
   return (
     <ModalQueueContext.Provider value={contextValue}>
       {children}
       {/* Centralized modal rendering - only ONE modal visible at a time */}
-      <ModalRenderer currentModal={currentModal} onClose={closeCurrentModal} />
+      <ModalRenderer currentModal={contextValue.currentModal} onClose={closeCurrentModal} />
     </ModalQueueContext.Provider>
   );
 };

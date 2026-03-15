@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, ReactNode } from 'react';
 import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, UpdateGratitudeInput, WarmUpPayment } from '../types/gratitude';
 import { getGratitudeStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
@@ -303,30 +303,30 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
     loadGratitudes();
   }, []);
 
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    actions: {
+      loadGratitudes,
+      createGratitude,
+      updateGratitude,
+      deleteGratitude,
+      getGratitudesByDate,
+      searchGratitudes,
+      refreshStats,
+      incrementMilestoneCounter,
+      clearError,
+      forceRefresh,
+      adsNeededToWarmUp,
+      applySingleWarmUpPayment,
+      calculateFrozenDays,
+      getWarmUpPaymentProgress,
+      resetStreak,
+    },
+  }), [state]);
+
   return (
-    <GratitudeContext.Provider
-      value={{
-        state,
-        actions: {
-          loadGratitudes,
-          createGratitude,
-          updateGratitude,
-          deleteGratitude,
-          getGratitudesByDate,
-          searchGratitudes,
-          refreshStats,
-          incrementMilestoneCounter,
-          clearError,
-          forceRefresh,
-          // 🚨 FROZEN STREAK ACTIONS: Complete architecture integration
-          adsNeededToWarmUp,
-          applySingleWarmUpPayment,
-          calculateFrozenDays,
-          getWarmUpPaymentProgress,
-          resetStreak,
-        },
-      }}
-    >
+    <GratitudeContext.Provider value={contextValue}>
       {children}
     </GratitudeContext.Provider>
   );

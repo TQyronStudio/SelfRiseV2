@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, ReactNode } from 'react';
 import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput } from '../types/goal';
 import { getGoalStorageImpl } from '../config/featureFlags';
 import { AchievementService } from '../services/achievementService';
@@ -348,24 +348,25 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
     loadGoals();
   }, []);
 
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    actions: {
+      loadGoals,
+      createGoal,
+      updateGoal,
+      deleteGoal,
+      addProgress,
+      deleteProgress,
+      getGoalStats,
+      updateGoalOrder,
+      refreshStats,
+      clearError,
+    },
+  }), [state]);
+
   return (
-    <GoalsContext.Provider
-      value={{
-        state,
-        actions: {
-          loadGoals,
-          createGoal,
-          updateGoal,
-          deleteGoal,
-          addProgress,
-          deleteProgress,
-          getGoalStats,
-          updateGoalOrder,
-          refreshStats,
-          clearError,
-        },
-      }}
-    >
+    <GoalsContext.Provider value={contextValue}>
       {children}
     </GoalsContext.Provider>
   );

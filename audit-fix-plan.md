@@ -1474,13 +1474,13 @@ const contextValue = useMemo(() => ({
 ```
 
 **Poradi implementace:**
-- [ ] 11.1: HabitsContext.tsx - useMemo na value (radek 332-343), dependency: `[state]`
-- [ ] 11.2: GoalsContext.tsx - useMemo na value (radek 353-367), dependency: `[state]`
-- [ ] 11.3: GratitudeContext.tsx - useMemo na value (radek 308-328), dependency: `[state]`
-- [ ] 11.4: AppContext.tsx - useMemo na value (radek 197-205), dependency: `[state]`
-- [ ] 11.5: ThemeContext.tsx - useCallback na setThemeMode + useMemo na value
-- [ ] 11.6: ModalQueueContext.tsx - useMemo na contextValue (radek 138-143), dependency: `[queue, enqueue, closeCurrentModal]`
-- [ ] 11.7: Overit ze vsechny kontexty stale spravne reaguji na zmeny stavu
+- [x] 11.1: HabitsContext.tsx - useMemo na value (radek 332-343), dependency: `[state]`
+- [x] 11.2: GoalsContext.tsx - useMemo na value (radek 353-367), dependency: `[state]`
+- [x] 11.3: GratitudeContext.tsx - useMemo na value (radek 308-328), dependency: `[state]`
+- [x] 11.4: AppContext.tsx - useMemo na value (radek 197-205), dependency: `[state]`
+- [x] 11.5: ThemeContext.tsx - useCallback na setThemeMode + useMemo na value
+- [x] 11.6: ModalQueueContext.tsx - useMemo na contextValue (radek 138-143), dependency: `[queue, enqueue, closeCurrentModal]`
+- [x] 11.7: TypeScript build: 0 errors
 
 **Soubory k uprave**: 6 souboru v `src/contexts/`, kazdy zmena ~5-10 radku
 

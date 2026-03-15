@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../types/habit';
 import { getHabitStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
@@ -344,21 +344,22 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     loadHabits();
   }, []);
 
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    actions: {
+      loadHabits,
+      createHabit,
+      updateHabit,
+      deleteHabit,
+      toggleCompletion,
+      updateHabitOrder,
+      clearError,
+    },
+  }), [state]);
+
   return (
-    <HabitsContext.Provider
-      value={{
-        state,
-        actions: {
-          loadHabits,
-          createHabit,
-          updateHabit,
-          deleteHabit,
-          toggleCompletion,
-          updateHabitOrder,
-          clearError,
-        },
-      }}
-    >
+    <HabitsContext.Provider value={contextValue}>
       {children}
     </HabitsContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { useColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightColors, darkColors, ThemeColors } from '../constants/colors';
@@ -68,8 +68,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
 
-  // Save theme preference to AsyncStorage
-  const setThemeMode = async (mode: ThemeMode) => {
+  // 🚀 PERFORMANCE: useCallback for stable reference (deps: setThemeModeState is stable useState setter)
+  const setThemeMode = useCallback(async (mode: ThemeMode) => {
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
       setThemeModeState(mode);
@@ -77,7 +77,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Failed to save theme preference:', error);
     }
-  };
+  }, []);
 
   // Determine the active theme based on mode and system preference
   const getActiveTheme = (): 'light' | 'dark' => {
@@ -93,12 +93,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Select the appropriate color palette
   const colors = isDark ? darkColors : lightColors;
 
-  const value: ThemeContextType = {
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<ThemeContextType>(() => ({
     colors,
     themeMode,
     isDark,
     setThemeMode,
-  };
+  }), [colors, themeMode, isDark, setThemeMode]);
 
   return (
     <ThemeContext.Provider value={value}>

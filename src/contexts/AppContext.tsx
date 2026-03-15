@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, ReactNode } from 'react';
 import { StatePersistence } from '../utils/statePersistence';
 import { AppInitializationService, AppInitializationResult } from '../services/appInitializationService';
 
@@ -192,18 +192,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
+  // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    setLoading,
+    setError,
+    setInitialized,
+    setLifecycleManagerReady,
+    getSystemHealth,
+    forceReinitialization,
+  }), [state]);
+
   return (
-    <AppContext.Provider
-      value={{
-        state,
-        setLoading,
-        setError,
-        setInitialized,
-        setLifecycleManagerReady,
-        getSystemHealth,
-        forceReinitialization,
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );
