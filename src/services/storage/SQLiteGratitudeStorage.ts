@@ -272,8 +272,9 @@ export class SQLiteGratitudeStorage {
         ? `Bonus journal entry #${order}${milestoneDescription}`
         : `Journal entry #${order}`;
 
-      // Award combined XP in single transaction (prevents double achievement processing)
-      await GamificationService.addXP(totalXpAmount, {
+      // 🚀 FIRE-AND-FORGET: XP runs in background (75-200ms saving)
+      // Milestone counters and streak update STAY SYNC below (UI needs them)
+      GamificationService.addXP(totalXpAmount, {
         source: milestoneXpAmount > 0 ? XPSourceType.JOURNAL_BONUS_MILESTONE : xpSource,
         description,
         sourceId: entryId,
@@ -283,6 +284,8 @@ export class SQLiteGratitudeStorage {
           entryPosition: order,
           entryLength: input.content.length,
         },
+      }).catch(error => {
+        console.error('❌ Journal XP award failed (background):', error);
       });
 
       console.log(`✅ Journal entry created (position: ${order}, +${totalXpAmount} XP)${milestoneDescription}`);

@@ -1166,9 +1166,9 @@ Klik na navyk
 - Uzivatel vidi okamzitou odezvu, tezke operace bezi na pozadi
 
 **Implementace**:
-- [ ] 10.1.1: V `toggleCompletion()` pridat optimistic dispatch PRED `await habitStorage.toggleCompletion()`
-- [ ] 10.1.2: Pridat rollback logiku pro pripad chyby (dispatch DELETE_COMPLETION)
-- [ ] 10.1.3: Overit ze vizualni stav checkboxu je okamzity
+- [x] 10.1.1: V `toggleCompletion()` pridat optimistic dispatch PRED `await habitStorage.toggleCompletion()`
+- [x] 10.1.2: Pridat rollback logiku pro pripad chyby (dispatch DELETE_COMPLETION)
+- [x] 10.1.3: Overit ze vizualni stav checkboxu je okamzity
 
 **Soubory k uprave**: `src/contexts/HabitsContext.tsx` (1 soubor, ~15 radku zmena)
 
@@ -1179,19 +1179,22 @@ Klik na navyk
 **Cil**: Predem nahrat moduly a inicializovat cache, ktere zpusobuji cold start pri prvnim kliknuti.
 
 **Co se zmeni**:
-- `appInitializationService.ts` - V ramci `initializeGamificationService()` pridat "warmup" volani
-- Konkretne: zavolat `GamificationService.getDailyXPData()` a `GamificationService.getActiveXPMultiplier()` aby se:
-  - Nacetly dynamicke importy (featureFlags, database/init, xpMultiplierService)
-  - Inicializovala SQLite spojeni
-  - Nacachovaly denni XP data
-- Vyuzijeme existujici `AppInitializationService` ktery uz bezi pri startu appky
+- `gamificationService.ts` - Nahradit dynamicke importy `featureFlags` a `database/init` statickymi (top-level) importy
+- `achievementService` a `xpMultiplierService` ZUSTAVAJI dynamicke (cirkularni dependence - oba importuji GamificationService)
+
+**KRITICKE - Cirkularni dependence (overeno v kodu):**
+- `achievementService.ts` radek 22: `import { GamificationService } from './gamificationService'` → STATICKA dependence
+- `xpMultiplierService.ts`: dynamicky importuje GamificationService → cirkularni
+- Proto oba MUSI zustat jako `await import()` aby se zabranilo cirkularnimu nacitani modulu
 
 **Implementace**:
-- [ ] 10.2.1: Nahradit dynamicke importy v gamificationService.ts za staticke (top-level) importy pro: `featureFlags`, `database/init`
-- [ ] 10.2.2: V `initializeGamificationService()` pridat warmup volani pro XP multiplier a daily data
-- [ ] 10.2.3: Overit ze appka startuje bez regresu
+- [x] 10.2.1: Nahradit dynamicke importy `featureFlags` za staticky top-level import (7 vyskytu)
+- [x] 10.2.2: Nahradit dynamicke importy `database/init` za staticky top-level import (7 vyskytu)
+- [x] 10.2.3: PONECHAT dynamicky import `achievementService` (radek 877) - cirkularni dependence
+- [x] 10.2.4: PONECHAT dynamicky import `xpMultiplierService` (radek 2425) - cirkularni dependence
+- [x] 10.2.5: Overit ze appka startuje bez regresu
 
-**Soubory k uprave**: `src/services/gamificationService.ts`, `src/services/appInitializationService.ts` (2 soubory)
+**Soubory k uprave**: `src/services/gamificationService.ts` (1 soubor)
 
 ---
 
@@ -1205,9 +1208,9 @@ Klik na navyk
 - Achievementy se vyhodnoti na pozadi a pripadne modaly se enqueuji do ModalQueue
 
 **Implementace**:
-- [ ] 10.3.1: Odstranit `await` pred `AchievementService.checkAchievementsAfterXPAction()`
-- [ ] 10.3.2: Pridat `.catch()` handler pro logovani chyb z pozadi
-- [ ] 10.3.3: Overit ze achievement modaly se stale spravne zobrazuji (pres ModalQueue)
+- [x] 10.3.1: Odstranit `await` pred `AchievementService.checkAchievementsAfterXPAction()`
+- [x] 10.3.2: Pridat `.catch()` handler pro logovani chyb z pozadi
+- [x] 10.3.3: Overit ze achievement modaly se stale spravne zobrazuji (pres ModalQueue)
 
 **Soubory k uprave**: `src/services/gamificationService.ts` (1 soubor, ~5 radku zmena)
 
@@ -1246,9 +1249,9 @@ setLoading(true)
 - Tutorial restarted check (`isTutorialRestarted`) slouzi jen k logovani, ne k blokaci - presun do setTimeout je bezpecny
 
 **Implementace**:
-- [ ] 10.4.1: Zabalit tutorial check + runBatchAchievementCheck do `setTimeout(() => ..., 100)` (kopie vzoru z GoalsContext)
-- [ ] 10.4.2: Overit ze `first-habit` achievement modal se stale zobrazi pri prvnim vytvoreni navyku (behem tutorialu)
-- [ ] 10.4.3: Overit ze modal pro vytvoreni navyku se zavre okamzite
+- [x] 10.4.1: Zabalit tutorial check + runBatchAchievementCheck do `setTimeout(() => ..., 100)` (kopie vzoru z GoalsContext)
+- [x] 10.4.2: Overit ze `first-habit` achievement modal se stale zobrazi pri prvnim vytvoreni navyku (behem tutorialu)
+- [x] 10.4.3: Overit ze modal pro vytvoreni navyku se zavre okamzite
 
 **Soubory k uprave**: `src/contexts/HabitsContext.tsx` (1 soubor, ~5 radku zmena - jen zabaleni do setTimeout)
 
@@ -1300,11 +1303,11 @@ journal.tsx handleInputSuccess():
 - Streak milestone modal: bezpecny protoze streak update zustava sync
 
 **Implementace**:
-- [ ] 10.5.1: V `SQLiteGratitudeStorage.create()` presunout POUZE `GamificationService.addXP()` za milestone/streak logiku jako fire-and-forget promise s `.catch()` handlerem
-- [ ] 10.5.2: Milestone counter update a `calculateAndUpdateStreak()` ZUSTAVAJI pred return (synchronni)
-- [ ] 10.5.3: Zachovat poradi: INSERT → milestones → streak → return → (pozadi: XP)
-- [ ] 10.5.4: Overit ze celebration modaly se stale zobrazuji spravne
-- [ ] 10.5.5: Overit ze XP popup animace se stale zobrazuje
+- [x] 10.5.1: V `SQLiteGratitudeStorage.create()` presunout POUZE `GamificationService.addXP()` za milestone/streak logiku jako fire-and-forget promise s `.catch()` handlerem
+- [x] 10.5.2: Milestone counter update a `calculateAndUpdateStreak()` ZUSTAVAJI pred return (synchronni)
+- [x] 10.5.3: Zachovat poradi: INSERT → milestones → streak → return → (pozadi: XP)
+- [x] 10.5.4: Overit ze celebration modaly se stale zobrazuji spravne
+- [x] 10.5.5: Overit ze XP popup animace se stale zobrazuje
 
 **Soubory k uprave**: `src/services/storage/SQLiteGratitudeStorage.ts` (1 soubor, ~10 radku zmena)
 

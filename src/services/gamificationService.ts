@@ -25,6 +25,9 @@ import {
 } from './levelCalculation';
 import { DateString } from '../types/common';
 import { formatDateToString, today } from '../utils/date';
+import { FEATURE_FLAGS } from '../config/featureFlags';
+import { getDatabase } from './database/init';
+import { AtomicStorage } from './atomicStorage';
 
 // ========================================
 // XP BATCHING SYSTEM INTERFACES
@@ -751,11 +754,10 @@ export class GamificationService {
       const newLevel = getCurrentLevel(newTotalXP);
       console.log(`💰 Updating total XP: ${previousTotalXP} + ${finalAmount} = ${newTotalXP}`);
 
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - ACID transaction
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
         const timestamp = Date.now();
         const todayDate = today();
@@ -868,27 +870,20 @@ export class GamificationService {
         GamificationService.triggerXPAnimation(finalAmount, options.source, options.sourceId, options.metadata, options.metadata?.position);
       }
 
-      // Check for achievement unlocks after XP action
-      try {
-        // FIX: Skip achievement checking in test environment due to dynamic import issues
-        if (typeof jest !== 'undefined' || process.env.NODE_ENV === 'test') {
-          console.log('🧪 Test environment: skipping achievement check');
-        } else {
-          const { AchievementService } = await import('./achievementService');
-          const achievementResult = await AchievementService.checkAchievementsAfterXPAction(
+      // 🚀 FIRE-AND-FORGET: Achievement check runs in background, doesn't block XP return
+      if (typeof jest === 'undefined' && process.env.NODE_ENV !== 'test') {
+        import('./achievementService').then(({ AchievementService }) => {
+          AchievementService.checkAchievementsAfterXPAction(
             options.source,
             finalAmount,
             options.sourceId,
             options.metadata
-          );
-          
-          if (achievementResult.unlocked.length > 0) {
-            console.log(`🏆 ${achievementResult.unlocked.length} achievement(s) unlocked from XP action`);
-          }
-        }
-      } catch (error) {
-        console.error('Achievement check after XP action failed:', error);
-        // Non-blocking error - XP was still awarded successfully
+          ).catch(error => {
+            console.error('Achievement check after XP action failed:', error);
+          });
+        }).catch(error => {
+          console.error('Achievement service import failed:', error);
+        });
       }
 
       // Return comprehensive result
@@ -992,11 +987,10 @@ export class GamificationService {
       const newLevel = getCurrentLevel(newTotalXP);
       const leveledDown = newLevel < previousLevel;
 
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - ACID transaction for subtraction
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
         const timestamp = Date.now();
         const todayDate = today();
@@ -1282,11 +1276,10 @@ export class GamificationService {
    */
   static async getTotalXP(): Promise<number> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - query xp_state table
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
 
         const result = await db.getFirstAsync<{ total_xp: number }>(
@@ -1503,11 +1496,10 @@ export class GamificationService {
    */
   private static async saveTransaction(transaction: XPTransaction): Promise<void> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - INSERT transaction
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
 
         const timestamp = transaction.createdAt instanceof Date
@@ -1854,12 +1846,11 @@ export class GamificationService {
     triggerSource: XPSourceType
   ): Promise<void> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
       const now = Date.now();
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - INSERT into level_up_history
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
 
         // Check for recent duplicate (within last 3 seconds)
@@ -2139,11 +2130,10 @@ export class GamificationService {
     goalId?: string
   ): Promise<void> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - UPDATE xp_daily_summary with UPSERT
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
         const todayDate = today();
         const timestamp = Date.now();
@@ -2239,11 +2229,10 @@ export class GamificationService {
    */
   private static async getDailyXPData(): Promise<DailyXPData> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - query xp_daily_summary and daily_activity_log
-        const { getDatabase } = await import('./database/init');
+
         const db = getDatabase();
         const todayDate = today();
 
@@ -2843,7 +2832,7 @@ export class GamificationService {
     concurrentOperationDetected: boolean;
     recommendations: string[];
   }> {
-    const { AtomicStorage } = await import('./atomicStorage');
+
     
     // Local storage key for operation counter (previously in AtomicGamificationService)
     const OPERATION_COUNTER_KEY = 'gamification_operation_counter_atomic';
@@ -2883,7 +2872,7 @@ export class GamificationService {
    * Generate production health report
    */
   static async generateProductionHealthReport(): Promise<string> {
-    const { AtomicStorage } = await import('./atomicStorage');
+
     
     const raceConditionStats = await this.getRaceConditionStats();
     const storageHealth = AtomicStorage.generateHealthReport();

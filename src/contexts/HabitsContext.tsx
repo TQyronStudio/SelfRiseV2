@@ -198,26 +198,23 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
 
       dispatch({ type: 'ADD_HABIT', payload: newHabit });
 
-      // 🎯 Enhanced Achievement Handling for Tutorial Restart
-      try {
-        const isRestarted = await isTutorialRestarted();
-        const isActive = await isTutorialActive();
+      // 🚀 Achievement check runs in background (same pattern as GoalsContext)
+      setTimeout(async () => {
+        try {
+          const isRestarted = await isTutorialRestarted();
+          const isActive = await isTutorialActive();
 
-        if (isActive && isRestarted) {
-          // Tutorial is restarted - user already has first-habit achievement
-          // Skip achievement modal to avoid redundancy
-          console.log('✨ Tutorial restarted: Habit created successfully (achievement already earned)');
-          // Achievement check will run but won't show modal for already-earned achievements
-        } else {
-          // Normal flow - first tutorial or manual habit creation
-          console.log('🎯 Checking achievements after habit creation:', newHabit.name, 'color:', newHabit.color);
+          if (isActive && isRestarted) {
+            console.log('✨ Tutorial restarted: Habit created successfully (achievement already earned)');
+          } else {
+            console.log('🎯 Checking achievements after habit creation:', newHabit.name, 'color:', newHabit.color);
+          }
+
+          await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
+        } catch (achievementError) {
+          console.error('Failed to check achievements after habit creation:', achievementError);
         }
-
-        await AchievementService.runBatchAchievementCheck({ forceUpdate: true });
-      } catch (achievementError) {
-        console.error('Failed to check achievements after habit creation:', achievementError);
-        // Don't throw - habit creation should succeed even if achievement check fails
-      }
+      }, 100);
 
       return newHabit;
     } catch (error) {
@@ -273,25 +270,45 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
 
-      const result = await habitStorage.toggleCompletion(habitId, date, isBonus);
+      // Check current state to determine optimistic action
+      const existingCompletion = state.completions.find(
+        c => c.habitId === habitId && c.date === date
+      );
 
-      // 🚀 PERFORMANCE: Invalidate cache before dispatch
-      // CRITICAL: This ensures make-up conversion gets fresh completion data
+      // 🚀 OPTIMISTIC UI: Dispatch BEFORE storage for instant checkbox response
       invalidateQueryCache();
 
-      if (result) {
-        dispatch({ type: 'ADD_COMPLETION', payload: result });
+      if (existingCompletion) {
+        // Toggling OFF: remove from state immediately
+        dispatch({ type: 'DELETE_COMPLETION', payload: existingCompletion.id });
       } else {
-        const existingCompletion = state.completions.find(
-          c => c.habitId === habitId && c.date === date
-        );
-        if (existingCompletion) {
-          dispatch({ type: 'DELETE_COMPLETION', payload: existingCompletion.id });
-        }
+        // Toggling ON: add temp completion to state immediately
+        const tempCompletion: HabitCompletion = {
+          id: `temp_${habitId}_${date}`,
+          habitId,
+          date,
+          completed: true,
+          isBonus,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        dispatch({ type: 'ADD_COMPLETION', payload: tempCompletion });
       }
-      
+
+      // Storage operation (heavy - includes XP, achievements)
+      const result = await habitStorage.toggleCompletion(habitId, date, isBonus);
+
+      // After storage completes, replace temp completion with real DB data
+      invalidateQueryCache();
+      if (result && !existingCompletion) {
+        dispatch({ type: 'DELETE_COMPLETION', payload: `temp_${habitId}_${date}` });
+        dispatch({ type: 'ADD_COMPLETION', payload: result });
+      }
+
       return result;
     } catch (error) {
+      // Rollback: reload all data from storage to restore correct state
+      await loadHabits();
       const errorMessage = error instanceof Error ? error.message : 'Failed to toggle completion';
       setError(errorMessage);
       throw new Error(errorMessage);
