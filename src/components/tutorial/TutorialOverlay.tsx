@@ -203,15 +203,20 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
 
   // Auto-scroll to ensure target is visible in viewport
   const ensureTargetVisible = async (targetId: string, targetInfo: TargetElementInfo): Promise<boolean> => {
-    // Skip auto-scroll for modal creation steps - they should work like Habit creation
+    // Skip auto-scroll for most modal creation steps - except those at bottom of form
+    const needsScrollInModal = (
+      state.currentStepData?.id === 'habit-days' ||
+      state.currentStepData?.id === 'habit-create' ||
+      state.currentStepData?.id === 'goal-create'
+    );
     const isModalStep = state.currentStepData?.id && (
       state.currentStepData.id.startsWith('habit-') ||
       state.currentStepData.id.startsWith('goal-')
     );
 
-    if (isModalStep) {
+    if (isModalStep && !needsScrollInModal) {
       console.log(`🚫 [TUTORIAL] Skipping auto-scroll for modal step: ${state.currentStepData?.id}`);
-      return false; // No scroll for modal steps
+      return false; // No scroll for top-of-form modal steps
     }
 
     // Get viewport height
