@@ -479,6 +479,7 @@ export default function CelebrationModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"

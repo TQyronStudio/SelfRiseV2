@@ -87,6 +87,7 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -165,6 +166,7 @@ function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: Warm
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -263,6 +265,7 @@ function WarmUpConfirmationModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -542,6 +545,7 @@ export default function StreakWarmUpModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"

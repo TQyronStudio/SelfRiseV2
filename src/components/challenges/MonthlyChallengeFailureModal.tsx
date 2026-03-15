@@ -336,7 +336,9 @@ const MonthlyChallengeFailureModal: React.FC<MonthlyChallengeFailureModalProps> 
   });
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      statusBarTranslucent={true}
+      visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <Animated.View
           style={[

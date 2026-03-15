@@ -178,6 +178,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="fade"
       transparent

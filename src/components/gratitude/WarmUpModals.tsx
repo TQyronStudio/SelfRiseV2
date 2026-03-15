@@ -100,6 +100,7 @@ export function WarmUpSuccessModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -184,6 +185,7 @@ export function WarmUpErrorModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -280,6 +282,7 @@ export function WarmUpConfirmationModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -387,6 +390,7 @@ export function WarmUpIssueModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"
@@ -493,6 +497,7 @@ export function QuickWarmUpModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"

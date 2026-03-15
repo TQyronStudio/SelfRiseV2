@@ -141,6 +141,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"

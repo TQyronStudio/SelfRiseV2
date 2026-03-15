@@ -871,7 +871,7 @@ export class MonthlyProgressTracker {
     progress: MonthlyChallengeProgress
   ): Promise<void> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today: string = new Date().toISOString().split('T')[0]!;
 
       // Initialize activeDays array if missing
       if (!progress.activeDays) {

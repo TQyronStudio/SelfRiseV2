@@ -469,6 +469,7 @@ export function TargetDateStepSelectionModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent={true}
       animationType="fade"

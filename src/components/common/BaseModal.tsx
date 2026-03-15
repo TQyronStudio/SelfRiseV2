@@ -94,6 +94,7 @@ export default function BaseModal({
       visible={visible}
       transparent
       animationType={animationType}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView 

@@ -58,6 +58,7 @@ export function HabitModal({
       visible={visible}
       animationType="slide"
       presentationStyle={tutorialState.isActive ? "fullScreen" : "pageSheet"}
+      statusBarTranslucent={true}
       onRequestClose={tutorialState.isActive ? undefined : onClose}
     >
       <TutorialOverlay>

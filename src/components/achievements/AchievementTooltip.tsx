@@ -296,6 +296,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"

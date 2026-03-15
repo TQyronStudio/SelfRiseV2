@@ -370,6 +370,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"

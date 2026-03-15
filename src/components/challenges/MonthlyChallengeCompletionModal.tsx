@@ -563,7 +563,9 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   });
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      statusBarTranslucent={true}
+      visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         {/* Particles */}
         {particleAnims.map((_, index) => renderParticle(index))}

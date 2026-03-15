@@ -99,6 +99,7 @@ export default function TargetDateConfirmationModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="fade"

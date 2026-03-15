@@ -169,6 +169,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
   if (!achievement) {
     return (
       <Modal
+      statusBarTranslucent={true}
         visible={false}
         transparent
         animationType="fade"
@@ -460,6 +461,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"

@@ -80,6 +80,7 @@ export function ProgressModal({
   // STANDARDÍ React Native Modal s krásným pageSheet stylem
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"

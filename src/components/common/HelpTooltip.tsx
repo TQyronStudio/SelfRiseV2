@@ -425,6 +425,7 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
 
     return (
       <Modal
+      statusBarTranslucent={true}
         visible={isVisible}
         transparent
         animationType="none"

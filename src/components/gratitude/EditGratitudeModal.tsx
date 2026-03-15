@@ -155,6 +155,7 @@ export default function EditGratitudeModal({
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       animationType="slide"
       presentationStyle="formSheet"

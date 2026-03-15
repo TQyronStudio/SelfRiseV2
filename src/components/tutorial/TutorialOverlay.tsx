@@ -10,6 +10,7 @@ import {
   StatusBar,
   DeviceEventEmitter,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,6 +46,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
   const { state, actions } = useTutorial();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+
+  // Responsive: all positioning relative to screen dimensions
+  const screenHeight = Dimensions.get('window').height;
+  const screenWidth = Dimensions.get('window').width;
+  const safeHeight = screenHeight - insets.top - insets.bottom; // usable space
 
   // Animation values
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -213,16 +219,16 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     const safeAreaTop = insets.top;
     const safeAreaBottom = insets.bottom;
 
-    // Reserve space for tutorial content based on step type
+    // Reserve space for tutorial content based on step type (relative to screen height)
     const isTypeInput = (
       state.currentStepData?.action === 'type_text' ||
       state.currentStepData?.action === 'type_number'
     );
     const isQuickActionsStep = state.currentStepData?.id === 'quick-actions';
 
-    // Quick Actions step needs more top space for tutorial text positioned at top
-    const topReserve = isQuickActionsStep ? 200 : (isTypeInput ? 150 : 100);
-    const bottomReserve = isTypeInput ? 350 : 200; // More space for keyboard
+    // Relative reserves: % of screen height instead of hardcoded pixels
+    const topReserve = isQuickActionsStep ? viewportHeight * 0.25 : (isTypeInput ? viewportHeight * 0.18 : viewportHeight * 0.12);
+    const bottomReserve = isTypeInput ? viewportHeight * 0.42 : viewportHeight * 0.25; // More space for keyboard
 
     const visibleAreaTop = safeAreaTop + topReserve;
     const visibleAreaBottom = viewportHeight - safeAreaBottom - bottomReserve;
@@ -364,7 +370,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     },
     contentContainer: {
       position: 'absolute',
-      bottom: getContentBottomPosition() - 50,
+      bottom: Math.max(insets.bottom, 20) + safeHeight * 0.05,
       left: getHorizontalMargin(),
       right: getHorizontalMargin(),
       zIndex: 10000,
@@ -377,7 +383,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     },
     contentContainerTopFixed: {
       position: 'absolute',
-      top: (isTablet() ? 100 : (getScreenSize() === ScreenSize.SMALL ? 70 : 80)),
+      top: insets.top + safeHeight * 0.06,
       left: getHorizontalMargin(),
       right: getHorizontalMargin(),
       zIndex: 10000,
@@ -386,6 +392,10 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
       backgroundColor: colors.cardBackgroundElevated,
       borderRadius: isTablet() ? 20 : (getScreenSize() === ScreenSize.SMALL ? 12 : 16),
       padding: getCardPadding(),
+      maxHeight: safeHeight * 0.4,
+    },
+    contentScroll: {
+      flexShrink: 1,
     },
     title: {
       fontSize: scaleFont(Fonts.sizes.xl),
@@ -517,7 +527,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
           style={[
             styles.skipButtonContainer,
             {
-              top: (insets.top * getSafeAreaMultiplier()) + (isTablet() ? 0 : (getScreenSize() === ScreenSize.SMALL ? 0 : 2)),
+              top: insets.top + 8,
               opacity: contentOpacity,
             },
           ]}
@@ -636,20 +646,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
                 // because they're lower in modal and need auto-scroll
 
                 if (isDynamicPositionStep && spotlightTarget) {
-                  const basePosition = spotlightTarget.y + spotlightTarget.height + 16; // 16px pod fieldem
+                  const basePosition = spotlightTarget.y + spotlightTarget.height + safeHeight * 0.02;
 
-                  // Calculate dynamic tutorial card height instead of fixed 250px
+                  // Calculate dynamic tutorial card height instead of fixed value
                   const tutorialCardHeight = calculateTutorialCardHeight();
-                  const bottomSafePadding = 20; // Extra breathing room from bottom edge
 
-                  // Android-specific safe area handling: respect navigation bar height
-                  const androidNavBarExtra = Platform.OS === 'android' ? 8 : 0; // Extra padding for Android nav
-
-                  // Ensure content doesn't go below safe area with dynamic calculation
-                  const maxTop = Dimensions.get('window').height - insets.bottom - tutorialCardHeight - bottomSafePadding - androidNavBarExtra;
+                  // Ensure content doesn't go below safe area
+                  const maxTop = screenHeight - insets.bottom - tutorialCardHeight - safeHeight * 0.03;
                   const finalPosition = Math.min(basePosition, maxTop);
 
-                  console.log(`📍 [TUTORIAL] Dynamic positioning: base=${basePosition}px, cardHeight=${tutorialCardHeight}px, maxTop=${maxTop}px, final=${finalPosition}px (${Platform.OS})`);
                   return { top: finalPosition };
                 }
                 return {};
@@ -657,17 +662,19 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
             ]}
           >
             <View style={styles.contentCard}>
-              {/* Title */}
+              {/* Title - always visible */}
               <Text style={styles.title}>
                 {state.currentStepData.content.title}
               </Text>
 
-              {/* Content */}
-              <Text style={styles.content}>
-                {state.currentStepData.content.content}
-              </Text>
+              {/* Content - scrollable if too long */}
+              <ScrollView style={styles.contentScroll} bounces={false} showsVerticalScrollIndicator={false}>
+                <Text style={styles.content}>
+                  {state.currentStepData.content.content}
+                </Text>
+              </ScrollView>
 
-              {/* Progress indicator */}
+              {/* Progress indicator - always visible */}
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
                   <View style={[

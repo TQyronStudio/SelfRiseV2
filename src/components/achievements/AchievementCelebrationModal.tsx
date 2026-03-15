@@ -277,6 +277,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
 
   return (
     <Modal
+      statusBarTranslucent={true}
       visible={visible}
       transparent
       animationType="none"
