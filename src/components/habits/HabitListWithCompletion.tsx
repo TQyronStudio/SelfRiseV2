@@ -233,6 +233,9 @@ export function HabitListWithCompletion({
               keyExtractor={flatListKeyExtractor}
               scrollEnabled={false}
               nestedScrollEnabled={true}
+              windowSize={5}
+              maxToRenderPerBatch={5}
+              initialNumToRender={7}
             />
           )}
         </View>

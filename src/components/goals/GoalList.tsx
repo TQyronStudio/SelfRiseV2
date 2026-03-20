@@ -82,6 +82,9 @@ export function GoalList({
       }
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      windowSize={5}
+      maxToRenderPerBatch={5}
+      initialNumToRender={5}
     />
   );
 }

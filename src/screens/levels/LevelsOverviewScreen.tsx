@@ -373,12 +373,9 @@ export const LevelsOverviewScreen: React.FC = () => {
           keyExtractor={(item) => item.level.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
-          initialScrollIndex={Math.max(0, currentLevel - 3)}
-          getItemLayout={(data, index) => ({
-            length: 80,
-            offset: 80 * index,
-            index,
-          })}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          initialNumToRender={10}
         />
       </View>
   );

@@ -1562,22 +1562,22 @@ Soubory `GoalListWithDragAndDrop.tsx`, `HabitList.tsx` a `HabitListWithCompletio
 
 ### Implementace
 
-- [ ] 13.1: AchievementGrid.tsx - pridat `getItemLayout`, `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={12}`
-- [ ] 13.2: GoalList.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
-- [ ] 13.3: GoalListWithDragAndDrop.tsx **radek 198** (view mode FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
-- [ ] 13.4: ProgressHistoryList.tsx - pridat `getItemLayout`, `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
-- [ ] 13.5: HabitList.tsx **radky 183 a 207** (oba standardni FlatListy) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}`
-- [ ] 13.6: HabitListWithCompletion.tsx **radek 230** (non-edit FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}`
-- [ ] 13.7: achievements.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
-- [ ] 13.8: LevelsOverviewScreen.tsx - doplnit chybejici `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
+- [x] 13.1: AchievementGrid.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={12}` (BEZ `getItemLayout` - multi-column + dvojity marginBottom = riskantni vypocet)
+- [x] 13.2: GoalList.tsx - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
+- [x] 13.3: GoalListWithDragAndDrop.tsx **radek 198** (view mode FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={5}`
+- [SKIP] 13.4: ProgressHistoryList.tsx - PRESKOCENO: `scrollEnabled={false}` = nulovy efekt props; variabilni vyska (podmínený item.note) = getItemLayout by byl chybny
+- [x] 13.5: HabitList.tsx **radek 207** (inactive habits FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}` (radek 183 preskocen - data=[{key:'content'}] = 1 item, zadny benefit)
+- [x] 13.6: HabitListWithCompletion.tsx **radek 230** (non-edit FlatList) - pridat `windowSize={5}`, `maxToRenderPerBatch={5}`, `initialNumToRender={7}`
+- [SKIP] 13.7: achievements.tsx - PRESKOCENO: soubor neexistuje, AchievementGrid.tsx (krok 13.1) je jediny achievements FlatList
+- [x] 13.8: LevelsOverviewScreen.tsx - doplnit chybejici `windowSize={5}`, `maxToRenderPerBatch={10}`, `initialNumToRender={10}`
 - [ ] 13.9: Overit plynulost scrollovani na vsech zmenenych obrazovkach
 
-**Soubory k uprave**: 7 souboru (8 FlatList instanci), kazdy zmena ~3-5 radku (pridani props)
+**Soubory k uprave**: 5 souboru (6 FlatList instanci), kazdy zmena ~3-4 radky (pridani props)
 
 ### Rizika
 
 - **Velmi nizke**: Pridani props nemeni logiku, jen optimalizuje renderovani
-- **`getItemLayout` POUZE pro pevnou vysku**: Pouzivame JEN u AchievementGrid a ProgressHistoryList kde jsou polozky stejne velke. U GoalList, HabitList (variabilni vyska) se NEPOUZIVA → zadny glitchy scroll
+- **`getItemLayout` NEPOUZIVAME**: AchievementGrid ma multi-column + dvojity marginBottom (slozity vypocet). ProgressHistoryList ma variabilni vysku a scrollEnabled=false. U vsech ostatnich (variabilni vyska) take ne → zadny glitchy scroll
 - **DraggableFlatList NEDOTKNUTY**: Vsechny tri DraggableFlatList instance (radky 186, 191, 217) zustavaji BEZ ZMENY → drag-and-drop funguje beze zmen
 
 ---

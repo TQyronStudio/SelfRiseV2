@@ -218,6 +218,9 @@ export function HabitList({
                   )}
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={false}
+                  windowSize={5}
+                  maxToRenderPerBatch={5}
+                  initialNumToRender={7}
                 />
               </View>
             )}

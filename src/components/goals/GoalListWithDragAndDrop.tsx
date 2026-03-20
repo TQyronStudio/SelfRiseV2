@@ -201,6 +201,9 @@ export function GoalListWithDragAndDrop({
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
               nestedScrollEnabled={true}
+              windowSize={5}
+              maxToRenderPerBatch={5}
+              initialNumToRender={5}
             />
           )}
         </View>

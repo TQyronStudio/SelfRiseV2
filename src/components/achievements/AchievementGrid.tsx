@@ -68,6 +68,9 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
       showsVerticalScrollIndicator={false}
       accessible={true}
       accessibilityLabel={t('accessibility.achievementGrid')}
+      windowSize={5}
+      maxToRenderPerBatch={10}
+      initialNumToRender={12}
     />
   );
 };
