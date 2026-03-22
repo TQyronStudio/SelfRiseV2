@@ -23,7 +23,7 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
-import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
+import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp, formatDateToString } from '../../utils/date';
 
 /**
  * SQLite-based Gratitude Storage
@@ -732,18 +732,16 @@ export class SQLiteGratitudeStorage {
       const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
 
-      // FROZEN STREAK FIX #1: Ultra-short phantom debt prevention (5 minutes max)
+      // FIX 15.2-v2: Date-based reset floor - autoResetTimestamp acts as a permanent
+      // debt barrier. Missed days on or before the reset date are never counted as debt.
+      // This prevents re-freezing after reset without polluting warm_up_payments.
+      let resetDateFloor: DateString | null = null;
       if (currentStreak.autoResetTimestamp) {
-        const resetTime = new Date(currentStreak.autoResetTimestamp);
-        const now = new Date();
-        const minutesSinceReset = (now.getTime() - resetTime.getTime()) / (1000 * 60);
-
-        if (minutesSinceReset < 5) {
-          return 0; // No debt immediately after reset
-        } else {
-          // Clear old auto-reset timestamp to prevent perpetual 0 debt
-          await this.clearAutoResetTimestamp();
+        const resetDateStr = formatDateToString(new Date(currentStreak.autoResetTimestamp));
+        if (resetDateStr === currentDate) {
+          return 0; // Reset happened today - no debt
         }
+        resetDateFloor = resetDateStr; // Use as floor for subsequent days
       }
 
       // CRITICAL FIX: If user completed today, debt is automatically 0
@@ -764,9 +762,12 @@ export class SQLiteGratitudeStorage {
         }
       });
 
-      // Calculate which missed days are still unpaid
+      // Calculate which missed days are still unpaid, applying reset floor
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
-      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
+      const filteredDates = resetDateFloor
+        ? missedDates.filter(date => date > resetDateFloor!)
+        : missedDates;
+      const unpaidMissedDays = filteredDates.filter(date => !paidDays.has(date));
 
       return unpaidMissedDays.length;
     } catch (error) {
@@ -783,6 +784,18 @@ export class SQLiteGratitudeStorage {
     try {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
+      const currentStreak = await this.getStreak();
+
+      // FIX 15.2-v2: Same reset date floor as calculateFrozenDays()
+      // Prevents auto-reset from triggering on pre-reset missed days
+      let resetDateFloor: DateString | null = null;
+      if (currentStreak.autoResetTimestamp) {
+        const resetDateStr = formatDateToString(new Date(currentStreak.autoResetTimestamp));
+        if (resetDateStr === currentDate) {
+          return 0;
+        }
+        resetDateFloor = resetDateStr;
+      }
 
       // Calculate raw missed days excluding today
       let rawMissedDays = 0;
@@ -807,9 +820,12 @@ export class SQLiteGratitudeStorage {
         }
       });
 
-      // Calculate unpaid missed days (excluding today)
+      // Calculate unpaid missed days (excluding today), applying reset floor
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
-      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date) && date !== currentDate);
+      const filteredDates = resetDateFloor
+        ? missedDates.filter(date => date > resetDateFloor! && date !== currentDate)
+        : missedDates.filter(date => date !== currentDate);
+      const unpaidMissedDays = filteredDates.filter(date => !paidDays.has(date));
 
       return unpaidMissedDays.length;
     } catch (error) {
@@ -1574,34 +1590,11 @@ export class SQLiteGratitudeStorage {
 
       await this.updateStreak(resetStreak);
 
-      // FIX 15.2: Mark all currently missed days as paid in warm_up_payments.
-      // This ensures calculateFrozenDays() permanently returns 0 after reset,
-      // even after app restart when autoResetTimestamp window expires.
-      // We do NOT delete warm_up_payments - they serve as permanent proof that
-      // these missed days were cleared via reset, so they won't cause a re-freeze.
+      // Clear all warm-up payments (clean slate for new streak)
+      // Re-freezing prevention is handled by autoResetTimestamp date floor
+      // in calculateFrozenDays() - see FIX 15.2-v2
       const db = this.getDb();
-      const rawMissedDays = await this.calculateRawMissedDays();
-      if (rawMissedDays > 0) {
-        const missedDates = this.getMissedDatesFromToday(rawMissedDays);
-        for (const missedDate of missedDates) {
-          const existing = await db.getFirstAsync<{ id: string }>(
-            'SELECT id FROM warm_up_payments WHERE missed_date = ?',
-            [missedDate]
-          );
-          if (existing) {
-            await db.runAsync(
-              'UPDATE warm_up_payments SET ads_watched = 1, paid_at = ? WHERE id = ?',
-              [Date.now(), existing.id]
-            );
-          } else {
-            const paymentId = `reset_${missedDate}_${Date.now()}`;
-            await db.runAsync(
-              'INSERT INTO warm_up_payments (id, missed_date, ads_watched, paid_at) VALUES (?, ?, 1, ?)',
-              [paymentId, missedDate, Date.now()]
-            );
-          }
-        }
-      }
+      await db.runAsync('DELETE FROM warm_up_payments');
 
       return resetStreak;
     } catch (error) {
