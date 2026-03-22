@@ -321,6 +321,7 @@ export default function StreakWarmUpModal({
   const { colors } = useTheme();
   const { t } = useI18n();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [showAdFailedModal, setShowAdFailedModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
@@ -355,10 +356,15 @@ export default function StreakWarmUpModal({
     }
   };
 
-  const handleResetStreak = () => {
-    if (onResetStreak) {
-      onResetStreak();
-      onClose();
+  const handleResetStreak = async () => {
+    if (onResetStreak && !isResetting) {
+      setIsResetting(true);
+      try {
+        await onResetStreak();
+      } finally {
+        setIsResetting(false);
+        onClose();
+      }
     }
   };
 
@@ -636,8 +642,9 @@ export default function StreakWarmUpModal({
           {/* Reset Option */}
           {onResetStreak && remainingAds > 0 && (
             <TouchableOpacity
-              style={styles.resetButton}
+              style={[styles.resetButton, isResetting && { opacity: 0.5 }]}
               onPress={() => setShowResetConfirmation(true)}
+              disabled={isResetting}
             >
               <Text style={styles.resetButtonText}>
                 {t('common.startFresh')}

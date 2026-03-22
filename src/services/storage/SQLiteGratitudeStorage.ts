@@ -1574,9 +1574,34 @@ export class SQLiteGratitudeStorage {
 
       await this.updateStreak(resetStreak);
 
-      // Clear all warm-up payments
+      // FIX 15.2: Mark all currently missed days as paid in warm_up_payments.
+      // This ensures calculateFrozenDays() permanently returns 0 after reset,
+      // even after app restart when autoResetTimestamp window expires.
+      // We do NOT delete warm_up_payments - they serve as permanent proof that
+      // these missed days were cleared via reset, so they won't cause a re-freeze.
       const db = this.getDb();
-      await db.runAsync('DELETE FROM warm_up_payments');
+      const rawMissedDays = await this.calculateRawMissedDays();
+      if (rawMissedDays > 0) {
+        const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+        for (const missedDate of missedDates) {
+          const existing = await db.getFirstAsync<{ id: string }>(
+            'SELECT id FROM warm_up_payments WHERE missed_date = ?',
+            [missedDate]
+          );
+          if (existing) {
+            await db.runAsync(
+              'UPDATE warm_up_payments SET ads_watched = 1, paid_at = ? WHERE id = ?',
+              [Date.now(), existing.id]
+            );
+          } else {
+            const paymentId = `reset_${missedDate}_${Date.now()}`;
+            await db.runAsync(
+              'INSERT INTO warm_up_payments (id, missed_date, ads_watched, paid_at) VALUES (?, ?, 1, ?)',
+              [paymentId, missedDate, Date.now()]
+            );
+          }
+        }
+      }
 
       return resetStreak;
     } catch (error) {

@@ -1673,3 +1673,163 @@ Po hloubkove analyze kodu bylo zjisteno, ze mnoho `console.log` volani NEJSOU ob
 | C | 13 | FlatList optimalizace (8 standardnich FlatListu) | STREDNI (scroll plynulost) | NIZKA (3-5 radku na soubor) | VELMI NIZKE |
 | D | 14 | Console.log selektivni cleanup (~150-200 logu) | NIZKY (micro-optimalizace) | NIZKA (manualni review) | ZADNE |
 | ~~E~~ | ~~12~~ | ~~N+1 goals stats~~ | ~~ODSTRANENO~~ | ~~uz optimalizovano (Promise.all)~~ | — |
+
+---
+
+## FAZE 15: Oprava Frozen Streak Reset - 2 kriticke chyby
+
+### Problem
+
+Uzivatel mel zamrznutou radu (frozen streak), stiskl cervene tlacitko Reset → aplikace se KOMPLETNE ZASEKLA. Po znovuotevreni aplikace byla rada STALE ZMRAZENA.
+
+Dukladnou analyzou zdrojoveho kodu byly nalezeny 2 kriticke chyby.
+
+---
+
+### CHYBA #1: Aplikace zamrzne (Race Condition - paralelni SQLite zapisy)
+
+**Soubor**: `src/components/gratitude/StreakWarmUpModal.tsx` radek 358-363
+
+**Root cause**: `handleResetStreak()` vola `onResetStreak()` BEZ `await`. Modal se okamzite zavre a domovska obrazovka dostane fokus → `useFocusEffect` spusti DRUHY `refreshStats()`. Oba volaji `calculateAndUpdateStreak()` paralelne na SQLite databazi bez zamkoveho mechanismu (SQLite verze nema `_isCalculatingStreak` lock jako AsyncStorage verze).
+
+```
+1. Uzivatel potvrdí Reset
+2. onResetStreak() spusti SQLite operace NA POZADI (neni await)
+3. onClose() zavre modal OKAMZITE
+4. useFocusEffect() spusti DRUHY loadStreakData() → refreshStats()
+5. PARALELNE bezi:
+   - VLAKNO A: resetStreak() → updateStreak() → calculateAndUpdateStreak() [SQLite zapis]
+   - VLAKNO B: loadStreakData() → refreshStats() → calculateAndUpdateStreak() [SQLite zapis]
+6. Oba zapisy narazaji do SQLite ve stejny cas → databaze blokuje → APP FREEZE
+```
+
+**Fix**: Pridat `await` do `handleResetStreak()` + pridat `isResetting` loading state ktery blokuje dalsi interakci behem resetu.
+
+---
+
+### CHYBA #2: Rada zustane zmrazena po restartu (Docasna ochrana misto permanentniho resetu)
+
+**Soubor**: `src/services/storage/SQLiteGratitudeStorage.ts` radek 1543-1586
+
+**Root cause**: `resetStreak()` nastavi `autoResetTimestamp = new Date()`. `calculateFrozenDays()` respektuje tento timestamp POUZE 5 minut. Po 5 minutach (nebo po restartu) se dluh prepocita znovu ze skutecnych zmeskanych dni - ty jsou STALE v databazi!
+
+```
+[Okamzik resetu]
+  autoResetTimestamp = NOW
+  calculateFrozenDays() → timestamp < 5 min → vraci 0 ✅ (zmrazeni pryc)
+
+[Po 5 minutach nebo po restartu]
+  clearAutoResetTimestamp() vymaze timestamp
+  calculateFrozenDays() → pocita znovu od zakladu
+  calculateRawMissedDays() → stale nachazi ty same zmeskane dny!
+  warm_up_payments jsou prazdne (smazane resetem)
+  Vysledek: frozenDays = 2 (nebo kolik jich bylo) ❌ FREEZE ZPET!
+```
+
+`resetStreak()` vymaze `warm_up_payments` ale NEVYMAZE pricinu dluhu. Zmeskane dny v `journal_entries` zustavaji a `calculateRawMissedDays()` je znovu najde.
+
+**Fix**: Pri `resetStreak()` vlozit `warm_up_payments` pro VSECHNY aktualne zmeskane dny (oznacit je jako zaplacene). Tim `calculateFrozenDays()` natrvalo vrati 0 – bez zavislosti na casovem okne `autoResetTimestamp`.
+
+---
+
+### Co NESMI prestit fungovat
+
+- Normalni streak vypocet (neni dotcen)
+- WarmUp flow pres reklamy (neni dotcen)
+- `justUnfrozeToday` logika (neni dotcena)
+- SQLite warm_up_payments tabulka struktura (jen pridavame zaznamy, nemeníme schema)
+- Lokalizace EN/DE/ES (UI se nemeni)
+
+---
+
+### Implementace
+
+#### 15.1: Fix Race Condition v StreakWarmUpModal.tsx
+
+**Soubor**: `src/components/gratitude/StreakWarmUpModal.tsx`
+
+Zmena: `handleResetStreak()` - pridat `async/await` + `isResetting` state pro zablokovani UI behem operace.
+
+```typescript
+// PRED (broken):
+const handleResetStreak = () => {
+  if (onResetStreak) {
+    onResetStreak(); // BEZ await → race condition
+    onClose();
+  }
+};
+
+// PO (fixed):
+const handleResetStreak = async () => {
+  if (onResetStreak && !isResetting) {
+    setIsResetting(true);
+    try {
+      await onResetStreak(); // S await → zadna race condition
+    } finally {
+      setIsResetting(false);
+      onClose();
+    }
+  }
+};
+```
+
+Zaroven pridat `isResetting` do `disabled` prop restovaciho tlacitka:
+```typescript
+disabled={isResetting}
+```
+
+**Dotcene radky**: ~358-363 (handleResetStreak) + ~637-646 (reset button disabled prop)
+**Rozsah zmeny**: ~10 radku
+
+---
+
+#### 15.2: Fix permanentniho dluhu v SQLiteGratitudeStorage.ts
+
+**Soubor**: `src/services/storage/SQLiteGratitudeStorage.ts`
+
+Zmena: `resetStreak()` - pred vymazanim `warm_up_payments` zjistit vsechny aktualne zmeskane dny a vlozit je jako ZAPLACENE platby. Tim `calculateFrozenDays()` natrvalo vrati 0.
+
+```typescript
+// Pridat DO resetStreak() pred "DELETE FROM warm_up_payments":
+
+// 1. Zjistit zmeskane dny ktere zpusobily zmrazeni
+const rawMissedDays = await this.calculateRawMissedDays();
+const missedDates = this.getMissedDatesFromToday(rawMissedDays);
+
+// 2. Vlozit je jako zaplacene (aby calculateFrozenDays() natrvalo vratilo 0)
+const db = this.getDb();
+for (const missedDate of missedDates) {
+  const paymentId = `reset_payment_${missedDate}_${Date.now()}`;
+  await db.runAsync(
+    'INSERT OR REPLACE INTO warm_up_payments (id, missed_date, ads_watched, paid_at) VALUES (?, ?, 1, ?)',
+    [paymentId, missedDate, Date.now()]
+  );
+}
+
+// 3. Pak pokracovat jako drive (DELETE uz neni potreba - warm_up_payments zustavaji jako "zaplaceno")
+// POZOR: Odstranit radek "await db.runAsync('DELETE FROM warm_up_payments')"
+// misto toho resetStreak uz warm_up_payments ponecha jako permanentni "zaplaceno" zaznam
+```
+
+**Alternativa (jednodussi)**: Misto ukladani paid payments ponechat `autoResetTimestamp` navzdy (nemazeт ho po 5 minutach). Ale toto je riskantni - pokud uzivatel priste znovu zacne a neco zmeskne, timestamp ho muze blokovat natrvalo. Proto preferujeme variantu s warm_up_payments.
+
+**Dotcene radky**: ~1577-1579 (DELETE warm_up_payments + nova logika pred tim)
+**Rozsah zmeny**: ~15 radku
+
+---
+
+### Souhrn zmen
+
+| # | Krok | Soubor | Radky | Rozsah |
+|---|------|--------|-------|--------|
+| 15.1 | Fix async/await race condition | StreakWarmUpModal.tsx | ~358-363, ~637-646 | ~10 radku |
+| 15.2 | Fix permanentni dluh po resetu | SQLiteGratitudeStorage.ts | ~1577-1585 | ~15 radku |
+
+**Celkovy dopad**: 2 soubory, ~25 radku zmeny, zadna zmena schematu DB, zadna zmena UI/lokalizace.
+
+### Todo
+
+- [x] 15.1: Pridat `async/await` + `isResetting` state do `handleResetStreak()` v StreakWarmUpModal.tsx
+- [x] 15.2: Pridat vkladani `warm_up_payments` pro zmeskane dny v `resetStreak()` v SQLiteGratitudeStorage.ts
+- [ ] 15.3: Overit ze po resetu je rada okamzite odmrazena a zustane odmrazena po restartu aplikace
+- [ ] 15.4: Overit ze normalni WarmUp flow pres reklamy stale funguje spravne
