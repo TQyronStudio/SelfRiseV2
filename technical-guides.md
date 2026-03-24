@@ -1223,6 +1223,7 @@ const styles = StyleSheet.create({
 - Optimize images and assets
 - Implement proper state management
 - Use native modules when necessary
+- **Console.log v produkci**: `babel-plugin-transform-remove-console` je nainstalován a nakonfigurován v `babel.config.js` — v produkčních buildech (`eas build --profile preview/production`) se automaticky odstraní všechny `console.log` (zachovány zůstanou `console.error` a `console.warn`), ve vývojových buildech (`npm start`, `eas build --profile development`) logy fungují normálně.
 
 ---
 

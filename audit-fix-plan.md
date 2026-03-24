@@ -1644,14 +1644,7 @@ Po hloubkove analyze kodu bylo zjisteno, ze mnoho `console.log` volani NEJSOU ob
 - ✅ PONECHAT: strukturovane logy s emoji/bracket prefixy, error handling, kriticke flow body
 - ❌ ODSTRANIT: genericke debug, verbose flow, data dumpy, `[DEBUG]` prefixy
 
-- [ ] 14.1: gamificationService.ts - selektivne odstranit ~40-50 verbose debug logu (ponechat XP/level strukturovane logy)
-- [ ] 14.2: TutorialContext.tsx - selektivne odstranit ~30-35 debug logu (ponechat error handling)
-- [ ] 14.3: SQLiteGratitudeStorage.ts - selektivne odstranit ~20-25 verbose CRUD logu (ponechat streak/frozen diagnostiku)
-- [ ] 14.4: achievementService.ts - selektivne odstranit ~10-15 scan verbose logu (ponechat unlock logy)
-- [ ] 14.5: GoalForm.tsx + HabitForm.tsx - odstranit ~40-46 validacnich debug logu
-- [ ] 14.6: SQLiteGoalStorage.ts - selektivne odstranit ~10-15 CRUD verbose logu (ponechat milestone/completion)
-- [ ] 14.7: Prochazet ostatni soubory s >10 console.log a selektivne vycistit
-- [ ] 14.8: Overit ze aplikace stale startuje a funguje spravne
+- [x] 14.1-14.8: VYRESENO AUTOMATICKY - `babel-plugin-transform-remove-console` byl jiz nainstalovan a nakonfigurovany v `babel.config.js`. V produktnich buildech se odstrani vsechny console.log automaticky (zachovany console.error + console.warn). Manualni mazani neni potreba.
 
 **Soubory k uprave**: ~7-10 souboru
 **Odhadovany pocet odstranenych logu**: ~150-200 z 1192 (cca 15%)
