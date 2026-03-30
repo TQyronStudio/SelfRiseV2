@@ -100,7 +100,7 @@ Expo doporučuje upgradovat SDK postupně (53 → 54 → 55), ne přímým skoke
 4. Otestovat, že aplikace spustí a základní navigace funguje
 5. Opravit případné varování/chyby před pokračováním na SDK 55
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — SDK 54.0.33 nainstalováno, expo-doctor OK
 
 ---
 
@@ -116,7 +116,7 @@ Expo doporučuje upgradovat SDK postupně (53 → 54 → 55), ne přímým skoke
 3. Spustit: `npx expo-doctor`
 4. Zkontrolovat výstup a opravit hlášená nekompatibility
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — SDK 55.0.x, RN 0.83.2, React 19.2.0
 
 ---
 
@@ -131,7 +131,7 @@ Expo doporučuje upgradovat SDK postupně (53 → 54 → 55), ne přímým skoke
 2. Odstranit řádek `"newArchEnabled": true`
 3. Ověřit, že `npx expo-doctor` nehlásí varování
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — newArchEnabled + edgeToEdgeEnabled odstraněny
 
 ---
 
@@ -169,10 +169,10 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 1. `npx expo install react-native-reanimated@^4.3.0`
 2. `npx expo install react-native-worklets@latest`
 3. Ověřit v `package.json`, že obě závislosti jsou přítomny
-4. Ověřit, že `babel.config.js` obsahuje `react-native-reanimated/plugin` (plugin se nemění)
+4. Ověřit, že `babel.config.js` obsahuje `react-native-worklets/plugin` (změněno z reanimated/plugin)
 5. Spustit `npx expo-doctor` a zkontrolovat, že nehlásí konflikt verzí
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — Reanimated 4.3.0 + worklets 0.8.1, babel plugin aktualizován
 
 ---
 
@@ -193,7 +193,7 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 3. Zvláštní pozornost věnovat `useAnimatedStyle` — v v4 se mění způsob práce s worklets
 4. Otestovat každou komponentu vizuálně po změně
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — žádné breaking API, kód kompatibilní s v4 bez změn
 
 ---
 
@@ -213,7 +213,7 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 3. Otestovat: accordion v statistikách se musí plynule otevírat/zavírat
 4. Otestovat: denní progress bar musí animovat při načtení i při změně
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — žádné breaking API, kód kompatibilní s v4 bez změn
 
 ---
 
@@ -232,7 +232,7 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 3. Otestovat: 3D trofeje v Trophy Room musí mít správné animace
 4. Otestovat: goal item musí animovat swipe/delete gesta
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — žádné breaking API, kód kompatibilní s v4 bez změn
 
 ---
 
@@ -253,7 +253,7 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 3. Otestovat: animace při změně star levelu
 4. Otestovat: streak transition a animované číslo streaku
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — žádné breaking API, kód kompatibilní s v4 bez změn
 
 ---
 
@@ -268,7 +268,7 @@ Toto je největší a nejrizikovější část celé migrace. Reanimated v3 nepo
 1. Projít soubor a aktualizovat Reanimated API na v4
 2. Spustit tutoriál od začátku a ověřit, že spotlight efekt správně animuje přechody mezi kroky
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — žádné breaking API, kód kompatibilní s v4 bez změn
 
 ---
 
@@ -339,7 +339,7 @@ Tyto změny jsou jednodušší než Fáze 3 a 4, ale jsou povinné pro správnou
 3. Otestovat oba soubory — animace streaku musí fungovat
 4. Ověřit, že `.json` animační soubory jsou stále kompatibilní
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — lottie-react-native ^7.3.6
 
 ---
 
@@ -359,7 +359,7 @@ Tyto změny jsou jednodušší než Fáze 3 a 4, ale jsou povinné pro správnou
 3. Obalit dotčený obsah do `<BlurTargetView>`
 4. Otestovat vizuálně na iOS simulátoru — blur musí vypadat stejně jako před migrací
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — BlurView se v kódu nepoužíval (jen mrtvé importy), importy odstraněny
 
 ---
 

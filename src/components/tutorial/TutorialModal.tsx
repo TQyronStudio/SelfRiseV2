@@ -9,7 +9,6 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TutorialStep } from '@/src/contexts/TutorialContext';
 import { Fonts } from '@/src/constants/fonts';

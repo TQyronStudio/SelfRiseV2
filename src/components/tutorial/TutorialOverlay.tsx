@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { useTutorial, TUTORIAL_ANIMATIONS } from '@/src/contexts/TutorialContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts } from '@/src/constants/fonts';
