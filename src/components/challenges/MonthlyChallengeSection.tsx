@@ -871,7 +871,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
                     {reqCompleted ? '✓' : '○'}
                   </Text>
                   <Text style={styles.requirementRowLabel} numberOfLines={1}>
-                    {requirement.description}
+                    {requirement.description.includes('challenges.templates.') ? t(requirement.description.replace('challenges.templates.', 'help.challenges.templates.').replace('help.help.', 'help.')) : requirement.description}
                   </Text>
                   <Text style={[
                     styles.requirementRowValue,

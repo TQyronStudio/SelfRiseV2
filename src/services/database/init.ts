@@ -159,6 +159,8 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       star_count INTEGER NOT NULL DEFAULT 0,
       flame_count INTEGER NOT NULL DEFAULT 0,
       crown_count INTEGER NOT NULL DEFAULT 0,
+      auto_reset_timestamp TEXT,
+      auto_reset_reason TEXT,
       updated_at INTEGER NOT NULL
     );
 
@@ -452,6 +454,25 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   // ========================================
   // MONTHLY CHALLENGES TABLES (Phase 3)
   // ========================================
+
+  // ========================================
+  // STREAK_STATE MIGRATION - Add auto_reset columns for frozen streak fix
+  // ========================================
+  const streakTableInfo = await database.getAllAsync(`PRAGMA table_info(streak_state)`);
+
+  if (streakTableInfo.length > 0) {
+    const streakColumns = new Set(streakTableInfo.map((col: any) => col.name));
+
+    if (!streakColumns.has('auto_reset_timestamp')) {
+      console.log('🔄 Adding streak_state.auto_reset_timestamp...');
+      await database.execAsync(`ALTER TABLE streak_state ADD COLUMN auto_reset_timestamp TEXT;`);
+    }
+
+    if (!streakColumns.has('auto_reset_reason')) {
+      console.log('🔄 Adding streak_state.auto_reset_reason...');
+      await database.execAsync(`ALTER TABLE streak_state ADD COLUMN auto_reset_reason TEXT;`);
+    }
+  }
 
   // ========================================
   // CHALLENGE_DAILY_SNAPSHOTS MIGRATION - Add daily_contributions column
