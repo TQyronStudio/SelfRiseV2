@@ -512,10 +512,11 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
 
     const generationContext = JSON.parse(row.generation_context || '{}');
 
-    // Calculate start/end dates from month
-    const monthDate = new Date(row.month + '-01');
-    const startDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).toISOString().split('T')[0];
-    const endDate = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString().split('T')[0];
+    // Calculate start/end dates from month (UTC-safe, no timezone conversion)
+    const startDate = row.month + '-01';
+    const [yearNum, monthNum] = row.month.split('-').map(Number);
+    const lastDay = new Date(Date.UTC(yearNum, monthNum, 0)).getUTCDate();
+    const endDate = `${row.month}-${String(lastDay).padStart(2, '0')}`;
 
     return {
       id: row.id,
