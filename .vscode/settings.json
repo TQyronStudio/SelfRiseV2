@@ -1,7 +1,21 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit",
-    "source.sortMembers": "explicit"
-  }
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/ios/**": true,
+    "**/android/**": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/ios/build": true,
+    "**/android/build": true,
+    "**/android/.gradle": true,
+    "**/.gradle": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/ios": true,
+    "**/android": true
+  },
+  "git.ignoreLimitWarning": true,
+  "git.untrackedChanges": "hidden"
 }

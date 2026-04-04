@@ -1,7 +1,7 @@
 // src/screens/habits/HabitsScreen.tsx
 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AdBanner } from '@/src/components/ads/AdBanner';
@@ -182,21 +182,9 @@ export function HabitsScreen() {
     router.push(`/habit-stats?habitId=${habitId}` as any);
   };
 
-  // Univerzální funkce pro Edit/Reorder tlačítko
+  // Přepnutí inline edit/reorder módu (stejné chování na iOS i Android)
   const handleEditPress = () => {
-    if (Platform.OS === 'ios') {
-      // Na iOS pouze přepneme lokální stav
-      setIsEditMode(!isEditMode);
-    } else {
-      // Na Androidu navigujeme na ReorderScreen
-      const activeHabits = habits.filter(habit => habit.isActive);
-      router.push({
-        pathname: '/reorder-habits',
-        params: {
-          initialItems: JSON.stringify(activeHabits),
-        }
-      } as any);
-    }
+    setIsEditMode(!isEditMode);
   };
 
   return (
@@ -204,8 +192,7 @@ export function HabitsScreen() {
       {/* Tlačítka Add a Edit/Reorder */}
       <View style={styles.addButtonContainer}>
         <View style={styles.buttonsRow}>
-          {/* Na Androidu se Add tlačítko zobrazí vždy, na iOS se skryje v edit mode */}
-          {(Platform.OS === 'android' || !isEditMode) && (
+          {!isEditMode && (
             <TouchableOpacity style={styles.addButton} onPress={handleAddHabit}>
               <Ionicons name="add" size={24} color="white" />
               <Text style={styles.addButtonText}>{t('habits.addNewHabit')}</Text>
@@ -228,7 +215,7 @@ export function HabitsScreen() {
           habits={habits}
           completions={completions}
           isLoading={isLoading}
-          isEditMode={Platform.OS === 'ios' ? isEditMode : false}
+          isEditMode={isEditMode}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
           onToggleActive={handleToggleActive}

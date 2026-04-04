@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '@/src/types/habit';
 import { HabitItemWithCompletion } from '@/src/components/habits/HabitItemWithCompletion';
 import { Fonts } from '@/src/constants/fonts';
@@ -45,24 +43,25 @@ export function ReorderScreen() {
     router.back();
   };
 
-  const renderDraggableItem = ({ item, drag, isActive }: RenderItemParams<Habit>) => {
+  const renderDraggableItem = useCallback(({ item, drag, isActive }: RenderItemParams<Habit>) => {
     return (
       <View style={styles.itemContainer}>
         <HabitItemWithCompletion
           habit={item}
-          onEdit={() => {}} // Disabled in reorder mode
-          onDelete={() => {}} // Disabled in reorder mode
-          onToggleActive={() => {}} // Disabled in reorder mode
-          onToggleCompletion={async () => {}} // Disabled in reorder mode
-          onReorder={() => {}} // Not needed here
-          onViewStats={() => {}} // Disabled in reorder mode
+          onEdit={() => {}}
+          onDelete={() => {}}
+          onToggleActive={() => {}}
+          onToggleCompletion={async () => {}}
+          onReorder={() => {}}
+          onViewStats={() => {}}
           onDrag={drag}
           isDragging={isActive}
-          isEditMode={true} // Always in edit mode for wiggle effect
+          isEditMode={true}
         />
       </View>
     );
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const styles = StyleSheet.create({
     container: {
@@ -120,7 +119,7 @@ export function ReorderScreen() {
     },
   });
 
-  const content = (
+  return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -147,17 +146,10 @@ export function ReorderScreen() {
           onDragEnd={({ data }) => setReorderedItems(data)}
           keyExtractor={(item) => item.id}
           renderItem={renderDraggableItem}
-          activationDistance={20}
-          dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+          activationDistance={10}
           showsVerticalScrollIndicator={true}
         />
       </View>
     </SafeAreaView>
   );
-
-  if (Platform.OS === 'ios') {
-    return <GestureHandlerRootView style={styles.container}>{content}</GestureHandlerRootView>;
-  }
-
-  return content; // Na Androidu vrátíme obsah přímo, bez GestureHandleru
 }

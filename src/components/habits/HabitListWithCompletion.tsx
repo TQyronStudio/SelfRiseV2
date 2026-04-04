@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
@@ -212,8 +212,7 @@ export function HabitListWithCompletion({
       {activeHabits.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('habits.activeHabits')}</Text>
-          {/* iOS: Podmíněné použití DraggableFlatList */}
-          {Platform.OS === 'ios' && isEditMode ? (
+          {isEditMode ? (
             <DraggableFlatList
               data={activeHabits}
               renderItem={renderDraggableHabitItem}
