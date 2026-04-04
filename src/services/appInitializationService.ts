@@ -170,10 +170,10 @@ export class AppInitializationService {
         initializer: () => this.initializeGamificationService(),
         dependsOn: [],
         optional: false,
-        timeout: 5000
+        timeout: 15000
       });
     }
-    
+
     // User activity tracking (depends on gamification for XP data)
     if (config.enableMonthlyChallenges) {
       services.push({

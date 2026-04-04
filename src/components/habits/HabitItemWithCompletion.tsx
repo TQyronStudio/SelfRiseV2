@@ -463,9 +463,8 @@ export const HabitItemWithCompletion = React.memo(({
           {habit.isActive && onDrag && (
             <View style={styles.actionsRow}>
               <TouchableOpacity
-                onLongPress={onDrag}
+                onPressIn={onDrag}
                 style={[styles.actionButton, isDragging && styles.actionButtonDragging]}
-                delayLongPress={100}
               >
                 <Ionicons name="reorder-three-outline" size={16} color={isDragging ? colors.white : colors.textSecondary} />
               </TouchableOpacity>

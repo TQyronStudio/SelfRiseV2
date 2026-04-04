@@ -224,7 +224,7 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
         </View>
         <View style={styles.actions}>
           {onDrag && (
-            <TouchableOpacity style={styles.actionButton} onLongPress={onDrag}>
+            <TouchableOpacity style={styles.actionButton} onPressIn={onDrag}>
               <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
