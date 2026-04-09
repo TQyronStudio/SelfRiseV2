@@ -258,13 +258,14 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
 
   const getDayTextStyle = (day: DayData) => {
     if (day.isFuture) return styles.futureDayText;
-    if (day.isToday) return styles.todayDayText;
-    
+
     const intensity = getActivityIntensity(day);
     if (intensity === 'perfect' || intensity === 'good') {
       return styles.activeDayText;
     }
-    
+
+    if (day.isToday) return styles.todayDayText;
+
     return styles.defaultDayText;
   };
 

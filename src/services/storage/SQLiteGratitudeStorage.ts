@@ -521,6 +521,15 @@ export class SQLiteGratitudeStorage {
         values.push(updates.crownCount);
       }
 
+      if (updates.autoResetTimestamp !== undefined) {
+        fields.push('auto_reset_timestamp = ?');
+        values.push(updates.autoResetTimestamp ? new Date(updates.autoResetTimestamp).toISOString() : null);
+      }
+      if (updates.autoResetReason !== undefined) {
+        fields.push('auto_reset_reason = ?');
+        values.push(updates.autoResetReason);
+      }
+
       // Always update timestamp
       fields.push('updated_at = ?');
       values.push(Date.now());
@@ -589,8 +598,8 @@ export class SQLiteGratitudeStorage {
       warmUpPayments: [], // Will be loaded separately if needed
       warmUpHistory: [], // Not stored in SQLite yet
       warmUpCompletedOn: null, // Deprecated field
-      autoResetTimestamp: null, // Not stored in SQLite yet
-      autoResetReason: null, // Not stored in SQLite yet
+      autoResetTimestamp: row.auto_reset_timestamp ? new Date(row.auto_reset_timestamp) : null,
+      autoResetReason: row.auto_reset_reason || null,
     };
   }
 

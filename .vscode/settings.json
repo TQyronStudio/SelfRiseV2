@@ -1,7 +1,25 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit",
-    "source.sortMembers": "explicit"
-  }
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/ios/**": true,
+    "**/android/**": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/ios": true,
+    "**/android": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/ios": true,
+    "**/android": true
+  },
+  "git.ignoreLimitWarning": true,
+  "git.untrackedChanges": "hidden",
+  "git.autoRepositoryDetection": false,
+  "git.scanRepositories": ["."],
+  "git.autofetch": false,
+  "git.autofetchPeriod": 0,
+  "git-graph.fetchAndPrune": false,
+  "git-graph.fetchAvatars": false
 }

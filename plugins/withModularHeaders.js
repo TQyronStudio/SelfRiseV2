@@ -1,12 +1,15 @@
 /**
- * Expo Config Plugin to add use_modular_headers! to Podfile
- * This is required for Firebase to work with static frameworks in Expo
+ * Expo Config Plugin to fix Firebase "non-modular header" build error on iOS.
+ * When using static frameworks (useFrameworks: "static"), Firebase pods
+ * fail to compile because they include React Native headers that aren't
+ * part of the Firebase module. This plugin disables strict module
+ * verification for Firebase (RNFB*) targets specifically.
  */
 const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
-module.exports = function withModularHeaders(config) {
+module.exports = function withFirebaseModularHeadersFix(config) {
   return withDangerousMod(config, [
     'ios',
     async (config) => {
@@ -15,15 +18,26 @@ module.exports = function withModularHeaders(config) {
       if (fs.existsSync(podfilePath)) {
         let podfileContent = fs.readFileSync(podfilePath, 'utf-8');
 
-        // Add use_modular_headers! after platform :ios line if not already present
-        if (!podfileContent.includes('use_modular_headers!')) {
+        const fixSnippet = `
+    # [Firebase Fix] Disable strict module verification for RNFB pods
+    installer.pods_project.targets.each do |target|
+      if ['RNFBApp', 'RNFBAnalytics'].include?(target.name)
+        target.build_configurations.each do |build_config|
+          build_config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+          build_config.build_settings['DEFINES_MODULE'] = 'NO'
+        end
+      end
+    end`;
+
+        if (!podfileContent.includes('CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES')) {
+          // Insert before react_native_post_install in the post_install block
           podfileContent = podfileContent.replace(
-            /(platform :ios, ['"][0-9.]+['"])/,
-            `$1\n  use_modular_headers!`
+            /(\s+)(react_native_post_install\()/,
+            `${fixSnippet}\n\n$1$2`
           );
 
           fs.writeFileSync(podfilePath, podfileContent);
-          console.log('✅ Added use_modular_headers! to Podfile for Firebase compatibility');
+          console.log('✅ Added Firebase non-modular headers fix to Podfile');
         }
       }
 

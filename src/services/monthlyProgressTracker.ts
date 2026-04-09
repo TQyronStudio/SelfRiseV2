@@ -294,7 +294,7 @@ export class MonthlyProgressTracker {
         );
 
         // Create daily snapshot
-        await this.createDailySnapshot(challenge.id, currentProgress, source, amount);
+        await this.createDailySnapshot(challenge.id, currentProgress, source, amount, metadata);
 
         // Incrementally update active days (adds today if not already tracked)
         await this.recalculateActiveDays(challenge.id, currentProgress);
@@ -997,20 +997,21 @@ export class MonthlyProgressTracker {
     challengeId: string,
     progress: MonthlyChallengeProgress,
     source: XPSourceType,
-    amount: number
+    amount: number,
+    metadata?: Record<string, any>
   ): Promise<void> {
     try {
       const todayString = today();
-      
+
       // Check if snapshot already exists for today
       const existingSnapshot = await this.getDailySnapshot(challengeId, todayString);
-      
+
       if (existingSnapshot) {
         // Update existing snapshot
-        await this.updateExistingSnapshot(existingSnapshot, source, amount, progress);
+        await this.updateExistingSnapshot(existingSnapshot, source, amount, progress, metadata);
       } else {
         // Create new daily snapshot
-        await this.createNewDailySnapshot(challengeId, progress, source, amount);
+        await this.createNewDailySnapshot(challengeId, progress, source, amount, metadata);
       }
 
       console.log(`📸 Daily snapshot created/updated for ${challengeId} on ${todayString}`);
@@ -1027,7 +1028,8 @@ export class MonthlyProgressTracker {
     challengeId: string,
     progress: MonthlyChallengeProgress,
     source: XPSourceType,
-    amount: number
+    amount: number,
+    metadata?: Record<string, any>
   ): Promise<void> {
     try {
       const now = new Date();
@@ -1055,7 +1057,7 @@ export class MonthlyProgressTracker {
       const relevantRequirements = await this.getRequirementsForChallenge(challengeId);
       
       for (const requirement of relevantRequirements) {
-        const increment = this.calculateProgressIncrement(requirement, source, amount);
+        const increment = this.calculateProgressIncrement(requirement, source, amount, metadata, challenge);
         dailyContributions[requirement.trackingKey] = increment;
       }
 
@@ -1098,14 +1100,15 @@ export class MonthlyProgressTracker {
     snapshot: DailyProgressSnapshot,
     source: XPSourceType,
     amount: number,
-    progress: MonthlyChallengeProgress
+    progress: MonthlyChallengeProgress,
+    metadata?: Record<string, any>
   ): Promise<void> {
     try {
       // Update daily contributions
       const relevantRequirements = await this.getRequirementsForChallenge(snapshot.challengeId);
-      
+
       for (const requirement of relevantRequirements) {
-        const increment = this.calculateProgressIncrement(requirement, source, amount);
+        const increment = this.calculateProgressIncrement(requirement, source, amount, metadata);
         if (increment !== 0) {
           const currentContribution = snapshot.dailyContributions[requirement.trackingKey] || 0;
           snapshot.dailyContributions[requirement.trackingKey] = Math.max(0, currentContribution + increment);

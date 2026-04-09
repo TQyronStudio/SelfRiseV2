@@ -5,7 +5,7 @@ module.exports = function (api) {
 
   const plugins = [
     // Ensure proper plugin ordering for new architecture
-    'react-native-reanimated/plugin',
+    'react-native-worklets/plugin',
   ];
 
   // Remove console.* statements in production builds only

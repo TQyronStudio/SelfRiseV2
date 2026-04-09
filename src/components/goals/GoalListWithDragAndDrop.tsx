@@ -191,8 +191,7 @@ export function GoalListWithDragAndDrop({
               onDragEnd={handleActiveDragEnd}
               scrollEnabled={false}
               nestedScrollEnabled={true}
-              activationDistance={20}
-              dragHitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+              activationDistance={10}
             />
           ) : (
             <FlatList

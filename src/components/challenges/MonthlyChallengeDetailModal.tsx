@@ -595,7 +595,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                     styles.requirementText,
                     isRequirementCompleted && styles.completedRequirementText
                   ]}>
-                    {requirement.description}
+                    {requirement.description.includes('challenges.templates.') ? t(requirement.description.replace('challenges.templates.', 'help.challenges.templates.').replace('help.help.', 'help.')) : requirement.description}
                   </Text>
                   
                   <View style={styles.requirementProgress}>
@@ -619,7 +619,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                     styles.requirementProgressFill,
                     {
                       width: `${progressPercent}%`,
-                      backgroundColor: isRequirementCompleted ? categoryColor : colors.border
+                      backgroundColor: categoryColor
                     }
                   ]}
                 />

@@ -74,7 +74,6 @@ class NotificationService {
         name: i18next.t('notifications.channels.reminders.name'),
         description: i18next.t('notifications.channels.reminders.description'),
         importance: Notifications.AndroidImportance.HIGH,
-        sound: 'default',
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#6366F1', // Primary color
         enableVibrate: true,
@@ -205,12 +204,18 @@ class NotificationService {
             scheduledAt: new Date().toISOString(),
           },
         },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-          hour,
-          minute,
-          repeats: true,
-        },
+        trigger: Platform.OS === 'ios'
+          ? {
+              type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+              hour,
+              minute,
+              repeats: true,
+            }
+          : {
+              type: Notifications.SchedulableTriggerInputTypes.DAILY,
+              hour,
+              minute,
+            },
       });
 
       console.log(`[NotificationService] Scheduled notification:`, {

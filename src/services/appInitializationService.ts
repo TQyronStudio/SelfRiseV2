@@ -170,10 +170,10 @@ export class AppInitializationService {
         initializer: () => this.initializeGamificationService(),
         dependsOn: [],
         optional: false,
-        timeout: 5000
+        timeout: 15000
       });
     }
-    
+
     // User activity tracking (depends on gamification for XP data)
     if (config.enableMonthlyChallenges) {
       services.push({
@@ -183,7 +183,7 @@ export class AppInitializationService {
         optional: false,
         timeout: 3000
       });
-      
+
       // Star rating service (depends on user activity)
       services.push({
         name: 'StarRatingService',
@@ -192,8 +192,7 @@ export class AppInitializationService {
         optional: false,
         timeout: 2000
       });
-      
-      
+
       // Monthly progress tracker (depends on gamification)
       services.push({
         name: 'MonthlyProgressTracker',
@@ -204,7 +203,6 @@ export class AppInitializationService {
       });
 
       // Monthly progress integration - CRITICAL: Must initialize early to catch all XP events
-      // This "listener" captures user activities and forwards them to progress tracker
       services.push({
         name: 'MonthlyProgressIntegration',
         initializer: () => this.initializeMonthlyProgressIntegration(),
@@ -213,7 +211,7 @@ export class AppInitializationService {
         timeout: 2000
       });
 
-      // Monthly challenge lifecycle manager (depends on all monthly challenge services)
+      // Monthly challenge lifecycle manager
       services.push({
         name: 'MonthlyChallengeLifecycleManager',
         initializer: () => this.initializeMonthlyChallengeLifecycleManager(),

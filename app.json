@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "selfrisev2",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.petrturek.selfrise",
@@ -175,7 +174,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#07051A"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.petrturek.selfrise",
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -220,14 +218,21 @@
       ],
       "expo-tracking-transparency",
       "@react-native-firebase/app",
+      "./plugins/withModularHeaders",
       [
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "useFrameworks": "static",
+            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics"]
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-localization",
+      "expo-web-browser",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true
