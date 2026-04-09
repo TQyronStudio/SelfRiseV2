@@ -204,12 +204,18 @@ class NotificationService {
             scheduledAt: new Date().toISOString(),
           },
         },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-          hour,
-          minute,
-          repeats: true,
-        },
+        trigger: Platform.OS === 'ios'
+          ? {
+              type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+              hour,
+              minute,
+              repeats: true,
+            }
+          : {
+              type: Notifications.SchedulableTriggerInputTypes.DAILY,
+              hour,
+              minute,
+            },
       });
 
       console.log(`[NotificationService] Scheduled notification:`, {
