@@ -2,6 +2,18 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+// Exclude ios/ and android/ native folders from Metro bundler
+const escapedRoot = __dirname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const additionalExclusions = [
+  new RegExp(`${escapedRoot}/ios/.*`),
+  new RegExp(`${escapedRoot}/android/.*`),
+];
+
+const existingBlockList = config.resolver?.blockList || [];
+config.resolver.blockList = Array.isArray(existingBlockList)
+  ? [...existingBlockList, ...additionalExclusions]
+  : [existingBlockList, ...additionalExclusions];
+
 // EXPO SDK 53 + NEW ARCHITECTURE COMPATIBILITY NOTES:
 // 
 // WARNING: "NativeViewManagerAdapter for ExpoLinearGradient isn't exported by expo-modules-core"

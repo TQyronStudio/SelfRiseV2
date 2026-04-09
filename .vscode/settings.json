@@ -6,10 +6,8 @@
   },
   "files.exclude": {
     "**/node_modules": true,
-    "**/ios/build": true,
-    "**/android/build": true,
-    "**/android/.gradle": true,
-    "**/.gradle": true
+    "**/ios": true,
+    "**/android": true
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -17,5 +15,7 @@
     "**/android": true
   },
   "git.ignoreLimitWarning": true,
-  "git.untrackedChanges": "hidden"
+  "git.untrackedChanges": "hidden",
+  "git.autoRepositoryDetection": false,
+  "git.scanRepositories": ["."]
 }
