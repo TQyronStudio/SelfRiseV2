@@ -59,7 +59,7 @@ export class MonthlyProgressIntegration {
   private static levelUpSubscription: EmitterSubscription | null = null;
 
   // Performance optimization
-  private static batchingTimer: number | null = null;
+  private static batchingTimer: ReturnType<typeof setTimeout> | null = null;
   private static pendingEvents: XPGainedEvent[] = [];
   
   // Configuration
