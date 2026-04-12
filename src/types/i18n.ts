@@ -2057,6 +2057,19 @@ export interface TranslationKeys {
           recommendations: string;
           activities: string;
         };
+        sources_one: {
+          habits: string;
+          journalEntries: string;
+          journalMilestones: string;
+          goals: string;
+          goalMilestones: string;
+          streaks: string;
+          achievements: string;
+          monthlyChallenges: string;
+          multiplierBonuses: string;
+          recommendations: string;
+          activities: string;
+        };
         messages: {
           completed: string;
           balanced: string;

@@ -94,24 +94,17 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   const showXpPopupRef = useRef<((amount: number, source: XPSourceType, position?: { x: number; y: number }) => void) | undefined>(undefined);
 
   // ========================================
-  // SMART NOTIFICATION SYSTEM WITH PERFORMANCE OPTIMIZATION
+  // SMART NOTIFICATION SYSTEM
   // ========================================
 
-  // Constants for smart batching and performance
-  const BATCHING_WINDOW = 1500; // 1.5 seconds - faster feedback
-  const COOLDOWN_PERIOD = 4000; // 4 seconds
-  const MAX_SIMULTANEOUS_NOTIFICATIONS = 5; // Performance limit - prevents lag on budget devices
-  const NOTIFICATION_QUEUE_PROCESSING_INTERVAL = 500; // Process queued notifications every 500ms
-  const PERFORMANCE_THROTTLE_THRESHOLD = 3; // Start throttling animations after 3 notifications
+  // Batching window: collect XP gains for 1.5s then show summary
+  const BATCHING_WINDOW = 1500;
 
   const batchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const notificationQueueRef = useRef<XpGain[]>([]); // Queue for excess notifications
-  const queueProcessingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const showSmartNotification = useCallback((amount: number, source: XPSourceType) => {
     const now = Date.now();
-    
-    // Create new XP gain
+
     const newGain: XpGain = {
       id: `xp_gain_${now}_${Math.random().toString(36).substr(2, 9)}`,
       amount,
@@ -119,70 +112,20 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       timestamp: now,
     };
 
-    // PERFORMANCE OPTIMIZATION: Check notification limit
-    const currentVisibleCount = state.pendingNotifications.length;
-    
-    if (currentVisibleCount >= MAX_SIMULTANEOUS_NOTIFICATIONS) {
-      // Queue notification for later processing to prevent performance issues
-      notificationQueueRef.current.push(newGain);
-      console.log(`⚡ Notification queued (${notificationQueueRef.current.length} in queue) - performance limit reached`);
-      
-      // Still trigger haptic for immediate feedback
-      if (state.isHapticsEnabled) {
-        triggerHapticFeedback('light');
-      }
-      return;
-    }
-    
-    // Check cooldown period to prevent spam
-    if (now - state.lastNotificationTime < COOLDOWN_PERIOD && state.isNotificationVisible) {
-      // Add to pending notifications during cooldown (if under limit)
-      setState(prev => ({
-        ...prev,
-        pendingNotifications: [...prev.pendingNotifications, newGain],
-      }));
-      
-      // Reset batch timeout to ensure latest changes are included
-      if (batchTimeoutRef.current) {
-        clearTimeout(batchTimeoutRef.current);
-      }
-      
-      // Set new timeout for updated batch
-      batchTimeoutRef.current = setTimeout(() => {
-        setState(prev => {
-          if (prev.pendingNotifications.length === 0) return prev;
-
-          return {
-            ...prev,
-            isNotificationVisible: true,
-            lastNotificationTime: now,
-          };
-        });
-      }, BATCHING_WINDOW);
-      
-      // Trigger subtle haptic feedback
-      if (state.isHapticsEnabled) {
-        triggerHapticFeedback('light');
-      }
-      return;
-    }
-
-    // Add new XP gain to pending notifications (normal flow)
+    // Add gain to pending batch (no limit - all gains are accumulated)
     setState(prev => ({
       ...prev,
       pendingNotifications: [...prev.pendingNotifications, newGain],
     }));
 
-    // Clear existing batch timeout
+    // Reset batch window - show notification 1.5s after last XP gain
     if (batchTimeoutRef.current) {
       clearTimeout(batchTimeoutRef.current);
     }
 
-    // Set new batch timeout
     batchTimeoutRef.current = setTimeout(() => {
       setState(prev => {
         if (prev.pendingNotifications.length === 0) return prev;
-
         return {
           ...prev,
           isNotificationVisible: true,
@@ -191,71 +134,23 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       });
     }, BATCHING_WINDOW);
 
-    // Trigger subtle haptic feedback
     if (state.isHapticsEnabled) {
       triggerHapticFeedback('light');
     }
-  }, [state.lastNotificationTime, state.isNotificationVisible, state.isHapticsEnabled, state.pendingNotifications.length]);
-
-  // ========================================
-  // NOTIFICATION QUEUE PROCESSING FOR PERFORMANCE
-  // ========================================
-
-  // Process notification queue to respect performance limits
-  const processNotificationQueue = useCallback(() => {
-    const currentVisibleCount = state.pendingNotifications.length;
-    
-    // Only process queue if we have room for more notifications
-    if (currentVisibleCount < MAX_SIMULTANEOUS_NOTIFICATIONS && notificationQueueRef.current.length > 0) {
-      const availableSlots = MAX_SIMULTANEOUS_NOTIFICATIONS - currentVisibleCount;
-      const notificationsToProcess = notificationQueueRef.current.splice(0, availableSlots);
-      
-      if (notificationsToProcess.length > 0) {
-        setState(prev => ({
-          ...prev,
-          pendingNotifications: [...prev.pendingNotifications, ...notificationsToProcess],
-          isNotificationVisible: true,
-          lastNotificationTime: Date.now()
-        }));
-        
-        console.log(`📱 Processed ${notificationsToProcess.length} queued notifications (${notificationQueueRef.current.length} remaining)`);
-      }
-    }
-  }, [state.pendingNotifications.length]);
+  }, [state.isHapticsEnabled]);
 
   const dismissNotification = useCallback(() => {
     setState(prev => ({
       ...prev,
       isNotificationVisible: false,
-      pendingNotifications: [], // Clear all pending notifications when dismissed
+      pendingNotifications: [],
     }));
 
-    // Clear any pending batch timeout
     if (batchTimeoutRef.current) {
       clearTimeout(batchTimeoutRef.current);
       batchTimeoutRef.current = null;
     }
-
-    // Process queue immediately when notifications are dismissed (performance optimization)
-    setTimeout(() => {
-      processNotificationQueue();
-    }, 100); // Small delay to allow state update
-  }, [processNotificationQueue]);
-
-  // Start queue processing interval
-  useEffect(() => {
-    if (queueProcessingIntervalRef.current) {
-      clearInterval(queueProcessingIntervalRef.current);
-    }
-    
-    queueProcessingIntervalRef.current = setInterval(processNotificationQueue, NOTIFICATION_QUEUE_PROCESSING_INTERVAL);
-    
-    return () => {
-      if (queueProcessingIntervalRef.current) {
-        clearInterval(queueProcessingIntervalRef.current);
-      }
-    };
-  }, [processNotificationQueue]);
+  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {

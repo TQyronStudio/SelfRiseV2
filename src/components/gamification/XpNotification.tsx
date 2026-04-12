@@ -28,11 +28,52 @@ interface XpNotificationProps {
   onDismiss?: () => void;
 }
 
+interface BatchedSource {
+  nameKey: string;
+  icon: string;
+  color: string;
+  count: number;
+  totalXP: number;
+}
+
 interface BatchedNotification {
   totalXP: number;
-  sources: { source: XPSourceType; count: number; totalXP: number }[];
+  sources: BatchedSource[];
   timestamp: number;
 }
+
+// Maps XPSourceType to a display group - ensures HABIT_COMPLETION and HABIT_BONUS
+// (and similar pairs) are counted together as one category
+const getDisplayGroup = (source: XPSourceType): { nameKey: string; icon: string; color: string } => {
+  switch (source) {
+    case XPSourceType.HABIT_COMPLETION:
+    case XPSourceType.HABIT_BONUS:
+      return { nameKey: 'habits', icon: '🏃‍♂️', color: '#4CAF50' };
+    case XPSourceType.JOURNAL_ENTRY:
+    case XPSourceType.JOURNAL_BONUS:
+      return { nameKey: 'journalEntries', icon: '📝', color: '#2196F3' };
+    case XPSourceType.JOURNAL_BONUS_MILESTONE:
+      return { nameKey: 'journalMilestones', icon: '⭐', color: '#2196F3' };
+    case XPSourceType.GOAL_PROGRESS:
+    case XPSourceType.GOAL_COMPLETION:
+      return { nameKey: 'goals', icon: '🎯', color: '#FF9800' };
+    case XPSourceType.GOAL_MILESTONE:
+      return { nameKey: 'goalMilestones', icon: '🎯', color: '#FF9800' };
+    case XPSourceType.HABIT_STREAK_MILESTONE:
+    case XPSourceType.JOURNAL_STREAK_MILESTONE:
+      return { nameKey: 'streaks', icon: '🔥', color: '#9C27B0' };
+    case XPSourceType.ACHIEVEMENT_UNLOCK:
+      return { nameKey: 'achievements', icon: '🏆', color: '#FFD700' };
+    case XPSourceType.MONTHLY_CHALLENGE:
+      return { nameKey: 'monthlyChallenges', icon: '📅', color: '#673AB7' };
+    case XPSourceType.XP_MULTIPLIER_BONUS:
+      return { nameKey: 'multiplierBonuses', icon: '⚡', color: '#E91E63' };
+    case XPSourceType.RECOMMENDATION_FOLLOW:
+      return { nameKey: 'recommendations', icon: '💡', color: '#8BC34A' };
+    default:
+      return { nameKey: 'activities', icon: '✨', color: '#007AFF' };
+  }
+};
 
 export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   visible,
@@ -57,41 +98,37 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   // ========================================
 
   const batchXpGains = (gains: XpGain[]): BatchedNotification => {
-    const sourceMap = new Map<XPSourceType, { count: number; totalXP: number; positiveCount: number; negativeCount: number }>();
+    // Group by display category (nameKey) so HABIT_COMPLETION + HABIT_BONUS
+    // appear as one "habits" entry instead of two separate entries
+    const groupMap = new Map<string, BatchedSource>();
     let totalXP = 0;
 
     gains.forEach(gain => {
-      // Calculate NET XP change (this is the critical fix)
       totalXP += gain.amount;
-      
-      if (sourceMap.has(gain.source)) {
-        const existing = sourceMap.get(gain.source)!;
-        sourceMap.set(gain.source, {
+      const group = getDisplayGroup(gain.source);
+
+      if (groupMap.has(group.nameKey)) {
+        const existing = groupMap.get(group.nameKey)!;
+        groupMap.set(group.nameKey, {
+          ...existing,
           count: existing.count + 1,
           totalXP: existing.totalXP + gain.amount,
-          positiveCount: existing.positiveCount + (gain.amount > 0 ? 1 : 0),
-          negativeCount: existing.negativeCount + (gain.amount < 0 ? 1 : 0)
         });
       } else {
-        sourceMap.set(gain.source, {
+        groupMap.set(group.nameKey, {
+          nameKey: group.nameKey,
+          icon: group.icon,
+          color: group.color,
           count: 1,
           totalXP: gain.amount,
-          positiveCount: gain.amount > 0 ? 1 : 0,
-          negativeCount: gain.amount < 0 ? 1 : 0
         });
       }
     });
 
-    const sources = Array.from(sourceMap.entries()).map(([source, data]) => ({
-      source,
-      count: data.count,
-      totalXP: data.totalXP
-    }));
-
     return {
-      totalXP, // This is now the correct NET XP change
-      sources,
-      timestamp: Math.max(...gains.map(g => g.timestamp))
+      totalXP,
+      sources: Array.from(groupMap.values()),
+      timestamp: Math.max(...gains.map(g => g.timestamp)),
     };
   };
 
@@ -103,82 +140,15 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   }, [xpGains]);
 
   // ========================================
-  // SOURCE STYLING
+  // HELPERS
   // ========================================
 
-  const getSourceInfo = (source: XPSourceType): { icon: string; nameKey: string; color: string } => {
-    switch (source) {
-      case XPSourceType.HABIT_COMPLETION:
-      case XPSourceType.HABIT_BONUS:
-        return {
-          icon: '🏃‍♂️',
-          nameKey: 'habits',
-          color: '#4CAF50',
-        };
-      case XPSourceType.JOURNAL_ENTRY:
-      case XPSourceType.JOURNAL_BONUS:
-        return {
-          icon: '📝',
-          nameKey: 'journalEntries',
-          color: '#2196F3',
-        };
-      case XPSourceType.JOURNAL_BONUS_MILESTONE:
-        return {
-          icon: '⭐',
-          nameKey: 'journalMilestones',
-          color: '#2196F3',
-        };
-      case XPSourceType.GOAL_PROGRESS:
-      case XPSourceType.GOAL_COMPLETION:
-        return {
-          icon: '🎯',
-          nameKey: 'goals',
-          color: '#FF9800',
-        };
-      case XPSourceType.GOAL_MILESTONE:
-        return {
-          icon: '🎯',
-          nameKey: 'goalMilestones',
-          color: '#FF9800',
-        };
-      case XPSourceType.HABIT_STREAK_MILESTONE:
-      case XPSourceType.JOURNAL_STREAK_MILESTONE:
-        return {
-          icon: '🔥',
-          nameKey: 'streaks',
-          color: '#9C27B0',
-        };
-      case XPSourceType.ACHIEVEMENT_UNLOCK:
-        return {
-          icon: '🏆',
-          nameKey: 'achievements',
-          color: '#FFD700',
-        };
-      case XPSourceType.MONTHLY_CHALLENGE:
-        return {
-          icon: '📅',
-          nameKey: 'monthlyChallenges',
-          color: '#673AB7',
-        };
-      case XPSourceType.XP_MULTIPLIER_BONUS:
-        return {
-          icon: '⚡',
-          nameKey: 'multiplierBonuses',
-          color: '#E91E63',
-        };
-      case XPSourceType.RECOMMENDATION_FOLLOW:
-        return {
-          icon: '💡',
-          nameKey: 'recommendations',
-          color: '#8BC34A',
-        };
-      default:
-        return {
-          icon: '✨',
-          nameKey: 'activities',
-          color: colors.primary,
-        };
-    }
+  // Returns the correct translation key based on count (singular vs plural)
+  const getSourceName = (nameKey: string, count: number): string => {
+    const key = count === 1
+      ? `gamification.xp.xpNotification.sources_one.${nameKey}`
+      : `gamification.xp.xpNotification.sources.${nameKey}`;
+    return t(key as any);
   };
 
   // ========================================
@@ -197,29 +167,22 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     }
 
     if (data.sources.length === 1) {
-      const source = data.sources[0];
-      const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-      const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
+      const source = data.sources[0]!;
+      const sourceName = getSourceName(source.nameKey, source.count);
 
-      if (source?.count === 1) {
-        const singularSource = sourceName && sourceName.length > 1 ? sourceName.slice(0, -1) : sourceName;
+      if (source.count === 1) {
         return t('gamification.xp.xpNotification.announcements.single', {
-          xp: netXP,
-          source: singularSource,
-          count: 1
+          xp: netXP, source: sourceName, count: 1,
         });
       } else {
         return t('gamification.xp.xpNotification.announcements.multipleSame', {
-          xp: netXP,
-          count: source?.count || 0,
-          source: sourceName
+          xp: netXP, count: source.count, source: sourceName,
         });
       }
     } else {
       const positiveSourceCount = data.sources.filter(s => s.totalXP > 0).length;
       return t('gamification.xp.xpNotification.announcements.multipleMixed', {
-        xp: netXP,
-        sourceCount: positiveSourceCount
+        xp: netXP, sourceCount: positiveSourceCount,
       });
     }
   };
@@ -241,9 +204,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   const generateNotificationText = (data: BatchedNotification): string => {
     const netXP = data.totalXP;
 
-    // Handle different XP outcomes with appropriate messaging
     if (netXP <= 0) {
-      // For zero or negative net XP, show neutral/informative message
       if (netXP === 0) {
         return `📊 ${t('gamification.xp.xpNotification.messages.balanced')}`;
       } else {
@@ -251,30 +212,24 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
       }
     }
 
-    // Only show congratulatory messages for NET POSITIVE XP
     if (data.sources.length === 1) {
-      const source = data.sources[0];
-      const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-      const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
+      const source = data.sources[0]!;
+      const sourceName = getSourceName(source.nameKey, source.count);
 
-      if (source?.count === 1) {
-        const singularName = sourceName && sourceName.length > 1 ? sourceName.slice(0, -1) : sourceName;
-        return `${sourceInfo.icon} ${singularName} ${t('gamification.xp.xpNotification.messages.completed')}`;
+      if (source.count === 1) {
+        return `${source.icon} ${sourceName} ${t('gamification.xp.xpNotification.messages.completed')}`;
       } else {
-        return `${sourceInfo.icon} ${source?.count || 0} ${sourceName} ${t('gamification.xp.xpNotification.messages.completed')}`;
+        return `${source.icon} ${source.count} ${sourceName} ${t('gamification.xp.xpNotification.messages.completed')}`;
       }
     } else {
-      // Multiple sources - create summary (only for positive gains)
       const sourceTexts = data.sources
-        .filter(source => source.totalXP > 0) // Only include sources with positive contribution
+        .filter(source => source.totalXP > 0)
         .map(source => {
-          const sourceInfo = getSourceInfo(source?.source || XPSourceType.HABIT_COMPLETION);
-          const sourceName = t(`gamification.xp.xpNotification.sources.${sourceInfo.nameKey}`);
-          const count = source?.count || 0;
-          const displayName = count === 1 && sourceName && sourceName.length > 1
-            ? sourceName.slice(0, -1)
-            : sourceName;
-          return `${count} ${displayName}`;
+          const displayName = getSourceName(source.nameKey, source.count);
+          if (source.count === 1) {
+            return `${source.icon} ${displayName}`;
+          }
+          return `${source.icon} ${source.count} ${displayName}`;
         });
 
       if (sourceTexts.length === 0) {
@@ -285,7 +240,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         return `🎉 ${sourceTexts.join(` ${t('gamification.xp.xpNotification.messages.and')} `)} ${t('gamification.xp.xpNotification.messages.completed')}`;
       } else {
         const lastSource = sourceTexts.pop();
-        return `🎉 ${sourceTexts.join(', ')}, ${t('gamification.xp.xpNotification.messages.and')} ${lastSource || ''} ${t('gamification.xp.xpNotification.messages.completed')}`;
+        return `🎉 ${sourceTexts.join(', ')}, ${t('gamification.xp.xpNotification.messages.and')} ${lastSource ?? ''} ${t('gamification.xp.xpNotification.messages.completed')}`;
       }
     }
   };

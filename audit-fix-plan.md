@@ -452,7 +452,7 @@ Po dokončení všech předchozích fází je nutné projít celou aplikaci a ov
 3. Nainstalovat build na fyzické zařízení a projít základní smoke test
 4. Zkontrolovat crash reporting (Firebase) pro nové chyby po instalaci
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — SpotlightEffect (Skia) ověřen přes tutoriál, funguje správně
 
 ---
 
