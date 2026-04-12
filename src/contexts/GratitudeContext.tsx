@@ -132,11 +132,12 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       const newGratitude = await gratitudeStorage.create(input);
       dispatch({ type: 'ADD_GRATITUDE', payload: newGratitude });
 
-      // Refresh stats in background — do NOT await here.
-      // After warm-up recovery, calculateAndUpdateStreak() can hang on DB operations,
-      // which would block GratitudeInput.handleSubmit forever (button stuck in loading).
-      // The entry is already dispatched to context — streak stats update asynchronously.
-      refreshStats().catch(e => console.error('[GratitudeContext] refreshStats error after create:', e));
+      // Streak + stats are recalculated exactly once here (storage.create()
+      // no longer recalculates internally, so there is no double work).
+      // Awaiting is required so the UI reads a consistent streak snapshot
+      // immediately after the button unlocks — critical for warm-up recovery
+      // where frozenDays must reflect the just-created entry.
+      await refreshStats();
 
       return newGratitude;
     } catch (error) {

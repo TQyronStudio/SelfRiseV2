@@ -23,7 +23,7 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
-import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp, formatDateToString } from '../../utils/date';
+import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
 
 /**
  * SQLite-based Gratitude Storage
@@ -272,9 +272,9 @@ export class SQLiteGratitudeStorage {
         ? `Bonus journal entry #${order}${milestoneDescription}`
         : `Journal entry #${order}`;
 
-      // 🚀 FIRE-AND-FORGET: XP runs in background (75-200ms saving)
-      // Milestone counters and streak update STAY SYNC below (UI needs them)
-      GamificationService.addXP(totalXpAmount, {
+      // Award XP synchronously — failures must surface to caller so we don't
+      // silently lose XP. GamificationService manages its own internal batching.
+      await GamificationService.addXP(totalXpAmount, {
         source: milestoneXpAmount > 0 ? XPSourceType.JOURNAL_BONUS_MILESTONE : xpSource,
         description,
         sourceId: entryId,
@@ -284,27 +284,15 @@ export class SQLiteGratitudeStorage {
           entryPosition: order,
           entryLength: input.content.length,
         },
-      }).catch(error => {
-        console.error('❌ Journal XP award failed (background):', error);
       });
 
       console.log(`✅ Journal entry created (position: ${order}, +${totalXpAmount} XP)${milestoneDescription}`);
 
-      // Update milestone counters if milestone was reached
-      if (milestoneXpAmount > 0) {
-        const currentStreak = await this.getStreak();
-        const updatedStreak = { ...currentStreak };
-
-        if (order === 4) updatedStreak.starCount += 1;
-        else if (order === 8) updatedStreak.flameCount += 1;
-        else if (order === 13) updatedStreak.crownCount += 1;
-
-        await this.updateStreak(updatedStreak);
-        console.log(`✨ Milestone counter updated: ${order === 4 ? 'starCount' : order === 8 ? 'flameCount' : 'crownCount'}++`);
-      }
-
-      // Update streak after adding new gratitude
-      await this.calculateAndUpdateStreak();
+      // NOTE: Streak recalculation + milestone counters are the caller's
+      // responsibility (GratitudeContext.createGratitude → refreshStats).
+      // Keeping that responsibility in one place prevents the double
+      // calculateAndUpdateStreak() call per entry that previously manifested
+      // as a "hang" after warm-up recovery (10+ SQL queries × 2 passes).
 
       // Return created entry
       return {
@@ -741,16 +729,12 @@ export class SQLiteGratitudeStorage {
       const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
 
-      // FIX 15.2-v2: Date-based reset floor - autoResetTimestamp acts as a permanent
-      // debt barrier. Missed days on or before the reset date are never counted as debt.
-      // This prevents re-freezing after reset without polluting warm_up_payments.
-      let resetDateFloor: DateString | null = null;
-      if (currentStreak.autoResetTimestamp) {
-        const resetDateStr = formatDateToString(new Date(currentStreak.autoResetTimestamp));
-        if (resetDateStr === currentDate) {
-          return 0; // Reset happened today - no debt
-        }
-        resetDateFloor = resetDateStr; // Use as floor for subsequent days
+      // FIX 15.3: No active streak = nothing to freeze.
+      // Per technical-guides:My-Journal.md - frozen system PROTECTS existing streaks.
+      // If currentStreak === 0, there is no streak to protect, so debt = 0.
+      // This matches the expected "Start Fresh" / new user experience.
+      if (currentStreak.currentStreak === 0) {
+        return 0;
       }
 
       // CRITICAL FIX: If user completed today, debt is automatically 0
@@ -771,12 +755,9 @@ export class SQLiteGratitudeStorage {
         }
       });
 
-      // Calculate which missed days are still unpaid, applying reset floor
+      // Calculate which missed days are still unpaid
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
-      const filteredDates = resetDateFloor
-        ? missedDates.filter(date => date > resetDateFloor!)
-        : missedDates;
-      const unpaidMissedDays = filteredDates.filter(date => !paidDays.has(date));
+      const unpaidMissedDays = missedDates.filter(date => !paidDays.has(date));
 
       return unpaidMissedDays.length;
     } catch (error) {
@@ -795,15 +776,12 @@ export class SQLiteGratitudeStorage {
       const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
 
-      // FIX 15.2-v2: Same reset date floor as calculateFrozenDays()
-      // Prevents auto-reset from triggering on pre-reset missed days
-      let resetDateFloor: DateString | null = null;
-      if (currentStreak.autoResetTimestamp) {
-        const resetDateStr = formatDateToString(new Date(currentStreak.autoResetTimestamp));
-        if (resetDateStr === currentDate) {
-          return 0;
-        }
-        resetDateFloor = resetDateStr;
+      // FIX 15.3: No active streak = nothing to freeze.
+      // Per technical-guides:My-Journal.md - frozen system PROTECTS existing streaks.
+      // If currentStreak === 0, there is no streak to protect, so debt = 0.
+      // This also prevents auto-reset from firing repeatedly on a clean slate.
+      if (currentStreak.currentStreak === 0) {
+        return 0;
       }
 
       // Calculate raw missed days excluding today
@@ -829,11 +807,9 @@ export class SQLiteGratitudeStorage {
         }
       });
 
-      // Calculate unpaid missed days (excluding today), applying reset floor
+      // Calculate unpaid missed days (excluding today)
       const missedDates = this.getMissedDatesFromToday(rawMissedDays);
-      const filteredDates = resetDateFloor
-        ? missedDates.filter(date => date > resetDateFloor! && date !== currentDate)
-        : missedDates.filter(date => date !== currentDate);
+      const filteredDates = missedDates.filter(date => date !== currentDate);
       const unpaidMissedDays = filteredDates.filter(date => !paidDays.has(date));
 
       return unpaidMissedDays.length;
@@ -1600,8 +1576,8 @@ export class SQLiteGratitudeStorage {
       await this.updateStreak(resetStreak);
 
       // Clear all warm-up payments (clean slate for new streak)
-      // Re-freezing prevention is handled by autoResetTimestamp date floor
-      // in calculateFrozenDays() - see FIX 15.2-v2
+      // Re-freezing prevention is handled by the currentStreak === 0 guard
+      // in calculateFrozenDays() / calculateFrozenDaysExcludingToday() - see FIX 15.3
       const db = this.getDb();
       await db.runAsync('DELETE FROM warm_up_payments');
 
