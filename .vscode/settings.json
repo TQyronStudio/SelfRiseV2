@@ -7,7 +7,9 @@
   "files.exclude": {
     "**/node_modules": true,
     "**/ios": true,
-    "**/android": true
+    "**/android": true,
+    "**/ios/Pods": true,
+    "**/ios/build": true
   },
   "search.exclude": {
     "**/node_modules": true,
