@@ -510,3 +510,78 @@ Social sharing buttons were present in the app but were incomplete/unpolished. T
 ---
 
 *This roadmap represents aspirational features for SelfRise V2's long-term evolution. Implementation timeline depends on user adoption, infrastructure readiness, and resource availability.*
+
+---
+
+## Phase 6: Atomic `xp_state` Update — Remove GamificationService.operationQueue ⚛️
+
+**Status**: Deferred (decision made 2026-04-20 during Performance Audit Phase 8.1)
+**Priority**: Low | **Complexity**: Medium-High | **Estimated**: 3–4 hours incl. regression testing
+
+**Goal**: Remove the global `GamificationService.operationQueue` (`Promise.resolve().then()` chain that serializes all XP operations) and replace the current read-modify-write pattern on `xp_state.total_xp` with a SQL-level atomic `UPDATE`, unlocking parallel XP gains without race conditions.
+
+### Context from Performance Audit (audit-fix-plan.md Phase 8.1)
+
+During the habit-tap performance audit, the `operationQueue` was identified as a bottleneck: every `addXP` / `subtractXP` call gets appended to a single global `Promise` chain, forcing strict sequential execution. The queue was originally added "to prevent race conditions" (comment in code), and investigation confirmed a real race condition exists in the current code path:
+
+```typescript
+// gamificationService.ts:685-753 (simplified)
+const previousTotalXP = await this.getTotalXP();          // READ
+const newTotalXP = previousTotalXP + finalAmount;          // COMPUTE
+await db.runAsync(
+  'INSERT OR REPLACE INTO xp_state (id, total_xp, ...) VALUES (1, ?, ...)',
+  [newTotalXP, ...]                                        // WRITE
+);
+```
+
+Without the queue, two parallel `addXP` calls could both read `totalXP=100`, compute `125` and `150` respectively, and the last-writer-wins would produce `150` instead of the correct `175`. The `xp_transactions` INSERTs would all succeed (fine), but `xp_state.total_xp` and `current_level` would be wrong.
+
+### The Fix: Atomic SQL UPDATE
+
+Replace the read-compute-write pattern with an atomic SQL `UPDATE` that increments `total_xp` in a single statement within an SQLite transaction. SQLite serializes writes per-connection, so concurrent transactions are automatically queued at the DB level (same semantics as the JS queue, but without the JS Promise chain overhead).
+
+```sql
+BEGIN TRANSACTION;
+  INSERT INTO xp_transactions (...) VALUES (...);
+  UPDATE xp_state SET total_xp = total_xp + ?, updated_at = ? WHERE id = 1;
+  SELECT total_xp FROM xp_state WHERE id = 1;  -- read fresh value
+  -- compute new level from fresh total_xp in JS
+  UPDATE xp_state SET current_level = ? WHERE id = 1;
+  INSERT INTO xp_daily_summary (...) ON CONFLICT(date) DO UPDATE SET ...;
+COMMIT;
+```
+
+### Implementation Tasks
+
+- [ ] Audit all `this.operationQueue = this.operationQueue.then(...)` call sites (`performXPAddition`, `performXPSubtraction`, any future additions)
+- [ ] Refactor `performXPAdditionInternal` to use atomic `UPDATE xp_state SET total_xp = total_xp + ?` instead of `INSERT OR REPLACE` with precomputed `newTotalXP`
+- [ ] Read fresh `total_xp` back within the transaction (`SELECT total_xp FROM xp_state WHERE id = 1`) to compute the new level
+- [ ] Handle the "fresh install" case where `xp_state` row doesn't exist yet (`INSERT OR IGNORE` then `UPDATE`, or ensure migration creates the row)
+- [ ] Apply same pattern to `performXPSubtractionInternal`
+- [ ] Remove `private static operationQueue: Promise<any>` declaration and all `.then()` wrappers
+- [ ] Verify `cachedXPData` optimistic cache still behaves correctly (may need update with post-UPDATE value)
+- [ ] Regression test: rapid XP gains (habit + journal + goal in same tick), level-up during rapid gains, subtraction flows, multiplier edge cases
+- [ ] Confirm `DeviceEventEmitter` listeners (`xpGained`, `xpBatchCommitted`, `levelUp`) still receive events in a consistent order (SQLite serializes writes, so write order = event order)
+- [ ] Make-up smoke test: bonus XP vs scheduled XP source tracking must correlate with visible Make-up conversions in calendar
+
+### Expected Benefit
+
+- Additional **~15–20%** habit-tap speedup on top of audit-fix-plan Phases 7 and 8 (beyond the current 8.2 cache + 8.3 deferred writes)
+- Enables true parallelism for multi-source XP batches (e.g. habit tap that simultaneously triggers XP for habit + achievement + monthly challenge progress)
+- Simpler mental model: no JS-side queue, all concurrency control at the DB layer
+
+### Risks
+
+- Higher testing burden than audit-fix-plan Phase 8 fixes — change is at the core of the XP flow
+- Possible edge cases around `cachedXPData` consistency during parallel operations
+- Any code that assumed strict event ordering (via the JS queue) must be verified
+
+### Why Postponed
+
+During Performance Audit Phase 8 (2026-04-20), Variant A was chosen (keep the queue, apply only the non-core optimizations 8.2 + 8.3). Rationale: audit Phases 7 + partial 8 already deliver the majority of the habit-tap speedup, and keeping the queue avoids any possibility of XP-total drift during rapid operations. The atomic-UPDATE refactor is preserved here for when the remaining ~15–20% matters (e.g., after user load scales up or when a future feature requires true parallel XP ingestion).
+
+### When to Implement
+
+- After the app is stable in production with current queue-based flow
+- When a feature specifically benefits from parallel XP operations
+- When there's time for comprehensive regression testing of the XP flow

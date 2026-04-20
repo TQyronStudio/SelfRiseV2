@@ -313,6 +313,11 @@ export class GamificationService {
     timestamp: number;
     level: number;
   } | null = null;
+
+  // Session-scoped cache for getDailyXPData — invalidated after each successful XP write.
+  // Eliminates 4 SQL queries per tap during rapid habit clicking.
+  private static dailyXPDataCache: Map<string, { data: DailyXPData; ts: number }> = new Map();
+  private static readonly DAILY_XP_CACHE_TTL_MS = 5000;
   
   /**
    * Add XP directly without batching (used for fallbacks and internal operations)
@@ -817,6 +822,9 @@ export class GamificationService {
             timestamp: Date.now()
           };
 
+          // Invalidate daily XP data cache — fresh read on next validateXPAddition call
+          this.dailyXPDataCache.delete(todayDate);
+
         } catch (error) {
           await db.execAsync('ROLLBACK');
           console.error('SQLite transaction failed, rolled back:', error);
@@ -832,11 +840,24 @@ export class GamificationService {
 
         // Update tracking data with anti-spam tracking
         await this.updateDailyXPTracking(finalAmount, options.source, options.sourceId);
+
+        // Invalidate daily XP data cache (legacy path)
+        this.dailyXPDataCache.delete(today());
       }
 
-      // Update legacy tracking (still needed for some features)
-      await this.updateXPBySource(options.source, finalAmount);
-      await this.updateLastActivity();
+      // Legacy lifetime tracking in AsyncStorage — fire-and-forget (audit 8.3).
+      // Writing these synchronously blocks addXP return by ~40–100ms per tap.
+      // Readers are non-real-time (Profile/Stats screens, analytics) — 200ms lag invisible.
+      // SQLite xp_state/xp_daily_summary are already committed above → monthly challenges
+      // and progress tracker read fresh data from SQLite, not from these AsyncStorage fields.
+      void (async () => {
+        try {
+          await this.updateXPBySource(options.source, finalAmount);
+          await this.updateLastActivity();
+        } catch (err) {
+          console.error('[GamificationService] Background XP-bySource/lastActivity update failed:', err);
+        }
+      })();
 
       // Check for level up
       const leveledUp = newLevel > previousLevel;
@@ -1053,6 +1074,9 @@ export class GamificationService {
             timestamp: Date.now()
           };
 
+          // Invalidate daily XP data cache — fresh read on next validateXPAddition call
+          this.dailyXPDataCache.delete(todayDate);
+
         } catch (error) {
           await db.execAsync('ROLLBACK');
           console.error('SQLite subtraction transaction failed, rolled back:', error);
@@ -1063,11 +1087,20 @@ export class GamificationService {
         await this.saveTransaction(transaction);
         await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
         await this.updateDailyXPTracking(-amount, options.source, options.sourceId);
+
+        // Invalidate daily XP data cache (legacy path)
+        this.dailyXPDataCache.delete(today());
       }
 
-      // Update legacy source tracking (still needed for some features)
-      await this.updateXPBySource(options.source, -amount);
-      
+      // Legacy lifetime tracking in AsyncStorage — fire-and-forget (audit 8.3).
+      void (async () => {
+        try {
+          await this.updateXPBySource(options.source, -amount);
+        } catch (err) {
+          console.error('[GamificationService] Background XP-bySource update failed (subtraction):', err);
+        }
+      })();
+
       // Log the subtraction
       console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
       if (leveledDown) {
@@ -2233,12 +2266,16 @@ export class GamificationService {
    */
   private static async getDailyXPData(): Promise<DailyXPData> {
     try {
+      const todayDate = today();
+      const cached = this.dailyXPDataCache.get(todayDate);
+      if (cached && (Date.now() - cached.ts) < this.DAILY_XP_CACHE_TTL_MS) {
+        return cached.data;
+      }
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - query xp_daily_summary and daily_activity_log
 
         const db = getDatabase();
-        const todayDate = today();
 
         // Get today's summary
         const summary = await db.getFirstAsync<{
@@ -2294,7 +2331,7 @@ export class GamificationService {
           [todayDate]
         );
 
-        return {
+        const freshData: DailyXPData = {
           date: todayDate,
           totalXP: summary?.total_xp || 0,
           xpBySource,
@@ -2303,6 +2340,8 @@ export class GamificationService {
           journalEntryCount: journalCount?.count || 0,
           goalTransactions,
         };
+        this.dailyXPDataCache.set(todayDate, { data: freshData, ts: Date.now() });
+        return freshData;
       } else {
         // Legacy AsyncStorage implementation
         const stored = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_XP_TRACKING);
@@ -2317,6 +2356,7 @@ export class GamificationService {
           return this.createEmptyDailyData();
         }
 
+        this.dailyXPDataCache.set(todayDate, { data, ts: Date.now() });
         return data;
       }
     } catch (error) {

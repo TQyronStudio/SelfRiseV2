@@ -679,7 +679,17 @@ Tato fáze se dotýká GamificationService a vyžaduje **ověření před každo
 > - **B)** Přepsat čtenáře aby četli z SQLite `xp_transactions` agregací (větší práce, ale čistější)
 > Zvol A, pokud je to jediný čtenář. Zvol B, pokud je čtenářů víc a je to evidentně lepší architektura.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — 🟢 ZELENÁ pro bod 8.3.
+>
+> **Zjištění:**
+> - `getXPBySource()` / `XP_BY_SOURCE` se čte **pouze uvnitř `gamificationService.ts`** (2× ve `getGamificationStats`, 1× ve `updateXPBySource` RMW, 1× v `backup`)
+> - `getGamificationStats()` čtou: `LevelsOverviewScreen`, `OptimizedXpProgressBar`, `achievementService`, `userStatsCollector`, `socialSharingService` — **žádný real-time habit-tap flow**
+> - `OptimizedXpProgressBar` používá `totalXP/currentLevel/xpProgress/xpToNextLevel`, NE `xpBySource`
+> - `MonthlyChallengeService`, `MonthlyProgressTracker`, `XpMultiplierService` **NEČTOU** `xpBySource` (grepem 0 matches)
+> - `MonthlyProgressTracker` používá `getTransactionsByDateRange` (SQLite `xp_transactions` přímo), ne AsyncStorage
+> - `getLastActivity` čte `XpMultiplierService.checkInactiveUserStatus` — jen pro detekci 4+ dnů neaktivity, 200 ms irelevantní
+>
+> **Verdikt:** `updateXPBySource` + `updateLastActivity` lze bezpečně odložit (bod 8.3).
 
 ---
 
@@ -710,7 +720,13 @@ Tato fáze se dotýká GamificationService a vyžaduje **ověření před každo
 
 > 🛡️ **OCHRANA MAKE-UP**: operationQueue je striktně XP-specifická fronta. Make-up logika NEBĚŽÍ přes tuto frontu — derivace Make-upu je synchronní výpočet z `state.completions` v React render cyklu. Odstranění fronty Make-up nijak neovlivní. Test po změně však musí zahrnovat scénář: **bonus completion → XP event → Make-up konverze v kalendáři** — pokud by se `HABIT_BONUS` vs `HABIT_COMPLETION` XP source tracking poškodilo pořadím, pak by statistiky zdrojů XP nekorelovaly s viditelnou Make-up konverzí. Viz bod 8.0 pro kontrolu čtenářů xpBySource.
 
-**Status:** [ ] ČEKÁ
+**Status:** [⏭️] PŘESKOČENO — varianta A (rozhodnutí 2026-04-20).
+>
+> **Důvod:** Kontrola kódu odhalila, že fronta **skutečně chrání kritickou sekci** — read-modify-write na `xp_state.total_xp` v [gamificationService.ts:685-753](src/services/gamificationService.ts#L685-L753). Bez fronty by 2 paralelní addXP volání ztratila XP (oba čtou stejný `previousTotalXP`, oba píšou různé `newTotalXP`, last-writer-wins).
+>
+> Refactor na atomický SQL UPDATE (varianta B) byl zvolen jako volitelná budoucí optimalizace. Zdokumentováno v **[projectplan-future-updates.md](projectplan-future-updates.md) → Phase 6: Atomic xp_state Update**.
+>
+> **Dopad na Fázi 8:** body 8.2 a 8.3 zůstávají platné a přinesou očekávaných ~15–20 % zrychlení bez dotknutí kritické sekce.
 
 ---
 
@@ -741,7 +757,7 @@ Tato fáze se dotýká GamificationService a vyžaduje **ověření před každo
 
 > ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud validateXPAddition vrátí "limit exceeded" kvůli stale cache (nepravděpodobné, ale možné), uživatel ztratí XP. Defenzivně: pokud je cache starší než 1 s a validation **by blokovala XP**, udělat force refresh před rozhodnutím.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — `dailyXPDataCache: Map<string, {data, ts}>` s TTL 5000 ms. Cache check na začátku `getDailyXPData()`, write na obou return paths (SQLite + legacy). Invalidace `delete(todayDate)` po COMMIT v `performXPAdditionInternal` i `performXPSubtractionInternal` (oba paths). TS compile clean.
 
 ---
 
@@ -777,7 +793,7 @@ Pokud tyto operace selžou, uživatel to nikdy neuvidí. Pokud se zpozdí o 200 
 
 > 🛡️ **OCHRANA MAKE-UP**: Tato odložená AsyncStorage pole (`xpBySource`, `lastActivity`) **nejsou vstupem pro Make-up derivaci**. Make-up čte raw `state.completions` z HabitsContext (ne z AsyncStorage). Odložení tedy Make-up nijak neovlivní. **Jediné riziko** je, pokud někdo v budoucnu přidá synchronní čtení `getXPBySource()` v UI, které zobrazuje také Make-up statistiky — pak by mezi nimi mohla být krátká nekonzistence. Proto bod 8.0 je povinný.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — `updateXPBySource` + `updateLastActivity` v `performXPAddition` (~řádek 848) obaleny do `void (async () => { ... })()` IIFE s try/catch. Stejný pattern v `performXPSubtraction` (~řádek 1095) pro `updateXPBySource(source, -amount)`. SQLite transakce zůstává synchronní. TS compile clean.
 
 ---
 
