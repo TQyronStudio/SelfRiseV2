@@ -474,3 +474,411 @@ Po dokončení všech předchozích fází je nutné projít celou aplikaci a ov
 | 6.1–6.5 | Finální testování | Střední | 2–4 hodiny |
 
 **Celkový odhad:** 2–5 dní práce v závislosti na tom, zda draggable-flatlist bude potřeba nahradit.
+
+---
+
+---
+
+# Performance Audit: Zasekávání při klikání na návyky
+
+Tato sekce navazuje na migraci SDK a řeší výkonnostní problém hlášený uživatelem: *"Klikal jsem na návyky, jeden za druhým, abych je označil jako splněné a bylo to velmi pomalé, až zasekané každý den klik."*
+
+**Identifikované příčiny (seřazeno dle dopadu):**
+1. `GamificationService.operationQueue` — globální serializace všech XP operací přes Promise chain
+2. Těžký synchronní XP flow per tap (~4 SQL dotazy + plná transakce + 2× AsyncStorage)
+3. Trojitý dispatch v `HabitsContext.toggleCompletion` (optimistic ADD → DELETE temp → ADD real)
+4. `StyleSheet.create` + `COLOR_MAP` uvnitř render funkce (rekalkulace na každý render)
+5. `XpAnimationContext` setState churn (popupy, haptic feedback, smart notifikace)
+6. Chybějící memoizace `todayCompletions` a `getHabitCompletion` v `HabitListWithCompletion`
+7. Fire-and-forget achievement check bez odložení
+
+**Filozofie oprav:** Surgical changes only. Každá změna musí zachovat 100 % funkcionality. Změny se dělají po fázích s testováním mezi fázemi. Žádné big-bang refaktoring.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Před jakoukoliv změnou v XP flow si přečti [technical-guides:Gamification-Core.md](technical-guides:Gamification-Core.md) a [technical-guides:Habits.md](technical-guides:Habits.md). XP hodnoty, denní limity a Smart Bonus Conversion jsou nedotknutelné. Nezasahovat do `validateXPAddition` — bezpečnostní riziko pro denní limity.
+
+---
+
+## Kritická funkcionalita k zachování: Make-up systém (Smart Bonus Conversion)
+
+Tato sekce je nadřazená všem bodům níže. Každá fáze optimalizace MUSÍ zachovat plnou funkčnost Make-up systému.
+
+**Jak Make-up funguje (shrnutí architektury):**
+
+Make-up je **čistě client-side derivace** — žádný `isConverted` / `isCovered` / `convertedFromDate` se neukládá do DB. V DB (SQLite tabulka `habit_completions`) existuje pouze:
+- `id`, `habitId`, `date`, `completed`, `isBonus`, timestampy
+
+Logika Make-upu žije v `src/hooks/useHabitsData.ts:277` ve funkci `applySmartBonusConversion(habit, completions)`:
+1. Seskupí completions po týdnech (pondělí jako klíč)
+2. Pro každý týden najde: missed scheduled days + bonus completions
+3. Páruje je 1:1 chronologicky (nejstarší missed ↔ nejstarší bonus)
+4. Vytvoří syntetické completion objekty s flagy `isConverted`, `isCovered`, `convertedFromDate`
+5. Vrací transformované pole, které pak konzumuje UI (`HabitCalendarView`, `WeeklyHabitChart`, streak kalkulace atd.)
+
+**Klíčové vstupy, které MUSÍ zůstat správné:**
+- `state.completions` (raw pole z HabitsContext) — zdroj pravdy
+- Property `isBonus` na každé completion (rozlišuje bonus vs. scheduled)
+- Property `date` a `habitId` (pro seskupení)
+- Property `completed: true` (jen dokončené se páruji)
+
+**Čtenáři Make-up derivace:**
+- `HabitCalendarView.tsx:267-308` — modrá tečka pro covered missed day, makeup ikona
+- `WeeklyHabitChart.tsx`, `Monthly30DayChart.tsx` — barevné zobrazení v grafech
+- Streak kalkulace v `useHabitsData.calculateCurrentStreak / calculateLongestStreak`
+- Statistiky návyku v `HabitStatsAccordionItem`
+
+> 🚨 **ABSOLUTNÍ PRAVIDLO PRO CLAUDE**: Žádná optimalizace NESMÍ změnit:
+> 1. **Obsah** `state.completions` — tj. dispatche ADD_COMPLETION / DELETE_COMPLETION musí nést kompletní payload se správným `isBonus` flagem
+> 2. **Pořadí dispatchů vůči storage writes** — Make-up čte raw state, takže mezi dispatchem a SQLite zápisem musí být konzistence
+> 3. **Cache invalidaci v `getHabitCompletionsWithConversion`** (useHabitsData.ts:71) — useCallback dependency `[state.completions, state.habits]` musí zůstat nedotčená
+> 4. **Smart Bonus Conversion cache** s content-aware hashem — pokud tam dosadíme ID místo obsahu, cache začne vracet stale data po úpravě isBonus
+
+> ⚠️ **TEST PROTOKOL PRO MAKE-UP po každé fázi** (povinný):
+> 1. Vytvořit návyk naplánovaný Po-Pá (ne víkend)
+> 2. Po / Út: neoznačit (missed)
+> 3. So / Ne: označit (bonus)
+> 4. Otevřít HabitCalendarView → Po a Út musí mít **modrou tečku** (covered), So/Ne **fialovou** (makeup)
+> 5. Streak pro tento týden musí být **5** (všech 5 scheduled dní pokrytých — 3 reálné + 2 covered)
+> 6. Zopakovat po každé fázi (7, 8, 9), pokud se něco vizuálně liší → STOP a diagnostikovat
+>
+> Pokud tento test neproběhne čistě, všechny ostatní "úspěchy" fáze jsou neplatné.
+
+---
+
+## FÁZE 7: Bezpečné výkonnostní opravy (nulové riziko)
+
+Tato fáze obsahuje **mechanické změny bez zásahu do business logiky**. Riziko rozbití je nulové, protože se nemění žádný výpočet ani datový tok — pouze se eliminují zbytečné rekalkulace na úrovni render cyklu.
+
+**Cíl:** Snížit počet re-renderů a alokací bez dotyku databázové vrstvy. Očekávané zrychlení: **30–40 %**.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: V této fázi NESMÍŠ sahat na: `gamificationService.ts`, `habitStorage.ts`, `SQLiteHabitStorage.ts`, `HabitsContext.tsx`. Pouze komponenty a hooks. Pokud tě lákáa "drobná úprava" v těchto souborech — STOP, patří do Fáze 8.
+
+---
+
+### 7.1 Memoizace `todayCompletions` a `getHabitCompletion` v HabitListWithCompletion
+
+**Problém:** V `HabitListWithCompletion.tsx` se na **každý render** znovu počítá `todayCompletions = completions.filter(...)` a recreuje closure `getHabitCompletion`. Tyto funkce jsou dependency `useCallback` pro `renderActiveHabitItem`, takže při každém renderu se invaliduje callback → FlatList musí přegenerovat všechny položky → všechny `HabitItemWithCompletion` se re-renderují (i když jsou memoizované, prop `completion` se "změní" referencí).
+
+**Vysvětlení:** React.memo funguje jen pokud se props **nezmění referenčně**. Když `getHabitCompletion(habitId)` vrátí nový objekt/undefined při každém volání (nebo samotný callback je nový), `HabitItemWithCompletion` se re-renderuje zbytečně. Při 10 návycích × 3 re-rendery per tap = 30 zbytečných renderů každé položky.
+
+**Ovlivněné soubory:**
+- `src/components/habits/HabitListWithCompletion.tsx`
+
+**Postup řešení:**
+1. Obalit `todayCompletions` do `useMemo` s dependency `[completions, date]`
+2. Obalit `getHabitCompletion` do `useCallback` s dependency `[todayCompletions]`
+3. Ověřit, že `renderActiveHabitItem` useCallback už obsahuje `getHabitCompletion` v deps (má)
+4. Manuální test: označit 5 návyků rychle po sobě, sledovat plynulost
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Nepřidávej memoizaci `activeHabits` / `inactiveHabits` — ty se počítají z `habits` array a filter/sort je rychlý. Memoizace by přidala overhead bez benefitu. Naopak `todayCompletions.filter()` prochází všechny completions v historii, proto se memoizace vyplatí.
+
+> 🛡️ **OCHRANA MAKE-UP**: Tato memoizace pracuje s **raw** `completions` (ne s Smart Bonus Conversion výstupem). Dnešní seznam návyků zobrazuje skutečný stav dne — Make-up derivace běží v `HabitCalendarView` a statistikách, ne v `HabitListWithCompletion`. Memoizace tedy Make-up nijak neovlivňuje. **Nesmí** se však změnit signatura completion objektu (např. stripovat `isBonus`) — to by rozbilo derivaci v jiných komponentách.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 7.2 Přesun `StyleSheet.create` a `COLOR_MAP` mimo render funkci
+
+**Problém:** V `HabitItemWithCompletion.tsx` (řádky 176–353) a `HabitListWithCompletion.tsx` (řádky 153–197) se volá `StyleSheet.create(...)` **uvnitř těla komponenty**. Stejně tak `COLOR_MAP` objekt je rekonstruován per render. Na každý render proběhne alokace ~40 style objektů + hash map barev.
+
+**Vysvětlení:** StyleSheet se musí vytvořit v závislosti na `colors` z `useTheme()`, takže ho nelze prostě přesunout na top-level modulu. Řešení je obalit styly do `useMemo` s dependency `[colors]` — pak se recreuje jen při přepnutí theme (Light → Dark), ne při každém renderu. `COLOR_MAP` který nezávisí na theme lze přesunout na module-level jako konstantu.
+
+**Ovlivněné soubory:**
+- `src/components/habits/HabitItemWithCompletion.tsx`
+- `src/components/habits/HabitListWithCompletion.tsx`
+
+**Postup řešení:**
+1. V `HabitItemWithCompletion.tsx`: přesunout `COLOR_MAP` (řádky 92–101) **mimo komponentu** jako top-level `const` (nezávisí na theme)
+2. Obalit celý `StyleSheet.create(...)` do `useMemo(() => StyleSheet.create({...}), [colors])`
+3. Totéž v `HabitListWithCompletion.tsx`
+4. Manuální test: přepnout Light ↔ Dark theme → styly se musí správně aplikovat
+5. Manuální test: označit návyk → styly musí vypadat identicky jako předtím
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: `useMemo` pro StyleSheet NENÍ anti-pattern v tomto případě — standardní StyleSheet.create vrací referenčně stabilní objekt jen při volání s identickým vstupem, ale mi vstup tvoří každý render znovu. Alternativa: rozdělit statické styly (top-level) a dynamické styly (useMemo). Zvolit jednodušší variantu podle počtu theme-závislých stylů.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Po přesunu `COLOR_MAP` na module-level ověř, že nepoužívá žádné hooks/props — pokud ano, musí zůstat v komponentě přes useMemo.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 7.3 Debounce haptic feedback v XpAnimationContext
+
+**Problém:** V `XpAnimationContext.tsx` se na **každý XP event** volá `Haptics.impactAsync(...)`. Při rychlém klikání (5 návyků za 2 s) vibruje telefon 5× za sebou — nepříjemný UX, zbytečný nativní bridge call, a přidává jitter do render loopu.
+
+**Vysvětlení:** iOS HIG doporučuje haptic feedback limitovat na ~1× za 100 ms. Pomocí jednoduchého time-based gate (`lastHapticTs`) zajistíme, že rychlé kliky dostanou **jednu** vibraci, ne pět. Telefon nerozliší "5 vibrací za 500 ms" od "1 vibrace", takže UX se nezhorší, naopak zlepší.
+
+**Ovlivněné soubory:**
+- `src/contexts/XpAnimationContext.tsx`
+
+**Postup řešení:**
+1. Přidat `const lastHapticTsRef = useRef(0)`
+2. Před každým `Haptics.impactAsync(...)` volání přidat guard: `if (now - lastHapticTsRef.current < 100) return; lastHapticTsRef.current = now;`
+3. Manuální test: rychle označit 5 návyků — zavibruje telefon max 1–2× (ne 5×)
+4. Manuální test: pomalé klikání (1 za sekundu) — každý tap vibruje (nezměněno)
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Debounce interval **100 ms** je konzervativní. Pokud uživatel klika výrazně pomaleji než 10× za sekundu, vibrace funguje normálně. Nezvyšuj hodnotu nad 150 ms — user by pak při "normálním" tempu (2 kliky za sekundu) ztratil feedback.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 7.4 Odložit achievement check přes InteractionManager
+
+**Problém:** V `gamificationService.performXPAddition` se po každém úspěšném XP gainu volá dynamický import `AchievementService` + evaluace všech achievementů. Tento proces běží synchronně v rámci Promise chain a může způsobit stutter na starších zařízeních.
+
+**Vysvětlení:** Achievementy nejsou kritické pro UX — uživatel neztratí nic, když se unlock oznámí o 300 ms později. `InteractionManager.runAfterInteractions()` odloží callback **dokud neproběhnou UI interakce** (animace, gesta, layout). Výsledek: tap na návyk → okamžitá odezva → po dokončení animace → check achievementů.
+
+**Ovlivněné soubory:**
+- `src/services/gamificationService.ts` (místo dynamického importu AchievementService)
+
+**Postup řešení:**
+1. Najít v `gamificationService.ts` dynamický import `AchievementService` (fire-and-forget after XP gain)
+2. Obalit volání do `InteractionManager.runAfterInteractions(() => { ... })`
+3. Import `InteractionManager` z `react-native`
+4. Manuální test: odemknout achievement → notifikace se musí zobrazit (jen o ~300 ms později než dříve)
+5. Manuální test: rychlé klikání na návyky — žádný viditelný stutter
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud achievement check triggeruje modal přes ModalQueueContext, `InteractionManager` je správný vzor — modaly se mají ukazovat až po dokončení current interakce. Pokud spouští jen tichou DB aktualizaci, `InteractionManager` je stále OK. Nenahrazuj za `setTimeout(0)` — ten nečeká na dokončení animací.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+## FÁZE 8: Optimalizace XP flow (střední riziko)
+
+Tato fáze se dotýká GamificationService a vyžaduje **ověření před každou změnou**. Riziko: rozbití XP výpočtů, denních limitů, nebo měsíčních výzev. Kompenzace: největší očekávané zrychlení (**+30–40 %** nad Fázi 7).
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: PŘED začátkem této fáze povinně projdi a proveď bod 8.0 (ověření závislostí). Bez něj jsou body 8.2–8.4 nepředvídatelné. Nezahajuj 8.1+ dokud 8.0 není HOTOVO.
+
+---
+
+### 8.0 Ověření závislostí: Kdo čte `xpBySource` z AsyncStorage?
+
+**Problém:** `GamificationService.updateXPBySource` zapisuje do AsyncStorage klíče `XP_BY_SOURCE` tzv. *lifetime xpBySource* (kolik XP celkově uživatel získal z každého zdroje za celou existenci účtu). Před tím, než odložíme tento zápis (bod 8.4), musíme vědět, kdo tato data čte synchronně a kde by zpoždění ~200 ms způsobilo viditelný problém.
+
+**Vysvětlení:** Čtenáři `getXPBySource()`:
+- `gamificationService.ts:1446` — čteno jako součást statistik uživatele
+- `gamificationService.ts:2346` — ve stats snapshot
+- `userStatsCollector.ts` — analytics/telemetrie
+- `gamificationBackup.ts` — backup/restore flow
+
+**Klíčová otázka:** Používá `MonthlyChallengeService`, `MonthlyProgressTracker` nebo `XpMultiplierService` `getXPBySource()` pro synchronní rozhodování? Pokud ano → nelze odložit bez úpravy logiky tam.
+
+**Postup řešení:**
+1. `Grep "getXPBySource|XP_BY_SOURCE" src/services/` — najít všechny čtenáře
+2. Pro každého čtenáře určit: **kdy** se volá (při rendrování UI? při tap? v background tasku?) a **co** se s hodnotou dělá
+3. Pokud čte jen background service / analytics → **bezpečné odložit**
+4. Pokud čte synchronně při render / UI refresh → **označit nebezpečné**, navrhnout alternativu (číst z SQLite `xp_daily_summary` místo AsyncStorage)
+5. Zdokumentovat zjištění do tohoto bodu a rozhodnout osud 8.4
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Monthly challenges pravděpodobně používají SQLite `xp_daily_summary` (columns: `habit_xp`, `journal_xp`, `goal_xp`, `achievement_xp`), který **se zapisuje synchronně v transakci** — tam žádný problém není. Ale ověř to přímo v kódu, neodvozuj.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud zjistíš, že xpBySource z AsyncStorage se čte synchronně v UI renderu (např. ProfileScreen, StatisticsScreen), máš 2 varianty:
+> - **A)** Ponechat `updateXPBySource` synchronní, odložit jen `updateLastActivity` (menší zisk)
+> - **B)** Přepsat čtenáře aby četli z SQLite `xp_transactions` agregací (větší práce, ale čistější)
+> Zvol A, pokud je to jediný čtenář. Zvol B, pokud je čtenářů víc a je to evidentně lepší architektura.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 8.1 Odstranění `operationQueue` z GamificationService
+
+**Problém:** V `gamificationService.ts:280` je definována `private static operationQueue: Promise<any> = Promise.resolve()`. Každé volání `addXP` / `subtractXP` se připojí do této fronty přes `this.operationQueue = this.operationQueue.then(async () => {...})`. Výsledek: **všechny XP operace globálně serializované** — i když by mohly běžet paralelně (SQLite transakce mají ACID per-statement guarantees).
+
+**Vysvětlení:** Fronta byla pravděpodobně přidána v éře AsyncStorage (kde paralelní write by mohl způsobit race condition). Po migraci na SQLite (Fáze 1–3 SQLite migration) je fronta redundantní — SQLite serializuje writes na DB úrovni. Navíc: event emitter (DeviceEventEmitter) je synchronní per-listener, takže pořadí eventů je dáno pořadím, v jakém proběhly writes v DB — ne frontou v JS.
+
+**Riziko:** Pokud nějaký listener v aplikaci předpokládá **strictní pořadí XP eventů** (např. "xpBatchCommitted vždy po xpGained pro daný zdroj"), odstraněním fronty se pořadí může změnit.
+
+**Ovlivněné soubory:**
+- `src/services/gamificationService.ts`
+
+**Postup řešení:**
+1. `Grep "operationQueue" src/services/gamificationService.ts` — najít všechny použití
+2. Identifikovat každé místo `this.operationQueue = this.operationQueue.then(...)` a nahradit přímým voláním await funkce uvnitř
+3. Odstranit deklaraci `operationQueue` (řádek 280)
+4. **POVINNÉ**: Zkontrolovat všechny listenery `DeviceEventEmitter.addListener('xpGained', ...)`, `'xpBatchCommitted'`, `'levelUp'` → ověřit, že nepředpokládají pořadí
+5. Test: rychlé klikání 5 návyků → XP total musí být správné (5 × 25 = 125 XP, ignore případný daily limit)
+6. Test: streak animace se musí zobrazit
+7. Test: level-up modal se musí zobrazit, pokud nastane level-up
+8. Regresní test: journal entry + habit completion současně → oboje musí projít, XP total OK
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Před odstraněním fronty si přečti commit history přes `git log --all -p src/services/gamificationService.ts | head -200` a hledej, **proč byla fronta přidána**. Pokud commit zpráva říká "fix race condition in XP updates" nebo podobně, fronta tam je z historického důvodu a je nutná VĚTŠÍ opatrnost. Pokud byla přidána "preventively" bez konkrétního incidentu, odstranění je bezpečnější.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud zjistíš, že `operationQueue` chrání kritickou sekci (např. read-modify-write xpBySource), NEMŮŽEŠ ji prostě odstranit. V takovém případě: buď přepsat na SQLite transakci s row-level lock, nebo fronta zůstává. Informuj uživatele a počkej na rozhodnutí.
+
+> 🛡️ **OCHRANA MAKE-UP**: operationQueue je striktně XP-specifická fronta. Make-up logika NEBĚŽÍ přes tuto frontu — derivace Make-upu je synchronní výpočet z `state.completions` v React render cyklu. Odstranění fronty Make-up nijak neovlivní. Test po změně však musí zahrnovat scénář: **bonus completion → XP event → Make-up konverze v kalendáři** — pokud by se `HABIT_BONUS` vs `HABIT_COMPLETION` XP source tracking poškodilo pořadím, pak by statistiky zdrojů XP nekorelovaly s viditelnou Make-up konverzí. Viz bod 8.0 pro kontrolu čtenářů xpBySource.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 8.2 Cache pro `getDailyXPData` (session-scoped)
+
+**Problém:** `getDailyXPData()` v `gamificationService.ts` (~řádek 2230) provádí **4 samostatné SQL dotazy** (summary, goalTransactions, journalCount, lastTx). Volá se z `validateXPAddition` per každý tap. Při 5 taps = 20 SQL queries.
+
+**Vysvětlení:** Většina dat v `getDailyXPData` se mění jen při přidání XP — a přidání XP jsme to my sami. Tzn. po úspěšném `addXP` můžeme **invalidovat cache** a příští čtení ji naplní znovu. Mezi taps se data nemění.
+
+**Riziko:** Cache invalidace je snadná pouze, pokud **existuje jediná vstupní brána** pro zápis do `xp_transactions` / `xp_daily_summary`. Pokud existuje více zapisovatelů (migration scripts, backup restore), cache může zůstat stale.
+
+**Ovlivněné soubory:**
+- `src/services/gamificationService.ts`
+
+**Postup řešení:**
+1. `Grep "xp_transactions|xp_daily_summary" src/services/` — najít všechny zapisovatele
+2. Ověřit, že jediní zapisovatelé jsou: `performXPAdditionInternal`, `performXPSubtractionInternal`, migrační skripty (běží jen jednou)
+3. Přidat `private static dailyXPDataCache: Map<string, {data: DailyXPData, ts: number}> = new Map()` (klíč = date string)
+4. V `getDailyXPData(date)`: pokud cache má záznam novější než 5000 ms → vrátit z cache, jinak query DB a cache write
+5. V `performXPAdditionInternal` / `performXPSubtractionInternal` → po úspěšném commit: `dailyXPDataCache.delete(date)`
+6. Test: tap 5 návyků → XP správné, denní limit se správně ověřuje
+7. Test: překročit denní limit → validace zafunguje (i s cache)
+8. Test: den přechod (před půlnocí + po) → nová cache pro nové datum
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Cache TTL **5000 ms** je kompromis. Kratší → zbytečné DB dotazy. Delší → riziko zastaralých dat při edge cases (manual DB edit přes dev tools, atd.). V production build je 5 s bezpečné.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Cache NESMÍ přežít mezi app sessions (po kill & reopen). Jelikož je `Map` static field, existuje per-session (nová třída při reload). Pokud přidáš persistenci — rozbije se. Drž in-memory.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud validateXPAddition vrátí "limit exceeded" kvůli stale cache (nepravděpodobné, ale možné), uživatel ztratí XP. Defenzivně: pokud je cache starší než 1 s a validation **by blokovala XP**, udělat force refresh před rozhodnutím.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+### 8.3 Odložit `updateXPBySource` a `updateLastActivity` na fire-and-forget
+
+**Problém:** V `performXPAddition` po dokončení SQLite transakce probíhají **2 AsyncStorage write operace** (řádek 838: `updateXPBySource`, 839: `updateLastActivity`). Obě jsou `await`ované, takže blokují return z addXP. AsyncStorage write = JSON.stringify + disk I/O ≈ 20–50 ms každé.
+
+**Vysvětlení:** Ani jedna operace není **kritická** pro UI feedback:
+- `updateXPBySource` — lifetime analytics, čte se v Profile/Stats obrazovkách (nečte se v habit flow)
+- `updateLastActivity` — poslední timestamp aktivity, čte se při spuštění app
+
+Pokud tyto operace selžou, uživatel to nikdy neuvidí. Pokud se zpozdí o 200 ms po addXP, uživatel to nepozná. **Za podmínky**, že výsledek bodu 8.0 potvrdí, že žádný synchronní čtenář je nečeká.
+
+**Závislost:** Tento bod **lze provést jen pokud bod 8.0 vrátil zelenou**.
+
+**Ovlivněné soubory:**
+- `src/services/gamificationService.ts`
+
+**Postup řešení:**
+1. V `performXPAddition` (cca řádek 835–839): odstranit `await` před `updateXPBySource` a `updateLastActivity`
+2. Obalit oba volání do IIFE: `void (async () => { await this.updateXPBySource(...); await this.updateLastActivity(); })();`
+3. Přidat error handling — `.catch(err => console.error('[GamificationService] Background update failed', err))`
+4. **DŮLEŽITÉ**: Stejný pattern aplikovat i v `performXPSubtraction` (řádek ~1062)
+5. Test: tap návyk → XP total v DB je správné OKAMŽITĚ (ověřit SQLite query)
+6. Test: otevřít Profile/Stats obrazovku hned po tapu → xpBySource tam může být o 100–200 ms pozadu, ale musí se správně aktualizovat (pull-to-refresh nebo re-focus)
+7. Test: force-close app 100 ms po tapu → po restartu musí být XP total OK a xpBySource se dohoní (nebo je zapomenutý o max 1 XP — akceptovatelné)
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud user force-quitne app během 200 ms okna po tapu, `updateXPBySource` se NEMUSÍ dokončit. XP transakce v SQLite je OK (commitnutá před odložením), ale lifetime xpBySource v AsyncStorage bude o daný gain pozadu. To je **akceptovatelný trade-off**, protože: (a) xpBySource lze kdykoli přepočítat z `xp_transactions` tabulky, (b) user tuto hodnotu vidí jen v nepodstatných statistikách.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: NESMÍŠ odložit samotnou SQLite transakci (`performXPAdditionInternal`). Ta musí zůstat synchronní, protože `xp_transactions` a `xp_daily_summary` čtou monthly challenges a progress tracky **synchronně po return z addXP**.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: V IIFE nezapomeň na `void` prefix — bez něj linter může hlásit "unhandled promise". Nebo použij `.catch(...)` na konci.
+
+> 🛡️ **OCHRANA MAKE-UP**: Tato odložená AsyncStorage pole (`xpBySource`, `lastActivity`) **nejsou vstupem pro Make-up derivaci**. Make-up čte raw `state.completions` z HabitsContext (ne z AsyncStorage). Odložení tedy Make-up nijak neovlivní. **Jediné riziko** je, pokud někdo v budoucnu přidá synchronní čtení `getXPBySource()` v UI, které zobrazuje také Make-up statistiky — pak by mezi nimi mohla být krátká nekonzistence. Proto bod 8.0 je povinný.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+## FÁZE 9: Konsolidace dispatch cyklu (volitelné, vyšší riziko)
+
+Tato fáze řeší trojitý dispatch v `HabitsContext.toggleCompletion`. Je **volitelná** — po Fázi 7+8 může být aplikace už dostatečně rychlá a riziko této změny se nevyplatí. Doporučuji vyhodnotit až po dokončení předchozích fází.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud Fáze 7+8 přinesly citelné zrychlení (>60 %), **pozastav se a zeptej uživatele**, zda má cenu dělat Fázi 9. Hodinu práce navíc pro posledních 10 % zrychlení nemusí stát za riziko.
+
+---
+
+### 9.1 Redukce 3 dispatchů na 1 v HabitsContext.toggleCompletion
+
+**Problém:** `HabitsContext.toggleCompletion` provádí 3 dispatche per tap:
+1. `ADD_COMPLETION` s temp_id (optimistic)
+2. `DELETE_COMPLETION` temp (po storage return)
+3. `ADD_COMPLETION` real (s real ID)
+
+Každý dispatch mutuje `completions` array → nová reference → re-render všech konzumentů. Celkem 3 re-render cykly per tap.
+
+**Vysvětlení:** Pattern "temp_id → real_id swap" je historický vzor pro optimistickou UI, kdy UI musí reagovat dřív, než server vrátí ID. Při **lokálním storage** (SQLite) je tento pattern zbytečný — můžeme si dopředu vygenerovat UUID (expo-crypto `randomUUID()`), dispatchnout ADD s finálním ID, a pokud storage selže, dispatchnout DELETE.
+
+**Riziko:** Rollback logika při storage failure se mění. Pokud UUID na klientovi ≠ UUID v DB, nastane desync.
+
+**Ovlivněné soubory:**
+- `src/contexts/HabitsContext.tsx`
+- `src/services/storage/SQLiteHabitStorage.ts` (potenciálně — aby akceptoval předem vygenerované ID)
+
+**Postup řešení:**
+1. Ověřit v `SQLiteHabitStorage.createCompletion`, zda akceptuje externě vytvořené ID (pokud ne, přidat parametr `completionId?: string`)
+2. V `HabitsContext.toggleCompletion`:
+   - Vygenerovat `completionId = crypto.randomUUID()` dopředu
+   - Dispatch `ADD_COMPLETION` s real ID (optimistic)
+   - Await `storage.createCompletion(..., completionId)`
+   - Při failure: dispatch `DELETE_COMPLETION` s tím samým ID (rollback)
+3. Odstranit temp_id logiku a druhý dispatch
+4. Test: tap 5 návyků rychle → všech 5 se zobrazí, všech 5 je v DB
+5. Test: offline mode (disable SQLite mock) → optimistic UI se zobrazí, pak se vrátí zpět
+6. Test: tap → error → UI musí vrátit návyk do nesplněno (rollback funguje)
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: V `toggleCompletion` je vetev pro DELETE (untick návyku). Tam trojitý dispatch NENÍ, takže se ho netýká. Zaměř se pouze na CREATE větev.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: expo-crypto `randomUUID()` vyžaduje `import * as Crypto from 'expo-crypto'`. Pokud je v projektu používán jiný UUID generator (např. `uuid` npm package), použij ten existující — neimportuj nový.
+
+> ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Reducer `ADD_COMPLETION` pravděpodobně kontroluje duplicity podle ID. Pokud nekontroluje, může se stát, že optimistic add + server add způsobí duplicitu. Ověř a přidej idempotency check.
+
+> 🛡️ **OCHRANA MAKE-UP — NEJVYŠŠÍ PRIORITA V TÉTO FÁZI**: Toto je nejrizikovější bod pro Make-up systém. Důvody:
+>
+> 1. **Payload musí být kompletní**: ADD_COMPLETION dispatch musí nést **všechny** property, které má completion po SQLite INSERT — zejména `isBonus` (kritické pro Smart Bonus Conversion pairing), `completed`, `date`, `habitId`, `createdAt`, `updatedAt`. Pokud optimistic dispatch vynechá `isBonus`, Make-up to pocítí přesně v moment, kdy user splní víkendový bonus pro všední missed den.
+>
+> 2. **Rollback musí vrátit přesný stav**: Při storage failure `DELETE_COMPLETION` musí projít s tím samým ID, které bylo použito v ADD. Pokud ID nesedí (např. collision s jiným completion), zůstane fantomová completion v state a Make-up pairing začne generovat špatné konverze (bude vidět bonus, který fyzicky v DB neexistuje).
+>
+> 3. **Uuid kolize**: `crypto.randomUUID()` má astronomicky nízkou pravděpodobnost kolize, ale pokud by existující completion v DB měla stejné ID jako nově generované (prakticky nemožné, ale…), SQLite INSERT by selhal a optimistic UI by ukazovala completion, která se nikdy neuložila. **Defenzivně**: po SQLite failure vždy vrátit přes DELETE_COMPLETION.
+>
+> 4. **Test Make-up scénáře**:
+>    - Vytvořit návyk naplánovaný Po–Pá
+>    - Rychle označit bonus v sobotu a neděli (2 bonusy) + pondělí a úterý neoznačit (2 missed)
+>    - HabitCalendarView musí ukázat: Po/Út = modrá tečka (covered), So/Ne = fialová (makeup)
+>    - Pokud konverze neproběhne (So/Ne zobrazené jako regular bonus, Po/Út jako red missed), něco v reduceru / payloadu se rozbilo
+>
+> 5. **Regresní kontrola streak kalkulace**: Po změně otevřít habit stats a ověřit, že streak pro testovaný návyk = 5 (všech 5 scheduled dní pokrytých). Pokud je streak jiný, Make-up se nedopočítává.
+
+**Status:** [ ] ČEKÁ
+
+---
+
+## Přehled rizik a časový odhad — Performance fixes
+
+| Fáze | Popis | Riziko | Náročnost |
+|---|---|---|---|
+| 7.1 | Memoizace todayCompletions | Nulové | 15 minut |
+| 7.2 | StyleSheet/COLOR_MAP mimo render | Nulové | 30 minut |
+| 7.3 | Debounce haptic | Nulové | 15 minut |
+| 7.4 | InteractionManager achievements | Nulové | 15 minut |
+| 8.0 | Ověření závislostí xpBySource | Nulové (jen výzkum) | 30 minut |
+| 8.1 | Odstranění operationQueue | Střední | 1 hodina |
+| 8.2 | Cache getDailyXPData | Střední | 1.5 hodiny |
+| 8.3 | Odložit AsyncStorage zápisy | Střední | 1 hodina |
+| 9.1 | Redukce dispatchů 3→1 | Vyšší (volitelné) | 2 hodiny |
+
+**Očekávané výsledky:**
+- Po Fázi 7: **~30–40 % zrychlení** (nulové riziko)
+- Po Fázi 8: **~70 % zrychlení** (střední riziko, nutné testování)
+- Po Fázi 9: **~80 % zrychlení** (vyšší riziko, volitelné)
+
+**Celkový odhad bez Fáze 9:** 5–6 hodin práce včetně testování.
+
+---
+
+## Obecná pravidla pro tuto sekci (pro Claude)
+
+> ⚠️ **PRAVIDLO 1 — Test po každém bodě**: Po dokončení každého bodu 7.x / 8.x proveď smoke test klikání na návyky. Nespouštěj další bod, dokud aktuální není stabilní.
+
+> ⚠️ **PRAVIDLO 2 — Žádné rozšíření scope**: Pokud při implementaci najdeš "další problém, který by se taky dal opravit" — NEOPRAVUJ ho ve stejném commitu. Přidej do této sekce jako nový bod a řeš samostatně. Surgical changes only.
+
+> ⚠️ **PRAVIDLO 3 — Rollback strategie**: Každá fáze má samostatný commit. Pokud se po fázi zjistí regrese, `git revert` musí vrátit jen tu fázi, ne všechno.
+
+> ⚠️ **PRAVIDLO 4 — Měření**: Před začátkem Fáze 7 si poznamenat subjektivní rychlost (např. "5 taps = ~1 s zasekání"). Po Fázi 7 a po Fázi 8 znovu změřit. Konkrétní čísla jsou lepší než "pocit".
+
+> ⚠️ **PRAVIDLO 5 — Nezasahovat do technical-guides**: Tato optimalizace je **implementační detail**, ne změna business pravidel. `technical-guides:Gamification-Core.md` a `technical-guides:Habits.md` zůstávají nedotčené. Pokud by bylo potřeba měnit pravidla, STOP a zeptej se.
+
+> 🛡️ **PRAVIDLO 6 — Povinný Make-up smoke test po každé fázi**: Není voliteľný. Konkrétní scénář je popsaný v sekci "Kritická funkcionalita k zachování: Make-up systém" výše. Bez splnění tohoto testu fáze NENÍ považovaná za hotovou, i kdyby rychlost klikání byla 10× lepší. Make-up je jedna z klíčových business-level funkcionalit aplikace — ztráta by byla katastrofická.
+
+> 🛡️ **PRAVIDLO 7 — Pokud Make-up test selže**: Okamžitě `git revert` dané fáze. Ne debugovat polovinu dne, ne dělat "rychlou opravu". Vrátit se ke stabilnímu stavu, pak v klidu diagnostikovat v samostatné branchi. Surgical changes mean surgical rollbacks.
