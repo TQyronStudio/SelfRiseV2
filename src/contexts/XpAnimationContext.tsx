@@ -93,6 +93,11 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
   // Create a ref for the showXpPopup function to avoid dependency issues
   const showXpPopupRef = useRef<((amount: number, source: XPSourceType, position?: { x: number; y: number }) => void) | undefined>(undefined);
 
+  // Haptic debounce — rychlé klikání (např. 5 taps za 500 ms) má dostat jedno vibrační
+  // pulsní pípnutí, ne pět. iOS HIG doporučuje ~100 ms jako minimální interval.
+  const lastHapticTsRef = useRef<number>(0);
+  const HAPTIC_MIN_INTERVAL_MS = 100;
+
   // ========================================
   // SMART NOTIFICATION SYSTEM
   // ========================================
@@ -339,6 +344,11 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
   const triggerHapticFeedback = useCallback(async (type: 'light' | 'medium' | 'heavy') => {
     if (!state.isHapticsEnabled) return;
+
+    // Debounce: rychlé kliky (< 100 ms od posledního) se sloučí do jedné vibrace
+    const now = Date.now();
+    if (now - lastHapticTsRef.current < HAPTIC_MIN_INTERVAL_MS) return;
+    lastHapticTsRef.current = now;
 
     try {
       switch (type) {

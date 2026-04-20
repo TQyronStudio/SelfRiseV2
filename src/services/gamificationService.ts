@@ -1,7 +1,7 @@
 // Core gamification service for XP management and level progression
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18next from 'i18next';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, InteractionManager } from 'react-native';
 import { 
   XPTransaction, 
   XPSourceType, 
@@ -871,18 +871,22 @@ export class GamificationService {
       }
 
       // 🚀 FIRE-AND-FORGET: Achievement check runs in background, doesn't block XP return
+      // InteractionManager odloží kontrolu až po dokončení běžících UI interakcí (animace,
+      // gesta, layout) — eliminuje stutter při rychlém klikání na návyky.
       if (typeof jest === 'undefined' && process.env.NODE_ENV !== 'test') {
-        import('./achievementService').then(({ AchievementService }) => {
-          AchievementService.checkAchievementsAfterXPAction(
-            options.source,
-            finalAmount,
-            options.sourceId,
-            options.metadata
-          ).catch(error => {
-            console.error('Achievement check after XP action failed:', error);
+        InteractionManager.runAfterInteractions(() => {
+          import('./achievementService').then(({ AchievementService }) => {
+            AchievementService.checkAchievementsAfterXPAction(
+              options.source,
+              finalAmount,
+              options.sourceId,
+              options.metadata
+            ).catch(error => {
+              console.error('Achievement check after XP action failed:', error);
+            });
+          }).catch(error => {
+            console.error('Achievement service import failed:', error);
           });
-        }).catch(error => {
-          console.error('Achievement service import failed:', error);
         });
       }
 

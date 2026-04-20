@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -89,7 +89,7 @@ export const HabitItemWithCompletion = React.memo(({
   const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const COLOR_MAP = {
+  const COLOR_MAP = useMemo(() => ({
     [HabitColor.RED]: colors.habitRed,
     [HabitColor.BLUE]: colors.habitBlue,
     [HabitColor.GREEN]: colors.habitGreen,
@@ -98,7 +98,7 @@ export const HabitItemWithCompletion = React.memo(({
     [HabitColor.ORANGE]: colors.habitOrange,
     [HabitColor.PINK]: colors.habitPink,
     [HabitColor.TEAL]: colors.habitTeal,
-  };
+  }), [colors]);
 
   // Wiggle animace pro edit mode
   const rotation = useSharedValue(0);
@@ -172,8 +172,8 @@ export const HabitItemWithCompletion = React.memo(({
   const isHabitScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
   const isActiveHabit = habit.isActive;
 
-  // Styles with theme support
-  const styles = StyleSheet.create({
+  // Styles with theme support (memoized — recreate only on theme change)
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       backgroundColor: colors.cardBackground,
       padding: 12,
@@ -350,7 +350,7 @@ export const HabitItemWithCompletion = React.memo(({
       color: colors.text,
       fontFamily: Fonts.bold,
     },
-  });
+  }), [colors]);
 
   // Podmíněný wrapper - Animated.View pouze na iOS, obyčejný View na Androidu
   const WrapperComponent = Platform.OS === 'ios' ? Animated.View : View;

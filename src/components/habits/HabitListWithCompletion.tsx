@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Habit, HabitCompletion } from '@/src/types/habit';
@@ -60,97 +60,19 @@ export function HabitListWithCompletion({
 
 
 
-  // 3. Získání dnešních splnění
-  const todayCompletions = completions.filter(completion => completion.date === date);
-  const getHabitCompletion = (habitId: string): HabitCompletion | undefined => {
-    return todayCompletions.find(completion => completion.habitId === habitId);
-  };
+  // 3. Získání dnešních splnění (memoizováno — zabrání invalidaci renderItem callbacků per render)
+  const todayCompletions = useMemo(
+    () => completions.filter(completion => completion.date === date),
+    [completions, date]
+  );
+  const getHabitCompletion = useCallback(
+    (habitId: string): HabitCompletion | undefined => {
+      return todayCompletions.find(completion => completion.habitId === habitId);
+    },
+    [todayCompletions]
+  );
 
-  // Renderovací funkce pro aktivní návyky (pro FlatList) - MEMOIZED
-  const renderActiveHabitItem = useCallback(({ item }: { item: Habit }) => {
-    return (
-      <View style={styles.habitContainer}>
-        <HabitItemWithCompletion
-          habit={item}
-          completion={getHabitCompletion(item.id)}
-          onEdit={onEditHabit}
-          onDelete={onDeleteHabit}
-          onToggleActive={onToggleActive}
-          onToggleCompletion={onToggleCompletion}
-          onReorder={onReorderHabits}
-          onViewStats={onViewHabitStats}
-          onDrag={undefined}
-          isDragging={false}
-          isEditMode={false}
-          date={date}
-        />
-      </View>
-    );
-  }, [
-    getHabitCompletion, onEditHabit, onDeleteHabit, onToggleActive, 
-    onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
-  ]);
-
-  // Renderovací funkce pro DraggableFlatList (s drag funkcionalitou) - MEMOIZED
-  const renderDraggableHabitItem = useCallback(({ item, drag, isActive }: RenderItemParams<Habit>) => {
-    return (
-      <View style={styles.habitContainer}>
-        <HabitItemWithCompletion
-          habit={item}
-          completion={getHabitCompletion(item.id)}
-          onEdit={onEditHabit}
-          onDelete={onDeleteHabit}
-          onToggleActive={onToggleActive}
-          onToggleCompletion={onToggleCompletion}
-          onReorder={onReorderHabits}
-          onViewStats={onViewHabitStats}
-          onDrag={drag}
-          isDragging={isActive}
-          isEditMode={isEditMode}
-          date={date}
-        />
-      </View>
-    );
-  }, [
-    getHabitCompletion, onEditHabit, onDeleteHabit, onToggleActive, 
-    onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
-  ]);
-  
-  // Funkce pro uložení nového pořadí aktivních návyků
-  const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
-    setIsDragging(false);
-    // Re-enable ScrollView scrolling after drag
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: true });
-    const habitOrders = data.map((habit, index) => ({
-      id: habit.id,
-      order: index,
-    }));
-    onReorderHabits(habitOrders);
-  };
-
-  const handleDragBegin = useCallback(() => {
-    setIsDragging(true);
-    // Disable ScrollView scrolling during drag
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
-  }, []);
-
-  // Memoized keyExtractor pro DraggableFlatList
-  const draggableKeyExtractor = useCallback((item: Habit, index: number) => {
-    if (!item.id || typeof item.id !== 'string') {
-      console.error('[DraggableFlatList] CHYBNÝ KLÍČ!', item);
-    }
-    return item.id;
-  }, []);
-
-  // Memoized keyExtractor pro FlatList
-  const flatListKeyExtractor = useCallback((item: Habit, index: number) => {
-    if (!item.id || typeof item.id !== 'string') {
-      console.error('[FlatList] CHYBNÝ KLÍČ!', item);
-    }
-    return item.id;
-  }, []);
-
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.backgroundSecondary,
@@ -194,7 +116,91 @@ export function HabitListWithCompletion({
       color: colors.textSecondary,
       textAlign: 'center',
     },
-  });
+  }), [colors]);
+
+  // Renderovací funkce pro aktivní návyky (pro FlatList) - MEMOIZED
+  const renderActiveHabitItem = useCallback(({ item }: { item: Habit }) => {
+    return (
+      <View style={styles.habitContainer}>
+        <HabitItemWithCompletion
+          habit={item}
+          completion={getHabitCompletion(item.id)}
+          onEdit={onEditHabit}
+          onDelete={onDeleteHabit}
+          onToggleActive={onToggleActive}
+          onToggleCompletion={onToggleCompletion}
+          onReorder={onReorderHabits}
+          onViewStats={onViewHabitStats}
+          onDrag={undefined}
+          isDragging={false}
+          isEditMode={false}
+          date={date}
+        />
+      </View>
+    );
+  }, [
+    styles, getHabitCompletion, onEditHabit, onDeleteHabit, onToggleActive,
+    onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
+  ]);
+
+  // Renderovací funkce pro DraggableFlatList (s drag funkcionalitou) - MEMOIZED
+  const renderDraggableHabitItem = useCallback(({ item, drag, isActive }: RenderItemParams<Habit>) => {
+    return (
+      <View style={styles.habitContainer}>
+        <HabitItemWithCompletion
+          habit={item}
+          completion={getHabitCompletion(item.id)}
+          onEdit={onEditHabit}
+          onDelete={onDeleteHabit}
+          onToggleActive={onToggleActive}
+          onToggleCompletion={onToggleCompletion}
+          onReorder={onReorderHabits}
+          onViewStats={onViewHabitStats}
+          onDrag={drag}
+          isDragging={isActive}
+          isEditMode={isEditMode}
+          date={date}
+        />
+      </View>
+    );
+  }, [
+    styles, getHabitCompletion, onEditHabit, onDeleteHabit, onToggleActive,
+    onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
+  ]);
+  
+  // Funkce pro uložení nového pořadí aktivních návyků
+  const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
+    setIsDragging(false);
+    // Re-enable ScrollView scrolling after drag
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: true });
+    const habitOrders = data.map((habit, index) => ({
+      id: habit.id,
+      order: index,
+    }));
+    onReorderHabits(habitOrders);
+  };
+
+  const handleDragBegin = useCallback(() => {
+    setIsDragging(true);
+    // Disable ScrollView scrolling during drag
+    scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
+  }, []);
+
+  // Memoized keyExtractor pro DraggableFlatList
+  const draggableKeyExtractor = useCallback((item: Habit, index: number) => {
+    if (!item.id || typeof item.id !== 'string') {
+      console.error('[DraggableFlatList] CHYBNÝ KLÍČ!', item);
+    }
+    return item.id;
+  }, []);
+
+  // Memoized keyExtractor pro FlatList
+  const flatListKeyExtractor = useCallback((item: Habit, index: number) => {
+    if (!item.id || typeof item.id !== 'string') {
+      console.error('[FlatList] CHYBNÝ KLÍČ!', item);
+    }
+    return item.id;
+  }, []);
 
   // Vrácení k ScrollView struktuře, ale s nestedScrollEnabled
   return (

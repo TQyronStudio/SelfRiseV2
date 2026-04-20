@@ -573,7 +573,7 @@ Tato fáze obsahuje **mechanické změny bez zásahu do business logiky**. Rizik
 
 > 🛡️ **OCHRANA MAKE-UP**: Tato memoizace pracuje s **raw** `completions` (ne s Smart Bonus Conversion výstupem). Dnešní seznam návyků zobrazuje skutečný stav dne — Make-up derivace běží v `HabitCalendarView` a statistikách, ne v `HabitListWithCompletion`. Memoizace tedy Make-up nijak neovlivňuje. **Nesmí** se však změnit signatura completion objektu (např. stripovat `isBonus`) — to by rozbilo derivaci v jiných komponentách.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — `todayCompletions` v `useMemo([completions, date])`, `getHabitCompletion` v `useCallback([todayCompletions])`; `styles` přesunut nad render callbacky a přidán do jejich deps.
 
 ---
 
@@ -598,7 +598,7 @@ Tato fáze obsahuje **mechanické změny bez zásahu do business logiky**. Rizik
 
 > ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Po přesunu `COLOR_MAP` na module-level ověř, že nepoužívá žádné hooks/props — pokud ano, musí zůstat v komponentě přes useMemo.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — `COLOR_MAP` závisí na `colors` z useTheme, obalen v `useMemo([colors])`. `StyleSheet.create` v `HabitItemWithCompletion` i `HabitListWithCompletion` obaleny v `useMemo([colors])`.
 
 ---
 
@@ -619,7 +619,7 @@ Tato fáze obsahuje **mechanické změny bez zásahu do business logiky**. Rizik
 
 > ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Debounce interval **100 ms** je konzervativní. Pokud uživatel klika výrazně pomaleji než 10× za sekundu, vibrace funguje normálně. Nezvyšuj hodnotu nad 150 ms — user by pak při "normálním" tempu (2 kliky za sekundu) ztratil feedback.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — `lastHapticTsRef` gate s `HAPTIC_MIN_INTERVAL_MS = 100` v `triggerHapticFeedback`.
 
 ---
 
@@ -641,7 +641,7 @@ Tato fáze obsahuje **mechanické změny bez zásahu do business logiky**. Rizik
 
 > ⚠️ **UPOZORNĚNÍ PRO CLAUDE**: Pokud achievement check triggeruje modal přes ModalQueueContext, `InteractionManager` je správný vzor — modaly se mají ukazovat až po dokončení current interakce. Pokud spouští jen tichou DB aktualizaci, `InteractionManager` je stále OK. Nenahrazuj za `setTimeout(0)` — ten nečeká na dokončení animací.
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] HOTOVO — fire-and-forget blok po XP gainu obalen v `InteractionManager.runAfterInteractions(() => ...)`; `InteractionManager` importován z `react-native`.
 
 ---
 
