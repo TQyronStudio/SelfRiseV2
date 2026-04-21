@@ -5,6 +5,7 @@ import { DateString } from '../types/common';
 import { HabitResetUtils } from '../utils/HabitResetUtils';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
+import { generateUUID } from '../utils/uuid';
 
 // Get storage implementation based on feature flag
 const habitStorage = getHabitStorageImpl();
@@ -279,36 +280,48 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       invalidateQueryCache();
 
       if (existingCompletion) {
-        // Toggling OFF: remove from state immediately
+        // Toggling OFF: remove from state immediately (single dispatch)
         dispatch({ type: 'DELETE_COMPLETION', payload: existingCompletion.id });
-      } else {
-        // Toggling ON: add temp completion to state immediately
-        const tempCompletion: HabitCompletion = {
-          id: `temp_${habitId}_${date}`,
-          habitId,
-          date,
-          completed: true,
-          isBonus,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        dispatch({ type: 'ADD_COMPLETION', payload: tempCompletion });
+
+        try {
+          await habitStorage.toggleCompletion(habitId, date, isBonus);
+          invalidateQueryCache();
+          return null;
+        } catch (storageError) {
+          // Storage failed → full reload to resync UI with DB
+          await loadHabits();
+          throw storageError;
+        }
       }
 
-      // Storage operation (heavy - includes XP, achievements)
-      const result = await habitStorage.toggleCompletion(habitId, date, isBonus);
+      // Toggling ON: pre-generate ID and build full optimistic payload,
+      // so storage can return with the SAME id and no swap dispatch is needed.
+      const preGeneratedId = generateUUID();
+      const now = new Date();
+      const optimisticCompletion: HabitCompletion = {
+        id: preGeneratedId,
+        habitId,
+        date,
+        completed: true,
+        isBonus,
+        completedAt: now,
+        isConverted: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      dispatch({ type: 'ADD_COMPLETION', payload: optimisticCompletion });
 
-      // After storage completes, replace temp completion with real DB data
-      invalidateQueryCache();
-      if (result && !existingCompletion) {
-        dispatch({ type: 'DELETE_COMPLETION', payload: `temp_${habitId}_${date}` });
-        dispatch({ type: 'ADD_COMPLETION', payload: result });
+      try {
+        const result = await habitStorage.toggleCompletion(habitId, date, isBonus, preGeneratedId);
+        invalidateQueryCache();
+        return result;
+      } catch (storageError) {
+        // Storage failed → rollback optimistic ADD with same ID
+        dispatch({ type: 'DELETE_COMPLETION', payload: preGeneratedId });
+        invalidateQueryCache();
+        throw storageError;
       }
-
-      return result;
     } catch (error) {
-      // Rollback: reload all data from storage to restore correct state
-      await loadHabits();
       const errorMessage = error instanceof Error ? error.message : 'Failed to toggle completion';
       setError(errorMessage);
       throw new Error(errorMessage);

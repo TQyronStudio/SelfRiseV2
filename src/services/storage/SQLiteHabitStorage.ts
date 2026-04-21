@@ -285,7 +285,8 @@ export class SQLiteHabitStorage {
     habitId: string,
     date: DateString,
     isBonus: boolean = false,
-    note?: string
+    note?: string,
+    completionId?: string
   ): Promise<HabitCompletion> {
     try {
       const db = this.getDb();
@@ -296,7 +297,7 @@ export class SQLiteHabitStorage {
         throw new Error(`Completion for habit ${habitId} on ${date} already exists`);
       }
 
-      const completionId = `completion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const finalCompletionId = completionId || `completion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = Date.now();
 
       await db.runAsync(
@@ -306,7 +307,7 @@ export class SQLiteHabitStorage {
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          completionId,
+          finalCompletionId,
           habitId,
           date,
           1, // completed = true
@@ -340,7 +341,7 @@ export class SQLiteHabitStorage {
       // Return the completion object directly (no need to query DB again)
       // This avoids READ-AFTER-WRITE consistency issues with SQLite WAL mode
       const completion: HabitCompletion = {
-        id: completionId,
+        id: finalCompletionId,
         habitId,
         date,
         completed: true,
@@ -466,7 +467,7 @@ export class SQLiteHabitStorage {
     }
   }
 
-  async toggleCompletion(habitId: string, date: DateString, isBonus: boolean = false): Promise<HabitCompletion | null> {
+  async toggleCompletion(habitId: string, date: DateString, isBonus: boolean = false, completionId?: string): Promise<HabitCompletion | null> {
     try {
       const existingCompletion = await this.getCompletion(habitId, date);
 
@@ -478,7 +479,7 @@ export class SQLiteHabitStorage {
       } else {
         // If not completed, create completion (XP will be awarded in createCompletion)
         console.log(`🔄 Habit toggle: CREATING completion for habit ${habitId} (${isBonus ? 'bonus' : 'scheduled'})`);
-        return await this.createCompletion(habitId, date, isBonus);
+        return await this.createCompletion(habitId, date, isBonus, undefined, completionId);
       }
     } catch (error) {
       console.error(`❌ SQLite toggleCompletion failed (${habitId}, ${date}):`, error);
