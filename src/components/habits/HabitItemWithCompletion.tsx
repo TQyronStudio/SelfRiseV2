@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -86,7 +86,7 @@ export const HabitItemWithCompletion = React.memo(({
 }: HabitItemWithCompletionProps) => {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const [isToggling, setIsToggling] = useState(false);
+  const isTogglingRef = useRef(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const COLOR_MAP = useMemo(() => ({
@@ -144,19 +144,19 @@ export const HabitItemWithCompletion = React.memo(({
   };
 
   const handleToggleCompletion = async () => {
-    if (isToggling) return;
+    if (isTogglingRef.current) return;
 
-    setIsToggling(true);
+    isTogglingRef.current = true;
     try {
       const today = new Date(date);
       const dayOfWeek = getDayOfWeek(today);
       const isScheduled = habit.scheduledDays.includes(dayOfWeek);
-      
+
       await onToggleCompletion(habit.id, date, !isScheduled);
     } catch (error) {
       console.error('Failed to toggle completion:', error);
     } finally {
-      setIsToggling(false);
+      isTogglingRef.current = false;
     }
   };
 
@@ -382,7 +382,6 @@ export const HabitItemWithCompletion = React.memo(({
         <View style={styles.completionSection}>
           <HabitCompletionButton
             isCompleted={isCompleted}
-            isAnimating={isToggling}
             onPress={handleToggleCompletion}
             disabled={!habit.isActive}
             size="medium"

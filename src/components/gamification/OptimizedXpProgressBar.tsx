@@ -14,7 +14,8 @@
  */
 
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated as RNAnimated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -34,11 +35,6 @@ interface OptimizedXpProgressBarProps {
   performanceMode?: 'auto' | 'performance' | 'quality'; // Performance optimization control
 }
 
-const ANIMATION_THROTTLE_MS = 16; // 60fps = 16.67ms between frames
-const PROGRESS_CACHE_THRESHOLD = 0.1; // Only animate if progress changed by >0.1%
-const REDUCED_MOTION_DURATION = 100; // Faster animations for reduced motion
-const NORMAL_ANIMATION_DURATION = 500; // Normal animation duration
-
 const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgressBarProps>(({
   animated = true,
   showLevelBadge = true,
@@ -47,17 +43,12 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   compactMode = false,
   performanceMode = 'auto',
 }, ref) => {
-  console.log('🎯 OptimizedXpProgressBar render');
-
   // Theme and i18n
   const { colors } = useTheme();
   const { t } = useI18n();
 
   // Accessibility - Reduced motion support
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
-  const lastProgressRef = useRef(0);
-  const currentProgressRef = useRef(0); // Track current animated progress value
-  const animationThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Tutorial target registration
   const containerRef = useRef<View>(null);
@@ -106,14 +97,10 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   // CRITICAL: Level-up specific data fetching with cache invalidation
   const fetchGamificationDataWithCacheInvalidation = useCallback(async () => {
     try {
-      console.log('🎯 OptimizedXpProgressBar: Level-up detected, clearing cache before data fetch');
-      
-      // STEP 1: Clear level calculation cache to prevent desynchronization
+      // Clear level calculation cache to prevent desynchronization, then fetch fresh stats
       clearLevelCalculationCache();
-      
-      // STEP 2: Fetch fresh data with cleared cache
       const stats = await GamificationService.getGamificationStats();
-      
+
       setGamificationState(prev => ({
         totalXP: stats.totalXP,
         currentLevel: stats.currentLevel,
@@ -122,8 +109,6 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         isLoading: false,
         updateSequence: prev.updateSequence + 1,
       }));
-      
-      console.log('✅ OptimizedXpProgressBar: Cache invalidation and data refresh complete');
     } catch (error) {
       console.error('OptimizedXpProgressBar: Failed to fetch gamification data with cache invalidation:', error);
       setGamificationState(prev => ({ ...prev, isLoading: false }));
@@ -163,20 +148,13 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   
   const { state: customizationState } = useHomeCustomization();
   
-  // Animation refs - ONLY use native driver compatible animations
-  const progressAnim = useRef(new Animated.Value(xpProgress)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  // Animation refs
+  // pulseAnim: RN Animated.Value (native driver loop, no change needed)
+  const pulseAnim = useRef(new RNAnimated.Value(1)).current;
+  // progressShared: Reanimated shared value (UI-thread animation with width percentage)
+  const progressShared = useSharedValue(xpProgress);
+  const reducedMotion = useReducedMotion();
   const lastUpdateSequence = useRef(updateSequence);
-  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
-  // Initialize current progress ref with initial xpProgress value
-  useEffect(() => {
-    currentProgressRef.current = xpProgress;
-  }, []);
-
-  // Performance tracking
-  const renderCountRef = useRef(0);
-  renderCountRef.current += 1;
 
   // ========================================
   // CACHED CALCULATIONS (Memoized for Performance)
@@ -382,14 +360,14 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
     }
 
     // Breathing animation for all levels - slower and subtler for organic feel
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
+    const pulseAnimation = RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(pulseAnim, {
           toValue: 1.04, // Subtler scale for breathing effect
           duration: 2000, // Slower breathing rhythm
           useNativeDriver: true, // CRITICAL: Native thread
         }),
-        Animated.timing(pulseAnim, {
+        RNAnimated.timing(pulseAnim, {
           toValue: 1,
           duration: 2000, // Slower breathing rhythm
           useNativeDriver: true, // CRITICAL: Native thread
@@ -407,93 +385,29 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
     };
   }, [isLoading, pulseAnim, effectivePerformanceMode]);
 
-  // CRITICAL: Optimized progress animation with native driver
+  // Progress animation — Reanimated 3 shared value, runs on UI thread.
+  // Reanimated handles rapid target updates gracefully (new spring interrupts smoothly),
+  // so the old throttle/cache/ref logic is no longer needed.
   useEffect(() => {
-    // Skip animation if update sequence hasn't changed
     if (updateSequence === lastUpdateSequence.current) {
       return;
     }
     lastUpdateSequence.current = updateSequence;
 
-    // Throttle rapid updates for performance
-    if (animationTimeoutRef.current) {
-      clearTimeout(animationTimeoutRef.current);
+    if (!animated || isLoading || reducedMotion || reducedMotionEnabled) {
+      progressShared.value = xpProgress;
+      return;
     }
 
-    const updateProgress = () => {
-      // Check for reduced motion preference
-      if (!animated || isLoading || reducedMotionEnabled) {
-        progressAnim.setValue(xpProgress);
-        currentProgressRef.current = xpProgress; // Update ref when setting value directly
-        return;
-      }
-
-      // Performance optimization: Skip small changes
-      // Use ref to track current progress value (avoids listener warnings)
-      const currentProgress = currentProgressRef.current;
-      
-      const progressDiff = Math.abs(xpProgress - currentProgress);
-      
-      if (progressDiff < PROGRESS_CACHE_THRESHOLD) {
-        console.log(`⚡ Skipping small progress change: ${progressDiff.toFixed(2)}%`);
-        return;
-      }
-
-      console.log(`🎯 Animating progress: ${currentProgress.toFixed(1)}% → ${xpProgress.toFixed(1)}%`);
-
-      // Choose animation type based on performance mode and accessibility
-      const duration = reducedMotionEnabled ? REDUCED_MOTION_DURATION : 
-                      effectivePerformanceMode === 'performance' ? 200 : NORMAL_ANIMATION_DURATION;
-      
-      const animationConfig = effectivePerformanceMode === 'performance' || reducedMotionEnabled
-        ? {
-            // Fast, simple timing animation for performance or reduced motion
-            animation: Animated.timing(progressAnim, {
-              toValue: xpProgress,
-              duration,
-              useNativeDriver: false, // Progress width requires layout thread
-            })
-          }
-        : {
-            // Smooth spring animation for quality (when motion is preferred)
-            animation: Animated.spring(progressAnim, {
-              toValue: xpProgress,
-              tension: 100,
-              friction: 8,
-              useNativeDriver: false, // Progress width requires layout thread
-            })
-          };
-
-      animationConfig.animation.start((finished) => {
-        if (finished) {
-          // Update current progress ref when animation completes
-          currentProgressRef.current = xpProgress;
-          console.log(`✅ Progress animation completed: ${xpProgress.toFixed(1)}%`);
-        }
+    if (effectivePerformanceMode === 'performance') {
+      progressShared.value = withTiming(xpProgress, { duration: 200 });
+    } else {
+      progressShared.value = withSpring(xpProgress, {
+        damping: 15,
+        stiffness: 100,
       });
-    };
-
-    // CRITICAL: Throttle updates for frame drop prevention
-    if (animationThrottleRef.current) {
-      clearTimeout(animationThrottleRef.current);
     }
-    
-    // Advanced throttling based on progress change rate
-    const progressChangeRate = Math.abs(xpProgress - lastProgressRef.current);
-    const throttleDelay = progressChangeRate > 5 ? ANIMATION_THROTTLE_MS * 2 : ANIMATION_THROTTLE_MS;
-    
-    lastProgressRef.current = xpProgress;
-    animationThrottleRef.current = setTimeout(updateProgress, throttleDelay);
-
-    return () => {
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-      }
-      if (animationThrottleRef.current) {
-        clearTimeout(animationThrottleRef.current);
-      }
-    };
-  }, [xpProgress, animated, isLoading, updateSequence, effectivePerformanceMode]);
+  }, [xpProgress, animated, isLoading, updateSequence, effectivePerformanceMode, reducedMotion, reducedMotionEnabled, progressShared]);
 
   // ========================================
   // OPTIMIZED RENDER HELPERS
@@ -503,15 +417,10 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
     return num.toLocaleString();
   }, []);
 
-  const animatedWidth = useMemo(() => {
-    return animated 
-      ? progressAnim.interpolate({
-          inputRange: [0, 100],
-          outputRange: ['0%', '100%'],
-          extrapolate: 'clamp',
-        })
-      : `${xpProgress}%`;
-  }, [animated, progressAnim, xpProgress]);
+  // Reanimated animated style for progress fill width — runs on UI thread
+  const animatedProgressStyle = useAnimatedStyle(() => ({
+    width: `${Math.max(0, Math.min(100, progressShared.value))}%`,
+  }));
 
   // ========================================
   // ACCESSIBILITY (Memoized)
@@ -527,14 +436,6 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       isMilestone: isMilestone
     }) || `Experience level ${currentLevel}, ${levelInfo.title}. ${Math.round(xpProgress)} percent progress to level ${currentLevel + 1}. ${formatNumber(xpToNextLevel)} experience points remaining.${isMilestone ? ' This is a milestone level.' : ''}`;
   }, [currentLevel, levelInfo.title, xpProgress, xpToNextLevel, isMilestone, formatNumber, t]);
-
-  // ========================================
-  // PERFORMANCE LOGGING
-  // ========================================
-
-  useEffect(() => {
-    console.log(`🎯 OptimizedXpProgressBar performance: render #${renderCountRef.current}, mode: ${effectivePerformanceMode}, sequence: ${updateSequence}`);
-  }, [effectivePerformanceMode, updateSequence]);
 
   // ========================================
   // RENDER
@@ -608,7 +509,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
       {/* Level Badge - Top Left Corner */}
       {showLevelBadge && (
         <View style={dynamicStyles.topLeftBadgeContainer}>
-          <Animated.View
+          <RNAnimated.View
             style={[
               dynamicStyles.levelBadgeContainer,
               { transform: [{ scale: pulseAnim }] }
@@ -632,7 +533,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
               </Text>
             </SafeLinearGradient>
             {isMilestone && <View style={dynamicStyles.milestoneGlow} />}
-          </Animated.View>
+          </RNAnimated.View>
         </View>
       )}
 
@@ -644,8 +545,8 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         <View style={[dynamicStyles.progressBar, { height }]}>
           <View style={[dynamicStyles.progressBackground, { height }]} />
 
-          {/* CRITICAL: Animated progress fill */}
-          <Animated.View style={[dynamicStyles.progressFillContainer, { width: animatedWidth as any, height }]}>
+          {/* CRITICAL: Animated progress fill — Reanimated 3, width animated on UI thread */}
+          <Animated.View style={[dynamicStyles.progressFillContainer, { height }, animatedProgressStyle]}>
             <SafeLinearGradient
               colors={progressColors}
               style={dynamicStyles.progressFill}
@@ -710,11 +611,7 @@ export const OptimizedXpProgressBar = React.memo(OptimizedXpProgressBarComponent
     prevProps.compactMode !== nextProps.compactMode ||
     prevProps.performanceMode !== nextProps.performanceMode
   );
-  
-  if (propsChanged) {
-    console.log('🎯 OptimizedXpProgressBar props changed, re-rendering');
-  }
-  
+
   return !propsChanged; // Return true to skip re-render, false to re-render
 });
 
