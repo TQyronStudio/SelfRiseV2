@@ -10,7 +10,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { notification as hapticNotification, NotificationFeedbackType } from '../../services/hapticsService';
 import { MonthlyChallengeFailureResult, AchievementCategory } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -37,7 +37,7 @@ const MonthlyChallengeFailureModal: React.FC<MonthlyChallengeFailureModalProps> 
 
   useEffect(() => {
     if (visible && failureResult) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      hapticNotification(NotificationFeedbackType.Warning);
 
       Animated.parallel([
         Animated.spring(scaleAnim, {

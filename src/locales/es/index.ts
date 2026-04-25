@@ -521,6 +521,10 @@ const es: Partial<TranslationKeys> = {
     selectIcon: 'Seleccionar Icono',
     scheduledDays: 'Días Programados',
     markCompleted: 'Marcar como Completado',
+    accessibility: {
+      markComplete: 'Marcar hábito como completado',
+      markIncomplete: 'Marcar hábito como no completado',
+    },
     viewCalendar: 'Ver Calendario',
     confirmDelete: 'Confirmar Eliminación',
     deleteMessage: '¿Estás seguro de que quieres eliminar este hábito? Esta acción no se puede deshacer.',
@@ -1583,6 +1587,11 @@ const es: Partial<TranslationKeys> = {
     languageEnglish: 'English',
     languageGerman: 'Deutsch',
     languageSpanish: 'Español',
+
+    // Feedback (haptics, sound, etc.)
+    feedback: 'Feedback',
+    hapticFeedback: 'Vibración Háptica',
+    hapticFeedbackDescription: 'Vibración al marcar hábitos, completar desafíos y otras interacciones',
 
     // Notifications
     notifications: 'Notificaciones',

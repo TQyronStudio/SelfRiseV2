@@ -3,8 +3,13 @@
  * Extracted to prevent circular dependency between XpAnimationContext and components
  */
 
-import * as Haptics from 'expo-haptics';
-import { ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  selection as hapticSelection,
+  impact as hapticImpact,
+  notification as hapticNotification,
+  ImpactFeedbackStyle,
+  NotificationFeedbackType,
+} from '../services/hapticsService';
 
 export type HapticType = 
   | 'light' 
@@ -29,34 +34,30 @@ export type SoundEffect =
  */
 export const useXpFeedback = () => {
   const triggerHapticFeedback = async (type: HapticType) => {
-    try {
-      switch (type) {
-        case 'light':
-          await Haptics.impactAsync(ImpactFeedbackStyle.Light);
-          break;
-        case 'medium':
-          await Haptics.impactAsync(ImpactFeedbackStyle.Medium);
-          break;
-        case 'heavy':
-          await Haptics.impactAsync(ImpactFeedbackStyle.Heavy);
-          break;
-        case 'success':
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          break;
-        case 'warning':
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          break;
-        case 'error':
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          break;
-        case 'selection':
-          await Haptics.selectionAsync();
-          break;
-        default:
-          await Haptics.impactAsync(ImpactFeedbackStyle.Medium);
-      }
-    } catch (error) {
-      console.warn('Haptic feedback failed:', error);
+    switch (type) {
+      case 'light':
+        hapticImpact(ImpactFeedbackStyle.Light);
+        break;
+      case 'medium':
+        hapticImpact(ImpactFeedbackStyle.Medium);
+        break;
+      case 'heavy':
+        hapticImpact(ImpactFeedbackStyle.Heavy);
+        break;
+      case 'success':
+        hapticNotification(NotificationFeedbackType.Success);
+        break;
+      case 'warning':
+        hapticNotification(NotificationFeedbackType.Warning);
+        break;
+      case 'error':
+        hapticNotification(NotificationFeedbackType.Error);
+        break;
+      case 'selection':
+        hapticSelection();
+        break;
+      default:
+        hapticImpact(ImpactFeedbackStyle.Medium);
     }
   };
 

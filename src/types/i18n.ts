@@ -332,6 +332,10 @@ export interface TranslationKeys {
     selectIcon: string;
     scheduledDays: string;
     markCompleted: string;
+    accessibility: {
+      markComplete: string;
+      markIncomplete: string;
+    };
     viewCalendar: string;
     confirmDelete: string;
     deleteMessage: string;
@@ -1720,6 +1724,9 @@ export interface TranslationKeys {
     languageEnglish: string;
     languageGerman: string;
     languageSpanish: string;
+    feedback: string;
+    hapticFeedback: string;
+    hapticFeedbackDescription: string;
     notifications: string;
     morningNotification: string;
     eveningNotification: string;

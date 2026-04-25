@@ -521,6 +521,10 @@ const de: Partial<TranslationKeys> = {
     selectIcon: 'Symbol wählen',
     scheduledDays: 'Geplante Tage',
     markCompleted: 'Als erledigt markieren',
+    accessibility: {
+      markComplete: 'Gewohnheit als erledigt markieren',
+      markIncomplete: 'Gewohnheit als nicht erledigt markieren',
+    },
     viewCalendar: 'Kalender ansehen',
     confirmDelete: 'Löschen bestätigen',
     deleteMessage: 'Bist du sicher, dass du diese Gewohnheit löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.',
@@ -1583,6 +1587,11 @@ const de: Partial<TranslationKeys> = {
     languageEnglish: 'English',
     languageGerman: 'Deutsch',
     languageSpanish: 'Español',
+
+    // Feedback (haptics, sound, etc.)
+    feedback: 'Feedback',
+    hapticFeedback: 'Haptisches Feedback',
+    hapticFeedbackDescription: 'Vibration beim Antippen von Gewohnheiten, Abschluss von Herausforderungen und anderen Interaktionen',
 
     // Notifications
     notifications: 'Mitteilungen',

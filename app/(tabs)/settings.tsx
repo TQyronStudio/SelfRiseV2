@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 import { changeLanguage, getCurrentLanguage } from '@/src/utils/i18n';
+import { isHapticsEnabled, setHapticsEnabled, HAPTICS_CHANGED_EVENT } from '@/src/services/hapticsService';
 export default function SettingsScreen() {
   const { t } = useI18n();
   const { colors, themeMode, setThemeMode } = useTheme();
@@ -22,6 +23,19 @@ export default function SettingsScreen() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
+  const [hapticsEnabled, setHapticsEnabledState] = useState(isHapticsEnabled());
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(HAPTICS_CHANGED_EVENT, (value: boolean) => {
+      setHapticsEnabledState(value);
+    });
+    return () => sub.remove();
+  }, []);
+
+  const handleHapticsToggle = async (value: boolean) => {
+    setHapticsEnabledState(value); // immediate UI feedback
+    await setHapticsEnabled(value);
+  };
 
 
   // Styles that depend on theme colors
@@ -222,6 +236,28 @@ export default function SettingsScreen() {
               <Ionicons name="checkmark-circle" size={24} color={colors.success} />
             )}
           </TouchableOpacity>
+        </View>
+
+        {/* Feedback Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.feedback')}</Text>
+          <View style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="phone-portrait-outline" size={24} color={colors.primary} />
+              <View style={styles.menuItemTextContainer}>
+                <Text style={styles.menuItemText}>{t('settings.hapticFeedback')}</Text>
+                <Text style={styles.menuItemDescription}>
+                  {t('settings.hapticFeedbackDescription')}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={hapticsEnabled}
+              onValueChange={handleHapticsToggle}
+              trackColor={{ false: colors.textSecondary, true: colors.primary }}
+              thumbColor={colors.white}
+            />
+          </View>
         </View>
 
         {/* Language Settings */}

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
+import { impact as hapticImpact, ImpactFeedbackStyle } from '../services/hapticsService';
 import { XPSourceType } from '../types/gamification';
 import { useModalQueue, ModalPriority } from './ModalQueueContext';
 
@@ -350,20 +350,16 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     if (now - lastHapticTsRef.current < HAPTIC_MIN_INTERVAL_MS) return;
     lastHapticTsRef.current = now;
 
-    try {
-      switch (type) {
-        case 'light':
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          break;
-        case 'medium':
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          break;
-        case 'heavy':
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          break;
-      }
-    } catch (error) {
-      console.log('Haptic feedback not available:', error);
+    switch (type) {
+      case 'light':
+        hapticImpact(ImpactFeedbackStyle.Light);
+        break;
+      case 'medium':
+        hapticImpact(ImpactFeedbackStyle.Medium);
+        break;
+      case 'heavy':
+        hapticImpact(ImpactFeedbackStyle.Heavy);
+        break;
     }
   }, [state.isHapticsEnabled]);
 

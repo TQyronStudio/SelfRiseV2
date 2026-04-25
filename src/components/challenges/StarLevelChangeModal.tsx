@@ -18,7 +18,7 @@ import ReAnimated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Canvas, Circle } from '@shopify/react-native-skia';
-import * as Haptics from 'expo-haptics';
+import { impact as hapticImpact, notification as hapticNotification, ImpactFeedbackStyle, NotificationFeedbackType } from '../../services/hapticsService';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementCategory } from '@/src/types/gamification';
@@ -174,7 +174,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const runPromotionAnimation = () => {
     if (!data) return;
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    hapticNotification(NotificationFeedbackType.Success);
 
     Animated.sequence([
       // Phase 1: Modal fades in showing OLD state (old stars, old color, old name)
@@ -235,7 +235,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     // Trigger Reanimated impact effects at the same time Phase 2 starts
     // Phase 1 entrance ~300ms + 800ms hold = ~1100ms
     setTimeout(() => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      hapticImpact(ImpactFeedbackStyle.Heavy);
       triggerImpactEffects();
     }, 1100);
   };
@@ -243,7 +243,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   const runDemotionAnimation = () => {
     if (!data) return;
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    hapticNotification(NotificationFeedbackType.Warning);
 
     Animated.sequence([
       // Phase 1: Modal fades in showing OLD state

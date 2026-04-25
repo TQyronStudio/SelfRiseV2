@@ -28,6 +28,7 @@ import { useFirebaseAnalytics } from '../src/hooks/useFirebaseAnalytics';
 
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
+import { initHaptics } from '../src/services/hapticsService';
 
 // TEMPORARY: Debug utility for Phase 1.3
 import '../src/utils/dropGoalsTables';
@@ -85,13 +86,13 @@ export default function RootLayout() {
   // PHASE 1.1.2: SQLite initialization ENABLED (development build ready)
   // CRITICAL: Must initialize BEFORE RootProvider (which contains GratitudeProvider)
   useEffect(() => {
-    initializeDatabase()
+    Promise.all([initializeDatabase(), initHaptics()])
       .then(() => {
         console.log('✅ SQLite database ready');
         setDbInitialized(true);
       })
       .catch((error) => {
-        console.error('❌ SQLite initialization failed:', error);
+        console.error('❌ SQLite/haptics initialization failed:', error);
         setDbInitialized(true); // Continue anyway for now
       });
   }, []);

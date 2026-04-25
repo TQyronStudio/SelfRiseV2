@@ -511,6 +511,10 @@ const en: TranslationKeys = {
     selectIcon: 'Select Icon',
     scheduledDays: 'Scheduled Days',
     markCompleted: 'Mark as Completed',
+    accessibility: {
+      markComplete: 'Mark habit as complete',
+      markIncomplete: 'Mark habit as incomplete',
+    },
     viewCalendar: 'View Calendar',
     confirmDelete: 'Confirm Delete',
     deleteMessage: 'Are you sure you want to delete this habit? This action cannot be undone.',
@@ -2940,6 +2944,11 @@ const en: TranslationKeys = {
     languageEnglish: 'English',
     languageGerman: 'Deutsch',
     languageSpanish: 'Español',
+
+    // Feedback (haptics, sound, etc.)
+    feedback: 'Feedback',
+    hapticFeedback: 'Haptic Feedback',
+    hapticFeedbackDescription: 'Vibration when tapping habits, completing challenges and other interactions',
 
     // Notifications
     notifications: 'Notifications',

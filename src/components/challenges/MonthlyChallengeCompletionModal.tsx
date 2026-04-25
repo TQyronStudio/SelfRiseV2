@@ -10,7 +10,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { notification as hapticNotification, NotificationFeedbackType } from '../../services/hapticsService';
 import {
   MonthlyChallenge,
   MonthlyChallengeCompletionResult,
@@ -59,7 +59,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   useEffect(() => {
     if (visible && challenge && completionResult) {
       // Trigger haptic feedback
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticNotification(NotificationFeedbackType.Success);
 
       // Initialize particle animations
       initializeParticles();

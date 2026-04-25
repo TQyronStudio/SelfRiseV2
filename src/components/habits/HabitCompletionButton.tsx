@@ -8,7 +8,7 @@ import Animated, {
   interpolateColor,
   useReducedMotion,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { selection as hapticSelection } from '../../services/hapticsService';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
@@ -86,7 +86,7 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
 
   const handlePressIn = () => {
     if (!disabled) {
-      Haptics.selectionAsync().catch(() => {}); // silently fail on unsupported devices
+      hapticSelection();
     }
     if (!reducedMotion) {
       scale.value = withTiming(0.92, { duration: 80 });

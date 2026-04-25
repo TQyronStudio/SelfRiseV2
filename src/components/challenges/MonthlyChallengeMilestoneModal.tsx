@@ -9,7 +9,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { notification as hapticNotification, NotificationFeedbackType } from '@/src/services/hapticsService';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 
@@ -52,7 +52,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
 
   useEffect(() => {
     if (visible) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticNotification(NotificationFeedbackType.Success);
 
       Animated.parallel([
         Animated.spring(scaleAnim, {
