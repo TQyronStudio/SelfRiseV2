@@ -159,7 +159,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       marginBottom: 16,
       backgroundColor: colors.cardBackgroundElevated,
       overflow: 'hidden',
-      minWidth: screenWidth * 0.85,
+      width: '100%',
     },
     completedCard: {
       opacity: 0.85,
@@ -168,24 +168,27 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       padding: 16,
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
+      gap: 12,
       marginBottom: 12,
     },
     headerLeft: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      flex: 1,
-      marginRight: 12,
     },
     headerRight: {
-      alignItems: 'flex-end',
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
       gap: 8,
+      paddingLeft: 40,
     },
     categoryIcon: {
       fontSize: 28,
       marginRight: 12,
+    },
+    titleContent: {
+      flex: 1,
+      minWidth: 0,
     },
     title: {
       fontSize: 20,
@@ -235,10 +238,13 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8,
     },
     footerText: {
       fontSize: 12,
       color: colors.textSecondary,
+      flexShrink: 1,
     },
     completedText: {
       fontSize: 14,
@@ -385,7 +391,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.categoryIcon}>{getCategoryIcon(challenge.category)}</Text>
-            <View>
+            <View style={styles.titleContent}>
               <Text style={styles.title}>{displayTitle}</Text>
               <View style={styles.metaRow}>
                 <Text style={[styles.category, { color: categoryColor }]}>

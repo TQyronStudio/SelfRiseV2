@@ -1,6 +1,6 @@
 // Monthly Challenge Section Component - Display monthly challenges on Home screen
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, DeviceEventEmitter, EmitterSubscription } from 'react-native';
+import { View, Text, StyleSheet, Pressable, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { MonthlyChallengeService } from '../../services/monthlyChallengeService';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { StarRatingService } from '../../services/starRatingService';
@@ -374,11 +374,9 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       fontSize: 14,
       color: colors.textSecondary,
     },
-    challengeScrollView: {
-      marginBottom: 16,
-    },
     challengeContainer: {
       paddingHorizontal: 16,
+      marginBottom: 16,
     },
     summaryCard: {
       backgroundColor: colors.cardBackgroundElevated,
@@ -817,19 +815,14 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
       </View>
 
       {/* Main Challenge Card */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.challengeContainer}
-        style={styles.challengeScrollView}
-      >
+      <View style={styles.challengeContainer}>
         <MonthlyChallengeCard
           challenge={challenge}
           progress={progress}
           onPress={handleChallengePress}
           compact={false}
         />
-      </ScrollView>
+      </View>
 
       {/* Monthly Progress Summary */}
       <View style={styles.summaryCard}>

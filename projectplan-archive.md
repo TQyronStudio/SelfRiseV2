@@ -1375,3 +1375,18 @@ After thorough code analysis of all debt/ads recovery components across Home scr
 ### 🚀 **PRODUCTION DEPLOYMENT STATUS**: ✅ READY
 **XP System Unification**: **TRUE 100% COMPLETE** - No parallel systems remain
 **Critical Milestone**: SelfRise V2 XP architecture fully unified and production-ready
+
+---
+
+## Monthly Challenge Home Banner Fixed Layout (May 8, 2026)
+
+**Goal**: Make the first Monthly Challenge banner on the Home screen stable for marketing screenshots by removing horizontal movement and keeping all card content within the phone viewport.
+
+**Implementation Summary**:
+- Replaced the horizontal `ScrollView` wrapper in `MonthlyChallengeSection.tsx` with a fixed `View` container.
+- Changed the non-compact `MonthlyChallengeCard` from `minWidth: screenWidth * 0.85` to `width: '100%'`.
+- Adjusted the card header/footer wrapping so the title, XP badge, star difficulty, date, and difficulty text can fit within the fixed card.
+- Preserved the existing card press behavior that opens the Monthly Challenge detail modal.
+
+**Verification**:
+- TypeScript check passed with `tsc --noEmit` via bundled Node runtime.

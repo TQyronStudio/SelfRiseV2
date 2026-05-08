@@ -958,6 +958,26 @@ V Habit Statistics na Home screenu se po provedení Make Up (bonus completion po
 
 ## 🔮 FUTURE UPDATES - Plánované funkce
 
+## ✅ COMPLETED: Monthly Challenge Home Banner Fixed Layout
+
+**Goal**: Upravit první Monthly Challenge banner na Home screenu tak, aby byl pevně usazený, neposouval se horizontálně a celý obsah se vešel na obrazovku telefonu pro marketing screenshoty.
+
+**Scope**: Pouze UI/layout karty v Home sekci Monthly Challenge. Bez změn v progress trackingu, generování výzev, XP, modalech nebo storage.
+
+**Todo**:
+- [x] Potvrdit současný problém v `MonthlyChallengeSection.tsx` a `MonthlyChallengeCard.tsx`
+- [x] Odstranit horizontální posouvání první Monthly Challenge karty na Home
+- [x] Upravit šířku a vnitřní layout karty tak, aby obsah nepřetékal na běžných telefonech
+- [x] Zkontrolovat, že tap na kartu stále otevírá detail modal
+- [x] Spustit TypeScript kontrolu nebo nejbližší dostupné ověření
+- [x] Přidat krátký implementation summary do archive/plan dokumentace
+
+**Brief Review**: První Monthly Challenge karta na Home je nyní pevný full-width card layout bez horizontálního posouvání. Změna je pouze UI/layout, bez zásahu do progress logiky nebo Monthly Challenge dat.
+
+**Technical Guide**: Monthly Challenge UI pravidla a logika: @technical-guides:Monthly-Challenges.md
+
+---
+
 ### Data Export & Backup System 💾
 
 **Priority**: Medium | **Complexity**: Medium | **Estimated**: 4-6 hours
@@ -998,5 +1018,3 @@ V Habit Statistics na Home screenu se po provedení Make Up (bonus completion po
 **When to implement**:
 - After Checkpoint 7.2 (Theme + Language) complete
 - Before Phase 10 (App Store launch) - users need backup before going live
-
-
