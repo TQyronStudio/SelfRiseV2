@@ -228,6 +228,10 @@ Aplikace MUSÍ být na špičkové úrovni ve všech aspektech:
 - **Animace** - Smooth, přírodní, poutavé
 - **UX** - Vynikající uživatelský zážitek srovnatelný s nejlepšími aplikacemi na trhu
 
+### 🛠️ Future Skills Roadmap
+Seznam Claude Code skills a MCP serverů pro instalaci v jednotlivých fázích projektu (Wave 1: TEĎ, Wave 2: před Phase 10, Wave 3: post-launch):
+**Roadmap:** @future-skills-roadmap.md
+
 ---
 
 ## Project Overview
