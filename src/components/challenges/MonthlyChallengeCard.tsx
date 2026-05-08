@@ -168,19 +168,11 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       padding: 16,
     },
     header: {
-      gap: 12,
       marginBottom: 12,
     },
     headerLeft: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-    },
-    headerRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 8,
-      paddingLeft: 40,
     },
     categoryIcon: {
       fontSize: 28,
@@ -190,11 +182,18 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       flex: 1,
       minWidth: 0,
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+      marginBottom: 6,
+    },
     title: {
       fontSize: 20,
       fontWeight: 'bold',
       color: colors.text,
-      marginBottom: 6,
+      flex: 1,
+      minWidth: 0,
     },
     metaRow: {
       flexDirection: 'row',
@@ -211,6 +210,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
+      flexShrink: 0,
     },
     xpText: {
       fontSize: 14,
@@ -392,7 +392,14 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
           <View style={styles.headerLeft}>
             <Text style={styles.categoryIcon}>{getCategoryIcon(challenge.category)}</Text>
             <View style={styles.titleContent}>
-              <Text style={styles.title}>{displayTitle}</Text>
+              <View style={styles.titleRow}>
+                <Text style={styles.title}>{displayTitle}</Text>
+                <View style={[styles.xpBadge, { backgroundColor: starColor + '20' }]}>
+                  <Text style={[styles.xpText, { color: starColor }]}>
+                    +{challenge.baseXPReward} XP
+                  </Text>
+                </View>
+              </View>
               <View style={styles.metaRow}>
                 <Text style={[styles.category, { color: categoryColor }]}>
                   {translateCategory(challenge.category)}
@@ -414,18 +421,11 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
             </View>
           </View>
 
-          <View style={styles.headerRight}>
-            <View style={[styles.xpBadge, { backgroundColor: starColor + '20' }]}>
-              <Text style={[styles.xpText, { color: starColor }]}>
-                +{challenge.baseXPReward} XP
-              </Text>
+          {isCompleted && (
+            <View style={[styles.completedBadge, { backgroundColor: categoryColor }]}>
+              <Text style={styles.completedBadgeText}>✓ {t('monthlyChallenge.complete')}</Text>
             </View>
-            {isCompleted && (
-              <View style={[styles.completedBadge, { backgroundColor: categoryColor }]}>
-                <Text style={styles.completedBadgeText}>✓ {t('monthlyChallenge.complete')}</Text>
-              </View>
-            )}
-          </View>
+          )}
         </View>
 
         {/* Description */}
