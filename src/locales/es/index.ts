@@ -3171,12 +3171,12 @@ const es: Partial<TranslationKeys> = {
     progress: {
       level: 'Nivel',
       progress: 'Progreso',
-      to_next_level: 'hasta Nivel {{level}}',
+      to_next_level: 'to Level {{level}}',
       xp_remaining: '{{xp}} EXP restantes',
       loading: 'Cargando EXP...',
-      levelProgressFull: 'Nivel {{currentLevel}} {{progress}}% hasta nivel {{nextLevel}}',
+      levelProgressFull: 'Level {{currentLevel}}: {{progress}}% to Level {{nextLevel}}',
       xpProgressText: '{{current}}/{{total}} EXP',
-      levelProgressCompact: 'Nivel {{level}} • {{progress}}%',
+      levelProgressCompact: 'Level {{level}}: {{progress}}%',
 
       accessibility: {
         label: 'Nivel de experiencia {{currentLevel}}, {{levelTitle}}. {{progress}} por ciento de progreso hasta el nivel {{nextLevel}}. {{xpRemaining}} puntos de experiencia restantes.{{#isMilestone}} Este es un nivel hito.{{/isMilestone}}',

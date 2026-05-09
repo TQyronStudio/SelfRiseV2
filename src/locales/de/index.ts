@@ -591,7 +591,7 @@ const de: Partial<TranslationKeys> = {
     addSelfPraiseButton: '+ Lob',
     gratitudePlaceholder: 'Wofür bist du heute dankbar?',
     minimumRequired: 'Schreibe mindestens 3 Einträge, um deine Serie aufrechtzuerhalten',
-    bonusGratitude: 'Bonus-Eintrag',
+    bonusGratitude: 'Bonus',
     currentStreak: 'Aktuelle Serie',
     longestStreak: 'Längste Serie',
     frozenStreak: 'Gefrorene Serie',
@@ -599,7 +599,7 @@ const de: Partial<TranslationKeys> = {
     statistics: 'Statistiken',
     // Daily Progress Display
     progress: {
-      title: 'Fortschritt meines Tagebuchs heute',
+      title: 'Tagebuch heute',
       complete: 'Fertig ✓',
       bonusAmazing: 'Fantastisch! Du hast Bonus-Einträge hinzugefügt! 🌟',
       dailyComplete: 'Tagebuch heute abgeschlossen! Halte deine Serie am Leben! 🔥',
@@ -3172,12 +3172,12 @@ const de: Partial<TranslationKeys> = {
     progress: {
       level: 'Level',
       progress: 'Status',
-      to_next_level: 'bis Lv.{{level}}',
+      to_next_level: 'to Level {{level}}',
       xp_remaining: '{{xp}} XP übrig',
       loading: 'Lade...',
-      levelProgressFull: 'Lv.{{currentLevel}} {{progress}}% → Lv.{{nextLevel}}',
+      levelProgressFull: 'Level {{currentLevel}}: {{progress}}% to Level {{nextLevel}}',
       xpProgressText: '{{current}}/{{total}} XP',
-      levelProgressCompact: 'Lv.{{level}} • {{progress}}%',
+      levelProgressCompact: 'Level {{level}}: {{progress}}%',
 
       accessibility: {
         label: 'Erfahrungslevel {{currentLevel}}, {{levelTitle}}. {{progress}} Prozent Fortschritt bis Level {{nextLevel}}. {{xpRemaining}} Erfahrungspunkte verbleibend.{{#isMilestone}} Dies ist ein Meilenstein-Level.{{/isMilestone}}',

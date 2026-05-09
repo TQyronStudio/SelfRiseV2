@@ -20,33 +20,61 @@ All generated screenshots should follow that direction unless we explicitly deci
 marketing/
 ├── raw/
 │   ├── phone/
-│   │   ├── en/
-│   │   ├── de/
-│   │   └── es/
+│   │   ├── ios/
+│   │   │   ├── en/
+│   │   │   ├── de/
+│   │   │   └── es/
+│   │   └── android/
+│   │       ├── en/
+│   │       ├── de/
+│   │       └── es/
 │   └── tablet/
-│       ├── en/
-│       ├── de/
-│       └── es/
+│       ├── ios/
+│       │   ├── en/
+│       │   ├── de/
+│       │   └── es/
+│       └── android/
+│           ├── en/
+│           ├── de/
+│           └── es/
 ├── generated/
 │   ├── phone/
-│   │   ├── en/
-│   │   ├── de/
-│   │   └── es/
+│   │   ├── ios/
+│   │   │   ├── en/
+│   │   │   ├── de/
+│   │   │   └── es/
+│   │   └── android/
+│   │       ├── en/
+│   │       ├── de/
+│   │       └── es/
 │   └── tablet/
-│       ├── en/
-│       ├── de/
-│       └── es/
+│       ├── ios/
+│       │   ├── en/
+│       │   ├── de/
+│       │   └── es/
+│       └── android/
+│           ├── en/
+│           ├── de/
+│           └── es/
 ├── final/
 │   ├── phone/
-│   │   ├── en/
-│   │   │   ├── app-store/
-│   │   │   └── google-play/
-│   │   ├── de/
-│   │   └── es/
+│   │   ├── ios/
+│   │   │   ├── en/app-store/
+│   │   │   ├── de/app-store/
+│   │   │   └── es/app-store/
+│   │   └── android/
+│   │       ├── en/google-play/
+│   │       ├── de/google-play/
+│   │       └── es/google-play/
 │   └── tablet/
-│       ├── en/
-│       ├── de/
-│       └── es/
+│       ├── ios/
+│       │   ├── en/app-store/
+│       │   ├── de/app-store/
+│       │   └── es/app-store/
+│       └── android/
+│           ├── en/google-play/
+│           ├── de/google-play/
+│           └── es/google-play/
 ├── reference/
 │   ├── style/
 │   └── prompts/
@@ -59,22 +87,27 @@ marketing/
 You provide raw screenshots here:
 
 ```txt
-raw/{device}/{locale}/{screen-name}-raw.png
+raw/{device}/{platform}/{locale}/{screen-name}-raw.png
 ```
 
 Examples:
 
 ```txt
-raw/phone/en/home-raw.png
-raw/phone/de/home-raw.png
-raw/phone/es/home-raw.png
-raw/tablet/en/home-raw.png
+raw/phone/ios/en/01-home-level-raw.png
+raw/phone/android/de/01-home-level-raw.png
+raw/tablet/ios/en/01-home-level-raw.png
+raw/tablet/android/es/01-home-level-raw.png
 ```
 
 Supported devices:
 
 - `phone`
 - `tablet`
+
+Supported platforms:
+
+- `ios`
+- `android`
 
 Supported locales:
 
@@ -87,33 +120,34 @@ Supported locales:
 Premium generated visuals go here:
 
 ```txt
-generated/{device}/{locale}/{slide-number}-{screen-name}.png
+generated/{device}/{platform}/{locale}/{slide-number}-{screen-name}.png
 ```
 
 Examples:
 
 ```txt
-generated/phone/en/01-home.png
-generated/phone/de/01-home.png
-generated/tablet/es/01-home.png
+generated/phone/ios/en/01-home.png
+generated/phone/android/en/01-home.png
+generated/tablet/ios/es/01-home.png
 ```
 
 This layer is for the polished creative output before exact store resizing.
+The platform segment is required because iOS and Android use different device frames.
 
 ## Final Store Exports
 
 Final upload-ready files go here:
 
 ```txt
-final/{device}/{locale}/{store}/{slide-number}-{screen-name}-{size}.png
+final/{device}/{platform}/{locale}/{store}/{slide-number}-{screen-name}-{size}.png
 ```
 
 Examples:
 
 ```txt
-final/phone/en/app-store/01-home-1290x2796.png
-final/phone/en/google-play/01-home-1080x1920.png
-final/tablet/en/app-store/01-home-2048x2732.png
+final/phone/ios/en/app-store/01-home-1290x2796.png
+final/phone/android/en/google-play/01-home-1080x1920.png
+final/tablet/ios/en/app-store/01-home-2048x2732.png
 ```
 
 ## Target Sizes

@@ -13,22 +13,55 @@ import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
 import { changeLanguage, getCurrentLanguage } from '@/src/utils/i18n';
 import { isHapticsEnabled, setHapticsEnabled, HAPTICS_CHANGED_EVENT } from '@/src/services/hapticsService';
+import { useHabits } from '@/src/contexts/HabitsContext';
+import { useGoals } from '@/src/contexts/GoalsContext';
+import { useGratitude } from '@/src/contexts/GratitudeContext';
+import { useAchievements } from '@/src/contexts/AchievementContext';
+import {
+  isMarketingDemoModeEnabled,
+  MARKETING_DEMO_MODE_CHANGED_EVENT,
+  setMarketingDemoModeEnabled,
+} from '@/src/services/marketingDemoModeService';
 export default function SettingsScreen() {
   const { t } = useI18n();
   const { colors, themeMode, setThemeMode } = useTheme();
   const { actions: { restartTutorial, clearCrashData } } = useTutorial();
+  const { actions: habitActions } = useHabits();
+  const { actions: goalActions } = useGoals();
+  const { actions: gratitudeActions } = useGratitude();
+  const { refreshAchievements } = useAchievements();
   const [isResetting, setIsResetting] = useState(false);
+  const [isLoadingMarketingDemo, setIsLoadingMarketingDemo] = useState(false);
+  const [isClearingMarketingDemo, setIsClearingMarketingDemo] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const [showClearDemoConfirmation, setShowClearDemoConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
   const [hapticsEnabled, setHapticsEnabledState] = useState(isHapticsEnabled());
+  const [isMarketingDemoMode, setIsMarketingDemoMode] = useState(false);
 
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(HAPTICS_CHANGED_EVENT, (value: boolean) => {
       setHapticsEnabledState(value);
     });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    isMarketingDemoModeEnabled()
+      .then(setIsMarketingDemoMode)
+      .catch(error => {
+        console.error('Failed to load marketing demo mode:', error);
+      });
+
+    const sub = DeviceEventEmitter.addListener(
+      MARKETING_DEMO_MODE_CHANGED_EVENT,
+      (value: boolean) => setIsMarketingDemoMode(value)
+    );
+
     return () => sub.remove();
   }, []);
 
@@ -158,6 +191,7 @@ export default function SettingsScreen() {
       setIsResetting(true);
       await restartTutorial();
       await clearCrashData();
+      setSuccessMessage(t('settings.tutorialResetSuccess'));
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Failed to restart tutorial:', error);
@@ -165,6 +199,74 @@ export default function SettingsScreen() {
       setShowErrorModal(true);
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleLoadMarketingDemoData = async (seedLocale?: 'en' | 'de' | 'es') => {
+    try {
+      setIsLoadingMarketingDemo(true);
+      const { loadMarketingDemoData } = await import('@/src/services/marketingDemoDataService');
+      const currentAppLanguage = getCurrentLanguage();
+      const locale = seedLocale ?? (currentAppLanguage === 'de' || currentAppLanguage === 'es' ? currentAppLanguage : 'en');
+      const result = await loadMarketingDemoData(locale);
+
+      await Promise.all([
+        habitActions.loadHabits(),
+        goalActions.loadGoals(),
+        gratitudeActions.forceRefresh(),
+        refreshAchievements(),
+      ]);
+
+      setIsMarketingDemoMode(true);
+      setSuccessMessage(
+        `${result.locale.toUpperCase()} marketing demo loaded: ${result.habits} habits, ${result.goals} goals, ${result.journalEntries} journal entries, and ${result.achievements} achievements.`
+      );
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to load marketing demo data:', error);
+      setErrorMessage('Failed to load marketing demo data. Please try again.');
+      setShowErrorModal(true);
+    } finally {
+      setIsLoadingMarketingDemo(false);
+    }
+  };
+
+  const handleDisableMarketingDemoMode = async () => {
+    try {
+      await setMarketingDemoModeEnabled(false);
+      setIsMarketingDemoMode(false);
+      setSuccessMessage('Marketing demo mode disabled. AdMob banners will show again.');
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to disable marketing demo mode:', error);
+      setErrorMessage('Failed to disable marketing demo mode. Please try again.');
+      setShowErrorModal(true);
+    }
+  };
+
+  const handleClearMarketingDemoData = async () => {
+    try {
+      setIsClearingMarketingDemo(true);
+      const { clearMarketingDemoData } = await import('@/src/services/marketingDemoDataService');
+      await clearMarketingDemoData();
+
+      await Promise.all([
+        habitActions.loadHabits(),
+        goalActions.loadGoals(),
+        gratitudeActions.forceRefresh(),
+        refreshAchievements(),
+      ]);
+
+      setIsMarketingDemoMode(false);
+      setSuccessMessage('Marketing demo data cleared. The app is back to an empty clean state.');
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to clear marketing demo data:', error);
+      setErrorMessage('Failed to clear marketing demo data. Please try again.');
+      setShowErrorModal(true);
+    } finally {
+      setIsClearingMarketingDemo(false);
+      setShowClearDemoConfirmation(false);
     }
   };
 
@@ -338,6 +440,121 @@ export default function SettingsScreen() {
             )}
           </TouchableOpacity>
         </View>
+
+        {__DEV__ && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Marketing Demo</Text>
+            <TouchableOpacity
+              style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
+              onPress={() => handleLoadMarketingDemoData()}
+              disabled={isLoadingMarketingDemo}
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons
+                  name="sparkles"
+                  size={24}
+                  color={isLoadingMarketingDemo ? colors.textSecondary : colors.primary}
+                />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={[styles.menuItemText, isLoadingMarketingDemo && styles.textDisabled]}>
+                    {isMarketingDemoMode ? 'Reload Marketing Demo Data' : 'Load Marketing Demo Data'}
+                  </Text>
+                  <Text style={[styles.menuItemDescription, isLoadingMarketingDemo && styles.textDisabled]}>
+                    Uses the current app language for screenshot-ready habits, goals, journal entries, XP, achievements, and Smart Make-up history.
+                  </Text>
+                </View>
+              </View>
+              {isLoadingMarketingDemo ? (
+                <Text style={styles.loadingText}>Loading...</Text>
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
+              onPress={() => handleLoadMarketingDemoData('de')}
+              disabled={isLoadingMarketingDemo}
+            >
+              <View style={styles.menuItemLeft}>
+                <Text style={{ fontSize: 24, marginRight: 12 }}>🇩🇪</Text>
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={[styles.menuItemText, isLoadingMarketingDemo && styles.textDisabled]}>
+                    Load German Demo Data
+                  </Text>
+                  <Text style={[styles.menuItemDescription, isLoadingMarketingDemo && styles.textDisabled]}>
+                    Force-replaces habits, goals, journal entries, and challenge text with German screenshot data.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
+              onPress={() => handleLoadMarketingDemoData('es')}
+              disabled={isLoadingMarketingDemo}
+            >
+              <View style={styles.menuItemLeft}>
+                <Text style={{ fontSize: 24, marginRight: 12 }}>🇪🇸</Text>
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={[styles.menuItemText, isLoadingMarketingDemo && styles.textDisabled]}>
+                    Load Spanish Demo Data
+                  </Text>
+                  <Text style={[styles.menuItemDescription, isLoadingMarketingDemo && styles.textDisabled]}>
+                    Force-replaces habits, goals, journal entries, and challenge text with Spanish screenshot data.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.menuItem, isClearingMarketingDemo && styles.menuItemDisabled]}
+              onPress={() => setShowClearDemoConfirmation(true)}
+              disabled={isClearingMarketingDemo}
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons
+                  name="trash-outline"
+                  size={24}
+                  color={isClearingMarketingDemo ? colors.textSecondary : colors.error}
+                />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={[styles.menuItemText, isClearingMarketingDemo && styles.textDisabled]}>
+                    Clear Marketing Demo Data
+                  </Text>
+                  <Text style={[styles.menuItemDescription, isClearingMarketingDemo && styles.textDisabled]}>
+                    Removes the seeded demo habits, goals, journal entries, XP, achievements, and challenge data.
+                  </Text>
+                </View>
+              </View>
+              {isClearingMarketingDemo ? (
+                <Text style={styles.loadingText}>Clearing...</Text>
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              )}
+            </TouchableOpacity>
+
+            {isMarketingDemoMode && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleDisableMarketingDemoMode}
+              >
+                <View style={styles.menuItemLeft}>
+                  <Ionicons name="eye-outline" size={24} color={colors.warning} />
+                  <View style={styles.menuItemTextContainer}>
+                    <Text style={styles.menuItemText}>Disable Marketing Demo Mode</Text>
+                    <Text style={styles.menuItemDescription}>
+                      Keeps the demo data, but turns AdMob banners back on.
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </ScrollView>
 
       {/* AdMob Banner - Fixed at bottom */}
@@ -358,6 +575,18 @@ export default function SettingsScreen() {
         emoji="🔄"
       />
 
+      <ConfirmationModal
+        visible={showClearDemoConfirmation}
+        onClose={() => setShowClearDemoConfirmation(false)}
+        onConfirm={handleClearMarketingDemoData}
+        title="Clear Marketing Demo Data?"
+        message="This removes the seeded demo habits, goals, journal entries, XP, achievements, and challenge data. It also turns AdMob banners back on."
+        confirmText="Clear"
+        cancelText={t('settings.cancel')}
+        confirmButtonColor={colors.error}
+        emoji="🗑️"
+      />
+
       {/* Success Modal */}
       <BaseModal
         visible={showSuccessModal}
@@ -367,7 +596,7 @@ export default function SettingsScreen() {
         <View style={styles.modalContent}>
           <Text style={styles.modalEmoji}>✅</Text>
           <Text style={styles.modalTitle}>{t('settings.success')}</Text>
-          <Text style={styles.modalMessage}>{t('settings.tutorialResetSuccess')}</Text>
+          <Text style={styles.modalMessage}>{successMessage}</Text>
           <TouchableOpacity
             style={styles.modalButton}
             onPress={() => setShowSuccessModal(false)}

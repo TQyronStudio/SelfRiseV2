@@ -1,20 +1,20 @@
 {
   "files.watcherExclude": {
     "**/node_modules/**": true,
-    "**/ios/**": true,
-    "**/android/**": true
+    "/ios/**": true,
+    "/android/**": true
   },
   "files.exclude": {
     "**/node_modules": true,
-    "**/ios": true,
-    "**/android": true,
-    "**/ios/Pods": true,
-    "**/ios/build": true
+    "/ios": true,
+    "/android": true,
+    "/ios/Pods": true,
+    "/ios/build": true
   },
   "search.exclude": {
     "**/node_modules": true,
-    "**/ios": true,
-    "**/android": true
+    "/ios": true,
+    "/android": true
   },
   "git.ignoreLimitWarning": true,
   "git.untrackedChanges": "hidden",

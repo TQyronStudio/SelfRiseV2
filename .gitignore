@@ -44,3 +44,7 @@ yarn-error.*
 app-example
 ios/
 android/
+!marketing/**/ios/
+!marketing/**/ios/**
+!marketing/**/android/
+!marketing/**/android/**

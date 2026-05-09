@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { DeviceEventEmitter, View, StyleSheet, Platform } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useTutorial } from '@/src/contexts/TutorialContext';
+import {
+  isMarketingDemoModeEnabled,
+  MARKETING_DEMO_MODE_CHANGED_EVENT,
+} from '@/src/services/marketingDemoModeService';
 
 /**
  * AdBanner Component
@@ -33,6 +37,31 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const { state: tutorialState } = useTutorial();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isMarketingDemoMode, setIsMarketingDemoMode] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    isMarketingDemoModeEnabled()
+      .then(enabled => {
+        if (isMounted) {
+          setIsMarketingDemoMode(enabled);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load marketing demo mode:', error);
+      });
+
+    const subscription = DeviceEventEmitter.addListener(
+      MARKETING_DEMO_MODE_CHANGED_EVENT,
+      (enabled: boolean) => setIsMarketingDemoMode(enabled)
+    );
+
+    return () => {
+      isMounted = false;
+      subscription.remove();
+    };
+  }, []);
 
   // Use test ID based on platform
   const bannerAdUnitId = adUnitId || (
@@ -53,8 +82,8 @@ export const AdBanner: React.FC<AdBannerProps> = ({
     console.error('❌ AdMob banner failed to load:', error.message);
   };
 
-  // Hide ads during tutorial and on error
-  if (hasError || tutorialState.isActive) {
+  // Hide ads during tutorial, in marketing demo mode, and on error
+  if (hasError || tutorialState.isActive || isMarketingDemoMode) {
     return null;
   }
 

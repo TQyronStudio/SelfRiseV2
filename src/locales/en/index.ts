@@ -3157,9 +3157,9 @@ const en: TranslationKeys = {
       to_next_level: 'to Level {{level}}',
       xp_remaining: '{{xp}} XP remaining',
       loading: 'Loading XP...',
-      levelProgressFull: 'Level {{currentLevel}} {{progress}}% to level {{nextLevel}}',
+      levelProgressFull: 'Level {{currentLevel}}: {{progress}}% to Level {{nextLevel}}',
       xpProgressText: '{{current}}/{{total}} XP',
-      levelProgressCompact: 'Level {{level}} • {{progress}}%',
+      levelProgressCompact: 'Level {{level}}: {{progress}}%',
       
       accessibility: {
         label: 'Experience level {{currentLevel}}, {{levelTitle}}. {{progress}} percent progress to level {{nextLevel}}. {{xpRemaining}} experience points remaining.{{#isMilestone}} This is a milestone level.{{/isMilestone}}',
