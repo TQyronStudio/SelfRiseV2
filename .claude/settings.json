@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /Users/turage/Documents/SelfRiseV2 && if grep -q '✅ COMPLETED' projectplan.md; then echo '🎯 Checkpoint completed - creating backup...' && sleep 2 && ./scripts/smart-commit.sh; else echo '📝 No completed checkpoints detected'; fi"
+            "command": "cd /Users/turage/Developer/SelfRiseV2 && if grep -q '✅ COMPLETED' projectplan.md; then echo '🎯 Checkpoint completed - creating backup...' && sleep 2 && ./scripts/smart-commit.sh; else echo '📝 No completed checkpoints detected'; fi"
           }
         ]
       }
