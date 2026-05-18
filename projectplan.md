@@ -1,5 +1,35 @@
 # SelfRise V2 - Project Plan
 
+## 🔎 PLANNED: SelfRiseV2 Code/App Market Value Review
+
+**Goal**: Study the current SelfRiseV2 codebase and provide a realistic current market value estimate for the code/application.
+
+**Approach**:
+- [x] Review repository structure, package stack, feature scope, and app maturity.
+- [x] Inspect core screens, services, contexts, storage, i18n, monetization, and release readiness indicators.
+- [x] Check current market benchmarks for comparable custom mobile app development and codebase/app valuation.
+- [x] Estimate value using practical scenarios: replacement cost, codebase sale value, pre-revenue app value, and investor/buyer value.
+- [x] Provide the full valuation analysis in chat only, per user request.
+
+**Surgical Scope**: Analysis/documentation only. No production code changes planned.
+
+---
+
+## 🧪 PLANNED: Habits Make-up System Verification
+
+**Goal**: Verify that the Habits Make-up / Smart Bonus Conversion system behaves correctly and matches `technical-guides:Habits.md`.
+
+**Scope**:
+- [x] Inspect existing Make-up conversion implementation and current test coverage.
+- [x] Run relevant existing tests for habits/conversion logic where available.
+- [x] If coverage is missing, add focused unit tests for Make-up conversion only.
+- [x] Verify key scenarios: perfect conversion, partial conversion, no cross-week conversion, schedule immutability, habit creation date respect, and completion-rate impact.
+- [x] Report results in chat only.
+
+**Surgical Scope**: Tests only unless a real bug is found and user approves implementation changes.
+
+---
+
 ## ✅ COMPLETED: Journal & Monthly Challenges Localization (Phase 11 - Parts A & B)
 
 ### Part A: Monthly Challenges ✅

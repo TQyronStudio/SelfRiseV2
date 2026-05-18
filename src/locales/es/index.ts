@@ -4038,7 +4038,9 @@ const es: Partial<TranslationKeys> = {
   notifications: {
     disabled: 'Notificaciones deshabilitadas',
     enableTap: 'Toca para habilitar notificaciones',
+    enablePrompt: 'Activa las notificaciones para recibir recordatorios.',
     settingsTap: 'Toca para abrir configuración del sistema',
+    settingsPrompt: 'Abre la configuración del sistema para activar las notificaciones.',
     afternoonReminder: 'Recordatorio Vespertino',
     afternoonDescription: 'Chequeo motivacional',
     eveningReminder: 'Recordatorio Nocturno',

@@ -4037,7 +4037,9 @@ const de: Partial<TranslationKeys> = {
   notifications: {
     disabled: 'Deaktiviert',
     enableTap: 'Tippen zum Aktivieren',
+    enablePrompt: 'Aktiviere Mitteilungen, um Erinnerungen zu erhalten.',
     settingsTap: 'Einstellungen öffnen',
+    settingsPrompt: 'Öffne die Systemeinstellungen, um Mitteilungen zu aktivieren.',
     afternoonReminder: 'Nachmittag',
     afternoonDescription: 'Check-in',
     eveningReminder: 'Abend',

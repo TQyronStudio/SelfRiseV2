@@ -37,7 +37,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const { state: tutorialState } = useTutorial();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isMarketingDemoMode, setIsMarketingDemoMode] = useState(false);
+  const [isMarketingDemoMode, setIsMarketingDemoMode] = useState<boolean | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -79,11 +79,11 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const handleAdFailedToLoad = (error: Error) => {
     setIsLoaded(false);
     setHasError(true);
-    console.error('❌ AdMob banner failed to load:', error.message);
+    console.warn('AdMob banner failed to load:', error.message);
   };
 
   // Hide ads during tutorial, in marketing demo mode, and on error
-  if (hasError || tutorialState.isActive || isMarketingDemoMode) {
+  if (hasError || tutorialState.isActive || isMarketingDemoMode !== false) {
     return null;
   }
 

@@ -565,6 +565,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       xp_earned_today INTEGER NOT NULL DEFAULT 0,
       balance_score REAL NOT NULL DEFAULT 0,
       calculated_at INTEGER NOT NULL,
+      daily_contributions TEXT,
       FOREIGN KEY (challenge_id) REFERENCES monthly_challenges(id) ON DELETE CASCADE,
       UNIQUE(challenge_id, date)
     );

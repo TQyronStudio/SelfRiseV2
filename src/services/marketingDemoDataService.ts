@@ -504,6 +504,16 @@ async function clearLegacyGamificationData(): Promise<void> {
   await AsyncStorage.multiRemove(Object.values(legacyGamificationKeys));
 }
 
+async function ensureMarketingDemoSchema(): Promise<void> {
+  const db = getDatabase();
+  const tableInfo = await db.getAllAsync(`PRAGMA table_info(challenge_daily_snapshots)`);
+  const columns = new Set(tableInfo.map((column: any) => column.name));
+
+  if (tableInfo.length > 0 && !columns.has('daily_contributions')) {
+    await db.execAsync(`ALTER TABLE challenge_daily_snapshots ADD COLUMN daily_contributions TEXT;`);
+  }
+}
+
 async function clearDemoData(): Promise<void> {
   const db = getDatabase();
   const tables = [
@@ -1182,6 +1192,7 @@ export async function loadMarketingDemoData(locale: MarketingDemoLocale = 'en'):
   let journalEntries = 0;
   let goalProgressEntries = 0;
 
+  await ensureMarketingDemoSchema();
   await db.execAsync('BEGIN TRANSACTION');
 
   try {
@@ -1234,6 +1245,7 @@ export async function loadMarketingDemoData(locale: MarketingDemoLocale = 'en'):
 export async function clearMarketingDemoData(): Promise<void> {
   const db = getDatabase();
 
+  await ensureMarketingDemoSchema();
   await db.execAsync('BEGIN TRANSACTION');
 
   try {

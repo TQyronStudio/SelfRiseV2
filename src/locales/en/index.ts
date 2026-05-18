@@ -4064,7 +4064,9 @@ const en: TranslationKeys = {
   notifications: {
     disabled: 'Notifications Disabled',
     enableTap: 'Tap to enable notifications',
+    enablePrompt: 'Enable notifications to receive reminders.',
     settingsTap: 'Tap to open system settings',
+    settingsPrompt: 'Open system settings to enable notifications.',
     afternoonReminder: 'Afternoon Reminder',
     afternoonDescription: 'Motivational check-in',
     eveningReminder: 'Evening Reminder',

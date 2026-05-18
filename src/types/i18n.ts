@@ -1934,7 +1934,9 @@ export interface TranslationKeys {
   notifications: {
     disabled: string;
     enableTap: string;
+    enablePrompt: string;
     settingsTap: string;
+    settingsPrompt: string;
     afternoonReminder: string;
     afternoonDescription: string;
     eveningReminder: string;
