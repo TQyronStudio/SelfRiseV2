@@ -1297,6 +1297,13 @@ All modals should follow the CelebrationModal pattern with:
 **Location**: `src/config/notifications.ts`
 - `EXPO_PUBLIC_PUSH_NOTIFICATION_PROJECT_ID` - Expo push notification project ID
 
+### Internal Marketing Demo Tools
+**Location**: `app/(tabs)/settings.tsx`, `src/services/marketingDemoDataService.ts`, `src/services/marketingDemoModeService.ts`
+- `EXPO_PUBLIC_ENABLE_MARKETING_DEMO` - Enables the internal Settings buttons for loading localized screenshot/demo data.
+- Default behavior: keep this unset or set to `false` in production/release builds so the marketing demo controls are not visible to users.
+- Use `EXPO_PUBLIC_ENABLE_MARKETING_DEMO=true` only for local development, development builds, and screenshot sessions.
+- The demo data service stays in the codebase as an internal marketing workflow tool, but production UI access is controlled by this flag.
+
 ### Environment Files
 - `.env.example` - Example environment file with all required keys
 - `.env.development` - Development environment variables

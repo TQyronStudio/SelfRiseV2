@@ -22,6 +22,9 @@ import {
   MARKETING_DEMO_MODE_CHANGED_EVENT,
   setMarketingDemoModeEnabled,
 } from '@/src/services/marketingDemoModeService';
+
+const ENABLE_MARKETING_DEMO_TOOLS = process.env.EXPO_PUBLIC_ENABLE_MARKETING_DEMO === 'true';
+
 export default function SettingsScreen() {
   const { t } = useI18n();
   const { colors, themeMode, setThemeMode } = useTheme();
@@ -441,7 +444,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {__DEV__ && (
+        {ENABLE_MARKETING_DEMO_TOOLS && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Marketing Demo</Text>
             <TouchableOpacity
