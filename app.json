@@ -14,7 +14,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSUserTrackingUsageDescription": "This data helps us keep the app free and show you more relevant ads.",
+        "NSUserTrackingUsageDescription": "We use this to measure ad performance and personalize your experience. This keeps SelfRise free for everyone.",
         "SKAdNetworkItems": [
           {
             "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
@@ -225,6 +225,9 @@
           "ios": {
             "useFrameworks": "static",
             "forceStaticLinking": ["RNFBApp", "RNFBAnalytics"]
+          },
+          "android": {
+            "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }"
           }
         }
       ],

@@ -11,11 +11,19 @@ import {
  * Used when users need to restore their journal streak by watching ads.
  */
 
-// Test AdMob Rewarded Ad Unit IDs (for development - always show ads)
-const REWARDED_AD_UNIT_IDS = {
-  ios: 'ca-app-pub-3940256099942544/1712485313',
-  android: 'ca-app-pub-3940256099942544/5224354917',
-};
+// AdMob Rewarded Ad Unit IDs.
+// In development (__DEV__) we use Google TEST IDs so that watching/tapping your own
+// ads during testing cannot trigger an "invalid traffic" AdMob ban.
+// In release builds we use the real PRODUCTION IDs (see technical-guides:AdMob.md).
+const REWARDED_AD_UNIT_IDS = __DEV__
+  ? {
+      ios: 'ca-app-pub-3940256099942544/1712485313',
+      android: 'ca-app-pub-3940256099942544/5224354917',
+    }
+  : {
+      ios: 'ca-app-pub-2983534520735805/2719065972',
+      android: 'ca-app-pub-2983534520735805/5557832361',
+    };
 
 // Get the correct ad unit ID based on platform
 const getRewardedAdUnitId = (): string => {

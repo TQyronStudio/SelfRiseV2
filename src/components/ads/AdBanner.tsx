@@ -18,11 +18,19 @@ import {
  * @param size - Banner size (default: BANNER 320x50)
  */
 
-// Test AdMob Banner Unit IDs (for development - always show ads)
-const BANNER_AD_UNIT_IDS = {
-  ios: 'ca-app-pub-3940256099942544/2934735716',
-  android: 'ca-app-pub-3940256099942544/6300978111',
-};
+// AdMob Banner Unit IDs.
+// In development (__DEV__) we use Google TEST IDs so that tapping your own ads
+// during testing cannot trigger an "invalid traffic" AdMob ban.
+// In release builds we use the real PRODUCTION IDs (see technical-guides:AdMob.md).
+const BANNER_AD_UNIT_IDS = __DEV__
+  ? {
+      ios: 'ca-app-pub-3940256099942544/2934735716',
+      android: 'ca-app-pub-3940256099942544/6300978111',
+    }
+  : {
+      ios: 'ca-app-pub-2983534520735805/2803676517',
+      android: 'ca-app-pub-2983534520735805/1782416491',
+    };
 
 interface AdBannerProps {
   adUnitId?: string;

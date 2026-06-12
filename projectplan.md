@@ -1,5 +1,132 @@
 # SelfRise V2 - Project Plan
 
+## 📈 PLANNED: Meta Ads & Marketing Analytics Integration
+
+**Goal**: Připravit SelfRise V2 pro běh marketingových kampaní na Meta Ads (Facebook + Instagram) a zároveň začít aktivně sbírat custom eventy do Firebase Analytics pro vlastní reporting.
+
+**Background** (potvrzeno auditem 2026-05-18):
+- ✅ Firebase Analytics SDK instalovaný, hook `useFirebaseAnalytics` napojený v `app/_layout.tsx`
+- ✅ ATT (App Tracking Transparency) plugin + permission flow funkční
+- ✅ SKAdNetwork 48 ID v `app.json` (včetně Meta `v9wttpbfk9`, `n38lu8286q`)
+- ✅ AdMob bannery + rewarded ads kompletní – **nekolidují s Meta Ads akvizicí** (různý účel: AdMob = monetizace, Meta Ads = akvizice)
+- ⚠️ Žádné custom eventy se zatím nelogují (kromě `app_open` a `att_permission_response`)
+- ⚠️ Meta SDK (`react-native-fbsdk-next`) NENÍ nainstalovaný
+- ⚠️ Premium tier NENÍ v plánu – Value Optimization eventy v Metě vynechány
+
+---
+
+### 🧑 Část A: Úkoly pro Petra (mimo kód)
+
+Tyto kroky musí Petr udělat v externích nástrojích – kód na nich závisí:
+
+- [ ] **A1. Vytvořit Meta App v Meta for Developers**
+  - URL: https://developers.facebook.com/apps/
+  - Type: "Consumer"
+  - Spojit s bundle ID `com.petrturek.selfrise` (iOS) i Android package `com.petrturek.selfrise`
+  - Zapsat si: **Meta App ID** + **Client Token** (App Settings → Basic + Advanced)
+- [ ] **A2. Přidat platformy v Meta App Settings**
+  - iOS: Bundle ID + App Store ID
+  - Android: Package Name + Class Name `com.facebook.react.ReactActivity`
+- [ ] **A3. Aktivovat App Events v Meta App Dashboardu**
+  - Audience Network nepovolovat (jen pro monetizaci přes Metu – není náš případ)
+- [ ] **A4. (Volitelně) Zažádat o Meta Ads MCP open beta**
+  - URL: https://mcp.facebook.com/ads
+  - Vyžaduje Claude Pro/Max plán
+- [ ] **A5. Předat mi Meta App ID + Client Token** → odblokuje Část C
+
+---
+
+### 💻 Část B: Custom Eventy do Firebase (nezávislé na Metě)
+
+Tato část má hodnotu sama o sobě – lepší interní data o chování uživatelů. Lze začít hned.
+
+- [ ] **B1. Vytvořit `src/services/analyticsService.ts`**
+  - Sjednocený eventový dispatcher (zatím jen Firebase, později paralelně i Meta)
+  - Wrapper kolem `FirebaseAnalytics.logEvent` z existujícího hooku
+  - Type-safe event names (TypeScript union type)
+- [ ] **B2. Tier 1 eventy – Acquisition signal**
+  - `complete_onboarding` – konec tutorialu (Tutorial system)
+  - `create_first_habit` – první vytvořený návyk (HabitsContext)
+  - `complete_first_habit` – první zaškrtnutí návyku
+  - `journal_first_entry` – první zápis do deníku (GratitudeContext)
+- [ ] **B3. Tier 2 eventy – Retention signal**
+  - `streak_7_days` – sedmidenní streak (deník nebo návyky)
+  - `streak_30_days` – třicetidenní streak
+  - `goal_completed` – dokončený cíl
+  - `monthly_challenge_completed` – splněná měsíční výzva
+  - `achievement_unlocked` – odemčený achievement (param `achievement_id`)
+- [ ] **B4. Tier 3 eventy – Monetization signal**
+  - `rewarded_ad_completed` – sledování rewarded reklamy (AdMob WarmUp)
+- [ ] **B5. Ověření v Firebase Console**
+  - Dev build, projít tutorialem, založit návyk, zaškrtnout
+  - Firebase Console → Analytics → DebugView ověří příchozí eventy
+
+---
+
+### 🔌 Část C: Meta SDK Integrace (blokováno Částí A)
+
+Tato část navazuje na Část A a B. **Blokovaná dokud Petr nedodá Meta App ID + Client Token.**
+
+- [ ] **C1. Instalace `react-native-fbsdk-next`**
+  - `npm install react-native-fbsdk-next`
+  - Verify kompatibilita s Expo SDK 55 + RN 0.83
+- [ ] **C2. Konfigurace pluginu v `app.json`**
+  - Přidat `react-native-fbsdk-next` do `plugins` s App ID a Client Tokenem
+  - Nastavit `advertiserIDCollectionEnabled`, `autoLogAppEventsEnabled`, `isAutoInitEnabled`
+- [x] **C3. Update `NSUserTrackingUsageDescription`** (provedeno preventivně 2026-05-18)
+  - Z: "This data helps us keep the app free and show you more relevant ads."
+  - Na: "We use this to measure ad performance and personalize your experience. This keeps SelfRise free for everyone."
+- [ ] **C4. Rozšířit `analyticsService.ts` o Meta App Events**
+  - Paralelní dispatch: jedno `Analytics.track()` → Firebase + Meta zároveň
+  - Type-safe mapping interních event names na Meta standard event names
+- [ ] **C5. Mapování interních eventů na Meta Standard Events**
+  - `complete_onboarding` → `fb_mobile_complete_registration`
+  - `create_first_habit` → `fb_mobile_content_view` (custom params)
+  - `streak_7_days` → `fb_mobile_achievement_unlocked`
+  - `rewarded_ad_completed` → custom event
+- [ ] **C6. Expo Prebuild + Native Builds**
+  - `npx expo prebuild --clean`
+  - iOS test build → ověření v Meta Events Manager Test Events tool
+  - Android test build → ověření v Meta Events Manager Test Events tool
+- [ ] **C7. Verifikace v Meta Events Manager**
+  - Test Events tool zobrazuje příchozí eventy z obou platform
+  - App Dashboard → Activity Log bez chyb
+
+---
+
+### 📚 Část D: Dokumentace
+
+- [ ] **D1. Vytvořit `technical-guides:Marketing-Analytics.md`**
+  - Architektura `analyticsService`
+  - Seznam všech eventů: kdy se triggerují, jaké parametry posílají
+  - Dual-dispatch logika (Firebase + Meta)
+  - ATT / SKAdNetwork pravidla a důsledky pro attribution
+- [ ] **D2. Update `technical-guides:AdMob.md`**
+  - Krátká sekce: AdMob (monetizace) vs Meta Ads (akvizice) – nekolidují
+  - Sdílený ATT prompt – relevance pro oba systémy
+
+---
+
+### Surgical Scope
+
+- ✅ Žádný stávající kód se nerozbije – jen se rozšiřuje existující `useFirebaseAnalytics` infrastruktura
+- ✅ AdMob bannery + rewarded ads zůstávají beze změny
+- ✅ Tutorial, Habits, Goals, Journal logika beze změny – pouze přibudou `Analytics.track()` volání na klíčových místech
+- ⚠️ `app.json`: nový plugin (Část C2) + úprava ATT permission textu (C3 – hotovo)
+- ⚠️ Vyžaduje `expo prebuild --clean` po C2 → reinstall na zařízeních
+
+### Dependencies / Pořadí prací
+
+```
+Část A (Petr, externí) ─┐
+                        ├─→ Část C (Meta SDK) ─→ Část D (dokumentace)
+Část B (Firebase) ──────┘
+```
+
+Část B lze začít kdykoliv – je nezávislá. Část C blokovaná Částí A.
+
+---
+
 ## 🔎 PLANNED: SelfRiseV2 Code/App Market Value Review
 
 **Goal**: Study the current SelfRiseV2 codebase and provide a realistic current market value estimate for the code/application.

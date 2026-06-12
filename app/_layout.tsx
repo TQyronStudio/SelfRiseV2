@@ -26,6 +26,9 @@ import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle'
 // Firebase Analytics with ATT
 import { useFirebaseAnalytics } from '../src/hooks/useFirebaseAnalytics';
 
+// AdMob UMP (GDPR) consent + ads initialization
+import { initializeAdsWithConsent } from '../src/services/adConsentService';
+
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
 import { initHaptics } from '../src/services/hapticsService';
@@ -53,6 +56,12 @@ function LayoutContent() {
   // Initialize Firebase Analytics with ATT (App Tracking Transparency)
   // Requests ATT permission on iOS 14+, then logs 'app_open' event
   useFirebaseAnalytics();
+
+  // Run UMP (GDPR) consent flow, then initialize AdMob.
+  // Separate from ATT above: ATT = Apple tracking; UMP = Google ad-personalization consent.
+  useEffect(() => {
+    initializeAdsWithConsent();
+  }, []);
 
   const { colors } = useTheme();
   const { t } = useI18n();
