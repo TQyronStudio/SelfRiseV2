@@ -601,6 +601,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       pending_actions TEXT,
       state_history TEXT,
       error_log TEXT,
+      metrics TEXT,
       updated_at INTEGER NOT NULL
     );
 
@@ -675,6 +676,19 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_previews_expires ON challenge_previews(expires_at);
   `);
 
+  // MIGRATION: add challenge_lifecycle_state.metrics for existing installs
+  // (CREATE TABLE IF NOT EXISTS does not alter existing tables). Without this
+  // column, lifecycle metrics (systemHealth, generation counts) were silently
+  // dropped on every save/load round-trip.
+  const lifecycleColumns = await database.getAllAsync(`PRAGMA table_info(challenge_lifecycle_state)`);
+  if (lifecycleColumns.length > 0) {
+    const lifecycleColumnNames = new Set(lifecycleColumns.map((col: any) => col.name));
+    if (!lifecycleColumnNames.has('metrics')) {
+      console.log('🔄 Adding challenge_lifecycle_state.metrics...');
+      await database.execAsync(`ALTER TABLE challenge_lifecycle_state ADD COLUMN metrics TEXT;`);
+    }
+  }
+
   console.log('✅ Tables and views created successfully');
 
   // ========================================
@@ -714,11 +728,22 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   if (lifecycleBackupExists.length > 0) {
     console.log('🔄 Restoring challenge_lifecycle_state data from backup...');
 
-    // Restore data (map old states to new schema if needed)
-    await database.execAsync(`
-      INSERT OR REPLACE INTO challenge_lifecycle_state
-      SELECT * FROM challenge_lifecycle_state_backup;
-    `);
+    // Restore only columns that exist in BOTH tables. `SELECT *` breaks as
+    // soon as the target schema gains a column the backup doesn't have
+    // (e.g. `metrics`) — "table X has N columns but M values were supplied".
+    // New columns simply fall back to their default (NULL) for restored rows.
+    const targetCols = (await database.getAllAsync(`PRAGMA table_info(challenge_lifecycle_state)`)) as Array<{ name: string }>;
+    const backupCols = (await database.getAllAsync(`PRAGMA table_info(challenge_lifecycle_state_backup)`)) as Array<{ name: string }>;
+    const backupColNames = new Set(backupCols.map(col => col.name));
+    const commonCols = targetCols.map(col => col.name).filter(name => backupColNames.has(name));
+
+    if (commonCols.length > 0) {
+      const colList = commonCols.join(', ');
+      await database.execAsync(`
+        INSERT OR REPLACE INTO challenge_lifecycle_state (${colList})
+        SELECT ${colList} FROM challenge_lifecycle_state_backup;
+      `);
+    }
 
     const restoredCount = await database.getFirstAsync<any>('SELECT COUNT(*) as count FROM challenge_lifecycle_state');
     console.log(`✅ Restored ${restoredCount?.count || 0} lifecycle state records`);

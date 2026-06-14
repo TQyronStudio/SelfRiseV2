@@ -13,5 +13,4 @@ export * from './xpMultiplierService';
 export * from './userActivityTracker';
 export * from './monthlyChallengeLifecycleManager';
 export * from './appInitializationService';
-export * from './weeklyChallengeCleanupService';
 export * from './storage';

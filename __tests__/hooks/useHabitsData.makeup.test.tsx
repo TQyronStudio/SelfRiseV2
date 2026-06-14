@@ -1,5 +1,4 @@
-import React from 'react';
-import TestRenderer, { act } from 'react-test-renderer';
+import { renderHook } from '@testing-library/react-native';
 import { useHabitsData } from '../../src/hooks/useHabitsData';
 import { DayOfWeek, HabitColor, HabitIcon } from '../../src/types/common';
 import { Habit, HabitCompletion } from '../../src/types/habit';
@@ -64,22 +63,13 @@ function renderUseHabitsData(habit: Habit, completions: HabitCompletion[]) {
     actions: noopActions,
   });
 
-  let result: ReturnType<typeof useHabitsData> | null = null;
+  const { result } = renderHook(() => useHabitsData());
 
-  function TestComponent() {
-    result = useHabitsData();
-    return null;
-  }
-
-  act(() => {
-    TestRenderer.create(<TestComponent />);
-  });
-
-  if (!result) {
+  if (!result.current) {
     throw new Error('useHabitsData did not render');
   }
 
-  return result;
+  return result.current;
 }
 
 describe('useHabitsData Smart Bonus Conversion / Make-up', () => {

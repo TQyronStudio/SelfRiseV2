@@ -78,6 +78,28 @@ jest.mock('../storage/goalStorage', () => ({
   }))
 }));
 
+// The tracker resolves habit/gratitude storage through featureFlags
+// (getHabitStorageImpl → SQLite impl in production). Route it to the mocked
+// legacy classes above so the mock data maps drive what the service sees.
+jest.mock('../../config/featureFlags', () => {
+  const actual = jest.requireActual('../../config/featureFlags');
+  return {
+    ...actual,
+    getHabitStorageImpl: () => {
+      const { HabitStorage } = require('../storage/habitStorage');
+      return new HabitStorage();
+    },
+    getGratitudeStorageImpl: () => {
+      const { GratitudeStorage } = require('../storage/gratitudeStorage');
+      return new GratitudeStorage();
+    },
+    getGoalStorageImpl: () => {
+      const { GoalStorage } = require('../storage/goalStorage');
+      return new GoalStorage();
+    },
+  };
+});
+
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 
 // Create comprehensive test suite for both UserActivityTracker and MonthlyChallengeService
@@ -454,19 +476,20 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
       });
     });
 
-    test('should return all 16 templates across 4 categories', () => {
+    test('should return all 14 templates across 4 categories', () => {
+      // Current production catalog (technical-guides:Monthly-Challenges.md):
+      // HABITS ×4, JOURNAL ×4, GOALS ×2, CONSISTENCY ×4 = 14 templates.
       const allTemplates = MonthlyChallengeService.getAllTemplates(tFunction);
-      
+
       expect(allTemplates[AchievementCategory.HABITS]).toHaveLength(4);
       expect(allTemplates[AchievementCategory.JOURNAL]).toHaveLength(4);
-      expect(allTemplates[AchievementCategory.GOALS]).toHaveLength(4);
+      expect(allTemplates[AchievementCategory.GOALS]).toHaveLength(2);
       expect(allTemplates[AchievementCategory.CONSISTENCY]).toHaveLength(4);
-      
-      // Total 16 templates across 4 active categories
+
       const totalTemplates = Object.values(allTemplates).flat().length;
-      expect(totalTemplates).toBe(16);
-      
-      console.log('✅ Template Count Verification: 16 templates across 4 categories confirmed');
+      expect(totalTemplates).toBe(14);
+
+      console.log('✅ Template Count Verification: 14 templates across 4 categories confirmed');
     });
 
     test('should select templates based on star level requirements', () => {
@@ -591,30 +614,37 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         star5: MonthlyChallengeService.getXPRewardForStarLevel(5)
       };
 
-      // Verify XP reward progression matches specification
-      expect(rewards.star1).toBe(500);
-      expect(rewards.star2).toBe(750);
-      expect(rewards.star3).toBe(1125);
-      expect(rewards.star4).toBe(1688);
-      expect(rewards.star5).toBe(2532);
+      // Verify XP reward progression matches the spec for FULL monthly
+      // challenges (technical-guides:Monthly-Challenges.md MONTHLY_XP_REWARDS).
+      // Warm-up rewards (500–2532) are covered by getWarmUpXPReward.
+      expect(rewards.star1).toBe(5000);
+      expect(rewards.star2).toBe(7500);
+      expect(rewards.star3).toBe(12000);
+      expect(rewards.star4).toBe(17500);
+      expect(rewards.star5).toBe(25000);
 
-      console.log('✅ XP Reward Scaling: 500/750/1125/1688/2532 XP progression verified');
+      // Warm-up variant (new users < 20 active days)
+      expect(MonthlyChallengeService.getWarmUpXPReward(1)).toBe(500);
+      expect(MonthlyChallengeService.getWarmUpXPReward(5)).toBe(2532);
+
+      console.log('✅ XP Reward Scaling: 5000/7500/12000/17500/25000 XP progression verified');
     });
 
     test('should apply star progression rules correctly', async () => {
       // Mock star rating progression logic
       const { StarRatingService } = require('../starRatingService');
       
-      // Mock successful completion (should increase star level)
+      // Mock successful completion (should increase star level).
+      // Shape matches StarRatingHistoryEntry (src/types/gamification.ts).
       StarRatingService.updateStarRatingForCompletion.mockResolvedValue({
-        category: AchievementCategory.HABITS,
-        oldRating: 2,
-        newRating: 3,
-        change: 1,
         month: '2025-08',
-        reason: 'challenge_success',
+        category: AchievementCategory.HABITS,
+        previousStars: 2,
+        newStars: 3,
+        challengeCompleted: true,
         completionPercentage: 85,
-        createdAt: new Date()
+        reason: 'success',
+        timestamp: new Date()
       });
 
       const result = await MonthlyChallengeService.updateStarRatings(
@@ -625,7 +655,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
 
       expect(result.newStars).toBe(3);
       expect(result.newStars - result.previousStars).toBe(1);
-      expect(result.reason).toBe('challenge_success');
+      expect(result.reason).toBe('success');
 
       console.log('✅ Star Progression: Success → +1★ advancement verified');
     });
@@ -757,7 +787,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
       );
 
       expect(challengeParams.dataQualityUsed).toBe('complete');
-      expect(challengeParams.xpReward).toBe(2532); // Full 5★ XP
+      expect(challengeParams.xpReward).toBe(25000); // Full 5★ XP (MONTHLY_XP_REWARDS)
       expect(challengeParams.requirements[0]!.target).toBeGreaterThan(100); // Challenging target
       expect(challengeParams.requirements[0]!.scalingMultiplier).toBeCloseTo(1.25); // 5★ scaling
       

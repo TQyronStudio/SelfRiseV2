@@ -16,6 +16,10 @@ interface GoalCompletionPredictionsProps {
 
 interface PredictionData {
   method: string;
+  // Internal identifier for the calculation method (not translated/displayed).
+  // Used to distinguish the "Target Date" echo from genuine forward predictions
+  // when picking the best/worst prediction for schedule-comparison insights.
+  methodKey: 'basic' | 'linear' | 'trend' | 'target' | 'accelerated';
   estimatedDate: string;
   confidence: number;
   daysRemaining: number;
@@ -60,6 +64,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
           
           results.push({
             method: t('goals.predictions.basicMethod'),
+            methodKey: 'basic',
             estimatedDate: estimatedDate.toLocaleDateString(),
             confidence: Math.min(70, Math.max(30, 85 - (daysToComplete * 0.3))),
             daysRemaining: daysToComplete,
@@ -78,6 +83,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
         
         results.push({
           method: t('goals.predictions.linearMethod'),
+          methodKey: 'linear',
           estimatedDate: estimatedDate.toLocaleDateString(),
           confidence: Math.min(90, Math.max(30, 100 - (daysToComplete * 0.5))),
           daysRemaining: daysToComplete,
@@ -138,6 +144,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
           
           results.push({
             method: t('goals.predictions.trendMethod'),
+            methodKey: 'trend',
             estimatedDate: trendDate.toLocaleDateString(),
             confidence: Math.min(85, Math.max(40, baseConfidence - (trendDays * 0.5))),
             daysRemaining: trendDays,
@@ -159,6 +166,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
         
         results.push({
           method: t('goals.predictions.targetMethod'),
+          methodKey: 'target',
           estimatedDate: targetDate.toLocaleDateString(),
           confidence: Math.max(0, Math.min(100, achievabilityScore)),
           daysRemaining: daysToTarget,
@@ -215,6 +223,7 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
             
             results.push({
               method: t('goals.predictions.acceleratedMethod'),
+              methodKey: 'accelerated',
               estimatedDate: acceleratedDate.toLocaleDateString(),
               confidence: Math.min(75, Math.max(30, confidence - (acceleratedDays * 0.4))),
               daysRemaining: acceleratedDays,
@@ -241,8 +250,17 @@ export function GoalCompletionPredictions({ goal, stats, progressHistory, isLoad
       return results;
     }
 
-    const bestPrediction = predictions[0];
-    const worstPrediction = predictions[predictions.length - 1];
+    // The "Target Date" method just echoes goal.targetDate back as its own
+    // estimate (with a confidence score that can hit 100% when the recent
+    // pace is much faster than required). It isn't a forward-looking
+    // prediction, so it shouldn't compete for "best/worst prediction" in the
+    // insights below — otherwise comparing it against goal.targetDate is a
+    // circular, double-rounded comparison that produces a bogus "1 day
+    // behind schedule" result even when every real prediction says you're
+    // way ahead.
+    const comparablePredictions = predictions.filter(p => p.methodKey !== 'target');
+    const bestPrediction = comparablePredictions[0] ?? predictions[0];
+    const worstPrediction = comparablePredictions[comparablePredictions.length - 1] ?? predictions[predictions.length - 1];
 
     // Best case scenario
     if (bestPrediction && bestPrediction.accuracy === 'high') {

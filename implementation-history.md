@@ -17,6 +17,53 @@ A comprehensive record of technical problem-solving, debugging procedures, and i
 
 ## Archive: Recent Completed Projects (Detailed Technical History)
 
+### Pre-Release Production Audit Fixes (June 13, 2026) ✅
+
+**Project Summary**: Senior-architect production audit (`production-audit-2026-06-10.md`) identified 4 MUST-fix and 5 recommended issues before app store release. All 9 points implemented, plus 2 additional bugs found during re-verification. Surgical changes only — 37 files changed, 816 insertions(+), 2773 deletions(-) (net negative due to dead code removal).
+
+**Final verification**: `npx tsc --noEmit` → 0 errors. `npx jest --silent` → 15 suites / 187 tests passing. `npx eslint` on changed files → 0 errors (only pre-existing i18next warnings).
+
+#### Bod 1 — Split-brain XP transactions + case-mismatch bugs (gamificationService.ts)
+- **N1 (split-brain)**: `getAllTransactions`, `getTransactionsByDateRange`, `rollbackLastTransaction`, `clearAllData` read from legacy AsyncStorage while writes went to SQLite when `FEATURE_FLAGS.USE_SQLITE_GAMIFICATION=true`. Fixed all 4 to read from SQLite when the flag is on, preserving the AsyncStorage path as fallback when the flag is off.
+- **New bug A** (found during re-verification): `xp_daily_summary` column selection used `source.includes('HABIT')` etc. — a case-sensitive check against lowercase `XPSourceType` enum values (`'habit_completion'`, `'journal_entry'`, `'goal_progress'`). Never matched → `xp_daily_summary` was never populated for habit/journal/goal XP → daily XP limits and anti-spam validation were effectively disabled for these sources.
+- **New bug B**: a SQL comparison `source = 'JOURNAL_ENTRY'` (uppercase) against lowercase stored values → `journalEntryCount` in daily summaries always 0.
+- **Fix**: introduced a single shared `getDailySummaryColumn(source)` helper that correctly maps lowercase `XPSourceType` values to `habit_xp` / `journal_xp` / `goal_xp` / `achievement_xp` columns, used consistently everywhere `xp_daily_summary` is read or written.
+
+#### Bod 2 — Remove `dropGoalsTables` + `.bak` file (N2)
+- Removed dead `dropGoalsTables.ts` (a one-time destructive migration helper no longer referenced) and its import in `app/_layout.tsx`.
+- Deleted stray `_layout.tsx.bak`.
+
+#### Bod 3 — DB init retry + error screen (N3, `app/_layout.tsx`)
+- SQLite initialization now retries up to `DB_INIT_MAX_ATTEMPTS=3` with backoff (300ms × attempt) before giving up.
+- On persistent failure, shows a dedicated `DatabaseErrorScreen` (rendered before `RootProvider`, no ThemeContext available) with a "Try again" button that re-runs `initDatabase()`. Previously the app would silently continue with a dead data layer, causing every storage call to throw.
+
+#### Bod 4 — Timezone parseDate fix + app-wide sweep (N4, `src/utils/date.ts` + habit-scheduling files)
+- **Root cause**: `new Date('YYYY-MM-DD')` and `new Date(s + 'T00:00:00.000Z')` parse as **UTC midnight** per the ES spec. For any user west of UTC (all of the Americas), this shifts the parsed calendar day back by one — wrong day-of-week, wrong scheduled-vs-bonus habit classification, wrong calendar/chart rendering, and a latent infinite-loop risk in date-range iteration (UTC-parsed `+1 day` formats back to the same local date string).
+- **Fix at the root**: `parseDate()` and `isValidDateString()` in `src/utils/date.ts` now construct dates using local-midnight semantics (`new Date(year, month-1, day)`), so `formatDateToString(parseDate(s)) === s` for all timezones.
+- **Swept all direct `new Date(dateString)` call sites** in habit-scheduling-critical code: `HabitItemWithCompletion.tsx` (scheduled-vs-bonus XP classification on check-in), `DailyHabitProgress.tsx`, `DailyHabitTracker.tsx`, `habitImmutability.ts`, `HabitResetUtils.ts`, `userActivityTracker.ts` (fixed the infinite-loop risk in `gatherDailyActivitySummaries`), `recommendationEngine.ts`.
+- New regression suite `__tests__/utils/date.timezone.test.ts` runs the full date-utils suite across `America/Los_Angeles`, `UTC`, and `Pacific/Auckland` to catch any future regression of this class.
+
+#### Bod 5 — Green typecheck + test suite (N5)
+- Got `npx tsc --noEmit` to 0 errors and the full Jest suite to 187/187 passing. Migrated from deprecated direct `react-test-renderer` usage to `@testing-library/react-native` `renderHook`. Replaced broken `jest.spyOn(global, 'Date').mockImplementation()` time-mocking with `jest.useFakeTimers({ doNotFake: [...] }) + jest.setSystemTime()`.
+- Added `__tests__/mocks/expo-sqlite.mock.js` using Node's built-in `node:sqlite` (`DatabaseSync`, Node ≥22.5) to mock `expo-sqlite` with real SQL semantics for `SqliteConsistency.test.ts`.
+
+#### Bod 7 — `sqlite_migration_state` telemetry (N7, `appInitializationService.ts`)
+- Added Firebase Analytics event logging around the SQLite migration state so migration failures/edge cases are visible in production telemetry.
+
+#### Bod 8 — Hide AdBanner during keyboard in Journal (N19, `app/(tabs)/journal.tsx`)
+- The ad banner is now hidden while the on-screen keyboard is visible (journal entry composition) — avoids ad overlap with the input on small screens during the most emotionally sensitive interaction in the app. Implemented via `Keyboard.addListener` for `keyboardWillShow/Hide` (iOS) / `keyboardDidShow/Hide` (Android).
+
+#### Bod 9 — Dead code removal (N13)
+- Removed: `productionMonitoring`, `optimizedStorage`, `gamificationCache`, `weeklyChallengeCleanupService`, social components (unused — no backend), plus the `dropGoalsTables.ts` / `.bak` from Bod 2.
+
+#### Side fixes during the sweep
+- `GoalsScreen.tsx`, `userStatsCollector.ts`, `recommendationEngine.ts`: replaced direct `goalStorage` references with `getGoalStorageImpl()` for SQLite/AsyncStorage consistency (same split-brain class as Bod 1, scoped to goals).
+- `src/services/database/init.ts` + `SQLiteChallengeStorage.ts`: added a migration for the missing `challenge_lifecycle_state.metrics` column (surfaced by the new test suite).
+
+**Files changed**: `src/services/gamificationService.ts`, `src/utils/date.ts`, `app/_layout.tsx`, `app/(tabs)/journal.tsx`, `src/services/appInitializationService.ts`, `src/services/database/init.ts`, `src/services/storage/SQLiteChallengeStorage.ts`, `src/components/habits/HabitItemWithCompletion.tsx`, `src/components/habits/DailyHabitProgress.tsx`, `src/components/habits/DailyHabitTracker.tsx`, `src/utils/habitImmutability.ts`, `src/utils/HabitResetUtils.ts`, `src/services/userActivityTracker.ts`, `src/services/recommendationEngine.ts`, `src/screens/goals/GoalsScreen.tsx`, `src/services/userStatsCollector.ts`, plus new test files (`__tests__/mocks/expo-sqlite.mock.js`, `__tests__/services/gamification/SqliteConsistency.test.ts`, `__tests__/utils/date.timezone.test.ts`) and updated existing suites (useHabitsData.makeup, MathematicalModel, userActivityTracker.test/.baseline.test, monthlyChallenge.phase3.test/.production.test).
+
+---
+
 ### Monthly Challenges System - Complete Implementation (September 13, 2025) ✅
 
 **Project Summary**: Systematic implementation of 12 Monthly Challenge types across 4 categories (Habits, Journal, Goals, Consistency) with adaptive baseline personalization and real-time progress tracking.

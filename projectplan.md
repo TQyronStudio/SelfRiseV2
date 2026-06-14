@@ -1,5 +1,24 @@
 # SelfRise V2 - Project Plan
 
+## ✅ COMPLETED: Pre-Release Production Audit Fixes (2026-06-13)
+
+**Goal**: Implement the 4 MUST-fix + 5 recommended issues from `production-audit-2026-06-10.md` before app store release, plus 2 additional bugs found during re-verification.
+
+- [x] Bod 1 — Split-brain XP transaction read paths (SQLite) + case-mismatch fix in `xp_daily_summary` (daily limits/anti-spam were silently disabled for habit/journal/goal XP)
+- [x] Bod 2 — Removed `dropGoalsTables.ts` + `_layout.tsx.bak`
+- [x] Bod 3 — DB init retry (3x w/ backoff) + `DatabaseErrorScreen` fallback
+- [x] Bod 4 — Fixed root-cause UTC timezone bug in `parseDate`/`isValidDateString` + swept all habit-scheduling `new Date(dateString)` call sites (incl. infinite-loop risk in `userActivityTracker`)
+- [x] Bod 5 — `npx tsc --noEmit` 0 errors, full Jest suite green (187/187)
+- [x] Bod 7 — `sqlite_migration_state` Firebase telemetry
+- [x] Bod 8 — AdBanner hidden during keyboard in Journal
+- [x] Bod 9 — Dead code removal (productionMonitoring, optimizedStorage, gamificationCache, weeklyChallengeCleanupService, social components)
+
+**Verification**: tsc 0 errors, 187/187 tests passing, eslint clean (only pre-existing i18next warnings). Git diff: 37 files, +816/-2773.
+
+Full technical details: @implementation-history.md → "Pre-Release Production Audit Fixes (June 13, 2026)"
+
+---
+
 ## 📈 PLANNED: Meta Ads & Marketing Analytics Integration
 
 **Goal**: Připravit SelfRise V2 pro běh marketingových kampaní na Meta Ads (Facebook + Instagram) a zároveň začít aktivně sbírat custom eventy do Firebase Analytics pro vlastní reporting.

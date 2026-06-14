@@ -379,6 +379,29 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       }
     }
 
+    // Parse persisted metrics; fall back to a fully-populated default object
+    // so callers can rely on metrics.systemHealth etc. (rows saved before the
+    // metrics column existed have NULL here).
+    const defaultMetrics = {
+      totalGenerations: 0,
+      successfulGenerations: 0,
+      averageGenerationTime: 0,
+      lastBackgroundCheck: new Date(),
+      systemHealth: 'healthy' as const,
+    };
+    let metrics = defaultMetrics;
+    if (row.metrics) {
+      const parsed = JSON.parse(row.metrics);
+      metrics = {
+        ...defaultMetrics,
+        ...parsed,
+        // Revive Date (JSON.stringify stores it as an ISO string)
+        lastBackgroundCheck: parsed.lastBackgroundCheck
+          ? new Date(parsed.lastBackgroundCheck)
+          : new Date(),
+      };
+    }
+
     return {
       currentState: row.current_state,
       currentChallenge: currentChallenge,
@@ -387,7 +410,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       stateHistory: JSON.parse(row.state_history || '[]'),
       pendingActions: JSON.parse(row.pending_actions || '[]'),
       errors: JSON.parse(row.error_log || '[]'),
-      metrics: row.metrics ? JSON.parse(row.metrics) : {}
+      metrics
     };
   }
 
@@ -395,8 +418,8 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
     await this.db.runAsync(
       `INSERT OR REPLACE INTO challenge_lifecycle_state (
         month, current_state, current_challenge_id, preview_challenge_id,
-        last_state_change, pending_actions, state_history, error_log, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        last_state_change, pending_actions, state_history, error_log, metrics, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         month,
         state.currentState,
@@ -406,6 +429,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
         JSON.stringify(state.pendingActions || []),
         JSON.stringify(state.stateHistory || []),
         JSON.stringify(state.errors || []),
+        JSON.stringify(state.metrics || {}),
         Date.now()
       ]
     );

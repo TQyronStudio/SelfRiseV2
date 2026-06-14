@@ -39,6 +39,11 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
     mockAsyncStorage.multiRemove.mockImplementation(async (keys) => {
       keys.forEach(key => storage.delete(key));
     });
+
+    // StarRatingService keeps a static in-memory cache (TTL) on top of
+    // AsyncStorage — clearing the storage mock alone leaks ratings between
+    // tests. Reset cache + data explicitly.
+    await StarRatingService.clearAllStarData();
   });
 
   // ========================================
@@ -363,11 +368,14 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       }
     });
 
-    test(' A12. Unsupported category graceful handling', async () => {
-      // Test with unsupported category
+    test('A12. GOALS category star progression (supported category)', async () => {
+      // GOALS is a fully supported star-rating category in the current design
+      // (StarRatingService.normalizeStarRatings includes `goals`). The old
+      // version of this test asserted fallback behavior for an "unsupported"
+      // category, which no longer reflects production.
       const completionData: ChallengeCompletionData = {
-        challengeId: 'unsupported-test',
-        category: AchievementCategory.GOALS, // Not supported in star rating
+        challengeId: 'goals-category-test',
+        category: AchievementCategory.GOALS,
         completionPercentage: 100,
         month: '2025-08',
         wasCompleted: true,
@@ -378,11 +386,11 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       // Execute
       const result = await StarRatingService.updateStarRatingForCompletion(completionData);
 
-      // Assert - should return fallback values
+      // Assert - 100% completion advances the GOALS rating 1 -> 2 stars
       expect(result.previousStars).toBe(1);
-      expect(result.newStars).toBe(1);
-      expect(result.reason).toBe('failure');
-      expect(result.challengeCompleted).toBe(false);
+      expect(result.newStars).toBe(2);
+      expect(result.reason).toBe('success');
+      expect(result.challengeCompleted).toBe(true);
     });
   });
 
@@ -392,22 +400,35 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
 
   describe('=� Star-based XP Scaling System (8/8)', () => {
     test(' B1. XP reward calculation for all star levels', () => {
-      // Test precise XP rewards for each star level
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(1)).toBe(500);   // 1 Easy
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(2)).toBe(750);   // 2 Medium  
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(3)).toBe(1125);  // 3 Hard
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(4)).toBe(1688);  // 4 Expert
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBe(2532);  // 5 Master
+      // Test precise XP rewards for each star level - FULL monthly challenges
+      // (MONTHLY_XP_REWARDS per technical-guides:Monthly-Challenges.md).
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(1)).toBe(5000);   // 1 Easy
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(2)).toBe(7500);   // 2 Medium
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(3)).toBe(12000);  // 3 Hard
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(4)).toBe(17500);  // 4 Expert
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBe(25000);  // 5 Master
+
+      // Warm-up variant for new users (< 20 active days)
+      expect(MonthlyChallengeService.getWarmUpXPReward(1)).toBe(500);
+      expect(MonthlyChallengeService.getWarmUpXPReward(5)).toBe(2532);
     });
 
     test(' B2. XP scaling progression validation', () => {
-      // Validate the exponential progression (1.5x multiplier)
+      // Validate that rewards increase strictly with star level for both
+      // the full monthly and the warm-up reward tables.
+      for (let star = 2 as 2 | 3 | 4 | 5; star <= 5; star++) {
+        expect(MonthlyChallengeService.getXPRewardForStarLevel(star))
+          .toBeGreaterThan(MonthlyChallengeService.getXPRewardForStarLevel((star - 1) as 1 | 2 | 3 | 4));
+        expect(MonthlyChallengeService.getWarmUpXPReward(star))
+          .toBeGreaterThan(MonthlyChallengeService.getWarmUpXPReward((star - 1) as 1 | 2 | 3 | 4));
+      }
+
+      // Warm-up table keeps the original 1.5x exponential progression
       const baseReward = 500;
-      
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(2)).toBe(baseReward * 1.5);        // 750
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(3)).toBe(Math.round(baseReward * 2.25));   // 1125 (1.5�)
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(4)).toBe(Math.round(baseReward * 3.375));  // 1688 (1.5�)
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBe(Math.round(baseReward * 5.064));  // 2532 (1.5t)
+      expect(MonthlyChallengeService.getWarmUpXPReward(2)).toBe(baseReward * 1.5);                    // 750
+      expect(MonthlyChallengeService.getWarmUpXPReward(3)).toBe(Math.round(baseReward * 2.25));       // 1125
+      expect(MonthlyChallengeService.getWarmUpXPReward(4)).toBe(Math.round(baseReward * 3.375));      // 1688 (1687.5 rounded)
+      expect(MonthlyChallengeService.getWarmUpXPReward(5)).toBe(Math.round(baseReward * 5.064));      // 2532
     });
 
     test(' B3. Star scaling multiplier accuracy', () => {
@@ -497,7 +518,7 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       
       // XP rewards boundaries
       expect(MonthlyChallengeService.getXPRewardForStarLevel(1)).toBeGreaterThan(0);
-      expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBeLessThan(5000); // Reasonable upper bound
+      expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBeLessThanOrEqual(25000); // MONTHLY_XP_REWARDS upper bound
       
       // Scaling boundaries
       expect(MonthlyChallengeService.applyStarScaling(1, 1)).toBeGreaterThan(0);
@@ -593,8 +614,8 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       expect(Math.max(0, -10)).toBe(0);     // Below 0% � 0
       
       // XP reward boundaries validation
-      const minXP = 500;   // 1 minimum
-      const maxXP = 2532;  // 5 maximum
+      const minXP = 5000;   // 1-star minimum (MONTHLY_XP_REWARDS)
+      const maxXP = 25000;  // 5-star maximum (MONTHLY_XP_REWARDS)
       
       for (let starLevel = 1; starLevel <= 5; starLevel++) {
         const xpReward = MonthlyChallengeService.getXPRewardForStarLevel(starLevel as 1|2|3|4|5);
@@ -724,7 +745,7 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       
       // 4. Calculate new XP reward based on new star level
       const xpReward = MonthlyChallengeService.getXPRewardForStarLevel(2);
-      expect(xpReward).toBe(750);
+      expect(xpReward).toBe(7500); // MONTHLY_XP_REWARDS (full monthly challenge)
       
       // 5. Calculate new difficulty for next challenge
       const difficulty = await StarRatingService.calculateDifficulty(AchievementCategory.HABITS, 30);

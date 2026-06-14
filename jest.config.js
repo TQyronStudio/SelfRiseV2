@@ -19,11 +19,15 @@ module.exports = {
     '^@/components/(.*)$': '<rootDir>/components/$1',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@expo|expo|@unimodules|unimodules|sentry-expo|native-base|react-clone-referenced-element|@react-native-community|react-navigation|@react-navigation)/)',
+    // Prefix match (no trailing slash) so that e.g. `expo` also covers
+    // expo-sqlite, expo-modules-core and other expo-* ESM packages.
+    'node_modules/(?!(react-native|@react-native|@expo|expo|@unimodules|unimodules|sentry-expo|native-base|react-clone-referenced-element|@react-native-community|react-navigation|@react-navigation))',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/.expo/',
+    '<rootDir>/__tests__/setup.ts',
+    '<rootDir>/__tests__/mocks/',
   ],
   coverageReporters: [
     'text',

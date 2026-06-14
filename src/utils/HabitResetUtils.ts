@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { formatDateToString } from './date';
+import { formatDateToString, parseDate } from './date';
+import { DateString } from '../types/common';
 
 const LAST_RESET_KEY = 'habitTracker:lastReset';
 
@@ -100,7 +101,8 @@ export class HabitResetUtils {
    */
   static getDaysSince(date: string): number {
     try {
-      const targetDate = new Date(date);
+      // parseDate = LOCAL midnight (UTC parsing skewed the day diff west of UTC)
+      const targetDate = parseDate(date as DateString);
       const today = new Date();
       const diffTime = Math.abs(today.getTime() - targetDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

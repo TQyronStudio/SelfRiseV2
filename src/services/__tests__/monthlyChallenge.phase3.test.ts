@@ -94,7 +94,7 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
   beforeEach(async () => {
     jest.clearAllMocks();
     mockAsyncStorage.clear();
-    
+
     // Reset storage state
     const storage = new Map();
     mockAsyncStorage.getItem.mockImplementation(async (key) => storage.get(key) || null);
@@ -105,6 +105,34 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
       keys.forEach(key => storage.delete(key));
     });
   });
+
+  afterEach(() => {
+    // Tests below mock the system date via fake timers — always restore.
+    jest.useRealTimers();
+  });
+
+  /**
+   * Mock "now" without breaking the Date API.
+   * The old `jest.spyOn(global, 'Date').mockImplementation(() => mockDate)`
+   * approach broke `Date.now()` and `new Date(timestamp)` used by the SQLite
+   * storage layer. Fake timers with `doNotFake` keep real setTimeout/setInterval
+   * (tests await real delays) while faking the system clock.
+   */
+  function mockSystemDate(date: Date): void {
+    jest.useFakeTimers({
+      doNotFake: [
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'setImmediate',
+        'clearImmediate',
+        'nextTick',
+        'queueMicrotask',
+      ],
+    });
+    jest.setSystemTime(date);
+  }
 
   // ========================================
   // PHASE 3A: STAR RATING SERVICE PROGRESSION LOGIC
@@ -456,7 +484,7 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
       // Mock being on day 4 of month
       const mockDate = new Date();
       mockDate.setDate(4);
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      mockSystemDate(mockDate);
 
       jest.spyOn(MonthlyChallengeService, 'getCurrentChallenge').mockResolvedValue(null);
       jest.spyOn(MonthlyChallengeService, 'generateChallengeForCurrentMonth').mockResolvedValue({
@@ -489,8 +517,7 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
 
     test('= 4. Error handling and recovery mechanisms', async () => {
       // CRITICAL FIX: Mock date to beginning of month to trigger challenge generation
-      const mockDate = new Date('2025-08-02');
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+      mockSystemDate(new Date('2025-08-02T12:00:00'));
       
       // Mock generation failure
       jest.spyOn(MonthlyChallengeService, 'getCurrentChallenge').mockResolvedValue(null);
@@ -535,7 +562,7 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
       // Mock date as 26th day of month
       const mockDate = new Date();
       mockDate.setDate(26);
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      mockSystemDate(mockDate);
 
       // Execute
       const preview = await MonthlyChallengeLifecycleManager.forcePreviewGeneration();
@@ -557,7 +584,7 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
       // Mock date as 1st day of month
       const mockDate = new Date();
       mockDate.setDate(1);
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      mockSystemDate(mockDate);
 
       jest.spyOn(MonthlyChallengeService, 'generateChallengeForCurrentMonth').mockResolvedValue({
         challenge: createMockChallenge(),

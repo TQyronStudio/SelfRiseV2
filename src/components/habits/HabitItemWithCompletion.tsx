@@ -19,7 +19,8 @@ import { HabitColor, HabitIcon, DayOfWeek } from '@/src/types/common';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts } from '@/src/constants/fonts';
 import { useI18n } from '@/src/hooks/useI18n';
-import { formatDateToString, getDayOfWeek } from '@/src/utils/date';
+import { formatDateToString, getDayOfWeek, parseDate } from '@/src/utils/date';
+import { DateString } from '@/src/types/common';
 import { HabitCompletionButton } from './HabitCompletionButton';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
 import { ConfirmationModal, HelpTooltip } from '@/src/components/common';
@@ -148,7 +149,9 @@ export const HabitItemWithCompletion = React.memo(({
 
     isTogglingRef.current = true;
     try {
-      const today = new Date(date);
+      // parseDate = LOCAL midnight; `new Date('YYYY-MM-DD')` would be UTC
+      // midnight and misclassify scheduled vs bonus west of UTC.
+      const today = parseDate(date as DateString);
       const dayOfWeek = getDayOfWeek(today);
       const isScheduled = habit.scheduledDays.includes(dayOfWeek);
 
@@ -162,13 +165,13 @@ export const HabitItemWithCompletion = React.memo(({
 
   const isCompleted = completion?.completed || false;
   const isScheduledToday = () => {
-    const today = new Date(date);
+    const today = parseDate(date as DateString);
     const dayOfWeek = getDayOfWeek(today);
     return habit.scheduledDays.includes(dayOfWeek);
   };
-  
+
   // Detekce dnešního dne pro vizuální zvýraznění
-  const todayDayOfWeek = getDayOfWeek(new Date(date));
+  const todayDayOfWeek = getDayOfWeek(parseDate(date as DateString));
   const isHabitScheduledToday = habit.scheduledDays.includes(todayDayOfWeek);
   const isActiveHabit = habit.isActive;
 

@@ -35,14 +35,22 @@ export const formatDateToString = (date: Date): DateString => {
 };
 
 export const parseDate = (dateString: DateString): Date => {
-  return new Date(dateString + 'T00:00:00.000Z');
+  // IMPORTANT: parse as LOCAL midnight. Both `new Date('YYYY-MM-DD')` and
+  // `new Date(dateString + 'T00:00:00.000Z')` are interpreted as UTC midnight
+  // (ES spec), which shifts the calendar day for every user west of UTC —
+  // e.g. in New York the parsed "2026-06-10" became June 9th, 19:00 local,
+  // so getDay()/scheduled-day checks were off by one day.
+  const [year = 0, month = 1, day = 1] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
 };
 
 export const isValidDateString = (dateString: string): boolean => {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(dateString)) return false;
-  
-  const date = new Date(dateString);
+
+  // Round-trip via LOCAL parsing (see parseDate) — the previous
+  // `new Date(dateString)` (UTC) made valid dates fail west of UTC.
+  const date = parseDate(dateString as DateString);
   return !isNaN(date.getTime()) && formatDateToString(date) === dateString;
 };
 

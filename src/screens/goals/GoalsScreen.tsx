@@ -14,11 +14,14 @@ import { ErrorModal, HelpTooltip } from '@/src/components/common';
 // XPSourceType removed - XP handled by goalStorage
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { goalStorage } from '@/src/services/storage/goalStorage';
+// Use the feature-flag-aware storage (SQLite) — the legacy AsyncStorage
+// goalStorage returned null for goals living in SQLite, so the goal
+// completion celebration never fired.
+import { getGoalStorageImpl } from '@/src/config/featureFlags';
+
+const goalStorage = getGoalStorageImpl();
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
-import { dropGoalsTables } from '@/src/utils/dropGoalsTables';
-import { getDatabase } from '@/src/services/database/init';
 
 export function GoalsScreen() {
   const { t } = useI18n();

@@ -123,6 +123,11 @@ export class AppInitializationService {
           totalTime: result.totalTime,
           servicesInitialized: result.services.filter(s => s.initialized).length
         });
+
+        // Fire-and-forget storage telemetry — confirms in the field that all
+        // users run on pure SQLite, which is the precondition for deleting the
+        // legacy AsyncStorage code path in a future update.
+        void this.logStorageTelemetry();
       } else {
         this.log('App initialization failed', {
           errors: result.errors,
@@ -147,6 +152,49 @@ export class AppInitializationService {
     }
   }
   
+  // ===============================================
+  // STORAGE TELEMETRY
+  // ===============================================
+
+  /**
+   * Log the storage/migration state to Firebase Analytics (event
+   * `sqlite_migration_state`). Used to verify that the user base runs purely
+   * on SQLite before the legacy AsyncStorage storage layer is removed.
+   * Never throws — telemetry must not affect startup.
+   */
+  private static async logStorageTelemetry(): Promise<void> {
+    try {
+      const { FEATURE_FLAGS } = require('../config/featureFlags');
+      const { getDatabase } = require('./database/init');
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      const { FirebaseAnalytics } = require('../hooks/useFirebaseAnalytics');
+
+      const db = getDatabase();
+      const txCount = await db.getFirstAsync('SELECT COUNT(*) as count FROM xp_transactions');
+      const allKeys: string[] = await AsyncStorage.getAllKeys();
+
+      const sqliteFlagsEnabled = [
+        FEATURE_FLAGS.USE_SQLITE_JOURNAL,
+        FEATURE_FLAGS.USE_SQLITE_HABITS,
+        FEATURE_FLAGS.USE_SQLITE_GOALS,
+        FEATURE_FLAGS.USE_SQLITE_GAMIFICATION,
+        FEATURE_FLAGS.USE_SQLITE_CHALLENGES,
+      ].filter(Boolean).length;
+
+      await FirebaseAnalytics.logEvent('sqlite_migration_state', {
+        sqlite_flags_enabled: sqliteFlagsEnabled, // expect 5
+        sqlite_xp_transactions: Number(txCount?.count ?? 0),
+        legacy_xp_store_present: allKeys.includes('gamification_xp_transactions') ? 1 : 0,
+        async_storage_key_count: allKeys.length,
+      });
+
+      this.log('Storage telemetry logged (sqlite_migration_state)');
+    } catch (error) {
+      // Telemetry is best-effort only.
+      console.warn('Storage telemetry failed (non-critical):', error);
+    }
+  }
+
   // ===============================================
   // SERVICE INITIALIZATION ORDER
   // ===============================================

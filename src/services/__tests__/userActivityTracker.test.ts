@@ -10,25 +10,53 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   getAllKeys: jest.fn(() => Promise.resolve([])),
 }));
 
-// Mock storage services
-jest.mock('../storage/habitStorage', () => ({
-  HabitStorage: jest.fn().mockImplementation(() => ({
+// Mock storage services.
+// IMPORTANT: shared singleton instances — the service constructs its own
+// instances (or resolves them via featureFlags), so per-instance jest.fn()s
+// created in the test would never be the ones the service calls.
+jest.mock('../storage/habitStorage', () => {
+  const instance = {
     getCompletionsByDate: jest.fn(),
-    getUniqueHabitsCompletedOnDate: jest.fn()
-  }))
-}));
+    getUniqueHabitsCompletedOnDate: jest.fn(),
+  };
+  return { HabitStorage: jest.fn(() => instance) };
+});
 
-jest.mock('../storage/gratitudeStorage', () => ({
-  GratitudeStorage: jest.fn().mockImplementation(() => ({
-    getEntriesForDate: jest.fn()
-  }))
-}));
+jest.mock('../storage/gratitudeStorage', () => {
+  const instance = {
+    getEntriesForDate: jest.fn(),
+  };
+  return { GratitudeStorage: jest.fn(() => instance) };
+});
 
-jest.mock('../storage/goalStorage', () => ({
-  GoalStorage: jest.fn().mockImplementation(() => ({
-    getAll: jest.fn()
-  }))
-}));
+jest.mock('../storage/goalStorage', () => {
+  const instance = {
+    getAll: jest.fn(),
+  };
+  return { GoalStorage: jest.fn(() => instance) };
+});
+
+// The tracker resolves habit/gratitude storage through featureFlags
+// (getHabitStorageImpl → SQLite impl in production). Route it to the same
+// mocked singletons so the test controls what the service sees.
+jest.mock('../../config/featureFlags', () => {
+  const actual = jest.requireActual('../../config/featureFlags');
+  return {
+    ...actual,
+    getHabitStorageImpl: () => {
+      const { HabitStorage } = require('../storage/habitStorage');
+      return new HabitStorage();
+    },
+    getGratitudeStorageImpl: () => {
+      const { GratitudeStorage } = require('../storage/gratitudeStorage');
+      return new GratitudeStorage();
+    },
+    getGoalStorageImpl: () => {
+      const { GoalStorage } = require('../storage/goalStorage');
+      return new GoalStorage();
+    },
+  };
+});
 
 jest.mock('../gamificationService', () => ({
   GamificationService: {
@@ -256,30 +284,48 @@ describe('UserActivityTracker', () => {
       const gratitudeStorage = new GratitudeStorage();
       const goalStorage = new GoalStorage();
 
-      // Mock moderate user activity
-      habitStorage.getCompletionsByDate.mockResolvedValue([
-        { id: '1', habitId: 'h1', isBonus: false, date: today() },
-        { id: '2', habitId: 'h2', isBonus: false, date: today() }
-      ]);
-      
-      habitStorage.getUniqueHabitsCompletedOnDate.mockResolvedValue(['h1', 'h2']);
-      
-      gratitudeStorage.getEntriesForDate.mockResolvedValue([
-        { id: '1', content: 'Grateful for sunny weather', date: today() },
-        { id: '2', content: 'Thankful for good health', date: today() },
-        { id: '3', content: 'Appreciate family time', date: today() }
-      ]);
-      
+      // Mock moderate user activity — ONLY for today. The baseline scans the
+      // whole month day-by-day; an unconditional mockResolvedValue would make
+      // every day look active and data quality would become 'complete'
+      // instead of the intended 'minimal' (single active day).
+      habitStorage.getCompletionsByDate.mockImplementation(async (date: string) =>
+        date === today()
+          ? [
+              { id: '1', habitId: 'h1', isBonus: false, date: today() },
+              { id: '2', habitId: 'h2', isBonus: false, date: today() },
+            ]
+          : []
+      );
+
+      habitStorage.getUniqueHabitsCompletedOnDate.mockImplementation(async (date: string) =>
+        date === today() ? ['h1', 'h2'] : []
+      );
+
+      gratitudeStorage.getEntriesForDate.mockImplementation(async (date: string) =>
+        date === today()
+          ? [
+              { id: '1', content: 'Grateful for sunny weather', date: today() },
+              { id: '2', content: 'Thankful for good health', date: today() },
+              { id: '3', content: 'Appreciate family time', date: today() },
+            ]
+          : []
+      );
+
       goalStorage.getAll.mockResolvedValue([
         { id: '1', targetValue: 1000, status: 'active' },
         { id: '2', targetValue: 500, status: 'active' }
       ]);
-      
-      GamificationService.getTransactionsByDateRange.mockResolvedValue([
-        { amount: 25, source: 'habit_completion', date: today() },
-        { amount: 20, source: 'journal_entry', date: today() },
-        { amount: 35, source: 'goal_progress', date: today() }
-      ]);
+
+      GamificationService.getTransactionsByDateRange.mockImplementation(
+        async (startDate: string, endDate: string) =>
+          startDate <= today() && today() <= endDate
+            ? [
+                { amount: 25, source: 'habit_completion', date: today() },
+                { amount: 20, source: 'journal_entry', date: today() },
+                { amount: 35, source: 'goal_progress', date: today() },
+              ]
+            : []
+      );
 
       const baseline = await UserActivityTracker.calculateMonthlyBaseline({
         ignoreCachedData: true

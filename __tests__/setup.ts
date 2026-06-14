@@ -54,5 +54,18 @@ jest.mock('expo-localization', () => ({
   getLocales: jest.fn(() => [{ languageCode: 'en', regionCode: 'US' }]),
 }));
 
+// Mock expo-sqlite with a real in-memory SQLite (node:sqlite, Node >= 22.5).
+// Gives tests genuine SQL semantics instead of inert stubs.
+jest.mock('expo-sqlite', () => require('./mocks/expo-sqlite.mock'));
+
+// Initialize the (mocked, in-memory) SQLite database before each suite.
+// Mirrors production startup, where initializeDatabase() runs before any
+// storage/gamification code executes. Each jest suite has its own module
+// registry, so every test file gets a fresh in-memory database.
+beforeAll(async () => {
+  const { initializeDatabase } = require('../src/services/database/init');
+  await initializeDatabase();
+});
+
 // Global test timeout
 jest.setTimeout(10000);

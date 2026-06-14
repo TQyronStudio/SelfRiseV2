@@ -163,9 +163,11 @@ export class UserActivityTracker {
       console.log('🔄 Starting monthly baseline calculation...');
       
       // Set default analysis period (last 30 days)
+      // NOTE: subtractDays parses the date string at LOCAL midnight. The
+      // previous `new Date(endDate)` parsed at UTC midnight, shifting the
+      // analysis window by one day for users west of UTC.
       const endDate = options.analysisEndDate || today();
-      const startDate = options.analysisStartDate || 
-        formatDateToString(addDays(new Date(endDate), -30) as Date);
+      const startDate = options.analysisStartDate || subtractDays(endDate, 30);
       
       const userId = options.userId || 'local_user';
       const currentMonth = endDate.substring(0, 7); // "YYYY-MM"
@@ -368,8 +370,13 @@ export class UserActivityTracker {
         
         summaries.push(summary);
         
-        // Move to next day
-        currentDate = formatDateToString(addDays(new Date(currentDate), 1) as Date);
+        // Move to next day.
+        // CRITICAL: must use the DateString branch of addDays (LOCAL parsing).
+        // The previous `new Date(currentDate)` parsed at UTC midnight; west of
+        // UTC the +1 day then formatted back to the SAME date string, so this
+        // loop never advanced → infinite loop / app freeze during baseline
+        // calculation for users in negative UTC offsets.
+        currentDate = addDays(currentDate, 1) as DateString;
       }
       
       console.log(`📊 Gathered ${summaries.length} daily summaries`);

@@ -33,6 +33,23 @@ export default function JournalScreen() {
   
   const todayDate = today();
   const [todaysGratitudes, setTodaysGratitudes] = useState(actions.getGratitudesByDate(todayDate));
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Hide the ad banner while the user is writing a journal entry — the most
+  // emotionally sensitive moment in the app shouldn't have an ad next to the
+  // keyboard (and the banner would overlap the input on small screens).
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const hideSubscription = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
   const currentCount = todaysGratitudes.length;
   const isComplete = currentCount >= 3;
   const hasBonus = currentCount >= 4;
@@ -345,10 +362,12 @@ export default function JournalScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
-      {/* AdMob Banner - Fixed at bottom */}
-      <View style={styles.bannerContainer}>
-        <AdBanner />
-      </View>
+      {/* AdMob Banner - Fixed at bottom, hidden while writing an entry */}
+      {!isKeyboardVisible && (
+        <View style={styles.bannerContainer}>
+          <AdBanner />
+        </View>
+      )}
 
       {/* All celebration modals rendered by ModalQueueContext */}
     </SafeAreaView>

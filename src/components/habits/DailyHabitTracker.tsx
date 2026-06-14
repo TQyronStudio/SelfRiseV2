@@ -10,7 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useHabitsData } from '../../hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
-import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../utils/date';
+import { formatDateToString, getDayOfWeek, formatDateForDisplay, parseDate } from '../../utils/date';
+import { DateString } from '../../types/common';
 import { Habit, HabitCompletion } from '../../types/habit';
 // XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '../../constants/gamification';
@@ -46,7 +47,8 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
   
   // Check if habit is scheduled for today
   const isScheduledToday = (habit: Habit): boolean => {
-    const today = new Date(date);
+    // parseDate = LOCAL midnight (UTC parsing shifted the weekday west of UTC)
+    const today = parseDate(date as DateString);
     const dayOfWeek = getDayOfWeek(today);
     return habit.scheduledDays.includes(dayOfWeek);
   };

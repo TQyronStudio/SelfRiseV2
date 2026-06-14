@@ -793,11 +793,11 @@ export class GamificationService {
           );
 
           // 3. UPDATE daily summary (UPSERT)
-          const sourceColumn = options.source.includes('HABIT') ? 'habit_xp'
-            : options.source.includes('JOURNAL') ? 'journal_xp'
-            : options.source.includes('GOAL') ? 'goal_xp'
-            : options.source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
-            : null;
+          // NOTE: lowercase-aware mapping (see getDailySummaryColumn). Sources
+          // without a dedicated column (monthly challenge, loyalty, ...) still
+          // count toward total_xp — TOTAL_DAILY_MAX is an absolute daily cap
+          // across all sources (technical-guides:Gamification-Core.md).
+          const sourceColumn = this.getDailySummaryColumn(options.source);
 
           if (sourceColumn) {
             await db.runAsync(
@@ -809,6 +809,16 @@ export class GamificationService {
                  transaction_count = transaction_count + 1,
                  updated_at = ?`,
               [todayDate, finalAmount, finalAmount, timestamp, finalAmount, finalAmount, timestamp]
+            );
+          } else {
+            await db.runAsync(
+              `INSERT INTO xp_daily_summary (date, total_xp, transaction_count, updated_at)
+               VALUES (?, ?, 1, ?)
+               ON CONFLICT(date) DO UPDATE SET
+                 total_xp = total_xp + ?,
+                 transaction_count = transaction_count + 1,
+                 updated_at = ?`,
+              [todayDate, finalAmount, timestamp, finalAmount, timestamp]
             );
           }
 
@@ -1046,11 +1056,8 @@ export class GamificationService {
           );
 
           // 3. UPDATE daily summary (subtract from totals)
-          const sourceColumn = options.source.includes('HABIT') ? 'habit_xp'
-            : options.source.includes('JOURNAL') ? 'journal_xp'
-            : options.source.includes('GOAL') ? 'goal_xp'
-            : options.source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
-            : null;
+          // NOTE: lowercase-aware mapping (see getDailySummaryColumn).
+          const sourceColumn = this.getDailySummaryColumn(options.source);
 
           if (sourceColumn) {
             await db.runAsync(
@@ -1061,6 +1068,15 @@ export class GamificationService {
                 updated_at = ?
               WHERE date = ?`,
               [amount, amount, timestamp, todayDate]
+            );
+          } else {
+            await db.runAsync(
+              `UPDATE xp_daily_summary SET
+                total_xp = MAX(0, total_xp - ?),
+                transaction_count = MAX(0, transaction_count - 1),
+                updated_at = ?
+              WHERE date = ?`,
+              [amount, timestamp, todayDate]
             );
           }
 
@@ -1449,6 +1465,34 @@ export class GamificationService {
    */
   static async clearAllData(): Promise<void> {
     try {
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation — reset transactions, daily summaries and state.
+        // (Previously only legacy AsyncStorage keys were removed, so a "reset"
+        // left all SQLite gamification data intact.)
+        const db = getDatabase();
+        const ts = Date.now();
+
+        await db.execAsync('BEGIN TRANSACTION');
+        try {
+          await db.execAsync('DELETE FROM xp_transactions');
+          await db.execAsync('DELETE FROM xp_daily_summary');
+          await db.runAsync(
+            'INSERT OR REPLACE INTO xp_state (id, total_xp, current_level, last_activity, updated_at) VALUES (1, 0, ?, ?, ?)',
+            [getCurrentLevel(0), ts, ts]
+          );
+          await db.execAsync('COMMIT');
+        } catch (error) {
+          await db.execAsync('ROLLBACK');
+          throw error;
+        }
+
+        // Invalidate in-memory caches
+        this.cachedXPData = null;
+        this.dailyXPDataCache.clear();
+      }
+
+      // Always clear legacy AsyncStorage keys as well (lifetime tracking etc.)
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.TOTAL_XP,
         STORAGE_KEYS.XP_TRANSACTIONS,
@@ -1458,14 +1502,14 @@ export class GamificationService {
         'gamification_current_batch',
         'gamification_last_batch_time',
       ]);
-      
+
       // Reset internal state
       // Note: currentBatch and batchStartTime might not exist as class properties
       if (this.batchTimeout) {
         clearTimeout(this.batchTimeout);
         this.batchTimeout = null;
       }
-      
+
       console.log('🗑️ All gamification data cleared');
     } catch (error) {
       console.error('GamificationService.clearAllData error:', error);
@@ -1529,6 +1573,54 @@ export class GamificationService {
   // ========================================
 
   /**
+   * Map an XP source to its xp_daily_summary column.
+   *
+   * IMPORTANT: XPSourceType values are lowercase strings ('habit_completion',
+   * 'journal_entry', ...). A previous implementation used
+   * `source.includes('HABIT')` which never matched (case-sensitive) and left
+   * xp_daily_summary empty for habit/journal/goal XP — silently disabling
+   * daily XP limits. Keep this check lowercase.
+   */
+  private static getDailySummaryColumn(
+    source: XPSourceType
+  ): 'habit_xp' | 'journal_xp' | 'goal_xp' | 'achievement_xp' | null {
+    if (source.startsWith('habit_')) return 'habit_xp';
+    if (source.startsWith('journal_')) return 'journal_xp';
+    if (source.startsWith('goal_')) return 'goal_xp';
+    if (source === XPSourceType.ACHIEVEMENT_UNLOCK) return 'achievement_xp';
+    return null;
+  }
+
+  /**
+   * Map a SQLite xp_transactions row to the XPTransaction shape used app-wide.
+   * `date` is derived from the timestamp in LOCAL time, consistent with
+   * `today()` and with the DATE(..., 'localtime') SQL filters.
+   */
+  private static mapTransactionRow(row: {
+    id: string;
+    amount: number;
+    source: string;
+    source_id: string | null;
+    timestamp: number;
+    description: string | null;
+  }): XPTransaction {
+    const createdAt = new Date(row.timestamp);
+    const transaction: XPTransaction = {
+      id: row.id,
+      amount: row.amount,
+      source: row.source as XPSourceType,
+      description: row.description ?? '',
+      date: formatDateToString(createdAt),
+      createdAt,
+      updatedAt: createdAt,
+    };
+    if (row.source_id) {
+      transaction.sourceId = row.source_id;
+    }
+    return transaction;
+  }
+
+  /**
    * Save XP transaction with rollback capability
    */
   private static async saveTransaction(transaction: XPTransaction): Promise<void> {
@@ -1582,9 +1674,32 @@ export class GamificationService {
    */
   static async getAllTransactions(): Promise<XPTransaction[]> {
     try {
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation — single source of truth with the write path.
+        // (Previously this method always read the legacy AsyncStorage store,
+        // while writes went to SQLite — achievements and activity baselines
+        // were computed from frozen/empty data.)
+        const db = getDatabase();
+        const rows = await db.getAllAsync<{
+          id: string;
+          amount: number;
+          source: string;
+          source_id: string | null;
+          timestamp: number;
+          description: string | null;
+        }>(
+          `SELECT id, amount, source, source_id, timestamp, description
+           FROM xp_transactions
+           ORDER BY timestamp ASC, rowid ASC`
+        );
+        return rows.map(row => this.mapTransactionRow(row));
+      }
+
+      // Legacy AsyncStorage implementation
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.XP_TRANSACTIONS);
       if (!stored) return [];
-      
+
       const transactions = JSON.parse(stored);
       // Convert date strings back to Date objects
       return transactions.map((t: any) => ({
@@ -1602,12 +1717,35 @@ export class GamificationService {
    * Get transactions for a specific date range
    */
   static async getTransactionsByDateRange(
-    startDate: DateString, 
+    startDate: DateString,
     endDate: DateString
   ): Promise<XPTransaction[]> {
     try {
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation — filter in SQL instead of loading everything.
+        // Local-time date derivation matches mapTransactionRow / today().
+        const db = getDatabase();
+        const rows = await db.getAllAsync<{
+          id: string;
+          amount: number;
+          source: string;
+          source_id: string | null;
+          timestamp: number;
+          description: string | null;
+        }>(
+          `SELECT id, amount, source, source_id, timestamp, description
+           FROM xp_transactions
+           WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') BETWEEN ? AND ?
+           ORDER BY timestamp ASC, rowid ASC`,
+          [startDate, endDate]
+        );
+        return rows.map(row => this.mapTransactionRow(row));
+      }
+
+      // Legacy AsyncStorage implementation
       const allTransactions = await this.getAllTransactions();
-      return allTransactions.filter(transaction => 
+      return allTransactions.filter(transaction =>
         transaction.date >= startDate && transaction.date <= endDate
       );
     } catch (error) {
@@ -1621,16 +1759,95 @@ export class GamificationService {
    */
   static async rollbackLastTransaction(): Promise<boolean> {
     try {
+
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+        // SQLite implementation — ACID rollback of the most recent transaction.
+        // (Previously this method edited the legacy AsyncStorage store while
+        // getTotalXP read from SQLite, making rollback a silent no-op.)
+        const db = getDatabase();
+
+        const last = await db.getFirstAsync<{
+          id: string;
+          amount: number;
+          source: string;
+          timestamp: number;
+        }>(
+          `SELECT id, amount, source, timestamp
+           FROM xp_transactions
+           ORDER BY timestamp DESC, rowid DESC
+           LIMIT 1`
+        );
+        if (!last) return false;
+
+        const ts = Date.now();
+        const txDate = formatDateToString(new Date(last.timestamp));
+        const sourceColumn = this.getDailySummaryColumn(last.source as XPSourceType);
+
+        await db.execAsync('BEGIN TRANSACTION');
+        try {
+          // 1. Remove the transaction
+          await db.runAsync('DELETE FROM xp_transactions WHERE id = ?', [last.id]);
+
+          // 2. Reverse total XP + level
+          const state = await db.getFirstAsync<{ total_xp: number }>(
+            'SELECT total_xp FROM xp_state WHERE id = 1'
+          );
+          const newTotal = Math.max(0, (state?.total_xp || 0) - last.amount);
+          const newLevel = getCurrentLevel(newTotal);
+          await db.runAsync(
+            'INSERT OR REPLACE INTO xp_state (id, total_xp, current_level, last_activity, updated_at) VALUES (1, ?, ?, ?, ?)',
+            [newTotal, newLevel, ts, ts]
+          );
+
+          // 3. Reverse the daily summary for the transaction's local date
+          if (sourceColumn) {
+            await db.runAsync(
+              `UPDATE xp_daily_summary SET
+                total_xp = MAX(0, total_xp - ?),
+                ${sourceColumn} = MAX(0, ${sourceColumn} - ?),
+                transaction_count = MAX(0, transaction_count - 1),
+                updated_at = ?
+              WHERE date = ?`,
+              [last.amount, last.amount, ts, txDate]
+            );
+          } else {
+            await db.runAsync(
+              `UPDATE xp_daily_summary SET
+                total_xp = MAX(0, total_xp - ?),
+                transaction_count = MAX(0, transaction_count - 1),
+                updated_at = ?
+              WHERE date = ?`,
+              [last.amount, ts, txDate]
+            );
+          }
+
+          await db.execAsync('COMMIT');
+        } catch (error) {
+          await db.execAsync('ROLLBACK');
+          throw error;
+        }
+
+        // Invalidate caches so the next read reflects the rollback
+        this.cachedXPData = null;
+        this.dailyXPDataCache.delete(txDate);
+
+        // Keep legacy lifetime tracking roughly in sync (fire-and-forget)
+        void this.rollbackXPBySource(last.source as XPSourceType, last.amount);
+
+        return true;
+      }
+
+      // Legacy AsyncStorage implementation
       const transactions = await this.getAllTransactions();
       if (transactions.length === 0) return false;
 
       const lastTransaction = transactions[transactions.length - 1];
       if (!lastTransaction) return false;
-      
+
       // Remove transaction from list
       const remainingTransactions = transactions.slice(0, -1);
       await AsyncStorage.setItem(
-        STORAGE_KEYS.XP_TRANSACTIONS, 
+        STORAGE_KEYS.XP_TRANSACTIONS,
         JSON.stringify(remainingTransactions)
       );
 
@@ -2176,11 +2393,8 @@ export class GamificationService {
         const timestamp = Date.now();
 
         // Determine which column to update based on source
-        const sourceColumn = source.includes('HABIT') ? 'habit_xp'
-          : source.includes('JOURNAL') ? 'journal_xp'
-          : source.includes('GOAL') ? 'goal_xp'
-          : source === XPSourceType.ACHIEVEMENT_UNLOCK ? 'achievement_xp'
-          : null;
+        // NOTE: lowercase-aware mapping (see getDailySummaryColumn).
+        const sourceColumn = this.getDailySummaryColumn(source);
 
         if (sourceColumn) {
           // UPSERT: Insert new row or update existing
@@ -2193,6 +2407,16 @@ export class GamificationService {
                transaction_count = transaction_count + 1,
                updated_at = ?`,
             [todayDate, amount, amount, timestamp, amount, amount, timestamp]
+          );
+        } else {
+          await db.runAsync(
+            `INSERT INTO xp_daily_summary (date, total_xp, transaction_count, updated_at)
+             VALUES (?, ?, 1, ?)
+             ON CONFLICT(date) DO UPDATE SET
+               total_xp = total_xp + ?,
+               transaction_count = transaction_count + 1,
+               updated_at = ?`,
+            [todayDate, amount, timestamp, amount, timestamp]
           );
         }
 
@@ -2297,12 +2521,13 @@ export class GamificationService {
         }
 
         // Get goal transactions count (for anti-spam)
+        // NOTE: stored source values are lowercase XPSourceType strings.
         const goalTransactions: Record<string, number> = {};
         const goalTxRows = await db.getAllAsync<{ source_id: string; count: number }>(
           `SELECT source_id, COUNT(*) as count
            FROM xp_transactions
            WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
-           AND source LIKE 'GOAL_%'
+           AND source LIKE 'goal_%'
            AND source_id IS NOT NULL
            AND amount > 0
            GROUP BY source_id`,
@@ -2313,13 +2538,17 @@ export class GamificationService {
           goalTransactions[row.source_id] = row.count;
         }
 
-        // Count journal entries today
+        // Count journal entries today (anti-spam tracking).
+        // Mirrors the legacy path which counted JOURNAL_ENTRY + JOURNAL_BONUS.
+        // NOTE: stored source values are lowercase ('journal_entry'); a previous
+        // version compared against 'JOURNAL_ENTRY' and always returned 0.
         const journalCount = await db.getFirstAsync<{ count: number }>(
           `SELECT COUNT(*) as count
            FROM xp_transactions
            WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
-           AND source = 'JOURNAL_ENTRY'`,
-          [todayDate]
+           AND source IN (?, ?)
+           AND amount > 0`,
+          [todayDate, XPSourceType.JOURNAL_ENTRY, XPSourceType.JOURNAL_BONUS]
         );
 
         // Get last transaction time

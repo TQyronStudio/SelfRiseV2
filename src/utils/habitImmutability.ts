@@ -1,6 +1,6 @@
 import { Habit, ScheduleTimeline } from '../types/habit';
 import { DateString, DayOfWeek } from '../types/common';
-import { formatDateToString } from './date';
+import { formatDateToString, parseDate } from './date';
 
 /**
  * ROBUST SCHEDULED DAYS IMMUTABILITY UTILITIES
@@ -111,9 +111,10 @@ export function calculateAverageFrequencyForPeriod(
   startDate: DateString,
   endDate: DateString
 ): number {
-  // Parse dates and calculate total days in period
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  // Parse dates at LOCAL midnight (UTC parsing shifted the period boundaries
+  // by one day for users west of UTC).
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
 
   if (start > end) {
     throw new Error('Start date must be before or equal to end date');

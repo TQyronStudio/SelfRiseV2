@@ -103,6 +103,21 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
     console.log(`📥 ModalQueue: enqueue ${modal.type} (priority ${modal.priority})`);
 
     setQueue(prev => {
+      // De-dupe achievement celebrations: AchievementService emits both
+      // 'achievementUnlocked' (per achievement) and 'multipleAchievementsUnlocked'
+      // (batch), and both end up calling addToCelebrationQueue — the same
+      // achievement would otherwise be enqueued (and shown) twice.
+      if (modal.type === 'achievement') {
+        const achievementId = modal.props?.['achievement']?.id;
+        const alreadyQueued = prev.some(
+          m => m.type === 'achievement' && m.props?.['achievement']?.id === achievementId
+        );
+        if (achievementId && alreadyQueued) {
+          console.log(`🚫 ModalQueue: skipping duplicate achievement enqueue (${achievementId})`);
+          return prev;
+        }
+      }
+
       // Insert sorted by priority (lower = first), stable sort by timestamp for same priority
       const updated = [...prev, newModal].sort((a, b) => {
         if (a.priority !== b.priority) return a.priority - b.priority;
@@ -162,13 +177,22 @@ interface ModalRendererProps {
 const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) => {
   if (!currentModal) return null;
 
-  const { type, props } = currentModal;
+  const { id, type, props } = currentModal;
 
+  // 🔑 KEY FIX: each queued modal gets a unique `key` (its queue id).
+  // `visible` is always `true` here, so without a key change React reuses
+  // the same component instance when the queue advances to the next item —
+  // entrance-animation effects (deps: [visible, ...]) never re-fire, so the
+  // new modal renders with the PREVIOUS modal's "closed" animation values
+  // (scale/opacity 0). It becomes an invisible-but-still-touch-blocking
+  // overlay, which looks exactly like the app "freezing" after dismissing
+  // a celebration modal. Keying by `id` forces a clean remount per item.
   switch (type) {
     // --- Journal celebrations ---
     case 'celebration_daily_complete':
       return (
         <CelebrationModal
+          key={id}
           visible={true}
           onClose={onClose}
           type="daily_complete"
@@ -179,6 +203,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'celebration_streak_milestone':
       return (
         <CelebrationModal
+          key={id}
           visible={true}
           onClose={onClose}
           type="streak_milestone"
@@ -192,6 +217,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'celebration_bonus_milestone':
       return (
         <CelebrationModal
+          key={id}
           visible={true}
           onClose={onClose}
           type="bonus_milestone"
@@ -205,6 +231,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'level_up':
       return (
         <CelebrationModal
+          key={id}
           visible={true}
           onClose={onClose}
           type="level_up"
@@ -223,6 +250,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'goal_completion':
       return (
         <GoalCompletionModal
+          key={id}
           visible={true}
           goal={props.goal}
           onClose={onClose}
@@ -233,6 +261,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'monthly_challenge_completion':
       return (
         <MonthlyChallengeCompletionModal
+          key={id}
           visible={true}
           challenge={props.challenge}
           completionResult={props.completionResult}
@@ -243,6 +272,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'monthly_challenge_failure':
       return (
         <MonthlyChallengeFailureModal
+          key={id}
           visible={true}
           failureResult={props.failureResult}
           onClose={onClose}
@@ -252,6 +282,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'monthly_challenge_milestone':
       return (
         <MonthlyChallengeMilestoneModal
+          key={id}
           visible={true}
           milestone={props.milestone}
           challengeTitle={props.challengeTitle}
@@ -264,6 +295,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'star_level_change':
       return (
         <StarLevelChangeModal
+          key={id}
           visible={true}
           data={props.data}
           onClose={onClose}
@@ -274,6 +306,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'multiplier_activation':
       return (
         <MultiplierActivationModal
+          key={id}
           visible={true}
           multiplier={props.multiplier}
           harmonyStreakLength={props.harmonyStreakLength}
@@ -287,6 +320,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     case 'achievement':
       return (
         <AchievementCelebrationModal
+          key={id}
           visible={true}
           onClose={onClose}
           achievement={props.achievement}

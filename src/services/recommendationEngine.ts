@@ -3,7 +3,11 @@ import { Goal, GoalStatus } from '../types/goal';
 import { Gratitude } from '../types/gratitude';
 import { DayOfWeek, DateString } from '../types/common';
 import { getPast7Days, getDayOfWeek, formatDateToString, getDayOfWeekFromDateString } from '../utils/date';
-import { goalStorage } from '../services/storage/goalStorage';
+// Feature-flag-aware storage (SQLite) — legacy AsyncStorage goalStorage
+// would silently return empty data for goals living in SQLite.
+import { getGoalStorageImpl } from '../config/featureFlags';
+
+const goalStorage = getGoalStorageImpl();
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '../utils/habitCalculations';
 import { wasScheduledOnDate } from '../utils/habitImmutability';
 
@@ -407,7 +411,8 @@ export class RecommendationEngine {
     // Count completions by day of week
     completions.forEach(completion => {
       if (completion.completed) {
-        const dayOfWeek = getDayOfWeek(new Date(completion.date));
+        // getDayOfWeekFromDateString = LOCAL parsing (UTC shifted weekday west of UTC)
+        const dayOfWeek = getDayOfWeekFromDateString(completion.date);
         dayStats[dayOfWeek]++;
       }
     });

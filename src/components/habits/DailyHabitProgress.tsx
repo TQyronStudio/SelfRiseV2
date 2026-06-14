@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useHabitsData } from '../../hooks/useHabitsData';
-import { formatDateToString, getDayOfWeek, formatDateForDisplay } from '../../utils/date';
+import { formatDateToString, getDayOfWeek, formatDateForDisplay, parseDate } from '../../utils/date';
+import { DateString } from '../../types/common';
 import { Habit } from '../../types/habit';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
@@ -28,7 +29,8 @@ export const DailyHabitProgress: React.FC<DailyHabitProgressProps> = ({
 
   // Check if habit is scheduled for today
   const isScheduledToday = (habit: Habit): boolean => {
-    const today = new Date(date);
+    // parseDate = LOCAL midnight (UTC parsing shifted the weekday west of UTC)
+    const today = parseDate(date as DateString);
     const dayOfWeek = getDayOfWeek(today);
     return habit.scheduledDays.includes(dayOfWeek);
   };
