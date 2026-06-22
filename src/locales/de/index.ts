@@ -3725,6 +3725,20 @@ const de: Partial<TranslationKeys> = {
     progressText: 'Schritt {{current}} von {{total}}',
     loading: 'Tutorial wird eingerichtet...',
 
+    // Onboarding-Voreinstellungen (nur beim ersten Start - Sprache + Design)
+    languageSetup: {
+      title: 'Wähle deine Sprache 🌍',
+      subtitle: 'Wähle deine bevorzugte Sprache. Du kannst sie jederzeit in den Einstellungen ändern.',
+      confirm: 'Bestätigen',
+    },
+    themeSetup: {
+      title: 'Wähle dein Design 🎨',
+      subtitle: 'Wähle ein helles oder dunkles Erscheinungsbild. Du kannst es jederzeit in den Einstellungen ändern.',
+      light: 'Hell',
+      dark: 'Dunkel',
+      confirm: 'Bestätigen',
+    },
+
     steps: {
       // Schritt 1: Willkommen & Grundlagen
       welcome: {

@@ -3750,6 +3750,20 @@ const en: TranslationKeys = {
     progressText: 'Step {{current}} of {{total}}',
     loading: 'Setting up your tutorial...',
 
+    // Onboarding Preferences Gate (first launch only - language + theme)
+    languageSetup: {
+      title: 'Choose Your Language 🌍',
+      subtitle: 'Select your preferred language. You can change it anytime in Settings.',
+      confirm: 'Confirm',
+    },
+    themeSetup: {
+      title: 'Choose Your Look 🎨',
+      subtitle: 'Pick a light or dark appearance. You can change it anytime in Settings.',
+      light: 'Light',
+      dark: 'Dark',
+      confirm: 'Confirm',
+    },
+
     // Tutorial Step Content
     steps: {
       // Step 1: Welcome & Foundation

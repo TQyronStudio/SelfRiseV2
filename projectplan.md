@@ -19,6 +19,40 @@ Full technical details: @implementation-history.md → "Pre-Release Production A
 
 ---
 
+## 🎯 AKTUÁLNÍ ÚKOL: Onboarding Preferences Gate (Jazyk + Theme) před tutoriálem
+
+**Cíl**: Přidat dvě neoznačené úvodní obrazovky, které se zobrazí POUZE při prvním zapnutí aplikace, ještě před Welcome krokem tutoriálu:
+1. **Výběr jazyka** (EN/DE/ES) – live překlad celého UI při tapu, potvrzení tlačítkem
+2. **Výběr theme** (Light/Dark) – live náhled při tapu, potvrzení tlačítkem
+
+**Klíčová rozhodnutí (odsouhlaseno s uživatelem)**:
+- Předvybraný jazyk: **vždy angličtina**
+- Zobrazit **jen při prvním zapnutí** (NE při restartu tutoriálu z Nastavení)
+- Vizuál: **stejný styl jako Welcome modal** (vystředěná karta, emoji, volby, tlačítko Potvrdit)
+- Neoznačené = mimo počítadlo "Step X of 25" (tutoriál zůstává 25 kroků beze změny)
+
+**Surgical approach** (TUTORIAL_STEPS se NEMĚNÍ – 25 kroků zůstává):
+- [x] 1. Nová komponenta `OnboardingPreferencesModal.tsx` (2 pod-obrazovky: language → theme), styl podle `TutorialModal.tsx`
+  - Tap na jazyk → `changeLanguage()` živě (re-render přeloží i tlačítko Potvrdit)
+  - Tap na theme → `setThemeMode('light'|'dark')` živě (re-render barev)
+  - Po posledním Potvrdit → `onComplete()` callback
+- [x] 2. `TutorialContext.tsx`: nový stav `showOnboardingPrefs` + akce `completeOnboardingPrefs`
+  - Nový storage key `onboarding_prefs_completed`
+  - V `autoStartTutorial` (first launch, resumeStep===1, flag nenastaven): zobrazit gate, odložit `START_TUTORIAL`
+  - `completeOnboardingPrefs`: uložit flag → `START_TUTORIAL` (Welcome) + `saveTutorialProgress(1)`
+  - Restart z Nastavení gate NEspouští (flag zůstává true)
+- [x] 3. `TutorialOverlay.tsx`: vyrenderovat `OnboardingPreferencesModal` když `showOnboardingPrefs`
+- [x] 4. i18n klíče do `types/i18n.ts` + EN/DE/ES (`tutorial.languageSetup.*`, `tutorial.themeSetup.*`)
+- [x] 5. `npx tsc --noEmit` 0 chyb ✅ (ověření v dev buildu zbývá na zařízení)
+
+**Co NESMÍ se rozbít**: 25-krokový tutoriál flow, počítadlo kroků, restart z Nastavení, achievement potlačení, resume/recovery logika.
+
+**Pozn.**: Skia/native není potřeba – jde o standardní RN modal. Lze testovat i v dev buildu.
+
+**Brief Review**: Implementováno jako "brána" před tutoriálem, plně oddělená od 25-krokového flow (nulový dopad na počítadlo, resume, achievementy). Gate se řídí novým flagem `onboarding_prefs_completed` v AsyncStorage → zobrazí se jen při úplně prvním spuštění, restart z Nastavení ho přeskakuje. Jazyk se přepíná živě přes `changeLanguage` (re-render i18n), theme přes `setThemeMode` (re-render ThemeContext). Soubory: nový `OnboardingPreferencesModal.tsx`; úpravy v `TutorialContext.tsx`, `TutorialOverlay.tsx`, `tutorial/index.ts`, `types/i18n.ts` + EN/DE/ES locales. tsc 0 chyb.
+
+---
+
 ## 📈 PLANNED: Meta Ads & Marketing Analytics Integration
 
 **Goal**: Připravit SelfRise V2 pro běh marketingových kampaní na Meta Ads (Facebook + Instagram) a zároveň začít aktivně sbírat custom eventy do Firebase Analytics pro vlastní reporting.

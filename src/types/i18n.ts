@@ -2313,6 +2313,20 @@ export interface TranslationKeys {
     progressText: string;
     loading: string;
 
+    // Onboarding Preferences Gate (first launch only - language + theme)
+    languageSetup: {
+      title: string;
+      subtitle: string;
+      confirm: string;
+    };
+    themeSetup: {
+      title: string;
+      subtitle: string;
+      light: string;
+      dark: string;
+      confirm: string;
+    };
+
     // Tutorial Step Content
     steps: {
       welcome: {

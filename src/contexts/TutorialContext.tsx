@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -70,8 +70,11 @@ export interface TutorialState {
 // Tutorial Context Interface
 export interface TutorialContextType {
   state: TutorialState;
+  // Onboarding preferences gate (language + theme) - first launch only, before the tutorial
+  showOnboardingPrefs: boolean;
   actions: {
     startTutorial: () => Promise<void>;
+    completeOnboardingPrefs: () => Promise<void>;
     nextStep: () => Promise<void>;
     skipTutorial: () => Promise<void>;
     completeTutorial: () => Promise<void>;
@@ -118,6 +121,7 @@ const TUTORIAL_CRASH_LOG_KEY = 'onboarding_tutorial_crash_log';
 const TUTORIAL_ERROR_COUNT_KEY = 'onboarding_tutorial_error_count';
 const TUTORIAL_RECOVERY_STATE_KEY = 'onboarding_tutorial_recovery_state';
 const TUTORIAL_RESTARTED_KEY = 'onboarding_tutorial_restarted'; // Flag for restarted tutorials
+const ONBOARDING_PREFS_KEY = 'onboarding_prefs_completed'; // Flag: language + theme chosen on first launch
 
 // Animation Specifications
 export const TUTORIAL_ANIMATIONS = {
@@ -595,6 +599,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(tutorialReducer, initialState);
   const { t } = useTranslation();
 
+  // Onboarding preferences gate (language + theme) - shown only on first launch
+  const [showOnboardingPrefs, setShowOnboardingPrefs] = useState(false);
+
   // Create tutorial steps with translations
   const TUTORIAL_STEPS = createTutorialSteps(t);
 
@@ -960,6 +967,26 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   };
 
   // Action Functions
+
+  // Confirm onboarding preferences (language + theme) and start the tutorial.
+  // Called by OnboardingPreferencesModal after the user confirms the theme step.
+  const completeOnboardingPrefs = async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(ONBOARDING_PREFS_KEY, 'true');
+      setShowOnboardingPrefs(false);
+
+      // Start the tutorial from the beginning (Welcome step)
+      dispatch({ type: 'RESET_TUTORIAL' });
+      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+      await saveTutorialProgress(1);
+    } catch (error) {
+      console.warn('Failed to complete onboarding preferences:', error);
+      // Fallback: start the tutorial anyway so the user is never stuck on the gate
+      setShowOnboardingPrefs(false);
+      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+    }
+  };
+
   const startTutorial = async (): Promise<void> => {
     try {
       setLoading(true);
@@ -1592,6 +1619,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
             dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
           } else {
+            // New user - check if onboarding preferences (language + theme) were already chosen
+            const prefsCompleted = await AsyncStorage.getItem(ONBOARDING_PREFS_KEY);
+            if (prefsCompleted !== 'true') {
+              // First launch ever - show language + theme gate BEFORE the tutorial.
+              // The tutorial steps start once the user confirms (completeOnboardingPrefs).
+              console.log(`🎓 [TUTORIAL] First app launch - showing onboarding preferences gate`);
+              setShowOnboardingPrefs(true);
+              return;
+            }
+
             // New user - start tutorial from beginning
             console.log(`🎓 [TUTORIAL] First app launch detected - starting tutorial automatically`);
             dispatch({ type: 'RESET_TUTORIAL' });
@@ -1729,8 +1766,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     <TutorialContext.Provider
       value={{
         state,
+        showOnboardingPrefs,
         actions: {
           startTutorial,
+          completeOnboardingPrefs,
           nextStep,
           skipTutorial,
           completeTutorial,

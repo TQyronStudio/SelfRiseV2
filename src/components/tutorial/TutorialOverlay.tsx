@@ -20,6 +20,7 @@ import { Fonts } from '@/src/constants/fonts';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { SpotlightEffect } from './SpotlightEffect';
 import { TutorialModal } from './TutorialModal';
+import { OnboardingPreferencesModal } from './OnboardingPreferencesModal';
 import { tutorialTargetManager, TargetElementInfo } from '@/src/utils/TutorialTargetHelper';
 import {
   getContentBottomPosition,
@@ -42,7 +43,7 @@ interface TutorialOverlayProps {
 
 export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) => {
   const { colors } = useTheme();
-  const { state, actions } = useTutorial();
+  const { state, actions, showOnboardingPrefs } = useTutorial();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
@@ -329,9 +330,18 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ children }) =>
     }
   }, [state.currentStepData?.action]);
 
-  // Don't render if tutorial is not active
+  // Don't render the tutorial overlay if the tutorial is not active.
+  // On the very first launch, show the onboarding preferences gate (language + theme) first.
   if (!state.isActive || !state.currentStepData) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <OnboardingPreferencesModal
+          visible={showOnboardingPrefs}
+          onComplete={actions.completeOnboardingPrefs}
+        />
+      </>
+    );
   }
 
   const isModal = state.currentStepData.type === 'modal';

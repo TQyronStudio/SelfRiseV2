@@ -3725,6 +3725,20 @@ const es: Partial<TranslationKeys> = {
     progressText: 'Paso {{current}} de {{total}}',
     loading: 'Configurando tu tutorial...',
 
+    // Preferencias de incorporación (solo en el primer inicio - idioma + tema)
+    languageSetup: {
+      title: 'Elige tu idioma 🌍',
+      subtitle: 'Selecciona tu idioma preferido. Puedes cambiarlo en cualquier momento en Ajustes.',
+      confirm: 'Confirmar',
+    },
+    themeSetup: {
+      title: 'Elige tu apariencia 🎨',
+      subtitle: 'Elige un aspecto claro u oscuro. Puedes cambiarlo en cualquier momento en Ajustes.',
+      light: 'Claro',
+      dark: 'Oscuro',
+      confirm: 'Confirmar',
+    },
+
     // Tutorial Step Content
     steps: {
       // Paso 1: Bienvenida y Fundamentos

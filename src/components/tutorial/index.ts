@@ -2,6 +2,7 @@
 export { TutorialOverlay } from './TutorialOverlay';
 export { SpotlightEffect } from './SpotlightEffect';
 export { TutorialModal } from './TutorialModal';
+export { OnboardingPreferencesModal } from './OnboardingPreferencesModal';
 
 // Tutorial Context and Types
 export {
