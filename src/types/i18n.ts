@@ -1928,6 +1928,12 @@ export interface TranslationKeys {
       message: string;
       goHome: string;
     };
+    database: {
+      title: string;
+      message: string;
+      retry: string;
+      hint: string;
+    };
   };
 
   // Notifications

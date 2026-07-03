@@ -4,7 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout, Fonts } from '@/src/constants';
-import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates } from '@/src/utils/date';
+import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates, subtractDays } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
@@ -149,11 +149,9 @@ export const HabitPerformanceIndicators: React.FC = () => {
   const performanceData = useMemo(() => {
     const activeHabits = habits.filter(habit => habit.isActive);
     const currentWeekDates = getWeekDates();
-    const previousWeekDates = getWeekDates().map(date => {
-      const d = new Date(date + 'T00:00:00.000Z');
-      d.setDate(d.getDate() - 7);
-      return d.toISOString().split('T')[0] as string;
-    });
+    // subtractDays uses LOCAL parsing (see parseDate) — the previous UTC
+    // parse + toISOString round-trip broke on DST transitions in UTC±0 zones.
+    const previousWeekDates = getWeekDates().map(date => subtractDays(date, 7));
 
     if (activeHabits.length === 0) {
       return {

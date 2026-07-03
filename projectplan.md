@@ -17,6 +17,25 @@
 
 Full technical details: @implementation-history.md → "Pre-Release Production Audit Fixes (June 13, 2026)"
 
+### ✅ Follow-up: Audit Fixes Re-Verification & Gap Fixes (2026-07-02)
+
+Independent re-verification of all 9 completed audit items found 3 gaps, all fixed same day:
+
+- [x] Bod 4 gap — 3 leftover `'T00:00:00.000Z'` (UTC) parse sites: `MonthlyHabitOverview.tsx` (real off-by-one day number in 30-day chart for users west of UTC → `parseDate`), `HabitPerformanceIndicators.tsx` + `HabitTrendAnalysis.tsx` (DST-edge only → `subtractDays`/`parseDate`)
+- [x] Bod 5 gap — `monthlyChallenge.phase3.test.ts` "Background task scheduling" failed deterministically (negative `uptime`: singleton captured mocked future clock). Fix: `Math.max(0, …)` clamp in `monthlyChallengeLifecycleManager.getHealthStatus` (also correct for real device clock changes)
+- [x] Bod 3 gap — `DatabaseErrorScreen` hardcoded English → `errors.database.*` i18n keys (EN/DE/ES + types)
+
+**Verification**: tsc 0 errors, 187/187 tests green (15/15 suites). Details: @implementation-history.md → "Audit Fixes Re-Verification (July 2, 2026)"
+
+### ✅ Follow-up 2: Pre-Release Cleanup — N16 hygiene, N23, N9, N22 (2026-07-02)
+
+- [x] N16 hygiene — `Typography` stripped of static colors (all 21 usages verified to override color from theme); deleted unused `export const Colors = lightColors`. NOT a dark-mode bug fix (dark mode already worked — verified against audit claim), just removes a latent trap for future components
+- [x] N23 — uninstalled `react-native-modal@14.0.0-rc.1` (0 imports), `react-native-draglist` (0 imports), `@types/i18next` (i18next 25.x ships own types). ⚠️ Audit had it backwards: code uses `react-native-draggable-flatlist` in 4 components — migration off it is a separate future task, not cleanup
+- [x] N9 — journal-history: ScrollView+`.map()` → virtualized `FlatList` (new exported `GratitudeListItem` from GratitudeList.tsx; Journal tab unchanged). Note: default view is per-day (small); the real exposure was search results spanning full history
+- [x] N22 — removed SDK 53-era metro console monkey-patch; LogBox suppressions reduced 8 → 2 (kept: Animated noise + ExpoPushTokenManager until notification rebuild). ⚠️ Verify in dev build on device — if a removed warning floods back, re-add it specifically
+
+**Verification**: tsc 0 errors, 187/187 tests green, eslint 0 errors (only pre-existing warnings). Dev-build device check pending (LogBox/metro + visual check of journal-history list). Details: @implementation-history.md → "Pre-Release Cleanup (July 2, 2026)"
+
 ---
 
 ## 🎯 AKTUÁLNÍ ÚKOL: Onboarding Preferences Gate (Jazyk + Theme) před tutoriálem

@@ -17,6 +17,50 @@ A comprehensive record of technical problem-solving, debugging procedures, and i
 
 ## Archive: Recent Completed Projects (Detailed Technical History)
 
+### Pre-Release Cleanup (July 2, 2026) ✅
+
+**Project Summary**: Remaining pre-release items from `production-audit-2026-06-10.md`: N16 (theming hygiene), N23 (risky dependencies), N9 (journal-history list performance), N22 (stale warning suppressions). All compiler/test verified: tsc 0 errors, 187/187 tests, eslint 0 errors.
+
+#### N16 hygiene — Typography color-free + static Colors export removed
+- Re-verification showed the audit's "broken dark mode" claim no longer applied: all 21 `...Typography.*` spreads (4 components) override `color:` from `useTheme()` on the next line (verified via awk scan), and NOTHING imported the static `Colors` export anymore (only ThemeContext imports `lightColors`/`darkColors`).
+- Removed `color:` fields from all Typography styles (documented as intentionally color-free) and deleted `export const Colors = lightColors` from colors.ts. This removes the latent trap where a future `...Typography.body` without override would render light-theme text in dark mode.
+
+#### N23 — dependency cleanup (audit had the drag libs backwards)
+- Uninstalled: `react-native-modal@14.0.0-rc.1` (zero imports anywhere), `react-native-draglist` (zero imports), `@types/i18next` (deprecated stub; i18next 25.x bundles its own types).
+- **Correction to audit**: the audit recommended unifying on `react-native-draglist` ("simpler and newer"), but the codebase actually uses `react-native-draggable-flatlist` in 4 components (ReorderScreen, GoalListWithDragAndDrop, HabitListWithCompletion, HabitList) and draglist nowhere. Removed the unused one; migrating off draggable-flatlist (unmaintained, New Arch risk) is a separate future task with drag&drop regression testing.
+
+#### N9 — journal-history virtualized
+- Extracted `GratitudeListItem` (React.memo) from `GratitudeList.tsx` as a named export; `GratitudeList` still maps over it (Journal tab = single day, small, visually unchanged).
+- `app/journal-history.tsx`: ScrollView + GratitudeList replaced with `FlatList` (`initialNumToRender=12`, `windowSize=7`, search header as `ListHeaderComponent`, empty state as `ListEmptyComponent`, item side padding moved to `contentContainerStyle`).
+- Context correction to audit: the default view is per-day (`getGratitudesByDate`), so the mass-mount exposure was primarily SEARCH results (which can span the entire history), not the default view.
+
+#### N22 — metro monkey-patch removed, LogBox trimmed 8 → 2
+- `metro.config.js`: removed the SDK 53-era `console.warn/log` override that swallowed every message containing 'expo-modules-core' — could hide real errors on SDK 55.
+- `app/_layout.tsx` LogBox: removed 6 stale suppressions (ExpoLinearGradient view config ×2, ViewPropTypes, componentWillReceiveProps, expo-router route/layout noise — none of these warnings exist on SDK 55/RN 0.83/React 19). Kept 2 justified: `onAnimatedValueUpdate` (harmless Animated noise from particle effects) and `ExpoPushTokenManager` (until notification native rebuild per NOTIFICATION_REBUILD_GUIDE.md).
+- ⚠️ Runtime verification pending: run a dev build on device; if any removed warning reappears and floods the console, re-add it as a SPECIFIC string, never a blanket filter.
+
+---
+
+### Audit Fixes Re-Verification (July 2, 2026) ✅
+
+**Project Summary**: Independent re-verification of the 9 completed items from `production-audit-2026-06-10.md` (cross-checked against a second reviewer's report). 6 of 9 items confirmed fully correct (Body 1, 2, 7, 8, 9 + Bod 3 functionally); 3 gaps found and fixed the same day. Final state: `tsc --noEmit` 0 errors, 187/187 tests green (15/15 suites).
+
+#### Gap 1 — Bod 4 (timezone): 3 leftover `'T00:00:00.000Z'` UTC parse sites
+- Core fix (`parseDate`, `isValidDateString`, habit-scheduling in `useHabitsData`) was verified correct, incl. 18 regression tests in `date.timezone.test.ts`. All other call sites correctly use `'T00:00:00'` (no Z = local midnight).
+- **`MonthlyHabitOverview.tsx`** — real bug: UTC parse + local `getDate()` → day numbers in the 30-day chart shifted by one for all users west of UTC. Fixed with `parseDate(dateStr)`.
+- **`HabitPerformanceIndicators.tsx`** (previous-week dates) and **`HabitTrendAnalysis.tsx`** (week date building) — lower severity than it looks: the pattern was UTC-parse → UTC-serialize (`toISOString`), which is self-consistent except for DST transitions in UTC±0 zones (e.g. UK late-October fall-back → off-by-one). Fixed with `subtractDays()` / `parseDate()` + `formatDateToString()` for consistency.
+
+#### Gap 2 — Bod 5 (tests): deterministic failure in `monthlyChallenge.phase3.test.ts`
+- "Background task scheduling and health monitoring" failed with `uptime` ≈ −2 days. Root cause: earlier tests in the same file mock the system clock ~2 days ahead (`jest.setSystemTime`); the `monthlyChallengeLifecycleManager` singleton records `lastStateChange` under the mocked clock. `afterEach` restores real timers, but the polluted singleton state persists → `uptime = now − futureTimestamp < 0`. Fails whenever the whole file runs (not only in full-suite order).
+- **Fix**: `Math.max(0, …)` clamp in `getHealthStatus()`. Chosen over a test-only singleton reset because negative uptime is also reachable in production via real device clock changes — the clamp is correct behavior, not a test workaround.
+
+#### Gap 3 — Bod 3 (DB error screen): hardcoded English
+- `DatabaseErrorScreen` in `app/_layout.tsx` had hardcoded English strings despite complete DE/ES localization. Added `errors.database.{title,message,retry,hint}` to `types/i18n.ts` + EN/DE/ES locales; component now uses `useI18n()`. Works pre-RootProvider because react-i18next binds to the global i18next instance (module import in `_layout.tsx`) and re-renders when it initializes.
+
+**Files changed**: `MonthlyHabitOverview.tsx`, `HabitPerformanceIndicators.tsx`, `HabitTrendAnalysis.tsx`, `monthlyChallengeLifecycleManager.ts`, `app/_layout.tsx`, `types/i18n.ts`, `locales/{en,de,es}/index.ts`.
+
+---
+
 ### Pre-Release Production Audit Fixes (June 13, 2026) ✅
 
 **Project Summary**: Senior-architect production audit (`production-audit-2026-06-10.md`) identified 4 MUST-fix and 5 recommended issues before app store release. All 9 points implemented, plus 2 additional bugs found during re-verification. Surgical changes only — 37 files changed, 816 insertions(+), 2773 deletions(-) (net negative due to dead code removal).

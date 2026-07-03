@@ -484,6 +484,12 @@ const es: Partial<TranslationKeys> = {
       message: 'Esta pantalla no existe.',
       goHome: '¡Ir a inicio!',
     },
+    database: {
+      title: 'Algo salió mal',
+      message: 'SelfRise no pudo abrir su base de datos local. Tus datos están seguros en este dispositivo — la aplicación solo necesita otro intento para cargarlos.',
+      retry: 'Intentar de nuevo',
+      hint: 'Si esto sigue ocurriendo, reinicia la aplicación o libera espacio de almacenamiento en tu dispositivo.',
+    },
   },
 
   // UI Labels

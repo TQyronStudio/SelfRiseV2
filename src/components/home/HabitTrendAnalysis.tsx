@@ -4,7 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout, Fonts } from '@/src/constants';
-import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
+import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString, parseDate } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo, getCompletionRateMessage } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
@@ -95,9 +95,11 @@ export const HabitTrendAnalysis: React.FC = () => {
       const weekStart = subtractDays(today(), i * 7 + 6);
       const weekDates: string[] = [];
       for (let j = 0; j < 7; j++) {
-        const date = new Date(weekStart + 'T00:00:00.000Z');
+        // LOCAL parse + local arithmetic (see parseDate) — the previous UTC
+        // parse + toISOString round-trip broke on DST transitions in UTC±0 zones.
+        const date = parseDate(weekStart);
         date.setDate(date.getDate() + j);
-        weekDates.push(date.toISOString().split('T')[0] as string);
+        weekDates.push(formatDateToString(date));
       }
 
       let totalWeekCompletionRate = 0;

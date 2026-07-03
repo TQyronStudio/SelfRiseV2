@@ -1002,7 +1002,9 @@ export class MonthlyChallengeLifecycleManager {
       health: status.metrics.systemHealth,
       lastCheck: status.metrics.lastBackgroundCheck,
       errors: status.errors.length,
-      uptime: new Date().getTime() - (this.isInitialized ? status.lastStateChange.getTime() : 0),
+      // Clamped to 0: lastStateChange can be in the future after a device
+      // clock change (or a mocked clock in tests) — uptime must never be negative.
+      uptime: Math.max(0, new Date().getTime() - (this.isInitialized ? status.lastStateChange.getTime() : 0)),
       activeChallenge: !!currentChallenge,
       previewReady: !!preview && !this.isPreviewExpired(preview)
     };

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
-import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Gratitude } from '@/src/types/gratitude';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts, Layout } from '@/src/constants';
@@ -18,15 +17,28 @@ interface GratitudeListProps {
   onDelete?: (gratitude: Gratitude) => void;
 }
 
-export default function GratitudeList({ gratitudes, showDate = false, onEdit, onDelete }: GratitudeListProps) {
+interface GratitudeListItemProps {
+  item: Gratitude;
+  showDate?: boolean;
+  onEdit?: ((gratitude: Gratitude) => void) | undefined;
+  onDelete?: ((gratitude: Gratitude) => void) | undefined;
+}
+
+/**
+ * Single journal entry card. Exported separately so screens with potentially
+ * long lists (journal-history search) can render entries inside a virtualized
+ * FlatList instead of mounting everything at once (audit N9).
+ */
+export const GratitudeListItem = React.memo(function GratitudeListItem({
+  item,
+  showDate = false,
+  onEdit,
+  onDelete,
+}: GratitudeListItemProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
 
   const styles = StyleSheet.create({
-    list: {
-      padding: Layout.spacing.md,
-      paddingTop: 0,
-    },
     gratitudeItem: {
       backgroundColor: colors.gratitudeBackground,
       borderRadius: 12,
@@ -156,21 +168,9 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
       fontSize: Fonts.sizes.sm,
       fontWeight: '600',
     },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: Layout.spacing.lg,
-    },
-    emptyText: {
-      fontSize: Fonts.sizes.md,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 22,
-    },
   });
 
-  const renderGratitudeItem = ({ item, index }: { item: Gratitude; index: number }) => (
+  return (
     <View
       style={[
         styles.gratitudeItem,
@@ -204,11 +204,11 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
           </View>
         </View>
       </View>
-      
+
       <Text style={styles.gratitudeContent}>
         {item.content}
       </Text>
-      
+
       <View style={styles.timeContainer}>
         {showDate && (
           <Text style={styles.gratitudeDate}>
@@ -216,13 +216,13 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
           </Text>
         )}
         <Text style={styles.gratitudeTime}>
-          {new Date(item.createdAt).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+          {new Date(item.createdAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
           })}
         </Text>
       </View>
-      
+
       {/* Edit/Delete buttons - only show if handlers are provided */}
       {(onEdit || onDelete) && (
         <View style={styles.actionButtons}>
@@ -246,6 +246,35 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
       )}
     </View>
   );
+});
+
+/**
+ * Non-virtualized list of journal entries. Suitable for SMALL datasets
+ * (single day view in the Journal tab). For long lists use a FlatList
+ * with `GratitudeListItem` directly (see app/journal-history.tsx).
+ */
+export default function GratitudeList({ gratitudes, showDate = false, onEdit, onDelete }: GratitudeListProps) {
+  const { t } = useI18n();
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    list: {
+      padding: Layout.spacing.md,
+      paddingTop: 0,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    emptyText: {
+      fontSize: Fonts.sizes.md,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+  });
 
   if (gratitudes.length === 0) {
     return (
@@ -259,10 +288,14 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
 
   return (
     <View style={styles.list}>
-      {gratitudes.map((item, index) => (
-        <View key={item.id}>
-          {renderGratitudeItem({ item, index })}
-        </View>
+      {gratitudes.map((item) => (
+        <GratitudeListItem
+          key={item.id}
+          item={item}
+          showDate={showDate}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       ))}
     </View>
   );

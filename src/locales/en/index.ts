@@ -473,6 +473,12 @@ const en: TranslationKeys = {
       message: 'This screen does not exist.',
       goHome: 'Go to home screen!',
     },
+    database: {
+      title: 'Something went wrong',
+      message: 'SelfRise couldn\'t open its local database. Your data is safe on this device — the app just needs another try to load it.',
+      retry: 'Try again',
+      hint: 'If this keeps happening, restart the app or free up storage space on your device.',
+    },
   },
 
   // UI Labels

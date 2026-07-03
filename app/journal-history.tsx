@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StyleSheet, View, FlatList, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter } from 'expo-router';
@@ -12,7 +12,7 @@ import { Gratitude } from '@/src/types/gratitude';
 import { Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import GratitudeList from '@/src/components/gratitude/GratitudeList';
+import { GratitudeListItem } from '@/src/components/gratitude/GratitudeList';
 import EditGratitudeModal from '@/src/components/gratitude/EditGratitudeModal';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import { today, addDays, subtractDays, formatDateForDisplay, formatDateToString } from '@/src/utils/date';
@@ -228,6 +228,7 @@ export default function JournalHistoryScreen() {
     },
     contentContainer: {
       flexGrow: 1,
+      paddingHorizontal: Layout.spacing.md, // Item side padding (was inside GratitudeList)
       paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area
     },
     bannerContainer: {
@@ -321,27 +322,38 @@ export default function JournalHistoryScreen() {
         </View>
       )}
 
-      {/* Content */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        {isSearching && (
-          <View style={styles.searchHeader}>
-            <Text style={styles.searchResultsText}>
-              {searchResults.length > 0
-                ? t('journal.searchResults', { count: searchResults.length, term: searchTerm })
-                : t('journal.noSearchResults', { term: searchTerm })
-              }
-            </Text>
-          </View>
-        )}
-
-        {displayedGratitudes.length > 0 ? (
-          <GratitudeList 
-            gratitudes={displayedGratitudes} 
+      {/* Content — virtualized list: search can return the entire journal
+          history, so entries must not all mount at once (audit N9). */}
+      <FlatList
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        data={displayedGratitudes}
+        keyExtractor={(item: Gratitude) => item.id}
+        renderItem={({ item }: { item: Gratitude }) => (
+          <GratitudeListItem
+            item={item}
             showDate={isSearching}
             onEdit={handleEditGratitude}
             onDelete={handleDeleteGratitude}
           />
-        ) : (
+        )}
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={7}
+        keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={
+          isSearching ? (
+            <View style={styles.searchHeader}>
+              <Text style={styles.searchResultsText}>
+                {searchResults.length > 0
+                  ? t('journal.searchResults', { count: searchResults.length, term: searchTerm })
+                  : t('journal.noSearchResults', { term: searchTerm })
+                }
+              </Text>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
               {isSearching
@@ -350,8 +362,8 @@ export default function JournalHistoryScreen() {
               }
             </Text>
           </View>
-        )}
-      </ScrollView>
+        }
+      />
 
       {/* AdMob Banner - Fixed at bottom */}
       <View style={styles.bannerContainer}>

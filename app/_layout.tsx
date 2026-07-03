@@ -33,15 +33,16 @@ import { initializeAdsWithConsent } from '../src/services/adConsentService';
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
 import { initHaptics } from '../src/services/hapticsService';
 
-// Suppress ExpoLinearGradient view config warnings
+// Dev-only warning suppressions — keep this list SHORT and justified (audit N22).
+// Removed SDK 53-era entries (ExpoLinearGradient view config, ViewPropTypes,
+// componentWillReceiveProps, expo-router route/layout noise): the underlying
+// warnings no longer exist on SDK 55 / RN 0.83 / React 19, and blanket
+// suppressions can hide real errors.
 LogBox.ignoreLogs([
-  'Unable to get the view config for',
-  'ExpoLinearGradient',
-  'ViewPropTypes will be removed',
-  'componentWillReceiveProps has been renamed',
+  // Known-harmless RN core Animated noise (particle/celebration animations).
   'Sending `onAnimatedValueUpdate` with no listeners registered',
-  'Route "./(tabs)/settings.tsx" is missing the required default export',
-  '[Layout children]: Too many screens defined',
+  // Notifications run a mock implementation until the native rebuild
+  // (NOTIFICATION_REBUILD_GUIDE.md) — remove after the rebuild ships.
   'Cannot find native module \'ExpoPushTokenManager\'',
 ]);
 
@@ -86,27 +87,24 @@ function LayoutContent() {
 // Shown when SQLite cannot be initialized even after retries. The entire data
 // layer depends on the database — continuing without it would cascade errors
 // through every storage call and risk silent data loss, so we stop here and
-// let the user retry instead. (Rendered before RootProvider, so no ThemeContext.)
+// let the user retry instead. (Rendered before RootProvider, so no ThemeContext.
+// i18n works here: useI18n binds to the global i18next instance initialized by
+// the `src/config/i18n` module import above, and re-renders once it's ready.)
 function DatabaseErrorScreen({ onRetry }: { onRetry: () => void }) {
+  const { t } = useI18n();
   return (
     <View style={dbErrorStyles.container}>
-      <Text style={dbErrorStyles.title}>Something went wrong</Text>
-      <Text style={dbErrorStyles.message}>
-        SelfRise couldn&apos;t open its local database. Your data is safe on this
-        device — the app just needs another try to load it.
-      </Text>
+      <Text style={dbErrorStyles.title}>{t('errors.database.title')}</Text>
+      <Text style={dbErrorStyles.message}>{t('errors.database.message')}</Text>
       <TouchableOpacity
         style={dbErrorStyles.button}
         onPress={onRetry}
         accessibilityRole="button"
-        accessibilityLabel="Try again"
+        accessibilityLabel={t('errors.database.retry')}
       >
-        <Text style={dbErrorStyles.buttonText}>Try again</Text>
+        <Text style={dbErrorStyles.buttonText}>{t('errors.database.retry')}</Text>
       </TouchableOpacity>
-      <Text style={dbErrorStyles.hint}>
-        If this keeps happening, restart the app or free up storage space on
-        your device.
-      </Text>
+      <Text style={dbErrorStyles.hint}>{t('errors.database.hint')}</Text>
     </View>
   );
 }

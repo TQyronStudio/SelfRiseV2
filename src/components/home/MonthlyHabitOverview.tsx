@@ -3,7 +3,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Layout, Fonts } from '@/src/constants';
-import { getPast30Days, formatDateForDisplay, today, getDayOfWeekFromDateString, formatDateToString } from '@/src/utils/date';
+import { getPast30Days, formatDateForDisplay, today, getDayOfWeekFromDateString, formatDateToString, parseDate } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { useTheme } from '@/src/contexts/ThemeContext';
 
@@ -176,8 +176,10 @@ export const MonthlyHabitOverview: React.FC = React.memo(() => {
       const totalScheduled = scheduledHabits.length;
       const completionRate = totalScheduled > 0 ? (scheduledCompletions / totalScheduled) * 100 : 0;
       
-      const dateObj = new Date(dateStr + 'T00:00:00.000Z');
-      
+      // LOCAL parse (see parseDate) — UTC parse + local getDate() shifted the
+      // displayed day number by one for users west of UTC.
+      const dateObj = parseDate(dateStr);
+
       return {
         date: dateStr,
         dayNumber: dateObj.getDate(),

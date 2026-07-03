@@ -484,6 +484,12 @@ const de: Partial<TranslationKeys> = {
       message: 'Seite existiert nicht.',
       goHome: 'Home',
     },
+    database: {
+      title: 'Etwas ist schiefgelaufen',
+      message: 'SelfRise konnte die lokale Datenbank nicht öffnen. Deine Daten sind auf diesem Gerät sicher — die App braucht nur einen weiteren Versuch, um sie zu laden.',
+      retry: 'Erneut versuchen',
+      hint: 'Wenn das Problem weiterhin besteht, starte die App neu oder gib Speicherplatz auf deinem Gerät frei.',
+    },
   },
 
   // UI Labels

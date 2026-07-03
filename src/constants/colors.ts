@@ -216,7 +216,3 @@ export const darkColors = {
 export type ThemeColors = {
   [K in keyof typeof lightColors]: string;
 };
-
-// Legacy export for backward compatibility during refactoring
-// TODO: Remove this after all components are migrated to useTheme hook
-export const Colors = lightColors;
