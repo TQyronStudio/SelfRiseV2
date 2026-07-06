@@ -68,7 +68,7 @@ interface DailyCompletionState {
 // Daily completion check logic
 const checkDailyCompletion = (entriesCount: number): DailyCompletionState => {
   const isComplete = entriesCount >= 3;
-  
+
   if (isComplete) {
     return { streakStatus: 'active', frozenDays: 0 };
   } else {
@@ -77,6 +77,37 @@ const checkDailyCompletion = (entriesCount: number): DailyCompletionState => {
   }
 }
 ```
+
+> ⚠️ **Upřesnění (červenec 2026)**: `frozenDays: 0` ve větvi `isComplete` znamená
+> pouze "dnešek nepřidává NOVÝ dluh". **Dokončení dneška NIKDY nemaže dluh
+> z minulých dní** — viz Debt Gate níže.
+
+### 🚧 Debt Gate — závazné pravidlo (produktové rozhodnutí, červenec 2026)
+
+**Když existuje nezaplacený dluh (frozen streak), uživatel NESMÍ psát nové záznamy.**
+Má přesně dvě cesty:
+
+1. **Zaplatit dluh** (1 reklama = 1 zmeškaný den) → streak pokračuje tam, kde skončil
+   (po zaplacení + dokončení dneška: `streakBeforeFreeze + 1`).
+2. **Start Fresh** (bez reklam, explicitní volba v warm-up modalu) → streak začíná od 0,
+   `longestStreak` zůstává zachován.
+
+**Implementace řetězu:**
+- `GratitudeInput.handleSubmit` — brána: `Math.max(saved.frozenDays, calculateFrozenDays())`
+  \> 0 → redirect na Home s `openDebtModal: 'true'` (auto-otevře warm-up modal).
+- `calculateFrozenDays()` — **BEZ** "today complete → 0" early returnu. Dluh = nezaplacené
+  minulé dny, dnešek na něj nemá vliv. (Starý early return způsoboval tichý wipe:
+  frozen + 3 dnešní záznamy → dluh "zmizel" → přepočet přes nezaplacenou mezeru →
+  streak 15 → 1, a reklamy už nešly zaplatit.)
+- `adsNeededToWarmUp()` — **BEZ** "3+ entries today → 0" early returnu. Dluh je splatný,
+  dokud není zaplacen nebo Start Fresh.
+- `executeForceResetDebt` (nouzové odpuštění při problémech s reklamami) — používá
+  `applySingleWarmUpPayment()` smyčku (platby bez reklam), NE přímý zápis streak stavu.
+  (Stará verze zapisovala do AsyncStorage přes BaseStorage — na SQLite tichý no-op.)
+
+**Regresní testy:** `src/services/storage/__tests__/sqliteGratitudeStorage.streakDebt.test.ts`
+(20 testů proti reálné in-memory SQLite). Pád kteréhokoliv = tichá destrukce streaků
+uživatelů = release blocker.
 
 ---
 

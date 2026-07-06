@@ -85,20 +85,23 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       // ENHANCED DEBT CHECK with BUG #2 FIX: Multi-source validation to prevent phantom debt
       const currentStreak = await gratitudeStorage.getStreak();
       const calculatedFrozenDays = await gratitudeStorage.calculateFrozenDays();
-      
-      // PRIMARY SOURCE: Use streak.debtDays as authoritative (respects auto-reset)
-      const authoritative_frozenDays = currentStreak.frozenDays;
-      
+
+      // HARDENED (July 2026): use the max of the saved state and the fresh
+      // calculation. The saved value can be stale right after a midnight
+      // rollover or a past-entry deletion — trusting it alone let entries slip
+      // through while real debt existed. The fresh calculation returns 0 when
+      // currentStreak === 0 (FIX 15.3), so Start Fresh / new users are unaffected.
+      const authoritative_frozenDays = Math.max(
+        currentStreak.frozenDays,
+        calculatedFrozenDays
+      );
+
       // SAFETY CHECK: If current streak = 0, no debt should exist (auto-reset case)
       if (currentStreak.currentStreak === 0 && authoritative_frozenDays === 0) {
         // Allow entry creation - no debt after reset
       } else if (authoritative_frozenDays > 0) {
         // STRICT DEBT BLOCKING: No entries allowed when debt exists
-        
-        // CONSISTENCY WARNING: Log discrepancy for debugging
-        if (authoritative_frozenDays !== calculatedFrozenDays) {
-        }
-        
+
         // 🚀 SPECIFICATION COMPLIANCE: Automatic redirect to Home screen with modal auto-open
         if (router) {
           // Navigate to Home screen with flag to auto-open debt recovery modal

@@ -214,7 +214,8 @@ export class AchievementService {
             currentValue = filteredTransactions.filter(t => t.source === xpSource && t.amount > 0).length;
           } else {
             // Handle custom sources using integration layer
-            const { AchievementIntegration } = await import('./achievementIntegration');
+            // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
             currentValue = await AchievementIntegration.getCountValueForAchievement(condition.source, condition.timeframe);
           }
           break;
@@ -222,7 +223,8 @@ export class AchievementService {
         case 'streak':
           {
             // Handle custom sources using integration layer
-            const { AchievementIntegration } = await import('./achievementIntegration');
+            // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
             currentValue = await AchievementIntegration.getStreakValueForAchievement(condition.source, condition.timeframe);
           }
           break;
@@ -356,22 +358,26 @@ export class AchievementService {
       switch (source) {
         case 'journal_entry_length':
           {
-            const { AchievementIntegration } = await import('./achievementIntegration');
+            // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
             return await AchievementIntegration.getMaxJournalEntryLength(timeframe);
           }
         case 'goal_target_value':
           {
-            const { AchievementIntegration } = await import('./achievementIntegration');
+            // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
             return await AchievementIntegration.getMaxGoalTargetValue(timeframe);
           }
         case 'goal_completion_million_plus':
           {
-            const { AchievementIntegration } = await import('./achievementIntegration');
+            // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
             return await AchievementIntegration.getGoalCompletionMillionPlus(timeframe);
           }
         default:
           // Handle custom sources using integration layer
-          const { AchievementIntegration } = await import('./achievementIntegration');
+          // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
           return await AchievementIntegration.getCountValueForAchievement(source, timeframe);
       }
     } catch (error) {
@@ -407,9 +413,19 @@ export class AchievementService {
     additionalData?: Record<string, any>
   ): Promise<number> {
     try {
-      // Implementation for percentage-based achievements
-      // Could be goal completion percentage, habit success rate, etc.
-      return 0; // Placeholder
+      // Audit fix (July 2026): this was a `return 0` placeholder, so every
+      // percentage-type condition (e.g. Balanced Life's habit XP ratio)
+      // permanently evaluated to 0 and its achievement could never unlock.
+      switch (source) {
+        case 'habit_xp_ratio': {
+          // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
+          return await AchievementIntegration.getHabitXPRatio(timeframe); // 0-100
+        }
+        default:
+          console.warn(`getPercentageValue: unhandled percentage source '${source}'`);
+          return 0;
+      }
     } catch (error) {
       console.error('AchievementService.getPercentageValue error:', error);
       return 0;
@@ -593,7 +609,7 @@ export class AchievementService {
 
         // Check for Achievement Combo Multiplier (3+ achievements in 24h)
         try {
-          const { XPMultiplierService } = await import('./xpMultiplierService');
+          const { XPMultiplierService } = require('./xpMultiplierService');
           await XPMultiplierService.checkAndActivateAchievementCombo();
         } catch (comboError) {
           console.error('Achievement combo check failed:', comboError);
@@ -1597,7 +1613,8 @@ export class AchievementService {
    * Helper: Get count value using AchievementIntegration
    */
   private static async getCountValue(source: string, timeframe: string = 'all_time'): Promise<number> {
-    const { AchievementIntegration } = await import('./achievementIntegration');
+    // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
     return await AchievementIntegration.getCountValueForAchievement(source, timeframe);
   }
 
@@ -1605,7 +1622,8 @@ export class AchievementService {
    * Helper: Get streak value using AchievementIntegration
    */
   private static async getStreakValue(source: string): Promise<number> {
-    const { AchievementIntegration } = await import('./achievementIntegration');
+    // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { AchievementIntegration } = require('./achievementIntegration');
     return await AchievementIntegration.getStreakValueForAchievement(source);
   }
 
@@ -1613,7 +1631,7 @@ export class AchievementService {
    * Helper: Get gratitude streak info
    */
   private static async getGratitudeStreakInfo(): Promise<any> {
-    const { gratitudeStorage } = await import('./storage/gratitudeStorage');
+    const { gratitudeStorage } = require('./storage/gratitudeStorage');
     return await gratitudeStorage.getStreak();
   }
 

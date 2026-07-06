@@ -542,60 +542,32 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
 
   const executeForceResetDebt = async () => {
     try {
-      
-      // ENHANCED: Clean debt reset without creating fake entries
-      // Simply clear all debt tracking data and unfreeze streak
-      const currentStreakInfo = state.streakInfo;
-
-      if (!currentStreakInfo) {
-        console.error('[DEBUG] executeForceResetDebt: No streak info available');
-        return;
+      // FIX (July 2026): the previous implementation wrote the "cleared" streak
+      // object into AsyncStorage via BaseStorage.set(), but the live streak
+      // store is SQLite — the write was a silent no-op and refreshStats()
+      // immediately recalculated the debt back. The "issue resolved" success
+      // modal lied to the user.
+      //
+      // Proper debt forgiveness: apply warm-up payments WITHOUT ads through
+      // the same storage machinery real ads use. Payments bridge the missed
+      // days, so the streak continues exactly as if the ads were watched.
+      let remaining = await actions.adsNeededToWarmUp();
+      for (let i = 0; i < 3 && remaining > 0; i++) {
+        const result = await actions.applySingleWarmUpPayment();
+        remaining = result.remainingFrozenDays;
       }
 
-      // Create history entry for force reset
-      const historyEntry: WarmUpHistoryEntry = {
-        action: 'quick_warm_up',
-        timestamp: new Date(),
-        frozenDaysBefore: currentStreakInfo.frozenDays,
-        frozenDaysAfter: 0,
-        details: 'Force reset - All debt cleared without ads',
-        missedDates: [], // Will be populated with actual unpaid dates
-        adsInvolved: 0,
-      };
-
-      // Clear all debt tracking data
-      const resetStreakInfo: GratitudeStreak = {
-        ...currentStreakInfo,
-        frozenDays: 0,               // Clear frozen days completely
-        isFrozen: false,           // Unfreeze streak
-        canRecoverWithAd: false,   // No longer need recovery
-        warmUpPayments: [],          // Clear payment history
-        warmUpHistory: [...currentStreakInfo.warmUpHistory, historyEntry], // Keep audit trail
-        autoResetTimestamp: new Date(), // CRITICAL BUG #2 FIX: Mark force reset
-        autoResetReason: 'Force reset by user action',
-        preserveCurrentStreak: false, // Normal calculation from now
-      };
-      
-      // Save updated streak info
-      await BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, resetStreakInfo);
-      
-      // Recalculate streak to ensure consistency
-      await actions.refreshStats();
-
-      // Verify debt is now 0
-      const verifyDebt = await actions.calculateFrozenDays();
-      
       // BUG #4 FIX: Clean up and show success using coordinated flow
       setAdsWatched(0);
       setTotalAdsNeeded(0);
       await loadStreakData();
-      
+
       // Refresh context
       await actions.refreshStats();
-      
+
       // Show success message with apology
       showSuccessModal(t('journal.rescue.issueResolved.title'), t('journal.rescue.issueResolved.message'));
-      
+
     } catch (error) {
       console.error('Failed to reset debt:', error);
       // BUG #4 FIX: Use coordinated modal flow for errors

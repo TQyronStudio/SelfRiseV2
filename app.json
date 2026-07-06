@@ -218,13 +218,14 @@
       ],
       "expo-tracking-transparency",
       "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
       "./plugins/withModularHeaders",
       [
         "expo-build-properties",
         {
           "ios": {
             "useFrameworks": "static",
-            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics"]
+            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics", "RNFBCrashlytics"]
           },
           "android": {
             "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }"

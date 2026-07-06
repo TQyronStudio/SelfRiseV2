@@ -490,7 +490,7 @@ export class UserActivityTracker {
         // Generation context
         generatedAt: new Date(),
         dataQuality,
-        isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD, // < 14 days = warm-up challenge
+        isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD, // < WARM_UP_THRESHOLD (20) days = warm-up challenge
         totalActiveDays: context.totalActiveDays,
         analysisStartDate: context.analysisStartDate,
         analysisEndDate: context.analysisEndDate

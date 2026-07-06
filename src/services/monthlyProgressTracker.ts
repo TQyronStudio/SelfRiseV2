@@ -118,6 +118,19 @@ export class MonthlyProgressTracker {
   }>();
   private static snapshotsCache: { data: DailyProgressSnapshot[]; timestamp: number } | null = null;
 
+  // Tracking keys whose value is DERIVED (recalculated from daily snapshots /
+  // storage analysis in recalculateComplexTrackingKeys) instead of incremented
+  // per-event. Their per-event increment is always 0, so progress updates for
+  // them must be driven by the recalculation, not by the increment loop.
+  private static readonly COMPLEX_TRACKING_KEYS: readonly string[] = [
+    'triple_feature_days',
+    'daily_engagement_streak',
+    'perfect_days',
+    'monthly_xp_total',
+    'balance_score',
+    'avg_entry_length',
+  ];
+
   // Weekly habits tracking cache for Variety Champion real-time uniqueness
   private static currentWeekHabits: Set<string> = new Set();
   private static currentWeekNumber: number = 0;
@@ -181,10 +194,18 @@ export class MonthlyProgressTracker {
 
       console.log(`📈 Updating monthly progress from ${source} (+${amount} XP)`);
 
+      // Merge top-level sourceId into metadata: increment calculators (e.g.
+      // unique_weekly_habits / Variety Champion) read metadata.sourceId, but
+      // XP events carry sourceId as a separate field and habit storage sends
+      // no metadata at all — without this merge, variety tracking never ran.
+      const enrichedMetadata = sourceId
+        ? { ...metadata, sourceId: metadata?.sourceId ?? sourceId }
+        : metadata;
+
       // Process each active challenge
       for (const challenge of activeChallenges) {
         console.log(`🔍 [DEBUG] Processing challenge: ${challenge.id} - ${challenge.title}`);
-        await this.processProgressUpdate(challenge, source, amount, metadata);
+        await this.processProgressUpdate(challenge, source, amount, enrichedMetadata);
       }
 
     } catch (error) {
@@ -286,68 +307,101 @@ export class MonthlyProgressTracker {
         }
       }
 
-      if (progressUpdated) {
-        // Update completion percentage
+      // Complex (derived) keys have per-event increments of 0 by design — their
+      // value comes from recalculateComplexTrackingKeys. The update pipeline
+      // must therefore also run when a matched requirement is complex, even
+      // though no simple increment was applied. (Previously the whole block was
+      // gated on progressUpdated only, so single-requirement complex challenges
+      // — Perfect Month, Triple Master, XP Champion, Balance Expert, Depth
+      // Explorer — never progressed at all. Audit fix, July 2026.)
+      const hasComplexRelevant = relevantRequirements.some(
+        r => this.COMPLEX_TRACKING_KEYS.includes(r.trackingKey)
+      );
+
+      if (progressUpdated || hasComplexRelevant) {
+        // Update completion percentage (pre-recalc value; stored in snapshot)
         currentProgress.completionPercentage = this.calculateCompletionPercentage(
           challenge,
           currentProgress
         );
 
-        // Create daily snapshot
+        // Create daily snapshot — MUST run before recalculateComplexTrackingKeys,
+        // which derives its values from snapshots (isPerfectDay, xpEarnedToday…)
         await this.createDailySnapshot(challenge.id, currentProgress, source, amount, metadata);
 
         // Incrementally update active days (adds today if not already tracked)
+        const previousDaysActive = currentProgress.daysActive || 0;
         await this.recalculateActiveDays(challenge.id, currentProgress);
+        const activeDaysChanged = (currentProgress.daysActive || 0) !== previousDaysActive;
 
         // Recalculate complex tracking keys (triple_feature_days, perfect_days, etc.)
         await this.recalculateComplexTrackingKeys(challenge, currentProgress);
 
-        // Update days remaining
-        currentProgress.daysRemaining = this.calculateDaysRemaining(challenge);
-
-        // Update projected completion
-        currentProgress.projectedCompletion = this.calculateProjectedCompletion(
+        // Recompute completion percentage AFTER the recalc so complex challenges
+        // reflect this event immediately (not one event late)
+        currentProgress.completionPercentage = this.calculateCompletionPercentage(
+          challenge,
           currentProgress
         );
 
-        // Update weekly breakdown (requires daily snapshot to exist)
-        await this.updateWeeklyBreakdown(challenge.id, currentProgress);
+        // Did anything user-visible actually change? For complex challenges many
+        // XP events legitimately produce no change (e.g. 2nd habit of the day on
+        // a Perfect Month challenge) — skip save/emit churn in that case.
+        const progressChanged = progressUpdated || activeDaysChanged || challenge.requirements.some(
+          r => (currentProgress.progress[r.trackingKey] || 0) !== (previousProgress[r.trackingKey] || 0)
+        );
 
-        // Check for milestone achievements
-        const milestoneResults = await this.checkMilestoneProgress(challenge.id, currentProgress);
-        
-        // Save updated progress
-        await this.saveProgressState(currentProgress);
+        if (progressChanged) {
+          // Update days remaining
+          currentProgress.daysRemaining = this.calculateDaysRemaining(challenge);
 
-        // Clear cache to ensure fresh data
-        this.clearProgressCache(challenge.id);
+          // Update projected completion
+          currentProgress.projectedCompletion = this.calculateProjectedCompletion(
+            currentProgress
+          );
 
-        // Emit progress update event
-        DeviceEventEmitter.emit(this.EVENTS.PROGRESS_UPDATED, {
-          challengeId: challenge.id,
-          challengeTitle: challenge.title,
-          previousProgress,
-          newProgress: currentProgress.progress,
-          completionPercentage: currentProgress.completionPercentage,
-          daysActive: currentProgress.daysActive,
-          daysRemaining: currentProgress.daysRemaining,
-          activeDays: currentProgress.activeDays,
-          milestones: milestoneResults,
-          source,
-          amount,
-          timestamp: new Date()
-        });
+          // Update weekly breakdown (requires daily snapshot to exist)
+          await this.updateWeeklyBreakdown(challenge.id, currentProgress);
 
-        // Handle milestone celebrations
-        for (const milestone of milestoneResults) {
-          if (milestone.reached && milestone.celebrationTriggered) {
-            await this.triggerMilestoneCelebration(challenge, milestone);
+          // Check for milestone achievements
+          const milestoneResults = await this.checkMilestoneProgress(challenge.id, currentProgress);
+
+          // Save updated progress
+          await this.saveProgressState(currentProgress);
+
+          // Clear cache to ensure fresh data
+          this.clearProgressCache(challenge.id);
+
+          // Emit progress update event
+          DeviceEventEmitter.emit(this.EVENTS.PROGRESS_UPDATED, {
+            challengeId: challenge.id,
+            challengeTitle: challenge.title,
+            previousProgress,
+            newProgress: currentProgress.progress,
+            completionPercentage: currentProgress.completionPercentage,
+            daysActive: currentProgress.daysActive,
+            daysRemaining: currentProgress.daysRemaining,
+            activeDays: currentProgress.activeDays,
+            milestones: milestoneResults,
+            source,
+            amount,
+            timestamp: new Date()
+          });
+
+          // Handle milestone celebrations
+          for (const milestone of milestoneResults) {
+            if (milestone.reached && milestone.celebrationTriggered) {
+              await this.triggerMilestoneCelebration(challenge, milestone);
+            }
           }
-        }
 
-        // Check for challenge completion
-        if (currentProgress.completionPercentage >= 100 && !currentProgress.isCompleted) {
-          await this.completeMonthlyChallenge(challenge.id);
+          // Check for challenge completion
+          if (currentProgress.completionPercentage >= 100 && !currentProgress.isCompleted) {
+            await this.completeMonthlyChallenge(challenge.id);
+          }
+        } else {
+          // Snapshot/active-days bookkeeping ran, but derived values are unchanged
+          console.log(`⚠️ [DEBUG] Complex recalc produced no change for "${challenge.title}" - skipping save/emit`);
         }
       } else {
         console.log(`⚠️ [DEBUG] Progress not updated - no changes to active days. Current active days: ${JSON.stringify(currentProgress.activeDays)}, count: ${currentProgress.daysActive}`);
@@ -355,6 +409,10 @@ export class MonthlyProgressTracker {
 
     } catch (error) {
       console.error('MonthlyProgressTracker.processProgressUpdate error:', error);
+      // Report handled failures — a broken update pipeline means the user's
+      // challenge silently stops progressing (see July 2026 tracking repair).
+      const { CrashReportingService } = require('./crashReportingService') as typeof import('./crashReportingService');
+      CrashReportingService.recordError(error, 'monthly_progress_update_failed');
       // Continue processing other challenges
     }
   }
@@ -393,6 +451,17 @@ export class MonthlyProgressTracker {
           matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
           break;
         case 'daily_journal_streak':
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          break;
+        case 'habit_streak_days':
+          // Streak Builder: real-time consecutive-days tracking on habit activity.
+          // (This case was missing — the requirement was never selected, so the
+          // Streak Builder challenge never progressed. Audit fix, July 2026.)
+          matches = source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS;
+          break;
+        case 'avg_entry_length':
+          // Depth Explorer: average entry length changes only on journal activity.
+          // Recalculated in recalculateComplexTrackingKeys (complex key).
           matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
           break;
         case 'daily_goal_progress':
@@ -871,7 +940,10 @@ export class MonthlyProgressTracker {
     progress: MonthlyChallengeProgress
   ): Promise<void> {
     try {
-      const today: string = new Date().toISOString().split('T')[0]!;
+      // LOCAL date (see parseDate/today in date utils) — the previous UTC
+      // toISOString() shifted the active-day date after local evening for
+      // users west of UTC (same bug class as audit N4).
+      const todayString: string = today();
 
       // Initialize activeDays array if missing
       if (!progress.activeDays) {
@@ -879,13 +951,12 @@ export class MonthlyProgressTracker {
       }
 
       // If today is already tracked, nothing to do
-      if (progress.activeDays.includes(today)) {
+      if (progress.activeDays.includes(todayString)) {
         return;
       }
 
-      // Today had progress (this method is only called when progressUpdated is true),
-      // so add today to active days
-      progress.activeDays.push(today);
+      // Today had relevant activity for this challenge, so track it as active
+      progress.activeDays.push(todayString);
       progress.activeDays.sort();
       progress.daysActive = progress.activeDays.length;
 
@@ -1522,7 +1593,7 @@ export class MonthlyProgressTracker {
       if (direction <= 0) return 0;
 
       // Get current date (YYYY-MM-DD format)
-      const todayString: string = new Date().toISOString().split('T')[0]!;
+      const todayString: string = today(); // LOCAL date — UTC toISOString() shifted after local evening (audit N4 class)
 
       // Check if date changed since last tracking
       if (this.currentStreakDate !== todayString) {
@@ -1582,7 +1653,7 @@ export class MonthlyProgressTracker {
       console.log(`📝⭐ [DEBUG] Consistency Writer requires ${requiredEntriesPerDay} entries/day (${starLevel}⭐ level)`);
 
       // Get current date (YYYY-MM-DD format)
-      const todayString: string = new Date().toISOString().split('T')[0]!;
+      const todayString: string = today(); // LOCAL date — UTC toISOString() shifted after local evening (audit N4 class)
 
       // Count today's journal entries (synchronous count using transactions)
       const todayJournalCount = this.countTodayJournalEntries(todayString);
@@ -1660,8 +1731,8 @@ export class MonthlyProgressTracker {
    */
   private static incrementTodayJournalCount(): void {
     try {
-      const todayString = new Date().toISOString().split('T')[0]!;
-      
+      const todayString = today(); // LOCAL date — consistent with the streak calculators above
+
       // Reset counter if date changed
       if (this.journalCountDate !== todayString) {
         this.todayJournalEntriesCount = 0;

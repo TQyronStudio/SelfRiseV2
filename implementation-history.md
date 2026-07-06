@@ -17,6 +17,121 @@ A comprehensive record of technical problem-solving, debugging procedures, and i
 
 ## Archive: Recent Completed Projects (Detailed Technical History)
 
+### XP Multiplier Split-Brain Repair (July 3, 2026) ✅
+
+**Project Summary**: Deep audit of the XP multiplier system (Harmony Streak 2×/24h, Inactive User Boost 2×/48h, Achievement Combo 2.5×/6h) and the loyalty system. The headline finding: **multiplier activation was a complete silent no-op in production** — the fourth "app lies" bug of this audit series, and the third split-brain (write path ≠ read path) in the codebase. 3 bugs fixed; 12-test regression suite. Final: tsc 0 errors, 324/324 tests (19 suites).
+
+#### What was verified as CORRECT (no changes)
+- Multiplier APPLICATION: `addXP` reads `getActiveXPMultiplier()` and multiplies `finalAmount`; daily limits scale with the active multiplier (2× limits under 2× XP) per guide; transaction records the multiplier.
+- Harmony activity data sources: real storages (habit completions, journal entries ≥3, goal_progress SQL by date), local dates via `today()`/`subtractDays()`.
+- Loyalty system end-to-end: `trackDailyActivity` (once per local day, consecutive-streak logic with gap reset, longest preserved), exact-day milestone detection → `checkLoyaltyAchievements` → achievement unlock + XP; `getLoyaltyTotalActiveDays` reads the same AsyncStorage store the service writes (consistent). Note: SQLite `loyalty_state` table is written only by migration/demo and read by nobody — dead table, no split-brain; candidate for cleanup with N27.
+
+#### Bug 1 — activation split-brain (CRITICAL)
+- All three activation paths stored the active multiplier via `AsyncStorage.setItem('xp_multiplier_active', …)`, but `getActiveMultiplier()` reads the SQLite `xp_multipliers` table when `USE_SQLITE_GAMIFICATION` is on. The only SQLite writer was the one-time migration. Consequence: since the SQLite migration, every activation — no 2× XP, no scaled limits, no countdown UI — while the user still received the activation celebration + bonus XP and PAID the 7-day cooldown.
+- **Fix**: new `storeActiveMultiplier()` / `clearActiveMultiplierStorage()` private helpers with the standard feature-flag branch (SQLite INSERT OR REPLACE / AsyncStorage legacy); all three activation sites + `resetAllData` now use them. Rule documented in the guide: active multiplier is persisted EXCLUSIVELY through these helpers.
+
+#### Bug 2 — Harmony streak anchored at today
+- `getRecentActivityData(30, stopOnBreak=true)` terminated the scan at index 0 (today) and `calculateStreakFromActivityData` broke on the first non-harmony day — so an incomplete TODAY (i.e. every morning) reported streak 0 even after a full 7-day run ending yesterday. The earned activation was unavailable most of the day; the UI showed 0 where the user saw 6-7 the night before.
+- **Fix**: today-in-progress neither terminates the scan nor breaks the run (anchor at yesterday — same pattern as journal/bonus streaks); only a missed PAST day ends the streak. `streakStartDate` computed correctly for both anchorings.
+
+#### Bug 3 — UPPERCASE XP source
+- Inactive User Boost awarded its comeback bonus with `source: 'XP_MULTIPLIER_BONUS'` (the enum NAME, not the value `'xp_multiplier_bonus'`) → daily-limit lookups and summary-column mapping silently failed for this source (same case-mismatch class as the June `xp_daily_summary` bug).
+
+#### Infrastructure
+- `await import()` → typed `require('…') as typeof import('…')` across xpMultiplierService (9 sites) — project convention ("require for Jest compatibility"); dynamic import throws in the Jest VM, which previously made every multiplier path silently fall into catch-fallbacks under test.
+
+#### Regression suite
+`src/services/__tests__/xpMultiplier.loyalty.test.ts` — 12 tests against the real in-memory SQLite: stored multiplier visible to the read path (THE split-brain regression), expiry, clear, full `activateHarmonyMultiplier` E2E incl. cooldown + double-activation rejection, streak anchoring semantics (4 cases), loyalty new-day/idempotence, exact-day milestone firing, streak continuation/gap reset, level boundaries.
+
+**Limits**: device check recommended — activate a multiplier (or use debug tools) and verify the countdown UI appears and XP visibly doubles.
+
+---
+
+### Achievements Dead Evaluator Repair (July 3, 2026) ✅
+
+**Project Summary**: Deep audit of the achievement system (78 achievements, 6 condition types, 26 distinct sources) found that **35+ conditions permanently evaluated to 0** — roughly half the catalog could never unlock, even though the underlying user data existed. Same "app lies" bug class as the Monthly Challenges repair (missing dispatch cases). All fixed; 89-test regression suite added. Final: tsc 0 errors, 312/312 tests.
+
+#### What was verified as CORRECT (no changes)
+- Unlock flow: duplicate-unlock protection (unlock event store returns false), recursion prevention (ACHIEVEMENT_UNLOCK XP never re-triggers checks), XP award with no daily limit (rewards not trimmed), `xpGained`/`levelUp` events for UI, trigger after every XP action via `checkAchievementsAfterXPAction`.
+- Count conditions on XP sources (habit_completion, journal_entry, goal_completion) — counted from SQLite transactions (live since the June 13 split-brain fix).
+- Custom count sources with existing handlers (habit_creation, loyalty_total_active_days, daily_feature_combo, comeback_activities, …) — all wired.
+- `level` conditions (xp_total ×5) via userStats.currentLevel; `value` conditions (goal_target_value, journal_entry_length).
+
+#### Root causes & fixes
+1. **⭐🔥👑 milestone counters unhandled (21 conditions)**: `journal_star_count` / `journal_flame_count` / `journal_crown_count` appeared NOWHERE in the services — `getCountValueForAchievement` fell to `default → 0` for First Star, Five Stars, Flame Achiever, Crown Royalty, Flame Collector and the rest of the 21 milestone achievements. The data lives in the journal streak state (starCount/flameCount/crownCount, SQLite `streak_state`). **Fix**: three cases reading `gratitudeStorage.getStreak()` counters.
+2. **Streak source name mismatch (12 achievements)**: catalog streak conditions use ACTIVITY sources (`habit_completion` ×5, `journal_entry` ×4, `goal_progress_consecutive_days`, `journal_bonus_streak`, `journal_golden_bonus_streak`) but `getStreakValueForAchievement` matched only `habit_streak` / `journal_streak` / `app_usage_days` — the first two names are used nowhere in the catalog. Dead: Streak Champion, Century Streak, Weekly Warrior, Monthly Master, Hundred Days, Grateful Heart, Gratitude Guru, Eternal Gratitude, Journal Streaker, Progress Tracker, Bonus Week, Golden Bonus Streak. **Fix**: activity names mapped to the corresponding calculators (getMaxHabitStreak, getJournalStreak, getGoalProgressConsecutiveDays); legacy names kept as aliases.
+3. **Bonus-streak calculator missing**: Bonus Week (1+ bonus entry/day, 7 days) and Golden Bonus Streak (3+ bonus/day, 7 days) had no computation anywhere. **Fix**: new `getBonusJournalDayStreak(minBonusPerDay)` — consecutive-day run of days with ≥N bonus entries (order > 3), anchored at today if it already qualifies, else yesterday (today still in progress).
+4. **`getPercentageValue` placeholder**: literally `return 0; // Placeholder` → every percentage condition dead (Balanced Life's habit_xp_ratio sub-condition). **Fix**: dispatch to `AchievementIntegration.getHabitXPRatio` (0–100), warn on unknown sources.
+5. **`await import()` → `require()`** (11 sites in achievementService): dynamic import throws in the Jest VM ("dynamic import callback without --experimental-vm-modules"); the project's documented convention elsewhere (monthlyProgressTracker, getDailyXPTransactions) is lazy `require()` "for Jest compatibility". Behaviour identical under Metro.
+
+#### Regression suite
+`src/services/__tests__/achievementEvaluation.test.ts` — 89 tests:
+- **Group A — catalog-wide "no dead evaluator" guarantee (79)**: one test PER ACHIEVEMENT. Every condition from the live catalog runs through the REAL dispatch switches with all data getters mocked non-zero; a condition that falls into a dead default fails a test named after its achievement. Adding a new achievement with an unhandled source breaks the suite by design.
+- **Group B — calculators on real in-memory SQLite (10)**: milestone counters from streak state, bonus-day streak semantics (min 1/day vs 3/day, unfinished today anchors at yesterday, gap breaks run), streak source routing incl. legacy aliases, percentage flow end-to-end.
+
+#### Documentation
+`technical-guides:Achievements.md`: new "PRODUCTION FIX 0" section with the rule: **new achievement source ⇒ must add a dispatch handler, the per-achievement test enforces it**.
+
+**Limits**: unlock-time UX (modal queue, celebration) verified by code reading only — device check recommended: unlock e.g. First Star (achieve 1 bonus journal entry milestone) and verify the celebration modal + XP.
+
+---
+
+### Journal Streak Debt Gate Repair (July 3, 2026) ✅
+
+**Project Summary**: Deep audit of the frozen-streak/debt/warm-up system (`SQLiteGratitudeStorage`, 1 710 lines — the most complex business logic in the app, previously without regression tests). Product decision codified: unpaid debt blocks new entries; the user either pays (streak continues) or explicitly Starts Fresh (streak 0, longest preserved). 2 real bugs fixed + 1 gate hardening; 20-test regression suite added against the real in-memory SQLite mock. Final: tsc 0 errors, 223/223 tests.
+
+#### What was verified as CORRECT (no changes)
+- Freeze preservation (streak 15 + missed day → frozen 15, NOT 0 — the guide's #1 mandatory scenario), `streakBeforeFreeze` memory, `justUnfrozeToday` +1 continuation after payment, auto-reset boundary (>3 unpaid days excluding today) with `longestStreak` preservation, warm-up payment bridging (paid days bridge but don't count), FIX 15.3 (streak 0 → no phantom debt), XP per entry position (20/20/20, 8 for 4th–13th, 0 for 14+) and ⭐🔥👑 milestones at positions 4/8/13, entry gate with Home redirect + auto-open of the debt modal (`openDebtModal` param), complete i18n of the gate errors.
+
+#### Bug 1 — silent streak wipe (the "self-destructing protection")
+- `calculateFrozenDays()` had a "today complete → debt 0" early return and `adsNeededToWarmUp()` a "3+ entries today → 0" early return. Consequence: the moment a day with unpaid debt gained 3 entries, debt "vanished", `isFrozen` became false, and the streak was recalculated ACROSS the unpaid gap → silent collapse (e.g. 15 → 1) with `streakBeforeFreeze` memory nulled — and the debt could never be paid again (ads returned 0). The frozen-streak promise was violated exactly when the user did the most natural thing.
+- Reachability: the main entry path is protected by the GratitudeInput gate, but the state was reachable via (a) deleting a past day's entry in journal-history (yesterday drops below 3 entries while today is complete), (b) midnight-rollover races (gate read stale saved `frozenDays=0`), (c) any historical data already in this state.
+- **Fix**: both early returns removed. Debt = unpaid missed PAST days; today's entries are irrelevant to it. With debt present and today complete, the state machine keeps the streak frozen & preserved and ads stay payable; after payment `justUnfrozeToday` + today-complete continues `streakBeforeFreeze + 1`.
+
+#### Bug 2 — "issue resolution" debt forgiveness was a silent no-op
+- `executeForceResetDebt` (GratitudeStreakCard) built a cleared streak object and saved it via `BaseStorage.set(STORAGE_KEYS.GRATITUDE_STREAK, …)` — AsyncStorage — while the live streak store is SQLite. The write changed nothing, `refreshStats()` recalculated the debt right back, and the user saw a "issue resolved" success modal that lied.
+- **Fix**: forgiveness now applies up to 3 `applySingleWarmUpPayment()` iterations — ad-less payments through the same storage machinery real ads use, so missed days are genuinely bridged and the streak continues.
+
+#### Hardening — entry gate stale-state bypass
+- The gate trusted saved `streak.frozenDays` alone; right after midnight or a deletion the saved value can be stale (0) while real debt exists. Now `Math.max(saved.frozenDays, calculateFrozenDays())`. FIX 15.3 keeps Start Fresh / new users unaffected (fresh calc returns 0 for streak 0).
+
+#### Regression suite
+`src/services/storage/__tests__/sqliteGratitudeStorage.streakDebt.test.ts` — 20 tests running the REAL storage against the in-memory SQLite from the global jest setup (real SQL semantics, no logic stubs; only GamificationService/uuid mocked). Covers: debt visibility with today complete (wipe regression), payability with 3+ today's entries, freeze preservation, payment continuation 15→16, paid-gap bridging, auto-reset boundary (3 vs 4 days), partial payments, Start Fresh, and the pure `calculateStreakWithWarmUp` util. **Any failure = user streaks being silently destroyed = release blocker.**
+
+#### Documentation
+`technical-guides:My-Journal.md`: new binding "Debt Gate" section (product decision, implementation chain, test suite reference) + clarification that the daily-completion pseudocode's `frozenDays: 0` never meant erasing past debt.
+
+**Limits**: static analysis + integration tests on mocked SQLite; device check recommended — with a frozen streak try to write an entry (must redirect to Home warm-up modal) and pay 1 ad (streak must continue).
+
+---
+
+### Monthly Challenges Tracking Repair (July 3, 2026) ✅
+
+**Project Summary**: Deep audit of the Monthly Challenge system (baseline → generation → tracking → XP → modals → i18n) found that **7 of 14 challenge templates never collected progress** — the worst possible UX class ("the app lies"): user completes activities, challenge stays at 0%, month ends with a failure modal, streak reset and star demotion. All root causes fixed same day; 16-test regression suite added. Final: tsc 0 errors, 203/203 tests.
+
+#### What was verified as CORRECT (no changes needed)
+- Baseline collection (`UserActivityTracker`) reads live SQLite XP transactions (correct since the June 13 split-brain fix); quality thresholds and warm-up logic work.
+- Target generation: star scaling (+5…+25%), day-count caps for daily-streak targets, XP-achievability caps, Balance Expert gated to `minLevel: 4`.
+- Completion flow: streak bonus tiers per guide, `isCompleted` double-award guard, star update with warm-up exclusion, archive + full event payload.
+- Milestone XP (25/50/75% → real `addXP` calls), MONTHLY_CHALLENGE exempt from daily XP limits (large rewards not trimmed).
+- Modals wired via listeners + ModalQueue priorities; i18n complete for all 14 templates in EN/DE/ES (incl. pluralized `month_one/month_other`).
+
+#### Root causes & fixes (all in `monthlyProgressTracker.ts`)
+1. **Missing `getRelevantRequirements` cases (Fix A)**: `habit_streak_days` (Streak Builder) and `avg_entry_length` (Depth Explorer) fell into `default: false` → events discarded before any calculation. Added cases (habit sources / journal sources).
+2. **Increment-0 trap (Fix B)**: complex/derived keys (`triple_feature_days`, `perfect_days`, `monthly_xp_total`, `balance_score`, `avg_entry_length`) return per-event increment 0 by design — their values come from `recalculateComplexTrackingKeys` (snapshot-derived). But the entire pipeline (snapshot creation → recalc → save → emit) was gated on `progressUpdated`, which only simple increments could set. Single-requirement complex challenges (all 4 consistency templates) therefore never progressed. Fix: introduced `COMPLEX_TRACKING_KEYS` constant + `hasComplexRelevant` gate; snapshot/recalc now run for complex-relevant events; completion % recomputed AFTER recalc (was one event stale); `progressChanged` comparison (requirement values + active days) decides save/emit to avoid churn on no-op events.
+3. **Dropped sourceId (Fix C)**: `unique_weekly_habits` (Variety Champion) reads `metadata.sourceId`; XP events carry `sourceId` top-level and habit storage sends no metadata. Fix: `updateMonthlyProgress` merges `sourceId` into metadata (`metadata.sourceId ?? sourceId`).
+4. **Bonus — UTC date keys (N4 bug class)**: 4× `new Date().toISOString().split('T')[0]` in the tracker (active days, habit/journal streak calculators, journal day counter) → local `today()`. Previously active days/streak dates shifted to tomorrow after local evening for users west of UTC (and could fall outside the challenge range at month end).
+
+#### Regression suite
+`src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts` — 16 tests. Mocks: AsyncStorage harness, feature flags forced to legacy paths, `MonthlyChallengeService.getCurrentChallenge`, `GamificationService.getTransactionsByDateRange`, `gratitudeStorage.getEntriesInRange`; tracker statics reset in `beforeEach`. One real `updateMonthlyProgress` pipeline per template tracking key asserts progress moves (+ uniqueness semantics, quality threshold 33 chars, undo-never-below-zero, and a structural "no dead templates" check on `getRelevantRequirements`). **Any failure here = a whole challenge type dead in production = release blocker.**
+
+#### Documentation
+`technical-guides:Monthly-Challenges.md`: new "Production fix 0" section; warm-up threshold corrected 14→20 everywhere (matches code, commit d8ca23f); template counts corrected to 4/4/2/4 (=14); Variety Champion & Depth Explorer documented; Engagement King marked as not-implemented (tracking key exists, template does not). Stale `< 14 days` comment fixed in `userActivityTracker.ts`.
+
+**Limits**: static analysis + unit tests; recommended device check — complete a habit while a challenge is active and watch progress/percentage move in the challenge card and detail modal.
+
+---
+
 ### Pre-Release Cleanup (July 2, 2026) ✅
 
 **Project Summary**: Remaining pre-release items from `production-audit-2026-06-10.md`: N16 (theming hygiene), N23 (risky dependencies), N9 (journal-history list performance), N22 (stale warning suppressions). All compiler/test verified: tsc 0 errors, 187/187 tests, eslint 0 errors.

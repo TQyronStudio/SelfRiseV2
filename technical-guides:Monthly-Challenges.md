@@ -44,6 +44,39 @@
 
 ## 🔧 **PRODUCTION FIXES & IMPLEMENTATION HISTORY**
 
+### 🚨 **0. Tracking Key Repair — 7 of 14 templates never progressed (July 2026)**
+
+**Problem**: Seven challenge templates collected ZERO progress in production — the user
+completed activities, but the challenge stayed at 0% and ended in a failure modal with
+star demotion. Three independent root causes in `monthlyProgressTracker.ts`:
+
+1. **Missing filter cases**: `habit_streak_days` (Streak Builder) and `avg_entry_length`
+   (Depth Explorer) had no case in `getRelevantRequirements` → events were discarded
+   before any calculation ran.
+2. **Increment-0 trap**: complex/derived keys (`triple_feature_days`, `perfect_days`,
+   `monthly_xp_total`, `balance_score`, `avg_entry_length`) return per-event increment 0
+   by design — but the whole update pipeline (snapshot + `recalculateComplexTrackingKeys`
+   + save + emit) was gated on `progressUpdated`, which only turns true on a non-zero
+   increment. Chicken-and-egg: the recalculation that produces their values never ran.
+   All 4 consistency templates were dead.
+3. **Dropped sourceId**: `unique_weekly_habits` (Variety Champion) reads
+   `metadata.sourceId`, but XP events carry `sourceId` as a separate top-level field and
+   habit storage sends no metadata → variety never counted.
+
+**Fixes**:
+- Added the two missing `getRelevantRequirements` cases (habit sources / journal sources).
+- Pipeline now also runs when a matched requirement is complex (`hasComplexRelevant`);
+  completion % is recomputed AFTER the recalc; save/emit only fire when a requirement
+  value or active-days actually changed (no churn).
+- `updateMonthlyProgress` merges top-level `sourceId` into metadata before processing.
+- Bonus: all `new Date().toISOString().split('T')[0]` (UTC!) date keys in the tracker
+  replaced with local `today()` — active days / streak dates no longer shift after
+  local evening for users west of UTC.
+
+**Regression guard**: `src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts`
+drives one real event pipeline per template tracking key and asserts progress > 0.
+**If any of these 16 tests fails, a whole challenge type is dead — release blocker.**
+
 ### 🚀 **1. MonthlyProgressIntegration Auto-Initialization Fix (August 2025)**
 
 **Problem**: Unreliable auto-initialization causing system non-functionality
@@ -248,7 +281,7 @@ useEffect(() => {
 
 ## 📋 **PŘEHLED VŠECH TYPŮ VÝZEV**
 
-### 🎯 **HABITS KATEGORIE (3 typy výzev)**
+### 🎯 **HABITS KATEGORIE (4 typy výzev)**
 
 #### **1. Consistency Master** 
 *"Dokončuj své plánované návyky konzistentně celý měsíc"*
@@ -260,6 +293,12 @@ useEffect(() => {
 - **4⭐ Expert**: 24 návyků za měsíc *(baseline 20 → +20%)*
 - **5⭐ Mistr**: 25 návyků za měsíc *(baseline 20 → +25%)*
 
+
+#### **2. Variety Champion**
+*"Dokončuj různé návyky každý týden pro pestrost"* (trackingKey: `unique_weekly_habits`)
+
+Počítá **unikátní návyky za týden** (stejný návyk 2× týdně = 1). Target škáluje z baseline
+podle hvězd stejně jako ostatní výzvy.
 
 #### **3. Streak Builder**
 *"Udržuj konzistentní streaky návyků po celý měsíc"*
@@ -285,7 +324,7 @@ useEffect(() => {
 
 ---
 
-### 📝 **JOURNAL KATEGORIE (3 typy výzev)**
+### 📝 **JOURNAL KATEGORIE (4 typy výzev)**
 
 #### **1. Reflection Expert**
 *"Piš detailní záznamy (33+ znaků) pro prohloubení vděčnosti"*
@@ -328,6 +367,12 @@ useEffect(() => {
 - **4⭐ Expert**: 30 dnů se záznamem za měsíc *(4 entries/day, baseline 25 → +20%)*
 - **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(5 entries/day, baseline 25 → +25%)*
 
+#### **4. Depth Explorer**
+*"Zvyšuj průměrnou délku svých záznamů pro hlubší reflexi"* (trackingKey: `avg_entry_length`)
+
+Hodnota = **průměrná délka záznamů (znaky)** v rámci měsíce — přepočítává se při každém
+journal eventu z reálných dat v úložišti (derived/complex key, ne inkrementální čítač).
+
 ---
 
 ### 🏆 **GOALS KATEGORIE (2 typy výzev)**
@@ -358,7 +403,7 @@ useEffect(() => {
 
 ---
 
-### ⚡ **CONSISTENCY KATEGORIE (5 typů výzev)**
+### ⚡ **CONSISTENCY KATEGORIE (4 typy výzev)**
 
 #### **1. Triple Master**
 *"Používej všechny tři funkce (návyky, deník, cíle) každý den"*
@@ -384,19 +429,11 @@ useEffect(() => {
 - **4⭐ Expert**: 24 perfektních dnů za měsíc *(baseline 20 → +20%)*
 - **5⭐ Mistr**: 25 perfektních dnů za měsíc *(baseline 20 → +25%)*
 
-#### **3. Engagement King**
-*"Získej XP každý jednotlivý den zůstáváním aktivní v aplikaci"*
+> ℹ️ **Pozn. (červenec 2026)**: Dřívější výzva „Engagement King" (`daily_engagement_streak`)
+> NEMÁ v kódu šablonu — tracking klíč existuje jen jako podpora v trackeru. Nezapočítávat
+> do počtu výzev, dokud šablona nevznikne.
 
-**📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
-
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 26 dnů s XP za měsíc *(baseline 25 → +5%)*
-- **2⭐ Střední**: 28 dnů s XP za měsíc *(baseline 25 → +10%)*
-- **3⭐ Těžká**: 29 dnů s XP za měsíc *(baseline 25 → +15%)*
-- **4⭐ Expert**: 30 dnů s XP za měsíc *(baseline 25 → +20%)*
-- **5⭐ Mistr**: 30 dnů s XP za měsíc *(baseline 25 → +25%)*
-
-#### **4. XP Champion**
+#### **3. XP Champion**
 *"Nashromáždi více celkového XP během měsíce ze všech zdrojů"*
 
 **Příklady obtížnosti:**
@@ -450,8 +487,8 @@ useEffect(() => {
 
 #### **🎲 Challenge Generation Logic**
 ```typescript
-if (totalActiveDays < 14) {
-  // 🌱 WARM-UP TREATMENT (< 14 aktivních dní)
+if (totalActiveDays < 20) {
+  // 🌱 WARM-UP TREATMENT (< 20 aktivních dní)
   category = randomFrom([HABITS, JOURNAL, GOALS])  // Náhodná variabilita
   template = randomFrom(templates.filter(t => t.minLevel === 1))
   title = "🌱 Warm-Up: " + template.title
@@ -460,7 +497,7 @@ if (totalActiveDays < 14) {
   generationReason = 'warm_up'        // ❌ Nedává hvězdu!
 
 } else if (dataQuality === 'partial') {
-  // ČÁSTEČNÁ PERSONALIZACE (14-20 aktivních dní)
+  // ČÁSTEČNÁ PERSONALIZACE (kolem prahu — dataQuality 'partial')
   category = weightedCategorySelection()
   template = weightedRandomTemplate()
   target = baseline * lightScaling    // Lehká personalizace
@@ -480,17 +517,17 @@ if (totalActiveDays < 14) {
 
 #### **📅 Praktický příklad uživatelského journey**
 ```
-Den 1-13:  Uživatel je nový, má < 14 aktivních dní
+Den 1-19:  Uživatel je nový, má < 20 aktivních dní
            → 🌱 Warm-Up: Náhodná kategorie, 1⭐, bez hvězdičky
 
-Den 14:    Uživatel překročí 14 aktivních dní - přechod na Full!
+Den 20:    Uživatel dosáhne 20 aktivních dní - přechod na Full!
            → ⭐ Full Challenge: Personalizované, dává hvězdičky
 
 Měsíc 1:   🌱 Warm-Up: Journal → Gratitude Guru (1⭐) - 8 aktivních dní
            → XP: 500 (Warm-Up hodnota), bez hvězdičky
 Měsíc 2:   🌱 Warm-Up: Habits → Streak Builder (1⭐) - 12 aktivních dní
            → XP: 500 (Warm-Up hodnota), bez hvězdičky
-Měsíc 3:   ⭐ Full: Habits → Consistency Master (2⭐) - 18 aktivních dní
+Měsíc 3:   ⭐ Full: Habits → Consistency Master (2⭐) - 22 aktivních dní
            → XP: 7,500 (Full 10x!), první hvězda! Target: +10% nad baseline
 Měsíc 4:   ⭐ Full: Journal → Reflection Expert (3⭐) - 25 aktivních dní
            → XP: 12,000 (Full 10x!), plná personalizace
@@ -504,7 +541,7 @@ Na základě 30-denní analýzy systém automaticky vytváří personalizované 
 ### **⭐ 5-hvězdičková obtížnost + XP odměny**
 
 #### **FULL Challenge XP (10x multiplier pro engagement!)**
-Uživatelé s 14+ aktivními dny dostávají plnohodnotné výzvy s vysokými XP odměnami:
+Uživatelé s 20+ aktivními dny dostávají plnohodnotné výzvy s vysokými XP odměnami:
 - **1⭐ Common** (Novice): +5% nad baseline → **5,000 XP**
 - **2⭐ Rare** (Explorer): +10% nad baseline → **7,500 XP**
 - **3⭐ Epic** (Challenger): +15% nad baseline → **12,000 XP**
@@ -524,7 +561,7 @@ Bonus za po sobě jdoucí měsíce splněných výzev. Počítá se jako % z bas
 > **Příklad**: 3⭐ výzva (12,000 XP) se streakem 5 měsíců = 12,000 + 1,200 (10%) = **13,200 XP**
 
 #### **WARM-UP Challenge XP (původní hodnoty)**
-Noví uživatelé (<14 aktivních dní) dostávají Warm-Up výzvy s nižšími XP:
+Noví uživatelé (<20 aktivních dní) dostávají Warm-Up výzvy s nižšími XP:
 - **1⭐**: 500 XP
 - **2⭐**: 750 XP
 - **3⭐**: 1,125 XP
@@ -669,11 +706,11 @@ interface UserActivityBaseline {
 ```typescript
 // MonthlyChallengeService - hlavní logika generování
 class MonthlyChallengeService {
-  // 13 předpřipravených templates rozdělených do 4 kategorií
-  static HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy];
-  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [3 typy];
+  // 14 předpřipravených templates rozdělených do 4 kategorií
+  static HABITS_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
+  static JOURNAL_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
   static GOALS_TEMPLATES: MonthlyChallengeTemplate[] = [2 typy];
-  static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [5 typů];
+  static CONSISTENCY_TEMPLATES: MonthlyChallengeTemplate[] = [4 typy];
   
   // Star-based scaling system (Full challenge XP / Warm-Up XP)
   static MONTHLY_XP_REWARDS = {
@@ -847,7 +884,7 @@ Systém rozlišuje dva typy výzev podle aktivity uživatele:
 │  Systém zkontroluje: Kolik aktivních dní má uživatel?       │
 │                         ↓                                    │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │  < 14 aktivních dní  │  ≥ 14 aktivních dní          │    │
+│  │  < 20 aktivních dní  │  ≥ 20 aktivních dní          │    │
 │  │         ↓            │           ↓                   │    │
 │  │   🌱 WARM-UP         │    ⭐ FULL CHALLENGE          │    │
 │  │   CHALLENGE          │                               │    │
@@ -855,10 +892,10 @@ Systém rozlišuje dva typy výzev podle aktivity uživatele:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### **🌱 WARM-UP CHALLENGE (< 14 dnů aktivity)**
+#### **🌱 WARM-UP CHALLENGE (< 20 dnů aktivity)**
 
 **Kdy se aktivuje:**
-- Uživatel má méně než 14 aktivních dní v historii
+- Uživatel má méně než 20 aktivních dní v historii
 - Nový uživatel bez dat
 - Uživatel s mezerami v aktivitě
 
@@ -866,7 +903,7 @@ Systém rozlišuje dva typy výzev podle aktivity uživatele:
 
 | Vlastnost | Warm-Up Challenge |
 |-----------|-------------------|
-| **Práh** | < 14 aktivních dní |
+| **Práh** | < 20 aktivních dní |
 | **Kategorie** | Náhodně: HABITS, JOURNAL, nebo GOALS |
 | **Šablona** | Náhodně z `minLevel = 1` šablon |
 | **Obtížnost** | Vždy 1⭐ (nejlehčí) |
@@ -878,7 +915,7 @@ Systém rozlišuje dva typy výzev podle aktivity uživatele:
 **Proč nedává hvězdu:**
 - Zabraňuje "gamingu" systému
 - Uživatel nemůže získat 5⭐ s lehkými výzvami
-- První "pravá" hvězda přijde až po 14+ dnech aktivity
+- První "pravá" hvězda přijde až po 20+ dnech aktivity
 
 **Náhodná variabilita (December 2025):**
 ```typescript
@@ -891,17 +928,17 @@ const beginnerTemplates = templates.filter(t => t.minLevel === 1);
 const selected = beginnerTemplates[Math.random() * count];
 ```
 
-#### **⭐ FULL CHALLENGE (≥ 14 dnů aktivity)**
+#### **⭐ FULL CHALLENGE (≥ 20 dnů aktivity)**
 
 **Kdy se aktivuje:**
-- Uživatel má 14 nebo více aktivních dní
+- Uživatel má 20 nebo více aktivních dní
 - Systém má dostatek dat pro personalizaci
 
 **Charakteristiky:**
 
 | Vlastnost | Full Challenge |
 |-----------|----------------|
-| **Práh** | ≥ 14 aktivních dní |
+| **Práh** | ≥ 20 aktivních dní |
 | **Kategorie** | Inteligentní výběr (váhy, historie, engagement) |
 | **Šablona** | Weighted random s priority, seasonal bonus, anti-repeat |
 | **Obtížnost** | 1-5⭐ podle star ratingu uživatele |
@@ -925,10 +962,10 @@ const selected = beginnerTemplates[Math.random() * count];
 #### **📈 Přechod z Warm-Up na Full**
 
 ```
-Den 1-13:  Uživatel dostává Warm-Up výzvy
+Den 1-19:  Uživatel dostává Warm-Up výzvy
            → Žádné hvězdy, variabilní kategorie, lehké cíle
 
-Den 14+:   Uživatel přechází na Full výzvy
+Den 20+:   Uživatel přechází na Full výzvy
            → Plná personalizace, hvězdy, progresivní obtížnost
 ```
 
@@ -936,7 +973,7 @@ Den 14+:   Uživatel přechází na Full výzvy
 ```
 Měsíc 1 (5 aktivních dní):   🌱 Warm-Up: Habits → Consistency Master (1⭐)
 Měsíc 2 (12 aktivních dní):  🌱 Warm-Up: Journal → Gratitude Guru (1⭐)
-Měsíc 3 (18 aktivních dní):  ⭐ Full: Habits → Streak Builder (2⭐) ← První hvězda!
+Měsíc 3 (22 aktivních dní):  ⭐ Full: Habits → Streak Builder (2⭐) ← První hvězda!
 Měsíc 4 (25 aktivních dní):  ⭐ Full: Journal → Reflection Expert (3⭐)
 ```
 
@@ -945,10 +982,10 @@ Měsíc 4 (25 aktivních dní):  ⭐ Full: Journal → Reflection Expert (3⭐)
 **Threshold konstanta:**
 ```typescript
 // userActivityTracker.ts
-private static readonly WARM_UP_THRESHOLD = 14;
+private static readonly WARM_UP_THRESHOLD = 20; // zvýšeno ze 14 (commit d8ca23f)
 
 // Rozhodování
-isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD
+isFirstMonth: context.totalActiveDays < this.WARM_UP_THRESHOLD // < 20 dní = warm-up
 ```
 
 **Star blocking v starRatingService.ts:**

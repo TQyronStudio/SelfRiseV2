@@ -1,5 +1,7 @@
 # SelfRise V2 - Project Plan
 
+> 📦 **Handoff**: Blueprinty zbývající práce (runtime ověření, Crashlytics, Achievements audit, N27/N28/N31, Sprint 4) + nebezpečné zóny: @handoff-blueprints.md
+
 ## ✅ COMPLETED: Pre-Release Production Audit Fixes (2026-06-13)
 
 **Goal**: Implement the 4 MUST-fix + 5 recommended issues from `production-audit-2026-06-10.md` before app store release, plus 2 additional bugs found during re-verification.
@@ -35,6 +37,88 @@ Independent re-verification of all 9 completed audit items found 3 gaps, all fix
 - [x] N22 — removed SDK 53-era metro console monkey-patch; LogBox suppressions reduced 8 → 2 (kept: Animated noise + ExpoPushTokenManager until notification rebuild). ⚠️ Verify in dev build on device — if a removed warning floods back, re-add it specifically
 
 **Verification**: tsc 0 errors, 187/187 tests green, eslint 0 errors (only pre-existing warnings). Dev-build device check pending (LogBox/metro + visual check of journal-history list). Details: @implementation-history.md → "Pre-Release Cleanup (July 2, 2026)"
+
+---
+
+## ✅ COMPLETED: Monthly Challenges — Deep Audit & Tracking Repair (2026-07-03)
+
+**Goal**: Verify end-to-end that Monthly Challenges collect user data correctly, compute targets/XP correctly, and show correct modals/texts — Technická pravidla a logika pro Monthly Challenges: @technical-guides:Monthly-Challenges.md
+
+**Audit result**: baseline collection ✅, target generation (star scaling, monthly caps) ✅, XP awards incl. milestone XP + daily-limit exemption ✅, modals + EN/DE/ES texts (14/14 templates) ✅ — BUT **7 of 14 challenge templates never collected any progress** (user completed activities → challenge stayed 0% → month-end failure modal + star demotion). CRITICAL "app lies" bug.
+
+- [x] Fix A — 2 missing cases in `getRelevantRequirements` (`habit_streak_days`, `avg_entry_length`) → Streak Builder & Depth Explorer dead
+- [x] Fix B — increment-0 trap: complex keys (`perfect_days`, `triple_feature_days`, `monthly_xp_total`, `balance_score`) recalculated only inside `if (progressUpdated)` which they could never satisfy → all 4 consistency challenges dead. Pipeline now runs for complex-relevant events; completion % recomputed after recalc; save/emit only on real change
+- [x] Fix C — `unique_weekly_habits` needs `metadata.sourceId` but XP events carry sourceId top-level → merged in `updateMonthlyProgress` → Variety Champion dead
+- [x] Bonus — 4× UTC date keys (`toISOString`) in tracker → local `today()` (N4 bug class; active days/streaks shifted after local evening west of UTC)
+- [x] Regression suite `monthlyProgressTracker.trackingKeys.test.ts` — 16 tests, one real event pipeline per template key; failure = dead challenge type = release blocker
+- [x] Guide updated: threshold 14→20 (matches code, commit d8ca23f), template counts 4/4/2/4, Variety Champion + Depth Explorer documented, Engagement King marked as not-implemented
+
+**Verification**: tsc 0 errors, 203/203 tests green (16 new). ⚠️ Runtime check on device recommended: complete a habit and watch an active challenge progress move. Details: @implementation-history.md → "Monthly Challenges Tracking Repair (July 3, 2026)"
+
+---
+
+## ✅ COMPLETED: Journal Streak/Debt — Deep Audit & Debt Gate Repair (2026-07-03)
+
+**Goal**: Verify the most complex business logic in the app (frozen streak / debt / warm-up) end-to-end — Technická pravidla a logika pro My Journal: @technical-guides:My-Journal.md
+
+**Product decision (Petr, 2026-07-03)**: With unpaid debt the user must NOT write new entries. Two paths only: pay debt via ads (streak continues where it left off) or explicit Start Fresh (streak from 0). Documented in guide → "Debt Gate".
+
+**Audit result**: core state machine (freeze at 15 stays 15, auto-reset >3 days, warm-up bridging, +1 continuation, XP positions/milestones, entry gate with Home redirect) verified correct. **2 real bugs + 1 hardening fixed:**
+
+- [x] Bug 1 — silent streak wipe: `calculateFrozenDays()` "today complete → debt 0" early return meant frozen streak + 3 today's entries (reachable via past-entry deletion, midnight races) → recalc across unpaid gap → streak 15 → 1 silently; `adsNeededToWarmUp()` had the same early return → debt could never be paid again. Both early returns removed — debt stays visible & payable until paid or Start Fresh
+- [x] Bug 2 — dead "issue resolution": `executeForceResetDebt` (GratitudeStreakCard) wrote the cleared streak via `BaseStorage.set` (AsyncStorage) while the live store is SQLite → silent no-op, success modal lied. Now uses `applySingleWarmUpPayment()` loop (ad-less payments through real machinery)
+- [x] Hardening — entry gate now uses `Math.max(saved.frozenDays, calculateFrozenDays())` (stale saved state let entries slip through after midnight rollover / deletions)
+- [x] Regression suite `sqliteGratitudeStorage.streakDebt.test.ts` — 20 tests against real in-memory SQLite (guide-mandated scenarios incl. "streak 15 + miss 1 day = frozen NOT 0", wipe regression, payment continuation 15→16, auto-reset boundary 3 vs 4 days, Start Fresh)
+
+**Verification**: tsc 0 errors, 223/223 tests green (17/17 suites). Details: @implementation-history.md → "Journal Streak Debt Gate Repair (July 3, 2026)"
+
+---
+
+## ✅ COMPLETED: Achievements — Deep Audit & Dead Evaluator Repair (2026-07-03)
+
+**Goal**: Verify all 78 achievements end-to-end (condition → unlock → XP → modal) — Technická pravidla a logika pro Achievements: @technical-guides:Achievements.md
+
+**Audit result**: unlock flow healthy (duplicate protection, recursion prevention for ACHIEVEMENT_UNLOCK, no daily XP limit on unlock rewards, trigger after every XP action). BUT **35+ conditions permanently evaluated to 0 → ~half the achievement catalog could NEVER unlock:**
+
+- [x] ⭐🔥👑 milestone counters (`journal_star_count/flame/crown`, 21 conditions — First Star, Flame Collector, Crown Royalty…) had no handler → added cases reading live streak-state counters
+- [x] Streak conditions use activity sources (`habit_completion`, `journal_entry`…) but the streak dispatcher only matched `habit_streak`/`journal_streak` (names the catalog never uses) → 12 streak achievements dead → activity names mapped to calculators, legacy aliases kept
+- [x] `goal_progress_consecutive_days`, `journal_bonus_streak`, `journal_golden_bonus_streak` streak sources unhandled → wired; new `getBonusJournalDayStreak(minPerDay)` calculator (Bonus Week = 1+/day, Golden = 3+/day)
+- [x] `getPercentageValue` was a `return 0` placeholder → Balanced Life dead → wired to `getHabitXPRatio`
+- [x] `await import()` → `require()` in achievementService (project convention, unblocks Jest)
+- [x] Regression suite `achievementEvaluation.test.ts` — **89 tests: one per achievement** (catalog-wide "no dead evaluator" guarantee) + calculators against real in-memory SQLite
+
+**Verification**: tsc 0 errors, 312/312 tests green (18/18 suites). Details: @implementation-history.md → "Achievements Dead Evaluator Repair (July 3, 2026)"
+
+---
+
+## ✅ COMPLETED: XP Multipliers + Loyalty — Deep Audit & Split-Brain Repair (2026-07-03)
+
+**Goal**: Verify the last unaudited gamification pillar (Harmony Streak multipliers, Inactive Boost, Achievement Combo, loyalty tracking) — Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification-Core.md
+
+**Audit result**: multiplier application in addXP ✅ (multiply + scaled daily limits), loyalty system ✅ (local dates, exact-day milestones → achievements → XP, streak logic correct, AsyncStorage read/write consistent). BUT **multiplier activation was a complete silent no-op in production:**
+
+- [x] Bug 1 — split-brain: all 3 activation paths wrote ONLY to AsyncStorage while `getActiveMultiplier()` reads SQLite `xp_multipliers` (only writer was the one-time migration) → user earned 7-day Harmony Streak, activated 2×, saw celebration, paid 7-day cooldown — and no XP was ever doubled, no countdown shown. Fixed via `storeActiveMultiplier`/`clearActiveMultiplierStorage` helpers (flag-based write where reads happen)
+- [x] Bug 2 — Harmony streak anchored at TODAY: incomplete today (= every morning) reported streak 0 after a full 7-day run ending yesterday → earned activation unavailable. Fixed: today-in-progress doesn't break the run (same anchoring as journal streaks)
+- [x] Bug 3 — Inactive Boost sent `source: 'XP_MULTIPLIER_BONUS'` (UPPERCASE ≠ enum `'xp_multiplier_bonus'`) → limit lookups and daily summaries silently failed for this source
+- [x] `await import()` → typed `require()` in xpMultiplierService (project convention; also unblocks Jest)
+- [x] Regression suite `xpMultiplier.loyalty.test.ts` — 12 tests (SQLite write→read consistency, expiry, E2E activation + cooldown, streak anchoring, loyalty milestones/streaks/levels)
+
+**Verification**: tsc 0 errors, 324/324 tests green (19/19 suites). Details: @implementation-history.md → "XP Multiplier Split-Brain Repair (July 3, 2026)"
+
+---
+
+## ✅ COMPLETED (code part): Crashlytics Integration (2026-07-06)
+
+**Goal**: Crash reporting before release — Technická pravidla a logika pro Crashlytics: @technical-guides:Crashlytics.md
+
+- [x] `@react-native-firebase/crashlytics@^23.8.8` installed; app.json plugin + `RNFBCrashlytics` static linking; `firebase.json` with auto-collection OFF (privacy-first)
+- [x] `crashReportingService.ts` — safe lazy wrapper (no-op in Jest/Expo Go); RULE: never import RNFB crashlytics directly
+- [x] Consent gating: `CrashReportingService.enable()` called after UMP privacy flow in `adConsentService` (single call site)
+- [x] Strategic non-fatal `recordError` in 4 critical catch blocks (DB init, streak calculation, monthly progress, multiplier activation)
+
+**Remaining (Petr, on device)**: `expo prebuild --clean` + build → `testCrash()` verification in Firebase Console → privacy documents (web Privacy Policy paragraph — Claude will write it with web access; App Store App Privacy: +Crash Data/Diagnostics; Play Data Safety: +Crash logs). Checklist: @technical-guides:Crashlytics.md
+
+**Verification**: tsc 0 errors, 324/324 tests green.
 
 ---
 

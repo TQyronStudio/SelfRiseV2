@@ -131,6 +131,61 @@ const MULTIPLIER_STORAGE_KEYS = {
 export class XPMultiplierService {
 
   // ========================================
+  // ACTIVE MULTIPLIER PERSISTENCE (single source of truth per feature flag)
+  // ========================================
+
+  /**
+   * Persist an activated multiplier where getActiveMultiplier() actually
+   * reads it. CRITICAL (audit fix, July 2026): all three activation paths
+   * previously wrote ONLY to AsyncStorage, while getActiveMultiplier() reads
+   * the SQLite `xp_multipliers` table when USE_SQLITE_GAMIFICATION is on —
+   * the only SQLite writer was the one-time migration. Every multiplier
+   * activation since the SQLite migration was therefore a silent no-op:
+   * no 2x XP, no scaled limits, no countdown UI — but the user still paid
+   * the 7-day cooldown and saw the activation celebration.
+   */
+  private static async storeActiveMultiplier(multiplier: XPMultiplier): Promise<void> {
+    const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
+
+    if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+      const { getDatabase } = require('./database/init') as typeof import('./database/init');
+      const db = getDatabase();
+      await db.runAsync(
+        `INSERT OR REPLACE INTO xp_multipliers (
+          id, source, multiplier, activated_at, expires_at, is_active
+        ) VALUES (?, ?, ?, ?, ?, 1)`,
+        [
+          multiplier.id,
+          multiplier.source,
+          multiplier.multiplier,
+          new Date(multiplier.activatedAt).getTime(),
+          multiplier.expiresAt ? new Date(multiplier.expiresAt).getTime() : null,
+        ]
+      );
+    } else {
+      // Legacy AsyncStorage implementation
+      await AsyncStorage.setItem(
+        MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER,
+        JSON.stringify(multiplier)
+      );
+    }
+  }
+
+  /**
+   * Clear any active multiplier from the flag-appropriate store.
+   */
+  private static async clearActiveMultiplierStorage(): Promise<void> {
+    const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
+
+    if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
+      const { getDatabase } = require('./database/init') as typeof import('./database/init');
+      const db = getDatabase();
+      await db.runAsync('UPDATE xp_multipliers SET is_active = 0');
+    }
+    await AsyncStorage.removeItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER);
+  }
+
+  // ========================================
   // HARMONY STREAK DETECTION
   // ========================================
 
@@ -159,10 +214,14 @@ export class XPMultiplierService {
         await AsyncStorage.setItem('harmony_longest_streak', String(longestStreak));
       }
       
-      // Determine streak start date
+      // Determine streak start date (run may be anchored at today or yesterday)
       let streakStartDate: DateString | undefined;
       if (currentStreak > 0) {
-        streakStartDate = subtractDays(today(), currentStreak - 1);
+        const first = activityData[0];
+        const endsToday = !!first && first.hasHabitActivity && first.hasJournalActivity && first.hasGoalActivity;
+        streakStartDate = endsToday
+          ? subtractDays(today(), currentStreak - 1)
+          : subtractDays(today(), currentStreak);
       }
       
       // Check if multiplier can be activated
@@ -208,7 +267,7 @@ export class XPMultiplierService {
    */
   private static async getRecentActivityData(days: number, stopOnBreak: boolean = false): Promise<DailyActivityData[]> {
     try {
-      const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags');
+      const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags') as typeof import('../config/featureFlags');
       const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
       const goalStorage = new GoalStorage();
@@ -238,8 +297,16 @@ export class XPMultiplierService {
 
         activityData.push(dailyActivity);
 
-        // Early termination: stop fetching once streak is broken (saves async calls)
-        if (stopOnBreak && !(dailyActivity.hasHabitActivity && dailyActivity.hasJournalActivity && dailyActivity.hasGoalActivity)) {
+        // Early termination: stop fetching once streak is broken (saves async calls).
+        // Index 0 is TODAY, which is usually still in progress — an incomplete
+        // today must NOT terminate the scan (audit fix, July 2026: a user with
+        // a full 7-day harmony run ending yesterday saw streak 0 all morning
+        // and could not activate the multiplier they had earned).
+        if (
+          stopOnBreak &&
+          i > 0 &&
+          !(dailyActivity.hasHabitActivity && dailyActivity.hasJournalActivity && dailyActivity.hasGoalActivity)
+        ) {
           break;
         }
       }
@@ -293,11 +360,11 @@ export class XPMultiplierService {
     date: DateString
   ): Promise<number> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+      const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
         // SQLite: Query goal_progress table directly for accurate date-based tracking
-        const { getDatabase } = await import('./database/init');
+        const { getDatabase } = require('./database/init') as typeof import('./database/init');
         const db = getDatabase();
 
         const result = await db.getFirstAsync<{ count: number }>(
@@ -308,7 +375,7 @@ export class XPMultiplierService {
         return result?.count || 0;
       } else {
         // AsyncStorage fallback: Check progress entries via getAllProgress
-        const { goalStorage } = await import('./storage/goalStorage');
+        const { goalStorage } = require('./storage/goalStorage') as typeof import('./storage/goalStorage');
         const allProgress = await goalStorage.getAllProgress();
 
         const entriesForDate = allProgress.filter(
@@ -328,20 +395,26 @@ export class XPMultiplierService {
    */
   private static calculateStreakFromActivityData(activityData: DailyActivityData[]): number {
     let streak = 0;
-    
-    // Start from most recent day and count backwards
-    for (const dayActivity of activityData) {
-      const isHarmonyDay = dayActivity.hasHabitActivity && 
-                          dayActivity.hasJournalActivity && 
+
+    // Start from most recent day (index 0 = TODAY) and count backwards.
+    // An incomplete TODAY does not break the run — the day is still in
+    // progress (same anchoring pattern as journal/bonus streaks). Only a
+    // missed PAST day ends the streak. (Audit fix, July 2026.)
+    for (let i = 0; i < activityData.length; i++) {
+      const dayActivity = activityData[i]!;
+      const isHarmonyDay = dayActivity.hasHabitActivity &&
+                          dayActivity.hasJournalActivity &&
                           dayActivity.hasGoalActivity;
-      
+
       if (isHarmonyDay) {
         streak++;
+      } else if (i === 0) {
+        continue; // today still in progress — anchor the run at yesterday
       } else {
-        break; // Streak is broken
+        break; // Streak is broken by a missed past day
       }
     }
-    
+
     return streak;
   }
 
@@ -480,14 +553,14 @@ export class XPMultiplierService {
         isActive: true,
       };
       
-      // Store active multiplier
-      await AsyncStorage.setItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER, JSON.stringify(multiplier));
-      
+      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
+      await this.storeActiveMultiplier(multiplier);
+
       // Award bonus XP for activation
       const bonusXP = XP_MULTIPLIERS.HARMONY_STREAK_DURATION * 10; // 10 XP per hour of multiplier
       
       try {
-        const { GamificationService } = await import('./gamificationService');
+        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
         await GamificationService.addXP(bonusXP, {
           source: 'xp_multiplier_bonus' as any,
           description: i18next.t('gamification.multiplier.descriptions.harmonyActivated', { hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION }),
@@ -527,6 +600,10 @@ export class XPMultiplierService {
       
     } catch (error) {
       console.error('XPMultiplierService.activateHarmonyMultiplier error:', error);
+      // Report handled failures — a failed activation may still have consumed
+      // the user's earned eligibility window (see July 2026 split-brain repair).
+      const { CrashReportingService } = require('./crashReportingService') as typeof import('./crashReportingService');
+      CrashReportingService.recordError(error, 'harmony_multiplier_activation_failed');
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -539,11 +616,11 @@ export class XPMultiplierService {
    */
   static async getActiveMultiplier(): Promise<ActiveMultiplierInfo> {
     try {
-      const { FEATURE_FLAGS } = await import('../config/featureFlags');
+      const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
 
       if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
         // SQLite implementation - query active multipliers
-        const { getDatabase } = await import('./database/init');
+        const { getDatabase } = require('./database/init') as typeof import('./database/init');
         const db = getDatabase();
         const now = Date.now();
 
@@ -921,7 +998,11 @@ export class XPMultiplierService {
         MULTIPLIER_STORAGE_KEYS.COOLDOWN_DATA,
         'harmony_longest_streak',
       ]);
-      
+
+      // Also clear the SQLite store (getActiveMultiplier reads it when the
+      // gamification flag is on) — see storeActiveMultiplier
+      await this.clearActiveMultiplierStorage();
+
       console.log('🧹 All XP Multiplier data reset');
     } catch (error) {
       console.error('XPMultiplierService.resetAllData error:', error);
@@ -970,7 +1051,7 @@ export class XPMultiplierService {
   }> {
     try {
       // Import GamificationService for last activity check
-      const { GamificationService } = require('./gamificationService');
+      const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
       
       const lastActivityDate = await GamificationService.getLastActivity();
       const today = formatDateToString(new Date());
@@ -1059,18 +1140,18 @@ export class XPMultiplierService {
         }
       };
       
-      // Store active multiplier
-      await AsyncStorage.setItem(
-        MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER,
-        JSON.stringify(multiplier)
-      );
-      
+      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
+      await this.storeActiveMultiplier(multiplier);
+
       // Award bonus XP for comeback
       const bonusXP = XP_REWARDS.SPECIAL.COMEBACK_BONUS;
-      const { GamificationService } = require('./gamificationService');
-      
+      const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
+
       await GamificationService.addXP(bonusXP, {
-        source: 'XP_MULTIPLIER_BONUS' as any,
+        // Audit fix (July 2026): was the UPPERCASE string 'XP_MULTIPLIER_BONUS',
+        // which is NOT the enum value ('xp_multiplier_bonus') — limit lookups
+        // and daily-summary column mapping silently failed for this source.
+        source: 'xp_multiplier_bonus' as any,
         sourceId: multiplier.id,
         description: i18next.t('gamification.multiplier.descriptions.comebackBonus', { days: inactiveStatus.daysSinceLastActivity }),
         skipLimits: true,
@@ -1152,7 +1233,7 @@ export class XPMultiplierService {
       }
 
       // Get achievements unlocked in last 24 hours
-      const { AchievementStorage } = await import('./achievementStorage');
+      const { AchievementStorage } = require('./achievementStorage') as typeof import('./achievementStorage');
       const unlockEvents = await AchievementStorage.getUnlockEvents();
 
       const now = Date.now();
@@ -1216,14 +1297,14 @@ export class XPMultiplierService {
         },
       };
 
-      // Store active multiplier
-      await AsyncStorage.setItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER, JSON.stringify(multiplier));
+      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
+      await this.storeActiveMultiplier(multiplier);
 
       // Award bonus XP for activation (10 XP per hour)
       const bonusXP = durationHours * 10;
 
       try {
-        const { GamificationService } = await import('./gamificationService');
+        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
         await GamificationService.addXP(bonusXP, {
           source: 'xp_multiplier_bonus' as any,
           description: i18next.t('gamification.multiplier.descriptions.achievementComboActivated', { count: achievementCount, hours: durationHours }),
@@ -1383,14 +1464,14 @@ export class XPMultiplierService {
         },
       };
 
-      // Store active multiplier
-      await AsyncStorage.setItem(MULTIPLIER_STORAGE_KEYS.ACTIVE_MULTIPLIER, JSON.stringify(multiplier));
+      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
+      await this.storeActiveMultiplier(multiplier);
 
       // Award bonus XP for activation (10 XP per hour)
       const bonusXP = durationHours * 10;
 
       try {
-        const { GamificationService } = await import('./gamificationService');
+        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
         await GamificationService.addXP(bonusXP, {
           source: 'xp_multiplier_bonus' as any,
           description: i18next.t('gamification.multiplier.descriptions.challengeCompletedActivated', { stars: starRating, hours: durationHours }),

@@ -198,7 +198,11 @@
       "Bash(curl -s -o /dev/null -w \"192.168.0.142:8081 → HTTP %{http_code} | %{time_total}s\\\\n\" --max-time 3 http://192.168.0.142:8081/status)",
       "WebFetch(domain:support.eset.com)",
       "Bash(brctl status *)",
-      "Bash(xattr node_modules/xmlbuilder/lib/XMLStringWriter.js)"
+      "Bash(xattr node_modules/xmlbuilder/lib/XMLStringWriter.js)",
+      "Bash(git add *)",
+      "Bash(rm /Users/turage/Developer/SelfRiseV2/.git/index.lock)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ],
     "deny": [],
     "ask": [],

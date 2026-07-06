@@ -114,6 +114,30 @@ MAX_GOAL_TRANSACTIONS_PER_DAY = 3
 
 ## XP Multiplier System
 
+### 🚨 PRODUCTION FIX (červenec 2026): Aktivace multiplierů byla tichý no-op
+
+**Problém 1 — split-brain zápis/čtení**: všechny 3 aktivační cesty (Harmony, Inactive
+Boost, Achievement Combo) zapisovaly aktivní multiplier POUZE do AsyncStorage, ale
+`getActiveMultiplier()` při `USE_SQLITE_GAMIFICATION=true` čte SQLite tabulku
+`xp_multipliers` — do které zapisovala jen jednorázová migrace. Uživatel si vydřel
+7denní Harmony Streak, aktivoval 2×, viděl oslavu, dostal aktivační bonus, ZAPLATIL
+7denní cooldown… a žádné XP se nikdy nenásobilo, countdown se nezobrazil.
+**Fix**: `storeActiveMultiplier()` / `clearActiveMultiplierStorage()` — zápis podle
+feature flagu tam, kde probíhá čtení. **Pravidlo: aktivní multiplier se ukládá VÝHRADNĚ
+přes tyto helpery.**
+
+**Problém 2 — kotvení Harmony streaku na dnešku**: nedokončený dnešek (= každé ráno)
+nuloval celý streak — po plném 7denním běhu končícím včera se ráno zobrazovalo 0 a
+aktivace nešla. **Fix**: nedokončený DNEŠEK běh nepřerušuje (kotva na včerejšku, stejný
+vzor jako journal/bonus streaky); přerušit ho může jen zmeškaný MINULÝ den.
+
+**Problém 3 — case-mismatch zdroje**: Inactive Boost posílal `source:
+'XP_MULTIPLIER_BONUS'` (UPPERCASE string ≠ enum `'xp_multiplier_bonus'`) → limity a
+denní sumáře pro tento zdroj tiše selhávaly.
+
+**Regresní testy**: `src/services/__tests__/xpMultiplier.loyalty.test.ts` (12 testů —
+write→read konzistence, expirace, E2E aktivace, kotvení streaku, loyalty milestones).
+
 ### Multiplier Types & Rewards
 ```typescript
 // Harmony Streak Multiplier (Primary System)

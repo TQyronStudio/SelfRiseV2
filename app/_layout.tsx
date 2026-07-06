@@ -180,6 +180,11 @@ export default function RootLayout() {
         );
         if (attempt < DB_INIT_MAX_ATTEMPTS) {
           await new Promise(resolve => setTimeout(resolve, 300 * attempt));
+        } else {
+          // Final failure — the single most critical error in the app
+          // (user is blocked on DatabaseErrorScreen). Non-fatal report.
+          const { CrashReportingService } = require('../src/services/crashReportingService') as typeof import('../src/services/crashReportingService');
+          CrashReportingService.recordError(error, 'db_init_failed_after_retries');
         }
       }
     }

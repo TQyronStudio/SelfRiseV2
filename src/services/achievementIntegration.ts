@@ -1000,11 +1000,25 @@ export class AchievementIntegration {
           
         case 'loyalty_total_active_days':
           return await this.getLoyaltyTotalActiveDays(timeframe);
-          
+
+        // ⭐🔥👑 Journal bonus milestone counters (audit fix, July 2026).
+        // These 21 achievement conditions previously fell into the default
+        // branch and always evaluated to 0 — First Star, Flame Collector,
+        // Crown Royalty etc. could NEVER unlock. The counters live in the
+        // journal streak state and are maintained by the journal storage.
+        case 'journal_star_count':
+          return (await this.gratitudeStorage.getStreak()).starCount || 0;
+
+        case 'journal_flame_count':
+          return (await this.gratitudeStorage.getStreak()).flameCount || 0;
+
+        case 'journal_crown_count':
+          return (await this.gratitudeStorage.getStreak()).crownCount || 0;
+
         case 'user_level':
           // This is handled directly in AchievementService via GamificationStats
           return 0;
-          
+
         default:
           // For XP sources, return 0 - these are handled by transaction analysis
           return 0;
@@ -1017,6 +1031,15 @@ export class AchievementIntegration {
 
   /**
    * Get streak value for achievement conditions (used by AchievementService)
+   *
+   * NOTE (audit fix, July 2026): the catalog's streak conditions use the
+   * ACTIVITY source names ('habit_completion', 'journal_entry', …), but this
+   * switch previously only matched 'habit_streak'/'journal_streak' — names the
+   * catalog never uses. 12 streak achievements (Streak Champion, Century
+   * Streak, Grateful Heart, Eternal Gratitude, Progress Tracker, Bonus Week…)
+   * therefore always evaluated to 0 and could never unlock. The activity
+   * source names are now mapped to the corresponding streak calculators;
+   * the legacy names are kept as aliases.
    */
   static async getStreakValueForAchievement(
     source: string,
@@ -1025,19 +1048,71 @@ export class AchievementIntegration {
     try {
       switch (source) {
         case 'habit_streak':
+        case 'habit_completion':
           return await this.getMaxHabitStreak();
-          
+
         case 'journal_streak':
+        case 'journal_entry':
           return await this.getJournalStreak();
-          
+
         case 'app_usage_days':
           return await this.getConsecutiveAppUsageDays();
-          
+
+        case 'goal_progress_consecutive_days':
+          return await this.getGoalProgressConsecutiveDays(timeframe);
+
+        case 'journal_bonus_streak':
+          // Bonus Week: 1+ bonus entry every day (consecutive days)
+          return await this.getBonusJournalDayStreak(1);
+
+        case 'journal_golden_bonus_streak':
+          // Golden Bonus Streak: 3+ bonus entries every day (consecutive days)
+          return await this.getBonusJournalDayStreak(3);
+
         default:
           return 0;
       }
     } catch (error) {
       console.error('AchievementIntegration.getStreakValueForAchievement error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Current consecutive-day streak of journal BONUS entries (entries with
+   * order > 3), requiring at least `minBonusPerDay` bonus entries each day.
+   * The run may end today (if today already qualifies) or yesterday (today
+   * still in progress). Used by Bonus Week (min 1/day) and Golden Bonus
+   * Streak (min 3/day). (Audit fix, July 2026 — no calculator existed.)
+   */
+  static async getBonusJournalDayStreak(minBonusPerDay: number): Promise<number> {
+    try {
+      const entries = await this.gratitudeStorage.getAll();
+
+      // Count bonus entries per date
+      const bonusPerDay = new Map<string, number>();
+      for (const entry of entries) {
+        if (entry.isBonus) {
+          bonusPerDay.set(entry.date, (bonusPerDay.get(entry.date) || 0) + 1);
+        }
+      }
+
+      const qualifies = (date: string) => (bonusPerDay.get(date) || 0) >= minBonusPerDay;
+
+      const currentDate = today();
+      // Anchor the run at today if it already qualifies, otherwise at
+      // yesterday (today may simply not be finished yet).
+      let checkDate = qualifies(currentDate) ? currentDate : subtractDays(currentDate, 1);
+
+      let streak = 0;
+      while (qualifies(checkDate)) {
+        streak++;
+        checkDate = subtractDays(checkDate, 1);
+      }
+
+      return streak;
+    } catch (error) {
+      console.error('AchievementIntegration.getBonusJournalDayStreak error:', error);
       return 0;
     }
   }

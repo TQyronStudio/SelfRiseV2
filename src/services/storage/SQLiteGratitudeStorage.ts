@@ -725,8 +725,6 @@ export class SQLiteGratitudeStorage {
    */
   async calculateFrozenDays(): Promise<number> {
     try {
-      const currentDate = today();
-      const completedDates = await this.getCompletedDates();
       const currentStreak = await this.getStreak();
 
       // FIX 15.3: No active streak = nothing to freeze.
@@ -737,10 +735,13 @@ export class SQLiteGratitudeStorage {
         return 0;
       }
 
-      // CRITICAL FIX: If user completed today, debt is automatically 0
-      if (completedDates.includes(currentDate)) {
-        return 0;
-      }
+      // NOTE (July 2026 fix): There is intentionally NO "today complete → 0"
+      // early return here. Debt = unpaid missed PAST days; completing today
+      // must not erase it. The old early return caused a silent streak wipe:
+      // frozen user wrote 3 entries → debt "disappeared" → isFrozen=false →
+      // streak was recalculated across the unpaid gap → 15 became 1, and ads
+      // could no longer be applied. Per product decision (July 2026) the user
+      // must first pay the debt (streak continues) or explicitly Start Fresh.
 
       // Calculate raw missed days (consecutive days backwards from yesterday)
       const rawMissedDays = await this.calculateRawMissedDays();
@@ -1127,6 +1128,10 @@ export class SQLiteGratitudeStorage {
       return updatedStreak;
     } catch (error) {
       console.error('❌ [FULL STREAK] Calculation failed:', error);
+      // Streak calculation is the most sensitive business logic in the app —
+      // report handled failures so silent streak corruption is visible in prod.
+      const { CrashReportingService } = require('../crashReportingService') as typeof import('../crashReportingService');
+      CrashReportingService.recordError(error, 'streak_calculation_failed');
       throw error;
     }
   }
@@ -1348,19 +1353,16 @@ export class SQLiteGratitudeStorage {
   }
 
   /**
-   * Calculate how many ads are needed to warm up frozen streak
-   * Returns 0 if no debt, or if user already completed today (3+ entries)
+   * Calculate how many ads are needed to warm up frozen streak.
+   * Returns 0 only when there is no unpaid debt (today's entry count is
+   * irrelevant — debt stays payable until paid or Start Fresh).
    */
   async adsNeededToWarmUp(): Promise<number> {
     try {
-      const currentDate = today();
-      const todayCount = await this.countByDate(currentDate);
-
-      // CRITICAL FIX: If user has 3+ entries today, no ads needed
-      if (todayCount >= 3) {
-        return 0;
-      }
-
+      // NOTE (July 2026 fix): no "3+ entries today → 0" early return.
+      // Debt must stay payable regardless of today's entries — the old
+      // early return made recovery impossible once the user wrote entries
+      // while frozen (debt existed but could never be paid again).
       const effectiveFrozenDays = await this.calculateFrozenDays();
 
       // If debt > 3, automatic reset (handled elsewhere)

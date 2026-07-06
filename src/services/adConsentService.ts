@@ -59,6 +59,13 @@ export async function initializeAdsWithConsent(): Promise<void> {
   } finally {
     // 3. Initialize ads regardless of consent outcome.
     await startGoogleMobileAds();
+
+    // 4. Enable crash reporting (diagnostics-only — not ads/tracking data).
+    // Deliberately AFTER the privacy flow, so collection never starts before
+    // the user has seen the privacy form. Single call site — if a stricter
+    // opt-in is ever required, condition it here.
+    const { CrashReportingService } = require('./crashReportingService') as typeof import('./crashReportingService');
+    await CrashReportingService.enable();
   }
 }
 

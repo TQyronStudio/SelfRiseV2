@@ -4,6 +4,38 @@
 
 ---
 
+## 🚨 PRODUCTION FIX 0 — Mrtvé evaluátory: 35+ podmínek nikdy nesplnitelných (červenec 2026)
+
+**Problém**: ~polovina achievementů se NIKDY nemohla odemknout — jejich podmínky trvale
+vyhodnocovaly 0, přestože data existovala:
+
+1. **⭐🔥👑 milestone countery** (`journal_star_count`, `journal_flame_count`,
+   `journal_crown_count` — 21 podmínek: First Star, Flame Collector, Crown Royalty…)
+   neměly case v `getCountValueForAchievement` → default → 0. Data přitom celou dobu
+   žila ve streak_state (starCount/flameCount/crownCount).
+2. **Streak podmínky** v katalogu používají AKTIVITNÍ sources (`habit_completion`,
+   `journal_entry`, `goal_progress_consecutive_days`, `journal_bonus_streak`,
+   `journal_golden_bonus_streak`), ale `getStreakValueForAchievement` matchoval jen
+   `habit_streak`/`journal_streak` — názvy, které katalog nikde nepoužívá → 12 streak
+   achievementů mrtvých (Streak Champion, Century Streak, Eternal Gratitude, Bonus Week…).
+3. **`getPercentageValue`** byl `return 0` placeholder → Balanced Life mrtvý.
+4. Pro Bonus Week / Golden Bonus Streak kalkulátor vůbec neexistoval — přidán
+   `getBonusJournalDayStreak(minBonusPerDay)` (po sobě jdoucí dny s ≥N bonus záznamy;
+   běh může končit dneškem nebo včerejškem).
+
+**Opravy**: nové case v obou dispatch switchích (aktivitní názvy mapované na streak
+kalkulátory, legacy názvy zachovány jako aliasy), countery čtené ze streak state,
+percentage → `getHabitXPRatio` (0–100). `await import()` v achievementService nahrazeno
+`require()` (projektová konvence „for Jest compatibility").
+
+**Regresní síť**: `src/services/__tests__/achievementEvaluation.test.ts` — **jeden test
+na každý z 78 achievementů** prohání skutečnou podmínku z katalogu přes reálné dispatch
+switche (data mocky nenulové). Podmínka, která spadne do mrtvého defaultu, shodí test
+pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidáš-li nový
+`source`, MUSÍ dostat handler — jinak tenhle test neprojde. To je záměr.**
+
+---
+
 # 📋 PŘEHLED VŠECH ACHIEVEMENTS - PRO MAJITELE
 
 *Kompletní katalog všech 78 achievements v SelfRise V2 aplikaci*
