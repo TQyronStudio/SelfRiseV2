@@ -18,10 +18,9 @@ import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedX
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
 import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
-import { 
+import {
   MonthlyChallengeSection,
-  MonthlyChallengeDetailModal, 
-  MonthlyChallengeCompletionModal 
+  MonthlyChallengeDetailModal
 } from '@/src/components/challenges';
 import { MonthlyProgressTracker } from '@/src/services/monthlyProgressTracker';
 import { MonthlyProgressIntegration } from '@/src/services/monthlyProgressIntegration';
@@ -31,11 +30,10 @@ import { useHabits } from '@/src/contexts/HabitsContext';
 import { GamificationService } from '@/src/services/gamificationService';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { today } from '@/src/utils/date';
-import { 
-  XPSourceType, 
-  MonthlyChallenge, 
-  MonthlyChallengeProgress,
-  MonthlyChallengeCompletionResult 
+import {
+  XPSourceType,
+  MonthlyChallenge,
+  MonthlyChallengeProgress
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
@@ -52,10 +50,6 @@ export default function HomeScreen() {
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
   const [selectedChallengeProgress, setSelectedChallengeProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
-  const [showChallengeCompletion, setShowChallengeCompletion] = useState(false);
-  const [completionChallenge, setCompletionChallenge] = useState<MonthlyChallenge | null>(null);
-  const [completionResult, setCompletionResult] = useState<MonthlyChallengeCompletionResult | null>(null);
-  
   // 🚀 DEBT RECOVERY AUTO-MODAL: Reference to JournalStreakCard for auto-opening debt modal
   const journalStreakCardRef = useRef<any>(null);
 
@@ -297,31 +291,11 @@ export default function HomeScreen() {
     }
   };
 
-  // Listen for challenge completion events
-  useEffect(() => {
-    const challengeCompletedListener = DeviceEventEmitter.addListener(
-      'challengeCompleted',
-      ({ challenge, result }: { 
-        challenge: MonthlyChallenge; 
-        result: MonthlyChallengeCompletionResult; 
-      }) => {
-        console.log('🎉 Challenge completed event received:', challenge.title, result.xpEarned, 'XP');
-        setCompletionChallenge(challenge);
-        setCompletionResult(result);
-        setShowChallengeCompletion(true);
-      }
-    );
-
-    return () => {
-      challengeCompletedListener.remove();
-    };
-  }, []);
-
-  const handleCloseChallengeCompletion = () => {
-    setShowChallengeCompletion(false);
-    setCompletionChallenge(null);
-    setCompletionResult(null);
-  };
+  // NOTE (audit N8, July 2026): a dead 'challengeCompleted' listener used to
+  // live here — nothing ever emitted that event (the real one is
+  // 'monthly_challenge_completed', handled by MonthlyChallengeSection via the
+  // ModalQueue). Removed together with its duplicate completion modal.
+  // New events must be declared in src/utils/appEvents.ts (typed event bus).
 
   // Styles using theme colors
   const styles = StyleSheet.create({
@@ -377,13 +351,6 @@ export default function HomeScreen() {
         onClose={handleCloseChallengeDetail}
       />
 
-      {/* Monthly Challenge Completion Celebration Modal */}
-      <MonthlyChallengeCompletionModal
-        visible={showChallengeCompletion}
-        challenge={completionChallenge}
-        completionResult={completionResult}
-        onClose={handleCloseChallengeCompletion}
-      />
     </SafeAreaView>
   );
 }

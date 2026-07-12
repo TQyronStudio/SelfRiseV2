@@ -19,6 +19,7 @@ import {
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
+import { translateIfKey } from '../../utils/i18n';
 
 interface MonthlyChallengeCompletionModalProps {
   visible: boolean;
@@ -605,7 +606,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
               <View style={styles.challengeHeader}>
                 <Text style={styles.challengeIcon}>{getCategoryIcon(challenge.category)}</Text>
                 <View style={styles.challengeDetails}>
-                  <Text style={styles.challengeName}>{challenge.title}</Text>
+                  <Text style={styles.challengeName}>{translateIfKey(challenge.title)}</Text>
                   <View style={styles.challengeMeta}>
                     <Text style={[styles.challengeCategory, { color: categoryColor }]}>
                       {t(`monthlyChallenge.categories.${challenge.category}`)}

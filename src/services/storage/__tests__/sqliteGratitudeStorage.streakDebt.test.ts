@@ -343,6 +343,73 @@ describe('Journal streak/debt — frozen streak protection (release blockers)', 
   });
 
   // ========================================
+  // DEBT WRITE-OFF AFTER RESET (July 2026 regression — Petr's device scenario)
+  // ========================================
+
+  describe('debt write-off after auto/manual reset', () => {
+    test("CRITICAL (Petr's scenario): 7 missed days → auto-reset → 3 entries today → streak 1, debt 0, NO reset loop", async () => {
+      // History: streak ended 8 days ago, then 7 fully missed days, today 3 entries
+      await seedStreakRun(5, 8);
+      await seedEntries(T, 3);
+      await setStreak({ currentStreak: 5, longestStreak: 31 });
+
+      // First calculation: legitimately auto-resets (7 unpaid days > 3)
+      const first = await storage.calculateAndUpdateStreak();
+      expect(first.autoResetTimestamp).not.toBeNull();
+      expect(first.currentStreak).toBe(1); // today complete → fresh streak of 1
+      expect(first.longestStreak).toBe(31);
+
+      // Pre-reset missed days are WRITTEN OFF — debt must be 0, gate open
+      expect(await storage.calculateFrozenDays()).toBe(0);
+      expect(await storage.adsNeededToWarmUp()).toBe(0);
+
+      // Recalculation must be IDEMPOTENT — no infinite reset loop
+      const second = await storage.calculateAndUpdateStreak();
+      expect(second.currentStreak).toBe(1);
+      expect(second.isFrozen).toBe(false);
+      expect(second.frozenDays).toBe(0);
+
+      const third = await storage.calculateAndUpdateStreak();
+      expect(third.currentStreak).toBe(1);
+      expect(third.isFrozen).toBe(false);
+    });
+
+    test('NEW misses after a reset still freeze normally (boundary only writes off the past)', async () => {
+      // Reset happened 5 days ago; user then completed D4..D2; missed yesterday; today empty
+      await seedStreakRun(3, 2); // completed D4, D3, D2
+      await setStreak({
+        currentStreak: 3,
+        longestStreak: 31,
+        autoResetTimestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        autoResetReason: 'Auto-reset after 7 days debt',
+      });
+
+      // Yesterday (D1) is AFTER the reset boundary → real debt
+      expect(await storage.calculateFrozenDays()).toBe(1);
+
+      const result = await storage.calculateAndUpdateStreak();
+      expect(result.currentStreak).toBe(3); // frozen, preserved
+      expect(result.isFrozen).toBe(true);
+      expect(result.frozenDays).toBe(1);
+    });
+
+    test('Start Fresh (manual reset) also writes off older missed days', async () => {
+      await seedStreakRun(4, 6); // history ending 6 days ago, D5..D1 missed
+      await setStreak({ currentStreak: 0, longestStreak: 10 });
+
+      const result = await storage.resetStreak(); // sets autoResetTimestamp = now
+      expect(result.currentStreak).toBe(0);
+
+      // Write 3 entries today → clean start, no phantom debt from D5..D1
+      await seedEntries(T, 3);
+      expect(await storage.calculateFrozenDays()).toBe(0);
+      const after = await storage.calculateAndUpdateStreak();
+      expect(after.currentStreak).toBe(1);
+      expect(after.isFrozen).toBe(false);
+    });
+  });
+
+  // ========================================
   // PURE UTILITY (calculateStreakWithWarmUp)
   // ========================================
 

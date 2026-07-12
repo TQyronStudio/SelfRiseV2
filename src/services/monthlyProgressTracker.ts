@@ -90,6 +90,21 @@ interface ProgressUpdateBatch {
 // MONTHLY PROGRESS TRACKER SERVICE
 // ========================================
 
+/**
+ * Tracking keys whose value is DERIVED from daily snapshots (not incremented
+ * per event). Single source of truth — UI (calendar, weekly breakdown) must
+ * use snapshot FACTS (isPerfectDay, isTripleFeatureDay, xpEarnedToday) for
+ * these instead of dailyContributions, which are always 0 by design.
+ */
+export const COMPLEX_TRACKING_KEYS_LIST: readonly string[] = [
+  'triple_feature_days',
+  'daily_engagement_streak',
+  'perfect_days',
+  'monthly_xp_total',
+  'balance_score',
+  'avg_entry_length',
+];
+
 export class MonthlyProgressTracker {
   // Storage keys for AsyncStorage
   private static readonly STORAGE_KEYS = {
@@ -122,14 +137,9 @@ export class MonthlyProgressTracker {
   // storage analysis in recalculateComplexTrackingKeys) instead of incremented
   // per-event. Their per-event increment is always 0, so progress updates for
   // them must be driven by the recalculation, not by the increment loop.
-  private static readonly COMPLEX_TRACKING_KEYS: readonly string[] = [
-    'triple_feature_days',
-    'daily_engagement_streak',
-    'perfect_days',
-    'monthly_xp_total',
-    'balance_score',
-    'avg_entry_length',
-  ];
+  // (Exported as COMPLEX_TRACKING_KEYS below for UI consumers — calendar
+  // rendering must not derive day intensity from dailyContributions for these.)
+  private static readonly COMPLEX_TRACKING_KEYS: readonly string[] = COMPLEX_TRACKING_KEYS_LIST;
 
   // Weekly habits tracking cache for Variety Champion real-time uniqueness
   private static currentWeekHabits: Set<string> = new Set();
@@ -145,9 +155,12 @@ export class MonthlyProgressTracker {
   private static currentJournalStreakDate: string = '';
   private static currentJournalStreakDays: number = 0;
   
-  // Journal entries counter for star-based daily requirements  
+  // Journal entries counter for star-based daily requirements
   private static todayJournalEntriesCount: number = 0;
   private static journalCountDate: string = '';
+
+  // Daily dedup guard for Progress Champion (daily_goal_progress = DAYS, not events)
+  private static goalProgressCountedDate: string = '';
 
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
@@ -284,7 +297,12 @@ export class MonthlyProgressTracker {
       // Calculate progress increments and apply atomically
       let progressUpdated = false;
       const previousProgress = { ...currentProgress.progress };
-      
+      // Increments as actually APPLIED — passed to the snapshot so it never
+      // re-computes them (day-guarded keys consume their in-memory guard on
+      // first computation; a re-compute returned 0 and zeroed the snapshot
+      // contributions → grey calendar). Fix, July 2026.
+      const appliedIncrements: Record<string, number> = {};
+
       // Apply all increments atomically
       for (const requirement of relevantRequirements) {
         const incrementValue = this.calculateProgressIncrement(
@@ -294,6 +312,7 @@ export class MonthlyProgressTracker {
           metadata,
           challenge
         );
+        appliedIncrements[requirement.trackingKey] = incrementValue;
 
         if (incrementValue !== 0) {
           // Atomic increment/decrement: always read the current value fresh from storage-backed progress object
@@ -327,7 +346,7 @@ export class MonthlyProgressTracker {
 
         // Create daily snapshot — MUST run before recalculateComplexTrackingKeys,
         // which derives its values from snapshots (isPerfectDay, xpEarnedToday…)
-        await this.createDailySnapshot(challenge.id, currentProgress, source, amount, metadata);
+        await this.createDailySnapshot(challenge.id, currentProgress, source, amount, metadata, appliedIncrements);
 
         // Incrementally update active days (adds today if not already tracked)
         const previousDaysActive = currentProgress.daysActive || 0;
@@ -531,7 +550,13 @@ export class MonthlyProgressTracker {
         return (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) ? direction : 0;
         
       case 'daily_goal_progress':
-        return source === XPSourceType.GOAL_PROGRESS ? direction : 0;
+        // Progress Champion promises "X DAYS with goal progress" — count each
+        // day at most once, not every GOAL_PROGRESS event (fix, July 2026:
+        // 3 goals × 3 updates/day previously counted as 9 "days").
+        if (source === XPSourceType.GOAL_PROGRESS) {
+          return this.calculateDailyGoalProgressIncrement(direction);
+        }
+        return 0;
         
       case 'goal_completions':
         return source === XPSourceType.GOAL_COMPLETION ? direction : 0;
@@ -1069,7 +1094,8 @@ export class MonthlyProgressTracker {
     progress: MonthlyChallengeProgress,
     source: XPSourceType,
     amount: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    appliedIncrements?: Record<string, number>
   ): Promise<void> {
     try {
       const todayString = today();
@@ -1079,10 +1105,10 @@ export class MonthlyProgressTracker {
 
       if (existingSnapshot) {
         // Update existing snapshot
-        await this.updateExistingSnapshot(existingSnapshot, source, amount, progress, metadata);
+        await this.updateExistingSnapshot(existingSnapshot, source, amount, progress, metadata, appliedIncrements);
       } else {
         // Create new daily snapshot
-        await this.createNewDailySnapshot(challengeId, progress, source, amount, metadata);
+        await this.createNewDailySnapshot(challengeId, progress, source, amount, metadata, appliedIncrements);
       }
 
       console.log(`📸 Daily snapshot created/updated for ${challengeId} on ${todayString}`);
@@ -1100,7 +1126,8 @@ export class MonthlyProgressTracker {
     progress: MonthlyChallengeProgress,
     source: XPSourceType,
     amount: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    appliedIncrements?: Record<string, number>
   ): Promise<void> {
     try {
       const now = new Date();
@@ -1128,7 +1155,11 @@ export class MonthlyProgressTracker {
       const relevantRequirements = await this.getRequirementsForChallenge(challengeId);
       
       for (const requirement of relevantRequirements) {
-        const increment = this.calculateProgressIncrement(requirement, source, amount, metadata, challenge);
+        // Use APPLIED increments when provided — recomputing consumes
+        // day-guard state and records 0 (see executeAtomicProgressUpdate)
+        const increment = appliedIncrements
+          ? (appliedIncrements[requirement.trackingKey] ?? 0)
+          : this.calculateProgressIncrement(requirement, source, amount, metadata, challenge);
         dailyContributions[requirement.trackingKey] = increment;
       }
 
@@ -1172,14 +1203,20 @@ export class MonthlyProgressTracker {
     source: XPSourceType,
     amount: number,
     progress: MonthlyChallengeProgress,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    appliedIncrements?: Record<string, number>
   ): Promise<void> {
     try {
-      // Update daily contributions
+      // Update daily contributions — use the increments as APPLIED by the
+      // atomic update when provided (recomputing consumed day-guard state and
+      // recorded 0 — see executeAtomicProgressUpdate). Legacy recompute kept
+      // as fallback for callers without increments.
       const relevantRequirements = await this.getRequirementsForChallenge(snapshot.challengeId);
 
       for (const requirement of relevantRequirements) {
-        const increment = this.calculateProgressIncrement(requirement, source, amount, metadata);
+        const increment = appliedIncrements
+          ? (appliedIncrements[requirement.trackingKey] ?? 0)
+          : this.calculateProgressIncrement(requirement, source, amount, metadata);
         if (increment !== 0) {
           const currentContribution = snapshot.dailyContributions[requirement.trackingKey] || 0;
           snapshot.dailyContributions[requirement.trackingKey] = Math.max(0, currentContribution + increment);
@@ -1587,6 +1624,34 @@ export class MonthlyProgressTracker {
    * Calculate habit streak increment - SYNC version for real-time consecutive days tracking
    * Returns +1 only for FIRST habit completion today, 0 for subsequent same-day completions
    */
+  /**
+   * Daily-deduplicated increment for `daily_goal_progress` (Progress Champion).
+   * The template promises "X DAYS with goal progress" — only the FIRST
+   * GOAL_PROGRESS event of the local day counts (+1); later events return 0.
+   * Undo (negative direction) removes the day only if it was counted today.
+   * Same in-memory day-guard pattern as calculateHabitStreakIncrement
+   * (restart caveat shared — see monthly-challenge-fix-plan.md NÁLEZ 4).
+   */
+  private static calculateDailyGoalProgressIncrement(direction: number): number {
+    const todayString = today();
+
+    if (direction > 0) {
+      if (this.goalProgressCountedDate === todayString) {
+        return 0; // Day already counted
+      }
+      this.goalProgressCountedDate = todayString;
+      return 1;
+    }
+
+    if (direction < 0 && this.goalProgressCountedDate === todayString) {
+      // Undo of today's (only counted) goal progress — release the day
+      this.goalProgressCountedDate = '';
+      return -1;
+    }
+
+    return 0;
+  }
+
   private static calculateHabitStreakIncrement(direction: number): number {
     try {
       // Only process positive direction (habit completion)

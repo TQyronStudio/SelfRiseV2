@@ -23,7 +23,7 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
-import { today, subtractDays, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
+import { today, subtractDays, formatDateToString, calculateContinuingStreak, calculateStreakWithWarmUp } from '../../utils/date';
 
 /**
  * SQLite-based Gratitude Storage
@@ -785,6 +785,12 @@ export class SQLiteGratitudeStorage {
         return 0;
       }
 
+      // Debt write-off boundary — see calculateRawMissedDays (July 2026 fix):
+      // missed days on or before the last reset are not debt.
+      const resetBoundary = currentStreak.autoResetTimestamp
+        ? formatDateToString(new Date(currentStreak.autoResetTimestamp))
+        : null;
+
       // Calculate raw missed days excluding today
       let rawMissedDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday (skip today)
@@ -793,6 +799,9 @@ export class SQLiteGratitudeStorage {
       for (let i = 0; i < 10; i++) {
         if (completedDates.includes(checkDate)) {
           break; // Found completed day
+        }
+        if (resetBoundary && checkDate <= resetBoundary) {
+          break; // Days up to the reset are written off — not debt
         }
         rawMissedDays++;
         checkDate = subtractDays(checkDate, 1);
@@ -829,6 +838,18 @@ export class SQLiteGratitudeStorage {
       const currentDate = today();
       const completedDates = await this.getCompletedDates();
 
+      // DEBT WRITE-OFF BOUNDARY (regression fix, July 2026): missed days on or
+      // before the last (auto/manual) reset are WRITTEN OFF — the reset already
+      // "paid" for them by resetting the streak. Without this boundary the old
+      // missed days resurrected as debt after every reset, re-triggering
+      // auto-reset in an infinite loop and blocking the entry gate forever.
+      // (Per technical-guides:My-Journal.md — autoResetTimestamp exists exactly
+      // for phantom-debt prevention.)
+      const streakState = await this.getStreak();
+      const resetBoundary = streakState.autoResetTimestamp
+        ? formatDateToString(new Date(streakState.autoResetTimestamp))
+        : null;
+
       let missedDays = 0;
       let checkDate = subtractDays(currentDate, 1); // Start with yesterday
 
@@ -836,6 +857,9 @@ export class SQLiteGratitudeStorage {
       for (let i = 0; i < 10; i++) {
         if (completedDates.includes(checkDate)) {
           break; // Found a completed day, no more debt
+        }
+        if (resetBoundary && checkDate <= resetBoundary) {
+          break; // Days up to the reset are written off — not debt
         }
         missedDays++;
         checkDate = subtractDays(checkDate, 1);

@@ -2031,7 +2031,9 @@ export interface TranslationKeys {
         monthly_challenge: string;
         recommendation_follow: string;
         xp_multiplier_bonus: string;
-        XP_MULTIPLIER_BONUS: string;
+        loyalty_milestone: string;
+        daily_activity: string;
+        inactive_user_return: string;
       };
       notification: {
         message: string;
@@ -2232,7 +2234,19 @@ export interface TranslationKeys {
       general_activity: {
         icon_description: string;
       };
-      XP_MULTIPLIER_BONUS: {
+      xp_multiplier_bonus: {
+        icon_description: string;
+      };
+      recommendation_follow: {
+        icon_description: string;
+      };
+      loyalty_milestone: {
+        icon_description: string;
+      };
+      daily_activity: {
+        icon_description: string;
+      };
+      inactive_user_return: {
         icon_description: string;
       };
     };

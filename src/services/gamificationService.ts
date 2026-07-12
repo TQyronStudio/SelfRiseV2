@@ -1,7 +1,7 @@
 // Core gamification service for XP management and level progression
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18next from 'i18next';
-import { DeviceEventEmitter, InteractionManager } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { 
   XPTransaction, 
   XPSourceType, 
@@ -902,10 +902,17 @@ export class GamificationService {
       }
 
       // 🚀 FIRE-AND-FORGET: Achievement check runs in background, doesn't block XP return
-      // InteractionManager odloží kontrolu až po dokončení běžících UI interakcí (animace,
-      // gesta, layout) — eliminuje stutter při rychlém klikání na návyky.
+      // Deferred to idle time so it never competes with running UI work (animations,
+      // gestures) — eliminates stutter on rapid habit taps. requestIdleCallback replaces
+      // the deprecated InteractionManager (RN deprecation warning, July 2026);
+      // setTimeout is the fallback for engines without it.
       if (typeof jest === 'undefined' && process.env.NODE_ENV !== 'test') {
-        InteractionManager.runAfterInteractions(() => {
+        const scheduleIdle: (cb: () => void) => void =
+          typeof requestIdleCallback === 'function'
+            ? (cb) => requestIdleCallback(cb)
+            : (cb) => setTimeout(cb, 0);
+
+        scheduleIdle(() => {
           import('./achievementService').then(({ AchievementService }) => {
             AchievementService.checkAchievementsAfterXPAction(
               options.source,
@@ -1872,226 +1879,57 @@ export class GamificationService {
   // ========================================
 
   /**
-   * Validate XP addition against limits and anti-spam rules
+   * Validate XP addition against limits and anti-spam rules.
+   *
+   * N28 (July 2026): the decision logic lives in the PURE module
+   * `src/services/gamification/xpLimits.ts` — this façade only fetches the
+   * daily snapshot + active multiplier and delegates. Rules changes belong
+   * in the module (unit-tested in isolation), not here.
+   *
+   * NOTE: Journal position-based XP is intentionally NOT validated here —
+   * gratitudeStorage.getXPForJournalEntry() computes it from real entry
+   * positions (duplicating it here caused desync bugs).
    */
   private static async validateXPAddition(
-    amount: number, 
+    amount: number,
     source: XPSourceType,
     options?: XPAdditionOptions
   ): Promise<{ isValid: boolean; allowedAmount: number; reason?: string }> {
     try {
-      // ========================================
-      // JOURNAL ANTI-SPAM VALIDATION - REMOVED FOR SYNCHRONIZATION
-      // ========================================
-      
-      // REMOVED: Duplicitní validace způsobovala desynchronizaci mezi journalEntryCount a storage
-      // XP amount je už správně vypočítaný v gratitudeStorage.getXPForJournalEntry()
-      // na základě skutečné pozice ze storage, včetně anti-spam limit (pozice 14+)
-      console.log(`🔍 Journal XP validation delegated to storage layer (${amount} XP from ${source})`);
-      
-      // Trust the amount calculated by storage layer - no correction needed
+      const { validateXPAddition } = require('./gamification/xpLimits') as typeof import('./gamification/xpLimits');
 
-      // ========================================
-      // GOAL ANTI-SPAM VALIDATION
-      // ========================================
-      
-      // Check goal anti-spam rules: max 3 positive XP transactions per goal per day
-      // NOTE: GOAL_COMPLETION excluded - it's a milestone achievement, not spam-able progress
-      
-      if (amount > 0 && options?.sourceId && (
-        source === XPSourceType.GOAL_PROGRESS || 
-        source === XPSourceType.GOAL_MILESTONE
-      )) {
-        const dailyData = await this.getDailyXPData();
-        const currentGoalTransactions = dailyData.goalTransactions[options.sourceId] || 0;
-        const MAX_GOAL_TRANSACTIONS_PER_DAY = 3; // Migrated from GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL
-        
-        console.log(`🔍 Goal anti-spam check: goal ${options.sourceId} has ${currentGoalTransactions}/${MAX_GOAL_TRANSACTIONS_PER_DAY} transactions today`);
-        
-        if (currentGoalTransactions >= MAX_GOAL_TRANSACTIONS_PER_DAY) {
-          console.log(`🚫 Goal ${options.sourceId} has reached daily XP limit (${MAX_GOAL_TRANSACTIONS_PER_DAY} transactions per day)`);
-          return {
-            isValid: false,
-            allowedAmount: 0,
-            reason: `Goal has reached daily XP limit (${MAX_GOAL_TRANSACTIONS_PER_DAY} positive XP transactions per day)`
-          };
-        }
-        
-        console.log(`✅ Goal anti-spam passed: goal ${options.sourceId} can receive ${amount} XP (transaction ${currentGoalTransactions + 1}/${MAX_GOAL_TRANSACTIONS_PER_DAY})`);
-      }
-
-      // ========================================
-      // STANDARD XP VALIDATION
-      // ========================================
-
-      // Check if source is exempt from daily limits (sources with null limit)
-      // Monthly Challenge, Achievement Unlock, Goal Completion, etc. are milestone rewards
-      // that should not be capped by daily limits
-      const sourceHasNoLimit = this.getSourceDailyLimit(source) === null;
-
-      // Check maximum single transaction (skip for exempt sources)
-      if (!sourceHasNoLimit && amount > BALANCE_VALIDATION.MAX_SINGLE_TRANSACTION_XP) {
-        return {
-          isValid: false,
-          allowedAmount: 0,
-          reason: `Single transaction cannot exceed ${BALANCE_VALIDATION.MAX_SINGLE_TRANSACTION_XP} XP`
-        };
-      }
-
-      // Get adjusted daily limits (accounts for XP multiplier)
-      const adjustedLimits = await this.getAdjustedDailyLimits();
       const dailyData = await this.getDailyXPData();
-      const currentDailyTotal = dailyData.totalXP;
-      const currentSourceTotal = dailyData.xpBySource[source] || 0;
+      const multiplierData = await this.getActiveXPMultiplier();
 
-      // Check total daily limit (skip for exempt sources like Monthly Challenge)
-      if (!sourceHasNoLimit && currentDailyTotal + amount > adjustedLimits.totalDaily) {
-        const allowedAmount = Math.max(0, adjustedLimits.totalDaily - currentDailyTotal);
-        if (allowedAmount === 0) {
-          return {
-            isValid: false,
-            allowedAmount: 0,
-            reason: `Daily XP limit reached (${adjustedLimits.totalDaily} XP with current multiplier)`
-          };
-        }
-        return {
-          isValid: true,
-          allowedAmount,
-          reason: `Amount reduced to daily limit (${adjustedLimits.totalDaily} with multiplier)`
-        };
-      }
-
-      // Check source-specific limits (adjusted for multiplier)
-      const sourceLimit = adjustedLimits.sourceLimit(source);
-      if (sourceLimit && currentSourceTotal + amount > sourceLimit) {
-        const allowedAmount = Math.max(0, sourceLimit - currentSourceTotal);
-        if (allowedAmount === 0) {
-          return {
-            isValid: false,
-            allowedAmount: 0,
-            reason: `Daily limit for ${source} reached (${sourceLimit} XP with current multiplier)`
-          };
-        }
-        return {
-          isValid: true,
-          allowedAmount,
-          reason: `Amount reduced to source limit (${sourceLimit} with multiplier)`
-        };
-      }
-
-      // Check rate limiting (skip for goal completion - legitimate multiple rapid transactions)
-      const timeSinceLastTransaction = Date.now() - dailyData.lastTransactionTime;
-      const isGoalCompletion = source === XPSourceType.GOAL_COMPLETION;
+      // Rate limiting is disabled in test environments (kept out of the pure
+      // module so the rule itself stays unit-testable).
       const isTestEnvironment = typeof jest !== 'undefined' || process.env.NODE_ENV === 'test';
-      
-      if (!isGoalCompletion && !isTestEnvironment && timeSinceLastTransaction < BALANCE_VALIDATION.MIN_TIME_BETWEEN_IDENTICAL_GAINS) {
-        return {
-          isValid: false,
-          allowedAmount: 0,
-          reason: 'Too many transactions in short time'
-        };
-      }
 
-      return { isValid: true, allowedAmount: amount };
+      return validateXPAddition({
+        amount,
+        source,
+        sourceId: options?.sourceId,
+        dailyData,
+        multiplier: { isActive: multiplierData.isActive, multiplier: multiplierData.multiplier },
+        skipRateLimit: isTestEnvironment,
+      });
     } catch (error) {
       console.error('GamificationService.validateXPAddition error:', error);
       return { isValid: false, allowedAmount: 0, reason: 'Validation error' };
     }
   }
 
-  /**
-   * Get daily XP limit for a specific source
-   */
-  private static getSourceDailyLimit(source: XPSourceType): number | null {
-    const sourceMap: Record<XPSourceType, number | null> = {
-      [XPSourceType.HABIT_COMPLETION]: DAILY_XP_LIMITS.HABITS_MAX_DAILY,
-      [XPSourceType.HABIT_BONUS]: DAILY_XP_LIMITS.HABITS_MAX_DAILY,
-      [XPSourceType.HABIT_STREAK_MILESTONE]: DAILY_XP_LIMITS.HABITS_MAX_DAILY,
-      [XPSourceType.JOURNAL_ENTRY]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
-      [XPSourceType.JOURNAL_BONUS]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
-      [XPSourceType.JOURNAL_BONUS_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
-      [XPSourceType.JOURNAL_STREAK_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
-      [XPSourceType.GOAL_PROGRESS]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
-      [XPSourceType.GOAL_COMPLETION]: null, // No daily limit - milestone achievement
-      [XPSourceType.GOAL_MILESTONE]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
-      [XPSourceType.RECOMMENDATION_FOLLOW]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
-      [XPSourceType.ACHIEVEMENT_UNLOCK]: null, // No daily limit
-      [XPSourceType.MONTHLY_CHALLENGE]: null, // No daily limit (one per month)
-      [XPSourceType.XP_MULTIPLIER_BONUS]: null, // No daily limit
-      [XPSourceType.LOYALTY_MILESTONE]: null, // No daily limit
-      [XPSourceType.DAILY_ACTIVITY]: null, // No daily limit
-      [XPSourceType.INACTIVE_USER_RETURN]: null, // No daily limit
-    };
-
-    return sourceMap[source] || null;
-  }
-
-  /**
-   * Get adjusted daily limits based on active XP multiplier
-   * When 2x multiplier is active, daily limits should also be 2x for fair gameplay
-   */
-  private static async getAdjustedDailyLimits(): Promise<{
-    totalDaily: number;
-    sourceLimit: (source: XPSourceType) => number | null;
-  }> {
-    try {
-      const multiplierData = await this.getActiveXPMultiplier();
-      const multiplier = multiplierData.isActive ? multiplierData.multiplier : 1;
-      
-      console.log(`📊 XP Multiplier adjustment: ${multiplier}x (active: ${multiplierData.isActive})`);
-      
-      // Calculate adjusted limits
-      const adjustedTotalDaily = Math.floor(DAILY_XP_LIMITS.TOTAL_DAILY_MAX * multiplier);
-      
-      const adjustedSourceLimit = (source: XPSourceType): number | null => {
-        const baseLimit = this.getSourceDailyLimit(source);
-        return baseLimit ? Math.floor(baseLimit * multiplier) : null;
-      };
-      
-      if (multiplier > 1) {
-        console.log(`⚡ Daily limits adjusted for ${multiplier}x multiplier:`);
-        console.log(`  Total daily: ${DAILY_XP_LIMITS.TOTAL_DAILY_MAX} → ${adjustedTotalDaily}`);
-        console.log(`  Habits: ${DAILY_XP_LIMITS.HABITS_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.HABITS_MAX_DAILY * multiplier)}`);
-        console.log(`  Journal: ${DAILY_XP_LIMITS.JOURNAL_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.JOURNAL_MAX_DAILY * multiplier)}`);
-        console.log(`  Goals: ${DAILY_XP_LIMITS.GOALS_MAX_DAILY} → ${Math.floor(DAILY_XP_LIMITS.GOALS_MAX_DAILY * multiplier)}`);
-      }
-      
-      return {
-        totalDaily: adjustedTotalDaily,
-        sourceLimit: adjustedSourceLimit
-      };
-    } catch (error) {
-      console.error('GamificationService.getAdjustedDailyLimits error:', error);
-      // Fallback to standard limits
-      return {
-        totalDaily: DAILY_XP_LIMITS.TOTAL_DAILY_MAX,
-        sourceLimit: this.getSourceDailyLimit.bind(this)
-      };
-    }
-  }
-
-  // ========================================
-  // JOURNAL ANTI-SPAM LOGIC
-  // ========================================
-
-  /**
-   * DEPRECATED: Get number of journal entries created today for anti-spam validation
-   * REMOVED: Caused desynchronization issues with storage layer position calculation
-   * XP validation now handled entirely by gratitudeStorage.getXPForJournalEntry()
-   */
-
-  /**
-   * DEPRECATED: Calculate correct XP amount for journal entry based on daily position
-   * REMOVED: Duplicated logic already implemented in gratitudeStorage.getXPForJournalEntry()
-   * Caused synchronization issues when counter desynchronized from real storage data
-   */
-
   // ========================================
   // LEVEL-UP EVENT TRACKING
   // ========================================
 
+  // N28 (July 2026): the level-up event store lives in
+  // `src/services/gamification/levelUpEvents.ts` (LevelUpEventStore).
+  // These façade methods preserve the public static API — consumers must
+  // not need to change. New level-up logic belongs in the module.
+
   /**
-   * Store level-up event for analytics and history
+   * Store level-up event for analytics and history (delegates to module)
    */
   private static async storeLevelUpEvent(
     newLevel: number,
@@ -2099,237 +1937,35 @@ export class GamificationService {
     totalXP: number,
     triggerSource: XPSourceType
   ): Promise<void> {
-    try {
-      const now = Date.now();
-
-      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION) {
-        // SQLite implementation - INSERT into level_up_history
-
-        const db = getDatabase();
-
-        // Check for recent duplicate (within last 3 seconds)
-        const recentDuplicate = await db.getFirstAsync<{ id: string }>(
-          `SELECT id FROM level_up_history
-           WHERE level = ?
-           AND timestamp > ?
-           LIMIT 1`,
-          [newLevel, now - 3000]
-        );
-
-        if (recentDuplicate) {
-          console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 3s)`);
-          return;
-        }
-
-        const levelUpId = `levelup_${now}_${Math.random().toString(36).substr(2, 9)}`;
-
-        await db.runAsync(
-          `INSERT INTO level_up_history (
-            id, level, timestamp, total_xp_at_levelup, is_milestone
-          ) VALUES (?, ?, ?, ?, ?)`,
-          [
-            levelUpId,
-            newLevel,
-            now,
-            totalXP,
-            isLevelMilestone(newLevel) ? 1 : 0,
-          ]
-        );
-
-        console.log(`🎉 Level-up stored in SQLite: ${previousLevel} → ${newLevel} (${triggerSource})`);
-      } else {
-        // Legacy AsyncStorage implementation
-        const levelUpHistory = await this.getLevelUpHistory();
-
-        // Check for recent duplicate level-up (within last 3 seconds for same level transition)
-        const recentDuplicate = levelUpHistory.find(event => {
-          const timeDiff = now - event.timestamp.getTime();
-          return timeDiff < 3000 &&
-                 event.previousLevel === previousLevel &&
-                 event.newLevel === newLevel &&
-                 event.triggerSource === triggerSource;
-        });
-
-        if (recentDuplicate) {
-          console.log(`⚡ Preventing duplicate level-up storage: ${previousLevel} → ${newLevel} (duplicate detected within 3s)`);
-          return;
-        }
-
-        const levelUpEvent: LevelUpEvent = {
-          id: `levelup_${now}_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: new Date(),
-          date: today(),
-          previousLevel,
-          newLevel,
-          totalXPAtLevelUp: totalXP,
-          triggerSource,
-          isMilestone: isLevelMilestone(newLevel),
-          shown: false,
-        };
-
-        levelUpHistory.push(levelUpEvent);
-
-        // Keep only last 100 level-up events for performance
-        const trimmedHistory = levelUpHistory.slice(-100);
-
-        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(trimmedHistory));
-
-        console.log(`🎉 Level-up stored: ${previousLevel} → ${newLevel} (${triggerSource})`);
-      }
-    } catch (error) {
-      console.error('GamificationService.storeLevelUpEvent error:', error);
-    }
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    return LevelUpEventStore.storeLevelUpEvent(newLevel, previousLevel, totalXP, triggerSource);
   }
 
-  /**
-   * Get level-up history with legacy data migration
-   */
+  /** Get level-up history with legacy data migration (delegates to module) */
   static async getLevelUpHistory(): Promise<LevelUpEvent[]> {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL_UP_HISTORY);
-      if (!stored) return [];
-
-      const events = JSON.parse(stored);
-      let migrationNeeded = false;
-      
-      // Convert date strings back to Date objects and migrate legacy data
-      const migratedEvents = events.map((event: any) => {
-        // Check if event is missing the 'shown' property (legacy data)
-        if (event.shown === undefined) {
-          migrationNeeded = true;
-          // Mark legacy level ups as already shown to prevent spam
-          console.log(`🔄 Migrating legacy level up: Level ${event.newLevel} → shown: true`);
-          return {
-            ...event,
-            timestamp: new Date(event.timestamp),
-            shown: true, // Legacy events should be considered already shown
-          };
-        }
-        
-        return {
-          ...event,
-          timestamp: new Date(event.timestamp),
-        };
-      });
-      
-      // Save migrated data back to storage if migration was needed
-      if (migrationNeeded) {
-        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(migratedEvents));
-        console.log('✅ Legacy level up data migrated successfully');
-      }
-      
-      return migratedEvents;
-    } catch (error) {
-      console.error('GamificationService.getLevelUpHistory error:', error);
-      return [];
-    }
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    return LevelUpEventStore.getLevelUpHistory();
   }
 
-  /**
-   * Get recent level-ups (last N events) that haven't been shown yet
-   * Includes fallback in-memory tracking for AsyncStorage failures
-   */
+  /** Get recent unshown level-ups (delegates to module) */
   static async getRecentLevelUps(count: number = 5): Promise<LevelUpEvent[]> {
-    try {
-      const history = await this.getLevelUpHistory();
-      
-      // Filter unshown level ups with fallback mechanism
-      const unshownLevelUps = history.filter(event => {
-        // Check both storage-based 'shown' flag and in-memory failed tracking
-        const isShownInStorage = event.shown === true;
-        const isTrackedAsFailed = this.isLevelUpTrackedAsFailed(event.id);
-        
-        // If it's shown in storage OR tracked as failed in memory, don't show it
-        return !isShownInStorage && !isTrackedAsFailed;
-      });
-      
-      const result = unshownLevelUps.slice(-count).reverse(); // Most recent first
-      
-      console.log(`📊 getRecentLevelUps: ${result.length} unshown level ups found`);
-      if (result.length > 0) {
-        console.log(`📋 Unshown level ups: ${result.map(e => `Level ${e.newLevel} (${e.id.slice(-6)})`).join(', ')}`);
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('GamificationService.getRecentLevelUps error:', error);
-      return [];
-    }
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    return LevelUpEventStore.getRecentLevelUps(count);
   }
 
-  /**
-   * Mark a level-up event as shown to prevent repeated modal displays
-   * Includes robust error handling and retry mechanism
-   */
+  /** Mark a level-up event as shown (delegates to module) */
   static async markLevelUpAsShown(levelUpId: string): Promise<boolean> {
-    const maxRetries = 3;
-    let attempt = 0;
-    
-    while (attempt < maxRetries) {
-      try {
-        const history = await this.getLevelUpHistory();
-        const eventIndex = history.findIndex(event => event.id === levelUpId);
-        
-        if (eventIndex === -1 || !history[eventIndex]) {
-          console.warn(`⚠️ Level-up event not found: ${levelUpId}`);
-          return false;
-        }
-        
-        // Mark as shown
-        history[eventIndex]!.shown = true;
-        
-        // Attempt to save with error handling
-        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_UP_HISTORY, JSON.stringify(history));
-        console.log(`✅ Level-up marked as shown: ${levelUpId} (attempt ${attempt + 1})`);
-        return true;
-        
-      } catch (error) {
-        attempt++;
-        console.error(`❌ markLevelUpAsShown attempt ${attempt}/${maxRetries} failed:`, error);
-        
-        if (attempt === maxRetries) {
-          console.error(`🚨 CRITICAL: Failed to mark level-up as shown after ${maxRetries} attempts: ${levelUpId}`);
-          // Create fallback mechanism - store failed IDs for in-memory tracking
-          this.addToFailedLevelUpTracking(levelUpId);
-          return false;
-        }
-        
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
-      }
-    }
-    
-    return false;
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    return LevelUpEventStore.markLevelUpAsShown(levelUpId);
   }
-  
-  /**
-   * In-memory tracking for level-ups that failed to be marked as shown
-   * Fallback mechanism when AsyncStorage fails
-   */
-  private static failedLevelUpIds: Set<string> = new Set();
-  
-  private static addToFailedLevelUpTracking(levelUpId: string): void {
-    this.failedLevelUpIds.add(levelUpId);
-    console.log(`📝 Added to in-memory failed tracking: ${levelUpId}`);
-  }
-  
-  private static isLevelUpTrackedAsFailed(levelUpId: string): boolean {
-    return this.failedLevelUpIds.has(levelUpId);
-  }
-  
-  /**
-   * Debug utility: Clear all failed level up tracking
-   * Useful for testing and troubleshooting
-   */
+
+  /** Debug utility: clear failed level-up tracking (delegates to module) */
   static clearFailedLevelUpTracking(): void {
-    const count = this.failedLevelUpIds.size;
-    this.failedLevelUpIds.clear();
-    console.log(`🧹 Cleared ${count} failed level up tracking entries`);
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    LevelUpEventStore.clearFailedLevelUpTracking();
   }
-  
-  /**
-   * Debug utility: Get current level up status for troubleshooting
-   */
+
+  /** Debug utility: level-up status snapshot (delegates to module) */
   static async debugLevelUpStatus(): Promise<{
     totalHistory: number;
     unshownCount: number;
@@ -2341,34 +1977,8 @@ export class GamificationService {
       failedTracked: boolean;
     }>;
   }> {
-    try {
-      const history = await this.getLevelUpHistory();
-      const unshownLevelUps = history.filter(event => {
-        const isShownInStorage = event.shown === true;
-        const isTrackedAsFailed = this.isLevelUpTrackedAsFailed(event.id);
-        return !isShownInStorage && !isTrackedAsFailed;
-      });
-      
-      return {
-        totalHistory: history.length,
-        unshownCount: unshownLevelUps.length,
-        failedTrackingCount: this.failedLevelUpIds.size,
-        recentLevelUps: history.slice(-10).map(event => ({
-          id: event.id.slice(-6),
-          level: event.newLevel,
-          shown: event.shown ?? false,
-          failedTracked: this.isLevelUpTrackedAsFailed(event.id)
-        }))
-      };
-    } catch (error) {
-      console.error('debugLevelUpStatus error:', error);
-      return {
-        totalHistory: 0,
-        unshownCount: 0,
-        failedTrackingCount: this.failedLevelUpIds.size,
-        recentLevelUps: []
-      };
-    }
+    const { LevelUpEventStore } = require('./gamification/levelUpEvents') as typeof import('./gamification/levelUpEvents');
+    return LevelUpEventStore.debugLevelUpStatus();
   }
 
   // ========================================

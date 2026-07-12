@@ -70,6 +70,49 @@ export const getLanguageDisplayName = (language: SupportedLanguage): string => {
   return SUPPORTED_LANGUAGES[language];
 };
 
+/**
+ * Translate a stored text that may be a RAW i18n key instead of a final string.
+ *
+ * WHY (July 2026 log finding): monthly challenges generated before i18next
+ * finished its async init were persisted with the KEY as their title/
+ * description (e.g. 'help.challenges.templates.habits_consistency_master.title').
+ * This helper heals such data at render time. The root cause is also fixed
+ * (generation now awaits i18n readiness), but challenges persisted during the
+ * broken window — and any future race — display correctly through this.
+ *
+ * Single shared implementation — do NOT copy it into components.
+ */
+export const translateIfKey = (text: string): string => {
+  if (!text) return text;
+
+  // Strip hardcoded "First Month: " or "Warm-Up: " prefix (including emoji
+  // variations) — legacy challenges created before i18n implementation
+  const cleanedText = text.replace(/^(🌱\s*)?(First Month|Warm-Up):\s*/i, '');
+
+  // Check if text contains i18n key patterns
+  if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
+    const keyMatch = cleanedText.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
+
+    if (keyMatch && keyMatch[2]) {
+      const prefix = keyMatch[1] || '';
+      let key = keyMatch[2];
+
+      // Fix old key format to new format
+      if (key.startsWith('challenges.templates.')) {
+        key = key.replace('challenges.templates.', 'help.challenges.templates.');
+      }
+
+      const translated = i18n.t(key);
+      // If translation succeeded, return prefix + translated text
+      if (translated !== key) {
+        return prefix + translated;
+      }
+    }
+  }
+
+  return cleanedText;
+};
+
 // Get all available languages
 export const getAvailableLanguages = () => {
   return Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => ({

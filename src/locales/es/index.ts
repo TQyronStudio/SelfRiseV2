@@ -3090,7 +3090,9 @@ const es: Partial<TranslationKeys> = {
         monthly_challenge: 'Desafío Mensual',
         recommendation_follow: 'Recomendación',
         xp_multiplier_bonus: 'Bonus de Multiplicador',
-        XP_MULTIPLIER_BONUS: 'Bonus de Regreso',
+        loyalty_milestone: 'Hito de Lealtad',
+        daily_activity: 'Actividad Diaria',
+        inactive_user_return: 'Bono de Regreso',
       },
 
       notification: {
@@ -3458,8 +3460,20 @@ const es: Partial<TranslationKeys> = {
       monthly_challenge: {
         icon_description: 'Icono de calendario que representa el progreso del desafío mensual',
       },
-      XP_MULTIPLIER_BONUS: {
+      xp_multiplier_bonus: {
         icon_description: 'Icono de rayo que representa el multiplicador de bonus de regreso',
+      },
+      recommendation_follow: {
+        icon_description: 'Icono de bombilla que representa una recomendación seguida',
+      },
+      loyalty_milestone: {
+        icon_description: 'Icono de medalla que representa un hito de lealtad',
+      },
+      daily_activity: {
+        icon_description: 'Icono de destellos que representa la actividad diaria',
+      },
+      inactive_user_return: {
+        icon_description: 'Icono de rayo que representa el bono de regreso',
       },
     },
 

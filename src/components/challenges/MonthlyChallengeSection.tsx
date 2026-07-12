@@ -1,6 +1,7 @@
 // Monthly Challenge Section Component - Display monthly challenges on Home screen
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, DeviceEventEmitter, EmitterSubscription } from 'react-native';
+import { View, Text, StyleSheet, Pressable, EmitterSubscription } from 'react-native';
+import { addAppEventListener } from '@/src/utils/appEvents';
 import { MonthlyChallengeService } from '../../services/monthlyChallengeService';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { StarRatingService } from '../../services/starRatingService';
@@ -54,7 +55,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
     
     console.log(`🔄 Setting up real-time progress listener for challenge: ${challenge.id}`);
     
-    const progressUpdateListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const progressUpdateListener: EmitterSubscription = addAppEventListener(
       'monthly_progress_updated',
       async (eventData: any) => {
         console.log(`📈 Monthly progress update event received:`, eventData);
@@ -84,7 +85,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
   // Challenge generation event listener
   useEffect(() => {
-    const generationListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const generationListener: EmitterSubscription = addAppEventListener(
       'monthly_challenge_challenge_generated',
       (eventData: any) => {
         console.log('🎊 New challenge generated event received:', eventData);
@@ -100,7 +101,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
   // Completion event listener → enqueue to centralized modal queue
   useEffect(() => {
-    const completionListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const completionListener: EmitterSubscription = addAppEventListener(
       'monthly_challenge_completed',
       (eventData: any) => {
         console.log('🎉 Monthly challenge completed → ModalQueue');
@@ -128,7 +129,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
   // Failure event listener (month ended without completion) → enqueue
   useEffect(() => {
-    const failureListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const failureListener: EmitterSubscription = addAppEventListener(
       'monthly_challenge_failed',
       (eventData: any) => {
         console.log('😤 Monthly challenge failed → ModalQueue:', eventData);
@@ -151,7 +152,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
   // Milestone celebration listener (25%, 50%, 75%) → enqueue
   useEffect(() => {
-    const milestoneListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const milestoneListener: EmitterSubscription = addAppEventListener(
       'monthly_milestone_reached',
       (eventData: any) => {
         console.log('🎯 Monthly milestone → ModalQueue:', eventData);
@@ -184,7 +185,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
 
   // Star level change listener → enqueue (promotions) or save for next open (demotions)
   useEffect(() => {
-    const starChangeListener: EmitterSubscription = DeviceEventEmitter.addListener(
+    const starChangeListener: EmitterSubscription = addAppEventListener(
       'star_level_changed',
       (eventData: { category: AchievementCategory; previousStars: number; newStars: number; reason: string }) => {
         console.log('⭐ Star level changed → ModalQueue:', eventData);

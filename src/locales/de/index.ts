@@ -3090,7 +3090,9 @@ const de: Partial<TranslationKeys> = {
         monthly_challenge: 'Monat',
         recommendation_follow: 'Tipp',
         xp_multiplier_bonus: 'Bonus',
-        XP_MULTIPLIER_BONUS: 'Comeback',
+        loyalty_milestone: 'Treue-Meilenstein',
+        daily_activity: 'Tägliche Aktivität',
+        inactive_user_return: 'Comeback-Bonus',
       },
 
       notification: {
@@ -3459,8 +3461,20 @@ const de: Partial<TranslationKeys> = {
       monthly_challenge: {
         icon_description: 'Kalender-Symbol für Fortschritt der Monatsherausforderung',
       },
-      XP_MULTIPLIER_BONUS: {
+      xp_multiplier_bonus: {
         icon_description: 'Blitz-Symbol für Comeback-Bonus-Multiplikator',
+      },
+      recommendation_follow: {
+        icon_description: 'Glühbirnen-Symbol für befolgte Empfehlung',
+      },
+      loyalty_milestone: {
+        icon_description: 'Medaillen-Symbol für Treue-Meilenstein',
+      },
+      daily_activity: {
+        icon_description: 'Funkeln-Symbol für tägliche Aktivität',
+      },
+      inactive_user_return: {
+        icon_description: 'Blitz-Symbol für Comeback-Bonus',
       },
     },
 

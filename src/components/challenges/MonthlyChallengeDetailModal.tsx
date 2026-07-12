@@ -603,7 +603,10 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                       styles.requirementNumbers,
                       { color: isRequirementCompleted ? categoryColor : colors.textSecondary }
                     ]}>
-                      {currentProgress} / {requirement.target}
+                      {/* balance_score is a 0–1 float — show 2 decimals, not "0.7333333333" */}
+                      {requirement.trackingKey === 'balance_score'
+                        ? `${Number(currentProgress).toFixed(2)} / ${Number(requirement.target).toFixed(2)}`
+                        : `${currentProgress} / ${requirement.target}`}
                     </Text>
                     <Text style={styles.requirementPercent}>
                       ({Math.round(progressPercent)}%)

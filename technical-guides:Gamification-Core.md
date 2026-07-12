@@ -20,10 +20,42 @@
 **Only GamificationService.addXP()/subtractXP() may handle XP operations. All other systems are FORBIDDEN from containing XP logic.**
 
 ### Core Services
-- **GamificationService**: Central XP management and level progression
+- **GamificationService**: Central XP management and level progression (FASÁDA — viz níže)
 - **XPMultiplierService**: Multiplier management (Harmony Streak, Inactive User Boost, etc.)
 - **AchievementService**: Achievement unlocking and XP rewards
 - **UserActivityTracker**: Analytics and user behavior tracking
+
+### 🏗️ N28 — Postupné rozdělení GamificationService (od července 2026)
+
+`gamificationService.ts` je god-object (~3 400 ř.), který se postupně rozděluje do
+modulů v **`src/services/gamification/`**. GamificationService zůstává **fasádou**:
+veřejné statické API se NEMĚNÍ (žádný konzument se nepřepisuje), metody delegují
+do modulů přes `require('./gamification/<modul>') as typeof import(...)`.
+
+**Hotové moduly:**
+| Modul | Obsah | Poznámka |
+|---|---|---|
+| `gamification/xpLimits.ts` | Denní limity, anti-spam, multiplier škálování limitů | **PURE** — žádné I/O, data se injektují parametry; 15 unit testů (`xpLimits.test.ts`) vč. rate-limitingu, který byl v god-objectu netestovatelný |
+| `gamification/levelUpEvents.ts` | Level-up event store (ukládání, historie, shown tracking, failed fallback) | Věrný port; ⚠️ dokumentovaný latentní nesoulad: zápis SQLite / čtení AsyncStorage — dnes bez konzumenta, sjednotit před přidáním konzumenta (kandidát N27) |
+
+**Pravidla pro extrakci dalších modulů (závazný recept):**
+1. Najdi sekci podle `// ===== HLAVIČKA =====` komentářů a `grep`em ověř, že její
+   metody nevolá nic mimo sekci (kromě fasádních vstupů)
+2. Preferuj **pure design**: modul dostává data parametry (viz xpLimits) —
+   I/O zůstává ve fasádě; kde to nejde, přenes I/O věrně (viz levelUpEvents)
+3. Modul NIKDY neimportuje gamificationService (cyklus!) — ani nic, co ho importuje
+4. Fasádní metoda = stejná signatura, tělo = require modulu + delegace
+5. Po KAŽDÉM modulu: `npx tsc --noEmit` (0) + celá test suita (aktuálně 339) —
+   jeden modul = jeden commit
+6. Nikdy neměň chování během extrakce — nalezené bugy dokumentuj a řeš zvlášť
+
+**Zbývající kandidáti (pořadí dle izolovanosti, řádky ±):**
+1. `PRODUCTION MONITORING` (~75 ř.) — malý, izolovaný, snadný
+2. `NOTIFICATION & ANIMATION` (~60 ř.) — malý
+3. `TRANSACTION MANAGEMENT` (~300 ř.) — read/rollback cesty, pozor na sdílené cache
+4. `TRACKING & ANALYTICS` (~290 ř.) — POZOR: `getDailyXPData` používá mnoho sekcí,
+   extrahovat až naposledy spolu s cache
+5. `ENHANCED XP REWARD ENGINE` + helpers (~600 ř.) — největší, dělit dál
 
 ---
 

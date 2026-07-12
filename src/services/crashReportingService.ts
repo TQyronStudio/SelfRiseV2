@@ -28,6 +28,21 @@ let cachedInstance: CrashlyticsModule | null | undefined;
 function getCrashlytics(): CrashlyticsModule | null {
   if (cachedInstance !== undefined) return cachedInstance;
   try {
+    // FIRST check the native module is actually linked. Calling
+    // firebase.crashlytics() without it makes RNFB log a loud red-box ERROR
+    // internally (even when we catch the throw) — this happens whenever the
+    // JS bundle is newer than the installed binary (before `expo prebuild`
+    // + rebuild). Probing NativeModules avoids triggering RNFB entirely.
+    const { NativeModules } = require('react-native') as typeof import('react-native');
+    if (!NativeModules?.RNFBCrashlyticsModule) {
+      console.warn(
+        '⚠️ CrashReporting: native module not present in this binary — crash reporting disabled. ' +
+        'Run `npx expo prebuild --clean` and rebuild the app to enable it.'
+      );
+      cachedInstance = null;
+      return cachedInstance;
+    }
+
     // Lazy require (project convention) — must not throw at import time
     const mod = require('@react-native-firebase/crashlytics') as typeof import('@react-native-firebase/crashlytics');
     cachedInstance = mod.default() as unknown as CrashlyticsModule;

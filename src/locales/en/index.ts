@@ -3070,7 +3070,9 @@ const en: TranslationKeys = {
         monthly_challenge: 'Monthly Challenge',
         recommendation_follow: 'Recommendation',
         xp_multiplier_bonus: 'Multiplier Bonus',
-        XP_MULTIPLIER_BONUS: 'Comeback Bonus',
+        loyalty_milestone: 'Loyalty Milestone',
+        daily_activity: 'Daily Activity',
+        inactive_user_return: 'Comeback Bonus',
       },
       
       // Notifications and Announcements
@@ -3446,8 +3448,20 @@ const en: TranslationKeys = {
       monthly_challenge: {
         icon_description: 'Calendar icon representing monthly challenge progress',
       },
-      XP_MULTIPLIER_BONUS: {
+      xp_multiplier_bonus: {
         icon_description: 'Lightning bolt icon representing comeback bonus multiplier',
+      },
+      recommendation_follow: {
+        icon_description: 'Lightbulb icon representing a followed recommendation',
+      },
+      loyalty_milestone: {
+        icon_description: 'Medal icon representing loyalty milestone',
+      },
+      daily_activity: {
+        icon_description: 'Sparkles icon representing daily activity',
+      },
+      inactive_user_return: {
+        icon_description: 'Lightning bolt icon representing comeback bonus',
       },
     },
 

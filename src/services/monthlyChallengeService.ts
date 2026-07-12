@@ -1907,6 +1907,20 @@ export class MonthlyChallengeService {
     const alternatives: string[] = [];
 
     try {
+      // CRITICAL (July 2026 log finding): challenge titles/descriptions are
+      // resolved through t() at generation time and PERSISTED. i18next
+      // initializes asynchronously — generating before it is ready stored raw
+      // keys ('help.challenges.templates.…title') as user-visible titles.
+      // Wait for readiness before building any template texts.
+      if (!i18next.isInitialized) {
+        console.log('⏳ [MonthlyChallengeService] Waiting for i18next before generation…');
+        await new Promise<void>((resolve) => {
+          const done = () => { i18next.off('initialized', done); resolve(); };
+          i18next.on('initialized', done);
+          if (i18next.isInitialized) done(); // race guard
+        });
+      }
+
       // Check if user qualifies for warm-up treatment (< 20 days of activity)
       if (context.isFirstMonth || this.shouldUseWarmUpTreatment(context.userBaseline)) {
         const warmUpResult = this.generateWarmUpChallenge(context.forceCategory, context.userId, t);

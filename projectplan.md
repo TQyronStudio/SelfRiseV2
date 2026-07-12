@@ -116,9 +116,71 @@ Independent re-verification of all 9 completed audit items found 3 gaps, all fix
 - [x] Consent gating: `CrashReportingService.enable()` called after UMP privacy flow in `adConsentService` (single call site)
 - [x] Strategic non-fatal `recordError` in 4 critical catch blocks (DB init, streak calculation, monthly progress, multiplier activation)
 
-**Remaining (Petr, on device)**: `expo prebuild --clean` + build → `testCrash()` verification in Firebase Console → privacy documents (web Privacy Policy paragraph — Claude will write it with web access; App Store App Privacy: +Crash Data/Diagnostics; Play Data Safety: +Crash logs). Checklist: @technical-guides:Crashlytics.md
+**Remaining (Petr, on device)**: `expo prebuild --clean` + build → `testCrash()` verification in Firebase Console → privacy documents (web Privacy Policy ✅ updated 2026-07-06; App Store App Privacy: +Crash Data/Diagnostics; Play Data Safety: +Crash logs). Checklist: @technical-guides:Crashlytics.md
 
 **Verification**: tsc 0 errors, 324/324 tests green.
+
+---
+
+## ✅ COMPLETED (foundation): N8 Typed Event Bus (2026-07-06)
+
+**Goal**: Kill the silent-typo bug class in DeviceEventEmitter communication (27 files, bare strings) — pravidla: technical-guides.md → "Typed Event Bus"
+
+- [x] `src/utils/appEvents.ts` — typed façade over the same DeviceEventEmitter channel: complete `AppEvents` map (~20 events) with payload types, `emitAppEvent`/`addAppEventListener`. Zero runtime change, gradual migration supported
+- [x] Migrated: `MonthlyChallengeSection` (6 listeners — highest-density consumer). The typed bus immediately caught one payload imprecision (AchievementCategory vs string) at compile time
+- [x] **Dead listener removed**: `challengeCompleted` on Home (`app/(tabs)/index.tsx`) — nothing ever emitted it (real event: `monthly_challenge_completed`, handled by MonthlyChallengeSection via ModalQueue); removed with its duplicate completion modal + unused imports/state
+- [x] Rule documented (new events MUST be declared in AppEvents first); remaining migration sites listed in @handoff-blueprints.md §9
+
+**Verification**: tsc 0 errors, 324/324 tests green (19/19 suites).
+
+---
+
+## ✅ COMPLETED (first 2 modules): N28 GamificationService Split (2026-07-06)
+
+**Goal**: Break up the 3,776-line god-object along existing seams, façade preserved — Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification-Core.md → "N28 — Postupné rozdělení"
+
+- [x] `src/services/gamification/xpLimits.ts` — daily limits + anti-spam as PURE functions (data injected, no I/O) + 15 unit tests incl. rate limiting (untestable inside the god-object due to the jest bypass); façade `validateXPAddition` now fetches data and delegates
+- [x] `src/services/gamification/levelUpEvents.ts` — level-up event store (store/history/shown-tracking/failed-fallback), faithful port; latent write-SQLite/read-AsyncStorage inconsistency documented (no consumer today; unify with N27)
+- [x] God-object 3,776 → 3,379 lines; public static API unchanged (zero consumer edits)
+- [x] Binding extraction recipe + remaining-modules map (order, sizes, traps) written into the guide for follow-up models; handoff §5 updated
+
+**Verification**: tsc 0 errors, 339/339 tests green (20/20 suites).
+
+---
+
+## ✅ COMPLETED: Runtime Log Fixes — first device run (2026-07-11)
+
+**Goal**: Fix all ERROR/WARN + visible bugs from Petr's first-device-run log (dev binary without prebuild)
+
+- [x] ERROR Crashlytics "not installed natively" — wrapper now probes `NativeModules.RNFBCrashlyticsModule` BEFORE calling `firebase.crashlytics()` (RNFB logs a loud internal error even when caught). Friendly one-line warn until `expo prebuild --clean` + rebuild
+- [x] WARN InteractionManager deprecated — replaced with `requestIdleCallback` (setTimeout fallback) in the achievement-check deferral
+- [x] missingKey `gamification.sources.xp_multiplier_bonus.icon_description` — locale files had UPPERCASE `XP_MULTIPLIER_BONUS` keys (counterpart of the code-side case bug fixed 07-03). Renamed to lowercase in types + EN/DE/ES (name map + icon map), removed EN duplicate, added missing sources (recommendation_follow, loyalty_milestone, daily_activity, inactive_user_return)
+- [x] **Challenge title showing RAW i18n key** (`help.challenges.templates.…title` persisted as title) — root cause: challenge generation raced i18next's async init. Fixed at root (generateMonthlyChallenge awaits i18n readiness) + render-time healing: shared `translateIfKey` in `src/utils/i18n.ts` now also applied in CompletionModal (Card/DetailModal keep local copies — TODO dedupe)
+- Note (no action): stale demo challenge "Impulso equilibrado" (2026-05, active) + Spanish demo habits in Petr's DB — from marketing demo mode; clear via Settings → Clear Marketing Demo Data
+
+**Verification**: tsc 0 errors, 339/339 tests green. Device re-run pending (Petr).
+
+### ✅ Hotfix: debt resurrection after auto-reset (2026-07-11, device-found regression)
+
+Petr's device scenario: 7 missed days → auto-reset → 3 entries today → **auto-reset re-fired in an infinite loop**, entry gate blocked bonus entries (redirect to Home), debt modal said "0". Root cause: the July debt-gate fix removed the (accidental) mask over a missing rule — **missed days before a reset were never written off**, so old debt resurrected after every reset (`autoResetTimestamp` existed for exactly this per the guide, but no scan used it).
+
+- [x] Debt write-off boundary in `calculateRawMissedDays` + `calculateFrozenDaysExcludingToday`: missed days ≤ reset date are not debt
+- [x] 3 regression tests (Petr's exact scenario incl. idempotence/no-loop; new misses after reset still freeze; Start Fresh write-off) → suite now 342/342
+
+**Verification**: tsc 0 errors, 342/342 tests green (20/20 suites). Guide's mandatory scenario "previous reset + miss day → still freezes (not permanent 0)" now actually covered by tests.
+
+---
+
+## ✅ COMPLETED: Monthly Challenges — per-template verification + fixes 1–3 (2026-07-11)
+
+**Goal**: Verify each of the 14 challenge templates individually (semantics + display chain incl. calendar) — plán a stav: @monthly-challenge-fix-plan.md
+
+- [x] Fix 1 [MAJOR] — calendar + weekly breakdown were all-grey/0% for derived-key challenges (Perfect Month, Triple Master, XP Champion, Balance Expert, Depth Explorer): intensity now from snapshot FACTS (`isPerfectDay`, `isTripleFeatureDay`, `xpEarnedToday`) via exported `COMPLEX_TRACKING_KEYS_LIST`; new `DayData.dailyValue` feeds weekly % (balance/avg use active-days basis)
+- [x] Fix 2 [MAJOR] — Progress Champion counted EVENTS not DAYS (3 goals × 3 updates = 9 "days"): daily dedup guard `calculateDailyGoalProgressIncrement` (undo releases the day); bonus discovery: day-guarded keys (habit/journal streak, goal days) write 0 into snapshot contributions (double-call) → calendar for them reads cumulativeProgress DELTA between snapshots
+- [x] Fix 3 [minor] — Balance Expert raw float display → `toFixed(2)` in DetailModal
+- [ ] NÁLEZ 4 — device verification: mid-day app restart × day-guard keys (možné dvojité počítání); visual calendar check on a derived-key challenge
+
+**Verification**: tsc 0 errors, 342/342 tests green (Progress Champion test extended: same-day dedup + undo edge).
 
 ---
 

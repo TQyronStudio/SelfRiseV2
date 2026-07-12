@@ -8,7 +8,7 @@ import {
   AchievementCategory
 } from '../../types/gamification';
 import { addDays, parseDate, formatDateToString } from '../../utils/date';
-import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
+import { MonthlyProgressTracker, COMPLEX_TRACKING_KEYS_LIST } from '../../services/monthlyProgressTracker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -31,6 +31,12 @@ interface DayData {
   isToday: boolean;
   isFuture: boolean;
   adaptiveIntensity: 'none' | 'some' | 'good' | 'perfect'; // Added for easier debugging
+  /**
+   * Day's numeric progress used for weekly % sums. For simple counter keys it
+   * is the sum of dailyContributions; for DERIVED keys (perfect_days, …) it is
+   * computed from snapshot facts — contributions are always 0 for those.
+   */
+  dailyValue: number;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -106,18 +112,77 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
     return combinedDailyTarget;
   }, [challenge]);
 
+  // Primary tracking key of the challenge (all templates are single-requirement)
+  const primaryTrackingKey = challenge.requirements[0]?.trackingKey || '';
+  const isDerivedKeyChallenge = COMPLEX_TRACKING_KEYS_LIST.includes(primaryTrackingKey);
+
+  // Day-guarded keys count each day at most once via an in-memory guard —
+  // their snapshot dailyContributions may read 0 (the guard already consumed
+  // the day when the snapshot re-computed the increment). The day's story is
+  // reliably reconstructed from the CUMULATIVE progress delta between
+  // consecutive snapshots instead. (Fix, July 2026.)
+  const DAY_GUARDED_KEYS = ['habit_streak_days', 'daily_journal_streak', 'daily_goal_progress'];
+  const isDayGuardedChallenge = DAY_GUARDED_KEYS.includes(primaryTrackingKey);
+
   // Adaptive activity intensity based on completion percentage of daily target
   const getAdaptiveActivityIntensity = (actualContributions: Record<string, number>): 'none' | 'some' | 'good' | 'perfect' => {
     const totalActualProgress = Object.values(actualContributions).reduce((sum, val) => sum + val, 0);
-    
+
     if (totalActualProgress === 0) return 'none';
-    
+
     const completionPercentage = totalActualProgress / calculateDailyTarget;
-    
+
     if (completionPercentage >= 0.91) return 'perfect'; // 91%+ = Perfect Day
-    if (completionPercentage >= 0.51) return 'good';   // 51%+ = Good Progress  
+    if (completionPercentage >= 0.51) return 'good';   // 51%+ = Good Progress
     if (completionPercentage >= 0.10) return 'some';   // 10%+ = Some Activity
     return 'none'; // <10% = No meaningful activity
+  };
+
+  /**
+   * Intensity + daily value for DERIVED tracking keys (fix, July 2026).
+   * Their dailyContributions are 0 by design — the day's story lives in the
+   * snapshot FACTS (isPerfectDay, isTripleFeatureDay, xpEarnedToday). Without
+   * this, Perfect Month / Triple Master / XP Champion / Balance Expert /
+   * Depth Explorer showed an all-grey calendar and 0% weeks while the
+   * challenge was actually progressing.
+   */
+  const getDerivedKeyDayData = (
+    snapshot: any | undefined
+  ): { intensity: 'none' | 'some' | 'good' | 'perfect'; dailyValue: number } => {
+    if (!snapshot) return { intensity: 'none', dailyValue: 0 };
+    const xpToday: number = snapshot.xpEarnedToday || 0;
+
+    switch (primaryTrackingKey) {
+      case 'perfect_days':
+        return snapshot.isPerfectDay
+          ? { intensity: 'perfect', dailyValue: 1 }
+          : { intensity: xpToday > 0 ? 'some' : 'none', dailyValue: 0 };
+
+      case 'triple_feature_days':
+        return snapshot.isTripleFeatureDay
+          ? { intensity: 'perfect', dailyValue: 1 }
+          : { intensity: xpToday > 0 ? 'some' : 'none', dailyValue: 0 };
+
+      case 'daily_engagement_streak':
+        return xpToday > 0
+          ? { intensity: 'perfect', dailyValue: 1 }
+          : { intensity: 'none', dailyValue: 0 };
+
+      case 'monthly_xp_total': {
+        // Daily target = monthly XP target spread over the month
+        const ratio = calculateDailyTarget > 0 ? xpToday / calculateDailyTarget : 0;
+        const intensity = ratio >= 0.91 ? 'perfect' : ratio >= 0.51 ? 'good' : ratio >= 0.10 ? 'some' : 'none';
+        return { intensity, dailyValue: xpToday };
+      }
+
+      case 'balance_score':
+      case 'avg_entry_length':
+      default:
+        // No meaningful per-day value — show engagement (any XP = active day)
+        return xpToday > 0
+          ? { intensity: 'good', dailyValue: 1 }
+          : { intensity: 'none', dailyValue: 0 };
+    }
   };
 
   // Generate calendar data for the month using real daily snapshots
@@ -145,8 +210,28 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       const dailySnapshot = dailySnapshots[dateString];
       const dailyContributions = dailySnapshot?.dailyContributions || {};
 
-      // Use adaptive activity intensity calculation
-      const adaptiveIntensity = getAdaptiveActivityIntensity(dailyContributions);
+      // Intensity: derived-key challenges read snapshot FACTS (their
+      // contributions are 0 by design); day-guarded keys use the cumulative
+      // progress delta; simple counters use contributions.
+      let adaptiveIntensity: 'none' | 'some' | 'good' | 'perfect';
+      let dailyValue: number;
+      if (isDerivedKeyChallenge) {
+        const derived = getDerivedKeyDayData(dailySnapshot);
+        adaptiveIntensity = derived.intensity;
+        dailyValue = derived.dailyValue;
+      } else if (isDayGuardedChallenge) {
+        // Day-guarded keys: contributions now carry the TRUE applied increment
+        // (snapshot no longer re-computes and zeroes them — July 2026 fix in
+        // the tracker). Any positive contribution = the day qualified.
+        // SQLite legacy rows reconstruct contributions from activity columns,
+        // which are also >0 exactly on qualifying days.
+        const contribution = (dailyContributions as Record<string, number>)[primaryTrackingKey] || 0;
+        dailyValue = contribution > 0 ? 1 : 0;
+        adaptiveIntensity = dailyValue > 0 ? 'perfect' : ((dailySnapshot?.xpEarnedToday || 0) > 0 ? 'some' : 'none');
+      } else {
+        adaptiveIntensity = getAdaptiveActivityIntensity(dailyContributions);
+        dailyValue = Object.values(dailyContributions as Record<string, number>).reduce((a, b) => a + b, 0);
+      }
       const hasActivity = adaptiveIntensity !== 'none';
       
       // Perfect Day is now based on meeting 100% of daily target
@@ -184,7 +269,8 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
         hasActivity,
         isToday: dateString === formatDateToString(today),
         isFuture: currentDate > today,
-        adaptiveIntensity // Include intensity for debugging
+        adaptiveIntensity, // Include intensity for debugging
+        dailyValue
       });
 
       currentDate = new Date(addDays(currentDate, 1));
@@ -596,14 +682,17 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
           const monthlyTarget = challenge.requirements.reduce((total, req) => total + req.target, 0);
           const weeklyTarget = (monthlyTarget * weekDays) / monthTotalDays;
 
-          // Sum actual contributions for the week
-          const weekActualProgress = week.reduce((sum, day) => {
-            const dailyContributions = day.contributions || {};
-            return sum + Object.values(dailyContributions).reduce((a, b) => a + b, 0);
-          }, 0);
+          // Sum the day's numeric progress — dailyValue covers BOTH simple
+          // counters (contributions sum) and derived keys (snapshot facts).
+          const weekActualProgress = week.reduce((sum, day) => sum + (day.dailyValue || 0), 0);
 
-          // Calculate true completion percentage (can exceed 100%)
-          const weekProgress = Math.round((weekActualProgress / weeklyTarget) * 100);
+          // Calculate true completion percentage (can exceed 100%).
+          // balance_score / avg_entry_length have no meaningful weekly target
+          // (float score / running average) — use active-days ratio instead.
+          const isRatioBasis = primaryTrackingKey === 'balance_score' || primaryTrackingKey === 'avg_entry_length';
+          const weekProgress = isRatioBasis
+            ? Math.round((weekActualProgress / weekDays) * 100)
+            : Math.round((weekActualProgress / weeklyTarget) * 100);
 
           return (
             <View key={weekIndex} style={styles.weekSummaryRow}>

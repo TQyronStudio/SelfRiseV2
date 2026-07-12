@@ -14,16 +14,17 @@
 8. [Performance Considerations](#performance-considerations)
 9. [User Interface & Celebrations](#user-interface--celebrations)
 10. [Security Guidelines](#security-guidelines)
-11. [Accessibility Standards](#accessibility-standards)
-12. [Configuration Management](#configuration-management)
-13. [Technical Stack & Architecture](#technical-stack--architecture)
-14. [My Journal System](#my-journal-system)
-15. [Gamification System](#gamification-system)
-16. [Achievements System](#achievements-system)
-17. [Screen Creation Guidelines](#screen-creation-guidelines)
-18. [Help Tooltip System](#help-tooltip-system)
-19. [Onboarding Tutorial System](#onboarding-tutorial-system)
-20. [AdMob Integration](#admob-integration)
+11. [Crash Reporting (Crashlytics)](#crash-reporting-crashlytics)
+12. [Accessibility Standards](#accessibility-standards)
+13. [Configuration Management](#configuration-management)
+14. [Technical Stack & Architecture](#technical-stack--architecture)
+15. [My Journal System](#my-journal-system)
+16. [Gamification System](#gamification-system)
+17. [Achievements System](#achievements-system)
+18. [Screen Creation Guidelines](#screen-creation-guidelines)
+19. [Help Tooltip System](#help-tooltip-system)
+20. [Onboarding Tutorial System](#onboarding-tutorial-system)
+21. [AdMob Integration](#admob-integration)
 
 ---
 
@@ -1256,6 +1257,39 @@ All modals should follow the CelebrationModal pattern with:
 - Implement proper authentication
 - Add input sanitization
 - Use HTTPS for all API calls
+
+---
+
+## Typed Event Bus (DeviceEventEmitter)
+
+Aplikace komunikuje mezi službami a komponentami přes DeviceEventEmitter eventy.
+Od července 2026 existuje typovaná fasáda: **`src/utils/appEvents.ts`**.
+
+- **Nový event = NEJDŘÍV záznam do `AppEvents` mapy** v appEvents.ts (název + payload
+  typ). Nikdy neemituj holý string, který v mapě není.
+- Nový kód používá `emitAppEvent()` / `addAppEventListener()` — překlep v názvu
+  eventu je pak chyba kompilace, ne tichý bug v produkci (viz mrtvý
+  `challengeCompleted` listener odstraněný z Home v červenci 2026).
+- Legacy volání přes DeviceEventEmitter fungují dál (stejný kanál) — migruj je
+  postupně, kdykoliv se souboru dotkneš.
+- Změna payloadu se dělá NEJDŘÍV v appEvents.ts — kompilátor pak najde konzumenty.
+
+---
+
+## Crash Reporting (Crashlytics)
+
+Firebase Crashlytics je integrovaný od července 2026. Kompletní pravidla a logika:
+**@technical-guides:Crashlytics.md**
+
+Zásady pro každodenní vývoj:
+- **Jediný vstupní bod**: `src/services/crashReportingService.ts` — NIKDY neimportuj
+  `@react-native-firebase/crashlytics` přímo (wrapper je bezpečný no-op v Jest/Expo Go)
+- **Consent-first**: sběr je vypnutý (`firebase.json`) a zapíná se až po UMP privacy
+  flow v `adConsentService` — nepřidávej jiná místa zapnutí
+- **`recordError(error, 'context_tag')`** patří do catch bloků kritických systémů
+  (datová vrstva, streaky, XP, výzvy) — ne do běžného UI šumu
+- **`log(msg)`** = levný breadcrumb u významných přechodů stavu
+- Po změnách: report se v Firebase Console objeví až po restartu appky (black-box princip)
 
 ---
 

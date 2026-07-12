@@ -220,6 +220,7 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     T.currentJournalStreakDays = 0;
     T.todayJournalEntriesCount = 0;
     T.journalCountDate = '';
+    T.goalProgressCountedDate = '';
   });
 
   // ========================================
@@ -343,13 +344,28 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
   // GOALS TEMPLATES (2)
   // ========================================
 
-  test('daily_goal_progress (Progress Champion): goal progress → +1', async () => {
+  test('daily_goal_progress (Progress Champion): counts DAYS, not events [July 2026 fix]', async () => {
     const ch = activateChallenge(
       makeChallenge('daily_goal_progress', 20, AchievementCategory.GOALS, 'goals')
     );
 
     await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, 35, 'goal-1');
+    expect(await getProgressValue(ch.id, 'daily_goal_progress')).toBe(1);
 
+    // Second and third goal-progress the SAME day (other goals) must NOT
+    // add more "days" — previously 3 goals × 3 updates counted as 9 days
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, 35, 'goal-2');
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, 35, 'goal-3');
+    expect(await getProgressValue(ch.id, 'daily_goal_progress')).toBe(1);
+
+    // Undo of today's counted progress releases the day (and not below 0)
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, -35, 'goal-1');
+    expect(await getProgressValue(ch.id, 'daily_goal_progress')).toBe(0);
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, -35, 'goal-2');
+    expect(await getProgressValue(ch.id, 'daily_goal_progress')).toBe(0);
+
+    // New progress after undo counts the day again
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.GOAL_PROGRESS, 35, 'goal-1');
     expect(await getProgressValue(ch.id, 'daily_goal_progress')).toBe(1);
   });
 

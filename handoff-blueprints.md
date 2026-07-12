@@ -1,4 +1,8 @@
-# Handoff Blueprints — zbývající práce (stav k 2026-07-03)
+# Handoff Blueprints — zbývající práce (stav k 2026-07-11)
+
+> 🆕 **Monthly Challenges per-šablonová prověrka (11.7.)**: 2 MAJOR + 2 minor nálezy
+> s přesnými recepty → **@monthly-challenge-fix-plan.md** (kalendář mrtvý pro
+> odvozené klíče; Progress Champion počítá události místo dnů). Udělat PŘED vydáním.
 
 Tento dokument předává kontext a přesné pracovní postupy pro zbývající úkoly.
 Psáno tak, aby je zvládl kterýkoliv model/vývojář bez znovu-objevování souvislostí.
@@ -66,12 +70,19 @@ legacy větve, AsyncStorage větve v `gamificationService.ts` (všechny
 `if (FEATURE_FLAGS.USE_SQLITE_*)` else-větve), pak flagy samotné. Po každém souboru
 tsc + testy. POZOR: `getGratitudeStorageImpl()` v featureFlags.ts používá GratitudeInput.
 
-## 5. N28 — rozdělení GamificationService (3 500+ ř. god-object) — po vydání
+## 5. N28 — rozdělení GamificationService ✅ ZAHÁJENO (2026-07-06), 2 moduly hotové
 
-Postupně podle existujících švů, žádný big-bang: `xpCore` (add/subtract/total),
-`xpBatching`, `xpLimits` (validace+anti-spam), `levelUpEvents`, `xpStats`.
-Zachovat statické API přes fasádu (žádný konzument se nesmí změnit). Jeden modul
-= jeden PR = tsc + testy. Začni `xpLimits` (nejizolovanější).
+Hotovo: `gamification/xpLimits.ts` (PURE pravidla limitů/anti-spamu + 15 unit
+testů) a `gamification/levelUpEvents.ts` (level-up event store). God-object
+3 776 → 3 379 ř. Fasáda zachována — žádný konzument se nezměnil.
+
+**Závazný recept + mapa zbývajících modulů (pořadí, řádky, pasti):**
+`technical-guides:Gamification-Core.md` → sekce „N28 — Postupné rozdělení".
+Klíčové: pure design kde to jde (data parametry, I/O ve fasádě), modul nikdy
+neimportuje gamificationService, jeden modul = tsc + celá suita = jeden commit,
+chování se při extrakci NIKDY nemění (bugy dokumentuj zvlášť — viz dokumentovaný
+latentní split-brain v levelUpEvents: zápis SQLite / čtení AsyncStorage, dnes
+bez konzumenta, sjednotit s N27).
 
 ## 6. N31 — XP mimo storage vrstvu — po vydání, s rozmyslem
 
@@ -91,11 +102,63 @@ vizuální kontrole všech obrazovek, (3) Lottie oslavy (level-up/achievement/st
 (4) `<EmptyState>` komponenta. POZOR: Typography je záměrně bez barev (červenec 2026)
 — barvy VŽDY z `useTheme()`.
 
-## 8. Meta Ads část B/C — až Petr dodá Meta App ID + Client Token
+## 8. Meta Ads část B/C — custom eventy (Petr zatím jede organiku, peníze později)
 
 Viz projectplan.md → „Meta Ads & Marketing Analytics Integration". Část B (Firebase
-custom eventy) je nezávislá a bezpečná: `analyticsService.ts` wrapper + Tier 1–3
-eventy dle plánu. Část C blokována externě.
+custom eventy) je nezávislá a bezpečná; Část C (Meta SDK) blokována externě
+(App ID + Client Token). Část B má hodnotu i pro ORGANICKÝ marketing — retenční
+data ukážou, co v appce funguje, ještě před placenými kampaněmi.
+
+### 🗺️ Mapa trigger míst (sepsáno 2026-07-06 s plným kontextem po auditech)
+
+**Nejdřív infrastruktura (B1):** `src/services/analyticsService.ts` — vzor podle
+`crashReportingService.ts`: lazy/safe wrapper (no-op v Jest), type-safe union event
+names, interně volá `FirebaseAnalytics.logEvent` (stejný modul jako telemetrie v
+`appInitializationService.logStorageTelemetry`, ř. ~170 — tam je vidět require vzor).
+„First"-eventy ochránit proti duplicitám AsyncStorage flagem
+(`analytics_sent_<event>` → jednou a dost). Nikdy nevyhazovat výjimky.
+POZOR: netriggerovat při marketing demo mode (guard přes `isMarketingDemoModeEnabled`).
+
+**Tier 1 — Acquisition:**
+| Event | Místo |
+|---|---|
+| `complete_onboarding` | `TutorialContext.tsx` → `markTutorialCompleted()` (ř. ~630; dispatchuje `COMPLETE_TUTORIAL`) |
+| `create_first_habit` | `HabitsContext` → create akce po úspěchu; „first" = počet návyků po vytvoření === 1 |
+| `complete_first_habit` | `HabitsContext.toggleCompletion` success path; „first" přes AsyncStorage flag |
+| `journal_first_entry` | `GratitudeContext.createGratitude` po `storage.create()`; „first" = `getTotalEntryCount() === 1` |
+
+**Tier 2 — Retention:**
+| Event | Místo |
+|---|---|
+| `streak_7_days` / `streak_30_days` | `SQLiteGratitudeStorage.calculateAndUpdateStreak` — těsně před `updateStreak(updatedStreak)`: fire když `savedStreak.currentStreak < N && finalCurrentStreak >= N` (přesně tam, kde se streak počítá — žádné jiné místo není spolehlivé) |
+| `goal_completed` | `SQLiteGoalStorage` — 2 místa, kde se přiděluje `XPSourceType.GOAL_COMPLETION` XP (ř. ~503 a ~706 — completion přes progress i přímé dokončení) |
+| `monthly_challenge_completed` | `MonthlyProgressTracker.completeMonthlyChallenge` — hned za `GamificationService.addXP(totalXP, …)`; params: `star_level`, `category` |
+| `achievement_unlocked` | `achievementService.ts` — po `AchievementStorage.storeUnlockEvent(...)` vrátí `true` (3 call-sites: ř. ~523, ~766, ~1121 — storeUnlockEvent je idempotentní, `wasUnlocked === true` = skutečně nový unlock); param `achievement_id` |
+
+**Tier 3 — Monetization:**
+| Event | Místo |
+|---|---|
+| `rewarded_ad_completed` | `adService.showRewardedAd()` — v místě, kde se nastavuje `rewarded: true` (JEDINÝ choke-point pro všechny rewarded placementy; ne v GratitudeStreakCard, tam by unikly budoucí placementy) |
+
+**Verifikace (B5):** dev build → projít tutorial, založit návyk, zapsat entry →
+Firebase Console → DebugView (`adb shell setprop debug.firebase.analytics.app
+com.petrturek.selfrise` na Androidu). Pak `technical-guides:Marketing-Analytics.md`
+(část D projectplanu).
+
+## 9. N8 — Typovaný event bus ✅ ZÁKLAD HOTOV (2026-07-06), migrace postupná
+
+Vytvořen `src/utils/appEvents.ts` — typovaná fasáda nad DeviceEventEmitter
+(kompletní `AppEvents` mapa všech ~20 eventů + payload typy). Pravidla
+v technical-guides.md → „Typed Event Bus". Zmigrováno: MonthlyChallengeSection
+(6 listenerů); odstraněn mrtvý `challengeCompleted` listener + duplicitní
+completion modal z Home (nikdo ho neemitoval — přesně bug třída, kterou bus řeší).
+
+**Zbývá (postupně, kdykoliv se souboru dotkneš)**: emit místa v
+`gamificationService` (xpGained/levelUp/xpBatchCommitted),
+`monthlyProgressTracker` (EVENTS konstanty), `starRatingService`, listenery
+v XpAnimationContext, AchievementContext, HomeScreen widgetech,
+XpMultiplierSection, GratitudeStreakCard. Vzor: import `addAppEventListener`/
+`emitAppEvent`, stejné stringy, stejný kanál — nulové runtime riziko.
 
 ## ⚠️ Nebezpečné zóny (nauč se z historie bugů)
 
