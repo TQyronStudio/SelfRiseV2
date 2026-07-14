@@ -202,10 +202,14 @@
       "Bash(git add *)",
       "Bash(rm /Users/turage/Developer/SelfRiseV2/.git/index.lock)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(rm /Users/turage/Developer/SelfRiseV2/.git/index.lock && git status)"
     ],
     "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "/Users/turage/Developer/SelfRiseV2/.git"
+    ]
   }
 }
