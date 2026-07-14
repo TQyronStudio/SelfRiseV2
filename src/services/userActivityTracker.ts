@@ -4,7 +4,7 @@ import { DateString } from '../types/common';
 import { AchievementCategory, XPSourceType } from '../types/gamification';
 import { formatDateToString, today, addDays, subtractDays, parseDate } from '../utils/date';
 import { GamificationService } from './gamificationService';
-import { GoalStorage } from './storage/goalStorage';
+import { getGoalStorageImpl } from '../config/featureFlags';
 
 // ========================================
 // TYPE DEFINITIONS
@@ -307,10 +307,10 @@ export class UserActivityTracker {
       const summaries: DailyActivitySummary[] = [];
       
       // Use static imports for storage services
-      const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags');
+      const { getHabitStorageImpl, getGratitudeStorageImpl, getGoalStorageImpl } = require('../config/featureFlags');
       const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
-      const goalStorage = new GoalStorage();
+      const goalStorage = getGoalStorageImpl();
       
       // Iterate through each day in the analysis period
       let currentDate = startDate;
@@ -602,7 +602,7 @@ export class UserActivityTracker {
    */
   private static async calculateAverageGoalTargetValue(): Promise<number> {
     try {
-      const goalStorage = new GoalStorage();
+      const goalStorage = getGoalStorageImpl();
       const goals = await goalStorage.getAll();
       
       const activeGoals = goals.filter(g => g.status === 'active');

@@ -7,7 +7,11 @@
 
 import { DailyTaskProgress } from '../../types/notification';
 import { getGratitudeStorageImpl, getHabitStorageImpl } from '../../config/featureFlags';
-import { goalStorage } from '../storage/goalStorage';
+import { getGoalStorageImpl } from '../../config/featureFlags';
+
+// Goals live in SQLite (USE_SQLITE_GOALS) — reading the legacy AsyncStorage
+// singleton here made every goal-based evening reminder see zero goals.
+const goalStorage = getGoalStorageImpl();
 import { formatDateToString, getDayOfWeek } from '../../utils/date';
 import { Habit, HabitCompletion } from '../../types/habit';
 import { Gratitude } from '../../types/gratitude';

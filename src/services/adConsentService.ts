@@ -3,6 +3,7 @@ import mobileAds, {
   AdsConsentStatus,
   AdsConsentPrivacyOptionsRequirementStatus,
 } from 'react-native-google-mobile-ads';
+import { waitForATT, markStartupTaskComplete } from '../utils/startupGate';
 
 /**
  * AdConsentService - UMP (User Messaging Platform) GDPR consent flow.
@@ -42,6 +43,11 @@ async function startGoogleMobileAds(): Promise<void> {
  */
 export async function initializeAdsWithConsent(): Promise<void> {
   try {
+    // 0. Wait for Apple's ATT prompt to finish first. Google recommends
+    //    requesting ATT before loading the UMP form, and it also guarantees the
+    //    two native modals show one-at-a-time (never overlapping = no iOS freeze).
+    await waitForATT();
+
     // 1. Request the latest consent information for this device/region.
     const consentInfo = await AdsConsent.requestInfoUpdate();
 
@@ -66,6 +72,10 @@ export async function initializeAdsWithConsent(): Promise<void> {
     // opt-in is ever required, condition it here.
     const { CrashReportingService } = require('./crashReportingService') as typeof import('./crashReportingService');
     await CrashReportingService.enable();
+
+    // 5. Release the startup gate: the UMP consent form (if any) is now closed,
+    //    so the onboarding gate / tutorial can safely present its RN modal.
+    markStartupTaskComplete('consent');
   }
 }
 

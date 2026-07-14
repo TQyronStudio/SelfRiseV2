@@ -23,6 +23,7 @@ import {
   getTrackingPermissionsAsync,
   PermissionStatus,
 } from 'expo-tracking-transparency';
+import { markStartupTaskComplete } from '../utils/startupGate';
 
 // Types for analytics events
 type AnalyticsEventParams = Record<string, string | number | boolean>;
@@ -69,6 +70,10 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
         await handleATTPermission();
       }
 
+      // ATT prompt (if any) is now closed. Release the startup gate so the UMP
+      // consent flow can run next, and the onboarding gate / tutorial afterwards.
+      markStartupTaskComplete('att');
+
       // Step 2: Enable analytics collection
       // Analytics works on both iOS and Android, but tracking data
       // is limited on iOS if user denies ATT
@@ -83,6 +88,8 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
       console.log('✅ Firebase Analytics initialized');
     } catch (error) {
       console.error('❌ Firebase Analytics initialization error:', error);
+      // Never leave the startup gate hanging if analytics/ATT init throws.
+      markStartupTaskComplete('att');
     }
   };
 

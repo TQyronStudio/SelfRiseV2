@@ -64,16 +64,30 @@ export function isFeatureEnabled(flag: keyof typeof FEATURE_FLAGS): boolean {
 }
 
 /**
+ * Storage selection helpers.
+ *
+ * ⚠️ These MUST stay typed (`require(...) as typeof import(...)`). They used to
+ * return `any`, which is exactly why the goals split-brain (July 2026) stayed
+ * invisible for months: services read goals through the legacy AsyncStorage
+ * singleton while writes went to SQLite, and the compiler could not object.
+ * With a proper return type, calling a method the active implementation does not
+ * have is now a compile error instead of a silent zero at runtime.
+ *
+ * RULE: never `new GoalStorage()` / `new HabitStorage()` / import the legacy
+ * singletons in feature code — always go through these helpers.
+ */
+
+/**
  * Storage selection helper for gratitude/journal
  * Returns appropriate storage instance based on feature flag
  */
 export function getGratitudeStorageImpl() {
   if (FEATURE_FLAGS.USE_SQLITE_JOURNAL) {
     // Lazy import to avoid circular dependencies
-    const { sqliteGratitudeStorage } = require('../services/storage/SQLiteGratitudeStorage');
+    const { sqliteGratitudeStorage } = require('../services/storage/SQLiteGratitudeStorage') as typeof import('../services/storage/SQLiteGratitudeStorage');
     return sqliteGratitudeStorage;
   } else {
-    const { gratitudeStorage } = require('../services/storage/gratitudeStorage');
+    const { gratitudeStorage } = require('../services/storage/gratitudeStorage') as typeof import('../services/storage/gratitudeStorage');
     return gratitudeStorage;
   }
 }
@@ -85,10 +99,10 @@ export function getGratitudeStorageImpl() {
 export function getHabitStorageImpl() {
   if (FEATURE_FLAGS.USE_SQLITE_HABITS) {
     // Lazy import to avoid circular dependencies
-    const { sqliteHabitStorage } = require('../services/storage/SQLiteHabitStorage');
+    const { sqliteHabitStorage } = require('../services/storage/SQLiteHabitStorage') as typeof import('../services/storage/SQLiteHabitStorage');
     return sqliteHabitStorage;
   } else {
-    const { habitStorage } = require('../services/storage/habitStorage');
+    const { habitStorage } = require('../services/storage/habitStorage') as typeof import('../services/storage/habitStorage');
     return habitStorage;
   }
 }
@@ -100,10 +114,10 @@ export function getHabitStorageImpl() {
 export function getGoalStorageImpl() {
   if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
     // Lazy import to avoid circular dependencies
-    const { sqliteGoalStorage } = require('../services/storage/SQLiteGoalStorage');
+    const { sqliteGoalStorage } = require('../services/storage/SQLiteGoalStorage') as typeof import('../services/storage/SQLiteGoalStorage');
     return sqliteGoalStorage;
   } else {
-    const { goalStorage } = require('../services/storage/goalStorage');
+    const { goalStorage } = require('../services/storage/goalStorage') as typeof import('../services/storage/goalStorage');
     return goalStorage;
   }
 }

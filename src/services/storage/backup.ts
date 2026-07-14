@@ -6,6 +6,21 @@ import { goalStorage } from './goalStorage';
 import { userStorage } from './userStorage';
 import { generateId } from '../../utils/data';
 
+// ⚠️ BLOCKER — DO NOT WIRE THIS TO ANY UI BEFORE MIGRATING IT.
+//
+// Habits, journal and goals all live in SQLite now (FEATURE_FLAGS.USE_SQLITE_*),
+// but every import above is the LEGACY AsyncStorage singleton. This module would
+// therefore back up an EMPTY dataset and restore into a store nothing reads —
+// silently, with a success message. It is harmless only because it is currently
+// dormant (Data Export & Backup is parked in @projectplan-future-updates.md and
+// has no call site outside `storage/index.ts` re-exports).
+//
+// Before shipping the backup/export feature: swap all three to the feature-flag
+// helpers (getHabitStorageImpl / getGratitudeStorageImpl / getGoalStorageImpl),
+// verify method parity on the SQLite impls (incl. the restore path's deleteAll +
+// bulk import), and cover it with a round-trip test. Same bug class as the goals
+// split-brain fixed on 2026-07-14.
+
 // Backup data structure
 export interface BackupData {
   version: string;

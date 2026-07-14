@@ -71,6 +71,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
     currentLevel: 1,
     xpProgress: 0,
     xpToNextLevel: 0,
+    xpInCurrentLevel: 0,
     isLoading: true,
     updateSequence: 0,
   });
@@ -79,12 +80,13 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   const fetchGamificationData = useCallback(async () => {
     try {
       const stats = await GamificationService.getGamificationStats();
-      
+
       setGamificationState(prev => ({
         totalXP: stats.totalXP,
         currentLevel: stats.currentLevel,
         xpProgress: stats.xpProgress,
         xpToNextLevel: stats.xpToNextLevel,
+        xpInCurrentLevel: stats.xpInCurrentLevel,
         isLoading: false,
         updateSequence: prev.updateSequence + 1,
       }));
@@ -106,6 +108,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
         currentLevel: stats.currentLevel,
         xpProgress: stats.xpProgress,
         xpToNextLevel: stats.xpToNextLevel,
+        xpInCurrentLevel: stats.xpInCurrentLevel,
         isLoading: false,
         updateSequence: prev.updateSequence + 1,
       }));
@@ -137,14 +140,20 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   const isMilestone = useMemo(() => isLevelMilestone(gamificationState.currentLevel), [gamificationState.currentLevel]);
 
   // Destructure for component usage
-  const { 
+  const {
     totalXP,
-    currentLevel, 
-    xpProgress, 
-    xpToNextLevel, 
+    currentLevel,
+    xpProgress,
+    xpToNextLevel,
+    xpInCurrentLevel,
     isLoading,
-    updateSequence 
+    updateSequence
   } = gamificationState;
+
+  // XP needed to get through the CURRENT level. The "x / y XP" label must use the same
+  // level-relative scale as the bar and the percentage — showing lifetime totalXP against
+  // the next level's lifetime threshold produced "100/250 XP" beside an empty 0% bar.
+  const xpNeededForNextLevel = xpInCurrentLevel + xpToNextLevel;
   
   const { state: customizationState } = useHomeCustomization();
   
@@ -569,7 +578,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
               {t('gamification.progress.levelProgressFull', { currentLevel, progress: xpProgress.toFixed(1), nextLevel: currentLevel + 1 })}
             </Text>
             <Text style={[dynamicStyles.xpNumbers, { fontSize: fontSizes.xpNumbers }]}>
-              {t('gamification.progress.xpProgressText', { current: formatNumber(totalXP), total: formatNumber(totalXP + xpToNextLevel) })}
+              {t('gamification.progress.xpProgressText', { current: formatNumber(xpInCurrentLevel), total: formatNumber(xpNeededForNextLevel) })}
             </Text>
           </View>
         )}

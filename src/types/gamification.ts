@@ -103,10 +103,15 @@ export interface XPSource {
  * Overall gamification statistics for a user
  */
 export interface GamificationStats {
-  totalXP: number;
+  totalXP: number; // Lifetime XP across all levels
   currentLevel: number;
-  xpToNextLevel: number;
-  xpProgress: number; // Percentage progress to next level
+  xpToNextLevel: number; // XP still missing to reach the next level
+  // XP earned INSIDE the current level. Together with xpToNextLevel this gives the
+  // level-relative fraction (xpInCurrentLevel / (xpInCurrentLevel + xpToNextLevel)),
+  // which is what xpProgress and the progress bar show. Displaying totalXP against a
+  // level threshold instead mixes two scales — "100/250 XP" next to an empty 0% bar.
+  xpInCurrentLevel: number;
+  xpProgress: number; // Percentage progress to next level (level-relative, 0-100)
   totalTransactions: number;
   xpBySource: Record<XPSourceType, number>;
   achievementsUnlocked: number;

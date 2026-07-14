@@ -43,6 +43,9 @@ jest.mock('react-native', () => ({
 }));
 
 // Force the legacy AsyncStorage code paths — SQLite is unavailable in Jest.
+// The storage helpers must be mocked too: services now resolve their storage
+// through them (never via a hardcoded legacy singleton), so omitting them here
+// makes the module under test crash on import.
 jest.mock('../../config/featureFlags', () => ({
   FEATURE_FLAGS: {
     USE_SQLITE_JOURNAL: false,
@@ -51,14 +54,19 @@ jest.mock('../../config/featureFlags', () => ({
     USE_SQLITE_GAMIFICATION: false,
     USE_SQLITE_CHALLENGES: false,
   },
+  getGratitudeStorageImpl: () => require('../storage/gratitudeStorage').gratitudeStorage,
+  getHabitStorageImpl: () => require('../storage/habitStorage').habitStorage,
+  getGoalStorageImpl: () => require('../storage/goalStorage').goalStorage,
 }));
 jest.mock('../storage/SQLiteChallengeStorage', () => ({
   sqliteChallengeStorage: {},
 }));
 
+// avg_entry_length reads entries via getAll() and filters by the DateString range
+// itself (no getEntriesInRange, no Date round-trip → no timezone shift).
 jest.mock('../storage/gratitudeStorage', () => ({
   gratitudeStorage: {
-    getEntriesInRange: jest.fn(async () => []),
+    getAll: jest.fn(async () => []),
   },
 }));
 
@@ -91,7 +99,7 @@ jest.mock('../monthlyChallengeService', () => ({
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 const mockGetCurrentChallenge = MonthlyChallengeService.getCurrentChallenge as jest.Mock;
 const mockGetTransactions = GamificationService.getTransactionsByDateRange as jest.Mock;
-const mockGetEntriesInRange = gratitudeStorage.getEntriesInRange as jest.Mock;
+const mockGetAllJournalEntries = gratitudeStorage.getAll as jest.Mock;
 
 // ========================================
 // TEST HELPERS
@@ -202,7 +210,7 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     // Default mock data
     mockGetCurrentChallenge.mockResolvedValue(null);
     mockGetTransactions.mockResolvedValue([]);
-    mockGetEntriesInRange.mockResolvedValue([]);
+    mockGetAllJournalEntries.mockResolvedValue([]);
 
     // Reset the tracker's static in-memory state — streak/variety caches and
     // progress caches would otherwise leak between tests (singleton pattern).
@@ -326,16 +334,21 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     const ch = activateChallenge(
       makeChallenge('avg_entry_length', 100, AchievementCategory.JOURNAL, 'journal')
     );
-    mockGetEntriesInRange.mockResolvedValue([
-      { content: 'x'.repeat(40) },
-      { content: 'y'.repeat(60) },
+
+    // The tracker reads ALL entries and filters them to the challenge's date range
+    // itself, so the out-of-range entry below must NOT drag the average down.
+    const { start } = currentMonthRange();
+    mockGetAllJournalEntries.mockResolvedValue([
+      { content: 'x'.repeat(40), date: start },
+      { content: 'y'.repeat(60), date: start },
+      { content: 'z'.repeat(1000), date: '2020-01-01' }, // before the challenge → ignored
     ]);
 
     await MonthlyProgressTracker.updateMonthlyProgress(
       XPSourceType.JOURNAL_ENTRY, 20, 'entry-1', { entryLength: 60 }
     );
 
-    // Average of 40 and 60 = 50
+    // Average of 40 and 60 = 50 (the 1000-char entry from 2020 is out of range)
     expect(await getProgressValue(ch.id, 'avg_entry_length')).toBe(50);
     expect(await getCompletionPercentage(ch.id)).toBeGreaterThan(0);
   });

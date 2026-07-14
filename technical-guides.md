@@ -698,6 +698,40 @@ export const FEATURE_FLAGS = {
 
 ---
 
+### 🚨 PRAVIDLO: Storage VŽDY přes `get*StorageImpl()`
+
+**NIKDY** v aplikačním kódu nepoužívej legacy storage přímo:
+
+```typescript
+// ❌ ZAKÁZÁNO — čte AsyncStorage, zatímco app zapisuje do SQLite
+const goalStorage = new GoalStorage();
+import { goalStorage } from './storage/goalStorage';
+
+// ✅ SPRÁVNĚ — respektuje feature flag
+import { getGoalStorageImpl } from '../config/featureFlags';
+const goalStorage = getGoalStorageImpl();
+```
+
+**Proč** (split-brain, červenec 2026): cíle se zapisovaly do SQLite, ale 7 služeb je četlo
+ze starého AsyncStorage skladu → viděly **0 cílů** → **všech 8 trofejí za cíle bylo mrtvých**
+(nešly odemknout nikdy) a výzva Depth Explorer taky. Uživatel plnil cíle a nedostával odměny.
+
+**Proč to TypeScript nechytil**: helpery `get*StorageImpl()` používaly netypované `require()`
+a vracely `any`. Od července 2026 jsou otypované (`require(...) as typeof import(...)`) —
+volání metody, kterou aktivní implementace nemá, je **teď chyba kompilace** místo tiché nuly
+za běhu. Toto otypování rovnou odhalilo 3 další skryté chyby (mj. že
+`SQLiteGratitudeStorage.searchByContent` vůbec neexistovala → vyhledávání v deníku
+vždy vracelo prázdno).
+
+**Když přidáváš metodu do jednoho skladu**, přidej ji i do druhého — jinak ji kompilátor
+zablokuje (což je záměr).
+
+**Známý dluh**: `services/storage/backup.ts` stále čte legacy singletony u všech tří domén.
+Je dormantní (Data Export je ve future updates), ale **musí se migrovat dřív, než se funkce
+zapne** — jinak zálohuje prázdno. Viz BLOCKER komentář v souboru.
+
+---
+
 ### Decision Matrix: SQLite vs AsyncStorage
 
 | Criteria | SQLite | AsyncStorage |
@@ -1583,6 +1617,31 @@ type TabType = 'overview' | 'calendar' | 'tips'; // 'progress' removed
 3. `ModalRenderer` renders the first item in queue as `visible={true}`
 4. When user closes modal -> `closeCurrentModal()` -> next in queue shows
 5. No flags, no setTimeout race conditions, no iOS freeze from dual modals
+
+### 🔒 INVARIANT: Zobrazené čelo fronty je nedotknutelné
+
+**Priorita řídí pořadí modalů, které ČEKAJÍ — nikdy nesmí strhnout z obrazovky modal,
+na který se uživatel zrovna dívá.**
+
+Renderer kreslí `queue[0]` jako `<Modal visible>` s klíčem podle `id`. Kdyby se
+modal s vyšší prioritou zařadil PŘED už zobrazené čelo, React by ten modal
+odmontoval a jiný namontoval **ve stejném snímku** → iOS dostane „dismiss" v souběhu
+s „present" → **celá aplikace zamrzne**.
+
+Přesně to se stalo (červenec 2026) při 10. bonusovém zápisu do deníku: level-up modal
+byl už zobrazený, o vteřinu později dorazila korunková gratulace (priorita 1),
+předběhla ho — a appka se zasekla. Dřív to procházelo jen náhodou: takové dvojice
+obvykle dorazily v jednom React ticku, takže se překreslilo jednou a první modal
+se nestihl zobrazit.
+
+**Implementace**: `presentedIdRef` (nastavovaný v `useEffect`, tj. až po commitu) drží
+id modalu, který je opravdu na obrazovce. `enqueue()` pak nový modal řadí **jen mezi
+čekající**. Dokud nic není zobrazeno (dávka v jednom ticku), řadí se volně podle priority.
+
+⚠️ Při jakékoliv úpravě řazení fronty **nesmíš tenhle invariant porušit**.
+Hlídá ho `src/contexts/__tests__/modalQueueOrdering.test.ts`.
+
+---
 
 ### Priority Hierarchy (ModalPriority enum)
 

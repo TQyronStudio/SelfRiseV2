@@ -16,9 +16,13 @@ import { formatDateToString, today, parseDate, addDays } from '../utils/date';
 import { GamificationService } from './gamificationService';
 import { StarRatingService } from './starRatingService';
 import { generateUUID } from '../utils/uuid';
-import { FEATURE_FLAGS } from '../config/featureFlags';
+import { FEATURE_FLAGS, getGratitudeStorageImpl } from '../config/featureFlags';
 import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
-import { gratitudeStorage } from './storage/gratitudeStorage';
+
+// Journal entries live in SQLite (USE_SQLITE_JOURNAL) — the legacy AsyncStorage
+// singleton used here before returned zero entries, which kept the Depth Explorer
+// challenge (avg_entry_length) permanently at 0 despite its July 2026 "fix".
+const gratitudeStorage = getGratitudeStorageImpl();
 
 // ========================================
 // INTERFACES & TYPES
@@ -1053,9 +1057,12 @@ export class MonthlyProgressTracker {
           case 'avg_entry_length':
             // Calculate average journal entry length within challenge date range
             try {
-              const entries = await gratitudeStorage.getEntriesInRange(
-                new Date(challenge.startDate + 'T00:00:00'),
-                new Date(challenge.endDate + 'T23:59:59')
+              // Filter by the DateString field directly. challenge.startDate/endDate are
+              // already 'YYYY-MM-DD', so lexicographic comparison is exact — no Date
+              // round-trip, hence no timezone shift (N4 bug class).
+              const allEntries = await gratitudeStorage.getAll();
+              const entries = allEntries.filter(
+                e => e.date >= challenge.startDate && e.date <= challenge.endDate
               );
               const entriesWithContent = entries.filter(e => e.content && e.content.length > 0);
               const avgLength = entriesWithContent.length > 0

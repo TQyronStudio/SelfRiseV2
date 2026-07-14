@@ -19,8 +19,11 @@ import { DateString } from '../types/common';
 import { XPMultiplier, MultiplierCondition } from '../types/gamification';
 import { XP_MULTIPLIERS, XP_REWARDS } from '../constants/gamification';
 import { formatDateToString, today, addDays, subtractDays } from '../utils/date';
-import { GoalStorage } from './storage/goalStorage';
-import { GratitudeStorage } from './storage/gratitudeStorage';
+import type { getGratitudeStorageImpl } from '../config/featureFlags';
+
+// Whichever journal storage the feature flag selects (SQLite today). Typing the
+// param as the legacy GratitudeStorage class would re-open the split-brain door.
+type GratitudeStorageImpl = ReturnType<typeof getGratitudeStorageImpl>;
 
 // ========================================
 // INTERFACES & TYPES
@@ -270,7 +273,6 @@ export class XPMultiplierService {
       const { getHabitStorageImpl, getGratitudeStorageImpl } = require('../config/featureFlags') as typeof import('../config/featureFlags');
       const habitStorage = getHabitStorageImpl();
       const gratitudeStorage = getGratitudeStorageImpl();
-      const goalStorage = new GoalStorage();
 
       const activityData: DailyActivityData[] = [];
       const todayString = today();
@@ -282,7 +284,7 @@ export class XPMultiplierService {
         const [habitCompletions, journalEntries, goalProgress] = await Promise.all([
           this.getHabitActivityForDate(habitStorage, dateString),
           this.getJournalActivityForDate(gratitudeStorage, dateString),
-          this.getGoalActivityForDate(goalStorage, dateString),
+          this.getGoalActivityForDate(dateString),
         ]);
 
         const dailyActivity: DailyActivityData = {
@@ -339,7 +341,7 @@ export class XPMultiplierService {
    * Get journal activity for specific date
    */
   private static async getJournalActivityForDate(
-    gratitudeStorage: GratitudeStorage,
+    gratitudeStorage: GratitudeStorageImpl,
     date: DateString
   ): Promise<number> {
     try {
@@ -355,10 +357,7 @@ export class XPMultiplierService {
    * Get goal activity for specific date
    * Queries the goal_progress table directly to find actual progress entries for the date
    */
-  private static async getGoalActivityForDate(
-    _goalStorage: GoalStorage,
-    date: DateString
-  ): Promise<number> {
+  private static async getGoalActivityForDate(date: DateString): Promise<number> {
     try {
       const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
 

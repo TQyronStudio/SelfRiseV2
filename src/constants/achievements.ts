@@ -22,8 +22,12 @@ export const ACHIEVEMENT_EVALUATION = {
   // How often to run batch evaluation (milliseconds)
   BATCH_EVALUATION_INTERVAL: 24 * 60 * 60 * 1000, // 24 hours
   
-  // Maximum achievements to evaluate in single batch
-  MAX_BATCH_SIZE: 50,
+  // Maximum achievements to evaluate in a single batch.
+  // MUST stay >= the size of CORE_ACHIEVEMENTS (78 as of 2026-07-14), otherwise a
+  // brand-new user (all achievements locked) has the tail of the catalog silently
+  // dropped from every batch check. This was 50 and left 28 achievements
+  // permanently unlockable. Raise this whenever the catalog grows.
+  MAX_BATCH_SIZE: 150,
   
   // Cooldown between individual achievement checks (milliseconds)
   INDIVIDUAL_CHECK_COOLDOWN: 5 * 60 * 1000, // 5 minutes

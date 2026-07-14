@@ -1077,20 +1077,29 @@ export class AchievementService {
         );
       }
 
-      // Limit batch size
-      const maxBatchSize = options.maxBatchSize || ACHIEVEMENT_EVALUATION.MAX_BATCH_SIZE;
-      if (achievementsToCheck.length > maxBatchSize) {
-        achievementsToCheck = achievementsToCheck.slice(0, maxBatchSize);
-      }
-
       // Get current state
       const userAchievements = await AchievementStorage.getUserAchievements();
       const userStats = await GamificationService.getGamificationStats();
-      
+
       // Filter out already unlocked achievements
-      const lockedAchievements = achievementsToCheck.filter(
+      let lockedAchievements = achievementsToCheck.filter(
         achievement => !userAchievements.unlockedAchievements.includes(achievement.id)
       );
+
+      // Cap the batch AFTER the unlocked filter, never before.
+      // Truncating the raw catalog (78 entries) against a limit of 50 meant the
+      // last 28 achievements were never evaluated by any unfiltered batch check —
+      // they could not unlock, ever. Capping the *locked* set instead means the
+      // limit only bounds real work, and any leftovers are picked up by the next
+      // check (each unlock shrinks the locked set).
+      const maxBatchSize = options.maxBatchSize || ACHIEVEMENT_EVALUATION.MAX_BATCH_SIZE;
+      if (lockedAchievements.length > maxBatchSize) {
+        console.warn(
+          `⚠️ Batch check capped: evaluating ${maxBatchSize}/${lockedAchievements.length} locked achievements. ` +
+          `Raise ACHIEVEMENT_EVALUATION.MAX_BATCH_SIZE if this fires regularly.`
+        );
+        lockedAchievements = lockedAchievements.slice(0, maxBatchSize);
+      }
 
       // Evaluate all achievements
       const evaluationResults: AchievementEvaluationResult[] = [];

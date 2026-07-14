@@ -20,7 +20,8 @@ import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useTutorial, isTutorialRestarted } from '@/src/contexts/TutorialContext';
+import { useTutorial } from '@/src/contexts/TutorialContext';
+import { armTutorialAchievementGate } from '@/src/utils/tutorialAchievementGate';
 
 export type GoalFormData = {
   title: string;
@@ -366,41 +367,25 @@ export function GoalForm({
         targetDate: formData.targetDate || undefined,
       };
 
+      const isTutorialCreateStep =
+        tutorialState.isActive &&
+        tutorialState.currentStepData?.action === 'click_element' &&
+        tutorialState.currentStepData?.target === 'create-goal-submit';
+
+      // Arm BEFORE creating the goal: the `first-goal` unlock fires ~100ms after
+      // creation and would otherwise race (and outrun) our listeners.
+      const achievementGate = isTutorialCreateStep
+        ? armTutorialAchievementGate('first-goal')
+        : null;
+
       console.log(`📤 [DEBUG] Calling onSubmit with data:`, submitData);
       await onSubmit(submitData);
       console.log(`✅ [TUTORIAL] Goal submitted successfully, onSubmit completed`);
 
-      // Tutorial logic: Wait for modal to close, THEN advance tutorial
-      if (
-        tutorialState.isActive &&
-        tutorialState.currentStepData?.action === 'click_element' &&
-        tutorialState.currentStepData?.target === 'create-goal-submit'
-      ) {
-        const isRestarted = await isTutorialRestarted();
-
-        if (!isRestarted) {
-          // First tutorial - wait for achievement celebration modal to close
-          console.log(`🎯 [TUTORIAL] First tutorial - waiting for achievement celebration to close...`);
-
-          await new Promise<void>(resolve => {
-            const listener = DeviceEventEmitter.addListener('achievementCelebrationClosed', () => {
-              console.log(`🎯 [TUTORIAL] Achievement celebration closed, advancing tutorial...`);
-              listener.remove();
-              resolve();
-            });
-
-            // Fallback timeout in case achievement wasn't shown (shouldn't happen)
-            setTimeout(() => {
-              console.log(`🎯 [TUTORIAL] Fallback timeout reached, advancing tutorial...`);
-              listener.remove();
-              resolve();
-            }, 10000);
-          });
-        } else {
-          // Restarted tutorial - no achievement modal, just wait for form close animation
-          console.log(`🎯 [TUTORIAL] Restarted tutorial - waiting for modal close...`);
-          await new Promise(resolve => setTimeout(resolve, 400));
-        }
+      if (achievementGate) {
+        // Hold the tutorial until the user has dismissed the achievement celebration
+        // (first run), or continue straight away when no celebration is coming (restart).
+        await achievementGate.wait();
 
         console.log(`🎯 [TUTORIAL] Advancing to next step...`);
         tutorialActions.handleStepAction('click_element');

@@ -10,9 +10,15 @@
  * 3. Renders the first item in queue as visible modal
  * 4. When user closes modal → closeCurrentModal() → next in queue shows
  * 5. No flags, no setTimeout race conditions, no iOS freeze
+ *
+ * ⚠️ INVARIANT: the head of the queue is PINNED once it has been presented.
+ * Priority orders the modals that are still WAITING; it must never yank the modal
+ * the user is currently looking at off the screen. Swapping the presented modal
+ * mid-flight unmounts one <Modal> while mounting another in the same frame, which
+ * deadlocks iOS. See the pinning logic in enqueue().
  */
 
-import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
@@ -92,6 +98,14 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
   const queueRef = useRef<QueuedModal[]>([]);
   queueRef.current = queue;
 
+  // Id of the modal React has actually COMMITTED to the screen (see the pinning rule
+  // in enqueue). useEffect runs after commit, so during a same-tick burst of enqueues
+  // this still holds the previous value — which is exactly what we want.
+  const presentedIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    presentedIdRef.current = queue[0]?.id ?? null;
+  }, [queue]);
+
   const enqueue = useCallback((modal: Omit<QueuedModal, 'id' | 'timestamp'>) => {
     const id = `modal_${modal.type}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const newModal: QueuedModal = {
@@ -118,11 +132,32 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
         }
       }
 
-      // Insert sorted by priority (lower = first), stable sort by timestamp for same priority
-      const updated = [...prev, newModal].sort((a, b) => {
+      // Sort by priority (lower = first), stable by timestamp within a priority.
+      const byPriority = (a: QueuedModal, b: QueuedModal) => {
         if (a.priority !== b.priority) return a.priority - b.priority;
         return a.timestamp - b.timestamp;
-      });
+      };
+
+      // 🔒 THE HEAD IS PINNED ONCE IT IS ON SCREEN.
+      //
+      // The renderer draws queue[0] as <Modal visible> keyed by its id. If a
+      // later, higher-priority modal is sorted in FRONT of a head that React has
+      // already committed, that head is unmounted and a different modal mounted in
+      // the SAME frame — iOS gets a dismiss racing a present and the whole UI
+      // freezes. Exactly what happened on the 10th bonus entry: a level-up modal was
+      // already presented when the (priority 1) bonus-milestone celebration arrived a
+      // second later, displaced it, and locked the app.
+      //
+      // So a new arrival may only be sorted among the PENDING tail. Priority still
+      // fully decides the order of everything not yet shown — including a burst of
+      // enqueues in one tick, where nothing has been committed yet and the whole
+      // queue is still free to reorder.
+      const head = prev[0];
+      const headIsPresented = head !== undefined && presentedIdRef.current === head.id;
+
+      const updated = headIsPresented
+        ? [head, ...[...prev.slice(1), newModal].sort(byPriority)]
+        : [...prev, newModal].sort(byPriority);
 
       console.log(`📋 ModalQueue: ${updated.length} items - [${updated.map(m => m.type).join(', ')}]`);
       return updated;

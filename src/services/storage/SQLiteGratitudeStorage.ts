@@ -64,6 +64,33 @@ export class SQLiteGratitudeStorage {
   }
 
   /**
+   * Search journal entries by content (case-insensitive substring match).
+   *
+   * Filtering happens in JS, not via SQL LIKE/LOWER: SQLite's LIKE and LOWER()
+   * are ASCII-only, so a SQL match would silently miss accented characters —
+   * unacceptable with DE/ES content. `getAll()` already returns newest-first.
+   *
+   * NOTE: this method was missing from the SQLite implementation entirely, so
+   * journal search threw and (swallowed by GratitudeContext's catch) always
+   * returned "no results" — see the July 2026 storage split-brain repair.
+   */
+  async searchByContent(searchTerm: string): Promise<Gratitude[]> {
+    try {
+      const entries = await this.getAll();
+      const term = searchTerm.toLowerCase();
+
+      return entries.filter(entry => entry.content.toLowerCase().includes(term));
+    } catch (error) {
+      console.error('❌ SQLite searchByContent failed:', error);
+      throw new StorageError(
+        `Failed to search gratitudes by content: ${searchTerm}`,
+        STORAGE_ERROR_CODES.UNKNOWN,
+        'journal_entries'
+      );
+    }
+  }
+
+  /**
    * Get gratitude by ID
    * ✅ FAST: Direct WHERE clause (uses PRIMARY KEY index)
    */
@@ -201,7 +228,11 @@ export class SQLiteGratitudeStorage {
   async create(input: {
     id?: string;
     content: string;
-    type: 'gratitude' | 'self-praise';
+    // Optional, matching CreateGratitudeInput (legacy storage defaults to
+    // 'gratitude'). Declaring it required made this impl structurally
+    // incompatible with the legacy one, and an omitted type would have been
+    // written to the DB as undefined.
+    type?: 'gratitude' | 'self-praise';
     date: DateString;
     order?: number;
     isBonus?: boolean;
@@ -228,6 +259,9 @@ export class SQLiteGratitudeStorage {
       // Determine if this is a bonus entry
       const isBonus = input.isBonus !== undefined ? input.isBonus : order > 3;
 
+      // Default matches the legacy storage — never write undefined into the column.
+      const entryType = input.type ?? 'gratitude';
+
       // Convert timestamps
       const createdAt = input.createdAt ? new Date(input.createdAt) : new Date();
       const updatedAt = input.updatedAt ? new Date(input.updatedAt) : new Date();
@@ -237,7 +271,7 @@ export class SQLiteGratitudeStorage {
       // Insert into SQLite
       await db.runAsync(
         'INSERT INTO journal_entries (id, text, type, date, gratitude_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [entryId, input.content, input.type, input.date, order, createdAtMs, updatedAtMs]
+        [entryId, input.content, entryType, input.date, order, createdAtMs, updatedAtMs]
       );
 
       console.log(`✅ SQLite: Entry created (id=${entryId}, date=${input.date}, order=${order})`);
@@ -294,11 +328,11 @@ export class SQLiteGratitudeStorage {
       // calculateAndUpdateStreak() call per entry that previously manifested
       // as a "hang" after warm-up recovery (10+ SQL queries × 2 passes).
 
-      // Return created entry
+      // Return created entry (entryType, not input.type — must match what was stored)
       return {
         id: entryId,
         content: input.content,
-        type: input.type,
+        type: entryType,
         date: input.date,
         order,
         isBonus,

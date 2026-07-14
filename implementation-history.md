@@ -3677,4 +3677,123 @@ This comprehensive implementation eliminated all critical level-up system corrup
 
 ---
 
+## First-Launch Freeze — Startup Modal Coordination (July 14, 2026)
+
+**Symptom (TestFlight, fresh install)**: After clicking through the startup permission/consent screens (Apple ATT + Google UMP consent form), the app froze and became unresponsive. Killing and relaunching worked normally (tutorial appeared as expected). Only ever happened on the very first launch.
+
+**Root cause**: Three uncoordinated startup flows raced each other:
+1. **ATT prompt** — `useFirebaseAnalytics` (`handleATTPermission`), native modal
+2. **UMP consent form** — `adConsentService.initializeAdsWithConsent`, native modal
+3. **Onboarding gate (language/theme)** — `TutorialContext.autoStartTutorial` fired on a blind `setTimeout(…, 1000)` and set `showOnboardingPrefs = true`, which renders an RN `<Modal>` (`OnboardingPreferencesModal`)
+
+At ~1000 ms the RN `<Modal>` tried to present while a native consent modal was still on screen (or mid-dismiss). iOS cannot present two modals at once → UI deadlock (the same dual-modal class the in-app `ModalQueueContext` already guards against). On relaunch, ATT + UMP are already answered/cached → no native modal shows → the gate presents cleanly, so it "worked the second time".
+
+**Fix — startup barrier + correct sequencing**:
+- New leaf util `src/utils/startupGate.ts`: one-shot barrier with **state memory** (a fire-and-forget event could be missed if completion precedes the waiter). `markStartupTaskComplete('att'|'consent')`, `waitForATT(timeout=5s)`, `waitForStartupModals(timeout=8s)`. Every waiter has a safety timeout so the tutorial can never get permanently stuck (offline / SDK error).
+- `useFirebaseAnalytics`: calls `markStartupTaskComplete('att')` right after the ATT prompt closes — on iOS, on the Android/cached path, and in the catch — so the gate never hangs.
+- `adConsentService`: now `await waitForATT()` **before** `requestInfoUpdate`/showing the UMP form (Google's recommended ATT-before-UMP order, and guarantees the two native modals never overlap), and `markStartupTaskComplete('consent')` in the `finally`.
+- `TutorialContext.autoStartTutorial`: replaced the blind 1000 ms timer with `await waitForStartupModals()` (after a small 300 ms context-init delay), with cancel-on-unmount. Near-instant on later launches (nothing shows); fixes both the prefs gate and the direct tutorial-start path.
+
+**Why not just raise the delay**: fragile — the UMP form fetch is network-bound, so a slow connection would re-trigger the freeze. This waits on actual completion instead of guessing.
+
+**Verification**: `tsc --noEmit` 0 errors. Jest could not run in this environment (Node 20 lacks `node:sqlite`, needs Node 22+ — fails in global setup, unrelated to this change). Device re-run on a fresh install pending.
+
+**Files**: `src/utils/startupGate.ts` (new); `src/hooks/useFirebaseAnalytics.ts`; `src/services/adConsentService.ts`; `src/contexts/TutorialContext.tsx`.
+
+---
+
+## Storage Split-Brain Repair — Goals + Journal (July 14, 2026)
+
+**Found via**: device test of the onboarding tutorial. At step 20 (Create Goal) the tutorial "froze" for ~7-10s. The tutorial was only the symptom.
+
+### Root cause: goals written to SQLite, read from AsyncStorage
+
+`GoalsContext` writes goals through `getGoalStorageImpl()` → SQLite (`USE_SQLITE_GOALS: true`), but several services read them through the legacy `new GoalStorage()` / `goalStorage` AsyncStorage singleton → **always zero goals**.
+
+Consequences:
+- `first-goal` (condition `goal_creation >= 1`) could **never** unlock → **all 8 GOALS-category achievements were dead**, in and out of the tutorial.
+- `GoalForm` waits for `achievementCelebrationClosed` before advancing the tutorial. The modal never came, so the **10s fallback** fired on every first run → the reported freeze.
+- Habits/journal were already feature-flag-aware, which is why the habit achievement (step 9) worked and the goal one did not — the asymmetry that cracked the case.
+
+**Why it stayed invisible**: `getGoalStorageImpl()` / `getHabitStorageImpl()` / `getGratitudeStorageImpl()` used untyped `require()` and returned **`any`**. TypeScript could not object to reading the wrong store, nor to calling a method the active implementation does not have. `recommendationEngine.ts` had already been fixed individually (with a comment), so the pattern was known — the rest was simply missed.
+
+### Fixes
+
+**1. Split-brain call sites → feature-flag helpers** (7 sites):
+- `achievementIntegration.ts` — `new GoalStorage()` → `getGoalStorageImpl()` (the critical one)
+- `userActivityTracker.ts` ×2, `notifications/progressAnalyzer.ts` (goal-based evening reminders saw zero goals)
+- `xpMultiplierService.ts` — the `new GoalStorage()` was passed to a function that ignored it (`_goalStorage`); removed the dead param + import. Its `else` branch reading the legacy singleton is a **legitimate** flag-off fallback and was left alone.
+- `monthlyProgressTracker.ts` — read journal via the legacy singleton for `avg_entry_length` → **Depth Explorer challenge was still dead** despite its July 3 "fix". Also dropped `getEntriesInRange`'s Date round-trip in favour of a direct DateString-range filter (kills an N4-class timezone shift).
+- `storage/backup.ts` — reads legacy singletons for **all three** domains. Left as-is (dormant; Data Export/Backup is parked in future updates) but marked with a loud **BLOCKER** comment: it would back up an empty dataset. Must be migrated before that feature ships.
+
+**2. Typed the storage helpers** (`config/featureFlags.ts`) — `require(...) as typeof import(...)`. This is the systemic fix: the whole bug class is now a compile error. It immediately surfaced 3 real latent bugs:
+- 🔴 **`SQLiteGratitudeStorage.searchByContent` did not exist.** Journal search threw, `GratitudeContext`'s catch swallowed it, and the user always got "no results". Implemented it — filtering in JS, not SQL `LIKE`/`LOWER` (both ASCII-only in SQLite → would silently miss accented DE/ES text).
+- `SQLiteGratitudeStorage.create()` declared `type` **required** while `CreateGratitudeInput` has it optional → structurally incompatible, and an omitted type would have been written to the column as `undefined`. Now optional, defaulting to `'gratitude'` (legacy semantics), with the stored value also returned.
+- `xpMultiplierService.getJournalActivityForDate` typed its param as the legacy class → retyped to `ReturnType<typeof getGratitudeStorageImpl>`.
+
+**3. Batch achievement check truncated the catalog** (`achievementService.ts`, independent bug): `slice(0, MAX_BATCH_SIZE)` ran on the **raw catalog before** the already-unlocked filter, with `MAX_BATCH_SIZE = 50` against **78** achievements → the last 28 were never evaluated by any unfiltered batch check. Slice moved **after** the locked-filter (so the cap bounds real work, and leftovers are picked up next check) and the limit raised to 150 with a "keep >= catalog size" comment + a warn if it ever fires.
+
+**4. Tutorial ↔ achievement-modal handshake rewritten** (`utils/tutorialAchievementGate.ts`, used by `GoalForm.tsx` + `HabitForm.tsx`).
+
+The forms must hold the tutorial until the user dismisses the achievement celebration, but must not wait at all when no celebration is coming. Getting that distinction wrong produced two shipped regressions:
+
+- **Attempt 1 (pre-existing)**: decided via `isTutorialRestarted()`. Wrong question — the flag is cleared whenever a tutorial completes — and on a first run where the unlock silently failed (exactly what the split-brain caused) it waited out a **10s fallback** → "frozen tutorial".
+- **Attempt 2 (my regression, caught on device)**: shortened that fallback to 1.5s. That "fixed" the freeze by breaking the feature — nobody dismisses a modal in 1.5s, so the tutorial always jumped ahead, the tutorial's own completion modal took the screen, and **the user saw no achievement at all on their first run** (and no visible XP for it).
+
+Correct model, now in `armTutorialAchievementGate(achievementId)`:
+1. **Armed BEFORE** the habit/goal is created — the unlock fires ~100ms after creation and would otherwise outrun the listeners.
+2. Snapshots `hasAchievement(id)` while the entity still does not exist. Already owned → **no modal is coming** → don't wait (just the 400ms form-close).
+3. Still locked → confirm against the real `achievementUnlocked` event (5s window). Unlocked → **wait for `achievementCelebrationClosed` with a 120s safety net** — the user is *reading*, so this is a crash guard, not a deadline.
+4. Expected unlock never arrives → warn loudly and advance, so a future upstream bug can never strand the user again.
+
+Timeouts are safety nets only, never pacing devices. Covered by `utils/__tests__/tutorialAchievementGate.test.ts` (4 tests pinning both ends: never wait for a modal that isn't coming; always wait for one that is).
+
+**Intended UX** (per Petr, and now the guide): first ever run → both achievement modals **DO** show (+50 XP each, visible); tutorial restart → already owned → no achievement modal, only the tutorial's own completion step.
+
+### Intended behaviour (guide corrected)
+
+`technical-guides:Tutorial.md` claimed `first-habit`/`first-goal` modals are **suppressed** during the tutorial and "replaced" by the habit-complete/goal-complete steps. That is wrong (confirmed by Petr, 2026-07-14). Correct rules, now written into the guide:
+- **First ever run**: both achievements unlock → **their modals DO show**, then the tutorial's own completion step.
+- **Restart from Settings**: already unlocked → no duplicate unlock → **no achievement modal**, only the tutorial's completion step. Restart is silent *by nature*, not by an artificial suppression.
+
+### 5. Home XP bar: label and bar used different scales
+
+Reported on device right after the tutorial: Home showed **"100/250 XP"** next to an **empty bar reading "0.0%"**.
+
+The bar was **not** wrong. 100 lifetime XP is exactly level 1's threshold, so the user had just reached level 1 and was at 0% *into* it — an empty bar is correct (confirmed by the user: completing a habit moved it as expected).
+
+The **label** was wrong. `OptimizedXpProgressBar` rendered `totalXP / (totalXP + xpToNextLevel)` — **lifetime** XP against the **lifetime** threshold of the next level — while the bar and the percentage use the **level-relative** fraction. Two scales side by side: "100/250" reads as 40%, the bar drew 0%, and the app looked broken.
+
+Fix: `xpInCurrentLevel` (already computed by `getXPProgress`, just never surfaced) added to `GamificationStats`; the label now renders `xpInCurrentLevel / (xpInCurrentLevel + xpToNextLevel)` → **"0/150 XP"** beside the 0% bar. Level 0 display is unchanged ("0/100 XP"). Guarded by `levelProgressDisplay.test.ts` (26 tests: across the XP range, the label's implied fill must equal the bar's percentage).
+
+### 6. ModalQueue displaced the modal that was already on screen (app freeze)
+
+Reported on device: writing the **10th bonus journal entry** froze the app. The crown celebration was never seen. From the log:
+
+```
+📥 enqueue level_up (priority 7)
+📋 1 items - [level_up]                                  ← committed → presented
+... ~1s of async work (streak calc, achievement check) ...
+📥 enqueue celebration_bonus_milestone (priority 1)
+📋 2 items - [celebration_bonus_milestone, level_up]     ← level_up displaced from the head
+```
+
+`enqueue()` sorted the **entire** queue, head included. `ModalRenderer` draws `queue[0]` as `<Modal visible>` keyed by id — so re-sorting a higher-priority modal in front of an **already-presented** head unmounts that modal and mounts a different one in the **same frame**. iOS gets a dismiss racing a present → deadlock. Same dual-modal family as the first-launch freeze and the achievement-modal collision, but originating inside the queue that was supposed to prevent exactly this.
+
+It only surfaced now because the two enqueues were ~1s apart (a level-up, then the bonus milestone). Previously such pairs landed in one tick, React rendered once, and the first modal never actually got presented — which is why the same displacement had been happening harmlessly all along.
+
+**Fix — the head is pinned once presented.** `presentedIdRef` (set in a `useEffect`, i.e. after React commits) marks which modal is really on screen. `enqueue()` then sorts a new arrival only among the **pending tail**; the presented head is never moved. Priority still fully orders everything not yet shown, including same-tick bursts (nothing committed yet → whole queue free to reorder). Invariant documented at the top of `ModalQueueContext.tsx`.
+
+Guarded by `contexts/__tests__/modalQueueOrdering.test.ts` (5 tests, incl. a replay of the exact log sequence).
+
+### Verification
+
+`tsc --noEmit` 0 errors. **384/384 tests green (24/24 suites)**, incl. new `storageSplitBrain.test.ts` (7 tests against real in-memory SQLite: goal count feeds the real catalog condition, journal search incl. accented case-insensitivity, entry-type default, catalog-vs-batch-size invariant). `monthlyProgressTracker.trackingKeys.test.ts` updated (mocks `getAll` instead of the removed `getEntriesInRange`; now also asserts out-of-range entries are excluded).
+
+**Note**: the test suite needs **Node >= 22.5** (`node:sqlite`). On Node 20 every suite fails in global setup — that is the environment, not the code.
+
+**Rule going forward**: never `new GoalStorage()` / `new HabitStorage()` / import a legacy storage singleton in feature code — always go through `get*StorageImpl()`.
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*

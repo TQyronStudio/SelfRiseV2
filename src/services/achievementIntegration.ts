@@ -1,22 +1,24 @@
 // Achievement Integration Layer
 // Connects AchievementService with existing storage services for real data
 
-import { GoalStorage } from './storage/goalStorage';
 import { DateString } from '../types/common';
 import { XPSourceType } from '../types/gamification';
 import { today, formatDateToString, subtractDays } from '../utils/date';
 import { LoyaltyService } from './loyaltyService';
-import { getGratitudeStorageImpl, getHabitStorageImpl } from '../config/featureFlags';
+import { getGratitudeStorageImpl, getHabitStorageImpl, getGoalStorageImpl } from '../config/featureFlags';
 
 /**
  * Integration layer providing real data to AchievementService
  * This class bridges the gap between achievement conditions and actual app data
  */
 export class AchievementIntegration {
-  // Storage instances
+  // Storage instances — ALL must go through the feature-flag helpers.
+  // Goals are written to SQLite (USE_SQLITE_GOALS), so reading them through the
+  // legacy AsyncStorage GoalStorage returned 0 goals and left every goal-based
+  // achievement (incl. `first-goal`) permanently unlockable. Never `new GoalStorage()` here.
   private static habitStorage = getHabitStorageImpl();
   private static gratitudeStorage = getGratitudeStorageImpl();
-  private static goalStorage = new GoalStorage();
+  private static goalStorage = getGoalStorageImpl();
 
   // ========================================
   // HABIT DATA INTEGRATION

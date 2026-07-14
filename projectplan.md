@@ -216,6 +216,70 @@ Petr's device scenario: 7 missed days → auto-reset → 3 entries today → **a
 
 **Brief Review**: Implementováno jako "brána" před tutoriálem, plně oddělená od 25-krokového flow (nulový dopad na počítadlo, resume, achievementy). Gate se řídí novým flagem `onboarding_prefs_completed` v AsyncStorage → zobrazí se jen při úplně prvním spuštění, restart z Nastavení ho přeskakuje. Jazyk se přepíná živě přes `changeLanguage` (re-render i18n), theme přes `setThemeMode` (re-render ThemeContext). Soubory: nový `OnboardingPreferencesModal.tsx`; úpravy v `TutorialContext.tsx`, `TutorialOverlay.tsx`, `tutorial/index.ts`, `types/i18n.ts` + EN/DE/ES locales. tsc 0 chyb.
 
+### ✅ Hotfix: First-launch freeze — koordinace startovacích oken (2026-07-14, TestFlight)
+
+Fresh install zamrzl po proklikání ATT + souhlasu s reklamami (po restartu OK). Příčina: RN `<Modal>` úvodní brány se prezentoval přes nativní souhlasové okno → iOS dual-modal freeze. Fix: nový `src/utils/startupGate.ts` (bariéra s pamětí + safety timeouty) — brána/tutoriál čeká na dokončení ATT+UMP; UMP navíc čeká na ATT (Google doporučené pořadí, žádný překryv oken). Detaily: @implementation-history.md → "First-Launch Freeze (July 14, 2026)". tsc 0 chyb; device re-test na fresh installu zbývá.
+
+---
+
+## 🚨 AKTUÁLNÍ ÚKOL: Goals Split-Brain + Achievement Batch Truncation (2026-07-14)
+
+**Objeveno při** device testu tutoriálu: na kroku 20 (Create Goal) tutoriál ~10 s "zamrzl". Root cause NENÍ tutoriál — je to **split-brain u cílů**: cíle se ZAPISUJÍ do SQLite (`getGoalStorageImpl()`, flag `USE_SQLITE_GOALS: true`), ale několik služeb je ČTE ze starého AsyncStorage (`new GoalStorage()` / legacy singleton) → vidí **0 cílů**. Trofej `first-goal` (podmínka: počet cílů ≥ 1) se proto **nikdy neodemkne**, GoalForm čeká na její modal a doběhne až 10s fallback.
+
+**Dopad je mimo tutoriál**: všech 8 trofejí kategorie Goals je mrtvých; multiplikátory, activity tracker i chytré notifikace o cílech čtou prázdno. `recommendationEngine.ts` už opravený byl (má i komentář) → vzorec byl znám, zbytek se přehlédl.
+
+**Co NESMÍ se rozbít**: zápis/čtení cílů v GoalsContext (funguje), habits/journal storage (už feature-flag aware), XP systém, existující testy.
+
+### FIX 1 [🔴 KRITICKÉ] — Split-brain: cíle se čtou z AsyncStorage
+Ověřeno: `SQLiteGoalStorage` má všechny 4 používané metody (`getAll`, `getAllProgress`, `getProgressByGoalId`, `deleteAll`) → čistá výměna.
+- [x] 1a. `achievementIntegration.ts:19` `new GoalStorage()` → `getGoalStorageImpl()` (oživí 8 goal trofejí, odstraní 10s čekání)
+- [x] 1b. `xpMultiplierService.ts:273` + `:378` → `getGoalStorageImpl()` (Harmony Streak multiplier)
+- [x] 1c. `userActivityTracker.ts:313` + `:605` → `getGoalStorageImpl()`
+- [x] 1d. `progressAnalyzer.ts:10` → `getGoalStorageImpl()` (chytré večerní notifikace o cílech)
+- [x] 1e. `backup.ts` — čte legacy singletony u VŠECH TŘÍ domén. Ponecháno (dormantní, Data Export je ve future updates), ale označeno hlasitým **BLOCKER** komentářem: zálohovalo by prázdno. Nutno migrovat dřív, než se funkce zapne.
+- [x] 1f. Sweep: ověřit, že nezůstal žádný další legacy split-brain (habits/journal/goals)
+- [x] 1g. **[NOVÝ NÁLEZ]** `monthlyProgressTracker.ts` — četl deník z legacy skladu pro `avg_entry_length` → **Depth Explorer výzva byla mrtvá i po červencové opravě**. Navíc odstraněn Date round-trip (`getEntriesInRange`) → filtr přímo přes DateString (ruší latentní UTC posun, N4 třída)
+- [x] 1h. **[NOVÝ / SYSTÉMOVÝ]** Otypovat `get*StorageImpl()` (`require(...) as typeof import(...)`). **Toto je kořen celého problému**: helpery vracely `any`, takže TypeScript nemohl split-brain nikdy odhalit. Po otypování kompilátor **okamžitě odhalil 3 další skryté chyby** (viz FIX 4–6)
+
+### FIX 4–6 [odhaleno až otypováním] — skryté chyby v SQLite skladu deníku
+- [x] 4. **[🔴 KRITICKÉ]** `SQLiteGratitudeStorage.searchByContent` **vůbec neexistovala** → vyhledávání v deníku házelo chybu, `GratitudeContext` ji spolkl → uživatel **vždy dostal "nic nenalezeno"**, i když zápis měl. Doimplementováno; filtrování v JS (ne SQL `LIKE`/`LOWER` — ty jsou v SQLite ASCII-only → tiše by míjely diakritiku v DE/ES)
+- [x] 5. `xpMultiplierService` — parametr typovaný na legacy třídu → `ReturnType<typeof getGratitudeStorageImpl>`
+- [x] 6. `SQLiteGratitudeStorage.create()` — `type` deklarován jako povinný (vs. `CreateGratitudeInput` má volitelný) → nekompatibilní signatura + vynechaný `type` by se do DB zapsal jako `undefined`. Nyní volitelný s výchozí hodnotou `'gratitude'` (legacy sémantika)
+
+### FIX 2 [🟠 MAJOR] — Batch check ořezává katalog (78 trofejí > limit 50)
+`achievementService.ts:1080-1084` ořízne `CORE_ACHIEVEMENTS` na `MAX_BATCH_SIZE = 50` — a to **PŘED** odfiltrováním už odemčených → trofeje #51–78 (28 ks) se v běžné kontrole **nikdy nevyhodnotí**.
+- [x] 2a. Přesunout `slice()` až ZA filtr odemčených (`lockedAchievements`)
+- [x] 2b. Zvýšit `MAX_BATCH_SIZE` nad velikost katalogu + komentář proti regresi
+
+### FIX 3 [🟠 MAJOR] — Handshake tutoriálu s achievement modalem (přepsáno)
+- [x] 3a. ~~fallback 10000 ms → 1500 ms~~ → **REGRESE, odhaleno device testem**: pojistka čeká, až uživatel modal SÁM zavře — to za 1,5 s nikdo nestihne → tutoriál pokaždé přeskočil dopředu a **uživatel při prvním průchodu neviděl achievementy vůbec**
+- [x] 3b. Nový `src/utils/tutorialAchievementGate.ts` — správný model: **nasadit posluchače PŘED vytvořením** entity (odemčení přijde ~100 ms po create a jinak by nám uteklo); podle `hasAchievement()` (ne podle nespolehlivého „restart" příznaku) rozhodnout, zda modal vůbec přijde; když přijde → čekat na jeho **zavření uživatelem** (pojistka 120 s = ochrana proti pádu, ne časový limit); když nepřijde → nečekat vůbec; když měl přijít a nepřišel → hlasitě varovat a jít dál
+- [x] 3c. 4 regresní testy (`tutorialAchievementGate.test.ts`) fixují oba konce pasti
+
+### FIX 8 [device nález] — XP bar na Home míchal dvě škály
+Home ukazoval **„100/250 XP"** vedle **prázdného baru s „0.0%"**. Bar byl **správně** (100 XP = přesně práh levelu 1 → jsi na jeho začátku, 0 %). Špatný byl **text**: renderoval `totalXP / (totalXP + xpToNextLevel)` = *celoživotní* XP proti *celoživotnímu* prahu, zatímco bar používá škálu *v rámci levelu*. Vedle sebe → „100/250" čte jako 40 %, bar kreslí 0 %.
+- [x] 8a. `xpInCurrentLevel` (už se počítal v `getXPProgress`, jen se nepředával) doplněn do `GamificationStats`
+- [x] 8b. Text nyní `xpInCurrentLevel / (xpInCurrentLevel + xpToNextLevel)` → **„0/150 XP"** vedle 0% baru. Zobrazení levelu 0 beze změny („0/100 XP")
+- [x] 8c. `levelProgressDisplay.test.ts` — 26 testů: napříč celým rozsahem XP musí zlomek v textu odpovídat procentu na baru
+
+### FIX 9 [🔴 device nález] — ModalQueue vyhazovala z obrazovky právě zobrazený modal → zamrznutí
+10. bonusový zápis do deníku **zasekl aplikaci** (korunková gratulace se nikdy neukázala). Z logu: `enqueue level_up` → `[level_up]` (zobrazí se) → ~1 s práce → `enqueue celebration_bonus_milestone (priority 1)` → `[celebration_bonus_milestone, level_up]` — **level_up vyhozen z čela**. Renderer kreslí `queue[0]` jako `<Modal visible>` s klíčem podle `id`, takže přeřazení odmontuje zobrazený modal a namontuje jiný **ve stejném snímku** → iOS dismiss/present race → deadlock. Dřív to procházelo jen proto, že takové dvojice přišly v jednom ticku a první modal se nestihl zobrazit.
+- [x] 9a. `presentedIdRef` (nastaven v `useEffect`, tj. až po commitu) = který modal je opravdu na obrazovce
+- [x] 9b. `enqueue()` řadí nový modal **jen mezi čekající**; zobrazené čelo fronty je **nedotknutelné**. Priorita dál plně řídí pořadí všeho, co ještě nebylo zobrazeno (včetně dávky v jednom ticku)
+- [x] 9c. Invariant zdokumentován v hlavičce `ModalQueueContext.tsx` + `modalQueueOrdering.test.ts` (5 testů vč. přehrání přesné sekvence z logu)
+
+### FIX 7 — Verifikace & dokumentace
+- [x] 7a. Nová regresní suite `storageSplitBrain.test.ts` (7 testů proti reálnému in-memory SQLite): počet cílů krmí skutečnou podmínku z katalogu, vyhledávání v deníku vč. diakritiky, výchozí typ zápisu, invariant „limit dávky ≥ velikost katalogu"
+- [x] 7b. `monthlyProgressTracker.trackingKeys.test.ts` upraven (mockuje `getAll` místo zrušené `getEntriesInRange`; nově ověřuje i vyloučení zápisů mimo rozsah výzvy)
+- [x] 7c. `npx tsc --noEmit` **0 chyb**; **384/384 testů zelených (24/24 suites)**
+- [x] 7d. Dokumentace: technical-guides:Tutorial.md (achievement sekce PŘEPSÁNA — modaly se během tutoriálu NEpotlačují), implementation-history.md
+
+⚠️ **Testy vyžadují Node ≥ 22.5** (`node:sqlite`). Na Node 20 padají všechny suites už v setupu — to je prostředí, ne kód.
+
+**Zbývá (Petr)**: device re-test na čerstvé instalaci — projít tutoriál a ověřit, že (a) po „Create Goal" přijde gratulace za trofej a tutoriál plyne bez čekání, (b) vyhledávání v deníku vrací výsledky.
+
+**Brief Review**: Root cause byla záměna storage implementace zkopírovaná na 7 míst — legacy AsyncStorage sklad místo `get*StorageImpl()` (feature-flag → SQLite). Tutoriál byl jen symptom: skutečná škoda byla, že **všech 8 trofejí za cíle bylo mrtvých** a Depth Explorer výzva taky. **Klíčové zjištění**: helpery vracely `any`, proto to TypeScript nikdy nechytil — po jejich otypování kompilátor rovnou vyplivl 3 další skryté chyby, z toho jednu kritickou (**vyhledávání v deníku nefungovalo vůbec**). Batch truncation (FIX 2) byl nezávislý nález se stejným dopadem „trofej se nikdy neodemkne" u 28 trofejí. Detaily: @implementation-history.md → "Storage Split-Brain Repair (July 14, 2026)".
+
 ---
 
 ## 📈 PLANNED: Meta Ads & Marketing Analytics Integration

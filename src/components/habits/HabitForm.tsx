@@ -19,7 +19,8 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useTutorial, isTutorialRestarted } from '@/src/contexts/TutorialContext';
+import { useTutorial } from '@/src/contexts/TutorialContext';
+import { armTutorialAchievementGate } from '@/src/utils/tutorialAchievementGate';
 import { useTheme } from '../../contexts/ThemeContext';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
@@ -230,40 +231,24 @@ export function HabitForm({
     }
 
     try {
+      const isTutorialCreateStep =
+        tutorialState.isActive &&
+        tutorialState.currentStepData?.action === 'click_element' &&
+        tutorialState.currentStepData?.target === 'create-habit-submit';
+
+      // Arm BEFORE creating the habit: the `first-habit` unlock fires ~100ms after
+      // creation and would otherwise race (and outrun) our listeners.
+      const achievementGate = isTutorialCreateStep
+        ? armTutorialAchievementGate('first-habit')
+        : null;
+
       await onSubmit(formData);
       console.log(`✅ [TUTORIAL] Habit submitted successfully`);
 
-      // Tutorial logic: Wait for modal to close, THEN advance tutorial
-      if (
-        tutorialState.isActive &&
-        tutorialState.currentStepData?.action === 'click_element' &&
-        tutorialState.currentStepData?.target === 'create-habit-submit'
-      ) {
-        const isRestarted = await isTutorialRestarted();
-
-        if (!isRestarted) {
-          // First tutorial - wait for achievement celebration modal to close
-          console.log(`🎯 [TUTORIAL] First tutorial - waiting for achievement celebration to close...`);
-
-          await new Promise<void>(resolve => {
-            const listener = DeviceEventEmitter.addListener('achievementCelebrationClosed', () => {
-              console.log(`🎯 [TUTORIAL] Achievement celebration closed, advancing tutorial...`);
-              listener.remove();
-              resolve();
-            });
-
-            // Fallback timeout in case achievement wasn't shown (shouldn't happen)
-            setTimeout(() => {
-              console.log(`🎯 [TUTORIAL] Fallback timeout reached, advancing tutorial...`);
-              listener.remove();
-              resolve();
-            }, 10000);
-          });
-        } else {
-          // Restarted tutorial - no achievement modal, just wait for form close animation
-          console.log(`🎯 [TUTORIAL] Restarted tutorial - waiting for modal close...`);
-          await new Promise(resolve => setTimeout(resolve, 400));
-        }
+      if (achievementGate) {
+        // Hold the tutorial until the user has dismissed the achievement celebration
+        // (first run), or continue straight away when no celebration is coming (restart).
+        await achievementGate.wait();
 
         console.log(`🎯 [TUTORIAL] Advancing to next step...`);
         tutorialActions.handleStepAction('click_element');

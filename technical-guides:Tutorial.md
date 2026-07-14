@@ -707,47 +707,62 @@ bottomReserve = isTypeInput ? height * 0.42 : height * 0.25;
 **Crash recovery** - Pokud se aplikace crashne během tutoriálu, při restartu se nabídne pokračování od posledního uloženého kroku nebo restart celého tutoriálu.
 
 ### 5. Achievement Integration
-**✅ NOVÝ SYSTÉM: Conditional Achievement Handling (25 kroků)**
-Současná implementace používá **inteligentní podmíněnou logiku** pro achievementy během tutorialu.
 
-#### Jak to funguje:
+> ⚠️ **PŘEPSÁNO 2026-07-14.** Předchozí verze této sekce tvrdila, že se `first-habit`
+> a `first-goal` achievement modaly během tutoriálu **potlačují** a jsou "nahrazeny"
+> kroky habit-complete / goal-complete. **To je nesprávné** a neodpovídá zamýšlenému
+> produktovému chování (potvrzeno Petrem 2026-07-14). Platí pravidla níže.
 
-**Během tutorialu (První spuštění):**
-- Step 9: Create Habit → Habit se vytvoří, achievement `first-habit` se odemkne
-- Achievement modal je **POTLAČEN** (achievement se přidělí, ale modal se nezobrazí)
-- Step 10: **habit-complete** modal se zobrazí místo achievement modalu
-- Stejně pro Step 20 (Create Goal) → Step 21 (goal-complete modal)
+#### Zamýšlené chování (ZÁVAZNÉ)
 
-**Během tutorialu (Restart):**
-- Uživatel už má `first-habit` a `first-goal` achievementy
-- Achievement systém automaticky přeskočí již odemčené achievementy
-- Step 10 a Step 21 modaly se zobrazí normálně
+**První spuštění aplikace (tutoriál poprvé):**
+- Step 9 `habit-create` → návyk se vytvoří → odemkne se achievement **`first-habit`**
+  → **achievement modal SE ZOBRAZÍ** (uživatel ho zavře)
+- Poté navazuje Step 10 `habit-complete` (vlastní gratulační modal tutoriálu)
+- Analogicky Step 20 `goal-create` → **`first-goal`** → **achievement modal SE ZOBRAZÍ**
+  → poté Step 21 `goal-complete`
 
-**Technická implementace:**
+**Restart tutoriálu z Nastavení:**
+- Uživatel už `first-habit` i `first-goal` odemčené **má** → achievement se znovu
+  neodemyká → **žádný achievement modal se nezobrazí**
+- Uživatel dostane **jen** gratulační modal tutoriálu (Step 10 / Step 21)
+
+**Klíčový princip:** Achievement modal se během tutoriálu **nepotlačuje uměle**.
+Zobrazí se právě tehdy, když se achievement skutečně odemkne — což je přirozeně
+jen při prvním průchodu. Restart je "tichý" sám od sebe, protože duplicitní odemčení
+nenastane (`storeUnlockEvent` vrací false).
+
+#### Technická implementace
+
 ```typescript
 // AchievementContext.tsx - addToCelebrationQueue
-const addToCelebrationQueue = async (achievement: Achievement, xpAwarded: number) => {
-  const tutorialActive = await isTutorialActive();
-
-  if (tutorialActive) {
-    console.log(`🎓 [TUTORIAL] Skipping achievement modal - tutorial is active`);
-    return; // Achievement unlocked, XP awarded, no modal
-  }
-
-  setCelebrationQueue(prev => [...prev, { achievement, xpAwarded }]);
-};
+// Během tutoriálu se potlačí VŠECHNY achievement modaly KROMĚ first-habit / first-goal,
+// aby tutoriál nezahltily nesouvisející odemčené trofeje, ale klíčové dva milníky
+// uživatel viděl.
+const isFirstStepAchievement = achievement.id === 'first-habit' || achievement.id === 'first-goal';
+if (tutorialActive && !isFirstStepAchievement) {
+  return; // odemčeno + XP přiděleno, ale bez modalu
+}
 ```
 
-#### Výhody tohoto přístupu:
-- **Konzistentní UX**: Všichni uživatelé vidí stejné completion modaly v tutorialu
-- **Žádné duplikace**: Achievement modal se nezobrazí dvakrát
-- **Plná kompatibilita**: Achievement se stále odemkne a přidělí XP
-- **Clean restart**: Při restartu tutorialu žádné konflikty s již odemčenými achievementy
+Formuláře (`HabitForm.tsx`, `GoalForm.tsx`) po odeslání **čekají na zavření achievement
+modalu** (`achievementCelebrationClosed`) a teprve pak posunou tutoriál na další krok —
+aby se gratulace za trofej a gratulační modal tutoriálu nepřekryly.
 
-#### Achievement modaly v tutorialu:
-- ~~**`first-habit`** achievement modal~~ → nahrazeno **Step 10: habit-complete**
-- ~~**`first-goal`** achievement modal~~ → nahrazeno **Step 21: goal-complete**
-- Achievement modaly se zobrazují **normálně po dokončení tutorialu**
+#### ⚠️ Past: čekání na modal, který nepřijde
+
+Když achievement modal z jakéhokoli důvodu **nedorazí** (už odemčeno, chyba v odemykání),
+čekání ve formuláři doběhne až na **fallback timeout** a tutoriál na několik sekund
+"zamrzne". Proto platí:
+
+- Fallback timeout musí být **krátký** (ne 10 s) — uživatel nesmí čekat na nic.
+- Cesta „achievement se má odemknout" musí být **funkční** — viz split-brain bug
+  s `goalStorage` v `AchievementIntegration` (červenec 2026), kvůli kterému se
+  `first-goal` NIKDY neodemkl a tutoriál na kroku 20 čekal 10 s.
+
+#### Achievement modaly po tutoriálu
+Po dokončení/přeskočení tutoriálu se achievement modaly zobrazují **zcela normálně**
+(všechny kategorie, bez potlačování).
 
 ### 6. Tutorial Restart System
 **Tutorial Restart** - Uživatelé mohou kdykoli restartovat tutorial z Settings obrazovky s okamžitým spuštěním.
