@@ -1,15 +1,18 @@
 /**
- * Firebase Analytics Hook with App Tracking Transparency (ATT)
+ * Firebase Analytics helpers.
  *
- * This hook handles:
- * 1. ATT permission request on iOS 14+ (required before tracking)
- * 2. Firebase Analytics initialization
- * 3. Logging analytics events
+ * ATT (App Tracking Transparency) is NO LONGER handled here — it is a startup
+ * orchestrator step (`src/services/startup/steps/attStep.ts`) so it can be shown
+ * one-at-a-time with the UMP consent form (no iOS dual-modal freeze).
  *
- * Usage: Call useFirebaseAnalytics() once in app/_layout.tsx
+ * This module now exposes:
+ *  - `initAnalyticsAfterConsent()` — enable collection + log app_open, called by the
+ *    app wiring AFTER the startup sequence (preserves the ATT-before-tracking order).
+ *  - `useFirebaseAnalytics()` — hook with logEvent/setUserId/setUserProperty wrappers.
+ *  - `FirebaseAnalytics` — singleton for logging from non-React code.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Platform } from 'react-native';
 import {
   getAnalytics,
@@ -18,12 +21,6 @@ import {
   setUserId as firebaseSetUserId,
   setUserProperty as firebaseSetUserProperty,
 } from '@react-native-firebase/analytics';
-import {
-  requestTrackingPermissionsAsync,
-  getTrackingPermissionsAsync,
-  PermissionStatus,
-} from 'expo-tracking-transparency';
-import { markStartupTaskComplete } from '../utils/startupGate';
 
 // Types for analytics events
 type AnalyticsEventParams = Record<string, string | number | boolean>;
@@ -32,109 +29,39 @@ interface UseFirebaseAnalyticsReturn {
   logEvent: (eventName: string, params?: AnalyticsEventParams) => Promise<void>;
   setUserId: (userId: string | null) => Promise<void>;
   setUserProperty: (name: string, value: string | null) => Promise<void>;
-  trackingStatus: PermissionStatus | null;
 }
 
 /**
- * Hook for Firebase Analytics with ATT support
+ * Enable analytics collection and log `app_open`.
  *
- * Automatically:
- * - Requests ATT permission on iOS 14+ (first launch)
- * - Initializes Firebase Analytics
- * - Logs 'app_open' event
- *
- * @returns Object with logEvent, setUserId, setUserProperty functions and trackingStatus
+ * Called by the app wiring AFTER `runStartupSequence()` — i.e. after the ATT prompt
+ * has been answered — so tracking never starts before the user has seen ATT. Safe to
+ * call once on startup; never throws.
+ */
+export async function initAnalyticsAfterConsent(): Promise<void> {
+  try {
+    const analytics = getAnalytics();
+
+    // Analytics works on both platforms; on iOS tracking data is limited if the
+    // user denied ATT (Firebase respects the ATT status automatically).
+    await setAnalyticsCollectionEnabled(analytics, true);
+
+    await logEvent(analytics, 'app_open', {
+      platform: Platform.OS,
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log('✅ Firebase Analytics initialized (post-startup)');
+  } catch (error) {
+    console.error('❌ Firebase Analytics initialization error:', error);
+  }
+}
+
+/**
+ * Hook exposing analytics wrappers for React components.
+ * (Startup init is handled by `initAnalyticsAfterConsent`, not by this hook.)
  */
 export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
-  const isInitialized = useRef(false);
-  const trackingStatusRef = useRef<PermissionStatus | null>(null);
-
-  // Initialize analytics on mount
-  useEffect(() => {
-    if (isInitialized.current) return;
-    isInitialized.current = true;
-
-    initializeAnalytics();
-  }, []);
-
-  /**
-   * Initialize Firebase Analytics with ATT flow
-   */
-  const initializeAnalytics = async () => {
-    try {
-      // Get Analytics instance
-      const analytics = getAnalytics();
-
-      // Step 1: Handle ATT on iOS
-      if (Platform.OS === 'ios') {
-        await handleATTPermission();
-      }
-
-      // ATT prompt (if any) is now closed. Release the startup gate so the UMP
-      // consent flow can run next, and the onboarding gate / tutorial afterwards.
-      markStartupTaskComplete('att');
-
-      // Step 2: Enable analytics collection
-      // Analytics works on both iOS and Android, but tracking data
-      // is limited on iOS if user denies ATT
-      await setAnalyticsCollectionEnabled(analytics, true);
-
-      // Step 3: Log app_open event
-      await logEvent(analytics, 'app_open', {
-        platform: Platform.OS,
-        timestamp: new Date().toISOString(),
-      });
-
-      console.log('✅ Firebase Analytics initialized');
-    } catch (error) {
-      console.error('❌ Firebase Analytics initialization error:', error);
-      // Never leave the startup gate hanging if analytics/ATT init throws.
-      markStartupTaskComplete('att');
-    }
-  };
-
-  /**
-   * Handle App Tracking Transparency permission on iOS
-   * Must be called BEFORE any tracking/analytics
-   */
-  const handleATTPermission = async () => {
-    try {
-      // Check current status first
-      const { status: currentStatus } = await getTrackingPermissionsAsync();
-
-      if (currentStatus === 'undetermined') {
-        // User hasn't been asked yet - request permission
-        const { status } = await requestTrackingPermissionsAsync();
-        trackingStatusRef.current = status;
-
-        console.log(`📱 ATT Permission result: ${status}`);
-
-        // Log ATT response to analytics (for your own tracking)
-        const analytics = getAnalytics();
-        await logEvent(analytics, 'att_permission_response', {
-          status: status,
-          granted: status === 'granted' ? 1 : 0,
-        });
-      } else {
-        // Permission was already determined
-        trackingStatusRef.current = currentStatus;
-        console.log(`📱 ATT Permission (cached): ${currentStatus}`);
-      }
-    } catch (error) {
-      console.error('❌ ATT Permission error:', error);
-      trackingStatusRef.current = PermissionStatus.DENIED;
-    }
-  };
-
-  /**
-   * Log a custom analytics event
-   *
-   * @param eventName - Name of the event (e.g., 'habit_completed', 'goal_created')
-   * @param params - Optional parameters for the event
-   *
-   * @example
-   * logEvent('habit_completed', { habit_name: 'Exercise', streak: 5 });
-   */
   const logEventWrapper = useCallback(async (eventName: string, params?: AnalyticsEventParams) => {
     try {
       const analytics = getAnalytics();
@@ -144,12 +71,6 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
     }
   }, []);
 
-  /**
-   * Set the user ID for analytics
-   * Call with null to clear the user ID
-   *
-   * @param userId - Unique user identifier or null to clear
-   */
   const setUserIdWrapper = useCallback(async (userId: string | null) => {
     try {
       const analytics = getAnalytics();
@@ -159,15 +80,6 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
     }
   }, []);
 
-  /**
-   * Set a user property for analytics
-   *
-   * @param name - Property name (e.g., 'subscription_type', 'language')
-   * @param value - Property value or null to clear
-   *
-   * @example
-   * setUserProperty('language', 'en');
-   */
   const setUserPropertyWrapper = useCallback(async (name: string, value: string | null) => {
     try {
       const analytics = getAnalytics();
@@ -181,7 +93,6 @@ export function useFirebaseAnalytics(): UseFirebaseAnalyticsReturn {
     logEvent: logEventWrapper,
     setUserId: setUserIdWrapper,
     setUserProperty: setUserPropertyWrapper,
-    trackingStatus: trackingStatusRef.current,
   };
 }
 

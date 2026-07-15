@@ -23,11 +23,12 @@ import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
 // Notification Lifecycle
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
 
-// Firebase Analytics with ATT
-import { useFirebaseAnalytics } from '../src/hooks/useFirebaseAnalytics';
-
-// AdMob UMP (GDPR) consent + ads initialization
-import { initializeAdsWithConsent } from '../src/services/adConsentService';
+// Startup Orchestrator — runs the first-launch native modals (ATT → UMP) strictly
+// one-at-a-time so they never collide with each other or the onboarding/tutorial UI.
+import { runStartupSequence } from '../src/services/startup';
+// Post-startup unconditional work (order satisfied once the sequence is done):
+import { initAnalyticsAfterConsent } from '../src/hooks/useFirebaseAnalytics';
+import { finalizeAdsAndDiagnostics } from '../src/services/adConsentService';
 
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
@@ -51,14 +52,24 @@ function LayoutContent() {
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
 
-  // Initialize Firebase Analytics with ATT (App Tracking Transparency)
-  // Requests ATT permission on iOS 14+, then logs 'app_open' event
-  useFirebaseAnalytics();
-
-  // Run UMP (GDPR) consent flow, then initialize AdMob.
-  // Separate from ATT above: ATT = Apple tracking; UMP = Google ad-personalization consent.
+  // Startup sequence: run the first-launch native modals (ATT → UMP consent) strictly
+  // one at a time, THEN the unconditional post-startup work. Analytics is enabled only
+  // after the sequence (i.e. after ATT); ads + Crashlytics only after the consent flow —
+  // both orderings are satisfied because the sequence has finished here. The onboarding
+  // gate / tutorial wait on the same orchestrator (awaitStartupComplete), so no RN modal
+  // ever presents while a native modal is still up.
   useEffect(() => {
-    initializeAdsWithConsent();
+    let cancelled = false;
+    (async () => {
+      await runStartupSequence();
+      if (cancelled) return;
+      // Unconditional — must run even when no consent form was shown (non-EEA users).
+      await initAnalyticsAfterConsent();
+      await finalizeAdsAndDiagnostics();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const { colors } = useTheme();

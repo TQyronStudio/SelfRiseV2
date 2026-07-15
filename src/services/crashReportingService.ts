@@ -3,8 +3,9 @@
 // DESIGN (July 2026):
 // - Collection starts DISABLED (firebase.json: crashlytics_auto_collection_enabled
 //   false) and is enabled from code AFTER the UMP privacy flow completes on
-//   startup (see adConsentService.initializeAdsWithConsent). Crash data is
-//   diagnostics-only (not linked to a user, not used for ads/tracking).
+//   startup (see adConsentService.finalizeAdsAndDiagnostics, run by the startup
+//   orchestrator wiring). Crash data is diagnostics-only (not linked to a user,
+//   not used for ads/tracking).
 // - Every method is a SAFE NO-OP when the native module is unavailable
 //   (Jest, Expo Go, web) — callers never need try/catch around these.
 // - Other code must import THIS wrapper, never '@react-native-firebase/crashlytics'

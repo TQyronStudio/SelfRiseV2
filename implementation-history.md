@@ -3796,4 +3796,27 @@ Guarded by `contexts/__tests__/modalQueueOrdering.test.ts` (5 tests, incl. a rep
 
 ---
 
+## Startup Orchestrator — Level 1 (July 14, 2026)
+
+**Goal**: a universal, future-proof replacement for the hardcoded 2-task `startupGate.ts`, so first-launch native modals (ATT, UMP consent, and any future EU prompt) never collide with each other or with the app's own onboarding/tutorial UI (the iOS dual-modal freeze). An external tester hit the freeze on a fresh install.
+
+**Approach** (sequential orchestrator — the pattern top apps use: Apple HIG one-at-a-time permissions, Coordinator pattern, Android App Startup, CMP): run startup modal steps STRICTLY one at a time; gate all app UI behind a single completion signal. Adding a future prompt = one more array entry.
+
+**Files (new)**: `src/services/startup/types.ts` (StartupStep contract), `startupOrchestrator.ts` (pure core `createStartupOrchestrator`), `steps/attStep.ts`, `steps/adConsentStep.ts`, `index.ts` (app singleton wiring), `__tests__/startupOrchestrator.test.ts` (9 tests).
+**Files (changed)**: `useFirebaseAnalytics.ts` (ATT extracted; new `initAnalyticsAfterConsent`), `adConsentService.ts` (consent-form logic → step; new unconditional `finalizeAdsAndDiagnostics`), `app/_layout.tsx` (one startup effect), `TutorialContext.tsx` (`waitForStartupModals` → `awaitStartupComplete`), `crashReportingService.ts` (comment).
+**Deleted**: `src/utils/startupGate.ts`.
+
+**The 3 critical rules — found in the plan-verification pass, baked into the design:**
+1. **Timeout never wraps the interactive prompt.** A permission dialog waits for the user arbitrarily long; a short timeout firing mid-display would let the next modal present on top → the exact freeze. Enforced STRUCTURALLY by splitting the step contract into `prepare()` (non-interactive network, timeout-guarded, fail-open) and `present()` (interactive, only a 5-min crash-only safety net — never a pacing timeout).
+2. **Ads init + Crashlytics enable run unconditionally**, not gated behind the consent form's `shouldRun`. They live in `finalizeAdsAndDiagnostics()`, called by the wiring after the sequence regardless — otherwise non-EEA users (no form shown) would lose ads and crash reporting (they were in `finally` before, always running).
+3. **ATT → enable analytics → app_open ordering preserved.** `initAnalyticsAfterConsent()` runs after `runStartupSequence()` (i.e. after the ATT step).
+
+**Design notes**: core has no step imports and no hard native dependency (app-ready gate injected) → unit-testable without mocking AdMob/ATT; steps lazy-`require()` native modules so importing the graph (e.g. via TutorialContext) never loads native code in Jest. App-ready gate waits for `AppState==='active'` + first frame (iOS silently drops ATT if requested too early — a likely contributor to the tester's freeze). `awaitStartupComplete` is a latching barrier (never missed by a late subscriber). `runStartupSequence` is idempotent.
+
+**Tests** (`startupOrchestrator.test.ts`, 9): strict sequentiality; RULE #1 both ways (slow present never cut off; hung prepare times out and its modal is skipped while the sequence continues); idempotence/resume via shouldRun=false; RULE #2 (sequence completes even when all steps skipped → finalize always runs); fail-open on present throw; extensibility (3rd step); early+late `awaitStartupComplete` waiters; idempotent re-run.
+
+**Verification**: tsc 0 errors, 393/393 tests green (25/25 suites), eslint 0 errors (only pre-existing `require()`/unused-var warnings). **Device re-test on a clean install pending** (exact tester scenario incl. slow clicking and UMP "Manage options"). Level 2 (remote-config-driven pipeline) not started.
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*

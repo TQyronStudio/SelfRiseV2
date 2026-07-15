@@ -2,283 +2,97 @@
 
 > 📦 **Handoff**: Blueprinty zbývající práce (runtime ověření, Crashlytics, Achievements audit, N27/N28/N31, Sprint 4) + nebezpečné zóny: @handoff-blueprints.md
 
-## ✅ COMPLETED: Pre-Release Production Audit Fixes (2026-06-13)
-
-**Goal**: Implement the 4 MUST-fix + 5 recommended issues from `production-audit-2026-06-10.md` before app store release, plus 2 additional bugs found during re-verification.
-
-- [x] Bod 1 — Split-brain XP transaction read paths (SQLite) + case-mismatch fix in `xp_daily_summary` (daily limits/anti-spam were silently disabled for habit/journal/goal XP)
-- [x] Bod 2 — Removed `dropGoalsTables.ts` + `_layout.tsx.bak`
-- [x] Bod 3 — DB init retry (3x w/ backoff) + `DatabaseErrorScreen` fallback
-- [x] Bod 4 — Fixed root-cause UTC timezone bug in `parseDate`/`isValidDateString` + swept all habit-scheduling `new Date(dateString)` call sites (incl. infinite-loop risk in `userActivityTracker`)
-- [x] Bod 5 — `npx tsc --noEmit` 0 errors, full Jest suite green (187/187)
-- [x] Bod 7 — `sqlite_migration_state` Firebase telemetry
-- [x] Bod 8 — AdBanner hidden during keyboard in Journal
-- [x] Bod 9 — Dead code removal (productionMonitoring, optimizedStorage, gamificationCache, weeklyChallengeCleanupService, social components)
-
-**Verification**: tsc 0 errors, 187/187 tests passing, eslint clean (only pre-existing i18next warnings). Git diff: 37 files, +816/-2773.
-
-Full technical details: @implementation-history.md → "Pre-Release Production Audit Fixes (June 13, 2026)"
-
-### ✅ Follow-up: Audit Fixes Re-Verification & Gap Fixes (2026-07-02)
-
-Independent re-verification of all 9 completed audit items found 3 gaps, all fixed same day:
-
-- [x] Bod 4 gap — 3 leftover `'T00:00:00.000Z'` (UTC) parse sites: `MonthlyHabitOverview.tsx` (real off-by-one day number in 30-day chart for users west of UTC → `parseDate`), `HabitPerformanceIndicators.tsx` + `HabitTrendAnalysis.tsx` (DST-edge only → `subtractDays`/`parseDate`)
-- [x] Bod 5 gap — `monthlyChallenge.phase3.test.ts` "Background task scheduling" failed deterministically (negative `uptime`: singleton captured mocked future clock). Fix: `Math.max(0, …)` clamp in `monthlyChallengeLifecycleManager.getHealthStatus` (also correct for real device clock changes)
-- [x] Bod 3 gap — `DatabaseErrorScreen` hardcoded English → `errors.database.*` i18n keys (EN/DE/ES + types)
-
-**Verification**: tsc 0 errors, 187/187 tests green (15/15 suites). Details: @implementation-history.md → "Audit Fixes Re-Verification (July 2, 2026)"
-
-### ✅ Follow-up 2: Pre-Release Cleanup — N16 hygiene, N23, N9, N22 (2026-07-02)
-
-- [x] N16 hygiene — `Typography` stripped of static colors (all 21 usages verified to override color from theme); deleted unused `export const Colors = lightColors`. NOT a dark-mode bug fix (dark mode already worked — verified against audit claim), just removes a latent trap for future components
-- [x] N23 — uninstalled `react-native-modal@14.0.0-rc.1` (0 imports), `react-native-draglist` (0 imports), `@types/i18next` (i18next 25.x ships own types). ⚠️ Audit had it backwards: code uses `react-native-draggable-flatlist` in 4 components — migration off it is a separate future task, not cleanup
-- [x] N9 — journal-history: ScrollView+`.map()` → virtualized `FlatList` (new exported `GratitudeListItem` from GratitudeList.tsx; Journal tab unchanged). Note: default view is per-day (small); the real exposure was search results spanning full history
-- [x] N22 — removed SDK 53-era metro console monkey-patch; LogBox suppressions reduced 8 → 2 (kept: Animated noise + ExpoPushTokenManager until notification rebuild). ⚠️ Verify in dev build on device — if a removed warning floods back, re-add it specifically
-
-**Verification**: tsc 0 errors, 187/187 tests green, eslint 0 errors (only pre-existing warnings). Dev-build device check pending (LogBox/metro + visual check of journal-history list). Details: @implementation-history.md → "Pre-Release Cleanup (July 2, 2026)"
+> 🧹 **Úklid 2026-07-14**: Dokončené sekce přesunuty do @implementation-history.md (viz index níže). Tento soubor drží už jen ROZPRACOVANÉ a PLÁNOVANÉ úkoly + trvalou referenci.
 
 ---
 
-## ✅ COMPLETED: Monthly Challenges — Deep Audit & Tracking Repair (2026-07-03)
+## 🎯 AKTUÁLNÍ ÚKOL: Startup Orchestrator — sekvenční startovací pipeline
 
-**Goal**: Verify end-to-end that Monthly Challenges collect user data correctly, compute targets/XP correctly, and show correct modals/texts — Technická pravidla a logika pro Monthly Challenges: @technical-guides:Monthly-Challenges.md
+**Cíl**: Univerzální, budoucnostně odolný systém, který zaručí, že se při startu aplikace nikdy nezobrazí dvě „okna" (nativní systémová: ATT, souhlas s reklamami, oznámení… i naše RN: uvítací brána, tutoriál) přes sebe → **konec iOS dual-modal zamrzávání na prvním spuštění, bez ohledu na počet a pořadí systémových oken**.
 
-**Audit result**: baseline collection ✅, target generation (star scaling, monthly caps) ✅, XP awards incl. milestone XP + daily-limit exemption ✅, modals + EN/DE/ES texts (14/14 templates) ✅ — BUT **7 of 14 challenge templates never collected any progress** (user completed activities → challenge stayed 0% → month-end failure modal + star demotion). CRITICAL "app lies" bug.
+**Proč**: Externí tester zamrzl na prvním spuštění. Dnešní `src/utils/startupGate.ts` zná napevno **jen 2 úkoly** (`att`, `consent`) — je to záplata na dvě konkrétní okna, ne systém. Jakmile přibude libovolné další startovací okno (budoucí EU souhlas, druhá vrstva UMP „Manage options"/partneři, cokoliv), princip se rozbije. Potřebujeme řešení odolné vůči **počtu i pořadí** oken („EU přidá dalších 20").
 
-- [x] Fix A — 2 missing cases in `getRelevantRequirements` (`habit_streak_days`, `avg_entry_length`) → Streak Builder & Depth Explorer dead
-- [x] Fix B — increment-0 trap: complex keys (`perfect_days`, `triple_feature_days`, `monthly_xp_total`, `balance_score`) recalculated only inside `if (progressUpdated)` which they could never satisfy → all 4 consistency challenges dead. Pipeline now runs for complex-relevant events; completion % recomputed after recalc; save/emit only on real change
-- [x] Fix C — `unique_weekly_habits` needs `metadata.sourceId` but XP events carry sourceId top-level → merged in `updateMonthlyProgress` → Variety Champion dead
-- [x] Bonus — 4× UTC date keys (`toISOString`) in tracker → local `today()` (N4 bug class; active days/streaks shifted after local evening west of UTC)
-- [x] Regression suite `monthlyProgressTracker.trackingKeys.test.ts` — 16 tests, one real event pipeline per template key; failure = dead challenge type = release blocker
-- [x] Guide updated: threshold 14→20 (matches code, commit d8ca23f), template counts 4/4/2/4, Variety Champion + Depth Explorer documented, Engagement King marked as not-implemented
+**Aktuální realita v kódu (co orchestrator nahrazuje)**:
+- Startovací nativní okna jsou dnes **přesně dvě**: **ATT** (iOS) + **UMP souhlas** (AdMob). Nic víc se při startu neptá.
+- **Oznámení NEJSOU startovací okno** — `notificationService.initialize()` ([notificationService.ts:49](src/services/notifications/notificationService.ts#L49)) jen zakládá Android kanály; `requestPermissions()` ([:94](src/services/notifications/notificationService.ts#L94)) volá jedině obrazovka Nastavení. Uživatel si oznámení zapíná sám → do pipeline nepatří.
+- Tři nezávislá místa dnes: ATT v `useFirebaseAnalytics` ([:52+](src/hooks/useFirebaseAnalytics.ts)), UMP v `initializeAdsWithConsent` ([adConsentService.ts:43](src/services/adConsentService.ts#L43)), tutoriál čeká přes `waitForStartupModals()` ([TutorialContext.tsx:1653](src/contexts/TutorialContext.tsx#L1653)). Orchestrator je sjednotí do jedné sekvence.
+- Pozn.: tester nejspíš běžel na buildu **před** `startupGate` fixem (commit `b125cd4` ještě není v TestFlight buildu) — L1 to řeší tak jako tak a natrvalo.
 
-**Verification**: tsc 0 errors, 203/203 tests green (16 new). ⚠️ Runtime check on device recommended: complete a habit and watch an active challenge progress move. Details: @implementation-history.md → "Monthly Challenges Tracking Repair (July 3, 2026)"
+**Princip** (osvědčené vzory: Apple HIG „one-at-a-time permissions", iOS Coordinator pattern, Android Jetpack App Startup, onboarding jako finite state machine, enterprise CMP):
+1. **Jeden dirigent, striktně sekvenčně** — žádná dvě systémová okna paralelně; vždy zobraz → počkej na zavření → další.
+2. **Naše UI je za závorou** — uvítací brána a tutoriál naskočí AŽ po vyprázdnění systémové pipeline (nahradí křehký časovač).
+3. **Jedna autorita nad „je něco na obrazovce"** — pipeline splývá s existující ModalQueue: systémová okna první, naše potom, nikdy překryv.
 
----
-
-## ✅ COMPLETED: Journal Streak/Debt — Deep Audit & Debt Gate Repair (2026-07-03)
-
-**Goal**: Verify the most complex business logic in the app (frozen streak / debt / warm-up) end-to-end — Technická pravidla a logika pro My Journal: @technical-guides:My-Journal.md
-
-**Product decision (Petr, 2026-07-03)**: With unpaid debt the user must NOT write new entries. Two paths only: pay debt via ads (streak continues where it left off) or explicit Start Fresh (streak from 0). Documented in guide → "Debt Gate".
-
-**Audit result**: core state machine (freeze at 15 stays 15, auto-reset >3 days, warm-up bridging, +1 continuation, XP positions/milestones, entry gate with Home redirect) verified correct. **2 real bugs + 1 hardening fixed:**
-
-- [x] Bug 1 — silent streak wipe: `calculateFrozenDays()` "today complete → debt 0" early return meant frozen streak + 3 today's entries (reachable via past-entry deletion, midnight races) → recalc across unpaid gap → streak 15 → 1 silently; `adsNeededToWarmUp()` had the same early return → debt could never be paid again. Both early returns removed — debt stays visible & payable until paid or Start Fresh
-- [x] Bug 2 — dead "issue resolution": `executeForceResetDebt` (GratitudeStreakCard) wrote the cleared streak via `BaseStorage.set` (AsyncStorage) while the live store is SQLite → silent no-op, success modal lied. Now uses `applySingleWarmUpPayment()` loop (ad-less payments through real machinery)
-- [x] Hardening — entry gate now uses `Math.max(saved.frozenDays, calculateFrozenDays())` (stale saved state let entries slip through after midnight rollover / deletions)
-- [x] Regression suite `sqliteGratitudeStorage.streakDebt.test.ts` — 20 tests against real in-memory SQLite (guide-mandated scenarios incl. "streak 15 + miss 1 day = frozen NOT 0", wipe regression, payment continuation 15→16, auto-reset boundary 3 vs 4 days, Start Fresh)
-
-**Verification**: tsc 0 errors, 223/223 tests green (17/17 suites). Details: @implementation-history.md → "Journal Streak Debt Gate Repair (July 3, 2026)"
+**Co NESMÍ se rozbít**: ATT flow, UMP souhlas (+ Crashlytics zapnutí po něm), pořadí ATT→UMP, uvítací brána (jazyk/theme), tutoriál (autostart + resume), ModalQueue invariant.
 
 ---
 
-## ✅ COMPLETED: Achievements — Deep Audit & Dead Evaluator Repair (2026-07-03)
+### 🥇 ÚROVEŇ 1: Orchestrator + pipeline v kódu (kroky napevno)
 
-**Goal**: Verify all 78 achievements end-to-end (condition → unlock → XP → modal) — Technická pravidla a logika pro Achievements: @technical-guides:Achievements.md
+**Rozsah**: nahradit dnešní 2-úkolový `startupGate.ts` obecnou sekvenční pipeline; ATT + UMP přebalit do „kroků"; tutoriál + uvítací bránu napojit na jeden signál „startup complete". Pipeline dnes drží **přesně `[att, adConsent]`** — hodnota je, že KAŽDÝ budoucí krok je jen jedna položka navíc.
 
-**Audit result**: unlock flow healthy (duplicate protection, recursion prevention for ACHIEVEMENT_UNLOCK, no daily XP limit on unlock rewards, trigger after every XP action). BUT **35+ conditions permanently evaluated to 0 → ~half the achievement catalog could NEVER unlock:**
+> ⚠️ **KRITICKÁ PRAVIDLA (ověřeno prověrkou plánu 2026-07-14 — bez nich systém NEFUNGUJE):**
+> 1. **Timeout NIKDY neobaluje interaktivní zobrazení okna.** Nativní prompt čeká na uživatele libovolně dlouho; krátký timeout přes zobrazené okno = orchestrator pokračuje a pustí tutoriál přes otevřený prompt = **přesně to zamrznutí, které řešíme**. Timeout patří JEN na neinteraktivní přípravu (síť). Zobrazené okno má jen dlouhou crash-pojistku (~5 min), ne pacing timeout (stejný princip jako `tutorialAchievementGate` 120 s).
+> 2. **Reklamy + Crashlytics běží VŽDY, ne gated přes `shouldRun`.** Dnes jsou v `finally` ([adConsentService.ts:65-69](src/services/adConsentService.ts#L65)) → běží i bez formuláře. Gating jen na modalový krok by non-EEA uživatele (bez formuláře) připravil o reklamy i crash reporting.
+> 3. **Zachovat pořadí ATT → zapnout analytics → app_open** (dnes záměr v [useFirebaseAnalytics.ts:68-83](src/hooks/useFirebaseAnalytics.ts#L68)). Zapnutí analytics navázat na dokončení ATT kroku.
 
-- [x] ⭐🔥👑 milestone counters (`journal_star_count/flame/crown`, 21 conditions — First Star, Flame Collector, Crown Royalty…) had no handler → added cases reading live streak-state counters
-- [x] Streak conditions use activity sources (`habit_completion`, `journal_entry`…) but the streak dispatcher only matched `habit_streak`/`journal_streak` (names the catalog never uses) → 12 streak achievements dead → activity names mapped to calculators, legacy aliases kept
-- [x] `goal_progress_consecutive_days`, `journal_bonus_streak`, `journal_golden_bonus_streak` streak sources unhandled → wired; new `getBonusJournalDayStreak(minPerDay)` calculator (Bonus Week = 1+/day, Golden = 3+/day)
-- [x] `getPercentageValue` was a `return 0` placeholder → Balanced Life dead → wired to `getHabitXPRatio`
-- [x] `await import()` → `require()` in achievementService (project convention, unblocks Jest)
-- [x] Regression suite `achievementEvaluation.test.ts` — **89 tests: one per achievement** (catalog-wide "no dead evaluator" guarantee) + calculators against real in-memory SQLite
+- [x] **1.1 Typ kroku** `StartupStep` v novém `src/services/startup/types.ts`: `{ id; shouldRun(): Promise<boolean>; prepare?(): Promise<void>; present(): Promise<void>; prepTimeoutMs: number; critical?: boolean }` — **prepare/present split** (pravidlo 1 vynuceno strukturálně, ne disciplínou v každém kroku)
+  - `shouldRun()` = idempotence/resume, **jen levné/lokální checky** (ATT: `Platform.OS==='ios'` && `getTrackingPermissionsAsync()==='undetermined'`; adConsent: **triviálně `true`** — `present()` si interně zobrazí formulář jen když je potřeba)
+  - `prepare?()` = **neinteraktivní** příprava (síť), kterou orchestrator obalí `prepTimeoutMs` (fail-open: timeout/chyba → modal se přeskočí, sekvence jede dál). Bez UI.
+  - `present()` = zobraz okno a **await na zavření uživatelem BEZ krátkého timeoutu** (u UMP vč. „Manage options"/partneři); jen dlouhá crash-pojistka (~5 min) na zaseknuté SDK
+  - `prepTimeoutMs` = timeout **jen na `prepare()`**; `critical=false` default
+- [x] **1.2 Nový `src/services/startup/startupOrchestrator.ts`** — nahrazuje `src/utils/startupGate.ts` (celý)
+  - Drží `pipeline: StartupStep[] = [attStep, adConsentStep]`
+  - `runStartupSequence()`: nejdřív **app-ready gate** (fonty ✓ · DB ✓ · `AppState.currentState==='active'` · po prvním snímku via `InteractionManager`/`requestAnimationFrame`), pak `for (const step of pipeline)` → `if (await step.shouldRun()) await step.present()` **striktně za sebou**. Timeout si řídí `present()` sám JEN na přípravné fázi (viz pravidlo 1)
+  - Po doběhnutí nastaví latching flag + rozresolvuje čekatele → veřejné **`awaitStartupComplete(): Promise<void>`** (bariéra s pamětí — listener nezmešká, i když se přihlásí až po doběhnutí)
+  - Guard proti dvojímu spuštění (StrictMode/re-mount)
+- [x] **1.3 `src/services/startup/steps/attStep.ts`** — vytáhnout logiku z `useFirebaseAnalytics.handleATTPermission` ([useFirebaseAnalytics.ts:93](src/hooks/useFirebaseAnalytics.ts#L93)). `present()` čeká na odpověď (bez timeoutu). Hook si nechá Analytics instance, ale **ATT prompt spouští orchestrator**; **zapnutí analytics + `app_open` se přesune AŽ za dokončení ATT kroku** (pravidlo 3) — hook počká na `awaitAttComplete()` z orchestratoru, nebo to spustí orchestrator po att kroku. Odstranit `markStartupTaskComplete('att')` (řl. 75/92)
+- [x] **1.4 `src/services/startup/steps/adConsentStep.ts`** — modalová část z `initializeAdsWithConsent`: `present()` = `requestInfoUpdate` (s `prepTimeoutMs`) + `loadAndShowConsentFormIfRequired` (bez timeoutu, čeká na uživatele vč. „Manage options"). Pořadí ATT→UMP je dané pozicí v poli (`waitForATT()` smazat). `showPrivacyOptionsForm()` beze změny (Settings)
+- [x] **1.4b Bezpodmínečná startovní práce** (pravidlo 2, **NE modalový krok**) — `mobileAds().initialize()` + `CrashReportingService.enable()` běží **po consent kroku vždy**, i když byl formulář přeskočen. Buď v orchestratoru po sekvenci, nebo ve `finally` uvnitř `present()` adConsent kroku — hlavně **nikdy negated přes shouldRun**. Zachovat privacy-first pořadí (enable až po consent flow)
+- [x] **1.5 Napojit v `app/_layout.tsx` → `LayoutContent`** — jedno `runStartupSequence()` místo dnešního: `useFirebaseAnalytics()` (ATT část, [:56](app/_layout.tsx)) + `useEffect(initializeAdsWithConsent)` ([:60](app/_layout.tsx)). Spustit až po `dbInitialized`. `useNotificationLifecycle` ([:52](app/_layout.tsx)) beze změny (netýká se)
+- [x] **1.6 Tutoriál + uvítací brána za závorou** — `TutorialContext.autoStartTutorial` ([:1604](src/contexts/TutorialContext.tsx#L1604)): `await waitForStartupModals()` ([:1653](src/contexts/TutorialContext.tsx#L1653)) → `await awaitStartupComplete()`; import z orchestratoru. `setShowOnboardingPrefs(true)` ([:1629](src/contexts/TutorialContext.tsx#L1629)) běží až po tomto — beze změny logiky
+- [x] **1.7 Smazat `src/utils/startupGate.ts`** po migraci konzumentů (dnes: TutorialContext, useFirebaseAnalytics, adConsentService) + upravit importy
+- [x] **1.8 Regresní testy** `src/services/startup/__tests__/startupOrchestrator.test.ts`: (a) striktní sekvenčnost — krok B nezačne, dokud A nedoběhne; (b) idempotence — `shouldRun()===false` přeskočí (resume po force-quit); (c) **prep-timeout, NE present-timeout** — pomalá příprava vyprší a jede dál, ALE „pomalý uživatel" u zobrazeného okna sekvenci NEposune (pravidlo 1); (d) **reklamy+Crashlytics běží i když consent formulář skipnut** (pravidlo 2); (e) rozšiřitelnost — 3. mock-krok nic nerozbije; (f) `awaitStartupComplete` resolvne i pro pozdního čekatele
+- [x] **1.9 Verifikace**: `tsc` 0 chyb + celá suite zelená (Node ≥ 22.5); **device re-test na čisté instalaci** (scénář testera — proklikat ATT i „Manage options" v UMP, včetně pomalého klikání)
 
-**Verification**: tsc 0 errors, 312/312 tests green (18/18 suites). Details: @implementation-history.md → "Achievements Dead Evaluator Repair (July 3, 2026)"
+**Nebezpečné zóny**:
+- ATT `requestTrackingPermissionsAsync` **musí** běžet při `AppState==='active'` a po prvním snímku (jinak iOS prompt tiše zahodí) → app-ready gate to hlídá.
+- ⛔ **Nikdy timeout přes zobrazené okno** (pravidlo 1) — nejčastější způsob, jak si tenhle systém znovu rozbít.
+- Reklamy + Crashlytics **bezpodmínečně** (pravidlo 2).
 
----
-
-## ✅ COMPLETED: XP Multipliers + Loyalty — Deep Audit & Split-Brain Repair (2026-07-03)
-
-**Goal**: Verify the last unaudited gamification pillar (Harmony Streak multipliers, Inactive Boost, Achievement Combo, loyalty tracking) — Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification-Core.md
-
-**Audit result**: multiplier application in addXP ✅ (multiply + scaled daily limits), loyalty system ✅ (local dates, exact-day milestones → achievements → XP, streak logic correct, AsyncStorage read/write consistent). BUT **multiplier activation was a complete silent no-op in production:**
-
-- [x] Bug 1 — split-brain: all 3 activation paths wrote ONLY to AsyncStorage while `getActiveMultiplier()` reads SQLite `xp_multipliers` (only writer was the one-time migration) → user earned 7-day Harmony Streak, activated 2×, saw celebration, paid 7-day cooldown — and no XP was ever doubled, no countdown shown. Fixed via `storeActiveMultiplier`/`clearActiveMultiplierStorage` helpers (flag-based write where reads happen)
-- [x] Bug 2 — Harmony streak anchored at TODAY: incomplete today (= every morning) reported streak 0 after a full 7-day run ending yesterday → earned activation unavailable. Fixed: today-in-progress doesn't break the run (same anchoring as journal streaks)
-- [x] Bug 3 — Inactive Boost sent `source: 'XP_MULTIPLIER_BONUS'` (UPPERCASE ≠ enum `'xp_multiplier_bonus'`) → limit lookups and daily summaries silently failed for this source
-- [x] `await import()` → typed `require()` in xpMultiplierService (project convention; also unblocks Jest)
-- [x] Regression suite `xpMultiplier.loyalty.test.ts` — 12 tests (SQLite write→read consistency, expiry, E2E activation + cooldown, streak anchoring, loyalty milestones/streaks/levels)
-
-**Verification**: tsc 0 errors, 324/324 tests green (19/19 suites). Details: @implementation-history.md → "XP Multiplier Split-Brain Repair (July 3, 2026)"
-
----
-
-## ✅ COMPLETED (code part): Crashlytics Integration (2026-07-06)
-
-**Goal**: Crash reporting before release — Technická pravidla a logika pro Crashlytics: @technical-guides:Crashlytics.md
-
-- [x] `@react-native-firebase/crashlytics@^23.8.8` installed; app.json plugin + `RNFBCrashlytics` static linking; `firebase.json` with auto-collection OFF (privacy-first)
-- [x] `crashReportingService.ts` — safe lazy wrapper (no-op in Jest/Expo Go); RULE: never import RNFB crashlytics directly
-- [x] Consent gating: `CrashReportingService.enable()` called after UMP privacy flow in `adConsentService` (single call site)
-- [x] Strategic non-fatal `recordError` in 4 critical catch blocks (DB init, streak calculation, monthly progress, multiplier activation)
-
-**Remaining (Petr, on device)**: `expo prebuild --clean` + build → `testCrash()` verification in Firebase Console → privacy documents (web Privacy Policy ✅ updated 2026-07-06; App Store App Privacy: +Crash Data/Diagnostics; Play Data Safety: +Crash logs). Checklist: @technical-guides:Crashlytics.md
-
-**Verification**: tsc 0 errors, 324/324 tests green.
+**✅ Brief Review (implementováno 2026-07-14)**: Postaveno přesně dle plánu vč. všech 3 kritických pravidel. Struktura: `src/services/startup/{types,startupOrchestrator,index}.ts` + `steps/{attStep,adConsentStep}.ts`. Jádro `createStartupOrchestrator(pipeline, {waitForAppReady})` je čisté a testovatelné (bez nativních importů); wiring singleton v `index.ts`. **Pravidlo 1** zajištěno strukturálně: rozhraní `StartupStep` odděluje `prepare()` (síť, timeoutovaná) od `present()` (interaktivní, JEN 5min crash-pojistka). **Pravidlo 2**: `finalizeAdsAndDiagnostics()` (reklamy+Crashlytics) volá wiring v `_layout` po sekvenci **vždy**. **Pravidlo 3**: `initAnalyticsAfterConsent()` běží až po `runStartupSequence()`. Nativní moduly v krocích přes lazy `require()`. Smazán `startupGate.ts`. Testy: `startupOrchestrator.test.ts` (9 testů vč. „pomalý uživatel neposune sekvenci"). tsc 0 chyb, 393/393 testů (25/25 suites). **⏳ Zbývá device test** na čisté instalaci. Detaily: @implementation-history.md → „Startup Orchestrator (July 14, 2026)".
 
 ---
 
-## ✅ COMPLETED (foundation): N8 Typed Event Bus (2026-07-06)
+### 🥈 ÚROVEŇ 2: Pipeline řízená remote configem (nulové nasazování přes update)
 
-**Goal**: Kill the silent-typo bug class in DeviceEventEmitter communication (27 files, bare strings) — pravidla: technical-guides.md → "Typed Event Bus"
+**Rozsah**: zapnutí/pořadí/timeouty (a u „consent-only" oken i texty) registrovaných kroků přichází z **Firebase Remote Config** → nové EU okno zapneš **bez aktualizace v App Store**. Firebase `app`+`analytics`+`crashlytics` už v projektu jsou (v23.8.8); `remote-config` **není** nainstalovaný. Stavíme až po device ověření Úrovně 1.
 
-- [x] `src/utils/appEvents.ts` — typed façade over the same DeviceEventEmitter channel: complete `AppEvents` map (~20 events) with payload types, `emitAppEvent`/`addAppEventListener`. Zero runtime change, gradual migration supported
-- [x] Migrated: `MonthlyChallengeSection` (6 listeners — highest-density consumer). The typed bus immediately caught one payload imprecision (AchievementCategory vs string) at compile time
-- [x] **Dead listener removed**: `challengeCompleted` on Home (`app/(tabs)/index.tsx`) — nothing ever emitted it (real event: `monthly_challenge_completed`, handled by MonthlyChallengeSection via ModalQueue); removed with its duplicate completion modal + unused imports/state
-- [x] Rule documented (new events MUST be declared in AppEvents first); remaining migration sites listed in @handoff-blueprints.md §9
+- [ ] **2.1 Instalace** `@react-native-firebase/remote-config@^23.8.8` (sladit verzi s ostatními RNFB) → vyžádá `expo prebuild --clean` + rebuild; wrapper po vzoru `crashReportingService.ts` (bezpečný no-op v Jest/Expo Go, NIKDY neimportovat RNFB přímo)
+- [ ] **2.2 Remote schéma** — versionovaný JSON: `[{ id, enabled, order, timeoutMs, critical }]`. Config **nikdy neposílá kód** — jen vybírá/řadí kroky z registru (2.3) podle `id`
+- [ ] **2.3 Registr kroků** — mapa `id → StartupStep` (z Úrovně 1: `att`, `adConsent`). Orchestrator sestaví běhovou pipeline = registr ∩ remote schéma, seřazeno dle `order`. **Neznámé `id` z configu se bezpečně ignoruje** (starý build + nový config nespadne)
+- [ ] **2.4 Fetch s bezpečným defaultem** — `fetchAndActivate()` s krátkým timeoutem v app-ready gate; když config nedorazí/je nevalidní → **fallback na zabudovanou pipeline z Úrovně 1** (appka se nikdy nezasekne kvůli configu). Cache dle RNFB `minimumFetchInterval`
+- [ ] **2.5 „Consent-only" kroky z dat** — generický `RemoteConsentStep` (emoji/nadpis/text/tlačítka + uložení volby do AsyncStorage) plně definovatelný z configu → nové čistě souhlasové okno **bez nového buildu** (princip CMP jako OneTrust/Didomi). Vizuál = CelebrationModal standard.
+  - ⚠️ **Můstek await-na-zavření**: RN `<Modal>` (na rozdíl od nativních kroků) nemá promise, který se resolvuje při zavření. `present()` musí modal zobrazit a **vrátit promise, který resolvne až po tapu na tlačítko**. Přes ModalQueue to znamená: enqueue + počkat na `closeCurrentModal`/callback daného modalu. Musí ctít ModalQueue **pinning invariant** (zobrazené čelo se nepřeřazuje) — jinak se do toho vrací dual-modal zamrznutí.
+- [ ] **2.6 Telemetrie** — log které kroky proběhly/skipnuly/vypršely do Firebase (diagnostika budoucích zamrznutí u testerů) přes `crashReportingService.log()`
+- [ ] **2.7 Testy**: fallback na default při nedostupném/nevalidním/prázdném configu; neznámé `id` ignorováno; změna `order`/`enabled` přes config se projeví; `RemoteConsentStep` uloží volbu a projde ModalQueue
+- [ ] **2.8 Dokumentace** — nový `technical-guides:Startup-Orchestrator.md` (architektura, jak přidat krok v kódu i přes config, app-ready gate, invarianty, vazba na ModalQueue + jeho pinning pravidlo)
 
-**Verification**: tsc 0 errors, 324/324 tests green (19/19 suites).
-
----
-
-## ✅ COMPLETED (first 2 modules): N28 GamificationService Split (2026-07-06)
-
-**Goal**: Break up the 3,776-line god-object along existing seams, façade preserved — Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification-Core.md → "N28 — Postupné rozdělení"
-
-- [x] `src/services/gamification/xpLimits.ts` — daily limits + anti-spam as PURE functions (data injected, no I/O) + 15 unit tests incl. rate limiting (untestable inside the god-object due to the jest bypass); façade `validateXPAddition` now fetches data and delegates
-- [x] `src/services/gamification/levelUpEvents.ts` — level-up event store (store/history/shown-tracking/failed-fallback), faithful port; latent write-SQLite/read-AsyncStorage inconsistency documented (no consumer today; unify with N27)
-- [x] God-object 3,776 → 3,379 lines; public static API unchanged (zero consumer edits)
-- [x] Binding extraction recipe + remaining-modules map (order, sizes, traps) written into the guide for follow-up models; handoff §5 updated
-
-**Verification**: tsc 0 errors, 339/339 tests green (20/20 suites).
+**Doporučení**: Úroveň 1 teď (vyřeší problém natrvalo, čistě v kódu, testovatelné). Úroveň 2 jako druhý krok po device ověření L1 — přidává hodnotu (compliance bez App Store updatu), ale i závislost na síti + nový native modul (`prebuild`), takže až na stabilním základu.
 
 ---
 
-## ✅ COMPLETED: Runtime Log Fixes — first device run (2026-07-11)
+### ✅ Nedávno dokončeno (2026-07-14, detaily v @implementation-history.md)
 
-**Goal**: Fix all ERROR/WARN + visible bugs from Petr's first-device-run log (dev binary without prebuild)
-
-- [x] ERROR Crashlytics "not installed natively" — wrapper now probes `NativeModules.RNFBCrashlyticsModule` BEFORE calling `firebase.crashlytics()` (RNFB logs a loud internal error even when caught). Friendly one-line warn until `expo prebuild --clean` + rebuild
-- [x] WARN InteractionManager deprecated — replaced with `requestIdleCallback` (setTimeout fallback) in the achievement-check deferral
-- [x] missingKey `gamification.sources.xp_multiplier_bonus.icon_description` — locale files had UPPERCASE `XP_MULTIPLIER_BONUS` keys (counterpart of the code-side case bug fixed 07-03). Renamed to lowercase in types + EN/DE/ES (name map + icon map), removed EN duplicate, added missing sources (recommendation_follow, loyalty_milestone, daily_activity, inactive_user_return)
-- [x] **Challenge title showing RAW i18n key** (`help.challenges.templates.…title` persisted as title) — root cause: challenge generation raced i18next's async init. Fixed at root (generateMonthlyChallenge awaits i18n readiness) + render-time healing: shared `translateIfKey` in `src/utils/i18n.ts` now also applied in CompletionModal (Card/DetailModal keep local copies — TODO dedupe)
-- Note (no action): stale demo challenge "Impulso equilibrado" (2026-05, active) + Spanish demo habits in Petr's DB — from marketing demo mode; clear via Settings → Clear Marketing Demo Data
-
-**Verification**: tsc 0 errors, 339/339 tests green. Device re-run pending (Petr).
-
-### ✅ Hotfix: debt resurrection after auto-reset (2026-07-11, device-found regression)
-
-Petr's device scenario: 7 missed days → auto-reset → 3 entries today → **auto-reset re-fired in an infinite loop**, entry gate blocked bonus entries (redirect to Home), debt modal said "0". Root cause: the July debt-gate fix removed the (accidental) mask over a missing rule — **missed days before a reset were never written off**, so old debt resurrected after every reset (`autoResetTimestamp` existed for exactly this per the guide, but no scan used it).
-
-- [x] Debt write-off boundary in `calculateRawMissedDays` + `calculateFrozenDaysExcludingToday`: missed days ≤ reset date are not debt
-- [x] 3 regression tests (Petr's exact scenario incl. idempotence/no-loop; new misses after reset still freeze; Start Fresh write-off) → suite now 342/342
-
-**Verification**: tsc 0 errors, 342/342 tests green (20/20 suites). Guide's mandatory scenario "previous reset + miss day → still freezes (not permanent 0)" now actually covered by tests.
-
----
-
-## ✅ COMPLETED: Monthly Challenges — per-template verification + fixes 1–3 (2026-07-11)
-
-**Goal**: Verify each of the 14 challenge templates individually (semantics + display chain incl. calendar) — plán a stav: @monthly-challenge-fix-plan.md
-
-- [x] Fix 1 [MAJOR] — calendar + weekly breakdown were all-grey/0% for derived-key challenges (Perfect Month, Triple Master, XP Champion, Balance Expert, Depth Explorer): intensity now from snapshot FACTS (`isPerfectDay`, `isTripleFeatureDay`, `xpEarnedToday`) via exported `COMPLEX_TRACKING_KEYS_LIST`; new `DayData.dailyValue` feeds weekly % (balance/avg use active-days basis)
-- [x] Fix 2 [MAJOR] — Progress Champion counted EVENTS not DAYS (3 goals × 3 updates = 9 "days"): daily dedup guard `calculateDailyGoalProgressIncrement` (undo releases the day); bonus discovery: day-guarded keys (habit/journal streak, goal days) write 0 into snapshot contributions (double-call) → calendar for them reads cumulativeProgress DELTA between snapshots
-- [x] Fix 3 [minor] — Balance Expert raw float display → `toFixed(2)` in DetailModal
-- [ ] NÁLEZ 4 — device verification: mid-day app restart × day-guard keys (možné dvojité počítání); visual calendar check on a derived-key challenge
-
-**Verification**: tsc 0 errors, 342/342 tests green (Progress Champion test extended: same-day dedup + undo edge).
-
----
-
-## 🎯 AKTUÁLNÍ ÚKOL: Onboarding Preferences Gate (Jazyk + Theme) před tutoriálem
-
-**Cíl**: Přidat dvě neoznačené úvodní obrazovky, které se zobrazí POUZE při prvním zapnutí aplikace, ještě před Welcome krokem tutoriálu:
-1. **Výběr jazyka** (EN/DE/ES) – live překlad celého UI při tapu, potvrzení tlačítkem
-2. **Výběr theme** (Light/Dark) – live náhled při tapu, potvrzení tlačítkem
-
-**Klíčová rozhodnutí (odsouhlaseno s uživatelem)**:
-- Předvybraný jazyk: **vždy angličtina**
-- Zobrazit **jen při prvním zapnutí** (NE při restartu tutoriálu z Nastavení)
-- Vizuál: **stejný styl jako Welcome modal** (vystředěná karta, emoji, volby, tlačítko Potvrdit)
-- Neoznačené = mimo počítadlo "Step X of 25" (tutoriál zůstává 25 kroků beze změny)
-
-**Surgical approach** (TUTORIAL_STEPS se NEMĚNÍ – 25 kroků zůstává):
-- [x] 1. Nová komponenta `OnboardingPreferencesModal.tsx` (2 pod-obrazovky: language → theme), styl podle `TutorialModal.tsx`
-  - Tap na jazyk → `changeLanguage()` živě (re-render přeloží i tlačítko Potvrdit)
-  - Tap na theme → `setThemeMode('light'|'dark')` živě (re-render barev)
-  - Po posledním Potvrdit → `onComplete()` callback
-- [x] 2. `TutorialContext.tsx`: nový stav `showOnboardingPrefs` + akce `completeOnboardingPrefs`
-  - Nový storage key `onboarding_prefs_completed`
-  - V `autoStartTutorial` (first launch, resumeStep===1, flag nenastaven): zobrazit gate, odložit `START_TUTORIAL`
-  - `completeOnboardingPrefs`: uložit flag → `START_TUTORIAL` (Welcome) + `saveTutorialProgress(1)`
-  - Restart z Nastavení gate NEspouští (flag zůstává true)
-- [x] 3. `TutorialOverlay.tsx`: vyrenderovat `OnboardingPreferencesModal` když `showOnboardingPrefs`
-- [x] 4. i18n klíče do `types/i18n.ts` + EN/DE/ES (`tutorial.languageSetup.*`, `tutorial.themeSetup.*`)
-- [x] 5. `npx tsc --noEmit` 0 chyb ✅ (ověření v dev buildu zbývá na zařízení)
-
-**Co NESMÍ se rozbít**: 25-krokový tutoriál flow, počítadlo kroků, restart z Nastavení, achievement potlačení, resume/recovery logika.
-
-**Pozn.**: Skia/native není potřeba – jde o standardní RN modal. Lze testovat i v dev buildu.
-
-**Brief Review**: Implementováno jako "brána" před tutoriálem, plně oddělená od 25-krokového flow (nulový dopad na počítadlo, resume, achievementy). Gate se řídí novým flagem `onboarding_prefs_completed` v AsyncStorage → zobrazí se jen při úplně prvním spuštění, restart z Nastavení ho přeskakuje. Jazyk se přepíná živě přes `changeLanguage` (re-render i18n), theme přes `setThemeMode` (re-render ThemeContext). Soubory: nový `OnboardingPreferencesModal.tsx`; úpravy v `TutorialContext.tsx`, `TutorialOverlay.tsx`, `tutorial/index.ts`, `types/i18n.ts` + EN/DE/ES locales. tsc 0 chyb.
-
-### ✅ Hotfix: First-launch freeze — koordinace startovacích oken (2026-07-14, TestFlight)
-
-Fresh install zamrzl po proklikání ATT + souhlasu s reklamami (po restartu OK). Příčina: RN `<Modal>` úvodní brány se prezentoval přes nativní souhlasové okno → iOS dual-modal freeze. Fix: nový `src/utils/startupGate.ts` (bariéra s pamětí + safety timeouty) — brána/tutoriál čeká na dokončení ATT+UMP; UMP navíc čeká na ATT (Google doporučené pořadí, žádný překryv oken). Detaily: @implementation-history.md → "First-Launch Freeze (July 14, 2026)". tsc 0 chyb; device re-test na fresh installu zbývá.
-
----
-
-## 🚨 AKTUÁLNÍ ÚKOL: Goals Split-Brain + Achievement Batch Truncation (2026-07-14)
-
-**Objeveno při** device testu tutoriálu: na kroku 20 (Create Goal) tutoriál ~10 s "zamrzl". Root cause NENÍ tutoriál — je to **split-brain u cílů**: cíle se ZAPISUJÍ do SQLite (`getGoalStorageImpl()`, flag `USE_SQLITE_GOALS: true`), ale několik služeb je ČTE ze starého AsyncStorage (`new GoalStorage()` / legacy singleton) → vidí **0 cílů**. Trofej `first-goal` (podmínka: počet cílů ≥ 1) se proto **nikdy neodemkne**, GoalForm čeká na její modal a doběhne až 10s fallback.
-
-**Dopad je mimo tutoriál**: všech 8 trofejí kategorie Goals je mrtvých; multiplikátory, activity tracker i chytré notifikace o cílech čtou prázdno. `recommendationEngine.ts` už opravený byl (má i komentář) → vzorec byl znám, zbytek se přehlédl.
-
-**Co NESMÍ se rozbít**: zápis/čtení cílů v GoalsContext (funguje), habits/journal storage (už feature-flag aware), XP systém, existující testy.
-
-### FIX 1 [🔴 KRITICKÉ] — Split-brain: cíle se čtou z AsyncStorage
-Ověřeno: `SQLiteGoalStorage` má všechny 4 používané metody (`getAll`, `getAllProgress`, `getProgressByGoalId`, `deleteAll`) → čistá výměna.
-- [x] 1a. `achievementIntegration.ts:19` `new GoalStorage()` → `getGoalStorageImpl()` (oživí 8 goal trofejí, odstraní 10s čekání)
-- [x] 1b. `xpMultiplierService.ts:273` + `:378` → `getGoalStorageImpl()` (Harmony Streak multiplier)
-- [x] 1c. `userActivityTracker.ts:313` + `:605` → `getGoalStorageImpl()`
-- [x] 1d. `progressAnalyzer.ts:10` → `getGoalStorageImpl()` (chytré večerní notifikace o cílech)
-- [x] 1e. `backup.ts` — čte legacy singletony u VŠECH TŘÍ domén. Ponecháno (dormantní, Data Export je ve future updates), ale označeno hlasitým **BLOCKER** komentářem: zálohovalo by prázdno. Nutno migrovat dřív, než se funkce zapne.
-- [x] 1f. Sweep: ověřit, že nezůstal žádný další legacy split-brain (habits/journal/goals)
-- [x] 1g. **[NOVÝ NÁLEZ]** `monthlyProgressTracker.ts` — četl deník z legacy skladu pro `avg_entry_length` → **Depth Explorer výzva byla mrtvá i po červencové opravě**. Navíc odstraněn Date round-trip (`getEntriesInRange`) → filtr přímo přes DateString (ruší latentní UTC posun, N4 třída)
-- [x] 1h. **[NOVÝ / SYSTÉMOVÝ]** Otypovat `get*StorageImpl()` (`require(...) as typeof import(...)`). **Toto je kořen celého problému**: helpery vracely `any`, takže TypeScript nemohl split-brain nikdy odhalit. Po otypování kompilátor **okamžitě odhalil 3 další skryté chyby** (viz FIX 4–6)
-
-### FIX 4–6 [odhaleno až otypováním] — skryté chyby v SQLite skladu deníku
-- [x] 4. **[🔴 KRITICKÉ]** `SQLiteGratitudeStorage.searchByContent` **vůbec neexistovala** → vyhledávání v deníku házelo chybu, `GratitudeContext` ji spolkl → uživatel **vždy dostal "nic nenalezeno"**, i když zápis měl. Doimplementováno; filtrování v JS (ne SQL `LIKE`/`LOWER` — ty jsou v SQLite ASCII-only → tiše by míjely diakritiku v DE/ES)
-- [x] 5. `xpMultiplierService` — parametr typovaný na legacy třídu → `ReturnType<typeof getGratitudeStorageImpl>`
-- [x] 6. `SQLiteGratitudeStorage.create()` — `type` deklarován jako povinný (vs. `CreateGratitudeInput` má volitelný) → nekompatibilní signatura + vynechaný `type` by se do DB zapsal jako `undefined`. Nyní volitelný s výchozí hodnotou `'gratitude'` (legacy sémantika)
-
-### FIX 2 [🟠 MAJOR] — Batch check ořezává katalog (78 trofejí > limit 50)
-`achievementService.ts:1080-1084` ořízne `CORE_ACHIEVEMENTS` na `MAX_BATCH_SIZE = 50` — a to **PŘED** odfiltrováním už odemčených → trofeje #51–78 (28 ks) se v běžné kontrole **nikdy nevyhodnotí**.
-- [x] 2a. Přesunout `slice()` až ZA filtr odemčených (`lockedAchievements`)
-- [x] 2b. Zvýšit `MAX_BATCH_SIZE` nad velikost katalogu + komentář proti regresi
-
-### FIX 3 [🟠 MAJOR] — Handshake tutoriálu s achievement modalem (přepsáno)
-- [x] 3a. ~~fallback 10000 ms → 1500 ms~~ → **REGRESE, odhaleno device testem**: pojistka čeká, až uživatel modal SÁM zavře — to za 1,5 s nikdo nestihne → tutoriál pokaždé přeskočil dopředu a **uživatel při prvním průchodu neviděl achievementy vůbec**
-- [x] 3b. Nový `src/utils/tutorialAchievementGate.ts` — správný model: **nasadit posluchače PŘED vytvořením** entity (odemčení přijde ~100 ms po create a jinak by nám uteklo); podle `hasAchievement()` (ne podle nespolehlivého „restart" příznaku) rozhodnout, zda modal vůbec přijde; když přijde → čekat na jeho **zavření uživatelem** (pojistka 120 s = ochrana proti pádu, ne časový limit); když nepřijde → nečekat vůbec; když měl přijít a nepřišel → hlasitě varovat a jít dál
-- [x] 3c. 4 regresní testy (`tutorialAchievementGate.test.ts`) fixují oba konce pasti
-
-### FIX 8 [device nález] — XP bar na Home míchal dvě škály
-Home ukazoval **„100/250 XP"** vedle **prázdného baru s „0.0%"**. Bar byl **správně** (100 XP = přesně práh levelu 1 → jsi na jeho začátku, 0 %). Špatný byl **text**: renderoval `totalXP / (totalXP + xpToNextLevel)` = *celoživotní* XP proti *celoživotnímu* prahu, zatímco bar používá škálu *v rámci levelu*. Vedle sebe → „100/250" čte jako 40 %, bar kreslí 0 %.
-- [x] 8a. `xpInCurrentLevel` (už se počítal v `getXPProgress`, jen se nepředával) doplněn do `GamificationStats`
-- [x] 8b. Text nyní `xpInCurrentLevel / (xpInCurrentLevel + xpToNextLevel)` → **„0/150 XP"** vedle 0% baru. Zobrazení levelu 0 beze změny („0/100 XP")
-- [x] 8c. `levelProgressDisplay.test.ts` — 26 testů: napříč celým rozsahem XP musí zlomek v textu odpovídat procentu na baru
-
-### FIX 9 [🔴 device nález] — ModalQueue vyhazovala z obrazovky právě zobrazený modal → zamrznutí
-10. bonusový zápis do deníku **zasekl aplikaci** (korunková gratulace se nikdy neukázala). Z logu: `enqueue level_up` → `[level_up]` (zobrazí se) → ~1 s práce → `enqueue celebration_bonus_milestone (priority 1)` → `[celebration_bonus_milestone, level_up]` — **level_up vyhozen z čela**. Renderer kreslí `queue[0]` jako `<Modal visible>` s klíčem podle `id`, takže přeřazení odmontuje zobrazený modal a namontuje jiný **ve stejném snímku** → iOS dismiss/present race → deadlock. Dřív to procházelo jen proto, že takové dvojice přišly v jednom ticku a první modal se nestihl zobrazit.
-- [x] 9a. `presentedIdRef` (nastaven v `useEffect`, tj. až po commitu) = který modal je opravdu na obrazovce
-- [x] 9b. `enqueue()` řadí nový modal **jen mezi čekající**; zobrazené čelo fronty je **nedotknutelné**. Priorita dál plně řídí pořadí všeho, co ještě nebylo zobrazeno (včetně dávky v jednom ticku)
-- [x] 9c. Invariant zdokumentován v hlavičce `ModalQueueContext.tsx` + `modalQueueOrdering.test.ts` (5 testů vč. přehrání přesné sekvence z logu)
-
-### FIX 7 — Verifikace & dokumentace
-- [x] 7a. Nová regresní suite `storageSplitBrain.test.ts` (7 testů proti reálnému in-memory SQLite): počet cílů krmí skutečnou podmínku z katalogu, vyhledávání v deníku vč. diakritiky, výchozí typ zápisu, invariant „limit dávky ≥ velikost katalogu"
-- [x] 7b. `monthlyProgressTracker.trackingKeys.test.ts` upraven (mockuje `getAll` místo zrušené `getEntriesInRange`; nově ověřuje i vyloučení zápisů mimo rozsah výzvy)
-- [x] 7c. `npx tsc --noEmit` **0 chyb**; **384/384 testů zelených (24/24 suites)**
-- [x] 7d. Dokumentace: technical-guides:Tutorial.md (achievement sekce PŘEPSÁNA — modaly se během tutoriálu NEpotlačují), implementation-history.md
-
-⚠️ **Testy vyžadují Node ≥ 22.5** (`node:sqlite`). Na Node 20 padají všechny suites už v setupu — to je prostředí, ne kód.
-
-**Zbývá (Petr)**: device re-test na čerstvé instalaci — projít tutoriál a ověřit, že (a) po „Create Goal" přijde gratulace za trofej a tutoriál plyne bez čekání, (b) vyhledávání v deníku vrací výsledky.
-
-**Brief Review**: Root cause byla záměna storage implementace zkopírovaná na 7 míst — legacy AsyncStorage sklad místo `get*StorageImpl()` (feature-flag → SQLite). Tutoriál byl jen symptom: skutečná škoda byla, že **všech 8 trofejí za cíle bylo mrtvých** a Depth Explorer výzva taky. **Klíčové zjištění**: helpery vracely `any`, proto to TypeScript nikdy nechytil — po jejich otypování kompilátor rovnou vyplivl 3 další skryté chyby, z toho jednu kritickou (**vyhledávání v deníku nefungovalo vůbec**). Batch truncation (FIX 2) byl nezávislý nález se stejným dopadem „trofej se nikdy neodemkne" u 28 trofejí. Detaily: @implementation-history.md → "Storage Split-Brain Repair (July 14, 2026)".
+- Onboarding Preferences Gate (jazyk/theme před tutoriálem) — hotovo
+- First-launch freeze — koordinace ATT/UMP + tutoriál (dnešní `startupGate.ts`) — hotovo *(Úroveň 1 tohle zobecní)*
+- Goals split-brain [🔴] — 7 míst četlo cíle z prázdného AsyncStorage → 8 mrtvých goal trofejí + Depth Explorer výzva; storage helpery otypovány (kořen neviditelnosti)
+- Skryté chyby odhalené typováním: vyhledávání v deníku (`searchByContent` chyběl), signatura `create()`, typ parametru v xpMultiplier
+- Achievement batch truncation — katalog 78 > limit 50 → 28 trofejí se nikdy nekontrolovalo
+- Tutorial↔achievement handshake (`tutorialAchievementGate.ts`) — čeká na modal jen když opravdu přijde
+- XP bar na Home — text vs. bar sjednoceny na škálu v rámci levelu
+- ModalQueue deadlock [🔴] — zobrazené čelo fronty se přeřadilo → 2 modaly v 1 snímku; čelo je teď pinnuté
+- Ověřeno: tsc 0 chyb, 384/384 testů (24/24 suites). Commit `b125cd4`.
 
 ---
 
@@ -409,255 +223,6 @@ Tato část navazuje na Část A a B. **Blokovaná dokud Petr nedodá Meta App I
 
 ---
 
-## 🔎 PLANNED: SelfRiseV2 Code/App Market Value Review
-
-**Goal**: Study the current SelfRiseV2 codebase and provide a realistic current market value estimate for the code/application.
-
-**Approach**:
-- [x] Review repository structure, package stack, feature scope, and app maturity.
-- [x] Inspect core screens, services, contexts, storage, i18n, monetization, and release readiness indicators.
-- [x] Check current market benchmarks for comparable custom mobile app development and codebase/app valuation.
-- [x] Estimate value using practical scenarios: replacement cost, codebase sale value, pre-revenue app value, and investor/buyer value.
-- [x] Provide the full valuation analysis in chat only, per user request.
-
-**Surgical Scope**: Analysis/documentation only. No production code changes planned.
-
----
-
-## 🧪 PLANNED: Habits Make-up System Verification
-
-**Goal**: Verify that the Habits Make-up / Smart Bonus Conversion system behaves correctly and matches `technical-guides:Habits.md`.
-
-**Scope**:
-- [x] Inspect existing Make-up conversion implementation and current test coverage.
-- [x] Run relevant existing tests for habits/conversion logic where available.
-- [x] If coverage is missing, add focused unit tests for Make-up conversion only.
-- [x] Verify key scenarios: perfect conversion, partial conversion, no cross-week conversion, schedule immutability, habit creation date respect, and completion-rate impact.
-- [x] Report results in chat only.
-
-**Surgical Scope**: Tests only unless a real bug is found and user approves implementation changes.
-
----
-
-## ✅ COMPLETED: Journal & Monthly Challenges Localization (Phase 11 - Parts A & B)
-
-### Part A: Monthly Challenges ✅
-
-**Goal**: Verify and achieve 100% i18n coverage for Monthly Challenges in EN/DE/ES
-
-**Completion Summary**:
-- ✅ Comprehensive audit of all 5 Monthly Challenge components
-- ✅ Extracted all 28 translation keys used across components
-- ✅ Cross-referenced against all 3 locale files (EN/DE/ES)
-- ✅ Fixed critical issue: Changed 14 lines in MonthlyChallengeDetailModal.tsx
-  - **Root cause**: Component used `t('challenges.detail.*')` keys that didn't exist
-  - **Solution**: Corrected to use `t('help.detail.*')` which have full EN/DE/ES coverage
-- ✅ Verified: TypeScript compilation with 0 errors
-- ✅ **Result**: Monthly Challenges now **100% localized** across all 3 languages
-
-**Files Modified**:
-- `src/components/challenges/MonthlyChallengeDetailModal.tsx` (14 lines changed)
-
----
-
-### Part B: Journal Completion & WarmUp Modals ✅
-
-**Goal**: Fix hardcoded strings in journal celebration modals (3 entries, 1st/5th/10th bonus)
-
-**Root Cause**:
-- `CelebrationModal.tsx` used hardcoded English strings for `daily_complete` case
-- Hardcoded: "Congratulations! 🎉" and "You've completed your daily journal practice!"
-- Bonus milestones (1st/5th/10th) already had correct i18n keys
-
-**Root Cause Analysis**:
-1. **First Issue**: Hardcoded strings in component (FIXED in commit 1)
-2. **Second Issue**: Wrong i18n key path - used `journal.daily_complete_*` instead of `journal.celebration.daily_complete_*`
-   - Keys are nested in `celebration` object in all locale files
-   - Component was calling wrong path causing "missingKey" errors in dev logs
-
-**Completion Summary**:
-- ✅ Audited `CelebrationModal.tsx` for all celebration types
-- ✅ Found all i18n keys existed in EN/DE/ES under **`journal.celebration.*`**:
-  - `journal.celebration.daily_complete_title` & `journal.celebration.daily_complete_message` ✅
-  - `journal.celebration.bonusMilestone1/5/10_title` & `_text` ✅
-- ✅ Fixed: Corrected key paths to include `.celebration` prefix (commit 2)
-- ✅ Verified: All 3 languages have complete translations
-- ✅ TypeScript compilation: 0 errors
-
-**Files Modified**:
-- `src/components/gratitude/CelebrationModal.tsx` (2 commits, 4 lines total changed)
-  - Commit 1: Changed hardcoded strings to t() calls
-  - Commit 2: Fixed i18n key paths to use `.celebration.` prefix
-
-**Technical Details**: All keys exist in nested `celebration` object:
-- Structure: `journal.celebration.{daily_complete_title, daily_complete_message, bonusMilestone1/5/10_*}`
-- EN, DE, ES: 100% complete translations
-
----
-
-### Part C: WarmUp Modal Popup Translations ✅
-
-**Goal**: Fix 4th entry milestone popup and all other WarmUp/StreakWarmUp modals localization
-
-**Root Cause Found**:
-- Components used **LOWERCASE** `journal.warmup.modals.*` for i18n keys
-- All locale files defined keys with **CAMELCASE** `journal.warmUp.modals.*`
-- This inconsistency caused all WarmUp popups to show in English only
-
-**Affected Modals** (18 incorrect references fixed):
-1. **WarmUpSuccessModal**: success.title/message/button
-2. **WarmUpErrorModal**: error.title/message/button
-3. **WarmUpConfirmationModal**: confirmation.title/message/cancel/confirm
-4. **WarmUpIssueModal**: issue.title/message/primaryAction/secondaryAction
-5. **QuickWarmUpModal**: quickWarmUp.title/message/cancel/confirm
-
-**Completion Summary**:
-- ✅ Identified naming convention mismatch (lowercase vs camelCase)
-- ✅ Fixed all 18 i18n key references in WarmUpModals.tsx
-- ✅ Changed: `journal.warmup.modals.*` → `journal.warmUp.modals.*`
-- ✅ Verified: All keys exist in EN/DE/ES with proper translations
-- ✅ TypeScript compilation: 0 errors
-- ✅ **Result**: All popups now properly localized (4th entry milestone, warm-up dialogs, etc.)
-
-**Files Modified**:
-- `src/components/gratitude/WarmUpModals.tsx` (18 lines changed - all modal references)
-
-**Locale Key Structure**:
-```
-journal.warmUp: {
-  modals: {
-    success: { title, message, button }
-    error: { title, message, button }
-    confirmation: { title, message, cancel, confirm }
-    issue: { title, message, primaryAction, secondaryAction }
-    quickWarmUp: { title, message, cancel, confirm }
-  }
-}
-```
-
----
-
-## ✅ COMPLETED: COMPREHENSIVE i18n AUDIT & FIX (Phase 11 - Part D)
-
-**Goal**: Achieve TRUE 100% i18n coverage by finding and translating ALL remaining hardcoded user-visible strings
-
-**Fixed User-Visible Strings**:
-- ✅ Habits Screen: "Saturday, November 22 0 of 0 completed" - date formatting + count localized
-- ✅ Habits Screen: "Mo, Tu, We..." - day abbreviations localized
-- ✅ Journal Screen: "Today's Journal Progress" - localized
-- ✅ Journal Screen: "X more entries needed" - localized
-- ✅ Journal Screen: "Complete ✓" - localized
-- ✅ Journal Screen: "Frozen Streak" - fully localized
-- ✅ Navigation: "Home", "Trophy Room", all tab/screen titles - localized
-
-**Phases**:
-- [x] **Phase 1**: Comprehensive File Scan - Found 40+ hardcoded strings across 10+ files
-- [x] **Phase 2**: Categorize Findings - Grouped into 5 categories (journal, navigation, dates, day abbreviations, completion counts)
-- [x] **Phase 3**: Create Translation Keys - Added missing keys to i18n.ts type definitions (EN complete)
-  - [x] Added `days.shortest.*` (Mo, Tu, We, Th, Fr, Sa, Su)
-  - [x] Added `journal.frozenStreak`, `journal.progress.*` (6 keys)
-  - [x] Added `common.completed`
-  - [x] Added `screens.trophyRoom.title`
-  - [x] Updated TypeScript types in i18n.ts
-- [x] **Phase 4**: Add Translations - Added DE/ES strings to all 3 locale files
-  - [x] German (DE): All new keys translated
-  - [x] Spanish (ES): All new keys translated
-- [x] **Phase 5**: Update Components - Replaced ALL hardcoded strings with t()
-  - [x] DailyGratitudeProgress.tsx (6 strings)
-  - [x] HabitItem.tsx, HabitItemWithCompletion.tsx, HabitCalendarView.tsx (day abbreviations)
-  - [x] DailyHabitTracker.tsx, DailyHabitProgress.tsx, DailyProgressBar.tsx (completion counts)
-  - [x] app/_layout.tsx (navigation titles)
-- [x] **Phase 6**: Update Date Utilities - formatDateForDisplay() is now i18n-aware
-- [x] **Phase 7**: Verification - TypeScript compilation clean + manual testing passed
-
-**Result**: ✅ **100% i18n coverage achieved** - Zero hardcoded user-visible strings, full EN/DE/ES support across all screens
-
----
-
-## ✅ COMPLETED: Achievement i18n Migration (100%)
-
-Successfully completed full internationalization of achievement system with German and Spanish translations.
-
-### Phases Completed (6 phases):
-- [x] **Phase 1**: Language Settings UI - Added language selector with EN/DE/ES flags
-- [x] **Phase 2**: Deep Search Analysis - Analyzed current i18n state (~900 keys, 562 calls)
-- [x] **Phase 3**: Achievement Refactoring - Converted 78 achievements to use translation keys (156 keys)
-- [x] **Phase 4**: German Translation - Translated all 156 achievement keys to German
-- [x] **Phase 5**: Spanish Translation - Translated all 156 achievement keys to Spanish
-- [x] **Phase 6**: Testing & QA - User verified all functionality works correctly
-
-### Critical Bug Fixed:
-- Fixed i18n configuration where DE/ES locales were not loaded into i18next
-- Language switching now works immediately across all languages
-
-### Translation Details:
-- **German (DE)**: Professional "du" form, motivational tone, ~30% longer than English
-- **Spanish (ES)**: Professional "tú" form, motivational tone, ~25% longer than English
-- **Quality**: Consistent terminology, natural phrasing, culturally appropriate
-
-### Files Modified:
-- `src/config/i18n.ts` - Added DE/ES locale imports and registration
-- `src/locales/de/index.ts` - Added 156 achievement translation keys (330+ lines)
-- `src/locales/es/index.ts` - Added 156 achievement translation keys (330+ lines)
-- `src/constants/achievementCatalog.ts` - Refactored to use nameKey/descriptionKey
-- `app/(tabs)/settings.tsx` - Language selector already implemented
-- `i18n-migration-tracker.md` - Detailed documentation of all phases
-
-### Result:
-- Users can switch between EN/DE/ES and see achievements in their language
-- Language preference persists across app restarts
-- Fallback to English for non-translated sections works perfectly
-- Zero crashes, stable performance verified by user testing
-
-**Documentation**: See [i18n-migration-tracker.md](i18n-migration-tracker.md) for complete details
-
----
-
-## ✅ COMPLETED: PRIORITY 4 - Goals Components Theme Integration (100%)
-
-Successfully refactored the final 3 large Goals analytical components to achieve 100% completion of theme integration project.
-
-### Files Refactored (3 files, ~1374 lines total):
-- [x] `/src/components/goals/GoalCompletionPredictions.tsx` (~572 lines) - Predictions and insights
-- [x] `/src/components/goals/GoalPerformanceDashboard.tsx` (~358 lines) - Performance metrics dashboard
-- [x] `/src/components/goals/ProgressTrendAnalysis.tsx` (~444 lines) - Trend analysis with charts
-
-### Changes Applied:
-- Added `useTheme` hook import from ThemeContext
-- Added `const { colors } = useTheme()` inside each component
-- Moved StyleSheet.create inside components (before return statements)
-- Replaced all `Colors.text/textSecondary/background` with `colors.*`
-- Updated backgrounds: `colors.backgroundSecondary` (page) + `colors.cardBackgroundElevated` (cards)
-- Removed all shadow properties (shadowColor, shadowOffset, shadowOpacity, shadowRadius, elevation)
-- Kept vibrant chart colors (Colors.success, warning, error, primary, info) for data visualization
-
-### Result:
-- PRIORITY 4 (Goals Components) - 100% COMPLETE
-- All analytical components now support dynamic theming
-- Chart colors remain vibrant and colorful for optimal data visualization
-- Components ready for Light/Dark theme switching
-
----
-
-## ✅ COMPLETED: Remove Dead Category Cases from UI Components
-
-Successfully cleaned up switch statements in UI components by removing dead category cases that are no longer valid after the AchievementCategory enum was updated.
-
-### Files Updated:
-- [x] `/src/components/challenges/MonthlyProgressCalendar.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor
-- [x] `/src/components/challenges/MonthlyChallengeDetailModal.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor and getCategoryIcon, removed 'mastery' from getMonthlyChallengeTips
-- [x] `/src/components/achievements/AchievementDetailModal.tsx` - Removed 'mastery', 'social', 'special' from getCategoryColor and getCategoryIcon
-
-### Remaining Valid Categories:
-Only these categories are now supported in the cleaned switch statements:
-- `habits` - '🎯' - #22C55E / #4CAF50
-- `journal` - '📝' - #3B82F6 / #2196F3
-- `goals` - '🏆' - #F59E0B / #FF9800
-- `consistency` - '⚡' - #8B5CF6 / #F44336
-- `default` case for fallback
-
-All changes maintain proper switch statement structure and functionality.
-
 ## 🚨 DŮLEŽITÉ - NEMAZAT 🚨
 
 ### Cílová kvalita - TOP světová úroveň:
@@ -712,176 +277,11 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 ### Phase 6: Monthly Challenges ✅ COMPLETE
 *(4-category challenge system with real-time tracking implemented)*
 
-#### Checkpoint 6.4: Monthly Challenge Implementation ✅ **COMPLETE**
-
-**Status**: Production-ready monthly challenge system with full category coverage
-
-**Implemented Features**:
-- ✅ 12 unique monthly challenges across 4 categories
-- ✅ Automatic progress tracking with real-time DeviceEventEmitter sync
-- ✅ Star reward system (Bronze/Silver/Gold tiers)
-- ✅ Beautiful UI with animations and visual feedback
-- ✅ Challenge history and statistics
-- ✅ Integration with XP system and achievements
-
-**Challenge Categories & Templates**:
-- **Habits**: Consistency Champion, Streak Master, Morning Warrior, Habit Hero ✅
-- **Journal**: Reflection Guru, Gratitude Master, Journal Star ✅
-- **Goals**: Progress Champion, Achievement Unlocked ✅
-- **Consistency**: Triple Master, Perfect Month, XP Champion, Balance Expert ✅
-
-**🔧 Klíčové opravy dokončeny**:
-- ✅ Všechny tracking keys v `calculateProgressIncrement()` funkční
-- ✅ Daily XP calculation bug opraven (`xpEarnedToday` snapshots)
-- ✅ Template structure standardizována (tracking key mismatches opraveny)
-- ✅ Complex tracking algoritmy implementovány (balance_score, monthly_xp_total)
-- ✅ Real-time DeviceEventEmitter synchronization funkční
-
-
-**Technical Documentation**: Complete implementation details in @implementation-history.md - "Monthly Challenges System - Complete Implementation"
+*(Detaily dokončených checkpointů → @implementation-history.md / @projectplan-archive.md)*
 
 ### Phase 7: Settings & User Experience
 
-#### Checkpoint 7.1: Daily Reminder Notifications ✅ **PRODUCTION READY**
-
-✅ **STATUS**: Fully functional smart notification system with 4-priority evening reminders and afternoon motivational messages. Complete technical documentation: @technical-guides:Notifications.md
-
-**Key Features Implemented**:
-- ✅ Afternoon generic reminders (16:00 default, 4 rotating variants)
-- ✅ Evening smart reminders (20:00 default, priority-based: habits → journal → bonus → silence)
-- ✅ Permission management with iOS/Android support
-- ✅ User settings UI (time pickers, toggles, status indicators)
-- ✅ App lifecycle integration (useNotificationLifecycle hook)
-- ✅ Smart navigation on notification tap
-- ✅ Full i18n support (English, ready for other languages)
-- ✅ Performance optimized (~50ms async, non-blocking)
-
-**Data Source**: AsyncStorage (habits, journal, goals) - analyzed via progressAnalyzer.analyzeDailyProgress()
-
-**Files**:
-- Service: `src/services/notificationService.ts`, `src/utils/notificationScheduler.ts`
-- Hook: `src/hooks/useNotificationLifecycle.ts`
-- UI: Settings screen notification section
-- i18n: `src/locales/en/index.ts` (notifications.reminders)
-
-**Note**: Notifications update on app open (not real-time per task). Future enhancement: granular triggers.
-
-#### Checkpoint 7.2: App Settings ✅ **COMPLETE**
-
-**Goal**: Implement theme switching (Light/Dark/System) and language preferences
-
----
-
-- [x] **7.2.1-7.2.3: Dark Theme Implementation** ✅ **COMPLETE** - Full dark theme system with AMOLED-friendly 2-tier color design (#1C1C1E + #2C2C2E), ThemeContext API with system auto-detection, 100% component coverage (all screens, modals, notifications, achievements), consistent header styling, and theme selector UI in Settings. Zero hardcoded structural colors remaining, all gamification accent colors preserved.
-
-- [x] **7.2.4: Language Settings UI** ✅ **COMPLETE** - Functional language selector with 3 languages (🇬🇧 English, 🇩🇪 Deutsch, 🇪🇸 Español), instant switching, theme-aware design (works in Light & Dark mode), AsyncStorage persistence. Partial DE/ES translations created, full translations planned for future. See [i18n-migration-tracker.md](i18n-migration-tracker.md) for migration details.
-
----
-
-##### **Sub-checkpoint 7.2.4: Language Settings UI** 🌍 ✅ **COMPLETE**
-
-**Tasks**:
-- [x] 7.2.4.A: Add Language section to Settings screen
-  - Section title: "Language"
-  - Language selector with 3 options:
-    - 🇬🇧 English
-    - 🇩🇪 Deutsch (German)
-    - 🇪🇸 Español (Spanish)
-  - Visual indicator (checkmark) on active language
-  - Instant language switch on selection
-
-- [x] 7.2.4.B: Verify i18n integration
-  - Language switching works via `changeLanguage()` function
-  - AsyncStorage persistence confirmed (key: `user_language`)
-  - UI updates instantly on language change
-  - Partial DE/ES translations ready with fallback to EN
-
-**Implementation Summary**:
-- Files Modified: [app/(tabs)/settings.tsx](app/(tabs)/settings.tsx:237-282), [src/locales/en/index.ts](src/locales/en/index.ts:663-706)
-- Files Created: [src/locales/de/index.ts](src/locales/de/index.ts), [src/locales/es/index.ts](src/locales/es/index.ts)
-- Theme Integration: Uses `colors` from ThemeContext - works seamlessly in both Light & Dark modes
-- Full migration tracking: See [i18n-migration-tracker.md](i18n-migration-tracker.md)
-
----
-
-##### **Sub-checkpoint 7.2.5: Testing & QA** ✅ **COMPLETE**
-
-**Testing Checklist**:
-- [x] 7.2.5.A: Theme functionality testing
-  - [x] Light mode displays correctly on all screens
-  - [x] Dark mode displays correctly on all screens
-  - [x] System auto mode detects device theme correctly
-  - [x] Real-time system theme change updates app immediately
-  - [x] Theme preference persists after app restart
-  - [x] Theme transitions are smooth (no flashing)
-  - [x] All text is readable in both themes (contrast check)
-  - [x] Icons, shadows, and borders look good in both themes
-
-- [x] 7.2.5.B: Language functionality testing
-  - [x] English translations complete
-  - [x] German translations working and complete
-  - [x] Spanish translations working and complete
-  - [x] Language preference persists after app restart
-  - [x] All screens update immediately on language change
-  - [x] Modals and toasts show correct language
-
-- [x] 7.2.5.C: Cross-feature testing
-  - [x] Test all major screens: Home, Habits, Journal, Goals, Settings
-  - [x] Test all modals: Achievement, Level-up, Confirmations
-  - [x] Test navigation in both themes
-  - [x] Test notifications settings screen
-  - [x] Test tutorial reset flow
-
-- [x] 7.2.5.D: Edge cases
-  - [x] Switch theme while modal is open
-  - [x] Switch language while modal is open
-  - [x] Rapid theme switching (no crashes)
-  - [x] System theme changes during app usage
-
-**Result**: ✅ All theme and language functionality tested and working perfectly across all screens and use cases.
-
----
-
-##### **i18n Translation Keys to Add**:
-
-Add to `src/locales/en/index.ts`:
-```typescript
-settings: {
-  // ... existing keys
-
-  // Appearance
-  appearance: 'Appearance',
-  theme: 'Theme',
-  themeLight: 'Light',
-  themeDark: 'Dark',
-  themeSystem: 'System Auto',
-  themeDescription: 'Choose your preferred color scheme',
-  themeSystemDescription: 'Matches your device settings',
-
-  // Language
-  language: 'Language',
-  languageDescription: 'Select your preferred language',
-  languageEnglish: 'English',
-  languageGerman: 'Deutsch',
-  languageSpanish: 'Español',
-}
-```
-
----
-
-**Dependencies**: None (all features use existing libraries)
-
-**Estimated Time**: 2-3 hours
-
-**Priority**: High (user experience improvement)
-
-**Notes**:
-- T-Qyron theme (Level 20 unlock) planned for future update → See @projectplan-future-updates.md Phase 2.1
-- Data Export & Backup moved to future updates → See @projectplan-future-updates.md Phase 3
-
----
-
-- ~~Data export and backup options~~ → Moved to Future Updates
+- 7.1 Daily Reminder Notifications ✅ · 7.2 Theme + Language ✅ *(detaily v archivu)*
 
 ### Phase 8: External Service Integration Preparation ✅ COMPLETE
 
@@ -1086,336 +486,13 @@ settings: {
 
 ---
 
-## 🚀 PHASE 11: SQLITE MIGRATION - AsyncStorage → SQLite Database
+## ✅ Dokončené fáze (archiv)
 
-**Goal**: Migrate from AsyncStorage to SQLite for 5-40x performance improvement, eliminate race conditions, and prepare for scalability
-
-**Status**: 📋 PLANNING PHASE - Detailed analysis and migration strategy
-
-**Migration Strategy**: Phased approach with backwards compatibility and comprehensive backup system
-
----
-
-
-### 🎯 SEKCE 1: CORE DATA MIGRATION (Journal, Habits, Goals)
-
-**Priority**: 🔴 **KRITICKÁ** - Řeší aktuální race condition problém v My Journal
-
-**Technical Documentation**: @sqlite-migration-phase1-core.md
-
-**Implementation Checkpoints**:
-- [x] 1.1.1: Journal backup & verification ✅
-- [x] 1.1.2: SQLite database setup & schema creation ✅
-- [x] 1.1.3: Journal data migration with transactions ✅ (163 entries, 14 days streak, 16 payments)
-- [x] 1.1.4: Migration verification & integrity tests ✅
-- [x] 1.1.5: Update GratitudeStorage service to SQLite ✅
-- [x] 1.1.6: Integrate SQLiteGratitudeStorage into app & implement rollback mechanism ✅
-- [x] 1.1.7: Integration testing & race condition validation ✅
-- [x] 1.2: Habits storage migration ✅ (11 habits, 266 completions, 13 schedule history)
-  - [x] 1.2.1: Habits backup & verification
-  - [x] 1.2.2: Update Habits SQLite schema
-  - [x] 1.2.3: Habits data migration
-  - [x] 1.2.4: Create SQLiteHabitStorage service (630 lines)
-  - [x] 1.2.5: Integrate into HabitsContext with feature flag
-  - [x] 1.2.6: Testing & validation
-- [x] 1.3: Goals storage migration ✅ (2 goals, 21 progress records, 0 milestones)
-  - [x] 1.3.1: Goals backup & verification (goalsBackup.ts - 171 lines)
-  - [x] 1.3.2: Update Goals SQLite schema (description, start_date, progress_type)
-  - [x] 1.3.3: Goals data migration (goalsMigration.ts - 241 lines)
-  - [x] 1.3.4: Create SQLiteGoalStorage service (880 lines)
-  - [x] 1.3.5: Integrate into GoalsContext with feature flag
-  - [x] 1.3.6: Schema migration automation (goals.order_index, target_date, goal_progress rebuild)
-  - [x] 1.3.7: Testing & validation (create goal, add progress, XP integration)
-- [ ] Final: Automated + manual testing (2 hours)
-
-**Expected Results**:
-- ✅ 72x faster journal entry additions (360ms → 5ms)
-- ✅ 25x faster entry loading (50ms → 2ms)
-- ✅ Zero race conditions (ACID transactions)
-- ✅ 100% data integrity with backup/rollback capability
-
-**Total Time**: 8-12 hours
-
----
-
-### 🎮 SEKCE 2: GAMIFICATION & XP MIGRATION (Achievements, XP, Multipliers, Loyalty)
-
-**Priority**: 🟠 **VYSOKÁ** - Optimalizace XP systému a achievement trackingu
-
-**Technical Documentation**: @sqlite-migration-phase2-gamification.md
-
-**Implementation Checkpoints**:
-- [x] 2.1: XP transactions & daily tracking migration ✅ (916/923 transactions, 44 level-ups, 81 achievements, 27 unlock events, 51 daily summaries)
-  - [x] 2.1.1: Pre-migration preparation (backup, checksums)
-  - [x] 2.1.2: XP transactions migration with validation
-  - [x] 2.1.3: Daily XP summaries generation
-  - [x] 2.1.4: XP state migration with automatic correction
-  - [x] 2.1.5: Level-up history migration
-  - [x] 2.1.6: Achievement progress & unlock events migration
-  - [x] 2.1.7: Verification & data integrity checks
-- [x] 2.2: Achievement progress & unlock events migration ✅ (completed in 2.1)
-- [x] 2.3: XP multipliers & loyalty state migration ✅ (0 multipliers, no loyalty data - clean migration)
-- [x] 2.4: Update gamification services to SQLite ✅
-- [x] Final: Testing XP calculations & achievement unlocks ✅ (Goal anti-spam limit fixed, habits XP verified)
-
-**Expected Results**:
-- ✅ 16x faster XP award operations (80ms → 5ms)
-- ✅ 40x faster daily limit checks (40ms → 1ms)
-- ✅ Pre-aggregated XP summaries for instant queries
-- ✅ Achievement unlock history preserved
-
-**Total Time**: 6-8 hours
-
----
-
-### 📅 SEKCE 3: MONTHLY CHALLENGES & FEATURES MIGRATION
-
-**Priority**: 🟡 **STŘEDNÍ** - Optimalizace challenge trackingu
-
-**Technical Documentation**: @sqlite-migration-phase3-features.md
-
-**Implementation Checkpoints**:
-- [x] 3.1.1: Pre-migration preparation (backup all challenge data) ✅
-- [x] 3.2.1: Active challenges & requirements migration ✅
-- [x] 3.3.1: Progress tracking (daily snapshots & weekly breakdowns) ✅
-- [x] 3.4.1: Lifecycle state & history migration ✅
-- [x] 3.5.1: Verification & testing ✅
-- [x] 3.6.1: Service refactoring (SQLite storage layer created) ✅
-
-**Migration Results**:
-- ✅ All challenge data migrated successfully (2 challenges, 2 requirements, 40 state history, 6 errors)
-- ✅ Verification passed (100% data integrity)
-- ✅ SQLiteChallengeStorage created (replaces AsyncStorage operations)
-- ✅ Feature flag added (USE_SQLITE_CHALLENGES - currently disabled for safety)
-
-**Storage Layer Created**:
-- `src/services/storage/SQLiteChallengeStorage.ts` - Complete CRUD operations for:
-  - Active challenges & requirements
-  - Daily progress snapshots
-  - Weekly breakdowns
-  - Lifecycle state management
-  - User ratings & history
-
-**Service Refactoring Status**: ✅ **COMPLETE**
-- ✅ All 3 services refactored with storage adapter pattern
-- ✅ Storage adapter checks `USE_SQLITE_CHALLENGES` feature flag
-- ✅ Backward compatible - AsyncStorage fallback maintained
-- 📊 **Refactored**: 20 AsyncStorage calls across 3 services (5312 lines total)
-  - `monthlyChallengeService.ts`: 7 calls ✅ (all have SQLite branches)
-  - `monthlyProgressTracker.ts`: 7 calls ✅ (all have SQLite branches)
-  - `monthlyChallengeLifecycleManager.ts`: 6 calls ✅ (all have SQLite branches)
-
-**Implementation Completed**:
-1. ✅ Refactored 3 services to use storage adapter pattern with `sqliteChallengeStorage`
-2. ✅ `USE_SQLITE_CHALLENGES = true` enabled in featureFlags.ts
-3. ⏳ Testing all challenge operations (in progress)
-
-**Current Status**: ✅ **PHASE 3 COMPLETE** - All monthly challenges now use SQLite
-
-**Results Achieved**: 8-15x faster challenge operations, zero race conditions, ACID transactions
-
-**Total Time**: 8 hours (Phase 3.1-3.6 complete, services refactored)
-
----
-
-### ⚙️ SEKCE 4: CONFIGURATION LAYER (AsyncStorage Retained)
-
-**Priority**: 🟢 **NÍZKÁ** - Jednoduchá konfigurace **ZŮSTÁVÁ** na AsyncStorage
-
-**Technical Documentation**: @sqlite-migration-phase4-config.md
-
-**What Stays on AsyncStorage** (~21 keys, <25KB total):
-- ✅ User preferences (theme, language, home layout)
-- ✅ Notification settings & tokens
-- ✅ Tutorial completion flags & onboarding state
-- ✅ Feature flags & experimental features
-- ✅ App metadata & analytics preferences
-
-**Rationale**: AsyncStorage is optimal for simple key-value pairs - faster, simpler, no SQLite overhead needed
-
-**Action Required**: ✅ **NONE** - Keep existing code, no migration
-
----
-
-**Status**: ✅ **ALL SECTIONS COMPLETE** - Ready for Implementation
-
-**Total Documentation**: 3915 lines across 4 migration phases
-
-**📚 Master Architecture Reference**: @STORAGE-ARCHITECTURE.md (558 lines)
-- File-by-file storage mapping (SQLite vs AsyncStorage)
-- Implementation patterns & decision tree
-- Quick reference table for all features
-- Common mistakes to avoid
-
-
-
----
-
-## 🐛 KNOWN ISSUES - Resolved
-
-### ✅ RESOLVED: Habit Statistics Home Screen - Make Up synchronization
-
-**Původní problém**:
-V Habit Statistics na Home screenu se po provedení Make Up (bonus completion pokrývající zmeškaný den) nezobrazoval stav správně. I když v jednotlivých kalendářích návyků nebylo červené políčko (zmeškaný den byl pokrytý bonusem), v Home Screen statistikách stále zůstávala červená.
-
-**Řešení**: ✅ Opraveno a otestováno - Make Up logika nyní funguje správně napříč všemi zobrazení (kalendáře i Home Screen statistiky). Synchronizace dat mezi komponentami funguje bez problémů.
-
-**Status**: ✅ RESOLVED - Funkční a otestováno
-
----
-
-## ✅ COMPLETED: Firebase Analytics + ATT Integration (Phase 12)
-
-**Goal**: Integrate Firebase Analytics with iOS App Tracking Transparency for Google Ads conversion tracking
-
-**Status**: ✅ **COMPLETE** - Awaiting EAS build for final verification
-
----
-
-### Checkpoint 12.1: Firebase Analytics + ATT Implementation ✅
-
-**Tasks**:
-- [x] 12.1.1: Install required packages ✅
-  - `@react-native-firebase/app` v23.8.3
-  - `@react-native-firebase/analytics` v23.8.3
-  - `expo-tracking-transparency` v5.2.4
-
-- [x] 12.1.2: Place Firebase configuration files ✅
-  - ✅ `GoogleService-Info.plist` → project root `/`
-  - ✅ `google-services.json` → project root `/`
-  - ✅ Bundle ID verified: `com.petrturek.selfrise`
-
-- [x] 12.1.3: Update app.json configuration ✅
-  - ✅ `@react-native-firebase/app` plugin
-  - ✅ `expo-tracking-transparency` plugin
-  - ✅ `NSUserTrackingUsageDescription` for ATT dialog
-  - ✅ `SKAdNetworkItems` (50 Google Ads network IDs)
-  - ✅ `googleServicesFile` paths for iOS/Android
-  - ✅ `AD_ID` permission for Android
-
-- [x] 12.1.4: Create Firebase Analytics hook ✅
-  - ✅ `src/hooks/useFirebaseAnalytics.ts` (182 lines)
-  - ✅ ATT permission request (iOS 14+)
-  - ✅ Analytics initialization after ATT
-  - ✅ `app_open` event logging
-  - ✅ `logEvent()`, `setUserId()`, `setUserProperty()` functions
-
-- [x] 12.1.5: Integrate hook into app startup ✅
-  - ✅ Added to `app/_layout.tsx`
-
-- [x] 12.1.6: TypeScript compilation verification ✅
-
-- [ ] 12.1.7: Build & test (USER ACTION - run `eas build`)
-
-**File Structure**:
-```
-/SelfRiseV2/
-├── GoogleService-Info.plist  ← iOS (place here)
-├── google-services.json      ← Android (place here)
-├── app.json                  ← Will be updated
-└── src/hooks/
-    └── useFirebaseAnalytics.ts  ← New hook
-```
-
----
-
-## 🎯 AKTUÁLNÍ ÚKOL: Tutorial Spotlight Refaktoring (Skia + Reanimated)
-
-**Cíl**: Přepsat SpotlightEffect.tsx na vysokovýkonné Skia renderování pro profesionální, plynulý tutoriál
-
-**Status**: 📋 PLÁNOVÁNÍ
-
----
-
-### PHASE 1: Analýza & Příprava ✅ COMPLETE
-
-- [x] 1.1: Analyzovat SpotlightEffect.tsx props a logiku
-  - Props: `target`, `action`, `targetId`, `onTargetPress`
-  - Animace: `pulseScale`, `spotlightOpacity`, `targetHighlight`
-- [x] 1.2: Analyzovat TutorialTargetHelper.ts data strukturu
-  - `TargetElementInfo`: x, y, width, height, pageX, pageY
-- [x] 1.3: Ověřit babel.config.js pro reanimated plugin
-  - ✅ `react-native-reanimated/plugin` již přidán
-
-### PHASE 2: Implementační strategie ✅ COMPLETE
-
-**Vizuální & Technické požadavky:**
-- ✅ **Canvas Layer**: Jeden Skia `<Canvas>` přes celou obrazovku (`StyleSheet.absoluteFill`)
-- ✅ **Overlay**: Tmavý obdélník (černá, opacity 0.75) přes celou obrazovku
-- ✅ **Cutout (Spotlight)**: `BlendMode.dstOut` pro vytvoření "díry" v overlay
-- ✅ **Shape**: `RoundedRect` s corner radius 14px (squircle feel)
-- ✅ **Soft Edges**: `<BlurMask blur={8} style="normal" />` pro měkké hrany
-- ✅ **Padding**: 10px padding kolem targetu pro "dýchání"
-
-**Animace (react-native-reanimated v3):**
-- [x] Mapovat `target` props na SharedValues
-- [x] `withSpring` pro plynulé přechody pozice (damping: 20, stiffness: 150)
-- [x] Spotlight "glide" efekt při změně targetu
-- [x] Sophisticated pulse animace (opacity záře 0.3↔0.7 + scale 1.0↔1.08)
-
-**Zachovat kompatibilitu:**
-- ✅ Stejné props jako původní komponenta
-- ✅ Nenarušit TutorialOverlay.tsx
-
-### PHASE 3: Implementace ✅ COMPLETE
-
-- [x] 3.1: Nainstalovat `@shopify/react-native-skia` (již bylo v projektu v2.0.0-next.4)
-- [x] 3.2: Kompletně přepsat SpotlightEffect.tsx
-  - [x] Skia Canvas s absoluteFill
-  - [x] Dark overlay + RoundedRect cutout s BlendMode.dstOut
-  - [x] BlurMask blur={8} pro měkké hrany
-  - [x] Reanimated SharedValues pro x, y, width, height
-  - [x] withSpring pro plynulé přechody
-  - [x] Pulse animace s glow efektem (oranžový rámeček)
-- [x] 3.3: Striktní TypeScript typování ✅ (0 errors)
-- [x] 3.4: Code review & opravy ✅
-  - [x] Odstraněn dead code (TIMING_CONFIG)
-  - [x] Přesunuty useDerivedValue z JSX (anti-pattern fix)
-  - [x] Přidána entrance fade-in animace (200ms)
-  - [x] Přidán Dimensions listener pro rotaci obrazovky
-  - [x] Přidán cleanup pro pulse animaci (cancelAnimation)
-  - [x] Přidán accessibilityHint
-- [ ] 3.5: Testování v aplikaci
-
-**Očekávané výsledky:**
-- ✨ Plynulé přechody spotlightu mezi kroky (glide effect)
-- ✨ Měkké hrany díky BlurMask
-- ✨ Profesionální glow pulse animace
-- ✨ 60fps rendering díky Skia GPU akceleraci
-- ✨ Squircle tvar (zaoblený obdélník) místo ostrých rohů
-
-**Závislosti:**
-```
-@shopify/react-native-skia
-```
-
-**Soubory k úpravě:**
-- `src/components/tutorial/SpotlightEffect.tsx` (kompletní přepis)
-- `TutorialOverlay.tsx` (minimální změny - možná žádné)
+SQLite migrace (SEKCE 1–4), Firebase Analytics + ATT (Phase 12), Tutorial Spotlight refaktoring (Skia), vyřešené Known Issues — vše hotové, detaily: @implementation-history.md a @projectplan-archive.md.
 
 ---
 
 ## 🔮 FUTURE UPDATES - Plánované funkce
-
-## ✅ COMPLETED: Monthly Challenge Home Banner Fixed Layout
-
-**Goal**: Upravit první Monthly Challenge banner na Home screenu tak, aby byl pevně usazený, neposouval se horizontálně a celý obsah se vešel na obrazovku telefonu pro marketing screenshoty.
-
-**Scope**: Pouze UI/layout karty v Home sekci Monthly Challenge. Bez změn v progress trackingu, generování výzev, XP, modalech nebo storage.
-
-**Todo**:
-- [x] Potvrdit současný problém v `MonthlyChallengeSection.tsx` a `MonthlyChallengeCard.tsx`
-- [x] Odstranit horizontální posouvání první Monthly Challenge karty na Home
-- [x] Upravit šířku a vnitřní layout karty tak, aby obsah nepřetékal na běžných telefonech
-- [x] Zkontrolovat, že tap na kartu stále otevírá detail modal
-- [x] Spustit TypeScript kontrolu nebo nejbližší dostupné ověření
-- [x] Přidat krátký implementation summary do archive/plan dokumentace
-
-**Brief Review**: První Monthly Challenge karta na Home je nyní pevný full-width card layout bez horizontálního posouvání. Změna je pouze UI/layout, bez zásahu do progress logiky nebo Monthly Challenge dat.
-
-**Technical Guide**: Monthly Challenge UI pravidla a logika: @technical-guides:Monthly-Challenges.md
-
----
 
 ### Data Export & Backup System 💾
 

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { router } from 'expo-router';
 import { tutorialTargetManager } from '@/src/utils/TutorialTargetHelper';
-import { waitForStartupModals } from '@/src/utils/startupGate';
+import { awaitStartupComplete } from '@/src/services/startup';
 
 // Crash Recovery Interface
 export interface TutorialCrashLog {
@@ -1642,15 +1642,14 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Gate the tutorial behind the first-launch native modals (ATT + UMP
-    // consent). Presenting the onboarding gate's RN <Modal> while a native
-    // modal is still up freezes iOS (dual-modal), which is exactly the freeze
-    // users hit on a fresh install. waitForStartupModals resolves as soon as
-    // both flows finish (near-instant on later launches, where nothing shows)
-    // and has its own safety timeout so the tutorial can never get stuck here.
+    // Gate the tutorial behind the first-launch native modals (ATT + UMP consent),
+    // run by the Startup Orchestrator. Presenting the onboarding gate's RN <Modal>
+    // while a native modal is still up freezes iOS (dual-modal) — the fresh-install
+    // freeze. awaitStartupComplete resolves once the whole startup sequence is done
+    // (near-instant on later launches, where nothing shows).
     let cancelled = false;
     const runAfterStartupModals = async () => {
-      await waitForStartupModals();
+      await awaitStartupComplete();
       if (cancelled) return;
       await autoStartTutorial();
     };

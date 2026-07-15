@@ -207,7 +207,12 @@
       "Bash(npx tsc *)",
       "Bash(npx jest *)",
       "Bash(node -e \"try{require\\('node:sqlite'\\);console.log\\('node:sqlite OK'\\)}catch\\(e\\){console.log\\('node:sqlite NOT available:', e.message\\)}\")",
-      "Read(//Users/turage/.nvm/versions/node/**)"
+      "Read(//Users/turage/.nvm/versions/node/**)",
+      "Bash(awk '{print $9, $5}')",
+      "Bash(python3 \"/private/tmp/claude-501/-Users-turage-Developer-SelfRiseV2/dc365487-2eb5-4401-a3c6-f7704d4f2b3c/scratchpad/trim2.py\")",
+      "Bash(awk 'END{print NR\" řádků, \"int\\(\\(length_total\\)/4\\)\" ~znaků→tokenů odhad\"} {length_total+=length\\($0\\)}' projectplan.md)",
+      "Bash(perl -i -pe 's/^- \\\\[ \\\\] \\\\*\\\\*1\\\\./- [x] **1./' projectplan.md)",
+      "Bash(git commit *)"
     ],
     "deny": [],
     "ask": [],
