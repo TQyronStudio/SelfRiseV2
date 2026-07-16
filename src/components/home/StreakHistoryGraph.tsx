@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -37,13 +37,27 @@ const SIDE_PADDING = 8; // Small padding on sides for better look
 // Available width = screen - margins - container padding - Y-axis width - side padding
 const AVAILABLE_WIDTH = screenWidth - (CONTAINER_MARGIN * 2) - (CONTAINER_PADDING * 2) - Y_AXIS_WIDTH - (SIDE_PADDING * 2);
 const DAY_WIDTH = Math.max(6, Math.floor(AVAILABLE_WIDTH / DAYS_TO_SHOW)); // Min 6px per day for visibility
+// Lowest the Y-axis ever scales to, so a chart with few/no entries still looks right.
+// Purely cosmetic — must never leak into a user-facing statistic.
+const AXIS_MIN = 5;
 
 export function StreakHistoryGraph() {
   const { t } = useI18n();
   const { colors } = useTheme();
   const [journalHistory, setJournalHistory] = useState<JournalPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [maxCount, setMaxCount] = useState(5); // Minimum 5 for nice scaling
+  // Y-axis scale ONLY — floored at AXIS_MIN so an empty/low chart still renders nicely.
+  // ⚠️ This is NOT the user's peak: it never drops below AXIS_MIN. Showing it as the
+  // "Peak Day" stat made a brand-new user with zero entries see a peak of 5.
+  // The real peak is derived from journalHistory (see `peakCount` below).
+  const [axisMax, setAxisMax] = useState(AXIS_MIN);
+
+  // Highest number of entries the user actually reached on a single day in the window.
+  // 0 when there are no entries — that is a correct, honest answer.
+  const peakCount = useMemo(
+    () => journalHistory.reduce((max, point) => Math.max(max, point.count), 0),
+    [journalHistory]
+  );
 
   useEffect(() => {
     loadStreakHistory();
@@ -66,7 +80,7 @@ export function StreakHistoryGraph() {
       // Generate journal entries count history for the last 30 days
       const history: JournalPoint[] = [];
       const endDate = today();
-      let currentMaxCount = 5; // Start with minimum for scaling
+      let currentAxisMax = AXIS_MIN; // Y-axis scale only — grows past AXIS_MIN if a day exceeds it
 
       for (let i = DAYS_TO_SHOW - 1; i >= 0; i--) {
         const date = subtractDays(endDate, i);
@@ -84,11 +98,11 @@ export function StreakHistoryGraph() {
           hasBonus: count >= 4,
         });
 
-        currentMaxCount = Math.max(currentMaxCount, count);
+        currentAxisMax = Math.max(currentAxisMax, count);
       }
 
       setJournalHistory(history);
-      setMaxCount(currentMaxCount);
+      setAxisMax(currentAxisMax);
     } catch (error) {
       console.error('Failed to load journal history:', error);
     } finally {
@@ -110,9 +124,9 @@ export function StreakHistoryGraph() {
         <View style={styles.graph}>
           {/* Y-axis labels */}
           <View style={styles.yAxis}>
-            <Text style={styles.yAxisLabel}>{maxCount}</Text>
+            <Text style={styles.yAxisLabel}>{axisMax}</Text>
             <View style={{ flex: 1 }} />
-            <Text style={styles.yAxisLabel}>{Math.floor(maxCount / 2)}</Text>
+            <Text style={styles.yAxisLabel}>{Math.floor(axisMax / 2)}</Text>
             <View style={{ flex: 1 }} />
             <Text style={styles.yAxisLabel}>0</Text>
           </View>
@@ -130,7 +144,7 @@ export function StreakHistoryGraph() {
             <View style={styles.barsContainer}>
               {journalHistory.map((point, index) => {
                 const x = index * DAY_WIDTH;
-                const barHeight = (point.count / maxCount) * GRAPH_HEIGHT;
+                const barHeight = (point.count / axisMax) * GRAPH_HEIGHT;
                 const y = GRAPH_HEIGHT - barHeight;
                 
                 return (
@@ -336,7 +350,7 @@ export function StreakHistoryGraph() {
         </View>
 
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryNumber}>{maxCount}</Text>
+          <Text style={styles.summaryNumber}>{peakCount}</Text>
           <Text style={styles.summaryLabel}>{t('home.peakDay')}</Text>
         </View>
 

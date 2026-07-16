@@ -3819,4 +3819,24 @@ Guarded by `contexts/__tests__/modalQueueOrdering.test.ts` (5 tests, incl. a rep
 
 ---
 
+## Home "Peak Day" showed 5 for a brand-new user (July 2026)
+
+**Found by**: an external tester — a fresh install with zero journal entries showed **Peak Day: 5** on Home, next to `Today 0 / Complete 0 / Bonus 0`. A peak of 5 is impossible when the best day is 0.
+
+**Cause**: in `StreakHistoryGraph.tsx` one variable did two jobs. `maxCount` was the **Y-axis scale**, deliberately floored at 5 (`let currentMaxCount = 5; // Start with minimum for scaling`) so a chart with few/no entries still renders nicely — and the **same value was rendered as the "Peak Day" statistic**. Since the computation was `Math.max(currentMaxCount, count)`, Peak Day could never read below 5: every user writing 0–5 entries per day saw a fake 5. It only became "real" once someone wrote 6+ in a day.
+
+Not a split-brain: the component already reads the journal via `getGratitudeStorageImpl()` (SQLite). Purely a display/derivation bug.
+
+**Fix**: separated the two roles.
+- `axisMax` (renamed from `maxCount`, floored at the new `AXIS_MIN = 5` constant) — cosmetic Y-axis scale only, used for the axis labels and bar heights.
+- `peakCount` — derived with `useMemo` from `journalHistory` (`reduce((max, p) => Math.max(max, p.count), 0)`), so it reports the true best day and is 0 when there are no entries.
+
+The rename is deliberate: `maxCount` was ambiguous enough to invite exactly this mistake; `axisMax` states its role, and the comment on it says the floor must never leak into a user-facing statistic.
+
+**Tests**: `src/components/home/__tests__/streakHistoryGraph.peak.test.ts` (5 tests) pins both halves — the tester's exact zero-entry screen, peaks below/above the axis floor, `peak <= axisMax` with peak never floored, and consistency with the neighbouring Complete/Bonus stats.
+
+**Verification**: tsc 0 errors, 399/399 tests green (26/26 suites), eslint 0 errors.
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*
