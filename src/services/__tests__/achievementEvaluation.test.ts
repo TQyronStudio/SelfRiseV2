@@ -81,7 +81,7 @@ describe('Achievement evaluation — every catalog condition reaches a live eval
   });
 
   test('catalog sanity: 78 achievements loaded', () => {
-    expect(CORE_ACHIEVEMENTS.length).toBe(78);
+    expect(CORE_ACHIEVEMENTS.length).toBe(75);
   });
 
   // One test per achievement → a dead condition names its achievement directly.
@@ -220,5 +220,113 @@ describe('Achievement calculators (real DB) — July 2026 fixes', () => {
       expect(result.currentValue).toBe(55);
       expect(result.isMet).toBe(true);
     });
+  });
+});
+
+// ========================================
+// GROUP C — completion counts follow STORAGE state, not XP transactions
+// (audit F2, N-2.1 — reversal/toggle regression)
+// ========================================
+
+describe('Completion counts ignore transaction toggles (N-2.1)', () => {
+  const goalCondition = CORE_ACHIEVEMENTS.find(a => a.id === 'achievement-unlocked')!
+    .condition as AchievementCondition; // count goal_completion >= 10
+  const habitCondition = CORE_ACHIEVEMENTS.find(a => a.id === 'century-club')!
+    .condition as AchievementCondition; // count habit_completion >= 100
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    // 10 positive goal_completion + plenty of habit_completion transactions —
+    // the OLD implementation would count these and unlock on toggles alone.
+    const toggleTxs = [
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `g_${i}`, amount: 250, source: XPSourceType.GOAL_COMPLETION,
+        date: today(), createdAt: new Date(), updatedAt: new Date(), description: 't',
+      })),
+      ...Array.from({ length: 150 }, (_, i) => ({
+        id: `h_${i}`, amount: 25, source: XPSourceType.HABIT_COMPLETION,
+        date: today(), createdAt: new Date(), updatedAt: new Date(), description: 't',
+      })),
+    ];
+    jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(toggleTxs as any);
+  });
+
+  test('goal_completion count = completed goals in storage (1 toggled goal ≠ 10 completions)', async () => {
+    (AchievementIntegration as any).goalStorage = {
+      getAll: jest.fn(async () => [
+        { id: 'goal1', status: 'completed', targetValue: 100, completedDate: today() },
+        { id: 'goal2', status: 'active', targetValue: 100 },
+      ]),
+    };
+
+    const result = await AchievementService.evaluateCondition(goalCondition, FAKE_STATS);
+    expect(result.currentValue).toBe(1); // storage truth, not 10 transactions
+    expect(result.isMet).toBe(false);
+  });
+
+  test('goal_completion count reaches target only with 10 truly completed goals', async () => {
+    (AchievementIntegration as any).goalStorage = {
+      getAll: jest.fn(async () =>
+        Array.from({ length: 10 }, (_, i) => ({
+          id: `goal_${i}`, status: 'completed', targetValue: 100, completedDate: today(),
+        }))
+      ),
+    };
+
+    const result = await AchievementService.evaluateCondition(goalCondition, FAKE_STATS);
+    expect(result.currentValue).toBe(10);
+    expect(result.isMet).toBe(true);
+  });
+
+  test('habit_completion count follows storage rows and DROPS after a reversal', async () => {
+    const completions = Array.from({ length: 100 }, (_, i) => ({
+      id: `c_${i}`, habitId: 'h1', date: today(), completed: true,
+    }));
+    (AchievementIntegration as any).habitStorage = {
+      getAllCompletions: jest.fn(async () => completions),
+    };
+
+    const met = await AchievementService.evaluateCondition(habitCondition, FAKE_STATS);
+    expect(met.currentValue).toBe(100);
+    expect(met.isMet).toBe(true);
+
+    // User unchecks one completion → storage row removed → count drops
+    completions.pop();
+    const afterReversal = await AchievementService.evaluateCondition(habitCondition, FAKE_STATS);
+    expect(afterReversal.currentValue).toBe(99);
+    expect(afterReversal.isMet).toBe(false);
+  });
+
+  test('habit creation count is cumulative (soft-deleted habits still count)', async () => {
+    (AchievementIntegration as any).habitStorage = {
+      countCreatedTotal: jest.fn(async () => 5), // 3 existing + 2 archived
+      getAll: jest.fn(async () => [{ id: 'h1' }, { id: 'h2' }, { id: 'h3' }]),
+    };
+
+    expect(await AchievementIntegration.getHabitCreationCount('all_time')).toBe(5);
+  });
+});
+
+// N-2.6 (audit F2c): journal entry counts come from storage, not transactions
+describe('Journal entry count follows storage (N-2.6)', () => {
+  test('journal-enthusiast counts ALL entries, not just first-3-per-day transactions', async () => {
+    jest.restoreAllMocks();
+    const journalCondition = CORE_ACHIEVEMENTS.find(a => a.id === 'journal-enthusiast')!
+      .condition as AchievementCondition; // count journal_entry >= 100
+
+    // 30 positive journal_entry transactions (old path would report 30)…
+    jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: `j_${i}`, amount: 20, source: XPSourceType.JOURNAL_ENTRY,
+        date: today(), createdAt: new Date(), updatedAt: new Date(), description: 't',
+      })) as any
+    );
+    // …but storage holds 100 real entries (incl. bonus positions 4+)
+    jest.spyOn(AchievementIntegration, 'getTotalJournalEntries').mockResolvedValue(100);
+
+    const result = await AchievementService.evaluateCondition(journalCondition, FAKE_STATS);
+    expect(AchievementIntegration.getTotalJournalEntries).toHaveBeenCalled();
+    expect(result.currentValue).toBe(100);
+    expect(result.isMet).toBe(true);
   });
 });

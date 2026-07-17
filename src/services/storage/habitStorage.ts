@@ -185,6 +185,17 @@ export class HabitStorage implements EntityStorage<Habit> {
     }
   }
 
+  /**
+   * Legacy parity for SQLiteHabitStorage.countCreatedTotal (achievement
+   * creation counts). AsyncStorage path hard-deletes habits, so the best
+   * available value is the current count — legacy path is flag-off in
+   * production (see featureFlags).
+   */
+  async countCreatedTotal(): Promise<number> {
+    const habits = await this.getAll();
+    return habits.length;
+  }
+
   // Habit completion operations
   async getAllCompletions(): Promise<HabitCompletion[]> {
     try {

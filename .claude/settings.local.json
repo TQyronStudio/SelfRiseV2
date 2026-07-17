@@ -228,7 +228,10 @@
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/userActivityTracker.test.ts src/services/__tests__/userActivityTracker.baseline.test.ts)",
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest __tests__/tmp-level-preview.test.ts)",
       "Bash(node /private/tmp/claude-501/-Users-turage-Developer-SelfRiseV2/08beddcb-0d21-4f79-9609-c178244b9bd6/scratchpad/curve-search.js)",
-      "Bash(git commit -m 'Super Audit Phase 1 - Complete \\(audit, approved fixes, level curve rebalance\\) *)"
+      "Bash(git commit -m 'Super Audit Phase 1 - Complete \\(audit, approved fixes, level curve rebalance\\) *)",
+      "Bash(git commit -m 'Mark Phase 1 complete in super audit plan \\(checkboxes + completion notes\\) *)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/achievementEvaluation.test.ts __tests__/services/gamification/AchievementLogic.test.ts src/services/__tests__/storageSplitBrain.test.ts)",
+      "Bash(git commit -m 'Super Audit Phase 2 \\(2a-2f\\) - audit + fixes: completion counts, catalog trim 78->75 *)"
     ],
     "deny": [],
     "ask": [],

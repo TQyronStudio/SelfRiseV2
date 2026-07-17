@@ -5,7 +5,7 @@ import { Achievement, AchievementCategory, AchievementRarity } from '../types/ga
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';
 
 /**
- * Complete catalog of 78 achievements for SelfRise V2
+ * Complete catalog of 75 achievements for SelfRise V2
  * Organized by category with balanced progression and long-term engagement
  * Categories: Habits (8), Journal (31), Goals (8), Consistency (8), Mastery (9), Special (14 including 10 Loyalty)
  * Updated: 2025-08-30 - Added 24 new Journal Bonus achievements for ⭐🔥👑 milestones
@@ -155,7 +155,10 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
       target: 5,
       source: 'daily_habit_variety',
       operator: 'gte',
-      timeframe: 'daily'
+      // 'all_time' (audit F2, N-2.3): the evaluator returns the MAX variety
+      // reached in any single day — "5 different habits in one day, ever".
+      // The former 'daily' value was silently ignored by the evaluator.
+      timeframe: 'all_time'
     },
     isProgressive: false,
     isSecret: false,
@@ -809,27 +812,6 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   {
-    id: 'recommendation-master',
-    nameKey: 'achievements.recommendation_master.name',
-    descriptionKey: 'achievements.recommendation_master.description',
-    icon: '💡',
-    category: AchievementCategory.MASTERY,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'count',
-      target: 20,
-      source: 'recommendations_followed',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
-    isSecret: false,
-    createdAt: new Date('2025-08-06'),
-    updatedAt: new Date('2025-08-06')
-  },
-
-  {
     id: 'balance-master',
     nameKey: 'achievements.balance_master.name',
     descriptionKey: 'achievements.balance_master.description',
@@ -1351,27 +1333,6 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
   },
 
   {
-    id: 'flame-collector',
-    nameKey: 'achievements.flame_collector.name',
-    descriptionKey: 'achievements.flame_collector.description',
-    icon: '🔥',
-    category: AchievementCategory.JOURNAL,
-    rarity: AchievementRarity.EPIC,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.EPIC], // 200 XP
-    condition: {
-      type: 'count',
-      target: 25,
-      source: 'journal_flame_count',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
-    isSecret: false,
-    createdAt: new Date('2025-08-30'),
-    updatedAt: new Date('2025-08-30')
-  },
-
-  {
     id: 'golden-bonus-streak',
     nameKey: 'achievements.golden_bonus_streak.name',
     descriptionKey: 'achievements.golden_bonus_streak.description',
@@ -1387,27 +1348,6 @@ export const CORE_ACHIEVEMENTS: Achievement[] = [
       timeframe: 'all_time'
     },
     isProgressive: false,
-    isSecret: false,
-    createdAt: new Date('2025-08-30'),
-    updatedAt: new Date('2025-08-30')
-  },
-
-  {
-    id: 'triple-crown-master',
-    nameKey: 'achievements.triple_crown_master.name',
-    descriptionKey: 'achievements.triple_crown_master.description',
-    icon: '👑',
-    category: AchievementCategory.JOURNAL,
-    rarity: AchievementRarity.LEGENDARY,
-    xpReward: ACHIEVEMENT_XP_REWARDS[AchievementRarity.LEGENDARY], // 500 XP
-    condition: {
-      type: 'count',
-      target: 3,
-      source: 'journal_crown_count',
-      operator: 'gte',
-      timeframe: 'all_time'
-    },
-    isProgressive: true,
     isSecret: false,
     createdAt: new Date('2025-08-30'),
     updatedAt: new Date('2025-08-30')

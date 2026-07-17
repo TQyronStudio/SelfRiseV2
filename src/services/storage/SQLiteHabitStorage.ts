@@ -217,6 +217,24 @@ export class SQLiteHabitStorage {
     }
   }
 
+  /**
+   * Habits ever created, including soft-deleted (is_archived = 1) rows.
+   * Used by creation-count achievements (habit-builder): "create 5 habits"
+   * must stay earned-able even when the user deletes habits along the way.
+   */
+  async countCreatedTotal(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const result = await db.getFirstAsync<{ count: number }>(
+        `SELECT COUNT(*) as count FROM habits`
+      );
+      return result?.count || 0;
+    } catch (error) {
+      console.error('❌ SQLite countCreatedTotal failed:', error);
+      throw new Error(`Failed to count created habits: ${error}`);
+    }
+  }
+
   // ========================================
   // HABIT COMPLETIONS
   // ========================================

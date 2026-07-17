@@ -202,14 +202,34 @@ export class AchievementService {
       // Get current value based on condition type and source
       switch (condition.type) {
         case 'count':
-          // Handle XP source types
-          if (Object.values(XPSourceType).includes(condition.source as XPSourceType)) {
+          // N-2.1 fix (audit F2, July 2026): completion counts MUST come from
+          // storage state, not from positive XP transactions — reversals
+          // (uncheck habit, un-complete goal) write negative transactions the
+          // old positive-only count never subtracted. GOAL_COMPLETION is
+          // exempt from daily limits AND rate limiting, so toggling one goal
+          // could farm the legendary 'achievement-unlocked' (10 completions).
+          if (condition.source === XPSourceType.GOAL_COMPLETION) {
+            const { AchievementIntegration } = require('./achievementIntegration');
+            currentValue = await AchievementIntegration.getCompletedGoalsCount(condition.timeframe);
+          } else if (condition.source === XPSourceType.HABIT_COMPLETION) {
+            const { AchievementIntegration } = require('./achievementIntegration');
+            currentValue = await AchievementIntegration.getHabitCompletionsCount(condition.timeframe);
+          } else if (condition.source === XPSourceType.JOURNAL_ENTRY) {
+            // N-2.6 (audit F2c): ALL journal entries from storage — the
+            // transaction count only saw the first 3 entries of each day
+            // (positions 4+ carry a different/no source) and never went
+            // down when an entry was deleted.
+            const { AchievementIntegration } = require('./achievementIntegration');
+            currentValue = await AchievementIntegration.getTotalJournalEntries(condition.timeframe);
+          } else if (Object.values(XPSourceType).includes(condition.source as XPSourceType)) {
+            // Remaining XP sources (journal counts etc.) still use transaction
+            // analysis — Phase 2c/2d of the audit reviews those separately.
             const xpSource = condition.source as XPSourceType;
             const transactions = await GamificationService.getAllTransactions();
-            
+
             // Filter by timeframe if specified
             const filteredTransactions = this.filterTransactionsByTimeframe(transactions, condition.timeframe);
-            
+
             // Count transactions from this source
             currentValue = filteredTransactions.filter(t => t.source === xpSource && t.amount > 0).length;
           } else {

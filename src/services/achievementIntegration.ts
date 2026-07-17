@@ -31,11 +31,14 @@ export class AchievementIntegration {
    */
   static async getHabitCreationCount(timeframe?: string): Promise<number> {
     try {
-      const habits = await this.habitStorage.getAll();
-      
       if (!timeframe || timeframe === 'all_time') {
-        return habits.length;
+        // Cumulative "ever created" (includes soft-deleted habits) — N-2.2
+        // fix: habit-builder must count creations, not currently-existing
+        // habits (that would duplicate seven-wonder's simultaneous count).
+        return await this.habitStorage.countCreatedTotal();
       }
+
+      const habits = await this.habitStorage.getAll();
       
       // Filter by timeframe if specified - safe mapping
       const habitsWithSafeDates = habits.map((h: { id: string; createdAt?: Date | string | number }) => {
@@ -58,6 +61,25 @@ export class AchievementIntegration {
       return filteredHabits.length;
     } catch (error) {
       console.error('AchievementIntegration.getHabitCreationCount error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Real habit completions count from storage (net — deleting/unchecking a
+   * completion removes its row). N-2.1 fix: century-club / consistency-king
+   * previously counted positive XP transactions, which reversals never
+   * decrement. Includes bonus completions (guide: "complete N habit tasks").
+   */
+  static async getHabitCompletionsCount(timeframe?: string): Promise<number> {
+    try {
+      const completions = await this.habitStorage.getAllCompletions();
+      if (!timeframe || timeframe === 'all_time') {
+        return completions.length;
+      }
+      return completions.filter(c => this.isDateInTimeframe(c.date, timeframe)).length;
+    } catch (error) {
+      console.error('AchievementIntegration.getHabitCompletionsCount error:', error);
       return 0;
     }
   }

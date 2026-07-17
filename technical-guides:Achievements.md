@@ -29,16 +29,45 @@ percentage → `getHabitXPRatio` (0–100). `await import()` v achievementServic
 `require()` (projektová konvence „for Jest compatibility").
 
 **Regresní síť**: `src/services/__tests__/achievementEvaluation.test.ts` — **jeden test
-na každý z 78 achievementů** prohání skutečnou podmínku z katalogu přes reálné dispatch
+na každý z 75 achievementů** prohání skutečnou podmínku z katalogu přes reálné dispatch
 switche (data mocky nenulové). Podmínka, která spadne do mrtvého defaultu, shodí test
 pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidáš-li nový
 `source`, MUSÍ dostat handler — jinak tenhle test neprojde. To je záměr.**
 
 ---
 
+## 🚨 PRODUCTION FIX 1 — Počítání dokončení ze stavu storage, ne z XP transakcí (audit F2, 2026-07-16)
+
+**Problém (nález N-2.1)**: count podmínky s XP zdrojem (`habit_completion`,
+`goal_completion`) počítaly KLADNÉ XP transakce — reverze (odškrtnutí návyku,
+vrácení cíle) zapisují záporné transakce, které count nikdy nesnížil.
+U cílů (GOAL_COMPLETION je záměrně exempt z limitů i rate-limitu) šlo
+legendary „Achievement Unlocked" (10 dokončení) vytočit togglováním
+JEDNOHO cíle.
+
+**Fix**: `evaluateCondition` count větev směruje `goal_completion` →
+`getCompletedGoalsCount()` (stav `status === 'completed'` ze storage)
+a `habit_completion` → `getHabitCompletionsCount()` (reálné completion
+řádky, včetně bonusových; smazání completionu počítadlo sníží).
+**Rozšíření (audit F2c, N-2.6)**: `journal_entry` → `getTotalJournalEntries()`
+— VŠECHNY zápisy ze storage; transakční count viděl jen zápisy 1-3 každého
+dne (pozice 4-13 nesou source `journal_bonus`/`journal_bonus_milestone`,
+14+ transakci vůbec nevytvoří) a smazané zápisy neodečítal.
+
+**Související sémantika (N-2.2)**: `habit_creation` count je KUMULATIVNÍ
+(„vytvořeno celkem") — `countCreatedTotal()` počítá i soft-smazané návyky
+(`is_archived = 1`). Habit Builder tak nefunguje jako duplikát Seven
+Wonder (7 současně aktivních).
+
+**Regresní testy**: Group C v `achievementEvaluation.test.ts` — toggle
+scénář (10 kladných transakcí + 1 dokončený cíl ⇒ count 1), pokles countu
+po reverzi, kumulativní creation count.
+
+---
+
 # 📋 PŘEHLED VŠECH ACHIEVEMENTS - PRO MAJITELE
 
-*Kompletní katalog všech 78 achievements v SelfRise V2 aplikaci*
+*Kompletní katalog všech 75 achievements v SelfRise V2 aplikaci*
 
 ## 🏃‍♂️ **HABITS - Návyky (8 achievements)**
 
@@ -47,15 +76,17 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Výsledek**: Uživatel začne svou cestu ke zlepšování
 
 ### **Habit Builder** 🏗️ • 100 XP • Rare  
-**Co musí udělat**: Vytvořit 5 různých návyků
+**Co musí udělat**: Vytvořit 5 návyků celkem (počítá se každé vytvoření —
+i návyk, který později smaže)
 **Výsledek**: Uživatel diverzifikuje své osobní rozvoj
 
 ### **Century Club** 💯 • 200 XP • Epic
-**Co musí udělat**: Dokončit 100 úkolů návyků
+**Co musí udělat**: Dokončit 100 úkolů návyků (včetně bonusových;
+odškrtnutí dokončení počítadlo sníží — počítá se skutečný stav)
 **Výsledek**: Uživatel se připojí k elitním řadám konzistentních lidí
 
 ### **Consistency King** 👑 • 500 XP • Legendary
-**Co musí udělat**: Dokončit 1000 úkolů návyků
+**Co musí udělat**: Dokončit 1000 úkolů návyků (stejná pravidla jako Century Club)
 **Výsledek**: Uživatel se stává mistrem konzistence
 
 ### **Habit Streak Champion** 🏆 • 200 XP • Epic
@@ -76,7 +107,7 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 
 ---
 
-## 📝 **JOURNAL - Deník (31 achievements)**
+## 📝 **JOURNAL - Deník (29 achievements)**
 
 *Základní journaling achievements - denní praxe vděčnosti*
 
@@ -89,7 +120,8 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Výsledek**: Uživatel ukazuje svou zamyšlenost
 
 ### **Journal Enthusiast** 📚 • 200 XP • Epic  
-**Co musí udělat**: Napsat 100 zápisů do deníku
+**Co musí udělat**: Napsat 100 zápisů do deníku (počítají se VŠECHNY
+zápisy včetně bonusových; smazané zápisy se odečítají)
 **Výsledek**: Uživatel buduje krásný návyk reflexe
 
 ### **Grateful Heart** 💖 • 100 XP • Rare
@@ -132,17 +164,9 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Co musí udělat**: Získat korunku (10 bonusů za jeden den) poprvé
 **Výsledek**: Vrcholný den reflexe s královským statusem
 
-### **Flame Collector** 🔥 • 200 XP • Epic
-**Co musí udělat**: Získat plamínek celkem 25krát
-**Výsledek**: Mistr intenzivních dní vděčnosti
-
 ### **Golden Bonus Streak** ⭐ • 200 XP • Epic
 **Co musí udělat**: Alespoň 3 bonusy každý den po dobu 7 dní v řadě
 **Výsledek**: Týden hluboké a rozšířené reflexe
-
-### **Triple Crown Master** 👑 • 500 XP • Legendary
-**Co musí udělat**: Získat korunku celkem 3krát
-**Výsledek**: Legendární mistr královských dnů reflexe
 
 ### **Bonus Century** 💯 • 750 XP • Legendary
 **Co musí udělat**: Napsat 200 bonusových zápisů celkem
@@ -229,7 +253,8 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Výsledek**: Uživatel definuje, kam má jeho cesta vést
 
 ### **Goal Getter** 🎯 • 100 XP • Rare
-**Co musí udělat**: Dokončit svůj první cíl
+**Co musí udělat**: Dokončit svůj první cíl (počítají se cíle, které jsou
+AKTUÁLNĚ dokončené — vrácení cíle zpět počítadlo sníží)
 **Výsledek**: Uživatel přeměňuje sny na realitu
 
 ### **Ambitious** 💪 • 100 XP • Rare
@@ -249,7 +274,8 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Výsledek**: Uživatel sní v milionech
 
 ### **Achievement Unlocked** 🔓 • 500 XP • Legendary
-**Co musí udělat**: Dokončit 10 cílů
+**Co musí udělat**: Dokončit 10 cílů (10 současně dokončených cílů —
+stav, ne historie kliknutí; viz PRODUCTION FIX 1)
 **Výsledek**: Uživatel je legendární dosahování cílů
 
 ### **Million Achiever** 💎 • 500 XP • Legendary
@@ -273,15 +299,18 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 **Výsledek**: Uživatel se připojí k elitním řadám mistrů návyků
 
 ### **Daily Visitor** 📱 • 100 XP • Rare
-**Co musí udělat**: Používat aplikaci 7 po sobě jdoucích dní
+**Co musí udělat**: Být v aplikaci aktivní 7 dní po sobě (za den se počítá
+den, kdy uživatel získal nějaké XP — splnil návyk, zápis nebo pokrok cíle)
 **Výsledek**: Uživatel buduje zdravý návyk
 
 ### **Dedicated User** 🎯 • 200 XP • Epic
-**Co musí udělat**: Používat aplikaci 30 po sobě jdoucích dní
+**Co musí udělat**: Být v aplikaci aktivní 30 dní po sobě (stejné pravidlo
+„aktivního dne" jako Daily Visitor)
 **Výsledek**: Závazek uživatele je inspirující
 
 ### **Perfect Month** 🌟 • 500 XP • Legendary
-**Co musí udělat**: Dokončit aktivity ve všech 3 oblastech 28+ dní v měsíci
+**Co musí udělat**: Mít 28+ „perfektních dní" (den s návykem I zápisem I
+pokrokem cíle) v posledních klouzavých 30 dnech
 **Výsledek**: Uživatel dosahuje dokonalé balance
 
 ### **Triple Crown** 👑 • 500 XP • Legendary
@@ -294,7 +323,7 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 
 ---
 
-## 👑 **MASTERY - Mistrovství (9 achievements)**
+## 👑 **MASTERY - Mistrovství (8 achievements)**
 
 ### **Dream Fulfiller** ⭐ • 200 XP • Epic
 **Co musí udělat**: Dokončit 3 cíle
@@ -315,10 +344,6 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 ### **Ultimate SelfRise Legend** 🏆 • 500 XP • Legendary
 **Co musí udělat**: Dosáhnout level 100 "Mythic V"
 **Výsledek**: Uživatel dosáhl ultimátního mistrovství
-
-### **Recommendation Master** 💡 • 200 XP • Epic
-**Co musí udělat**: Následovat 20 personalizovaných doporučení
-**Výsledek**: Uživatel aktivně využívá guidance
 
 ### **Balance Master** ⚖️ • 200 XP • Epic
 **Co musí udělat**: Použít všechny 3 funkce v jednom dni 10x
@@ -402,15 +427,15 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 ## 📊 **STATISTIKY PRO MAJITELE**
 
 ### **Celkový Přehled**
-- **Celkem Achievements**: 78
-- **Celkové možné XP**: 25,050 XP
-- **Kategorie**: 6 (Habits: 8, Journal: 31, Goals: 8, Consistency: 8, Mastery: 9, Special: 14)
+- **Celkem Achievements**: 75
+- **Celkové možné XP**: 24,150 XP
+- **Kategorie**: 6 (Habits: 8, Journal: 29, Goals: 8, Consistency: 8, Mastery: 8, Special: 14)
 
 ### **Rozložení podle obtížnosti**
 - **Common (Běžné)**: 5 achievements • 50 XP každý
 - **Rare (Vzácné)**: 18 achievements • 100-125 XP každý
-- **Epic (Epické)**: 29 achievements • 150-300 XP každý
-- **Legendary (Legendární)**: 26 achievements • 350-2000 XP každý
+- **Epic (Epické)**: 27 achievements • 150-300 XP každý
+- **Legendary (Legendární)**: 25 achievements • 350-2000 XP každý
 
 ### **Motivační strategie**
 - **Rychlé výhry**: Common achievements pro nové uživatele
@@ -450,15 +475,15 @@ pojmenovaný přímo po achievementu. **Pravidlo pro nové achievementy: přidá
 
 ### Complete Achievement System Overview
 
-The SelfRise V2 achievement system consists of **78 achievements** across **6 categories**:
+The SelfRise V2 achievement system consists of **75 achievements** across **6 categories**:
 
 #### **System Breakdown**
 - **Core System**: 42 achievements (original)
 - **Loyalty System**: 10 achievements
-- **Journal Bonus Achievements**: 24 achievements (⭐🔥👑 milestones)
+- **Journal Bonus Achievements**: 22 achievements (⭐🔥👑 milestones)
 - **Goals Expansion**: 2 additional achievements
-- **Total Possible XP**: 25,050 XP from all achievements
-- **Categories**: 6 (Habits: 8, Journal: 31, Goals: 8, Consistency: 8, Mastery: 9, Special: 14)
+- **Total Possible XP**: 24,150 XP from all achievements
+- **Categories**: 6 (Habits: 8, Journal: 29, Goals: 8, Consistency: 8, Mastery: 8, Special: 14)
 
 #### **User Experience Types**
 ```typescript
@@ -536,7 +561,6 @@ Based on analysis of all existing achievements in `achievementCatalog.ts`:
 'ultimate-selfrise-legend' // Intensity + brand + level
 
 // Complex achievements
-'recommendation-master' // Feature + level
 'trophy-collector-basic' // Role + progression suffix
 'trophy-collector-master' // Role + progression suffix
 'balance-master'       // Skill + level
@@ -714,7 +738,7 @@ interface Achievement {
 ✅ Journal Category (8 achievements): All kebab-case  
 ✅ Goals Category (7 achievements): All kebab-case
 ✅ Consistency Category (8 achievements): All kebab-case
-✅ Mastery Category (9 achievements): All kebab-case
+✅ Mastery Category (8 achievements): All kebab-case
 ✅ Special Category (14 achievements): All kebab-case
 
 // No exceptions, no legacy formats - 100% compliance achieved
@@ -830,14 +854,14 @@ LOYALTY_LEGENDARY: 500-2000 XP
 ```typescript
 describe('Achievement System Complete Testing', () => {
   describe('Achievement ID Compliance', () => {
-    it('should validate all 78 achievement IDs follow kebab-case', () => {
+    it('should validate all 75 achievement IDs follow kebab-case', () => {
       // Test ID format compliance
     });
   });
 
   describe('Preview System Integration', () => {
     it('should show progress hints for all locked achievements', () => {
-      // Test progress hint generation for all 78 achievements
+      // Test progress hint generation for all 75 achievements
     });
     
     it('should display completion requirements clearly', () => {
@@ -1110,4 +1134,4 @@ return <Modal visible={visible}...>
 
 ---
 
-*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of all 78 achievements creates a robust ecosystem designed for sustained user engagement.*
+*This complete achievement system provides comprehensive recognition for all user types while maintaining motivation for continued engagement across multiple commitment styles and usage patterns. The integration of all 75 achievements creates a robust ecosystem designed for sustained user engagement.*

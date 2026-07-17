@@ -19,6 +19,37 @@
 > validateProgressionTimeline() nyní isValid: true). Fáze 2f má ověřit prahy
 > level-achievementů proti nové křivce.
 > Zpráva vč. detailů oprav: @docs/audits/super-audit-2026-07/faze-1-nalezy.md
+>
+> 🔍 **Fáze 2 — session #2 provedena 2026-07-16 (Fable)**: 2.0 baseline (107/107 ✓)
+> + HABITS 8/8 + GOALS 8/8 auditováno. 5 nálezů vč. 1 vysokého (N-2.1: toggle abuse
+> trofejí přes XP transakce). **Opravy schváleny a PROVEDENY**: county dokončení čtou
+> storage stav (reverze snižují), habit-builder kumulativní (soft-delete využit),
+> multi-tasker timeframe srovnán; +4 regresní testy (Group C), guide PRODUCTION FIX 1.
+> tsc 0, 403/403 testů ✓. Zpráva: @docs/audits/super-audit-2026-07/faze-2-nalezy.md
+>
+> 🔍 **Fáze 2 — session #3 (2c JOURNAL 1. půlka) provedena 2026-07-16 (Fable)**:
+> 16/16 auditováno. XP hodnoty vč. custom (125/150/750) sedí s guide ✓; 14 položek
+> storage-based ✅. Nález **N-2.6** (předpovězený handoffem): `journal-enthusiast` +
+> `first-journal` počítaly transakce → viděly jen zápisy 1-3/den a mazání neodečítaly —
+> OPRAVENO přesměrováním na `getTotalJournalEntries` (stejná schválená třída jako N-2.1)
+> + test. tsc 0, 404/404 ✓. Zpráva: @docs/audits/super-audit-2026-07/faze-2-nalezy.md
+>
+> 🔍 **Fáze 2 — sessions #4+#5 (2d+2e+2f) provedeny 2026-07-16 (Fable)**: 32/32
+> auditováno (celkem 65/78). XP shoda katalog↔guide 32/32 vč. custom hodnot.
+> **K ROZHODNUTÍ (audit-only, bez oprav): N-2.8 [VYSOKÁ]** — trofej
+> `recommendation-master` je mrtvá (nikdo neuděluje RECOMMENDATION_FOLLOW XP +
+> placeholder ×0,3): dodrátovat follow-tracking (váže se na Fázi 11), nebo vyřadit?
+> Dále N-2.7 (duplicitní targety 2 párů trofejí — dvojitá odměna naráz), N-2.9 (dvě
+> definice „aktivního dne"), N-2.10 (klouzavý vs. kalendářní měsíc u Perfect Month).
+> Pozitivní: level trofeje po rebalanci křivky dávají smysl (uzavřen cross-check F1).
+> Zpráva: @docs/audits/super-audit-2026-07/faze-2-nalezy.md
+>
+> ✅ **Rozhodnutí Petra k F2 nálezům PROVEDENA 2026-07-16 (Fable)**: N-2.8 + N-2.7 →
+> **smazány 3 trofeje** (recommendation-master, flame-collector, triple-crown-master)
+> → **katalog 78 → 75**; N-2.9/N-2.10 → sladěn text guide (kód beze změny). Uklizen
+> preview-utils, testy (75), guide (počty/XP 24 150/rarity/popisy). tsc 0, 401/401 ✓.
+> Osiřelé i18n klíče → F12, drobný dead-code (recommendations_followed case, ×0,3) → F13.
+> **Zbývá dokončit Fázi 2: 2g SPECIAL (14) + 2h batch + 2i device.**
 > Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
 > našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
 

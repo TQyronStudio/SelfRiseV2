@@ -419,17 +419,6 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: t('achievements.progressHints.crown_royalty.action')
       };
 
-    case 'flame-collector':
-      const flameCollector = Math.min(userStats.flameCount, 25);
-      return {
-        progressText: t('achievements.progressHints.flame_collector.progress', { current: flameCollector, target: 25 }),
-        progressPercentage: (flameCollector / 25) * 100,
-        isCompleted: flameCollector >= 25,
-        requirementText: t('achievements.progressHints.flame_collector.requirement'),
-        actionHint: t('achievements.progressHints.flame_collector.action'),
-        estimatedDays: Math.max(0, 25 - flameCollector) * 7 // Rough estimate
-      };
-
     case 'golden-bonus-streak':
       const goldenStreak = Math.min(userStats.goldenBonusStreakDays, 7);
       return {
@@ -439,17 +428,6 @@ const generateJournalProgressHint = (achievement: Achievement, userStats: UserSt
         requirementText: t('achievements.progressHints.golden_bonus_streak.requirement'),
         actionHint: t('achievements.progressHints.golden_bonus_streak.action'),
         estimatedDays: Math.max(0, 7 - goldenStreak)
-      };
-
-    case 'triple-crown-master':
-      const tripleCrown = Math.min(userStats.crownCount, 3);
-      return {
-        progressText: t('achievements.progressHints.triple_crown_master.progress', { current: tripleCrown, target: 3 }),
-        progressPercentage: (tripleCrown / 3) * 100,
-        isCompleted: tripleCrown >= 3,
-        requirementText: t('achievements.progressHints.triple_crown_master.requirement'),
-        actionHint: t('achievements.progressHints.triple_crown_master.action'),
-        estimatedDays: Math.max(0, 3 - tripleCrown) * 30 // Rough estimate
       };
 
     case 'bonus-century':
@@ -897,17 +875,6 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
         actionHint: t('achievements.preview.trophy_collector_master.action')
       };
 
-    case 'recommendation-master':
-      const recs = Math.min(userStats.recommendationsFollowed, 20);
-      return {
-        progressText: t('achievements.progressHints.recommendation_master.progress', { current: recs, target: 20 }),
-        progressPercentage: (recs / 20) * 100,
-        isCompleted: recs >= 20,
-        requirementText: t('achievements.progressHints.recommendation_master.requirement'),
-        actionHint: t('achievements.progressHints.recommendation_master.action'),
-        estimatedDays: Math.ceil((20 - recs) / 2) // Assuming 2 recommendations per day
-      };
-
     case 'balance-master':
       const comboDays = Math.min(userStats.dailyFeatureComboDays, 10);
       return {
@@ -1250,9 +1217,7 @@ const getAccomplishmentText = (achievement: Achievement, t?: TFunction): string 
     'flame-achiever': "Earned your first flame",
     'bonus-week': "1 bonus daily for 7 days",
     'crown-royalty': "Earned your first crown",
-    'flame-collector': "Earned 25 flames total",
     'golden-bonus-streak': "3+ bonuses daily for 7 days",
-    'triple-crown-master': "Earned 3 crowns total",
     'bonus-century': "Wrote 200 bonus entries",
     'star-beginner': "Earned 10 stars total",
     'star-collector': "Earned 25 stars total",
@@ -1299,7 +1264,6 @@ const getAccomplishmentText = (achievement: Achievement, t?: TFunction): string 
     'selfrise-expert': "Reached level 25",
     'selfrise-master': "Reached level 50",
     'ultimate-selfrise-legend': "Reached level 100",
-    'recommendation-master': "Followed 20 recommendations",
     'balance-master': "Used all 3 features 10 times in a day",
     'trophy-collector-basic': "Unlocked 10 achievements",
     'trophy-collector-master': "Unlocked 25 achievements",

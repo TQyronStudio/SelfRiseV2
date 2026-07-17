@@ -320,7 +320,7 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
 
 ---
 
-## FÁZE 2 — Achievements: PLNÝ audit všech 78, po kategoriích
+## FÁZE 2 — Achievements: PLNÝ audit všech 78 → 75 (3 smazány v session #5), po kategoriích
 
 **Guide**: `technical-guides:Achievements.md` (sekce "PRODUCTION FIX 0":
 nový zdroj ⇒ musí mít dispatch handler)
@@ -331,8 +331,13 @@ nový zdroj ⇒ musí mít dispatch handler)
 `src/services/achievementStorage.ts`
 
 **Rozdělení do dávek podle kategorie** (počty i ID ověřeny v katalogu
-2026-07-16): JOURNAL 31, SPECIAL 14, MASTERY 9, HABITS 8, GOALS 8,
-CONSISTENCY 8 = 78. JOURNAL je moc velká na jednu dávku → rozděl na 2 půlky.
+2026-07-16, PŮVODNÍ stav): JOURNAL 31, SPECIAL 14, MASTERY 9, HABITS 8,
+GOALS 8, CONSISTENCY 8 = 78. JOURNAL je moc velká na jednu dávku → rozděl na 2 půlky.
+**⚠️ AKTUALIZACE (session #5, 2026-07-16)**: smazány 3 trofeje (N-2.8
+`recommendation-master` MASTERY; N-2.7 `flame-collector` + `triple-crown-master`
+JOURNAL) → **nově JOURNAL 29, MASTERY 8, celkem 75**. Historické checklisty
+2c/2d/2f níže obsahují smazaná ID (proškrtnuto v realitě, ne v textu) —
+zbývající SPECIAL (2g) = 14 beze změny.
 
 ⚠️ **Past**: katalog NENÍ v souboru seřazený po kategoriích (např.
 `goal-achiever` z MASTERY leží uprostřed CONSISTENCY bloku a JOURNAL je ve
@@ -352,33 +357,33 @@ evaluátor vrací správnou hodnotu).
 Texty (name/description) achievementů v EN/DE/ES tady neřeš — to je Fáze 12;
 tady jen zapiš ID achievementů, kterých se dotkneš oprava.
 
-- [ ] 2.0 Spusť `achievementEvaluation.test.ts` (celý, 89 testů),
+- [x] 2.0 Spusť `achievementEvaluation.test.ts` (celý, 89 testů),
       `__tests__/services/gamification/AchievementLogic.test.ts` a
       `storageSplitBrain.test.ts` (catalog-vs-batch-size invariant) —
       zapiš výsledek jako baseline před hloubkovým průchodem.
-- [ ] 2a. **HABITS** (8): `first-habit`, `habit-builder`, `century-club`,
+- [x] 2a. **HABITS** (8): `first-habit`, `habit-builder`, `century-club`,
       `consistency-king`, `streak-champion`, `century-streak`,
       `multi-tasker`, `habit-legend`
-- [ ] 2b. **GOALS** (8): `first-goal`, `goal-getter`, `goal-champion`,
+- [x] 2b. **GOALS** (8): `first-goal`, `goal-getter`, `goal-champion`,
       `achievement-unlocked`, `ambitious`, `progress-tracker`,
       `mega-dreamer`, `million-achiever`
       (⚠️ `achievement-unlocked` je ID ACHIEVEMENTU v kategorii GOALS —
       nezaměňovat se stejnojmennou monthly-challenge šablonou z guide,
       viz Fáze 3)
-- [ ] 2c. **JOURNAL — 1. půlka** (16): `first-journal`, `deep-thinker`,
+- [x] 2c. **JOURNAL — 1. půlka** (16): `first-journal`, `deep-thinker`,
       `journal-enthusiast`, `grateful-heart`, `gratitude-guru`,
       `eternal-gratitude`, `bonus-seeker`, `first-star`, `five-stars`,
       `flame-achiever`, `bonus-week`, `crown-royalty`, `flame-collector`,
       `golden-bonus-streak`, `triple-crown-master`, `bonus-century`
-- [ ] 2d. **JOURNAL — 2. půlka** (15): `star-beginner`, `star-collector`,
+- [x] 2d. **JOURNAL — 2. půlka** (15): `star-beginner`, `star-collector`,
       `star-master`, `star-champion`, `star-legend`, `flame-starter`,
       `flame-accumulator`, `flame-master`, `flame-champion`, `flame-legend`,
       `crown-achiever`, `crown-collector`, `crown-master`, `crown-champion`,
       `crown-emperor`
-- [ ] 2e. **CONSISTENCY** (8): `weekly-warrior`, `monthly-master`,
+- [x] 2e. **CONSISTENCY** (8): `weekly-warrior`, `monthly-master`,
       `hundred-days`, `journal-streaker`, `daily-visitor`, `dedicated-user`,
       `perfect-month`, `triple-crown`
-- [ ] 2f. **MASTERY** (9): `goal-achiever`, `level-up`, `selfrise-expert`,
+- [x] 2f. **MASTERY** (9): `goal-achiever`, `level-up`, `selfrise-expert`,
       `selfrise-master`, `recommendation-master`, `balance-master`,
       `trophy-collector-basic`, `trophy-collector-master`,
       `ultimate-selfrise-legend`
@@ -755,7 +760,9 @@ v německé appce, přesně typ chyby, který unikne všem ostatním fázím.
 - [ ] 12.1 **Paritní kontrola klíčů**: každý klíč existující v EN existuje
       i v DE a ES (a obráceně — osiřelé klíče zapiš). Kritérium: skript/grep
       diff, výstupem počet chybějících klíčů per jazyk (cíl: 0).
-- [ ] 12.2 **Achievementy**: všech 78 má name + description ve 3 jazycích;
+- [ ] 12.2 **Achievementy**: všech 75 má name + description ve 3 jazycích
+      (+ uklidit OSIŘELÉ i18n klíče 3 trofejí smazaných v F2: recommendation-master,
+      flame-collector, triple-crown-master — viz faze-2-nalezy.md);
       žádný text nezůstal anglicky v DE/ES (namátkově ověř kvalitu, ne
       strojový posudek celého překladu).
 - [ ] 12.3 **Monthly Challenges**: 14 šablon × title/description/requirement
@@ -848,10 +855,10 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | # | Blok | Pozn. |
 |---|---|---|
 | 1 | Fáze 1 celá (1.1–1.9) | ✅ HOTOVO 2026-07-16 (zpráva: faze-1-nalezy.md) |
-| 2 | 2.0 + 2a + 2b | 16 achievementů + baseline |
-| 3 | 2c | 16 achievementů (JOURNAL 1) |
-| 4 | 2d | 15 achievementů (JOURNAL 2) |
-| 5 | 2e + 2f | 17 achievementů |
+| 2 | 2.0 + 2a + 2b | ✅ HOTOVO 2026-07-16 (5 nálezů, 1 vysoký — N-2.1; zpráva: faze-2-nalezy.md) |
+| 3 | 2c | ✅ HOTOVO 2026-07-16 (N-2.6 nalezen + opraven; zpráva: faze-2-nalezy.md) |
+| 4 | 2d | ✅ HOTOVO 2026-07-16 (15/15, XP shoda, N-2.7 duplicity) |
+| 5 | 2e + 2f | ✅ HOTOVO 2026-07-16 (17/17; N-2.8 mrtvý recommendation-master → rozhodnutí Petra) |
 | 6 | 2g + 2h | 14 achievementů + batch smyčka |
 | 7 | 3.0 + 3a + 3b | baseline + 8 šablon |
 | 8 | 3c + 3d | 6 šablon |
