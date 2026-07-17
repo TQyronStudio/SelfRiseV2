@@ -225,6 +225,14 @@ ve Fázi 1 (eventy/XP core) vůči všem ostatním fázím.
 
 ## FÁZE 1 — Gamification Core / Events / UI / Limity / Levely / Loyalty (základ, dělat PRVNÍ)
 
+> ✅ **PROVEDENO 2026-07-16 (Fable)** — 9/9 položek, brána úplnosti ✓,
+> 13 nálezů, schválené opravy provedeny (vč. rebalance levelové křivky —
+> N-1.7b), commit `05ed277`. Zpráva:
+> `docs/audits/super-audit-2026-07/faze-1-nalezy.md`.
+> Pro navazující fáze: viz cross-impact poznámky ve zprávě (Fáze 2f —
+> prahy level-achievementů proti nové křivce; Fáze 9.4 — demo mód píše
+> do mrtvých tabulek; Fáze 13 — schválené smazání N-1.5a/1.8b/1.8c).
+
 **Proč první**: Achievementy i měsíční výzvy na těchto eventech/pravidlech
 závisí — chyba tady by deformovala výsledky všech dalších fází.
 
@@ -238,7 +246,7 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
 `src/utils/appEvents.ts`, `src/contexts/XpAnimationContext.tsx`,
 `src/contexts/ModalQueueContext.tsx`
 
-- [ ] 1.1 Spusť `xpMultiplier.loyalty.test.ts` — potvrď zelené, pak jdi za
+- [x] 1.1 Spusť `xpMultiplier.loyalty.test.ts` — potvrď zelené, pak jdi za
       test suite: projdi ručně všechny 3 cesty aktivace multiplikátoru
       (Harmony Streak, Inactive Boost, Achievement Combo) a ověř storage
       helpery (`storeActiveMultiplier`/`clearActiveMultiplierStorage`) jsou
@@ -246,11 +254,11 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
       `xp_multipliers` tabulku, žádný jiný přímý zápis mimo tyhle helpery.
       (Pozn.: grep najde i `marketingDemoDataService.ts` — to je záměrný
       zápis demo módu, posuzuje se ve fázi 9.4, tady jen zapiš, že existuje.)
-- [ ] 1.2 **XP transakce end-to-end**: `addXP` → SQLite `xp_transactions` →
+- [x] 1.2 **XP transakce end-to-end**: `addXP` → SQLite `xp_transactions` →
       `getAllTransactions`/`getTransactionsByDateRange` — ověř SQL dotazy
       opravdu vrací to, co appka očekává (ne jen že běží bez chyby) —
       napiš/spusť test co zapíše transakci a hned ji přečte zpět.
-- [ ] 1.3 Projdi **všech 18 eventů** vyjmenovaných v `Gamification-Events.md`
+- [x] 1.3 Projdi **všech 18 eventů** vyjmenovaných v `Gamification-Events.md`
       (sekce "Kompletni seznam gamifikacnich eventu"). ⚠️ Guide v nadpisu
       tvrdí "16 eventu", ale reálně jich vyjmenovává 15 gamifikačních + 3
       UI/tutorial = 18; a tvrdí "5 eventu BEZ LISTENERU", ale značí jen 3 —
@@ -274,17 +282,17 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
       v seznamu výše = nedokumentovaný event = nález. Kritérium: tabulka
       18+ řádků, každý event má vyplněné emit-místo (soubor:řádek) +
       listener-místo (soubor:řádek) nebo štítek "reserved".
-- [ ] 1.4 **ModalQueue pinning invariant** — spusť
+- [x] 1.4 **ModalQueue pinning invariant** — spusť
       `src/contexts/__tests__/modalQueueOrdering.test.ts`, pak ručně projdi
       `enqueue()` logiku a `presentedIdRef` — potvrď, že žádný commit od
       14.7. tohle nerozbil (`git log --oneline -- src/contexts/ModalQueueContext.tsx`).
-- [ ] 1.5 **Animation consistency** (Gamification-UI.md): vylistuj VŠECHNA
+- [x] 1.5 **Animation consistency** (Gamification-UI.md): vylistuj VŠECHNA
       call-sites `addXP(` v `src/` + `app/` (grep), každé klasifikuj
       batchované/nebatchované podle `shouldBatchXPAddition()` a ověř, že
       žádný user-facing zdroj (habit toggle, journal entry, goal progress…)
       neprochází batchováním. Kritérium: úplný seznam call-sites s klasifikací,
       0 user-facing batchovaných.
-- [ ] 1.6 **Denní limity + anti-spam** (`src/services/gamification/xpLimits.ts`):
+- [x] 1.6 **Denní limity + anti-spam** (`src/services/gamification/xpLimits.ts`):
       porovnej mapu source→limit s guide (HABITS_MAX_DAILY 500,
       JOURNAL_MAX_DAILY 415, GOALS_MAX_DAILY 400, ENGAGEMENT_MAX_DAILY 200;
       exempt: GOAL_COMPLETION, ACHIEVEMENT_UNLOCK, MONTHLY_CHALLENGE,
@@ -293,13 +301,13 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
       ≥ 20 %". Spusť `xpLimits.test.ts`. Kritérium: každý `XPSourceType` má
       limit shodný s guide + existuje test chování NA hranici limitu
       (transakce těsně pod / přes).
-- [ ] 1.7 **Level výpočty**: `levelCalculation.ts` vs. matematický model
+- [x] 1.7 **Level výpočty**: `levelCalculation.ts` vs. matematický model
       v Gamification-Core.md; spusť `MathematicalModel.test.ts` +
       `levelProgressDisplay.test.ts`. Pak grep přes UI (`app/levels-overview.tsx`,
       XP bar na Home, level-up modaly), že VŠECHNY zobrazované hodnoty
       procházejí `levelCalculation.ts` — žádná komponenta nemá vlastní
       kopii vzorce. (Přesně tenhle typ bugu byl XP bar fix ze 14.7.)
-- [ ] 1.8 **Loyalty systém** (v plánu dosud chyběl): `loyaltyService.ts` +
+- [x] 1.8 **Loyalty systém** (v plánu dosud chyběl): `loyaltyService.ts` +
       `userActivityTracker.ts` + `src/validation/loyaltySystemValidation.ts`
       + UI `src/components/achievements/LoyaltyProgressCard.tsx`. Spusť
       `userActivityTracker.test.ts` a `userActivityTracker.baseline.test.ts`.
@@ -307,7 +315,7 @@ závisí — chyba tady by deformovala výsledky všech dalších fází.
       2× za den; (b) LOYALTY_MILESTONE XP odměny odpovídají guide a jsou
       exempt z denních limitů; (c) LoyaltyProgressCard čte stejná data,
       jaká zapisuje tracker (single source of truth).
-- [ ] 1.9 Změř aktuální velikost `gamificationService.ts` (N28) — zapiš do
+- [x] 1.9 Změř aktuální velikost `gamificationService.ts` (N28) — zapiš do
       zprávy, informativní pro Fázi 13.
 
 ---
@@ -839,7 +847,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 
 | # | Blok | Pozn. |
 |---|---|---|
-| 1 | Fáze 1 celá (1.1–1.9) | kdyby byla moc velká: rozdělit 1.1–1.5 / 1.6–1.9 |
+| 1 | Fáze 1 celá (1.1–1.9) | ✅ HOTOVO 2026-07-16 (zpráva: faze-1-nalezy.md) |
 | 2 | 2.0 + 2a + 2b | 16 achievementů + baseline |
 | 3 | 2c | 16 achievementů (JOURNAL 1) |
 | 4 | 2d | 15 achievementů (JOURNAL 2) |
