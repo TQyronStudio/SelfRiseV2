@@ -23,7 +23,6 @@ export enum XPSourceType {
   ACHIEVEMENT_UNLOCK = 'achievement_unlock',
   MONTHLY_CHALLENGE = 'monthly_challenge',
   XP_MULTIPLIER_BONUS = 'xp_multiplier_bonus',
-  LOYALTY_MILESTONE = 'loyalty_milestone',
   DAILY_ACTIVITY = 'daily_activity',
   INACTIVE_USER_RETURN = 'inactive_user_return',
 }
@@ -143,13 +142,8 @@ export interface LevelInfo {
 /**
  * Level requirement calculation parameters
  */
-export interface LevelRequirement {
-  level: number;
-  baseXP: number; // Base XP for level 1
-  multiplier: number; // Multiplier for progression
-  formula: 'linear' | 'quadratic' | 'exponential';
-  phase: 'beginner' | 'intermediate' | 'advanced' | 'master';
-}
+// (LevelRequirement interface removed 2026-07-16 — the per-phase formula
+// machinery it described was replaced by the single power-law curve.)
 
 // ========================================
 // ACHIEVEMENT SYSTEM INTERFACES

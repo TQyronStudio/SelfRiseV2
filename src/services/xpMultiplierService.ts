@@ -139,7 +139,7 @@ export class XPMultiplierService {
 
   /**
    * Persist an activated multiplier where getActiveMultiplier() actually
-   * reads it. CRITICAL (audit fix, July 2026): all three activation paths
+   * reads it. CRITICAL (audit fix, July 2026): all four activation paths
    * previously wrote ONLY to AsyncStorage, while getActiveMultiplier() reads
    * the SQLite `xp_multipliers` table when USE_SQLITE_GAMIFICATION is on —
    * the only SQLite writer was the one-time migration. Every multiplier

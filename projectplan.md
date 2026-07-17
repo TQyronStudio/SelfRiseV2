@@ -4,6 +4,24 @@
 
 > 🧹 **Úklid 2026-07-14**: Dokončené sekce přesunuty do @implementation-history.md (viz index níže). Tento soubor drží už jen ROZPRACOVANÉ a PLÁNOVANÉ úkoly + trvalou referenci.
 
+> 🔍 **Připraveno 2026-07-16**: Super audit plán (gamifikace + data integrita + mrtvý kód,
+> 13 fází + sub-fáze, k provedení jinou session; revidováno druhou session téhož dne —
+> doplněny fáze Startup/Home/i18n, ověřena fakta proti kódu) — @super-audit-plan-2026-07-16.md.
+>
+> ✅ **Fáze 1 provedena 2026-07-16 (Fable)**: baseline zelená (tsc 0, 399/399 testů),
+> 9/9 položek auditováno, 12 nálezů (0 kritických pro uživatele; hlavní: mrtvý XP batching
+> pipeline vč. eventu s živými listenery, mrtvé SQLite tabulky loyalty_state/daily_activity_log,
+> 2 nevynucená pravidla limitů z guide). **Schválené opravy PROVEDENY 2026-07-16**
+> (dokumentace Events/Core, smazání 3 mrtvých konstant 80/20, smazání LOYALTY_MILESTONE,
+> level tabulka do guide) — tsc 0, 399/399 testů ✓. Odloženo: mrtvý kód/tabulky → Fáze 13;
+> N-1.6b se neřeší. **N-1.7b VYŘEŠEN**: levelová křivka zploštěna dle rozhodnutí Petra
+> (mocninná křivka, levely 1–10 beze změny; level 100 = ~2,0 M XP → max. uživatel ~4,6 roku;
+> validateProgressionTimeline() nyní isValid: true). Fáze 2f má ověřit prahy
+> level-achievementů proti nové křivce.
+> Zpráva vč. detailů oprav: @docs/audits/super-audit-2026-07/faze-1-nalezy.md
+> Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
+> našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
+
 ---
 
 ## 🎯 AKTUÁLNÍ ÚKOL: Startup Orchestrator — sekvenční startovací pipeline

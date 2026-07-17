@@ -2,19 +2,23 @@
 
 **SelfRise V2 - Advertising System Documentation**
 
-*Last Updated: 2026-01-13*
+*Last Updated: 2026-07-16*
 
 ---
 
 ## 🚨 CURRENT STATUS
 
-**Active Ad Unit IDs**: ⚠️ **TEST IDs** (Development Mode)
+**Active Ad Unit IDs**: ✅ **Automatic per build type** — no manual step needed
 
-All banner and rewarded ads are currently using **Google test IDs** that always show ads. This allows testing without "no-fill" errors during development.
+`src/components/ads/AdBanner.tsx` and `src/services/adService.ts` both select the ad unit ID via
+`__DEV__`: development builds (`npm start`, `eas build --profile development`) use Google **test**
+IDs (always fill, safe to tap without an "invalid traffic" ban risk); release builds (`eas build
+--profile preview/production`) automatically use the real **production** IDs. There is **no
+"replace test IDs before submission" step** — the switch already happens at build time.
 
-**Before App Store submission**: Change back to production IDs in:
-- `src/components/ads/AdBanner.tsx`
-- `src/services/adService.ts`
+**Pre-submission check is therefore just verification, not editing**: confirm a `preview`/
+`production` EAS build actually serves production ad unit IDs (e.g. check AdMob dashboard
+impressions on a TestFlight/Internal Testing build), not a code change.
 
 ---
 
@@ -92,10 +96,10 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Environment | Platform | Ad Unit ID | Size | Status |
 |-------------|----------|-----------|------|--------|
-| **Production** | iOS | `ca-app-pub-2983534520735805/2803676517` | 320x50 (Standard) | ⚠️ Not Active |
-| **Production** | Android | `ca-app-pub-2983534520735805/1782416491` | 320x50 (Standard) | ⚠️ Not Active |
-| **Test** | iOS | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ **ACTIVE NOW** |
-| **Test** | Android | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ **ACTIVE NOW** |
+| **Production** | iOS | `ca-app-pub-2983534520735805/2803676517` | 320x50 (Standard) | ✅ Active in release builds (`!__DEV__`) |
+| **Production** | Android | `ca-app-pub-2983534520735805/1782416491` | 320x50 (Standard) | ✅ Active in release builds (`!__DEV__`) |
+| **Test** | iOS | `ca-app-pub-3940256099942544/2934735716` | 320x50 | ✅ Active in dev builds (`__DEV__`) only |
+| **Test** | Android | `ca-app-pub-3940256099942544/6300978111` | 320x50 | ✅ Active in dev builds (`__DEV__`) only |
 
 **Supported Banner Sizes**:
 - **Standard** (320x50) - Default for most screens
@@ -110,10 +114,10 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 | Environment | Platform | Ad Unit ID | Reward | Status |
 |-------------|----------|-----------|--------|--------|
-| **Production** | iOS | `ca-app-pub-2983534520735805/2719065972` | 1 Streak Restore | ⚠️ Not Active |
-| **Production** | Android | `ca-app-pub-2983534520735805/5557832361` | 1 Streak Restore | ⚠️ Not Active |
-| **Test** | iOS | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ **ACTIVE NOW** |
-| **Test** | Android | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ **ACTIVE NOW** |
+| **Production** | iOS | `ca-app-pub-2983534520735805/2719065972` | 1 Streak Restore | ✅ Active in release builds (`!__DEV__`) |
+| **Production** | Android | `ca-app-pub-2983534520735805/5557832361` | 1 Streak Restore | ✅ Active in release builds (`!__DEV__`) |
+| **Test** | iOS | `ca-app-pub-3940256099942544/1712485313` | 1 Streak Restore | ✅ Active in dev builds (`__DEV__`) only |
+| **Test** | Android | `ca-app-pub-3940256099942544/5224354917` | 1 Streak Restore | ✅ Active in dev builds (`__DEV__`) only |
 
 **Reward Logic**: See [WarmUp System Documentation](#rewarded-ads-system)
 
@@ -146,7 +150,7 @@ SelfRise V2 integrates Google AdMob for monetization through:
 
 **Component**: `src/components/ads/AdBanner.tsx`
 
-**Implementation Status**: ✅ Banner component created and integrated into all major screens (⚠️ TEST IDs active - for development)
+**Implementation Status**: ✅ Banner component created and integrated into all major screens (ad unit ID auto-switches by build type — see [Current Status](#-current-status))
 
 ---
 
@@ -239,7 +243,7 @@ async function handleWatchAd() {
 
 **Localization**: All error messages and UI text support EN/DE/ES
 
-**Implementation Status**: ✅ Rewarded ads fully implemented (⚠️ TEST IDs active - for development)
+**Implementation Status**: ✅ Rewarded ads fully implemented (ad unit ID auto-switches by build type — see [Current Status](#-current-status))
 - `src/services/adService.ts` - Rewarded ad service with preloading
 - `src/components/home/GratitudeStreakCard.tsx` - Integration point
 - Translation keys added for all ad-related errors (EN/DE/ES)
@@ -278,62 +282,38 @@ npm install react-native-google-mobile-ads
 }
 ```
 
-### AdBanner Component
+### AdBanner Component (actual implementation)
 
 ```typescript
 // src/components/ads/AdBanner.tsx
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+// Ad unit ID auto-switches by build type — no manual editing before release.
+const BANNER_AD_UNIT_IDS = __DEV__
+  ? { ios: 'ca-app-pub-3940256099942544/2934735716', android: 'ca-app-pub-3940256099942544/6300978111' }
+  : { ios: 'ca-app-pub-2983534520735805/2803676517', android: 'ca-app-pub-2983534520735805/1782416491' };
 
-interface AdBannerProps {
-  adUnitId: string;
-  size?: BannerAdSize; // Default: BannerAdSize.BANNER (320x50)
-}
-
-export function AdBanner({ adUnitId, size = BannerAdSize.BANNER }: AdBannerProps) {
-  const { colors } = useTheme();
-
-  return (
-    <View style={{ backgroundColor: colors.backgroundSecondary }}>
-      <BannerAd
-        unitId={adUnitId}
-        size={size}
-        onAdLoaded={() => console.log('Banner loaded')}
-        onAdFailedToLoad={(error) => console.error('Banner failed', error)}
-      />
-    </View>
-  );
-}
+const bannerAdUnitId = adUnitId || (Platform.OS === 'ios' ? BANNER_AD_UNIT_IDS.ios : BANNER_AD_UNIT_IDS.android);
 ```
 
-### AdService (Rewarded Ads)
+Also hides itself (`return null`) during the tutorial, in marketing demo mode, or after a load
+error — see the component for the full guard.
+
+### AdService (Rewarded Ads, actual implementation)
 
 ```typescript
 // src/services/adService.ts
-import { RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
+// Same __DEV__ switch pattern as AdBanner.
+const REWARDED_AD_UNIT_IDS = __DEV__
+  ? { ios: 'ca-app-pub-3940256099942544/1712485313', android: 'ca-app-pub-3940256099942544/5224354917' }
+  : { ios: 'ca-app-pub-2983534520735805/2719065972', android: 'ca-app-pub-2983534520735805/5557832361' };
 
 class AdService {
   private rewardedAd: RewardedAd | null = null;
 
-  async loadRewardedAd(adUnitId: string): Promise<RewardedAd> {
-    this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
-    await this.rewardedAd.load();
-    return this.rewardedAd;
-  }
-
-  async showRewardedAd(): Promise<{ rewarded: boolean }> {
-    if (!this.rewardedAd) throw new Error('Ad not loaded');
-
-    return new Promise((resolve) => {
-      this.rewardedAd!.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-        resolve({ rewarded: true });
-      });
-
-      this.rewardedAd!.show();
-    });
-  }
+  async preloadRewardedAd(): Promise<boolean> { /* creates + loads ad for getRewardedAdUnitId() */ }
+  async showRewardedAd(): Promise<AdResult> { /* preloads if needed, then shows and resolves { rewarded } */ }
 }
 
-export default new AdService();
+export const adService = new AdService();
 ```
 
 ---
@@ -358,9 +338,9 @@ export default new AdService();
 
 ### Pre-Production Checklist
 
-- [ ] **CRITICAL**: Replace all test IDs with production IDs in code:
-  - `src/components/ads/AdBanner.tsx` (banner IDs)
-  - `src/services/adService.ts` (rewarded ad IDs)
+- [ ] Verify a `preview`/`production` EAS build actually serves production ad unit IDs (AdMob
+      dashboard shows impressions from that build) — this is a **verification** step; the code
+      already auto-switches via `__DEV__`, there is nothing to edit
 - [ ] Test on iOS physical device
 - [ ] Test on Android physical device
 - [ ] Verify AdMob dashboard shows impressions

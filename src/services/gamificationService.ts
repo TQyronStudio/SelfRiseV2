@@ -2268,7 +2268,6 @@ export class GamificationService {
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 0,
       [XPSourceType.MONTHLY_CHALLENGE]: 0,
       [XPSourceType.XP_MULTIPLIER_BONUS]: 0,
-      [XPSourceType.LOYALTY_MILESTONE]: 0,
       [XPSourceType.DAILY_ACTIVITY]: 0,
       [XPSourceType.INACTIVE_USER_RETURN]: 0,
     };
@@ -2397,7 +2396,6 @@ export class GamificationService {
       [XPSourceType.ACHIEVEMENT_UNLOCK]: 'Unlocked achievement',
       [XPSourceType.MONTHLY_CHALLENGE]: 'Completed monthly challenge',
       [XPSourceType.XP_MULTIPLIER_BONUS]: 'XP multiplier bonus applied',
-      [XPSourceType.LOYALTY_MILESTONE]: 'Reached loyalty milestone',
       [XPSourceType.DAILY_ACTIVITY]: 'Daily activity recorded',
       [XPSourceType.INACTIVE_USER_RETURN]: 'Inactive user return bonus',
     };

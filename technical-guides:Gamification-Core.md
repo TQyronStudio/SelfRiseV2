@@ -114,6 +114,80 @@ XPSourceType.ACHIEVEMENT_UNLOCK: Variable // Based on rarity (50-500 XP)
 
 ---
 
+## Level Progression Model
+
+**Jediný zdroj pravdy**: `src/services/levelCalculation.ts` —
+`getXPRequiredForLevel()`, `getCurrentLevel()`, `getXPProgress()`,
+`getLevelInfo()`. **Žádná komponenta si NESMÍ počítat level vlastním
+vzorcem** — vždy import z levelCalculation (ověřeno auditem F1: platí).
+Testy: `MathematicalModel.test.ts`, `levelProgressDisplay.test.ts`.
+
+**Vzorec (rebalance 2026-07-16, nález N-1.7b)**: levely 1–10 historická
+lineární řada (beze změny); levely 11+ mocninná křivka
+`cum(L) = cum(10) × (L/10)^2.66` (`LEVEL_PROGRESSION.PROGRESSION_EXPONENT`).
+Kalibrace: level 100 ≈ 2,0 M XP → max. uživatel (1200 XP/den) ho dosáhne
+za ~4,6 roku (cíl Petra: „level 100 cca za 5 let").
+`validateProgressionTimeline()` vrací `isValid: true` — při jakékoliv změně
+exponentu ji znovu spusť a tabulku níže přegeneruj.
+
+*Tabulka vygenerována z `generateLevelPreview(100)` — 2026-07-16, po
+rebalanci křivky.*
+
+### Fáze a milníky
+
+| Fáze | Levely | Tituly |
+|---|---|---|
+| beginner | 1–10 | Novice, Beginner |
+| intermediate | 11–25 | Learner, Apprentice, Adept |
+| advanced | 26–50 | Seeker, Adventurer, Practitioner, Pathfinder, Specialist |
+| master | 51–100 | Veteran, Expert, Guardian, Warden, Challenger, Master, Elite, Champion, Grandmaster, Mythic |
+
+Milníkové levely (⭐ `isLevelMilestone`): **10, 25, 50, 75, 100**.
+
+### Vybrané hodnoty (kumulativní XP potřebné pro level)
+
+| Level | XP celkem | XP od předchozího | Titul |
+|---|---|---|---|
+| 1 | 100 | 100 | Novice I |
+| 2 | 250 | 150 | Novice II |
+| 3 | 500 | 250 | Novice III |
+| 5 | 1 160 | 360 | Novice V |
+| 10 ⭐ | 4 374 | 896 | Beginner V |
+| 11 | 5 637 | 1 263 | Learner I |
+| 15 | 12 863 | 2 157 | Learner V |
+| 20 | 27 649 | 3 526 | Apprentice V |
+| 25 ⭐ | 50 058 | 5 151 | Adept V |
+| 30 | 81 301 | 7 011 | Seeker V |
+| 40 | 174 757 | 11 382 | Practitioner V |
+| 50 ⭐ | 316 384 | 16 553 | Specialist V |
+| 51 | 333 497 | 17 113 | Veteran I |
+| 75 ⭐ | 930 289 | 32 630 | Challenger V |
+| 100 ⭐ | 1 999 656 | 52 751 | Mythic V |
+
+### Očekávané dosahy podle typu uživatele (z `validateProgressionTimeline()`)
+
+| Uživatel | XP/den | Level po 1 roce | Po 5 letech | Level 100 za |
+|---|---|---|---|---|
+| Casual | 150 | 25 | 47 | ~36 let |
+| Regular | 400 | 37 | 68 | ~14 let |
+| Power | 800 | 48 | 88 | ~7 let |
+| Super | 1 200 | 56 | 103 | **~4,6 roku** |
+
+### Vlastnosti křivky (po rebalanci 2026-07-16)
+
+1. Per-level přírůstek je **hladce rostoucí** v celém rozsahu — žádný skok
+   na hranici 10→11 ani propad na 50→51 (obojí byly artefakty staré
+   fázové mašinerie, odstraněné spolu s ní).
+2. Prahy jsou ostře rostoucí celočíselné hodnoty (ověřeno do L150).
+3. Historie: do 2026-07-16 rostla křivka fázovými vzorci až k 612,5 M XP
+   za level 100 (≈ 1 400 let i pro max. uživatele — nedosažitelné);
+   rebalance na mocninnou křivku byla rozhodnutím Petra (audit F1,
+   N-1.7b). Existujícím uživatelům se level jednorázově tiše zvýší
+   (XP zůstává, prahy klesly) — před ostrým vydáním bez dopadu
+   (jen TestFlight testeři).
+
+---
+
 ## Daily Limits & Anti-Spam
 
 ### Maximum Daily Limits  
@@ -138,9 +212,11 @@ MAX_GOAL_TRANSACTIONS_PER_DAY = 3
 ```
 
 ### Limit Distribution Rules
-- **Minimum section allocation**: Each feature gets ≥20% of daily limit when active
-- **Single source maximum**: No source can exceed 80% of total daily XP
 - **Multiplier scaling**: All limits scale proportionally with active XP multipliers
+- ~~Pravidla „min. 20 % na sekci" a „max. 80 % z jednoho zdroje"~~ **ZRUŠENA**
+  (rozhodnutí 2026-07-16, audit F1 nález N-1.6a): nikdy nebyla implementovaná,
+  pro limitované zdroje jsou matematicky redundantní (per-source stropy ≤ 500
+  < 80 % z 1500) a pro neomezené zdroje — trofeje apod. — platit nemají.
 
 ---
 
@@ -148,8 +224,8 @@ MAX_GOAL_TRANSACTIONS_PER_DAY = 3
 
 ### 🚨 PRODUCTION FIX (červenec 2026): Aktivace multiplierů byla tichý no-op
 
-**Problém 1 — split-brain zápis/čtení**: všechny 3 aktivační cesty (Harmony, Inactive
-Boost, Achievement Combo) zapisovaly aktivní multiplier POUZE do AsyncStorage, ale
+**Problém 1 — split-brain zápis/čtení**: všechny 4 aktivační cesty (Harmony, Inactive
+Boost, Achievement Combo, Challenge Completion) zapisovaly aktivní multiplier POUZE do AsyncStorage, ale
 `getActiveMultiplier()` při `USE_SQLITE_GAMIFICATION=true` čte SQLite tabulku
 `xp_multipliers` — do které zapisovala jen jednorázová migrace. Uživatel si vydřel
 7denní Harmony Streak, aktivoval 2×, viděl oslavu, dostal aktivační bonus, ZAPLATIL

@@ -84,7 +84,6 @@ export function getSourceDailyLimit(source: XPSourceType): number | null {
     [XPSourceType.ACHIEVEMENT_UNLOCK]: null, // No daily limit
     [XPSourceType.MONTHLY_CHALLENGE]: null, // No daily limit (one per month)
     [XPSourceType.XP_MULTIPLIER_BONUS]: null, // No daily limit
-    [XPSourceType.LOYALTY_MILESTONE]: null, // No daily limit
     [XPSourceType.DAILY_ACTIVITY]: null, // No daily limit
     [XPSourceType.INACTIVE_USER_RETURN]: null, // No daily limit
   };

@@ -16,51 +16,77 @@
 
 ## Event System
 
-### Kompletni seznam gamifikacnich eventu (16 eventu)
+### Kompletni seznam eventu (17 gamifikacnich + 3 UI/tutorial + dynamicka rodina; audit 2026-07-16)
 
 #### Core XP & Level eventy (4)
 ```typescript
-'xpGained'              // Kazde pridani/odebrani XP → XpAnimationContext, OptimizedXpProgressBar
-'levelUp'               // Level-up detekce → XpAnimationContext, OptimizedXpProgressBar
-'xpBatchCommitted'      // Batch operace dokoncena → XpAnimationContext
+'xpGained'              // Kazde pridani/odebrani XP → XpAnimationContext, OptimizedXpProgressBar, monthlyProgressIntegration
+'levelUp'               // Level-up detekce → XpAnimationContext, OptimizedXpProgressBar, monthlyProgressIntegration
+'xpBatchCommitted'      // ⚠️ NIKDY SE NEEMITUJE — batching pipeline je mrtvy kod (audit F1, nalez N-1.5a);
+                        //    listenery XpAnimationContext + monthlyProgressIntegration cekaji zbytecne.
+                        //    Odstraneni cele vetve planovane ve Fazi 13.
 'xpSmartNotification'   // Smart notifikace pro XP → XpAnimationContext
 ```
 
-#### Achievement eventy (4)
+#### Achievement eventy (3)
 ```typescript
-'achievementQueueStarting'      // Synchronni pre-registrace pred achievement modaly → XpAnimationContext
-'achievementUnlocked'           // Jednotlivy achievement odemcen → AchievementContext
+'achievementUnlocked'           // Jednotlivy achievement odemcen → AchievementContext; tutorialAchievementGate (docasny match-listener)
 'multipleAchievementsUnlocked'  // Vice achievementu najednou (crescendo razeni) → AchievementContext
-'achievementCelebrationClosed'  // Achievement modal zavren → HabitForm, GoalForm (cekaji na zavření)
+'achievementCelebrationClosed'  // Achievement modal zavren → TutorialContext (auto-postup tutorialu), tutorialAchievementGate
+                                //    (emituji: AchievementContext.handleCelebrationClose + ModalQueueContext.closeCurrentModal)
 ```
+> Event `achievementQueueStarting` byl ODSTRANEN — nahradil ho centralizovany
+> ModalQueue (viz technical-guides + ModalQueueContext). Nema emit ani listener.
 
 #### XP Multiplier eventy (1)
 ```typescript
-'xpMultiplierActivated'  // Multiplier aktivovan (napr. 1.5x za 4h) → BEZ LISTENERU
+'xpMultiplierActivated'  // Multiplier aktivovan → XpMultiplierSection (Home; harmony zdroj ignoruje, resi ho primo UI)
+                         //    Emituji 3 ze 4 aktivacnich cest: Harmony, Achievement Combo, Challenge Completion.
+                         //    Inactive User Boost NEemituje (aktivuje se pri startu, pred mountem Home — zamerne bez eventu).
 ```
 
-#### Monthly Challenge eventy (3)
+#### Monthly Challenge eventy (5 primych + dynamicka rodina)
 ```typescript
-'monthly_progress_updated'      // Pokrok vyzvy aktualizovan → index.tsx, MonthlyChallengeSection
-'monthly_challenge_completed'   // Vyzva dokoncena → MonthlyChallengeSection (zobrazi modal)
-'monthly_milestone_reached'     // Milnik 25/50/75% dosazeny → MonthlyChallengeSection (MilestoneModal)
+'monthly_progress_updated'              // Pokrok vyzvy aktualizovan → index.tsx, MonthlyChallengeSection
+'monthly_challenge_completed'           // Vyzva dokoncena → MonthlyChallengeSection (zobrazi modal)
+'monthly_milestone_reached'             // Milnik 25/50/75% dosazeny → MonthlyChallengeSection (MilestoneModal)
+'monthly_challenge_failed'              // Vyzva selhala (lifecycleManager:335) → MonthlyChallengeSection
+'monthly_challenge_challenge_generated' // Nova vyzva vygenerovana → MonthlyChallengeSection
+
+// DYNAMICKA RODINA: monthlyChallengeLifecycleManager.emit() vysila
+// `monthly_challenge_${ChallengeLifecycleEvent}` — 10 jmen z enumu
+// (types/gamification.ts:778). Poslouchane je jen '...challenge_generated'.
+// ⚠️ POZOR na zdvojene jmeno: dynamicky vznika i
+// 'monthly_challenge_challenge_completed' / '..._challenge_failed',
+// coz NENI totez jako prime 'monthly_challenge_completed' / '_failed' vyse.
 ```
 
-#### Star Rating eventy (3)
+#### Star Rating eventy (4)
 ```typescript
 'star_level_changed'         // Zmena urovne hvezd → MonthlyChallengeSection (StarLevelChangeModal)
-'star_progression_updated'   // Aktualizace star progrese → BEZ LISTENERU
-'difficulty_recalculated'    // Prepocet obtiznosti → BEZ LISTENERU
+'star_progression_updated'   // Aktualizace star progrese → BEZ LISTENERU (reserved)
+'difficulty_recalculated'    // Prepocet obtiznosti → BEZ LISTENERU (reserved)
+'star_level_modal_closed'    // Star modal zavren (ModalQueueContext:179) → BEZ LISTENERU (reserved)
 ```
 
 #### UI/Tutorial eventy (ne-gamifikacni, pro uplnost)
 ```typescript
-'tutorial_scroll_to'         // Scrollovani na pozici v tutorialu
-'tutorial_scroll_completed'  // Tutorial krok dokoncen
-'openHomeCustomization'      // Otevreni home customization modalu
+'tutorial_scroll_to'         // Scrollovani na pozici v tutorialu → GoalForm, HabitForm, index.tsx
+'tutorial_scroll_completed'  // Tutorial krok dokoncen → TutorialOverlay
+'openHomeCustomization'      // Otevreni home customization modalu → index.tsx
 ```
 
-> **Poznamka:** 5 eventu (oznacenych BEZ LISTENERU) se emituje, ale zadna komponenta je neposlouchá. Jsou pripraveny pro budouci UI featury (celebrace milniku, multiplier notifikace, star rating vizualy).
+#### Systemove eventy mimo gamifikaci (pro uplnost, audit F1)
+```typescript
+HAPTICS_CHANGED_EVENT              // hapticsService → settings.tsx
+MARKETING_DEMO_MODE_CHANGED_EVENT  // marketingDemoModeService → AdBanner, settings.tsx
+'marketing_demo_data_loaded'       // demo sluzba → BEZ LISTENERU
+'marketing_demo_data_cleared'      // demo sluzba → BEZ LISTENERU
+```
+
+> **Poznamka:** 3 gamifikacni eventy (oznacene BEZ LISTENERU / reserved) se
+> emituji, ale zadna komponenta je neposloucha — pripraveny pro budouci UI.
+> Naopak 'xpBatchCommitted' ma listenery, ale zadny emit (mrtva vetev, viz vyse).
 
 // ❌ FORBIDDEN: Custom XP events
 ```typescript
@@ -79,9 +105,10 @@
 ```typescript
 // MANDATORY EVENT SEQUENCE for all XP operations
 1. Individual operations → 'xpGained' (immediate UI feedback)
-2. Batched operations → 'xpBatchCommitted' (animation triggers)  
-3. Level detection → 'levelUp' (modal celebrations)
-4. Achievement triggers → 'achievementUnlocked' (rewards)
+2. Level detection → 'levelUp' (modal celebrations)
+3. Achievement triggers → 'achievementUnlocked' (rewards)
+// Pozn.: XP batching ('xpBatchCommitted') se NEPOUZIVA — addXP jde vzdy
+// primou cestou (audit F1, N-1.5a; odstraneni vetve ve Fazi 13).
 
 // CONSISTENCY RULE: All events use unified data structures
 DeviceEventEmitter.emit('eventName', standardEventData)
@@ -90,7 +117,7 @@ DeviceEventEmitter.emit('eventName', standardEventData)
 ### Event Emission Requirements
 ```typescript
 // MANDATORY: GamificationService MUST emit events for:
-- addXP() operations → 'xpGained' + 'xpBatchCommitted' (if batched)
+- addXP() operations → 'xpGained'
 - subtractXP() operations → 'xpGained' (negative amounts)
 - Level progression → 'levelUp' (with complete level data)
 - Achievement unlocks → 'achievementUnlocked' (with achievement data)
@@ -177,7 +204,9 @@ Emituje: `gamificationService.addXP()`, `achievementService` (foreground + backg
 ```
 
 ### xpBatchCommitted
-Emituje: `gamificationService.triggerBatchedXPAnimation()`
+⚠️ MRTVA VETEV (audit F1, N-1.5a): `triggerBatchedXPAnimation()` je dosazitelna
+jen pres `addXPWithBatching()`, ktera nema zadneho volajiciho — event se
+v produkci NIKDY neemituje. Payload nize plati jen do odstraneni vetve (Faze 13).
 ```typescript
 {
   totalAmount: number;         // Celkova XP v batchi
@@ -189,15 +218,6 @@ Emituje: `gamificationService.triggerBatchedXPAnimation()`
   leveledUp: boolean;          // Zda batch zpusobil level-up
   newLevel: number;            // Aktualni level po batchi
   timestamp: number;           // Cas dokonceni batche
-}
-```
-
-### achievementQueueStarting
-Emituje: `achievementService.triggerAchievementNotifications()`
-```typescript
-{
-  count: number;               // Pocet achievementu ve fronte
-  timestamp: number;           // Cas vytvoreni
 }
 ```
 
@@ -226,7 +246,10 @@ Emituje: `achievementService.triggerAchievementNotifications()` (po vsech jednot
 ```
 
 ### achievementCelebrationClosed
-Emituje: `AchievementContext.handleCelebrationClose()`
+Emituje: `AchievementContext.handleCelebrationClose()` (:363)
+a `ModalQueueContext.closeCurrentModal()` (:176)
+Posloucha: `TutorialContext` (:1676, auto-postup tutorialu)
+a `tutorialAchievementGate` (docasny listener behem handshake)
 ```typescript
 // Zadna data - pouze signal ze modal byl zavren
 ```
@@ -240,9 +263,8 @@ Emituje: `AchievementContext.handleCelebrationClose()`
 // Skutecne nazvy handleru v kodu:
 handleXPGained(eventData)              // xpGained → zobrazeni XP popup
 handleSmartNotification(eventData)     // xpSmartNotification → batched notifikace
-handleBatchCommitted(eventData)        // xpBatchCommitted → batched XP popup
+handleBatchCommitted(eventData)        // xpBatchCommitted → mrtva vetev (viz vyse), listener ceka zbytecne
 handleLevelUp(eventData)              // levelUp → level-up modal (async)
-handleAchievementQueueStarting(eventData) // achievementQueueStarting → Tier 3 pre-registrace
 
 // PRIKLAD REALNEHO HANDLERU:
 const handleXPGained = (eventData: any) => {

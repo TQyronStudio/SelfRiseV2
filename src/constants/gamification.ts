@@ -103,7 +103,6 @@ export const DAILY_XP_LIMITS = {
 
   // Global daily limits
   TOTAL_DAILY_MAX: 1500,       // Absolute maximum XP per day (increased for bonus milestones)
-  SINGLE_SOURCE_MAX_PERCENT: 80, // Max % of daily XP from one source
 } as const;
 
 // ========================================
@@ -236,17 +235,20 @@ export const LEVEL_PROGRESSION = {
   BASE_XP_LEVEL_1: 100,        // XP required to reach level 1
   BASE_XP_LEVEL_2: 250,        // XP required to reach level 2
 
-  // Phase thresholds
-  BEGINNER_PHASE_END: 10,      // Levels 1-10: Linear progression
-  INTERMEDIATE_PHASE_END: 25,   // Levels 11-25: Quadratic progression
-  ADVANCED_PHASE_END: 50,      // Levels 26-50: Exponential progression
-  MASTER_PHASE_START: 51,      // Levels 51+: Master progression
+  // Phase thresholds (labels/titles only — XP math above level 10 is one curve)
+  BEGINNER_PHASE_END: 10,      // Levels 1-10: linear progression (historical, unchanged)
+  INTERMEDIATE_PHASE_END: 25,   // Levels 11-25: display phase 'intermediate'
+  ADVANCED_PHASE_END: 50,      // Levels 26-50: display phase 'advanced'
 
-  // Multipliers for each phase
+  // Levels 1-10 (linear phase)
   LINEAR_MULTIPLIER: 1.2,      // Gentle increase for beginners
-  QUADRATIC_MULTIPLIER: 1.15,  // Moderate increase for intermediate
-  EXPONENTIAL_MULTIPLIER: 1.1, // Steep increase for advanced
-  MASTER_MULTIPLIER: 1.05,     // Sustainable increase for masters
+
+  // Levels 11+ (power-law curve, 2026-07-16 rebalance — audit F1, N-1.7b):
+  // cum(L) = cum(10) × (L/10)^PROGRESSION_EXPONENT. Calibrated so level 100
+  // ≈ 2.0M XP total → max-effort user (1200 XP/day) reaches it in ~4.6 years
+  // ("level 100 in ~5 years" — Petr). validateProgressionTimeline() must
+  // return isValid: true; re-check it whenever this exponent changes.
+  PROGRESSION_EXPONENT: 2.66,
 
   // Milestone levels with special rewards
   MILESTONE_LEVELS: [10, 25, 50, 75, 100] as const,
@@ -314,10 +316,6 @@ export const BALANCE_VALIDATION = {
   
   // Rate limiting
   MAX_XP_TRANSACTIONS_PER_MINUTE: 60, // Max 60 XP transactions per minute
-  
-  // Feature balance requirements (percentage of daily XP)
-  MIN_FEATURE_DIVERSITY_PERCENT: 20,  // At least 20% from different sources
-  MAX_SINGLE_FEATURE_PERCENT: 80,     // Max 80% from single feature
 } as const;
 
 // ========================================

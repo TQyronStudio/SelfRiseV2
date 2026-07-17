@@ -45,7 +45,7 @@ describe('xpLimits — daily limits & anti-spam (pure rules)', () => {
       expect(getSourceDailyLimit(XPSourceType.ACHIEVEMENT_UNLOCK)).toBeNull();
       expect(getSourceDailyLimit(XPSourceType.MONTHLY_CHALLENGE)).toBeNull();
       expect(getSourceDailyLimit(XPSourceType.XP_MULTIPLIER_BONUS)).toBeNull();
-      expect(getSourceDailyLimit(XPSourceType.LOYALTY_MILESTONE)).toBeNull();
+      expect(getSourceDailyLimit(XPSourceType.DAILY_ACTIVITY)).toBeNull();
     });
   });
 

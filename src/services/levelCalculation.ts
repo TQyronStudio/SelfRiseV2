@@ -1,6 +1,6 @@
 // Mathematical level calculation system for gamification
 import { LEVEL_PROGRESSION } from '../constants/gamification';
-import { LevelInfo, LevelRequirement } from '../types/gamification';
+import { LevelInfo } from '../types/gamification';
 import i18next from 'i18next';
 
 // ========================================
@@ -73,8 +73,12 @@ export function clearLevelCalculationCache(): void {
 
 /**
  * Calculate XP required to reach a specific level (CACHED)
- * Uses progressive difficulty scaling: Linear → Quadratic → Exponential → Master
- * 
+ * Levels 1-10: historical linear progression (unchanged since launch).
+ * Levels 11+: power-law curve anchored to the level-10 total, calibrated so
+ * a max-effort user (1200 XP/day) reaches level 100 in ~5 years
+ * (2026-07-16 rebalance — audit F1, nález N-1.7b; validated by
+ * validateProgressionTimeline()).
+ *
  * @param level Target level (1-based)
  * @returns Total XP required to reach this level from level 0
  */
@@ -107,106 +111,52 @@ export function getXPRequiredForLevel(level: number): number {
 }
 
 /**
+ * Exact (unfloored) cumulative XP at the end of the linear beginner phase —
+ * the anchor the power-law curve is calibrated to, so levels 1-10 keep
+ * their historical requirements and the curve is continuous at level 10.
+ * Geometric sum of levels 3..BEGINNER_PHASE_END on top of BASE_XP_LEVEL_2.
+ */
+const BEGINNER_PHASE_TOTAL_XP =
+  LEVEL_PROGRESSION.BASE_XP_LEVEL_2 +
+  (LEVEL_PROGRESSION.BASE_XP_LEVEL_2 *
+    (Math.pow(LEVEL_PROGRESSION.LINEAR_MULTIPLIER, LEVEL_PROGRESSION.BEGINNER_PHASE_END - 2) - 1)) /
+    (LEVEL_PROGRESSION.LINEAR_MULTIPLIER - 1);
+
+/**
+ * Cumulative XP for levels above the beginner phase:
+ * cum(L) = cum(10) × (L / 10)^PROGRESSION_EXPONENT
+ */
+function cumulativeXPAboveBeginner(level: number): number {
+  return (
+    BEGINNER_PHASE_TOTAL_XP *
+    Math.pow(level / LEVEL_PROGRESSION.BEGINNER_PHASE_END, LEVEL_PROGRESSION.PROGRESSION_EXPONENT)
+  );
+}
+
+/**
  * Calculate XP needed for a specific level (not cumulative)
- * Implements the progressive difficulty phases
- * 
+ *
  * @param level The level to calculate XP for
  * @returns XP needed to advance TO this level
  */
 function calculateXPForSpecificLevel(level: number): number {
-  const phase = getLevelPhase(level);
-  const baseXP = getPhaseBaseXP(level, phase);
-  const multiplier = getPhaseMultiplier(phase);
-  
-  // Apply phase-specific formula
-  switch (phase.formula) {
-    case 'linear':
-      return baseXP * Math.pow(multiplier, level - 3);
-      
-    case 'quadratic':
-      const quadraticBase = baseXP * Math.pow(LEVEL_PROGRESSION.LINEAR_MULTIPLIER, LEVEL_PROGRESSION.BEGINNER_PHASE_END - 2);
-      const quadraticLevel = level - LEVEL_PROGRESSION.BEGINNER_PHASE_END;
-      return quadraticBase * Math.pow(multiplier, quadraticLevel) * (1 + quadraticLevel * 0.1);
-      
-    case 'exponential':
-      const expBase = calculateEndOfPhaseXP('quadratic');
-      const expLevel = level - LEVEL_PROGRESSION.INTERMEDIATE_PHASE_END;
-      return expBase * Math.pow(multiplier, expLevel) * (1 + expLevel * 0.15);
-      
-    default: // master phase
-      const masterBase = calculateEndOfPhaseXP('exponential');
-      const masterLevel = level - LEVEL_PROGRESSION.ADVANCED_PHASE_END;
-      return masterBase * Math.pow(multiplier, masterLevel) * (1 + masterLevel * 0.05);
-  }
-}
-
-/**
- * Get the progression phase for a given level
- */
-function getLevelPhase(level: number): LevelRequirement {
   if (level <= LEVEL_PROGRESSION.BEGINNER_PHASE_END) {
-    return {
-      level,
-      baseXP: LEVEL_PROGRESSION.BASE_XP_LEVEL_2,
-      multiplier: LEVEL_PROGRESSION.LINEAR_MULTIPLIER,
-      formula: 'linear',
-      phase: 'beginner'
-    };
-  } else if (level <= LEVEL_PROGRESSION.INTERMEDIATE_PHASE_END) {
-    return {
-      level,
-      baseXP: calculateEndOfPhaseXP('linear'),
-      multiplier: LEVEL_PROGRESSION.QUADRATIC_MULTIPLIER,
-      formula: 'quadratic',
-      phase: 'intermediate'
-    };
-  } else if (level <= LEVEL_PROGRESSION.ADVANCED_PHASE_END) {
-    return {
-      level,
-      baseXP: calculateEndOfPhaseXP('quadratic'),
-      multiplier: LEVEL_PROGRESSION.EXPONENTIAL_MULTIPLIER,
-      formula: 'exponential',
-      phase: 'advanced'
-    };
-  } else {
-    return {
-      level,
-      baseXP: calculateEndOfPhaseXP('exponential'),
-      multiplier: LEVEL_PROGRESSION.MASTER_MULTIPLIER,
-      formula: 'exponential', // Master phase uses exponential formula
-      phase: 'master'
-    };
+    return (
+      LEVEL_PROGRESSION.BASE_XP_LEVEL_2 * Math.pow(LEVEL_PROGRESSION.LINEAR_MULTIPLIER, level - 3)
+    );
   }
+  return cumulativeXPAboveBeginner(level) - cumulativeXPAboveBeginner(level - 1);
 }
 
 /**
- * Calculate base XP for a phase
+ * Get the progression phase label for a given level (display only —
+ * the XP math no longer differs per phase above level 10)
  */
-function getPhaseBaseXP(level: number, phase: LevelRequirement): number {
-  return phase.baseXP;
-}
-
-/**
- * Get multiplier for a phase
- */
-function getPhaseMultiplier(phase: LevelRequirement): number {
-  return phase.multiplier;
-}
-
-/**
- * Calculate the XP requirement at the end of a specific phase
- */
-function calculateEndOfPhaseXP(phaseType: 'linear' | 'quadratic' | 'exponential'): number {
-  switch (phaseType) {
-    case 'linear':
-      return calculateXPForSpecificLevel(LEVEL_PROGRESSION.BEGINNER_PHASE_END);
-    case 'quadratic':
-      return calculateXPForSpecificLevel(LEVEL_PROGRESSION.INTERMEDIATE_PHASE_END);
-    case 'exponential':
-      return calculateXPForSpecificLevel(LEVEL_PROGRESSION.ADVANCED_PHASE_END);
-    default:
-      return LEVEL_PROGRESSION.BASE_XP_LEVEL_2;
-  }
+function getLevelPhase(level: number): 'beginner' | 'intermediate' | 'advanced' | 'master' {
+  if (level <= LEVEL_PROGRESSION.BEGINNER_PHASE_END) return 'beginner';
+  if (level <= LEVEL_PROGRESSION.INTERMEDIATE_PHASE_END) return 'intermediate';
+  if (level <= LEVEL_PROGRESSION.ADVANCED_PHASE_END) return 'advanced';
+  return 'master';
 }
 
 // ========================================
@@ -337,8 +287,8 @@ export function getLevelInfo(level: number): LevelInfo {
     level,
     xpRequired,
     xpFromPrevious,
-    title: getLevelTitle(level, phase.phase),
-    description: getLevelDescription(level, phase.phase),
+    title: getLevelTitle(level, phase),
+    description: getLevelDescription(level, phase),
     isMilestone,
   };
   
@@ -603,7 +553,7 @@ export function generateLevelPreview(maxLevel: number = 50): Array<{
       xpRequired: info.xpRequired,
       xpFromPrevious: info.xpFromPrevious,
       title: info.title,
-      phase: phase.phase,
+      phase,
       isMilestone: info.isMilestone,
     });
   }
