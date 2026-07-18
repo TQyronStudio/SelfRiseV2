@@ -69,38 +69,10 @@ describe('UserActivityTracker', () => {
     jest.clearAllMocks();
   });
 
-  describe('Star Scaling System', () => {
-    test('applies correct scaling multipliers', () => {
-      const baseValue = 10;
-
-      expect(UserActivityTracker.applyStarScaling(baseValue, 1)).toBe(11); // 10 * 1.05 = 10.5 → 11
-      expect(UserActivityTracker.applyStarScaling(baseValue, 2)).toBe(11); // 10 * 1.10 = 11.0 → 11
-      expect(UserActivityTracker.applyStarScaling(baseValue, 3)).toBe(12); // 10 * 1.15 = 11.5 → 12
-      expect(UserActivityTracker.applyStarScaling(baseValue, 4)).toBe(12); // 10 * 1.20 = 12.0 → 12
-      expect(UserActivityTracker.applyStarScaling(baseValue, 5)).toBe(13); // 10 * 1.25 = 12.5 → 13
-    });
-
-    test('handles invalid star levels gracefully', () => {
-      const baseValue = 10;
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      expect(UserActivityTracker.applyStarScaling(baseValue, 0 as any)).toBe(11); // Falls back to level 1
-      expect(UserActivityTracker.applyStarScaling(baseValue, 6 as any)).toBe(11); // Falls back to level 1
-
-      expect(consoleSpy).toHaveBeenCalledTimes(2);
-      consoleSpy.mockRestore();
-    });
-
-    test('returns correct scaling configuration', () => {
-      const config1 = UserActivityTracker.getStarScaling(1);
-      expect(config1.scalingMultiplier).toBe(1.05);
-      expect(config1.description).toBe('Easy (+5%)');
-
-      const config5 = UserActivityTracker.getStarScaling(5);
-      expect(config5.scalingMultiplier).toBe(1.25);
-      expect(config5.description).toBe('Master (+25%)');
-    });
-  });
+  // Note: the "Star Scaling System" describe was removed (N-3.9, 2026-07-18) —
+  // UserActivityTracker.applyStarScaling/getStarScaling were parallel dead
+  // APIs never called by production; real target math is covered by
+  // monthlyChallenge.phase3*.test.ts via calculateTargetFromBaseline.
 
   describe('Baseline Calculation', () => {
     test('creates minimal baseline for new users', async () => {
@@ -238,6 +210,7 @@ describe('UserActivityTracker', () => {
         avgEntryLength: 120,
         journalConsistencyDays: 22,
         totalJournalEntries: 126,
+        qualityJournalEntries: 80,
         longestJournalStreak: 12,
         avgDailyGoalProgress: 1.1,
         totalGoalProgressDays: 18,

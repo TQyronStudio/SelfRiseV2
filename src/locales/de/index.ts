@@ -3626,6 +3626,8 @@ const de: Partial<TranslationKeys> = {
         journal_consistency_writer: {
           title: 'Beständigkeits-Schreiber',
           description: 'Halte tägliche Tagebuch-Schreib-Serie aufrecht',
+          descriptionDynamic_one: 'Schreibe jeden einzelnen Tag Tagebuch mit 1 Eintrag pro Tag, um eine unzerbrechliche Gewohnheit aufzubauen',
+          descriptionDynamic_other: 'Schreibe jeden einzelnen Tag Tagebuch mit {{count}} Einträgen pro Tag, um eine unzerbrechliche Gewohnheit aufzubauen',
           requirement: 'Schreibe Tagebuch-Einträge aufeinanderfolgend',
           bonus1: 'Tägliche Serien-Belohnung (+25 XP pro Tag)',
           bonus2: 'Wöchentlicher Serien-Meilenstein (+100 XP)',

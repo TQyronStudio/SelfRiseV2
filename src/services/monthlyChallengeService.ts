@@ -101,7 +101,9 @@ export class MonthlyChallengeService {
           category: AchievementCategory.HABITS,
           title: t('help.challenges.templates.habits_variety_champion.title'),
           description: t('help.challenges.templates.habits_variety_champion.description'),
-          baselineMetricKey: 'avgHabitVariety',
+          // Monthly scale (avgHabitVariety × 4 weeks) — the raw daily average
+          // (1-5) could never beat the minimum floor, killing personalization (N-3.2)
+          baselineMetricKey: 'monthlyHabitVariety',
           baselineMultiplierRange: [1.10, 1.30],
           requirementTemplates: [
             {
@@ -161,7 +163,8 @@ export class MonthlyChallengeService {
           category: AchievementCategory.HABITS,
           title: t('help.challenges.templates.habits_bonus_hunter.title'),
           description: t('help.challenges.templates.habits_bonus_hunter.description'),
-          baselineMetricKey: 'avgDailyBonusHabits',
+          // Monthly scale (avgDailyBonusHabits × 30) — target is a monthly count (N-3.2)
+          baselineMetricKey: 'monthlyBonusHabits',
           baselineMultiplierRange: [1.20, 1.40],
           requirementTemplates: [
             {
@@ -192,7 +195,9 @@ export class MonthlyChallengeService {
           category: AchievementCategory.JOURNAL,
           title: t('help.challenges.templates.journal_reflection_expert.title'),
           description: t('help.challenges.templates.journal_reflection_expert.description'),
-          baselineMetricKey: 'totalJournalEntries',
+          // Only entries #1-3 of a day with 33+ chars can count — totalJournalEntries
+          // (incl. bonuses) produced unreachable targets for bonus-heavy users (N-3.2f)
+          baselineMetricKey: 'qualityJournalEntries',
           baselineMultiplierRange: [1.05, 1.25],
           requirementTemplates: [
             {
@@ -222,7 +227,9 @@ export class MonthlyChallengeService {
           category: AchievementCategory.JOURNAL,
           title: t('help.challenges.templates.journal_gratitude_guru.title'),
           description: t('help.challenges.templates.journal_gratitude_guru.description'),
-          baselineMetricKey: 'avgDailyBonusEntries',
+          // Target counts ALL monthly entries — the old daily bonus average
+          // (~0-2) could never beat the minimum floor (N-3.2d)
+          baselineMetricKey: 'totalJournalEntries',
           baselineMultiplierRange: [1.10, 1.30],
           requirementTemplates: [
             {
@@ -545,42 +552,10 @@ export class MonthlyChallengeService {
   // STAR-BASED DIFFICULTY SCALING SYSTEM
   // ===============================================
 
-  /**
-   * Star progression logic and scaling multipliers
-   */
-  private static readonly STAR_SCALING = {
-    1: { multiplier: 1.05, description: 'Easy (+5%)', color: '#FFD700' },
-    2: { multiplier: 1.10, description: 'Medium (+10%)', color: '#FFA500' },
-    3: { multiplier: 1.15, description: 'Hard (+15%)', color: '#FF6347' },
-    4: { multiplier: 1.20, description: 'Expert (+20%)', color: '#DC143C' },
-    5: { multiplier: 1.25, description: 'Master (+25%)', color: '#8B0000' }
-  } as const;
-
-  /**
-   * Get star scaling configuration for a specific star level
-   */
-  static getStarScaling(starLevel: 1 | 2 | 3 | 4 | 5): { 
-    multiplier: number; 
-    description: string; 
-    color: string;
-  } {
-    if (starLevel < 1 || starLevel > 5) {
-      console.warn(`Invalid star level ${starLevel}, defaulting to level 1`);
-      return this.STAR_SCALING[1];
-    }
-    return this.STAR_SCALING[starLevel];
-  }
-
-  /**
-   * Apply star-based scaling to a baseline value
-   */
-  static applyStarScaling(baselineValue: number, starLevel: 1 | 2 | 3 | 4 | 5): number {
-    const scaling = this.getStarScaling(starLevel);
-    const scaledValue = Math.ceil(baselineValue * scaling.multiplier);
-    
-    // Ensure minimum meaningful targets
-    return Math.max(scaledValue, starLevel); // At least match star level as minimum
-  }
+  // Note: STAR_SCALING / getStarScaling / applyStarScaling removed (N-3.9,
+  // 2026-07-18) — production targets come from calculateTargetFromBaseline
+  // (linear star mapping inside each template's baselineMultiplierRange);
+  // these parallel calculators were only ever called by tests.
 
   // Note: getDefaultStarRatings method removed - StarRatingService handles default values internally
 
@@ -690,20 +665,21 @@ export class MonthlyChallengeService {
       calculationMethod = 'fallback';
     }
 
-    // Get star scaling multiplier
-    const starScaling = this.getStarScaling(starLevel);
-    const scalingMultiplier = starScaling.multiplier;
-
-    // Apply template-specific multiplier range constraints
+    // Star multiplier: map the star level LINEARLY inside the template's
+    // multiplier range (1⭐ = min … 5⭐ = max). The previous clamp of a global
+    // 1.05-1.25 scale into the range made stars 1-4 identical for templates
+    // with a high range minimum (N-3.3, approved 2026-07-18).
     const [minMultiplier, maxMultiplier] = template.baselineMultiplierRange;
-    const constrainedMultiplier = Math.min(Math.max(scalingMultiplier, minMultiplier), maxMultiplier);
-    
-    if (constrainedMultiplier !== scalingMultiplier) {
-      warnings.push(`Star scaling ${scalingMultiplier} constrained to ${constrainedMultiplier} by template range`);
-    }
+    // Round to 4 decimals — raw float noise (1.1000000000000001) would leak
+    // into user-facing targets via Math.ceil (110 → 111)
+    const constrainedMultiplier = Math.round(
+      (minMultiplier + ((starLevel - 1) / 4) * (maxMultiplier - minMultiplier)) * 10000
+    ) / 10000;
 
     // Calculate target with scaling
-    let target = Math.ceil(baselineValue * constrainedMultiplier);
+    // Kill float epsilon in the product before ceil (100 × 1.1 =
+    // 110.00000000000001 would otherwise become target 111)
+    let target = Math.ceil(Math.round(baselineValue * constrainedMultiplier * 1e6) / 1e6);
 
     // Apply minimum target rules
     const minimumTarget = this.getMinimumTargetForTemplate(template, starLevel);
@@ -737,6 +713,16 @@ export class MonthlyChallengeService {
         const monthName = targetMonth ? `${targetMonth}` : 'current month';
         warnings.push(`Daily streak target ${target} exceeds days in ${monthName} (${daysInMonth}), capping at ${daysInMonth}`);
         target = daysInMonth;
+      }
+    }
+
+    // Structural cap for quality entries (N-3.2f): only entries #1-3 of a day
+    // can be quality, so more than 3 × days is unreachable by definition
+    if (template.requirementTemplates[0]?.trackingKey === 'quality_journal_entries') {
+      const maxQuality = 3 * this.getDaysInMonth(targetMonth);
+      if (target > maxQuality) {
+        warnings.push(`Quality entries target ${target} exceeds structural max ${maxQuality} (3/day), capping`);
+        target = maxQuality;
       }
     }
 
@@ -790,6 +776,16 @@ export class MonthlyChallengeService {
    * Extract a specific baseline metric value from UserActivityBaseline
    */
   private static extractBaselineMetric(metricKey: string, baseline: UserActivityBaseline): number {
+    // Derived metrics (N-3.2): templates whose target is a MONTHLY count but
+    // whose natural baseline field is a daily average — convert the scale here
+    if (metricKey === 'monthlyBonusHabits') {
+      return Math.round((baseline.avgDailyBonusHabits || 0) * 30);
+    }
+    if (metricKey === 'monthlyHabitVariety') {
+      // Weekly uniques ≈ daily variety (conservative lower bound) × 4 weeks
+      return Math.round((baseline.avgHabitVariety || 0) * 4);
+    }
+
     const metricMap: Record<string, keyof UserActivityBaseline> = {
       // Habits metrics
       'totalHabitCompletions': 'totalHabitCompletions',
@@ -805,6 +801,7 @@ export class MonthlyChallengeService {
       'avgDailyBonusEntries': 'avgDailyBonusEntries',
       'avgEntryLength': 'avgEntryLength',
       'journalConsistencyDays': 'journalConsistencyDays',
+      'qualityJournalEntries': 'qualityJournalEntries',
       'longestJournalStreak': 'longestJournalStreak',
 
       // Goal metrics
@@ -845,10 +842,30 @@ export class MonthlyChallengeService {
    * Get minimum target value for a template based on star level and category
    */
   private static getMinimumTargetForTemplate(
-    template: MonthlyChallengeTemplate, 
+    template: MonthlyChallengeTemplate,
     starLevel: 1 | 2 | 3 | 4 | 5
   ): number {
-    // Category-specific minimum targets
+    // Tracking-key-specific minimums (N-3.2, approved 2026-07-18): the value's
+    // UNIT differs per key (completions vs. streak days vs. unique habits vs.
+    // characters) — a per-category count minimum forced e.g. a 30-40 day
+    // "streak" or 25 unique weekly habits regardless of the user's baseline.
+    const trackingKeyMinimums: Record<string, number[]> = {
+      'habit_streak_days':                [5, 7, 10, 14, 18],  // consecutive days
+      'daily_journal_streak':             [5, 7, 10, 14, 18],  // consecutive days
+      'unique_weekly_habits':             [8, 10, 12, 16, 20], // unique habits summed over weeks
+      'bonus_habit_completions':          [5, 8, 12, 16, 20],  // bonus completions/month
+      'quality_journal_entries':          [20, 30, 40, 50, 60], // 33+ char entries/month
+      'avg_entry_length':                 [25, 30, 35, 40, 45], // characters (average)
+    };
+
+    const trackingKey = template.requirementTemplates[0]?.trackingKey || '';
+    const keyMinimums = trackingKeyMinimums[trackingKey];
+    if (keyMinimums) {
+      return keyMinimums[starLevel - 1] || starLevel * 5;
+    }
+
+    // Category-specific minimum targets (keys without a specific row above —
+    // Goals/Consistency keys get theirs after audit sessions #8/#9)
     const categoryMinimums: Record<AchievementCategory, number[]> = {
       [AchievementCategory.HABITS]: [20, 25, 30, 35, 40], // 20-40 habits/month
       [AchievementCategory.JOURNAL]: [30, 40, 50, 60, 70], // 30-70 entries/month
@@ -1253,10 +1270,11 @@ export class MonthlyChallengeService {
         dataQuality: 'minimal',
         totalActiveDays: 0
       },
-      scalingFormula: 'warm_up_conservative * 0.8',
+      scalingFormula: 'warm_up_conservative * 0.7', // matches createWarmUpRequirements (N-3.8)
       isActive: true,
       generationReason: 'warm_up',
       categoryRotation: [],
+      templateId: template.id, // anti-repeat history (N-3.4)
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -1988,13 +2006,37 @@ export class MonthlyChallengeService {
       );
       warnings.push(...challengeParams.generationWarnings);
 
+      // Variety cap (N-3.2b, approved 2026-07-18): "unique habits per week"
+      // summed over the month can never exceed active habit count × weeks —
+      // without this the minimum floor could demand more variety than the
+      // user's habit list physically allows (e.g. 4 habits vs. target 25)
+      const varietyReq = challengeParams.requirements.find(r => r.trackingKey === 'unique_weekly_habits');
+      if (varietyReq) {
+        try {
+          // Lazy require (not dynamic import) — project convention for Jest compatibility
+          const { getHabitStorageImpl } = require('../config/featureFlags') as typeof import('../config/featureFlags');
+          const habits = await getHabitStorageImpl().getAll();
+          const activeCount = habits.filter((h: { isActive?: boolean }) => h.isActive !== false).length;
+          const weeks = Math.ceil(this.getDaysInMonth(context.month) / 7);
+          const cap = Math.max(1, activeCount) * weeks;
+          if (varietyReq.target > cap) {
+            warnings.push(`Variety target ${varietyReq.target} exceeds achievable ${cap} (${activeCount} active habits × ${weeks} weeks), capping`);
+            varietyReq.target = cap;
+            varietyReq.weeklyTarget = Math.ceil(cap / weeks);
+          }
+        } catch (error) {
+          console.warn('Variety cap check failed, keeping uncapped target:', error);
+        }
+      }
+
       // Create the monthly challenge object
       const challenge = this.createMonthlyChallengeObject(
         templateSelection.selectedTemplate,
         challengeParams,
         categorySelection.selectedCategory,
         starLevel,
-        context
+        context,
+        t
       );
 
       // Save challenge to storage if not dry run
@@ -2051,7 +2093,8 @@ export class MonthlyChallengeService {
     params: ReturnType<typeof MonthlyChallengeService.generateChallengeParameters>,
     category: AchievementCategory,
     starLevel: 1 | 2 | 3 | 4 | 5,
-    context: MonthlyChallengeGenerationContext
+    context: MonthlyChallengeGenerationContext,
+    t: TFunction
   ): MonthlyChallenge {
     // CRITICAL: Challenge should be for the FULL CALENDAR MONTH (1st to last day)
     // Start date = 1st day of target month
@@ -2067,8 +2110,10 @@ export class MonthlyChallengeService {
     return {
       id: generateUUID(),
       title: template.title,
+      // Star-based dynamic description — localized (N-3.7); the hardcoded EN
+      // string here used to leak into DE/ES
       description: template.id === 'journal_consistency_writer'
-        ? `Journal every single day with ${starLevel} ${starLevel === 1 ? 'entry' : 'entries'} per day to build an unbreakable habit`
+        ? t('help.challenges.templates.journal_consistency_writer.descriptionDynamic', { count: starLevel })
         : template.description,
       startDate: startDateStr,
       endDate: endDateStr,
@@ -2087,6 +2132,7 @@ export class MonthlyChallengeService {
       isActive: true,
       generationReason: context.isFirstMonth ? 'warm_up' : 'scheduled',
       categoryRotation: [...context.recentCategoryHistory, category].slice(-3),
+      templateId: template.id, // anti-repeat history (N-3.4)
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -2144,7 +2190,7 @@ export class MonthlyChallengeService {
       history.unshift({
         month: challenge.userBaselineSnapshot?.month || challenge.startDate.substring(0, 7),
         category: challenge.category,
-        templateId: challenge.id,
+        templateId: challenge.templateId || null, // real template id, not the challenge UUID (N-3.4)
         starLevel: challenge.starLevel,
         generatedAt: challenge.createdAt
       });
@@ -2166,7 +2212,12 @@ export class MonthlyChallengeService {
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
         const history = await this.storage.getChallengeHistory(months);
-        return history.map(h => (h as any).metadata?.templateId || h.id).filter(Boolean);
+        // Real template ids only (N-3.4) — the old `|| h.id` fallback returned
+        // challenge UUIDs, which never match any template.id, so the
+        // anti-repeat filter and -40 penalty never applied
+        return history
+          .map(h => h.templateId || (h as any).metadata?.templateId)
+          .filter((id): id is string => Boolean(id));
       }
 
       // Fallback to AsyncStorage

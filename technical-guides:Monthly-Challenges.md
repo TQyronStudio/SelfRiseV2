@@ -77,6 +77,57 @@ star demotion. Three independent root causes in `monthlyProgressTracker.ts`:
 drives one real event pipeline per template tracking key and asserts progress > 0.
 **If any of these 16 tests fails, a whole challenge type is dead — release blocker.**
 
+### 🚨 **0b. Audit Fixes N-3.1/3.4/3.5/3.6/3.7 (July 2026, super audit Fáze 3)**
+
+1. **Milestone zápisy počítány (N-3.1)**: Zápis deníku nesoucí milestone (#4/#8/#13 dne)
+   odchází jako JEDNA XP transakce se source `JOURNAL_BONUS_MILESTONE`. Tracker ho dřív
+   nematchoval → Gratitude Guru ztrácel až 3 zápisy/den a 5⭐ Consistency Writer reálně
+   vyžadoval 6 zápisů. Nyní `JOURNAL_BONUS_MILESTONE` matchují klíče
+   `total_journal_entries_with_bonus`, `daily_journal_streak`, `avg_entry_length`
+   i denní čítač zápisů. (`quality_journal_entries` záměrně ne — quality jsou jen zápisy #1-3.)
+2. **Anti-repeat ožil (N-3.4)**: Challenge nese `templateId` (id šablony); historie ho
+   ukládá i vrací → 6měsíční filtr a -40 penalizace ve výběru šablon KONEČNĚ fungují
+   (dřív se porovnávala UUID, která se nikdy netrefila).
+3. **Streak = skutečná série (N-3.5)**: `habit_streak_days` / `daily_journal_streak`
+   hodnota v progressu je AKTUÁLNÍ po sobě jdoucí série — při přerušení se resetuje na 1
+   (dřív kumulovala +1 za každý aktivní den bez resetu). Výzva se dokončí v okamžiku,
+   kdy série dosáhne targetu.
+4. **Day-guard stav přežívá restart (N-3.5 / NÁLEZ 4 z 11.7.)**: všechny denní/týdenní
+   guardy trackeru (streak stavy, denní čítač zápisů, goal-day guard, variety set) se
+   perzistují v AsyncStorage (`monthly_tracker_day_guard_state`) — restart appky už
+   nezpůsobí double-count dne ani ztrátu série. Device ověření = položka 3e auditu.
+5. **Undo funguje (N-3.6)**: smazání zápisu/completion posílá metadata
+   (`entryLength`, `date`) a tracker reverzuje progress: quality dekrement, uvolnění
+   dnešního streak dne (u journalu přesně přes čítač), uvolnění variety slotu.
+6. **Lokalizovaný dynamický popis (N-3.7)**: star-based popis Consistency Writer jde
+   přes i18n klíč `descriptionDynamic` (plurály, EN/DE/ES) — dřív hardcoded angličtina.
+
+**Regression guard**: `monthlyProgressTracker.trackingKeys.test.ts` rozšířen 16 → 23 testů
+(milestone counting, streak reset, restart survival, undo scénáře).
+
+7. **Generování targetů opraveno (N-3.2 + N-3.3, schváleno a provedeno 2026-07-18)**:
+   - **Hvězdy = lineární mapování do range šablony** (N-3.3): `multiplier(hvězda) =
+     min + (hvězda−1)/4 × (max−min)` — např. range [1.20, 1.40] dává 1.20/1.25/1.30/1.35/1.40.
+     Každá hvězda je reálně těžší (dřívější clamp dělal z hvězd 1-4 stejný cíl).
+   - **Srovnané škály baseline metrik** (N-3.2): Bonus Hunter → `monthlyBonusHabits`
+     (denní průměr × 30), Variety Champion → `monthlyHabitVariety` (denní pestrost × 4),
+     Gratitude Guru → `totalJournalEntries` (přímý měsíční počet), Reflection Expert →
+     nová metrika `qualityJournalEntries` (non-bonus zápisy ≥33 znaků za 30 dní).
+   - **Minima per tracking klíč** (místo per kategorie): streak klíče [5,7,10,14,18] dní,
+     `unique_weekly_habits` [8,10,12,16,20], `bonus_habit_completions` [5,8,12,16,20],
+     `quality_journal_entries` [20,30,40,50,60], `avg_entry_length` [25,30,35,40,45] znaků.
+     Ostatní klíče zatím kategorová minima (Goals/Consistency dořeší audit sessions #8/#9).
+   - **Stropy**: streak/denní klíče ≤ dní v měsíci (stávající); quality ≤ 3×dny v měsíci;
+     variety ≤ počet aktivních návyků × počet týdnů měsíce.
+   - Platí pro nově generované výzvy; běžící výzva se nemění.
+8. **Mrtvá scaling API smazána (N-3.9, schváleno 2026-07-18)**:
+   `MonthlyChallengeService.applyStarScaling`, `UserActivityTracker.applyStarScaling` /
+   `getStarScaling` a `StarRatingService.calculateDifficulty` nevolal žádný produkční
+   kód a počítaly JINAK než reálná generace — testy je přesto zeleně validovaly.
+   Testy přesměrovány na skutečnou cestu `calculateTargetFromBaseline`.
+
+Detail: `docs/audits/super-audit-2026-07/faze-3-nalezy.md`.
+
 ### 🚀 **1. MonthlyProgressIntegration Auto-Initialization Fix (August 2025)**
 
 **Problem**: Unreliable auto-initialization causing system non-functionality
@@ -286,41 +337,41 @@ useEffect(() => {
 #### **1. Consistency Master** 
 *"Dokončuj své plánované návyky konzistentně celý měsíc"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 21 návyků za měsíc *(baseline 20 → +5%)*
-- **2⭐ Střední**: 22 návyků za měsíc *(baseline 20 → +10%)*  
-- **3⭐ Těžká**: 23 návyků za měsíc *(baseline 20 → +15%)*
-- **4⭐ Expert**: 24 návyků za měsíc *(baseline 20 → +20%)*
-- **5⭐ Mistr**: 25 návyků za měsíc *(baseline 20 → +25%)*
+Baseline: `totalHabitCompletions` (počet scheduled completions za 30 dní). Range [1.05, 1.25]
+→ hvězdy +5/+10/+15/+20/+25 %. Minima 20/25/30/35/40.
+
+**Příklad (baseline 40):**
+- **1⭐**: 42 návyků *(+5 %)* | **2⭐**: 44 *(+10 %)* | **3⭐**: 46 *(+15 %)* | **4⭐**: 48 *(+20 %)* | **5⭐**: 50 *(+25 %)*
 
 
 #### **2. Variety Champion**
 *"Dokončuj různé návyky každý týden pro pestrost"* (trackingKey: `unique_weekly_habits`)
 
-Počítá **unikátní návyky za týden** (stejný návyk 2× týdně = 1). Target škáluje z baseline
-podle hvězd stejně jako ostatní výzvy.
+Počítá **unikátní návyky za týden** (stejný návyk 2× týdně = 1), sčítá se přes týdny měsíce.
+Baseline: `monthlyHabitVariety` = denní pestrost × 4 (N-3.2). Range [1.10, 1.30].
+Minima 8/10/12/16/20. **Strop**: počet aktivních návyků × počet týdnů měsíce — target
+nikdy nechce víc pestrosti, než kolik návyků reálně máš.
+
+**Příklad (denní pestrost 3 → baseline 12):** 1⭐ 14 | 2⭐ 14 | 3⭐ 15 | 4⭐ 16 | 5⭐ 20 *(minima)*
 
 #### **3. Streak Builder**
 *"Udržuj konzistentní streaky návyků po celý měsíc"*
 
+Hodnota v progressu = **aktuální po sobě jdoucí série** (při přerušení reset na 1 — N-3.5);
+výzva se splní v okamžiku dosažení targetu. Baseline: `longestHabitStreak`.
+Range [1.15, 1.35]. Minima 5/7/10/14/18 dní.
+
 **📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 10denní streak *(baseline 10 → +5%)*
-- **2⭐ Střední**: 11denní streak *(baseline 10 → +10%)*
-- **3⭐ Těžká**: 12denní streak *(baseline 10 → +15%)*
-- **4⭐ Expert**: 12denní streak *(baseline 10 → +20%)*
-- **5⭐ Mistr**: 13denní streak *(baseline 10 → +25%)*
+**Příklad (baseline 10):** 1⭐ 12 dní | 2⭐ 12 | 3⭐ 13 | 4⭐ 14 | 5⭐ 18 *(minimum)*
 
 #### **4. Bonus Hunter**
 *"Překračuj své plánované návyky bonus dokončeními"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 8 bonus návyků za měsíc *(baseline 8 → +5%)*
-- **2⭐ Střední**: 9 bonus návyků za měsíc *(baseline 8 → +10%)*
-- **3⭐ Těžká**: 9 bonus návyků za měsíc *(baseline 8 → +15%)*
-- **4⭐ Expert**: 10 bonus návyků za měsíc *(baseline 8 → +20%)*
-- **5⭐ Mistr**: 10 bonus návyků za měsíc *(baseline 8 → +25%)*
+Baseline: `monthlyBonusHabits` = denní průměr bonusů × 30 (N-3.2). Range [1.20, 1.40]
+→ hvězdy +20/+25/+30/+35/+40 %. Minima 5/8/12/16/20.
+
+**Příklad (0,3 bonusu denně → baseline 9):** 1⭐ 11 | 2⭐ 12 | 3⭐ 12 | 4⭐ 16 | 5⭐ 20 *(minima)*
 
 ---
 
@@ -329,24 +380,21 @@ podle hvězd stejně jako ostatní výzvy.
 #### **1. Reflection Expert**
 *"Piš detailní záznamy (33+ znaků) pro prohloubení vděčnosti"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 85 detailních záznamů za měsíc *(baseline 80 → +5%)*
-- **2⭐ Střední**: 88 detailních záznamů za měsíc *(baseline 80 → +10%)*
-- **3⭐ Těžká**: 92 detailních záznamů za měsíc *(baseline 80 → +15%)*
-- **4⭐ Expert**: 96 detailních záznamů za měsíc *(baseline 80 → +20%)*
-- **5⭐ Mistr**: 100 detailních záznamů za měsíc *(baseline 80 → +25%)*
+**Měření kvality**: Jako "detailní" se počítají POUZE zápisy #1-3 dne (non-bonus)
+s 33+ znaky. Baseline: `qualityJournalEntries` (stejná definice, za 30 dní — N-3.2).
+Range [1.05, 1.25]. Minima 20/30/40/50/60. **Strop**: 3 × počet dní měsíce
+(víc kvalitních zápisů se strukturálně započítat nedá).
 
-**Měření kvality**: Záznamy s 33+ znaky se počítají jako "detailní"
+**Příklad (baseline 80, 31denní měsíc):** 1⭐ 84 | 2⭐ 88 | 3⭐ 92 | 4⭐ 93 | 5⭐ 93 *(strop 93)*
 
 #### **2. Gratitude Guru**
 *"Zvládni běžné i bonus záznamy pro perfektní vděčnost"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 105 celkových záznamů za měsíc *(baseline 100 → +5%)*
-- **2⭐ Střední**: 110 celkových záznamů za měsíc *(baseline 100 → +10%)*
-- **3⭐ Těžká**: 115 celkových záznamů za měsíc *(baseline 100 → +15%)*
-- **4⭐ Expert**: 120 celkových záznamů za měsíc *(baseline 100 → +20%)*
-- **5⭐ Mistr**: 125 celkových záznamů za měsíc *(baseline 100 → +25%)*
+Počítá VŠECHNY zápisy (běžné + bonusové, včetně milestone zápisů #4/#8/#13 — N-3.1).
+Baseline: `totalJournalEntries` (měsíční počet všech zápisů — N-3.2). Range [1.10, 1.30]
+→ hvězdy +10/+15/+20/+25/+30 %. Minima 30/40/50/60/70.
+
+**Příklad (baseline 100):** 1⭐ 110 | 2⭐ 115 | 3⭐ 120 | 4⭐ 125 | 5⭐ 130
 
 #### **3. Consistency Writer**
 *"Piš v deníku každý jednotlivý den pro neprolomitelný návyk"*
@@ -360,18 +408,22 @@ podle hvězd stejně jako ostatní výzvy.
 
 **📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 26 dnů se záznamem za měsíc *(1 entry/day, baseline 25 → +5%)*
-- **2⭐ Střední**: 28 dnů se záznamem za měsíc *(2 entries/day, baseline 25 → +10%)*
-- **3⭐ Těžká**: 29 dnů se záznamem za měsíc *(3 entries/day, baseline 25 → +15%)*
-- **4⭐ Expert**: 30 dnů se záznamem za měsíc *(4 entries/day, baseline 25 → +20%)*
-- **5⭐ Mistr**: 30 dnů se záznamem za měsíc *(5 entries/day, baseline 25 → +25%)*
+Hodnota v progressu = **aktuální po sobě jdoucí série dní** splňujících star požadavek
+(reset při přerušení — N-3.5); milestone zápisy #4/#8/#13 se do denního počtu počítají
+(N-3.1). Baseline: `journalConsistencyDays` (dny s 3+ zápisy za 30 dní).
+Range [1.15, 1.35]. Minima 5/7/10/14/18 dní.
+
+**Příklad (baseline 20):** 1⭐ 23 dní *(1 zápis/den)* | 2⭐ 24 *(2/den)* | 3⭐ 25 *(3/den)* | 4⭐ 26 *(4/den)* | 5⭐ 27 *(5/den)*
 
 #### **4. Depth Explorer**
 *"Zvyšuj průměrnou délku svých záznamů pro hlubší reflexi"* (trackingKey: `avg_entry_length`)
 
 Hodnota = **průměrná délka záznamů (znaky)** v rámci měsíce — přepočítává se při každém
 journal eventu z reálných dat v úložišti (derived/complex key, ne inkrementální čítač).
+Baseline: `avgEntryLength`. Range [1.20, 1.40] → hvězdy +20/+25/+30/+35/+40 %.
+Minima 25/30/35/40/45 znaků.
+
+**Příklad (baseline 60 znaků):** 1⭐ 72 | 2⭐ 75 | 3⭐ 78 | 4⭐ 81 | 5⭐ 84
 
 ---
 
@@ -492,7 +544,7 @@ if (totalActiveDays < 20) {
   category = randomFrom([HABITS, JOURNAL, GOALS])  // Náhodná variabilita
   template = randomFrom(templates.filter(t => t.minLevel === 1))
   title = "🌱 Warm-Up: " + template.title
-  target = fixedBeginnerTarget * 0.8  // Extra konzervativní (80%)
+  target = fixedBeginnerTarget * 0.7  // Extra konzervativní (70 % — N-3.8: guide dřív tvrdil 80 %)
   starLevel = 1                       // Vždy nejlehčí
   generationReason = 'warm_up'        // ❌ Nedává hvězdu!
 
@@ -542,11 +594,16 @@ Na základě 30-denní analýzy systém automaticky vytváří personalizované 
 
 #### **FULL Challenge XP (10x multiplier pro engagement!)**
 Uživatelé s 20+ aktivními dny dostávají plnohodnotné výzvy s vysokými XP odměnami:
-- **1⭐ Common** (Novice): +5% nad baseline → **5,000 XP**
-- **2⭐ Rare** (Explorer): +10% nad baseline → **7,500 XP**
-- **3⭐ Epic** (Challenger): +15% nad baseline → **12,000 XP**
-- **4⭐ Legendary** (Expert): +20% nad baseline → **17,500 XP**
-- **5⭐ Master** (Master): +25% nad baseline → **25,000 XP**
+- **1⭐ Common** (Novice): **5,000 XP**
+- **2⭐ Rare** (Explorer): **7,500 XP**
+- **3⭐ Epic** (Challenger): **12,000 XP**
+- **4⭐ Legendary** (Expert): **17,500 XP**
+- **5⭐ Master** (Master): **25,000 XP**
+
+Procentní navýšení targetu nad baseline určuje `baselineMultiplierRange` ŠABLONY:
+hvězdy se mapují lineárně od minima (1⭐) po maximum (5⭐) rozsahu — např. šablona
+[1.05, 1.25] dává +5/+10/+15/+20/+25 %, šablona [1.20, 1.40] dává +20/+25/+30/+35/+40 %
+(N-3.3, 2026-07-18).
 
 > **💡 Business Logic**: 10x XP motivuje uživatele používat aplikaci celý měsíc aby splnili výzvu. Jedna 5⭐ výzva = více XP než celý měsíc denních aktivit!
 
@@ -719,13 +776,10 @@ class MonthlyChallengeService {
   static WARM_UP_XP_REWARDS = {
     1: 500, 2: 750, 3: 1125, 4: 1688, 5: 2532
   };
-  static STAR_SCALING = {
-    1: { multiplier: 1.05 },
-    2: { multiplier: 1.10 },
-    3: { multiplier: 1.15 },
-    4: { multiplier: 1.20 },
-    5: { multiplier: 1.25 }
-  };
+
+  // Star scaling (N-3.3): lineární mapování hvězd dovnitř range šablony
+  // multiplier(hvězda) = min + (hvězda − 1) / 4 × (max − min)
+  // kde [min, max] = template.baselineMultiplierRange
 }
 ```
 
@@ -907,7 +961,7 @@ Systém rozlišuje dva typy výzev podle aktivity uživatele:
 | **Kategorie** | Náhodně: HABITS, JOURNAL, nebo GOALS |
 | **Šablona** | Náhodně z `minLevel = 1` šablon |
 | **Obtížnost** | Vždy 1⭐ (nejlehčí) |
-| **Scaling** | 80% normálních cílů (extra konzervativní) |
+| **Scaling** | 70 % konzervativních fallback cílů (extra konzervativní) |
 | **XP odměna** | Standardní XP za dokončení |
 | **Hvězdička** | ❌ **NEDÁVÁ hvězdu obtížnosti** |
 | **generationReason** | `'warm_up'` |
@@ -1098,17 +1152,15 @@ const NEW_TEMPLATE: MonthlyChallengeTemplate = {
 ```
 
 ### **⚙️ Difficulty Tuning**
-Jednoduché upravování obtížnosti:
+Obtížnost se ladí per šablona přes `baselineMultiplierRange` (N-3.3):
 ```typescript
-// Úprava star scaling multipliers
-static STAR_SCALING = {
-  1: { multiplier: 1.05 }, // +5% - lze upravit na ±2%
-  2: { multiplier: 1.10 }, // +10% - lze upravit na ±3% 
-  3: { multiplier: 1.15 }, // +15% - lze upravit na ±3%
-  4: { multiplier: 1.20 }, // +20% - lze upravit na ±3%
-  5: { multiplier: 1.25 }  // +25% - lze upravit na ±3%
-};
+// Šablona definuje rozsah; hvězdy se do něj mapují lineárně
+baselineMultiplierRange: [1.05, 1.25], // 1⭐ = +5 % … 5⭐ = +25 %
+// multiplier(hvězda) = min + (hvězda − 1) / 4 × (max − min)
+// Širší/vyšší range = těžší šablona (např. Bonus Hunter [1.20, 1.40])
 ```
+Druhá páka: minima per tracking klíč a stropy (dny v měsíci, 3×dny u quality,
+návyky×týdny u variety) v `monthlyChallengeService.ts`.
 
 ### **🎯 Category Priority Adjustment**
 ```typescript
@@ -1323,11 +1375,11 @@ if (todayJournalCount < requiredEntriesPerDay) {
 }
 ```
 
-**Dynamic Challenge Description**:
+**Dynamic Challenge Description** (localized since July 2026 — N-3.7):
 ```typescript
-// Update description based on star level when generating challenge
-description: template.id === 'journal_consistency_writer' 
-  ? `Journal every single day with ${starLevel} ${starLevel === 1 ? 'entry' : 'entries'} per day to build an unbreakable habit`
+// Update description based on star level when generating challenge (i18n, EN/DE/ES)
+description: template.id === 'journal_consistency_writer'
+  ? t('help.challenges.templates.journal_consistency_writer.descriptionDynamic', { count: starLevel })
   : template.description,
 ```
 

@@ -439,6 +439,15 @@ export class SQLiteGratitudeStorage {
         await GamificationService.subtractXP(xpAmount, {
           source: xpSource,
           description: `Deleted journal entry #${position} (-${xpAmount} XP)`,
+          sourceId: id,
+          // Monthly Challenge tracker needs these to reverse progress (N-3.6):
+          // entryLength → quality_journal_entries decrement; date → today-only
+          // release of the star-based daily counter / streak day
+          metadata: {
+            entryLength: deletedEntry.content.length,
+            entryPosition: position,
+            date: deletedEntry.date,
+          },
         });
 
         console.log(`🗑️ Journal entry deleted (-${xpAmount} XP)`);

@@ -506,10 +506,13 @@ export interface MonthlyChallenge extends BaseEntity {
   
   scalingFormula: string; // e.g., "baseline * 1.15"
   isActive: boolean;
-  
+
   // Generation context
   generationReason: 'scheduled' | 'manual' | 'warm_up' | 'retry';
   categoryRotation: AchievementCategory[]; // Last 3 months for variety
+  // Source template (e.g. 'habits_consistency_master') — anti-repeat reads it
+  // from history; without it the 6-month filter compared UUIDs (N-3.4)
+  templateId?: string;
 }
 
 /**

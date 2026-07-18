@@ -80,7 +80,7 @@ describe('Achievement evaluation — every catalog condition reaches a live eval
     jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(fakeTransactions() as any);
   });
 
-  test('catalog sanity: 78 achievements loaded', () => {
+  test('catalog sanity: 75 achievements loaded', () => {
     expect(CORE_ACHIEVEMENTS.length).toBe(75);
   });
 
@@ -328,5 +328,60 @@ describe('Journal entry count follows storage (N-2.6)', () => {
     expect(AchievementIntegration.getTotalJournalEntries).toHaveBeenCalled();
     expect(result.currentValue).toBe(100);
     expect(result.isMet).toBe(true);
+  });
+});
+
+// N-2.11 + N-2.12 (audit F2g, decisions 2026-07-18)
+describe('Persistence Pays counts activities AFTER a comeback, not the number of gaps (N-2.11)', () => {
+  const T = today();
+  const tx = (date: string, i: number) => ({
+    id: `cb_${date}_${i}`, amount: 20, source: XPSourceType.JOURNAL_ENTRY,
+    date, createdAt: new Date(), updatedAt: new Date(), description: 't',
+  });
+
+  beforeEach(() => jest.restoreAllMocks());
+
+  test('7 activities after a 3+ day pause → 7 (old impl would return 1)', async () => {
+    const txs = [
+      tx(subtractDays(T, 10), 1), tx(subtractDays(T, 9), 1), // stará éra
+      // mezera 9. den → 5. den = 4 dny
+      tx(subtractDays(T, 5), 1), tx(subtractDays(T, 5), 2), tx(subtractDays(T, 4), 1),
+      tx(subtractDays(T, 3), 1), tx(subtractDays(T, 2), 1), tx(subtractDays(T, 1), 1), tx(T, 1),
+    ];
+    jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(txs as any);
+    expect(await AchievementIntegration.getComebackActivitiesCount()).toBe(7);
+  });
+
+  test('no 3+ day pause ever → 0 (no comeback to reward)', async () => {
+    const txs = [tx(subtractDays(T, 2), 1), tx(subtractDays(T, 1), 1), tx(T, 1)];
+    jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(txs as any);
+    expect(await AchievementIntegration.getComebackActivitiesCount()).toBe(0);
+  });
+
+  test('only the MOST RECENT comeback era counts', async () => {
+    const txs = [
+      tx(subtractDays(T, 20), 1),
+      // comeback 1 (mezera 4 dny) + 5 aktivit
+      tx(subtractDays(T, 16), 1), tx(subtractDays(T, 15), 1), tx(subtractDays(T, 15), 2),
+      tx(subtractDays(T, 14), 1), tx(subtractDays(T, 13), 1),
+      // comeback 2 (mezera 5 dní) + 2 aktivity ve dvou po sobě jdoucích dnech
+      tx(subtractDays(T, 8), 1), tx(subtractDays(T, 7), 1),
+    ];
+    jest.spyOn(GamificationService, 'getAllTransactions').mockResolvedValue(txs as any);
+    expect(await AchievementIntegration.getComebackActivitiesCount()).toBe(2);
+  });
+});
+
+describe('Seven Wonder counts only ACTIVE habits (N-2.12)', () => {
+  test('paused habits (isActive=false) are excluded', async () => {
+    jest.restoreAllMocks();
+    const mkHabit = (id: string, isActive: boolean) => ({ id, isActive, createdAt: new Date() });
+    (AchievementIntegration as any).habitStorage = {
+      getAll: jest.fn(async () => [
+        mkHabit('h1', true), mkHabit('h2', true), mkHabit('h3', true),
+        mkHabit('h4', false), mkHabit('h5', false),
+      ]),
+    };
+    expect(await AchievementIntegration.getActiveHabitsSimultaneousCount()).toBe(3);
   });
 });

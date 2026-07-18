@@ -135,7 +135,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
           challenge.id,
           month,
           challenge.category,
-          (challenge as any).metadata?.templateId || challenge.id,
+          challenge.templateId || (challenge as any).metadata?.templateId || challenge.id,
           challenge.title,
           challenge.description,
           challenge.starLevel,
@@ -490,7 +490,7 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
     const status = challengeAny.status || (challenge.isActive ? 'active' : 'completed');
     const progress = challengeAny.progress || 0;
     const xpAwarded = challengeAny.xpAwarded || 0;
-    const templateId = challengeAny.metadata?.templateId || '';
+    const templateId = challenge.templateId || challengeAny.metadata?.templateId || '';
 
     await this.db.runAsync(
       `INSERT INTO challenge_history (
@@ -576,6 +576,9 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
       isActive: row.status === 'active',
       generationReason: 'scheduled',
       categoryRotation: [],
+      // Guard against legacy rows where template_id was backfilled with the
+      // challenge UUID (pre-N-3.4) — a UUID must not masquerade as a template
+      templateId: row.template_id && row.template_id !== row.id ? row.template_id : undefined,
       createdAt: new Date(row.created_at),
       updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(row.created_at)
     } as MonthlyChallenge;

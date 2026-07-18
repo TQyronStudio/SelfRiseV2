@@ -44,19 +44,7 @@ export interface StarRatingAnalysis {
   lastActivity: Date | null;
 }
 
-/**
- * Star-based difficulty calculation result
- */
-export interface DifficultyCalculationResult {
-  category: AchievementCategory;
-  starLevel: number;
-  baselineValue: number;
-  multiplier: number;
-  targetValue: number;
-  rarityColor: string;
-  confidenceLevel: 'low' | 'medium' | 'high';
-  recommendedAdjustment?: string;
-}
+// Note: DifficultyCalculationResult removed with calculateDifficulty (N-3.9).
 
 /**
  * Monthly challenge completion data for star progression
@@ -114,10 +102,10 @@ export class StarRatingService {
   };
 
   // Event names for DeviceEventEmitter
+  // (DIFFICULTY_RECALCULATED removed with calculateDifficulty — N-3.9)
   private static readonly EVENTS = {
     STAR_LEVEL_CHANGED: 'star_level_changed',
-    STAR_PROGRESSION_UPDATED: 'star_progression_updated',
-    DIFFICULTY_RECALCULATED: 'difficulty_recalculated'
+    STAR_PROGRESSION_UPDATED: 'star_progression_updated'
   };
 
   // Cache for performance
@@ -372,78 +360,9 @@ export class StarRatingService {
     }
   }
 
-  /**
-   * Calculate challenge difficulty based on star level and baseline
-   */
-  public static async calculateDifficulty(
-    category: AchievementCategory,
-    baselineValue: number
-  ): Promise<DifficultyCalculationResult> {
-    try {
-      const currentRatings = await this.getCurrentStarRatings();
-      
-      // Map category to rating key
-      const categoryKey = this.mapCategoryToKey(category);
-      if (!categoryKey) {
-        // Fallback for unsupported categories
-        return {
-          category,
-          starLevel: 1,
-          baselineValue,
-          multiplier: this.PROGRESSION_RULES.starMultipliers[1],
-          targetValue: Math.round(baselineValue * this.PROGRESSION_RULES.starMultipliers[1]),
-          rarityColor: this.STAR_RARITY_COLORS[1].color,
-          confidenceLevel: 'low',
-          recommendedAdjustment: 'Category not supported for star rating'
-        };
-      }
-      
-      const starLevel = Math.max(1, Math.min(5, currentRatings[categoryKey])) as 1 | 2 | 3 | 4 | 5;
-      const multiplier = this.PROGRESSION_RULES.starMultipliers[starLevel];
-      const targetValue = Math.round(baselineValue * multiplier);
-      const starInfo = this.STAR_RARITY_COLORS[starLevel];
-
-      // Determine confidence level based on history
-      const confidenceLevel = await this.calculateConfidenceLevel(category);
-      
-      // Generate recommendation if needed
-      let recommendedAdjustment: string | undefined;
-      if (confidenceLevel === 'low' && starLevel > 1) {
-        recommendedAdjustment = `Consider reducing difficulty - limited historical data for ${category}`;
-      } else if (starLevel === this.PROGRESSION_RULES.maxStarLevel) {
-        recommendedAdjustment = 'Maximum difficulty reached - consider adding bonus objectives';
-      }
-
-      const result: DifficultyCalculationResult = {
-        category,
-        starLevel: starLevel,
-        baselineValue,
-        multiplier,
-        targetValue,
-        rarityColor: starInfo.color,
-        confidenceLevel,
-        ...(recommendedAdjustment && { recommendedAdjustment })
-      };
-
-      // Emit event for analytics
-      DeviceEventEmitter.emit(this.EVENTS.DIFFICULTY_RECALCULATED, result);
-
-      return result;
-    } catch (error) {
-      console.error('Error calculating difficulty:', error);
-      // Fallback to safe defaults
-      return {
-        category,
-        starLevel: 1,
-        baselineValue,
-        multiplier: this.PROGRESSION_RULES.starMultipliers[1],
-        targetValue: Math.round(baselineValue * this.PROGRESSION_RULES.starMultipliers[1]),
-        rarityColor: this.STAR_RARITY_COLORS[1].color,
-        confidenceLevel: 'low',
-        recommendedAdjustment: 'Using safe default difficulty due to calculation error'
-      };
-    }
-  }
+  // Note: calculateDifficulty removed (N-3.9, 2026-07-18) — never called by
+  // production code (only tests); real targets come from
+  // MonthlyChallengeService.calculateTargetFromBaseline.
 
   // ========================================
   // STAR RATING HISTORY & ANALYTICS
@@ -908,20 +827,6 @@ export class StarRatingService {
     return highestCategory;
   }
 
-  /**
-   * Calculate confidence level based on historical data
-   */
-  private static async calculateConfidenceLevel(category: AchievementCategory): Promise<'low' | 'medium' | 'high'> {
-    try {
-      const history = await this.getStarRatingHistory(category, 6); // Last 6 months
-      
-      if (history.length === 0) return 'low';
-      if (history.length < 3) return 'low';
-      if (history.length < 6) return 'medium';
-      return 'high';
-    } catch (error) {
-      console.error('Error calculating confidence level:', error);
-      return 'low';
-    }
-  }
+  // Note: calculateConfidenceLevel removed with calculateDifficulty (N-3.9) —
+  // it had no other caller.
 }

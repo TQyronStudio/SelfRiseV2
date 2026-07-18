@@ -355,6 +355,93 @@ XP shoda katalog↔guide 15/15 ✓ (vč. 9 custom hodnot).
 - **trophy-collector-master** (count achievements_unlocked ≥ 25, 500 XP,
   :884-888): ✅ — táž cesta.
 
+---
+
+## Session #6 — 2g SPECIAL (14) + 2h batch smyčka
+
+Datum: 2026-07-16 | Commit: `15050b8` | Baseline #6: tsc 0; suites F2 →
+`Tests: 109 passed, 109 total` (112 − 3 testy trofejí smazaných v #5 ✓).
+
+### 2g — SPECIAL (14 položek)
+
+**Loyalty desítka (uzavírá pointer z Fáze 1.8)**: katalogová XP i prahy
+sedí **10/10** s `LoyaltyService.LOYALTY_MILESTONES` (loyaltyService.ts:24-42)
+i s guide: 7d/75, 14d/100, 21d/125, 30d/150, 60d/200, 100d/300, 183d/500,
+365d/1000, 500d/1500, 1000d/2000; rarity odpovídají a `loyalty-master`
+má `isSecret: true` v obou zdrojích ✓. Duplicita čísel (2 zdroje týchž
+hodnot) trvá jako design-cleanliness poznámka — bez rozporu.
+
+- **loyalty-first-week … loyalty-master (10×)**: ✅✅✅✅✅✅✅✅✅✅ —
+  count dispatch :1003-1004 → `getLoyaltyTotalActiveDays`
+  (achievementIntegration.ts:868-879) → `LoyaltyService.getLoyaltyData()
+  .totalActiveDays` — JEDEN zdroj pravdy s loyalty systémem (AsyncStorage,
+  F1.8 ověřen single-writer + same-day guard). Trigger:
+  `appInitializationService.ts:304` → `trackDailyActivity` →
+  `checkLoyaltyAchievements` (achievementService.ts:1428-1449 — filtruje
+  katalog podle source, žádné hardcoded mapování, forceUpdate) ✓.
+  Timeframe záměrně ignorován (kumulativní metrika, komentář :872-873) ✓.
+
+- **lightning-start** (count same_day_habit_creation_completion ≥ 3,
+  100 XP Rare): ✅ — `getSameDayHabitCreationCompletionCount` (:734-770):
+  storage — návyky, které mají completion s datem = datum vytvoření.
+  Odpovídá guide („vytvořit a dokončit ve stejný den 3×"). Poznámka:
+  soft-smazané návyky vypadávají (getAll je vynechává + completions se
+  mažou) → kredit může před odemčením klesnout; po odemčení trvalé.
+
+- **seven-wonder** (count active_habits_simultaneous ≥ 7, 200 XP Epic):
+  ⚠️ **N-2.12** — `getActiveHabitsSimultaneousCount` (:761-790) počítá
+  VŠECHNY nearchivované návyky a IGNORUJE `isActive` flag (komentář „for
+  simplicity, count all created habits as active"). Pauza návyku v UI
+  EXISTUJE (HabitStatsAccordionItem.tsx:177+ styluje neaktivní), guide
+  říká „7 nebo více AKTIVNÍCH návyků současně" → pozastavené návyky se
+  počítají, ač nemají. Malý fix: filtr `habit.isActive`.
+
+- **persistence-pays** (count comeback_activities ≥ 7, 200 XP Epic):
+  ❌ **N-2.11 — sémantika OBRÁCENĚ vůči guide**:
+  `getComebackActivitiesCount` (:820-858) počítá POČET NÁVRATŮ — každou
+  kladnou transakci, před kterou byla ≥3denní mezera (`previousDate` se
+  posouvá každou iterací :850, takže 1 mezera = +1). Target 7 tedy znamená
+  „7× opustit appku na 3+ dny a vrátit se". Guide: „Vrátit se po 3+ denní
+  pauze a **dokončit 7 aktivit**" = JEDEN návrat + 7 akcí po něm.
+  Dnešní chování navíc PERVERZNĚ MOTIVUJE k opakovanému opouštění appky.
+  Transakčně-based (drobnosti s mazáním nepodstatné vedle hlavního
+  problému). → rozhodnutí Petra.
+
+- **legendary-master** (combination: 10 goal_completion + 500
+  habit_completion + 365 journal_entry, 500 XP Legendary; guide „SelfRise
+  Legend"): ✅ — všechny 3 sub-podmínky jedou po opravách N-2.1/N-2.6
+  STORAGE cestami (`getCompletedGoalsCount`, `getHabitCompletionsCount`,
+  `getTotalJournalEntries`) → cross-feature podmínka čte všechny zdroje
+  dat správně (explicitní požadavek plánu pro 2g ✓); kombinační all-met
+  logika ověřena dříve (habit-legend, triple-crown).
+
+### 2h — batch-vyhodnocovací smyčka
+
+- **Kde**: `runBatchAchievementCheck` (achievementService.ts:1068-1150),
+  `checkAchievementsAfterXPAction` (:465-490), relevance mapping
+  (:960-1003), `ACHIEVEMENT_EVALUATION.MAX_BATCH_SIZE`
+  (constants/achievements.ts:30).
+- **Verdikt**: ✅ (batch-truncation fix ze 14.7. drží i po zmenšení
+  katalogu; 1 kosmetická poznámka).
+- **Důkaz**:
+  - Cap se aplikuje **až PO odfiltrování odemčených** (:1108-1121 —
+    komentář přímo popisuje původní bug 78 vs. 50) a případný ořez jen
+    omezí práci jednoho průchodu (zbytek dojede příští check).
+  - `MAX_BATCH_SIZE = 150` vs. katalog 75 → 2× rezerva;
+    `storageSplitBrain.test.ts:145` hlídá invariant DYNAMICKY
+    (`>= CORE_ACHIEVEMENTS.length`), takže zmenšení katalogu v #5 je
+    automaticky pokryté.
+  - Po-XP cesta: rekurzní pojistka pro ACHIEVEMENT_UNLOCK (:474-477);
+    relevance mapping pokrývá SPECIAL ← habit_completion/journal_entry/
+    goal_completion (:997-1002) — lightning/seven-wonder/persistence mají
+    navíc creation trigger (HabitsContext:214) a loyalty vlastní trigger
+    při startu; startup batch (AchievementContext:178) je záchytná síť
+    pro vše.
+  - Kosmetika (INFO): kvůli rekurzní pojistce se `trophy-collector-*`
+    (meta trofeje za počet odemčených) přehodnotí až při NEJBLIŽŠÍ další
+    XP akci nebo startu appky, ne v momentě 10./25. unlocku — zpoždění
+    o jednu akci, záměr (prevence smyčky), bez ztráty.
+
 ## Nálezy k opravě (číslované, s prioritou)
 
 1. **[VYSOKÁ] N-2.1 — count přes kladné XP transakce ignoruje reverze;
@@ -388,6 +475,15 @@ XP shoda katalog↔guide 15/15 ✓ (vč. 9 custom hodnot).
 5. **[INFO] N-2.5 — `getGoalProgressConsecutiveDays`: smazaný progress
    den zůstává započtený** (kladná tx trvá; :436-438). Stejná třída jako
    N-2.1, dopad malý — vyřeší se případně společně s N-2.1.
+5b. **[STŘEDNÍ] N-2.11 — `persistence-pays` počítá obráceně (session #6)**:
+   kalkulátor počítá POČET ≥3denních pauz (7 odchodů z appky!), guide chce
+   „1 návrat + 7 aktivit po něm". Perverzní motivace k opouštění appky.
+   **Návrh**: přepsat `getComebackActivitiesCount` na sémantiku guide —
+   po poslední ≥3denní mezeře spočítat aktivity (kladné transakce) až do
+   targetu 7; nebo (horší) přepsat guide na „7 návratů". → Petr.
+5c. **[NÍZKÁ] N-2.12 — `seven-wonder` počítá i pozastavené návyky
+   (session #6)**: `getActiveHabitsSimultaneousCount` ignoruje `isActive`,
+   guide říká „aktivních". **Návrh**: přidat filtr `habit.isActive`. → Petr.
 6. **[VYSOKÁ] N-2.8 — `recommendation-master` je mrtvý achievement
    (sessions #4+#5)**: žádný producent `RECOMMENDATION_FOLLOW` XP
    v produkci + placeholder ×0,3 v kalkulaci (detail v sekci 2f).
@@ -443,9 +539,11 @@ XP shoda katalog↔guide 15/15 ✓ (vč. 9 custom hodnot).
 | #3 (2c) | 16 | 16 (13 sekcí, z toho 2 sloučené trojice/dvojice streak a counter položek explicitně vyjmenované) | ✓ — všech 16 ID pokryto |
 | #4 (2d) | 15 | 15 (tabulka, každé ID vlastní řádek s verdiktem) | ✓ |
 | #5 (2e+2f) | 8 + 9 = 17 | 17 (každé ID vlastní odrážka) | ✓ |
+| #6 (2g+2h) | 14 + 1 = 15 | 15 (10 loyalty sloučeně s výčtem, 4 jednotlivě, 2h sekce) | ✓ — všech 14 ID pokryto |
 
-**Celkem Fáze 2 dosud: 65/78 achievementů auditováno** (zbývá 2g SPECIAL 14
-+ 2h batch smyčka + 2i device).
+**Fáze 2: auditováno všech 75/75 achievementů katalogu** (78 původních −
+3 smazané v #5) + batch smyčka. **Zbývá jen 2i — device ověření**
+(společné device sezení: odemknout ≥1 trofej z každé kategorie).
 
 ## Rozhodnutí Petra + provedení oprav (2026-07-16, tatáž session)
 
@@ -521,7 +619,41 @@ flame-collector 200 + triple-crown-master 500 = 900.
 **Ověření**: tsc exit 0; celá suite `Tests: 401 passed, 401 total`
 (404 − 3 per-achievement testy smazaných trofejí).
 
-## Stav: Sessions #2–#5 HOTOVÉ (2.0 + 2a-2f) — Fáze 2 pokračuje od 2g (SPECIAL 14)
+## ROZHODNUTÍ PETRA k nálezům session #6 + provedení (2026-07-18)
+
+| Nález | Rozhodnutí | Provedeno |
+|---|---|---|
+| **N-2.11** (persistence-pays obráceně) | ✅ **„obrátit"** — sémantika dle guide | `getComebackActivitiesCount` přepsán: počítá kladné XP aktivity OD nejnovější ≥3denní mezery mezi aktivními dny (žádná pauza nikdy → 0). Timeframe záměrně ignorován (éra = okno sama). Zároveň srovnán s projektovou konvencí `require()` místo `await import()` (dynamický import blokoval Jest mocky — stejný důvod jako PRODUCTION FIX 0 v achievementService). |
+| **N-2.12** (seven-wonder počítá pauznuté) | ✅ **jen aktivní návyky** | `getActiveHabitsSimultaneousCount`: filtr `habit.isActive === false → nepočítá se`. |
+
+**Nové testy** (+4, v `achievementEvaluation.test.ts`): comeback 7 aktivit
+po pauze ⇒ 7 (stará implementace by vrátila 1); žádná pauza ⇒ 0; počítá se
+jen NEJNOVĚJŠÍ comeback éra; seven-wonder vylučuje `isActive: false`.
+Pozn.: první běh odhalil chybu v datech třetího testu (era-2 měla vnitřní
+8denní mezeru — funkce správně našla novější comeback); data opravena.
+Opraven i název sanity testu („78" → „75").
+
+**Ověření**: tsc exit 0; celá suite:
+
+```
+Test Suites: 26 passed, 26 total
+Tests:       405 passed, 405 total
+```
+
+**Guide**: beze změny — texty persistence-pays („vrátit se po pauze
+a dokončit 7 aktivit") i seven-wonder („aktivních") nyní ODPOVÍDAJÍ kódu.
+
+**Nový INFO nález N-2.13 → Fáze 13**: `achievementIntegration.ts` má další
+`await import()` porušující konvenci (getGoalProgressConsecutiveDays :428,
+getHabitXPRatio :491, getConsecutiveAppUsageDays :618,
+getAchievementsUnlockedCount :706) — v produkci fungují, ale blokují Jest
+mocky; sjednotit na `require()` při úklidu.
+
+## Stav: Sessions #2–#6 HOTOVÉ (2.0 + 2a-2h vč. oprav) — auditní část Fáze 2 KOMPLETNÍ
+
+Zbývá pouze: **2i device ověření** (společné device sezení).
+
+### (původní stav po #5, historicky)
 
 Handoff poznámka z #2 pro journal county VYŘÍZENA v #3 (N-2.6 opraven).
 Sessions #4+#5: audit-only — **čekají na rozhodnutí Petra**: N-2.8

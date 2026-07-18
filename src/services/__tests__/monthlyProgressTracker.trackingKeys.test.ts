@@ -219,7 +219,7 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     T.snapshotsCache = null;
     T.updateQueues = new Map();
     T.currentWeekHabits = new Set();
-    T.currentWeekNumber = 0;
+    T.currentWeekKey = '';
     T.streakCompletedToday = false;
     T.currentStreakDate = '';
     T.currentStreakDays = 0;
@@ -229,6 +229,10 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     T.todayJournalEntriesCount = 0;
     T.journalCountDate = '';
     T.goalProgressCountedDate = '';
+    T.streakResetPending = false;
+    // Day-guard state is persisted since N-3.5; mark it loaded so the fields
+    // reset above hold (restart tests flip this back to false themselves)
+    T.dayGuardStateLoaded = true;
   });
 
   // ========================================
@@ -507,5 +511,146 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     // A second undo must not go below zero
     await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, -25, 'habit-1');
     expect(await getProgressValue(ch.id, 'scheduled_habit_completions')).toBe(0);
+  });
+
+  // ========================================
+  // AUDIT FIXES 2026-07-18 (N-3.1 / N-3.5 / N-3.6)
+  // ========================================
+
+  describe('N-3.1: milestone-carrying journal entries (#4/#8/#13) count for challenges', () => {
+    test('JOURNAL_BONUS_MILESTONE increments total_journal_entries_with_bonus (Gratitude Guru)', async () => {
+      const ch = activateChallenge(
+        makeChallenge('total_journal_entries_with_bonus', 100, AchievementCategory.JOURNAL, 'journal')
+      );
+
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'e1');
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_BONUS, 8, 'e2');
+      // Entry #4 of the day: combined base+milestone XP transaction — before
+      // the fix this entry was invisible to the tracker
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_BONUS_MILESTONE, 33, 'e3');
+
+      expect(await getProgressValue(ch.id, 'total_journal_entries_with_bonus')).toBe(3);
+    });
+
+    test('milestone entry counts toward the star-based daily requirement (Consistency Writer 5⭐)', async () => {
+      const ch = activateChallenge(
+        makeChallenge('daily_journal_streak', 30, AchievementCategory.JOURNAL, 'journal', 5)
+      );
+
+      // A real 5-entry day: #1-3 JOURNAL_ENTRY, #4 carries the ⭐ milestone
+      // (JOURNAL_BONUS_MILESTONE), #5 JOURNAL_BONUS. Before the fix the daily
+      // counter read 4 after five entries and the 5⭐ day never qualified.
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'e1');
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'e2');
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'e3');
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_BONUS_MILESTONE, 33, 'e4');
+      expect(await getProgressValue(ch.id, 'daily_journal_streak')).toBe(0); // 4/5 entries
+
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_BONUS, 8, 'e5');
+      expect(await getProgressValue(ch.id, 'daily_journal_streak')).toBe(1); // 5/5 → day qualifies
+    });
+  });
+
+  describe('N-3.5: streak value = current consecutive streak (reset on break) + restart survival', () => {
+    test('habit_streak_days resets to 1 after a gap instead of accumulating', async () => {
+      const ch = activateChallenge(
+        makeChallenge('habit_streak_days', 20, AchievementCategory.HABITS, 'habits')
+      );
+      const T = MonthlyProgressTracker as any;
+
+      // Day 1 (today): first completion → streak 1, progress initialized
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-1');
+      expect(await getProgressValue(ch.id, 'habit_streak_days')).toBe(1);
+
+      // Simulate history: user had built a 6-day streak that ENDED two days
+      // ago (gap yesterday). Stored progress carries the old streak value.
+      const progress = await MonthlyProgressTracker.getChallengeProgress(ch.id);
+      progress!.progress['habit_streak_days'] = 6;
+      await T.saveProgressState(progress);
+      T.clearProgressCache(ch.id);
+      const twoDaysAgo = formatDateToString(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000));
+      T.currentStreakDate = twoDaysAgo;
+      T.currentStreakDays = 6;
+      T.streakCompletedToday = false;
+
+      // Today's completion after the gap → NEW streak → stored value must
+      // RESET to 1 (pre-fix behavior: 6 + 1 = 7, a cumulative day count)
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-1');
+      expect(await getProgressValue(ch.id, 'habit_streak_days')).toBe(1);
+    });
+
+    test('day-guard state survives an app restart (NÁLEZ 4): no double-count of today', async () => {
+      const ch = activateChallenge(
+        makeChallenge('habit_streak_days', 20, AchievementCategory.HABITS, 'habits')
+      );
+      const T = MonthlyProgressTracker as any;
+
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-1');
+      expect(await getProgressValue(ch.id, 'habit_streak_days')).toBe(1);
+      await new Promise((r) => setTimeout(r, 0)); // flush fire-and-forget persist
+
+      // Simulate app restart: in-memory guards wiped, persisted state remains
+      T.streakCompletedToday = false;
+      T.currentStreakDate = '';
+      T.currentStreakDays = 0;
+      T.dayGuardStateLoaded = false;
+
+      // Second completion the same day after "restart" — before the fix this
+      // double-counted the day (the exact 3e device scenario)
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-2');
+      expect(await getProgressValue(ch.id, 'habit_streak_days')).toBe(1);
+    });
+  });
+
+  describe('N-3.6: undo (deletion) reverses journal/variety progress', () => {
+    test('quality_journal_entries: deleting a 33+ char entry decrements (delete now carries entryLength)', async () => {
+      const ch = activateChallenge(
+        makeChallenge('quality_journal_entries', 80, AchievementCategory.JOURNAL, 'journal')
+      );
+
+      await MonthlyProgressTracker.updateMonthlyProgress(
+        XPSourceType.JOURNAL_ENTRY, 20, 'e1', { entryLength: 50 }
+      );
+      expect(await getProgressValue(ch.id, 'quality_journal_entries')).toBe(1);
+
+      // Delete event as SQLiteGratitudeStorage now emits it (N-3.6)
+      await MonthlyProgressTracker.updateMonthlyProgress(
+        XPSourceType.JOURNAL_ENTRY, -20, 'e1', { entryLength: 50, date: today() }
+      );
+      expect(await getProgressValue(ch.id, 'quality_journal_entries')).toBe(0);
+    });
+
+    test('unique_weekly_habits: deleting this week\'s completion releases the uniqueness slot', async () => {
+      const ch = activateChallenge(
+        makeChallenge('unique_weekly_habits', 10, AchievementCategory.HABITS, 'habits')
+      );
+
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-A');
+      expect(await getProgressValue(ch.id, 'unique_weekly_habits')).toBe(1);
+
+      await MonthlyProgressTracker.updateMonthlyProgress(
+        XPSourceType.HABIT_COMPLETION, -25, 'habit-A', { date: today() }
+      );
+      expect(await getProgressValue(ch.id, 'unique_weekly_habits')).toBe(0);
+
+      // Completing it again re-counts it as unique this week
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 25, 'habit-A');
+      expect(await getProgressValue(ch.id, 'unique_weekly_habits')).toBe(1);
+    });
+
+    test('daily_journal_streak (1⭐): deleting today\'s only entry releases the counted day', async () => {
+      const ch = activateChallenge(
+        makeChallenge('daily_journal_streak', 25, AchievementCategory.JOURNAL, 'journal', 1)
+      );
+
+      await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'e1');
+      expect(await getProgressValue(ch.id, 'daily_journal_streak')).toBe(1);
+
+      // Delete drops today's count below the 1⭐ requirement → day released
+      await MonthlyProgressTracker.updateMonthlyProgress(
+        XPSourceType.JOURNAL_ENTRY, -20, 'e1', { entryLength: 10, date: today() }
+      );
+      expect(await getProgressValue(ch.id, 'daily_journal_streak')).toBe(0);
+    });
   });
 });

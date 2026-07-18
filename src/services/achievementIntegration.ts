@@ -783,10 +783,14 @@ export class AchievementIntegration {
   static async getActiveHabitsSimultaneousCount(timeframe?: string): Promise<number> {
     try {
       const habits = await this.habitStorage.getAll();
-      
-      // For simplicity, count all created habits as active
-      // In a more sophisticated system, we'd track historical active habit counts and deletions
-      const activeHabits = habits.filter((habit: { id: string; createdAt?: Date | string | number }) => {
+
+      // N-2.12 fix (audit F2g, decision 2026-07-18): "7 ACTIVE habits
+      // simultaneously" — paused habits (isActive === false) do not count.
+      const activeHabits = habits.filter((habit: { id: string; isActive?: boolean; createdAt?: Date | string | number }) => {
+        if (habit.isActive === false) {
+          return false;
+        }
+
         if (!habit.createdAt) {
           console.warn('Habit missing createdAt:', habit.id);
           return false;
@@ -815,42 +819,51 @@ export class AchievementIntegration {
 
   /**
    * Get count of comeback activities (Persistence Pays)
-   * Detects activities after 3+ day breaks in XP transactions
+   *
+   * N-2.11 fix (audit F2g, decision 2026-07-18): the trophy rewards ONE
+   * comeback — returning after a 3+ day pause — followed by activity:
+   * counts positive-XP activities SINCE the most recent 3+ day gap between
+   * activity days. No 3+ day pause ever → 0 (no comeback to reward).
+   * The previous implementation counted the NUMBER of 3+ day gaps, i.e.
+   * rewarded users for repeatedly LEAVING the app.
+   * Timeframe is ignored on purpose — the "current comeback era" is the
+   * window itself (same approach as loyalty cumulative metrics).
    */
   static async getComebackActivitiesCount(timeframe?: string): Promise<number> {
     try {
-      const { GamificationService } = await import('./gamificationService');
+      // Lazy require (not dynamic import) — project convention for Jest compatibility
+      const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
       const transactions = await GamificationService.getAllTransactions();
-      
-      if (transactions.length === 0) {
+
+      const positive = transactions
+        .filter(t => t.amount > 0)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      if (positive.length === 0) {
         return 0;
       }
-      
-      // Sort transactions by date
-      const sortedTransactions = transactions
-        .filter(t => t.amount > 0) // Only count positive XP activities
-        .sort((a, b) => a.date.localeCompare(b.date));
-      
-      let comebackCount = 0;
-      let previousDate: string | null = null;
-      
-      for (const transaction of sortedTransactions) {
-        if (previousDate) {
-          // Calculate days between transactions
-          const daysBetween = this.calculateDaysBetween(previousDate, transaction.date);
-          
-          // If gap is 3+ days, this is a comeback
-          if (daysBetween >= 3) {
-            if (!timeframe || timeframe === 'all_time' || 
-                this.isDateInTimeframe(transaction.date, timeframe)) {
-              comebackCount++;
-            }
-          }
+
+      // Unique activity days, ascending; find the start of the current
+      // activity era = first day after the most recent 3+ day gap.
+      const days = [...new Set(positive.map(t => t.date))].sort();
+      let comebackStartDate: string | null = null;
+
+      for (let i = days.length - 1; i > 0; i--) {
+        const current = days[i];
+        const previous = days[i - 1];
+        if (!current || !previous) break;
+
+        if (this.calculateDaysBetween(previous, current) >= 3) {
+          comebackStartDate = current;
+          break;
         }
-        previousDate = transaction.date;
       }
-      
-      return comebackCount;
+
+      if (!comebackStartDate) {
+        return 0;
+      }
+
+      return positive.filter(t => t.date >= comebackStartDate!).length;
     } catch (error) {
       console.error('AchievementIntegration.getComebackActivitiesCount error:', error);
       return 0;

@@ -3625,6 +3625,8 @@ const es: Partial<TranslationKeys> = {
         journal_consistency_writer: {
           title: 'Escritor Consistente',
           description: 'Mantén racha de escritura diaria en el diario',
+          descriptionDynamic_one: 'Escribe en el diario cada día con 1 entrada al día para construir un hábito inquebrantable',
+          descriptionDynamic_other: 'Escribe en el diario cada día con {{count}} entradas al día para construir un hábito inquebrantable',
           requirement: 'Escribe entradas de diario consecutivamente',
           bonus1: 'Recompensa por racha diaria (+25 XP por día)',
           bonus2: 'Hito de racha semanal (+100 XP)',

@@ -25,12 +25,13 @@ export interface UserActivityBaseline {
   totalHabitCompletions: number;
   habitConsistencyDays: number; // Days with 1+ habit completions
   
-  // Journal metrics (30-day analysis)  
+  // Journal metrics (30-day analysis)
   avgDailyJournalEntries: number;
   avgDailyBonusEntries: number;
   avgEntryLength: number;
   journalConsistencyDays: number; // Days with 3+ entries
   totalJournalEntries: number;
+  qualityJournalEntries: number; // non-bonus entries (#1-3 of day) with 33+ chars (N-3.2)
   longestJournalStreak: number;
   
   // Goal metrics (30-day analysis)
@@ -77,6 +78,7 @@ interface DailyActivitySummary {
   // Journal activity
   journalEntries: number;
   bonusEntries: number;
+  qualityJournalEntries: number; // non-bonus entries (#1-3) with 33+ chars — Reflection Expert baseline (N-3.2)
   avgEntryLength: number;
   hasMinimumJournal: boolean; // 3+ entries
   
@@ -90,15 +92,6 @@ interface DailyActivitySummary {
   hasTripleFeature: boolean;
   hasPerfectDay: boolean;
   hasAppUsage: boolean;
-}
-
-/**
- * Star-level scaling configuration
- */
-interface StarScalingConfig {
-  starLevel: 1 | 2 | 3 | 4 | 5;
-  scalingMultiplier: number; // 1.05 to 1.25
-  description: string;
 }
 
 /**
@@ -128,16 +121,7 @@ const STORAGE_KEYS = {
 // ========================================
 
 export class UserActivityTracker {
-  
-  // Star scaling configuration
-  private static readonly STAR_SCALING: { [K in 1 | 2 | 3 | 4 | 5]: StarScalingConfig } = {
-    1: { starLevel: 1, scalingMultiplier: 1.05, description: 'Easy (+5%)' },
-    2: { starLevel: 2, scalingMultiplier: 1.10, description: 'Medium (+10%)' },
-    3: { starLevel: 3, scalingMultiplier: 1.15, description: 'Hard (+15%)' },
-    4: { starLevel: 4, scalingMultiplier: 1.20, description: 'Expert (+20%)' },
-    5: { starLevel: 5, scalingMultiplier: 1.25, description: 'Master (+25%)' }
-  };
-  
+
   // Data quality thresholds
   private static readonly QUALITY_THRESHOLDS = {
     MINIMAL: 5,   // < 5 days of data
@@ -232,30 +216,9 @@ export class UserActivityTracker {
     }
   }
 
-  /**
-   * Apply star-level scaling to baseline values
-   */
-  static applyStarScaling(
-    baselineValue: number,
-    starLevel: 1 | 2 | 3 | 4 | 5,
-    roundUp: boolean = true
-  ): number {
-    const scaling = this.STAR_SCALING[starLevel];
-    if (!scaling) {
-      console.warn(`Invalid star level: ${starLevel}, using level 1`);
-      return Math.ceil(baselineValue * 1.05);
-    }
-    
-    const scaledValue = baselineValue * scaling.scalingMultiplier;
-    return roundUp ? Math.ceil(scaledValue) : Math.round(scaledValue);
-  }
-
-  /**
-   * Get star scaling configuration
-   */
-  static getStarScaling(starLevel: 1 | 2 | 3 | 4 | 5): StarScalingConfig {
-    return this.STAR_SCALING[starLevel] || this.STAR_SCALING[1];
-  }
+  // Note: applyStarScaling / getStarScaling removed (N-3.9, 2026-07-18) —
+  // never called by production code; targets come from
+  // MonthlyChallengeService.calculateTargetFromBaseline.
 
   /**
    * Get all stored baselines
@@ -353,6 +316,9 @@ export class UserActivityTracker {
           // Journal metrics
           journalEntries: journalEntries.length,
           bonusEntries: bonusEntries.length,
+          // Only entries #1-3 of a day can count as "quality" for the
+          // Reflection Expert challenge (quality_journal_entries tracking)
+          qualityJournalEntries: regularEntries.filter((e: any) => (e.content?.length || 0) >= 33).length,
           avgEntryLength: avgLength,
           hasMinimumJournal: journalEntries.length >= 3,
           
@@ -415,6 +381,7 @@ export class UserActivityTracker {
       // Calculate journal metrics
       const totalJournalEntries = summaries.reduce((sum, s) => sum + s.journalEntries, 0);
       const totalBonusEntries = summaries.reduce((sum, s) => sum + s.bonusEntries, 0);
+      const totalQualityEntries = summaries.reduce((sum, s) => sum + (s.qualityJournalEntries || 0), 0);
       const totalEntryLength = summaries.reduce((sum, s) => sum + (s.avgEntryLength * s.journalEntries), 0);
       const journalConsistencyDays = summaries.filter(s => s.hasMinimumJournal).length;
       const longestJournalStreak = this.calculateLongestStreak(summaries, 'hasMinimumJournal');
@@ -465,8 +432,9 @@ export class UserActivityTracker {
         avgEntryLength: totalJournalEntries > 0 ? totalEntryLength / totalJournalEntries : 0,
         journalConsistencyDays,
         totalJournalEntries,
+        qualityJournalEntries: totalQualityEntries,
         longestJournalStreak,
-        
+
         // Goal metrics (normalized to daily averages)
         avgDailyGoalProgress: totalDays > 0 ? totalGoalProgress / totalDays : 0,
         totalGoalProgressDays: goalProgressDays,
@@ -651,6 +619,7 @@ export class UserActivityTracker {
       avgEntryLength: 50,
       journalConsistencyDays: 0,
       totalJournalEntries: 0,
+      qualityJournalEntries: 0,
       longestJournalStreak: 0,
       
       avgDailyGoalProgress: 0.5,

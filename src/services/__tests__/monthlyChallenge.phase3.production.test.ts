@@ -3,8 +3,37 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-import { StarRatingService, ChallengeCompletionData, DifficultyCalculationResult } from '../starRatingService';
+import { StarRatingService, ChallengeCompletionData } from '../starRatingService';
 import { MonthlyChallengeService } from '../monthlyChallengeService';
+
+// ========================================
+// REAL TARGET-PATH HELPERS (N-3.9)
+// ========================================
+// These tests used to assert the parallel dead APIs (applyStarScaling /
+// calculateDifficulty) that no production code ever called. Targets really
+// come from calculateTargetFromBaseline — minimal stubs below drive it.
+
+const makeScalingTemplate = (overrides: Record<string, any> = {}) => ({
+  id: 'test_template',
+  category: AchievementCategory.HABITS,
+  title: 'T',
+  description: 'D',
+  baselineMetricKey: 'totalHabitCompletions',
+  baselineMultiplierRange: [1.05, 1.25] as [number, number],
+  requirementTemplates: [{
+    type: 'habits',
+    description: 'r',
+    trackingKey: 'scheduled_habit_completions',
+    progressMilestones: [0.25, 0.5, 0.75],
+  }],
+  starLevelRequirements: { minLevel: 1, preferredDataQuality: ['complete'] },
+  baseXPReward: 500,
+  bonusXPConditions: [],
+  tags: [],
+  priority: 100,
+  cooldownMonths: 2,
+  ...overrides,
+});
 import { 
   UserChallengeRatings, 
   StarRatingHistoryEntry,
@@ -431,47 +460,55 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       expect(MonthlyChallengeService.getWarmUpXPReward(5)).toBe(Math.round(baseReward * 5.064));      // 2532
     });
 
-    test(' B3. Star scaling multiplier accuracy', () => {
-      // Test the difficulty multipliers
-      const baselineValue = 100;
-      
-      // Note: Implementation uses Math.ceil and Math.max, accounting for floating point precision
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 1)).toBe(105);  // 100 * 1.05 = 105
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 2)).toBe(111);  // 100 * 1.10 = 110.00...1 -> 111 
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 3)).toBe(115);  // 100 * 1.15 = 115
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 4)).toBe(120);  // 100 * 1.20 = 120
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 5)).toBe(125);  // 100 * 1.25 = 125
-    });
+    test(' B3. Star scaling multiplier accuracy (real target path)', () => {
+      // N-3.3: stars map LINEARLY inside the template's multiplier range —
+      // [1.05, 1.25] → 1.05 / 1.10 / 1.15 / 1.20 / 1.25
+      const template = makeScalingTemplate();
+      const baseline = { totalHabitCompletions: 100 };
 
-    test(' B4. Star scaling minimum protection', () => {
-      // Test that scaled values are at least equal to star level
-      const lowBaseline = 2;
-      
-      expect(MonthlyChallengeService.applyStarScaling(lowBaseline, 3)).toBeGreaterThanOrEqual(3);  // Math.max(3, 3)
-      expect(MonthlyChallengeService.applyStarScaling(lowBaseline, 4)).toBeGreaterThanOrEqual(4);  // Math.max(3, 4) = 4
-      expect(MonthlyChallengeService.applyStarScaling(lowBaseline, 5)).toBeGreaterThanOrEqual(5);  // Math.max(3, 5) = 5
-    });
-
-    test(' B5. Difficulty calculation with star rating integration', async () => {
-      // Setup: Set user to 3 stars in habits
-      await StarRatingService.resetCategoryStarRating(AchievementCategory.HABITS, 3);
-      
-      const baselineValue = 80;
-      
-      // Execute
-      const difficulty = await StarRatingService.calculateDifficulty(
-        AchievementCategory.HABITS,
-        baselineValue
+      const targets = ([1, 2, 3, 4, 5] as const).map(star =>
+        MonthlyChallengeService.calculateTargetFromBaseline(template as any, baseline as any, star).target
       );
 
-      // Assert
-      expect(difficulty.category).toBe(AchievementCategory.HABITS);
-      expect(difficulty.starLevel).toBe(3);
-      expect(difficulty.baselineValue).toBe(baselineValue);
-      expect(difficulty.multiplier).toBe(1.15); // 3 = +15%
-      expect(difficulty.targetValue).toBe(92); // Math.ceil(80 * 1.15) = 92
-      expect(difficulty.rarityColor).toBe('#9C27B0'); // Epic purple
-      expect(difficulty.confidenceLevel).toBeDefined();
+      expect(targets).toEqual([105, 110, 115, 120, 125]);
+    });
+
+    test(' B4. Minimum floors protect low baselines (per tracking key)', () => {
+      // habit_streak_days minimums: [5, 7, 10, 14, 18] consecutive days (N-3.2)
+      const template = makeScalingTemplate({
+        baselineMetricKey: 'longestHabitStreak',
+        baselineMultiplierRange: [1.15, 1.35] as [number, number],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'habit_streak_days',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const baseline = { longestHabitStreak: 2 };
+
+      const r3 = MonthlyChallengeService.calculateTargetFromBaseline(template as any, baseline as any, 3);
+      expect(r3.target).toBe(10); // ceil(2 × 1.25) = 3 → per-key minimum 10
+      expect(r3.calculationMethod).toBe('minimum');
+
+      const r5 = MonthlyChallengeService.calculateTargetFromBaseline(template as any, baseline as any, 5);
+      expect(r5.target).toBe(18); // 5⭐ minimum
+    });
+
+    test(' B5. Difficulty derives from the current star rating (real path)', async () => {
+      // Setup: Set user to 3 stars in habits — generation reads this rating
+      // and feeds it into calculateTargetFromBaseline
+      await StarRatingService.resetCategoryStarRating(AchievementCategory.HABITS, 3);
+      const ratings = await StarRatingService.getCurrentStarRatings();
+      const starLevel = Math.max(1, Math.min(5, ratings.habits)) as 1 | 2 | 3 | 4 | 5;
+      expect(starLevel).toBe(3);
+
+      const template = makeScalingTemplate();
+      const baseline = { totalHabitCompletions: 80 };
+      const result = MonthlyChallengeService.calculateTargetFromBaseline(template as any, baseline as any, starLevel);
+
+      expect(result.scalingMultiplier).toBeCloseTo(1.15, 10); // midpoint of [1.05, 1.25]
+      expect(result.target).toBe(92); // ceil(80 × 1.15)
+      expect(result.baselineValue).toBe(80);
+      expect(result.calculationMethod).toBe('baseline');
     });
 
     test(' B6. Star rarity color and display mapping', () => {
@@ -520,12 +557,41 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       expect(MonthlyChallengeService.getXPRewardForStarLevel(1)).toBeGreaterThan(0);
       expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBeLessThanOrEqual(25000); // MONTHLY_XP_REWARDS upper bound
       
-      // Scaling boundaries
-      expect(MonthlyChallengeService.applyStarScaling(1, 1)).toBeGreaterThan(0);
-      expect(MonthlyChallengeService.applyStarScaling(1000, 5)).toBeLessThan(2000); // 1000 * 1.25 = 1250
-      
-      // Zero baseline protection
-      expect(MonthlyChallengeService.applyStarScaling(0, 3)).toBeGreaterThanOrEqual(3); // Math.max(0, 3) = 3
+      // Scaling boundaries (real path): streak targets never exceed the days
+      // in the target month, quality entries never exceed 3/day (N-3.2 caps)
+      const streakTemplate = makeScalingTemplate({
+        baselineMetricKey: 'longestHabitStreak',
+        baselineMultiplierRange: [1.15, 1.35] as [number, number],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'habit_streak_days',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const capped = MonthlyChallengeService.calculateTargetFromBaseline(
+        streakTemplate as any, { longestHabitStreak: 100 } as any, 5, 10, '2026-02'
+      );
+      expect(capped.target).toBe(28); // February 2026 (non-leap)
+
+      const qualityTemplate = makeScalingTemplate({
+        category: AchievementCategory.JOURNAL,
+        baselineMetricKey: 'qualityJournalEntries',
+        baselineMultiplierRange: [1.05, 1.25] as [number, number],
+        requirementTemplates: [{
+          type: 'journal', description: 'r', trackingKey: 'quality_journal_entries',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const qualityCapped = MonthlyChallengeService.calculateTargetFromBaseline(
+        qualityTemplate as any, { qualityJournalEntries: 200 } as any, 5, 10, '2026-04'
+      );
+      expect(qualityCapped.target).toBe(90); // 3/day × 30 days in April
+
+      // Zero baseline protection: falls back, then the minimum floor applies
+      const zero = MonthlyChallengeService.calculateTargetFromBaseline(
+        makeScalingTemplate() as any, { totalHabitCompletions: 0 } as any, 3, 25
+      );
+      expect(zero.target).toBeGreaterThan(0);
+      expect(['fallback', 'minimum']).toContain(zero.calculationMethod);
     });
   });
 
@@ -747,12 +813,17 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       const xpReward = MonthlyChallengeService.getXPRewardForStarLevel(2);
       expect(xpReward).toBe(7500); // MONTHLY_XP_REWARDS (full monthly challenge)
       
-      // 5. Calculate new difficulty for next challenge
-      const difficulty = await StarRatingService.calculateDifficulty(AchievementCategory.HABITS, 30);
-      expect(difficulty.starLevel).toBe(2);
-      expect(difficulty.multiplier).toBe(1.10);
-      expect(difficulty.targetValue).toBe(33); // Math.ceil(30 * 1.10) = 33, Math.max(33, 2) = 33
-      
+      // 5. Calculate new difficulty for next challenge (real target path:
+      // new star rating → calculateTargetFromBaseline)
+      const newRatings = await StarRatingService.getCurrentStarRatings();
+      const nextStar = Math.max(1, Math.min(5, newRatings.habits)) as 1 | 2 | 3 | 4 | 5;
+      expect(nextStar).toBe(2);
+      const difficulty = MonthlyChallengeService.calculateTargetFromBaseline(
+        makeScalingTemplate() as any, { totalHabitCompletions: 30 } as any, nextStar
+      );
+      expect(difficulty.scalingMultiplier).toBeCloseTo(1.10, 10); // 2⭐ in [1.05, 1.25]
+      expect(difficulty.target).toBe(33); // ceil(30 × 1.10) = 33 ≥ minimum 25
+
       // 6. Verify complete system state
       const ratings = await StarRatingService.getCurrentStarRatings();
       const analysis = await StarRatingService.generateStarRatingAnalysis();
@@ -766,7 +837,7 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       console.log('<� PHASE 3 INTEGRATION TEST PASSED');
       console.log(`Star Progression: 1 � 2 (${starResult.reason})`);
       console.log(`XP Reward: ${xpReward} XP`);
-      console.log(`Next Difficulty: ${difficulty.targetValue} (${(difficulty.multiplier - 1) * 100}% increase)`);
+      console.log(`Next Difficulty: ${difficulty.target} (${Math.round((difficulty.scalingMultiplier - 1) * 100)}% increase)`);
       console.log(`User Analysis: ${analysis.totalCompletions} completions, trend: ${analysis.recentTrend}`);
     });
   });

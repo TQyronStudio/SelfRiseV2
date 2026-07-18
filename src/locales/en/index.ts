@@ -3648,6 +3648,8 @@ const en: TranslationKeys = {
         journal_consistency_writer: {
           title: 'Consistency Writer',
           description: 'Maintain daily journal writing streak',
+          descriptionDynamic_one: 'Journal every single day with 1 entry per day to build an unbreakable habit',
+          descriptionDynamic_other: 'Journal every single day with {{count}} entries per day to build an unbreakable habit',
           requirement: 'Write journal entries consecutively',
           bonus1: 'Daily streak reward (+25 XP per day)',
           bonus2: 'Weekly streak milestone (+100 XP)',

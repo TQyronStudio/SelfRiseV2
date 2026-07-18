@@ -465,7 +465,10 @@ export class SQLiteHabitStorage {
       await GamificationService.subtractXP(xpAmount, {
         source: xpSource,
         description,
-        sourceId: completion.habitId
+        sourceId: completion.habitId,
+        // Monthly Challenge tracker reverses variety/streak progress only for
+        // deletions dated in the current day/week (N-3.6)
+        metadata: { date: completion.date },
       });
 
       console.log(`✅ Habit completion deleted (-${xpAmount} XP)`);

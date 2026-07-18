@@ -519,6 +519,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 3,
         totalHabitCompletions: 5,
         totalJournalEntries: 10,
+        qualityJournalEntries: 6,
         totalGoalProgressDays: 2,
         avgDailyHabitCompletions: 0.16,
         avgDailyJournalEntries: 0.32,
@@ -586,23 +587,31 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
 
   describe('Star-Level Challenge Generation (1★→5★)', () => {
 
-    test('should apply correct star scaling formulas', () => {
-      const baselineValue = 100;
-      
-      const star1 = MonthlyChallengeService.applyStarScaling(baselineValue, 1);
-      const star2 = MonthlyChallengeService.applyStarScaling(baselineValue, 2);
-      const star3 = MonthlyChallengeService.applyStarScaling(baselineValue, 3);
-      const star4 = MonthlyChallengeService.applyStarScaling(baselineValue, 4);
-      const star5 = MonthlyChallengeService.applyStarScaling(baselineValue, 5);
+    test('should apply correct star scaling formulas (real target path)', () => {
+      // N-3.9: asserts calculateTargetFromBaseline (the path generation
+      // actually uses) instead of the deleted parallel applyStarScaling.
+      // N-3.3: stars map linearly inside the template's multiplier range.
+      const template = {
+        id: 'test_template',
+        category: AchievementCategory.HABITS,
+        baselineMetricKey: 'totalHabitCompletions',
+        baselineMultiplierRange: [1.05, 1.25],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'scheduled_habit_completions',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      };
 
-      // Verify scaling formulas match specification
-      expect(star1).toBe(Math.ceil(100 * 1.05)); // +5% = 105
-      expect(star2).toBe(Math.ceil(100 * 1.10)); // +10% = 110
-      expect(star3).toBe(Math.ceil(100 * 1.15)); // +15% = 115
-      expect(star4).toBe(Math.ceil(100 * 1.20)); // +20% = 120
-      expect(star5).toBe(Math.ceil(100 * 1.25)); // +25% = 125
+      const targets = [1, 2, 3, 4, 5].map(star =>
+        (MonthlyChallengeService.calculateTargetFromBaseline as any)(
+          template, { totalHabitCompletions: 100 }, star
+        ).target
+      );
 
-      console.log('✅ Star Scaling Formulas: 1.05→1.10→1.15→1.20→1.25 progression verified');
+      // [1.05, 1.25] range → +5% / +10% / +15% / +20% / +25%
+      expect(targets).toEqual([105, 110, 115, 120, 125]);
+
+      console.log('✅ Star Scaling Formulas: linear range mapping 1.05→1.25 verified');
     });
 
     test('should provide correct XP rewards for each star level', () => {
@@ -660,23 +669,33 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
       console.log('✅ Star Progression: Success → +1★ advancement verified');
     });
 
-    test('should enforce star rating boundaries (1-5★)', () => {
-      // Test minimum boundary
-      const scaling1 = MonthlyChallengeService.getStarScaling(1);
-      expect(scaling1.multiplier).toBe(1.05);
-      
-      // Test maximum boundary
-      const scaling5 = MonthlyChallengeService.getStarScaling(5);
-      expect(scaling5.multiplier).toBe(1.25);
-      
-      // Test invalid boundaries are handled
-      const invalidLow = MonthlyChallengeService.getStarScaling(0 as any);
-      expect(invalidLow.multiplier).toBe(1.05); // Should default to level 1
-      
-      const invalidHigh = MonthlyChallengeService.getStarScaling(6 as any);
-      expect(invalidHigh.multiplier).toBe(1.05); // Should default to level 1
+    test('should enforce star rating boundaries (1-5★) on the real target path', () => {
+      // N-3.9: getStarScaling was deleted — boundaries live in
+      // calculateTargetFromBaseline's linear range mapping (N-3.3)
+      const template = {
+        id: 'test_template',
+        category: AchievementCategory.HABITS,
+        baselineMetricKey: 'totalHabitCompletions',
+        baselineMultiplierRange: [1.05, 1.25],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'scheduled_habit_completions',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      };
+      const baseline = { totalHabitCompletions: 100 };
+      const calc = (star: number) =>
+        (MonthlyChallengeService.calculateTargetFromBaseline as any)(template, baseline, star);
 
-      console.log('✅ Star Boundaries: 1-5★ range limits enforced with proper defaults');
+      // Range boundaries: 1⭐ = range minimum, 5⭐ = range maximum
+      expect(calc(1).scalingMultiplier).toBeCloseTo(1.05, 10);
+      expect(calc(5).scalingMultiplier).toBeCloseTo(1.25, 10);
+
+      // Multipliers grow strictly with each star (no flat spots — N-3.3)
+      for (let star = 2; star <= 5; star++) {
+        expect(calc(star).scalingMultiplier).toBeGreaterThan(calc(star - 1).scalingMultiplier);
+      }
+
+      console.log('✅ Star Boundaries: linear range mapping endpoints and monotony verified');
     });
   });
 
@@ -697,6 +716,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 3,
         totalHabitCompletions: 6,
         totalJournalEntries: 9,
+        qualityJournalEntries: 5,
         totalGoalProgressDays: 3,
         avgDailyHabitCompletions: 6/31,
         avgDailyJournalEntries: 9/31,
@@ -751,6 +771,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 28,
         totalHabitCompletions: 120,
         totalJournalEntries: 150,
+        qualityJournalEntries: 80,
         totalGoalProgressDays: 25,
         avgDailyHabitCompletions: 120/31,
         avgDailyJournalEntries: 150/31,
@@ -805,6 +826,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 15,
         totalHabitCompletions: 50,
         totalJournalEntries: 60,
+        qualityJournalEntries: 35,
         totalGoalProgressDays: 12,
         avgDailyHabitCompletions: 50/31,
         avgDailyJournalEntries: 60/31,
@@ -840,14 +862,16 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         45 // Fallback value
       );
 
-      // Verify calculation methodology
+      // Verify calculation methodology — Reflection Expert reads
+      // qualityJournalEntries since N-3.2 (only entries #1-3 with 33+ chars
+      // can count, so totalJournalEntries produced unreachable targets)
       expect(calculation.target).toBeGreaterThan(0);
-      expect(calculation.baselineValue).toBe(testBaseline.totalJournalEntries);
-      expect(calculation.scalingMultiplier).toBeCloseTo(1.15); // 3★ multiplier
+      expect(calculation.baselineValue).toBe(testBaseline.qualityJournalEntries);
+      expect(calculation.scalingMultiplier).toBeCloseTo(1.15); // 3★ = midpoint of [1.05, 1.25]
       expect(calculation.calculationMethod).toBe('baseline');
-      
+
       // Verify mathematical accuracy: baseline × multiplier (within template constraints)
-      const expectedTarget = Math.ceil(testBaseline.totalJournalEntries * 1.15);
+      const expectedTarget = Math.ceil(testBaseline.qualityJournalEntries * 1.15);
       expect(calculation.target).toBeCloseTo(expectedTarget, 5);
       
       console.log('✅ Baseline Scaling Math: baseline × starMultiplier calculations verified');
@@ -865,6 +889,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 2,
         totalHabitCompletions: 3, // Very low
         totalJournalEntries: 4,   // Very low
+        qualityJournalEntries: 2,
         totalGoalProgressDays: 1, // Very low
         avgDailyHabitCompletions: 3/31,
         avgDailyJournalEntries: 4/31,
@@ -919,6 +944,7 @@ describe('Monthly Challenge System - Phase 1 Testing', () => {
         totalActiveDays: 1, // Insufficient data
         totalHabitCompletions: 1,
         totalJournalEntries: 2,
+        qualityJournalEntries: 1,
         totalGoalProgressDays: 0,
         avgDailyHabitCompletions: 1/31,
         avgDailyJournalEntries: 2/31,

@@ -4,7 +4,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter, AppState } from 'react-native';
-import { StarRatingService, ChallengeCompletionData, DifficultyCalculationResult } from '../starRatingService';
+import { StarRatingService, ChallengeCompletionData } from '../starRatingService';
 import { MonthlyChallengeLifecycleManager, ChallengeLifecycleStatus } from '../monthlyChallengeLifecycleManager';
 import { MonthlyChallengeService } from '../monthlyChallengeService';
 import { UserActivityTracker } from '../userActivityTracker';
@@ -71,11 +71,6 @@ jest.mock('../monthlyChallengeService', () => ({
     getXPRewardForStarLevel: jest.fn().mockImplementation((starLevel: number) => {
       const rewards: Record<number, number> = { 1: 500, 2: 750, 3: 1125, 4: 1688, 5: 2532 };
       return rewards[starLevel] || 500;
-    }),
-    applyStarScaling: jest.fn().mockImplementation((baselineValue: number, starLevel: number) => {
-      const multipliers: Record<number, number> = { 1: 1.05, 2: 1.10, 3: 1.15, 4: 1.20, 5: 1.25 };
-      const scaledValue = Math.ceil(baselineValue * (multipliers[starLevel] || 1.05));
-      return Math.max(scaledValue, starLevel);
     }),
     getCurrentChallenge: jest.fn(),
     generateChallengeForCurrentMonth: jest.fn(),
@@ -352,41 +347,59 @@ describe('Phase 3: Star Progression & Lifecycle - Comprehensive Testing', () => 
       expect(MonthlyChallengeService.getXPRewardForStarLevel(5)).toBe(2532);  // 5 Master
     });
 
-    test('=� 2. Star scaling multiplier accuracy', () => {
-      const baselineValue = 100;
-      
-      // Test scaling for each star level (accounting for floating point precision)
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 1)).toBe(105);  // Math.ceil(100 * 1.05) = 105
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 2)).toBe(111);  // Math.ceil(100 * 1.10) = 111 (floating point 110.00...1)  
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 3)).toBe(115);  // Math.ceil(100 * 1.15) = 115
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 4)).toBe(120);  // Math.ceil(100 * 1.20) = 120
-      expect(MonthlyChallengeService.applyStarScaling(baselineValue, 5)).toBe(125);  // Math.ceil(100 * 1.25) = 125
-      
-      // Test with non-round baseline that needs ceiling
-      expect(MonthlyChallengeService.applyStarScaling(95, 2)).toBe(105);  // Math.ceil(95 * 1.10) = 105
-      expect(MonthlyChallengeService.applyStarScaling(33, 3)).toBe(38);   // Math.ceil(33 * 1.15) = 38
+    test('=� 2. Star scaling multiplier accuracy (real target path)', () => {
+      // MonthlyChallengeService is fully mocked in this file (lifecycle
+      // isolation) — target math must be asserted against the REAL module
+      // (N-3.9: this test used to assert the mock's own implementation).
+      const { MonthlyChallengeService: RealService } = jest.requireActual('../monthlyChallengeService');
+
+      const template = {
+        id: 'test_template',
+        category: AchievementCategory.HABITS,
+        baselineMetricKey: 'totalHabitCompletions',
+        baselineMultiplierRange: [1.05, 1.25],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'scheduled_habit_completions',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      };
+
+      // N-3.3: stars map linearly inside the template range [1.05, 1.25]
+      const targets = [1, 2, 3, 4, 5].map(star =>
+        RealService.calculateTargetFromBaseline(template, { totalHabitCompletions: 100 }, star).target
+      );
+      expect(targets).toEqual([105, 110, 115, 120, 125]);
+
+      // Non-round baselines round UP (ceil)
+      expect(RealService.calculateTargetFromBaseline(template, { totalHabitCompletions: 95 }, 2).target)
+        .toBe(105); // ceil(95 × 1.10)
     });
 
-    test('=� 3. Difficulty calculation with baseline integration', async () => {
-      // Setup: Set user to 3 stars in habits
+    test('=� 3. Difficulty calculation with baseline integration (real target path)', async () => {
+      // Setup: Set user to 3 stars in habits — generation reads the rating
+      // and feeds it into the real calculateTargetFromBaseline
       await StarRatingService.resetCategoryStarRating(AchievementCategory.HABITS, 3);
-      
-      const baselineValue = 80;
-      
-      // Execute
-      const difficulty = await StarRatingService.calculateDifficulty(
-        AchievementCategory.HABITS,
-        baselineValue
-      );
+      const ratings = await StarRatingService.getCurrentStarRatings();
+      const starLevel = ratings.habits;
+      expect(starLevel).toBe(3);
 
-      // Assert
-      expect(difficulty.category).toBe(AchievementCategory.HABITS);
-      expect(difficulty.starLevel).toBe(3);
-      expect(difficulty.baselineValue).toBe(baselineValue);
-      expect(difficulty.multiplier).toBe(1.15); // 3 = +15%
-      expect(difficulty.targetValue).toBe(92); // 80 * 1.15 = 92
-      expect(difficulty.rarityColor).toBe('#9C27B0'); // Epic purple
-      expect(difficulty.confidenceLevel).toBeDefined();
+      const { MonthlyChallengeService: RealService } = jest.requireActual('../monthlyChallengeService');
+      const template = {
+        id: 'test_template',
+        category: AchievementCategory.HABITS,
+        baselineMetricKey: 'totalHabitCompletions',
+        baselineMultiplierRange: [1.05, 1.25],
+        requirementTemplates: [{
+          type: 'habits', description: 'r', trackingKey: 'scheduled_habit_completions',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      };
+      const result = RealService.calculateTargetFromBaseline(template, { totalHabitCompletions: 80 }, starLevel);
+
+      expect(result.scalingMultiplier).toBeCloseTo(1.15, 10); // 3⭐ midpoint
+      expect(result.target).toBe(92); // ceil(80 × 1.15)
+      expect(result.baselineValue).toBe(80);
+      expect(result.calculationMethod).toBe('baseline');
     });
 
     test('=� 4. Star rarity color and display mapping', () => {

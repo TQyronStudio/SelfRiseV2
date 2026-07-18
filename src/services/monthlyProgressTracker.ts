@@ -145,9 +145,11 @@ export class MonthlyProgressTracker {
   // rendering must not derive day intensity from dailyContributions for these.)
   private static readonly COMPLEX_TRACKING_KEYS: readonly string[] = COMPLEX_TRACKING_KEYS_LIST;
 
-  // Weekly habits tracking cache for Variety Champion real-time uniqueness
+  // Weekly habits tracking cache for Variety Champion real-time uniqueness.
+  // Week key is month-aware ("YYYY-MM-W2") — a bare week number would collide
+  // with the same week of another month now that the state is persisted.
   private static currentWeekHabits: Set<string> = new Set();
-  private static currentWeekNumber: number = 0;
+  private static currentWeekKey: string = '';
 
   // Daily habit streak tracking cache for Streak Builder real-time consecutive days
   private static streakCompletedToday: boolean = false;
@@ -158,13 +160,72 @@ export class MonthlyProgressTracker {
   private static journalStreakCompletedToday: boolean = false;
   private static currentJournalStreakDate: string = '';
   private static currentJournalStreakDays: number = 0;
-  
+
   // Journal entries counter for star-based daily requirements
   private static todayJournalEntriesCount: number = 0;
   private static journalCountDate: string = '';
 
   // Daily dedup guard for Progress Champion (daily_goal_progress = DAYS, not events)
   private static goalProgressCountedDate: string = '';
+
+  // Set by a streak calculator when a qualifying day STARTS A NEW streak after
+  // a gap — the apply loop then RESETS the stored progress to 1 instead of
+  // incrementing (N-3.5: progress = current consecutive streak, not a
+  // cumulative day count). Consumed immediately after each calculator call.
+  private static streakResetPending: boolean = false;
+
+  // ========================================
+  // DAY-GUARD STATE PERSISTENCE (N-3.5 / NÁLEZ 4)
+  // ========================================
+  // All the guards above used to be memory-only: an app restart forgot them,
+  // which double-counted the current day (NÁLEZ 4, 11.7.) and — with streak
+  // reset semantics — would wipe a real streak to 1. Persisted as one small
+  // JSON blob; loaded lazily once per app session, saved after each mutation.
+  private static readonly DAY_GUARD_STATE_KEY = 'monthly_tracker_day_guard_state';
+  private static dayGuardStateLoaded = false;
+
+  private static async ensureDayGuardStateLoaded(): Promise<void> {
+    if (this.dayGuardStateLoaded) return;
+    this.dayGuardStateLoaded = true;
+    try {
+      const raw = await AsyncStorage.getItem(this.DAY_GUARD_STATE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      this.currentWeekHabits = new Set(Array.isArray(s.currentWeekHabits) ? s.currentWeekHabits : []);
+      this.currentWeekKey = s.currentWeekKey || '';
+      this.streakCompletedToday = !!s.streakCompletedToday;
+      this.currentStreakDate = s.currentStreakDate || '';
+      this.currentStreakDays = s.currentStreakDays || 0;
+      this.journalStreakCompletedToday = !!s.journalStreakCompletedToday;
+      this.currentJournalStreakDate = s.currentJournalStreakDate || '';
+      this.currentJournalStreakDays = s.currentJournalStreakDays || 0;
+      this.todayJournalEntriesCount = s.todayJournalEntriesCount || 0;
+      this.journalCountDate = s.journalCountDate || '';
+      this.goalProgressCountedDate = s.goalProgressCountedDate || '';
+    } catch (error) {
+      console.error('MonthlyProgressTracker.ensureDayGuardStateLoaded error:', error);
+      // Conservative: keep in-memory defaults
+    }
+  }
+
+  private static persistDayGuardState(): void {
+    // Fire-and-forget — callers are sync calculators; AsyncStorage serializes writes
+    AsyncStorage.setItem(this.DAY_GUARD_STATE_KEY, JSON.stringify({
+      currentWeekHabits: [...this.currentWeekHabits],
+      currentWeekKey: this.currentWeekKey,
+      streakCompletedToday: this.streakCompletedToday,
+      currentStreakDate: this.currentStreakDate,
+      currentStreakDays: this.currentStreakDays,
+      journalStreakCompletedToday: this.journalStreakCompletedToday,
+      currentJournalStreakDate: this.currentJournalStreakDate,
+      currentJournalStreakDays: this.currentJournalStreakDays,
+      todayJournalEntriesCount: this.todayJournalEntriesCount,
+      journalCountDate: this.journalCountDate,
+      goalProgressCountedDate: this.goalProgressCountedDate,
+    })).catch(error => {
+      console.error('MonthlyProgressTracker.persistDayGuardState error:', error);
+    });
+  }
 
   private static batchingTimer: NodeJS.Timeout | null = null;
   private static pendingBatches = new Map<string, ProgressUpdateBatch>();
@@ -194,10 +255,26 @@ export class MonthlyProgressTracker {
   ): Promise<void> {
     try {
       console.log(`🔍 [DEBUG] MonthlyProgressTracker.updateMonthlyProgress called with:`, { source, amount, sourceId, metadata });
-      
-      // Update journal entries counter for star-based requirements (if positive amount)
-      if ((source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) && amount > 0) {
+
+      // Day-guard state must survive app restarts (N-3.5 / NÁLEZ 4)
+      await this.ensureDayGuardStateLoaded();
+
+      // Update journal entries counter for star-based requirements.
+      // JOURNAL_BONUS_MILESTONE included: the entry that carries a milestone
+      // (#4/#8/#13 of the day) is a real journal entry — its combined XP
+      // transaction just uses the milestone source (N-3.1, audit 2026-07-18).
+      const isJournalEntrySource =
+        source === XPSourceType.JOURNAL_ENTRY ||
+        source === XPSourceType.JOURNAL_BONUS ||
+        source === XPSourceType.JOURNAL_BONUS_MILESTONE;
+      if (isJournalEntrySource && amount > 0) {
         this.incrementTodayJournalCount();
+      }
+      // Deleting an entry dated today must release its slot in the daily
+      // counter, otherwise the star-based requirement stays satisfied by a
+      // removed entry (N-3.6). Deletes of past-day entries don't touch it.
+      if (isJournalEntrySource && amount < 0 && metadata?.date === today()) {
+        this.decrementTodayJournalCount();
       }
       
       // Get active monthly challenges
@@ -318,14 +395,23 @@ export class MonthlyProgressTracker {
         );
         appliedIncrements[requirement.trackingKey] = incrementValue;
 
+        // Streak reset (N-3.5): a qualifying day after a gap starts a NEW
+        // streak — stored progress becomes 1, not previousValue + 1. The
+        // calculator signals this via streakResetPending; appliedIncrements
+        // keeps +1 (snapshot/calendar contract: positive = day qualified).
+        const resetToNewStreak = this.streakResetPending;
+        this.streakResetPending = false;
+
         if (incrementValue !== 0) {
           // Atomic increment/decrement: always read the current value fresh from storage-backed progress object
           const currentValue = currentProgress.progress[requirement.trackingKey] || 0;
-          const newValue = Math.max(0, currentValue + incrementValue); // Ensure progress never goes below 0
+          const newValue = resetToNewStreak
+            ? 1
+            : Math.max(0, currentValue + incrementValue); // Ensure progress never goes below 0
           currentProgress.progress[requirement.trackingKey] = newValue;
           progressUpdated = true;
 
-          const operation = incrementValue > 0 ? `+${incrementValue}` : `${incrementValue}`;
+          const operation = resetToNewStreak ? `reset→1` : incrementValue > 0 ? `+${incrementValue}` : `${incrementValue}`;
           console.log(`📊 Challenge "${challenge.title}": ${requirement.trackingKey} ${operation} (${currentValue} → ${newValue}/${requirement.target})`);
         }
       }
@@ -471,10 +557,15 @@ export class MonthlyProgressTracker {
           matches = source === XPSourceType.JOURNAL_BONUS;
           break;
         case 'total_journal_entries_with_bonus':
-          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          // JOURNAL_BONUS_MILESTONE = entry #4/#8/#13 of the day whose XP
+          // transaction carries the milestone source — still a journal entry
+          // (N-3.1 fix, audit 2026-07-18)
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS
+            || source === XPSourceType.JOURNAL_BONUS_MILESTONE;
           break;
         case 'daily_journal_streak':
-          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS
+            || source === XPSourceType.JOURNAL_BONUS_MILESTONE;
           break;
         case 'habit_streak_days':
           // Streak Builder: real-time consecutive-days tracking on habit activity.
@@ -485,7 +576,8 @@ export class MonthlyProgressTracker {
         case 'avg_entry_length':
           // Depth Explorer: average entry length changes only on journal activity.
           // Recalculated in recalculateComplexTrackingKeys (complex key).
-          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS;
+          matches = source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS
+            || source === XPSourceType.JOURNAL_BONUS_MILESTONE;
           break;
         case 'daily_goal_progress':
           matches = source === XPSourceType.GOAL_PROGRESS;
@@ -535,7 +627,7 @@ export class MonthlyProgressTracker {
         // Real-time weekly habit variety tracking - TRUE uniqueness per week
         if ((source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS) && metadata?.sourceId) {
           // SYNC call to prevent async issues - use cached snapshots for performance
-          return this.calculateWeeklyHabitVarietyIncrement(metadata.sourceId, direction);
+          return this.calculateWeeklyHabitVarietyIncrement(metadata.sourceId, direction, metadata);
         }
         return 0;
         
@@ -550,8 +642,10 @@ export class MonthlyProgressTracker {
         return source === XPSourceType.JOURNAL_BONUS ? direction : 0;
         
       case 'total_journal_entries_with_bonus':
-        // Combined counter: regular + bonus journal entries (all types)
-        return (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) ? direction : 0;
+        // Combined counter: regular + bonus journal entries (all types, incl.
+        // the milestone-carrying entries #4/#8/#13 — N-3.1 fix)
+        return (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS
+          || source === XPSourceType.JOURNAL_BONUS_MILESTONE) ? direction : 0;
         
       case 'daily_goal_progress':
         // Progress Champion promises "X DAYS with goal progress" — count each
@@ -568,14 +662,15 @@ export class MonthlyProgressTracker {
       case 'habit_streak_days':
         // Real-time consecutive days streak tracking - like Consistency Master pattern
         if (source === XPSourceType.HABIT_COMPLETION || source === XPSourceType.HABIT_BONUS) {
-          return this.calculateHabitStreakIncrement(direction);
+          return this.calculateHabitStreakIncrement(direction, metadata);
         }
         return 0;
         
       case 'daily_journal_streak':
         // Real-time consecutive days journal streak tracking with star-based entry requirements
-        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-          return this.calculateJournalStreakIncrement(direction, challenge);
+        if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS
+          || source === XPSourceType.JOURNAL_BONUS_MILESTONE) {
+          return this.calculateJournalStreakIncrement(direction, challenge, metadata);
         }
         return 0;
         
@@ -1593,21 +1688,46 @@ export class MonthlyProgressTracker {
    * Calculate weekly habit variety increment - SYNC version for real-time tracking  
    * Returns +1 only if habitId is NEW for current week, 0 if already completed
    */
-  private static calculateWeeklyHabitVarietyIncrement(habitId: string, direction: number): number {
+  private static calculateWeeklyHabitVarietyIncrement(
+    habitId: string,
+    direction: number,
+    metadata?: Record<string, any>
+  ): number {
     try {
-      // Only process positive direction (habit completion)
-      if (direction <= 0) return 0;
-
-      // Get current week number (1-4/5)
-      const todayDate = new Date();
-      const currentWeek = this.calculateWeekNumber(todayDate);
+      // Month-aware week key ("2026-07-W3") — state is persisted, so a bare
+      // week number would collide with the same week of another month
+      const todayString = today();
+      const weekKey = `${todayString.substring(0, 7)}-W${this.calculateWeekNumber(new Date())}`;
 
       // Reset weekly cache if week changed
-      if (this.currentWeekNumber !== currentWeek) {
-        console.log(`📅 [DEBUG] Week changed from ${this.currentWeekNumber} to ${currentWeek} - resetting weekly habits cache`);
+      if (this.currentWeekKey !== weekKey) {
+        console.log(`📅 [DEBUG] Week changed from ${this.currentWeekKey} to ${weekKey} - resetting weekly habits cache`);
         this.currentWeekHabits.clear();
-        this.currentWeekNumber = currentWeek;
+        this.currentWeekKey = weekKey;
+        this.persistDayGuardState();
       }
+
+      // Undo (N-3.6): deleting a completion of a habit counted this week
+      // releases its uniqueness slot. Only for completions dated in the
+      // current week window; if the habit was completed more than once this
+      // week the release is transiently wrong and self-heals on its next
+      // completion (same accepted trade-off as daily_goal_progress).
+      if (direction < 0) {
+        const deletedDate: string | undefined = metadata?.date;
+        // Week-of-month straight from the DateString (day 1-7 = W1, …) — no
+        // Date round-trip, no timezone shift (N4 bug class)
+        const inCurrentWeek = !!deletedDate
+          && deletedDate.substring(0, 7) === todayString.substring(0, 7)
+          && Math.ceil(Number(deletedDate.substring(8, 10)) / 7) === Math.ceil(Number(todayString.substring(8, 10)) / 7);
+        if (inCurrentWeek && this.currentWeekHabits.has(habitId)) {
+          this.currentWeekHabits.delete(habitId);
+          this.persistDayGuardState();
+          console.log(`↩️ [DEBUG] Habit ${habitId} released from week ${weekKey} - returning -1`);
+          return -1;
+        }
+        return 0;
+      }
+      if (direction === 0) return 0;
 
       // Check if habit already completed this week
       if (this.currentWeekHabits.has(habitId)) {
@@ -1617,7 +1737,8 @@ export class MonthlyProgressTracker {
 
       // New habit for this week - add to cache and return +1
       this.currentWeekHabits.add(habitId);
-      console.log(`✨ [DEBUG] NEW habit ${habitId} for week ${currentWeek} - returning 1. Total unique: ${this.currentWeekHabits.size}`);
+      this.persistDayGuardState();
+      console.log(`✨ [DEBUG] NEW habit ${habitId} for week ${weekKey} - returning 1. Total unique: ${this.currentWeekHabits.size}`);
       return 1;
 
     } catch (error) {
@@ -1647,47 +1768,66 @@ export class MonthlyProgressTracker {
         return 0; // Day already counted
       }
       this.goalProgressCountedDate = todayString;
+      this.persistDayGuardState();
       return 1;
     }
 
     if (direction < 0 && this.goalProgressCountedDate === todayString) {
       // Undo of today's (only counted) goal progress — release the day
       this.goalProgressCountedDate = '';
+      this.persistDayGuardState();
       return -1;
     }
 
     return 0;
   }
 
-  private static calculateHabitStreakIncrement(direction: number): number {
+  private static calculateHabitStreakIncrement(direction: number, metadata?: Record<string, any>): number {
     try {
-      // Only process positive direction (habit completion)
-      if (direction <= 0) return 0;
-
       // Get current date (YYYY-MM-DD format)
       const todayString: string = today(); // LOCAL date — UTC toISOString() shifted after local evening (audit N4 class)
+
+      // Undo (N-3.6): deleting today's completion releases today's guard.
+      // Imprecise when multiple habits were completed today (the day still
+      // qualifies) — self-heals on the next completion today, same accepted
+      // trade-off as daily_goal_progress. Past-day deletes don't touch it.
+      if (direction < 0) {
+        if (this.streakCompletedToday && this.currentStreakDate === todayString
+          && metadata?.date === todayString) {
+          this.streakCompletedToday = false;
+          this.currentStreakDays = Math.max(0, this.currentStreakDays - 1);
+          this.persistDayGuardState();
+          console.log(`↩️ [DEBUG] Habit streak day released (undo) - returning -1`);
+          return -1;
+        }
+        return 0;
+      }
+      if (direction === 0) return 0;
 
       // Check if date changed since last tracking
       if (this.currentStreakDate !== todayString) {
         console.log(`📅 [DEBUG] Date changed from ${this.currentStreakDate} to ${todayString}`);
-        
+
         // Calculate if today continues yesterday's streak
         const isConsecutive = this.currentStreakDate ? this.isConsecutiveDay(this.currentStreakDate, todayString) : false;
-        
+
         if (isConsecutive && this.currentStreakDays > 0) {
           // Continue streak - increment by 1
           this.currentStreakDays += 1;
           console.log(`🔥 [DEBUG] Streak continues! Day ${this.currentStreakDays}`);
         } else {
-          // Start new streak
+          // Start new streak — stored progress must RESET to 1, not keep
+          // accumulating (N-3.5: value = current consecutive streak)
           this.currentStreakDays = 1;
+          this.streakResetPending = true;
           console.log(`✨ [DEBUG] New streak started! Day ${this.currentStreakDays}`);
         }
 
         // Update tracking state for today
         this.currentStreakDate = todayString;
         this.streakCompletedToday = true;
-        
+        this.persistDayGuardState();
+
         return 1; // First completion today extends/starts streak
       }
 
@@ -1699,6 +1839,7 @@ export class MonthlyProgressTracker {
 
       // First completion today (edge case - shouldn't happen with proper date tracking)
       this.streakCompletedToday = true;
+      this.persistDayGuardState();
       return 1;
 
     } catch (error) {
@@ -1713,19 +1854,39 @@ export class MonthlyProgressTracker {
    * Star Level determines daily journal entries needed: 1⭐=1 entry, 2⭐=2 entries, 5⭐=5 entries
    * Returns +1 only when reaching required entries for the day, 0 otherwise
    */
-  private static calculateJournalStreakIncrement(direction: number, challenge?: MonthlyChallenge): number {
+  private static calculateJournalStreakIncrement(
+    direction: number,
+    challenge?: MonthlyChallenge,
+    metadata?: Record<string, any>
+  ): number {
     try {
-      // Only process positive direction (journal entry completion)
-      if (direction <= 0) return 0;
-
       // Get challenge star level (default to 1 if not available)
       const starLevel = challenge?.starLevel || 1;
       const requiredEntriesPerDay = starLevel; // 1⭐=1 entry, 2⭐=2 entries, 5⭐=5 entries
-      
-      console.log(`📝⭐ [DEBUG] Consistency Writer requires ${requiredEntriesPerDay} entries/day (${starLevel}⭐ level)`);
 
       // Get current date (YYYY-MM-DD format)
       const todayString: string = today(); // LOCAL date — UTC toISOString() shifted after local evening (audit N4 class)
+
+      // Undo (N-3.6): the daily counter was already decremented in
+      // updateMonthlyProgress (deletes dated today). If the count fell BELOW
+      // the star requirement and today was counted, release the day —
+      // precise, unlike the habit variant, because the counter is exact.
+      if (direction < 0) {
+        if (metadata?.date === todayString
+          && this.journalStreakCompletedToday
+          && this.currentJournalStreakDate === todayString
+          && this.countTodayJournalEntries(todayString) < requiredEntriesPerDay) {
+          this.journalStreakCompletedToday = false;
+          this.currentJournalStreakDays = Math.max(0, this.currentJournalStreakDays - 1);
+          this.persistDayGuardState();
+          console.log(`↩️ [DEBUG] Journal streak day released (undo below ${requiredEntriesPerDay} entries) - returning -1`);
+          return -1;
+        }
+        return 0;
+      }
+      if (direction === 0) return 0;
+
+      console.log(`📝⭐ [DEBUG] Consistency Writer requires ${requiredEntriesPerDay} entries/day (${starLevel}⭐ level)`);
 
       // Count today's journal entries (synchronous count using transactions)
       const todayJournalCount = this.countTodayJournalEntries(todayString);
@@ -1740,24 +1901,27 @@ export class MonthlyProgressTracker {
       // Check if date changed since last tracking
       if (this.currentJournalStreakDate !== todayString) {
         console.log(`📅 [DEBUG] Journal date changed from ${this.currentJournalStreakDate} to ${todayString}`);
-        
+
         // Calculate if today continues yesterday's streak
         const isConsecutive = this.currentJournalStreakDate ? this.isConsecutiveDay(this.currentJournalStreakDate, todayString) : false;
-        
+
         if (isConsecutive && this.currentJournalStreakDays > 0) {
           // Continue streak - increment by 1
           this.currentJournalStreakDays += 1;
           console.log(`📝🔥 [DEBUG] Journal streak continues! Day ${this.currentJournalStreakDays} (${requiredEntriesPerDay} entries achieved)`);
         } else {
-          // Start new streak
+          // Start new streak — stored progress must RESET to 1, not keep
+          // accumulating (N-3.5: value = current consecutive streak)
           this.currentJournalStreakDays = 1;
+          this.streakResetPending = true;
           console.log(`📝✨ [DEBUG] New journal streak started! Day ${this.currentJournalStreakDays} (${requiredEntriesPerDay} entries achieved)`);
         }
 
         // Update tracking state for today
         this.currentJournalStreakDate = todayString;
         this.journalStreakCompletedToday = true;
-        
+        this.persistDayGuardState();
+
         return 1; // First time reaching requirement today extends/starts streak
       }
 
@@ -1769,6 +1933,7 @@ export class MonthlyProgressTracker {
 
       // First time reaching requirement today
       this.journalStreakCompletedToday = true;
+      this.persistDayGuardState();
       console.log(`📝✅ [DEBUG] Reached ${requiredEntriesPerDay} entries requirement - streak +1`);
       return 1;
 
@@ -1810,11 +1975,29 @@ export class MonthlyProgressTracker {
         this.todayJournalEntriesCount = 0;
         this.journalCountDate = todayString;
       }
-      
+
       this.todayJournalEntriesCount += 1;
+      this.persistDayGuardState();
       console.log(`📝🔢 [DEBUG] Journal entries today: ${this.todayJournalEntriesCount}`);
     } catch (error) {
       console.error('MonthlyProgressTracker.incrementTodayJournalCount error:', error);
+    }
+  }
+
+  /**
+   * Decrement today's journal entries counter (deleting an entry dated today
+   * releases its slot in the star-based daily requirement — N-3.6)
+   */
+  private static decrementTodayJournalCount(): void {
+    try {
+      const todayString = today();
+      if (this.journalCountDate !== todayString) return; // counter belongs to another day
+
+      this.todayJournalEntriesCount = Math.max(0, this.todayJournalEntriesCount - 1);
+      this.persistDayGuardState();
+      console.log(`📝🔢 [DEBUG] Journal entries today (after delete): ${this.todayJournalEntriesCount}`);
+    } catch (error) {
+      console.error('MonthlyProgressTracker.decrementTodayJournalCount error:', error);
     }
   }
 

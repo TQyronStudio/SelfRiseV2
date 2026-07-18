@@ -50,6 +50,52 @@
 > preview-utils, testy (75), guide (počty/XP 24 150/rarity/popisy). tsc 0, 401/401 ✓.
 > Osiřelé i18n klíče → F12, drobný dead-code (recommendations_followed case, ×0,3) → F13.
 > **Zbývá dokončit Fázi 2: 2g SPECIAL (14) + 2h batch + 2i device.**
+>
+> 🔍 **Fáze 2 — session #6 (2g SPECIAL + 2h batch) provedena 2026-07-18 (Fable)**:
+> 14/14 + batch smyčka auditovány → **auditní část Fáze 2 KOMPLETNÍ (75/75)**.
+> ✅ Loyalty 10/10 shoda katalog↔LOYALTY_MILESTONES↔guide (uzavřen pointer z F1.8);
+> legendary-master čte všechny 3 zdroje přes storage (těží z N-2.1/2.6); batch cap
+> po filtru drží (150 vs 75, test dynamický). **K ROZHODNUTÍ: N-2.11 [STŘEDNÍ]** —
+> `persistence-pays` počítá obráceně (7 odchodů z appky místo „1 návrat + 7 aktivit"
+> — perverzní motivace); **N-2.12 [NÍZKÁ]** — `seven-wonder` počítá i pozastavené
+> návyky (ignoruje isActive). Zbývá 2i device. Zpráva: @docs/audits/super-audit-2026-07/faze-2-nalezy.md
+>
+> ✅ **N-2.11 + N-2.12 schváleny a PROVEDENY 2026-07-18 (Fable)**: persistence-pays
+> obrácen na „aktivity od posledního comebacku" (+ require() konvence — dynamický
+> import blokoval mocky), seven-wonder filtruje jen aktivní návyky. +4 testy.
+> tsc 0, **405/405** ✓. Nový INFO N-2.13 (zbylé await import v integraci) → F13.
+> **Fáze 2 kompletní až na 2i (device).**
+>
+> ✅ **Session #7 (3.0 + 3a + 3b) HOTOVÁ 2026-07-18 (Fable)**: baseline 4/4 suites
+> 76/76 ✓, tsc 0; auditováno 8/14 šablon Monthly Challenges (Habits 4 + Journal 4).
+> **11 nálezů N-3.1–N-3.11, žádný kód neměněn (E1)**. Nejvážnější **K ROZHODNUTÍ**:
+> **N-3.1 [VYSOKÁ ❌]** — zápisy deníku nesoucí milestone (#4/#8/#13 dne) mají source
+> `JOURNAL_BONUS_MILESTONE`, který tracker nematchuje → Gratitude Guru ztrácí až
+> 3 zápisy/den, Consistency Writer 5⭐ reálně chce 6 zápisů/den; **N-3.2 [VYSOKÁ]** —
+> kategorová minima + špatné škály baseline metrik → u 5 šablon mrtvá personalizace
+> (streak šablony vždy „celý měsíc", Reflection Expert může být nesplnitelný);
+> **N-3.4 [VYSOKÁ ❌]** — anti-repeat výběru šablon mrtvý (challenge nenese templateId,
+> historie vrací UUID). Dále N-3.3 (hvězdy 1-4 často stejný target), N-3.5/3.6
+> (streak kumulace + chybějící undo), N-3.7 (EN hardcoded popis), N-3.9 (testy
+> validují mrtvé scaling API) ad. Zbývá: 3c+3d (session #8), 3f+3g (session #9),
+> 3e device. Zpráva: @docs/audits/super-audit-2026-07/faze-3-nalezy.md
+>
+> ✅ **Opravy session #7 PROVEDENY 2026-07-18 (Fable)**: N-3.1 (milestone zápisy
+> #4/#8/#13 se počítají), N-3.4 (challenge nese templateId → anti-repeat funguje),
+> N-3.5 (streak = skutečná série s resetem + **perzistence day-guard stavu přes
+> restart = statické uzavření NÁLEZU 4**; 3e device zůstává jako ověření), N-3.6
+> (undo: delete posílá metadata, tracker reverzuje quality/streak/variety), N-3.7
+> (dynamický popis Consistency Writer lokalizován EN/DE/ES). +7 regresních testů
+> (trackingKeys 16→23). Guide doplněn (sekce 0b).
+>
+> ✅ **N-3.2 + N-3.3 + N-3.9 schváleny a PROVEDENY 2026-07-18 (Fable)**: hvězdy se
+> lineárně mapují do range šablony (každá hvězda ostře těžší; + oprava float
+> epsilon 110→111); srovnané škály baseline metrik (bonus ×30, variety ×4, guru
+> celkové zápisy, reflection nová metrika qualityJournalEntries) + minima per
+> tracking klíč + stropy (quality 3×dny, variety návyky×týdny); smazána 3 mrtvá
+> scaling API a testy přesměrovány na reálnou cestu calculateTargetFromBaseline
+> (6 testů přepsáno, 3 smazány). Guide dorovnán vč. tabulek šablon (N-3.8).
+> tsc 0, **409/409 testů (26/26 suites)** ✓. Otevřené jen N-3.10/3.11 [NÍZKÁ].
 > Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
 > našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
 
