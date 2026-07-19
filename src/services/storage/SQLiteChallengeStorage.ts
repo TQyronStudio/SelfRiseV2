@@ -492,8 +492,11 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
     const xpAwarded = challengeAny.xpAwarded || 0;
     const templateId = challenge.templateId || challengeAny.metadata?.templateId || '';
 
+    // INSERT OR REPLACE (N-3.17): the generation-time history row (stale
+    // 'active'/0 stats) must be overwritten by the month-end archive with the
+    // real final stats — a plain INSERT hit the history_<id> primary key
     await this.db.runAsync(
-      `INSERT INTO challenge_history (
+      `INSERT OR REPLACE INTO challenge_history (
         id, challenge_id, month, template_id, final_status,
         completion_rate, xp_earned, completed_at, archived_at, summary
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

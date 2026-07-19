@@ -239,7 +239,9 @@
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyProgressTracker.trackingKeys)",
       "Bash(echo \"REAL_TSC_EXIT=$?\")",
       "Bash(awk -F: '{print $1}')",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyChallengeSelection.distribution)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyChallengeLifecycle.closure)"
     ],
     "deny": [],
     "ask": [],

@@ -473,14 +473,21 @@ streak bonus).
       N-3.5 + Jest test simulující restart) — device test je teď OVĚŘENÍ
       opravy, ne potvrzení bugu. Přidat i variety scénář (smaž/přidej
       completion téhož návyku v týdnu po restartu).
-- [ ] 3f. **Weighted random template selection** — napiš jednorázový test
+- [x] 3f. **Weighted random template selection** — napiš jednorázový test
       (fixní RNG seed, ~1000 iterací generování pro každou kategorii)
       a ověř: žádná šablona nemá 100% šanci výběru (historický bug z října
       2025) a každá ne-gated šablona v kategorii má šanci > 0 %. Kritérium:
       test existuje a prochází; rozdělení výběru zapiš do zprávy.
-- [ ] 3g. Konec měsíce (lifecycle manager) — ověř `closePreviousChallenge`
+      ✅ 2026-07-19: nová suite (6 testů, seed, 5000 tahů/kategorii) — vše ne-gated
+      > 0 %, žádný monopol, star gating ✓; rozdělení ve zprávě. ❌ N-3.16:
+      v SEZÓNNÍCH měsících bonus +30 > variance ±20 → monopol se vrací.
+- [x] 3g. Konec měsíce (lifecycle manager) — ověř `closePreviousChallenge`
       pro VŠECH 14 šablon (ne jen namátkou) — star update, streak reset,
       archivace, žádné XP za neúspěch.
+      ✅ 2026-07-19: nová suite (5 testů, parametrizovaně všech 14 šablon) —
+      hvězdy/streak/event/žádné XP ✓. ❌ N-3.17: archivační krok je no-op
+      (status→completed před lookupem přes getActiveChallenges) → historie
+      stale, 'failed' se nikdy nenastaví.
 
 ---
 
@@ -882,7 +889,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 6 | 2g + 2h | ✅ HOTOVO 2026-07-16 (loyalty 10/10 ✓, batch ✓; N-2.11 + N-2.12 → rozhodnutí Petra) |
 | 7 | 3.0 + 3a + 3b | ✅ HOTOVO 2026-07-18 (11 nálezů; PROVEDENY opravy N-3.1/3.2/3.3/3.4/3.5/3.6/3.7/3.8/3.9 — vč. perzistence day-guard stavu = statické uzavření NÁLEZU 4, přestavby generování targetů a smazání mrtvých scaling API; otevřené jen N-3.10/3.11 [NÍZKÁ]; 409/409 ✓; zpráva: faze-3-nalezy.md) |
 | 8 | 3c + 3d | ✅ HOTOVO 2026-07-19 (4 nálezy N-3.12–N-3.15, VŠECHNY PROVEDENY — XP Champion auto-výhra, nesplnitelný Balance Expert, bucketování balance, undo v denním XP, zjemněná consistency minima, perfektní den s bonusy; 413/413 ✓; zpráva: faze-3-nalezy.md) |
-| 9 | 3f + 3g | výběr šablon + lifecycle |
+| 9 | 3f + 3g | ✅ HOTOVO 2026-07-19 (2 nové test suites, +13 testů; výběr i uzávěrka všech 14 ✓; PROVEDENY N-3.16 (sezónní bonus +15), N-3.17 (archiv s reálnými stats + 'failed'), N-3.10 (pondělní týdny variety + žádné šedé aktivní dny), N-3.11 (sezónnost cílového měsíce). **FÁZE 3: všech 17 nálezů vyřešeno, zbývá jen 3e device.** 426/426 ✓; zpráva: faze-3-nalezy.md) |
 | 10 | Fáze 4 | poté cross-impact: suites F2+F3 |
 | 11 | Fáze 5 | poté cross-impact: suites F2+F3 |
 | 12 | Fáze 6 | poté cross-impact: suites F2+F3 |

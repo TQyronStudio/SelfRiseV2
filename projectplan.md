@@ -121,6 +121,34 @@
 > tsc 0, **413/413 testů (26/26 suites)** ✓. **Fáze 3: všechny nálezy N-3.1–N-3.15
 > vyřešené kromě N-3.10/N-3.11 [NÍZKÁ, bez rozhodnutí]. Zbývá session #9 (3f+3g)
 > a 3e device.**
+>
+> ✅ **Session #9 (3f + 3g) HOTOVÁ 2026-07-19 (Fable) — auditní část FÁZE 3 KOMPLETNÍ.**
+> 3f: nová distribuce suite (seed RNG, 5000 tahů/kategorii) — losování ✓ v nesezónních
+> měsících (žádný monopol, vše ne-gated > 0 %, star gating ✓), rozdělení ve zprávě.
+> 3g: nová closure suite — uzávěrka ověřena parametrizovaně přes VŠECH 14 šablon
+> (hvězdy s reálným %, streak reset, žádné XP při neúspěchu, správná klasifikace
+> partial/failure, warm-up guard). **K ROZHODNUTÍ: N-3.16 [STŘEDNÍ]** — sezónní
+> bonus +30 > variance ±20 → v lednu/únoru/září/říjnu se vrací deterministický
+> monopol Consistency Mastera; **N-3.17 [STŘEDNÍ]** — archiv po uzávěrce je no-op
+> (status se přepne dřív, než se výzva najde) → challenge_history má trvale stale
+> data a neúspěch se nikdy neoznačí 'failed'. tsc 0, **424/424 testů (28/28 suites)** ✓.
+> Zbývá: 3e device (Petr) + rozhodnutí N-3.10/3.11/3.16/3.17.
+>
+> ✅ **N-3.16 + N-3.17 schváleny a PROVEDENY 2026-07-19 (Fable)**: sezónní bonus
+> +30 → +15 (říjnový podíl Consistency Mastera z matematických 100 % na naměřených
+> 90 %, konkurenti mají reálnou šanci; anti-repeat brání opakování) + sezónní
+> regresní test; archiv uzávěrky opraven (lookup před statusem, INSERT OR REPLACE,
+> reálné finální statistiky, neúspěch = 'failed') a closure test to u všech 14
+> šablon vynucuje. tsc 0, **425/425 testů (28/28 suites)** ✓.
+> **Zbývá: 3e device (Petr) + rozhodnutí N-3.10/N-3.11 [NÍZKÁ].**
+>
+> ✅ **N-3.10 + N-3.11 schváleny a PROVEDENY 2026-07-19 (Fable)**: Variety týdny
+> pondělně (shodně s kalendářem; přelom měsíce restartuje počítání), aktivní dny
+> v kalendáři už nikdy šedé; sezónní bonus podle CÍLOVÉHO měsíce (naměřeno: leden
+> z prosince 90,2 % vs. 60,5 % — novoroční boost konečně míří na leden). +1 test.
+> tsc 0, **426/426 testů (28/28 suites)** ✓.
+> **FÁZE 3 KOMPLETNÍ: všech 17 nálezů N-3.1–N-3.17 vyřešeno a provedeno.
+> Zbývá pouze 3e device (Petr).**
 > Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
 > našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
 

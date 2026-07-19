@@ -123,6 +123,12 @@ drives one real event pipeline per template tracking key and asserts progress > 
    - **Stropy**: streak/denní klíče ≤ dní v měsíci (stávající); quality ≤ 3×dny v měsíci;
      variety ≤ počet aktivních návyků × počet týdnů měsíce.
    - Platí pro nově generované výzvy; běžící výzva se nemění.
+7b. **Variety týdny + sezónnost cílového měsíce (N-3.10 + N-3.11, schváleno 2026-07-19)**:
+   Variety Champion počítá týdny PONDĚLNĚ (shodně s kalendářem v UI; přelom měsíce
+   restartuje počítání pro novou výzvu); dny s aktivitou nezčernají v kalendáři;
+   sezónní bonus výběru šablon se vyhodnocuje pro CÍLOVÝ měsíc výzvy (preview
+   generovaná koncem prosince pro leden dostane novoroční boost — dřív se ptala
+   „je prosinec sezónní?").
 8. **Kalibrace Consistency výzev (N-3.15, schváleno 2026-07-19)**: minima
    `triple_feature_days` + `perfect_days` zjemněna na [8,10,12,15,18] dní;
    perfektní den uznává i den jen s BONUSOVÝMI návyky (tracker i baseline —
@@ -358,7 +364,10 @@ Baseline: `totalHabitCompletions` (počet scheduled completions za 30 dní). Ran
 #### **2. Variety Champion**
 *"Dokončuj různé návyky každý týden pro pestrost"* (trackingKey: `unique_weekly_habits`)
 
-Počítá **unikátní návyky za týden** (stejný návyk 2× týdně = 1), sčítá se přes týdny měsíce.
+Počítá **unikátní návyky za týden** (stejný návyk 2× týdně = 1), sčítá se přes týdny
+měsíce. Týden = **pondělí–neděle** (N-3.10, 2026-07-19 — stejně, jak týdny láme
+kalendář v UI; týden přes přelom měsíce restartuje počítání pro novou měsíční výzvu).
+Kalendář: den s aktivitou, která nepřidala nový unikát, svítí slabě ('some'), ne šedě.
 Baseline: `monthlyHabitVariety` = denní pestrost × 4 (N-3.2). Range [1.10, 1.30].
 Minima 8/10/12/16/20. **Strop**: počet aktivních návyků × počet týdnů měsíce — target
 nikdy nechce víc pestrosti, než kolik návyků reálně máš.
@@ -668,8 +677,9 @@ Systém zajišťuje rozmanitost výzev:
 const weightedTemplates = templates.map(template => {
   let weight = template.priority; // Base: 65-100 bodů
 
-  // Seasonal bonus: +30 bodů pro sezónní výzvy
-  if (isSeasonal) weight += 30;
+  // Seasonal bonus: +15 bodů pro sezónní výzvy (N-3.16: sníženo z +30 —
+  // bonus nad rozptylem variance ±20 dělal ze sezónních měsíců monopol)
+  if (isSeasonal) weight += 15;
 
   // Anti-repeat penalty: -40 bodů pro nedávno použité výzvy
   if (wasRecentlyUsed) weight -= 40;
@@ -689,19 +699,19 @@ const selected = weightedTemplates.sort((a, b) => b.weight - a.weight)[0];
 
 | Template | Base Priority | Seasonal Bonus | Anti-repeat | Random | Final Weight | Probability |
 |----------|--------------|----------------|-------------|--------|--------------|-------------|
-| **Consistency Master** | 100 | +30 (říjen) | 0 | +15 | **145** | ~45% |
-| **Streak Builder** | 90 | 0 | 0 | +8 | **98** | ~25% |
-| **Variety Champion** | 85 | 0 | -40 (used) | -12 | **33** | ~10% |
-| **Bonus Hunter** | 75 | 0 | 0 | +18 | **93** | ~20% |
+| **Consistency Master** | 100 | +15 (říjen) | 0 | +15 | **130** | ~90 % |
+| **Streak Builder** | 90 | 0 | 0 | +8 | **98** | ~7 % |
+| **Variety Champion** | 85 | 0 | -40 (used) | -12 | **33** | ~0 % |
+| **Bonus Hunter** | 75 | 0 | 0 | +18 | **93** | ~2 % |
 
-**Výsledek**: I když Consistency Master má nejvyšší prioritu, existuje **~55% šance** že se vybere jiná výzva!
+**Výsledek**: sezónní šablona je silně zvýhodněná, ale už nemůže vyhrát matematicky vždy — a anti-repeat ji po výhře na 6 měsíců vyřadí (naměřeno 3f testem, seed 42).
 
 #### **🎯 Výhody weighted random systému:**
 
 ✅ **Pestrost** - Každý měsíc může přijít jiná výzva, i v rámci stejné kategorie
 ✅ **Respektuje prioritu** - Templates s vyšší prioritou mají stále větší šanci
 ✅ **Anti-repeat ochrana** - Nedávno použité výzvy mají -40 bodů penalty
-✅ **Sezónní preference** - Relevantní výzvy dostanou +30 bodů boost
+✅ **Sezónní preference** - Relevantní výzvy dostanou +15 bodů boost
 ✅ **Překvapení** - Random variance (±20) zajišťuje nepředvídatelnost
 
 #### **🔒 Anti-repeat systém:**
@@ -712,14 +722,14 @@ const selected = weightedTemplates.sort((a, b) => b.weight - a.weight)[0];
 
 #### **🎄 Sezónní bonusy:**
 
-Templates s `seasonality` field dostanou **+30 bodů** v relevantních měsících:
+Templates s `seasonality` field dostanou **+15 bodů** v relevantních měsících (N-3.16):
 
 ```typescript
 // Příklad sezónnosti
 {
   id: 'habits_consistency_master',
   seasonality: ['01', '02', '09', '10'], // Leden, Únor, Září, Říjen
-  // +30 bodů bonus v těchto měsících
+  // +15 bodů bonus v těchto měsících
 }
 ```
 
@@ -732,18 +742,20 @@ Templates s `seasonality` field dostanou **+30 bodů** v relevantních měsící
 
 **Consistency Master v říjnu (se sezónním bonusem):**
 - Base priority: 100
-- Seasonal bonus: +30
+- Seasonal bonus: +15 (N-3.16)
 - Random variance: -20 až +20
-- **Finální rozsah: 110-150 bodů**
-- **Pravděpodobnost výběru: ~40-50%** (ne 100%!)
+- **Finální rozsah: 95-135 bodů**
+- **Pravděpodobnost výběru: ~90 %** (naměřeno; při starém +30 to bylo matematicky 100 % — konkurenti nemohli dosáhnout přes 110)
 
 **Ostatní templates:**
 - Base priority: 75-90
 - Random variance: -20 až +20
 - **Finální rozsah: 55-110 bodů**
-- **Pravděpodobnost výběru: ~50-60% CELKEM**
+- **Pravděpodobnost výběru: ~10 % CELKEM** (v sezónním měsíci; mimo sezónu ~40 %)
 
-**Výsledek**: I v sezónních měsících existuje **solidní šance** na výběr jiné výzvy!
+**Výsledek**: I v sezónních měsících existuje reálná šance na výběr jiné výzvy —
+a hlavně: výhra sezónní šablony ji přes anti-repeat na 6 měsíců vyřadí, takže se
+neopakuje měsíc po měsíci.
 
 ---
 

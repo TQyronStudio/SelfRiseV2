@@ -323,6 +323,126 @@ Tests:       413 passed, 413 total
 
 Zbývající položky Fáze 3: 3e (device), 3f + 3g (session #9).
 
+---
+
+## SESSION #9 (2026-07-19): 3f výběr šablon + 3g konec měsíce
+
+Baseline session #9: commit `077f4a1`, working tree čistý, Node v24.18.0, tsc exit 0, Fáze 3 suites 87/87 (4/4).
+
+### 3f — Weighted random template selection
+
+- Kde: `selectTemplateForCategory` (monthlyChallengeService.ts:1761-1895) — váhy: priority (65-100) + sezónní bonus +30 − anti-repeat −40 ± variance U(−20,20), výhra = nejvyšší váha
+- Pravidlo: plán 3f — test s fixním RNG seedem, ~1000 iterací/kategorii; žádná šablona 100 %, každá ne-gated > 0 %; rozdělení zapsat
+- Ověřeno jak: **nová suite `monthlyChallengeSelection.distribution.test.ts`** (6 testů) — mulberry32 seed 42, systémový čas fixně 15. 7. 2026 (nesezónní měsíc), 5000 tahů/kategorii přes REÁLNÝ `selectTemplateForCategory`
+- Verdikt: ✅ v nesezónních měsících (říjnový bug 2025 se nevrátil) + ❌ nález pro sezónní měsíce (N-3.16)
+- Důkaz — naměřené rozdělení (5000 tahů, 5⭐, bez anti-repeat, červenec):
+
+| Kategorie | Rozdělení |
+|---|---|
+| HABITS | consistency_master 61,2 % · streak_builder 24,3 % · variety_champion 12,2 % · bonus_hunter 2,3 % |
+| JOURNAL | reflection_expert 49,7 % · consistency_writer 30,4 % · gratitude_guru 16,4 % · depth_explorer 3,5 % |
+| GOALS | progress_champion 71,4 % · completion_master 28,6 % |
+| CONSISTENCY | triple_master 62,6 % · perfect_month 23,6 % · xp_champion 13,6 % · balance_expert 0,2 % |
+
+  - Každá ne-gated šablona > 0 % ✓; žádný monopol (max 71,4 %) ✓
+  - Star gating ✓: streak_builder (minLevel 3) se na 2⭐ NIKDY nevylosuje; Balance Expert (minLevel 4) na 3⭐ nikdy, na 4⭐ ano
+  - Pozn.: nízkoprioritní šablony jsou vzácné (bonus_hunter 2,3 %, depth_explorer 3,5 %, balance_expert 0,2 %) — anti-repeat (od N-3.4 funkční) to přes měsíce zmírňuje (vylosované šablony se 6 měsíců neopakují, takže se pool postupně protáčí)
+
+### 3g — Konec měsíce (`closePreviousChallenge`)
+
+- Kde: monthlyChallengeLifecycleManager.ts:244-348 (volané z `handleMonthTransition` :209 PŘED generováním nové výzvy ✓ dle guide)
+- Pravidlo: guide „Month-End Challenge Closure" — star update s reálným %, streak reset, archivace, žádné XP při neúspěchu, failure modal event; plán: pro VŠECH 14 šablon
+- Ověřeno jak: trasování + **nová suite `monthlyChallengeLifecycle.closure.test.ts`** (5 testů) — parametrizovaný průchod přes všech 14 REÁLNÝCH šablon (enumerace z `getTemplatesForCategory`, targety dle sémantiky klíče vč. zlomkového balance 0.8)
+- Verdikt: ✅ uzávěrková logika / ❌ archivační krok (N-3.17)
+- Důkaz:
+  - Pro všech 14 šablon: `updateStarRatingForCompletion` dostává reálné completionPercentage + `wasCompleted: false` + `isWarmUp` guard ✓; `updateMonthlyStreak(category, false, starLevel)` ✓; `archiveCompletedChallenge(id)` volán ✓; **`addXP` NIKDY volán** ✓; event `monthly_challenge_failed` s korektní klasifikací (50 % → 'failure', 75 % → 'partial', práh 70 ✓ dle guide) a statistikami ✓
+  - Edge případy: warm-up nese `isWarmUp: true` (hvězdy se nemění) ✓; `isCompleted` výzva = no-op ✓; výzva aktuálního měsíce se nezavírá ✓; chyba uzávěrky neblokuje generování nové výzvy (catch :344-347) ✓
+  - **Archivační krok je ale fakticky no-op** → N-3.17
+
+## Nálezy session #9
+
+### N-3.16 (STŘEDNÍ) — Sezónní bonus obnovuje monopol výběru přesně v sezónních měsících
+**ROZHODNUTÍ PETRA (2026-07-19): „Souhlasím, sniž to"** → sezónní bonus +30 → **+15** (pod rozptyl variance ±20 — sezóna zvýhodňuje, ale nerozhoduje). ✅ PROVEDENO 2026-07-19 (viz níže).
+
+Matematika vah: sezónní bonus **+30** převyšuje rozptyl variance **±20**. HABITS v lednu/únoru/září/říjnu: consistency_master 100+30±20 = [110,150]; nejbližší konkurent streak_builder 90±20 = [70,110] → konkurent NEMŮŽE vyhrát (hranice 110 = pravděpodobnost 0). Říjnový bug 2025 („pořád stejná výzva") se tedy v sezónních měsících vrací — deterministicky vyhrává sezónní šablona, dokud ji nevyřadí 6měsíční anti-repeat (funkční od N-3.4). Návrh: snížit sezónní bonus pod rozptyl variance (např. +15), nebo zvětšit varianci. Jediná sezónní šablona v katalogu je habits_consistency_master.
+
+### N-3.17 (STŘEDNÍ) — Archiv po uzávěrce je no-op; historie nese stale data; neúspěch se neoznačuje 'failed'
+**ROZHODNUTÍ PETRA (2026-07-19): „Souhlasím s návrhem"** → lookup před updateStatus, archiv s reálnými finálními statistikami (INSERT OR REPLACE), neúspěch = status 'failed'. ✅ PROVEDENO 2026-07-19 (viz níže).
+
+`archiveCompletedChallenge` (monthlyChallengeService.ts:2486-2512): (1) **pořadí operací** — nejdřív `updateChallengeStatus('completed')`, PAK hledání přes `getActiveChallenges()`, které filtruje `status='active'` (SQLiteChallengeStorage.ts:100) → výzva se už nenajde → `archiveChallenge` se nikdy nezavolá; (2) `challenge_history` tak navždy nese jen řádek zapsaný PŘI GENEROVÁNÍ (final_status 'active', completion_rate 0, xp_earned 0 — SQLiteChallengeStorage.ts:486-513) → historická data jsou trvale prázdná/stale (konzument: lifecycleHistoryMigration, marketing demo; anti-repeat funguje — řádek existuje); (3) failure cesta lifecycle volá tutéž metodu → neúspěšná výzva dostává status **'completed'**, nikdy 'failed' (query s 'failed' je mrtvá větev). Návrh: lookup před updateStatus (getById), archiveChallenge jako INSERT OR REPLACE s reálnými final stats z progressu, failure cesta předá status 'failed'.
+
+### PROVEDENÍ OPRAV — session #9 (2026-07-19, Fable): N-3.16 + N-3.17
+
+**N-3.16**: sezónní bonus +30 → **+15** (monthlyChallengeService.ts, `selectTemplateForCategory`).
+Naměřeno novým sezónním testem (říjen, seed 42, 5000 tahů): consistency_master **90,2 %**
+(dřív matematicky 100 %), streak_builder 7,3 %, variety 2,5 %, bonus_hunter ~0 %
+(priorita 75 na sezónní max nedosáhne ani teď — hraniční případ zapsán; anti-repeat
+po výhře šablonu na 6 měsíců vyřadí, takže se monopol neopakuje). Guide dorovnán
+(všech 6 zmínek +30, pravděpodobnostní analýza přepsána na naměřená čísla).
+
+**N-3.17**: `archiveCompletedChallenge` — lookup výzvy PŘED přepnutím statusu; nový
+volitelný parametr `finalStats { status: 'completed'|'failed', completionPercentage,
+xpEarned }` propsaný do history řádku; `SQLiteChallengeStorage.archiveChallenge`
+INSERT → **INSERT OR REPLACE** (měsíční archiv přepíše stale generační řádek).
+Volající: lifecycle failure cesta předává `status: 'failed'` + reálné % + 0 XP;
+tracker completion cesta předává 'completed' + % + xpEarned; debug `manualRefresh`
+default 'completed'. Closure test zpřísněn — u všech 14 šablon nově ověřuje archiv
+s reálnými final stats.
+
++1 test (sezónní distribuce). **Verifikace**: `npx tsc --noEmit` exit 0; celá suite:
+
+```
+Test Suites: 28 passed, 28 total
+Tests:       425 passed, 425 total
+```
+
+### PROVEDENÍ OPRAV — session #9, kolo 2 (2026-07-19, Fable): N-3.10 + N-3.11
+
+**N-3.10**:
+- Variety týdny sjednoceny na PONDĚLNÍ (jak je láme kalendář v UI): nový helper
+  `mondayWeekKey` (monthlyProgressTracker.ts) — klíč `YYYY-MM|<datum pondělí>`;
+  měsíční složka drží férovost měsíční výzvy (týden přes přelom měsíce restartuje
+  počítání pro novou výzvu). Undo větev používá stejný bucket. Interní `weekNumber`
+  ve snapshotech/breakdownu ponechán (žádné UI ho nezobrazuje — kalendář si týdny
+  počítá sám z denních snapshotů, pondělně). Perzistovaný starý klíč formátu
+  `YYYY-MM-W3` se novému nerovná → jednorázový reset weekly setu při nasazení
+  (nejhorší dopad: návyk se v probíhajícím týdnu může započítat znovu — jednorázové,
+  ve prospěch uživatele).
+- Kalendář (MonthlyProgressCalendar.tsx, simple-counter větev): den s reálnou
+  aktivitou (`xpEarnedToday > 0`), kde nic nepřibylo do TÉTO výzvy, se ukazuje
+  jako 'some' místo šedé — stejná konvence, jakou už měly derived/day-guarded větve.
+- Ověření vzhledu na zařízení spadá do 3e device sezení.
+
+**N-3.11**: `selectTemplateForCategory` má nový parametr `targetMonth` ('YYYY-MM');
+sezónnost se vyhodnocuje z něj (fallback aktuální měsíc pro volání bez parametru);
+`generateMonthlyChallenge` předává `context.month`. +1 regresní test: generování
+28. 12. pro leden → podíl sezónní šablony **90,2 %** vs. pro prosinec **60,5 %**
+(seed 42) — novoroční boost konečně platí pro leden.
+
+**Verifikace (kolo 2)**: `npx tsc --noEmit` exit 0; celá suite:
+
+```
+Test Suites: 28 passed, 28 total
+Tests:       426 passed, 426 total
+```
+
+**FÁZE 3: VŠECHNY nálezy N-3.1 až N-3.17 vyřešené a provedené.** Zbývá pouze 3e device (Petr).
+
+## Brána úplnosti — session #9 (rozsah 3f + 3g)
+
+| Položek dle plánu | Sekcí ve zprávě | Shoda |
+|---|---|---|
+| 2 (3f, 3g) | 2 | ✓ |
+
+**Verifikace session #9**: `npx tsc --noEmit` exit 0; celá suite (+2 nové suites, +11 testů):
+
+```
+Test Suites: 28 passed, 28 total
+Tests:       424 passed, 424 total
+```
+
+**FÁZE 3 — auditní část KOMPLETNÍ** (3.0 + 3a-3d + 3f + 3g = 22 položkových sekcí + 2 průřezové). Zbývá pouze 3e device (Petr) a rozhodnutí k N-3.10, N-3.11, N-3.16, N-3.17.
+
 ## Nálezy k opravě (číslované, s prioritou)
 
 ### N-3.1 (VYSOKÁ, ❌) — Milestone zápisy deníku (#4/#8/#13 dne) jsou pro Monthly Challenges neviditelné
@@ -371,10 +491,12 @@ monthlyChallengeService.ts:2070-2072 skládá EN string mimo t(); všechny ostat
 `MonthlyChallengeService.applyStarScaling` (:577-583), `UserActivityTracker.applyStarScaling` (userActivityTracker.ts:238-252) a `StarRatingService.calculateDifficulty` (starRatingService.ts:378) nevolá žádný produkční kód (grep: jen testy) a jejich matematika se LIŠÍ od reálné generace (bez range clampu a minim). Testy `monthlyChallenge.phase3*.test.ts` (:355-391) tak zeleně validují API, kterým se výzvy negenerují — reálná cesta `calculateTargetFromBaseline` per-šablonový test nemá. Kandidát na Fázi 13 (smazat mrtvé API + přesměrovat testy na reálnou cestu).
 
 ### N-3.10 (NÍZKÁ, ⚠️ UX) — Variety Champion: nekonzistentní definice týdne + šedé aktivní dny v kalendáři
+**ROZHODNUTÍ PETRA (2026-07-19): „To je potřeba opravit, udělej to"** → týdny sjednoceny na pondělní (jak je vidí uživatel), aktivní dny nikdy šedé. ✅ PROVEDENO 2026-07-19 (viz „PROVEDENÍ — session #9, kolo 2").
 
 Tracker týden = 1.-7./8.-14./… den měsíce (:1582-1590; poslední „týden" má 1-3 dny), kalendář láme týdny v pondělí (MonthlyProgressCalendar.tsx:205), `weeklyTarget` v UI = target/4 (:937). Dny s aktivitou jen z už-započítaných návyků mají contribution 0 → šedé („none") navzdory splněným návykům.
 
 ### N-3.11 (NÍZKÁ, ⚠️) — Sezónní bonus výběru šablon podle AKTUÁLNÍHO měsíce, ne cílového
+**ROZHODNUTÍ PETRA (2026-07-19): „Souhlas, oprav to"** → sezónnost se vyhodnocuje pro cílový měsíc výzvy. ✅ PROVEDENO 2026-07-19 (viz „PROVEDENÍ — session #9, kolo 2").
 
 `selectTemplateForCategory` používá `new Date().getMonth()+1` (:1825-1826); u preview generace na 25.+ den (lifecycle) se tak sezónnost vyhodnotí pro předchozí měsíc (např. prosinec místo ledna — mine lednový bonus Consistency Mastera).
 
@@ -490,6 +612,6 @@ zelených vč. cross-impact Fází 1-3)
 
 Zbývající položky Fáze 3 (sessions #8-#9 dle batching tabulky): 3c (Goals 2), 3d (Consistency 4), 3e (device), 3f (weighted random test), 3g (konec měsíce všech 14).
 
-## Stav: NEDOKONČENO (fáze) / sessions #7 + #8 HOTOVÉ — pokračovat 3f + 3g (session #9); 3e device (Petr)
+## Stav: sessions #7 + #8 + #9 HOTOVÉ — auditní část Fáze 3 KOMPLETNÍ, všech 17 nálezů vyřešeno; zbývá pouze 3e device (Petr)
 
 Auditní část session #7 kompletní (E1 dodrženo — žádný kód změněn). Opravy čekají na rozhodnutí Petra k N-3.1 až N-3.11.

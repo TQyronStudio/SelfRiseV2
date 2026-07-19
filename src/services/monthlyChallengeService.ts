@@ -1807,7 +1807,8 @@ export class MonthlyChallengeService {
     userBaseline: UserActivityBaseline | null,
     starLevel: 1 | 2 | 3 | 4 | 5,
     previousTemplateIds: string[] = [],
-    t: TFunction
+    t: TFunction,
+    targetMonth?: string // 'YYYY-MM' — the month the challenge is FOR (N-3.11)
   ): {
     selectedTemplate: MonthlyChallengeTemplate;
     selectionReason: string;
@@ -1866,16 +1867,23 @@ export class MonthlyChallengeService {
     // Higher priority = higher chance, but not guaranteed selection
     // Like drawing cards from a deck where some cards are duplicated based on priority
 
-    const currentMonth = new Date().getMonth() + 1; // 1-12
-    const monthString = currentMonth.toString().padStart(2, '0');
+    // Seasonality is evaluated for the TARGET month (N-3.11, approved
+    // 2026-07-19): preview generation runs on the 25th+ of the previous month,
+    // so "current month" missed exactly the months seasonality was made for
+    // (a January challenge prepared in December asked "is December seasonal?").
+    const monthString = targetMonth?.split('-')[1]
+      ?? (new Date().getMonth() + 1).toString().padStart(2, '0');
 
     // Calculate weighted scores for each template
     const weightedTemplates = finalTemplatePool.map(template => {
       let weight = template.priority; // Base weight from priority (65-100)
 
-      // Seasonal bonus: +30 weight for seasonal templates (significant boost)
+      // Seasonal bonus: +15 weight for seasonal templates. Must stay BELOW the
+      // ±20 random variance — at the old +30 the seasonal template could not
+      // lose in its months, silently restoring the October 2025 monopoly
+      // (N-3.16, approved 2026-07-19).
       if (template.seasonality?.includes(monthString)) {
-        weight += 30;
+        weight += 15;
       }
 
       // Anti-repeat penalty: -40 weight if recently used (strong discouragement)
@@ -1910,7 +1918,7 @@ export class MonthlyChallengeService {
     const reasonParts: string[] = [];
 
     if (selectedWeighted.isSeasonal) {
-      reasonParts.push('seasonal bonus +30');
+      reasonParts.push('seasonal bonus +15');
     }
     if (selectedWeighted.wasRecentlyUsed) {
       reasonParts.push('repeat penalty -40');
@@ -2017,7 +2025,8 @@ export class MonthlyChallengeService {
         context.userBaseline,
         starLevel,
         await this.getRecentTemplateIds(context.userId, 6), // Avoid templates used in last 6 months
-        t
+        t,
+        context.month // seasonality for the month the challenge is FOR (N-3.11)
       );
       warnings.push(...templateSelection.warnings);
       alternatives.push(...templateSelection.alternativeTemplates.map(t => `template:${t.id}`));
@@ -2483,15 +2492,38 @@ export class MonthlyChallengeService {
   /**
    * Archive completed challenge and prepare for next month
    */
-  static async archiveCompletedChallenge(challengeId: string): Promise<void> {
+  static async archiveCompletedChallenge(
+    challengeId: string,
+    finalStats?: {
+      status: 'completed' | 'failed';
+      completionPercentage: number;
+      xpEarned: number;
+    }
+  ): Promise<void> {
     try {
+      const finalStatus = finalStats?.status ?? 'completed';
+
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
-        await this.storage.updateChallengeStatus(challengeId, 'completed');
+        // N-3.17 (2026-07-19): look the challenge up WHILE it is still active —
+        // the old order (status update first) meant getActiveChallenges never
+        // found it, the history write never ran, and challenge_history kept
+        // only the stale generation-time row ('active', 0 %, 0 XP).
         const challenges = await this.storage.getActiveChallenges();
         const challenge = challenges.find(c => c.id === challengeId);
+
+        await this.storage.updateChallengeStatus(challengeId, finalStatus);
+
         if (challenge) {
-          await this.storage.archiveChallenge(challenge);
+          // Carry the real final stats into the history row (the storage
+          // layer reads these runtime fields — see SQLiteChallengeStorage)
+          const challengeWithStats = Object.assign({}, challenge, {
+            status: finalStatus,
+            progress: finalStats?.completionPercentage ?? 0,
+            xpAwarded: finalStats?.xpEarned ?? 0,
+            completedAt: finalStatus === 'completed' ? new Date() : undefined,
+          });
+          await this.storage.archiveChallenge(challengeWithStats as MonthlyChallenge);
         }
         return;
       }

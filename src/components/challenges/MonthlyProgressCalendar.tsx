@@ -231,6 +231,13 @@ const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
       } else {
         adaptiveIntensity = getAdaptiveActivityIntensity(dailyContributions);
         dailyValue = Object.values(dailyContributions as Record<string, number>).reduce((a, b) => a + b, 0);
+        // N-3.10: a day with real activity must not look dead just because
+        // nothing counted toward THIS challenge (e.g. Variety Champion when
+        // today's habits were already counted this week) — show faint activity,
+        // same convention as the derived/day-guarded branches above
+        if (adaptiveIntensity === 'none' && (dailySnapshot?.xpEarnedToday || 0) > 0) {
+          adaptiveIntensity = 'some';
+        }
       }
       const hasActivity = adaptiveIntensity !== 'none';
       

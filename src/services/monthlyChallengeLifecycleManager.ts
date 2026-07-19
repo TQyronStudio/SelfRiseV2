@@ -335,8 +335,12 @@ export class MonthlyChallengeLifecycleManager {
       DeviceEventEmitter.emit('monthly_challenge_failed', failureResult);
       this.log(`📢 Emitted monthly_challenge_failed event`);
 
-      // 6. Archive the failed challenge
-      await MonthlyChallengeService.archiveCompletedChallenge(previousChallenge.id);
+      // 6. Archive the failed challenge with its real final stats (N-3.17)
+      await MonthlyChallengeService.archiveCompletedChallenge(previousChallenge.id, {
+        status: 'failed',
+        completionPercentage,
+        xpEarned: 0, // no XP for a failed challenge
+      });
       this.log(`🗃️ Archived failed challenge: ${previousChallenge.title}`);
 
       await this.setState(ChallengeLifecycleState.FAILED);

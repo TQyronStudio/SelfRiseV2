@@ -1688,16 +1688,29 @@ export class MonthlyProgressTracker {
    * Calculate weekly habit variety increment - SYNC version for real-time tracking  
    * Returns +1 only if habitId is NEW for current week, 0 if already completed
    */
+  /**
+   * Monday-based week bucket for a DateString (N-3.10: the user sees Monday
+   * weeks in the calendar — the old day-of-month weeks 1-7/8-14/… disagreed
+   * with the UI). The month component keeps the bucket challenge-fair: a week
+   * straddling a month boundary restarts counting for the new month's challenge.
+   */
+  private static mondayWeekKey(dateString: string): string {
+    const d = parseDate(dateString);
+    const day = d.getDay(); // 0 = Sunday
+    const monday = addDays(d, -(day === 0 ? 6 : day - 1));
+    return `${dateString.substring(0, 7)}|${formatDateToString(monday as Date)}`;
+  }
+
   private static calculateWeeklyHabitVarietyIncrement(
     habitId: string,
     direction: number,
     metadata?: Record<string, any>
   ): number {
     try {
-      // Month-aware week key ("2026-07-W3") — state is persisted, so a bare
-      // week number would collide with the same week of another month
+      // Monday-based, month-aware week key (N-3.10) — state is persisted, so
+      // the key must be unique across months too
       const todayString = today();
-      const weekKey = `${todayString.substring(0, 7)}-W${this.calculateWeekNumber(new Date())}`;
+      const weekKey = this.mondayWeekKey(todayString);
 
       // Reset weekly cache if week changed
       if (this.currentWeekKey !== weekKey) {
@@ -1714,11 +1727,8 @@ export class MonthlyProgressTracker {
       // completion (same accepted trade-off as daily_goal_progress).
       if (direction < 0) {
         const deletedDate: string | undefined = metadata?.date;
-        // Week-of-month straight from the DateString (day 1-7 = W1, …) — no
-        // Date round-trip, no timezone shift (N4 bug class)
-        const inCurrentWeek = !!deletedDate
-          && deletedDate.substring(0, 7) === todayString.substring(0, 7)
-          && Math.ceil(Number(deletedDate.substring(8, 10)) / 7) === Math.ceil(Number(todayString.substring(8, 10)) / 7);
+        // Same Monday-based bucket as the positive path (N-3.10)
+        const inCurrentWeek = !!deletedDate && this.mondayWeekKey(deletedDate) === weekKey;
         if (inCurrentWeek && this.currentWeekHabits.has(habitId)) {
           this.currentWeekHabits.delete(habitId);
           this.persistDayGuardState();
@@ -2669,7 +2679,12 @@ export class MonthlyProgressTracker {
     try {
       // Import MonthlyChallengeService using require for Jest compatibility
       const { MonthlyChallengeService } = require('./monthlyChallengeService');
-      await MonthlyChallengeService.archiveCompletedChallenge(challenge.id);
+      // Pass the real final stats so the history row is accurate (N-3.17)
+      await MonthlyChallengeService.archiveCompletedChallenge(challenge.id, {
+        status: 'completed',
+        completionPercentage: progress.completionPercentage,
+        xpEarned: progress.xpEarned || 0,
+      });
 
       // Use SQLite when enabled
       if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
