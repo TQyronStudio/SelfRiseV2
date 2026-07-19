@@ -96,6 +96,31 @@
 > scaling API a testy přesměrovány na reálnou cestu calculateTargetFromBaseline
 > (6 testů přepsáno, 3 smazány). Guide dorovnán vč. tabulek šablon (N-3.8).
 > tsc 0, **409/409 testů (26/26 suites)** ✓. Otevřené jen N-3.10/3.11 [NÍZKÁ].
+>
+> ✅ **Session #8 (3c + 3d) HOTOVÁ 2026-07-19 (Fable)**: auditováno zbylých 6 šablon
+> (Goals 2 + Consistency 4) — NÁLEZY 1+2 z 11.7. drží. Nové nálezy: **N-3.12
+> [VYSOKÁ, PROVEDEN pod schváleným N-3.2]** — (a) Achievement Unlocked chtěl 12
+> dokončených cílů místo 2-3; (b) **XP Champion měl target ~58 XP/měsíc = automatická
+> výhra 5-25k XP** (baseline z denního průměru → opraveno na totalMonthlyXP);
+> (c) **Balance Expert byl matematicky nesplnitelný** (ceil na škále 0-1 + minimum
+> 25 → opraveno na zlomkový target, minima 0.60/0.70, strop 0.95). +1 regresní
+> test B9. **K ROZHODNUTÍ: N-3.13 [STŘEDNÍ]** — balance score bucketuje XP podle
+> neexistujících source hodnot (achievementy/milestony padají do 'other');
+> **N-3.14 [NÍZKÁ]** — undo nesnižuje denní XP součet; **N-3.15 [NÍZKÁ]** —
+> kalibrace consistency minim + bonus-only den není „perfektní". Guide dorovnán.
+> tsc 0, **410/410 testů (26/26 suites)** ✓. Zbývá: 3f+3g (session #9), 3e device.
+>
+> ✅ **N-3.13 + N-3.14 schváleny a PROVEDENY 2026-07-19 (Fable)**: bucketování
+> balance skóre dle skutečného enumu (achievementy/milestony už nepadají do
+> 'other'), denní XP = čistý součet s podlahou 0 (undo snižuje). +2 diskriminační
+> testy. tsc 0, **412/412 testů** ✓. N-3.15 vysvětlen laicky, čeká na rozhodnutí.
+>
+> ✅ **N-3.15 rozhodnut a PROVEDEN 2026-07-19 (Fable)**: a) minima Triple Master /
+> Perfect Month zjemněna na [8,10,12,15,18] dní; b) perfektní den počítá i bonusové
+> návyky (tracker + baseline sladěny; achievementy bonusy počítaly už dřív). +2 testy.
+> tsc 0, **413/413 testů (26/26 suites)** ✓. **Fáze 3: všechny nálezy N-3.1–N-3.15
+> vyřešené kromě N-3.10/N-3.11 [NÍZKÁ, bez rozhodnutí]. Zbývá session #9 (3f+3g)
+> a 3e device.**
 > Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
 > našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
 

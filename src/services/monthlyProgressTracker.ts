@@ -2048,26 +2048,32 @@ export class MonthlyProgressTracker {
       
       for (const transaction of transactions) {
         const amount = Math.abs(transaction.amount); // Use absolute value for balance calculation
-        
+
+        // Buckets keyed by REAL XPSourceType values (N-3.13, 2026-07-19):
+        // the old cases ('achievement', 'journal_milestone', 'habit_streak')
+        // never matched, so achievement + milestone XP fell into 'other'
+        // and skewed the score
         switch (transaction.source) {
-          case 'habit_completion':
-          case 'habit_bonus':
-          case 'habit_streak':
+          case XPSourceType.HABIT_COMPLETION:
+          case XPSourceType.HABIT_BONUS:
+          case XPSourceType.HABIT_STREAK_MILESTONE:
             xpByCategory.habits = (xpByCategory.habits || 0) + amount;
             break;
-          case 'journal_entry':
-          case 'journal_bonus':
-          case 'journal_milestone':
+          case XPSourceType.JOURNAL_ENTRY:
+          case XPSourceType.JOURNAL_BONUS:
+          case XPSourceType.JOURNAL_BONUS_MILESTONE:
+          case XPSourceType.JOURNAL_STREAK_MILESTONE:
             xpByCategory.journal = (xpByCategory.journal || 0) + amount;
             break;
-          case 'goal_progress':
-          case 'goal_completion':
+          case XPSourceType.GOAL_PROGRESS:
+          case XPSourceType.GOAL_COMPLETION:
+          case XPSourceType.GOAL_MILESTONE:
             xpByCategory.goals = (xpByCategory.goals || 0) + amount;
             break;
-          case 'achievement':
+          case XPSourceType.ACHIEVEMENT_UNLOCK:
             xpByCategory.achievements = (xpByCategory.achievements || 0) + amount;
             break;
-          case 'monthly_challenge':
+          case XPSourceType.MONTHLY_CHALLENGE:
             xpByCategory.challenges = (xpByCategory.challenges || 0) + amount;
             break;
           default:
@@ -2171,8 +2177,12 @@ export class MonthlyProgressTracker {
 
       const usedAllThreeFeatures = hasHabits && hasJournal && hasGoals;
 
-      // Check for daily minimums (1+ habits, 3+ journal entries) - goals optional for perfect day
-      const habitCount = dailyTransactions.filter(t => t.source === XPSourceType.HABIT_COMPLETION).length;
+      // Check for daily minimums (1+ habits, 3+ journal entries) - goals optional for perfect day.
+      // Bonus habit completions count too (N-3.15b, 2026-07-19): a day where the
+      // user did habits voluntarily beyond schedule is not less perfect.
+      const habitCount = dailyTransactions.filter(t =>
+        t.source === XPSourceType.HABIT_COMPLETION || t.source === XPSourceType.HABIT_BONUS
+      ).length;
       const journalCount = dailyTransactions.filter(t => t.source === XPSourceType.JOURNAL_ENTRY).length;
       const goalProgressCount = dailyTransactions.filter(t => t.source === XPSourceType.GOAL_PROGRESS).length;
 
@@ -2197,14 +2207,14 @@ export class MonthlyProgressTracker {
   private static async calculateTotalXPForDate(dateString: DateString): Promise<number> {
     try {
       const transactions = await this.getDailyXPTransactions(dateString);
-      
-      // Sum all positive XP amounts for the day (ignore negative XP for total calculation)
-      const totalXP = transactions
-        .filter(t => t.amount > 0) // Only count positive XP
-        .reduce((sum, t) => sum + t.amount, 0);
-      
+
+      // Net sum with a floor of 0 (N-3.14, 2026-07-19): undo transactions are
+      // negative — ignoring them let monthly_xp_total be inflated by
+      // add+delete cycles
+      const totalXP = Math.max(0, transactions.reduce((sum, t) => sum + t.amount, 0));
+
       console.log(`🔍 [DEBUG] Total XP for ${dateString}: ${totalXP} (from ${transactions.length} transactions)`);
-      
+
       return totalXP;
     } catch (error) {
       console.error('MonthlyProgressTracker.calculateTotalXPForDate error:', error);

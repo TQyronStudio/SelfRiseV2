@@ -433,6 +433,25 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     expect(await getProgressValue(ch.id, 'perfect_days')).toBe(1);
   });
 
+  test('perfect_days: a bonus-only habit day qualifies too [N-3.15b]', async () => {
+    const ch = activateChallenge(
+      makeChallenge('perfect_days', 20, AchievementCategory.CONSISTENCY, 'consistency')
+    );
+    // No scheduled habit today — the user did a habit voluntarily (bonus)
+    // and wrote 3 entries. Before the fix habitCount counted only
+    // HABIT_COMPLETION, so this day could never be perfect.
+    mockGetTransactions.mockResolvedValue([
+      tx(XPSourceType.HABIT_BONUS, 15),
+      tx(XPSourceType.JOURNAL_ENTRY, 20),
+      tx(XPSourceType.JOURNAL_ENTRY, 20),
+      tx(XPSourceType.JOURNAL_ENTRY, 20),
+    ]);
+
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'entry-3');
+
+    expect(await getProgressValue(ch.id, 'perfect_days')).toBe(1);
+  });
+
   test('monthly_xp_total (XP Champion): daily XP flows into the monthly total [Fix B]', async () => {
     const ch = activateChallenge(
       makeChallenge('monthly_xp_total', 2000, AchievementCategory.CONSISTENCY, 'consistency')
@@ -463,6 +482,41 @@ describe('MonthlyProgressTracker — tracking key regression suite (all 14 templ
     await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.HABIT_COMPLETION, 30, 'habit-1');
 
     expect(await getProgressValue(ch.id, 'balance_score')).toBeGreaterThan(0);
+  });
+
+  test('balance_score buckets milestone XP with its parent feature [N-3.13]', async () => {
+    const ch = activateChallenge(
+      makeChallenge('balance_score', 0.8, AchievementCategory.CONSISTENCY, 'consistency', 4)
+    );
+    // Journal entries 500 + journal milestone 100 = 60 % journal, habits 40 %.
+    // Before the fix the milestone fell into 'other' (journal read 50 % →
+    // score 1.0); correct bucketing gives max source 60 % → score 0.75.
+    mockGetTransactions.mockResolvedValue([
+      tx(XPSourceType.JOURNAL_ENTRY, 500),
+      tx(XPSourceType.JOURNAL_BONUS_MILESTONE, 100),
+      tx(XPSourceType.HABIT_COMPLETION, 400),
+    ]);
+
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'entry-1');
+
+    expect(await getProgressValue(ch.id, 'balance_score')).toBeCloseTo(0.75, 5);
+  });
+
+  test('monthly_xp_total reflects undo transactions (net sum, floored at 0) [N-3.14]', async () => {
+    const ch = activateChallenge(
+      makeChallenge('monthly_xp_total', 2000, AchievementCategory.CONSISTENCY, 'consistency')
+    );
+    // +25 habit, +20 journal, then the habit was deleted (-25) → net 20.
+    // Before the fix negatives were ignored and the day read 45.
+    mockGetTransactions.mockResolvedValue([
+      tx(XPSourceType.HABIT_COMPLETION, 25),
+      tx(XPSourceType.JOURNAL_ENTRY, 20),
+      tx(XPSourceType.HABIT_COMPLETION, -25),
+    ]);
+
+    await MonthlyProgressTracker.updateMonthlyProgress(XPSourceType.JOURNAL_ENTRY, 20, 'entry-1');
+
+    expect(await getProgressValue(ch.id, 'monthly_xp_total')).toBe(20);
   });
 
   // ========================================

@@ -298,9 +298,12 @@ export class UserActivityTracker {
         const goalProgressTxs = xpTransactions.filter(tx => tx.source === XPSourceType.GOAL_PROGRESS);
         const goalCompletionTxs = xpTransactions.filter(tx => tx.source === XPSourceType.GOAL_COMPLETION);
         
-        // Calculate daily totals
+        // Calculate daily totals.
+        // hasHabits counts bonus completions too (N-3.15b) — keeps the
+        // baseline's perfectDays/tripleFeatureDays consistent with the
+        // tracker's day analysis (which always counted bonus for triple).
         const totalXP = xpTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-        const hasHabits = scheduledHabits.length > 0;
+        const hasHabits = habitCompletions.length > 0;
         const hasJournal = journalEntries.length >= 3;
         const hasGoals = goalProgressTxs.length > 0 || goalCompletionTxs.length > 0;
         

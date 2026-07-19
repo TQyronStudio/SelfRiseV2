@@ -115,12 +115,23 @@ drives one real event pipeline per template tracking key and asserts progress > 
      nová metrika `qualityJournalEntries` (non-bonus zápisy ≥33 znaků za 30 dní).
    - **Minima per tracking klíč** (místo per kategorie): streak klíče [5,7,10,14,18] dní,
      `unique_weekly_habits` [8,10,12,16,20], `bonus_habit_completions` [5,8,12,16,20],
-     `quality_journal_entries` [20,30,40,50,60], `avg_entry_length` [25,30,35,40,45] znaků.
-     Ostatní klíče zatím kategorová minima (Goals/Consistency dořeší audit sessions #8/#9).
+     `quality_journal_entries` [20,30,40,50,60], `avg_entry_length` [25,30,35,40,45] znaků;
+     session #8 doplnila `goal_completions` [2,2,3,3,4], `monthly_xp_total`
+     [500,750,1000,1250,1500] a zlomkové `balance_score` [0.40,0.45,0.50,0.60,0.70]
+     (N-3.12; + XP Champion baseline `totalMonthlyXP`, Balance Expert bez ceil + strop 0.95).
+     `daily_goal_progress` a denní consistency klíče drží kategorová minima (jednotka dny ✓).
    - **Stropy**: streak/denní klíče ≤ dní v měsíci (stávající); quality ≤ 3×dny v měsíci;
      variety ≤ počet aktivních návyků × počet týdnů měsíce.
    - Platí pro nově generované výzvy; běžící výzva se nemění.
-8. **Mrtvá scaling API smazána (N-3.9, schváleno 2026-07-18)**:
+8. **Kalibrace Consistency výzev (N-3.15, schváleno 2026-07-19)**: minima
+   `triple_feature_days` + `perfect_days` zjemněna na [8,10,12,15,18] dní;
+   perfektní den uznává i den jen s BONUSOVÝMI návyky (tracker i baseline —
+   dobrovolná aktivita navíc není méně perfektní).
+8b. **Balance score + denní XP opraveny (N-3.13 + N-3.14, schváleno 2026-07-19)**:
+   bucketování balance skóre používá skutečné `XPSourceType` hodnoty (achievementy
+   a milestony už nepadají do 'other'); `xpEarnedToday` je čistý součet s podlahou 0
+   (undo snižuje denní XP → monthly_xp_total nejde nafouknout cyklem přidat+smazat).
+9. **Mrtvá scaling API smazána (N-3.9, schváleno 2026-07-18)**:
    `MonthlyChallengeService.applyStarScaling`, `UserActivityTracker.applyStarScaling` /
    `getStarScaling` a `StarRatingService.calculateDifficulty` nevolal žádný produkční
    kód a počítaly JINAK než reálná generace — testy je přesto zeleně validovaly.
@@ -442,14 +453,13 @@ Minima 25/30/35/40/45 znaků.
 - **5⭐ Mistr**: 25 dnů s pokrokem na cílech *(baseline 20 → +25%)*
 
 #### **2. Achievement Unlocked**
-*"Dokončí více cílů během měsíce"*
+*"Dokončí více cílů během měsíce"* (interní ID šablony: `goals_completion_master`)
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 2 dokončené cíle za měsíc *(baseline 2 → +5%)*
-- **2⭐ Střední**: 2 dokončené cíle za měsíc *(baseline 2 → +10%)*
-- **3⭐ Těžká**: 3 dokončené cíle za měsíc *(baseline 2 → +15%)*
-- **4⭐ Expert**: 3 dokončené cíle za měsíc *(baseline 2 → +20%)*
-- **5⭐ Mistr**: 3 dokončené cíle za měsíc *(baseline 2 → +25%)*
+Baseline: `goalsCompleted` (dokončené cíle za 30 dní). Range [1.15, 1.35]
+→ hvězdy +15/+20/+25/+30/+35 %. Minima 2/2/3/3/4 (N-3.12a — dřívější kategorová
+minima ve dnech chtěla 12+ dokončených cílů).
+
+**Příklad (baseline 2):** 1⭐ 3 | 2⭐ 3 | 3⭐ 3 | 4⭐ 3 | 5⭐ 4 *(minimum)*
 
 
 
@@ -462,24 +472,22 @@ Minima 25/30/35/40/45 znaků.
 
 **📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 16 dnů se všemi funkcemi *(baseline 15 → +5%)*
-- **2⭐ Střední**: 17 dnů se všemi funkcemi *(baseline 15 → +10%)*
-- **3⭐ Těžká**: 18 dnů se všemi funkcemi *(baseline 15 → +15%)*
-- **4⭐ Expert**: 18 dnů se všemi funkcemi *(baseline 15 → +20%)*
-- **5⭐ Mistr**: 19 dnů se všemi funkcemi *(baseline 15 → +25%)*
+Baseline: `tripleFeatureDays`. Range [1.05, 1.25]. Minima 8/10/12/15/18 dní
+(N-3.15a, zjemněno 2026-07-19 — personalizace má slovo i u slabších uživatelů).
+Den se počítá při JAKÉKOLIV návykové aktivitě (scheduled i bonus) + deník + cíl.
+
+**Příklad (baseline 15):** 1⭐ 16 | 2⭐ 17 | 3⭐ 18 | 4⭐ 18 | 5⭐ 19
 
 #### **2. Perfect Month**
 *"Dosáhni denních minim (1+ návyk, 3+ záznamy) konzistentně"*
 
 **📅 MĚSÍČNÍ LIMIT**: Targets automaticky omezeny počtem dní v měsíci (28-31 dní)
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 21 perfektních dnů za měsíc *(baseline 20 → +5%)*
-- **2⭐ Střední**: 22 perfektních dnů za měsíc *(baseline 20 → +10%)*
-- **3⭐ Těžká**: 23 perfektních dnů za měsíc *(baseline 20 → +15%)*
-- **4⭐ Expert**: 24 perfektních dnů za měsíc *(baseline 20 → +20%)*
-- **5⭐ Mistr**: 25 perfektních dnů za měsíc *(baseline 20 → +25%)*
+Baseline: `perfectDays`. Range [1.15, 1.35] → hvězdy +15/+20/+25/+30/+35 %.
+Minima 8/10/12/15/18 dní (N-3.15a). Perfektní den = **1+ návyk (scheduled NEBO
+bonus — N-3.15b, 2026-07-19)** a 3+ zápisy; cíle volitelné.
+
+**Příklad (baseline 20):** 1⭐ 23 | 2⭐ 24 | 3⭐ 25 | 4⭐ 26 | 5⭐ 27
 
 > ℹ️ **Pozn. (červenec 2026)**: Dřívější výzva „Engagement King" (`daily_engagement_streak`)
 > NEMÁ v kódu šablonu — tracking klíč existuje jen jako podpora v trackeru. Nezapočítávat
@@ -488,12 +496,16 @@ Minima 25/30/35/40/45 znaků.
 #### **3. XP Champion**
 *"Nashromáždi více celkového XP během měsíce ze všech zdrojů"*
 
-**Příklady obtížnosti:**
-- **1⭐ Snadná**: 1610 celkového XP za měsíc *(baseline 1400 → +15%)*
-- **2⭐ Střední**: 1680 celkového XP za měsíc *(baseline 1400 → +20%)*
-- **3⭐ Těžká**: 1750 celkového XP za měsíc *(baseline 1400 → +25%)*
-- **4⭐ Expert**: 1820 celkového XP za měsíc *(baseline 1400 → +30%)*
-- **5⭐ Mistr**: 1890 celkového XP za měsíc *(baseline 1400 → +35%)*
+Baseline: `totalMonthlyXP` (celkové XP za 30denní okno — N-3.12b: dřívější `avgDailyXP`
+generoval ~58 XP měsíční target = okamžitá výhra). Range [1.15, 1.35]. Minima
+500/750/1000/1250/1500 XP.
+
+**Příklady obtížnosti (baseline 1400):**
+- **1⭐ Snadná**: 1610 celkového XP za měsíc *(+15 %)*
+- **2⭐ Střední**: 1680 celkového XP za měsíc *(+20 %)*
+- **3⭐ Těžká**: 1750 celkového XP za měsíc *(+25 %)*
+- **4⭐ Expert**: 1820 celkového XP za měsíc *(+30 %)*
+- **5⭐ Mistr**: 1890 celkového XP za měsíc *(+35 %)*
 
 **🎯 VŠECHNY XP ZDROJE**: Počítá habits, journal, goals, achievementy, bonusy, milestones
 **⚡ DAILY XP LIMITS**: Respektuje denní XP limity - 5⭐ targets automaticky omezeny na dosažitelné
@@ -503,9 +515,13 @@ Minima 25/30/35/40/45 znaků.
 
 **⚠️ POKROČILÁ VÝZVA**: Vyžaduje minimálně **4⭐ consistency rating** pro unlock!
 
-**Příklady obtížnosti:**
-- **4⭐ Expert**: Balance score 0.72+ *(baseline 0.60 → +20%)*
-- **5⭐ Mistr**: Balance score 0.84+ *(baseline 0.60 → +40%)*
+Target je ZLOMEK 0-1 (N-3.12c: dřívější celočíselný ceil + kategorové minimum 25 dělaly
+výzvu nesplnitelnou). Range [1.20, 1.40], minima 0.60 (4⭐) / 0.70 (5⭐), **strop 0.95**
+(perfektní balance se nikdy nevyžaduje).
+
+**Příklady obtížnosti (baseline 0.60):**
+- **4⭐ Expert**: Balance score 0.81+ *(+35 %)*
+- **5⭐ Mistr**: Balance score 0.84+ *(+40 %)*
 
 **🔒 OMEZENÍ PŘÍSTUPU**: 1⭐-3⭐ uživatelé tuto výzvu nevidí - systém ji automaticky filtruje podle star ratingu
 

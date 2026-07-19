@@ -593,6 +593,93 @@ describe('Phase 3 PRODUCTION: Star Progression & Mathematical Validation', () =>
       expect(zero.target).toBeGreaterThan(0);
       expect(['fallback', 'minimum']).toContain(zero.calculationMethod);
     });
+
+    test(' B9. Goals/Consistency target sanity (N-3.12 audit fixes)', async () => {
+      // a) goal_completions: per-key minima [2,2,3,3,4] — the old category
+      // minimum (days scale) demanded 12 completed goals at 2⭐
+      const completionTemplate = makeScalingTemplate({
+        category: AchievementCategory.GOALS,
+        baselineMetricKey: 'goalsCompleted',
+        baselineMultiplierRange: [1.15, 1.35] as [number, number],
+        requirementTemplates: [{
+          type: 'goals', description: 'r', trackingKey: 'goal_completions',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const c2 = MonthlyChallengeService.calculateTargetFromBaseline(
+        completionTemplate as any, { goalsCompleted: 2 } as any, 2
+      );
+      expect(c2.target).toBe(3); // ceil(2 × 1.20), NOT the old minimum 12
+
+      // b) XP Champion: monthly XP baseline → guide-scale targets
+      const xpTemplate = makeScalingTemplate({
+        category: AchievementCategory.CONSISTENCY,
+        baselineMetricKey: 'totalMonthlyXP',
+        baselineMultiplierRange: [1.15, 1.35] as [number, number],
+        requirementTemplates: [{
+          type: 'consistency', description: 'r', trackingKey: 'monthly_xp_total',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const xpTargets = ([1, 2, 3, 4, 5] as const).map(star =>
+        MonthlyChallengeService.calculateTargetFromBaseline(
+          xpTemplate as any, { totalMonthlyXP: 1400 } as any, star
+        ).target
+      );
+      expect(xpTargets).toEqual([1610, 1680, 1750, 1820, 1890]); // +15..+35 %
+      // Zero-XP user: fallback + per-key minimum keeps it non-trivial
+      const xpZero = MonthlyChallengeService.calculateTargetFromBaseline(
+        xpTemplate as any, { totalMonthlyXP: 0 } as any, 1
+      );
+      expect(xpZero.target).toBeGreaterThanOrEqual(500);
+
+      // c) Balance Expert: fractional target on the 0-1 scale (the old
+      // integer ceil + category minimum produced an impossible target of 25)
+      const balanceTemplate = makeScalingTemplate({
+        category: AchievementCategory.CONSISTENCY,
+        baselineMetricKey: 'balanceScore',
+        baselineMultiplierRange: [1.20, 1.40] as [number, number],
+        requirementTemplates: [{
+          type: 'consistency', description: 'r', trackingKey: 'balance_score',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const b4 = MonthlyChallengeService.calculateTargetFromBaseline(
+        balanceTemplate as any, { balanceScore: 0.6 } as any, 4
+      );
+      expect(b4.target).toBeCloseTo(0.81, 10); // 0.6 × 1.35
+      const b5 = MonthlyChallengeService.calculateTargetFromBaseline(
+        balanceTemplate as any, { balanceScore: 0.6 } as any, 5
+      );
+      expect(b5.target).toBeCloseTo(0.84, 10); // 0.6 × 1.40
+      // Ceiling: never demand near-perfection
+      const bHigh = MonthlyChallengeService.calculateTargetFromBaseline(
+        balanceTemplate as any, { balanceScore: 0.9 } as any, 5
+      );
+      expect(bHigh.target).toBeLessThanOrEqual(0.95);
+      // Nonsense numeric fallback (20) must not leak into the 0-1 scale
+      const bZero = MonthlyChallengeService.calculateTargetFromBaseline(
+        balanceTemplate as any, { balanceScore: 0 } as any, 4
+      );
+      expect(bZero.target).toBeGreaterThanOrEqual(0.4);
+      expect(bZero.target).toBeLessThanOrEqual(0.95);
+
+      // d) N-3.15a: softened triple/perfect minima [8,10,12,15,18] — the old
+      // category floor demanded 18 triple days at 2⭐ from a baseline-5 user
+      const tripleTemplate = makeScalingTemplate({
+        category: AchievementCategory.CONSISTENCY,
+        baselineMetricKey: 'tripleFeatureDays',
+        baselineMultiplierRange: [1.05, 1.25] as [number, number],
+        requirementTemplates: [{
+          type: 'consistency', description: 'r', trackingKey: 'triple_feature_days',
+          progressMilestones: [0.25, 0.5, 0.75],
+        }],
+      });
+      const t2 = MonthlyChallengeService.calculateTargetFromBaseline(
+        tripleTemplate as any, { tripleFeatureDays: 5 } as any, 2
+      );
+      expect(t2.target).toBe(10); // per-key minimum, NOT the old 18
+    });
   });
 
   // ========================================

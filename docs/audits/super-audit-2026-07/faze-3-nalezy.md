@@ -149,6 +149,180 @@ Warm-up větev: `createWarmUpRequirements` (:1443-1470) — fixní fallback (hab
 
 ---
 
+---
+
+## SESSION #8 (2026-07-19): 3c Goals (2) + 3d Consistency (4)
+
+Baseline session #8: commit `c122e97`, working tree čistý, Node v24.18.0, tsc exit 0, Fáze 3 suites:
+
+```
+Test Suites: 4 passed, 4 total
+Tests:       83 passed, 83 total
+```
+
+(76 → 83: +7 regresních testů ze session #7; známé worker-exit varování trvá)
+
+### 3c-1 `goals_progress_champion` (Progress Champion)
+
+- Kde: definice monthlyChallengeService.ts:318-347 (baseline `totalGoalProgressDays`, range [1.05,1.25], trackingKey `daily_goal_progress`, minLevel 1); tracking monthlyProgressTracker.ts:556-563; kalkulátor `calculateDailyGoalProgressIncrement` (day-guard, undo, perzistence — po session #7)
+- Pravidlo: guide „Progress Champion" — dny s pokrokem, měsíční limit; plán 3c: „ověř, že počítá DNY, ne UDÁLOSTI (11.7. NÁLEZ 2 fix)"
+- Ověřeno jak: trasování G1-G5 + regresní test `daily_goal_progress (Progress Champion): counts DAYS, not events` (zelený v baseline)
+- Verdikt: ✅ — jediná šablona session #8 zcela v pořádku
+- Důkaz: NÁLEZ 2 fix DRŽÍ — den se počítá max. 1× (day-guard :1642-1660, od session #7 navíc přežívá restart a umí undo); `daily_goal_progress` je v `isDailyStreakTrackingKey` (cap na dny měsíce) ✓; kategorová minima GOALS [10,12,15,18,20] jsou "dny s pokrokem" = správná jednotka pro tento klíč ✓; XP eventy: SQLiteGoalStorage.ts:484 (add) / :477, :609 (subtract při smazání pokroku) se sourceId ✓; kalendář: day-guarded větev (MonthlyProgressCalendar.tsx:124) ✓
+
+### 3c-2 `goals_completion_master` (Achievement Unlocked)
+
+- Kde: definice monthlyChallengeService.ts:348-376 (baseline `goalsCompleted`, range [1.15,1.35], trackingKey `goal_completions`, minLevel 2); tracking monthlyProgressTracker.ts:493-495 + :565-566
+- Pravidlo: guide „Achievement Unlocked" — 2-3 dokončené cíle za měsíc (baseline 2)
+- Ověřeno jak: trasování + výpočet reálných targetů; ověření názvoslovného nesouladu z plánu
+- Verdikt: ⚠️ — tracking čistý, generování opět přebíjí minimum ve špatné jednotce
+- Důkaz:
+  - Názvosloví: user-facing titulek JE „Achievement Unlocked" (src/locales/en/index.ts:3676) — v kódu se liší jen interní ID šablony. Plán to správně předznačil; není to chyba, jen zapsáno. ✓
+  - Tracking: `goal_completions` ±direction na GOAL_COMPLETION (:565-566); úložiště XP přiznává při dokončení (SQLiteGoalStorage.ts:504) a ODEBÍRÁ při poklesu pod cíl (:715) → undo symetrické ✓
+  - Generování: kategorová minima GOALS [10,12,15,18,20] jsou kalibrovaná na DNY s pokrokem, ale tento klíč počítá DOKONČENÉ CÍLE → 2⭐ target = max(ceil(2×1.20)=3, **12**) = **12 dokončených cílů za měsíc** (guide slibuje 2-3) → N-3.12a
+
+### 3d-1 `consistency_triple_master` (Triple Master)
+
+- Kde: definice monthlyChallengeService.ts:379-408 (baseline `tripleFeatureDays`, range [1.05,1.25], trackingKey `triple_feature_days`, minLevel 2); relevance :496-501 (všechny zdroje); recalc :1019-1023
+- Pravidlo: guide „Triple Master" — dny se všemi 3 funkcemi, měsíční limit; plán 3d: kalendář odvozených klíčů (11.7. NÁLEZ 1)
+- Ověřeno jak: trasování; snapshot fakta z reálných transakcí; regresní test `triple_feature_days … [Fix B]` zelený
+- Verdikt: ✅ (s kalibrační poznámkou N-3.15a)
+- Důkaz: `isTripleFeatureDay` = reálné transakce dne obsahují habit + journal + goal zdroj (:2162-2172; zápisy #1-3 jsou vždy JOURNAL_ENTRY, takže chybějící `JOURNAL_BONUS_MILESTONE` v testu hasJournal ničemu nevadí); increment-0 trap ošetřen (`hasComplexRelevant`); cap na dny měsíce ✓ (`isDailyStreakTrackingKey`); kalendář derived větev (MonthlyProgressCalendar.tsx:161-164 — NÁLEZ 1 fix DRŽÍ) ✓; minima CONSISTENCY [15,18,22,25,28] = dny → správná jednotka; ⚠️ pro uživatele s nízkou baseline minimum dominuje (2⭐ chce 18 triple dní i při baseline 5) → N-3.15a
+
+### 3d-2 `consistency_perfect_month` (Perfect Month)
+
+- Kde: definice monthlyChallengeService.ts:409-438 (baseline `perfectDays`, range [1.15,1.35], trackingKey `perfect_days`, minLevel 3); recalc :1026-1031; denní analýza :2174-2179
+- Pravidlo: guide „Perfect Month" — denní minima „1+ návyk, 3+ záznamy", cíle volitelné
+- Ověřeno jak: trasování; test `perfect_days … [Fix B]` zelený
+- Verdikt: ✅ (s poznámkou N-3.15b)
+- Důkaz: `metDailyMinimums = habitCount >= 1 && journalCount >= 3` (:2179), goals volitelné — přesně dle guide ✓; kalendář derived (isPerfectDay → perfect, :156-159) ✓; cap ✓; ⚠️ `habitCount` počítá jen HABIT_COMPLETION — den, kdy uživatel splní POUZE bonusové návyky (mimo rozvrh), se nepočítá jako perfektní → N-3.15b (design otázka)
+
+### 3d-3 `consistency_xp_champion` (XP Champion)
+
+- Kde: definice monthlyChallengeService.ts:439-467 (baseline **`avgDailyXP`**, range [1.15,1.35], trackingKey `monthly_xp_total`, minLevel 1); recalc :1041-1046; XP cap :743-777
+- Pravidlo: guide „XP Champion" — baseline 1400 (měsíční XP) → targety 1610-1890 (+15..+35 %)
+- Ověřeno jak: trasování + výpočet reálného targetu
+- Verdikt: ❌ generování / ✅ tracking
+- Důkaz:
+  - **Generování**: baseline `avgDailyXP` = DENNÍ průměr (userActivityTracker: totalXP/dny, např. 50), ale target je MĚSÍČNÍ součet XP → target = max(ceil(50×1.15)=58, minimum CONSISTENCY 15-28) ≈ **58 XP za měsíc** — splnitelné 3 návyky prvního dne → automatická výhra 5 000-25 000 XP. Baseline `totalMonthlyXP` přitom v interface EXISTUJE a guide počítá právě s ním → N-3.12b
+  - Tracking: recalc sčítá `xpEarnedToday` přes snapshoty (:1041-1046) ✓; XP cap 1500×dny ✓ (:763-771); kalendář monthly_xp_total ratio větev ✓ (:171-176); test [Fix B] zelený
+  - ⚠️ `xpEarnedToday` počítá jen kladné transakce (:2201-2204) → undo (smazání aktivity) XP z denního součtu neodečte → monthly_xp_total lze nafouknout cyklem přidat+smazat → N-3.14
+
+### 3d-4 `consistency_balance_expert` (Balance Expert)
+
+- Kde: definice monthlyChallengeService.ts:469-497 (baseline `balanceScore`, range [1.20,1.40], trackingKey `balance_score`, **minLevel 4**); recalc :1049-1054; výpočet skóre :2008-2120
+- Pravidlo: guide „Balance Expert" — EXPERT ONLY 4⭐+, score 0-1, tabulka poklesu podle max. podílu zdroje
+- Ověřeno jak: trasování + výpočet reálného targetu; kontrola gatingu a bucketování
+- Verdikt: ❌ generování / ⚠️ výpočet skóre / ✅ gating + UI
+- Důkaz:
+  - **Generování**: target = `ceil(baseline × mult)` na metrice 0-1 → ceil(0.6×1.35)=**1** → minimum CONSISTENCY pro 4⭐ = **25** → finální target **25 na škále 0-1 = matematicky NESPLNITELNÉ** (completion = progress/25, max 4 %). Výzva je mrtvá od vzniku → N-3.12c. (Nikdo si nevšiml, protože vyžaduje 4⭐+ consistency rating.)
+  - Gating 4⭐+: filtr `starLevel >= minLevel` (:1793) ✓ — 1-3⭐ uživatelé šablonu nikdy nedostanou, dle guide ✓
+  - Výpočet skóre: křivka přesně dle guide (≤50 % → 1.0; 50-60 % lineárně na 0.75; dál strměji k 0, :2103-2111) ✓; ALE **bucketování má 4 case hodnoty, které v `XPSourceType` neexistují**: `'achievement'` (reálně `'achievement_unlock'`), `'journal_milestone'` (reálně `'journal_bonus_milestone'`/`'journal_streak_milestone'`), `'habit_streak'` (reálně `'habit_streak_milestone'`), chybí `'goal_milestone'` → XP z achievementů a milestonů padá do bucketu 'other' → skóre je zkreslené (velký achievement může 'other' udělat největším zdrojem) → N-3.13
+  - UI: modal toFixed(2) pro balance ✓ (MonthlyChallengeDetailModal.tsx:606-609); kalendář derived fallback ✓; tooltip dle guide ✓
+
+## Nálezy session #8 (pokračování číslování)
+
+### N-3.12 (VYSOKÁ) — Generování targetů Goals/Consistency: tři instance schválené třídy N-3.2
+
+a) **goal_completions**: minima v jednotce „dny" (10-20) vs. počítané dokončené cíle → 2⭐ chce 12 dokončených cílů (guide 2-3).
+b) **XP Champion**: baseline `avgDailyXP` (denní průměr) vs. měsíční XP target → target ~58 XP = automatická výhra. Fix: `totalMonthlyXP` + minima.
+c) **Balance Expert**: `ceil()` na metrice 0-1 + minima 25/28 → nesplnitelný target 25. Fix: zlomkový target (bez ceil), minima per klíč, strop 0.95.
+**Rozhodnutí**: spadá pod N-3.2 schválené Petrem 2026-07-18 („Dobrá, udělej to") — návrh výslovně uváděl „Goals/Consistency klíče dostanou svá minima po auditu sessions #8/#9" → PROVEDENO v této session (viz níže).
+
+### N-3.13 (STŘEDNÍ) — Balance score bucketuje podle neexistujících source hodnot
+**ROZHODNUTÍ PETRA (2026-07-19): „Udělej jak navrhuješ"** → narovnat case hodnoty na skutečný enum. ✅ PROVEDENO 2026-07-19 (viz níže).
+
+`calculateBalanceScore` (:2052-2076): case `'achievement'`/`'journal_milestone'`/`'habit_streak'` se nikdy netrefí (enum má `achievement_unlock`, `journal_bonus_milestone`, `journal_streak_milestone`, `habit_streak_milestone`) a `goal_milestone` chybí → toto XP padá do 'other'. Návrh: narovnat case hodnoty na skutečný enum (achievementy do bucketu achievements, milestony k mateřské funkci).
+
+### N-3.14 (NÍZKÁ) — `xpEarnedToday` ignoruje záporné transakce
+**ROZHODNUTÍ PETRA (2026-07-19): „Souhlasím"** → sčítat se znaménkem, podlaha 0. ✅ PROVEDENO 2026-07-19 (viz níže).
+
+:2201-2204 sčítá jen kladné XP → po undo zůstává denní XP nadhodnocené → `monthly_xp_total` lze nafouknout cyklem přidat+smazat. Návrh: sčítat se znaménkem s podlahou 0.
+
+### N-3.15 (NÍZKÁ) — kalibrační poznámky
+**ROZHODNUTÍ PETRA (2026-07-19)** po laickém vysvětlení: **a) „Zjemnit"** — minima
+triple_feature_days + perfect_days na [8,10,12,15,18] dní (personalizace dostane slovo
+i u slabších uživatelů); **b) „Počítat i bonusy"** — perfektní den uznává i den jen
+s bonusovými návyky. ✅ PROVEDENO 2026-07-19 (viz níže).
+
+a) CONSISTENCY minima [15,18,22,25,28] dní dominují uživatelům s nízkou baseline (2⭐ Triple Master chce 18 triple dní i při baseline 5) — jednotka správná, jen agresivní.
+b) Perfektní den nepočítá den se POUZE bonusovými návyky (habitCount jen HABIT_COMPLETION).
+
+### PROVEDENÍ OPRAV — session #8 (2026-07-19, Fable): N-3.12 (pod schváleným N-3.2)
+
+- `trackingKeyMinimums` rozšířeno: `goal_completions` [2,2,3,3,4], `monthly_xp_total`
+  [500,750,1000,1250,1500], `balance_score` [0.40,0.45,0.50,0.60,0.70] (zlomkové).
+- XP Champion: baselineMetricKey `avgDailyXP` → `totalMonthlyXP` (guide čísla 1610-1890
+  pro baseline 1400 nyní sedí přesně).
+- Balance Expert: zlomkový target bez ceil (round na 2 desetinná místa), guard proti
+  číselnému fallbacku >1 (nesmyslný na škále 0-1 → 0.5), strop 0.95 po minimech.
+- +1 regresní test „B9. Goals/Consistency target sanity" (production suite): goal_completions
+  2⭐ = 3 (ne 12); XP targets [1610,1680,1750,1820,1890] + minimum ≥500 pro nulovou baseline;
+  balance 4⭐ 0.81 / 5⭐ 0.84, strop ≤0.95, fallback v mezích 0.4-0.95.
+- Guide: tabulky Achievement Unlocked / Triple Master / Perfect Month / XP Champion /
+  Balance Expert přepočítány podle reálného vzorce; doplněny baseline metriky a minima;
+  0b bod 7 aktualizován.
+- N-3.13 / N-3.14 / N-3.15 NEPROVEDENY — čekají na rozhodnutí Petra.
+
+**Verifikace session #8 (kolo 1 — N-3.12)**: `npx tsc --noEmit` exit 0; celá suite:
+
+```
+Test Suites: 26 passed, 26 total
+Tests:       410 passed, 410 total
+```
+
+### PROVEDENÍ OPRAV — session #8, kolo 2 (2026-07-19, Fable): N-3.13 + N-3.14
+
+- **N-3.13** (`calculateBalanceScore`): switch přepsán na skutečné `XPSourceType` enum
+  hodnoty — habits += HABIT_STREAK_MILESTONE; journal += JOURNAL_BONUS_MILESTONE +
+  JOURNAL_STREAK_MILESTONE; goals += GOAL_MILESTONE; achievements = ACHIEVEMENT_UNLOCK
+  (dřív mrtvý case 'achievement'). XP multiplier/daily activity/retention zdroje
+  zůstávají záměrně v 'other'.
+- **N-3.14** (`calculateTotalXPForDate`): čistý součet transakcí se znaménkem,
+  podlaha 0 — undo den korektně snižuje.
+- +2 diskriminační regresní testy (trackingKeys 23 → 25): journal milestone v journal
+  bucketu → skóre 0.75 (před opravou 1.0); denní XP s undo → 20 (před opravou 45).
+
+**Verifikace session #8 (kolo 2)**: `npx tsc --noEmit` exit 0; celá suite:
+
+```
+Test Suites: 26 passed, 26 total
+Tests:       412 passed, 412 total
+```
+
+### PROVEDENÍ OPRAV — session #8, kolo 3 (2026-07-19, Fable): N-3.15 a+b
+
+- **a) Zjemněná minima**: `trackingKeyMinimums` += `triple_feature_days` a `perfect_days`
+  [8,10,12,15,18] dní (dřív kategorová [15,18,22,25,28]) — baseline personalizace
+  dostane slovo i u méně aktivních uživatelů.
+- **b) Perfektní den počítá bonusy**: `analyzeDailyFeatureUsage` — habitCount zahrnuje
+  HABIT_BONUS; sladěna i baseline strana (`hasHabits` v userActivityTracker počítá
+  všechny completions — triple v trackeru bonusy počítal odjakživa, teď je konzistentní
+  napříč; achievement `daily_feature_combo` bonusy počítal už dřív → bez cross-impactu).
+  Pozn.: `hasMinimumHabits` (baseline habitConsistencyDays/longestHabitStreak) záměrně
+  ponechán scheduled-only — mimo scope rozhodnutí.
+- +2 regresní testy: bonus-only den je perfektní (trackingKeys 25 → 26); triple 2⭐
+  s baseline 5 → target 10, ne 18 (rozšíření B9).
+- Guide: tabulky Triple Master / Perfect Month přepočítány, definice perfektního dne
+  aktualizována, 0b bod 8.
+
+**Verifikace session #8 (kolo 3)**: `npx tsc --noEmit` exit 0; celá suite:
+
+```
+Test Suites: 26 passed, 26 total
+Tests:       413 passed, 413 total
+```
+
+**Fáze 3 — stav nálezů: N-3.1 až N-3.15 VŠECHNY vyřešené (provedené či rozhodnuté), kromě N-3.10 + N-3.11 [NÍZKÁ, bez rozhodnutí].**
+
+## Brána úplnosti — session #8 (rozsah 3c + 3d)
+
+| Položek dle plánu (2 Goals + 4 Consistency) | Sekcí ve zprávě | Shoda |
+|---|---|---|
+| 6 | 6 (3c-1, 3c-2, 3d-1…3d-4) | ✓ |
+
+Zbývající položky Fáze 3: 3e (device), 3f + 3g (session #9).
+
 ## Nálezy k opravě (číslované, s prioritou)
 
 ### N-3.1 (VYSOKÁ, ❌) — Milestone zápisy deníku (#4/#8/#13 dne) jsou pro Monthly Challenges neviditelné
@@ -316,6 +490,6 @@ zelených vč. cross-impact Fází 1-3)
 
 Zbývající položky Fáze 3 (sessions #8-#9 dle batching tabulky): 3c (Goals 2), 3d (Consistency 4), 3e (device), 3f (weighted random test), 3g (konec měsíce všech 14).
 
-## Stav: NEDOKONČENO (fáze) / session #7 HOTOVÁ — pokračovat od 3c (session #8)
+## Stav: NEDOKONČENO (fáze) / sessions #7 + #8 HOTOVÉ — pokračovat 3f + 3g (session #9); 3e device (Petr)
 
 Auditní část session #7 kompletní (E1 dodrženo — žádný kód změněn). Opravy čekají na rozhodnutí Petra k N-3.1 až N-3.11.

@@ -452,12 +452,19 @@ streak bonus).
       reflection ⚠️; gratitude_guru + consistency_writer ❌ (N-3.1 milestone
       zápisy #4/#8/#13 neviditelné pro tracker).
       → Nálezy OPRAVENY týž den (N-3.1/3.2/3.6/3.7) — viz faze-3-nalezy.md.
-- [ ] 3c. **Goals šablony** (2) — kompletní průchod, včetně ověření že
+- [x] 3c. **Goals šablony** (2) — kompletní průchod, včetně ověření že
       Progress Champion opravdu počítá DNY, ne UDÁLOSTI (11.7. NÁLEZ 2 fix)
-- [ ] 3d. **Consistency šablony** (4) — kompletní průchod, včetně Balance
+      ✅ 2026-07-19: progress_champion ✅ (NÁLEZ 2 fix DRŽÍ, dny ne události);
+      completion_master ⚠️ (minima ve dnech chtěla 12 cílů → OPRAVENO N-3.12a).
+- [x] 3d. **Consistency šablony** (4) — kompletní průchod, včetně Balance
       Expert (min. 4⭐ gating) a kalendářového zobrazení odvozených klíčů
       (11.7. NÁLEZ 1 fix — perfect_days, triple_feature_days, monthly_xp_total,
       balance_score)
+      ✅ 2026-07-19: NÁLEZ 1 fix DRŽÍ (kalendář derived ✓); triple/perfect ✅;
+      xp_champion ❌ (target ~58 XP = auto-výhra → OPRAVENO N-3.12b);
+      balance_expert ❌ (target 25 na škále 0-1 = nesplnitelné → OPRAVENO
+      N-3.12c; gating 4⭐ ✓). K rozhodnutí: N-3.13 (bucketování balance),
+      N-3.14 (undo XP), N-3.15 (kalibrace). Zpráva: faze-3-nalezy.md.
 - [ ] 3e. **NÁLEZ 4** (otevřený z 11.7., in-memory streak cache přes restart) —
       device test: splň návyk ve Streak Builder, zabij appku uprostřed dne,
       spusť znovu, splň další návyk týž den → progress se NESMÍ zvýšit
@@ -874,7 +881,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 5 | 2e + 2f | ✅ HOTOVO 2026-07-16 (17/17; N-2.8 mrtvý recommendation-master → rozhodnutí Petra) |
 | 6 | 2g + 2h | ✅ HOTOVO 2026-07-16 (loyalty 10/10 ✓, batch ✓; N-2.11 + N-2.12 → rozhodnutí Petra) |
 | 7 | 3.0 + 3a + 3b | ✅ HOTOVO 2026-07-18 (11 nálezů; PROVEDENY opravy N-3.1/3.2/3.3/3.4/3.5/3.6/3.7/3.8/3.9 — vč. perzistence day-guard stavu = statické uzavření NÁLEZU 4, přestavby generování targetů a smazání mrtvých scaling API; otevřené jen N-3.10/3.11 [NÍZKÁ]; 409/409 ✓; zpráva: faze-3-nalezy.md) |
-| 8 | 3c + 3d | 6 šablon |
+| 8 | 3c + 3d | ✅ HOTOVO 2026-07-19 (4 nálezy N-3.12–N-3.15, VŠECHNY PROVEDENY — XP Champion auto-výhra, nesplnitelný Balance Expert, bucketování balance, undo v denním XP, zjemněná consistency minima, perfektní den s bonusy; 413/413 ✓; zpráva: faze-3-nalezy.md) |
 | 9 | 3f + 3g | výběr šablon + lifecycle |
 | 10 | Fáze 4 | poté cross-impact: suites F2+F3 |
 | 11 | Fáze 5 | poté cross-impact: suites F2+F3 |

@@ -441,7 +441,9 @@ export class MonthlyChallengeService {
           category: AchievementCategory.CONSISTENCY,
           title: t('help.challenges.templates.consistency_xp_champion.title'),
           description: t('help.challenges.templates.consistency_xp_champion.description'),
-          baselineMetricKey: 'avgDailyXP',
+          // Monthly XP total — the old avgDailyXP (daily average ~50) produced
+          // a ~58 XP monthly target = instant auto-win (N-3.12b)
+          baselineMetricKey: 'totalMonthlyXP',
           baselineMultiplierRange: [1.15, 1.35],
           requirementTemplates: [
             {
@@ -681,12 +683,28 @@ export class MonthlyChallengeService {
     // 110.00000000000001 would otherwise become target 111)
     let target = Math.ceil(Math.round(baselineValue * constrainedMultiplier * 1e6) / 1e6);
 
+    // Balance Expert (N-3.12c): balanceScore is a 0-1 FRACTION — integer ceil
+    // is meaningless (always 1) and the old category minimum (25) then made
+    // the challenge mathematically impossible. Fractional target instead.
+    const isBalanceScoreKey = template.requirementTemplates[0]?.trackingKey === 'balance_score';
+    if (isBalanceScoreKey) {
+      // Generic numeric fallbacks (e.g. 20) are nonsense on a 0-1 scale
+      const safeBaseline = baselineValue > 1 ? 0.5 : baselineValue;
+      target = Math.round(safeBaseline * constrainedMultiplier * 100) / 100;
+    }
+
     // Apply minimum target rules
     const minimumTarget = this.getMinimumTargetForTemplate(template, starLevel);
     if (target < minimumTarget) {
       warnings.push(`Calculated target ${target} below minimum ${minimumTarget}, using minimum`);
       target = minimumTarget;
       calculationMethod = 'minimum';
+    }
+
+    // Balance score ceiling: perfect 1.0 balance must never be required
+    if (isBalanceScoreKey && target > 0.95) {
+      warnings.push(`Balance score target ${target} capped at 0.95 (perfection is not a fair requirement)`);
+      target = 0.95;
     }
 
     // Apply monthly limit for daily streak challenges (cannot exceed days in month)
@@ -856,6 +874,14 @@ export class MonthlyChallengeService {
       'bonus_habit_completions':          [5, 8, 12, 16, 20],  // bonus completions/month
       'quality_journal_entries':          [20, 30, 40, 50, 60], // 33+ char entries/month
       'avg_entry_length':                 [25, 30, 35, 40, 45], // characters (average)
+      // Session #8 additions (N-3.12, same approved N-3.2 class):
+      'goal_completions':                 [2, 2, 3, 3, 4],     // completed goals/month (category minima were DAYS)
+      'monthly_xp_total':                 [500, 750, 1000, 1250, 1500], // XP/month
+      'balance_score':                    [0.40, 0.45, 0.50, 0.60, 0.70], // 0-1 score (fractional!)
+      // N-3.15a (2026-07-19): softened from category [15,18,22,25,28] so the
+      // baseline personalization gets a say for lower-activity users too
+      'triple_feature_days':              [8, 10, 12, 15, 18], // days with all 3 features
+      'perfect_days':                     [8, 10, 12, 15, 18], // days meeting daily minimums
     };
 
     const trackingKey = template.requirementTemplates[0]?.trackingKey || '';
