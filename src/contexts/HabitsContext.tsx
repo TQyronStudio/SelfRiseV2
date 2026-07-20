@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useEffect, useRef, useMem
 import { Habit, HabitCompletion, CreateHabitInput, UpdateHabitInput } from '../types/habit';
 import { getHabitStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
-import { HabitResetUtils } from '../utils/HabitResetUtils';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
 import { generateUUID } from '../utils/uuid';
@@ -155,9 +154,6 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
           console.log(`⏰ HabitsContext: Cache expired (age: ${cacheAge}ms > TTL: ${QUERY_CACHE_TTL}ms)`);
         }
       }
-
-      // Initialize daily reset system
-      await HabitResetUtils.initializeResetSystem();
 
       // 🚀 PERFORMANCE: Cache miss - fetch from SQLite
       console.log('💾 HabitsContext: Fetching from SQLite...');

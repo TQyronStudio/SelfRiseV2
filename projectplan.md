@@ -151,6 +151,50 @@
 > Zbývá pouze 3e device (Petr).**
 > Kompletní audit od nuly (i oblastí auditovaných dřív — 14.7. se v Achievements
 > našel nový skrytý bug i po předchozím hloubkovém auditu z 3.7.).
+>
+> 🔍 **Session #10 (Fáze 4 — Habits) AUDITNÍ ČÁST HOTOVÁ 2026-07-19 (Fable)**:
+> 8/8 položek, brána úplnosti ✓, baseline tsc 0 + 426/426 testů ✓. **9 nálezů
+> N-4.1–N-4.9 čeká na rozhodnutí Petra** — nejzávažnější N-4.1 [KRITICKÁ]:
+> „MINULOST SE NEMĚNÍ" je v živé SQLite cestě mrtvé (scheduleHistory se nikdy
+> nenačte z DB → veškerá historie se počítá podle aktuálního rozvrhu; testy
+> zelené, protože vkládají historii ručně). Dále N-4.3 (Weekly/30Day procento
+> bez bonusů), N-4.5/N-4.2/N-4.8 (E5 rozhodnutí), zbytek úklid. Opravy zatím
+> NEprovedeny (E1); po opravách následuje cross-impact F2+F3.
+> Zpráva: @docs/audits/super-audit-2026-07/faze-4-nalezy.md
+>
+> ✅ **Session #10 — FÁZE 4 KOMPLETNÍ 2026-07-19 (Fable)**: všech 9 nálezů
+> N-4.1–N-4.9 rozhodnuto Petrem a PROVEDENO. Klíčové opravy: scheduleHistory
+> se načítá z DB (+ seed původního rozvrhu při první změně + lokální datum)
+> — immutability funguje end-to-end, nová storage suite 8 testů; bonus se
+> nepáruje s dneškem; grafy počítají procento s bonusy; conversion cache
+> invaliduje referencemi + přes půlnoc; mrtvý kód smazán (HabitResetUtils,
+> frequency-proportional pozůstatky); guide aktualizován (XP při smazání
+> návyku zůstává — zapsané pravidlo). **Cross-impact F2+F3: 113+100 testů ✓,
+> závěry fází 1-3 nedotčeny.** tsc 0, **435/435 testů (29/29 suites)** ✓.
+> Zbývá z fází 2-3: 2i + 3e device (Petr). Další: session #11 = Fáze 5 (Goals).
+>
+> 🔍 **Session #11 (Fáze 5 — Goals) AUDITNÍ ČÁST HOTOVÁ 2026-07-19 (Fable)**:
+> 7/7 položek, brána úplnosti ✓, baseline tsc 0 + 435/435 ✓. **9 nálezů
+> N-5.1–N-5.9 čeká na rozhodnutí Petra** — nejzávažnější N-5.1 [VYSOKÁ]:
+> milestone XP (25/50/75 % → 50/75/100 XP) je v živé SQLite cestě MRTVÉ
+> (implementaci má jen legacy cesta — stejná třída regrese jako N-4.1);
+> N-5.2 [VYSOKÁ]: odečtení progressu pod target completion nezruší (−250
+> reverze se nikdy nestane); dále UTC datumy (N-5.3), validace vs. guide
+> (N-5.6 E5), mrtvý kód a doc opravy. Opravy zatím NEprovedeny (E1);
+> po opravách cross-impact F2+F3.
+> Zpráva: @docs/audits/super-audit-2026-07/faze-5-nalezy.md
+>
+> ✅ **Session #11 — FÁZE 5 KOMPLETNÍ 2026-07-19 (Fable)**: všech 9 nálezů
+> (+bonus N-5.3b) rozhodnuto Petrem a PROVEDENO. Klíčové opravy: milestone
+> XP (25/50/75 % → 50/75/100) obnoveno v živé cestě s anti-re-earn persistencí
+> v goal_milestones; odečtení progressu pod target od-dokončí cíl a vrací
+> 250/350 XP (obě cesty sjednoceny); datumy cílů lokální; completedDate
+> jako DateString (opravilo completion modal i timeframe achievementy);
+> horní mez targetValue 999 999; mrtvý kód smazán; guide přepsán podle
+> reality vč. pravidel „XP při smazání cíle zůstává" a známé hrany N-5.9.
+> Nová suite progressXP (10 testů). **Cross-impact F2+F3: 113+100 ✓, závěry
+> fází 1-3 nedotčeny.** tsc 0, **445/445 testů (30/30 suites)** ✓.
+> Další: session #12 = Fáze 6 (My Journal). Device fronta: 2i + 3e (Petr).
 
 ---
 

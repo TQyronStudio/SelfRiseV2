@@ -242,4 +242,26 @@ describe('useHabitsData Smart Bonus Conversion / Make-up', () => {
     expect(stats?.scheduledDays).toBe(3);
     expect(stats?.completionRate).toBe(100);
   });
+
+  it('does not consume a bonus to cover TODAY while the day is still in progress [N-4.2]', () => {
+    // Wednesday noon — today is a scheduled day, not completed yet
+    jest.setSystemTime(new Date('2026-05-13T12:00:00.000Z'));
+
+    const habit = makeHabit(); // Mon, Wed, Fri
+    const result = renderUseHabitsData(habit, [
+      makeCompletion('2026-05-11', false), // Monday scheduled, done
+      makeCompletion('2026-05-12', true),  // Tuesday bonus
+    ]);
+
+    const converted = result.getHabitCompletionsWithConversion(habit.id);
+
+    // The Tuesday bonus must stay a bonus — Wednesday can still be completed
+    expect(converted.find(c => c.date === '2026-05-12')).toMatchObject({
+      completed: true,
+      isBonus: true,
+    });
+    expect(converted.find(c => c.date === '2026-05-12')?.isConverted).toBeUndefined();
+    // And today must not appear as a covered missed day
+    expect(converted.find(c => c.date === '2026-05-13')).toBeUndefined();
+  });
 });

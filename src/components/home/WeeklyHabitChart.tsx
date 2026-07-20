@@ -99,7 +99,12 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     const totalScheduledCompletions = weekData.reduce((sum, day) => sum + day.scheduledCount, 0);
     const totalBonusCompletions = weekData.reduce((sum, day) => sum + day.bonusCount, 0);
     const totalPossible = weekData.reduce((sum, day) => sum + day.totalScheduled, 0);
-    const avgCompletionRate = totalPossible > 0 ? (totalScheduledCompletions / totalPossible) * 100 : 0;
+    // Unified formula (technical-guides:Habits.md): ALL completions incl.
+    // bonuses / scheduled — keeps the percent consistent with the displayed
+    // completed/total fraction and with Monthly/Yearly overviews (N-4.3)
+    const avgCompletionRate = totalPossible > 0
+      ? ((totalScheduledCompletions + totalBonusCompletions) / totalPossible) * 100
+      : 0;
     
     return {
       totalScheduledCompletions,

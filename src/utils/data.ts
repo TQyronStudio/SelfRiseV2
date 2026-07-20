@@ -16,7 +16,13 @@ export const getCurrentDate = (): Date => {
 };
 
 export const getCurrentDateString = (): DateString => {
-  return getCurrentDate().toISOString().split('T')[0]!;
+  // LOCAL calendar date — toISOString() is UTC and stamped "yesterday" for
+  // users east of UTC between local midnight and UTC midnight (N-5.3)
+  const now = getCurrentDate();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Entity creation utilities
@@ -230,11 +236,20 @@ export const updateGoalValue = (goal: Goal, value: number, progressType: 'add' |
     console.log(`🏆 Goal completion detected: ${goal.title}`);
     console.log(`   Progress: ${newValue}/${goal.targetValue} (${Math.round((newValue/goal.targetValue)*100)}%)`);
     console.log(`   Status change: ${goal.status} → ${GoalStatus.COMPLETED}`);
-    
+
     updatedGoal.status = GoalStatus.COMPLETED;
     updatedGoal.completedDate = getCurrentDateString();
-    
+
     console.log(`   Completed date set: ${updatedGoal.completedDate}`);
+  }
+
+  // Auto-UN-complete when progress drops back below target (N-5.2) — the
+  // completion XP reversal lives in the storage addProgress, keyed off this
+  // status change (mirrors recalculateGoalValue after entry deletion)
+  if (newValue < goal.targetValue && goal.status === GoalStatus.COMPLETED) {
+    console.log(`📉 Goal dropped below target: ${goal.title} (${newValue}/${goal.targetValue})`);
+    updatedGoal.status = GoalStatus.ACTIVE;
+    delete updatedGoal.completedDate;
   }
 
   return updatedGoal;

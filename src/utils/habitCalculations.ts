@@ -1,6 +1,4 @@
 import { Habit } from '../types/habit';
-import { DateString } from '../types/common';
-import { getHabitFrequencyForDate, calculateAverageFrequencyForPeriod } from './habitImmutability';
 
 /**
  * Simple Habit Completion Rate Calculation Utility
@@ -18,9 +16,6 @@ export interface HabitCompletionData {
   scheduledDays: number;
   completedScheduled: number; // includes make-up completions
   bonusCompletions: number;
-  // IMMUTABILITY PRINCIPLE: Support for time-segmented calculation (optional)
-  periodStartDate?: DateString; // For historical frequency calculation
-  periodEndDate?: DateString;   // For historical frequency calculation
 }
 
 export interface HabitCompletionResult {
@@ -31,11 +26,13 @@ export interface HabitCompletionResult {
 }
 
 /**
- * Calculate habit completion rate with frequency-proportional bonus logic
+ * Calculate habit completion rate — the unified formula from
+ * technical-guides:Habits.md.
  *
- * IMMUTABILITY PRINCIPLE: Uses time-segmented approach for historical accuracy
- * - For periods with date range, calculates average historical frequency
- * - Fallback to current frequency if no date information provided
+ * IMMUTABILITY PRINCIPLE: the INPUT numbers (scheduledDays,
+ * completedScheduled, bonusCompletions) must already be computed with
+ * historical schedule awareness (wasScheduledOnDate + Smart Bonus
+ * Conversion). This function only does the final math.
  *
  * @param habit - The habit object containing schedule information
  * @param completionData - Completion statistics for the specific time period
@@ -207,16 +204,3 @@ export function getCompletionRateMessage(
     tone: 'neutral'
   };
 }
-
-/**
- * Example usage showing frequency-proportional bonus calculation:
- * 
- * // 1x per week habit with 1 bonus completion:
- * // bonusRate = (1 / 1) * 100 = 100% impact
- * 
- * // 7x per week habit with 1 bonus completion:
- * // bonusRate = (1 / 7) * 100 = 14% impact
- * 
- * // This makes bonus completions feel appropriately valuable
- * // relative to the habit's scheduled frequency
- */

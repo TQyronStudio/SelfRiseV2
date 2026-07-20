@@ -5,6 +5,7 @@
 
 import { Habit, HabitCompletion, CreateHabitInput, ScheduleTimeline } from '../../types/habit';
 import { DateString, DayOfWeek } from '../../types/common';
+import { formatDateToString } from '../../utils/date';
 import { getDatabase } from '../database/init';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
@@ -33,6 +34,7 @@ export class SQLiteHabitStorage {
 
       console.log(`📊 SQLite getAll: Found ${rows.length} habits in DB`);
       const habits = rows.map(row => this.rowToHabit(row));
+      await this.attachScheduleHistories(habits);
       console.log(`📊 SQLite getAll: Mapped to ${habits.length} Habit objects`);
       if (habits.length > 0 && habits[0]) {
         console.log(`📊 First habit:`, habits[0].name, habits[0].id);
@@ -54,7 +56,10 @@ export class SQLiteHabitStorage {
       );
 
       if (!row) return null;
-      return this.rowToHabit(row);
+      const habit = this.rowToHabit(row);
+      const history = await this.getScheduleHistory(id);
+      if (history) habit.scheduleHistory = history;
+      return habit;
     } catch (error) {
       console.error(`❌ SQLite getById habit failed (${id}):`, error);
       throw new Error(`Failed to get habit: ${error}`);
@@ -117,15 +122,48 @@ export class SQLiteHabitStorage {
       if (updates.scheduledDays &&
           JSON.stringify(updates.scheduledDays) !== JSON.stringify(currentHabit.scheduledDays)) {
 
-        const today = new Date().toISOString().split('T')[0] as DateString;
-        const entryId = `${id}_${today}_${Date.now()}`;
+        // Local calendar date — toISOString() is UTC and would make a change
+        // after local midnight effective from "yesterday"
+        const today = formatDateToString(new Date());
         const scheduledDaysJson = JSON.stringify(updates.scheduledDays);
 
-        await db.runAsync(
-          `INSERT INTO habit_schedule_history (id, habit_id, scheduled_days, effective_from_date, created_at)
-           VALUES (?, ?, ?, ?, ?)`,
-          [entryId, id, scheduledDaysJson, today, Date.now()]
+        // First change ever: seed the ORIGINAL schedule as effective since
+        // creation, so dates before this change keep resolving to the
+        // pre-change schedule ("MINULOST SE NEMĚNÍ"). Skipped when the habit
+        // was created today — there is no pre-change past to preserve.
+        const existing = await db.getFirstAsync<{ count: number }>(
+          `SELECT COUNT(*) as count FROM habit_schedule_history WHERE habit_id = ?`,
+          [id]
         );
+        const creationDate = formatDateToString(
+          currentHabit.createdAt instanceof Date ? currentHabit.createdAt : new Date(currentHabit.createdAt)
+        );
+        if ((existing?.count ?? 0) === 0 && creationDate !== today) {
+          await db.runAsync(
+            `INSERT INTO habit_schedule_history (id, habit_id, scheduled_days, effective_from_date, created_at)
+             VALUES (?, ?, ?, ?, ?)`,
+            [`${id}_${creationDate}_seed`, id, JSON.stringify(currentHabit.scheduledDays), creationDate, Date.now()]
+          );
+        }
+
+        // A second change on the same day replaces that day's entry — the
+        // timeline keeps one entry per effective date
+        const sameDay = await db.getFirstAsync<{ id: string }>(
+          `SELECT id FROM habit_schedule_history WHERE habit_id = ? AND effective_from_date = ?`,
+          [id, today]
+        );
+        if (sameDay) {
+          await db.runAsync(
+            `UPDATE habit_schedule_history SET scheduled_days = ?, created_at = ? WHERE id = ?`,
+            [scheduledDaysJson, Date.now(), sameDay.id]
+          );
+        } else {
+          await db.runAsync(
+            `INSERT INTO habit_schedule_history (id, habit_id, scheduled_days, effective_from_date, created_at)
+             VALUES (?, ?, ?, ?, ?)`,
+            [`${id}_${today}_${Date.now()}`, id, scheduledDaysJson, today, Date.now()]
+          );
+        }
       }
 
       // Build UPDATE query dynamically
@@ -566,8 +604,44 @@ export class SQLiteHabitStorage {
       order: row.order_index,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
-      // scheduleHistory will be loaded separately if needed
+      // scheduleHistory attached by getAll/getById (attachScheduleHistories)
     };
+  }
+
+  /**
+   * Attach schedule timelines to habit objects in one batch query.
+   * Without the timeline every historical calculation silently falls back
+   * to the CURRENT scheduledDays (habitImmutability.getScheduledDaysForDate),
+   * which breaks the "MINULOST SE NEMĚNÍ" principle.
+   */
+  private async attachScheduleHistories(habits: Habit[]): Promise<void> {
+    if (habits.length === 0) return;
+
+    const db = this.getDb();
+    const rows = await db.getAllAsync<any>(
+      `SELECT habit_id, scheduled_days, effective_from_date FROM habit_schedule_history
+       ORDER BY effective_from_date ASC, created_at ASC`
+    );
+    if (rows.length === 0) return;
+
+    const byHabit = new Map<string, ScheduleTimeline>();
+    for (const row of rows) {
+      const entry = {
+        scheduledDays: JSON.parse(row.scheduled_days) as DayOfWeek[],
+        effectiveFromDate: row.effective_from_date as DateString,
+      };
+      const timeline = byHabit.get(row.habit_id);
+      if (timeline) {
+        timeline.entries.push(entry);
+      } else {
+        byHabit.set(row.habit_id, { entries: [entry] });
+      }
+    }
+
+    for (const habit of habits) {
+      const timeline = byHabit.get(habit.id);
+      if (timeline) habit.scheduleHistory = timeline;
+    }
   }
 
   private rowToCompletion(row: any): HabitCompletion {
@@ -596,7 +670,7 @@ export class SQLiteHabitStorage {
     try {
       const db = this.getDb();
       const rows = await db.getAllAsync<any>(
-        `SELECT * FROM habit_schedule_history WHERE habit_id = ? ORDER BY effective_from_date ASC`,
+        `SELECT * FROM habit_schedule_history WHERE habit_id = ? ORDER BY effective_from_date ASC, created_at ASC`,
         [habitId]
       );
 

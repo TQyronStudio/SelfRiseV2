@@ -321,14 +321,22 @@ export class GoalStorage implements EntityStorage<Goal> {
       console.log(`   isCompleted: ${isCompleted}, wasCompleted: ${wasCompleted}, justCompleted: ${justCompleted}`);
 
       // Award XP for goal completion (350 XP for big goals ≥ 10000, 250 XP for standard)
+      const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
       if (justCompleted) {
-        const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
         await GamificationService.addXP(completionXP, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `🎉 Goal completed: ${goal.title}`,
           sourceId: goal.id
         });
         console.log(`🏆 Goal completed: ${goal.title} (+${completionXP} XP${goal.targetValue >= 10000 ? ' BIG GOAL' : ''})`);
+      } else if (!isCompleted && wasCompleted) {
+        // N-5.2 parity with SQLite: subtract below target reverses completion XP
+        await GamificationService.subtractXP(completionXP, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `📉 Goal dropped below completion: ${goal.title}`,
+          sourceId: goal.id
+        });
+        console.log(`📉 Goal completion reversed: ${goal.title} (-${completionXP} XP)`);
       }
 
       return newProgress;
@@ -793,23 +801,6 @@ export class GoalStorage implements EntityStorage<Goal> {
   // ========================================
   // WEEKLY CHALLENGE SUPPORT METHODS
   // ========================================
-
-  /**
-   * Get goals and check if any progress was made today (for challenge tracking)
-   */
-  async hasGoalProgressToday(): Promise<boolean> {
-    try {
-      const goals = await this.getAll();
-      const todayStr = today();
-      
-      return goals.some((goal: any) => 
-        goal.progressEntries?.some((entry: any) => entry.date === todayStr && entry.amount > 0)
-      );
-    } catch (error) {
-      console.error('GoalStorage.hasGoalProgressToday error:', error);
-      return false;
-    }
-  }
 
   /**
    * Get maximum goal target value for challenge conditions

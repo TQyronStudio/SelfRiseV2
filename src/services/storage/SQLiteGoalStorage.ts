@@ -7,7 +7,7 @@ import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, 
 import { EntityStorage, StorageError, STORAGE_ERROR_CODES, STORAGE_KEYS } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
-import { today } from '../../utils/date';
+import { today, formatDateToString } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
@@ -38,8 +38,11 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         order: row.order_index,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
-        completedDate: row.completed_at || undefined,
-        startDate: row.start_date || new Date(row.created_at).toISOString().split('T')[0]!,
+        // completed_at is stored as epoch millis — map back to the LOCAL
+        // DateString the Goal type declares (raw number broke the completion
+        // modal display and achievement timeframe string comparisons, N-5.3b)
+        completedDate: row.completed_at ? formatDateToString(new Date(row.completed_at)) : undefined,
+        startDate: row.start_date || formatDateToString(new Date(row.created_at)),
       }));
 
       console.log(`📊 SQLite getAll: Found ${goals.length} goals`);
@@ -64,12 +67,6 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
 
       if (!row) return null;
 
-      // Get milestones for this goal
-      const milestones = await db.getAllAsync<any>(
-        'SELECT * FROM goal_milestones WHERE goal_id = ? ORDER BY value ASC',
-        [id]
-      );
-
       const goal: Goal = {
         id: row.id,
         title: row.title,
@@ -83,8 +80,8 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         order: row.order_index,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
-        completedDate: row.completed_at || undefined,
-        startDate: row.start_date || new Date(row.created_at).toISOString().split('T')[0]!,
+        completedDate: row.completed_at ? formatDateToString(new Date(row.completed_at)) : undefined,
+        startDate: row.start_date || formatDateToString(new Date(row.created_at)),
       };
 
       return goal;
@@ -324,8 +321,8 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         order: row.order_index,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
-        completedDate: row.completed_at || undefined,
-        startDate: new Date(row.created_at).toISOString().split('T')[0]!,
+        completedDate: row.completed_at ? formatDateToString(new Date(row.completed_at)) : undefined,
+        startDate: row.start_date || formatDateToString(new Date(row.created_at)),
         orderIndex: row.order_index,
         milestones: [],
       }));
@@ -489,24 +486,71 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         console.log(`🎯 Goal positive progress: ${goal.title} (+${input.value}, +${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
       }
 
+      // N-5.1: Milestone XP (25/50/75 % → 50/75/100) — lost in the SQLite
+      // rewrite (only legacy goalStorage had it). Awarded once per goal per
+      // threshold; the awarded set persists in goal_milestones, so oscillating
+      // around a threshold cannot re-earn it.
+      if (input.progressType !== 'subtract' && newCompletionPercentage > previousCompletionPercentage) {
+        const milestones = [
+          { threshold: 25, xp: XP_REWARDS.GOALS.MILESTONE_25_PERCENT, label: '25%' },
+          { threshold: 50, xp: XP_REWARDS.GOALS.MILESTONE_50_PERCENT, label: '50%' },
+          { threshold: 75, xp: XP_REWARDS.GOALS.MILESTONE_75_PERCENT, label: '75%' },
+        ];
+
+        for (const milestone of milestones) {
+          if (previousCompletionPercentage < milestone.threshold && newCompletionPercentage >= milestone.threshold) {
+            const milestoneId = `${goal.id}_xp_${milestone.threshold}`;
+            const alreadyAwarded = await db.getFirstAsync<{ id: string }>(
+              'SELECT id FROM goal_milestones WHERE id = ?',
+              [milestoneId]
+            );
+            if (alreadyAwarded) continue;
+
+            await db.runAsync(
+              `INSERT INTO goal_milestones (id, goal_id, value, description, is_completed, completed_at)
+               VALUES (?, ?, ?, ?, 1, ?)`,
+              [milestoneId, goal.id, milestone.threshold, `XP milestone ${milestone.label}`, Date.now()]
+            );
+
+            await GamificationService.addXP(milestone.xp, {
+              source: XPSourceType.GOAL_MILESTONE,
+              description: `Goal ${milestone.label} milestone: ${goal.title}`,
+              sourceId: goal.id
+            });
+            console.log(`🎯 Goal milestone ${milestone.label}: ${goal.title} (+${milestone.xp} XP)`);
+          }
+        }
+      }
+
       // Check for goal completion
       const isCompleted = updatedGoal.status === GoalStatus.COMPLETED;
       const wasCompleted = goal.status === GoalStatus.COMPLETED;
       const justCompleted = isCompleted && !wasCompleted;
+      // N-5.2: subtract below target un-completes (updateGoalValue downgraded
+      // the status) — the completion XP must be reversed, same as the
+      // recalculateGoalValue path after entry deletion
+      const justUncompleted = !isCompleted && wasCompleted;
 
       console.log(`🎯 Goal completion check: ${goal.title}`);
       console.log(`   Previous: ${previousCompletionPercentage}% (${goal.currentValue}/${goal.targetValue})`);
       console.log(`   New: ${newCompletionPercentage}% (${updatedGoal.currentValue}/${goal.targetValue})`);
       console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
 
+      const completionXPAmount = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
       if (justCompleted) {
-        const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
-        await GamificationService.addXP(completionXP, {
+        await GamificationService.addXP(completionXPAmount, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `🎉 Goal completed: ${goal.title}`,
           sourceId: goal.id
         });
-        console.log(`🏆 Goal completed: ${goal.title} (+${completionXP} XP${goal.targetValue >= 10000 ? ' BIG GOAL' : ''})`);
+        console.log(`🏆 Goal completed: ${goal.title} (+${completionXPAmount} XP${goal.targetValue >= 10000 ? ' BIG GOAL' : ''})`);
+      } else if (justUncompleted) {
+        await GamificationService.subtractXP(completionXPAmount, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `📉 Goal dropped below completion: ${goal.title}`,
+          sourceId: goal.id
+        });
+        console.log(`📉 Goal completion reversed: ${goal.title} (-${completionXPAmount} XP)`);
       }
 
       return newProgress;
@@ -723,7 +767,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       await this.update(goalId, {
         currentValue,
         status,
-        completedDate: isCompleted && !goal.completedDate ? new Date().toISOString().split('T')[0]! : goal.completedDate || undefined
+        completedDate: isCompleted && !goal.completedDate ? today() : goal.completedDate || undefined
       });
     } catch (error) {
       console.error(`❌ SQLite recalculateGoalValue error (${goalId}):`, error);
@@ -991,23 +1035,6 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
   // ========================================
   // WEEKLY CHALLENGE SUPPORT
   // ========================================
-
-  async hasGoalProgressToday(): Promise<boolean> {
-    try {
-      const db = getDatabase();
-      const todayStr = today();
-
-      const row = await db.getFirstAsync<any>(
-        'SELECT COUNT(*) as count FROM goal_progress WHERE timestamp = ? AND value > 0',
-        [todayStr]
-      );
-
-      return (row?.count || 0) > 0;
-    } catch (error) {
-      console.error('❌ SQLite hasGoalProgressToday error:', error);
-      return false;
-    }
-  }
 
   async getMaxGoalTargetValue(): Promise<number> {
     try {

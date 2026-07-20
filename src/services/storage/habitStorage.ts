@@ -360,10 +360,13 @@ export class HabitStorage implements EntityStorage<Habit> {
         `Uncompleted bonus habit: ${habit?.name || 'Unknown'}` : 
         `Uncompleted scheduled habit: ${habit?.name || 'Unknown'}`;
       
-      await GamificationService.subtractXP(xpAmount, { 
-        source: xpSource, 
+      await GamificationService.subtractXP(xpAmount, {
+        source: xpSource,
         description,
-        sourceId: completionToDelete.habitId 
+        sourceId: completionToDelete.habitId,
+        // Monthly Challenge tracker reverses variety/streak progress only for
+        // deletions dated in the current day/week (N-3.6) — parity with SQLite
+        metadata: { date: completionToDelete.date },
       });
       
       console.log(`✅ Habit completion deleted (-${xpAmount} XP)`);

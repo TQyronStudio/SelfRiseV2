@@ -45,7 +45,7 @@ export const XP_REWARDS = {
 
   // Goal System XP
   GOALS: {
-    PROGRESS_ENTRY: 35,         // Adding progress to a goal (max once per goal per day)
+    PROGRESS_ENTRY: 35,         // Adding progress to a goal (max 3 positive XP transactions per goal per day — see xpLimits.MAX_GOAL_TRANSACTIONS_PER_DAY)
     MILESTONE_25_PERCENT: 50,   // Reaching 25% completion
     MILESTONE_50_PERCENT: 75,   // Reaching 50% completion
     MILESTONE_75_PERCENT: 100,  // Reaching 75% completion

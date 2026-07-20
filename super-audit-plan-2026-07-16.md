@@ -493,6 +493,14 @@ streak bonus).
 
 ## FÁZE 4 — Habits: PLNÝ audit
 
+> ✅ **PROVEDENO 2026-07-19 (Fable, session #10)** — 8/8 položek, brána
+> úplnosti ✓, 9 nálezů N-4.1–N-4.9 rozhodnuto Petrem a vyřešeno. Klíčové:
+> N-4.1 [KRITICKÁ] — immutability systém byl v živé SQLite cestě mrtvý
+> (scheduleHistory se nikdy nenačítala z DB) → opraveno + nová storage suite
+> (8 testů). Cross-impact F2+F3 spuštěn: 113+100 testů ✓, závěry fází 1-3
+> nedotčeny. tsc 0, **435/435 testů (29/29 suites)**.
+> Zpráva: `docs/audits/super-audit-2026-07/faze-4-nalezy.md`.
+
 **Guide**: `technical-guides:Habits.md` — klíčová pravidla: "MINULOST SE
 NEMĚNÍ" (scheduled days immutability), Smart Bonus Conversion algoritmus,
 unified completion rate formula, XP hodnoty (25 scheduled / 15 bonus),
@@ -504,36 +512,46 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 `src/utils/HabitResetUtils.ts`, bonus conversion logika
 (`grep -rn "Smart Bonus\|bonusConversion" src/`)
 
-- [ ] 4.1 **Immutability pravidlo**: změna `scheduledDays` u existujícího
+- [x] 4.1 **Immutability pravidlo**: změna `scheduledDays` u existujícího
       návyku nesmí ovlivnit historické completion rate výpočty. Scénář:
       návyk Po-Pá 2 týdny → změna na Po-St-Pá → historický rate za první
       2 týdny se MUSÍ počítat podle PŮVODNÍHO rozvrhu.
-- [ ] 4.2 **Smart Bonus Conversion**: párování zmeškaných scheduled dnů
+- [x] 4.2 **Smart Bonus Conversion**: párování zmeškaných scheduled dnů
       s bonus completions v rámci Po-Ne týdne je chronologické 1:1, konverze
       je needitovatelná zpětně.
-- [ ] 4.3 **Completion rate formula**: `(completedScheduled + bonusCompletions)
+- [x] 4.3 **Completion rate formula**: `(completedScheduled + bonusCompletions)
       / scheduledDays × 100` — JEDNOTNĚ napříč VŠEMI UI komponentami (Habit
       stats, Home widgety `WeeklyHabitChart`/`Monthly30DayChart`/`MonthlyHabitOverview`/
       `YearlyHabitOverview`/`HabitPerformanceIndicators`, kalendář) — žádná
       vlastní odvozená varianta. Kritérium: grep výpočtů rate přes
       `src/components/` — každé nalezené místo buď volá sdílenou utilitu
       (`habitCalculations.ts`), nebo je zapsáno jako nález.
-- [ ] 4.4 **XP aplikace a reverze**: `HABIT_COMPLETION` 25 XP / `HABIT_BONUS`
+- [x] 4.4 **XP aplikace a reverze**: `HABIT_COMPLETION` 25 XP / `HABIT_BONUS`
       15 XP — aplikace i reverze (smazání completion) v SQLite i legacy cestě.
-- [ ] 4.5 **Streak-milestone XP**: potvrď aktuální stav (implementováno/ne)
+- [x] 4.5 **Streak-milestone XP**: potvrď aktuální stav (implementováno/ne)
       a srovnej s guide (guide to vede jako TODO — pokud kód mezitím
       implementoval, aktualizuj guide; pokud ne, zapiš "nezavedeno, guide ✓").
-- [ ] 4.6 **N31** (obrácená závislost storage→gamification,
+- [x] 4.6 **N31** (obrácená závislost storage→gamification,
       `SQLiteHabitStorage.ts:333` — ověřeno 2026-07-16, `addXP` volané přímo
       ze storage vrstvy) — potvrď, zapiš jako known-debt pro Fázi 13.
-- [ ] 4.7 Cache invalidation — content-aware, ne jen count-based — ověř
+- [x] 4.7 Cache invalidation — content-aware, ne jen count-based — ověř
       přidání/odebrání/EDITACE completion správně invaliduje cache.
-- [ ] 4.8 Spusť `__tests__/hooks/useHabitsData.makeup.test.tsx` +
+- [x] 4.8 Spusť `__tests__/hooks/useHabitsData.makeup.test.tsx` +
       `date.timezone.test.ts` — potvrď zelené.
 
 ---
 
 ## FÁZE 5 — Goals: PLNÝ audit
+
+> ✅ **PROVEDENO 2026-07-19 (Fable, session #11)** — 7/7 položek, brána
+> úplnosti ✓, 9+1 nálezů rozhodnuto a vyřešeno. Klíčové: N-5.1 [VYSOKÁ] —
+> milestone XP (25/50/75 %) bylo v živé SQLite cestě mrtvé → obnoveno
+> s persistencí v goal_milestones; N-5.2 — subtract pod target nyní
+> od-dokončí cíl a vrací 250/350 XP; N-5.3b (bonus) — completedDate byl
+> epoch číslo → timeframe achievementy nad cíli nikdy nesedly, opraveno.
+> Nová suite progressXP (10 testů). Cross-impact F2+F3: 113+100 ✓.
+> tsc 0, **445/445 testů (30/30 suites)**.
+> Zpráva: `docs/audits/super-audit-2026-07/faze-5-nalezy.md`.
 
 **Guide**: `technical-guides:Goals.md` + `technical-guides:Gamification-Core.md`
 (⚠️ guides si protiřečí v prahu pro 350 XP completion bonus — Goals.md ř. 838
@@ -547,26 +565,26 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 žije ve formulářích — žádný `goalValidationService.ts` NEEXISTUJE, neztrácej
 čas hledáním)
 
-- [ ] 5.0 Rozporuplné číslo (1000 vs 10000): potvrď hodnotu i v legacy
+- [x] 5.0 Rozporuplné číslo (1000 vs 10000): potvrď hodnotu i v legacy
       `goalStorage.ts` a případných konstantách (`grep -rn "10000\|GOAL_COMPLETION_BIG" src/`),
       pak oprav Goals.md ř. 838. Pokud je kód sám nekonzistentní (SQLite vs
       legacy jiná hodnota), je to skutečný nález, ne dokumentační chyba.
-- [ ] 5.1 **Validace**: title 1-100 znaků, targetValue>0, currentValue
+- [x] 5.1 **Validace**: title 1-100 znaků, targetValue>0, currentValue
       0..targetValue, targetDate dnes/budoucnost — test pro každou hranici.
       Ověř, že validace platí na VŠECH vstupních cestách (GoalForm,
       ProgressEntryForm, případný přímý storage zápis).
-- [ ] 5.2 **3 transakce/den limit**: GOAL_PROGRESS limitováno, GOAL_COMPLETION
+- [x] 5.2 **3 transakce/den limit**: GOAL_PROGRESS limitováno, GOAL_COMPLETION
       exempt — najdi přesné místo v kódu (pozn.: `xpLimits.ts` obsahuje
       komentář "migrated from GoalStorage.MAX_DAILY_POSITIVE_XP_PER_GOAL" —
       začni tam).
-- [ ] 5.3 **Milestone XP** (25/50/75 % → 50/75/100 XP): trigger přesně při
+- [x] 5.3 **Milestone XP** (25/50/75 % → 50/75/100 XP): trigger přesně při
       překročení prahu, nedá se "znovu vydělat" kolísáním kolem hranice.
-- [ ] 5.4 **Completion XP reverze**: `justCompleted = isCompleted &&
+- [x] 5.4 **Completion XP reverze**: `justCompleted = isCompleted &&
       !wasCompleted`, -250 XP při poklesu pod target po dokončení —
       pozor na race conditions/double-award.
-- [ ] 5.5 Target Date Step-by-Step modal — anti-blink pořadí kroků,
+- [x] 5.5 Target Date Step-by-Step modal — anti-blink pořadí kroků,
       🔶 device check (je to UI, ne data — nižší priorita).
-- [ ] 5.6 Storage split-brain re-verifikace: `grep -rn "new GoalStorage()\|from.*storage/goalStorage'"` —
+- [x] 5.6 Storage split-brain re-verifikace: `grep -rn "new GoalStorage()\|from.*storage/goalStorage'"` —
       potvrď žádné nové přímé volání legacy storage mimo `get*StorageImpl()`.
 
 ---
@@ -890,8 +908,8 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 7 | 3.0 + 3a + 3b | ✅ HOTOVO 2026-07-18 (11 nálezů; PROVEDENY opravy N-3.1/3.2/3.3/3.4/3.5/3.6/3.7/3.8/3.9 — vč. perzistence day-guard stavu = statické uzavření NÁLEZU 4, přestavby generování targetů a smazání mrtvých scaling API; otevřené jen N-3.10/3.11 [NÍZKÁ]; 409/409 ✓; zpráva: faze-3-nalezy.md) |
 | 8 | 3c + 3d | ✅ HOTOVO 2026-07-19 (4 nálezy N-3.12–N-3.15, VŠECHNY PROVEDENY — XP Champion auto-výhra, nesplnitelný Balance Expert, bucketování balance, undo v denním XP, zjemněná consistency minima, perfektní den s bonusy; 413/413 ✓; zpráva: faze-3-nalezy.md) |
 | 9 | 3f + 3g | ✅ HOTOVO 2026-07-19 (2 nové test suites, +13 testů; výběr i uzávěrka všech 14 ✓; PROVEDENY N-3.16 (sezónní bonus +15), N-3.17 (archiv s reálnými stats + 'failed'), N-3.10 (pondělní týdny variety + žádné šedé aktivní dny), N-3.11 (sezónnost cílového měsíce). **FÁZE 3: všech 17 nálezů vyřešeno, zbývá jen 3e device.** 426/426 ✓; zpráva: faze-3-nalezy.md) |
-| 10 | Fáze 4 | poté cross-impact: suites F2+F3 |
-| 11 | Fáze 5 | poté cross-impact: suites F2+F3 |
+| 10 | Fáze 4 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (9 nálezů N-4.1–4.9 vyřešeno, 435/435, F2+F3 ✓)
+| 11 | Fáze 5 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (10 nálezů N-5.1–5.9+5.3b vyřešeno, 445/445, F2+F3 ✓)
 | 12 | Fáze 6 | poté cross-impact: suites F2+F3 |
 | 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv |
 | 14 | Fáze 7 | |

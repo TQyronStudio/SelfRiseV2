@@ -77,13 +77,20 @@ interface CreateGoalInput {
 
 ### Validation Rules
 ```typescript
-// MANDATORY VALIDATION RULES:
-1. Title: 1-100 characters, non-empty after trim
-2. Target Value: Must be > 0, must be number
-3. Current Value: Must be >= 0, must be <= target value
-4. Target Date: Must be today or future date (no historical goals)
-5. Unit: 1-20 characters, non-empty after trim
-6. Category: Must be valid GoalCategory enum value
+// SKUTEČNÁ PRAVIDLA (sladěno s kódem 2026-07-19, super audit N-5.6 —
+// validace žije ve formulářích GoalForm/ProgressEntryForm, žádná
+// GoalValidationService třída neexistuje):
+1. Title: 2-100 znaků po trim (GoalForm.validateForm)
+2. Target Value: > 0 a ≤ 999 999 (GoalForm)
+3. Current Value: dolní mez 0 drží datová vrstva (updateGoalValue clampuje);
+   HORNÍ MEZ NEEXISTUJE — progress smí překročit target (overachievement je
+   záměr, rozhodnutí Petra 2026-07-19)
+4. Target Date: dnes nebo budoucnost — validuje Step-by-Step modal okamžitě
+   při výběru dne (lokální půlnoc)
+5. Unit: 1-20 znaků po trim (GoalForm)
+6. Description: ≤ 300 znaků (GoalForm)
+7. Progress value: > 0 a ≤ 1 000 000; note ≤ 200 znaků (ProgressEntryForm);
+   datum zápisu je vždy dnešek (žádné backdating)
 ```
 
 ---
@@ -605,26 +612,19 @@ MAX_GOAL_PROGRESS_PER_DAY = 3;  // Maximum 3 XP-earning updates per goal per day
 
 ### Progress Validation
 ```typescript
-// Progress validation rules
-const validateProgressUpdate = (goal: Goal, amount: number): ValidationResult => {
-  // Cannot exceed target value
-  if (goal.currentValue + amount > goal.targetValue) {
-    return { valid: false, error: "Progress would exceed target value" };
-  }
-  
-  // Cannot go below 0
-  if (goal.currentValue + amount < 0) {
-    return { valid: false, error: "Progress cannot be negative" };
-  }
-  
-  // Check daily transaction limit for XP
-  const todayTransactions = getTodayTransactionCount(goal.id);
-  if (todayTransactions >= MAX_GOAL_PROGRESS_PER_DAY && amount > 0) {
-    return { valid: false, error: "Daily progress limit reached (3 updates)" };
-  }
-  
-  return { valid: true };
-};
+// SKUTEČNÉ CHOVÁNÍ (sladěno s kódem 2026-07-19, super audit N-5.6):
+//
+// 1. OVERACHIEVEMENT JE POVOLEN — progress smí překročit target value
+//    (cíl se dokončí při >= 100 % a klidně pokračuje přes 100 %).
+// 2. Pod nulu nelze — datová vrstva clampuje (Math.max(0, ...)).
+// 3. Denní XP limit (3 kladné transakce / cíl / den) NEbrání zápisu:
+//    zápis se VŽDY uloží, jen XP vrstva (centrální xpLimits.validateXPAddition)
+//    tiše vrátí 0 XP. Žádná chybová hláška — záměr (lepší UX než blokace).
+//
+// ⚠️ ZNÁMÁ HRANA (N-5.9, akceptováno Petrem 2026-07-19): smazání progress
+// zápisu vytvořeného PO vyčerpání denního limitu odečte plných 35 XP,
+// přestože za něj žádné XP nepřišlo. Vzácný případ, vědomě neřešeno
+// (přesné párování transakcí by neúměrně zesložitilo mazání).
 ```
 
 ### Goal Completion Detection
@@ -835,7 +835,7 @@ XP_REWARDS = {
   GOAL_MILESTONE_50: 75,      // 50% completion milestone
   GOAL_MILESTONE_75: 100,     // 75% completion milestone
   GOAL_COMPLETION: 250,       // Goal completion (original amount restored)
-  GOAL_COMPLETION_BIG: 350,   // Large goal completion (target ≥ 1000)
+  GOAL_COMPLETION_BIG: 350,   // Large goal completion (target ≥ 10 000) — oprava N-5.7, kód je konzistentní na 10 000
 };
 ```
 
@@ -869,6 +869,21 @@ if (shouldBeActive && wasCompleted) {
   });
   console.log(`📉 Goal completion reversed: ${goal.title} (-250 XP)`);
 }
+
+// Reverze platí v OBOU cestách (sjednoceno 2026-07-19, super audit N-5.2):
+//  1. přímé ODEČTENÍ progressu pod target (addProgress + updateGoalValue
+//     přepne COMPLETED → ACTIVE, smaže completedDate, odečte 250/350 XP),
+//  2. SMAZÁNÍ progress záznamu (recalculateGoalValue — stejné chování).
+// Opětovné dokončení pak znovu udělí +250/350 (symetrický cyklus, net 0).
+```
+
+#### Goal Deletion & XP (rozhodnutí Petra, 2026-07-19 — paralela N-4.5 u návyků)
+```typescript
+// Smazání celého CÍLE (goalStorage.delete):
+// - hard-delete cíle + všech progress záznamů + goal_milestones,
+// - XP se NEVRACÍ — veškeré XP vydělané cílem (progress, milestones,
+//   completion) uživateli zůstává.
+// ZÁMĚRNÉ chování, ne bug — mazání nesmí vzít poctivě vydělané XP.
 ```
 
 #### Goal Completion Modal Integration
@@ -912,26 +927,20 @@ const canAwardProgressXP = async (goalId: string): Promise<boolean> => {
 
 ### Milestone Detection
 ```typescript
-const checkMilestones = (goal: Goal, previousValue: number) => {
-  const progressPercent = (goal.currentValue / goal.targetValue) * 100;
-  const previousPercent = (previousValue / goal.targetValue) * 100;
-  
-  // Check which milestones were crossed
-  const milestones = [25, 50, 75];
-  const crossedMilestones = milestones.filter(
-    milestone => previousPercent < milestone && progressPercent >= milestone
-  );
-  
-  // Award XP for each crossed milestone
-  crossedMilestones.forEach(milestone => {
-    const xpAmount = XP_REWARDS[`GOAL_MILESTONE_${milestone}`];
-    GamificationService.addXP(xpAmount, {
-      source: XPSourceType.GOAL_MILESTONE,
-      sourceId: goal.id,
-      description: `${milestone}% goal milestone reached`
-    });
-  });
-};
+// SKUTEČNÁ IMPLEMENTACE (od 2026-07-19, super audit N-5.1 — milestone XP se
+// při přepisu na SQLite ztratilo, obnoveno v SQLiteGoalStorage.addProgress):
+//
+// - Prahy 25/50/75 % → 50/75/100 XP (XPSourceType.GOAL_MILESTONE)
+// - Vyhodnocuje se jen KLADNÝ směr (progressType !== 'subtract' a nové % > staré %)
+// - Jeden zápis může překročit víc prahů najednou → udělí se všechny
+// - ANTI-RE-EARN: "už uděleno" se persistuje v SQLite tabulce goal_milestones
+//   (id = `${goalId}_xp_${threshold}`) — kolísání kolem hranice (odečti pod
+//   25 %, přidej zpět) milestone NIKDY neudělí podruhé; smazání progress
+//   záznamů udělené milestones neresetuje (záměr)
+// - Milestone XP podléhá dennímu limitu 3 kladných transakcí/cíl/den
+//   (sdílený s GOAL_PROGRESS, centrálně v xpLimits.validateXPAddition)
+//
+// Kryto testy: sqliteGoalStorage.progressXP.test.ts
 ```
 
 ---
@@ -973,36 +982,13 @@ interface ProgressEntry {
 
 ### Validation Services
 ```typescript
-class GoalValidationService {
-  static validateGoal(goal: Partial<Goal>): ValidationResult {
-    const errors: string[] = [];
-    
-    // Title validation
-    if (!goal.title?.trim() || goal.title.trim().length > 100) {
-      errors.push("Title must be 1-100 characters");
-    }
-    
-    // Target value validation
-    if (!goal.targetValue || goal.targetValue <= 0) {
-      errors.push("Target value must be greater than 0");
-    }
-    
-    // Current value validation
-    if (goal.currentValue < 0 || goal.currentValue > goal.targetValue) {
-      errors.push("Current value must be between 0 and target value");
-    }
-    
-    // Target date validation
-    if (goal.targetDate && goal.targetDate < new Date()) {
-      errors.push("Target date cannot be in the past");
-    }
-    
-    return {
-      valid: errors.length === 0,
-      errors
-    };
-  }
-}
+// ŽÁDNÁ centrální GoalValidationService třída NEEXISTUJE (super audit N-5.6).
+// Validace žije ve formulářích:
+//   - GoalForm.validateForm()        → title/unit/targetValue/description
+//   - ProgressEntryForm.validateForm() → value/note
+//   - TargetDateStepSelectionModal   → okamžitá validace minulého data
+// Storage vrstva nevaliduje — formuláře jsou jediná vstupní brána z UI.
+// Přesná pravidla: viz "Validation Rules" výše.
 ```
 
 ---

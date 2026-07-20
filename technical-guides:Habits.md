@@ -28,6 +28,15 @@
 
 **Fundamental Rule**: Jakákoliv změna v `habit.scheduledDays` ovlivňuje pouze budoucí dny od okamžiku změny. Veškerá historická data, výpočty a UI zobrazení zůstávají v původním stavu.
 
+**Datová vrstva (od 2026-07-19, super audit N-4.1)**: `SQLiteHabitStorage`
+při změně rozvrhu zapisuje do tabulky `habit_schedule_history` — při PRVNÍ
+změně navíc zapíše i PŮVODNÍ rozvrh s platností od vytvoření návyku (druhá
+změna v tentýž den denní záznam přepíše, datumy se nedublují; datum změny je
+LOKÁLNÍ přes `formatDateToString`). `getAll()`/`getById()` timeline načítají
+a připojují jako `habit.scheduleHistory` — bez toho by celý immutability
+systém běžel ve fallbacku na aktuální rozvrh (přesně to byl nález N-4.1).
+End-to-end kryto testy `sqliteHabitStorage.scheduleHistory.test.ts`.
+
 **Remove Scheduled Day Principle:**
 ```typescript
 // Example: Odebírám pondělí ze scheduled days ve středu
@@ -77,13 +86,22 @@ function calculateCompletionRate(habit: Habit, completions: HabitCompletion[]): 
 
 #### Cache Invalidation Principle
 
-**Content-Aware Invalidation**: Cache musí detekovat změny v obsahu habit objektů, ne jen jejich počet.
+**Reference-Based Invalidation** (od 2026-07-19, super audit N-4.7): Reducer
+v HabitsContext nahrazuje pole `habits`/`completions` NOVOU instancí při každé
+mutaci — porovnání referencí je proto přesný a O(1) detektor jakékoliv změny
+(včetně editace obsahu). Navíc se cache invaliduje při změně kalendářního dne,
+protože výsledek konverze závisí na "dnešku".
 
 ```typescript
-// ✅ CORRECT: Cache invalidation includes habit content changes
-const cacheKey = includeHabitContentChanges(habits, completions);
+// ✅ CORRECT: reference + day comparison (skutečná implementace v useHabitsData)
+if (state.habits !== lastHabitsRef.current ||
+    state.completions !== lastCompletionsRef.current ||
+    todayStr !== lastDayRef.current) {
+  conversionCacheRef.current.clear();
+}
 
-// ❌ WRONG: Cache ignoruje změny uvnitř habit objektů
+// ❌ WRONG: count-based hash — výměna completion (smazat + přidat jiný den)
+// vrátí délku na původní hodnotu a cache se neinvaliduje
 const cacheKey = `${habits.length}-${completions.length}`;
 ```
 
@@ -146,6 +164,18 @@ await habitStorage.deleteCompletion(id)
 // → Automatically calls GamificationService.subtractXP() with original amount
 ```
 
+### Habit Deletion & XP (rozhodnutí Petra, 2026-07-19 — super audit N-4.5)
+```typescript
+// Smazání celého NÁVYKU (habitStorage.delete):
+// - návyk se soft-deletne (is_archived = 1),
+// - všechny jeho completions se HARD-smažou (deleteCompletionsByHabitId),
+// - XP se NEVRACÍ — veškeré XP vydělané historií návyku uživateli zůstává.
+//
+// Důvod: smazání návyku nesmí vzít měsíce poctivě vydělaného XP.
+// Toto je ZÁMĚRNÉ chování, ne bug. (subtractXP se volá jen při smazání
+// JEDNOTLIVÉHO completion, tj. při odškrtnutí.)
+```
+
 ### Streak Milestone XP (FUTURE FEATURE)
 ```typescript
 // Planned automatic streak milestone rewards
@@ -176,6 +206,9 @@ const bonusCompletions = [];   // completed non-scheduled days
 const scheduledCompletions = []; // completed scheduled days
 
 // 3. CHRONOLOGICAL PAIRING: Pair missed + bonus chronologically
+// ⚠️ Jen MINULÉ dny (date < today) se počítají jako zmeškané pro párování —
+// dnešek ještě běží a bonus se nesmí "spotřebovat" na den, který uživatel
+// může ještě splnit (rozhodnutí Petra 2026-07-19, super audit N-4.2).
 const sortedMissed = missedScheduledDays.sort(); // oldest first
 const sortedBonuses = bonusCompletions.sort((a, b) => a.date.localeCompare(b.date));
 
@@ -353,18 +386,22 @@ function calculateLongestStreak(completions: HabitCompletion[]): number {
 
 ### Cache Implementation
 ```typescript
-// Stable cache that doesn't invalidate on every render
+// Stable cache that doesn't invalidate on every render (useHabitsData.ts)
 const conversionCacheRef = useRef(new Map<string, HabitCompletion[]>());
-const lastDataHashRef = useRef('');
+const lastHabitsRef = useRef<Habit[] | null>(null);
+const lastCompletionsRef = useRef<HabitCompletion[] | null>(null);
+const lastDayRef = useRef('');
 
 function getHabitCompletionsWithConversion(habitId: string): HabitCompletion[] {
-  // Lightweight hash for cache invalidation
-  const currentDataHash = `${habits.length}-${completions.length}`;
-
-  // Clear cache only when data actually changes
-  if (currentDataHash !== lastDataHashRef.current) {
+  // Invalidation by reference + calendar day (viz Cache Invalidation Principle)
+  const todayStr = formatDateToString(new Date());
+  if (state.habits !== lastHabitsRef.current ||
+      state.completions !== lastCompletionsRef.current ||
+      todayStr !== lastDayRef.current) {
     conversionCacheRef.current.clear();
-    lastDataHashRef.current = currentDataHash;
+    lastHabitsRef.current = state.habits;
+    lastCompletionsRef.current = state.completions;
+    lastDayRef.current = todayStr;
   }
 
   // Return cached result if available
@@ -637,12 +674,12 @@ Features: Habit sharing, friend challenges, leaderboards
 
 ### Technical Debt
 ```typescript
-// 1. Habit Reset Utils Integration
-Location: HabitResetUtils.ts
-Status: IMPLEMENTED but needs testing validation
+// 1. Habit Reset Utils — SMAZÁNO 2026-07-19 (super audit N-4.9)
+// Byla to no-op třída (zapisovala datum, které nikdo nečetl); completions
+// jsou per-datum a žádný denní "reset" nepotřebují.
 
 // 2. Cache Optimization
-Current: Map-based cache in useHabitsData
+Current: Map-based cache in useHabitsData (reference-based invalidation)
 Future: Implement LRU cache with size limits for memory efficiency
 
 // 3. Background Sync

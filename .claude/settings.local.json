@@ -241,7 +241,15 @@
       "Bash(awk -F: '{print $1}')",
       "Bash(python3 -)",
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyChallengeSelection.distribution)",
-      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyChallengeLifecycle.closure)"
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm test -- --testPathPattern=monthlyChallengeLifecycle.closure)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ node --version)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest __tests__/hooks/useHabitsData.makeup.test.tsx __tests__/utils/date.timezone.test.ts)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest __tests__/utils/date.timezone.test.ts)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest __tests__/hooks/useHabitsData.makeup.test.tsx)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteHabitStorage.scheduleHistory.test.ts)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts src/services/__tests__/monthlyChallenge.phase3.test.ts src/services/__tests__/monthlyChallenge.phase3.production.test.ts src/services/__tests__/starRatingMigration.test.ts src/services/__tests__/monthlyChallengeSelection.distribution.test.ts src/services/__tests__/monthlyChallengeLifecycle.closure.test.ts)",
+      "Bash(echo \"TSC=$?\")",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteGoalStorage.progressXP.test.ts)"
     ],
     "deny": [],
     "ask": [],

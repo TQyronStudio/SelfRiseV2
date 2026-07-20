@@ -23,34 +23,28 @@ export function useHabitsData() {
 
   // STABLE cache that doesn't invalidate on every render
   const conversionCacheRef = useRef(new Map<string, HabitCompletion[]>());
-  const lastDataHashRef = useRef('');
-  
-  // Helper to create content-aware hash for cache invalidation
-  const getHabitsContentHash = (habits: Habit[]): string => {
-    return habits
-      .map(h => {
-        // Include scheduleHistory in hash to detect timeline changes
-        const scheduleHistoryHash = h.scheduleHistory?.entries
-          ? JSON.stringify(h.scheduleHistory.entries)
-          : 'no-timeline';
-        return `${h.id}-${h.scheduledDays.join(',')}-${scheduleHistoryHash}-${h.updatedAt}`;
-      })
-      .join('|');
-  };
+  const lastHabitsRef = useRef<Habit[] | null>(null);
+  const lastCompletionsRef = useRef<HabitCompletion[] | null>(null);
+  const lastDayRef = useRef('');
 
   // Get completions with smart bonus conversion applied (IMMUTABLE CONVERSIONS)
   const getHabitCompletionsWithConversion = useCallback((habitId: string): HabitCompletion[] => {
-    // IMMUTABLE CONVERSIONS: Cache invalidates when habit content changes, preserving historical context
-    // This implements the "MINULOST SE NEMĚNÍ" principle from technical guidelines
-
-    // CONTENT-AWARE CACHE INVALIDATION: Detect changes in habit scheduledDays
-    const habitsContentHash = getHabitsContentHash(state.habits);
-    const currentDataHash = `${habitsContentHash}-${state.completions.length}`;
-
-    // Clear cache when habit content changes (e.g., scheduledDays modifications)
-    if (currentDataHash !== lastDataHashRef.current) {
+    // CACHE INVALIDATION BY REFERENCE (N-4.7): the reducer replaces the
+    // habits/completions arrays on EVERY mutation, so reference equality is
+    // an exact O(1) change detector — unlike the previous count-based hash,
+    // which missed a delete+create pair that restored the original length.
+    // The day check invalidates at midnight: conversion results depend on
+    // "today" (missed days are only counted for past days).
+    const todayStr = formatDateToString(new Date());
+    if (
+      state.habits !== lastHabitsRef.current ||
+      state.completions !== lastCompletionsRef.current ||
+      todayStr !== lastDayRef.current
+    ) {
       conversionCacheRef.current.clear();
-      lastDataHashRef.current = currentDataHash;
+      lastHabitsRef.current = state.habits;
+      lastCompletionsRef.current = state.completions;
+      lastDayRef.current = todayStr;
     }
 
     // Check cache first - preserves historical conversion results
@@ -152,17 +146,11 @@ export function useHabitsData() {
       }
     });
 
-    // Calculate completion rate using unified logic with frequency-proportional bonus
-    // IMMUTABILITY PRINCIPLE: Provide period dates for time-segmented calculation
-    const periodStartDate = relevantDates.length > 0 ? relevantDates[0] : formatDateToString(createdAt);
-    const periodEndDate = relevantDates.length > 0 ? relevantDates[relevantDates.length - 1] : today();
-
+    // Calculate completion rate using the unified formula
     const completionResult = calculateHabitCompletionRate(habit, {
       scheduledDays,
       completedScheduled,
-      bonusCompletions,
-      periodStartDate: periodStartDate as DateString,
-      periodEndDate: periodEndDate as DateString
+      bonusCompletions
     });
     const completionRate = completionResult.totalCompletionRate;
     
@@ -311,16 +299,15 @@ export function useHabitsData() {
           if (completion?.completed) {
             scheduledCompletions.push(completion);
           } else {
-            // Count missed days in the past AND today (not future scheduled days)
-            // AND only count days AFTER habit was created
-            const dateObj = parseDate(date);
-            const today = new Date();
-            const todayStr = formatDateToString(today);
+            // Only PAST days count as missed for make-up pairing — today is
+            // still in progress, so a bonus must not be consumed to "cover"
+            // a day the user can still complete (N-4.2). Days before habit
+            // creation never count.
+            const todayStr = formatDateToString(new Date());
             const habitCreationDate = habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt);
             const creationDateString = formatDateToString(habitCreationDate);
-            
-            // Include today in missed days for display purposes (will show as gray in charts)
-            if ((dateObj < today || date === todayStr) && date >= creationDateString) {
+
+            if (date < todayStr && date >= creationDateString) {
               missedScheduledDays.push(date);
             }
           }
