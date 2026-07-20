@@ -217,10 +217,41 @@
 > odstranění inline decrementu) a smazán. Cross-impact F2+F3: 113+100 ✓.
 > tsc 0, **451/451 (30/30 suites)** ✓. Fáze 6 KOMPLETNÍ. Další: session #13 =
 > Fáze 7 (Notifications). Device fronta: 2i + 3e (Petr).
+>
+> 🔍 **Session #13 (Fáze 10 — Startup Orchestrator, statická část bez 10.6)
+> AUDITNÍ ČÁST HOTOVÁ 2026-07-20 (Fable)**: 6/6 položek, brána úplnosti ✓,
+> baseline tsc 0 + 451/451 + orchestrator 10 + init 6 ✓. **Velmi kvalitní kód
+> — všechna 3 kritická pravidla dodržena (timeout jen na prepare, finalize
+> vždy, ATT→analytics→app_open), bariéra i provider-pořadí OK.** Reálné nálezy
+> jen v DB init: **N-10.1 [STŘEDNÍ]** — `db` singleton se nenuluje při selhání
+> createTables → retry vrátí polovičně zmigrovanou DB a označí ji za ready
+> (místo DatabaseErrorScreen); **N-10.2 [NÍZKÁ]** — goal_progress restore není
+> idempotentní (plain INSERT + netransakční) → force-quit hrana bricku DB init
+> u prastarého schématu; N-10.3 INFO (finalize pod cancelled guard). PLAN-DISCR:
+> guide Startup-Orchestrator zatím neexistuje. Opravy zatím NEprovedeny (E1);
+> 10.6 device zůstává Petrovi. Zpráva: @docs/audits/super-audit-2026-07/faze-10-nalezy.md
+>
+> ✅ **Session #13 — opravy FÁZE 10 PROVEDENY 2026-07-20 (Fable)**: N-10.1
+> (`db` singleton se publikuje až po úspěšném createTables + handle se při
+> selhání zavírá → retry skutečně re-runne místo vrácení polovičně zmigrované
+> DB), N-10.2 (goal_progress restore `INSERT OR IGNORE` + restore/drop zálohy
+> v jedné transakci → force-quit už nemůže zablokovat DB init). N-10.3
+> ponecháno dle doporučení (oprava by vyžadovala idempotentní latch, riziko
+> zanedbatelné). tsc 0, **451/451 (30/30)** ✓. Cross-impact netřeba (F10 není
+> výrobce dat). **Petr potvrdil, že orchestrator už testerům funguje** →
+> device 10.6 de facto pokryto. Fáze 10 (statická část) KOMPLETNÍ.
+> ✅ **Vyřešena PLAN-DISCREPANCY**: vytvořen chybějící
+> @technical-guides:Startup-Orchestrator.md — 3 kritická pravidla jsou tím
+> zafixovaná natrvalo (dřív žila jen v sekci projectplan.md určené k archivaci).
 
 ---
 
 ## 🎯 AKTUÁLNÍ ÚKOL: Startup Orchestrator — sekvenční startovací pipeline
+
+> 📘 **Technická pravidla a logika pro Startup Orchestrator: @technical-guides:Startup-Orchestrator.md**
+> (vytvořen 2026-07-20 — 3 kritická pravidla, kontrakt StartupStep, bariéra,
+> app-ready gate, DB init/migrace, nebezpečné zóny. **Guide je nadřazený tomuto
+> plánu** — sekce níže je historický kontext zadání a smí se archivovat.)
 
 **Cíl**: Univerzální, budoucnostně odolný systém, který zaručí, že se při startu aplikace nikdy nezobrazí dvě „okna" (nativní systémová: ATT, souhlas s reklamami, oznámení… i naše RN: uvítací brána, tutoriál) přes sebe → **konec iOS dual-modal zamrzávání na prvním spuštění, bez ohledu na počet a pořadí systémových oken**.
 

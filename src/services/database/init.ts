@@ -17,24 +17,38 @@ export async function initializeDatabase(): Promise<SQLite.SQLiteDatabase> {
 
   console.log('🗄️  Initializing SQLite database...');
 
+  // Build on a LOCAL handle and publish the module singleton only after the
+  // schema is fully migrated. If createTables() fails, `db` stays null so the
+  // retry (app/_layout) genuinely re-runs instead of short-circuiting via
+  // `if (db) return db` and running the app against a half-migrated schema (N-10.1).
+  let database: SQLite.SQLiteDatabase | null = null;
   try {
     // Open database (creates if doesn't exist)
-    db = await SQLite.openDatabaseAsync('selfrise.db');
+    database = await SQLite.openDatabaseAsync('selfrise.db');
 
     // Enable WAL mode for better concurrent access
-    await db.execAsync('PRAGMA journal_mode = WAL;');
-    await db.execAsync('PRAGMA foreign_keys = ON;');
+    await database.execAsync('PRAGMA journal_mode = WAL;');
+    await database.execAsync('PRAGMA foreign_keys = ON;');
 
     console.log('✅ Database connection established');
 
     // Create tables (will be populated during migration)
-    await createTables(db);
+    await createTables(database);
 
+    // Schema is ready — publish the shared singleton now (and only now).
+    db = database;
     console.log('✅ Database initialized successfully');
     return db;
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
+    // Best-effort close so the retry opens a fresh handle instead of leaking
+    // (and never leave a half-migrated handle behind as the module singleton).
+    try {
+      await database?.closeAsync();
+    } catch {
+      /* ignore — the handle may already be unusable */
+    }
     throw error;
   }
 }
@@ -699,27 +713,32 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
   if (backupExists.length > 0) {
     console.log('🔄 Restoring goal_progress data from backup...');
 
-    // Migrate data from backup to new table
-    await database.execAsync(`
-      INSERT INTO goal_progress (id, goal_id, value, date, note, progress_type, created_at, updated_at)
-      SELECT
-        id,
-        goal_id,
-        value,
-        date(timestamp / 1000, 'unixepoch') as date,
-        note,
-        'add' as progress_type,
-        timestamp as created_at,
-        timestamp as updated_at
-      FROM goal_progress_backup;
-    `);
+    // N-10.2: restore + drop-backup atomically, and INSERT OR IGNORE so a
+    // force-quit between the insert and the drop can't double-insert on the
+    // next start → PRIMARY KEY collision → permanent DB-init failure. With the
+    // transaction a mid-restore kill rolls back (backup survives, re-runnable);
+    // OR IGNORE makes even a committed-insert / dropped-later replay a no-op.
+    await database.withTransactionAsync(async () => {
+      await database.execAsync(`
+        INSERT OR IGNORE INTO goal_progress (id, goal_id, value, date, note, progress_type, created_at, updated_at)
+        SELECT
+          id,
+          goal_id,
+          value,
+          date(timestamp / 1000, 'unixepoch') as date,
+          note,
+          'add' as progress_type,
+          timestamp as created_at,
+          timestamp as updated_at
+        FROM goal_progress_backup;
+      `);
+
+      // Drop backup inside the same transaction — atomic with the restore.
+      await database.execAsync(`DROP TABLE goal_progress_backup;`);
+    });
 
     const restoredCount = await database.getFirstAsync<any>('SELECT COUNT(*) as count FROM goal_progress');
-    console.log(`✅ Restored ${restoredCount?.count || 0} progress records`);
-
-    // Drop backup table
-    await database.execAsync(`DROP TABLE goal_progress_backup;`);
-    console.log('✅ Backup table cleaned up');
+    console.log(`✅ Restored ${restoredCount?.count || 0} progress records, backup cleaned up`);
   }
 
   // Restore challenge lifecycle state

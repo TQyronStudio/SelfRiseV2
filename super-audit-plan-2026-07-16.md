@@ -703,6 +703,21 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 
 ## FÁZE 10 — Startup Orchestrator + inicializace appky (NOVÁ FÁZE)
 
+> ✅ **STATICKÁ ČÁST PROVEDENA 2026-07-20 (Fable, session #13)** — 6/6 položek
+> (10.0-10.5), brána úplnosti ✓. Všechna 3 kritická pravidla dodržena
+> (timeout jen na prepare — strukturálně přes prepare/present split; finalize
+> vždy po sekvenci; ATT→analytics→app_open). Bariéra `awaitStartupComplete`
+> kryje bránu i tutoriál; double-run guard + app-ready gate OK; pořadí
+> providerů OK. **Opraveno: N-10.1 [STŘEDNÍ]** — `db` singleton se nenuloval
+> při selhání createTables → retry vracel polovičně zmigrovanou DB (nyní se
+> publikuje až po úspěchu); **N-10.2** — goal_progress restore nyní
+> `INSERT OR IGNORE` v transakci. N-10.3 (finalize pod cancelled guard)
+> ponecháno dle doporučení. tsc 0, **451/451**. PLAN-DISCR: guide
+> Startup-Orchestrator **byl 2026-07-20 vytvořen** (PLAN-DISCREPANCY vyřešena —
+> 3 kritická pravidla zafixována natrvalo mimo projectplan.md). 10.6 device =
+> de facto ověřeno testery (orchestrator L1 běží od 14.7.).
+> Zpráva: `docs/audits/super-audit-2026-07/faze-10-nalezy.md`.
+
 **Proč**: `src/services/startup/` vznikl 14.7. (commit `1e56d63`) a je to
 NEJNOVĚJŠÍ kód v repu — žádný audit ho ještě neviděl a **device test na
 čisté instalaci pořád čeká** (viz projectplan.md). Řeší historicky nejhorší
@@ -720,24 +735,24 @@ přečti ji celou před začátkem fáze.
 `src/utils/concurrencySafeguards.ts`, `app/_layout.tsx`,
 `src/contexts/RootProvider.tsx`
 
-- [ ] 10.0 Spusť `startupOrchestrator.test.ts` a
+- [x] 10.0 Spusť `startupOrchestrator.test.ts` a
       `src/services/database/__tests__/init.test.ts` — baseline.
-- [ ] 10.1 **3 kritická pravidla z projectplan.md** — ověř v kódu (soubor+řádek):
+- [x] 10.1 **3 kritická pravidla z projectplan.md** — ověř v kódu (soubor+řádek):
       (1) timeout NIKDY neobaluje interaktivní `present()` — jen `prepare()`
       + 5min crash-pojistka; (2) `finalizeAdsAndDiagnostics()` (reklamy +
       Crashlytics) běží VŽDY, i když se consent formulář přeskočí; (3) pořadí
       ATT → zapnutí analytics → `app_open` zachováno.
-- [ ] 10.2 **Konzumenti `awaitStartupComplete()`** — grep: kdo všechno čeká
+- [x] 10.2 **Konzumenti `awaitStartupComplete()`** — grep: kdo všechno čeká
       na konec pipeline (očekávaný: TutorialContext/uvítací brána). Každé
       místo, které zobrazuje UI při startu a NEČEKÁ, je kandidát na překryv
       → nález.
-- [ ] 10.3 Guard proti dvojímu spuštění pipeline (StrictMode/re-mount) +
+- [x] 10.3 Guard proti dvojímu spuštění pipeline (StrictMode/re-mount) +
       app-ready gate (fonty, DB, `AppState==='active'`, po prvním snímku).
-- [ ] 10.4 **Database init + migrace**: retry logika (N3 fix z 6/13),
+- [x] 10.4 **Database init + migrace**: retry logika (N3 fix z 6/13),
       idempotence migrací — co se stane při force-quit UPROSTŘED migrace
       a dalším startu (kritérium: každá migrace je re-runnable nebo
       transakční; zapiš per-migrace).
-- [ ] 10.5 `RootProvider.tsx` — pořadí providerů: závislosti mezi contexty
+- [x] 10.5 `RootProvider.tsx` — pořadí providerů: závislosti mezi contexty
       (kdo čte koho) zdokumentuj; provider čtoucí data z provideru POD sebou
       = nález. N30 (side-effect barrel import v `_layout.tsx`) jen potvrď
       a nech Fázi 13.
@@ -920,7 +935,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 10 | Fáze 4 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (9 nálezů N-4.1–4.9 vyřešeno, 435/435, F2+F3 ✓)
 | 11 | Fáze 5 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (10 nálezů N-5.1–5.9+5.3b vyřešeno, 445/445, F2+F3 ✓)
 | 12 | Fáze 6 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-20 (ČISTÁ fáze, 4 nálezy nízké priority N-6.1..6.4 VŠECHNY opraveny; N-6.3 po stat.+empir. ověření redundance; 451/451, F2+F3 ✓)
-| 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv |
+| 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv | ✅ HOTOVO 2026-07-20 (3 krit. pravidla ✓; N-10.1 retry short-circuit + N-10.2 netransakční restore opraveny, N-10.3 ponecháno; 451/451)
 | 14 | Fáze 7 | |
 | 15 | Fáze 8 + 9 | |
 | 16 | Fáze 11 | až po 1 a 4 |
