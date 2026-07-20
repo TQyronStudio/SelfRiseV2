@@ -249,7 +249,13 @@
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteHabitStorage.scheduleHistory.test.ts)",
       "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts src/services/__tests__/monthlyChallenge.phase3.test.ts src/services/__tests__/monthlyChallenge.phase3.production.test.ts src/services/__tests__/starRatingMigration.test.ts src/services/__tests__/monthlyChallengeSelection.distribution.test.ts src/services/__tests__/monthlyChallengeLifecycle.closure.test.ts)",
       "Bash(echo \"TSC=$?\")",
-      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteGoalStorage.progressXP.test.ts)"
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteGoalStorage.progressXP.test.ts)",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/storage/__tests__/sqliteGratitudeStorage.streakDebt.test.ts)",
+      "Bash(awk -F: '$2>1200 && $2<1620')",
+      "Bash(awk -F: '$1>1200 && $1<1650')",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts src/services/__tests__/monthlyChallenge.phase3.test.ts src/services/__tests__/monthlyChallenge.phase3.production.test.ts src/services/__tests__/monthlyChallengeSelection.distribution.test.ts src/services/__tests__/monthlyChallengeLifecycle.closure.test.ts)",
+      "Bash(awk -F: '$1>=410 && $1<=500 || \\($1>=990 && $1<=1210\\)')",
+      "Bash(PATH=/Users/turage/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npx jest src/services/__tests__/monthlyProgressTracker.trackingKeys.test.ts src/services/__tests__/monthlyChallenge.phase3.test.ts src/services/__tests__/monthlyChallenge.phase3.production.test.ts src/services/__tests__/monthlyChallengeSelection.distribution.test.ts src/services/__tests__/monthlyChallengeLifecycle.closure.test.ts src/services/__tests__/starRatingMigration.test.ts)"
     ],
     "deny": [],
     "ask": [],

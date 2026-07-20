@@ -145,9 +145,12 @@ interface DailyXPData {
   xpBySource: Record<XPSourceType, number>;
   transactionCount: number;
   lastTransactionTime: number;
-  
+
   // Anti-spam tracking
-  journalEntryCount: number; // Count of journal entries today
+  // NOTE: journalEntryCount was removed in the 2026-07 super audit (Fáze 6,
+  // N-6.4) — it had zero consumers. Journal anti-spam (14+ entries → 0 XP) is
+  // enforced in the storage layer via getXPForJournalEntry(position), which
+  // derives position from the SQL entry count, not from this field.
   goalTransactions: Record<string, number>; // goalId -> transaction count for goal anti-spam
 }
 
@@ -2054,12 +2057,6 @@ export class GamificationService {
         if (amount > 0) {
           dailyData.transactionCount += 1;
 
-          // Track journal entries for anti-spam (entries 14+ = 0 XP)
-          if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-            dailyData.journalEntryCount += 1;
-            console.log(`📊 Journal entry tracked: ${dailyData.journalEntryCount} entries today`);
-          }
-
           // Track goal transactions for anti-spam (3x/day per goal)
           if (goalId && (
             source === XPSourceType.GOAL_PROGRESS ||
@@ -2071,12 +2068,6 @@ export class GamificationService {
         } else if (amount < 0) {
           // Decrease transaction count for negative XP (subtractions)
           dailyData.transactionCount = Math.max(0, dailyData.transactionCount - 1);
-
-          // Track journal entry deletions (reduce counter)
-          if (source === XPSourceType.JOURNAL_ENTRY || source === XPSourceType.JOURNAL_BONUS) {
-            dailyData.journalEntryCount = Math.max(0, dailyData.journalEntryCount - 1);
-            console.log(`📊 Journal entry removed: ${dailyData.journalEntryCount} entries today`);
-          }
 
           // Track goal transaction deletions
           if (goalId && (
@@ -2150,19 +2141,6 @@ export class GamificationService {
           goalTransactions[row.source_id] = row.count;
         }
 
-        // Count journal entries today (anti-spam tracking).
-        // Mirrors the legacy path which counted JOURNAL_ENTRY + JOURNAL_BONUS.
-        // NOTE: stored source values are lowercase ('journal_entry'); a previous
-        // version compared against 'JOURNAL_ENTRY' and always returned 0.
-        const journalCount = await db.getFirstAsync<{ count: number }>(
-          `SELECT COUNT(*) as count
-           FROM xp_transactions
-           WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
-           AND source IN (?, ?)
-           AND amount > 0`,
-          [todayDate, XPSourceType.JOURNAL_ENTRY, XPSourceType.JOURNAL_BONUS]
-        );
-
         // Get last transaction time
         const lastTx = await db.getFirstAsync<{ timestamp: number }>(
           `SELECT timestamp
@@ -2178,7 +2156,6 @@ export class GamificationService {
           xpBySource,
           transactionCount: summary?.transaction_count || 0,
           lastTransactionTime: lastTx?.timestamp || 0,
-          journalEntryCount: journalCount?.count || 0,
           goalTransactions,
         };
         this.dailyXPDataCache.set(todayDate, { data: freshData, ts: Date.now() });
@@ -2216,9 +2193,8 @@ export class GamificationService {
       xpBySource: this.createEmptyXPBySource(),
       transactionCount: 0,
       lastTransactionTime: 0,
-      
+
       // Anti-spam tracking
-      journalEntryCount: 0,
       goalTransactions: {},
     };
   }

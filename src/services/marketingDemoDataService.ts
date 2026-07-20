@@ -920,7 +920,6 @@ async function seedLegacyGamificationData(content: MarketingDemoContent): Promis
     xpBySource: createEmptyXPBySource(),
     transactionCount: todayTransaction ? 1 : 0,
     lastTransactionTime: todayTransaction?.createdAt.getTime() ?? 0,
-    journalEntryCount: todayTransaction ? 3 : 0,
     goalTransactions: {},
   };
 

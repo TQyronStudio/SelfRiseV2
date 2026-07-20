@@ -430,3 +430,74 @@ describe('Journal streak/debt — frozen streak protection (release blockers)', 
     });
   });
 });
+
+// ============================================================================
+// Milestone counters ⭐🔥👑 — create/delete symmetry (audit Fáze 6, N-6.3)
+//
+// WHY THIS EXISTS: the milestone counters (star/flame/crown = number of days
+// with ≥4 / ≥8 / ≥13 entries) are the SOURCE OF TRUTH for the Trophy Room and
+// several achievements. They are recomputed from SQL in calculateAndUpdateStreak
+// (calculateMilestoneCounters) on every create/delete. delete() USED to also do
+// a manual inline decrement first, which was then overwritten by that recompute
+// — this suite proves the recompute alone keeps the counters correct, so the
+// inline decrement was safely removable (N-6.3).
+// ============================================================================
+describe('Journal milestone counters ⭐🔥👑 (N-6.3)', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  /** Create `count` entries for T via the REAL create() path (auto-orders 1..count). */
+  async function createEntries(count: number): Promise<string[]> {
+    const ids: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const entry = await storage.create({ content: `Entry ${i + 1}`, date: T });
+      ids.push(entry.id);
+    }
+    // create() delegates streak/counter refresh to the caller (GratitudeContext)
+    await storage.calculateAndUpdateStreak();
+    return ids;
+  }
+
+  test('4 entries → star=1, flame=0, crown=0 (recompute after create)', async () => {
+    await createEntries(4);
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([1, 0, 0]);
+  });
+
+  test('8 entries → star=1, flame=1, crown=0', async () => {
+    await createEntries(8);
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([1, 1, 0]);
+  });
+
+  test('13 entries → star=1, flame=1, crown=1', async () => {
+    await createEntries(13);
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([1, 1, 1]);
+  });
+
+  test('deleting the 4th entry drops the day below 4 → star back to 0', async () => {
+    const ids = await createEntries(4);
+    await storage.delete(ids[3]!); // delete() recomputes counters internally
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([0, 0, 0]);
+  });
+
+  test('deleting one of 13 entries drops below crown → crown 0, flame/star kept', async () => {
+    const ids = await createEntries(13);
+    await storage.delete(ids[12]!); // now 12 entries: still ≥8 and ≥4, but <13
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([1, 1, 0]);
+  });
+
+  test('create/delete is symmetric — counters return to baseline', async () => {
+    const ids = await createEntries(4);
+    await storage.delete(ids[3]!);
+    await storage.delete(ids[2]!);
+    await storage.delete(ids[1]!);
+    await storage.delete(ids[0]!);
+    const s = await storage.getStreak();
+    expect([s.starCount, s.flameCount, s.crownCount]).toEqual([0, 0, 0]);
+  });
+});

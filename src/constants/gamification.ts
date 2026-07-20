@@ -97,7 +97,7 @@ export const XP_REWARDS = {
 export const DAILY_XP_LIMITS = {
   // Per-feature daily maximums
   HABITS_MAX_DAILY: 500,       // Max XP from habits per day
-  JOURNAL_MAX_DAILY: 415,      // Max XP from journal per day (3×20 + 10×8 + 25 + 50 + 100 = 415)
+  JOURNAL_MAX_DAILY: 315,      // Max XP from journal per day: 3×20 + 10×8 + 25 + 50 + 100 = 315 (N-6.2: dřív chybně 415; applied per journal source in xpLimits, never binds — largest single source ≈199)
   GOALS_MAX_DAILY: 400,        // Max XP from goals per day
   ENGAGEMENT_MAX_DAILY: 200,   // Max XP from engagement per day
 
@@ -137,9 +137,11 @@ export const XP_SOURCES = {
   [XPSourceType.JOURNAL_ENTRY]: {
     baseAmount: XP_REWARDS.JOURNAL.FIRST_ENTRY,
     descriptionKey: 'gamification.xpSources.journalEntry',
+    // NOTE (N-6.2): this per-source dailyLimit is informational only — actual
+    // enforcement uses getSourceDailyLimit() → JOURNAL_MAX_DAILY. Value = 315.
     dailyLimit: XP_REWARDS.JOURNAL.FIRST_ENTRY * 3 + XP_REWARDS.JOURNAL.BONUS_ENTRY * 10 +
                 XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE + XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE +
-                XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // 3 required + 10 bonus + 3 milestones = 415 XP max
+                XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE, // 3 required + 10 bonus + 3 milestones = 315 XP max
     requirements: ['entry must have minimum 10 characters'],
   },
 

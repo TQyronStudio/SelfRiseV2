@@ -591,27 +591,36 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 
 ## FÁZE 6 — My Journal: PLNÝ audit (debt gate i happy path)
 
+> ✅ **PROVEDENO 2026-07-20 (Fable, session #12)** — 6/6 položek, brána
+> úplnosti ✓. ČISTÁ fáze (0 kritických/vysokých), 4 nálezy nízké priority:
+> N-6.1 mrtvá Phase 1/2/3 scaffolding smazána (WithWarmUp+Basic+canRecoverDebt),
+> N-6.2 JOURNAL_MAX_DAILY 415→315 (chybná aritmetika), N-6.4 vestigiální
+> journalEntryCount odstraněn; N-6.3 (redundantní inline decrement) po Petrově
+> žádosti staticky i empiricky ověřen jako redundantní (+6 regresních testů)
+> a smazán. Cross-impact F2+F3: 113+100 ✓. tsc 0, **451/451 (30/30)**.
+> Zpráva: `docs/audits/super-audit-2026-07/faze-6-nalezy.md`.
+
 **Guide**: `technical-guides:My-Journal.md`
 
 **Soubory**: `src/services/storage/SQLiteGratitudeStorage.ts` (1710 ř.),
 `src/contexts/GratitudeContext.tsx`
 
-- [ ] 6.0 Spusť `sqliteGratitudeStorage.streakDebt.test.ts` (20 testů) —
+- [x] 6.0 Spusť `sqliteGratitudeStorage.streakDebt.test.ts` (20 testů) —
       baseline.
-- [ ] 6.1 **Debt/freeze/warm-up systém** — projdi znovu od nuly (ne jen
+- [x] 6.1 **Debt/freeze/warm-up systém** — projdi znovu od nuly (ne jen
       test výsledky): freeze preservation, `streakBeforeFreeze`, warm-up
       payment bridging, auto-reset boundary, `justUnfrozeToday` +1 continuation.
-- [ ] 6.2 **Happy path bez dluhu**: 3+ zápisy/den → streak +1, pozice-based
+- [x] 6.2 **Happy path bez dluhu**: 3+ zápisy/den → streak +1, pozice-based
       XP (20/20/20 pro 1.-3., 8 pro 4.-13., 0 pro 14+) per-den, ne kumulativně.
       Zkontroluj konzistenci s denním stropem JOURNAL_MAX_DAILY 415 XP
       (vzorec `3×FIRST_ENTRY + 10×BONUS_ENTRY + 3 milestones` v
       `src/constants/gamification.ts:138-160` musí sedět s reálnými hodnotami).
-- [ ] 6.3 **Milestone počítadla ⭐🔥👑** (pozice 4/8/13) — Achievements (Fáze 2)
+- [x] 6.3 **Milestone počítadla ⭐🔥👑** (pozice 4/8/13) — Achievements (Fáze 2)
       je čtou přímo ze streak_state — ověř zápis PŘI VYTVOŘENÍ i PŘI SMAZÁNÍ
       zápisu je symetrický (smazání 13. zápisu musí crown počítadlo vzít zpět).
-- [ ] 6.4 **searchByContent** — case-insensitivita pro DE/ES diakritiku
+- [x] 6.4 **searchByContent** — case-insensitivita pro DE/ES diakritiku
       (filtr v JS, ne SQL LIKE/LOWER — ty jsou ASCII-only).
-- [ ] 6.5 `journalEntryCount` synchronizace mezi create/delete napříč SQLite
+- [x] 6.5 `journalEntryCount` synchronizace mezi create/delete napříč SQLite
       i AsyncStorage.
 
 ---
@@ -910,7 +919,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 9 | 3f + 3g | ✅ HOTOVO 2026-07-19 (2 nové test suites, +13 testů; výběr i uzávěrka všech 14 ✓; PROVEDENY N-3.16 (sezónní bonus +15), N-3.17 (archiv s reálnými stats + 'failed'), N-3.10 (pondělní týdny variety + žádné šedé aktivní dny), N-3.11 (sezónnost cílového měsíce). **FÁZE 3: všech 17 nálezů vyřešeno, zbývá jen 3e device.** 426/426 ✓; zpráva: faze-3-nalezy.md) |
 | 10 | Fáze 4 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (9 nálezů N-4.1–4.9 vyřešeno, 435/435, F2+F3 ✓)
 | 11 | Fáze 5 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (10 nálezů N-5.1–5.9+5.3b vyřešeno, 445/445, F2+F3 ✓)
-| 12 | Fáze 6 | poté cross-impact: suites F2+F3 |
+| 12 | Fáze 6 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-20 (ČISTÁ fáze, 4 nálezy nízké priority N-6.1..6.4 VŠECHNY opraveny; N-6.3 po stat.+empir. ověření redundance; 451/451, F2+F3 ✓)
 | 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv |
 | 14 | Fáze 7 | |
 | 15 | Fáze 8 + 9 | |

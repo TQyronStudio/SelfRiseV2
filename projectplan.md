@@ -195,6 +195,28 @@
 > Nová suite progressXP (10 testů). **Cross-impact F2+F3: 113+100 ✓, závěry
 > fází 1-3 nedotčeny.** tsc 0, **445/445 testů (30/30 suites)** ✓.
 > Další: session #12 = Fáze 6 (My Journal). Device fronta: 2i + 3e (Petr).
+>
+> 🔍 **Session #12 (Fáze 6 — My Journal) AUDITNÍ ČÁST HOTOVÁ 2026-07-20 (Fable)**:
+> 6/6 položek, brána úplnosti ✓, baseline tsc 0 + 445/445 + streakDebt 23 ✓.
+> **ČISTÁ fáze — 0 kritických/vysokých**, jen 4 nálezy nízké priority (úklid):
+> N-6.1 mrtvý duplikát calculateAndUpdateStreakWithWarmUp (~100 ř.); N-6.2
+> JOURNAL_MAX_DAILY=415 je chybná aritmetika (reálně 315) + vestigiální
+> per-source dailyLimity; N-6.3 redundantní inline decrement milestone
+> counterů v delete(); N-6.4 journalEntryCount vestigiální (0 konzumentů) +
+> nekonzistentní. Debt gate, pozice-based XP, milestone countery i search
+> (DE/ES diakritika) funkčně správné a kryté testy. Opravy zatím NEprovedeny
+> (E1). Zpráva: @docs/audits/super-audit-2026-07/faze-6-nalezy.md
+>
+> ✅ **Session #12 — opravy FÁZE 6 PROVEDENY 2026-07-20 (Fable)**: N-6.1
+> (mrtvá Phase 1/2/3 scaffolding smazána: calculateAndUpdateStreakWithWarmUp
+> + Basic + canRecoverDebt, 0 callerů), N-6.2 (JOURNAL_MAX_DAILY 415→315,
+> oprava chybné aritmetiky), N-6.4 (vestigiální journalEntryCount odstraněn
+> z 6 míst). **N-6.3 čeká na rozhodnutí Petra** (redundantní inline decrement
+> milestone counterů). **N-6.3 na Petrovu žádost staticky i empiricky ověřen**
+> jako redundantní (nová suite 6 testů: countery správné jen z přepočtu i po
+> odstranění inline decrementu) a smazán. Cross-impact F2+F3: 113+100 ✓.
+> tsc 0, **451/451 (30/30 suites)** ✓. Fáze 6 KOMPLETNÍ. Další: session #13 =
+> Fáze 7 (Notifications). Device fronta: 2i + 3e (Petr).
 
 ---
 
