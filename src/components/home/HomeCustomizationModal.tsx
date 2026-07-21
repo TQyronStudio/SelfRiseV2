@@ -65,7 +65,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
     },
     header: {
       flexDirection: 'row',

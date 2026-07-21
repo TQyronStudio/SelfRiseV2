@@ -303,6 +303,33 @@
 > jako jediný zdroj pravdy pro onboarding klíče. **N-9.3** — příznak demo módu
 > hned za COMMIT. **N-9.1** — doc oprava v Crashlytics guide.
 > tsc 0, **464/464 (31/31 suites)** ✓.
+>
+> 🔍 **Session #16 (Fáze 11 — Home screen) AUDITNÍ ČÁST HOTOVÁ 2026-07-21 (Fable)**:
+> 7/7 položek, brána ✓, baseline tsc 0 + 464/464 ✓. Logika Home je v dobrém
+> stavu: 10/10 typů doporučení má splnitelný trigger i funkční cíl tapu (a
+> správně převedené jednotky completion rate), `@home_preferences` má jediného
+> zapisovatele, všechny 4 quick actions mají konzumenta parametru, multiplikátor
+> si nedělá vlastní odpočet, citát dne je deterministický. **N-11.3 [STŘEDNÍ]** —
+> v modálech měsíčních výzev je tmavý text natvrdo na pozadí řízeném motivem →
+> **v tmavém režimu nečitelné** (reset streaku, hvězdný pokrok, příští měsíc).
+> **N-11.5 [ROZHODNUTÍ]** — 38 stínů/elevation v 9 komponentách (v tmavém režimu
+> se elevace dělá pozadím). Dále N-11.1 (StreakHistoryGraph načítá celou historii
+> deníku), N-11.2 (mrtvý filtr), N-11.4 (čistě černé pozadí 2×). RECOMMENDATION_FOLLOW
+> XP se neuděluje vůbec — konzistentní s rozhodnutím Fáze 2. Opravy zatím
+> Zpráva: @docs/audits/super-audit-2026-07/faze-11-nalezy.md
+>
+> ✅ **Session #16 — opravy FÁZE 11 PROVEDENY 2026-07-21 (Fable)**: N-11.3
+> (nečitelný tmavý text v modálech výzev → theme tokeny, vč. ternárního bloku,
+> který jsem při prvním čtení přehlédl), N-11.1+N-11.2 (StreakHistoryGraph už
+> nenačítá celou historii deníku — 30 indexovaných `countByDate` místo `getAll()`;
+> mrtvý filtr odstraněn), N-11.4 (2× čistě černé pozadí → backgroundSecondary),
+> komentář o stáří návyku. **N-11.5 ODVOLÁNO**: Petrův dotaz („nevšiml jsem si,
+> že by téma vypadalo špatně") vedl k ověření — `colors.shadow` je v tmavém
+> režimu `transparent`, theme systém pravidlo vynucuje sám; validátorovo
+> pravidlo 3 hlásí jen přítomnost vlastností. **XP za doporučení**: doporučeno
+> NEimplementovat (tap na kartu 5×/den = 150 XP zadarmo = exploit) a smazat
+> ve Fázi 13 spolu se zbytkem mrtvého kódu. tsc 0, **464/464 (31/31)** ✓.
+> Device fronta: +11.2 (přepnutí widgetů přežije restart).
 
 ---
 

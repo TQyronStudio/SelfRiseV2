@@ -154,7 +154,7 @@ export class RecommendationEngine {
       const completionRate = completionResult.totalCompletionRate / 100; // Convert to 0-1 scale
 
       // Low completion rate - suggest schedule adjustment
-      // Only for established habits (7+ days) with genuinely low performance
+      // Only for established habits (isEstablishedHabit = 14+ days) with genuinely low performance
       if (completionRate < 0.3 && habit.isActive && ageInfo.isEstablishedHabit) {
         recommendations.push({
           type: 'habit_schedule',

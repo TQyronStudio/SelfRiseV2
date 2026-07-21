@@ -800,6 +800,20 @@ přečti ji celou před začátkem fáze.
 
 ## FÁZE 11 — Home screen + customizace + doporučení (NOVÁ FÁZE)
 
+> ✅ **PROVEDENO 2026-07-21 (Fable, session #16)** — 7/7 položek, brána ✓.
+> Logika Home v pořádku: 10/10 typů doporučení má splnitelný trigger i funkční
+> cíl (ověřen i převod jednotek completion rate), `@home_preferences` má jediného
+> zapisovatele, 4/4 quick actions mají konzumenta parametru, multiplikátor bez
+> vlastního odpočtu, citát dne deterministický. **Opraveno**: N-11.3 (tmavý text
+> natvrdo na motivem řízeném pozadí → v tmavém režimu nečitelné; oba modály výzev
+> vč. přehlédnutého ternárního bloku), N-11.1+N-11.2 (StreakHistoryGraph:
+> `getAll()` celé historie → 30 indexovaných `countByDate`; mrtvý filtr pryč),
+> N-11.4 (2× čistě černé pozadí → backgroundSecondary). **N-11.5 ODVOLÁNO** —
+> po Petrově dotazu ověřeno, že `colors.shadow` je v tmavém režimu `transparent`,
+> takže theme systém pravidlo vynucuje sám (validátorovo pravidlo 3 je příliš
+> hrubé). XP za doporučení: neimplementovat (byl by exploit) → smazat ve F13.
+> tsc 0, **464/464**. Zpráva: `docs/audits/super-audit-2026-07/faze-11-nalezy.md`.
+
 **Proč**: `src/components/home/` má 16 komponent, vlastní context
 (`HomeCustomizationContext`), vlastní storage (`homePreferencesStorage.ts`)
 a doporučovací engine (`recommendationEngine.ts` + `PersonalizedRecommendations`)
@@ -815,28 +829,28 @@ pro XP prvky.
 `src/services/storage/homePreferencesStorage.ts`,
 `src/services/recommendationEngine.ts`, `app/(tabs)/index.tsx`
 
-- [ ] 11.1 **recommendationEngine**: vylistuj všechny typy doporučení;
+- [x] 11.1 **recommendationEngine**: vylistuj všechny typy doporučení;
       pro každý ověř (a) podmínka vzniku je splnitelná reálnými daty,
       (b) tap vede na existující obrazovku/akci, (c) případné
       `RECOMMENDATION_FOLLOW` XP jde přes `addXP` a spadá pod
       ENGAGEMENT_MAX_DAILY (200). Kritérium: tabulka typ→trigger→cíl→XP.
-- [ ] 11.2 **HomeCustomizationContext + homePreferencesStorage**: zapnutí/
+- [x] 11.2 **HomeCustomizationContext + homePreferencesStorage**: zapnutí/
       vypnutí každého widgetu se uloží a přežije restart (🔶 device);
       storage klíč má jediného zapisovatele (grep).
-- [ ] 11.3 **Datová správnost widgetů**: `GratitudeStreakCard`,
+- [x] 11.3 **Datová správnost widgetů**: `GratitudeStreakCard`,
       `StreakVisualization`/`StreakHistoryGraph`, `WeeklyHabitChart`,
       `Monthly30DayChart`, `MonthlyHabitOverview`, `YearlyHabitOverview`,
       `HabitPerformanceIndicators`, `HabitTrendAnalysis`, `HabitStatsDashboard` —
       každý widget čte data výhradně přes contexty/SQLite storage (žádný
       přímý import legacy `*Storage.ts` — grep), a completion-rate čísla
       jdou přes sdílenou utilitu (vazba na 4.3).
-- [ ] 11.4 `QuickActionButtons` — každé tlačítko naviguje na existující
+- [x] 11.4 `QuickActionButtons` — každé tlačítko naviguje na existující
       route a respektuje tutoriál (nerozbíjí spotlight flow).
-- [ ] 11.5 `XpMultiplierSection` — zobrazený stav multiplikátoru = stav
+- [x] 11.5 `XpMultiplierSection` — zobrazený stav multiplikátoru = stav
       v `xpMultiplierService` (žádná vlastní kopie odpočtu času).
-- [ ] 11.6 `DailyMotivationalQuote` — deterministická denní rotace (stejný
+- [x] 11.6 `DailyMotivationalQuote` — deterministická denní rotace (stejný
       den = stejný citát), texty přes i18n (kompletnost řeší Fáze 12).
-- [ ] 11.7 **Theme compliance**: spusť projektový skill `theme-validator`
+- [x] 11.7 **Theme compliance**: spusť projektový skill `theme-validator`
       nad `src/components/home/` + `challenges/` + `achievements/`.
       Kritérium: 0 porušení, nebo každé porušení zapsané jako nález.
 
@@ -902,6 +916,25 @@ jasné co je "legacy ale používané" vs. "opravdu mrtvé".
       `src/utils/fixBeginnerTargetText.ts`, `src/services/socialSharingService.ts`,
       `src/services/hapticsService.ts` — jsou vůbec odněkud volané?
 - [ ] 13.5 `src/services/storage/backup.ts` BLOCKER komentář pořád na místě.
+- [ ] 13.7 **`RECOMMENDATION_FOLLOW` XP — smazat celou mrtvou infrastrukturu**
+      (schváleno Petrem 2026-07-21, super audit Fáze 11): XP se **nikdy
+      neuděluje** (grep: 0 producentů `addXP` s tímto zdrojem), trofej
+      `recommendation-master` už byla smazána ve Fázi 2.
+      ⚠️ **NEIMPLEMENTOVAT** — naivní odměna za tap na kartu doporučení =
+      exploit (karta je trvale na Home, tap jen naviguje → 5×/den × 30 XP =
+      150 XP zadarmo); poctivá detekce „uživatel doporučení opravdu následoval"
+      je mimo plán.
+      Rozsah ke smazání (ověřit grepem, pozor na switch/exhaustiveness):
+      `XPSourceType.RECOMMENDATION_FOLLOW` (types/gamification.ts),
+      `XP_REWARDS.ENGAGEMENT.RECOMMENDATION_FOLLOW` + jeho `XP_SOURCE_CONFIG`
+      blok (constants/gamification.ts:58, 191-194), mapování v
+      `gamification/xpLimits.ts:83`, case v `XpNotification.tsx:71` a
+      `XpPopupAnimation.tsx:106,153`, `achievementService.ts:988`,
+      `achievementIntegration.ts:682` (+ zbytek `recommendations_followed`
+      case a placeholder ×0,3 z Fáze 2), `marketingDemoDataService.ts:494`,
+      `gamificationService.ts:2243, 2371`.
+      Pozn.: **samotný recommendationEngine a karty na Home ZŮSTÁVAJÍ** —
+      funkčně jsou v pořádku (Fáze 11), maže se jen nikdy nepoužitá XP větev.
 - [ ] 13.6 Root-level `.md` soubory → jen SEZNAM s návrhem přesunu do
       `docs/archive/` (N32) — žádné hromadné přesuny v rámci auditu,
       rozhodne Petr.
@@ -969,7 +1002,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv | ✅ HOTOVO 2026-07-20 (3 krit. pravidla ✓; N-10.1 retry short-circuit + N-10.2 netransakční restore opraveny, N-10.3 ponecháno; 451/451)
 | 14 | Fáze 7 | | ✅ HOTOVO 2026-07-20 (vážený výběr ✓ dle guide; N-7.1 navigace k Cílům, N-7.3/7.4 výkon, N-7.5 datumové pole, N-7.6 mrtvý kód; **rozšíření: cíle jako 4. volba večerní zprávy, váha 40**; nová suite 13 testů — fáze měla 0; 464/464)
 | 15 | Fáze 8 + 9 | | ✅ HOTOVO 2026-07-21 (F8: achievement handshake vzorový ✓, smazána mrtvá help telemetrie, sdílený modul tutoriálových klíčů. F9: anti-abuse ✓, recordError 4/4 ✓, ad IDs ✓; **demo mode maže vše bez zálohy → přidáno tvrdé potvrzení před načtením** (dosud žádné!), gating v produkci ověřen ✓. 464/464)
-| 16 | Fáze 11 | až po 1 a 4 |
+| 16 | Fáze 11 | až po 1 a 4 | ✅ HOTOVO 2026-07-21 (10/10 doporučení OK vč. kontroly jednotek; opraven nečitelný tmavý text v modálech výzev, StreakHistoryGraph už nenačítá celou historii, 2× čistě černé pozadí; **nález o stínech ODVOLÁN** — colors.shadow je v dark transparent; XP za doporučení → F13; 464/464)
 | 17 | Fáze 12 | až po 2, 3, 7 |
 | 18 | Fáze 13 | vždy poslední |
 | 🔶 | Device sezení: 2i + 3e + 10.6 + 11.2 | dělá Petr se zařízením, ideálně po #9 |

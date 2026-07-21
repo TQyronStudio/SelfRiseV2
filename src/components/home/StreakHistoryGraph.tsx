@@ -74,22 +74,28 @@ export function StreakHistoryGraph() {
     try {
       setIsLoading(true);
 
-      // Get all journal entries
-      const allJournalEntries = await gratitudeStorage.getAll();
-
-      // Generate journal entries count history for the last 30 days
-      const history: JournalPoint[] = [];
+      // N-11.1: count the 30 displayed days with indexed per-day queries instead
+      // of loading the user's ENTIRE journal history and filtering it in JS
+      // (that grew unboundedly and ran on every Home render).
+      // N-11.2: the old "exclude 'Streak recovery - Ad watched' fake entries"
+      // filter was dropped — only the legacy AsyncStorage path ever created such
+      // entries; in the live SQLite path warm-up payments live in the
+      // `warm_up_payments` table and never touch journal_entries.
       const endDate = today();
+      const dates: string[] = [];
+      for (let i = DAYS_TO_SHOW - 1; i >= 0; i--) {
+        dates.push(subtractDays(endDate, i));
+      }
+      const counts = await Promise.all(
+        dates.map(date => gratitudeStorage.countByDate(date as DateString))
+      );
+
+      const history: JournalPoint[] = [];
       let currentAxisMax = AXIS_MIN; // Y-axis scale only — grows past AXIS_MIN if a day exceeds it
 
-      for (let i = DAYS_TO_SHOW - 1; i >= 0; i--) {
-        const date = subtractDays(endDate, i);
-        // BUG #3 FIX: Exclude fake entries created by debt recovery system
-        const dayEntries = allJournalEntries.filter((entry: { date: string; content: string }) =>
-          entry.date === date &&
-          !entry.content.includes('Streak recovery - Ad watched') // Exclude fake entries
-        );
-        const count = dayEntries.length;
+      for (let idx = 0; idx < dates.length; idx++) {
+        const date = dates[idx]!;
+        const count = counts[idx]!;
 
         history.push({
           date,

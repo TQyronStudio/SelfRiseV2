@@ -233,7 +233,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
     },
 
     collectionCard: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.backgroundSecondary,
       borderRadius: 12,
       padding: 16,
       marginBottom: 12,
