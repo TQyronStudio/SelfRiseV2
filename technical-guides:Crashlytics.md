@@ -20,10 +20,12 @@ crash-free rate a posílá velocity alerty na e-mail.
 **Consent gating (privacy-first):**
 - `firebase.json`: `crashlytics_auto_collection_enabled: false` — sběr je
   vypnutý, dokud ho kód nezapne.
-- `adConsentService.initializeAdsWithConsent()` → po dokončení UMP privacy flow
+- `adConsentService.finalizeAdsAndDiagnostics()` → po dokončení UMP privacy flow
   volá `CrashReportingService.enable()`. Sběr tedy nikdy nezačne dřív, než
   uživatel viděl privacy formulář. Jediné call-site — případné zpřísnění
   (strict opt-in) se dělá tam.
+  *(Funkce se do 14. 7. 2026 jmenovala `initializeAdsWithConsent()`; přejmenována
+  při zavedení Startup Orchestratoru — název opraven při super auditu, N-9.1.)*
 
 **API wrapperu:**
 - `enable()` / `disable()` — zapnutí/vypnutí sběru

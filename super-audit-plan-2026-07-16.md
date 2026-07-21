@@ -667,26 +667,44 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 
 ## FÁZE 8 — Tutorial + Help Tooltips: PLNÝ datový audit
 
+> ✅ **PROVEDENO 2026-07-21 (Fable, session #15)** — 4/4 položky, brána ✓.
+> Achievement handshake je vzorový (armed → snapshot → event → 120s pojistka,
+> žádný leak). **Opraveno**: N-8.3 smazána kompletně mrtvá telemetrie Help
+> Tooltips (2 služby + 6 volání — data nikdo nikdy nečetl), N-8.1 tutoriálové
+> storage klíče do sdíleného `src/constants/tutorialStorageKeys.ts` (duplikát
+> literálu v XpAnimationContext mohl tiše vypnout potlačení level-up modalu).
+> tsc 0, **464/464**. Zpráva: `docs/audits/super-audit-2026-07/faze-8-nalezy.md`.
+
 **Guide**: `technical-guides:Tutorial.md`, `technical-guides:Help-Tooltips.md`
 
 **Soubory**: `src/contexts/TutorialContext.tsx`, `src/utils/tutorialAchievementGate.ts`,
 `src/services/helpAnalyticsService.ts`, `src/services/helpPerformanceMonitor.ts`
 
-- [ ] 8.0 Spusť `tutorialAchievementGate.test.ts` (4 testy) — baseline.
-- [ ] 8.1 `onboarding_tutorial_completed` / `onboarding_current_step` —
+- [x] 8.0 Spusť `tutorialAchievementGate.test.ts` (4 testy) — baseline.
+- [x] 8.1 `onboarding_tutorial_completed` / `onboarding_current_step` —
       žádný jiný kód mimo TutorialContext tyhle klíče nečte/nepíše
       (kritérium: grep obou klíčů přes `src/` + `app/`, každý hit mimo
       TutorialContext = nález).
-- [ ] 8.2 Achievement handshake (`armTutorialAchievementGate`) — projdi
+- [x] 8.2 Achievement handshake (`armTutorialAchievementGate`) — projdi
       celý stavový model znovu (armed před vznikem entity → snapshot →
       potvrzení eventem → čekání na zavření modalu s 120s pojistkou).
-- [ ] 8.3 Help Tooltips — `help_tooltip_shown`/`help_tooltip_dismissed`
+- [x] 8.3 Help Tooltips — `help_tooltip_shown`/`help_tooltip_dismissed`
       eventy se reálně odesílají (najdi emit i konzumenta —
       `helpAnalyticsService.ts`; event bez konzumenta = nález ❌).
 
 ---
 
 ## FÁZE 9 — AdMob + Crashlytics + Marketing Demo Mode: PLNÝ audit
+
+> ✅ **PROVEDENO 2026-07-21 (Fable, session #15)** — 4/4 položky, brána ✓.
+> Anti-abuse (reklama nikdy nedá XP) drží přímo i nepřímo ✅; recordError 4/4
+> shoda s guide ✅; dev/prod ad-unit ID kompletní ✅. **N-9.2**: Marketing Demo
+> Mode maže 28 tabulek bez zálohy a „vypnutí" data neobnoví — načtení demo dat
+> přitom NEMĚLO žádné potvrzení; přidán tvrdý potvrzovací dialog (rozhodnutí
+> Petra: „stačí bod 1"), záloha vědomě odložena. Gating v produkci ověřen až do
+> build konfigurace ✅ (env proměnná nikde nenastavená). N-9.3 příznak hned za
+> COMMIT, N-9.1 doc oprava. tsc 0, **464/464**.
+> Zpráva: `docs/audits/super-audit-2026-07/faze-9-nalezy.md`.
 
 **Guide**: `technical-guides:AdMob.md`, `technical-guides:Crashlytics.md`
 
@@ -695,15 +713,15 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 `src/components/gratitude/StreakWarmUpModal.tsx` + `WarmUpModals.tsx`,
 `src/services/marketingDemoModeService.ts`, `src/services/marketingDemoDataService.ts`
 
-- [ ] 9.1 **Rewarded ad nikdy neuděluje XP** (anti-abuse critical rule) —
+- [x] 9.1 **Rewarded ad nikdy neuděluje XP** (anti-abuse critical rule) —
       grep přes `adService.ts` + `StreakWarmUpModal.tsx` + `WarmUpModals.tsx`,
       potvrď žádná cesta k `addXP` po `EARNED_REWARD`.
-- [ ] 9.2 Crashlytics `recordError` zapojený jen na katastrofické cesty
+- [x] 9.2 Crashlytics `recordError` zapojený jen na katastrofické cesty
       (DB init, streak calc, monthly progress, harmony multiplier) — žádné
       nové šumové volání (kritérium: vylistuj všechna call-sites
       `recordError`, každé přiřaď ke kategorii z guide).
-- [ ] 9.3 Dev/prod ad-unit-ID přepínání (`__DEV__`) — potvrď úplnost.
-- [ ] 9.4 **Marketing Demo Mode** (v plánu dosud chyběl; vstupy:
+- [x] 9.3 Dev/prod ad-unit-ID přepínání (`__DEV__`) — potvrď úplnost.
+- [x] 9.4 **Marketing Demo Mode** (v plánu dosud chyběl; vstupy:
       `app/(tabs)/settings.tsx`, `AdBanner.tsx`): `marketingDemoDataService.ts`
       zapisuje mj. do reálné `xp_multipliers` tabulky. Ověř binárně:
       (a) aktivace demo módu NIKDY nepřepíše produkční data bez úplné zálohy;
@@ -950,7 +968,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 12 | Fáze 6 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-20 (ČISTÁ fáze, 4 nálezy nízké priority N-6.1..6.4 VŠECHNY opraveny; N-6.3 po stat.+empir. ověření redundance; 451/451, F2+F3 ✓)
 | 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv | ✅ HOTOVO 2026-07-20 (3 krit. pravidla ✓; N-10.1 retry short-circuit + N-10.2 netransakční restore opraveny, N-10.3 ponecháno; 451/451)
 | 14 | Fáze 7 | | ✅ HOTOVO 2026-07-20 (vážený výběr ✓ dle guide; N-7.1 navigace k Cílům, N-7.3/7.4 výkon, N-7.5 datumové pole, N-7.6 mrtvý kód; **rozšíření: cíle jako 4. volba večerní zprávy, váha 40**; nová suite 13 testů — fáze měla 0; 464/464)
-| 15 | Fáze 8 + 9 | |
+| 15 | Fáze 8 + 9 | | ✅ HOTOVO 2026-07-21 (F8: achievement handshake vzorový ✓, smazána mrtvá help telemetrie, sdílený modul tutoriálových klíčů. F9: anti-abuse ✓, recordError 4/4 ✓, ad IDs ✓; **demo mode maže vše bez zálohy → přidáno tvrdé potvrzení před načtením** (dosud žádné!), gating v produkci ověřen ✓. 464/464)
 | 16 | Fáze 11 | až po 1 a 4 |
 | 17 | Fáze 12 | až po 2, 3, 7 |
 | 18 | Fáze 13 | vždy poslední |

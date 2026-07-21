@@ -38,6 +38,8 @@ export default function SettingsScreen() {
   const [isClearingMarketingDemo, setIsClearingMarketingDemo] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [showClearDemoConfirmation, setShowClearDemoConfirmation] = useState(false);
+  const [showLoadDemoConfirmation, setShowLoadDemoConfirmation] = useState(false);
+  const [pendingDemoLocale, setPendingDemoLocale] = useState<'en' | 'de' | 'es' | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -203,6 +205,14 @@ export default function SettingsScreen() {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  // Loading demo data WIPES every real table first (marketingDemoDataService
+  // .clearDemoData → DELETE FROM 28 tables, no backup). Never run it straight
+  // from a button press — always via the destructive confirmation below (N-9.2).
+  const requestLoadMarketingDemoData = (seedLocale?: 'en' | 'de' | 'es') => {
+    setPendingDemoLocale(seedLocale ?? null);
+    setShowLoadDemoConfirmation(true);
   };
 
   const handleLoadMarketingDemoData = async (seedLocale?: 'en' | 'de' | 'es') => {
@@ -449,7 +459,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>Marketing Demo</Text>
             <TouchableOpacity
               style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
-              onPress={() => handleLoadMarketingDemoData()}
+              onPress={() => requestLoadMarketingDemoData()}
               disabled={isLoadingMarketingDemo}
             >
               <View style={styles.menuItemLeft}>
@@ -476,7 +486,7 @@ export default function SettingsScreen() {
 
             <TouchableOpacity
               style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
-              onPress={() => handleLoadMarketingDemoData('de')}
+              onPress={() => requestLoadMarketingDemoData('de')}
               disabled={isLoadingMarketingDemo}
             >
               <View style={styles.menuItemLeft}>
@@ -495,7 +505,7 @@ export default function SettingsScreen() {
 
             <TouchableOpacity
               style={[styles.menuItem, isLoadingMarketingDemo && styles.menuItemDisabled]}
-              onPress={() => handleLoadMarketingDemoData('es')}
+              onPress={() => requestLoadMarketingDemoData('es')}
               disabled={isLoadingMarketingDemo}
             >
               <View style={styles.menuItemLeft}>
@@ -582,12 +592,45 @@ export default function SettingsScreen() {
         visible={showClearDemoConfirmation}
         onClose={() => setShowClearDemoConfirmation(false)}
         onConfirm={handleClearMarketingDemoData}
-        title="Clear Marketing Demo Data?"
-        message="This removes the seeded demo habits, goals, journal entries, XP, achievements, and challenge data. It also turns AdMob banners back on."
-        confirmText="Clear"
+        title="Clear ALL data?"
+        message={
+          "⚠️ This WIPES EVERY table — demo data AND anything real that is still there: " +
+          "habits, completions, goals, progress, journal entries, streak, XP, achievements " +
+          "and challenges.\n\nThere is NO backup and NO undo — the app will be left empty. " +
+          "It also turns AdMob banners back on."
+        }
+        confirmText="Wipe everything"
         cancelText={t('settings.cancel')}
         confirmButtonColor={colors.error}
         emoji="🗑️"
+      />
+
+      {/* N-9.2: loading demo data is destructive — it deletes every real row
+          first and there is no backup. Confirm explicitly, every time. */}
+      <ConfirmationModal
+        visible={showLoadDemoConfirmation}
+        onClose={() => {
+          setShowLoadDemoConfirmation(false);
+          setPendingDemoLocale(null);
+        }}
+        onConfirm={() => {
+          const locale = pendingDemoLocale;
+          setShowLoadDemoConfirmation(false);
+          setPendingDemoLocale(null);
+          handleLoadMarketingDemoData(locale ?? undefined);
+        }}
+        title="Delete ALL your data and load demo?"
+        message={
+          "⚠️ Loading the marketing demo FIRST DELETES everything currently in the app: " +
+          "habits, completions, goals, progress, journal entries, streak, XP, achievements " +
+          "and challenges.\n\nThere is NO backup and NO undo. Turning demo mode off later " +
+          "does NOT bring your data back — it only empties the app again.\n\n" +
+          "Only continue on a device with no real data you care about."
+        }
+        confirmText="Delete my data & load demo"
+        cancelText={t('settings.cancel')}
+        confirmButtonColor={colors.error}
+        emoji="⚠️"
       />
 
       {/* Success Modal */}

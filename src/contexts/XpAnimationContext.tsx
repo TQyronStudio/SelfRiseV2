@@ -5,9 +5,13 @@ import { impact as hapticImpact, ImpactFeedbackStyle } from '../services/haptics
 import { XPSourceType } from '../types/gamification';
 import { useModalQueue, ModalPriority } from './ModalQueueContext';
 
-// Tutorial storage keys (duplicated here to avoid circular dependency with TutorialContext)
-const TUTORIAL_COMPLETED_KEY = 'onboarding_tutorial_completed';
-const TUTORIAL_SKIPPED_KEY = 'onboarding_tutorial_skipped';
+// Tutorial storage keys — shared, dependency-free module (no circular import with
+// TutorialContext). Duplicating these literals silently broke level-up modal
+// suppression on rename → iOS dual-modal freeze (super audit N-8.1).
+import { TUTORIAL_STORAGE_KEYS } from '../constants/tutorialStorageKeys';
+
+const TUTORIAL_COMPLETED_KEY = TUTORIAL_STORAGE_KEYS.COMPLETED;
+const TUTORIAL_SKIPPED_KEY = TUTORIAL_STORAGE_KEYS.SKIPPED;
 
 // ========================================
 // TYPES AND INTERFACES

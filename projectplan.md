@@ -270,6 +270,39 @@
 > N-7.2 (ruční pluralizace) vědomě odloženo. tsc 0, **464/464 (31/31 suites)** ✓.
 > Cross-impact netřeba (samé čtecí změny). **Nápad „doplnění zapomenutého dne"
 > zapsán do @projectplan-future-updates.md → Phase 7: Make-up Past Days.**
+>
+> 🔍 **Session #15 (Fáze 8 + 9) AUDITNÍ ČÁST HOTOVÁ 2026-07-21 (Fable)**:
+> 8/8 položek (4+4), brány úplnosti ✓, baseline tsc 0 + 464/464 ✓.
+> **Fáze 8 (Tutorial + Help Tooltips)**: achievement handshake je vzorový
+> (armed před vznikem entity → snapshot → potvrzení eventem → 120s pojistka,
+> žádný leak listenerů) ✅. Nálezy: **N-8.3 [STŘEDNÍ]** — telemetrie Help
+> Tooltips je write-only (5 typů událostí + měření výkonu se ukládají do
+> AsyncStorage, ale všech 8 čtecích metod má 0 volajících a data nikam
+> neodcházejí); **N-8.1 [STŘEDNÍ]** — tutoriálové storage klíče duplikované
+> jako literály v XpAnimationContext (přejmenování tiše vypne potlačení
+> level-up modalu → dual-modal freeze).
+> **Fáze 9 (AdMob + Crashlytics + Demo Mode)**: anti-abuse pravidlo (reklama
+> nikdy nedá XP) drží přímo i nepřímo ✅, recordError 4/4 shoda s guide ✅,
+> dev/prod ad-unit ID kompletní ✅. **N-9.2 [VYSOKÁ pro demo-enabled build]** —
+> zapnutí Marketing Demo Mode **nenávratně smaže všechna reálná data**
+> (`DELETE FROM` 28 tabulek bez WHERE, **záloha neexistuje**) a „vypnutí" je
+> neobnoví, jen znovu vymaže → prázdná appka. **Riziko ohraničeno: v produkčním
+> buildu se sekce vůbec nevykreslí** (env proměnná není nikde nastavená) ✅ —
+> ohrožen je Petr při vlastní marketingové práci. Opravy zatím NEprovedeny (E1).
+> Zprávy: @docs/audits/super-audit-2026-07/faze-8-nalezy.md,
+> @docs/audits/super-audit-2026-07/faze-9-nalezy.md
+>
+> ✅ **Session #15 — opravy FÁZÍ 8+9 PROVEDENY 2026-07-21 (Fable)**:
+> **N-9.2 (rozhodnutí „stačí bod 1")** — klíčové zjištění při opravě: destruktivní
+> je NAČTENÍ demo dat, které dosud **nemělo žádné potvrzení** (spouštělo se přímo
+> z tlačítka). Přidán tvrdý potvrzovací dialog („Delete ALL your data and load
+> demo?") na všechna 3 tlačítka + zpřísněn text u mazání. Záloha vědomě
+> neimplementována — demo mód nadále maže nenávratně, ale až po explicitním
+> varování. **N-8.3** — smazána mrtvá telemetrie Help Tooltips (2 služby + 6
+> volání + osiřelé refy). **N-8.1** — nový `src/constants/tutorialStorageKeys.ts`
+> jako jediný zdroj pravdy pro onboarding klíče. **N-9.3** — příznak demo módu
+> hned za COMMIT. **N-9.1** — doc oprava v Crashlytics guide.
+> tsc 0, **464/464 (31/31 suites)** ✓.
 
 ---
 

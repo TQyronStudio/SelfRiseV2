@@ -1207,6 +1207,13 @@ export async function loadMarketingDemoData(locale: MarketingDemoLocale = 'en'):
     throw error;
   }
 
+  // N-9.3: flag the demo mode IMMEDIATELY after the commit. SQLite and
+  // AsyncStorage cannot share a transaction, so a window where the DB holds demo
+  // data while the flag still says "off" is unavoidable — but it must be as
+  // short as possible. Doing it here (instead of after the legacy seed and the
+  // event emits) shrinks it to a single await.
+  await setMarketingDemoModeEnabled(true);
+
   await seedLegacyGamificationData(content);
   const totalXP = getDemoTotalXP();
   const currentLevel = getCurrentLevel(totalXP);
@@ -1225,7 +1232,6 @@ export async function loadMarketingDemoData(locale: MarketingDemoLocale = 'en'):
     triggerSource: XPSourceType.DAILY_ACTIVITY,
     isMilestone: false,
   });
-  await setMarketingDemoModeEnabled(true);
   DeviceEventEmitter.emit('monthly_challenge_challenge_generated', { challengeId: 'marketing-challenge-balanced-month' });
   DeviceEventEmitter.emit('monthly_progress_updated', { challengeId: 'marketing-challenge-balanced-month' });
 

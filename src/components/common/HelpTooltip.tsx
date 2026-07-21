@@ -14,8 +14,6 @@ import { Fonts, Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
-import HelpAnalyticsService from '@/src/services/helpAnalyticsService';
-import HelpPerformanceMonitor from '@/src/services/helpPerformanceMonitor';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -55,11 +53,6 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const triggerRef = useRef<View>(null);
   const tooltipId = useRef(`tooltip-${Date.now()}-${Math.random()}`).current;
-  const openTimestamp = useRef<number | null>(null);
-  const performanceMeasurement = useRef<{
-    endMeasurement: () => void;
-    markAnimationFrame: () => void;
-  } | null>(null);
 
   // Get help content from i18n
   const helpContent = t(`help.${helpKey}`, {
@@ -162,13 +155,6 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
 
     setActualPosition(finalPosition as 'top' | 'bottom' | 'left' | 'right');
 
-    // Defer analytics to avoid impacting position calculation performance
-    setTimeout(() => {
-      HelpAnalyticsService.trackHelpInteraction('tooltip_position_changed', helpKey, {
-        position: finalPosition as 'top' | 'bottom' | 'left' | 'right',
-      });
-    }, 0);
-
     return { x, y };
   };
 
@@ -178,32 +164,11 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
 
     if (triggerRef.current) {
       triggerRef.current.measureInWindow((x, y, width, height) => {
-        // Start performance monitoring just before UI updates
-        performanceMeasurement.current = HelpPerformanceMonitor.startRenderMeasurement(helpKey);
-
         const layout = { x, y, width, height };
         setTriggerLayout(layout);
         const position = calculateTooltipPosition(layout);
         setTooltipPosition(position);
         setIsVisible(true);
-        openTimestamp.current = Date.now();
-
-        // End performance measurement immediately after UI state changes
-        if (performanceMeasurement.current) {
-          performanceMeasurement.current.endMeasurement();
-          performanceMeasurement.current = null;
-        }
-
-        // Defer analytics to next tick to not impact render performance
-        setTimeout(() => {
-          HelpAnalyticsService.trackHelpInteraction('tooltip_opened', helpKey, {
-            position: actualPosition,
-            screenName: 'unknown'
-          });
-          HelpAnalyticsService.trackHelpInteraction('help_content_viewed', helpKey, {
-            position: actualPosition,
-          });
-        }, 0);
 
         // Animate in - simplified for better performance
         Animated.parallel([
@@ -224,25 +189,6 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   };
 
   const handleHideTooltip = () => {
-    // Calculate viewing duration for analytics
-    const viewingDuration = openTimestamp.current
-      ? Date.now() - openTimestamp.current
-      : undefined;
-
-    // Defer analytics to not block hide animation
-    setTimeout(() => {
-      HelpAnalyticsService.trackHelpInteraction('tooltip_closed', helpKey, {
-        position: actualPosition,
-      });
-
-      if (viewingDuration !== undefined) {
-        HelpAnalyticsService.trackHelpInteraction('help_content_duration', helpKey, {
-          duration: viewingDuration,
-          position: actualPosition,
-        });
-      }
-    }, 0);
-
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -256,7 +202,6 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
       }),
     ]).start(() => {
       setIsVisible(false);
-      openTimestamp.current = null;
       if (currentOpenTooltip === tooltipId) {
         currentOpenTooltip = null;
       }

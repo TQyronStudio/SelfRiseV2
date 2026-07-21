@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode, useRef } from 'react';
+import { TUTORIAL_STORAGE_KEYS } from '../constants/tutorialStorageKeys';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -113,16 +114,19 @@ type TutorialAction =
   | { type: 'HIDE_USER_FEEDBACK' };
 
 // Storage Keys
-const TUTORIAL_STORAGE_KEY = 'onboarding_tutorial_completed';
-const TUTORIAL_STEP_KEY = 'onboarding_current_step';
-const TUTORIAL_SKIPPED_KEY = 'onboarding_tutorial_skipped';
-const TUTORIAL_SESSION_KEY = 'onboarding_tutorial_session';
-const TUTORIAL_SESSION_TIMESTAMP_KEY = 'onboarding_tutorial_timestamp';
-const TUTORIAL_CRASH_LOG_KEY = 'onboarding_tutorial_crash_log';
-const TUTORIAL_ERROR_COUNT_KEY = 'onboarding_tutorial_error_count';
-const TUTORIAL_RECOVERY_STATE_KEY = 'onboarding_tutorial_recovery_state';
-const TUTORIAL_RESTARTED_KEY = 'onboarding_tutorial_restarted'; // Flag for restarted tutorials
-const ONBOARDING_PREFS_KEY = 'onboarding_prefs_completed'; // Flag: language + theme chosen on first launch
+// Keys live in a shared, dependency-free module so XpAnimationContext (which
+// reads COMPLETED/SKIPPED to suppress the level-up modal during the tutorial)
+// cannot drift out of sync with them — see N-8.1 in the super audit.
+const TUTORIAL_STORAGE_KEY = TUTORIAL_STORAGE_KEYS.COMPLETED;
+const TUTORIAL_STEP_KEY = TUTORIAL_STORAGE_KEYS.CURRENT_STEP;
+const TUTORIAL_SKIPPED_KEY = TUTORIAL_STORAGE_KEYS.SKIPPED;
+const TUTORIAL_SESSION_KEY = TUTORIAL_STORAGE_KEYS.SESSION;
+const TUTORIAL_SESSION_TIMESTAMP_KEY = TUTORIAL_STORAGE_KEYS.SESSION_TIMESTAMP;
+const TUTORIAL_CRASH_LOG_KEY = TUTORIAL_STORAGE_KEYS.CRASH_LOG;
+const TUTORIAL_ERROR_COUNT_KEY = TUTORIAL_STORAGE_KEYS.ERROR_COUNT;
+const TUTORIAL_RECOVERY_STATE_KEY = TUTORIAL_STORAGE_KEYS.RECOVERY_STATE;
+const TUTORIAL_RESTARTED_KEY = TUTORIAL_STORAGE_KEYS.RESTARTED; // Flag for restarted tutorials
+const ONBOARDING_PREFS_KEY = TUTORIAL_STORAGE_KEYS.PREFS_COMPLETED; // Flag: language + theme chosen on first launch
 
 // Animation Specifications
 export const TUTORIAL_ANIMATIONS = {
