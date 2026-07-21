@@ -627,6 +627,19 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 
 ## FÁZE 7 — Notifications: PLNÝ audit
 
+> ✅ **PROVEDENO 2026-07-20 (Fable, session #14)** — 5/5 položek, brána
+> úplnosti ✓. Vážený výběr večerních zpráv odpovídá guide do posledního
+> vzorce; early-exit „vše hotovo → nic" ✓; i18n kompletní EN/DE/ES; hook
+> mountnutý 1× a Startup refaktor ho neodpojil. **Opraveno**: N-7.1 (tap na
+> notifikaci konečně umí poslat do Cílů), N-7.3/N-7.4 (analyzátor při každém
+> foregroundu: N+1 dotazů → 1 indexovaný; celá historie deníku → dotaz na
+> dnešek), N-7.5 (rozhoduje pole `date`, ne časové razítko), N-7.6 (mrtvý kód).
+> **Rozšíření dle rozhodnutí Petra**: cíle jako 4. volba večerní zprávy
+> (fixní váha 40) + i18n. **Nová regresní suite 13 testů** (fáze měla 0).
+> N-7.2 (ruční pluralizace) vědomě odloženo. Guide srovnán (zastaralá
+> prioritní ukázka nahrazena, doplněna Option 4). tsc 0, **464/464 (31/31)**.
+> Zpráva: `docs/audits/super-audit-2026-07/faze-7-nalezy.md`.
+
 **Guide**: `technical-guides:Notifications.md`
 
 **Soubory**: `src/services/notifications/notificationService.ts`,
@@ -634,17 +647,17 @@ streak-milestone XP zdokumentované jako TODO — ověř aktuální stav.
 `src/hooks/useNotificationLifecycle.ts`,
 `src/components/settings/NotificationSettings.tsx`
 
-- [ ] 7.1 **Weighted random selection** (večerní notifikace): incomplete
+- [x] 7.1 **Weighted random selection** (večerní notifikace): incomplete
       habits `(incomplete/scheduledToday)×100` (jen DNES naplánované, ne
       všechny aktivní), missing journal `((3-count)/3)×100`, bonus entries
       fixed 15 (jen při 3+ základních zápisech).
-- [ ] 7.2 **"No notification if all requirements met"** — explicitní
+- [x] 7.2 **"No notification if all requirements met"** — explicitní
       early-exit, ne fallback na náhodný text.
-- [ ] 7.3 **Smart tap navigation**: `progressAnalyzer.analyzeDailyProgress()`
+- [x] 7.3 **Smart tap navigation**: `progressAnalyzer.analyzeDailyProgress()`
       volané ZNOVU při tapu, ne cachovaná hodnota.
-- [ ] 7.4 **i18n pluralizace** (`body_one`/`body_other`) — kompletnost EN/DE/ES
+- [x] 7.4 **i18n pluralizace** (`body_one`/`body_other`) — kompletnost EN/DE/ES
       (jen notifikační klíče; plošný i18n audit je Fáze 12).
-- [ ] 7.5 `useNotificationLifecycle` po Startup Orchestrator refaktoru (14.7.):
+- [x] 7.5 `useNotificationLifecycle` po Startup Orchestrator refaktoru (14.7.):
       kritérium — hook je mountnutý právě JEDNOU (v `app/_layout.tsx` /
       `RootProvider`), jeho listenery se při unmountu odregistrují, a
       `git log --oneline --since=2026-07-14 -- src/hooks/useNotificationLifecycle.ts app/_layout.tsx`
@@ -936,7 +949,7 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 11 | Fáze 5 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-19 (10 nálezů N-5.1–5.9+5.3b vyřešeno, 445/445, F2+F3 ✓)
 | 12 | Fáze 6 | poté cross-impact: suites F2+F3 | ✅ HOTOVO 2026-07-20 (ČISTÁ fáze, 4 nálezy nízké priority N-6.1..6.4 VŠECHNY opraveny; N-6.3 po stat.+empir. ověření redundance; 451/451, F2+F3 ✓)
 | 13 | Fáze 10 (statická část, bez 10.6) | lze předsunout kamkoliv | ✅ HOTOVO 2026-07-20 (3 krit. pravidla ✓; N-10.1 retry short-circuit + N-10.2 netransakční restore opraveny, N-10.3 ponecháno; 451/451)
-| 14 | Fáze 7 | |
+| 14 | Fáze 7 | | ✅ HOTOVO 2026-07-20 (vážený výběr ✓ dle guide; N-7.1 navigace k Cílům, N-7.3/7.4 výkon, N-7.5 datumové pole, N-7.6 mrtvý kód; **rozšíření: cíle jako 4. volba večerní zprávy, váha 40**; nová suite 13 testů — fáze měla 0; 464/464)
 | 15 | Fáze 8 + 9 | |
 | 16 | Fáze 11 | až po 1 a 4 |
 | 17 | Fáze 12 | až po 2, 3, 7 |

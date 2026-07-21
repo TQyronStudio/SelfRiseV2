@@ -1988,6 +1988,10 @@ export interface TranslationKeys {
           title: string;
           body: string;
         };
+        goal_progress: {
+          title: string;
+          body: string;
+        };
         fallback: {
           title: string;
           body: string;

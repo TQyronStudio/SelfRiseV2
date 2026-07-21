@@ -126,6 +126,39 @@ weight = 15 (fixed nice-to-have weight)
 
 ---
 
+#### **Option 4: Goals Without Progress** 🎯
+
+*(přidáno 2026-07-20 — rozhodnutí Petra, super audit Fáze 7 / N-7.8)*
+
+**Condition**: User has at least one **active goal** AND added **no progress to any goal today**
+
+**Weight Calculation**:
+```typescript
+weight = 40 (fixed)
+```
+
+**Message**:
+- "Your goals are waiting 🎯"
+- "You haven't added progress to any goal today. Take one small step!"
+
+**Navigation**: Tapping notification → Goals tab
+
+**Why fixed 40 (not proportional)**: Goals are long-term. Requiring progress on
+*every* goal each day would be unrealistic and would let goals dominate the
+lottery. The meaningful daily question is "did you touch **any** goal today?" —
+which is exactly what `goalProgressAddedToday` answers.
+
+**Why 40 specifically**: clearly above the nice-to-have bonus (15), clearly
+below a fully neglected daily basic (100). A user who finished habits and the
+journal but ignored their goals gets the reminder; a user who neglected
+everything still hears about habits/journal first.
+
+**Requires**: `DailyTaskProgress.hasActiveGoals` (added with this option — the
+analyzer previously returned only the boolean `goalProgressAddedToday`, so the
+"has any goals at all" guard was impossible).
+
+---
+
 ### Selection Algorithm
 
 ```typescript
@@ -153,6 +186,14 @@ if (journalEntriesCount >= 3 && bonusEntriesCount < 10) {
   options.push({
     type: 'bonus',
     weight: 15
+  });
+}
+
+// Add goals if the user has active goals but touched none today (2026-07-20)
+if (hasActiveGoals && !goalProgressAddedToday) {
+  options.push({
+    type: 'goals',
+    weight: 40
   });
 }
 
@@ -517,32 +558,25 @@ class NotificationScheduler {
 }
 ```
 
-**Smart Message Selection**:
+**Smart Message Selection**: implementováno jako **vážené losování**, ne
+prioritní řetěz — viz sekce „Weighted Selection System" výše (ta je závazná).
+
 ```typescript
-private selectEveningMessage(progress: DailyProgress): string {
-  // Priority 1: Incomplete habits
-  if (progress.incompletedHabitsCount > 0) {
-    return t('notifications.evening.incompleteHabits.body', {
-      count: progress.incompletedHabitsCount
-    });
-  }
-
-  // Priority 2: Missing journal entries
-  if (!progress.hasThreeBasicEntries || progress.bonusEntriesCount < 10) {
-    const missing = calculateMissingEntries(progress);
-    return t('notifications.evening.missingJournal.body', { count: missing });
-  }
-
-  // Priority 3: Goals without progress
-  if (!progress.goalProgressAddedToday && progress.hasActiveGoals) {
-    return t('notifications.evening.goalProgress.body');
-  }
-
-  // Priority 4: Generic motivation
-  const genericMessages = t('notifications.evening.generic.messages');
-  return genericMessages[Math.floor(Math.random() * genericMessages.length)];
-}
+// notificationScheduler.generateSmartEveningMessage(progress)
+// Postaví seznam možností s vahami a jednu vylosuje:
+//   habits : (incomplete / scheduledToday) × 100   [jen když je dnes něco naplánováno]
+//   journal: ((3 - entries) / 3) × 100             [jen když chybí základní 3]
+//   bonus  : 15 (fixní)                            [jen když 3+ základních a < 10 bonusů]
+//   goals  : 40 (fixní)                            [jen když má aktivní cíl a dnes u něj
+//                                                    není žádný pokrok]  ← přidáno 2026-07-20
+// Když je seznam prázdný → vrací null → DNES SE NEPOSÍLÁ NIC (žádný fallback).
 ```
+
+> ⚠️ **Historická poznámka (super audit Fáze 7, N-7.8)**: do 2026-07-20 tu byla
+> ukázka s prioritním výběrem (`if habits … else if journal … else if goals`).
+> Ta **neodpovídala kódu** už od zavedení váženého systému a navíc slibovala
+> zprávu o cílech, kterou implementace neuměla. Prioritní ukázka byla nahrazena
+> popisem výše a volba pro cíle byla do kódu doplněna (váha 40).
 
 ---
 
@@ -798,9 +832,13 @@ Ensure expo-notifications plugin is present:
 - **Check**: Time zone settings (notifications use local time)
 - **Check**: Device Do Not Disturb settings
 
-**Issue**: Wrong message priority
-- **Debug**: Log progress analysis results
-- **Verify**: Priority logic in `selectEveningMessage()`
+**Issue**: Wrong / unexpected evening message
+- **Debug**: Log progress analysis results (`[ProgressAnalyzer] Daily progress analyzed`)
+- **Verify**: weights in `generateSmartEveningMessage()` — the pick is a WEIGHTED
+  LOTTERY, so an "unexpected" message is often correct behaviour (a low-weight
+  option legitimately winning). Check the logged `probability` in
+  `[NotificationScheduler] Weighted selection`.
+- **Regression suite**: `src/services/notifications/__tests__/notificationScheduler.test.ts`
 
 **Issue**: Notification tap not navigating
 - **Check**: `data.category` field in notification

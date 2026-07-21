@@ -51,6 +51,7 @@ export interface DailyTaskProgress {
   hasThreeBasicEntries: boolean;
   bonusEntriesCount: number;
   goalProgressAddedToday: boolean;
+  hasActiveGoals: boolean; // Needed to offer the goals evening reminder (N-7.8)
 }
 
 export interface SmartNotificationContent {

@@ -319,7 +319,7 @@ class NotificationScheduler {
    */
   private generateSmartEveningMessage(progress: DailyTaskProgress): SmartNotificationContent | null {
     interface NotificationOption {
-      type: 'habits' | 'journal' | 'bonus';
+      type: 'habits' | 'journal' | 'bonus' | 'goals';
       weight: number;
       message: SmartNotificationContent;
     }
@@ -388,6 +388,23 @@ class NotificationScheduler {
       });
     }
 
+    // Option 4: Goals with no progress today (N-7.8, approved 2026-07-20)
+    // Fixed weight 40: above the "nice-to-have" bonus (15) but below a fully
+    // neglected daily basic (100) — goals are long-term, so the meaningful
+    // daily question is "did you touch ANY goal today?", not "all of them".
+    if (progress.hasActiveGoals && !progress.goalProgressAddedToday) {
+      const template = eveningTemplates?.goal_progress || {};
+      options.push({
+        type: 'goals',
+        weight: 40,
+        message: {
+          title: template.title || 'Your goals are waiting 🎯',
+          body: template.body || 'You haven\'t made progress on any goal today. Add a small step!',
+          priority: NotificationPriority.DEFAULT,
+        },
+      });
+    }
+
     // If no options available, all tasks complete → no notification
     if (options.length === 0) {
       return null;
@@ -427,18 +444,9 @@ class NotificationScheduler {
     return options[0]!.message;
   }
 
-  /**
-   * Get fallback evening message
-   * Used when progress data is unavailable (app not opened all day)
-   */
-  private getFallbackEveningMessage(): SmartNotificationContent {
-    const template = i18n.t('notifications.reminders.evening.fallback', { returnObjects: true }) as any;
-    return {
-      title: template?.title || 'Evening check-in 🌙',
-      body: template?.body || 'Time for evening reflection! What did you accomplish today? 📝',
-      priority: NotificationPriority.DEFAULT,
-    };
-  }
+  // NOTE: getFallbackEveningMessage() was removed in the 2026-07 super audit
+  // (Fáze 7, N-7.6) — it had zero callers; getGenericEveningMessage() below is
+  // the one actually used for days with no progress data.
 
   /**
    * Get generic evening message for future days

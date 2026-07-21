@@ -14,22 +14,10 @@ import { getGoalStorageImpl } from '../../config/featureFlags';
 const goalStorage = getGoalStorageImpl();
 import { formatDateToString, getDayOfWeek } from '../../utils/date';
 import { Habit, HabitCompletion } from '../../types/habit';
-import { Gratitude } from '../../types/gratitude';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
 const habitStorage = getHabitStorageImpl();
-
-/**
- * Helper to check if two dates are on the same day
- */
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
 
 class ProgressAnalyzer {
   private static instance: ProgressAnalyzer;
@@ -91,23 +79,25 @@ class ProgressAnalyzer {
       // Count total scheduled for today (for weight calculation)
       const scheduledTodayCount = scheduledTodayHabits.length;
 
-      // Count habits that are scheduled TODAY and NOT completed today
-      let incompletedCount = 0;
+      // ONE indexed query for today's completions instead of one per habit
+      // (N-7.3: this runs on every app foreground — the N+1 loop scaled with
+      // the number of scheduled habits).
+      const todayDateString = formatDateToString(today);
+      const todayCompletions = await habitStorage.getCompletionsByDate(todayDateString);
 
-      for (const habit of scheduledTodayHabits) {
-        const completions = await habitStorage.getCompletionsByHabitId(habit.id);
-        const completedToday = completions.some((completion: HabitCompletion) => {
-          if (!completion.completedAt) return false;
-          const completionDate = completion.completedAt instanceof Date
-            ? completion.completedAt
-            : new Date(completion.completedAt);
-          return isSameDay(completionDate, today);
-        });
+      // N-7.5: a completion belongs to the day in its `date` field — NOT to the
+      // day it was tapped (`completedAt`). Using the timestamp silently breaks
+      // as soon as completing a past day becomes possible (see
+      // projectplan-future-updates.md → "Make-up Past Days").
+      const completedHabitIdsToday = new Set(
+        todayCompletions
+          .filter((completion: HabitCompletion) => completion.completed)
+          .map((completion: HabitCompletion) => completion.habitId)
+      );
 
-        if (!completedToday) {
-          incompletedCount++;
-        }
-      }
+      const incompletedCount = scheduledTodayHabits.filter(
+        (habit: Habit) => !completedHabitIdsToday.has(habit.id)
+      ).length;
 
       return {
         incompletedHabitsCount: incompletedCount,
@@ -129,15 +119,11 @@ class ProgressAnalyzer {
     today: Date
   ): Promise<Pick<DailyTaskProgress, 'journalEntriesCount' | 'hasThreeBasicEntries' | 'bonusEntriesCount'>> {
     try {
-      const allEntries = await gratitudeStorage.getAll();
-
-      // Filter entries from today
-      const todayEntries = allEntries.filter((entry: Gratitude) => {
-        const entryDate = entry.createdAt instanceof Date
-          ? entry.createdAt
-          : new Date(entry.createdAt);
-        return isSameDay(entryDate, today);
-      });
+      // N-7.4: indexed single-day query instead of getAll() + JS filter
+      // (getAll loaded the user's ENTIRE journal history on every foreground).
+      // N-7.5: getByDate keys off the entry's `date` field — the day the entry
+      // belongs to — not its creation timestamp.
+      const todayEntries = await gratitudeStorage.getByDate(formatDateToString(today));
 
       const entriesCount = todayEntries.length;
       const hasThreeBasicEntries = entriesCount >= 3;
@@ -163,10 +149,11 @@ class ProgressAnalyzer {
   /**
    * Analyze goals progress for today
    */
-  private async analyzeGoalsProgress(today: Date): Promise<Pick<DailyTaskProgress, 'goalProgressAddedToday'>> {
+  private async analyzeGoalsProgress(today: Date): Promise<Pick<DailyTaskProgress, 'goalProgressAddedToday' | 'hasActiveGoals'>> {
     try {
       const goals = await goalStorage.getAll();
       const activeGoals = goals.filter((goal) => goal.status === 'active');
+      const hasActiveGoals = activeGoals.length > 0;
 
       const todayDateString = formatDateToString(today);
 
@@ -180,17 +167,20 @@ class ProgressAnalyzer {
         if (hasProgressToday) {
           return {
             goalProgressAddedToday: true,
+            hasActiveGoals,
           };
         }
       }
 
       return {
         goalProgressAddedToday: false,
+        hasActiveGoals,
       };
     } catch (error) {
       console.error('[ProgressAnalyzer] Failed to analyze goals progress:', error);
       return {
         goalProgressAddedToday: false,
+        hasActiveGoals: false,
       };
     }
   }

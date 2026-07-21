@@ -137,15 +137,24 @@ export function useNotificationLifecycle() {
         return;
       }
 
-      // Priority 2: Navigate to journal if entries missing
-      if (!progress.hasThreeBasicEntries || progress.bonusEntriesCount < 10) {
+      // Priority 2: Navigate to journal if the daily minimum is missing.
+      // N-7.1: the old condition also fired on `bonusEntriesCount < 10`, which
+      // is true until the user writes 13+ entries in a day — so priority 3
+      // below was unreachable and a neglected goal never got the user to Goals.
+      if (!progress.hasThreeBasicEntries) {
         router.push('/(tabs)/journal');
         return;
       }
 
       // Priority 3: Navigate to goals if no progress today
-      if (!progress.goalProgressAddedToday) {
+      if (progress.hasActiveGoals && !progress.goalProgressAddedToday) {
         router.push('/(tabs)/goals');
+        return;
+      }
+
+      // Priority 4: basics done — offer bonus journal entries
+      if (progress.bonusEntriesCount < 10) {
+        router.push('/(tabs)/journal');
         return;
       }
 

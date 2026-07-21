@@ -4134,6 +4134,10 @@ const es: Partial<TranslationKeys> = {
           title: '¡Oportunidad de Bonus! ⭐',
           body: '¡Has completado tu diario diario! Añade entradas bonus para ganar XP extra.'
         },
+        goal_progress: {
+          title: 'Tus metas te esperan 🎯',
+          body: '¡Hoy no has avanzado en ninguna meta! Da un pequeño paso.'
+        },
         fallback: {
           title: '¡Termina tu día fuerte! 🌟',
           body: 'Revisa tus hábitos y reflexiona sobre tu día en tu diario.'

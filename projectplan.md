@@ -243,6 +243,33 @@
 > ✅ **Vyřešena PLAN-DISCREPANCY**: vytvořen chybějící
 > @technical-guides:Startup-Orchestrator.md — 3 kritická pravidla jsou tím
 > zafixovaná natrvalo (dřív žila jen v sekci projectplan.md určené k archivaci).
+>
+> 🔍 **Session #14 (Fáze 7 — Notifications) AUDITNÍ ČÁST HOTOVÁ 2026-07-20 (Fable)**:
+> 5/5 položek, brána úplnosti ✓, baseline tsc 0 + 451/451 ✓. **Vážený výběr
+> večerních notifikací je implementován PŘESNĚ dle guide** (váhy habits/journal/
+> bonus, kumulativní losování, explicitní early-exit „vše hotovo → žádná
+> notifikace"), i18n klíče kompletní EN/DE/ES, hook mountnutý 1×, listenery
+> se uklízejí, Startup refaktor ho neodpojil. **8 nálezů**: N-7.1 [STŘEDNÍ] —
+> tap na večerní notifikaci nikdy nepošle do Cílů (podmínka bonusEntries<10
+> posílá do Deníku, dokud nemá 13+ zápisů/den); N-7.3/N-7.4 [VÝKON] — analyzátor
+> běžící při každém foregroundu dělá N+1 dotazů a načítá celou historii deníku
+> místo indexovaného dotazu; N-7.7 — **fáze nemá žádnou regresní suite**;
+> N-7.8 [E5] — guide si protiřečí (zastaralá prioritní ukázka vs. vážený systém,
+> volba pro cíle v kódu neexistuje); dále ruční pluralizace, latentní datumové
+> pole, mrtvá metoda.
+> Zpráva: @docs/audits/super-audit-2026-07/faze-7-nalezy.md
+>
+> ✅ **Session #14 — opravy FÁZE 7 PROVEDENY 2026-07-20 (Fable)**: N-7.1 (tap
+> na večerní notifikaci konečně umí poslat do Cílů — cíle povýšeny na prioritu 3),
+> N-7.3/N-7.4 (analyzátor běžící při každém foregroundu: N+1 dotazů → 1 indexovaný;
+> `getAll()` celé historie deníku → `getByDate(dnes)`), N-7.5 (rozhoduje pole
+> `date`, ne časové razítko), N-7.6 (mrtvý kód). **Schválené rozšíření (N-7.8):
+> cíle jako 4. volba večerní zprávy, fixní váha 40** (nad bonusem 15, pod
+> zanedbaným základem 100) + i18n EN/DE/ES + guide. **Nová regresní suite
+> 13 testů — fáze dosud neměla ani jeden** (váhy, guardy, early-exit, obsah zpráv).
+> N-7.2 (ruční pluralizace) vědomě odloženo. tsc 0, **464/464 (31/31 suites)** ✓.
+> Cross-impact netřeba (samé čtecí změny). **Nápad „doplnění zapomenutého dne"
+> zapsán do @projectplan-future-updates.md → Phase 7: Make-up Past Days.**
 
 ---
 

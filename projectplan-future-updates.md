@@ -585,3 +585,56 @@ During Performance Audit Phase 8 (2026-04-20), Variant A was chosen (keep the qu
 - After the app is stable in production with current queue-based flow
 - When a feature specifically benefits from parallel XP operations
 - When there's time for comprehensive regression testing of the XP flow
+---
+
+## Phase 7: Make-up Past Days ("doplnění zapomenutého dne") 📅
+
+**Origin**: Návrh Petra 2026-07-20 při super auditu Fáze 7 (Notifications) — vzešlo
+z nálezu N-7.5, kde se ukázalo, že datová vrstva už zpětné odškrtnutí umožňuje,
+ale UI ho zatím nikde nenabízí.
+
+### Goal
+
+Umožnit uživateli **dodatečně odškrtnout návyk za minulý den** (zapomněl si ho
+označit, i když ho reálně splnil) — bez toho, aby si tím mohl uměle vylepšovat
+statistiky do minulosti bez omezení.
+
+### Why It's Attractive
+
+- Nejčastější reálná stížnost u návykových aplikací: „splnil jsem to, jen jsem
+  zapomněl kliknout" → dnes o streak i completion rate přijde neprávem.
+- **Datová vrstva je na to už připravená**: `HabitCompletion` nese samostatné
+  pole `date` (ke kterému dni completion patří) i `completedAt` (kdy se fyzicky
+  klikl), a komponenty `DailyHabitTracker` / `HabitItemWithCompletion` už mají
+  `date` prop (dnes vždy default = dnešek). Backend změna by byla minimální.
+
+### Design Considerations (k rozhodnutí při implementaci)
+
+- [ ] **Okno pro doplnění** — kolik dní zpět? (návrh: max 1-2 dny, jinak ztrácí
+      smysl „denní" návyk; delší okno = devalvace streaků)
+- [ ] **Vztah ke Smart Bonus Conversion** — doplněný den je něco jiného než
+      makeup přes bonus; musí se vyjasnit, co má přednost a jak se to zobrazí
+      v kalendáři (dnes: zelená = splněno/makeup, zlatá = bonus, modrá tečka = kryto)
+- [ ] **XP**: dostane doplněný den plné XP, snížené, nebo žádné? (riziko
+      zneužití: doplnit si týden zpětně = XP nával)
+- [ ] **Streak**: má doplnění zpětně „opravit" přerušený streak? (souvisí
+      s frozen-streak systémem deníku — držet konzistentní filozofii)
+- [ ] **Měsíční výzvy**: tracker je den-orientovaný (day guard, snapshoty) —
+      zpětný zápis musí korektně dopočítat i progress výzvy, nebo být z ní
+      vyloučen
+
+### ⚠️ MUST FIX FIRST (blokující předpoklad)
+
+- [x] **N-7.5 (opraveno 2026-07-20)** — `progressAnalyzer` rozhodoval „je to
+      dnešní?" podle časového razítka `completedAt`/`createdAt` místo pole
+      `date`. Dokud to platilo, jakékoliv zpětné odškrtnutí by tiše rozbilo
+      večerní notifikace (doplněný včerejšek by se tvářil jako dnešní splnění
+      → připomínka by nedorazila). Opraveno v rámci Fáze 7 auditu.
+- [ ] **Projít stejnou třídu chyby jinde** — před implementací grepnout všechna
+      místa, která odvozují „dnešek" z `createdAt`/`completedAt` místo `date`
+      (kandidáti: statistiky, widgety, achievement evaluátory).
+
+### When to Implement
+
+- Až bude jádro návyků stabilní v produkci (po super auditu)
+- Vyžaduje produktové rozhodnutí Petra k bodům v Design Considerations výše

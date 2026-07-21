@@ -4161,6 +4161,10 @@ const en: TranslationKeys = {
           title: 'Bonus opportunity! ⭐',
           body: 'You still have time for bonus entries! (currently {{count}}/10)',
         },
+        goal_progress: {
+          title: 'Your goals are waiting 🎯',
+          body: "You haven't added progress to any goal today. Take one small step!",
+        },
         fallback: {
           title: 'Evening check-in 🌙',
           body: 'Time for evening reflection! What did you accomplish today? 📝',

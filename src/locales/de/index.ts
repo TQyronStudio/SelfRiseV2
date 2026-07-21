@@ -4133,6 +4133,10 @@ const de: Partial<TranslationKeys> = {
           title: 'Bonus-Gelegenheit! ⭐',
           body: 'Du hast noch Zeit für Bonus-Einträge! (aktuell {{count}}/10)',
         },
+        goal_progress: {
+          title: 'Deine Ziele warten 🎯',
+          body: 'Du hast heute bei keinem Ziel Fortschritt gemacht. Mach einen kleinen Schritt!',
+        },
         fallback: {
           title: 'Abend-Check-in 🌙',
           body: 'Zeit für Abendreflexion! Was hast du heute erreicht? 📝',
