@@ -382,6 +382,7 @@ const en: TranslationKeys = {
     create: 'Create',
     update: 'Update',
     confirm: 'Confirm',
+    confirmAction: 'Confirm action',
     error: 'Error',
     success: 'Success',
     done: 'Done',
@@ -2550,8 +2551,13 @@ const en: TranslationKeys = {
       },
       deep_thinker: {
         progress_checking: 'Checking your thoughtful entries...',
+        progress_complete_one: '✅ {{count}} deep entry written!',
+        progress_complete_other: '✅ {{count}} deep entries written!',
+        progress_incomplete: 'Longest entry so far: {{longest}}/200 characters',
         requirement: 'Write a journal entry with at least 200 characters',
-        action: 'Express yourself fully in your next journal entry!'
+        action: 'Express yourself fully in your next journal entry!',
+        action_complete: 'Keep writing deeply — your reflections are getting richer!',
+        action_incomplete: 'Just {{needed}} more characters in a single entry!'
       },
       journal_enthusiast: {
         progress: 'Write 100 journal entries ({{current}}/{{target}})',
@@ -2723,9 +2729,10 @@ const en: TranslationKeys = {
         action: 'Go to Goals tab and set your first goal!'
       },
       goal_getter: {
-        progress: 'Create 5 goals ({{current}}/{{target}})',
-        requirement: 'Create 5 different goals',
-        action: 'Set more goals to expand your ambitions!'
+        progress_incomplete: 'Complete your first goal (0/1)',
+        progress_complete: '✅ First goal completed!',
+        requirement: 'Complete your first goal',
+        action: 'Finish one of your goals to earn this trophy!'
       },
       goal_achiever: {
         progress: 'Complete 5 goals ({{current}}/{{target}})',
@@ -4216,16 +4223,10 @@ const en: TranslationKeys = {
       heroAccessibilityLabel: 'Anonymous hero achieved {{achievement}}',
       loadError: 'Failed to load daily heroes',
     },
-    // Phase 8: NotificationSettings & LoyaltyCard
-    notifications: {
-      disabled: 'Notifications Disabled',
-      enableTap: 'Tap to enable notifications',
-      settingsTap: 'Tap to open system settings',
-      afternoonReminder: 'Afternoon Reminder',
-      afternoonDescription: 'Motivational check-in',
-      eveningReminder: 'Evening Reminder',
-      eveningDescription: 'Smart task reminder',
-    },
+    // Phase 8: LoyaltyCard
+    // NOTE (Fáze 12, N-12.2): a duplicate `notifications` block used to sit here.
+    // NotificationSettings reads the top-level `notifications.*` keys, never
+    // `social.notifications.*`, so this copy existed only in EN and was dead.
     loyalty: {
       loadingData: 'Loading loyalty data...',
       unavailableData: '⚠️ Loyalty data unavailable',

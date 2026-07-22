@@ -393,6 +393,7 @@ const de: Partial<TranslationKeys> = {
     create: 'Neu',
     update: 'Update',
     confirm: 'OK',
+    confirmAction: 'Aktion bestätigen',
     error: 'Fehler',
     success: 'Erfolg',
     done: 'Fertig',
@@ -2654,8 +2655,13 @@ const de: Partial<TranslationKeys> = {
       },
       deep_thinker: {
         progress_checking: 'Prüfe deine nachdenklichen Einträge...',
+        progress_complete_one: '✅ {{count}} tiefgründiger Eintrag geschrieben!',
+        progress_complete_other: '✅ {{count}} tiefgründige Einträge geschrieben!',
+        progress_incomplete: 'Längster Eintrag bisher: {{longest}}/200 Zeichen',
         requirement: 'Schreibe einen Tagebucheintrag mit mindestens 200 Zeichen',
-        action: 'Drücke dich in deinem nächsten Tagebucheintrag vollständig aus!'
+        action: 'Drücke dich in deinem nächsten Tagebucheintrag vollständig aus!',
+        action_complete: 'Schreib weiter so tiefgründig — deine Reflexionen werden immer reicher!',
+        action_incomplete: 'Nur noch {{needed}} Zeichen in einem einzigen Eintrag!'
       },
       journal_enthusiast: {
         progress: 'Schreibe 100 Tagebucheinträge ({{current}}/{{target}})',
@@ -2827,9 +2833,10 @@ const de: Partial<TranslationKeys> = {
         action: 'Gehe zum Ziele-Tab und setze dein erstes Ziel!'
       },
       goal_getter: {
-        progress: 'Erstelle 5 Ziele ({{current}}/{{target}})',
-        requirement: 'Erstelle 5 verschiedene Ziele',
-        action: 'Setze mehr Ziele, um deine Ambitionen zu erweitern!'
+        progress_incomplete: 'Schließe dein erstes Ziel ab (0/1)',
+        progress_complete: '✅ Erstes Ziel abgeschlossen!',
+        requirement: 'Schließe dein erstes Ziel ab',
+        action: 'Bring eines deiner Ziele ins Ziel, um diese Trophäe zu verdienen!'
       },
       goal_achiever: {
         progress: 'Schließe 5 Ziele ab ({{current}}/{{target}})',
@@ -3563,14 +3570,9 @@ const de: Partial<TranslationKeys> = {
         content: 'Sieh, wie fantastisch du bist! 📊 Erhalte ein vollständiges Bild deines Gewohnheitserfolgs mit Abschlussraten, Trends und Mustern. Es ist der Beweis deiner unglaublichen Beständigkeit und deines Wachstums!'
       }
     },
-    achievements: {
-      trophyRoom: {
-        totalTrophies: 'Gesamttrophäen',
-        collected: 'Gesammelt',
-        completionRate: 'Abschlussrate',
-        overallProgress: 'Gesamtfortschritt',
-      },
-    },
+    // NOTE (Fáze 12, N-12.5): a duplicate `achievements.trophyRoom` block used to
+    // sit here. TrophyRoomStats reads `achievements.trophyRoom.*`, never
+    // `help.achievements.trophyRoom.*`, so this copy existed only in DE/ES and was dead.
     challenges: {
       templates: {
         // HABITS templates

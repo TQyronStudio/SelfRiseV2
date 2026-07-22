@@ -870,23 +870,24 @@ v německé appce, přesně typ chyby, který unikne všem ostatním fázím.
 
 **Soubory**: `src/locales/en|de|es/`, `src/utils/i18n.ts`, `src/hooks/useI18n.ts`
 
-- [ ] 12.0 Spusť skill `i18n-auditor` — jeho výstup je baseline fáze.
-- [ ] 12.1 **Paritní kontrola klíčů**: každý klíč existující v EN existuje
+- [x] 12.0 Spusť skill `i18n-auditor` — jeho výstup je baseline fáze.
+- [x] 12.1 **Paritní kontrola klíčů**: každý klíč existující v EN existuje
       i v DE a ES (a obráceně — osiřelé klíče zapiš). Kritérium: skript/grep
       diff, výstupem počet chybějících klíčů per jazyk (cíl: 0).
-- [ ] 12.2 **Achievementy**: všech 75 má name + description ve 3 jazycích
+- [x] 12.2 **Achievementy**: všech 75 má name + description ve 3 jazycích
       (+ uklidit OSIŘELÉ i18n klíče 3 trofejí smazaných v F2: recommendation-master,
-      flame-collector, triple-crown-master — viz faze-2-nalezy.md);
+      flame-collector, triple-crown-master — viz faze-2-nalezy.md;
+      ⚠️ 2026-07-22 přesunuto do bodu 13.8, úklid patří do Fáze 13);
       žádný text nezůstal anglicky v DE/ES (namátkově ověř kvalitu, ne
       strojový posudek celého překladu).
-- [ ] 12.3 **Monthly Challenges**: 14 šablon × title/description/requirement
+- [x] 12.3 **Monthly Challenges**: 14 šablon × title/description/requirement
       (klíče `help.challenges.templates.*` — ověřeno, že kód je čte přes `t()`)
       ve 3 jazycích.
-- [ ] 12.4 **Hardcoded strings**: grep user-facing literálů v komponentách
+- [x] 12.4 **Hardcoded strings**: grep user-facing literálů v komponentách
       vzniklých/změněných od 1.7. (`git log --since=2026-07-01 --name-only`)
       — každý hardcoded text = nález (přesně tohle byla jedna z mezer
       nalezených 2.7. — hardcoded EN chybová obrazovka).
-- [ ] 12.5 Pluralizace: všechny `_one`/`_other` páry kompletní ve 3 jazycích
+- [x] 12.5 Pluralizace: všechny `_one`/`_other` páry kompletní ve 3 jazycích
       (navazuje na 7.4, ale plošně, ne jen notifikace).
 
 ---
@@ -938,6 +939,27 @@ jasné co je "legacy ale používané" vs. "opravdu mrtvé".
 - [ ] 13.6 Root-level `.md` soubory → jen SEZNAM s návrhem přesunu do
       `docs/archive/` (N32) — žádné hromadné přesuny v rámci auditu,
       rozhodne Petr.
+- [ ] 13.8 **Mrtvé i18n klíče** (schváleno Petrem 2026-07-22, super audit Fáze 12 —
+      nálezy N-12.6 a N-12.7, plné výstupy v `docs/audits/super-audit-2026-07/faze-12-nalezy.md`).
+      ⚠️ Parity klíčů EN/DE/ES od Fáze 12 hlídá test `src/locales/__tests__/localeParity.test.ts`
+      — **maž vždy ve všech 3 jazycích najednou**, jinak test spadne (a to je záměr).
+      Rozsah:
+      - osiřelé bloky 3 trofejí smazaných ve Fázi 2 (`achievements.flame_collector`,
+        `achievements.triple_crown_master`, `achievements.recommendation_master` —
+        `.name` + `.description`, 18 klíčů) + `achievements.progressHints.triple_crown_master.*` (9);
+      - 8 ID, která v katalogu neexistují, ve dvou blocích
+        (`achievements.achievementNames.*` a `achievements.achievementRequirements.*`):
+        `habit-streak-champion`, `flame-collector`, `triple-crown-master`, `centurion`,
+        `gratitude-guardian`, `dream-fulfiller`, `recommendation-master`, `selfrise-legend` (48 klíčů);
+      - mrtvý duplicitní blok `achievements.achievementNames.*` pro zbylých 73 ID —
+        jména se vykreslují **výhradně** přes `achievement.nameKey`, tenhle blok čte
+        už jen `loyaltyService.ts:25-34` (10 loyalty ID) a **rozchází se ve znění**
+        (DE „Ziel-Erreicher" vs. „Zielerfüller");
+      - 341 klíčů bez jakékoliv reference (mj. celý blok `auth.*` — v appce žádné
+        přihlašování není). ⚠️ Dalších 881 klíčů je „možná dynamických" —
+        ty ověřuj RUČNĚ, hromadné mazání je zakázané.
+      - kosmetika: komentář `achievementCatalog.ts:2` pořád tvrdí „78 Total Achievements",
+        realita je 75.
 
 ---
 
@@ -1003,6 +1025,6 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 14 | Fáze 7 | | ✅ HOTOVO 2026-07-20 (vážený výběr ✓ dle guide; N-7.1 navigace k Cílům, N-7.3/7.4 výkon, N-7.5 datumové pole, N-7.6 mrtvý kód; **rozšíření: cíle jako 4. volba večerní zprávy, váha 40**; nová suite 13 testů — fáze měla 0; 464/464)
 | 15 | Fáze 8 + 9 | | ✅ HOTOVO 2026-07-21 (F8: achievement handshake vzorový ✓, smazána mrtvá help telemetrie, sdílený modul tutoriálových klíčů. F9: anti-abuse ✓, recordError 4/4 ✓, ad IDs ✓; **demo mode maže vše bez zálohy → přidáno tvrdé potvrzení před načtením** (dosud žádné!), gating v produkci ověřen ✓. 464/464)
 | 16 | Fáze 11 | až po 1 a 4 | ✅ HOTOVO 2026-07-21 (10/10 doporučení OK vč. kontroly jednotek; opraven nečitelný tmavý text v modálech výzev, StreakHistoryGraph už nenačítá celou historii, 2× čistě černé pozadí; **nález o stínech ODVOLÁN** — colors.shadow je v dark transparent; XP za doporučení → F13; 464/464)
-| 17 | Fáze 12 | až po 2, 3, 7 |
+| 17 | Fáze 12 | ✅ HOTOVO 2026-07-22 (6/6 položek; N-12.3 vysoká — 28 rozbitých `t()` cest; zpráva: faze-12-nalezy.md) |
 | 18 | Fáze 13 | vždy poslední |
 | 🔶 | Device sezení: 2i + 3e + 10.6 + 11.2 | dělá Petr se zařízením, ideálně po #9 |

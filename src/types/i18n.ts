@@ -1810,6 +1810,7 @@ export interface TranslationKeys {
     create: string;
     update: string;
     confirm: string;
+    confirmAction: string;
     loading: string | { default: string; levels: string; habits: string; progress: string; };
     error: string;
     success: string;
@@ -2693,16 +2694,7 @@ export interface TranslationKeys {
       heroAccessibilityLabel: string;
       loadError: string;
     };
-    // Phase 8: NotificationSettings & LoyaltyCard
-    notifications: {
-      disabled: string;
-      enableTap: string;
-      settingsTap: string;
-      afternoonReminder: string;
-      afternoonDescription: string;
-      eveningReminder: string;
-      eveningDescription: string;
-    };
+    // Phase 8: LoyaltyCard
     loyalty: {
       loadingData: string;
       unavailableData: string;

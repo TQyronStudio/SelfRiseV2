@@ -330,6 +330,21 @@
 > NEimplementovat (tap na kartu 5×/den = 150 XP zadarmo = exploit) a smazat
 > ve Fázi 13 spolu se zbytkem mrtvého kódu. tsc 0, **464/464 (31/31)** ✓.
 > Device fronta: +11.2 (přepnutí widgetů přežije restart).
+>
+> ✅ **Session #17 (Fáze 12 — i18n audit EN/DE/ES) HOTOVÁ 2026-07-22**: 6/6 položek,
+> brána ✓. Překlady jsou v dobrém stavu — 75 achievementů (450 klíčů) i 14 šablon
+> měsíčních výzev (252 klíčů) kompletní ve 3 jazycích, 0 chyb v pluralizaci,
+> 0 hardcoded textů v produkční cestě. **N-12.3 [VYSOKÁ, OPRAVENO]** — 28 volání
+> `t()` v `achievementPreviewUtils.ts` mířilo na neexistující klíče → v detailu
+> trofejí se **ve všech jazycích včetně EN** zobrazovala syrová cesta klíče
+> (22× špatný namespace `preview` → `progressHints`, 6× doplněny chybějící texty).
+> **N-12.1 [OPRAVENO]** — DE/ES nemají typovou pojistku (`Partial<>` + 30× `as any`,
+> `tsc` mlčí) → nový test `src/locales/__tests__/localeParity.test.ts` (12 testů,
+> ověřen negativní kontrolou). Dále N-12.4 (`common.confirmAction` chyběl),
+> N-12.8 (texty `goal_getter` popisovaly jiný achievement), N-12.2+N-12.5
+> (15 řádků mrtvých duplikátů blokujících test). Zbytek mrtvých klíčů (~400)
+> → **Fáze 13 bod 13.8**. tsc 0, **476/476 (32/32 suites)** ✓.
+> Zpráva: @docs/audits/super-audit-2026-07/faze-12-nalezy.md
 
 ---
 

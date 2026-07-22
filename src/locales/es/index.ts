@@ -393,6 +393,7 @@ const es: Partial<TranslationKeys> = {
     create: 'Crear',
     update: 'Actualizar',
     confirm: 'Confirmar',
+    confirmAction: 'Confirmar acción',
     error: 'Error',
     success: 'Éxito',
     done: 'Hecho',
@@ -2654,8 +2655,13 @@ const es: Partial<TranslationKeys> = {
       },
       deep_thinker: {
         progress_checking: 'Verificando tus entradas reflexivas...',
+        progress_complete_one: '✅ ¡{{count}} entrada profunda escrita!',
+        progress_complete_other: '✅ ¡{{count}} entradas profundas escritas!',
+        progress_incomplete: 'Entrada más larga hasta ahora: {{longest}}/200 caracteres',
         requirement: 'Escribe una entrada de diario con al menos 200 caracteres',
-        action: '¡Exprésate completamente en tu próxima entrada de diario!'
+        action: '¡Exprésate completamente en tu próxima entrada de diario!',
+        action_complete: '¡Sigue escribiendo con profundidad — tus reflexiones son cada vez más ricas!',
+        action_incomplete: '¡Solo {{needed}} caracteres más en una sola entrada!'
       },
       journal_enthusiast: {
         progress: 'Escribe 100 entradas de diario ({{current}}/{{target}})',
@@ -2827,9 +2833,10 @@ const es: Partial<TranslationKeys> = {
         action: '¡Ve a la pestaña de Metas y establece tu primera meta!'
       },
       goal_getter: {
-        progress: 'Crea 5 metas ({{current}}/{{target}})',
-        requirement: 'Crea 5 metas diferentes',
-        action: '¡Establece más metas para expandir tus ambiciones!'
+        progress_incomplete: 'Completa tu primera meta (0/1)',
+        progress_complete: '✅ ¡Primera meta completada!',
+        requirement: 'Completa tu primera meta',
+        action: '¡Termina una de tus metas para ganar este trofeo!'
       },
       goal_achiever: {
         progress: 'Completa 5 metas ({{current}}/{{target}})',
@@ -3562,14 +3569,9 @@ const es: Partial<TranslationKeys> = {
         content: 'Ve tendencias de finalización semanales y mensuales, indicadores de rendimiento (total de hábitos, finalizados hoy, promedio semanal) y análisis de tendencias.'
       }
     },
-    achievements: {
-      trophyRoom: {
-        totalTrophies: 'Trofeos totales',
-        collected: 'Recolectados',
-        completionRate: 'Tasa de finalización',
-        overallProgress: 'Progreso general',
-      },
-    },
+    // NOTE (Fáze 12, N-12.5): a duplicate `achievements.trophyRoom` block used to
+    // sit here. TrophyRoomStats reads `achievements.trophyRoom.*`, never
+    // `help.achievements.trophyRoom.*`, so this copy existed only in DE/ES and was dead.
     challenges: {
       templates: {
         // HABITS templates

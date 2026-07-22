@@ -800,12 +800,12 @@ const generateConsistencyProgressHint = (achievement: Achievement, userStats: Us
     case 'triple-crown':
       return {
         progressText: userStats.hasTripleCrown
-          ? t('achievements.preview.triple_crown.progress_complete')
-          : t('achievements.preview.triple_crown.progress_incomplete'),
+          ? t('achievements.progressHints.triple_crown.progress_complete')
+          : t('achievements.progressHints.triple_crown.progress_incomplete'),
         progressPercentage: userStats.hasTripleCrown ? 100 : 0,
         isCompleted: userStats.hasTripleCrown,
-        requirementText: t('achievements.preview.triple_crown.requirement'),
-        actionHint: t('achievements.preview.triple_crown.action')
+        requirementText: t('achievements.progressHints.triple_crown.requirement'),
+        actionHint: t('achievements.progressHints.triple_crown.action')
       };
 
     default:
@@ -828,51 +828,51 @@ const generateMasteryProgressHint = (achievement: Achievement, userStats: UserSt
     case 'selfrise-expert':
       const level25 = Math.min(userStats.currentLevel, 25);
       return {
-        progressText: t('achievements.preview.selfrise_expert.progress', { current: userStats.currentLevel }),
+        progressText: t('achievements.progressHints.selfrise_expert.progress', { current: userStats.currentLevel }),
         progressPercentage: (level25 / 25) * 100,
         isCompleted: userStats.currentLevel >= 25,
-        requirementText: t('achievements.preview.selfrise_expert.requirement'),
-        actionHint: t('achievements.preview.selfrise_expert.action')
+        requirementText: t('achievements.progressHints.selfrise_expert.requirement'),
+        actionHint: t('achievements.progressHints.selfrise_expert.action')
       };
 
     case 'selfrise-master':
       const level50 = Math.min(userStats.currentLevel, 50);
       return {
-        progressText: t('achievements.preview.selfrise_master.progress', { current: userStats.currentLevel }),
+        progressText: t('achievements.progressHints.selfrise_master.progress', { current: userStats.currentLevel }),
         progressPercentage: (level50 / 50) * 100,
         isCompleted: userStats.currentLevel >= 50,
-        requirementText: t('achievements.preview.selfrise_master.requirement'),
-        actionHint: t('achievements.preview.selfrise_master.action')
+        requirementText: t('achievements.progressHints.selfrise_master.requirement'),
+        actionHint: t('achievements.progressHints.selfrise_master.action')
       };
 
     case 'ultimate-selfrise-legend':
       const level100 = Math.min(userStats.currentLevel, 100);
       return {
-        progressText: t('achievements.preview.ultimate_selfrise_legend.progress', { current: userStats.currentLevel }),
+        progressText: t('achievements.progressHints.ultimate_selfrise_legend.progress', { current: userStats.currentLevel }),
         progressPercentage: (level100 / 100) * 100,
         isCompleted: userStats.currentLevel >= 100,
-        requirementText: t('achievements.preview.ultimate_selfrise_legend.requirement'),
-        actionHint: t('achievements.preview.ultimate_selfrise_legend.action')
+        requirementText: t('achievements.progressHints.ultimate_selfrise_legend.requirement'),
+        actionHint: t('achievements.progressHints.ultimate_selfrise_legend.action')
       };
 
     case 'trophy-collector-basic':
       const achievements10 = Math.min(userStats.unlockedAchievements, 10);
       return {
-        progressText: t('achievements.preview.trophy_collector_basic.progress', { current: achievements10, target: 10 }),
+        progressText: t('achievements.progressHints.trophy_collector_basic.progress', { current: achievements10, target: 10 }),
         progressPercentage: (achievements10 / 10) * 100,
         isCompleted: achievements10 >= 10,
-        requirementText: t('achievements.preview.trophy_collector_basic.requirement'),
-        actionHint: t('achievements.preview.trophy_collector_basic.action')
+        requirementText: t('achievements.progressHints.trophy_collector_basic.requirement'),
+        actionHint: t('achievements.progressHints.trophy_collector_basic.action')
       };
 
     case 'trophy-collector-master':
       const achievements25 = Math.min(userStats.unlockedAchievements, 25);
       return {
-        progressText: t('achievements.preview.trophy_collector_master.progress', { current: achievements25, target: 25 }),
+        progressText: t('achievements.progressHints.trophy_collector_master.progress', { current: achievements25, target: 25 }),
         progressPercentage: (achievements25 / 25) * 100,
         isCompleted: achievements25 >= 25,
-        requirementText: t('achievements.preview.trophy_collector_master.requirement'),
-        actionHint: t('achievements.preview.trophy_collector_master.action')
+        requirementText: t('achievements.progressHints.trophy_collector_master.requirement'),
+        actionHint: t('achievements.progressHints.trophy_collector_master.action')
       };
 
     case 'balance-master':
@@ -907,11 +907,11 @@ const generateSpecialProgressHint = (achievement: Achievement, userStats: UserSt
     case 'seven-wonder':
       const activeHabits = Math.min(userStats.activeHabitsSimultaneous, 7);
       return {
-        progressText: t('achievements.preview.seven_wonder.progress', { current: activeHabits, target: 7 }),
+        progressText: t('achievements.progressHints.seven_wonder.progress', { current: activeHabits, target: 7 }),
         progressPercentage: (activeHabits / 7) * 100,
         isCompleted: activeHabits >= 7,
-        requirementText: t('achievements.preview.seven_wonder.requirement'),
-        actionHint: t('achievements.preview.seven_wonder.action')
+        requirementText: t('achievements.progressHints.seven_wonder.requirement'),
+        actionHint: t('achievements.progressHints.seven_wonder.action')
       };
 
     case 'persistence-pays':
