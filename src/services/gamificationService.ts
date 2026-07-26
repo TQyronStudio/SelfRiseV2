@@ -995,6 +995,51 @@ export class GamificationService {
   /**
    * Subtract XP (for reversing actions like un-completing habits)
    */
+  /**
+   * Find how much XP was ACTUALLY granted for an entity, so an undo can reverse
+   * exactly that (multiplier included). See the block comment in `subtractXP`.
+   *
+   * Matches the most recent positive grant for the same source + sourceId **on
+   * `targetDate`**. The day filter is what keeps this from ever over-subtracting:
+   * goal call sites do not pass `metadata.date`, so the caller defaults it to
+   * today, and deleting an older entry finds no same-day grant and falls back to
+   * the base reward — i.e. the pre-fix behaviour, which never took more than the
+   * user earned. Without the filter, deleting a past entry while a multiplier is
+   * running would reverse today's larger grant instead.
+   *
+   * Returns null when no matching grant exists (XP predating this bookkeeping,
+   * limits reduced the grant to 0, an older entry as described above).
+   */
+  private static async findGrantedXPToReverse(
+    source: XPSourceType,
+    sourceId: string,
+    targetDate: string
+  ): Promise<number | null> {
+    const db = getDatabase();
+
+    // A handful of candidates is plenty: we want the latest grant for this
+    // entity, and same-entity grants on one day are few (habit toggles, bonus
+    // completions). Scanning in JS avoids timestamp/timezone boundary maths —
+    // `formatDateToString` is the same local-date helper used everywhere else.
+    const rows = await db.getAllAsync<{ amount: number; timestamp: number }>(
+      `SELECT amount, timestamp
+         FROM xp_transactions
+        WHERE source = ? AND source_id = ? AND amount > 0
+        ORDER BY timestamp DESC, rowid DESC
+        LIMIT 20`,
+      [source, sourceId]
+    );
+
+    for (const row of rows) {
+      if (formatDateToString(new Date(row.timestamp)) !== targetDate) {
+        continue;
+      }
+      return row.amount;
+    }
+
+    return null;
+  }
+
   static async subtractXP(amount: number, options: XPAdditionOptions): Promise<XPTransactionResult> {
     try {
       // Input validation
@@ -1014,21 +1059,63 @@ export class GamificationService {
 
       const currentTotalXP = await this.getTotalXP();
       const previousLevel = getCurrentLevel(currentTotalXP);
-      
+
+      // ─────────────────────────────────────────────────────────────────────
+      // 🚨 REVERSE WHAT WAS ACTUALLY GRANTED, NOT THE BASE REWARD
+      //
+      // Callers pass the BASE reward (e.g. XP_REWARDS.HABIT.SCHEDULED_COMPLETION
+      // = 25), because that is all they know. But `performXPAdditionInternal`
+      // multiplies the grant by any active XP multiplier before storing it
+      // (`finalAmount = amount * multiplierData.multiplier`).
+      //
+      // With a 2× Harmony Streak active that made undo asymmetric and turned the
+      // habit checkbox into an infinite XP farm: completing granted +50, removing
+      // took back only −25, so every toggle cycle netted +25 (device test
+      // 2026-07-26 — Petr reached level 8 by clicking one checkbox).
+      //
+      // Recomputing with the CURRENT multiplier would not fix it: the multiplier
+      // can expire between the grant and the undo (then we would under-subtract),
+      // or activate in between (then we would take more XP than the user ever
+      // got). The only correct amount is the one actually recorded.
+      // ─────────────────────────────────────────────────────────────────────
+      let effectiveAmount = amount;
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION && options.sourceId) {
+        try {
+          // Goal call sites do not pass metadata.date — default to today, which
+          // is the day an add-then-undo happens on. See the helper's doc comment.
+          const grantedAmount = await this.findGrantedXPToReverse(
+            options.source,
+            options.sourceId,
+            (options.metadata as { date?: string } | undefined)?.date ?? today()
+          );
+          if (grantedAmount !== null && grantedAmount !== amount) {
+            console.log(
+              `🔎 XP reversal: base reward ${amount}, actually granted ${grantedAmount} ` +
+              `(multiplier was active) → subtracting ${grantedAmount}`
+            );
+            effectiveAmount = grantedAmount;
+          }
+        } catch (error) {
+          // Never block the undo because the lookup failed — fall back to the
+          // base reward, which is the pre-fix behaviour.
+          console.warn('XP reversal lookup failed, using base reward:', error);
+        }
+      }
+
       // Create negative XP transaction
       const transaction: XPTransaction = {
         id: `xp_subtract_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        amount: -amount, // Negative amount for subtraction
+        amount: -effectiveAmount, // Negative amount for subtraction
         source: options.source,
         ...(options.sourceId && { sourceId: options.sourceId }),
-        description: options.description || `Subtracted ${amount} XP from ${options.source}`,
+        description: options.description || `Subtracted ${effectiveAmount} XP from ${options.source}`,
         date: today(),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       // Calculate new total (ensure it doesn't go below 0)
-      const newTotalXP = Math.max(0, currentTotalXP - amount);
+      const newTotalXP = Math.max(0, currentTotalXP - effectiveAmount);
       const newLevel = getCurrentLevel(newTotalXP);
       const leveledDown = newLevel < previousLevel;
 
@@ -1077,7 +1164,7 @@ export class GamificationService {
                 transaction_count = MAX(0, transaction_count - 1),
                 updated_at = ?
               WHERE date = ?`,
-              [amount, amount, timestamp, todayDate]
+              [effectiveAmount, effectiveAmount, timestamp, todayDate]
             );
           } else {
             await db.runAsync(
@@ -1086,7 +1173,7 @@ export class GamificationService {
                 transaction_count = MAX(0, transaction_count - 1),
                 updated_at = ?
               WHERE date = ?`,
-              [amount, timestamp, todayDate]
+              [effectiveAmount, timestamp, todayDate]
             );
           }
 
@@ -1112,7 +1199,7 @@ export class GamificationService {
         // Legacy AsyncStorage implementation
         await this.saveTransaction(transaction);
         await AsyncStorage.setItem(STORAGE_KEYS.TOTAL_XP, newTotalXP.toString());
-        await this.updateDailyXPTracking(-amount, options.source, options.sourceId);
+        await this.updateDailyXPTracking(-effectiveAmount, options.source, options.sourceId);
 
         // Invalidate daily XP data cache (legacy path)
         this.dailyXPDataCache.delete(today());
@@ -1121,26 +1208,26 @@ export class GamificationService {
       // Legacy lifetime tracking in AsyncStorage — fire-and-forget (audit 8.3).
       void (async () => {
         try {
-          await this.updateXPBySource(options.source, -amount);
+          await this.updateXPBySource(options.source, -effectiveAmount);
         } catch (err) {
           console.error('[GamificationService] Background XP-bySource update failed (subtraction):', err);
         }
       })();
 
       // Log the subtraction
-      console.log(`💸 XP subtracted: -${amount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
+      console.log(`💸 XP subtracted: -${effectiveAmount} XP from ${options.source} (${currentTotalXP} → ${newTotalXP})`);
       if (leveledDown) {
         console.log(`📉 Level decreased: ${previousLevel} → ${newLevel}`);
       }
 
       // Trigger visual feedback for XP loss (red/negative animation)
       if (!options.skipNotification) {
-        GamificationService.triggerXPAnimation(-amount, options.source, options.sourceId, options.metadata, options.metadata?.position);
+        GamificationService.triggerXPAnimation(-effectiveAmount, options.source, options.sourceId, options.metadata, options.metadata?.position);
       }
 
       return {
         success: true,
-        xpGained: -amount,
+        xpGained: -effectiveAmount,
         totalXP: newTotalXP,
         previousLevel,
         newLevel,

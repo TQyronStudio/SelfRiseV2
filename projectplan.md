@@ -374,8 +374,36 @@
 > placeholder obsahuje tečku; smazání podle původního seznamu by odstřelilo
 > nápovědní bublinky. Kritérium: maž jen jmenný prostor mrtvý úplně celý.
 > EN=DE=ES 2525 klíčů, 0 rozbitých `t()` cest.
-> Odloženo: N-13.4 (1309 ř. za storage barrelem), N-13.6 (konstanty ENGAGEMENT),
-> root `.md` úklid, 87 osamocených i18n klíčů.
+> ✅ **13.1 + N-13.4 — LEGACY STORAGE VRSTVA SMAZÁNA 2026-07-22**: celý mrtvý
+> klastr **4692 ř. / 6 souborů** (gratitudeStorage 1752 + habitStorage 761 +
+> goalStorage 823 + backup.ts 574 + migration.ts 405 + userStorage.ts 329
+> + třída StorageService). Odemkl to Petrův potvrzený fakt, že appka oficiálně
+> vydaná nebyla. `calculateTimelineStatus` přesunuta do nového
+> `src/utils/goalCalculations.ts` — byla to **jediná funkční spojka**, kterou
+> SQLite implementace na legacy soubor měla. 3 testovací soubory přepsány:
+> mocky teď visí na `featureFlags` helperech, tj. čtou stejnou cestou jako
+> produkce. `backup.ts` (zaparkované Zálohování) nešlo zachránit — `deleteAll()`
+> chybí u návyků i deníku, přepojení by znamenalo psát nový nevratně mazací kód;
+> návrh funkce i git odkazy k obnovení zapsány do @projectplan-future-updates.md.
+> **Ověření**: parita metod skriptem (85 volání, 0 chybějících — přesně ta třída
+> chyby, co způsobila goals split-brain), 0 legacy importů, sweep 0 sirotků,
+> tsc 0, **476/476 po každém jednotlivém kroku**.
+> Zbývá už jen: N-13.6 (3 konstanty ENGAGEMENT), root `.md` úklid,
+> 87 osamocených i18n klíčů.
+>
+> 🐛 **DEVICE BUG OPRAVEN 2026-07-26 — XP farmení přes zaškrtávátko**: Petr při
+> device testu zjistil, že s aktivním 2× multiplierem dá splnění návyku +50, ale
+> odškrtnutí vezme jen −25 → každý cyklus čistý +25, level 7→8 za pár sekund.
+> **Příčina**: `performXPAdditionInternal` ukládá odměnu už znásobenou
+> multiplierem, ale `subtractXP` odečítal ZÁKLADNÍ odměnu od volajícího, který
+> o multiplieru neví. Týkalo se všech 6 vratných zdrojů (návyky, cíle, deník).
+> **Oprava**: nový `findGrantedXPToReverse()` dohledá skutečně přidělenou částku
+> pro danou entitu a den; vrácení odečte ji. Přepočet z AKTUÁLNÍHO multiplieru by
+> byl špatně v obou směrech (vypršel → XP zdarma; zapnul se → okrádá uživatele).
+> Bez nálezu → fallback na základní odměnu, tj. nikdy neodečte víc, než uživatel
+> získal. Pravidlo zapsáno do @technical-guides:Gamification-Core.md.
+> **Test**: `src/services/__tests__/xpReversalMultiplier.test.ts` (10 testů),
+> ověřeno negativní kontrolou — bez opravy 4 padají. tsc 0, **486/486 (33/33)** ✓.
 
 ---
 

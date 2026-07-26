@@ -246,6 +246,39 @@ denní sumáře pro tento zdroj tiše selhávaly.
 **Regresní testy**: `src/services/__tests__/xpMultiplier.loyalty.test.ts` (12 testů —
 write→read konzistence, expirace, E2E aktivace, kotvení streaku, loyalty milestones).
 
+### 🚨 PRODUCTION FIX (26. 7. 2026): Vracení XP ignorovalo multiplier → farmení
+
+**Problém**: `performXPAdditionInternal()` násobí odměnu aktivním multiplierem
+(`finalAmount = amount * multiplier`) a uloží ji **už znásobenou**. `subtractXP()`
+ale odečítal ZÁKLADNÍ odměnu, kterou mu poslal volající — ten o multiplieru neví.
+
+S aktivním 2× Harmony Streakem tak bylo vracení nesymetrické a **zaškrtávátko
+u návyku se stalo nekonečným zdrojem XP**: splnění dalo +50, odškrtnutí vzalo jen
+−25, každý cyklus tedy čistý +25. Nalezeno device testem (Petr se naklikal
+z levelu 7 na 8 během několika sekund jediným návykem).
+
+**Pravidlo (závazné): VRACENÍ MUSÍ ODEČÍST PŘESNĚ TO, CO BYLO PŘIDĚLENO.**
+
+Přepočítávat z AKTUÁLNÍHO multiplieru je špatně v obou směrech:
+- multiplier mezitím vypršel → odečetlo by se méně, než se dalo (zbytek zdarma);
+- multiplier se mezitím zapnul → odečetlo by se víc, než uživatel kdy dostal.
+
+**Implementace**: `GamificationService.findGrantedXPToReverse(source, sourceId, date)`
+dohledá poslední **pozitivní** transakci pro danou entitu **v daném dni** a
+`subtractXP()` odečte její skutečnou částku. Když se nic nenajde, použije se
+základní odměna (chování před opravou — nikdy neodečte víc, než uživatel získal).
+Denní filtr je právě ta pojistka proti přeodečtení: volání u cílů `metadata.date`
+neposílají, takže se defaultuje na dnešek a mazání staršího záznamu spadne do
+fallbacku.
+
+**Když přidáváš nový zdroj XP, který lze vzít zpět**: `subtractXP()` **musí**
+dostat `sourceId` — bez něj se dohledání nespustí a asymetrie se vrátí.
+
+**Regresní testy**: `src/services/__tests__/xpReversalMultiplier.test.ts`
+(10 testů — symetrie pod 2×, farmení v cyklu, expirace multiplieru mezi
+přidělením a vrácením, aktivace multiplieru až po přidělení, cíle bez data,
+fallback). Ověřeno negativní kontrolou: bez opravy 4 z nich padají.
+
 ### Multiplier Types & Rewards
 ```typescript
 // Harmony Streak Multiplier (Primary System)
