@@ -55,7 +55,6 @@ export const XP_REWARDS = {
 
   // Engagement & Meta Actions XP
   ENGAGEMENT: {
-    RECOMMENDATION_FOLLOW: 30,   // Following a "For You" recommendation
     CUSTOMIZATION_USE: 20,      // Using home screen customization
     SHARING_ACTION: 25,         // Sharing streak or achievement
   },
@@ -186,13 +185,6 @@ export const XP_SOURCES = {
     descriptionKey: 'gamification.xpSources.goalMilestone',
     dailyLimit: 500, // Max milestone XP per day
     requirements: ['goal progress crosses milestone threshold'],
-  },
-
-  [XPSourceType.RECOMMENDATION_FOLLOW]: {
-    baseAmount: XP_REWARDS.ENGAGEMENT.RECOMMENDATION_FOLLOW,
-    descriptionKey: 'gamification.xpSources.recommendationFollow',
-    dailyLimit: XP_REWARDS.ENGAGEMENT.RECOMMENDATION_FOLLOW * 5, // Max 5 recommendations per day
-    requirements: ['acted on personalized recommendation'],
   },
 
   [XPSourceType.ACHIEVEMENT_UNLOCK]: {

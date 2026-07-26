@@ -181,7 +181,6 @@ export default function AchievementsScreen() {
         appUsageStreak: 0,
         multiAreaDays: 0,
         totalActiveDays: userStats.loyaltyTotalActiveDays,
-        recommendationsFollowed: 0,
         samedayHabitCreationCompletions: 0,
         activeHabitsSimultaneous: 0,
         comebackActivities: 0,

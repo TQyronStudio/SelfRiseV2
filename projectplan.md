@@ -345,6 +345,37 @@
 > (15 řádků mrtvých duplikátů blokujících test). Zbytek mrtvých klíčů (~400)
 > → **Fáze 13 bod 13.8**. tsc 0, **476/476 (32/32 suites)** ✓.
 > Zpráva: @docs/audits/super-audit-2026-07/faze-12-nalezy.md
+>
+> 🔍 **Session #18 (Fáze 13 — mrtvý kód) AUDIT HOTOVÝ 2026-07-22**: 8/8 položek,
+> brána ✓. Sweep 217 souborů našel **24 osiřelých souborů / 7289 řádků** + 3 další
+> maskované storage barrelem. **N-13.1 [VYSOKÁ]** — `achievementService.ts:1663`
+> čte journal streak z **mrtvého AsyncStorage** bez kontroly flagu → na obrazovce
+> Trofeje trvale nulový pokrok u ⭐🔥👑 a journal streaku (odemykání je OK, rozbité
+> je zobrazení). **N-13.2 [OTÁZKA NA PETRA]** — celý adresář
+> `src/services/database/migration/` (16 souborů, 4663 ř.) nemá spouštěč: migrace
+> AsyncStorage→SQLite se nikdy nespustí. Dále N-13.3 (2626 ř. osiřelých souborů),
+> N-13.4 (1309 ř. maskovaných barrelem), N-13.5 (obrácená závislost narostla
+> z 2 na 19 míst — dluh, nezasahovat). **Provedeno**: 13.7 (RECOMMENDATION_FOLLOW
+> XP — 15 míst ve 12 souborech) a 13.8 (99 i18n klíčů × 3 jazyky + 83 typů).
+> tsc 0, **476/476 (32/32)** ✓. Zpráva: @docs/audits/super-audit-2026-07/faze-13-nalezy.md
+>
+> ✅ **Session #18 — opravy FÁZE 13 PROVEDENY 2026-07-22**: N-13.1 (Trophy Room
+> už čte streak přes flag helper, ne z mrtvého AsyncStorage), N-13.2 (smazán
+> adresář migrace — Petr potvrdil, že appka oficiálně vydaná nebyla a přechod
+> proběhl dávno; kód byl nedosažitelný, takže smazání nemůže změnit chování),
+> N-13.3 (10 osiřelých souborů vč. `socialSharingService` — Petr škrtl i sdílení
+> na sítě). **Celkem smazáno 26 souborů / 7926 řádků** + 15 míst po
+> RECOMMENDATION_FOLLOW + 99 i18n klíčů × 3 jazyky. Sweep přehrán → 0 nových
+> sirotků. tsc 0, **476/476 (32/32)** ✓.
+> Dokončeno i 13.8: **153 mrtvých i18n klíčů ve 34 celých blocích × 3 jazyky**
+> (celý `auth`, `ads`, staré formáty notifikací, nepoužité sekce nápovědy).
+> ⚠️ Hrubý seznam „339 klíčů" byl NESPOLEHLIVÝ — tři filtry z něj vyřadily
+> 31 živých klíčů, mj. `t(\`help.${helpKey}\`)` v HelpTooltip.tsx:58, kde
+> placeholder obsahuje tečku; smazání podle původního seznamu by odstřelilo
+> nápovědní bublinky. Kritérium: maž jen jmenný prostor mrtvý úplně celý.
+> EN=DE=ES 2525 klíčů, 0 rozbitých `t()` cest.
+> Odloženo: N-13.4 (1309 ř. za storage barrelem), N-13.6 (konstanty ENGAGEMENT),
+> root `.md` úklid, 87 osamocených i18n klíčů.
 
 ---
 

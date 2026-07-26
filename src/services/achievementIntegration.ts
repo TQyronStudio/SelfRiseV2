@@ -668,37 +668,6 @@ export class AchievementIntegration {
   }
 
   /**
-   * Get total recommendations followed count
-   */
-  static async getRecommendationsFollowedCount(timeframe?: string): Promise<number> {
-    try {
-      // TODO: This will be implemented when recommendation tracking system is added
-      // For now, estimate based on engagement with recommendations feature
-      const { GamificationService } = await import('./gamificationService');
-      const transactions = await GamificationService.getAllTransactions();
-      
-      // Count engagement transactions (placeholder logic)
-      const engagementTransactions = transactions.filter(t =>
-        t.source === XPSourceType.RECOMMENDATION_FOLLOW && t.amount > 0
-      );
-      
-      // Filter by timeframe if specified  
-      if (timeframe && timeframe !== 'all_time') {
-        const filteredTransactions = this.filterByTimeframe(
-          engagementTransactions.map(t => ({ ...t, date: t.date })),
-          timeframe
-        );
-        return Math.floor(filteredTransactions.length * 0.3); // Estimate 30% are recommendation follows
-      }
-      
-      return Math.floor(engagementTransactions.length * 0.3); // Estimate 30% are recommendation follows
-    } catch (error) {
-      console.error('AchievementIntegration.getRecommendationsFollowedCount error:', error);
-      return 0;
-    }
-  }
-
-  /**
    * Get total achievements unlocked count
    */
   static async getAchievementsUnlockedCount(timeframe?: string): Promise<number> {
@@ -1020,9 +989,6 @@ export class AchievementIntegration {
         case 'app_usage_days':
           return await this.getConsecutiveAppUsageDays();
           
-        case 'recommendations_followed':
-          return await this.getRecommendationsFollowedCount(timeframe);
-          
         case 'achievements_unlocked':
           return await this.getAchievementsUnlockedCount(timeframe);
           
@@ -1181,8 +1147,7 @@ export class AchievementIntegration {
         // Cross-feature
         maxDailyFeatureCombo: await this.getDailyFeatureCombo(),
         consecutiveAppUsageDays: await this.getConsecutiveAppUsageDays(),
-        recommendationsFollowed: await this.getRecommendationsFollowedCount(),
-        
+
         // Loyalty system
         loyaltyTotalActiveDays: await this.getLoyaltyTotalActiveDays(),
         

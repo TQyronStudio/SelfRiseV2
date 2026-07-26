@@ -985,7 +985,6 @@ export class AchievementService {
       case AchievementCategory.MASTERY:
         // Mastery achievements often track overall progress
         // NOTE: ACHIEVEMENT_UNLOCK removed to prevent recursive loops
-        sources.add(XPSourceType.RECOMMENDATION_FOLLOW);
         sources.add(XPSourceType.MONTHLY_CHALLENGE);
         // Include level-related sources for level-based achievements
         sources.add(XPSourceType.HABIT_COMPLETION);
@@ -1658,10 +1657,18 @@ export class AchievementService {
 
   /**
    * Helper: Get gratitude streak info
+   *
+   * N-13.1 (super audit Fáze 13): this used to `require('./storage/gratitudeStorage')`
+   * — the LEGACY AsyncStorage singleton — with no feature-flag check and an untyped
+   * require. Journal writes go to SQLite (USE_SQLITE_JOURNAL), so it always read an
+   * empty store and returned the all-zero default from gratitudeStorage.ts:434.
+   * Result: the Trophy Room showed permanent zero progress for the journal streak
+   * and the ⭐🔥👑 milestone counts (getRealTimeUserStats -> app/achievements.tsx).
+   * Always go through the feature-flag helper — never the legacy singleton.
    */
   private static async getGratitudeStreakInfo(): Promise<any> {
-    const { gratitudeStorage } = require('./storage/gratitudeStorage');
-    return await gratitudeStorage.getStreak();
+    const { getGratitudeStorageImpl } = require('../config/featureFlags') as typeof import('../config/featureFlags');
+    return await getGratitudeStorageImpl().getStreak();
   }
 
   /**

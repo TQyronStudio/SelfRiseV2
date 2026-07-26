@@ -1525,79 +1525,6 @@ export interface TranslationKeys {
 
     // Achievement names (78 achievements)
     achievementNames: {
-      'first-habit': string;
-      'habit-builder': string;
-      'century-club': string;
-      'consistency-king': string;
-      'habit-streak-champion': string;
-      'century-streak': string;
-      'streak-champion': string;
-      'multi-tasker': string;
-      'habit-legend': string;
-      'first-journal': string;
-      'deep-thinker': string;
-      'journal-enthusiast': string;
-      'grateful-heart': string;
-      'gratitude-guru': string;
-      'eternal-gratitude': string;
-      'journal-streaker': string;
-      'bonus-seeker': string;
-      'first-star': string;
-      'five-stars': string;
-      'flame-achiever': string;
-      'bonus-week': string;
-      'crown-royalty': string;
-      'flame-collector': string;
-      'golden-bonus-streak': string;
-      'triple-crown-master': string;
-      'bonus-century': string;
-      'star-beginner': string;
-      'star-collector': string;
-      'star-master': string;
-      'star-champion': string;
-      'star-legend': string;
-      'flame-starter': string;
-      'flame-accumulator': string;
-      'flame-master': string;
-      'flame-champion': string;
-      'flame-legend': string;
-      'crown-achiever': string;
-      'crown-collector': string;
-      'crown-master': string;
-      'crown-champion': string;
-      'crown-emperor': string;
-      'first-goal': string;
-      'goal-getter': string;
-      'ambitious': string;
-      'goal-champion': string;
-      'progress-tracker': string;
-      'mega-dreamer': string;
-      'achievement-unlocked': string;
-      'million-achiever': string;
-      'weekly-warrior': string;
-      'monthly-master': string;
-      'centurion': string;
-      'hundred-days': string;
-      'daily-visitor': string;
-      'dedicated-user': string;
-      'perfect-month': string;
-      'triple-crown': string;
-      'gratitude-guardian': string;
-      'dream-fulfiller': string;
-      'goal-achiever': string;
-      'level-up': string;
-      'selfrise-expert': string;
-      'selfrise-master': string;
-      'ultimate-selfrise-legend': string;
-      'recommendation-master': string;
-      'balance-master': string;
-      'trophy-collector-basic': string;
-      'trophy-collector-master': string;
-      'lightning-start': string;
-      'seven-wonder': string;
-      'persistence-pays': string;
-      'legendary-master': string;
-      'selfrise-legend': string;
       'loyalty-first-week': string;
       'loyalty-two-weeks-strong': string;
       'loyalty-three-weeks-committed': string;
@@ -1616,7 +1543,6 @@ export interface TranslationKeys {
       'habit-builder': string;
       'century-club': string;
       'consistency-king': string;
-      'habit-streak-champion': string;
       'century-streak': string;
       'streak-champion': string;
       'multi-tasker': string;
@@ -1634,9 +1560,7 @@ export interface TranslationKeys {
       'flame-achiever': string;
       'bonus-week': string;
       'crown-royalty': string;
-      'flame-collector': string;
       'golden-bonus-streak': string;
-      'triple-crown-master': string;
       'bonus-century': string;
       'star-beginner': string;
       'star-collector': string;
@@ -1663,20 +1587,16 @@ export interface TranslationKeys {
       'million-achiever': string;
       'weekly-warrior': string;
       'monthly-master': string;
-      'centurion': string;
       'hundred-days': string;
       'daily-visitor': string;
       'dedicated-user': string;
       'perfect-month': string;
       'triple-crown': string;
-      'gratitude-guardian': string;
-      'dream-fulfiller': string;
       'goal-achiever': string;
       'level-up': string;
       'selfrise-expert': string;
       'selfrise-master': string;
       'ultimate-selfrise-legend': string;
-      'recommendation-master': string;
       'balance-master': string;
       'trophy-collector-basic': string;
       'trophy-collector-master': string;
@@ -1684,7 +1604,6 @@ export interface TranslationKeys {
       'seven-wonder': string;
       'persistence-pays': string;
       'legendary-master': string;
-      'selfrise-legend': string;
       'loyalty-first-week': string;
       'loyalty-two-weeks-strong': string;
       'loyalty-three-weeks-committed': string;
@@ -1769,34 +1688,6 @@ export interface TranslationKeys {
     resetting: string;
   };
   
-  // Auth screens
-  auth: {
-    login: {
-      title: string;
-      email: string;
-      emailPlaceholder: string;
-      password: string;
-      passwordPlaceholder: string;
-      loginButton: string;
-      forgotPassword: string;
-      noAccount: string;
-      signUp: string;
-    };
-    register: {
-      title: string;
-      displayName: string;
-      displayNamePlaceholder: string;
-      email: string;
-      emailPlaceholder: string;
-      password: string;
-      passwordPlaceholder: string;
-      confirmPassword: string;
-      confirmPasswordPlaceholder: string;
-      registerButton: string;
-      hasAccount: string;
-      signIn: string;
-    };
-  };
   
   // Common
   common: {
@@ -1955,18 +1846,6 @@ export interface TranslationKeys {
         description: string;
       };
     };
-    morning: {
-      variant1: string;
-      variant2: string;
-      variant3: string;
-      variant4: string;
-    };
-    evening: {
-      variant1: string;
-      variant2: string;
-      variant3: string;
-      variant4: string;
-    };
     reminders: {
       afternoon: {
         variant1: { title: string; body: string };
@@ -2034,34 +1913,15 @@ export interface TranslationKeys {
         general_activity: string;
         daily_engagement: string;
         monthly_challenge: string;
-        recommendation_follow: string;
         xp_multiplier_bonus: string;
         loyalty_milestone: string;
         daily_activity: string;
         inactive_user_return: string;
       };
-      notification: {
-        message: string;
-        amount: string;
-      };
-      announcement: {
-        balanced: string;
-        decreased: string;
-        single: string;
-        multiple_same: string;
-        multiple_mixed: string;
-      };
       popup: {
         gained: string;
         lost: string;
         amount_label: string;
-      };
-      notifications: {
-        completed: string;
-        balanced: string;
-        reversed: string;
-        updated: string;
-        and: string;
       };
 
       // XP Notification Component - Source Names (plural forms for display)
@@ -2129,15 +1989,6 @@ export interface TranslationKeys {
         label: string;
         hint: string;
       };
-      badge: {
-        accessibility: string;
-      };
-      bar: {
-        accessibility: string;
-      };
-      milestone: {
-        accessibility: string;
-      };
     };
     levels: {
       current: string;
@@ -2159,14 +2010,6 @@ export interface TranslationKeys {
         };
       };
     };
-    effects: {
-      level_up: string;
-      milestone: string;
-      achievement: string;
-      celebration: string;
-      general: string;
-      accessibility_label: string;
-    };
     celebration: {
       level_up_announcement: string;
       level_up_modal: string;
@@ -2183,17 +2026,6 @@ export interface TranslationKeys {
         streak_milestone: string;
         bonus_milestone: string;
         level_up: string;
-      };
-    };
-    achievement: {
-      unlocked: string;
-      locked: string;
-      progress: string;
-      xp_reward: string;
-      requirements: string;
-      unlock_condition: string;
-      announcement: {
-        unlocked: string;
       };
     };
     sources: {
@@ -2242,9 +2074,6 @@ export interface TranslationKeys {
       xp_multiplier_bonus: {
         icon_description: string;
       };
-      recommendation_follow: {
-        icon_description: string;
-      };
       loyalty_milestone: {
         icon_description: string;
       };
@@ -2290,13 +2119,6 @@ export interface TranslationKeys {
       shareButton: string;
       shareAccessibility: string;
 
-      // Timer Display
-      timeFormat: {
-        hoursMinutes: string;
-        minutesSeconds: string;
-        seconds: string;
-        hoursOnly: string;
-      };
 
       // Countdown Timer
       timerAccessibility: string;
@@ -2306,13 +2128,6 @@ export interface TranslationKeys {
       errors?: Record<string, string>;
       descriptions?: Record<string, string>;
       notifications?: Record<string, string>;
-    };
-    analysis: {
-      title: string;
-      overallRating: string;
-      trend: string;
-      successRate: string;
-      strongest: string;
     };
     // Level tier descriptions
     levelTiers?: Record<string, string>;
@@ -2418,11 +2233,6 @@ export interface TranslationKeys {
         examples: string[];
         button: string;
       };
-      journalEncouragement: {
-        title: string;
-        content: string;
-        button: string;
-      };
       goalsIntro: {
         title: string;
         content: string;
@@ -2496,34 +2306,6 @@ export interface TranslationKeys {
       };
     };
 
-    // Validation Messages
-    validation: {
-      habitName: {
-        required: string;
-        tooShort: string;
-        tooLong: string;
-      };
-      habitDays: {
-        required: string;
-      };
-      goalTitle: {
-        required: string;
-        tooShort: string;
-        tooLong: string;
-      };
-      goalUnit: {
-        required: string;
-        tooLong: string;
-      };
-      goalTarget: {
-        required: string;
-        tooLarge: string;
-      };
-      gratitudeEntry: {
-        required: string;
-        tooShort: string;
-      };
-    };
 
     // Error Messages
     errors: {
@@ -2540,42 +2322,9 @@ export interface TranslationKeys {
       alreadyCompleted: string;
     };
 
-    // Skip Confirmation
-    skipConfirmation: {
-      title: string;
-      message: string;
-      skip: string;
-      continue: string;
-    };
 
-    // Progress Messages
-    progress: {
-      creatingHabit: string;
-      creatingGoal: string;
-      savingEntry: string;
-      loading: string;
-    };
 
-    // Accessibility
-    accessibility: {
-      tutorialModal: string;
-      spotlightArea: string;
-      progressIndicator: string;
-      skipButton: string;
-      nextButton: string;
-      formField: string;
-      colorSelector: string;
-      iconSelector: string;
-      daySelector: string;
-    };
 
-    // Tutorial Recovery (for crash recovery)
-    recovery: {
-      title: string;
-      message: string;
-      continue: string;
-      restart: string;
-    };
 
     // Tutorial Feedback Messages
     feedback?: {
@@ -2616,27 +2365,19 @@ export interface TranslationKeys {
     habits: {
       scheduling: { title: string; content: string; };
       bonusConversion: { title: string; content: string; };
-      streakTracking: { title: string; content: string; };
-      colorAndIcon: { title: string; content: string; };
       makeupFunction: { title: string; content: string; };
     };
     journal: {
-      gratitudeStreak: { title: string; content: string; };
       selfRiseStreak: { title: string; content: string; };
-      bonusEntries: { title: string; content: string; };
       debtRecovery: { title: string; content: string; };
     };
     goals: {
       overview: { title: string; content: string; };
       predictions: { title: string; content: string; };
-      progressTracking: { title: string; content: string; };
-      templates: { title: string; content: string; };
     };
     home: {
       recommendations: { title: string; content: string; };
       xpSystem: { title: string; content: string; };
-      streakBadges: { title: string; content: string; };
-      habitStatistics: { title: string; content: string; };
     };
     achievements: {
       // Removed standard gaming concepts - achievements are intuitive
@@ -2660,13 +2401,6 @@ export interface TranslationKeys {
         completed: string;
       };
       starDifficulty: { title: string; content: string; };
-      progressTracking: { title: string; content: string; };
-      completionRewards: { title: string; content: string; };
-    };
-    gamification: {
-      levelProgression: { title: string; content: string; };
-      xpMultipliers: { title: string; content: string; };
-      harmonyStreak: { title: string; content: string; };
     };
   };
 
@@ -2895,21 +2629,6 @@ export interface TranslationKeys {
 
   // Challenges
   challenges: {
-    calendar: {
-      dailyProgress: string;
-      title: string;
-      noActivity: string;
-      someActivity: string;
-      goodProgress: string;
-      perfectDay: string;
-      weeklyBreakdown: string;
-      week: string;
-    };
-    completion: {
-      requirements: string;
-      activeDays: string;
-      milestones: string;
-    };
     guidance?: Record<string, string>;
   };
 
@@ -2932,13 +2651,6 @@ export interface TranslationKeys {
     };
   };
 
-  // Monitoring system
-  monitoring?: {
-    errors: {
-      initFailed: string;
-      refreshFailed: string;
-    };
-  };
 
   // Accessibility labels
   accessibility: {
@@ -2966,24 +2678,6 @@ export interface TranslationKeys {
     };
   };
 
-  // AdMob Ads
-  ads: {
-    banner: {
-      loading: string;
-      failed: string;
-    };
-    rewarded: {
-      title: string;
-      description: string;
-      buttonWatch: string;
-      buttonCancel: string;
-      loading: string;
-      playing: string;
-      success: string;
-      failed: string;
-      dismissed: string;
-    };
-  };
 }
 
 // Extend i18next module for TypeScript support

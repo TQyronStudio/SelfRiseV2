@@ -1994,79 +1994,6 @@ const en: TranslationKeys = {
 
     // Achievement Names (78 achievements)
     achievementNames: {
-      'first-habit': 'First Steps',
-      'habit-builder': 'Habit Builder',
-      'century-club': 'Century Club',
-      'consistency-king': 'Consistency King',
-      'habit-streak-champion': 'Habit Streak Champion',
-      'century-streak': 'Century Streak',
-      'streak-champion': 'Streak Champion',
-      'multi-tasker': 'Multi-Tasker',
-      'habit-legend': 'Habit Legend',
-      'first-journal': 'First Reflection',
-      'deep-thinker': 'Deep Thinker',
-      'journal-enthusiast': 'Journal Enthusiast',
-      'grateful-heart': 'Grateful Heart',
-      'gratitude-guru': 'Gratitude Guru',
-      'eternal-gratitude': 'Eternal Gratitude',
-      'journal-streaker': 'Journal Streaker',
-      'bonus-seeker': 'Bonus Seeker',
-      'first-star': 'First Star',
-      'five-stars': 'Five Stars',
-      'flame-achiever': 'Flame Achiever',
-      'bonus-week': 'Bonus Week',
-      'crown-royalty': 'Crown Royalty',
-      'flame-collector': 'Flame Collector',
-      'golden-bonus-streak': 'Golden Bonus Streak',
-      'triple-crown-master': 'Triple Crown Master',
-      'bonus-century': 'Bonus Century',
-      'star-beginner': 'Star Beginner',
-      'star-collector': 'Star Collector',
-      'star-master': 'Star Master',
-      'star-champion': 'Star Champion',
-      'star-legend': 'Star Legend',
-      'flame-starter': 'Flame Starter',
-      'flame-accumulator': 'Flame Accumulator',
-      'flame-master': 'Flame Master',
-      'flame-champion': 'Flame Champion',
-      'flame-legend': 'Flame Legend',
-      'crown-achiever': 'Crown Achiever',
-      'crown-collector': 'Crown Collector',
-      'crown-master': 'Crown Master',
-      'crown-champion': 'Crown Champion',
-      'crown-emperor': 'Crown Emperor',
-      'first-goal': 'First Vision',
-      'goal-getter': 'Goal Getter',
-      'ambitious': 'Ambitious',
-      'goal-champion': 'Goal Champion',
-      'progress-tracker': 'Progress Tracker',
-      'mega-dreamer': 'Mega Dreamer',
-      'achievement-unlocked': 'Achievement Unlocked',
-      'million-achiever': 'Million Achiever',
-      'weekly-warrior': 'Weekly Warrior',
-      'monthly-master': 'Monthly Master',
-      'centurion': 'Centurion',
-      'hundred-days': 'Hundred Days',
-      'daily-visitor': 'Daily Visitor',
-      'dedicated-user': 'Dedicated User',
-      'perfect-month': 'Perfect Month',
-      'triple-crown': 'Triple Crown',
-      'gratitude-guardian': 'Gratitude Guardian',
-      'dream-fulfiller': 'Dream Fulfiller',
-      'goal-achiever': 'Goal Achiever',
-      'level-up': 'Level Up',
-      'selfrise-expert': 'SelfRise Expert',
-      'selfrise-master': 'SelfRise Master',
-      'ultimate-selfrise-legend': 'Ultimate SelfRise Legend',
-      'recommendation-master': 'Recommendation Master',
-      'balance-master': 'Balance Master',
-      'trophy-collector-basic': 'Trophy Collector',
-      'trophy-collector-master': 'Trophy Master',
-      'lightning-start': 'Lightning Start',
-      'seven-wonder': 'Seven Wonder',
-      'persistence-pays': 'Persistence Pays',
-      'legendary-master': 'Legendary Master',
-      'selfrise-legend': 'SelfRise Legend',
       'loyalty-first-week': 'First Week',
       'loyalty-two-weeks-strong': 'Two Weeks Strong',
       'loyalty-three-weeks-committed': 'Three Weeks Committed',
@@ -2085,7 +2012,6 @@ const en: TranslationKeys = {
       'habit-builder': 'Create 5 different habits',
       'century-club': 'Complete 100 habit tasks',
       'consistency-king': 'Complete 1000 habit tasks',
-      'habit-streak-champion': 'Achieve a 21-day streak with any habit',
       'century-streak': 'Maintain a 75-day streak with any habit',
       'streak-champion': 'Achieve a 21-day streak with any habit',
       'multi-tasker': 'Complete 5 different habits in one day',
@@ -2103,9 +2029,7 @@ const en: TranslationKeys = {
       'flame-achiever': 'Earn a flame (5 bonuses in one day) for the first time',
       'bonus-week': 'At least 1 bonus every day for 7 days in a row',
       'crown-royalty': 'Earn a crown (10 bonuses in one day) for the first time',
-      'flame-collector': 'Earn a flame 5 times total',
       'golden-bonus-streak': 'At least 3 bonuses every day for 7 days in a row',
-      'triple-crown-master': 'Earn a crown 3 times total',
       'bonus-century': 'Write 200 bonus entries total',
       'star-beginner': 'Earn a star 10 times total',
       'star-collector': 'Earn a star 25 times total',
@@ -2132,20 +2056,16 @@ const en: TranslationKeys = {
       'million-achiever': 'Complete a goal with value 1,000,000 or more',
       'weekly-warrior': 'Maintain a 7-day streak in any habit',
       'monthly-master': 'Achieve a 30-day streak',
-      'centurion': 'Achieve 100 days of consistency',
       'hundred-days': 'Maintain a 100-day habit completion streak',
       'daily-visitor': 'Use the app for 7 consecutive days',
       'dedicated-user': 'Use the app for 30 consecutive days',
       'perfect-month': 'Complete activities in all 3 areas on 28+ days in a month',
       'triple-crown': 'Maintain 7+ day streaks in habits, journal, and goals simultaneously',
-      'gratitude-guardian': 'Write journal entries for 21 consecutive days',
-      'dream-fulfiller': 'Complete 3 goals',
       'goal-achiever': 'Complete 3 goals',
       'level-up': 'Reach level 10 "Beginner V"',
       'selfrise-expert': 'Reach level 25 "Adept V"',
       'selfrise-master': 'Reach level 50 "Specialist V"',
       'ultimate-selfrise-legend': 'Reach level 100 "Mythic V"',
-      'recommendation-master': 'Follow 20 personalized recommendations',
       'balance-master': 'Use all 3 features in one day 10 times',
       'trophy-collector-basic': 'Unlock 10 achievements',
       'trophy-collector-master': 'Unlock 25 achievements',
@@ -2153,7 +2073,6 @@ const en: TranslationKeys = {
       'seven-wonder': 'Have 7 or more active habits simultaneously',
       'persistence-pays': 'Return after a 3+ day break and complete 7 activities',
       'legendary-master': 'Achieve elite status across 3 major categories',
-      'selfrise-legend': 'Achieve mastery: 10 goals + 500 habits + 365 journal entries',
       'loyalty-first-week': '7 active days total',
       'loyalty-two-weeks-strong': '14 active days total',
       'loyalty-three-weeks-committed': '21 active days total',
@@ -2258,17 +2177,9 @@ const en: TranslationKeys = {
       name: 'Crown Royalty',
       description: 'Get your first crown (10 bonuses in one day) - pinnacle day of reflection with royal status'
     },
-    flame_collector: {
-      name: 'Flame Collector',
-      description: 'Get flames 25 times total - master of intensive gratitude days'
-    },
     golden_bonus_streak: {
       name: 'Golden Bonus Streak',
       description: 'At least 3 bonuses every day for 7 days in a row - a week of deep and expanded reflection'
-    },
-    triple_crown_master: {
-      name: 'Triple Crown Master',
-      description: 'Get crowns 3 times total - legendary master of royal reflection days'
     },
     bonus_century: {
       name: 'Bonus Century',
@@ -2407,10 +2318,6 @@ const en: TranslationKeys = {
     selfrise_master: {
       name: 'SelfRise Master',
       description: 'Reach level 50 "Specialist V" - you are a true master of self-improvement'
-    },
-    recommendation_master: {
-      name: 'Recommendation Master',
-      description: 'Follow 20 personalized recommendations from the For You section'
     },
     balance_master: {
       name: 'Balance Master',
@@ -2619,20 +2526,10 @@ const en: TranslationKeys = {
         requirement: 'Write 10+ bonus entries in one day to earn a crown',
         action: 'Go for royal status with 13+ journal entries in one day!'
       },
-      flame_collector: {
-        progress: 'Collect 25 flames total ({{current}}/{{target}})',
-        requirement: 'Earn 🔥 milestone 25 times total',
-        action: 'Keep having intense gratitude days with 5+ bonus entries!'
-      },
       golden_bonus_streak: {
         progress: 'Golden bonus streak 7 days ({{current}}/{{target}})',
         requirement: 'Write 3+ bonus entries daily for 7 consecutive days',
         action: 'Write 6+ entries daily for the ultimate bonus streak!'
-      },
-      triple_crown_master: {
-        progress: 'Earn 3 crowns total ({{current}}/{{target}})',
-        requirement: 'Earn 👑 milestone 3 times total',
-        action: 'Master the art of royal gratitude days!'
       },
       bonus_century: {
         progress: 'Write 200 bonus entries ({{current}}/{{target}})',
@@ -2842,11 +2739,6 @@ const en: TranslationKeys = {
         requirement: 'Unlock 30 achievements total',
         action: 'Master collector status - find all achievements!'
       },
-      recommendation_master: {
-        progress: 'Follow {{current}} recommendations',
-        requirement: 'Follow {{target}} personalized recommendations',
-        action: 'Check the Recommendations section and follow the guidance!'
-      },
       balance_master_alt: {
         progress: 'Balanced days: {{current}}/{{target}}',
         requirement: 'Use habits, journal, and goals in one day for {{target}} days',
@@ -3016,34 +2908,6 @@ const en: TranslationKeys = {
     resetting: 'Resetting...',
   },
   
-  // Auth screens
-  auth: {
-    login: {
-      title: 'Welcome Back',
-      email: 'Email',
-      emailPlaceholder: 'Enter your email...',
-      password: 'Password',
-      passwordPlaceholder: 'Enter your password...',
-      loginButton: 'Login',
-      forgotPassword: 'Forgot Password?',
-      noAccount: 'Don\'t have an account?',
-      signUp: 'Sign Up',
-    },
-    register: {
-      title: 'Create Account',
-      displayName: 'Display Name',
-      displayNamePlaceholder: 'Enter your name...',
-      email: 'Email',
-      emailPlaceholder: 'Enter your email...',
-      password: 'Password',
-      passwordPlaceholder: 'Enter your password...',
-      confirmPassword: 'Confirm Password',
-      confirmPasswordPlaceholder: 'Confirm your password...',
-      registerButton: 'Register',
-      hasAccount: 'Already have an account?',
-      signIn: 'Sign In',
-    },
-  },
 
   // Gamification System
   gamification: {
@@ -3075,26 +2939,13 @@ const en: TranslationKeys = {
         general_activity: 'Activity',
         daily_engagement: 'Daily Engagement',
         monthly_challenge: 'Monthly Challenge',
-        recommendation_follow: 'Recommendation',
         xp_multiplier_bonus: 'Multiplier Bonus',
         loyalty_milestone: 'Loyalty Milestone',
         daily_activity: 'Daily Activity',
         inactive_user_return: 'Comeback Bonus',
       },
       
-      // Notifications and Announcements
-      notification: {
-        message: 'Experience points notification: {{message}}',
-        amount: 'Experience points {{type}}: {{amount}}',
-      },
       
-      announcement: {
-        balanced: 'No net experience points gained or lost from recent activities',
-        decreased: 'Lost {{xp}} experience points from recent activities',
-        single: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
-        multiple_same: 'Gained {{xp}} experience points from completing {{count}} {{source}}',
-        multiple_mixed: 'Gained {{xp}} experience points from completing multiple activities',
-      },
       
       // Popup animations
       popup: {
@@ -3103,14 +2954,6 @@ const en: TranslationKeys = {
         amount_label: '{{sign}} {{amount}} experience points',
       },
 
-      // Notification messages
-      notifications: {
-        completed: 'completed',
-        balanced: 'Activities balanced (no net progress)',
-        reversed: 'Progress reversed',
-        updated: 'Activities updated',
-        and: 'and',
-      },
 
       // XP Notification Component - Source Names (plural forms for display)
       xpNotification: {
@@ -3181,17 +3024,8 @@ const en: TranslationKeys = {
         hint: 'Your current experience level and progress toward the next level.{{#isMilestone}} You have reached a special milestone level with unique rewards.{{/isMilestone}}',
       },
       
-      badge: {
-        accessibility: 'Level {{currentLevel}} badge, {{levelTitle}}{{#isMilestone}}, milestone level{{/isMilestone}}',
-      },
       
-      bar: {
-        accessibility: 'Experience progress bar, {{progress}} percent complete',
-      },
       
-      milestone: {
-        accessibility: 'Milestone level indicator',
-      },
     },
 
     // Level System
@@ -3218,15 +3052,6 @@ const en: TranslationKeys = {
       },
     },
 
-    // Effects and Celebrations
-    effects: {
-      level_up: 'Level up celebration',
-      milestone: 'Milestone achievement celebration',
-      achievement: 'Achievement unlock celebration',
-      celebration: 'General celebration',
-      general: 'Celebration effects',
-      accessibility_label: '{{type}} with {{intensity}} intensity particle effects',
-    },
 
     // Celebration Modals
     celebration: {
@@ -3285,13 +3110,6 @@ const en: TranslationKeys = {
       shareButton: '🎉 Share',
       shareAccessibility: 'Share your achievement',
 
-      // Timer Display
-      timeFormat: {
-        hoursMinutes: '{{hours}}h {{minutes}}m',
-        minutesSeconds: '{{minutes}}m {{seconds}}s',
-        seconds: '{{seconds}}s',
-        hoursOnly: '{{hours}}h',
-      },
 
       // Countdown Timer
       timerAccessibility: 'XP Multiplier: {{multiplier}}x, {{time}} remaining',
@@ -3330,13 +3148,6 @@ const en: TranslationKeys = {
       },
     },
 
-    analysis: {
-      title: 'Performance Analysis',
-      overallRating: 'Overall Rating',
-      trend: 'Trend',
-      successRate: 'Success Rate',
-      strongest: 'Strongest',
-    },
 
     // Level tier descriptions
     levelTiers: {
@@ -3391,25 +3202,11 @@ const en: TranslationKeys = {
       goalProgress: 'Added progress to goal',
       goalCompletion: 'Completed a goal',
       goalMilestone: 'Reached goal milestone',
-      recommendationFollow: 'Followed a recommendation',
       achievementUnlock: 'Unlocked an achievement',
       monthlyChallenge: 'Completed monthly challenge',
       xpMultiplierBonus: 'XP multiplier bonus applied',
     },
 
-    // Achievement System
-    achievement: {
-      unlocked: 'Achievement Unlocked!',
-      locked: 'Locked Achievement',
-      progress: 'Progress: {{current}}/{{target}}',
-      xp_reward: '+{{xp}} XP',
-      requirements: 'Requirements',
-      unlock_condition: 'Unlock Condition',
-
-      announcement: {
-        unlocked: 'Achievement unlocked: {{name}}! You earned {{xp}} experience points.',
-      },
-    },
 
     // Sources with icon descriptions for accessibility
     sources: {
@@ -3457,9 +3254,6 @@ const en: TranslationKeys = {
       },
       xp_multiplier_bonus: {
         icon_description: 'Lightning bolt icon representing comeback bonus multiplier',
-      },
-      recommendation_follow: {
-        icon_description: 'Lightbulb icon representing a followed recommendation',
       },
       loyalty_milestone: {
         icon_description: 'Medal icon representing loyalty milestone',
@@ -3520,14 +3314,6 @@ const en: TranslationKeys = {
         title: 'Bonus Conversion',
         content: 'Going above and beyond? We love that energy! 🔥 When you complete more than your daily goal, those extra efforts turn into bonus XP. It\'s our way of celebrating your amazing dedication!'
       },
-      streakTracking: {
-        title: 'Habit Streaks',
-        content: 'Build incredible streaks by completing your habits day after day! 📅 Watch your numbers grow and feel that momentum building. Plus, you\'ll unlock awesome achievements at major milestones!'
-      },
-      colorAndIcon: {
-        title: 'Habit Customization',
-        content: 'Make it yours! Pick colors and icons that speak to you. 🎨 When your habits look amazing, you\'ll actually want to check them off. It\'s like having a personal dashboard that motivates you every day!'
-      },
       makeupFunction: {
         title: 'Smart Make-up System',
         content: 'Life happens, and we\'ve got your back! ✨ When you miss a scheduled day, any bonus completions you earn can automatically convert to "make-up" that day. Look for the golden checkmark ✓ in your calendar - it means you recovered a missed day with your extra effort!'
@@ -3536,17 +3322,9 @@ const en: TranslationKeys = {
 
     // Journal screen help
     journal: {
-      gratitudeStreak: {
-        title: 'Gratitude Streak',
-        content: 'You\'re building something beautiful! ✨ Each day you write gratitude entries, your streak grows stronger. Just 3 entries daily keeps your momentum going and unlocks amazing celebration milestones!'
-      },
       selfRiseStreak: {
         title: 'SelfRise Streak',
         content: 'This is your overall growth journey! 🌱 To keep your streak going, write at least 3 gratitude entries each day. This tracks your daily engagement across everything - habits, goals, and journal. It\'s the big picture of your awesome progress!'
-      },
-      bonusEntries: {
-        title: 'Bonus Entries',
-        content: 'Feeling extra grateful today? Go for it! 💫 Writing more than 3 entries earns you bonus XP and shows your incredible dedication. Plus, you\'ll unlock special celebration moments!'
       },
       debtRecovery: {
         title: 'Streak Recovery',
@@ -3564,14 +3342,6 @@ const en: TranslationKeys = {
         title: 'Smart Goal Predictions',
         content: 'We\'re like your personal progress fortune teller! 🔮 Our smart system analyzes your patterns and gives you realistic timelines. No more guessing - you\'ll know exactly when you\'ll crush that goal!'
       },
-      progressTracking: {
-        title: 'Track Your Journey',
-        content: 'Every step counts! 📈 Add your daily or weekly progress and watch your goal come to life. You can increase, decrease, or set exact amounts. Add notes to remember those proud moments!'
-      },
-      templates: {
-        title: 'Goal Templates',
-        content: 'Why start from scratch? We\'ve got you covered! 🎯 Choose from ready-made templates for popular goals and customize them to fit your unique journey. It\'s like having a head start!'
-      }
     },
 
     // Home dashboard help
@@ -3584,14 +3354,6 @@ const en: TranslationKeys = {
         title: 'Your XP Journey',
         content: 'Level up your life! 🚀 Every habit, journal entry, and goal step earns you XP. Watch your progress bar fill up and celebrate each new level you reach. You\'re literally growing stronger every day!'
       },
-      streakBadges: {
-        title: 'Your Streak Collection',
-        content: 'These badges tell your success story! 🏆 Different colors show how strong your streaks are, and special badges celebrate major milestones. Each one represents your amazing dedication!'
-      },
-      habitStatistics: {
-        title: 'Your Success Dashboard',
-        content: 'See how amazing you\'re doing! 📊 Get a complete picture of your habit success with completion rates, trends, and patterns. It\'s proof of your incredible consistency and growth!'
-      }
     },
 
     // Achievements help - removed standard gaming concepts
@@ -3741,31 +3503,8 @@ const en: TranslationKeys = {
         title: 'Challenge Star Rating',
         content: 'Ready for a challenge? ⭐ Pick your adventure level! 1-star challenges are perfect for getting started, while 5-star challenges are for the ultimate achievers. Higher stars mean bigger XP rewards and bragging rights!'
       },
-      progressTracking: {
-        title: 'Watch Your Progress',
-        content: 'Stay motivated all month long! 📅 Track your daily wins and see weekly breakdowns that show exactly how you\'re crushing your challenge. You\'ll love watching your progress add up!'
-      },
-      completionRewards: {
-        title: 'Epic Completion Rewards',
-        content: 'Finish strong and get rewarded big time! 🎁 Complete monthly challenges for massive XP bonuses and exclusive achievements. The harder the challenge, the sweeter the victory celebration!'
-      }
     },
 
-    // Gamification help
-    gamification: {
-      levelProgression: {
-        title: 'Your Level Journey',
-        content: 'You\'re on an epic 100-level adventure! 🎮 Each level gets more exciting as you grow stronger. Watch your rank evolve through 6 amazing color tiers from Grey all the way to legendary Red. Every level is a celebration of your progress!'
-      },
-      xpMultipliers: {
-        title: 'Double XP Power-Up',
-        content: 'Get ready for XP BOOST mode! ⚡ Achieve Harmony Streak (habits + journal + goals in one day) and unlock 24 hours of double XP! It\'s like finding a power-up that makes everything count twice!'
-      },
-      harmonyStreak: {
-        title: 'The Ultimate Daily Win',
-        content: 'This is where the magic happens! ✨ Complete your habits, write in your journal, AND make goal progress all in one day. Boom! You\'ve just unlocked 24 hours of 2x XP. It\'s the perfect day multiplied!'
-      }
-    }
   },
 
   // Tutorial System
@@ -3918,12 +3657,6 @@ const en: TranslationKeys = {
         button: 'Continue',
       },
 
-      // Step 9: Journal Encouragement
-      journalEncouragement: {
-        title: 'You\'re A Natural! ⭐',
-        content: 'Beautiful entry! Writing 3 gratitude entries daily helps maintain your SelfRise streak and fills your mind with positivity. You can always add bonus entries for extra XP too!',
-        button: 'Continue',
-      },
 
       // Step 10: Goals Introduction
       goalsIntro: {
@@ -3988,34 +3721,6 @@ const en: TranslationKeys = {
       },
     },
 
-    // Validation Messages
-    validation: {
-      habitName: {
-        required: 'Please enter a habit name to continue',
-        tooShort: 'Give your habit a more descriptive name (at least 2 characters)',
-        tooLong: 'Keep your habit name under 50 characters',
-      },
-      habitDays: {
-        required: 'Please select at least one day for your habit',
-      },
-      goalTitle: {
-        required: 'Please enter a goal title to continue',
-        tooShort: 'Give your goal a more descriptive title (at least 2 characters)',
-        tooLong: 'Keep your goal title under 100 characters',
-      },
-      goalUnit: {
-        required: 'Please specify a unit for measuring progress',
-        tooLong: 'Keep your unit under 20 characters',
-      },
-      goalTarget: {
-        required: 'Please enter a target value greater than 0',
-        tooLarge: 'Target value should be less than 1,000,000',
-      },
-      gratitudeEntry: {
-        required: 'Please write what you\'re grateful for',
-        tooShort: 'Share a bit more detail about what you\'re grateful for',
-      },
-    },
 
     // Error Messages
     errors: {
@@ -4062,42 +3767,9 @@ const en: TranslationKeys = {
       goodUnit: 'Good unit: "{{unit}}" - make sure it\'s easy to track! ✅',
     },
 
-    // Skip Confirmation
-    skipConfirmation: {
-      title: 'Skip Tutorial?',
-      message: 'Are you sure you want to skip the tutorial? You can always access it later from the help section.',
-      skip: 'Yes, Skip',
-      continue: 'Continue Tutorial',
-    },
 
-    // Progress Messages
-    progress: {
-      creatingHabit: 'Creating your awesome habit...',
-      creatingGoal: 'Setting up your goal...',
-      savingEntry: 'Saving your gratitude entry...',
-      loading: 'Loading next step...',
-    },
 
-    // Accessibility
-    accessibility: {
-      tutorialModal: 'Tutorial step {{step}} of {{total}}: {{title}}',
-      spotlightArea: 'Tutorial spotlight highlighting {{target}}',
-      progressIndicator: 'Tutorial progress: {{progress}} percent complete',
-      skipButton: 'Skip tutorial and go to main app',
-      nextButton: 'Continue to next tutorial step',
-      formField: 'Tutorial input field for {{field}}',
-      colorSelector: 'Color selection for habit customization',
-      iconSelector: 'Icon selection for habit customization',
-      daySelector: 'Day selection for habit scheduling',
-    },
 
-    // Tutorial Recovery (for crash recovery)
-    recovery: {
-      title: 'Welcome Back! 👋',
-      message: 'Looks like you were in the middle of the tutorial. Would you like to continue where you left off or start fresh?',
-      continue: 'Continue Tutorial',
-      restart: 'Start Over',
-    },
 
     // Tutorial step progress (for modal)
     stepProgress: 'Step {{current}} of {{total}}',
@@ -4120,18 +3792,6 @@ const en: TranslationKeys = {
         name: 'Daily Reminders',
         description: 'Notifications to help you stay on track with your habits and goals',
       },
-    },
-    morning: {
-      variant1: 'Good morning! Start your day with gratitude 🌅',
-      variant2: 'Rise and shine! What are you grateful for today? ✨',
-      variant3: 'A new day, a new chance to grow! 🌱',
-      variant4: 'Morning motivation: check your habits and set your intention! 💪',
-    },
-    evening: {
-      variant1: 'Evening reflection: How did your habits go today? 🌙',
-      variant2: 'End your day with gratitude. What went well? 🙏',
-      variant3: 'Time to review your progress and plan tomorrow! 📝',
-      variant4: 'Good night! Don\'t forget to complete your daily gratitude! 🌟',
     },
     // Daily reminder notifications
     reminders: {
@@ -4428,21 +4088,6 @@ const en: TranslationKeys = {
 
   // Challenges
   challenges: {
-    calendar: {
-      dailyProgress: 'Daily Progress',
-      title: 'Monthly Progress Calendar',
-      noActivity: 'No Activity (<10%)',
-      someActivity: 'Some Activity (10-50%)',
-      goodProgress: 'Good Progress (51-90%)',
-      perfectDay: 'Perfect Day (91%+)',
-      weeklyBreakdown: 'Weekly Breakdown',
-      week: 'Week {{week}}',
-    },
-    completion: {
-      requirements: 'Requirements',
-      activeDays: 'Active Days',
-      milestones: 'Milestones',
-    },
     guidance: {
       habitsTarget: '🎯 Target: {{target}} habit completions this month (about {{daily}} per day)',
       habitsTip: '💡 Tip: Start with 1-2 habits and build consistency before adding more',
@@ -4476,13 +4121,6 @@ const en: TranslationKeys = {
     },
   },
 
-  // Monitoring system
-  monitoring: {
-    errors: {
-      initFailed: 'Failed to initialize monitoring',
-      refreshFailed: 'Failed to refresh monitoring data',
-    },
-  },
 
   // Accessibility labels
   accessibility: {
@@ -4510,24 +4148,6 @@ const en: TranslationKeys = {
     },
   },
 
-  // AdMob Ads
-  ads: {
-    banner: {
-      loading: 'Loading ad...',
-      failed: 'Ad failed to load',
-    },
-    rewarded: {
-      title: 'Restore Your Streak',
-      description: 'Watch a short ad to restore your journal streak',
-      buttonWatch: 'Watch Ad',
-      buttonCancel: 'Not Now',
-      loading: 'Loading ad...',
-      playing: 'Ad is playing...',
-      success: 'Streak Restored!',
-      failed: 'Failed to load ad. Please try again.',
-      dismissed: 'Ad was dismissed. No reward earned.',
-    },
-  },
 
 };
 

@@ -491,7 +491,6 @@ const createEmptyXPBySource = (): Record<XPSourceType, number> => ({
   [XPSourceType.GOAL_PROGRESS]: 0,
   [XPSourceType.GOAL_COMPLETION]: 0,
   [XPSourceType.GOAL_MILESTONE]: 0,
-  [XPSourceType.RECOMMENDATION_FOLLOW]: 0,
   [XPSourceType.ACHIEVEMENT_UNLOCK]: 0,
   [XPSourceType.MONTHLY_CHALLENGE]: 0,
   [XPSourceType.XP_MULTIPLIER_BONUS]: 0,

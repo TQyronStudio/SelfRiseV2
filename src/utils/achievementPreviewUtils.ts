@@ -55,7 +55,6 @@ export interface UserStats {
   
   // Activity
   totalActiveDays: number;
-  recommendationsFollowed: number;
   
   // Special achievements tracking
   samedayHabitCreationCompletions: number;  // lightning-start

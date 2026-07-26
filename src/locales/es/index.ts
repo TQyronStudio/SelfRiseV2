@@ -2099,79 +2099,6 @@ const es: Partial<TranslationKeys> = {
 
     // Achievement Names (78 achievements)
     achievementNames: {
-      'first-habit': 'Primeros Pasos',
-      'habit-builder': 'Constructor de Hábitos',
-      'century-club': 'Club del Siglo',
-      'consistency-king': 'Rey de la Consistencia',
-      'habit-streak-champion': 'Campeón de Racha de Hábitos',
-      'century-streak': 'Racha del Siglo',
-      'streak-champion': 'Campeón de Racha',
-      'multi-tasker': 'Multitarea',
-      'habit-legend': 'Leyenda de Hábitos',
-      'first-journal': 'Primera Reflexión',
-      'deep-thinker': 'Pensador Profundo',
-      'journal-enthusiast': 'Entusiasta del Diario',
-      'grateful-heart': 'Corazón Agradecido',
-      'gratitude-guru': 'Gurú de la Gratitud',
-      'eternal-gratitude': 'Gratitud Eterna',
-      'journal-streaker': 'Streaker de Diario',
-      'bonus-seeker': 'Buscador de Bonificaciones',
-      'first-star': 'Primera Estrella',
-      'five-stars': 'Cinco Estrellas',
-      'flame-achiever': 'Logrador de Llama',
-      'bonus-week': 'Semana de Bonificación',
-      'crown-royalty': 'Realeza de Corona',
-      'flame-collector': 'Coleccionista de Llamas',
-      'golden-bonus-streak': 'Racha de Bonificación Dorada',
-      'triple-crown-master': 'Maestro de Triple Corona',
-      'bonus-century': 'Siglo de Bonificación',
-      'star-beginner': 'Principiante de Estrellas',
-      'star-collector': 'Coleccionista de Estrellas',
-      'star-master': 'Maestro de Estrellas',
-      'star-champion': 'Campeón de Estrellas',
-      'star-legend': 'Leyenda de Estrellas',
-      'flame-starter': 'Iniciador de Llamas',
-      'flame-accumulator': 'Acumulador de Llamas',
-      'flame-master': 'Maestro de Llamas',
-      'flame-champion': 'Campeón de Llamas',
-      'flame-legend': 'Leyenda de Llamas',
-      'crown-achiever': 'Logrador de Corona',
-      'crown-collector': 'Coleccionista de Coronas',
-      'crown-master': 'Maestro de Coronas',
-      'crown-champion': 'Campeón de Coronas',
-      'crown-emperor': 'Emperador de Coronas',
-      'first-goal': 'Primera Visión',
-      'goal-getter': 'Conseguidor de Objetivos',
-      'ambitious': 'Ambicioso',
-      'goal-champion': 'Campeón de Objetivos',
-      'progress-tracker': 'Seguidor de Progreso',
-      'mega-dreamer': 'Mega Soñador',
-      'achievement-unlocked': 'Logro Desbloqueado',
-      'million-achiever': 'Logrador de Millones',
-      'weekly-warrior': 'Guerrero Semanal',
-      'monthly-master': 'Maestro Mensual',
-      'centurion': 'Centurión',
-      'hundred-days': 'Cien Días',
-      'daily-visitor': 'Visitante Diario',
-      'dedicated-user': 'Usuario Dedicado',
-      'perfect-month': 'Mes Perfecto',
-      'triple-crown': 'Triple Corona',
-      'gratitude-guardian': 'Guardián de la Gratitud',
-      'dream-fulfiller': 'Cumplidor de Sueños',
-      'goal-achiever': 'Logrador de Objetivos',
-      'level-up': 'Subir de Nivel',
-      'selfrise-expert': 'Experto en SelfRise',
-      'selfrise-master': 'Maestro de SelfRise',
-      'ultimate-selfrise-legend': 'Leyenda Definitiva de SelfRise',
-      'recommendation-master': 'Maestro de Recomendaciones',
-      'balance-master': 'Maestro del Equilibrio',
-      'trophy-collector-basic': 'Coleccionista de Trofeos',
-      'trophy-collector-master': 'Maestro de Trofeos',
-      'lightning-start': 'Inicio Relámpago',
-      'seven-wonder': 'Siete Maravillas',
-      'persistence-pays': 'La Persistencia Paga',
-      'legendary-master': 'Maestro Legendario',
-      'selfrise-legend': 'Leyenda de SelfRise',
       'loyalty-first-week': 'Primera Semana',
       'loyalty-two-weeks-strong': 'Dos Semanas Fuerte',
       'loyalty-three-weeks-committed': 'Tres Semanas Comprometido',
@@ -2190,7 +2117,6 @@ const es: Partial<TranslationKeys> = {
       'habit-builder': 'Crea 5 hábitos diferentes',
       'century-club': 'Completa 100 tareas de hábitos',
       'consistency-king': 'Completa 1000 tareas de hábitos',
-      'habit-streak-champion': 'Logra una racha de 21 días con cualquier hábito',
       'century-streak': 'Mantén una racha de 75 días con cualquier hábito',
       'streak-champion': 'Logra una racha de 21 días con cualquier hábito',
       'multi-tasker': 'Completa 5 hábitos diferentes en un día',
@@ -2208,9 +2134,7 @@ const es: Partial<TranslationKeys> = {
       'flame-achiever': 'Gana una llama (5 bonificaciones en un día) por primera vez',
       'bonus-week': 'Al menos 1 bonificación cada día durante 7 días seguidos',
       'crown-royalty': 'Gana una corona (10 bonificaciones en un día) por primera vez',
-      'flame-collector': 'Gana una llama 5 veces en total',
       'golden-bonus-streak': 'Al menos 3 bonificaciones cada día durante 7 días seguidos',
-      'triple-crown-master': 'Gana una corona 3 veces en total',
       'bonus-century': 'Escribe 200 entradas bonificadas en total',
       'star-beginner': 'Gana una estrella 10 veces en total',
       'star-collector': 'Gana una estrella 25 veces en total',
@@ -2237,20 +2161,16 @@ const es: Partial<TranslationKeys> = {
       'million-achiever': 'Completa un objetivo con valor de 1,000,000 o más',
       'weekly-warrior': 'Mantén una racha de 7 días en cualquier hábito',
       'monthly-master': 'Logra una racha de 30 días',
-      'centurion': 'Logra 100 días de consistencia',
       'hundred-days': 'Mantén una racha de 100 días de completar hábitos',
       'daily-visitor': 'Usa la app durante 7 días consecutivos',
       'dedicated-user': 'Usa la app durante 30 días consecutivos',
       'perfect-month': 'Completa actividades en las 3 áreas durante 28+ días en un mes',
       'triple-crown': 'Mantén rachas de 7+ días en hábitos, diario y objetivos simultáneamente',
-      'gratitude-guardian': 'Escribe entradas de diario durante 21 días consecutivos',
-      'dream-fulfiller': 'Completa 3 objetivos',
       'goal-achiever': 'Completa 3 objetivos',
       'level-up': 'Alcanza el nivel 10 "Principiante V"',
       'selfrise-expert': 'Alcanza el nivel 25 "Adepto V"',
       'selfrise-master': 'Alcanza el nivel 50 "Especialista V"',
       'ultimate-selfrise-legend': 'Alcanza el nivel 100 "Mítico V"',
-      'recommendation-master': 'Sigue 20 recomendaciones personalizadas',
       'balance-master': 'Usa las 3 funciones en un día 10 veces',
       'trophy-collector-basic': 'Desbloquea 10 logros',
       'trophy-collector-master': 'Desbloquea 25 logros',
@@ -2258,7 +2178,6 @@ const es: Partial<TranslationKeys> = {
       'seven-wonder': 'Ten 7 o más hábitos activos simultáneamente',
       'persistence-pays': 'Regresa después de un descanso de 3+ días y completa 7 actividades',
       'legendary-master': 'Logra estado de élite en 3 categorías principales',
-      'selfrise-legend': 'Logra la maestría: 10 objetivos + 500 hábitos + 365 entradas de diario',
       'loyalty-first-week': '7 días activos en total',
       'loyalty-two-weeks-strong': '14 días activos en total',
       'loyalty-three-weeks-committed': '21 días activos en total',
@@ -2362,17 +2281,9 @@ const es: Partial<TranslationKeys> = {
       name: 'Realeza de la Corona',
       description: 'Gana tu primera corona (10 bonos en un día) - día cumbre de reflexión con estatus real'
     },
-    flame_collector: {
-      name: 'Coleccionista de Llamas',
-      description: 'Gana llamas 25 veces en total - maestro de días intensos de gratitud'
-    },
     golden_bonus_streak: {
       name: 'Racha Dorada de Bonos',
       description: '7 días consecutivos con al menos 3 bonos cada día - una semana de reflexión profunda y expandida'
-    },
-    triple_crown_master: {
-      name: 'Maestro de la Triple Corona',
-      description: 'Gana coronas 3 veces en total - maestro legendario de días de reflexión reales'
     },
     bonus_century: {
       name: 'Siglo de Bonos',
@@ -2511,10 +2422,6 @@ const es: Partial<TranslationKeys> = {
     selfrise_master: {
       name: 'Maestro SelfRise',
       description: 'Alcanza el nivel 50 "Especialista V" - eres un verdadero maestro de la superación personal'
-    },
-    recommendation_master: {
-      name: 'Maestro de Recomendaciones',
-      description: 'Sigue 20 recomendaciones personalizadas del área Para Ti'
     },
     balance_master: {
       name: 'Maestro del Equilibrio',
@@ -2723,20 +2630,10 @@ const es: Partial<TranslationKeys> = {
         requirement: 'Escribe 10+ entradas bonus en un día para ganar una corona',
         action: '¡Ve por el estatus real con 13+ entradas de diario en un día!'
       },
-      flame_collector: {
-        progress: 'Colecciona 25 llamas en total ({{current}}/{{target}})',
-        requirement: 'Gana hito 🔥 25 veces en total',
-        action: '¡Sigue teniendo días intensos de gratitud con 5+ entradas bonus!'
-      },
       golden_bonus_streak: {
         progress: 'Racha bonus dorada 7 días ({{current}}/{{target}})',
         requirement: 'Escribe 3+ entradas bonus diarias durante 7 días consecutivos',
         action: '¡Escribe 6+ entradas diarias para la racha bonus definitiva!'
-      },
-      triple_crown_master: {
-        progress: 'Gana 3 coronas en total ({{current}}/{{target}})',
-        requirement: 'Gana hito 👑 3 veces en total',
-        action: '¡Domina el arte de los días de gratitud reales!'
       },
       bonus_century: {
         progress: 'Escribe 200 entradas bonus ({{current}}/{{target}})',
@@ -2946,11 +2843,6 @@ const es: Partial<TranslationKeys> = {
         requirement: 'Desbloquea 30 logros en total',
         action: '¡Estatus de coleccionista maestro - encuentra todos los logros!'
       },
-      recommendation_master: {
-        progress: 'Sigue {{current}} recomendaciones',
-        requirement: 'Sigue {{target}} recomendaciones personalizadas',
-        action: '¡Revisa la sección de Recomendaciones y sigue la guía!'
-      },
       balance_master_alt: {
         progress: 'Días equilibrados: {{current}}/{{target}}',
         requirement: 'Usa hábitos, diario y metas en un día durante {{target}} días',
@@ -3038,34 +2930,6 @@ const es: Partial<TranslationKeys> = {
     },
   } as any,
 
-  // Auth screens
-  auth: {
-    login: {
-      title: 'Bienvenido de Nuevo',
-      email: 'Correo Electrónico',
-      emailPlaceholder: 'Introduce tu correo electrónico...',
-      password: 'Contraseña',
-      passwordPlaceholder: 'Introduce tu contraseña...',
-      loginButton: 'Iniciar Sesión',
-      forgotPassword: '¿Olvidaste tu Contraseña?',
-      noAccount: '¿No tienes una cuenta?',
-      signUp: 'Registrarse',
-    },
-    register: {
-      title: 'Crear Cuenta',
-      displayName: 'Nombre para Mostrar',
-      displayNamePlaceholder: 'Introduce tu nombre...',
-      email: 'Correo Electrónico',
-      emailPlaceholder: 'Introduce tu correo electrónico...',
-      password: 'Contraseña',
-      passwordPlaceholder: 'Introduce tu contraseña...',
-      confirmPassword: 'Confirmar Contraseña',
-      confirmPasswordPlaceholder: 'Confirma tu contraseña...',
-      registerButton: 'Registrarse',
-      hasAccount: '¿Ya tienes una cuenta?',
-      signIn: 'Iniciar Sesión',
-    },
-  } as any,
 
   // Gamification System
   gamification: {
@@ -3095,25 +2959,13 @@ const es: Partial<TranslationKeys> = {
         general_activity: 'Actividad',
         daily_engagement: 'Compromiso Diario',
         monthly_challenge: 'Desafío Mensual',
-        recommendation_follow: 'Recomendación',
         xp_multiplier_bonus: 'Bonus de Multiplicador',
         loyalty_milestone: 'Hito de Lealtad',
         daily_activity: 'Actividad Diaria',
         inactive_user_return: 'Bono de Regreso',
       },
 
-      notification: {
-        message: 'Notificación de puntos de experiencia: {{message}}',
-        amount: 'Puntos de experiencia {{type}}: {{amount}}',
-      },
 
-      announcement: {
-        balanced: 'No se ganaron ni perdieron puntos de experiencia netos de actividades recientes',
-        decreased: 'Se perdieron {{xp}} puntos de experiencia de actividades recientes',
-        single: 'Se ganaron {{xp}} puntos de experiencia al completar {{count}} {{source}}',
-        multiple_same: 'Se ganaron {{xp}} puntos de experiencia al completar {{count}} {{source}}',
-        multiple_mixed: 'Se ganaron {{xp}} puntos de experiencia al completar múltiples actividades',
-      },
 
       popup: {
         gained: 'Se ganaron {{amount}} puntos de experiencia de {{source}}',
@@ -3121,14 +2973,6 @@ const es: Partial<TranslationKeys> = {
         amount_label: '{{sign}} {{amount}} puntos de experiencia',
       },
 
-      // Notification messages
-      notifications: {
-        completed: 'completado',
-        balanced: 'Actividades balanceadas (sin progreso neto)',
-        reversed: 'Progreso revertido',
-        updated: 'Actividades actualizadas',
-        and: 'y',
-      },
 
       // XP Notification Component - Source Names (plural forms for display)
       xpNotification: {
@@ -3198,17 +3042,8 @@ const es: Partial<TranslationKeys> = {
         hint: 'Tu nivel de experiencia actual y progreso hacia el siguiente nivel.{{#isMilestone}} Has alcanzado un nivel hito especial con recompensas únicas.{{/isMilestone}}',
       },
 
-      badge: {
-        accessibility: 'Insignia de nivel {{currentLevel}}, {{levelTitle}}{{#isMilestone}}, nivel hito{{/isMilestone}}',
-      },
 
-      bar: {
-        accessibility: 'Barra de progreso de experiencia, {{progress}} por ciento completado',
-      },
 
-      milestone: {
-        accessibility: 'Indicador de nivel hito',
-      },
     },
 
     levels: {
@@ -3234,14 +3069,6 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
-    effects: {
-      level_up: 'Celebración de subida de nivel',
-      milestone: 'Celebración de logro hito',
-      achievement: 'Celebración de logro desbloqueado',
-      celebration: 'Celebración general',
-      general: 'Efectos de celebración',
-      accessibility_label: '{{type}} con efectos de partículas de intensidad {{intensity}}',
-    },
 
     celebration: {
       level_up_announcement: '¡Felicidades! ¡Has alcanzado el nivel {{level}}{{#isMilestone}}, un nivel hito{{/isMilestone}}!',
@@ -3299,13 +3126,6 @@ const es: Partial<TranslationKeys> = {
       shareButton: '🎉 Compartir',
       shareAccessibility: 'Compartir tu logro',
 
-      // Timer Display
-      timeFormat: {
-        hoursMinutes: '{{hours}}h {{minutes}}m',
-        minutesSeconds: '{{minutes}}m {{seconds}}s',
-        seconds: '{{seconds}}s',
-        hoursOnly: '{{hours}}h',
-      },
 
       // Countdown Timer
       timerAccessibility: 'Multiplicador de XP: {{multiplier}}x, {{time}} restante',
@@ -3344,13 +3164,6 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
-    analysis: {
-      title: 'Análisis de Rendimiento',
-      overallRating: 'Calificación General',
-      trend: 'Tendencia',
-      successRate: 'Tasa de Éxito',
-      strongest: 'Más Fuerte',
-    },
 
     // Level tier descriptions
     levelTiers: {
@@ -3405,24 +3218,11 @@ const es: Partial<TranslationKeys> = {
       goalProgress: 'Progreso añadido a la meta',
       goalCompletion: 'Meta completada',
       goalMilestone: 'Hito de meta alcanzado',
-      recommendationFollow: 'Recomendación seguida',
       achievementUnlock: 'Logro desbloqueado',
       monthlyChallenge: 'Desafío mensual completado',
       xpMultiplierBonus: 'Bonus de multiplicador de XP aplicado',
     },
 
-    achievement: {
-      unlocked: '¡Logro Desbloqueado!',
-      locked: 'Logro Bloqueado',
-      progress: 'Progreso: {{current}}/{{target}}',
-      xp_reward: '+{{xp}} EXP',
-      requirements: 'Requisitos',
-      unlock_condition: 'Condición de Desbloqueo',
-
-      announcement: {
-        unlocked: '¡Logro desbloqueado: {{name}}! Has ganado {{xp}} puntos de experiencia.',
-      },
-    },
 
     sources: {
       habit_completion: {
@@ -3470,9 +3270,6 @@ const es: Partial<TranslationKeys> = {
       xp_multiplier_bonus: {
         icon_description: 'Icono de rayo que representa el multiplicador de bonus de regreso',
       },
-      recommendation_follow: {
-        icon_description: 'Icono de bombilla que representa una recomendación seguida',
-      },
       loyalty_milestone: {
         icon_description: 'Icono de medalla que representa un hito de lealtad',
       },
@@ -3502,31 +3299,15 @@ const es: Partial<TranslationKeys> = {
         title: 'Conversión de Bonus',
         content: 'Completa un hábito más de una vez al día y tus finalizaciones adicionales se convierten en BONUS. Cada bonus gana +10 XP (en lugar de +25 XP), ¡pero no hay límite! ¡Cuanto más hagas, más XP ganarás!'
       },
-      streakTracking: {
-        title: 'Rachas de Hábitos',
-        content: 'Rastrea rachas individuales para cada hábito, rastrea tu racha total de hábitos (que cubre todos los hábitos activos juntos) y obtén notificaciones de hitos. Alcanzar hitos de racha desbloquea logros especiales y bonos de XP.'
-      },
-      colorAndIcon: {
-        title: 'Personalización de Hábitos',
-        content: 'Haz que cada hábito sea visualmente distintivo eligiendo un color e icono. Esto hace que tu lista de hábitos sea más fácil de escanear y más personal.'
-      },
       makeupFunction: {
         title: 'Sistema Inteligente de Recuperación',
         content: 'Si pierdes un día para un hábito, puedes recuperar hasta 2 días programados perdidos viendo un anuncio por día. Esto mantiene viva tu racha si estuviste enfermo o excepcionalmente ocupado.'
       }
     },
     journal: {
-      gratitudeStreak: {
-        title: 'Racha de Gratitud',
-        content: 'Escribe al menos 3 entradas de gratitud cada día para mantener tu racha de gratitud. Mantener tu racha construye impulso, desbloquea logros y aumenta tu XP a través de bonos de hitos de racha.'
-      },
       selfRiseStreak: {
         title: 'Racha SelfRise',
         content: 'Tu racha SelfRise rastrea días consecutivos con al menos 3 entradas de gratitud. Alcanzar 7, 14, 21, 30, 100 y más días activa celebraciones especiales y grandes recompensas de XP.'
-      },
-      bonusEntries: {
-        title: 'Entradas Bonus',
-        content: 'Cada entrada después de tu tercera entrada diaria cuenta como BONUS. Las entradas bonus ganan +5 XP cada una. Si llegas a 5 entradas bonus (8 totales) en un día, ganas una "Llama 🔥". Si llegas a 10 entradas bonus (13 totales), ganas una "Corona 👑".'
       },
       debtRecovery: {
         title: 'Recuperación de Racha',
@@ -3542,14 +3323,6 @@ const es: Partial<TranslationKeys> = {
         title: 'Predicciones',
         content: 'Basado en tu tasa de progreso reciente, SelfRise predice cuándo completarás tu meta. Utiliza múltiples métodos (lineal, tendencia, básico) para darte perspectivas realistas.'
       },
-      progressTracking: {
-        title: 'Rastreo de Progreso',
-        content: 'Añade progreso usando tres modos: "Añadir" (aumenta tu total), "Restar" (reduce tu total) o "Establecer En" (establece un valor exacto). Cada entrada puede incluir notas sobre tu progreso.'
-      },
-      templates: {
-        title: 'Plantillas de Metas',
-        content: 'Comienza rápidamente con plantillas preconstruidas para metas comunes como "Perder Peso", "Ahorrar Dinero", "Leer Libros" y más. Cada plantilla incluye sugerencias de unidades, valores objetivo y orientación.'
-      }
     },
     home: {
       recommendations: {
@@ -3560,14 +3333,6 @@ const es: Partial<TranslationKeys> = {
         title: 'Sistema XP',
         content: 'Gana XP completando hábitos (+25 XP), escribiendo entradas de diario (+10 XP), añadiendo progreso de metas (+15 XP), alcanzando hitos de racha y desbloqueando logros. ¡Tu XP determina tu nivel!'
       },
-      streakBadges: {
-        title: 'Insignias de Racha',
-        content: 'Visualiza tu racha de diario actual, mejor racha y días de racha recientes en insignias bellamente diseñadas en tu página de inicio. ¡Comparte estos logros con amigos!'
-      },
-      habitStatistics: {
-        title: 'Estadísticas de Hábitos',
-        content: 'Ve tendencias de finalización semanales y mensuales, indicadores de rendimiento (total de hábitos, finalizados hoy, promedio semanal) y análisis de tendencias.'
-      }
     },
     // NOTE (Fáze 12, N-12.5): a duplicate `achievements.trophyRoom` block used to
     // sit here. TrophyRoomStats reads `achievements.trophyRoom.*`, never
@@ -3713,29 +3478,7 @@ const es: Partial<TranslationKeys> = {
         title: 'Dificultad de Estrellas',
         content: 'Los desafíos se clasifican por dificultad de estrellas (⭐ a ⭐⭐⭐⭐⭐). Los desafíos de mayor dificultad ofrecen mayores recompensas de XP pero requieren más dedicación para completarse.'
       },
-      progressTracking: {
-        title: 'Rastreo de Progreso',
-        content: 'Rastrea el progreso del desafío en tiempo real. Los desafíos pueden requerir completar tareas múltiples veces o durante días específicos. Los desafíos semanales se reinician cada lunes.'
-      },
-      completionRewards: {
-        title: 'Recompensas de Finalización',
-        content: 'Completa desafíos para ganar bonos grandes de XP (50-500 XP según la dificultad) y logros especiales. Algunos desafíos también desbloquean insignias o títulos únicos.'
-      }
     },
-    gamification: {
-      levelProgression: {
-        title: 'Progresión de Nivel',
-        content: 'Sube de nivel ganando XP. Cada nivel requiere más XP que el anterior. Los niveles hito (cada 5 niveles) ofrecen recompensas especiales y celebraciones.'
-      },
-      xpMultipliers: {
-        title: 'Multiplicadores de XP',
-        content: 'Gana multiplicadores de XP para rachas largas, consistencia y logros especiales. Estos multiplicadores pueden aumentar tu ganancia de XP en un 10-50%, ayudándote a subir de nivel más rápido.'
-      },
-      harmonyStreak: {
-        title: 'Racha de Armonía',
-        content: 'Usa las 3 funciones (hábitos, diario, metas) en el mismo día para construir tu racha de "armonía". Las rachas de armonía largas desbloquean títulos especiales y bonos de XP.'
-      }
-    }
   } as any,
 
   // Tutorial System
@@ -3888,12 +3631,6 @@ const es: Partial<TranslationKeys> = {
         button: 'Continuar',
       },
 
-      // Paso 9: Ánimo del Diario
-      journalEncouragement: {
-        title: '¡Eres un Natural! ⭐',
-        content: '¡Hermosa entrada! Escribir 3 entradas de gratitud diarias ayuda a mantener tu racha de SelfRise y llena tu mente de positividad. ¡También puedes agregar entradas extra para XP adicional!',
-        button: 'Continuar',
-      },
 
       // Paso 10: Introducción a Metas
       goalsIntro: {
@@ -3958,34 +3695,6 @@ const es: Partial<TranslationKeys> = {
       },
     },
 
-    // Mensajes de Validación
-    validation: {
-      habitName: {
-        required: 'Por favor ingresa un nombre de hábito para continuar',
-        tooShort: 'Dale a tu hábito un nombre más descriptivo (al menos 2 caracteres)',
-        tooLong: 'Mantén el nombre del hábito bajo 50 caracteres',
-      },
-      habitDays: {
-        required: 'Por favor selecciona al menos un día para tu hábito',
-      },
-      goalTitle: {
-        required: 'Por favor ingresa un título de meta para continuar',
-        tooShort: 'Dale a tu meta un título más descriptivo (al menos 2 caracteres)',
-        tooLong: 'Mantén el título de la meta bajo 100 caracteres',
-      },
-      goalUnit: {
-        required: 'Por favor especifica una unidad para medir el progreso',
-        tooLong: 'Mantén tu unidad bajo 20 caracteres',
-      },
-      goalTarget: {
-        required: 'Por favor ingresa un valor objetivo mayor que 0',
-        tooLarge: 'El valor objetivo debe ser menor que 1,000,000',
-      },
-      gratitudeEntry: {
-        required: 'Por favor escribe por qué estás agradecido',
-        tooShort: 'Comparte un poco más de detalle sobre por qué estás agradecido',
-      },
-    },
 
     // Mensajes de Error
     errors: {
@@ -4032,42 +3741,9 @@ const es: Partial<TranslationKeys> = {
       goodUnit: '¡Buena unidad: "{{unit}}" - asegúrate de que sea fácil de rastrear! ✅',
     },
 
-    // Confirmación de Saltar
-    skipConfirmation: {
-      title: '¿Saltar Tutorial?',
-      message: '¿Estás seguro de que quieres saltar el tutorial? Siempre puedes accederlo después desde la sección de ayuda.',
-      skip: 'Sí, Saltar',
-      continue: 'Continuar Tutorial',
-    },
 
-    // Mensajes de Progreso
-    progress: {
-      creatingHabit: 'Creando tu increíble hábito...',
-      creatingGoal: 'Configurando tu meta...',
-      savingEntry: 'Guardando tu entrada de gratitud...',
-      loading: 'Cargando siguiente paso...',
-    },
 
-    // Accesibilidad
-    accessibility: {
-      tutorialModal: 'Paso {{step}} de {{total}} del tutorial: {{title}}',
-      spotlightArea: 'Spotlight del tutorial destacando {{target}}',
-      progressIndicator: 'Progreso del tutorial: {{progress}} por ciento completado',
-      skipButton: 'Saltar tutorial e ir a la app principal',
-      nextButton: 'Continuar al siguiente paso del tutorial',
-      formField: 'Campo de entrada del tutorial para {{field}}',
-      colorSelector: 'Selección de color para personalización del hábito',
-      iconSelector: 'Selección de icono para personalización del hábito',
-      daySelector: 'Selección de día para programación del hábito',
-    },
 
-    // Recuperación del Tutorial
-    recovery: {
-      title: '¡Bienvenido de Vuelta! 👋',
-      message: 'Parece que estabas en medio del tutorial. ¿Te gustaría continuar donde lo dejaste o empezar de nuevo?',
-      continue: 'Continuar Tutorial',
-      restart: 'Empezar de Nuevo',
-    },
 
     stepProgress: 'Paso {{current}} de {{total}}',
   },
@@ -4089,18 +3765,6 @@ const es: Partial<TranslationKeys> = {
         name: 'Recordatorios Diarios',
         description: 'Notificaciones para ayudarte a mantener el rumbo con tus hábitos y metas',
       },
-    },
-    morning: {
-      variant1: '¡Buenos días! Comienza tu día con gratitud 🌅',
-      variant2: '¡Despierta y brilla! ¿Por qué estás agradecido hoy? ✨',
-      variant3: '¡Un nuevo día, una nueva oportunidad de crecer! 🌱',
-      variant4: '¡Motivación matutina: revisa tus hábitos y establece tu intención! 💪'
-    },
-    evening: {
-      variant1: '¡Hora de reflexionar! ¿Cómo fue tu día? 🌙',
-      variant2: 'Registra tu día en el diario antes de dormir ✨',
-      variant3: '¿Qué tres cosas salieron bien hoy? 🙏',
-      variant4: 'Termina tu día con reflexión positiva 🌟'
     },
     reminders: {
       afternoon: {
@@ -4392,21 +4056,6 @@ const es: Partial<TranslationKeys> = {
 
   // Challenges
   challenges: {
-    calendar: {
-      dailyProgress: 'Progreso Diario',
-      title: 'Calendario de Progreso Mensual',
-      noActivity: 'Sin Actividad (<10%)',
-      someActivity: 'Alguna Actividad (10-50%)',
-      goodProgress: 'Buen Progreso (51-90%)',
-      perfectDay: 'Día Perfecto (91%+)',
-      weeklyBreakdown: 'Desglose Semanal',
-      week: 'Semana {{week}}',
-    },
-    completion: {
-      requirements: 'Requisitos',
-      activeDays: 'Días Activos',
-      milestones: 'Hitos',
-    },
     guidance: {
       habitsTarget: '🎯 Objetivo: {{target}} hábitos completados este mes (aprox. {{daily}} por día)',
       habitsTip: '💡 Consejo: Comienza con 1-2 hábitos y construye consistencia antes de añadir más',
@@ -4440,13 +4089,6 @@ const es: Partial<TranslationKeys> = {
     },
   } as any,
 
-  // Sistema de monitoreo
-  monitoring: {
-    errors: {
-      initFailed: 'Error al inicializar el monitoreo',
-      refreshFailed: 'Error al actualizar los datos de monitoreo',
-    },
-  },
 
   // Accessibility
   accessibility: {
@@ -4474,24 +4116,6 @@ const es: Partial<TranslationKeys> = {
     },
   },
 
-  // Anuncios AdMob
-  ads: {
-    banner: {
-      loading: 'Cargando anuncio...',
-      failed: 'Error al cargar el anuncio',
-    },
-    rewarded: {
-      title: 'Restaura tu racha',
-      description: 'Mira un anuncio breve para restaurar tu racha de diario',
-      buttonWatch: 'Ver anuncio',
-      buttonCancel: 'Ahora no',
-      loading: 'Cargando anuncio...',
-      playing: 'Reproduciendo anuncio...',
-      success: '¡Racha restaurada!',
-      failed: 'Error al cargar el anuncio. Inténtalo de nuevo.',
-      dismissed: 'Anuncio cancelado. No se obtuvo recompensa.',
-    },
-  },
 };
 
 export default es;

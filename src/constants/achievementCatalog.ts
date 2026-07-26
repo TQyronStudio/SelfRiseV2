@@ -1,5 +1,6 @@
-// Complete Achievement Catalog - Sub-checkpoint 4.5.10.C
-// Complete Achievement Catalog (78 Total Achievements) 📜
+// Complete Achievement Catalog (75 Total Achievements) 📜
+// (was 78 — 3 trophies deleted in super audit Fáze 2: recommendation-master,
+//  flame-collector, triple-crown-master)
 
 import { Achievement, AchievementCategory, AchievementRarity } from '../types/gamification';
 import { ACHIEVEMENT_XP_REWARDS } from './achievements';

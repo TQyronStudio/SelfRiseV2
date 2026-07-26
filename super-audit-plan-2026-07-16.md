@@ -900,24 +900,24 @@ v německé appce, přesně typ chyby, který unikne všem ostatním fázím.
 sekce 0 výše. Dělat POSLEDNÍ — potřebuje závěry z Fází 1-12, aby bylo
 jasné co je "legacy ale používané" vs. "opravdu mrtvé".
 
-- [ ] 13.1 **N27 — legacy storage duplikace** (3370 řádků): ověř migrace
+- [x] 13.1 **N27 — legacy storage duplikace** (3370 řádků): ověř migrace
       proběhla u všech uživatelů (telemetrie `sqlite_migration_state`),
       POKUD ano, navrhni (NEDĚLEJ v tomhle auditu) plán smazání legacy
       větví — po jednom souboru, každý s vlastním grep-ověřením a test
       runem, nikdy "smazat všechny 3 najednou".
-- [ ] 13.2 **N30 — side-effect barrel import**: `app/_layout.tsx` →
+- [x] 13.2 **N30 — side-effect barrel import**: `app/_layout.tsx` →
       `import '../src/services'` — zdokumentuj, co všechno side-effect
       spouští, a navrhni explicitní inicializaci (vazba na nález z 10.5).
-- [ ] 13.3 **N31 — obrácená závislost** storage→gamification — souhrn
+- [x] 13.3 **N31 — obrácená závislost** storage→gamification — souhrn
       ze všech fází (4.6 Habits, případně další nalezené).
-- [ ] 13.4 **Fresh sweep**: `src/services/`, `src/components/`, `src/utils/` —
+- [x] 13.4 **Fresh sweep**: `src/services/`, `src/components/`, `src/utils/` —
       exportované symboly bez importu jinde (grep-based, pozor na dynamické
       `require()`), zaměř se hlavně na soubory vzniklé PO 6/10 auditu.
       Speciálně prověř podezřelé drobnosti: `src/utils/xpCounterOptimizationSummary.ts`,
       `src/utils/fixBeginnerTargetText.ts`, `src/services/socialSharingService.ts`,
       `src/services/hapticsService.ts` — jsou vůbec odněkud volané?
-- [ ] 13.5 `src/services/storage/backup.ts` BLOCKER komentář pořád na místě.
-- [ ] 13.7 **`RECOMMENDATION_FOLLOW` XP — smazat celou mrtvou infrastrukturu**
+- [x] 13.5 `src/services/storage/backup.ts` BLOCKER komentář pořád na místě.
+- [x] 13.7 **`RECOMMENDATION_FOLLOW` XP — smazat celou mrtvou infrastrukturu**
       (schváleno Petrem 2026-07-21, super audit Fáze 11): XP se **nikdy
       neuděluje** (grep: 0 producentů `addXP` s tímto zdrojem), trofej
       `recommendation-master` už byla smazána ve Fázi 2.
@@ -936,10 +936,10 @@ jasné co je "legacy ale používané" vs. "opravdu mrtvé".
       `gamificationService.ts:2243, 2371`.
       Pozn.: **samotný recommendationEngine a karty na Home ZŮSTÁVAJÍ** —
       funkčně jsou v pořádku (Fáze 11), maže se jen nikdy nepoužitá XP větev.
-- [ ] 13.6 Root-level `.md` soubory → jen SEZNAM s návrhem přesunu do
+- [x] 13.6 Root-level `.md` soubory → jen SEZNAM s návrhem přesunu do
       `docs/archive/` (N32) — žádné hromadné přesuny v rámci auditu,
       rozhodne Petr.
-- [ ] 13.8 **Mrtvé i18n klíče** (schváleno Petrem 2026-07-22, super audit Fáze 12 —
+- [x] 13.8 **Mrtvé i18n klíče** (schváleno Petrem 2026-07-22, super audit Fáze 12 —
       nálezy N-12.6 a N-12.7, plné výstupy v `docs/audits/super-audit-2026-07/faze-12-nalezy.md`).
       ⚠️ Parity klíčů EN/DE/ES od Fáze 12 hlídá test `src/locales/__tests__/localeParity.test.ts`
       — **maž vždy ve všech 3 jazycích najednou**, jinak test spadne (a to je záměr).
@@ -1026,5 +1026,5 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 15 | Fáze 8 + 9 | | ✅ HOTOVO 2026-07-21 (F8: achievement handshake vzorový ✓, smazána mrtvá help telemetrie, sdílený modul tutoriálových klíčů. F9: anti-abuse ✓, recordError 4/4 ✓, ad IDs ✓; **demo mode maže vše bez zálohy → přidáno tvrdé potvrzení před načtením** (dosud žádné!), gating v produkci ověřen ✓. 464/464)
 | 16 | Fáze 11 | až po 1 a 4 | ✅ HOTOVO 2026-07-21 (10/10 doporučení OK vč. kontroly jednotek; opraven nečitelný tmavý text v modálech výzev, StreakHistoryGraph už nenačítá celou historii, 2× čistě černé pozadí; **nález o stínech ODVOLÁN** — colors.shadow je v dark transparent; XP za doporučení → F13; 464/464)
 | 17 | Fáze 12 | ✅ HOTOVO 2026-07-22 (6/6 položek; N-12.3 vysoká — 28 rozbitých `t()` cest; zpráva: faze-12-nalezy.md) |
-| 18 | Fáze 13 | vždy poslední |
+| 18 | Fáze 13 | ✅ AUDIT HOTOVÝ 2026-07-22 (8/8 položek; opravy 13.7 + 13.8 provedeny). ⏳ Zbývá úklid čekající na rozhodnutí: N-13.1 (vysoká), N-13.2 (otázka na Petra), N-13.3, N-13.4, N-13.6, 339 i18n klíčů. Zpráva: faze-13-nalezy.md |
 | 🔶 | Device sezení: 2i + 3e + 10.6 + 11.2 | dělá Petr se zařízením, ideálně po #9 |

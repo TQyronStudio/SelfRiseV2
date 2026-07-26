@@ -80,7 +80,6 @@ export function getSourceDailyLimit(source: XPSourceType): number | null {
     [XPSourceType.GOAL_PROGRESS]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
     [XPSourceType.GOAL_COMPLETION]: null, // No daily limit - milestone achievement
     [XPSourceType.GOAL_MILESTONE]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
-    [XPSourceType.RECOMMENDATION_FOLLOW]: DAILY_XP_LIMITS.ENGAGEMENT_MAX_DAILY,
     [XPSourceType.ACHIEVEMENT_UNLOCK]: null, // No daily limit
     [XPSourceType.MONTHLY_CHALLENGE]: null, // No daily limit (one per month)
     [XPSourceType.XP_MULTIPLIER_BONUS]: null, // No daily limit

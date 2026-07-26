@@ -68,8 +68,6 @@ const getDisplayGroup = (source: XPSourceType): { nameKey: string; icon: string;
       return { nameKey: 'monthlyChallenges', icon: '📅', color: '#673AB7' };
     case XPSourceType.XP_MULTIPLIER_BONUS:
       return { nameKey: 'multiplierBonuses', icon: '⚡', color: '#E91E63' };
-    case XPSourceType.RECOMMENDATION_FOLLOW:
-      return { nameKey: 'recommendations', icon: '💡', color: '#8BC34A' };
     default:
       return { nameKey: 'activities', icon: '✨', color: '#007AFF' };
   }

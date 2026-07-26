@@ -2099,79 +2099,6 @@ const de: Partial<TranslationKeys> = {
 
     // Achievement Names (78 achievements)
     achievementNames: {
-      'first-habit': 'Erste Schritte',
-      'habit-builder': 'Gewohnheits-Baumeister',
-      'century-club': 'Century Club',
-      'consistency-king': 'König der Beständigkeit',
-      'habit-streak-champion': 'Gewohnheits-Serien-Champion',
-      'century-streak': 'Jahrhundert-Serie',
-      'streak-champion': 'Serien-Champion',
-      'multi-tasker': 'Multitasker',
-      'habit-legend': 'Gewohnheits-Legende',
-      'first-journal': 'Erste Reflexion',
-      'deep-thinker': 'Tiefgründiger Denker',
-      'journal-enthusiast': 'Tagebuch-Enthusiast',
-      'grateful-heart': 'Dankbares Herz',
-      'gratitude-guru': 'Dankbarkeits-Guru',
-      'eternal-gratitude': 'Ewige Dankbarkeit',
-      'journal-streaker': 'Tagebuch-Streaker',
-      'bonus-seeker': 'Bonus-Sucher',
-      'first-star': 'Erster Stern',
-      'five-stars': 'Fünf Sterne',
-      'flame-achiever': 'Flammen-Erreicher',
-      'bonus-week': 'Bonus-Woche',
-      'crown-royalty': 'Kronen-Königtum',
-      'flame-collector': 'Flammen-Sammler',
-      'golden-bonus-streak': 'Goldene Bonus-Serie',
-      'triple-crown-master': 'Dreifache-Kronen-Meister',
-      'bonus-century': 'Bonus-Jahrhundert',
-      'star-beginner': 'Stern-Anfänger',
-      'star-collector': 'Stern-Sammler',
-      'star-master': 'Stern-Meister',
-      'star-champion': 'Stern-Champion',
-      'star-legend': 'Stern-Legende',
-      'flame-starter': 'Flammen-Starter',
-      'flame-accumulator': 'Flammen-Akkumulator',
-      'flame-master': 'Flammen-Meister',
-      'flame-champion': 'Flammen-Champion',
-      'flame-legend': 'Flammen-Legende',
-      'crown-achiever': 'Kronen-Erreicher',
-      'crown-collector': 'Kronen-Sammler',
-      'crown-master': 'Kronen-Meister',
-      'crown-champion': 'Kronen-Champion',
-      'crown-emperor': 'Kronen-Kaiser',
-      'first-goal': 'Erste Vision',
-      'goal-getter': 'Zielerfüller',
-      'ambitious': 'Ehrgeizig',
-      'goal-champion': 'Ziel-Champion',
-      'progress-tracker': 'Fortschritts-Verfolger',
-      'mega-dreamer': 'Mega-Träumer',
-      'achievement-unlocked': 'Erfolg Freigeschaltet',
-      'million-achiever': 'Millionen-Erreicher',
-      'weekly-warrior': 'Wöchentlicher Krieger',
-      'monthly-master': 'Monatlicher Meister',
-      'centurion': 'Zenturio',
-      'hundred-days': 'Hundert Tage',
-      'daily-visitor': 'Täglicher Besucher',
-      'dedicated-user': 'Engagierter Nutzer',
-      'perfect-month': 'Perfekter Monat',
-      'triple-crown': 'Dreifache Krone',
-      'gratitude-guardian': 'Dankbarkeits-Wächter',
-      'dream-fulfiller': 'Traumerfüller',
-      'goal-achiever': 'Zielerfüller',
-      'level-up': 'Level aufsteigen',
-      'selfrise-expert': 'SelfRise-Experte',
-      'selfrise-master': 'SelfRise-Meister',
-      'ultimate-selfrise-legend': 'Ultimative SelfRise-Legende',
-      'recommendation-master': 'Empfehlungs-Meister',
-      'balance-master': 'Balance-Meister',
-      'trophy-collector-basic': 'Trophäen-Sammler',
-      'trophy-collector-master': 'Trophäen-Meister',
-      'lightning-start': 'Blitzstart',
-      'seven-wonder': 'Sieben Wunder',
-      'persistence-pays': 'Beharrlichkeit zahlt sich aus',
-      'legendary-master': 'Legendärer Meister',
-      'selfrise-legend': 'SelfRise-Legende',
       'loyalty-first-week': 'Erste Woche',
       'loyalty-two-weeks-strong': 'Zwei Wochen stark',
       'loyalty-three-weeks-committed': 'Drei Wochen engagiert',
@@ -2190,7 +2117,6 @@ const de: Partial<TranslationKeys> = {
       'habit-builder': 'Erstelle 5 verschiedene Gewohnheiten',
       'century-club': 'Schließe 100 Gewohnheitsaufgaben ab',
       'consistency-king': 'Schließe 1000 Gewohnheitsaufgaben ab',
-      'habit-streak-champion': 'Erreiche eine 21-Tage-Serie mit jeder Gewohnheit',
       'century-streak': 'Halte eine 75-Tage-Serie mit jeder Gewohnheit aufrecht',
       'streak-champion': 'Erreiche eine 21-Tage-Serie mit jeder Gewohnheit',
       'multi-tasker': 'Schließe 5 verschiedene Gewohnheiten an einem Tag ab',
@@ -2208,9 +2134,7 @@ const de: Partial<TranslationKeys> = {
       'flame-achiever': 'Verdiene zum ersten Mal eine Flamme (5 Bonuseinträge an einem Tag)',
       'bonus-week': 'Mindestens 1 Bonus jeden Tag für 7 Tage in Folge',
       'crown-royalty': 'Verdiene zum ersten Mal eine Krone (10 Bonuseinträge an einem Tag)',
-      'flame-collector': 'Verdiene insgesamt 5 Mal eine Flamme',
       'golden-bonus-streak': 'Mindestens 3 Bonuseinträge jeden Tag für 7 Tage in Folge',
-      'triple-crown-master': 'Verdiene insgesamt 3 Mal eine Krone',
       'bonus-century': 'Schreibe insgesamt 200 Bonuseinträge',
       'star-beginner': 'Verdiene insgesamt 10 Mal einen Stern',
       'star-collector': 'Verdiene insgesamt 25 Mal einen Stern',
@@ -2237,20 +2161,16 @@ const de: Partial<TranslationKeys> = {
       'million-achiever': 'Schließe ein Ziel mit einem Wert von 1.000.000 oder mehr ab',
       'weekly-warrior': 'Halte eine 7-Tage-Serie in einer beliebigen Gewohnheit',
       'monthly-master': 'Erreiche eine 30-Tage-Serie',
-      'centurion': 'Erreiche 100 Tage Beständigkeit',
       'hundred-days': 'Halte eine 100-Tage-Gewohnheitsabschluss-Serie aufrecht',
       'daily-visitor': 'Nutze die App 7 aufeinanderfolgende Tage',
       'dedicated-user': 'Nutze die App 30 aufeinanderfolgende Tage',
       'perfect-month': 'Schließe Aktivitäten in allen 3 Bereichen an 28+ Tagen in einem Monat ab',
       'triple-crown': 'Halte 7+ Tage-Serien in Gewohnheiten, Tagebuch und Zielen gleichzeitig',
-      'gratitude-guardian': 'Schreibe Tagebucheinträge für 21 aufeinanderfolgende Tage',
-      'dream-fulfiller': 'Schließe 3 Ziele ab',
       'goal-achiever': 'Schließe 3 Ziele ab',
       'level-up': 'Erreiche Level 10 "Anfänger V"',
       'selfrise-expert': 'Erreiche Level 25 "Adept V"',
       'selfrise-master': 'Erreiche Level 50 "Spezialist V"',
       'ultimate-selfrise-legend': 'Erreiche Level 100 "Mythisch V"',
-      'recommendation-master': 'Folge 20 personalisierten Empfehlungen',
       'balance-master': 'Nutze alle 3 Funktionen an einem Tag 10 Mal',
       'trophy-collector-basic': 'Schalte 10 Erfolge frei',
       'trophy-collector-master': 'Schalte 25 Erfolge frei',
@@ -2258,7 +2178,6 @@ const de: Partial<TranslationKeys> = {
       'seven-wonder': 'Habe 7 oder mehr aktive Gewohnheiten gleichzeitig',
       'persistence-pays': 'Kehre nach einer 3+ Tage Pause zurück und schließe 7 Aktivitäten ab',
       'legendary-master': 'Erreiche Elite-Status über 3 Hauptkategorien',
-      'selfrise-legend': 'Erreiche Meisterschaft: 10 Ziele + 500 Gewohnheiten + 365 Tagebucheinträge',
       'loyalty-first-week': '7 aktive Tage insgesamt',
       'loyalty-two-weeks-strong': '14 aktive Tage insgesamt',
       'loyalty-three-weeks-committed': '21 aktive Tage insgesamt',
@@ -2362,17 +2281,9 @@ const de: Partial<TranslationKeys> = {
       name: 'Kronen-Königtum',
       description: 'Erhalte deine erste Krone (10 Boni an einem Tag) - Höhepunkttag der Reflexion mit königlichem Status'
     },
-    flame_collector: {
-      name: 'Flammen-Sammler',
-      description: 'Erhalte insgesamt 25 Mal Flammen - Meister der intensiven Dankbarkeitstage'
-    },
     golden_bonus_streak: {
       name: 'Goldene Bonus-Serie',
       description: '7 Tage in Folge mindestens 3 Boni jeden Tag - eine Woche tiefer und erweiterter Reflexion'
-    },
-    triple_crown_master: {
-      name: 'Dreifacher Kronen-Meister',
-      description: 'Erhalte insgesamt 3 Mal Kronen - legendärer Meister der königlichen Reflexionstage'
     },
     bonus_century: {
       name: 'Bonus-Jahrhundert',
@@ -2511,10 +2422,6 @@ const de: Partial<TranslationKeys> = {
     selfrise_master: {
       name: 'SelfRise-Meister',
       description: 'Erreiche Level 50 "Spezialist V" - du bist ein wahrer Meister der Selbstverbesserung'
-    },
-    recommendation_master: {
-      name: 'Empfehlungs-Meister',
-      description: 'Folge 20 personalisierten Empfehlungen aus dem Für dich-Bereich'
     },
     balance_master: {
       name: 'Balance-Meister',
@@ -2723,20 +2630,10 @@ const de: Partial<TranslationKeys> = {
         requirement: 'Schreibe 10+ Bonus-Einträge an einem Tag, um eine Krone zu verdienen',
         action: 'Erreiche königlichen Status mit 13+ Tagebucheinträgen an einem Tag!'
       },
-      flame_collector: {
-        progress: 'Sammle insgesamt 25 Flammen ({{current}}/{{target}})',
-        requirement: 'Verdiene 25 Mal insgesamt 🔥 Meilenstein',
-        action: 'Hab weiter intensive Dankbarkeitstage mit 5+ Bonus-Einträgen!'
-      },
       golden_bonus_streak: {
         progress: 'Goldene Bonus-Serie 7 Tage ({{current}}/{{target}})',
         requirement: 'Schreibe 3+ Bonus-Einträge täglich für 7 aufeinanderfolgende Tage',
         action: 'Schreibe 6+ Einträge täglich für die ultimative Bonus-Serie!'
-      },
-      triple_crown_master: {
-        progress: 'Verdiene insgesamt 3 Kronen ({{current}}/{{target}})',
-        requirement: 'Verdiene 3 Mal insgesamt 👑 Meilenstein',
-        action: 'Meistere die Kunst königlicher Dankbarkeitstage!'
       },
       bonus_century: {
         progress: 'Schreibe 200 Bonus-Einträge ({{current}}/{{target}})',
@@ -2946,11 +2843,6 @@ const de: Partial<TranslationKeys> = {
         requirement: 'Schalte insgesamt 30 Errungenschaften frei',
         action: 'Meister-Sammler-Status - finde alle Errungenschaften!'
       },
-      recommendation_master: {
-        progress: 'Folge {{current}} Empfehlungen',
-        requirement: 'Folge {{target}} personalisierten Empfehlungen',
-        action: 'Schau dir die Empfehlungen an und folge der Anleitung!'
-      },
       balance_master_alt: {
         progress: 'Ausgeglichene Tage: {{current}}/{{target}}',
         requirement: 'Nutze Gewohnheiten, Tagebuch und Ziele an einem Tag für {{target}} Tage',
@@ -3038,34 +2930,6 @@ const de: Partial<TranslationKeys> = {
     },
   } as any,
 
-  // Auth screens
-  auth: {
-    login: {
-      title: 'Willkommen zurück',
-      email: 'E-Mail',
-      emailPlaceholder: 'Gib deine E-Mail ein...',
-      password: 'Passwort',
-      passwordPlaceholder: 'Gib dein Passwort ein...',
-      loginButton: 'Anmelden',
-      forgotPassword: 'Passwort vergessen?',
-      noAccount: 'Hast du noch kein Konto?',
-      signUp: 'Registrieren',
-    },
-    register: {
-      title: 'Konto erstellen',
-      displayName: 'Anzeigename',
-      displayNamePlaceholder: 'Gib deinen Namen ein...',
-      email: 'E-Mail',
-      emailPlaceholder: 'Gib deine E-Mail ein...',
-      password: 'Passwort',
-      passwordPlaceholder: 'Gib dein Passwort ein...',
-      confirmPassword: 'Passwort bestätigen',
-      confirmPasswordPlaceholder: 'Bestätige dein Passwort...',
-      registerButton: 'Registrieren',
-      hasAccount: 'Hast du bereits ein Konto?',
-      signIn: 'Anmelden',
-    },
-  } as any,
 
   // Gamification System
   gamification: {
@@ -3095,25 +2959,13 @@ const de: Partial<TranslationKeys> = {
         general_activity: 'Aktivität',
         daily_engagement: 'Engagement',
         monthly_challenge: 'Monat',
-        recommendation_follow: 'Tipp',
         xp_multiplier_bonus: 'Bonus',
         loyalty_milestone: 'Treue-Meilenstein',
         daily_activity: 'Tägliche Aktivität',
         inactive_user_return: 'Comeback-Bonus',
       },
 
-      notification: {
-        message: 'XP: {{message}}',
-        amount: 'XP {{type}}: {{amount}}',
-      },
 
-      announcement: {
-        balanced: 'Keine Netto-XP',
-        decreased: '-{{xp}} XP',
-        single: '+{{xp}} XP: {{count}}× {{source}}',
-        multiple_same: '+{{xp}} XP: {{count}}× {{source}}',
-        multiple_mixed: '+{{xp}} XP',
-      },
 
       popup: {
         gained: '+{{amount}} XP: {{source}}',
@@ -3121,14 +2973,6 @@ const de: Partial<TranslationKeys> = {
         amount_label: '{{sign}}{{amount}} XP',
       },
 
-      // Notification messages
-      notifications: {
-        completed: 'abgeschlossen',
-        balanced: 'Aktivitäten ausgeglichen (kein Netto-Fortschritt)',
-        reversed: 'Fortschritt umgekehrt',
-        updated: 'Aktivitäten aktualisiert',
-        and: 'und',
-      },
 
       // XP Notification Component - Source Names (plural forms for display)
       xpNotification: {
@@ -3199,17 +3043,8 @@ const de: Partial<TranslationKeys> = {
         hint: 'Dein aktuelles Erfahrungslevel und Fortschritt zum nächsten Level.{{#isMilestone}} Du hast ein besonderes Meilenstein-Level mit einzigartigen Belohnungen erreicht.{{/isMilestone}}',
       },
 
-      badge: {
-        accessibility: 'Level {{currentLevel}} Abzeichen, {{levelTitle}}{{#isMilestone}}, Meilenstein-Level{{/isMilestone}}',
-      },
 
-      bar: {
-        accessibility: 'Erfahrungsfortschrittsleiste, {{progress}} Prozent abgeschlossen',
-      },
 
-      milestone: {
-        accessibility: 'Meilenstein-Level-Indikator',
-      },
     },
 
     levels: {
@@ -3235,14 +3070,6 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
-    effects: {
-      level_up: 'Level-Up',
-      milestone: 'Meilenstein',
-      achievement: 'Erfolg',
-      celebration: 'Feier',
-      general: 'Effekte',
-      accessibility_label: '{{type}} {{intensity}} Partikel',
-    },
 
     celebration: {
       level_up_announcement: 'Herzlichen Glückwunsch! Du hast Level {{level}}{{#isMilestone}}, ein Meilenstein-Level{{/isMilestone}} erreicht!',
@@ -3300,13 +3127,6 @@ const de: Partial<TranslationKeys> = {
       shareButton: '🎉 Teilen',
       shareAccessibility: 'Teile deinen Erfolg',
 
-      // Timer Display
-      timeFormat: {
-        hoursMinutes: '{{hours}}h {{minutes}}m',
-        minutesSeconds: '{{minutes}}m {{seconds}}s',
-        seconds: '{{seconds}}s',
-        hoursOnly: '{{hours}}h',
-      },
 
       // Countdown Timer
       timerAccessibility: 'XP-Multiplikator: {{multiplier}}x, {{time}} verbleibend',
@@ -3345,13 +3165,6 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
-    analysis: {
-      title: 'Leistungsanalyse',
-      overallRating: 'Gesamtbewertung',
-      trend: 'Trend',
-      successRate: 'Erfolgsquote',
-      strongest: 'Stärkste',
-    },
 
     // Level tier descriptions
     levelTiers: {
@@ -3406,24 +3219,11 @@ const de: Partial<TranslationKeys> = {
       goalProgress: 'Fortschritt zum Ziel hinzugefügt',
       goalCompletion: 'Ziel abgeschlossen',
       goalMilestone: 'Ziel-Meilenstein erreicht',
-      recommendationFollow: 'Empfehlung befolgt',
       achievementUnlock: 'Erfolg freigeschaltet',
       monthlyChallenge: 'Monatliche Herausforderung abgeschlossen',
       xpMultiplierBonus: 'XP-Multiplikator-Bonus angewendet',
     },
 
-    achievement: {
-      unlocked: 'Erfolg freigeschaltet!',
-      locked: 'Gesperrter Erfolg',
-      progress: 'Fortschritt: {{current}}/{{target}}',
-      xp_reward: '+{{xp}} EP',
-      requirements: 'Anforderungen',
-      unlock_condition: 'Freischaltbedingung',
-
-      announcement: {
-        unlocked: 'Erfolg freigeschaltet: {{name}}! Du hast {{xp}} Erfahrungspunkte erhalten.',
-      },
-    },
 
     sources: {
       habit_completion: {
@@ -3471,9 +3271,6 @@ const de: Partial<TranslationKeys> = {
       xp_multiplier_bonus: {
         icon_description: 'Blitz-Symbol für Comeback-Bonus-Multiplikator',
       },
-      recommendation_follow: {
-        icon_description: 'Glühbirnen-Symbol für befolgte Empfehlung',
-      },
       loyalty_milestone: {
         icon_description: 'Medaillen-Symbol für Treue-Meilenstein',
       },
@@ -3503,31 +3300,15 @@ const de: Partial<TranslationKeys> = {
         title: 'Bonus-Umwandlung',
         content: 'Gehst du über dich hinaus? Wir lieben diese Energie! 🔥 Wenn du mehr als dein Tagesziel erreichst, verwandeln sich diese extra Bemühungen in Bonus-EP. Das ist unsere Art, deine fantastische Hingabe zu feiern!'
       },
-      streakTracking: {
-        title: 'Gewohnheitsserien',
-        content: 'Baue unglaubliche Serien auf, indem du deine Gewohnheiten Tag für Tag abschließt! 📅 Beobachte, wie deine Zahlen wachsen und spüre den Schwung. Außerdem schaltest du großartige Erfolge bei wichtigen Meilensteinen frei!'
-      },
-      colorAndIcon: {
-        title: 'Gewohnheits-Personalisierung',
-        content: 'Mach es zu deinem! Wähle Farben und Symbole, die zu dir sprechen. 🎨 Wenn deine Gewohnheiten fantastisch aussehen, willst du sie tatsächlich abhaken. Es ist wie ein persönliches Dashboard, das dich jeden Tag motiviert!'
-      },
       makeupFunction: {
         title: 'Intelligentes Nachholsystem',
         content: 'Das Leben passiert, und wir haben deinen Rücken! ✨ Wenn du einen geplanten Tag verpasst, können alle Bonus-Abschlüsse, die du verdienst, automatisch in "Nachholungen" für diesen Tag umgewandelt werden. Achte auf das goldene Häkchen ✓ in deinem Kalender - es bedeutet, dass du einen verpassten Tag mit deiner extra Anstrengung wiederhergestellt hast!'
       }
     },
     journal: {
-      gratitudeStreak: {
-        title: 'Dankbarkeits-Serie',
-        content: 'Du baust etwas Wunderschönes auf! ✨ Jeden Tag, an dem du Dankbarkeitseinträge schreibst, wird deine Serie stärker. Nur 3 Einträge täglich halten deinen Schwung aufrecht und schalten fantastische Feier-Meilensteine frei!'
-      },
       selfRiseStreak: {
         title: 'SelfRise-Serie',
         content: 'Das ist deine gesamte Wachstumsreise! 🌱 Um deine Serie aufrechtzuerhalten, schreibe täglich mindestens 3 Dankbarkeitseinträge. Dies verfolgt dein tägliches Engagement über alles hinweg - Gewohnheiten, Ziele und Tagebuch. Es ist das große Bild deines fantastischen Fortschritts!'
-      },
-      bonusEntries: {
-        title: 'Bonus-Einträge',
-        content: 'Fühlst du dich heute besonders dankbar? Leg los! 💫 Mehr als 3 Einträge zu schreiben bringt dir Bonus-EP und zeigt deine unglaubliche Hingabe. Außerdem schaltest du besondere Feiermomente frei!'
       },
       debtRecovery: {
         title: 'Serien-Wiederherstellung',
@@ -3543,14 +3324,6 @@ const de: Partial<TranslationKeys> = {
         title: 'Intelligente Zielvorhersagen',
         content: 'Wir sind wie dein persönlicher Fortschritts-Wahrsager! 🔮 Unser intelligentes System analysiert deine Muster und gibt dir realistische Zeitpläne. Kein Raten mehr - du weißt genau, wann du dieses Ziel erreichen wirst!'
       },
-      progressTracking: {
-        title: 'Verfolge deine Reise',
-        content: 'Jeder Schritt zählt! 📈 Füge deinen täglichen oder wöchentlichen Fortschritt hinzu und beobachte, wie dein Ziel zum Leben erwacht. Du kannst erhöhen, verringern oder exakte Beträge festlegen. Füge Notizen hinzu, um dich an diese stolzen Momente zu erinnern!'
-      },
-      templates: {
-        title: 'Zielvorlagen',
-        content: 'Warum von Grund auf neu beginnen? Wir haben dich abgedeckt! 🎯 Wähle aus fertigen Vorlagen für beliebte Ziele und passe sie an deine einzigartige Reise an. Es ist wie einen Vorsprung zu haben!'
-      }
     },
     home: {
       recommendations: {
@@ -3561,14 +3334,6 @@ const de: Partial<TranslationKeys> = {
         title: 'Deine EP-Reise',
         content: 'Level up dein Leben! 🚀 Jede Gewohnheit, jeder Tagebuch-Eintrag und jeder Zielschritt bringt dir EP. Beobachte, wie sich deine Fortschrittsleiste füllt und feiere jedes neue Level, das du erreichst. Du wirst buchstäblich jeden Tag stärker!'
       },
-      streakBadges: {
-        title: 'Deine Serien-Sammlung',
-        content: 'Diese Abzeichen erzählen deine Erfolgsgeschichte! 🏆 Verschiedene Farben zeigen, wie stark deine Serien sind, und spezielle Abzeichen feiern wichtige Meilensteine. Jedes repräsentiert deine fantastische Hingabe!'
-      },
-      habitStatistics: {
-        title: 'Dein Erfolgs-Dashboard',
-        content: 'Sieh, wie fantastisch du bist! 📊 Erhalte ein vollständiges Bild deines Gewohnheitserfolgs mit Abschlussraten, Trends und Mustern. Es ist der Beweis deiner unglaublichen Beständigkeit und deines Wachstums!'
-      }
     },
     // NOTE (Fáze 12, N-12.5): a duplicate `achievements.trophyRoom` block used to
     // sit here. TrophyRoomStats reads `achievements.trophyRoom.*`, never
@@ -3714,29 +3479,7 @@ const de: Partial<TranslationKeys> = {
         title: 'Herausforderungs-Sternebewertung',
         content: 'Bereit für eine Herausforderung? ⭐ Wähle dein Abenteuer-Level! 1-Stern-Herausforderungen sind perfekt zum Einstieg, während 5-Stern-Herausforderungen für die ultimativen Leistungsträger sind. Höhere Sterne bedeuten größere EP-Belohnungen und Prahlrechte!'
       },
-      progressTracking: {
-        title: 'Beobachte deinen Fortschritt',
-        content: 'Bleib den ganzen Monat motiviert! 📅 Verfolge deine täglichen Erfolge und sieh wöchentliche Aufschlüsselungen, die genau zeigen, wie du deine Herausforderung meisterst. Du wirst es lieben, deinen Fortschritt zu beobachten!'
-      },
-      completionRewards: {
-        title: 'Epische Abschlussbelohnungen',
-        content: 'Beende stark und werde großzügig belohnt! 🎁 Schließe monatliche Herausforderungen für massive EP-Boni und exklusive Erfolge ab. Je schwerer die Herausforderung, desto süßer die Siegesfeier!'
-      }
     },
-    gamification: {
-      levelProgression: {
-        title: 'Deine Level-Reise',
-        content: 'Du bist auf einem epischen 100-Level-Abenteuer! 🎮 Jedes Level wird aufregender, wenn du stärker wirst. Beobachte, wie dein Rang durch 6 fantastische Farbstufen von Grau bis zum legendären Rot evoliert. Jedes Level ist eine Feier deines Fortschritts!'
-      },
-      xpMultipliers: {
-        title: 'Doppel-EP Power-Up',
-        content: 'Bereite dich auf EP-BOOST-Modus vor! ⚡ Erreiche Harmonie-Serie (Gewohnheiten + Tagebuch + Ziele an einem Tag) und schalte 24 Stunden doppelte EP frei! Es ist wie ein Power-Up zu finden, das alles doppelt zählen lässt!'
-      },
-      harmonyStreak: {
-        title: 'Der ultimative Tagessieg',
-        content: 'Hier geschieht die Magie! ✨ Schließe deine Gewohnheiten ab, schreibe in dein Tagebuch UND mache Zielfortschritt alles an einem Tag. Boom! Du hast gerade 24 Stunden 2x EP freigeschaltet. Es ist der perfekte Tag multipliziert!'
-      }
-    }
   } as any,
 
   // Tutorial System (UI elements only - full content falls back to EN for first-time experience)
@@ -3887,12 +3630,6 @@ const de: Partial<TranslationKeys> = {
         button: 'Weiter',
       },
 
-      // Schritt 9: Tagebuch-Ermutigung
-      journalEncouragement: {
-        title: 'Du bist ein Naturtalent! ⭐',
-        content: 'Super Eintrag! 3 tägliche Einträge halten deine Serie. Bonus-Einträge bringen extra XP!',
-        button: 'Weiter',
-      },
 
       // Schritt 10: Ziele-Einführung
       goalsIntro: {
@@ -3957,34 +3694,6 @@ const de: Partial<TranslationKeys> = {
       },
     },
 
-    // Validierungsnachrichten
-    validation: {
-      habitName: {
-        required: 'Bitte gib einen Gewohnheitsnamen ein, um fortzufahren',
-        tooShort: 'Gib deiner Gewohnheit einen aussagekräftigeren Namen (mindestens 2 Zeichen)',
-        tooLong: 'Halte deinen Gewohnheitsnamen unter 50 Zeichen',
-      },
-      habitDays: {
-        required: 'Bitte wähle mindestens einen Tag für deine Gewohnheit',
-      },
-      goalTitle: {
-        required: 'Bitte gib einen Zieltitel ein, um fortzufahren',
-        tooShort: 'Gib deinem Ziel einen aussagekräftigeren Titel (mindestens 2 Zeichen)',
-        tooLong: 'Halte deinen Zieltitel unter 100 Zeichen',
-      },
-      goalUnit: {
-        required: 'Bitte gib eine Einheit für die Fortschrittsmessung an',
-        tooLong: 'Halte deine Einheit unter 20 Zeichen',
-      },
-      goalTarget: {
-        required: 'Bitte gib einen Zielwert größer als 0 ein',
-        tooLarge: 'Zielwert sollte kleiner als 1.000.000 sein',
-      },
-      gratitudeEntry: {
-        required: 'Bitte schreibe, wofür du dankbar bist',
-        tooShort: 'Teile ein bisschen mehr Details darüber, wofür du dankbar bist',
-      },
-    },
 
     // Fehlermeldungen
     errors: {
@@ -4031,42 +3740,9 @@ const de: Partial<TranslationKeys> = {
       goodUnit: 'Gute Einheit: "{{unit}}" - stelle sicher, dass sie leicht zu verfolgen ist! ✅',
     },
 
-    // Überspringen-Bestätigung
-    skipConfirmation: {
-      title: 'Tutorial überspringen?',
-      message: 'Bist du sicher, dass du das Tutorial überspringen möchtest? Du kannst es später jederzeit über den Hilfebereich aufrufen.',
-      skip: 'Ja, überspringen',
-      continue: 'Tutorial fortsetzen',
-    },
 
-    // Fortschrittsnachrichten
-    progress: {
-      creatingHabit: 'Erstelle deine großartige Gewohnheit...',
-      creatingGoal: 'Richte dein Ziel ein...',
-      savingEntry: 'Speichere deinen Dankbarkeitseintrag...',
-      loading: 'Lade nächsten Schritt...',
-    },
 
-    // Barrierefreiheit
-    accessibility: {
-      tutorialModal: 'Tutorial-Schritt {{step}} von {{total}}: {{title}}',
-      spotlightArea: 'Tutorial-Spotlight hebt {{target}} hervor',
-      progressIndicator: 'Tutorial-Fortschritt: {{progress}} Prozent abgeschlossen',
-      skipButton: 'Tutorial überspringen und zur Haupt-App wechseln',
-      nextButton: 'Weiter zum nächsten Tutorial-Schritt',
-      formField: 'Tutorial-Eingabefeld für {{field}}',
-      colorSelector: 'Farbauswahl für Gewohnheitsanpassung',
-      iconSelector: 'Symbolauswahl für Gewohnheitsanpassung',
-      daySelector: 'Tagesauswahl für Gewohnheitsplanung',
-    },
 
-    // Tutorial Recovery (for crash recovery)
-    recovery: {
-      title: 'Willkommen zurück! 👋',
-      message: 'Es sieht so aus, als ob du mitten im Tutorial warst. Möchtest du dort weitermachen oder neu beginnen?',
-      continue: 'Tutorial fortsetzen',
-      restart: 'Neu starten',
-    },
 
     stepProgress: 'Schritt {{current}} von {{total}}',
   },
@@ -4088,18 +3764,6 @@ const de: Partial<TranslationKeys> = {
         name: 'Erinnerungen',
         description: 'Tägliche Erinnerungen',
       },
-    },
-    morning: {
-      variant1: 'Guten Morgen! Starte deinen Tag mit Dankbarkeit 🌅',
-      variant2: 'Aufwachen! Wofür bist du heute dankbar? ✨',
-      variant3: 'Ein neuer Tag, eine neue Chance zu wachsen! 🌱',
-      variant4: 'Morgen-Motivation: Prüfe deine Gewohnheiten und setze deine Intention! 💪',
-    },
-    evening: {
-      variant1: 'Abendreflexion: Wie liefen deine Gewohnheiten heute? 🌙',
-      variant2: 'Beende deinen Tag mit Dankbarkeit. Was lief gut? 🙏',
-      variant3: 'Zeit, deinen Fortschritt zu überprüfen und morgen zu planen! 📝',
-      variant4: 'Gute Nacht! Vergiss nicht, deine tägliche Dankbarkeit abzuschließen! 🌟',
     },
     reminders: {
       afternoon: {
@@ -4390,21 +4054,6 @@ const de: Partial<TranslationKeys> = {
 
   // Challenges
   challenges: {
-    calendar: {
-      dailyProgress: 'Täglicher Fortschritt',
-      title: 'Monatlicher Fortschrittskalender',
-      noActivity: 'Keine Aktivität (<10%)',
-      someActivity: 'Einige Aktivitäten (10-50%)',
-      goodProgress: 'Guter Fortschritt (51-90%)',
-      perfectDay: 'Perfekter Tag (91%+)',
-      weeklyBreakdown: 'Wöchentliche Aufschlüsselung',
-      week: 'Woche {{week}}',
-    },
-    completion: {
-      requirements: 'Anforderungen',
-      activeDays: 'Aktive Tage',
-      milestones: 'Meilensteine',
-    },
     guidance: {
       habitsTarget: '🎯 Ziel: {{target}} Gewohnheitsabschlüsse diesen Monat (ca. {{daily}} pro Tag)',
       habitsTip: '💡 Tipp: Beginne mit 1-2 Gewohnheiten und baue Konsistenz auf, bevor du mehr hinzufügst',
@@ -4438,13 +4087,6 @@ const de: Partial<TranslationKeys> = {
     },
   } as any,
 
-  // Überwachungssystem
-  monitoring: {
-    errors: {
-      initFailed: 'Überwachung konnte nicht initialisiert werden',
-      refreshFailed: 'Überwachungsdaten konnten nicht aktualisiert werden',
-    },
-  },
 
   // Accessibility
   accessibility: {
@@ -4472,24 +4114,6 @@ const de: Partial<TranslationKeys> = {
     },
   },
 
-  // AdMob Werbung
-  ads: {
-    banner: {
-      loading: 'Werbung lädt...',
-      failed: 'Werbung konnte nicht geladen werden',
-    },
-    rewarded: {
-      title: 'Stelle deine Serie wieder her',
-      description: 'Schaue eine kurze Werbung, um deine Tagebuch-Serie wiederherzustellen',
-      buttonWatch: 'Werbung ansehen',
-      buttonCancel: 'Nicht jetzt',
-      loading: 'Werbung lädt...',
-      playing: 'Werbung läuft...',
-      success: 'Serie wiederhergestellt!',
-      failed: 'Werbung konnte nicht geladen werden. Bitte versuche es erneut.',
-      dismissed: 'Werbung wurde abgebrochen. Keine Belohnung erhalten.',
-    },
-  },
 };
 
 export default de;
