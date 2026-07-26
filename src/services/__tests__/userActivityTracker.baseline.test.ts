@@ -50,53 +50,36 @@ let mockHabitData: Map<string, any[]> = new Map();
 let mockJournalData: Map<string, any[]> = new Map();
 let mockGoalData: any[] = [];
 
-// Mock Storage Services
-jest.mock('../storage/habitStorage', () => ({
-  HabitStorage: jest.fn().mockImplementation(() => ({
-    getCompletionsByDate: jest.fn().mockImplementation((date: string) => {
-      return Promise.resolve(mockHabitData.get(`completions_${date}`) || []);
-    }),
-    getUniqueHabitsCompletedOnDate: jest.fn().mockImplementation((date: string) => {
-      return Promise.resolve(mockHabitData.get(`unique_${date}`) || []);
-    })
-  }))
-}));
-
-jest.mock('../storage/gratitudeStorage', () => ({
-  GratitudeStorage: jest.fn().mockImplementation(() => ({
-    getEntriesForDate: jest.fn().mockImplementation((date: string) => {
-      return Promise.resolve(mockJournalData.get(date) || []);
-    })
-  }))
-}));
-
-jest.mock('../storage/goalStorage', () => ({
-  GoalStorage: jest.fn().mockImplementation(() => ({
-    getAll: jest.fn().mockImplementation(() => {
-      return Promise.resolve(mockGoalData);
-    })
-  }))
-}));
-
-// The tracker resolves habit/gratitude storage through featureFlags
-// (getHabitStorageImpl → SQLite impl in production). Route it to the mocked
-// legacy classes above so the mock data maps drive what the service sees.
+// Mock Storage Services.
+//
+// The tracker resolves storage through the featureFlags helpers
+// (getHabitStorageImpl → SQLite impl in production), so the mocks hang directly
+// off those helpers and read from the mock data maps above. They used to be
+// attached to the legacy `../storage/*` module paths and routed here; those
+// modules were deleted in super audit Fáze 13 and the indirection served no
+// purpose — the data maps are what actually drives the assertions.
 jest.mock('../../config/featureFlags', () => {
   const actual = jest.requireActual('../../config/featureFlags');
   return {
     ...actual,
-    getHabitStorageImpl: () => {
-      const { HabitStorage } = require('../storage/habitStorage');
-      return new HabitStorage();
-    },
-    getGratitudeStorageImpl: () => {
-      const { GratitudeStorage } = require('../storage/gratitudeStorage');
-      return new GratitudeStorage();
-    },
-    getGoalStorageImpl: () => {
-      const { GoalStorage } = require('../storage/goalStorage');
-      return new GoalStorage();
-    },
+    getHabitStorageImpl: () => ({
+      getCompletionsByDate: jest.fn().mockImplementation((date: string) => {
+        return Promise.resolve(mockHabitData.get(`completions_${date}`) || []);
+      }),
+      getUniqueHabitsCompletedOnDate: jest.fn().mockImplementation((date: string) => {
+        return Promise.resolve(mockHabitData.get(`unique_${date}`) || []);
+      })
+    }),
+    getGratitudeStorageImpl: () => ({
+      getEntriesForDate: jest.fn().mockImplementation((date: string) => {
+        return Promise.resolve(mockJournalData.get(date) || []);
+      })
+    }),
+    getGoalStorageImpl: () => ({
+      getAll: jest.fn().mockImplementation(() => {
+        return Promise.resolve(mockGoalData);
+      })
+    }),
   };
 });
 

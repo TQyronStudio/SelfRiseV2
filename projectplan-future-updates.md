@@ -396,11 +396,49 @@ const isUnlocked = !theme.unlockLevel || level >= theme.unlockLevel;
 - [ ] Share exported backup across apps (email, cloud storage)
 
 **Technical Implementation**:
-- ✅ Backup/restore logic already complete: `src/services/storage/backup.ts`
-- ✅ UserSettings type includes `dataBackupEnabled` flag
+- ❌ **`src/services/storage/backup.ts` BYL SMAZÁN** (super audit Fáze 13, 2026-07-22,
+  schváleno Petrem). Nepoužitelný a nezachranitelný v původní podobě — viz níže.
 - ⏳ Need to install: `expo-sharing`, `expo-document-picker`, `expo-file-system`
 - ⏳ Need to create: DataExportModal component
 - ⏳ Need to integrate: Share API and DocumentPicker for native file operations
+- ⏳ **Napsat zálohování NAD SQLite** (viz „Co se stalo se starou implementací")
+
+### ⚠️ Co se stalo se starou implementací (čti před zahájením práce)
+
+Starých 574 řádků v `src/services/storage/backup.ts` **zálohovalo AsyncStorage**,
+ne SQLite. Od dokončení migrace (`FEATURE_FLAGS.USE_SQLITE_*` = `true`) čtou její
+importy prázdné úložiště — funkce by tedy vytvořila **prázdnou zálohu a nahlásila
+úspěch**, a při obnově by zapsala do místa, které už nikdo nečte. Soubor měl proto
+v hlavičce `⚠️ BLOCKER — DO NOT WIRE THIS TO ANY UI` a nikdy nebyl nikam zapojený.
+
+Ve Fázi 13 blokoval smazání legacy AsyncStorage vrstvy (3375 ř.). Přepojit ho na
+SQLite helpery nešlo bez psaní **nového nevratně mazacího kódu**: `deleteAll()`
+existuje jen na `SQLiteGoalStorage`, ne na návykové ani deníkové implementaci
+(kontrola parity: `deleteAll → habit:0 journal:0 goal:1`). Psát netestovaný
+destruktivní kód pro funkci, kterou nikdo nepoužívá, bylo horší než soubor smazat.
+
+**Obnovení kódu, kdyby ses chtěl podívat na původní strukturu**:
+```
+git show 4292741:src/services/storage/backup.ts
+git show 4292741:src/services/storage/migration.ts   # DataMigration (integrity/cleanup)
+git show 4292741:src/services/storage/userStorage.ts # User + UserSettings v AsyncStorage
+```
+
+**Co z původního návrhu platí dál** (formát níže se nemění — jen zdroj dat):
+- rozsah exportu, `.selfrise.json`, metadata a user flow zůstávají v platnosti;
+- `UserSettings.dataBackupEnabled` flag — pozor, `userStorage` byl smazán taky,
+  takže nastavení bude potřeba někam uložit znovu (kandidát: SQLite nebo
+  `homePreferencesStorage` vzor).
+
+**Co bude potřeba nově**:
+1. Export čte **SQLite** — buď per-tabulkový dump přes `getDatabase()`, nebo přes
+   `getHabitStorageImpl()` / `getGratitudeStorageImpl()` / `getGoalStorageImpl()`.
+2. Import potřebuje **transakční obnovu** (`withTransactionAsync`) a `deleteAll()`
+   na návykové i deníkové SQLite implementaci — ty se musí dopsat **s testy**,
+   protože jde o nevratné mazání dat.
+3. **Round-trip test** (export → wipe → import → data identická) je podmínka
+   zapojení do UI, ne „nice to have". Tohle je přesně ta třída chyby, co způsobila
+   goals split-brain v červenci 2026.
 
 **Export Format**:
 - File extension: `.selfrise.json`

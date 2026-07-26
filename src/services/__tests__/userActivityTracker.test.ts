@@ -11,50 +11,32 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 // Mock storage services.
-// IMPORTANT: shared singleton instances — the service constructs its own
-// instances (or resolves them via featureFlags), so per-instance jest.fn()s
-// created in the test would never be the ones the service calls.
-jest.mock('../storage/habitStorage', () => {
-  const instance = {
+// IMPORTANT: shared singleton instances — the service resolves its storage via
+// the featureFlags helpers, so per-instance jest.fn()s created inside a test
+// would never be the ones the service actually calls.
+//
+// The mocks hang directly off the featureFlags helpers (super audit Fáze 13).
+// They used to be attached to the legacy `../storage/*` module paths and routed
+// here; those modules are gone, and going through the helpers is what production
+// does anyway — `getHabitStorageImpl()` in a test now means exactly what it means
+// in `userActivityTracker.ts:273`.
+jest.mock('../../config/featureFlags', () => {
+  const actual = jest.requireActual('../../config/featureFlags');
+  const habitStorage = {
     getCompletionsByDate: jest.fn(),
     getUniqueHabitsCompletedOnDate: jest.fn(),
   };
-  return { HabitStorage: jest.fn(() => instance) };
-});
-
-jest.mock('../storage/gratitudeStorage', () => {
-  const instance = {
+  const gratitudeStorage = {
     getEntriesForDate: jest.fn(),
   };
-  return { GratitudeStorage: jest.fn(() => instance) };
-});
-
-jest.mock('../storage/goalStorage', () => {
-  const instance = {
+  const goalStorage = {
     getAll: jest.fn(),
   };
-  return { GoalStorage: jest.fn(() => instance) };
-});
-
-// The tracker resolves habit/gratitude storage through featureFlags
-// (getHabitStorageImpl → SQLite impl in production). Route it to the same
-// mocked singletons so the test controls what the service sees.
-jest.mock('../../config/featureFlags', () => {
-  const actual = jest.requireActual('../../config/featureFlags');
   return {
     ...actual,
-    getHabitStorageImpl: () => {
-      const { HabitStorage } = require('../storage/habitStorage');
-      return new HabitStorage();
-    },
-    getGratitudeStorageImpl: () => {
-      const { GratitudeStorage } = require('../storage/gratitudeStorage');
-      return new GratitudeStorage();
-    },
-    getGoalStorageImpl: () => {
-      const { GoalStorage } = require('../storage/goalStorage');
-      return new GoalStorage();
-    },
+    getHabitStorageImpl: () => habitStorage,
+    getGratitudeStorageImpl: () => gratitudeStorage,
+    getGoalStorageImpl: () => goalStorage,
   };
 });
 
@@ -143,14 +125,12 @@ describe('UserActivityTracker', () => {
   describe('Edge Cases', () => {
     test('handles empty data gracefully', async () => {
       // Mock empty data scenario
-      const { HabitStorage } = require('../storage/habitStorage');
-      const { GratitudeStorage } = require('../storage/gratitudeStorage');
-      const { GoalStorage } = require('../storage/goalStorage');
+      const { getHabitStorageImpl, getGratitudeStorageImpl, getGoalStorageImpl } = require('../../config/featureFlags');
       const { GamificationService } = require('../gamificationService');
 
-      const habitStorage = new HabitStorage();
-      const gratitudeStorage = new GratitudeStorage();
-      const goalStorage = new GoalStorage();
+      const habitStorage = getHabitStorageImpl();
+      const gratitudeStorage = getGratitudeStorageImpl();
+      const goalStorage = getGoalStorageImpl();
 
       habitStorage.getCompletionsByDate.mockImplementation(() => Promise.resolve([]));
       habitStorage.getUniqueHabitsCompletedOnDate.mockImplementation(() => Promise.resolve([]));
@@ -248,14 +228,12 @@ describe('UserActivityTracker', () => {
   describe('Integration Scenarios', () => {
     test('works with realistic user data', async () => {
       // Mock realistic user data
-      const { HabitStorage } = require('../storage/habitStorage');
-      const { GratitudeStorage } = require('../storage/gratitudeStorage');
-      const { GoalStorage } = require('../storage/goalStorage');
+      const { getHabitStorageImpl, getGratitudeStorageImpl, getGoalStorageImpl } = require('../../config/featureFlags');
       const { GamificationService } = require('../gamificationService');
 
-      const habitStorage = new HabitStorage();
-      const gratitudeStorage = new GratitudeStorage();
-      const goalStorage = new GoalStorage();
+      const habitStorage = getHabitStorageImpl();
+      const gratitudeStorage = getGratitudeStorageImpl();
+      const goalStorage = getGoalStorageImpl();
 
       // Mock moderate user activity — ONLY for today. The baseline scans the
       // whole month day-by-day; an unconditional mockResolvedValue would make

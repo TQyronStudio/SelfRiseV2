@@ -900,7 +900,16 @@ v německé appce, přesně typ chyby, který unikne všem ostatním fázím.
 sekce 0 výše. Dělat POSLEDNÍ — potřebuje závěry z Fází 1-12, aby bylo
 jasné co je "legacy ale používané" vs. "opravdu mrtvé".
 
-- [x] 13.1 **N27 — legacy storage duplikace** (3370 řádků): ověř migrace
+- [x] 13.1 **N27 — legacy storage duplikace** — ✅ **SMAZÁNO 2026-07-22**
+      (schváleno Petrem po potvrzení, že appka oficiálně vydaná nebyla).
+      Smazán celý mrtvý klastr 4692 ř.: gratitudeStorage/habitStorage/goalStorage
+      (3336) + backup.ts (574) + migration.ts (405) + userStorage.ts (329)
+      + StorageService. `calculateTimelineStatus` přesunuta do
+      `src/utils/goalCalculations.ts` (jediná funkční spojka na SQLite).
+      Parita metod ověřena skriptem (85 volání, 0 chybějících), 476/476 testů
+      po každém kroku. Návrh funkce Zálohování zachován
+      v @projectplan-future-updates.md. Původní zadání níže:
+      ověř migrace
       proběhla u všech uživatelů (telemetrie `sqlite_migration_state`),
       POKUD ano, navrhni (NEDĚLEJ v tomhle auditu) plán smazání legacy
       větví — po jednom souboru, každý s vlastním grep-ověřením a test
@@ -1026,5 +1035,5 @@ víc bloků najednou — kvalita kontroly klesá s délkou práce v jednom kuse.
 | 15 | Fáze 8 + 9 | | ✅ HOTOVO 2026-07-21 (F8: achievement handshake vzorový ✓, smazána mrtvá help telemetrie, sdílený modul tutoriálových klíčů. F9: anti-abuse ✓, recordError 4/4 ✓, ad IDs ✓; **demo mode maže vše bez zálohy → přidáno tvrdé potvrzení před načtením** (dosud žádné!), gating v produkci ověřen ✓. 464/464)
 | 16 | Fáze 11 | až po 1 a 4 | ✅ HOTOVO 2026-07-21 (10/10 doporučení OK vč. kontroly jednotek; opraven nečitelný tmavý text v modálech výzev, StreakHistoryGraph už nenačítá celou historii, 2× čistě černé pozadí; **nález o stínech ODVOLÁN** — colors.shadow je v dark transparent; XP za doporučení → F13; 464/464)
 | 17 | Fáze 12 | ✅ HOTOVO 2026-07-22 (6/6 položek; N-12.3 vysoká — 28 rozbitých `t()` cest; zpráva: faze-12-nalezy.md) |
-| 18 | Fáze 13 | ✅ AUDIT HOTOVÝ 2026-07-22 (8/8 položek; opravy 13.7 + 13.8 provedeny). ⏳ Zbývá úklid čekající na rozhodnutí: N-13.1 (vysoká), N-13.2 (otázka na Petra), N-13.3, N-13.4, N-13.6, 339 i18n klíčů. Zpráva: faze-13-nalezy.md |
+| 18 | Fáze 13 | ✅ HOTOVO 2026-07-22 (8/8 položek + všechny schválené opravy: N-13.1/2/3, 13.7, 13.8, 13.1+N-13.4). Smazáno celkem **32 souborů / ~12 600 ř.** Zbývá jen N-13.6 (3 konstanty), root `.md` úklid a 87 osamocených i18n klíčů. Zpráva: faze-13-nalezy.md |
 | 🔶 | Device sezení: 2i + 3e + 10.6 + 11.2 | dělá Petr se zařízením, ideálně po #9 |

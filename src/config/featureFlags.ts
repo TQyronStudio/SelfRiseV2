@@ -73,53 +73,44 @@ export function isFeatureEnabled(flag: keyof typeof FEATURE_FLAGS): boolean {
  * With a proper return type, calling a method the active implementation does not
  * have is now a compile error instead of a silent zero at runtime.
  *
- * RULE: never `new GoalStorage()` / `new HabitStorage()` / import the legacy
- * singletons in feature code — always go through these helpers.
+ * RULE: always resolve storage through these helpers — never import a storage
+ * implementation directly in feature code. Tests mock these helpers, so a direct
+ * import also breaks the test seam.
+ *
+ * HISTORY (super audit Fáze 13): habits, journal and goals each used to have an
+ * `else` branch returning a legacy AsyncStorage singleton. Those singletons were
+ * deleted — the migration to SQLite is long finished, the flags are build-time
+ * `as const` constants (never runtime-switchable), so the branches were
+ * unreachable code that still had to be kept type-correct on every change.
+ * The helpers stay as the single resolution point: they remain the test seam and
+ * the place where a future storage swap would happen.
  */
 
 /**
  * Storage selection helper for gratitude/journal
- * Returns appropriate storage instance based on feature flag
  */
 export function getGratitudeStorageImpl() {
-  if (FEATURE_FLAGS.USE_SQLITE_JOURNAL) {
-    // Lazy import to avoid circular dependencies
-    const { sqliteGratitudeStorage } = require('../services/storage/SQLiteGratitudeStorage') as typeof import('../services/storage/SQLiteGratitudeStorage');
-    return sqliteGratitudeStorage;
-  } else {
-    const { gratitudeStorage } = require('../services/storage/gratitudeStorage') as typeof import('../services/storage/gratitudeStorage');
-    return gratitudeStorage;
-  }
+  // Lazy import to avoid circular dependencies
+  const { sqliteGratitudeStorage } = require('../services/storage/SQLiteGratitudeStorage') as typeof import('../services/storage/SQLiteGratitudeStorage');
+  return sqliteGratitudeStorage;
 }
 
 /**
  * Storage selection helper for habits
- * Returns appropriate storage instance based on feature flag
  */
 export function getHabitStorageImpl() {
-  if (FEATURE_FLAGS.USE_SQLITE_HABITS) {
-    // Lazy import to avoid circular dependencies
-    const { sqliteHabitStorage } = require('../services/storage/SQLiteHabitStorage') as typeof import('../services/storage/SQLiteHabitStorage');
-    return sqliteHabitStorage;
-  } else {
-    const { habitStorage } = require('../services/storage/habitStorage') as typeof import('../services/storage/habitStorage');
-    return habitStorage;
-  }
+  // Lazy import to avoid circular dependencies
+  const { sqliteHabitStorage } = require('../services/storage/SQLiteHabitStorage') as typeof import('../services/storage/SQLiteHabitStorage');
+  return sqliteHabitStorage;
 }
 
 /**
  * Storage selection helper for goals
- * Returns appropriate storage instance based on feature flag
  */
 export function getGoalStorageImpl() {
-  if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
-    // Lazy import to avoid circular dependencies
-    const { sqliteGoalStorage } = require('../services/storage/SQLiteGoalStorage') as typeof import('../services/storage/SQLiteGoalStorage');
-    return sqliteGoalStorage;
-  } else {
-    const { goalStorage } = require('../services/storage/goalStorage') as typeof import('../services/storage/goalStorage');
-    return goalStorage;
-  }
+  // Lazy import to avoid circular dependencies
+  const { sqliteGoalStorage } = require('../services/storage/SQLiteGoalStorage') as typeof import('../services/storage/SQLiteGoalStorage');
+  return sqliteGoalStorage;
 }
 
 /**

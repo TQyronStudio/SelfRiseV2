@@ -756,7 +756,164 @@ přidal kvůli N-12.4, má v locale sourozence `common.modals.confirmTitle`
 Duplicitu jsem vyrobil já tím, že jsem hledal jen přesnou cestu z kódu a ne významový
 ekvivalent. Není to chyba v chování, ale zapisuju to.
 
-## Stav: audit 8/8 HOTOVO; opravy 13.7, 13.8, N-13.1, N-13.2, N-13.3 HOTOVÉ
+---
+
+## 13.1 + N-13.4 — smazání legacy storage vrstvy (rozhodnuto 2026-07-22)
+
+Petr: *„tak teď je čas na ten připravený úklid. Ověř, že se tím opravdu nic
+neposere a když to bude OK, tak se do toho pust."*
+
+### Ověření PŘED prvním smazaným řádkem
+
+Sedm nezávislých grepů. Výsledek: **mrtvý klastr je uzavřený** — zvenčí do něj
+nevede nic než side-effect barrel z `app/_layout.tsx:18`.
+
+```
+=== dosažitelnost mimo klastr ===
+✅ dataBackup / DataBackup   — nikde
+✅ dataMigration / DataMigration — nikde
+✅ userStorage / UserStorage — nikde
+✅ storageService            — nikde
+=== barrel jako celek importuje jen ===
+src/services/index.ts:16: export * from './storage';
+```
+
+**Skutečné závislosti, které NEJSOU mazání** (musely se vyřešit jako první):
+
+| # | Místo | Co s tím |
+|---|---|---|
+| 1 | `SQLiteGoalStorage.ts:15` → `calculateTimelineStatus` z `goalStorage.ts:822` | **jediná funkční spojka** — SQLite implementace používala funkci z legacy souboru; přesunout |
+| 2 | `featureFlags.ts:88-92, 103-107, 118-122` | 3 mrtvé `else` větve |
+| 3 | `xpMultiplierService.ts:377` | 1 mrtvá `else` větev |
+| 4 | `storage/index.ts:5-8, 19, 63` | re-exporty + `StorageService` používající `userStorage` |
+| 5 | 3 testovací soubory | mockují legacy cesty jako **věšák na mock objekty** (produkce jde přes `featureFlags`) |
+
+### Proč to nemůže nic rozbít
+
+- Legacy soubory jsou **nedosažitelné** už dnes: všech 5 flagů je `true` a jsou to
+  `as const` konstanty, ne runtime přepínač. `else` větve jsou mrtvé při kompilaci.
+- Jediná věc, která by rozbití způsobila, byla spojka č. 1 — a ta se řeší
+  **přesunem**, ne smazáním.
+- Testy legacy vrstvu netestují. Mockují její modulové cesty, protože je to
+  pohodlné místo, kam zavěsit mock; produkční kód si storage řeší přes
+  `getHabitStorageImpl()` a testy ten helper stejně přepisují.
+
+### Rozhodnutí o `backup.ts` (zaparkovaná funkce Zálohování/Export)
+
+`backup.ts` legacy vrstvu blokoval. **Přepojit na SQLite nešlo**: kontrola parity
+metod ukázala, že `deleteAll` existuje jen u cílů —
+
+```
+deleteAll   habit:0  journal:0  goal:1
+```
+
+— takže by bylo nutné napsat **nový nevratně mazací kód** (smaž všechny návyky,
+smaž celý deník) pro funkci, kterou nikdo nepoužívá, a nebylo by na čem ho
+otestovat. To je přesně ta „method parity" past, před kterou varoval BLOCKER
+komentář v hlavičce toho souboru.
+
+Petr zvolil **smazat celý mrtvý klastr** (4683 ř.), návrh funkce zapsat do
+`projectplan-future-updates.md` s git odkazem. Věcný důvod: až se Zálohování
+bude dělat, musí se psát znovu — pro SQLite se zálohuje úplně jinak než výpisem
+klíčů z AsyncStorage.
+
+### Vědomě mimo záběr
+
+`USE_SQLITE_GAMIFICATION` a `USE_SQLITE_CHALLENGES` mají **~45 vlastních
+`else` větví** v `gamificationService`, `achievementStorage`,
+`monthlyChallengeService`, `monthlyProgressTracker`,
+`monthlyChallengeLifecycleManager` a `levelUpEvents`. To je samostatný úkol —
+tady se jich nedotýkám. Zůstávají i **všechny flagy**, protože je počítá
+telemetrie `sqlite_migration_state` (`appInitializationService.ts:177-181`,
+očekává 5).
+
+### Provedeno — 6 souborů / 4692 řádků, po jednom kroku s testem po každém
+
+Petr v průběhu doplnil: *„jen aby to nic nerozbilo, žádnou funkci."* Proto se
+`npx tsc --noEmit` i celá sada 476 testů pouštěly **po každém jednotlivém kroku**,
+ne až na konci. Ani jeden krok nebyl červený.
+
+| # | Krok | Výsledek |
+|---|---|---|
+| 1 | `calculateTimelineStatus` přesunuta z `goalStorage.ts:822` do nového `src/utils/goalCalculations.ts` (verbatim, bez změny chování); `SQLiteGoalStorage.ts:15` na ni přesměrován | 476/476 |
+| 2 | 3 testovací soubory přepsány — mocky teď visí přímo na `featureFlags` helperech místo na legacy modulových cestách | 14/14, 19/19, 26/26 |
+| 3 | 3 mrtvé `else` větve ve `featureFlags.ts` + 1 v `xpMultiplierService.ts:376` | 476/476 |
+| 4 | `storage/index.ts` zúžen na živé exporty; `StorageService` + `storageService` odstraněny | 476/476 |
+| 5 | smazáno po jednom: `backup.ts` (574), `migration.ts` (405), `userStorage.ts` (329) | 476/476 po každém |
+| 6 | smazáno po jednom: `goalStorage.ts` (823), `habitStorage.ts` (761), `gratitudeStorage.ts` (1752) | 476/476 po každém |
+
+**Přepis testů stojí za zmínku**: mocky teď volají `getHabitStorageImpl()` —
+tedy **přesně to, co volá produkční kód** (`userActivityTracker.ts:273`). Dřív
+visely na legacy modulových cestách a přes přepsaný `featureFlags` se k nim
+klikatilo zpátky. Test tím zesílil, ne zeslábl: čte se stejnou cestou jako
+produkce a nemá vlastní paralelní realitu.
+
+**Bezpečnostní kontrola během mazání zafungovala** — u `gratitudeStorage.ts` se
+skript zastavil na nálezu v `achievementService.ts:1661`. Šlo o **můj vlastní
+komentář** z opravy N-13.1, který doslova citoval `require('./storage/…')`.
+Ověřeno, že jde o prózu, ne o import; komentář pak přeformulován, aby na něj
+příští grep nenarazil.
+
+### Závěrečné funkční ověření
+
+**1. Parita metod** — nejsilnější důkaz, že se nic nerozbilo. Skript vytáhl všechny
+proměnné navázané na storage helpery a všechna volání na nich, a porovnal je
+s metodami definovanými na SQLite implementacích:
+
+```
+zkontrolováno volání: 85
+✅ PARITA OK — každá volaná metoda na SQLite implementaci existuje
+```
+
+Tohle je přesně ta třída chyby, která způsobila goals split-brain (7/2026) a
+N-13.1 v této fázi: kód volá metodu, kterou aktivní implementace nemá, a dostane
+tiše nulu. Po úklidu takové místo v codebase není.
+
+**2. Žádný import legacy modulů nikde**:
+
+```
+grep -rnE "(from|require\()\s*['\"][^'\"]*storage/(gratitudeStorage|habitStorage|goalStorage|backup|migration|userStorage)['\"]"
+→ ✅ nula
+```
+
+**3. Sweep — mazání nevyrobilo nové sirotky**:
+
+```
+scanned files: 186     (bylo 191 → −5)
+files with ZERO import references (0)
+```
+
+**4. Obsah `src/services/storage/` po úklidu** — jen živé věci:
+
+```
+SQLiteChallengeStorage.ts  SQLiteGoalStorage.ts  SQLiteGratitudeStorage.ts
+SQLiteHabitStorage.ts      base.ts               homePreferencesStorage.ts
+index.ts                   __tests__
+```
+
+**5. Flagy a telemetrie nedotčené** — `appInitializationService.ts:177-181` pořád
+počítá všech 5 `USE_SQLITE_*` (`sqlite_migration_state` očekává 5).
+
+**6. Celá sada 32 suites zelená** včetně `storageSplitBrain.test.ts` (napsaný
+právě proti téhle třídě chyb), `achievementEvaluation.test.ts` (89 testů,
+1 na achievement) a `localeParity.test.ts`.
+
+```
+Test Suites: 32 passed, 32 total
+Tests:       476 passed, 476 total
+```
+
+### Návrh funkce Zálohování zachován
+
+`projectplan-future-updates.md` § „Phase 3: Data Export & Backup System" doplněn
+o sekci **„Co se stalo se starou implementací"**: proč byla nepoužitelná
+(zálohovala prázdný AsyncStorage a hlásila úspěch), git příkazy k obnovení všech
+tří smazaných souborů (`git show 4292741:…`), co z původního návrhu platí
+(formát `.selfrise.json`, user flow) a co bude potřeba nově (export nad SQLite,
+transakční import, `deleteAll()` pro návyky a deník **s testy**, round-trip test
+jako podmínka zapojení do UI).
+
+## Stav: audit 8/8 HOTOVO; opravy 13.7, 13.8, N-13.1, N-13.2, N-13.3 a **13.1 + N-13.4** HOTOVÉ
 NEDOKONČENO — vědomě odloženo: N-13.4 (1309 ř. za storage barrelem, vč.
 zaparkovaného `backup.ts`), N-13.6 (zbytkové konstanty `ENGAGEMENT`),
 13.6 root `.md` soubory (Petr: „teď to řešit nebudeme"),

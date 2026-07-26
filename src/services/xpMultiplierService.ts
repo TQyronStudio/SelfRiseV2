@@ -359,30 +359,19 @@ export class XPMultiplierService {
    */
   private static async getGoalActivityForDate(date: DateString): Promise<number> {
     try {
-      const { FEATURE_FLAGS } = require('../config/featureFlags') as typeof import('../config/featureFlags');
+      // Query goal_progress directly for accurate date-based tracking.
+      // The AsyncStorage fallback branch was removed in super audit Fáze 13 along
+      // with the legacy goalStorage — goals have lived in SQLite since
+      // USE_SQLITE_GOALS was switched on, and the flag is a build-time constant.
+      const { getDatabase } = require('./database/init') as typeof import('./database/init');
+      const db = getDatabase();
 
-      if (FEATURE_FLAGS.USE_SQLITE_GOALS) {
-        // SQLite: Query goal_progress table directly for accurate date-based tracking
-        const { getDatabase } = require('./database/init') as typeof import('./database/init');
-        const db = getDatabase();
+      const result = await db.getFirstAsync<{ count: number }>(
+        `SELECT COUNT(*) as count FROM goal_progress WHERE date = ? AND value > 0`,
+        [date]
+      );
 
-        const result = await db.getFirstAsync<{ count: number }>(
-          `SELECT COUNT(*) as count FROM goal_progress WHERE date = ? AND value > 0`,
-          [date]
-        );
-
-        return result?.count || 0;
-      } else {
-        // AsyncStorage fallback: Check progress entries via getAllProgress
-        const { goalStorage } = require('./storage/goalStorage') as typeof import('./storage/goalStorage');
-        const allProgress = await goalStorage.getAllProgress();
-
-        const entriesForDate = allProgress.filter(
-          (entry) => entry.date === date && entry.value > 0
-        );
-
-        return entriesForDate.length;
-      }
+      return result?.count || 0;
     } catch (error) {
       console.error(`Error getting goal activity for ${date}:`, error);
       return 0;

@@ -12,7 +12,7 @@ import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 import { getDatabase } from '../database/init';
-import { calculateTimelineStatus } from './goalStorage';
+import { calculateTimelineStatus } from '../../utils/goalCalculations';
 
 export class SQLiteGoalStorage implements EntityStorage<Goal> {
 

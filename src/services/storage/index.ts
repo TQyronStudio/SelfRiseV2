@@ -1,185 +1,28 @@
 // Main storage service exports
 export * from './base';
 
-// Storage classes (avoid * export to prevent conflicts)
-export { HabitStorage, habitStorage } from './habitStorage';
-export { GratitudeStorage, gratitudeStorage } from './gratitudeStorage';
-export { GoalStorage, goalStorage } from './goalStorage';
-export { UserStorage, userStorage } from './userStorage';
-export { DataMigration, dataMigration } from './migration';
-export { DataBackup, dataBackup } from './backup';
-
-// SQLite storage services
+// SQLite storage services — the live implementations.
+// Feature code must NOT import these directly; resolve storage through the
+// helpers in `src/config/featureFlags.ts` (getHabitStorageImpl / …), which are
+// also the seam tests mock.
 export { SQLiteGratitudeStorage, sqliteGratitudeStorage } from './SQLiteGratitudeStorage';
 export { SQLiteHabitStorage, sqliteHabitStorage } from './SQLiteHabitStorage';
 
-// Storage service initialization
-import { dataMigration } from './migration';
-import { dataBackup } from './backup';
-import { userStorage } from './userStorage';
-
-export class StorageService {
-  private static instance: StorageService;
-  private initialized = false;
-
-  private constructor() {}
-
-  static getInstance(): StorageService {
-    if (!StorageService.instance) {
-      StorageService.instance = new StorageService();
-    }
-    return StorageService.instance;
-  }
-
-  // Initialize storage service
-  async initialize(): Promise<void> {
-    if (this.initialized) return;
-
-    try {
-      // Check if migration is needed
-      const needsMigration = await dataMigration.isMigrationNeeded();
-      if (needsMigration) {
-        console.log('Running data migration...');
-        const result = await dataMigration.migrate();
-        if (!result.success) {
-          throw new Error(`Migration failed: ${result.errors.join(', ')}`);
-        }
-        console.log('Data migration completed successfully');
-      }
-
-      // Validate data integrity
-      const integrity = await dataMigration.validateDataIntegrity();
-      if (!integrity.isValid) {
-        console.warn('Data integrity issues found:', integrity.issues);
-        
-        // Attempt to clean up orphaned data
-        const cleanup = await dataMigration.cleanupOrphanedData();
-        if (cleanup.cleaned > 0) {
-          console.log(`Cleaned up ${cleanup.cleaned} orphaned records`);
-        }
-      }
-
-      // Initialize auto backup if enabled
-      const settings = await userStorage.getSettings();
-      if (settings.dataBackupEnabled) {
-        // Create initial auto backup
-        await dataBackup.createAutoBackup();
-        console.log('Auto backup initialized');
-      }
-
-      this.initialized = true;
-      console.log('Storage service initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize storage service:', error);
-      throw error;
-    }
-  }
-
-  // Get initialization status
-  isInitialized(): boolean {
-    return this.initialized;
-  }
-
-  // Clear all data (for testing/reset)
-  async clearAllData(): Promise<void> {
-    try {
-      await dataMigration.clearAllData();
-      this.initialized = false;
-      console.log('All data cleared successfully');
-    } catch (error) {
-      console.error('Failed to clear all data:', error);
-      throw error;
-    }
-  }
-
-  // Get storage statistics
-  async getStorageStats(): Promise<{
-    usage: Awaited<ReturnType<typeof dataBackup.getStorageUsage>>;
-    integrity: Awaited<ReturnType<typeof dataMigration.validateDataIntegrity>>;
-    backups: Awaited<ReturnType<typeof dataBackup.getAutoBackups>>;
-  }> {
-    try {
-      const [usage, integrity, backups] = await Promise.all([
-        dataBackup.getStorageUsage(),
-        dataMigration.validateDataIntegrity(),
-        dataBackup.getAutoBackups(),
-      ]);
-
-      return { usage, integrity, backups };
-    } catch (error) {
-      console.error('Failed to get storage stats:', error);
-      throw error;
-    }
-  }
-
-  // Health check
-  async healthCheck(): Promise<{
-    status: 'healthy' | 'warning' | 'error';
-    issues: string[];
-    details: {
-      initialized: boolean;
-      dataIntegrity: boolean;
-      migrationUpToDate: boolean;
-      totalRecords: number;
-      storageSize: number;
-    };
-  }> {
-    const issues: string[] = [];
-    let status: 'healthy' | 'warning' | 'error' = 'healthy';
-
-    try {
-      // Check initialization
-      if (!this.initialized) {
-        issues.push('Storage service not initialized');
-        status = 'error';
-      }
-
-      // Check data integrity
-      const integrity = await dataMigration.validateDataIntegrity();
-      if (!integrity.isValid) {
-        issues.push(`Data integrity issues: ${integrity.issues.join(', ')}`);
-        status = integrity.issues.length > 5 ? 'error' : 'warning';
-      }
-
-      // Check migration status
-      const needsMigration = await dataMigration.isMigrationNeeded();
-      if (needsMigration) {
-        issues.push('Data migration required');
-        status = 'warning';
-      }
-
-      // Get storage stats
-      const storageStats = await dataBackup.getStorageUsage();
-      const totalRecords = Object.values(storageStats.byType).reduce(
-        (sum, size) => sum + size, 0
-      );
-
-      return {
-        status,
-        issues,
-        details: {
-          initialized: this.initialized,
-          dataIntegrity: integrity.isValid,
-          migrationUpToDate: !needsMigration,
-          totalRecords,
-          storageSize: storageStats.total,
-        },
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        issues: [`Health check failed: ${error}`],
-        details: {
-          initialized: false,
-          dataIntegrity: false,
-          migrationUpToDate: false,
-          totalRecords: 0,
-          storageSize: 0,
-        },
-      };
-    }
-  }
-}
-
-// Export singleton instance
-export const storageService = StorageService.getInstance();
+// REMOVED in super audit Fáze 13 — the whole dead AsyncStorage cluster:
+//   habitStorage / gratitudeStorage / goalStorage  (legacy impls, 3375 lines)
+//   userStorage                                    (only read by StorageService)
+//   migration (DataMigration)                      (only read by StorageService/backup)
+//   backup (DataBackup)                            (parked Data Export & Backup feature)
+//   StorageService + storageService singleton      (built entirely on the above;
+//                                                   initialize() was never called)
+//
+// Nothing outside that cluster referenced any of it — the only path in was this
+// barrel, re-exported by `src/services/index.ts` and pulled in by the
+// side-effect `import '../src/services'` in `app/_layout.tsx:18`.
+//
+// The Data Export & Backup design intent is recorded in
+// @projectplan-future-updates.md; the deleted implementation is recoverable with
+// `git show 4292741:src/services/storage/backup.ts`. It could not be kept alive:
+// it imported the legacy singletons, and repointing it at the SQLite helpers was
+// impossible without writing new destructive code — `deleteAll` exists only on
+// SQLiteGoalStorage, not on the habit or journal implementations.

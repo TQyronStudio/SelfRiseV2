@@ -1658,10 +1658,10 @@ export class AchievementService {
   /**
    * Helper: Get gratitude streak info
    *
-   * N-13.1 (super audit Fáze 13): this used to `require('./storage/gratitudeStorage')`
-   * — the LEGACY AsyncStorage singleton — with no feature-flag check and an untyped
-   * require. Journal writes go to SQLite (USE_SQLITE_JOURNAL), so it always read an
-   * empty store and returned the all-zero default from gratitudeStorage.ts:434.
+   * N-13.1 (super audit Fáze 13): this used to lazily require the LEGACY
+   * AsyncStorage journal singleton directly, with no feature-flag check and an
+   * untyped require. Journal writes go to SQLite (USE_SQLITE_JOURNAL), so it always
+   * read an empty store and returned that implementation's all-zero default.
    * Result: the Trophy Room showed permanent zero progress for the journal streak
    * and the ⭐🔥👑 milestone counts (getRealTimeUserStats -> app/achievements.tsx).
    * Always go through the feature-flag helper — never the legacy singleton.

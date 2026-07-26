@@ -27,7 +27,7 @@ import {
 import { today, formatDateToString } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { MonthlyChallengeService } from '../monthlyChallengeService';
-import { gratitudeStorage } from '../storage/gratitudeStorage';
+import { getGratitudeStorageImpl } from '../../config/featureFlags';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ========================================
@@ -46,29 +46,31 @@ jest.mock('react-native', () => ({
 // The storage helpers must be mocked too: services now resolve their storage
 // through them (never via a hardcoded legacy singleton), so omitting them here
 // makes the module under test crash on import.
-jest.mock('../../config/featureFlags', () => ({
-  FEATURE_FLAGS: {
-    USE_SQLITE_JOURNAL: false,
-    USE_SQLITE_HABITS: false,
-    USE_SQLITE_GOALS: false,
-    USE_SQLITE_GAMIFICATION: false,
-    USE_SQLITE_CHALLENGES: false,
-  },
-  getGratitudeStorageImpl: () => require('../storage/gratitudeStorage').gratitudeStorage,
-  getHabitStorageImpl: () => require('../storage/habitStorage').habitStorage,
-  getGoalStorageImpl: () => require('../storage/goalStorage').goalStorage,
-}));
+// Storage is resolved through these helpers by every service under test, so the
+// mocks live here. They used to be routed to the legacy `../storage/*` modules,
+// which were deleted in super audit Fáze 13.
+//
+// avg_entry_length reads entries via getAll() and filters by the DateString range
+// itself (no getEntriesInRange, no Date round-trip → no timezone shift).
+jest.mock('../../config/featureFlags', () => {
+  const gratitudeStorage = { getAll: jest.fn(async () => []) };
+  return {
+    FEATURE_FLAGS: {
+      USE_SQLITE_JOURNAL: false,
+      USE_SQLITE_HABITS: false,
+      USE_SQLITE_GOALS: false,
+      USE_SQLITE_GAMIFICATION: false,
+      USE_SQLITE_CHALLENGES: false,
+    },
+    getGratitudeStorageImpl: () => gratitudeStorage,
+    getHabitStorageImpl: () => ({}),
+    getGoalStorageImpl: () => ({}),
+  };
+});
 jest.mock('../storage/SQLiteChallengeStorage', () => ({
   sqliteChallengeStorage: {},
 }));
 
-// avg_entry_length reads entries via getAll() and filters by the DateString range
-// itself (no getEntriesInRange, no Date round-trip → no timezone shift).
-jest.mock('../storage/gratitudeStorage', () => ({
-  gratitudeStorage: {
-    getAll: jest.fn(async () => []),
-  },
-}));
 
 // The tracker derives snapshot facts (isPerfectDay, isTripleFeatureDay,
 // xpEarnedToday) from GamificationService.getTransactionsByDateRange.
@@ -99,7 +101,7 @@ jest.mock('../monthlyChallengeService', () => ({
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 const mockGetCurrentChallenge = MonthlyChallengeService.getCurrentChallenge as jest.Mock;
 const mockGetTransactions = GamificationService.getTransactionsByDateRange as jest.Mock;
-const mockGetAllJournalEntries = gratitudeStorage.getAll as jest.Mock;
+const mockGetAllJournalEntries = getGratitudeStorageImpl().getAll as jest.Mock;
 
 // ========================================
 // TEST HELPERS
