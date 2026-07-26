@@ -490,7 +490,26 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       // rewrite (only legacy goalStorage had it). Awarded once per goal per
       // threshold; the awarded set persists in goal_milestones, so oscillating
       // around a threshold cannot re-earn it.
-      if (input.progressType !== 'subtract' && newCompletionPercentage > previousCompletionPercentage) {
+      //
+      // 🚨 PAY FIRST, RECORD SECOND (device test 2026-07-26).
+      //
+      // This used to INSERT the goal_milestones row and only then call addXP —
+      // so whenever the reward was refused the milestone was marked as paid for
+      // good and the XP vanished silently. That was not an edge case: milestone
+      // XP counts against MAX_GOAL_TRANSACTIONS_PER_DAY (3 positive transactions
+      // per goal per day, shared with progress entries), so a small goal finished
+      // in one step — progress + three thresholds crossed at once = four
+      // transactions — always lost its 75 % reward.
+      //
+      // Two changes make the reward impossible to lose:
+      //   1. the row is written only after addXP reports success, so a refusal
+      //      leaves the milestone outstanding rather than falsely settled;
+      //   2. the trigger is "at or above the threshold and not yet awarded"
+      //      instead of "crossed on this very update", so an outstanding
+      //      milestone is retried on the next progress entry — by then the daily
+      //      transaction budget has usually reset. goal_milestones remains the
+      //      only guard against paying twice, exactly as before.
+      if (input.progressType !== 'subtract' && newCompletionPercentage > 0) {
         const milestones = [
           { threshold: 25, xp: XP_REWARDS.GOALS.MILESTONE_25_PERCENT, label: '25%' },
           { threshold: 50, xp: XP_REWARDS.GOALS.MILESTONE_50_PERCENT, label: '50%' },
@@ -498,7 +517,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         ];
 
         for (const milestone of milestones) {
-          if (previousCompletionPercentage < milestone.threshold && newCompletionPercentage >= milestone.threshold) {
+          if (newCompletionPercentage >= milestone.threshold) {
             const milestoneId = `${goal.id}_xp_${milestone.threshold}`;
             const alreadyAwarded = await db.getFirstAsync<{ id: string }>(
               'SELECT id FROM goal_milestones WHERE id = ?',
@@ -506,18 +525,27 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
             );
             if (alreadyAwarded) continue;
 
+            const xpResult = await GamificationService.addXP(milestone.xp, {
+              source: XPSourceType.GOAL_MILESTONE,
+              description: `Goal ${milestone.label} milestone: ${goal.title}`,
+              sourceId: goal.id
+            });
+
+            if (!xpResult.success) {
+              // Stays outstanding — the next progress entry will try again.
+              console.warn(
+                `⏳ Goal milestone ${milestone.label} deferred (${goal.title}): ${xpResult.error ?? 'XP refused'}`
+              );
+              continue;
+            }
+
             await db.runAsync(
               `INSERT INTO goal_milestones (id, goal_id, value, description, is_completed, completed_at)
                VALUES (?, ?, ?, ?, 1, ?)`,
               [milestoneId, goal.id, milestone.threshold, `XP milestone ${milestone.label}`, Date.now()]
             );
 
-            await GamificationService.addXP(milestone.xp, {
-              source: XPSourceType.GOAL_MILESTONE,
-              description: `Goal ${milestone.label} milestone: ${goal.title}`,
-              sourceId: goal.id
-            });
-            console.log(`🎯 Goal milestone ${milestone.label}: ${goal.title} (+${milestone.xp} XP)`);
+            console.log(`🎯 Goal milestone ${milestone.label}: ${goal.title} (+${xpResult.xpGained} XP)`);
           }
         }
       }

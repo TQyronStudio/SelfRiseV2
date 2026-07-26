@@ -70,6 +70,97 @@ describe('Goal milestone XP (N-5.1)', () => {
     expect(milestoneCalls[0]![1].sourceId).toBe(id);
   });
 
+  // ────────────────────────────────────────────────────────────────────────
+  // Refused rewards must stay outstanding, not be marked as paid
+  //
+  // Device test 2026-07-26: milestone XP counts against
+  // MAX_GOAL_TRANSACTIONS_PER_DAY (3 per goal per day, shared with progress
+  // entries), so a small goal finished in one step — progress plus three
+  // thresholds = four transactions — always lost its 75 % reward. The
+  // goal_milestones row had already been written, so it was gone for good.
+  //
+  // These cases cannot be produced through addXP itself: validation is skipped
+  // entirely under Jest (gamificationService.ts, `isTestEnvironment`), which is
+  // precisely why this class of bug survived every audit phase. The refusal is
+  // therefore injected at the mock.
+  // ────────────────────────────────────────────────────────────────────────
+  describe('refused milestone XP', () => {
+    const milestoneRows = async (goalId: string): Promise<number[]> => {
+      const rows = await getDatabase().getAllAsync<{ value: number }>(
+        'SELECT value FROM goal_milestones WHERE goal_id = ? ORDER BY value ASC',
+        [goalId]
+      );
+      return rows.map(r => r.value);
+    };
+
+    test('a refused milestone is NOT recorded as awarded', async () => {
+      addXPMock.mockImplementation(async (_amount: number, opts: any) =>
+        opts.source === XPSourceType.GOAL_MILESTONE
+          ? { success: false, error: 'Goal has reached daily XP limit' }
+          : { success: true }
+      );
+
+      const id = await createGoal(100);
+      await addProgress(id, 30); // reaches 25 %
+
+      expect(await milestoneRows(id)).toEqual([]); // nothing settled
+    });
+
+    test('an outstanding milestone is retried on the next progress entry', async () => {
+      addXPMock.mockImplementation(async (_amount: number, opts: any) =>
+        opts.source === XPSourceType.GOAL_MILESTONE
+          ? { success: false, error: 'Goal has reached daily XP limit' }
+          : { success: true }
+      );
+
+      const id = await createGoal(100);
+      await addProgress(id, 30);
+      expect(await milestoneRows(id)).toEqual([]);
+
+      // Budget resets (next day / next entry) — XP is accepted now.
+      addXPMock.mockImplementation(async () => ({ success: true, xpGained: 50 }));
+      addXPMock.mockClear();
+      await addProgress(id, 1); // 30 → 31 %, still only past the 25 % mark
+
+      const retried = xpCalls(addXPMock, XPSourceType.GOAL_MILESTONE);
+      expect(retried).toHaveLength(1);
+      expect(retried[0]![0]).toBe(50);
+      expect(await milestoneRows(id)).toEqual([25]);
+    });
+
+    test('only the refused threshold is retried; settled ones are left alone', async () => {
+      // 25 % and 50 % are accepted, 75 % is refused (the 4th transaction).
+      addXPMock.mockImplementation(async (amount: number, opts: any) =>
+        opts.source === XPSourceType.GOAL_MILESTONE && amount === 100
+          ? { success: false, error: 'Goal has reached daily XP limit' }
+          : { success: true }
+      );
+
+      const id = await createGoal(100);
+      await addProgress(id, 80); // crosses 25, 50, 75 at once
+      expect(await milestoneRows(id)).toEqual([25, 50]); // 75 still outstanding
+
+      addXPMock.mockImplementation(async () => ({ success: true }));
+      addXPMock.mockClear();
+      await addProgress(id, 1); // 80 → 81 %
+
+      const retried = xpCalls(addXPMock, XPSourceType.GOAL_MILESTONE);
+      expect(retried.map(c => c[0])).toEqual([100]); // only the 75 % reward
+      expect(await milestoneRows(id)).toEqual([25, 50, 75]);
+    });
+
+    test('settled milestones are never re-awarded despite the "at or above" trigger', async () => {
+      const id = await createGoal(100);
+      await addProgress(id, 80); // 25, 50, 75 all settled
+      addXPMock.mockClear();
+
+      await addProgress(id, 5); // 80 → 85 %, still above every threshold
+
+      expect(xpCalls(addXPMock, XPSourceType.GOAL_MILESTONE)).toHaveLength(0);
+      expect(await milestoneRows(id)).toEqual([25, 50, 75]);
+    });
+  });
+
   test('one entry crossing several thresholds awards each of them (50+75+100)', async () => {
     const id = await createGoal(100);
     await addProgress(id, 80); // 0 → 80 % crosses 25, 50, 75

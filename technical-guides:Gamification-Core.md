@@ -279,9 +279,32 @@ XP za trofej teď čtou `xpResult.success ? xpResult.xpGained : 0` a tuhle čás
 používají pro modal, `xpGained` event i návratovou hodnotu. Dřív modal hlásil
 „+200 XP" a XP bar animoval přírůstek, který se nestal.
 
-⚠️ **Zbývá otevřené**: milníky cílů spadají pod `GOALS_MAX_DAILY`, takže je může
-zamítnout denní strop — a značka se pořád zapisuje dřív. Stejná past, jen
-vzácnější (vyžaduje vyčerpaný denní limit cílů).
+**Navazující pravidlo: ZAPLAŤ NEJDŘÍV, ZAPIŠ POTOM.** Značka „odměna udělena" se
+smí zapsat až po tom, co `addXP` ohlásí úspěch. Jinak jakékoliv budoucí zpřísnění
+limitů začne tiše požírat odměny — přesně jako tady.
+
+U milníků cílů to nestačilo: počítají se do `MAX_GOAL_TRANSACTIONS_PER_DAY`
+(3 kladné transakce na cíl a den, sdílené s progressem), takže malý cíl splněný
+naráz — progress + tři překročené prahy = 4 transakce — **vždycky** přišel
+o odměnu za 75 %. Řešeno dvěma změnami v `SQLiteGoalStorage.addProgress`:
+
+1. řádek do `goal_milestones` se zapíše až po úspěšném `addXP`; při odmítnutí
+   zůstane milník **nevyřízený** místo falešně vyplaceného;
+2. spouštěč je **„jsem nad prahem a ještě nemám"** místo „právě jsem překročil",
+   takže nevyřízený milník se zkusí znovu při dalším přidání progressu — to už
+   je denní rozpočet transakcí zpravidla obnovený. Proti dvojímu vyplacení
+   chrání dál jen tabulka `goal_milestones`, stejně jako předtím.
+
+⚠️ **Limity u `GOAL_MILESTONE` se ZÁMĚRNĚ neruší.** Dát mu `null` jako trofejím
+by otevřelo farmu: smazání cíle maže i řádky v `goal_milestones` a XP nevrací
+(`SQLiteGoalStorage:248`), takže by šlo donekonečna zakládat cíl → jeden progress
+→ 260 XP → smazat. Trofej se odemkne jednou za život, cíl si uživatel založí
+kdykoliv — proto u cílů limity zůstávají a řeší se jen ztráta odměny.
+
+⚠️ **Testy tuhle třídu chyb NEODHALÍ**: `performXPAdditionInternal` přeskakuje
+celou validaci, když běží pod Jestem (`isTestEnvironment`). Proto se odmítnutí
+v testech musí **injektovat mockem** (viz `sqliteGoalStorage.progressXP.test.ts`
+§ „refused milestone XP"). Tohle je důvod, proč chyba přežila všech 13 fází auditu.
 
 **Regresní testy**: `xpLimits.test.ts` (23 testů — 4 vyňaté zdroje projdou
 1 ms po předchozí transakci, 4 uživatelské akce jsou dál blokované). Negativní

@@ -450,8 +450,21 @@
 > @technical-guides:Gamification-Core.md.
 > **Test**: `xpLimits.test.ts` rozšířen na 23, negativní kontrola — se starou
 > podmínkou padají 3. tsc 0, **510/510 (35/35)** ✓.
-> ⚠️ Otevřené: milníky cílů může pořád zamítnout `GOALS_MAX_DAILY` a značka se
-> zapisuje dřív než XP (vzácnější, vyžaduje vyčerpaný denní limit).
+>
+> ✅ **NAVAZUJÍCÍ OPRAVA — milníky cílů se už nemůžou ztratit 2026-07-26**:
+> při prověřování se ukázalo, že hlavní problém není denní strop, ale
+> `MAX_GOAL_TRANSACTIONS_PER_DAY` (3 kladné transakce na cíl a den, **sdílené
+> s progressem**). Malý cíl splněný naráz = progress + 3 prahy = 4 transakce →
+> odměna za 75 % **vždy** zahozena, a značka už byla zapsaná → trvale.
+> **Oprava**: (1) zápis do `goal_milestones` až po úspěšném `addXP`, (2) spouštěč
+> „jsem nad prahem a ještě nemám" místo „právě jsem překročil" → nevyřízený
+> milník se zkusí znovu při dalším progressu. Limity se **záměrně neruší** —
+> `null` by otevřelo farmu (smazání cíle maže `goal_milestones` a XP nevrací).
+> ⚠️ Zjištěno u toho: **testy tuhle třídu chyb nemůžou chytit**, protože pod
+> Jestem se validace XP celá přeskakuje — odmítnutí se musí injektovat mockem.
+> To je důvod, proč to přežilo všech 13 fází auditu.
+> **Test**: `sqliteGoalStorage.progressXP.test.ts` 10 → 14 testů, negativní
+> kontrola — se starým pořadím padají 3. tsc 0, **514/514 (35/35)** ✓.
 
 ---
 
