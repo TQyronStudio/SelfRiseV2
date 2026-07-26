@@ -43,6 +43,78 @@ My Journal (Gratitude) system allows users to record daily gratitude entries wit
 
 ## Daily Requirements
 
+### 🚨 Číslování záznamů: VŽDY souvislá řada 1..N (fix 26. 7. 2026)
+
+`gratitude_number` **není jen popisek** — znamená „N-tý záznam toho dne" a všechno
+navazující ho tak čte:
+
+| Kde | Jak se pozice používá |
+|---|---|
+| `mapRowToGratitude` | `isBonus = gratitude_number > 3` |
+| `getXPForJournalEntry(position)` | základní XP podle pozice |
+| `create()` | milníky ⭐🔥👑 se udělují při pozici přesně **4 / 8 / 13** |
+
+**Pravidlo: po každém smazání se den přečísluje na souvislou řadu 1..N.**
+Slouží k tomu `SQLiteGratitudeStorage.renumberDay(date)`, volaná z `delete()`
+(zavře mezeru) i z `create()` před výpočtem pozice (uzdraví data rozbitá dřív).
+
+**Co se stalo bez toho** (nalezeno device testem, Petr): `create()` počítalo
+pozici jako `COUNT(*) + 1`, ale `delete()` mezeru nechával. Po smazání 2. z 5
+záznamů zůstalo 1,3,4,5 — počet 4, takže další záznam dostal **druhou pětku**.
+V seznamu bylo `1, 3, 4, 5, 5` a všechny záznamy za mezerou měly špatnou
+klasifikaci bonusu.
+
+**Regresní testy**: `src/services/storage/__tests__/sqliteGratitudeStorage.numbering.test.ts`
+(8 testů — mezera po smazání, Petrův přesný scénář, 5 cyklů smaž+přidej bez
+duplikátu, překlopení `isBonus` po přečíslování, uzdravení starých dat,
+respektování explicitně zadané pozice, nezávislost dnů). Ověřeno negativní
+kontrolou: bez opravy 6 z 8 padá.
+
+### 🚨 Vracení XP při smazání: VRACÍ SE POSLEDNÍ POZICE (fix 26. 7. 2026)
+
+**Pravidlo: hodnota dne závisí na POČTU záznamů, ne na tom, který uživatel smaže.**
+Protože se den po smazání přečísluje, pozice, která reálně zmizí, je **vždy
+poslední**. Vrací se tedy `base(N) + milestone(N)`, kde `N` je počet záznamů
+**před** smazáním.
+
+Formálně: vrácení = `V(N) − V(N−1)`, což je z konstrukce přesně hodnota poslední
+pozice — platí pro každé `N`, není to heuristika. (`V(N)` = hodnota dne s N záznamy.)
+
+**Co bylo špatně**: vracela se pozice smazaného řádku. Petrův příklad — 4 záznamy
+= 20+20+20+(8+⭐25) = **93 XP**; po smazání 2. zbydou 3 záznamy, které mají mít
+**60 XP**; starý kód vrátil pozici 2 (20 XP) a nechal **73 XP**, tedy o 13 víc.
+
+| Model | Odečte | Zůstane |
+|---|---|---|
+| starý (pozice smazaného) | 20 | 73 ❌ |
+| **nový (poslední pozice)** | 8 + 25 = 33 | **60** ✅ |
+
+**Tím se ZAVŘEL i milníkový únik** (dřív zdokumentovaný jako otevřený): ⭐, které
+se udělí znovu při napsání nahrazujícího záznamu, bylo předtím vráceno, takže
+cyklus smaž+přidej je čistá nula. Dřív +13 za cyklus.
+
+⚠️ **Proto se NESMÍ přidat pojistka „milník jen jednou za den"** — po legitimním
+smazání bylo milníkové XP vráceno, takže je *správné* udělit ho příště znovu.
+Pojistka by uživatele okrádala. (Petr tuhle kolizi zachytil dřív, než jsem ji
+naimplementoval.)
+
+**Souhra s multiplierem** (viz @technical-guides:Gamification-Core.md): vrací se
+částka, která byla za tu pozici **skutečně udělena**, včetně multiplieru.
+`delete()` proto posílá `metadata.reverseByPosition: true` a
+`GamificationService.findGrantedXPToReverse` dohledá grant podle
+`metadata.entryPosition`, **ne** podle `sourceId` — po přečíslování už záznam na
+pozici N není ten, komu se za ni platilo.
+
+**Jediný zdroj pravdy pro obě strany**: `getMilestoneXP(position)` a
+`getXPSourceForPosition(position)` používá `create()` i `delete()`. Když se
+rozcházely, cyklus smaž+přidej razil XP.
+
+**Regresní testy**: `src/services/storage/__tests__/sqliteGratitudeStorage.deletionXP.test.ts`
+(8 testů — Petrův příklad, vrácení poslední pozice bez ohledu na smazaný řádek,
+mazání až na nulu, milníkový únik = 0, pozice 8 (🔥), pod 2× multiplierem,
+multiplier vypršel mezi udělením a smazáním). Negativní kontrola: se starým
+modelem padá 7 z 8.
+
 ### Streak Completion Rules
 ```typescript
 // Daily completion requirements for streak maintenance

@@ -248,6 +248,13 @@ export class SQLiteGratitudeStorage {
       // Calculate order automatically if not provided
       let order = input.order;
       if (order === undefined) {
+        // Close any gap left by an earlier deletion FIRST. Without this,
+        // `COUNT(*) + 1` hands out a number that already exists: delete entry #2
+        // of 5 and the day holds 1,3,4,5 — count is 4, so the next entry becomes
+        // a SECOND #5 (device test 2026-07-26). Normalising here also heals days
+        // that were already broken by a deletion made before this fix.
+        await this.renumberDay(input.date);
+
         // Count existing entries for this date
         const result = await db.getFirstAsync<{ count: number }>(
           'SELECT COUNT(*) as count FROM journal_entries WHERE date = ?',
@@ -284,21 +291,10 @@ export class SQLiteGratitudeStorage {
       const baseXpAmount = this.getXPForJournalEntry(order);
       const xpSource = isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
 
-      // Calculate milestone XP for bonuses (⭐🔥👑)
-      let milestoneXpAmount = 0;
-      let milestoneDescription = '';
-      if (isBonus) {
-        if (order === 4) { // First bonus milestone ⭐
-          milestoneXpAmount = XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;
-          milestoneDescription = ' + ⭐ First Bonus Milestone';
-        } else if (order === 8) { // Fifth bonus milestone 🔥
-          milestoneXpAmount = XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;
-          milestoneDescription = ' + 🔥 Fifth Bonus Milestone';
-        } else if (order === 13) { // Tenth bonus milestone 👑
-          milestoneXpAmount = XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE;
-          milestoneDescription = ' + 👑 Tenth Bonus Milestone';
-        }
-      }
+      // Calculate milestone XP for bonuses (⭐🔥👑). Shared with delete(), which
+      // refunds the same amount for the position it releases.
+      const milestoneXpAmount = isBonus ? this.getMilestoneXP(order) : 0;
+      const milestoneDescription = milestoneXpAmount > 0 ? this.getMilestoneLabel(order) : '';
 
       // Combine base XP + milestone XP for single transaction
       const totalXpAmount = baseXpAmount + milestoneXpAmount;
@@ -353,6 +349,41 @@ export class SQLiteGratitudeStorage {
    * Get XP amount for journal entry based on daily position
    * Anti-spam protection: Entries 14+ receive 0 XP
    */
+  /**
+   * Milestone XP a given daily position is worth: ⭐ at 4, 🔥 at 8, 👑 at 13.
+   *
+   * Single source of truth for both directions — `create()` awards it and
+   * `delete()` refunds it. When they disagreed, a delete+add cycle minted free
+   * milestone XP.
+   */
+  private getMilestoneXP(position: number): number {
+    switch (position) {
+      case 4: return XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;  // ⭐
+      case 8: return XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;  // 🔥
+      case 13: return XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE; // 👑
+      default: return 0;
+    }
+  }
+
+  /** Human-readable milestone suffix for transaction descriptions. */
+  private getMilestoneLabel(position: number): string {
+    switch (position) {
+      case 4: return ' + ⭐ First Bonus Milestone';
+      case 8: return ' + 🔥 Fifth Bonus Milestone';
+      case 13: return ' + 👑 Tenth Bonus Milestone';
+      default: return '';
+    }
+  }
+
+  /**
+   * XP source a given daily position is booked under. Must match in both
+   * directions, otherwise the daily summaries and limits drift on deletion.
+   */
+  private getXPSourceForPosition(position: number): XPSourceType {
+    if (this.getMilestoneXP(position) > 0) return XPSourceType.JOURNAL_BONUS_MILESTONE;
+    return position > 3 ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+  }
+
   private getXPForJournalEntry(position: number): number {
     switch (position) {
       case 1: return XP_REWARDS.JOURNAL.FIRST_ENTRY;   // 20 XP
@@ -414,6 +445,42 @@ export class SQLiteGratitudeStorage {
   /**
    * Delete journal entry with XP refund
    */
+  /**
+   * Re-number one day's entries into a contiguous 1..N sequence.
+   *
+   * `gratitude_number` is not just a label — it IS "the Nth entry of that day",
+   * and everything downstream reads it that way: `isBonus` is `> 3`
+   * (mapRowToGratitude), base XP comes from `getXPForJournalEntry(position)`, and
+   * the ⭐🔥👑 milestones fire at exactly 4 / 8 / 13. A gap therefore does not
+   * only look wrong in the list, it mis-classifies every entry after it.
+   *
+   * Ordered by (number, created_at) so entries keep their existing sequence and
+   * ties fall back to creation time. Only rows whose number actually changes are
+   * written. A day holds at most ~15 entries, so the loop is cheap.
+   */
+  private async renumberDay(date: string): Promise<void> {
+    const db = this.getDb();
+
+    const rows = await db.getAllAsync<{ id: string; gratitude_number: number }>(
+      `SELECT id, gratitude_number
+         FROM journal_entries
+        WHERE date = ?
+        ORDER BY gratitude_number ASC, created_at ASC`,
+      [date]
+    );
+
+    let expected = 1;
+    for (const row of rows) {
+      if (row.gratitude_number !== expected) {
+        await db.runAsync(
+          'UPDATE journal_entries SET gratitude_number = ?, updated_at = ? WHERE id = ?',
+          [expected, Date.now(), row.id]
+        );
+      }
+      expected++;
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       const db = this.getDb();
@@ -424,13 +491,45 @@ export class SQLiteGratitudeStorage {
         throw new Error(`Entry with id=${id} not found`);
       }
 
-      // Calculate XP to refund
-      const position = deletedEntry.order;
-      const xpAmount = this.getXPForJournalEntry(position);
-      const xpSource = deletedEntry.isBonus ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
+      // ─────────────────────────────────────────────────────────────────────
+      // 🚨 REFUND THE TOP POSITION, NOT THE DELETED ONE
+      //
+      // A day's journal XP depends on HOW MANY entries it has, not on which row
+      // the user tapped: positions 1-3 are worth 20 XP each, 4-13 are worth 8 XP,
+      // and ⭐🔥👑 land on positions 4 / 8 / 13. Deleting any entry renumbers the
+      // survivors down (renumberDay), so the position that actually disappears is
+      // always the LAST one.
+      //
+      // Refunding the deleted row's position left the day over-paid. Petr's
+      // example (2026-07-26): 4 entries = 20+20+20+(8+25⭐) = 93 XP. Delete the
+      // 2nd and 3 entries remain, which must be worth 60. Refunding position 2
+      // gave back 20 → 73 XP, i.e. 13 too many. Refunding the top position gives
+      // back 8+25 = 33 → exactly 60.
+      //
+      // Formally the refund is V(N) − V(N−1), which by construction equals
+      // base(N) + milestone(N) — correct for every N, not just this example.
+      //
+      // This also closes the milestone re-earn leak for free: the ⭐ that gets
+      // re-awarded when the user writes a replacement entry was refunded here
+      // first, so a delete+add cycle nets zero. A separate "milestone only once
+      // per day" guard would therefore be WRONG — it would keep XP the user is
+      // entitled to after a legitimate deletion.
+      // ─────────────────────────────────────────────────────────────────────
+      const countBefore = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM journal_entries WHERE date = ?',
+        [deletedEntry.date]
+      );
+      const position = countBefore?.count || deletedEntry.order; // top position
+      const xpAmount = this.getXPForJournalEntry(position) + this.getMilestoneXP(position);
+      const xpSource = this.getXPSourceForPosition(position);
 
       // Delete from database
       await db.runAsync('DELETE FROM journal_entries WHERE id = ?', [id]);
+
+      // Close the gap the deletion just opened, so the day stays a contiguous
+      // 1..N sequence. Deleting entry #2 of 5 used to leave 1,3,4,5 — the list
+      // showed the gap and the next entry was handed a duplicate number.
+      await this.renumberDay(deletedEntry.date);
 
       console.log(`✅ SQLite: Entry deleted (id=${id}, position=${position})`);
 
@@ -438,7 +537,7 @@ export class SQLiteGratitudeStorage {
       if (xpAmount > 0) {
         await GamificationService.subtractXP(xpAmount, {
           source: xpSource,
-          description: `Deleted journal entry #${position} (-${xpAmount} XP)`,
+          description: `Deleted journal entry (released position #${position}, -${xpAmount} XP)`,
           sourceId: id,
           // Monthly Challenge tracker needs these to reverse progress (N-3.6):
           // entryLength → quality_journal_entries decrement; date → today-only
@@ -447,6 +546,10 @@ export class SQLiteGratitudeStorage {
             entryLength: deletedEntry.content.length,
             entryPosition: position,
             date: deletedEntry.date,
+            // Reverse the grant recorded for this POSITION, not for `sourceId`:
+            // after a renumber the entry holding position N is no longer the one
+            // that was paid for it. Keeps the multiplier handling correct.
+            reverseByPosition: true,
           },
         });
 

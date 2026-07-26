@@ -404,6 +404,35 @@
 > získal. Pravidlo zapsáno do @technical-guides:Gamification-Core.md.
 > **Test**: `src/services/__tests__/xpReversalMultiplier.test.ts` (10 testů),
 > ověřeno negativní kontrolou — bez opravy 4 padají. tsc 0, **486/486 (33/33)** ✓.
+>
+> 🐛 **DEVICE BUG OPRAVEN 2026-07-26 (2) — číslování záznamů deníku**: Petr při
+> testování odečítání XP zapsal 5 záznamů, smazal 2. a napsal další → seznam
+> ukázal **1, 3, 4, 5, 5**. **Příčina**: `create()` počítalo pozici jako
+> `COUNT(*) + 1`, ale `delete()` po sobě nechával mezeru, takže počet přestal
+> odpovídat nejvyšší použité pozici. Není to kosmetika — `gratitude_number` řídí
+> `isBonus` (`> 3`), základní XP i milníky ⭐🔥👑 (pozice 4/8/13), takže záznamy
+> za mezerou byly špatně klasifikované. **Oprava**: nová `renumberDay(date)`
+> volaná z `delete()` (zavře mezeru) i z `create()` (uzdraví už rozbité dny —
+> např. Petrovo zařízení). Pravidlo zapsáno do @technical-guides:My-Journal.md.
+> **Test**: `sqliteGratitudeStorage.numbering.test.ts` (8 testů vč. Petrova
+> přesného scénáře), negativní kontrola — bez opravy 6 padá.
+> tsc 0, **494/494 (34/34)** ✓.
+> ✅ **NÁSLEDNĚ OPRAVENO i vracení XP (Petrův model)**: hodnota dne závisí na
+> POČTU záznamů, ne na tom, který uživatel smaže — a protože se den přečísluje,
+> zmizí vždy POSLEDNÍ pozice. Vrací se tedy `base(N) + milestone(N)`, formálně
+> `V(N) − V(N−1)`. Petrův příklad: 4 záznamy = 93 XP, po smazání 2. mají zbýt
+> 60 XP; starý kód vrátil 20 a nechal 73 (o 13 víc), nový vrátí 33 → přesně 60.
+> **Tím se zavřel i milníkový únik** — ⭐ se sice po napsání nahrazujícího záznamu
+> udělí znovu, ale předtím bylo vráceno → cyklus je čistá nula (dřív +13/cyklus).
+> ⚠️ Proto se **nesmí** přidat pojistka „milník jen jednou za den", kterou jsem
+> původně navrhoval — okrádala by uživatele po legitimním smazání. Petr tu kolizi
+> zachytil, než jsem ji naimplementoval.
+> Souhra s multiplierem řešena přes `metadata.reverseByPosition` — dohledání
+> grantu podle `entryPosition`, ne podle `sourceId` (po přečíslování už záznam na
+> pozici N není ten, komu se za ni platilo).
+> **Test**: `sqliteGratitudeStorage.deletionXP.test.ts` (8 testů vč. 2× multiplieru
+> a jeho expirace), negativní kontrola — se starým modelem padá 7 z 8.
+> tsc 0, **502/502 (35/35)** ✓.
 
 ---
 

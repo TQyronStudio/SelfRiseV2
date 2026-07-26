@@ -1009,30 +1009,64 @@ export class GamificationService {
    *
    * Returns null when no matching grant exists (XP predating this bookkeeping,
    * limits reduced the grant to 0, an older entry as described above).
+   *
+   * Two matching modes, because the two domains undo different things:
+   *
+   * - `{ sourceId }` — habits and goals reverse **an entity's** grant. The entity
+   *   keeps its identity, so its own transaction is the right one.
+   * - `{ entryPosition }` — journal entries reverse **a slot's** grant. Deleting
+   *   any entry of the day removes the TOP position (the survivors shift down and
+   *   are renumbered), so the grant to reverse belongs to that position, not to
+   *   the row the user tapped. Entity matching would be wrong here: after one
+   *   deletion the entry sitting at position N is no longer the one that was
+   *   granted position N's XP.
    */
   private static async findGrantedXPToReverse(
     source: XPSourceType,
-    sourceId: string,
-    targetDate: string
+    targetDate: string,
+    match: { sourceId: string } | { entryPosition: number }
   ): Promise<number | null> {
     const db = getDatabase();
 
-    // A handful of candidates is plenty: we want the latest grant for this
-    // entity, and same-entity grants on one day are few (habit toggles, bonus
-    // completions). Scanning in JS avoids timestamp/timezone boundary maths —
-    // `formatDateToString` is the same local-date helper used everywhere else.
-    const rows = await db.getAllAsync<{ amount: number; timestamp: number }>(
-      `SELECT amount, timestamp
-         FROM xp_transactions
-        WHERE source = ? AND source_id = ? AND amount > 0
-        ORDER BY timestamp DESC, rowid DESC
-        LIMIT 20`,
-      [source, sourceId]
+    // A handful of candidates is plenty: we want the latest matching grant, and
+    // same-key grants on one day are few (habit toggles, journal slots). Scanning
+    // in JS avoids timestamp/timezone boundary maths — `formatDateToString` is the
+    // same local-date helper used everywhere else.
+    const byEntity = 'sourceId' in match;
+    const rows = await db.getAllAsync<{
+      amount: number;
+      timestamp: number;
+      metadata: string | null;
+    }>(
+      byEntity
+        ? `SELECT amount, timestamp, metadata
+             FROM xp_transactions
+            WHERE source = ? AND source_id = ? AND amount > 0
+            ORDER BY timestamp DESC, rowid DESC
+            LIMIT 20`
+        : `SELECT amount, timestamp, metadata
+             FROM xp_transactions
+            WHERE source = ? AND amount > 0
+            ORDER BY timestamp DESC, rowid DESC
+            LIMIT 40`,
+      byEntity ? [source, match.sourceId] : [source]
     );
 
     for (const row of rows) {
       if (formatDateToString(new Date(row.timestamp)) !== targetDate) {
         continue;
+      }
+      if (!byEntity) {
+        // Slot match: create() records the granted position in metadata.
+        let position: unknown;
+        try {
+          position = row.metadata ? JSON.parse(row.metadata).entryPosition : undefined;
+        } catch {
+          continue; // unparseable metadata — not a candidate
+        }
+        if (position !== match.entryPosition) {
+          continue;
+        }
       }
       return row.amount;
     }
@@ -1078,15 +1112,25 @@ export class GamificationService {
       // or activate in between (then we would take more XP than the user ever
       // got). The only correct amount is the one actually recorded.
       // ─────────────────────────────────────────────────────────────────────
+      const reversalMeta = options.metadata as
+        | { date?: string; entryPosition?: number; reverseByPosition?: boolean }
+        | undefined;
+      // Journal deletions reverse a POSITION, not an entity (see the helper).
+      const slotMatch =
+        reversalMeta?.reverseByPosition === true &&
+        typeof reversalMeta.entryPosition === 'number'
+          ? { entryPosition: reversalMeta.entryPosition }
+          : null;
+
       let effectiveAmount = amount;
-      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION && options.sourceId) {
+      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION && (slotMatch || options.sourceId)) {
         try {
           // Goal call sites do not pass metadata.date — default to today, which
           // is the day an add-then-undo happens on. See the helper's doc comment.
           const grantedAmount = await this.findGrantedXPToReverse(
             options.source,
-            options.sourceId,
-            (options.metadata as { date?: string } | undefined)?.date ?? today()
+            reversalMeta?.date ?? today(),
+            slotMatch ?? { sourceId: options.sourceId! }
           );
           if (grantedAmount !== null && grantedAmount !== amount) {
             console.log(
