@@ -433,6 +433,25 @@
 > **Test**: `sqliteGratitudeStorage.deletionXP.test.ts` (8 testů vč. 2× multiplieru
 > a jeho expirace), negativní kontrola — se starým modelem padá 7 z 8.
 > tsc 0, **502/502 (35/35)** ✓.
+>
+> 🐛 **DEVICE BUG OPRAVEN 2026-07-26 (3) — rate limit zahazoval odměny za trofeje**:
+> v Petrově logu se odemkla `persistence-pays`, modal ukázal „+200 XP" a
+> transakce byla **zamítnutá** → 0 XP, a trvale, protože trofej už byla uložená
+> jako odemčená. **Příčina**: pravidlo 5 v `xpLimits.ts` se jmenuje
+> `MIN_TIME_BETWEEN_IDENTICAL_GAINS`, ale porovnává proti času poslední transakce
+> **z jakéhokoli zdroje** — je to plošná 100ms závora. Systémové odměny jsou
+> důsledkem akce, která právě zaplatila, takže do toho okna spadají vždy.
+> **Postihovalo i XP za milníky cílů (25/50/75 %) — tj. moje oprava N-5.1 z Fáze 5
+> se v praxi nikdy neudělovala.** **Oprava**: `SYSTEM_GRANTED_REWARDS` (trofej,
+> milník cíle, měsíční výzva; dokončení cíle už vyňaté bylo) — farmit je nelze,
+> každá má vlastní pojistku u zdroje; uživatelské akce zůstávají brzděné.
+> + všechna 3 místa udělení XP za trofej teď hlásí `xpResult.success ?
+> xpGained : 0`, takže modal ani XP bar nelžou. Pravidla v
+> @technical-guides:Gamification-Core.md.
+> **Test**: `xpLimits.test.ts` rozšířen na 23, negativní kontrola — se starou
+> podmínkou padají 3. tsc 0, **510/510 (35/35)** ✓.
+> ⚠️ Otevřené: milníky cílů může pořád zamítnout `GOALS_MAX_DAILY` a značka se
+> zapisuje dřív než XP (vzácnější, vyžaduje vyčerpaný denní limit).
 
 ---
 

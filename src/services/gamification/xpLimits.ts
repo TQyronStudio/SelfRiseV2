@@ -210,12 +210,36 @@ export function validateXPAddition(params: ValidateXPAdditionParams): XPValidati
     };
   }
 
-  // 5. Rate limiting (goal completions are legitimate rapid transactions)
+  // 5. Rate limiting — throttles REPEATABLE USER ACTIONS only.
+  //
+  // ⚠️ Despite the constant's name (MIN_TIME_BETWEEN_IDENTICAL_GAINS) this gate is
+  // NOT per-source: `dailyData.lastTransactionTime` is the timestamp of the last
+  // transaction from ANY source. It is a blanket 100 ms window over all XP.
+  //
+  // That is why system-granted rewards must be exempt (device test 2026-07-26):
+  // they are a CONSEQUENCE of the action that just paid out, so they arrive a few
+  // milliseconds later and were being silently dropped. Petr unlocked
+  // `persistence-pays`, the modal said "+200 XP", and the transaction was
+  // rejected — permanently, because the achievement had already been stored as
+  // unlocked. The same fate hit goal milestone XP (25/50/75 %), which is awarded
+  // immediately after the progress-entry XP in the same function.
+  //
+  // Exempting them cannot create a farm — every one of these is guarded at its
+  // own source: an achievement unlocks once, goal milestones are recorded in
+  // `goal_milestones`, a monthly challenge completes once per month. The limit
+  // exists to stop rapid repeated tapping, and none of these can be tapped.
+  // (GOAL_COMPLETION was already exempt for exactly this reason.)
+  const SYSTEM_GRANTED_REWARDS = new Set<XPSourceType>([
+    XPSourceType.GOAL_COMPLETION,
+    XPSourceType.ACHIEVEMENT_UNLOCK,
+    XPSourceType.GOAL_MILESTONE,
+    XPSourceType.MONTHLY_CHALLENGE,
+  ]);
+
   const timeSinceLastTransaction = nowMs - dailyData.lastTransactionTime;
-  const isGoalCompletion = source === XPSourceType.GOAL_COMPLETION;
 
   if (
-    !isGoalCompletion &&
+    !SYSTEM_GRANTED_REWARDS.has(source) &&
     !skipRateLimit &&
     timeSinceLastTransaction < BALANCE_VALIDATION.MIN_TIME_BETWEEN_IDENTICAL_GAINS
   ) {

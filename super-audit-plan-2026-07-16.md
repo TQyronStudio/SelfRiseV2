@@ -835,7 +835,8 @@ pro XP prvky.
       `RECOMMENDATION_FOLLOW` XP jde přes `addXP` a spadá pod
       ENGAGEMENT_MAX_DAILY (200). Kritérium: tabulka typ→trigger→cíl→XP.
 - [x] 11.2 **HomeCustomizationContext + homePreferencesStorage**: zapnutí/
-      vypnutí každého widgetu se uloží a přežije restart (🔶 device);
+      vypnutí každého widgetu se uloží a přežije restart
+      (✅ DEVICE OVĚŘENO Petrem 2026-07-26);
       storage klíč má jediného zapisovatele (grep).
 - [x] 11.3 **Datová správnost widgetů**: `GratitudeStreakCard`,
       `StreakVisualization`/`StreakHistoryGraph`, `WeeklyHabitChart`,

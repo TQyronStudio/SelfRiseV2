@@ -224,6 +224,53 @@ describe('xpLimits — daily limits & anti-spam (pure rules)', () => {
       expect(skipped.isValid).toBe(true);
     });
 
+    // Device test 2026-07-26: system-granted rewards are a CONSEQUENCE of the
+    // action that just paid out, so they arrive within the 100 ms window and were
+    // being silently dropped. Petr's log: `persistence-pays` unlocked, the modal
+    // said "+200 XP", the transaction was rejected — and because the achievement
+    // was already stored as unlocked, that XP was gone for good. Goal milestone
+    // XP (awarded immediately after the progress-entry XP) had the same fate.
+    test.each([
+      ['achievement unlock', XPSourceType.ACHIEVEMENT_UNLOCK, 200],
+      ['goal milestone', XPSourceType.GOAL_MILESTONE, 50],
+      ['monthly challenge', XPSourceType.MONTHLY_CHALLENGE, 500],
+      ['goal completion', XPSourceType.GOAL_COMPLETION, 250],
+    ])('rate limiting exempts system-granted reward: %s', (_label, source, amount) => {
+      const now = 1_000_000;
+      const result = validateXPAddition({
+        amount,
+        source,
+        dailyData: snapshot({ lastTransactionTime: now - 1 }), // 1 ms ago
+        multiplier: NO_MULTIPLIER,
+        nowMs: now,
+      });
+
+      expect(result.isValid).toBe(true);
+      expect(result.allowedAmount).toBe(amount);
+    });
+
+    // The exemption must stay narrow: repeatable user actions are still throttled,
+    // otherwise the rate limit would stop doing its job.
+    test.each([
+      ['habit completion', XPSourceType.HABIT_COMPLETION],
+      ['habit bonus', XPSourceType.HABIT_BONUS],
+      ['journal entry', XPSourceType.JOURNAL_ENTRY],
+      ['goal progress', XPSourceType.GOAL_PROGRESS],
+    ])('rate limiting still throttles repeatable user action: %s', (_label, source) => {
+      const now = 1_000_000;
+      const result = validateXPAddition({
+        amount: 25,
+        source,
+        dailyData: snapshot({ lastTransactionTime: now - 1 }),
+        multiplier: NO_MULTIPLIER,
+        nowMs: now,
+      });
+
+      expect(result.isValid).toBe(false);
+      expect(result.allowedAmount).toBe(0);
+      expect(result.reason).toBe('Too many transactions in short time');
+    });
+
     test('negative XP (undo) is not blocked by goal anti-spam', () => {
       const r = validateXPAddition({
         amount: -35,

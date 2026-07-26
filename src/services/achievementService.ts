@@ -585,12 +585,25 @@ export class AchievementService {
       let newLevel: number | undefined;
       let previousLevel: number | undefined;
 
+      // Report what LANDED, not what we asked for. addXP can reject or trim an
+      // award (daily caps, validation), and the achievement is already stored as
+      // unlocked at this point — telling the user "+200 XP" when the transaction
+      // was refused is a lie they cannot detect (device test 2026-07-26).
+      let actualXPAwarded = 0;
       if (totalXPAwarded > 0) {
         const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
           description: `Unlocked ${newlyUnlocked.length} achievement(s)`,
           skipNotification: true // We'll handle notifications separately
         });
+
+        actualXPAwarded = xpResult.success ? xpResult.xpGained : 0;
+        if (actualXPAwarded !== totalXPAwarded) {
+          console.warn(
+            `⚠️ Achievement XP not fully granted: asked ${totalXPAwarded}, got ${actualXPAwarded}` +
+            (xpResult.error ? ` (${xpResult.error})` : '')
+          );
+        }
 
         leveledUp = xpResult.leveledUp;
         newLevel = xpResult.newLevel;
@@ -599,12 +612,12 @@ export class AchievementService {
 
       // Trigger achievement unlock notifications
       if (newlyUnlocked.length > 0) {
-        this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, leveledUp, newLevel);
+        this.triggerAchievementNotifications(newlyUnlocked, actualXPAwarded, leveledUp, newLevel);
 
         // Emit xpGained event so XP bar refreshes (addXP was called with skipNotification to avoid popup during achievement modal)
-        if (totalXPAwarded > 0) {
+        if (actualXPAwarded > 0) {
           DeviceEventEmitter.emit('xpGained', {
-            amount: totalXPAwarded,
+            amount: actualXPAwarded,
             source: XPSourceType.ACHIEVEMENT_UNLOCK,
             timestamp: Date.now(),
           });
@@ -639,7 +652,7 @@ export class AchievementService {
       const result: AchievementUnlockResult = {
         unlocked: newlyUnlocked,
         progress: evaluationResults,
-        xpAwarded: totalXPAwarded,
+        xpAwarded: actualXPAwarded,
         leveledUp
       };
       
@@ -829,12 +842,20 @@ export class AchievementService {
       let bgLeveledUp = false;
       let bgNewLevel: number | undefined;
       let bgPreviousLevel: number | undefined;
+      let actualXPAwarded = 0; // what LANDED — see the foreground path
       if (totalXPAwarded > 0) {
         const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
           description: `Background unlocked ${newlyUnlocked.length} achievement(s)`,
           skipNotification: true // Background achievements don't interrupt user
         });
+        actualXPAwarded = xpResult.success ? xpResult.xpGained : 0;
+        if (actualXPAwarded !== totalXPAwarded) {
+          console.warn(
+            `⚠️ Achievement XP not fully granted: asked ${totalXPAwarded}, got ${actualXPAwarded}` +
+            (xpResult.error ? ` (${xpResult.error})` : '')
+          );
+        }
         bgLeveledUp = xpResult.leveledUp;
         bgNewLevel = xpResult.newLevel;
         bgPreviousLevel = xpResult.previousLevel;
@@ -844,12 +865,12 @@ export class AchievementService {
       if (newlyUnlocked.length > 0) {
         setTimeout(() => {
           // Trigger achievement notifications - ModalQueueContext handles display priority
-          this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, bgLeveledUp, bgNewLevel);
+          this.triggerAchievementNotifications(newlyUnlocked, actualXPAwarded, bgLeveledUp, bgNewLevel);
 
           // Emit xpGained so XP bar refreshes after background achievements
-          if (totalXPAwarded > 0) {
+          if (actualXPAwarded > 0) {
             DeviceEventEmitter.emit('xpGained', {
-              amount: totalXPAwarded,
+              amount: actualXPAwarded,
               source: XPSourceType.ACHIEVEMENT_UNLOCK,
               timestamp: Date.now(),
             });
@@ -881,7 +902,7 @@ export class AchievementService {
         }
       }
 
-      console.log(`✅ Background processing complete: ${newlyUnlocked.length} unlocked, ${totalXPAwarded} XP awarded`);
+      console.log(`✅ Background processing complete: ${newlyUnlocked.length} unlocked, ${actualXPAwarded} XP awarded`);
     } catch (error) {
       console.error('AchievementService.processBackgroundAchievements error:', error);
       throw error; // Re-throw for retry mechanism
@@ -1171,13 +1192,22 @@ export class AchievementService {
       let leveledUp = false;
       let newLevel: number | undefined;
       
+      let actualXPAwarded = 0; // what LANDED — see the foreground path
       if (totalXPAwarded > 0) {
         const xpResult = await GamificationService.addXP(totalXPAwarded, {
           source: XPSourceType.ACHIEVEMENT_UNLOCK,
           description: `Batch unlocked ${newlyUnlocked.length} achievement(s)`,
           skipNotification: true
         });
-        
+
+        actualXPAwarded = xpResult.success ? xpResult.xpGained : 0;
+        if (actualXPAwarded !== totalXPAwarded) {
+          console.warn(
+            `⚠️ Achievement XP not fully granted: asked ${totalXPAwarded}, got ${actualXPAwarded}` +
+            (xpResult.error ? ` (${xpResult.error})` : '')
+          );
+        }
+
         leveledUp = xpResult.leveledUp;
         newLevel = xpResult.newLevel;
       }
@@ -1187,15 +1217,15 @@ export class AchievementService {
 
       // Trigger notifications for new unlocks
       if (newlyUnlocked.length > 0) {
-        this.triggerAchievementNotifications(newlyUnlocked, totalXPAwarded, leveledUp, newLevel);
+        this.triggerAchievementNotifications(newlyUnlocked, actualXPAwarded, leveledUp, newLevel);
       }
 
-      console.log(`✅ Batch check complete: ${newlyUnlocked.length} unlocked, ${totalXPAwarded} XP awarded`);
+      console.log(`✅ Batch check complete: ${newlyUnlocked.length} unlocked, ${actualXPAwarded} XP awarded`);
 
       const result: AchievementUnlockResult = {
         unlocked: newlyUnlocked,
         progress: evaluationResults,
-        xpAwarded: totalXPAwarded,
+        xpAwarded: actualXPAwarded,
         leveledUp
       };
       

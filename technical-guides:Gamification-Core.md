@@ -246,6 +246,47 @@ denní sumáře pro tento zdroj tiše selhávaly.
 **Regresní testy**: `src/services/__tests__/xpMultiplier.loyalty.test.ts` (12 testů —
 write→read konzistence, expirace, E2E aktivace, kotvení streaku, loyalty milestones).
 
+### 🚨 PRODUCTION FIX (26. 7. 2026): Rate limit tiše zahazoval odměny za trofeje
+
+**Problém**: pravidlo 5 ve `validateXPAddition` (`xpLimits.ts`) se jmenuje
+`MIN_TIME_BETWEEN_IDENTICAL_GAINS` a komentář slibuje „allow fast habit toggling",
+ale porovnává proti `dailyData.lastTransactionTime` = času **poslední transakce
+z JAKÉHOKOLI zdroje**. Je to tedy **plošná 100ms závora na veškeré XP**, ne
+ochrana proti opakování téže akce.
+
+Dopadalo to na **systémové odměny**, protože ty jsou důsledkem akce, která právě
+zaplatila, a přijdou pár milisekund po ní:
+
+| Odměna | Kde | Následek |
+|---|---|---|
+| XP za trofej | `achievementService` — 3 místa | prokázáno device testem: `persistence-pays` +200 XP **zahozeno** |
+| XP za milník cíle (25/50/75 %) | `SQLiteGoalStorage` — `addXP(PROGRESS_ENTRY)` a hned `addXP(milestone.xp)` | oprava N-5.1 z Fáze 5 se **v praxi nikdy neuděl(ov)ala** |
+| XP za měsíční výzvu | `monthlyProgressTracker` | stejný tvar |
+
+**Ztráta byla TRVALÁ**, protože značka „uděleno" se zapisuje PŘED pokusem o XP
+(`storeUnlockEvent` → `addXP`; `INSERT INTO goal_milestones` → `addXP`) a výsledek
+`addXP` nikdo nekontroloval. Odměna zůstala navždy označená jako vyplacená.
+
+**Pravidlo: rate limit brzdí OPAKOVATELNÉ UŽIVATELSKÉ AKCE, ne odměny, které
+appka uděluje sama.** Vyňaté zdroje (`SYSTEM_GRANTED_REWARDS`):
+`GOAL_COMPLETION` (bylo už dřív), `ACHIEVEMENT_UNLOCK`, `GOAL_MILESTONE`,
+`MONTHLY_CHALLENGE`. Farmit je nelze — každý má vlastní pojistku u zdroje
+(trofej se odemkne jednou, milníky cílů hlídá tabulka `goal_milestones`, výzva je
+jednou za měsíc). Návyky, deník a progress cílů zůstávají brzděné.
+
+**Druhé pravidlo: hlas uživateli jen to, co DORAZILO.** Všechna 3 místa udělení
+XP za trofej teď čtou `xpResult.success ? xpResult.xpGained : 0` a tuhle částku
+používají pro modal, `xpGained` event i návratovou hodnotu. Dřív modal hlásil
+„+200 XP" a XP bar animoval přírůstek, který se nestal.
+
+⚠️ **Zbývá otevřené**: milníky cílů spadají pod `GOALS_MAX_DAILY`, takže je může
+zamítnout denní strop — a značka se pořád zapisuje dřív. Stejná past, jen
+vzácnější (vyžaduje vyčerpaný denní limit cílů).
+
+**Regresní testy**: `xpLimits.test.ts` (23 testů — 4 vyňaté zdroje projdou
+1 ms po předchozí transakci, 4 uživatelské akce jsou dál blokované). Negativní
+kontrola: se starou podmínkou padají 3.
+
 ### 🚨 PRODUCTION FIX (26. 7. 2026): Vracení XP ignorovalo multiplier → farmení
 
 **Problém**: `performXPAdditionInternal()` násobí odměnu aktivním multiplierem
