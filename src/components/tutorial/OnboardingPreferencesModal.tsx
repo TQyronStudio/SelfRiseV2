@@ -26,10 +26,11 @@ import {
 
 interface OnboardingPreferencesModalProps {
   visible: boolean;
-  onComplete: () => void;
+  /** @param wantsNotifications user tapped "yes" on the notification priming step */
+  onComplete: (wantsNotifications: boolean) => void;
 }
 
-type PrefsStep = 'language' | 'theme';
+type PrefsStep = 'language' | 'theme' | 'notifications';
 
 const LANGUAGE_OPTIONS: { code: SupportedLanguage; flag: string; labelKey: string }[] = [
   { code: 'en', flag: '🇬🇧', labelKey: 'settings.languageEnglish' },
@@ -41,9 +42,17 @@ const LANGUAGE_OPTIONS: { code: SupportedLanguage; flag: string; labelKey: strin
  * Onboarding Preferences Gate - shown ONLY on the very first app launch,
  * before the tutorial's Welcome step.
  *
- * Two sub-screens:
+ * Three sub-screens:
  *  1. Language selection (live switch on tap - whole UI + confirm button translate instantly)
  *  2. Theme selection (live light/dark preview on tap)
+ *  3. Notification priming (yes / not now) - see below
+ *
+ * The notification screen is a PRE-PERMISSION step, not the OS prompt itself. The OS
+ * prompt can be shown only ONCE per install: a "Don't allow" there kills reminders
+ * forever (only system Settings can revive them). Asking in our own UI first means
+ * "Not now" costs nothing — the OS prompt stays unburned. Tapping yes closes this gate
+ * and only THEN triggers the OS prompt (never two modals at once), after which both
+ * daily reminders are switched on for the user.
  *
  * Not part of TUTORIAL_STEPS, so it carries no "Step X of Y" progress counter.
  */
@@ -90,21 +99,33 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
   const handleConfirm = () => {
     if (step === 'language') {
       setStep('theme');
+    } else if (step === 'theme') {
+      setStep('notifications');
     } else {
-      onComplete();
+      // Notification step's primary button = "yes, remind me".
+      onComplete(true);
     }
   };
 
   const isLanguageStep = step === 'language';
+  const isThemeStep = step === 'theme';
+  const isNotificationsStep = step === 'notifications';
+
   const title = isLanguageStep
     ? t('tutorial.languageSetup.title')
-    : t('tutorial.themeSetup.title');
+    : isThemeStep
+      ? t('tutorial.themeSetup.title')
+      : t('notifications.priming.title');
   const subtitle = isLanguageStep
     ? t('tutorial.languageSetup.subtitle')
-    : t('tutorial.themeSetup.subtitle');
+    : isThemeStep
+      ? t('tutorial.themeSetup.subtitle')
+      : t('notifications.priming.message');
   const confirmLabel = isLanguageStep
     ? t('tutorial.languageSetup.confirm')
-    : t('tutorial.themeSetup.confirm');
+    : isThemeStep
+      ? t('tutorial.themeSetup.confirm')
+      : t('notifications.priming.allow');
 
   const styles = StyleSheet.create({
     container: {
@@ -211,6 +232,17 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
       color: colors.white,
       marginRight: 8,
     },
+    laterButton: {
+      paddingVertical: isTablet() ? 14 : 12,
+      paddingHorizontal: 24,
+      marginTop: isTablet() ? 10 : 6,
+    },
+    laterButtonText: {
+      fontSize: scaleFont(Fonts.sizes.md),
+      fontWeight: '500',
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
   });
 
   return (
@@ -232,16 +264,20 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
           <View style={styles.card}>
             {/* Emoji */}
             <View style={styles.emojiContainer}>
-              <Text style={styles.emoji}>{isLanguageStep ? '🌍' : '🎨'}</Text>
+              <Text style={styles.emoji}>
+                {isLanguageStep ? '🌍' : isThemeStep ? '🎨' : '🔔'}
+              </Text>
             </View>
 
             {/* Title + subtitle */}
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>
 
-            {/* Options */}
-            <View style={styles.optionsContainer}>
-              {isLanguageStep
+            {/* Options (language/theme only — the notification step is a yes/no ask) */}
+            <View style={isNotificationsStep ? undefined : styles.optionsContainer}>
+              {isNotificationsStep
+                ? null
+                : isLanguageStep
                 ? LANGUAGE_OPTIONS.map((opt) => {
                     const selected = currentLanguage === opt.code;
                     return (
@@ -295,7 +331,7 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
                   })}
             </View>
 
-            {/* Confirm button */}
+            {/* Confirm button (on the notification step: "yes, remind me") */}
             <TouchableOpacity
               style={styles.confirmButton}
               onPress={handleConfirm}
@@ -304,8 +340,26 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
               accessibilityLabel={confirmLabel}
             >
               <Text style={styles.confirmButtonText}>{confirmLabel}</Text>
-              <Ionicons name="arrow-forward" size={getIconSize(20)} color={colors.white} />
+              <Ionicons
+                name={isNotificationsStep ? 'notifications' : 'arrow-forward'}
+                size={getIconSize(20)}
+                color={colors.white}
+              />
             </TouchableOpacity>
+
+            {/* "Not now" — declining here never reaches the OS prompt, so it stays
+                available for later (Settings toggle keeps working). */}
+            {isNotificationsStep && (
+              <TouchableOpacity
+                style={styles.laterButton}
+                onPress={() => onComplete(false)}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={t('notifications.priming.later')}
+              >
+                <Text style={styles.laterButtonText}>{t('notifications.priming.later')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </Animated.View>
       </View>

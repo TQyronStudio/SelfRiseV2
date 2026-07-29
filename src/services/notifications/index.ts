@@ -7,3 +7,4 @@
 export { notificationService } from './notificationService';
 export { notificationScheduler } from './notificationScheduler';
 export { progressAnalyzer } from './progressAnalyzer';
+export { enableAllRemindersAfterOptIn } from './notificationOptIn';

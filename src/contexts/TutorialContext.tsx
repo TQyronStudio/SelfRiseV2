@@ -76,7 +76,7 @@ export interface TutorialContextType {
   showOnboardingPrefs: boolean;
   actions: {
     startTutorial: () => Promise<void>;
-    completeOnboardingPrefs: () => Promise<void>;
+    completeOnboardingPrefs: (wantsNotifications: boolean) => Promise<void>;
     nextStep: () => Promise<void>;
     skipTutorial: () => Promise<void>;
     completeTutorial: () => Promise<void>;
@@ -973,12 +973,22 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   // Action Functions
 
-  // Confirm onboarding preferences (language + theme) and start the tutorial.
-  // Called by OnboardingPreferencesModal after the user confirms the theme step.
-  const completeOnboardingPrefs = async (): Promise<void> => {
+  // Confirm onboarding preferences (language + theme + notification opt-in) and start
+  // the tutorial. Called by OnboardingPreferencesModal after its last step.
+  const completeOnboardingPrefs = async (wantsNotifications: boolean): Promise<void> => {
     try {
       await AsyncStorage.setItem(ONBOARDING_PREFS_KEY, 'true');
+
+      // Close the gate FIRST. The OS permission prompt is a native modal, so our RN
+      // modal must be gone before it appears — never two modals at once (iOS freeze).
       setShowOnboardingPrefs(false);
+
+      if (wantsNotifications) {
+        // Ask the OS, then switch BOTH daily reminders on for the user. Awaited, so the
+        // tutorial's Welcome modal cannot appear while the OS prompt is still up.
+        const { enableAllRemindersAfterOptIn } = require('@/src/services/notifications') as typeof import('@/src/services/notifications');
+        await enableAllRemindersAfterOptIn();
+      }
 
       // Start the tutorial from the beginning (Welcome step)
       dispatch({ type: 'RESET_TUTORIAL' });

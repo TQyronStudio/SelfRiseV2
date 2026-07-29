@@ -24,6 +24,30 @@ Onboarding Tutorial je interaktivní průvodce pro nové uživatele, který je p
 - **Haptic Feedback**: Při každém kroku tutoriálu
 - **Smooth Transitions**: Plynulé přechody mezi kroky (300ms animace)
 
+## Uvítací brána (Onboarding Preferences Gate) — PŘED tutoriálem
+
+`src/components/tutorial/OnboardingPreferencesModal.tsx` — **3 obrazovky**, zobrazí se
+**jen při úplně prvním spuštění** aplikace (flag `onboarding_prefs_completed`):
+
+1. **Jazyk** (EN/DE/ES) — přepíná se živě při tapu
+2. **Vzhled** (světlý/tmavý) — živý náhled
+3. **🔔 Notifikace** — pre-permission dotaz („Ano, chci" / „Teď ne"); po „Ano" se
+   zavře brána, teprve pak přijde systémový dotaz a zapnou se **obě** denní připomínky.
+   Kompletní pravidla (vč. proč se neptáme systémovým dialogem rovnou):
+   @technical-guides:Notifications.md → „First-Launch Opt-In (Priming)"
+
+**Není součástí TUTORIAL_STEPS** → nemá počítadlo „Step X of 25"; tutoriál zůstává 25 kroků.
+Restart tutoriálu z Nastavení bránu **NEspouští** (flag zůstává nastavený).
+
+Po posledním kroku brána volá `completeOnboardingPrefs(wantsNotifications)`, který
+uloží flag, zavře bránu, (volitelně) vyřídí notifikace a **teprve pak** spustí tutoriál.
+
+⚠️ **Pořadí je kritické**: brána (RN modal) musí být zavřená před systémovým dotazem —
+dva modaly naráz = iOS deadlock. Brána sama se spouští až po `awaitStartupComplete()`
+(ATT + UMP souhlas), viz @technical-guides:Startup-Orchestrator.md
+
+---
+
 ## Tutorial Flow - 25 Kroků (Complete Implementation)
 
 **✅ AKTUALIZACE**: Současná implementace má **25 kompletních kroků** s intelligent achievement handling. Tutorial pokrývá celý onboarding flow od welcomu až po finální gratulaci.

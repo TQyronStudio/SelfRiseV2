@@ -468,6 +468,23 @@
 
 ---
 
+## ✅ HOTOVO: První spuštění — dotaz na notifikace (2026-07-16)
+
+**Problém**: testeři vůbec nezjistili, že aplikace umí připomínky (obě jsou default OFF, schované v Nastavení).
+
+**Řešení**: uvítací brána má nově **3. krok „🔔 Notifikace"** (jazyk → vzhled → notifikace). Po „Ano, chci" se zapnou **OBĚ** denní připomínky naráz a hned naplánují.
+
+- [x] Pre-permission („priming") dotaz vlastním oknem — **systémový dotaz jde položit jen JEDNOU za instalaci**, takže se nesmí pálit naslepo. „Teď ne" ho nechá nespálený → přepínač v Nastavení funguje i později (praxe špičkových aplikací; odsouhlaseno Petrem)
+- [x] `notificationOptIn.ts` → `enableAllRemindersAfterOptIn()`: OS dotaz → zapnout obě → `rescheduleAll()`. Nikdy nehází výjimku (selhání nesmí zablokovat onboarding)
+- [x] Pořadí: zavřít bránu → **teprve pak** systémový dotaz → `await` → tutoriál (dva modaly naráz = iOS deadlock)
+- [x] i18n EN/DE/ES; Android `POST_NOTIFICATIONS` už v app.json (bez native změny)
+- [x] 6 regresních testů; tsc 0 chyb, 520/520 testů, eslint 0 errors
+- [ ] **Device test na čisté instalaci** (systémový dotaz nelze spustit v testech)
+
+**Orchestrator**: dotaz **není** krok pipeline, ale ochranu dědí — brána běží až po `awaitStartupComplete()`, takže se nikdy nepotká s ATT/UMP. Detaily: @implementation-history.md → „First-Launch Notification Opt-In"; pravidla: @technical-guides:Notifications.md → „First-Launch Opt-In (Priming)"
+
+---
+
 ## 🎯 AKTUÁLNÍ ÚKOL: Startup Orchestrator — sekvenční startovací pipeline
 
 > 📘 **Technická pravidla a logika pro Startup Orchestrator: @technical-guides:Startup-Orchestrator.md**

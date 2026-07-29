@@ -311,6 +311,67 @@ Messages are selected **randomly** from this pool:
 
 ## Permission Management
 
+### 🔔 First-Launch Opt-In (Priming) — added July 2026
+
+**Problém, který to řeší**: testeři vůbec nezjistili, že aplikace umí připomínky.
+Obě notifikace jsou totiž ve výchozím stavu **vypnuté** (opt-in) a schované v Nastavení.
+
+**Kde to je**: poslední (3.) krok uvítací brány `OnboardingPreferencesModal`
+(jazyk → vzhled → **notifikace**), tedy jen při úplně prvním spuštění.
+
+#### ⚠️ ZÁSADNÍ PRAVIDLO: systémový dotaz je JEDNORÁZOVÝ
+
+OS prompt lze zobrazit **jen jednou za instalaci**. Když uživatel klepne na
+„Nepovolit", notifikace jsou **navždy mrtvé** — oživí je jen ruční zásah v systémovém
+Nastavení (což prakticky nikdo neudělá).
+
+**Proto se NIKDY neptáme systémovým dialogem rovnou.** Nejdřív se ptá naše vlastní
+okno („Chceš připomínky? [Ano, chci] [Teď ne]") a systémový dotaz se vyvolá **až po
+klepnutí na Ano**. Kdo dá „Teď ne", tomu se systémový dotaz **nespálí** → přepínač
+v Nastavení mu bude i později fungovat. Tohle je standard u špičkových aplikací.
+
+#### Flow
+
+```
+uvítací brána: jazyk → vzhled → 🔔 notifikace
+                                    │
+                    ┌───────────────┴───────────────┐
+              [Ano, chci]                       [Teď ne]
+                    │                               │
+        zavřít bránu (RN modal)                     │
+                    │                               │
+        systémový dotaz OS  ← až TEĎ                │
+                    │                               │
+        granted? → zapnout OBĚ připomínky           │
+                   + naplánovat                     │
+                    │                               │
+                    └───────────────┬───────────────┘
+                                    ▼
+                            tutoriál (Welcome)
+```
+
+**Kritické pořadí**: bránu (RN modal) je nutné zavřít **PŘED** systémovým dotazem —
+dva modaly naráz = iOS deadlock. Zajištěno v `TutorialContext.completeOnboardingPrefs`:
+`setShowOnboardingPrefs(false)` → `await enableAllRemindersAfterOptIn()` → START_TUTORIAL.
+Tutoriál je `await`ovaný, takže Welcome modal nemůže naskočit přes otevřený OS dotaz.
+
+#### Implementace
+
+`src/services/notifications/notificationOptIn.ts` → `enableAllRemindersAfterOptIn()`:
+1. `notificationService.requestPermissions()` (no-op když už granted — např. Android < 13)
+2. když granted → `updateSettings({ afternoonReminderEnabled: true, eveningReminderEnabled: true })`
+   — **obě naráz**, aby uživatel nemusel hledat dva přepínače v Nastavení
+3. `progressAnalyzer.analyzeDailyProgress()` → `notificationScheduler.rescheduleAll(progress)`
+
+**Nikdy nehází výjimku** — selhaný opt-in nesmí zablokovat onboarding/tutoriál.
+Kryto testy `src/services/notifications/__tests__/notificationOptIn.test.ts` (6 testů).
+
+**Vztah ke Startup Orchestratoru**: tenhle dotaz **není** krok pipeline. Ochranu ale
+dědí automaticky — uvítací brána se zobrazuje až po `awaitStartupComplete()`, takže
+se nikdy nepotká s ATT ani UMP souhlasem. Viz @technical-guides:Startup-Orchestrator.md
+
+---
+
 ### iOS Permission Flow
 
 1. **Initial Request**: First time enabling notifications

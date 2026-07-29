@@ -3777,6 +3777,12 @@ const en: TranslationKeys = {
 
   // Notifications
   notifications: {
+    priming: {
+      title: 'Stay on Track 🔔',
+      message: "We'll send you two gentle daily reminders — an afternoon nudge and an evening check-in — so your habits and journal never slip your mind. You can change the times or turn them off anytime in Settings.",
+      allow: 'Yes, remind me',
+      later: 'Not now',
+    },
     disabled: 'Notifications Disabled',
     enableTap: 'Tap to enable notifications',
     enablePrompt: 'Enable notifications to receive reminders.',

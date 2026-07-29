@@ -3839,4 +3839,28 @@ The rename is deliberate: `maxCount` was ambiguous enough to invite exactly this
 
 ---
 
+## First-Launch Notification Opt-In (July 2026)
+
+**Problem**: testers never realised the app had reminders at all. Both daily reminders default to OFF (opt-in) and live behind a Settings screen nobody opened.
+
+**Product decision (Petr)**: ask on first launch, and when the user accepts, turn **both** reminders on for them. Placement — after the language/theme steps of the onboarding gate (Petr revised this mid-implementation from "inside the startup orchestrator").
+
+**Key constraint driving the design**: the OS notification prompt can be shown **only once per install**. A "Don't allow" kills reminders permanently (only system Settings can revive them). So we never fire it blind: the gate's third screen is a **pre-permission ("priming") ask** in our own UI, and the OS prompt fires only after the user taps "Yes, remind me". A "Not now" leaves the OS prompt unburned, so the Settings toggle still works later. Standard practice in top apps; flagged to Petr before implementing, who chose it.
+
+**Implementation**:
+- `OnboardingPreferencesModal` extended from 2 to 3 steps (`'language' | 'theme' | 'notifications'`). The notification step hides the option list and adds a secondary "Not now" button; `onComplete` now carries `wantsNotifications: boolean`.
+- `TutorialContext.completeOnboardingPrefs(wantsNotifications)`: persists the flag → **closes the gate first** → `await enableAllRemindersAfterOptIn()` → starts the tutorial. Closing before the OS prompt (and awaiting it before the tutorial's Welcome modal) keeps the one-modal-at-a-time invariant — two modals at once is the iOS deadlock we fixed twice already.
+- New `src/services/notifications/notificationOptIn.ts` → `enableAllRemindersAfterOptIn()`: request permission (no-op when already granted, e.g. Android < 13) → `updateSettings({ afternoonReminderEnabled: true, eveningReminderEnabled: true })` → `analyzeDailyProgress()` → `rescheduleAll(progress)`. Never throws — a failed opt-in must not block onboarding.
+- i18n `notifications.priming.{title,message,allow,later}` in EN/DE/ES + types.
+
+**Relation to the Startup Orchestrator**: this prompt is deliberately NOT a pipeline step, yet it inherits the protection — the gate itself only runs after `awaitStartupComplete()`, so it can never collide with ATT or the UMP consent form. (The orchestrator *could* have hosted it; that would have needed an RN-modal await bridge, which the chosen placement makes unnecessary. The bridge scaffolding built for that approach was deleted rather than left as dead code.)
+
+**Android**: `POST_NOTIFICATIONS` was already declared in `app.json`, so Android 13+ runtime permission works with no native change.
+
+**Tests**: `notificationOptIn.test.ts` (6) — granted turns on BOTH + schedules with today's progress; denied changes nothing; already-granted still enables; never throws on permission or scheduling failure; permission is requested before any settings are written.
+
+**Verification**: tsc 0 errors, 520/520 tests green (36/36 suites), eslint 0 errors. Device test on a clean install pending (native prompt cannot run in Jest).
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*

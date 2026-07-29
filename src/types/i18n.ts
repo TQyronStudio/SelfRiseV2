@@ -1830,6 +1830,14 @@ export interface TranslationKeys {
 
   // Notifications
   notifications: {
+    // First-launch pre-permission ("priming") screen, shown as the last step of the
+    // onboarding gate before the OS prompt.
+    priming: {
+      title: string;
+      message: string;
+      allow: string;
+      later: string;
+    };
     disabled: string;
     enableTap: string;
     enablePrompt: string;

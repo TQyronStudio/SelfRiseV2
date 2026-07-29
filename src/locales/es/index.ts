@@ -3750,6 +3750,12 @@ const es: Partial<TranslationKeys> = {
 
   // Notifications
   notifications: {
+    priming: {
+      title: 'Mantén el ritmo 🔔',
+      message: 'Te enviaremos dos recordatorios suaves al día — un empujón por la tarde y un repaso por la noche — para que nunca olvides tus hábitos ni tu diario. Puedes cambiar las horas o desactivarlos cuando quieras en Ajustes.',
+      allow: 'Sí, recuérdamelo',
+      later: 'Ahora no',
+    },
     disabled: 'Notificaciones deshabilitadas',
     enableTap: 'Toca para habilitar notificaciones',
     enablePrompt: 'Activa las notificaciones para recibir recordatorios.',

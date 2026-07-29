@@ -3749,6 +3749,12 @@ const de: Partial<TranslationKeys> = {
 
   // Notifications
   notifications: {
+    priming: {
+      title: 'Bleib am Ball 🔔',
+      message: 'Wir schicken dir zwei sanfte Erinnerungen am Tag – einen Anstoß am Nachmittag und einen Check-in am Abend –, damit du deine Gewohnheiten und dein Journal nie vergisst. Die Zeiten kannst du jederzeit in den Einstellungen ändern oder die Erinnerungen ausschalten.',
+      allow: 'Ja, erinnere mich',
+      later: 'Jetzt nicht',
+    },
     disabled: 'Deaktiviert',
     enableTap: 'Tippen zum Aktivieren',
     enablePrompt: 'Aktiviere Mitteilungen, um Erinnerungen zu erhalten.',
