@@ -504,6 +504,31 @@ Detaily: @implementation-history.md → „Android build failure — AdMob SDK c
 
 ---
 
+## 📱 Android device test 2026-07-26 — UX nálezy (ikona, tutoriál, lišta)
+
+> Petr testoval Android build na Xiaomi Redmi 8 Pro. **Bod 1 vyřešen, body 2–4
+> čekají na rozhodnutí bod po bodu.**
+> Nálezy a návrhy: @docs/audits/ux-android-2026-07-26-nalezy.md
+>
+> 1. ✅ **Ikona (hotovo 2026-08-02)** — „S" sahalo do 92 % plátna, Android
+>    ořezává na 67 %. Zmenšeno na 0,721× (dosah 473 → 339 px, limit 341).
+>    Přidána `monochrome` vrstva (Android 13+) a iOS 18 varianty `dark`
+>    + `tinted`. Jen obrázky + `app.json`, **žádná změna kódu**.
+>    Navíc opraveno **5 zbytků po zpackaném ořezu pozadí** v samotné kresbě
+>    (viditelné jen na ikonách s průhledností). Čeká na ověření na zařízení.
+> 2. **Tutoriál — oříznutý text [VYSOKÁ]** — `contentCard maxHeight: safeHeight * 0.3`
+>    (`TutorialOverlay.tsx:409`) + výpočet výšky s poznámkou `Assume 2 lines max`
+>    (`:138`), přitom **17 z 18 kroků má 3–8 řádků**. Text je ve ScrollView, ale
+>    scrollbar je proužek, kterého si nikdo nevšimne.
+> 3. **Spodní lišta se neztmaví** — hypotéza: androidí `elevation` React Navigation
+>    přebíjí `zIndex` overlaye. ⚠️ neověřeno na zařízení.
+> 4. **[STRATEGICKÉ] 25krokový tutoriál** — doporučuji zkrátit na 3–5 kroků
+>    (vítej → založ návyk → odškrtni ho) a zbytek přesunout do `HelpTooltip`
+>    bublinek (10 už existuje) a prázdných obrazovek. Coach-mark prohlídky jsou
+>    dnes považované za anti-vzor.
+
+---
+
 ## 🎯 AKTUÁLNÍ ÚKOL: Startup Orchestrator — sekvenční startovací pipeline
 
 > 📘 **Technická pravidla a logika pro Startup Orchestrator: @technical-guides:Startup-Orchestrator.md**
