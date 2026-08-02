@@ -258,6 +258,59 @@ async function handleWatchAd() {
 npm install react-native-google-mobile-ads
 ```
 
+### 🔒 VERZE JE ZAMČENÁ NA `16.0.2` — NEUPGRADOVAT BEZ OVĚŘENÍ
+
+V `package.json` je verze **bez stříšky** (`"16.0.2"`, ne `"^16.0.2"`). To je záměr.
+
+**Proč**: novější verze táhnou `play-services-ads`, který Google zkompiloval novějším
+Kotlinem, než jaký má Expo SDK 55 (**2.1.20**). Android build pak spadne na:
+
+```
+> Task :react-native-google-mobile-ads:compileReleaseKotlin FAILED
+e: play-services-ads-XX-api.jar!/META-INF/....kotlin_module
+   Module was compiled with an incompatible version of Kotlin.
+   The binary version of its metadata is 2.3.0, expected version is 2.1.0.
+```
+
+**Ověřená tabulka** (Kotlin metadata v .aar, měřeno 2026-07-30):
+
+| verze lib | play-services-ads | Kotlin metadata | s Expo 55 (Kotlin 2.1.20) |
+|---|---|---|---|
+| 16.0.1 | 24.6.0 | 2.1.0 | ✅ |
+| **16.0.2** ← používáme | **24.6.0** | **2.1.0** | ✅ **nejnovější kompatibilní** |
+| 16.0.3 | 24.9.0 | 2.2.0 | ❌ |
+| 16.1.0–16.3.4 | 25.0.0 | 2.2.0 | ❌ |
+| 16.4.0 (`latest`) | 25.4.0 | 2.3.0 | ❌ |
+
+**iOS to nikdy neodhalí** — Kotlin se používá jen na Androidu. iOS build projde i s rozbitou verzí.
+
+#### Než verzi zvýšíš, ověř metadata:
+
+```bash
+V=25.4.0   # cílová verze play-services-ads
+curl -sS "https://dl.google.com/android/maven2/com/google/android/gms/play-services-ads/$V/play-services-ads-$V.aar" -o a.aar
+unzip -qo a.aar && unzip -qo classes.jar -d cls
+# první int = počet, další inty = verze metadat (big-endian)
+node -e 'const fs=require("fs");const d="cls/META-INF";
+ const v=new Set(fs.readdirSync(d).filter(f=>f.endsWith(".kotlin_module")).map(f=>{
+   const b=fs.readFileSync(d+"/"+f);const n=b.readInt32BE(0);
+   return Array.from({length:Math.min(n,3)},(_,i)=>b.readInt32BE(4+i*4)).join(".");}));
+ console.log([...v].join(", "));'
+```
+
+Musí vyjít **≤ verze Kotlinu projektu** (viz log buildu: `[ExpoRootProject] kotlin: …`).
+
+#### ⚠️ NEŘEŠIT to zvýšením Kotlinu přes `expo-build-properties`
+
+Nabízí se `android.kotlinVersion`, ale **rozbije to KSP**: mapa v
+`expo-modules-core/android/ExpoModulesCorePlugin.gradle` mapuje Kotlin → KSP jen do
+`2.0.21` a jinak spadne na nekompatibilní fallback. KSP používají `expo-image` a
+`@react-native-async-storage/async-storage` → rozbily by se. `expo-build-properties`
+navíc verzi KSP nastavit **neumí**.
+
+**Správné dlouhodobé řešení**: počkat, až Expo SDK zvýší Kotlin (SDK 56+), pak lze
+odemknout na novější verzi — ale vždy nejdřív ověřit metadata výše uvedeným skriptem.
+
 ### Configuration (`app.json`)
 
 ```json

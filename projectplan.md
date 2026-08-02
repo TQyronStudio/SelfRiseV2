@@ -468,6 +468,25 @@
 
 ---
 
+## ✅ HOTOVO: Android build spadl — AdMob SDK zkompilované novějším Kotlinem (2026-07-30)
+
+**Symptom**: EAS Android build padal (~4 min), iOS procházel opakovaně. EAS hlásil jen „unknown gradle error".
+
+**Skutečná příčina**: `react-native-google-mobile-ads` byl v package.json jako `^16.0.1` → npm nainstaloval **16.4.0**, který táhne `play-services-ads:25.4.0`. Google ho zkompiloval **Kotlinem 2.3.0**, ale Expo SDK 55 staví **Kotlinem 2.1.20** → kompilátor neumí přečíst novější metadata. **iOS to nikdy neodhalí** (Kotlin je jen Android).
+
+- [x] Změřena Kotlin metadata všech kandidátů (rozbalené `.aar`): 16.0.2→24.6.0 = **2.1.0 ✅**; 16.0.3→24.9.0 = 2.2.0 ❌; 16.1–16.3→25.0.0 = 2.2.0 ❌; 16.4.0→25.4.0 = 2.3.0 ❌ — **„downgrade o minor" by NEPOMOHL**
+- [x] **Pin na přesně `16.0.2`** (bez stříšky — právě ta tiše vytáhla 16.4.0). Appka používá jen stabilní jádro API, peer deps identické
+- [x] Zamítnuto zvýšení Kotlinu přes `expo-build-properties`: rozbilo by **KSP** (mapa Kotlin→KSP v expo-modules-core končí na 2.0.21, `kspVersion` nelze nastavit) → padly by `expo-image` a `async-storage`
+- [x] Zamítnuto vynucení starší reklamní SDK při ponechání 16.4.0: riziko pádu **až za běhu** (horší než chyba buildu)
+- [x] **Ověřeno lokálně reálným buildem** (Java 17 + Android SDK): `:react-native-google-mobile-ads:compileReleaseKotlin` ✅ + `:app:bundleRelease` ✅; tsc 0 chyb, 520/520 testů
+- [x] Pojistka proti opakování: tabulka verzí + měřicí skript + varování o KSP v @technical-guides:AdMob.md
+
+**Poznámka na později** (není příčina, neověřeno): release build kompiluje `expo-dev-client`/`dev-launcher`/`dev-menu`, protože je v `dependencies` — stojí za prověření kvůli velikosti aplikace.
+
+Detaily: @implementation-history.md → „Android build failure — AdMob SDK compiled with a newer Kotlin"
+
+---
+
 ## ✅ HOTOVO: První spuštění — dotaz na notifikace (2026-07-16)
 
 **Problém**: testeři vůbec nezjistili, že aplikace umí připomínky (obě jsou default OFF, schované v Nastavení).

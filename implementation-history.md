@@ -3863,4 +3863,47 @@ The rename is deliberate: `maxCount` was ambiguous enough to invite exactly this
 
 ---
 
+## Android build failure — AdMob SDK compiled with a newer Kotlin (July 30, 2026)
+
+**Symptom**: EAS Android production build failed after ~4 min; iOS builds passed repeatedly. EAS surfaced only `EAS_BUILD_UNKNOWN_GRADLE_ERROR: Gradle build failed with unknown error`.
+
+**Real error** (from the "Run gradlew" phase):
+```
+> Task :react-native-google-mobile-ads:compileReleaseKotlin FAILED
+e: play-services-ads-25.4.0-api.jar!/META-INF/….kotlin_module
+   Module was compiled with an incompatible version of Kotlin.
+   The binary version of its metadata is 2.3.0, expected version is 2.1.0.
+```
+
+**Root cause**: `react-native-google-mobile-ads` was declared as `^16.0.1`, so npm resolved **16.4.0**, which pins `play-services-ads:25.4.0`. Google compiled that artifact with **Kotlin 2.3.0**, while Expo SDK 55 builds with **Kotlin 2.1.20** (`[ExpoRootProject] kotlin: 2.1.20`). A Kotlin compiler cannot read metadata newer than itself. **iOS never sees this** — Kotlin is Android-only, which is exactly why iOS kept passing.
+
+**Verification of every candidate** (extracted each `.aar`, read the binary metadata version from `META-INF/*.kotlin_module`):
+
+| lib version | play-services-ads | Kotlin metadata | compatible with 2.1.20 |
+|---|---|---|---|
+| 16.0.1 | 24.6.0 | 2.1.0 | ✅ |
+| **16.0.2** | **24.6.0** | **2.1.0** | ✅ **newest compatible** |
+| 16.0.3 | 24.9.0 | 2.2.0 | ❌ |
+| 16.1.0–16.3.4 | 25.0.0 | 2.2.0 | ❌ |
+| 16.4.0 (`latest`) | 25.4.0 | 2.3.0 | ❌ |
+
+This measurement mattered: the obvious "just downgrade one minor" (16.3.x) would **not** have fixed it — it only moves the error to metadata 2.2.0.
+
+**Fix**: pinned `react-native-google-mobile-ads` to exactly **`16.0.2`** (no caret — the caret is what silently pulled 16.4.0 in). App code only uses the stable core API (`BannerAd`, `BannerAdSize`, `RewardedAd`, `RewardedAdEventType`, `AdEventType`, `mobileAds`, `AdsConsent*`), all present in 16.0.2; peer deps are identical (`expo >= 47`).
+
+**Rejected alternative — raising Kotlin via `expo-build-properties`** (`android.kotlinVersion`): it would break KSP. `expo-modules-core/android/ExpoModulesCorePlugin.gradle` maps Kotlin→KSP only up to `2.0.21` and otherwise falls back to an incompatible KSP; `expo-build-properties` has no `kspVersion` option. `expo-image` and `@react-native-async-storage/async-storage` both use KSP, so this would have traded one broken module for two.
+
+**Rejected alternative — forcing `play-services-ads` down while keeping lib 16.4.0**: 16.4.0's own Kotlin targets the 25.x API, so this risks `NoSuchMethodError` at runtime — a worse failure mode than a build error.
+
+**Verification**: reproduced and fixed **locally** with the real toolchain (Java 17 + Android SDK, `expo prebuild --platform android`):
+- `./gradlew :react-native-google-mobile-ads:compileReleaseKotlin` → **BUILD SUCCESSFUL** (the exact task that failed on EAS)
+- `./gradlew :app:bundleRelease` → full release bundle, matching what EAS runs
+- `tsc` 0 errors, 520/520 tests green
+
+**Guard against recurrence**: version table, the measuring script, and the KSP warning are documented in @technical-guides:AdMob.md → "VERZE JE ZAMČENÁ NA 16.0.2". Unlock only once Expo SDK raises Kotlin (SDK 56+), and re-measure metadata first.
+
+**Side observation (not the cause, unverified)**: the release build compiles `expo-dev-client` / `expo-dev-launcher` / `expo-dev-menu` because `expo-dev-client` sits in `dependencies`. Worth checking whether it should be excluded from store builds (app size).
+
+---
+
 *This document serves as a technical reference for future debugging and implementation decisions in the SelfRise V2 project.*
