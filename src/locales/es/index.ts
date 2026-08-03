@@ -1092,6 +1092,19 @@ const es: Partial<TranslationKeys> = {
       cookingRecipesDescription: 'Amplía tus habilidades culinarias probando nuevas recetas.',
     },
 
+    units: {
+      kg: 'kg',
+      currency: '€',
+      books: 'libros',
+      hours: 'horas',
+      lessons: 'lecciones',
+      applications: 'solicitudes',
+      connections: 'contactos',
+      minutes: 'minutos',
+      projects: 'proyectos',
+      recipes: 'recetas',
+    },
+
     dashboard: {
       overview: 'Resumen',
       activeGoals: 'Metas Activas',
@@ -3746,6 +3759,52 @@ const es: Partial<TranslationKeys> = {
 
 
     stepProgress: 'Paso {{current}} de {{total}}',
+  },
+
+  onboarding: {
+    skip: 'Omitir',
+    continue: 'Continuar',
+    back: 'Atrás',
+    progressA11y: 'Paso {{current}} de {{total}}',
+
+    habit: {
+      title: '¿Qué quieres hacer con regularidad?',
+      subtitle: 'Elige algo para empezar. Puedes cambiarlo todo más tarde.',
+      customTile: 'Otra cosa',
+      nameLabel: 'Nombre del Hábito',
+      namePlaceholder: 'ej., Salir a caminar',
+      daysLabel: '¿Qué días?',
+      colorLabel: 'Seleccionar Color',
+      iconLabel: 'Seleccionar Icono',
+      cta: 'Crear Hábito',
+    },
+
+    habitPresets: {
+      water: 'Beber agua',
+      exercise: 'Hacer ejercicio',
+      read: 'Leer',
+      meditate: 'Meditar',
+      sleep: 'Acostarse a tiempo',
+      eatHealthy: 'Comer sano',
+    },
+
+    goal: {
+      title: '¿Qué quieres lograr?',
+      subtitle: 'Elige una meta. El número es solo una sugerencia — cámbialo libremente.',
+      customTile: 'Otra cosa',
+      nameLabel: 'Nombre de la Meta',
+      namePlaceholder: 'ej., Correr una media maratón',
+      targetLabel: 'Objetivo',
+      unitLabel: 'Unidad',
+      cta: 'Crear Meta',
+    },
+
+    done: {
+      title: 'Todo listo',
+      subtitle: 'Tu primer hábito y tu primera meta están listos.',
+      body: 'Marca tu hábito y observa cómo crece tu XP. Eso es toda la app.',
+      cta: 'Entendido',
+    },
   },
 
   // Notifications

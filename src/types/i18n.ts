@@ -819,6 +819,18 @@ export interface TranslationKeys {
       cookingRecipes: string;
       cookingRecipesDescription: string;
     };
+    units: {
+      kg: string;
+      currency: string;
+      books: string;
+      hours: string;
+      lessons: string;
+      applications: string;
+      connections: string;
+      minutes: string;
+      projects: string;
+      recipes: string;
+    };
     dashboard: {
       overview: string;
       activeGoals: string;
@@ -1825,6 +1837,50 @@ export interface TranslationKeys {
       message: string;
       retry: string;
       hint: string;
+    };
+  };
+
+  // Onboarding — 3-screen flow replacing the 25-step tutorial.
+  // Screen 0 (language/theme/notifications) stays under `tutorial.*`.
+  onboarding: {
+    skip: string;
+    continue: string;
+    back: string;
+    progressA11y: string;
+    habit: {
+      title: string;
+      subtitle: string;
+      customTile: string;
+      nameLabel: string;
+      namePlaceholder: string;
+      daysLabel: string;
+      colorLabel: string;
+      iconLabel: string;
+      cta: string;
+    };
+    habitPresets: {
+      water: string;
+      exercise: string;
+      read: string;
+      meditate: string;
+      sleep: string;
+      eatHealthy: string;
+    };
+    goal: {
+      title: string;
+      subtitle: string;
+      customTile: string;
+      nameLabel: string;
+      namePlaceholder: string;
+      targetLabel: string;
+      unitLabel: string;
+      cta: string;
+    };
+    done: {
+      title: string;
+      subtitle: string;
+      body: string;
+      cta: string;
     };
   };
 

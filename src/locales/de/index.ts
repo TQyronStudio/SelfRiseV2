@@ -1092,6 +1092,19 @@ const de: Partial<TranslationKeys> = {
       cookingRecipesDescription: 'Erweitere deine Kochfähigkeiten, indem du neue Rezepte ausprobierst.',
     },
 
+    units: {
+      kg: 'kg',
+      currency: '€',
+      books: 'Bücher',
+      hours: 'Stunden',
+      lessons: 'Lektionen',
+      applications: 'Bewerbungen',
+      connections: 'Kontakte',
+      minutes: 'Minuten',
+      projects: 'Projekte',
+      recipes: 'Rezepte',
+    },
+
     dashboard: {
       overview: 'Übersicht',
       activeGoals: 'Aktive Ziele',
@@ -3745,6 +3758,52 @@ const de: Partial<TranslationKeys> = {
 
 
     stepProgress: 'Schritt {{current}} von {{total}}',
+  },
+
+  onboarding: {
+    skip: 'Überspringen',
+    continue: 'Weiter',
+    back: 'Zurück',
+    progressA11y: 'Schritt {{current}} von {{total}}',
+
+    habit: {
+      title: 'Was möchtest du regelmäßig tun?',
+      subtitle: 'Wähle etwas zum Starten. Du kannst später alles ändern.',
+      customTile: 'Etwas anderes',
+      nameLabel: 'Gewohnheitsname',
+      namePlaceholder: 'z.B. Spazieren gehen',
+      daysLabel: 'An welchen Tagen?',
+      colorLabel: 'Farbe wählen',
+      iconLabel: 'Symbol wählen',
+      cta: 'Gewohnheit erstellen',
+    },
+
+    habitPresets: {
+      water: 'Wasser trinken',
+      exercise: 'Sport treiben',
+      read: 'Lesen',
+      meditate: 'Meditieren',
+      sleep: 'Rechtzeitig schlafen gehen',
+      eatHealthy: 'Gesund essen',
+    },
+
+    goal: {
+      title: 'Was möchtest du erreichen?',
+      subtitle: 'Wähle ein Ziel. Die Zahl ist nur ein Vorschlag — ändere sie frei.',
+      customTile: 'Etwas anderes',
+      nameLabel: 'Zielname',
+      namePlaceholder: 'z.B. Einen Halbmarathon laufen',
+      targetLabel: 'Zielwert',
+      unitLabel: 'Einheit',
+      cta: 'Ziel erstellen',
+    },
+
+    done: {
+      title: 'Alles bereit',
+      subtitle: 'Deine erste Gewohnheit und dein erstes Ziel stehen.',
+      body: 'Hake deine Gewohnheit ab und sieh zu, wie deine XP wachsen. Das ist die ganze App.',
+      cta: 'Verstanden',
+    },
   },
 
   // Notifications

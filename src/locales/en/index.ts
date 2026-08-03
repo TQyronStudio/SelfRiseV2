@@ -1095,7 +1095,25 @@ const en: TranslationKeys = {
       cookingRecipes: 'Try New Recipes',
       cookingRecipesDescription: 'Expand your cooking skills by trying new recipes.',
     },
-    
+
+    // Measurement units used by goal templates.
+    // These are WRITTEN INTO the goal when it is created, so they must be in the
+    // user's language — they used to be hardcoded English in GoalTemplatesModal,
+    // which gave German users "12 books" and savings goals in dollars.
+    // `currency` is the only locale-dependent symbol; `kg` is metric everywhere.
+    units: {
+      kg: 'kg',
+      currency: '$',
+      books: 'books',
+      hours: 'hours',
+      lessons: 'lessons',
+      applications: 'applications',
+      connections: 'connections',
+      minutes: 'minutes',
+      projects: 'projects',
+      recipes: 'recipes',
+    },
+
     // Goal Dashboard
     dashboard: {
       overview: 'Overview',
@@ -3773,6 +3791,57 @@ const en: TranslationKeys = {
 
     // Tutorial step progress (for modal)
     stepProgress: 'Step {{current}} of {{total}}',
+  },
+
+  // Onboarding — the 3-screen flow replacing the 25-step tutorial.
+  // Screen 0 (language / theme / notifications) still lives under `tutorial.*`
+  // because OnboardingPreferencesModal is kept as-is.
+  // Tiles use their visible label as the accessibility label (correct practice),
+  // so only non-textual controls need their own a11y string here.
+  onboarding: {
+    skip: 'Skip',
+    continue: 'Continue',
+    back: 'Back',
+    progressA11y: 'Step {{current}} of {{total}}',
+
+    habit: {
+      title: 'What do you want to do regularly?',
+      subtitle: 'Pick one to start with. You can change everything later.',
+      customTile: 'Something else',
+      nameLabel: 'Habit Name',
+      namePlaceholder: 'e.g., Go for a walk',
+      daysLabel: 'Which Days?',
+      colorLabel: 'Select Color',
+      iconLabel: 'Select Icon',
+      cta: 'Create Habit',
+    },
+
+    habitPresets: {
+      water: 'Drink water',
+      exercise: 'Exercise',
+      read: 'Read',
+      meditate: 'Meditate',
+      sleep: 'Go to bed on time',
+      eatHealthy: 'Eat healthy',
+    },
+
+    goal: {
+      title: 'What do you want to achieve?',
+      subtitle: 'Pick a goal. The number is only a suggestion — change it freely.',
+      customTile: 'Something else',
+      nameLabel: 'Goal Name',
+      namePlaceholder: 'e.g., Run a half marathon',
+      targetLabel: 'Target',
+      unitLabel: 'Unit',
+      cta: 'Create Goal',
+    },
+
+    done: {
+      title: "You're all set",
+      subtitle: 'Your first habit and goal are ready.',
+      body: 'Tick your habit off and watch your XP grow. That is the whole app.',
+      cta: 'Got it',
+    },
   },
 
   // Notifications

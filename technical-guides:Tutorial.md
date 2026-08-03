@@ -1,6 +1,401 @@
 # SelfRise V2 - Onboarding Tutorial System Technical Guide
 
-## Overview
+> ## ⚠️ STAV: PROBÍHÁ PŘEPRACOVÁNÍ (schváleno 2026-08-02)
+>
+> Popis 25krokového průvodce níže je **stále platný pro nasazený kód**, ale je
+> rozhodnuto ho nahradit. Nový návrh je hned v následující sekci. Starý popis
+> zůstává, dokud se starý kód nesmaže (etapa H) — do té doby je to referenční
+> dokumentace toho, co v aplikaci reálně běží.
+>
+> Odškrtávací plán: `projectplan.md` → „Přepracování onboardingu“
+
+---
+
+# NOVÝ NÁVRH: 3 obrazovky místo 25 kroků
+
+## Proč se to mění
+
+Průvodce vodí uživatele šipkami po skutečné aplikaci. To vyžaduje overlay,
+spotlight, měření pozic prvků a blokování dotyků — nejkřehčí kód v projektu.
+Dva ze tří nálezů z device testu (oříznutý text, rozseklá spodní lišta) jsou
+přímým důsledkem té konstrukce, ne chybami v obsahu.
+
+Rozbor 25 kroků:
+
+| Typ kroku | Počet | Poznámka |
+|---|---|---|
+| Jen mluví (`action: 'next'`) | 9 | uživatel jen odkliká |
+| Přepni záložku | 3 | |
+| Otevři formulář | 2 | |
+| Vyplň políčko | 11 | **4 z nich učí políčka s funkční výchozí hodnotou** |
+
+Ta čtyři zbytečná: `HabitForm.tsx:185` (color → BLUE), `:186` (icon → FITNESS),
+`GoalForm.tsx:110` (category → PERSONAL), `:350` (targetDate je nepovinné).
+
+## Cíl (nezměněný)
+
+**Uživatel odejde z úvodu s vlastním návykem a vlastním cílem uvnitř aplikace.**
+Tenhle cíl je správný a v novém návrhu se plní **lépe** — přibývá první
+odškrtnutí návyku a první zážitek XP, které dnes chybí.
+
+## Architektura
+
+### Obrazovka 0 — Předvolby (BEZE ZMĚNY)
+
+`OnboardingPreferencesModal.tsx` — jazyk → motiv → notifikace. Funguje, nesahat.
+
+### Obrazovka 1 — První návyk
+
+Dlaždice s předvolbami. Ťuknutí vyplní **název + ikonu + barvu najednou**.
+
+| Předvolba | `HabitIcon` | `HabitColor` |
+|---|---|---|
+| Pít vodu | `water` | `blue` |
+| Cvičit | `fitness` | `red` |
+| Číst | `book` | `purple` |
+| Meditovat | `meditation` | `teal` |
+| Chodit včas spát | `sleep` | `orange` |
+| Zdravě jíst | `food` | `green` |
+| *Něco jiného* | `fitness` | `blue` |
+
+K dispozici je 14 ikon a 8 barev (`src/types/common.ts`).
+
+**Dny:** předvyplněné všech 7. `scheduledDays` je jediné povinné pole bez
+výchozí hodnoty (`HabitForm.tsx:206`), proto ho předvolba musí vyplnit.
+
+### Obrazovka 2 — První cíl
+
+**Znovupoužije obsah `GoalTemplatesModal.tsx`** — 11 šablon už existuje a je
+zapojený v `GoalsScreen.tsx:356`. ⚠️ Ale POZOR: ta komponenta je RN `<Modal>`
+(`:372`) — do onboardingu se **nevkládá modál, ale vytažená mřížka dlaždic**
+(`GoalTemplateGrid`, viz pravidlo D-TPL v Design specifikaci). K tomu se
+doplní chybějící lokalizace jednotek (viz níže).
+
+### Obrazovka 3 — První odškrtnutí
+
+Hlavní obrazovka, kde už návyk i cíl jsou. Krátká karta dole:
+
+> „Hotovo. Odškrtni si návyk a uvidíš, jak přibude XP.“
+
+**Bez overlay a bez měření pozic.** Zvýraznění řeší samotná karta návyku —
+dostane vlastnost `highlightCheckbox`, dokud uživatel neodškrtl první návyk.
+Komponenta zná pozici svého zaškrtávátka sama; žádné globální měření.
+
+---
+
+## PRAVIDLO: Lokalizace
+
+**Tři jazyky, žádné výjimky: EN, DE, ES.**
+
+- Veškerý nový text jde přes `t()`, nikdy natvrdo do komponenty.
+- Pojistka existuje: `src/locales/__tests__/localeParity.test.ts` (12 testů)
+  shodí build, když klíč chybí v DE nebo ES, je prázdný, nebo nesedí délka pole.
+- **Nespoléhat na TypeScript** — DE/ES jsou typované jako
+  `Partial<TranslationKeys>` s ~30 přetypováními `as any`, takže `tsc` tuhle
+  třídu chyb nezachytí. Hlídá to jen ten test.
+
+## PRAVIDLO: Měna a jednotky
+
+**Nález (chyba v nasazeném kódu, ne jen v onboardingu):** v
+`GoalTemplatesModal.tsx` jde `title` i `description` přes `t()`, ale **`unit` je
+natvrdo anglicky**:
+
+```
+:40  unit: 'kg'          :99   unit: 'lessons'
+:53  unit: '$'    ← měna :112  unit: 'applications'
+:64  unit: '$'    ← měna :123  unit: 'connections'
+:77  unit: 'books'       :136  unit: 'minutes'
+:88  unit: 'hours'       :149  unit: 'projects'
+                         :160  unit: 'recipes'
+```
+
+Německý uživatel tedy dnes dostane cíl „12 **books**“ a spořicí cíl v **dolarech**.
+
+**Řešení: jednotky se stanou i18n klíči** — jedním mechanismem se opraví obojí.
+
+```
+goals.units.currency   EN: $        DE: €          ES: €
+goals.units.books      EN: books    DE: Bücher     ES: libros
+goals.units.hours      EN: hours    DE: Stunden    ES: horas
+… (10 různých jednotek × 3 jazyky = 30 řetězců)
+```
+
+- `kg` zůstává `kg` ve všech třech (metrická jednotka, nepřekládá se).
+- `goals.form.unitPlaceholder` už `€` v DE/ES má — nic k práci.
+- **Tato oprava je nezávislá na onboardingu** a dá se nasadit samostatně.
+
+> **Chování, se kterým se počítá:** jednotka i název se do cíle/návyku
+> **zapíšou v jazyce platném při vytvoření** (`Goal.unit` je prostý `string`,
+> `goal.ts:22`). Pozdější přepnutí jazyka existující záznamy nepřepíše — od
+> vytvoření je to uživatelova vlastní data. Totéž platí pro názvy z předvoleb
+> návyků. Alternativa (ukládat klíč a překládat při zobrazení) by znemožnila
+> uživateli jednotku přepsat, což pravidlo „vše musí jít upravit“ zakazuje.
+
+**Stav (etapa A, hotovo 2026-08-02):** klíče `goals.units.*` zavedené ve všech
+3 jazycích, `GoalTemplatesModal` je používá (`useMemo(..., [t])` už `t` v
+závislostech měl, takže přepnutí jazyka mřížku přegeneruje).
+
+## PRAVIDLO: Trofeje (KRITICKÉ — nerozbít)
+
+Za první návyk i první cíl se odemyká trofej a **její oslavné okno musí dostat
+svůj prostor**. Mechanika už existuje a je pracně odladěná:
+
+- `src/utils/tutorialAchievementGate.ts` — `armTutorialAchievementGate(id)`
+- `AchievementContext.tsx:343` — během průvodce se propouští **pouze**
+  `first-habit` a `first-goal`, ostatní trofeje se potlačují
+
+**Nepřepisovat. Jen zavolat z nových obrazovek.** Závazná pravidla:
+
+1. **Nabít bránu PŘED vytvořením** návyku/cíle. Odemčení přijde ~100 ms po
+   vytvoření; kdo se přihlásí k odběru později, událost promešká.
+2. **Nepřecházet na další obrazovku, dokud `wait()` nedoběhne.**
+3. **Restart průvodce:** trofej už uživatel vlastní → žádné okno nepřijde →
+   `wait()` nesmí čekat. Řeší se dotazem `hasAchievement()` *před* vytvořením,
+   ne odhadem z příznaku restartu. (V komentářích souboru jsou popsané dva
+   dřívější pokusy, které to spletly — stojí za přečtení.)
+4. Časové limity v tom souboru jsou **záchranné brzdy, ne tempo**.
+
+**Zlepšení nového návrhu:** nové obrazovky jsou plnohodnotné obrazovky, ne
+`<Modal>`. Odpadá tím riziko dvou RN modálů naráz, které na iOS zmrazí UI.
+
+## PRAVIDLO: Vše musí jít upravit
+
+Předvolba je **startovní hodnota, ne zámek**. Na obou obrazovkách jsou pod
+dlaždicemi normální ovládací prvky (název, ikona, barva, dny / název, jednotka,
+číslo, kategorie, datum) a uživatel do nich může kdykoliv sáhnout.
+
+Prakticky: znovupoužít existující výběrové komponenty z `HabitForm` a
+`GoalForm`, ne psát nové.
+
+---
+
+## Co se ruší — a AŽ V ETAPĚ H
+
+```
+src/components/tutorial/TutorialOverlay.tsx    734 řádků  ← oříznutý text
+src/components/tutorial/SpotlightEffect.tsx    282 řádků  ← rozseklá lišta
+src/utils/TutorialTargetHelper.ts
+createTutorialSteps() v TutorialContext.tsx    ~330 řádků (25 kroků)
++ osiřelé i18n klíče ve všech 3 jazycích
+```
+
+**Co zůstává z `TutorialContext.tsx`:** ukládání stavu (dokončeno/přeskočeno),
+restart, `hasAchievement()`, propojení s bránou trofejí.
+
+## DESIGN SPECIFIKACE (doplněno při 2. prověrce 2026-08-02)
+
+Onboarding je první minuta s aplikací — nesmí vypadat jako cizí těleso.
+Všechno níže staví na infrastruktuře, která v projektu UŽ EXISTUJE
+(s file:line důkazy), žádné nové knihovny.
+
+### D-VIZ: Vizuální jazyk
+
+Vzorem je `OnboardingPreferencesModal.tsx` (obrazovka 0 — funguje a vypadá
+dobře): karta `colors.cardBackgroundElevated` s akcentním horním proužkem
+`colors.primary` (`:147-154`), stránka `colors.backgroundSecondary`.
+
+- **2-tier theme systém, žádné výjimky**: stránka `backgroundSecondary`,
+  karty `cardBackgroundElevated`. Texty `textPrimary`/`textSecondary`.
+- `StyleSheet.create` **uvnitř komponenty** s `colors` z `useTheme()` —
+  přesně jako `OnboardingPreferencesModal.tsx:63,130`. Nikdy top-level.
+- **Zakázáno**: natvrdo psané barvy, stíny v dark mode, čisté černé pozadí.
+- Typografie: `Fonts` (`src/constants/fonts.ts`) + `scaleFont()`. Žádné
+  holé číselné fontSize.
+- Dlaždice předvoleb: ikona + popisek, vybraná = rámeček `colors.primary`
+  + jemný tint. Mřížka 2 sloupce (SMALL/MEDIUM), 3 sloupce (LARGE/TABLET).
+
+### D-POHYB: Animace (reanimated 4.2.1 už v projektu)
+
+- Přechod mezi obrazovkami: fade+slide ~250 ms (reanimated, ne Animated).
+- Dlaždice při stisku: scale 0.97 (pattern viz `AchievementCard.tsx:317`).
+- Obrazovka 3: pulz na zaškrtávátku (`highlightCheckbox`) — jemný, 2s cyklus.
+- **VŠE respektuje reduce-motion**: `useAccessibility()` →
+  `isReduceMotionEnabled` → animace vypnout (pattern
+  `AchievementCard.tsx:101,122` — kopírovat ten přístup).
+- Lottie/Skia jsou k dispozici, ale pro v1 stačí reanimated — žádné nové
+  assety, ať se etapa nenafoukne.
+
+### D-DEV: Zařízení
+
+- Orientace je **zamčená portrait** (`app.json:6`) — landscape se neřeší.
+- **Tablety se řeší**: iOS `supportsTablet: true` (`app.json:11`).
+  Obsah na TABLET centrovat do kontejneru max ~560 px šířky, ať se
+  dlaždice neroztáhnou přes celý iPad.
+- Breakpointy hotové: `src/utils/responsive.ts` — `ScreenSize`
+  (SMALL <375 / MEDIUM / LARGE / TABLET ≥768), `getResponsiveValue()`,
+  `scaleFont()` (sevřeno 0.8–1.3×), `getCardPadding()`. POUŽÍVAT TYHLE,
+  nevymýšlet vlastní.
+- Safe areas: `useSafeAreaInsets()` (vzor `OnboardingPreferencesModal.tsx:65`).
+- Klávesnice: pole „Něco jiného“ (vlastní název) musí mít
+  `KeyboardAvoidingView` — na SMALL telefonech jinak klávesnice zakryje
+  tlačítko Pokračovat. Klasický zdroj chyb, testovat na malém displeji.
+
+### D-A11Y: Přístupnost
+
+- Každá dlaždice: `accessibilityRole="button"` + `accessibilityLabel`
+  z i18n (21 komponent v projektu to už dělá — držet laťku).
+- Dotykové cíle min. 44 pt.
+- Kontrast řeší theme tokeny — proto žádné vlastní barvy.
+
+### D-UX: Kostra každé obrazovky
+
+```
+[●○○ progress]                    [Přeskočit]
+Nadpis (1 řádek)
+Podnadpis (max 2 řádky)
+── obsah (dlaždice / formulář) ──
+[ Pokračovat ]   ← vždy viditelné, nad klávesnicí
+```
+
+- Progress tečky 1/2/3, ne „krok X z Y“ textem.
+- **Přeskočit na každé obrazovce** (zapíše `SKIPPED`, K3). Uživatel nesmí
+  být rukojmí.
+- Zabití aplikace uprostřed: `CURRENT_STEP` (`'screen-1'`…) → po startu
+  se pokračuje na rozdělané obrazovce, ne od nuly.
+
+### D-KIT: Sdílené stavební bloky (samostatná etapa C)
+
+Tři obrazovky sdílejí: kontejner (safe areas + progress + skip + CTA),
+dlaždici, sekční nadpis. Postavit JEDNOU jako `src/components/onboarding/`,
+obrazovky je jen skládají. Tím se etapy D–F zmenší na obsah.
+
+### ⚠️ D-TPL: GoalTemplatesModal je `<Modal>` — NEvkládat, vytáhnout data
+
+Druhá prověrka odhalila kolizi: `GoalTemplatesModal.tsx:372` je RN
+`<Modal>`. „Znovupoužít“ ho v onboardingu NEZNAMENÁ otevřít modál
+(porušení K2) — znamená **vytáhnout data šablon + mřížku dlaždic do
+sdílené komponenty** (`GoalTemplateGrid`), kterou použije:
+1. stávající `GoalTemplatesModal` (Goals obrazovka — chování beze změny),
+2. onboarding obrazovka 2 (vložená přímo do view, žádný modál).
+
+### D-CHECK: Kontrolní nástroje po každé UI etapě
+
+- `theme-validator` skill na `src/components/onboarding/` (hlídá natvrdo
+  psané barvy, top-level StyleSheet, stíny v dark mode)
+- `i18n-auditor` skill + `localeParity.test.ts`
+- Device matrix v F4: malý Android (Redmi 8 Pro) + iPhone; light i dark;
+  EN/DE/ES; je-li po ruce iPad — tablet layout.
+
+## INTEGRAČNÍ KONTRAKT (doplněno při prověrce plánu 2026-08-02)
+
+Prošel jsem každý bod plánu proti kódu. Tohle jsou přesné vazby, které nové
+obrazovky MUSÍ dodržet — každá s file:line důkazem.
+
+### K1: Start za Startup Orchestratorem
+
+Dnešní průvodce se spouští v `TutorialContext.tsx:1660-1671`:
+`awaitStartupComplete()` → 300 ms → `autoStartTutorial()` (ten čte
+`PREFS_COMPLETED`, `:1638`). Důvod: RN modál přes nativní okno (ATT/UMP)
+= iOS zamrznutí. **Nový flow startuje ze STEJNÉHO místa** — mění se jen to,
+co se po bráně zobrazí. Bránu nepředělávat.
+
+### K2: Nové obrazovky NEJSOU `<Modal>`
+
+Celá ochrana proti dual-modal zamrznutí stojí na tom, že se RN modály
+nepotkávají. Obrazovky 1–3 se renderují jako plnohodnotné view (conditional
+render v root layoutu nad taby), ne přes `<Modal>`. Jediné modály ve flow:
+oslavná okna trofejí (řízená `ModalQueueContext`) a existující
+`OnboardingPreferencesModal`.
+
+### K3: Klíče stavu se ZACHOVÁVAJÍ (čte je i XpAnimationContext)
+
+`TUTORIAL_STORAGE_KEYS` (`src/constants/tutorialStorageKeys.ts`) je single
+source of truth. `XpAnimationContext.tsx:11-14` podle `COMPLETED`/`SKIPPED`
+**potlačuje level-up modál během onboardingu** (dual-modal ochrana, N-8.1).
+Nový flow musí tyto klíče zapisovat se stejnou sémantikou:
+- dokončení obrazovky 3 → `COMPLETED = 'true'`
+- přeskočení → `SKIPPED = 'true'`
+- `CURRENT_STEP` může nést id obrazovky (`'screen-1'` …) pro obnovu po pádu
+
+Pozn.: potlačuje se jen level-up **modál**, ne XP animace v liště — první
+odškrtnutí na obrazovce 3 tedy XP animaci ukáže, jak návrh chce.
+
+### K4: Nabíjení brány trofejí — přesný vzor
+
+Dnes: `HabitForm.tsx:234-255` — podmínka `isTutorialCreateStep` kontroluje
+`currentStepData.target === 'create-habit-submit'`; při novém flow **nikdy
+nebude pravdivá** (žádné kroky). Nové obrazovky nabíjejí bránu SAMY, stejným
+vzorem:
+
+```ts
+const gate = armTutorialAchievementGate('first-habit');  // PŘED create!
+await createHabit(data);
+await gate.wait();          // teprve potom přechod na další obrazovku
+```
+
+Totéž `first-goal` (vzor v `GoalForm.tsx:380`). Podmínky ve formulářích se
+mažou až v etapě H.
+
+### K5: `AchievementContext.tsx:335-343` — filtr trofejí
+
+Během aktivního průvodce se propouští jen `first-habit`/`first-goal`, vše
+ostatní se potlačuje. Filtr čte stav tutoriálu → nový flow musí po dobu
+obrazovek 1–3 vystavovat týž „aktivní“ stav (nebo ekvivalent), jinak filtr
+přestane platit a hrozí cizí trofej přes onboarding.
+
+### K6: Restart ze Settings
+
+`app/(tabs)/settings.tsx:190-199` volá `restartTutorial()`. Po přepnutí musí
+spouštět nový flow. Restart = trofeje už vlastněné → brána nesmí čekat
+(řeší `hasAchievement()` uvnitř gate). Pozor i na `GoalsContext.tsx:169`
+(zvláštní větev pro restart). `hasAchievement` je exportováno
+z `TutorialContext` — při zeštíhlování kontextu export zachovat.
+
+### K7: AdBanner
+
+`AdBanner.tsx:93-94` skrývá reklamy během průvodce. Zachovat pro obrazovky
+1–3 (stejný „aktivní“ stav jako K5 to vyřeší zadarmo).
+
+### Mrtvý kód — nekopírovat, smazat v etapě H
+
+`TutorialContext.tsx:1679-1700` („Achievement Modal Coordination“) čeká na
+kroky `first-habit-achievement`/`first-goal-achievement`, **které v seznamu
+kroků neexistují** — podmínka je vždy false, efekt nikdy neproběhne. Skutečná
+koordinace je brána ve formulářích (K4). Při psaní nového flow se tímto
+efektem neinspirovat.
+
+### Záchrana starého overlaye — ZRUŠENO (rozhodnutí 2026-08-02)
+
+Původně se mělo nejdřív rychle opravit oříznutí textu
+(`TutorialOverlay.tsx:409` a `:138`) a vyhodit 4 zbytečné kroky. Petr rozhodl
+jít rovnou na přepracování — opravovat kód určený ke smazání nemá smysl.
+
+**Důsledek, se kterým se počítá:** starý průvodce zůstává rozbitý až do
+nasazení etapy E. Testeři uvidí oříznuté věty.
+
+Zjištění z prověrky si tu necháváme pro případ, že by se rozhodnutí otočilo:
+odhad „2 řádky“ na `:138` se používá **jen pro pozicování karty** (`:662-664`),
+ne pro její výšku — příliš malý odhad posune `maxTop` nízko a karta přeteče
+pod okraj obrazovky. Týká se 4 kroků s dynamickou pozicí (`:653-658`).
+
+### Etapa A — stav ověřen
+
+`goals.form.unitPlaceholder`: DE `'z.B. €, kg, Stunden...'` (`de/index.ts:941`),
+ES `'ej., €, kg, horas...'` (`es/index.ts:941`) — **už hotové, bod 2.4 odpadá**.
+EN si `$` nechává. Zbývá jen 11× `unit:` v `GoalTemplatesModal.tsx`.
+Vedlejší: `marketingDemoDataService.ts:153,206` má také `'$'` — demo data,
+neblokuje, možno přibalit.
+
+### Znovupoužití `GoalTemplatesModal` — jak funguje
+
+`GoalsScreen.tsx:165-170`: `onSelectTemplate` vrací `CreateGoalInput` a
+otevírá `GoalModal` předvyplněný (`templateData`). Obrazovka 2 použije týž
+kontrakt: šablona → předvyplněný formulář → uživatel může vše změnit → uložit.
+
+## Rizika
+
+**Průvodce je zaklíněný hlouběji, než vypadá: 129 odkazů ve 13 souborech**
+(`useTutorial`, `tutorialState`, `isTutorialActive`) — mimo jiné v
+`GoalForm`, `HabitForm`, `GoalsScreen`, `AdBanner`, `OptimizedXpProgressBar`,
+`QuickActionButtons`, `DailyGratitudeProgress`, `app/(tabs)/_layout.tsx`.
+
+Např. `GoalForm.tsx:350` během průvodce vypíná validaci data. Smazání stavu
+průvodce bez auditu těchto míst rozbije formuláře. **Proto se maže až v etapě H,
+až po device testu z F4 a po projití všech 129 odkazů.**
+
+---
+
+## Overview (PŮVODNÍ 25krokový průvodce — stále nasazený)
 
 Onboarding Tutorial je interaktivní průvodce pro nové uživatele, který je provede celou aplikací při prvním spuštění. Systém používá overlay approach s tmavnutím obrazovky a spotlight efekty pro zvýraznění specifických elementů.
 

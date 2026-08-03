@@ -522,10 +522,127 @@ Detaily: @implementation-history.md → „Android build failure — AdMob SDK c
 >    scrollbar je proužek, kterého si nikdo nevšimne.
 > 3. **Spodní lišta se neztmaví** — hypotéza: androidí `elevation` React Navigation
 >    přebíjí `zIndex` overlaye. ⚠️ neověřeno na zařízení.
-> 4. **[STRATEGICKÉ] 25krokový tutoriál** — doporučuji zkrátit na 3–5 kroků
->    (vítej → založ návyk → odškrtni ho) a zbytek přesunout do `HelpTooltip`
->    bublinek (10 už existuje) a prázdných obrazovek. Coach-mark prohlídky jsou
->    dnes považované za anti-vzor.
+> 4. ✅ **[STRATEGICKÉ] 25krokový tutoriál** — Petr schválil přepracování
+>    2026-08-02. Plán níže.
+
+---
+
+## 🚧 Přepracování onboardingu — 25 kroků → 3 obrazovky
+
+> 📘 **Technická pravidla a logika pro Onboarding: @technical-guides:Tutorial.md**
+> (sekce „NOVÝ NÁVRH“ — architektura, pravidla lokalizace, měny, trofejí
+> a upravitelnosti. **Guide je nadřazený tomuto seznamu.**)
+
+**Cíl beze změny:** uživatel odejde z úvodu s vlastním návykem a cílem. Nově
+navíc s prvním odškrtnutím a prvním XP. Z ~28 ťuknutí na ~7.
+
+> ⚠️ Plán prověřen proti kódu 2026-08-02. Závazné vazby **K1–K7** (orchestrator,
+> ne-Modal, storage klíče, brána trofejí, filtr trofejí, restart, AdBanner):
+> @technical-guides:Tutorial.md → „INTEGRAČNÍ KONTRAKT“. **Číst před etapou B.**
+
+**Rozhodnutí 2026-08-02:** původní „etapa 1 — záchrana starého overlaye“
+**ZRUŠENA**. Petr jde rovnou na přepracování, opravovat kód určený ke smazání
+nemá smysl. Důsledek: starý průvodce zůstává rozbitý (oříznutý text) až do
+nasazení etapy F — testeři to uvidí.
+
+> 🎨 2. prověrka 2026-08-02 (lokalizace/theme/zařízení/design): doplněna
+> **DESIGN SPECIFIKACE** (D-VIZ, D-POHYB, D-DEV, D-A11Y, D-UX, D-KIT, D-TPL,
+> D-CHECK) do @technical-guides:Tutorial.md — staví jen na tom, co v projektu
+> už je (`responsive.ts`, `useTheme`, `useAccessibility`, reanimated 4).
+> Nález: `GoalTemplatesModal` JE `<Modal>` (`:372`) → do onboardingu se
+> vytahuje mřížka dlaždic, ne modál (pravidlo D-TPL).
+
+**Dělení etap:** každá = jeden zátah, končí zeleným `tsc` + testy, jde
+commitnout. A–C bez viditelné změny v UI (data, skelet, stavební bloky),
+D–F staví obrazovky, G–H uklízejí.
+
+### Etapa A — Data a překlady (bez UI, plně ověřitelné testy)
+Všechen text pro celý nový flow najednou, ať se DE/ES nedoplňuje po kouskách.
+- [x] A1 Klíče `goals.units.*` (10 jednotek × EN/DE/ES = 30 řetězců);
+      měna EN `$`, DE/ES `€`; `kg` stejné všude
+- [x] A2 `GoalTemplatesModal.tsx` — 11 natvrdo psaných `unit:` → `t()`
+      *(opravuje chybu v nasazeném kódu: DE dnes dostane „12 books“ a dolary)*
+- [x] A3 Definice 6 předvoleb návyků + „Něco jiného“ (data + i18n klíče,
+      žádné UI) — ikony/barvy dle guide, `scheduledDays` = všech 7
+- [x] A4 Texty obrazovek 1–3 do EN/DE/ES (včetně a11y popisků dlaždic, D-A11Y)
+- [x] A5 `localeParity.test.ts` zelený (+ negativní kontrola), `tsc` 0 chyb,
+      520/520 testů
+- [x] A6 ~~unitPlaceholder v DE/ES~~ — prověrkou ověřeno: `€` už tam je
+      (`de:941`, `es:941`), nic k práci
+
+### Etapa B — Skelet a napojení (nejrizikovější, izolovaně)
+Prázdné obrazovky, ale kompletní integrace. Když projde tohle, zbytek je obsah.
+- [ ] B1 `OnboardingFlow` renderovaný jako **view, ne `<Modal>`** (K2)
+- [ ] B2 Start za `awaitStartupComplete()` ze stejného místa jako dnes (K1)
+- [ ] B3 Zápis `TUTORIAL_STORAGE_KEYS` se stejnou sémantikou (K3 —
+      **čte je `XpAnimationContext`**); `CURRENT_STEP` = obnova po zabití
+      appky uprostřed flow (D-UX)
+- [ ] B4 Přeskočení (na KAŽDÉ obrazovce, D-UX) + `restartTutorial()` ze
+      Settings spouští nový flow (K6)
+- [ ] B5 AdBanner skrytý po dobu obrazovek (K7); filtr trofejí (K5) platí
+- [ ] B6 Testy: první spuštění / dokončeno / přeskočeno / restart / obnova
+- [ ] B7 **Device smoke test** — projít 3 prázdné obrazovky, ověřit že nic
+      nezamrzá a nepřekrývá se
+
+### Etapa C — Stavební bloky UI (D-KIT; bez napojení na flow)
+Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají.
+- [ ] C1 `OnbScreenContainer` — safe areas, progress tečky 1/2/3, Přeskočit,
+      CTA vždy nad klávesnicí (`KeyboardAvoidingView`, D-DEV)
+- [ ] C2 `OnbTile` — ikona+popisek, vybraný stav, stisk scale 0.97
+      s reduce-motion (D-POHYB), a11y role+label (D-A11Y), 44pt cíle
+- [ ] C3 `GoalTemplateGrid` — vytáhnout mřížku+data z `GoalTemplatesModal`
+      (D-TPL!); modál na Goals obrazovce ji používá dál, chování beze změny
+- [ ] C4 Vše: theme 2-tier přes `useTheme()` (StyleSheet UVNITŘ komponenty),
+      responsive přes `responsive.ts` (2 sloupce SMALL/MEDIUM, 3 LARGE/TABLET,
+      tablet kontejner ~560 px), žádné natvrdo barvy (D-VIZ)
+- [ ] C5 `theme-validator` na `src/components/onboarding/`; testy komponent
+
+### Etapa D — Obrazovka 1: první návyk
+- [ ] D1 Složit z C-bloků: dlaždice předvoleb + „Něco jiného“
+- [ ] D2 Upravitelné prvky pod nimi (název, ikona, barva, dny) —
+      znovupoužít z `HabitForm`, ne psát nové
+- [ ] D3 **Brána trofejí** dle K4: `armTutorialAchievementGate('first-habit')`
+      PŘED create, `wait()` před přechodem dál
+- [ ] D4 Testy: vytvoření z předvolby, vlastní návyk, brána, restart;
+      theme-validator
+
+### Etapa E — Obrazovka 2: první cíl
+- [ ] E1 Složit z `GoalTemplateGrid` (C3) — vloženo přímo do view, ŽÁDNÝ modál
+- [ ] E2 Vše upravitelné včetně čísla a jednotky
+- [ ] E3 Brána trofejí pro `first-goal` (stejný vzor jako D3)
+- [ ] E4 Testy; theme-validator
+
+### Etapa F — Obrazovka 3: první odškrtnutí + dokončení
+- [ ] F1 Karta „Odškrtni si návyk“ na hlavní obrazovce
+- [ ] F2 `highlightCheckbox` na kartě návyku — pulz ~2 s s reduce-motion
+      (D-POHYB); **bez overlay a bez měření pozic**, komponenta zná pozici
+      svého zaškrtávátka sama
+- [ ] F3 Dokončení → `COMPLETED`; ověřit, že XP animace naskočí
+      (potlačuje se jen level-up **modál**, ne animace v liště)
+- [ ] F4 **Device matrix** (D-CHECK): malý Android + iPhone; light i dark;
+      EN/DE/ES; klávesnice na malém displeji; je-li iPad → tablet layout
+      ← brána pro etapu H
+
+### Etapa G — Přesun zbytku (nezávislá na H)
+- [ ] G1 Prázdné stavy: Journal, Trophy room, Goals
+- [ ] G2 Doplnit `HelpTooltip` témata (10 bublin už existuje)
+- [ ] G3 Texty EN/DE/ES; parity test zelený
+
+### Etapa H — Úklid (AŽ PO device matrix z F4)
+- [ ] H1 **Audit 129 odkazů ve 13 souborech** — (a) mechanické
+      `useTutorialTarget` registrace, (b) chování: `AdBanner:94`,
+      `GoalForm:350` (vypíná validaci data), gate podmínky ve formulářích
+- [ ] H2 Smazat `TutorialOverlay.tsx` (734 ř.), `SpotlightEffect.tsx` (282 ř.),
+      `TutorialTargetHelper.ts`, `createTutorialSteps()` (~330 ř.) + mrtvou
+      koordinaci `TutorialContext:1679-1700` (čeká na neexistující kroky);
+      **zachovat export `hasAchievement`** (importuje ho gate)
+- [ ] H3 Smazat osiřelé i18n klíče ve všech 3 jazycích
+- [ ] H4 Device test; aktualizovat @technical-guides:Tutorial.md (smazat popis
+      starého 25krokového flow, ten už nebude existovat)
+
+**Nesahat:** `OnboardingPreferencesModal.tsx` (funguje),
+`tutorialAchievementGate.ts` (pracně odladěné), `AchievementContext.tsx:343`,
+`TUTORIAL_STORAGE_KEYS` (single source of truth, čte i XpAnimationContext).
 
 ---
 
