@@ -44,6 +44,43 @@ odškrtnutí návyku a první zážitek XP, které dnes chybí.
 
 `OnboardingPreferencesModal.tsx` — jazyk → motiv → notifikace. Funguje, nesahat.
 
+### Uvítání (doplněno 2026-08-02 na Petrův podnět po device testu)
+
+Petrův postřeh z testu: *„je to takové hrrr, chybí mi předtím welcome stránka.“*
+Oprávněný — posloupnost šla z **nastavovacích** otázek (jazyk, motiv,
+notifikace) rovnou na **osobní závazek** („Co chceš dělat pravidelně?“), bez
+přechodu.
+
+`WelcomeScreen.tsx`, mezi předvolbami a obrazovkou 1. Tři řádky, jedno tlačítko:
+
+1. co to je,
+2. co se teď stane,
+3. **„zabere to chvilku a změnit se dá cokoliv“** ← tenhle řádek dělá tu
+   práci; pocit spěchu z velké části pramení z toho, že uživatel neví, jak
+   dlouho to bude trvat a jestli je to natrvalo.
+
+> ## ⚠️ PRAVIDLO: uvítání je JEDNA obrazovka. Navždy.
+>
+> Starý 25krokový tutoriál měl **devět kroků, které jen mluvily**, a každý
+> z nich vznikl jako rozumný nápad. Jeho druhý krok byl „Tady je tvůj přehled,
+> tady série, tady úspěchy“ — přesně to, co si nikdo nezapamatuje.
+>
+> **Žádná prohlídka funkcí. Žádná druhá uvítací obrazovka.**
+>
+> Pravidlo je vymáháno testem: `src/locales/__tests__/onboardingCopy.test.ts`
+> hlídá délku všech úvodních textů ve všech 3 jazycích (staré uvítání mělo
+> 244 znaků ≈ 8 řádků, což ho na telefonu ořízlo). Když limit spadne,
+> **řešením je zkrátit text, ne zvednout číslo.**
+
+**Technicky:** není to čtvrtá číslovaná obrazovka, ale samostatný přepínač
+`showOnboardingWelcome` — stejný vzor jako existující brána předvoleb. Tečky
+průběhu tak dál poctivě říkají „tři úkoly“ a `OnboardingScreen = 1|2|3`
+i testy zůstaly netknuté.
+
+Zobrazuje se ve všech třech startovních cestách (první spuštění, dokončení
+předvoleb, restart ze Settings), **ale ne při obnově rozdělaného průvodce** —
+kdo se vrací na obrazovku 2, nechce číst uvítání znovu.
+
 ### Obrazovka 1 — První návyk
 
 Dlaždice s předvolbami. Ťuknutí vyplní **název + ikonu + barvu najednou**.

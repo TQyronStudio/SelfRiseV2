@@ -109,9 +109,17 @@ export interface TutorialContextType {
   state: TutorialState;
   // Onboarding preferences gate (language + theme) - first launch only, before the tutorial
   showOnboardingPrefs: boolean;
+  /**
+   * The single welcome screen between the preferences gate and screen 1.
+   * Kept as its own flag rather than a fourth numbered screen so the progress
+   * dots keep telling the truth about the three tasks.
+   */
+  showOnboardingWelcome: boolean;
   actions: {
     startTutorial: () => Promise<void>;
     completeOnboardingPrefs: (wantsNotifications: boolean) => Promise<void>;
+    /** Leaves the welcome screen and opens screen 1. */
+    completeOnboardingWelcome: () => Promise<void>;
     /** Advance the 3-screen onboarding, finishing it after the last screen. */
     nextOnboardingScreen: () => Promise<void>;
     /** Leave onboarding early; writes the same SKIPPED flag the old tutorial did. */
@@ -678,6 +686,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   // Onboarding preferences gate (language + theme) - shown only on first launch
   const [showOnboardingPrefs, setShowOnboardingPrefs] = useState(false);
+  const [showOnboardingWelcome, setShowOnboardingWelcome] = useState(false);
 
   // Create tutorial steps with translations
   const TUTORIAL_STEPS = createTutorialSteps(t);
@@ -1062,15 +1071,20 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         await enableAllRemindersAfterOptIn();
       }
 
-      // Start the 3-screen onboarding from the beginning
+      // One welcome beat, then the 3-screen onboarding.
       dispatch({ type: 'RESET_TUTORIAL' });
-      await startOnboardingAt(1);
+      setShowOnboardingWelcome(true);
     } catch (error) {
       console.warn('Failed to complete onboarding preferences:', error);
-      // Fallback: start onboarding anyway so the user is never stuck on the gate
+      // Fallback: keep going so the user is never stuck on the gate
       setShowOnboardingPrefs(false);
-      dispatch({ type: 'START_ONBOARDING', payload: { screen: 1 } });
+      setShowOnboardingWelcome(true);
     }
+  };
+
+  const completeOnboardingWelcome = async (): Promise<void> => {
+    setShowOnboardingWelcome(false);
+    await startOnboardingAt(1);
   };
 
   // ---------------------------------------------------------------------------
@@ -1261,8 +1275,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       // Small delay to ensure navigation completes
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Then immediately start onboarding
-      await startOnboardingAt(1);
+      // Then immediately start onboarding, welcome screen included — a restart
+      // should feel like the real thing, not a stripped-down version.
+      setShowOnboardingWelcome(true);
 
     } catch (error) {
       await handleTutorialError(error instanceof Error ? error : new Error('Failed to restart tutorial'), {
@@ -1744,10 +1759,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
               return;
             }
 
-            // New user - start onboarding from the first screen
-            console.log(`🎓 [ONBOARDING] First app launch detected - starting onboarding`);
+            // New user - welcome first, then the three screens.
+            console.log(`🎓 [ONBOARDING] First app launch detected - showing welcome`);
             dispatch({ type: 'RESET_TUTORIAL' });
-            await startOnboardingAt(1);
+            setShowOnboardingWelcome(true);
           }
         }
       } catch (error) {
@@ -1895,9 +1910,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       value={{
         state,
         showOnboardingPrefs,
+        showOnboardingWelcome,
         actions: {
           startTutorial,
           completeOnboardingPrefs,
+          completeOnboardingWelcome,
           nextOnboardingScreen,
           skipOnboarding,
           nextStep,

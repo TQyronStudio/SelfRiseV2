@@ -3800,6 +3800,15 @@ const en: TranslationKeys = {
   // so only non-textual controls need their own a11y string here.
   onboarding: {
     skip: 'Skip',
+    // A single welcome beat between the settings questions and the first real
+    // ask. Three lines and one button — the old tutorial reached 25 steps by
+    // letting screens like this multiply.
+    welcome: {
+      title: 'Welcome to SelfRise',
+      tagline: 'Habits, gratitude and goals in one place.',
+      promise: 'In a moment we\'ll set up your first habit and your first goal. It takes a minute — and you can change anything later.',
+      cta: 'Let\'s go',
+    },
     continue: 'Continue',
     back: 'Back',
     progressA11y: 'Step {{current}} of {{total}}',

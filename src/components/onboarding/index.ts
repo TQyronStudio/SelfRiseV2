@@ -15,3 +15,4 @@ export type { GoalDraft } from './goalDraft';
 export { FirstCheckCard } from './FirstCheckCard';
 export { countChecksOn, hasNewCheckSince } from './checkDetection';
 export type { CompletionLike } from './checkDetection';
+export { WelcomeScreen } from './WelcomeScreen';

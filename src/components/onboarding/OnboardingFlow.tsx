@@ -4,6 +4,7 @@ import { useTutorial } from '@/src/contexts/TutorialContext';
 import { FirstHabitScreen } from './FirstHabitScreen';
 import { FirstGoalScreen } from './FirstGoalScreen';
 import { FirstCheckCard } from './FirstCheckCard';
+import { WelcomeScreen } from './WelcomeScreen';
 
 /**
  * The 3-screen onboarding that replaces the 25-step coach-mark tutorial.
@@ -22,8 +23,14 @@ import { FirstCheckCard } from './FirstCheckCard';
  * draw order; that is exactly why the old overlay failed to dim the tab bar.
  */
 export function OnboardingFlow() {
-  const { state, actions } = useTutorial();
+  const { state, actions, showOnboardingWelcome } = useTutorial();
   const screen = state.onboardingScreen;
+
+  // Sits between the preferences gate and screen 1, so it is a flag rather
+  // than a fourth numbered screen — the dots stay honest about three tasks.
+  if (showOnboardingWelcome) {
+    return <WelcomeScreen onContinue={actions.completeOnboardingWelcome} />;
+  }
 
   if (screen === null) return null;
 

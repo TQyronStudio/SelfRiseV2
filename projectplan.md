@@ -639,9 +639,24 @@ Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají
       o levelu**, XP animace běží → karta na ni 1,2 s počká.
       **Past:** naivní podmínka by při restartu ze Settings kartu zavřela hned;
       řeší se výchozím počtem a čekáním na nárůst (`checkDetection.ts`)
-- [ ] F4 **Device matrix** (D-CHECK): malý Android + iPhone; light i dark;
-      EN/DE/ES; klávesnice na malém displeji; je-li iPad → tablet layout
-      ← brána pro etapu H
+- [x] F4 **Device test proveden Petrem 2026-08-02** — obě trofeje, pulzování,
+      XP, karta nemizí sama (ověřen i restartový scénář). Zbývá projít matici
+      light/dark × EN/DE/ES × malý displej, ideálně spolu s uvítáním (F5)
+
+### F5 — Uvítací obrazovka (doplněno na Petrův podnět po device testu)
+Postřeh z testu: „je to takové hrrr“ — chyběl přechod mezi nastavovacími
+otázkami a prvním osobním závazkem.
+- [x] F5.1 `WelcomeScreen.tsx` mezi předvolbami a obrazovkou 1; tři řádky,
+      jedno tlačítko; klíčový je řádek „zabere to chvilku, změnit se dá cokoliv“
+- [x] F5.2 Samostatný přepínač `showOnboardingWelcome` (ne 4. číslovaná
+      obrazovka) → tečky dál říkají „tři úkoly“, `1|2|3` i testy netknuté
+- [x] F5.3 Zobrazí se při prvním spuštění, po předvolbách i při restartu —
+      **ne při obnově rozdělaného průvodce** (kdo se vrací na obrazovku 2,
+      nechce číst uvítání znovu)
+- [x] F5.4 12 nových řetězců (4 × EN/DE/ES); theme, tablet, a11y, safe areas
+- [x] F5.5 **Test délky textů** (`onboardingCopy.test.ts`, 31 kontrol) vymáhá
+      pravidlo „jedna obrazovka, tři řádky“ — staré uvítání mělo 244 znaků
+      a na telefonu se ořízlo. Ověřeno negativní kontrolou. **599/599**
 
 ### Etapa G — Přesun zbytku (nezávislá na H)
 - [ ] G1 Prázdné stavy: Journal, Trophy room, Goals

@@ -1844,6 +1844,12 @@ export interface TranslationKeys {
   // Screen 0 (language/theme/notifications) stays under `tutorial.*`.
   onboarding: {
     skip: string;
+    welcome: {
+      title: string;
+      tagline: string;
+      promise: string;
+      cta: string;
+    };
     continue: string;
     back: string;
     progressA11y: string;

@@ -3762,6 +3762,12 @@ const de: Partial<TranslationKeys> = {
 
   onboarding: {
     skip: 'Überspringen',
+    welcome: {
+      title: 'Willkommen bei SelfRise',
+      tagline: 'Gewohnheiten, Dankbarkeit und Ziele an einem Ort.',
+      promise: 'Gleich richten wir deine erste Gewohnheit und dein erstes Ziel ein. Das dauert eine Minute — und du kannst später alles ändern.',
+      cta: 'Los geht\'s',
+    },
     continue: 'Weiter',
     back: 'Zurück',
     progressA11y: 'Schritt {{current}} von {{total}}',
