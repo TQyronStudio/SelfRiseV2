@@ -606,13 +606,16 @@ Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají
       černé. 8 testů + negativní kontrola strážce jednotek. tsc 0, **540/540**
 
 ### Etapa D — Obrazovka 1: první návyk
-- [ ] D1 Složit z C-bloků: dlaždice předvoleb + „Něco jiného“
-- [ ] D2 Upravitelné prvky pod nimi (název, ikona, barva, dny) —
-      znovupoužít z `HabitForm`, ne psát nové
-- [ ] D3 **Brána trofejí** dle K4: `armTutorialAchievementGate('first-habit')`
-      PŘED create, `wait()` před přechodem dál
-- [ ] D4 Testy: vytvoření z předvolby, vlastní návyk, brána, restart;
-      theme-validator
+- [x] D1 Složit z C-bloků: 6 dlaždic + „Něco jiného“; formulář se objeví až
+      po výběru (prázdný formulář nad dlaždicemi vypadá jako práce předem)
+- [x] D2 Znovupoužity `ColorPicker`, `IconPicker`, `DayPicker` z `HabitForm`
+      (samostatné komponenty s čistými props) — nic nového se nepsalo
+- [x] D3 Pořadí nabít→vytvořit→čekat vytaženo do `createWithTrophyGate.ts`,
+      aby ho etapa E jen znovupoužila a nemusela objevovat stejné chyby
+- [x] D4 9 testů + 3 negativní kontroly (obě historické chyby brány + překlep
+      v předvolbě). **Jedna kontrola odhalila vadný test** — měl moc těsné
+      časování a neprošlá varianta jím prošla; opraveno. theme-validator čistý,
+      tsc 0, **549/549**
 
 ### Etapa E — Obrazovka 2: první cíl
 - [ ] E1 Složit z `GoalTemplateGrid` (C3) — vloženo přímo do view, ŽÁDNÝ modál

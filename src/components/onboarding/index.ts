@@ -6,3 +6,6 @@ export type { OnbTileProps } from './OnbTile';
 export { OnbTileGrid } from './OnbTileGrid';
 export { chunkIntoRows } from './gridLayout';
 export type { OnbTileGridProps, OnbTileGridItem } from './OnbTileGrid';
+export { FirstHabitScreen } from './FirstHabitScreen';
+export { createWithTrophyGate } from './createWithTrophyGate';
+export type { TrophyGate } from './createWithTrophyGate';

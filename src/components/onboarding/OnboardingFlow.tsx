@@ -6,6 +6,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts } from '@/src/constants/fonts';
 import { scaleFont } from '@/src/utils/responsive';
 import { OnbScreenContainer } from './OnbScreenContainer';
+import { FirstHabitScreen } from './FirstHabitScreen';
 
 /**
  * The 3-screen onboarding that replaces the 25-step coach-mark tutorial.
@@ -48,26 +49,33 @@ export function OnboardingFlow() {
     },
   });
 
-  const copy = {
-    1: { title: t('onboarding.habit.title'), subtitle: t('onboarding.habit.subtitle'), cta: t('onboarding.habit.cta') },
+  // Screens 2 and 3 are still stage-B placeholders; stages E and F replace them.
+  const placeholderCopy = {
     2: { title: t('onboarding.goal.title'), subtitle: t('onboarding.goal.subtitle'), cta: t('onboarding.goal.cta') },
     3: { title: t('onboarding.done.title'), subtitle: t('onboarding.done.subtitle'), cta: t('onboarding.done.cta') },
-  }[screen];
+  };
 
   return (
     <View style={styles.root} accessibilityViewIsModal>
-      <OnbScreenContainer
-        screen={screen}
-        title={copy.title}
-        subtitle={copy.subtitle}
-        ctaLabel={copy.cta}
-        onPressCta={actions.nextOnboardingScreen}
-        onSkip={actions.skipOnboarding}
-      >
-        <Text style={styles.placeholder}>
-          {screen} / {ONBOARDING_TOTAL_SCREENS}
-        </Text>
-      </OnbScreenContainer>
+      {screen === 1 ? (
+        <FirstHabitScreen
+          onCreated={actions.nextOnboardingScreen}
+          onSkip={actions.skipOnboarding}
+        />
+      ) : (
+        <OnbScreenContainer
+          screen={screen}
+          title={placeholderCopy[screen].title}
+          subtitle={placeholderCopy[screen].subtitle}
+          ctaLabel={placeholderCopy[screen].cta}
+          onPressCta={actions.nextOnboardingScreen}
+          onSkip={actions.skipOnboarding}
+        >
+          <Text style={styles.placeholder}>
+            {screen} / {ONBOARDING_TOTAL_SCREENS}
+          </Text>
+        </OnbScreenContainer>
+      )}
     </View>
   );
 }
