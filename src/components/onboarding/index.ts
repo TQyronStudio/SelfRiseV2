@@ -7,5 +7,8 @@ export { OnbTileGrid } from './OnbTileGrid';
 export { chunkIntoRows } from './gridLayout';
 export type { OnbTileGridProps, OnbTileGridItem } from './OnbTileGrid';
 export { FirstHabitScreen } from './FirstHabitScreen';
+export { FirstGoalScreen } from './FirstGoalScreen';
 export { createWithTrophyGate } from './createWithTrophyGate';
 export type { TrophyGate } from './createWithTrophyGate';
+export { parseGoalTarget, isGoalDraftComplete, GOAL_TARGET_MAX } from './goalDraft';
+export type { GoalDraft } from './goalDraft';

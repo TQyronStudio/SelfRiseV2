@@ -7,6 +7,7 @@ import { Fonts } from '@/src/constants/fonts';
 import { scaleFont } from '@/src/utils/responsive';
 import { OnbScreenContainer } from './OnbScreenContainer';
 import { FirstHabitScreen } from './FirstHabitScreen';
+import { FirstGoalScreen } from './FirstGoalScreen';
 
 /**
  * The 3-screen onboarding that replaces the 25-step coach-mark tutorial.
@@ -49,25 +50,27 @@ export function OnboardingFlow() {
     },
   });
 
-  // Screens 2 and 3 are still stage-B placeholders; stages E and F replace them.
-  const placeholderCopy = {
-    2: { title: t('onboarding.goal.title'), subtitle: t('onboarding.goal.subtitle'), cta: t('onboarding.goal.cta') },
-    3: { title: t('onboarding.done.title'), subtitle: t('onboarding.done.subtitle'), cta: t('onboarding.done.cta') },
-  };
-
   return (
     <View style={styles.root} accessibilityViewIsModal>
-      {screen === 1 ? (
+      {screen === 1 && (
         <FirstHabitScreen
           onCreated={actions.nextOnboardingScreen}
           onSkip={actions.skipOnboarding}
         />
-      ) : (
+      )}
+      {screen === 2 && (
+        <FirstGoalScreen
+          onCreated={actions.nextOnboardingScreen}
+          onSkip={actions.skipOnboarding}
+        />
+      )}
+      {/* Screen 3 is still a stage-B placeholder; stage F replaces it. */}
+      {screen === 3 && (
         <OnbScreenContainer
           screen={screen}
-          title={placeholderCopy[screen].title}
-          subtitle={placeholderCopy[screen].subtitle}
-          ctaLabel={placeholderCopy[screen].cta}
+          title={t('onboarding.done.title')}
+          subtitle={t('onboarding.done.subtitle')}
+          ctaLabel={t('onboarding.done.cta')}
           onPressCta={actions.nextOnboardingScreen}
           onSkip={actions.skipOnboarding}
         >

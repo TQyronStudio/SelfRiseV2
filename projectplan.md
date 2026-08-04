@@ -618,10 +618,16 @@ Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají
       tsc 0, **549/549**
 
 ### Etapa E — Obrazovka 2: první cíl
-- [ ] E1 Složit z `GoalTemplateGrid` (C3) — vloženo přímo do view, ŽÁDNÝ modál
-- [ ] E2 Vše upravitelné včetně čísla a jednotky
-- [ ] E3 Brána trofejí pro `first-goal` (stejný vzor jako D3)
-- [ ] E4 Testy; theme-validator
+- [x] E1 11 šablon + „Něco jiného“ jako dlaždice přímo ve view; ověřeno
+      grepem, že v `src/components/onboarding/` není žádný `<Modal>` (K2)
+- [x] E2 Upravitelné: název, číslo, jednotka, kategorie. **Datum vynecháno** —
+      je nepovinné, žádná šablona ho nenastavuje (nic se tedy nezamyká)
+      a kalendář v sedmiťuknutovém úvodu je jen tření; jde doplnit úpravou cíle
+- [x] E3 Znovupoužit `createWithTrophyGate` z etapy D — pořadí se neobjevuje
+      podruhé
+- [x] E4 10 testů validace (pravidla zrcadlí `GoalForm:290,326-330`, aby se
+      cíl z úvodu a z formuláře nechovaly různě) + 3 negativní kontroly;
+      theme-validator čistý, tsc 0, **559/559**
 
 ### Etapa F — Obrazovka 3: první odškrtnutí + dokončení
 - [ ] F1 Karta „Odškrtni si návyk“ na hlavní obrazovce
