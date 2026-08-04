@@ -47,9 +47,44 @@ export interface TutorialStep {
   validation?: (value: any) => boolean;
 }
 
+/**
+ * The three onboarding screens that replace the 25-step coach-mark tutorial:
+ * 1 = first habit, 2 = first goal, 3 = first check-off.
+ */
+export type OnboardingScreen = 1 | 2 | 3;
+export const ONBOARDING_TOTAL_SCREENS = 3;
+
+/**
+ * Which screen to open when onboarding (re)starts.
+ *
+ * `CURRENT_STEP` is shared with the old tutorial, where it counted up to 25. A
+ * user who upgrades mid-tutorial therefore has a saved number that means nothing
+ * in the new flow — treat anything out of range as "start from the beginning"
+ * rather than clamping it to screen 3, which would drop them on the finish line
+ * having created neither a habit nor a goal.
+ */
+export function resolveOnboardingStartScreen(savedStep: number): OnboardingScreen {
+  if (!Number.isFinite(savedStep)) return 1;
+  const step = Math.trunc(savedStep);
+  if (step < 1 || step > ONBOARDING_TOTAL_SCREENS) return 1;
+  return step as OnboardingScreen;
+}
+
 // Tutorial State Interface
 export interface TutorialState {
   isActive: boolean;
+  /**
+   * Current onboarding screen, or null when the new flow is not showing.
+   *
+   * `isActive` stays the single signal the rest of the app reads (AdBanner hides
+   * ads, AchievementContext lets only first-habit/first-goal celebrations
+   * through, GoalForm relaxes date validation), so the new flow sets it exactly
+   * like the old tutorial did — no consumer needs to change.
+   *
+   * `currentStepData` stays null throughout, which is what keeps the old
+   * TutorialOverlay from drawing anything (its guard at TutorialOverlay.tsx:335).
+   */
+  onboardingScreen: OnboardingScreen | null;
   currentStep: number;
   totalSteps: number;
   isCompleted: boolean;
@@ -77,6 +112,10 @@ export interface TutorialContextType {
   actions: {
     startTutorial: () => Promise<void>;
     completeOnboardingPrefs: (wantsNotifications: boolean) => Promise<void>;
+    /** Advance the 3-screen onboarding, finishing it after the last screen. */
+    nextOnboardingScreen: () => Promise<void>;
+    /** Leave onboarding early; writes the same SKIPPED flag the old tutorial did. */
+    skipOnboarding: () => Promise<void>;
     nextStep: () => Promise<void>;
     skipTutorial: () => Promise<void>;
     completeTutorial: () => Promise<void>;
@@ -101,6 +140,8 @@ type TutorialAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'START_TUTORIAL'; payload: { steps: TutorialStep[] } }
+  | { type: 'START_ONBOARDING'; payload: { screen: OnboardingScreen } }
+  | { type: 'SET_ONBOARDING_SCREEN'; payload: { screen: OnboardingScreen } }
   | { type: 'SET_CURRENT_STEP'; payload: { stepNumber: number; steps: TutorialStep[] } }
   | { type: 'SET_STEP_DATA'; payload: TutorialStep | null }
   | { type: 'COMPLETE_TUTORIAL' }
@@ -142,8 +183,9 @@ export const TUTORIAL_ANIMATIONS = {
 } as const;
 
 // Initial State
-const initialState: TutorialState = {
+export const initialState: TutorialState = {
   isActive: false,
+  onboardingScreen: null,
   currentStep: 1,
   totalSteps: 25, // Fixed: Complete tutorial flow (includes goal-complete, navigate-home, xp-intro, trophy-room, completion)
   isCompleted: false,
@@ -494,8 +536,9 @@ const createTutorialSteps = (t: any): TutorialStep[] => [
   }
 ];
 
-// Reducer
-function tutorialReducer(state: TutorialState, action: TutorialAction): TutorialState {
+// Reducer — exported so the onboarding transitions can be tested without
+// mounting the provider (which needs AsyncStorage, the router and the startup gate).
+export function tutorialReducer(state: TutorialState, action: TutorialAction): TutorialState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
@@ -517,6 +560,33 @@ function tutorialReducer(state: TutorialState, action: TutorialAction): Tutorial
         error: null
       };
 
+    // New 3-screen onboarding. Sets `isActive` exactly like START_TUTORIAL so
+    // every existing consumer keeps working, but leaves `currentStepData` null
+    // so the old overlay renders nothing (its guard at TutorialOverlay.tsx:335).
+    case 'START_ONBOARDING':
+      return {
+        ...state,
+        isActive: true,
+        onboardingScreen: action.payload.screen,
+        currentStep: action.payload.screen,
+        totalSteps: ONBOARDING_TOTAL_SCREENS,
+        isCompleted: false,
+        isSkipped: false,
+        // The new screens are ordinary full-screen views, not a coach-mark
+        // overlay — there is no app underneath to block touches on.
+        userInteractionBlocked: false,
+        currentStepData: null,
+        isLoading: false,
+        error: null,
+      };
+
+    case 'SET_ONBOARDING_SCREEN':
+      return {
+        ...state,
+        onboardingScreen: action.payload.screen,
+        currentStep: action.payload.screen,
+      };
+
     case 'SET_CURRENT_STEP':
       const stepIndex = Math.max(0, Math.min(action.payload.stepNumber - 1, action.payload.steps.length - 1));
       return {
@@ -533,6 +603,7 @@ function tutorialReducer(state: TutorialState, action: TutorialAction): Tutorial
       return {
         ...state,
         isActive: false,
+        onboardingScreen: null,
         isCompleted: true,
         userInteractionBlocked: false,
         currentStepData: null
@@ -542,6 +613,7 @@ function tutorialReducer(state: TutorialState, action: TutorialAction): Tutorial
       return {
         ...state,
         isActive: false,
+        onboardingScreen: null,
         isSkipped: true,
         userInteractionBlocked: false,
         currentStepData: null
@@ -990,16 +1062,45 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         await enableAllRemindersAfterOptIn();
       }
 
-      // Start the tutorial from the beginning (Welcome step)
+      // Start the 3-screen onboarding from the beginning
       dispatch({ type: 'RESET_TUTORIAL' });
-      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-      await saveTutorialProgress(1);
+      await startOnboardingAt(1);
     } catch (error) {
       console.warn('Failed to complete onboarding preferences:', error);
-      // Fallback: start the tutorial anyway so the user is never stuck on the gate
+      // Fallback: start onboarding anyway so the user is never stuck on the gate
       setShowOnboardingPrefs(false);
-      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
+      dispatch({ type: 'START_ONBOARDING', payload: { screen: 1 } });
     }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 3-screen onboarding (replaces the 25-step tutorial)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Open onboarding at `screen` and remember it, so killing the app mid-flow
+   * resumes where the user left off instead of starting over.
+   */
+  const startOnboardingAt = async (screen: OnboardingScreen): Promise<void> => {
+    dispatch({ type: 'START_ONBOARDING', payload: { screen } });
+    await saveTutorialProgress(screen);
+  };
+
+  const nextOnboardingScreen = async (): Promise<void> => {
+    const current = state.onboardingScreen ?? 1;
+    if (current >= ONBOARDING_TOTAL_SCREENS) {
+      await completeTutorial();
+      return;
+    }
+    const next = (current + 1) as OnboardingScreen;
+    dispatch({ type: 'SET_ONBOARDING_SCREEN', payload: { screen: next } });
+    await saveTutorialProgress(next);
+  };
+
+  // Reuses skipTutorial so the storage flags stay identical — XpAnimationContext
+  // reads COMPLETED/SKIPPED to suppress the level-up modal (dual-modal freeze).
+  const skipOnboarding = async (): Promise<void> => {
+    await skipTutorial();
   };
 
   const startTutorial = async (): Promise<void> => {
@@ -1160,9 +1261,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       // Small delay to ensure navigation completes
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Then immediately start tutorial
-      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-      await saveTutorialProgress(1);
+      // Then immediately start onboarding
+      await startOnboardingAt(1);
 
     } catch (error) {
       await handleTutorialError(error instanceof Error ? error : new Error('Failed to restart tutorial'), {
@@ -1628,11 +1728,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           await new Promise(resolve => setTimeout(resolve, 300));
 
           if (resumeStep > 1) {
-            // User has an interrupted tutorial - resume from where they left off
-            console.log(`🎓 [TUTORIAL] Resuming interrupted tutorial from step ${resumeStep}`);
+            // Interrupted onboarding — resume where the user left off.
+            const screen = resolveOnboardingStartScreen(resumeStep);
+            console.log(`🎓 [ONBOARDING] Resuming from screen ${screen} (saved step ${resumeStep})`);
             dispatch({ type: 'RESET_TUTORIAL' });
-            dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-            dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
+            await startOnboardingAt(screen);
           } else {
             // New user - check if onboarding preferences (language + theme) were already chosen
             const prefsCompleted = await AsyncStorage.getItem(ONBOARDING_PREFS_KEY);
@@ -1644,11 +1744,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
               return;
             }
 
-            // New user - start tutorial from beginning
-            console.log(`🎓 [TUTORIAL] First app launch detected - starting tutorial automatically`);
+            // New user - start onboarding from the first screen
+            console.log(`🎓 [ONBOARDING] First app launch detected - starting onboarding`);
             dispatch({ type: 'RESET_TUTORIAL' });
-            dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-            await saveTutorialProgress(1);
+            await startOnboardingAt(1);
           }
         }
       } catch (error) {
@@ -1799,6 +1898,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         actions: {
           startTutorial,
           completeOnboardingPrefs,
+          nextOnboardingScreen,
+          skipOnboarding,
           nextStep,
           skipTutorial,
           completeTutorial,

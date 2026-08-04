@@ -572,17 +572,21 @@ Všechen text pro celý nový flow najednou, ať se DE/ES nedoplňuje po kouská
 
 ### Etapa B — Skelet a napojení (nejrizikovější, izolovaně)
 Prázdné obrazovky, ale kompletní integrace. Když projde tohle, zbytek je obsah.
-- [ ] B1 `OnboardingFlow` renderovaný jako **view, ne `<Modal>`** (K2)
-- [ ] B2 Start za `awaitStartupComplete()` ze stejného místa jako dnes (K1)
-- [ ] B3 Zápis `TUTORIAL_STORAGE_KEYS` se stejnou sémantikou (K3 —
+- [x] B1 `OnboardingFlow` renderovaný jako **view, ne `<Modal>`** (K2);
+      `elevation` i `zIndex` (poučení z nálezu #3 — na Androidu elevation vyhrává)
+- [x] B2 Start za `awaitStartupComplete()` ze stejného místa jako dnes (K1)
+- [x] B3 Zápis `TUTORIAL_STORAGE_KEYS` se stejnou sémantikou (K3 —
       **čte je `XpAnimationContext`**); `CURRENT_STEP` = obnova po zabití
       appky uprostřed flow (D-UX)
-- [ ] B4 Přeskočení (na KAŽDÉ obrazovce, D-UX) + `restartTutorial()` ze
+- [x] B4 Přeskočení (na KAŽDÉ obrazovce, D-UX) + `restartTutorial()` ze
       Settings spouští nový flow (K6)
-- [ ] B5 AdBanner skrytý po dobu obrazovek (K7); filtr trofejí (K5) platí
-- [ ] B6 Testy: první spuštění / dokončeno / přeskočeno / restart / obnova
-- [ ] B7 **Device smoke test** — projít 3 prázdné obrazovky, ověřit že nic
-      nezamrzá a nepřekrývá se
+- [x] B5 AdBanner skrytý (K7 ✅ čte `isActive`); filtr trofejí (K5 ✅ — ale čte
+      storage flagy, ne `isActive`; drží díky K3)
+- [x] B6 12 testů + **3 negativní kontroly** (isActive, currentStepData,
+      staré číslo kroku); tsc 0, **532/532**
+- [x] B7 **Device smoke test** — ověřeno Petrem 2026-08-02: start, průchod
+      1→2→3, přeskočení, restart ze Settings, bez reklam, lišta neprosvítá,
+      obnova po zabití appky
 
 ### Etapa C — Stavební bloky UI (D-KIT; bez napojení na flow)
 Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají.

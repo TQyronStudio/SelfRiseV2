@@ -326,7 +326,34 @@ await gate.wait();          // teprve potom přechod na další obrazovku
 Totéž `first-goal` (vzor v `GoalForm.tsx:380`). Podmínky ve formulářích se
 mažou až v etapě H.
 
+### Jak je to nakonec zapojené (etapa B, hotovo 2026-08-02)
+
+Klíčový trik: nový flow **dispatchuje `START_ONBOARDING`, které nastaví
+`isActive: true` úplně stejně jako starý `START_TUTORIAL`, ale nechá
+`currentStepData: null`.**
+
+Díky tomu:
+- **žádný ze 129 odkazů se nemusel měnit** — `isActive` je pořád ten jediný
+  signál, který zbytek aplikace čte,
+- **starý overlay sám od sebe nic nekreslí** — jeho podmínka
+  `!state.isActive || !state.currentStepData` (`TutorialOverlay.tsx:335`) je
+  díky `null` splněná a vrátí jen `children`.
+
+Přepnuta tři startovní místa (`autoStartTutorial`, `completeOnboardingPrefs`,
+`restartTutorial`); `skipOnboarding` volá existující `skipTutorial()`, takže
+storage flagy zůstávají bit po bitu stejné.
+
+**`userInteractionBlocked: false`** — starý overlay ho nastavoval na `true`,
+protože pod ním byla živá aplikace. Nové obrazovky ji překrývají celou, takže
+není co blokovat. Ověřeno: mimo `TutorialContext` to nikdo nečte.
+
 ### K5: `AchievementContext.tsx:335-343` — filtr trofejí
+
+> **Ověřeno při implementaci:** `isTutorialActive()` (`TutorialContext.tsx:1948`)
+> **nečte React stav, ale storage flagy** COMPLETED/SKIPPED. Filtr proto funguje
+> dál jen díky tomu, že nový flow ty flagy zapisuje se stejnou sémantikou (K3) —
+> ne díky `isActive`. Kdyby někdo v budoucnu měnil zápis flagů, rozbije tím i
+> filtr trofejí, aniž by se toho dotkl.
 
 Během aktivního průvodce se propouští jen `first-habit`/`first-goal`, vše
 ostatní se potlačuje. Filtr čte stav tutoriálu → nový flow musí po dobu

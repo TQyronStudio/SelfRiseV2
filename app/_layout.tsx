@@ -19,6 +19,7 @@ import '../src/services';
 
 // Tutorial System
 import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
+import { OnboardingFlow } from '../src/components/onboarding';
 
 // Notification Lifecycle
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
@@ -90,6 +91,9 @@ function LayoutContent() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="light" translucent={true} />
+        {/* Last sibling so it paints over the navigator; a full-screen view, not
+            a <Modal>, so it can never collide with a native or RN modal. */}
+        <OnboardingFlow />
       </TutorialOverlay>
     </TutorialProvider>
   );
