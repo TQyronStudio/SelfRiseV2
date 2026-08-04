@@ -12,3 +12,6 @@ export { createWithTrophyGate } from './createWithTrophyGate';
 export type { TrophyGate } from './createWithTrophyGate';
 export { parseGoalTarget, isGoalDraftComplete, GOAL_TARGET_MAX } from './goalDraft';
 export type { GoalDraft } from './goalDraft';
+export { FirstCheckCard } from './FirstCheckCard';
+export { countChecksOn, hasNewCheckSince } from './checkDetection';
+export type { CompletionLike } from './checkDetection';

@@ -73,6 +73,17 @@ doplní chybějící lokalizace jednotek (viz níže).
 
 ### Obrazovka 3 — První odškrtnutí
 
+> **Ověřeno (etapa F, 2026-08-02):** `XpAnimationContext.tsx:207-218` potlačuje
+> během onboardingu **pouze okno o novém levelu**, ne XP animace. Odměna za
+> první odškrtnutí se tedy opravdu ukáže — to je celý smysl téhle obrazovky.
+> Karta proto po odškrtnutí ještě 1,2 s počká, než zmizí.
+>
+> **Past nalezená při psaní testů:** naivní podmínka „odškrtl dnes něco?“ je
+> při **restartu ze Settings** pravdivá hned při zobrazení karty (uživatel už
+> dnes něco odškrtl dřív) → karta by zmizela dřív, než by uživatel cokoliv
+> udělal. Řeší se tím, že si karta při zobrazení uloží výchozí počet a čeká na
+> jeho **nárůst** (`checkDetection.ts`).
+
 Hlavní obrazovka, kde už návyk i cíl jsou. Krátká karta dole:
 
 > „Hotovo. Odškrtni si návyk a uvidíš, jak přibude XP.“

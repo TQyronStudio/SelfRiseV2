@@ -22,6 +22,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { formatDateToString, getDayOfWeek, parseDate } from '@/src/utils/date';
 import { DateString } from '@/src/types/common';
 import { HabitCompletionButton } from './HabitCompletionButton';
+import { useTutorial } from '@/src/contexts/TutorialContext';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
 import { ConfirmationModal, HelpTooltip } from '@/src/components/common';
 
@@ -87,6 +88,8 @@ export const HabitItemWithCompletion = React.memo(({
 }: HabitItemWithCompletionProps) => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { state: tutorialState } = useTutorial();
+  const onboardingScreen = tutorialState.onboardingScreen;
   const isTogglingRef = useRef(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -388,6 +391,10 @@ export const HabitItemWithCompletion = React.memo(({
             onPress={handleToggleCompletion}
             disabled={!habit.isActive}
             size="medium"
+            // Last onboarding screen points here. Decided by the item, which
+            // already knows the app's state, rather than by the button — and
+            // without an overlay having to measure where this sits on screen.
+            highlight={onboardingScreen === 3 && !isCompleted}
           />
           {completion?.isBonus && (
             <View style={styles.bonusIndicator}>

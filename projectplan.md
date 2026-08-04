@@ -630,12 +630,15 @@ Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají
       theme-validator čistý, tsc 0, **559/559**
 
 ### Etapa F — Obrazovka 3: první odškrtnutí + dokončení
-- [ ] F1 Karta „Odškrtni si návyk“ na hlavní obrazovce
-- [ ] F2 `highlightCheckbox` na kartě návyku — pulz ~2 s s reduce-motion
-      (D-POHYB); **bez overlay a bez měření pozic**, komponenta zná pozici
-      svého zaškrtávátka sama
-- [ ] F3 Dokončení → `COMPLETED`; ověřit, že XP animace naskočí
-      (potlačuje se jen level-up **modál**, ne animace v liště)
+- [x] F1 Karta dole na hlavní obrazovce — **nepřekrývá aplikaci** (jinak by
+      uživatel nemohl ťuknout na zaškrtávátko); odškrtnutí ji zavře samo
+- [x] F2 `highlight` prop na `HabitCompletionButton` — pulzující halo jako
+      vlastní vrstva (nemíchá se s animací stisku); reduce-motion dostane
+      statický kroužek. **Bez overlay a bez měření pozic**
+- [x] F3 Ověřeno v `XpAnimationContext:207-218`: potlačuje se **jen okno
+      o levelu**, XP animace běží → karta na ni 1,2 s počká.
+      **Past:** naivní podmínka by při restartu ze Settings kartu zavřela hned;
+      řeší se výchozím počtem a čekáním na nárůst (`checkDetection.ts`)
 - [ ] F4 **Device matrix** (D-CHECK): malý Android + iPhone; light i dark;
       EN/DE/ES; klávesnice na malém displeji; je-li iPad → tablet layout
       ← brána pro etapu H

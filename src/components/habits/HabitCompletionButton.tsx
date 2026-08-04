@@ -5,6 +5,9 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withRepeat,
+  withSequence,
+  cancelAnimation,
   interpolateColor,
   useReducedMotion,
 } from 'react-native-reanimated';
@@ -18,6 +21,12 @@ interface HabitCompletionButtonProps {
   onPress: () => void;
   disabled?: boolean;
   size?: 'small' | 'medium' | 'large';
+  /**
+   * Draws attention with a slow halo pulse — used by the last onboarding
+   * screen to point at the very first check-off without an overlay measuring
+   * where this button happens to sit on screen.
+   */
+  highlight?: boolean;
 }
 
 export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
@@ -25,6 +34,7 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
   onPress,
   disabled = false,
   size = 'medium',
+  highlight = false,
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -60,6 +70,32 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
       });
     }
   }, [isCompleted, reducedMotion, completionProgress]);
+
+  // Own shared value: reusing `scale` would make the press animation fight the
+  // pulse and leave the button stuck mid-squeeze.
+  const haloProgress = useSharedValue(0);
+
+  useEffect(() => {
+    cancelAnimation(haloProgress);
+    if (!highlight || reducedMotion) {
+      // Reduce-motion users still get the highlight, just as a static ring.
+      haloProgress.value = highlight ? 0.5 : 0;
+      return;
+    }
+    haloProgress.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 900 }),
+        withTiming(0, { duration: 900 })
+      ),
+      -1,
+      false
+    );
+  }, [highlight, reducedMotion, haloProgress]);
+
+  const haloAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: haloProgress.value * 0.45,
+    transform: [{ scale: 1 + haloProgress.value * 0.6 }],
+  }));
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -125,6 +161,23 @@ export const HabitCompletionButton: React.FC<HabitCompletionButtonProps> = ({
       accessibilityState={{ checked: isCompleted, disabled }}
       accessibilityLabel={accessibilityLabel}
     >
+      {/* Halo sits behind the button and is purely decorative. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          styles.center,
+          haloAnimatedStyle,
+        ]}
+      >
+        <Animated.View
+          style={[
+            buttonStyle,
+            { backgroundColor: colors.primary },
+          ]}
+        />
+      </Animated.View>
+
       <Animated.View
         style={[
           styles.completionButton,
