@@ -590,16 +590,20 @@ Prázdné obrazovky, ale kompletní integrace. Když projde tohle, zbytek je obs
 
 ### Etapa C — Stavební bloky UI (D-KIT; bez napojení na flow)
 Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají.
-- [ ] C1 `OnbScreenContainer` — safe areas, progress tečky 1/2/3, Přeskočit,
+- [x] C1 `OnbScreenContainer` — safe areas, progress tečky 1/2/3, Přeskočit,
       CTA vždy nad klávesnicí (`KeyboardAvoidingView`, D-DEV)
-- [ ] C2 `OnbTile` — ikona+popisek, vybraný stav, stisk scale 0.97
+- [x] C2 `OnbTile` — ikona+popisek, vybraný stav, stisk scale 0.97
       s reduce-motion (D-POHYB), a11y role+label (D-A11Y), 44pt cíle
-- [ ] C3 `GoalTemplateGrid` — vytáhnout mřížku+data z `GoalTemplatesModal`
-      (D-TPL!); modál na Goals obrazovce ji používá dál, chování beze změny
-- [ ] C4 Vše: theme 2-tier přes `useTheme()` (StyleSheet UVNITŘ komponenty),
+- [x] C3 Vytaženo do `src/constants/goalTemplates.ts` — **sdílí se DATA, ne
+      vzhled**: modál má široké řádky, onboarding dlaždice `OnbTileGrid`.
+      Jedna komponenta pro obojí by změnila vzhled Goals (viz D-TPL v guide).
+      Ověřeno: 11 šablon pole po poli shodných s gitovou verzí
+- [x] C4 Vše: theme 2-tier přes `useTheme()` (StyleSheet UVNITŘ komponenty),
       responsive přes `responsive.ts` (2 sloupce SMALL/MEDIUM, 3 LARGE/TABLET,
       tablet kontejner ~560 px), žádné natvrdo barvy (D-VIZ)
-- [ ] C5 `theme-validator` na `src/components/onboarding/`; testy komponent
+- [x] C5 theme-validator: 0 natvrdo barev, StyleSheet uvnitř komponent,
+      žádné stíny (jediný `elevation` je záměrná androidí vrstva), bez čisté
+      černé. 8 testů + negativní kontrola strážce jednotek. tsc 0, **540/540**
 
 ### Etapa D — Obrazovka 1: první návyk
 - [ ] D1 Složit z C-bloků: dlaždice předvoleb + „Něco jiného“

@@ -259,7 +259,27 @@ Tři obrazovky sdílejí: kontejner (safe areas + progress + skip + CTA),
 dlaždici, sekční nadpis. Postavit JEDNOU jako `src/components/onboarding/`,
 obrazovky je jen skládají. Tím se etapy D–F zmenší na obsah.
 
-### ⚠️ D-TPL: GoalTemplatesModal je `<Modal>` — NEvkládat, vytáhnout data
+### ✅ D-TPL — jak to dopadlo (etapa C, 2026-08-02)
+
+Původní znění chtělo vytáhnout „data **i mřížku**“ do jedné komponenty pro obě
+místa. Při implementaci se ukázalo, že to jde proti druhé půlce téhož pravidla
+(„modál na Goals obrazovce beze změny“): modál zobrazuje **široké řádky**
+s popisem a šipkou, onboarding chce **kompaktní dlaždice** ve 2–3 sloupcích.
+Jedna komponenta pro obojí by nutně změnila vzhled Goals.
+
+**Sdílí se tedy DATA, ne vzhled:**
+
+```
+src/constants/goalTemplates.ts     ← 11 šablon + useGoalTemplates() + templateToGoalInput()
+   ├── GoalTemplatesModal          ← široké řádky, chování 1:1 jako dřív
+   └── OnbTileGrid + OnbTile       ← dlaždicová mřížka pro onboarding
+```
+
+Zásadní část pravidla platí dál: **v onboardingu není žádný `<Modal>`.**
+Ověřeno, že extrakce dat nic nezměnila — porovnáno 11 šablon pole po poli
+proti gitové verzi, shoda 100 %.
+
+### ⚠️ D-TPL (původní znění): GoalTemplatesModal je `<Modal>` — NEvkládat
 
 Druhá prověrka odhalila kolizi: `GoalTemplatesModal.tsx:372` je RN
 `<Modal>`. „Znovupoužít“ ho v onboardingu NEZNAMENÁ otevřít modál
