@@ -18,9 +18,6 @@ import { DayPicker } from './DayPicker';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useTutorial } from '@/src/contexts/TutorialContext';
-import { armTutorialAchievementGate } from '@/src/utils/tutorialAchievementGate';
 import { useTheme } from '../../contexts/ThemeContext';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
@@ -50,7 +47,6 @@ export function HabitForm({
 }: HabitFormProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { state: tutorialState, actions: tutorialActions } = useTutorial();
 
   // Tutorial target refs
   const habitNameRef = useRef<TextInput>(null);
@@ -61,48 +57,12 @@ export function HabitForm({
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Tutorial target registration
-  const { registerTarget: registerHabitName, unregisterTarget: unregisterHabitName } = useTutorialTarget(
-    'habit-name-input',
-    habitNameRef as any
-  );
 
-  const { registerTarget: registerHabitColor, unregisterTarget: unregisterHabitColor } = useTutorialTarget(
-    'habit-color-picker',
-    habitColorRef as any
-  );
 
-  const { registerTarget: registerHabitIcon, unregisterTarget: unregisterHabitIcon } = useTutorialTarget(
-    'habit-icon-picker',
-    habitIconRef as any
-  );
 
-  const { registerTarget: registerHabitDays, unregisterTarget: unregisterHabitDays } = useTutorialTarget(
-    'habit-scheduled-days',
-    habitDaysRef as any
-  );
 
-  const { registerTarget: registerCreateButton, unregisterTarget: unregisterCreateButton } = useTutorialTarget(
-    'create-habit-submit',
-    createButtonRef as any
-  );
 
-  useEffect(() => {
-    registerHabitName();
-    registerHabitColor();
-    registerHabitIcon();
-    registerHabitDays();
-    registerCreateButton();
-
-    return () => {
-      unregisterHabitName();
-      unregisterHabitColor();
-      unregisterHabitIcon();
-      unregisterHabitDays();
-      unregisterCreateButton();
-    };
-  }, []);
-
-  // Tutorial auto-scroll support for modal
+    // Tutorial auto-scroll support for modal
   useEffect(() => {
     const scrollListener = DeviceEventEmitter.addListener(
       'tutorial_scroll_to',
@@ -126,59 +86,10 @@ export function HabitForm({
   }, []);
 
   // Auto-focus text input during tutorial
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_text' &&
-      tutorialState.currentStepData?.target === 'habit-name-input'
-    ) {
-      // Small delay to ensure modal and spotlight are fully rendered
-      setTimeout(() => {
-        console.log(`⌨️ [TUTORIAL] Auto-focusing habit name input...`);
-        if (habitNameRef.current) {
-          habitNameRef.current.focus();
-        }
-      }, 300);
-    }
-  }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
+  
 
   // 🎯 Auto-scroll to Create button during tutorial (step 9: habit-create)
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.id === 'habit-create' &&
-      tutorialState.currentStepData?.target === 'create-habit-submit'
-    ) {
-      // Scroll to bottom where Create button is
-      setTimeout(() => {
-        console.log(`📜 [TUTORIAL] Auto-scrolling to Create button...`);
-        if (scrollViewRef.current && createButtonRef.current) {
-          createButtonRef.current.measureLayout(
-            scrollViewRef.current as any,
-            (x: number, y: number, width: number, height: number) => {
-              // 📐 Adaptive scroll offset based on device height
-              const screenHeight = require('react-native').Dimensions.get('window').height;
-              const topMargin = screenHeight < 700 ? 80 : 120; // Smaller devices: less margin
-
-              scrollViewRef.current?.scrollTo({
-                y: Math.max(0, y - topMargin), // Scroll so button is visible with adaptive top margin
-                animated: true,
-              });
-              console.log(`✅ [TUTORIAL] Scrolled to Create button at y=${y}px (margin: ${topMargin}px, screenHeight: ${screenHeight}px)`);
-
-              // Signal that scroll is complete
-              setTimeout(() => {
-                DeviceEventEmitter.emit('tutorial_scroll_completed');
-              }, 400);
-            },
-            () => {
-              console.error('Failed to measure Create button');
-            }
-          );
-        }
-      }, 200);
-    }
-  }, [tutorialState.isActive, tutorialState.currentStepData?.id]);
+  
 
   const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',
@@ -216,12 +127,6 @@ export function HabitForm({
   };
 
   const handleSubmit = async () => {
-    // Tutorial guard: Prevent early submission if tutorial is active but not on create step
-    if (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') {
-      console.log(`🚫 [TUTORIAL] Blocking habit submission - tutorial is on step "${tutorialState.currentStepData?.id}", need to be on "habit-create"`);
-      return;
-    }
-
     console.log(`🔍 [DEBUG] handleSubmit called with formData:`, formData);
     console.log(`🔍 [DEBUG] scheduledDays:`, formData.scheduledDays);
 
@@ -231,28 +136,7 @@ export function HabitForm({
     }
 
     try {
-      const isTutorialCreateStep =
-        tutorialState.isActive &&
-        tutorialState.currentStepData?.action === 'click_element' &&
-        tutorialState.currentStepData?.target === 'create-habit-submit';
-
-      // Arm BEFORE creating the habit: the `first-habit` unlock fires ~100ms after
-      // creation and would otherwise race (and outrun) our listeners.
-      const achievementGate = isTutorialCreateStep
-        ? armTutorialAchievementGate('first-habit')
-        : null;
-
       await onSubmit(formData);
-      console.log(`✅ [TUTORIAL] Habit submitted successfully`);
-
-      if (achievementGate) {
-        // Hold the tutorial until the user has dismissed the achievement celebration
-        // (first run), or continue straight away when no celebration is coming (restart).
-        await achievementGate.wait();
-
-        console.log(`🎯 [TUTORIAL] Advancing to next step...`);
-        tutorialActions.handleStepAction('click_element');
-      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : t('habits.form.errors.submitFailed'));
       setShowError(true);
@@ -271,37 +155,10 @@ export function HabitForm({
       scheduledDays: newScheduledDays,
     }));
 
-    // Tutorial logic: Show Next button when at least one day is selected
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'select_days' &&
-      tutorialState.currentStepData?.target === 'habit-scheduled-days' &&
-      newScheduledDays.length > 0
-    ) {
-      console.log(`📅 [TUTORIAL] Days selected: ${newScheduledDays.length}, enabling Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
-  // Handle habit name change with tutorial first character detection
   const handleNameChange = (text: string) => {
-    const prevName = formData.name;
-
-    // Update form data
     setFormData(prev => ({ ...prev, name: text }));
-
-    // Tutorial logic: Show Next button when first character is typed
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_text' &&
-      tutorialState.currentStepData?.target === 'habit-name-input' &&
-      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
-      prevName.length === 0 &&
-      text.length > 0
-    ) {
-      console.log(`⌨️ [TUTORIAL] First character typed, enabling Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
   const styles = StyleSheet.create({
@@ -423,7 +280,6 @@ export function HabitForm({
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
         bounces={true}
-        scrollEnabled={!tutorialState.isActive} // 🔒 Disable manual scroll during tutorial
       >
         <View style={styles.form}>
         <View style={styles.section}>
@@ -465,26 +321,7 @@ export function HabitForm({
             <View ref={habitColorRef} nativeID="habit-color-picker">
               <ColorPicker
                 selectedColor={formData.color}
-                onColorSelect={(color) => {
-                  console.log(`🎨 [DEBUG] ColorPicker callback called with color: ${color}`);
-                  setFormData(prev => ({ ...prev, color }));
-
-                  // Tutorial logic: Show Next button when color is selected
-                  if (
-                    tutorialState.isActive &&
-                    tutorialState.currentStepData?.action === 'select_option' &&
-                    tutorialState.currentStepData?.target === 'habit-color-picker'
-                  ) {
-                    console.log(`🎨 [TUTORIAL] Color selected: ${color}, enabling Next button...`);
-                    tutorialActions.showNextButton(true);
-                  } else {
-                    console.log(`🎨 [DEBUG] Tutorial state:`, {
-                      isActive: tutorialState.isActive,
-                      action: tutorialState.currentStepData?.action,
-                      target: tutorialState.currentStepData?.target
-                    });
-                  }
-                }}
+                onColorSelect={(color) => setFormData(prev => ({ ...prev, color }))}
               />
             </View>
           </View>
@@ -494,20 +331,7 @@ export function HabitForm({
             <View ref={habitIconRef} nativeID="habit-icon-picker">
               <IconPicker
                 selectedIcon={formData.icon}
-                onIconSelect={(icon) => {
-                  console.log(`🎯 [DEBUG] IconPicker callback called with icon: ${icon}`);
-                  setFormData(prev => ({ ...prev, icon }));
-
-                  // Tutorial logic: Show Next button when icon is selected
-                  if (
-                    tutorialState.isActive &&
-                    tutorialState.currentStepData?.action === 'select_option' &&
-                    tutorialState.currentStepData?.target === 'habit-icon-picker'
-                  ) {
-                    console.log(`🎯 [TUTORIAL] Icon selected: ${icon}, enabling Next button...`);
-                    tutorialActions.showNextButton(true);
-                  }
-                }}
+                onIconSelect={(icon) => setFormData(prev => ({ ...prev, icon }))}
               />
             </View>
           </View>
@@ -543,14 +367,9 @@ export function HabitForm({
               style={[
                 styles.button,
                 styles.submitButton,
-                // Disable button visually if tutorial is active but not on create step
-                (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create') && styles.disabledButton
               ]}
               onPress={handleSubmit}
-              disabled={
-                isLoading ||
-                (tutorialState.isActive && tutorialState.currentStepData?.id !== 'habit-create')
-              }
+              disabled={isLoading}
             >
               <Text style={styles.submitButtonText}>
                 {isEditing ? t('common.update') : t('common.create')}

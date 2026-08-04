@@ -16,7 +16,6 @@ import { Habit, CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { HabitForm, HabitFormData } from './HabitForm';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
-import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 import { useTutorial } from '../../contexts/TutorialContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -39,7 +38,6 @@ export function HabitModal({
 }: HabitModalProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { state: tutorialState } = useTutorial();
   const isEditing = !!habit;
 
   const initialData: HabitFormData | undefined = habit
@@ -57,11 +55,10 @@ export function HabitModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle={tutorialState.isActive ? "fullScreen" : "pageSheet"}
+      presentationStyle="pageSheet"
       statusBarTranslucent={true}
-      onRequestClose={tutorialState.isActive ? undefined : onClose}
+      onRequestClose={onClose}
     >
-      <TutorialOverlay>
         <SafeAreaView style={styles(colors).container} nativeID="main-content">
           <View style={styles(colors).header}>
             <TouchableOpacity
@@ -84,7 +81,6 @@ export function HabitModal({
             isLoading={isLoading}
           />
         </SafeAreaView>
-      </TutorialOverlay>
     </Modal>
   );
 }

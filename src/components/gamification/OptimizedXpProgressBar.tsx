@@ -24,7 +24,6 @@ import { getCurrentLevel, getXPProgress, getLevelInfo, isLevelMilestone, clearLe
 import { useHomeCustomization } from '../../contexts/HomeCustomizationContext';
 import { useI18n } from '../../hooks/useI18n';
 import { SafeLinearGradient, HelpTooltip } from '../common';
-import { useTutorialTarget } from '../../utils/TutorialTargetHelper';
 
 interface OptimizedXpProgressBarProps {
   animated?: boolean;
@@ -52,7 +51,6 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
 
   // Tutorial target registration
   const containerRef = useRef<View>(null);
-  const { registerTarget, unregisterTarget } = useTutorialTarget('xp-progress-bar', containerRef);
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -60,11 +58,7 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
   }, []);
 
   // Register tutorial target on mount
-  useEffect(() => {
-    registerTarget();
-    return () => unregisterTarget();
-  }, [registerTarget, unregisterTarget]);
-  
+    
   // CRITICAL: Direct GamificationService integration for real-time updates (unified system)
   const [gamificationState, setGamificationState] = useState({
     totalXP: 0,

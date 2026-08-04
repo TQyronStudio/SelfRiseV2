@@ -5,7 +5,6 @@ import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { Fonts, Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { HelpTooltip } from '@/src/components/common';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 
 interface DailyGratitudeProgressProps {
   currentCount: number;
@@ -26,20 +25,8 @@ export default function DailyGratitudeProgress({
   const progressRef = useRef<View>(null);
 
   // Register as tutorial target
-  const { registerTarget, unregisterTarget } = useTutorialTarget(
-    'todays-journal-progress',
-    progressRef
-  );
 
-  useEffect(() => {
-    registerTarget();
-
-    return () => {
-      unregisterTarget();
-    };
-  }, [registerTarget, unregisterTarget]);
-
-  const getProgressColor = () => {
+    const getProgressColor = () => {
     if (hasBonus) return colors.gold || '#FFD700';
     if (isComplete) return colors.success || colors.green;
     return colors.primary;

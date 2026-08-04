@@ -1,16 +1,17 @@
 /**
- * Stage B — the 3-screen onboarding's wiring, not its looks.
+ * The 3-screen onboarding's wiring, not its looks.
  *
- * What actually breaks silently here is state, not pixels:
+ * What breaks silently here is state, not pixels:
  *   - `isActive` is what makes AdBanner hide ads, AchievementContext let only
- *     first-habit/first-goal celebrations through, and GoalForm relax its date
- *     validation. If onboarding forgets to set it, all three regress at once
- *     and nothing visibly fails.
- *   - `currentStepData` must stay null, otherwise the OLD tutorial overlay
- *     starts drawing on top of the new screens (its guard is
- *     `!state.isActive || !state.currentStepData`, TutorialOverlay.tsx:335).
+ *     first-habit/first-goal celebrations through, and the habit card pulse its
+ *     checkbox on the last screen. Forget to set it and all three regress at
+ *     once, with nothing visibly failing.
  *   - `CURRENT_STEP` is shared with the retired 25-step tutorial, so a saved
  *     value can be far out of range for the new flow.
+ *
+ * The assertions about `currentStepData` and `userInteractionBlocked` went with
+ * the overlay they protected: they existed to prove the old coach-mark layer
+ * stayed hidden, and that layer no longer exists.
  */
 // The reducer is pure, but importing the context module pulls in the router and
 // the i18n/achievement stack. Mock only what module-load needs — nothing here is
@@ -55,19 +56,9 @@ describe('START_ONBOARDING', () => {
     expect(onboardingAt(1).isActive).toBe(true);
   });
 
-  it('leaves currentStepData null so the old overlay stays hidden', () => {
-    expect(onboardingAt(1).currentStepData).toBeNull();
-  });
-
-  it('does not block interaction — these are real screens, not a coach-mark overlay', () => {
-    expect(onboardingAt(1).userInteractionBlocked).toBe(false);
-  });
-
-  it('reports progress against the 3 screens, not the old 25 steps', () => {
-    const state = onboardingAt(2);
-    expect(state.onboardingScreen).toBe(2);
-    expect(state.currentStep).toBe(2);
-    expect(state.totalSteps).toBe(ONBOARDING_TOTAL_SCREENS);
+  it('opens on the screen it was asked for', () => {
+    expect(onboardingAt(2).onboardingScreen).toBe(2);
+    expect(ONBOARDING_TOTAL_SCREENS).toBe(3);
   });
 
   it('clears a previous completed/skipped verdict when restarted from Settings', () => {
@@ -89,7 +80,6 @@ describe('advancing and leaving', () => {
       payload: { screen: 2 },
     });
     expect(state.onboardingScreen).toBe(2);
-    expect(state.currentStep).toBe(2);
   });
 
   it('completing tears down onboarding state', () => {

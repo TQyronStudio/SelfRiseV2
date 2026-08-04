@@ -1,29 +1,13 @@
 import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
-import { useRef, useEffect } from 'react';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { useRef } from 'react';
 import { impact as hapticImpact, ImpactFeedbackStyle } from '@/src/services/hapticsService';
 
 export function HapticTab(props: BottomTabBarButtonProps & { nativeID?: string }) {
+  // `nativeID` used to let the tutorial overlay locate this tab on screen. The
+  // overlay is gone; the prop is kept because it is still a valid DOM/native id
+  // and callers pass it.
   const tabRef = useRef<any>(null);
-
-  // Register as tutorial target if nativeID is provided
-  const { registerTarget, unregisterTarget } = useTutorialTarget(
-    props.nativeID || '',
-    tabRef
-  );
-
-  useEffect(() => {
-    if (props.nativeID) {
-      registerTarget();
-    }
-
-    return () => {
-      if (props.nativeID) {
-        unregisterTarget();
-      }
-    };
-  }, [props.nativeID, registerTarget, unregisterTarget]);
 
   return (
     <PlatformPressable

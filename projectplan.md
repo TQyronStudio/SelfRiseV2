@@ -680,13 +680,19 @@ otázkami a prvním osobním závazkem.
 > z etapy G. Fungující kód, takže neměněno bez zadání.
 
 ### Etapa H — Úklid (AŽ PO device matrix z F4)
-- [ ] H1 **Audit 129 odkazů ve 13 souborech** — (a) mechanické
-      `useTutorialTarget` registrace, (b) chování: `AdBanner:94`,
-      `GoalForm:350` (vypíná validaci data), gate podmínky ve formulářích
-- [ ] H2 Smazat `TutorialOverlay.tsx` (734 ř.), `SpotlightEffect.tsx` (282 ř.),
-      `TutorialTargetHelper.ts`, `createTutorialSteps()` (~330 ř.) + mrtvou
-      koordinaci `TutorialContext:1679-1700` (čeká na neexistující kroky);
-      **zachovat export `hasAchievement`** (importuje ho gate)
+- [x] H1 Audit hotový — a **našel 4 živé chyby**, které jsem sám zanesl
+      v etapě B (`isActive` true + `currentStepData` null = podmínky typu
+      `currentStepData?.id !== 'habit-create'` byly trvale pravdivé):
+      1. `HabitForm` blokoval odeslání formuláře po celou dobu onboardingu
+      2. tlačítko „Vytvořit" bylo zašedlé a nefunkční (HabitForm i GoalForm)
+      3. formuláře měly vypnuté scrollování
+      4. modály nešly zavřít tlačítkem zpět
+      Neprojevilo se na obrazovkách 1–2 (překrývají appku), ale na obrazovce 3
+      je aplikace použitelná → uživatel mohl narazit
+- [x] H2 Smazáno **3506 řádků**: `TutorialOverlay` (735), `TutorialModal`,
+      `SpotlightEffect`, `TutorialTargetHelper` (402), a `TutorialContext`
+      z 1988 → **454 ř.** Zachováno: `hasAchievement`, `isTutorialActive`,
+      `isTutorialRestarted`, `TUTORIAL_STORAGE_KEYS`, brána předvoleb
 - [ ] H3 Smazat osiřelé i18n klíče ve všech 3 jazycích
 - [ ] H4 Device test; aktualizovat @technical-guides:Tutorial.md (smazat popis
       starého 25krokového flow, ten už nebude existovat)

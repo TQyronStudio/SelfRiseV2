@@ -19,9 +19,6 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
-import { useTutorial } from '@/src/contexts/TutorialContext';
-import { armTutorialAchievementGate } from '@/src/utils/tutorialAchievementGate';
 
 export type GoalFormData = {
   title: string;
@@ -60,7 +57,6 @@ export function GoalForm({
 }: GoalFormProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { state: tutorialState, actions: tutorialActions } = useTutorial();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Tutorial target refs
@@ -72,35 +68,11 @@ export function GoalForm({
   const createButtonRef = useRef<View>(null);
 
   // Tutorial target registration
-  const { registerTarget: registerGoalTitle, unregisterTarget: unregisterGoalTitle } = useTutorialTarget(
-    'goal-title-input',
-    goalTitleRef as any
-  );
 
-  const { registerTarget: registerGoalUnit, unregisterTarget: unregisterGoalUnit } = useTutorialTarget(
-    'goal-unit-input',
-    goalUnitRef as any
-  );
 
-  const { registerTarget: registerGoalTarget, unregisterTarget: unregisterGoalTarget } = useTutorialTarget(
-    'goal-target-input',
-    goalTargetRef as any
-  );
 
-  const { registerTarget: registerGoalDate, unregisterTarget: unregisterGoalDate } = useTutorialTarget(
-    'goal-date-picker',
-    goalDateRef as any
-  );
 
-  const { registerTarget: registerGoalCategory, unregisterTarget: unregisterGoalCategory } = useTutorialTarget(
-    'goal-category-picker',
-    goalCategoryRef as any
-  );
 
-  const { registerTarget: registerCreateButton, unregisterTarget: unregisterCreateButton } = useTutorialTarget(
-    'create-goal-submit',
-    createButtonRef as any
-  );
   
   const [formData, setFormData] = useState<GoalFormData>({
     title: initialData?.title || '',
@@ -118,25 +90,7 @@ export function GoalForm({
   const [showDateConfirmation, setShowDateConfirmation] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
 
-  useEffect(() => {
-    registerGoalTitle();
-    registerGoalUnit();
-    registerGoalTarget();
-    registerGoalDate();
-    registerGoalCategory();
-    registerCreateButton();
-
-    return () => {
-      unregisterGoalTitle();
-      unregisterGoalUnit();
-      unregisterGoalTarget();
-      unregisterGoalDate();
-      unregisterGoalCategory();
-      unregisterCreateButton();
-    };
-  }, []);
-
-  // Tutorial auto-scroll support for modal
+    // Tutorial auto-scroll support for modal
   useEffect(() => {
     const scrollListener = DeviceEventEmitter.addListener(
       'tutorial_scroll_to',
@@ -160,131 +114,26 @@ export function GoalForm({
   }, []);
 
   // 🎯 Reset scroll position to top when modal opens during tutorial
-  useEffect(() => {
-    if (tutorialState.isActive && scrollViewRef.current) {
-      console.log(`📜 [TUTORIAL] Resetting GoalForm scroll to top...`);
-      // Reset scroll to top immediately when modal opens during tutorial
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-      }, 50);
-    }
-  }, []); // Run only once when component mounts
+   // Run only once when component mounts
 
   // 🎯 Auto-scroll to lower fields (goal-unit, goal-target, goal-date, goal-category) during tutorial
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      (tutorialState.currentStepData?.id === 'goal-unit' ||
-       tutorialState.currentStepData?.id === 'goal-target' ||
-       tutorialState.currentStepData?.id === 'goal-date' ||
-       tutorialState.currentStepData?.id === 'goal-category')
-    ) {
-      setTimeout(() => {
-        const targetRef =
-          tutorialState.currentStepData?.id === 'goal-unit' ? goalUnitRef :
-          tutorialState.currentStepData?.id === 'goal-target' ? goalTargetRef :
-          tutorialState.currentStepData?.id === 'goal-date' ? goalDateRef :
-          goalCategoryRef;
-
-        if (scrollViewRef.current && targetRef.current) {
-          console.log(`📜 [TUTORIAL] Auto-scrolling to ${tutorialState.currentStepData?.id}...`);
-          targetRef.current.measureLayout(
-            scrollViewRef.current as any,
-            (x: number, y: number, width: number, height: number) => {
-              // Calculate offset to leave space for tutorial text above the field
-              const screenHeight = Dimensions.get('window').height;
-
-              // Tutorial card estimated height - LARGE offset pushes field DOWN:
-              // Goal-date needs BIG offset so field appears LOW on screen (tutorial text above)
-              // - Small screen: 500px card height + padding = field appears lower
-              // - Normal screen: 550px card height + padding = field appears lower
-              const isGoalDate = tutorialState.currentStepData?.id === 'goal-date';
-              const tutorialCardHeight = screenHeight < 700 ?
-                (isGoalDate ? 500 : 260) :
-                (isGoalDate ? 550 : 290);
-              const safeAreaTop = 50; // iOS notch/status bar
-              const padding = isGoalDate ? 80 : 20; // Large padding = field lower on screen
-
-              const topOffset = tutorialCardHeight + safeAreaTop + padding;
-              // This ensures field appears BELOW tutorial text, not hidden under it
-
-              scrollViewRef.current?.scrollTo({
-                y: Math.max(0, y - topOffset),
-                animated: true,
-              });
-              console.log(`✅ [TUTORIAL] Scrolled to ${tutorialState.currentStepData?.id} at y=${y}px (offset: ${topOffset}px)`);
-
-              // Signal scroll completion for spotlight refresh
-              setTimeout(() => {
-                DeviceEventEmitter.emit('tutorial_scroll_completed');
-              }, 400);
-            },
-            () => {
-              console.error(`Failed to measure ${tutorialState.currentStepData?.id}`);
-            }
-          );
-        }
-      }, 200);
-    }
-  }, [tutorialState.isActive, tutorialState.currentStepData?.id]);
+  
 
   // Auto-focus text/number inputs during tutorial
   // Note: scrollEnabled={false} prevents native scroll-to-focused-input behavior
-  useEffect(() => {
-    if (
-      tutorialState.isActive &&
-      (tutorialState.currentStepData?.action === 'type_text' || tutorialState.currentStepData?.action === 'type_number')
-    ) {
-      const target = tutorialState.currentStepData?.target;
-      // Delay to ensure scroll and spotlight are ready
-      setTimeout(() => {
-        console.log(`⌨️ [TUTORIAL] Auto-focusing input: ${target}`);
-        if (target === 'goal-title-input' && goalTitleRef.current) {
-          goalTitleRef.current.focus();
-        } else if (target === 'goal-unit-input' && goalUnitRef.current) {
-          goalUnitRef.current.focus();
-        } else if (target === 'goal-target-input' && goalTargetRef.current) {
-          goalTargetRef.current.focus();
-        }
-      }, 500); // Delay after auto-scroll
-    }
-  }, [tutorialState.isActive, tutorialState.currentStepData?.action, tutorialState.currentStepData?.target]);
+  
 
   // Tutorial-aware text input handlers
   const handleTitleChange = (text: string) => {
     const prevTitle = formData.title;
     setFormData(prev => ({ ...prev, title: text }));
 
-    // Tutorial logic: Show Next button when first character is typed
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_text' &&
-      tutorialState.currentStepData?.target === 'goal-title-input' &&
-      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
-      prevTitle.length === 0 &&
-      text.length > 0
-    ) {
-      console.log(`⌨️ [TUTORIAL] First character typed in goal title, enabling Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
   const handleUnitChange = (text: string) => {
     const prevUnit = formData.unit;
     setFormData(prev => ({ ...prev, unit: text }));
 
-    // Tutorial logic: Show Next button when first character is typed
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_text' &&
-      tutorialState.currentStepData?.target === 'goal-unit-input' &&
-      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
-      prevUnit.length === 0 &&
-      text.length > 0
-    ) {
-      console.log(`⌨️ [TUTORIAL] First character typed in goal unit, enabling Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
   const handleTargetChange = (text: string) => {
@@ -292,18 +141,6 @@ export function GoalForm({
     const numValue = parseInt(text) || 0;
     setFormData(prev => ({ ...prev, targetValue: numValue }));
 
-    // Tutorial logic: Show Next button when first character is typed
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'type_number' &&
-      tutorialState.currentStepData?.target === 'goal-target-input' &&
-      tutorialState.currentStepData?.nextTrigger === 'first_character' &&
-      prevTarget === 0 &&
-      numValue > 0
-    ) {
-      console.log(`🔢 [TUTORIAL] First number typed in goal target, enabling Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
   const validateForm = (): boolean => {
@@ -346,8 +183,7 @@ export function GoalForm({
     }
 
     // Check if target date is missing and show confirmation modal
-    // ⚠️ SKIP during tutorial - tutorial creates goal without date confirmation
-    if (!formData.targetDate && !tutorialState.isActive) {
+    if (!formData.targetDate) {
       console.log(`📅 [DEBUG] No target date, showing confirmation modal...`);
       setShowDateConfirmation(true);
       return;
@@ -369,29 +205,7 @@ export function GoalForm({
         targetDate: formData.targetDate || undefined,
       };
 
-      const isTutorialCreateStep =
-        tutorialState.isActive &&
-        tutorialState.currentStepData?.action === 'click_element' &&
-        tutorialState.currentStepData?.target === 'create-goal-submit';
-
-      // Arm BEFORE creating the goal: the `first-goal` unlock fires ~100ms after
-      // creation and would otherwise race (and outrun) our listeners.
-      const achievementGate = isTutorialCreateStep
-        ? armTutorialAchievementGate('first-goal')
-        : null;
-
-      console.log(`📤 [DEBUG] Calling onSubmit with data:`, submitData);
       await onSubmit(submitData);
-      console.log(`✅ [TUTORIAL] Goal submitted successfully, onSubmit completed`);
-
-      if (achievementGate) {
-        // Hold the tutorial until the user has dismissed the achievement celebration
-        // (first run), or continue straight away when no celebration is coming (restart).
-        await achievementGate.wait();
-
-        console.log(`🎯 [TUTORIAL] Advancing to next step...`);
-        tutorialActions.handleStepAction('click_element');
-      }
     } catch (error) {
       console.error(`❌ [DEBUG] Error in submitGoal:`, error);
       console.error(`❌ [DEBUG] Error details:`, error instanceof Error ? error.message : String(error));
@@ -402,12 +216,6 @@ export function GoalForm({
 
 
   const scrollToInput = (inputPosition: number) => {
-    // 🚫 BLOCK auto-scroll during tutorial - it breaks spotlight positioning
-    if (tutorialState.isActive) {
-      console.log(`🚫 [TUTORIAL] Blocking auto-scroll during tutorial (would scroll to y=${inputPosition})`);
-      return;
-    }
-
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({
         y: inputPosition,
@@ -448,15 +256,6 @@ export function GoalForm({
     setFormData(updatedFormData);
     setShowDateModal(false);
 
-    // Tutorial logic: Show Next button after date selection
-    if (
-      tutorialState.isActive &&
-      tutorialState.currentStepData?.action === 'select_date' &&
-      tutorialState.currentStepData?.target === 'goal-date-picker'
-    ) {
-      console.log(`📅 [TUTORIAL] Date selected, showing Next button...`);
-      tutorialActions.showNextButton(true);
-    }
   };
 
   const categoryOptions = [
@@ -598,7 +397,6 @@ export function GoalForm({
       showsVerticalScrollIndicator={true}
       keyboardShouldPersistTaps="handled"
       bounces={true}
-      scrollEnabled={!tutorialState.isActive} // 🔒 Disable manual scroll during tutorial
     >
       <View style={styles.content}>
         {/* Title */}
@@ -706,15 +504,6 @@ export function GoalForm({
                 ]}
                 onPress={() => {
                   setFormData(prev => ({ ...prev, category: option.value }));
-                  // Tutorial: Show Next button after category selection
-                  if (
-                    tutorialState.isActive &&
-                    tutorialState.currentStepData?.action === 'select_option' &&
-                    tutorialState.currentStepData?.target === 'goal-category-picker'
-                  ) {
-                    console.log(`📂 [TUTORIAL] Category selected: ${option.value}, enabling Next button...`);
-                    tutorialActions.showNextButton(true);
-                  }
                 }}
                 disabled={isLoading}
               >
@@ -749,24 +538,10 @@ export function GoalForm({
               style={[
                 styles.button,
                 styles.submitButton,
-                (isLoading || (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create')) && styles.disabledButton
+                isLoading && styles.disabledButton
               ]}
-              onPress={() => {
-                const isDisabled = isLoading || (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create');
-                console.log(`🔍 [GOAL_FORM] Create button pressed!`, {
-                  isLoading,
-                  tutorialActive: tutorialState.isActive,
-                  currentStep: tutorialState.currentStepData?.id,
-                  isDisabled
-                });
-                if (!isDisabled) {
-                  handleSubmit();
-                }
-              }}
-              disabled={
-                isLoading ||
-                (tutorialState.isActive && tutorialState.currentStepData?.id !== 'goal-create')
-              }
+              onPress={handleSubmit}
+              disabled={isLoading}
             >
               <Text style={[styles.buttonText, styles.submitButtonText]}>
                 {isLoading ? t('common.saving') : (isEditing ? t('common.save') : t('common.create'))}

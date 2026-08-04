@@ -15,7 +15,6 @@ import { Goal, CreateGoalInput, UpdateGoalInput } from '../../types/goal';
 import { GoalForm, GoalFormData } from './GoalForm';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
-import { TutorialOverlay } from '../tutorial/TutorialOverlay';
 import { useTutorial } from '../../contexts/TutorialContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -38,7 +37,6 @@ export function GoalModal({
 }: GoalModalProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { state: tutorialState } = useTutorial();
   const isEditing = !!goal;
 
   const formatDateForInput = (date: string | undefined): string => {
@@ -112,11 +110,10 @@ export function GoalModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle={tutorialState.isActive ? "fullScreen" : "pageSheet"}
+      presentationStyle="pageSheet"
       statusBarTranslucent={true}
-      onRequestClose={tutorialState.isActive ? undefined : onClose}
+      onRequestClose={onClose}
     >
-      <TutorialOverlay>
         <SafeAreaView style={styles.container} nativeID="main-content">
           <View style={styles.header}>
             <TouchableOpacity
@@ -145,7 +142,6 @@ export function GoalModal({
             />
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </TutorialOverlay>
     </Modal>
   );
 }

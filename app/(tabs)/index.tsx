@@ -36,7 +36,6 @@ import {
   MonthlyChallengeProgress
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 
 export default function HomeScreen() {
@@ -57,19 +56,8 @@ export default function HomeScreen() {
   const mainScrollRef = useRef<ScrollView>(null);
 
   // Tutorial target registration for main scroll area
-  const { registerTarget: registerMainContent, unregisterTarget: unregisterMainContent } = useTutorialTarget(
-    'main-content',
-    mainScrollRef as any
-  );
 
-  useEffect(() => {
-    registerMainContent();
-    return () => {
-      unregisterMainContent();
-    };
-  }, [registerMainContent, unregisterMainContent]);
-
-  // Tutorial auto-scroll listener
+    // Tutorial auto-scroll listener
   useEffect(() => {
     const scrollListener = DeviceEventEmitter.addListener(
       'tutorial_scroll_to',

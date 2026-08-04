@@ -18,7 +18,7 @@ import { useI18n } from '../src/hooks/useI18n';
 import '../src/services';
 
 // Tutorial System
-import { TutorialProvider, TutorialOverlay } from '../src/components/tutorial';
+import { TutorialProvider } from '../src/components/tutorial';
 import { OnboardingFlow } from '../src/components/onboarding';
 
 // Notification Lifecycle
@@ -78,7 +78,6 @@ function LayoutContent() {
 
   return (
     <TutorialProvider>
-      <TutorialOverlay>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="achievements" options={{ headerShown: false, presentation: 'card' }} />
@@ -94,7 +93,6 @@ function LayoutContent() {
         {/* Last sibling so it paints over the navigator; a full-screen view, not
             a <Modal>, so it can never collide with a native or RN modal. */}
         <OnboardingFlow />
-      </TutorialOverlay>
     </TutorialProvider>
   );
 }

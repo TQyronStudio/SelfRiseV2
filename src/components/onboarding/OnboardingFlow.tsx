@@ -5,6 +5,7 @@ import { FirstHabitScreen } from './FirstHabitScreen';
 import { FirstGoalScreen } from './FirstGoalScreen';
 import { FirstCheckCard } from './FirstCheckCard';
 import { WelcomeScreen } from './WelcomeScreen';
+import { OnboardingPreferencesModal } from '@/src/components/tutorial/OnboardingPreferencesModal';
 
 /**
  * The 3-screen onboarding that replaces the 25-step coach-mark tutorial.
@@ -23,8 +24,19 @@ import { WelcomeScreen } from './WelcomeScreen';
  * draw order; that is exactly why the old overlay failed to dim the tab bar.
  */
 export function OnboardingFlow() {
-  const { state, actions, showOnboardingWelcome } = useTutorial();
+  const { state, actions, showOnboardingWelcome, showOnboardingPrefs } = useTutorial();
   const screen = state.onboardingScreen;
+
+  // The language/theme/notification gate. It used to be rendered by
+  // TutorialOverlay; with that gone, every piece of onboarding UI mounts here.
+  if (showOnboardingPrefs) {
+    return (
+      <OnboardingPreferencesModal
+        visible
+        onComplete={actions.completeOnboardingPrefs}
+      />
+    );
+  }
 
   // Sits between the preferences gate and screen 1, so it is a flag rather
   // than a fourth numbered screen — the dots stay honest about three tasks.

@@ -1,66 +1,39 @@
-import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode, useRef } from 'react';
-import { TUTORIAL_STORAGE_KEYS } from '../constants/tutorialStorageKeys';
+import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import { AchievementStorage } from '@/src/services/achievementStorage';
 import { router } from 'expo-router';
-import { tutorialTargetManager } from '@/src/utils/TutorialTargetHelper';
+import { TUTORIAL_STORAGE_KEYS } from '../constants/tutorialStorageKeys';
 import { awaitStartupComplete } from '@/src/services/startup';
 
-// Crash Recovery Interface
-export interface TutorialCrashLog {
-  timestamp: number;
-  error: string;
-  stack?: string;
-  step: number;
-  stepId: string;
-  userAgent: string;
-  appState: 'active' | 'background' | 'inactive';
-  memoryUsage?: number;
-  attempts: number;
-}
-
-export interface TutorialRecoveryState {
-  errorCount: number;
-  lastCrash?: TutorialCrashLog;
-  recoveryAttempts: number;
-  isInRecoveryMode: boolean;
-  fallbackEnabled: boolean;
-  recoveryTimestamp: number;
-}
-
-// Tutorial Step Interface
-export interface TutorialStep {
-  id: string;
-  type: 'modal' | 'spotlight';
-  target?: string; // CSS selector nebo ref identifier
-  content: {
-    title: string;
-    content: string;
-    button?: string;
-    examples?: string[]; // Example text for user guidance
-    placeholder?: string; // Placeholder text for inputs
-  };
-  action: 'next' | 'click_element' | 'type_text' | 'select_option' | 'select_date' | 'type_number' | 'select_days';
-  nextTrigger?: 'first_character' | 'selection' | 'click';
-  validation?: (value: any) => boolean;
-}
-
 /**
- * The three onboarding screens that replace the 25-step coach-mark tutorial:
- * 1 = first habit, 2 = first goal, 3 = first check-off.
+ * Onboarding state: a preferences gate, one welcome screen, then three screens
+ * that leave the user with a habit, a goal and their first check-off.
+ *
+ * This file used to be 1988 lines because it also drove a 25-step coach-mark
+ * tour — step definitions, spotlight targets, per-field validation prompts, and
+ * crash recovery for a state machine that could strand the user mid-tour. All of
+ * that went with the tour (see technical-guides:Tutorial.md).
+ *
+ * The name "tutorial" survives in the storage keys and the exported helpers
+ * because renaming them would be a silent, cross-module breakage: several files
+ * read those exact key strings and nothing would fail loudly.
  */
+
+// ---------------------------------------------------------------------------
+// Onboarding screens
+// ---------------------------------------------------------------------------
+
+/** 1 = first habit, 2 = first goal, 3 = first check-off. */
 export type OnboardingScreen = 1 | 2 | 3;
 export const ONBOARDING_TOTAL_SCREENS = 3;
 
 /**
  * Which screen to open when onboarding (re)starts.
  *
- * `CURRENT_STEP` is shared with the old tutorial, where it counted up to 25. A
- * user who upgrades mid-tutorial therefore has a saved number that means nothing
- * in the new flow — treat anything out of range as "start from the beginning"
- * rather than clamping it to screen 3, which would drop them on the finish line
+ * `CURRENT_STEP` is shared with the retired 25-step tutorial, where it counted
+ * up to 25. A user who upgrades mid-tour therefore has a saved number that means
+ * nothing here — treat anything out of range as "start from the beginning"
+ * rather than clamping to screen 3, which would drop them on the finish line
  * having created neither a habit nor a goal.
  */
 export function resolveOnboardingStartScreen(savedStep: number): OnboardingScreen {
@@ -70,482 +43,70 @@ export function resolveOnboardingStartScreen(savedStep: number): OnboardingScree
   return step as OnboardingScreen;
 }
 
-// Tutorial State Interface
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+
 export interface TutorialState {
-  isActive: boolean;
   /**
-   * Current onboarding screen, or null when the new flow is not showing.
-   *
-   * `isActive` stays the single signal the rest of the app reads (AdBanner hides
-   * ads, AchievementContext lets only first-habit/first-goal celebrations
-   * through, GoalForm relaxes date validation), so the new flow sets it exactly
-   * like the old tutorial did — no consumer needs to change.
-   *
-   * `currentStepData` stays null throughout, which is what keeps the old
-   * TutorialOverlay from drawing anything (its guard at TutorialOverlay.tsx:335).
+   * True while onboarding is on screen. This is the single signal the rest of
+   * the app reads: AdBanner hides ads, AchievementContext lets only
+   * first-habit/first-goal celebrations through, HabitItemWithCompletion pulses
+   * the checkbox on the last screen.
    */
+  isActive: boolean;
   onboardingScreen: OnboardingScreen | null;
-  currentStep: number;
-  totalSteps: number;
   isCompleted: boolean;
   isSkipped: boolean;
-  userInteractionBlocked: boolean;
-  showNext: boolean;
-  currentStepData: TutorialStep | null;
   isLoading: boolean;
   error: string | null;
-  // Visual Feedback & Highlighting
-  highlightedField: string | null;
-  fieldValidationStatus: Record<string, 'valid' | 'invalid' | 'pending'>;
-  userFeedback: {
-    message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-    visible: boolean;
-  } | null;
 }
 
-// Tutorial Context Interface
 export interface TutorialContextType {
   state: TutorialState;
-  // Onboarding preferences gate (language + theme) - first launch only, before the tutorial
+  /** Language + theme + notification opt-in, first launch only. */
   showOnboardingPrefs: boolean;
   /**
-   * The single welcome screen between the preferences gate and screen 1.
-   * Kept as its own flag rather than a fourth numbered screen so the progress
-   * dots keep telling the truth about the three tasks.
+   * The single welcome screen between the preferences gate and screen 1. Its own
+   * flag rather than a fourth numbered screen, so the progress dots keep telling
+   * the truth about the three tasks.
    */
   showOnboardingWelcome: boolean;
   actions: {
-    startTutorial: () => Promise<void>;
     completeOnboardingPrefs: (wantsNotifications: boolean) => Promise<void>;
     /** Leaves the welcome screen and opens screen 1. */
     completeOnboardingWelcome: () => Promise<void>;
-    /** Advance the 3-screen onboarding, finishing it after the last screen. */
+    /** Advance the onboarding, finishing it after the last screen. */
     nextOnboardingScreen: () => Promise<void>;
-    /** Leave onboarding early; writes the same SKIPPED flag the old tutorial did. */
+    /** Leave onboarding early; writes the same SKIPPED flag as finishing does. */
     skipOnboarding: () => Promise<void>;
-    nextStep: () => Promise<void>;
-    skipTutorial: () => Promise<void>;
-    completeTutorial: () => Promise<void>;
-    resumeTutorial: () => Promise<void>;
-    setUserInteractionBlocked: (blocked: boolean) => void;
-    showNextButton: (show: boolean) => void;
-    handleStepAction: (action: string, value?: any) => Promise<void>;
-    resetTutorial: () => Promise<void>;
+    /** Settings → run onboarding again from the top. */
     restartTutorial: () => Promise<void>;
+    /** Settings → clear leftover diagnostics from the retired tour. */
     clearCrashData: () => Promise<void>;
-    // Visual Feedback & Highlighting
-    highlightField: (fieldId: string) => void;
-    clearFieldHighlight: () => void;
-    setFieldValidation: (fieldId: string, status: 'valid' | 'invalid' | 'pending') => void;
-    showUserFeedback: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
-    hideUserFeedback: () => void;
   };
 }
 
-// Tutorial Actions
 type TutorialAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'START_TUTORIAL'; payload: { steps: TutorialStep[] } }
   | { type: 'START_ONBOARDING'; payload: { screen: OnboardingScreen } }
   | { type: 'SET_ONBOARDING_SCREEN'; payload: { screen: OnboardingScreen } }
-  | { type: 'SET_CURRENT_STEP'; payload: { stepNumber: number; steps: TutorialStep[] } }
-  | { type: 'SET_STEP_DATA'; payload: TutorialStep | null }
   | { type: 'COMPLETE_TUTORIAL' }
   | { type: 'SKIP_TUTORIAL' }
-  | { type: 'SET_INTERACTION_BLOCKED'; payload: boolean }
-  | { type: 'SHOW_NEXT_BUTTON'; payload: boolean }
-  | { type: 'RESET_TUTORIAL' }
-  | { type: 'HIGHLIGHT_FIELD'; payload: string | null }
-  | { type: 'SET_FIELD_VALIDATION'; payload: { fieldId: string; status: 'valid' | 'invalid' | 'pending' } }
-  | { type: 'SHOW_USER_FEEDBACK'; payload: { message: string; type: 'success' | 'error' | 'info' | 'warning' } }
-  | { type: 'HIDE_USER_FEEDBACK' };
+  | { type: 'RESET_TUTORIAL' };
 
-// Storage Keys
-// Keys live in a shared, dependency-free module so XpAnimationContext (which
-// reads COMPLETED/SKIPPED to suppress the level-up modal during the tutorial)
-// cannot drift out of sync with them — see N-8.1 in the super audit.
-const TUTORIAL_STORAGE_KEY = TUTORIAL_STORAGE_KEYS.COMPLETED;
-const TUTORIAL_STEP_KEY = TUTORIAL_STORAGE_KEYS.CURRENT_STEP;
-const TUTORIAL_SKIPPED_KEY = TUTORIAL_STORAGE_KEYS.SKIPPED;
-const TUTORIAL_SESSION_KEY = TUTORIAL_STORAGE_KEYS.SESSION;
-const TUTORIAL_SESSION_TIMESTAMP_KEY = TUTORIAL_STORAGE_KEYS.SESSION_TIMESTAMP;
-const TUTORIAL_CRASH_LOG_KEY = TUTORIAL_STORAGE_KEYS.CRASH_LOG;
-const TUTORIAL_ERROR_COUNT_KEY = TUTORIAL_STORAGE_KEYS.ERROR_COUNT;
-const TUTORIAL_RECOVERY_STATE_KEY = TUTORIAL_STORAGE_KEYS.RECOVERY_STATE;
-const TUTORIAL_RESTARTED_KEY = TUTORIAL_STORAGE_KEYS.RESTARTED; // Flag for restarted tutorials
-const ONBOARDING_PREFS_KEY = TUTORIAL_STORAGE_KEYS.PREFS_COMPLETED; // Flag: language + theme chosen on first launch
-
-// Animation Specifications
-export const TUTORIAL_ANIMATIONS = {
-  overlayFadeIn: { duration: 300, easing: 'ease-out' },
-  spotlightTransition: { duration: 500, easing: 'ease-in-out' },
-  pulseAnimation: {
-    duration: 1500,
-    easing: 'ease-in-out',
-    iterationCount: 'infinite',
-    direction: 'alternate'
-  },
-  elementHighlight: { duration: 200, easing: 'ease-out' }
-} as const;
-
-// Initial State
 export const initialState: TutorialState = {
   isActive: false,
   onboardingScreen: null,
-  currentStep: 1,
-  totalSteps: 25, // Fixed: Complete tutorial flow (includes goal-complete, navigate-home, xp-intro, trophy-room, completion)
   isCompleted: false,
   isSkipped: false,
-  userInteractionBlocked: false,
-  showNext: false,
-  currentStepData: null,
   isLoading: false,
   error: null,
-  // Visual Feedback & Highlighting
-  highlightedField: null,
-  fieldValidationStatus: {},
-  userFeedback: null,
 };
 
-// Function to generate tutorial steps with i18n support
-const createTutorialSteps = (t: any): TutorialStep[] => [
-  // Step 1: Welcome Modal
-  {
-    id: 'welcome',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.welcome.title'),
-      content: t('tutorial.steps.welcome.content'),
-      button: t('tutorial.steps.welcome.button')
-    },
-    action: 'next'
-  },
-
-  // Step 2: App Overview
-  {
-    id: 'app-overview',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.appOverview.title'),
-      content: t('tutorial.steps.appOverview.content'),
-      button: t('tutorial.steps.appOverview.button')
-    },
-    action: 'next'
-  },
-
-  // Step 3: Quick Actions Explanation
-  {
-    id: 'quick-actions',
-    type: 'spotlight',
-    target: 'quick-actions-section',
-    content: {
-      title: t('tutorial.steps.quickActions.title'),
-      content: t('tutorial.steps.quickActions.content'),
-      button: t('tutorial.steps.quickActions.button')
-    },
-    action: 'next'
-  },
-
-  // Step 4: Create First Habit - Button
-  {
-    id: 'create-habit-button',
-    type: 'spotlight',
-    target: 'add-habit-button',
-    content: {
-      title: t('tutorial.steps.createHabitButton.title'),
-      content: t('tutorial.steps.createHabitButton.content'),
-      button: t('tutorial.steps.createHabitButton.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 5a: Habit Name Input
-  {
-    id: 'habit-name',
-    type: 'spotlight',
-    target: 'habit-name-input',
-    content: {
-      title: t('tutorial.steps.habitName.title'),
-      content: t('tutorial.steps.habitName.content'),
-      examples: t('tutorial.steps.habitName.examples'),
-      placeholder: t('tutorial.steps.habitName.placeholder'),
-      button: t('tutorial.steps.habitName.button')
-    },
-    action: 'type_text',
-    nextTrigger: 'first_character'
-  },
-
-  // Step 5b: Habit Color Selection
-  {
-    id: 'habit-color',
-    type: 'spotlight',
-    target: 'habit-color-picker',
-    content: {
-      title: t('tutorial.steps.habitColor.title'),
-      content: t('tutorial.steps.habitColor.content'),
-      button: t('tutorial.steps.habitColor.button')
-    },
-    action: 'select_option'
-  },
-
-  // Step 5c: Habit Icon Selection
-  {
-    id: 'habit-icon',
-    type: 'spotlight',
-    target: 'habit-icon-picker',
-    content: {
-      title: t('tutorial.steps.habitIcon.title'),
-      content: t('tutorial.steps.habitIcon.content'),
-      button: t('tutorial.steps.habitIcon.button')
-    },
-    action: 'select_option'
-  },
-
-  // Step 5d: Habit Schedule Days
-  {
-    id: 'habit-days',
-    type: 'spotlight',
-    target: 'habit-scheduled-days',
-    content: {
-      title: t('tutorial.steps.habitDays.title'),
-      content: t('tutorial.steps.habitDays.content'),
-      button: t('tutorial.steps.habitDays.button')
-    },
-    action: 'select_days'
-  },
-
-  // Step 9: Create Habit
-  {
-    id: 'habit-create',
-    type: 'spotlight',
-    target: 'create-habit-submit',
-    content: {
-      title: t('tutorial.steps.habitCreate.title'),
-      content: t('tutorial.steps.habitCreate.content'),
-      button: t('tutorial.steps.habitCreate.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 10: Habit Creation Complete
-  {
-    id: 'habit-complete',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.habitComplete.title'),
-      content: t('tutorial.steps.habitComplete.content'),
-      button: t('tutorial.steps.habitComplete.button')
-    },
-    action: 'next'
-  },
-
-  // Step 11: Navigate to Journal
-  {
-    id: 'navigate-journal',
-    type: 'spotlight',
-    target: 'journal-tab',
-    content: {
-      title: t('tutorial.steps.journalIntro.title'),
-      content: t('tutorial.steps.journalIntro.content'),
-      button: t('tutorial.steps.journalIntro.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 12: Journal Actions Explanation
-  {
-    id: 'journal-actions',
-    type: 'spotlight',
-    target: 'todays-journal-progress',
-    content: {
-      title: t('tutorial.steps.gratitudeEntry.title'),
-      content: t('tutorial.steps.gratitudeEntry.content'),
-      button: t('tutorial.steps.gratitudeEntry.button')
-    },
-    action: 'next'
-  },
-
-  // Step 13: Navigate to Goals
-  {
-    id: 'navigate-goals',
-    type: 'spotlight',
-    target: 'goals-tab',
-    content: {
-      title: t('tutorial.steps.goalsIntro.title'),
-      content: t('tutorial.steps.goalsIntro.content'),
-      button: t('tutorial.steps.goalsIntro.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 14: Create First Goal - Button
-  {
-    id: 'create-goal-button',
-    type: 'spotlight',
-    target: 'add-goal-button',
-    content: {
-      title: t('tutorial.steps.createGoalButton.title'),
-      content: t('tutorial.steps.createGoalButton.content'),
-      button: t('tutorial.steps.createGoalButton.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 15: Goal Title
-  {
-    id: 'goal-title',
-    type: 'spotlight',
-    target: 'goal-title-input',
-    content: {
-      title: t('tutorial.steps.goalTitle.title'),
-      content: t('tutorial.steps.goalTitle.content'),
-      placeholder: t('tutorial.steps.goalTitle.placeholder'),
-      examples: t('tutorial.steps.goalTitle.examples'),
-      button: t('tutorial.steps.goalTitle.button')
-    },
-    action: 'type_text',
-    nextTrigger: 'first_character'
-  },
-
-  // Step 16: Goal Unit
-  {
-    id: 'goal-unit',
-    type: 'spotlight',
-    target: 'goal-unit-input',
-    content: {
-      title: t('tutorial.steps.goalUnit.title'),
-      content: t('tutorial.steps.goalUnit.content'),
-      placeholder: t('tutorial.steps.goalUnit.placeholder'),
-      examples: t('tutorial.steps.goalUnit.examples'),
-      button: t('tutorial.steps.goalUnit.button')
-    },
-    action: 'type_text',
-    nextTrigger: 'first_character'
-  },
-
-  // Step 17: Goal Target
-  {
-    id: 'goal-target',
-    type: 'spotlight',
-    target: 'goal-target-input',
-    content: {
-      title: t('tutorial.steps.goalTarget.title'),
-      content: t('tutorial.steps.goalTarget.content'),
-      placeholder: t('tutorial.steps.goalTarget.placeholder'),
-      button: t('tutorial.steps.goalTarget.button')
-    },
-    action: 'type_number',
-    nextTrigger: 'first_character'
-  },
-
-  // Step 18: Goal Date (Optional)
-  {
-    id: 'goal-date',
-    type: 'spotlight',
-    target: 'goal-date-picker',
-    content: {
-      title: t('tutorial.steps.goalDate.title'),
-      content: t('tutorial.steps.goalDate.content'),
-      placeholder: t('tutorial.steps.goalDate.placeholder'),
-      button: t('tutorial.steps.goalDate.button')
-    },
-    action: 'select_date'
-  },
-
-  // Step 19: Goal Category
-  {
-    id: 'goal-category',
-    type: 'spotlight',
-    target: 'goal-category-picker',
-    content: {
-      title: t('tutorial.steps.goalCategory.title'),
-      content: t('tutorial.steps.goalCategory.content'),
-      button: t('tutorial.steps.goalCategory.button')
-    },
-    action: 'select_option'
-  },
-
-  // Step 20: Create Goal
-  {
-    id: 'goal-create',
-    type: 'spotlight',
-    target: 'create-goal-submit',
-    content: {
-      title: t('tutorial.steps.goalCreate.title'),
-      content: t('tutorial.steps.goalCreate.content'),
-      button: t('tutorial.steps.goalCreate.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 21: Goal Creation Complete
-  {
-    id: 'goal-complete',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.goalComplete.title'),
-      content: t('tutorial.steps.goalComplete.content'),
-      button: t('tutorial.steps.goalComplete.button')
-    },
-    action: 'next'
-  },
-
-  // Step 22: Navigate to Home
-  {
-    id: 'navigate-home',
-    type: 'spotlight',
-    target: 'home-tab',
-    content: {
-      title: t('tutorial.steps.navigateHome.title'),
-      content: t('tutorial.steps.navigateHome.content'),
-      button: t('tutorial.steps.navigateHome.button')
-    },
-    action: 'click_element'
-  },
-
-  // Step 23: XP System Explanation
-  {
-    id: 'xp-intro',
-    type: 'spotlight',
-    target: 'xp-progress-bar',
-    content: {
-      title: t('tutorial.steps.xpIntro.title'),
-      content: t('tutorial.steps.xpIntro.content'),
-      button: t('tutorial.steps.xpIntro.button')
-    },
-    action: 'next'
-  },
-
-  // Step 24: Trophy Room
-  {
-    id: 'trophy-room',
-    type: 'spotlight',
-    target: 'trophy-button',
-    content: {
-      title: t('tutorial.steps.trophyRoom.title'),
-      content: t('tutorial.steps.trophyRoom.content'),
-      button: t('tutorial.steps.trophyRoom.button')
-    },
-    action: 'next'
-  },
-
-  // Step 25: Tutorial Complete
-  {
-    id: 'completion',
-    type: 'modal',
-    content: {
-      title: t('tutorial.steps.completion.title'),
-      content: t('tutorial.steps.completion.content'),
-      button: t('tutorial.steps.completion.button')
-    },
-    action: 'next'
-  }
-];
-
-// Reducer — exported so the onboarding transitions can be tested without
-// mounting the provider (which needs AsyncStorage, the router and the startup gate).
+// Exported so the transitions can be tested without mounting the provider, which
+// needs AsyncStorage, the router and the startup gate.
 export function tutorialReducer(state: TutorialState, action: TutorialAction): TutorialState {
   switch (action.type) {
     case 'SET_LOADING':
@@ -554,550 +115,138 @@ export function tutorialReducer(state: TutorialState, action: TutorialAction): T
     case 'SET_ERROR':
       return { ...state, error: action.payload, isLoading: false };
 
-    case 'START_TUTORIAL':
-      return {
-        ...state,
-        isActive: true,
-        currentStep: 1,
-        isCompleted: false,
-        isSkipped: false,
-        userInteractionBlocked: true,
-        totalSteps: action.payload.steps.length,
-        currentStepData: action.payload.steps[0] || null,
-        isLoading: false,
-        error: null
-      };
-
-    // New 3-screen onboarding. Sets `isActive` exactly like START_TUTORIAL so
-    // every existing consumer keeps working, but leaves `currentStepData` null
-    // so the old overlay renders nothing (its guard at TutorialOverlay.tsx:335).
     case 'START_ONBOARDING':
       return {
         ...state,
         isActive: true,
         onboardingScreen: action.payload.screen,
-        currentStep: action.payload.screen,
-        totalSteps: ONBOARDING_TOTAL_SCREENS,
         isCompleted: false,
         isSkipped: false,
-        // The new screens are ordinary full-screen views, not a coach-mark
-        // overlay — there is no app underneath to block touches on.
-        userInteractionBlocked: false,
-        currentStepData: null,
         isLoading: false,
         error: null,
       };
 
     case 'SET_ONBOARDING_SCREEN':
-      return {
-        ...state,
-        onboardingScreen: action.payload.screen,
-        currentStep: action.payload.screen,
-      };
-
-    case 'SET_CURRENT_STEP':
-      const stepIndex = Math.max(0, Math.min(action.payload.stepNumber - 1, action.payload.steps.length - 1));
-      return {
-        ...state,
-        currentStep: action.payload.stepNumber,
-        currentStepData: action.payload.steps[stepIndex] || null,
-        showNext: false
-      };
-
-    case 'SET_STEP_DATA':
-      return { ...state, currentStepData: action.payload };
+      return { ...state, onboardingScreen: action.payload.screen };
 
     case 'COMPLETE_TUTORIAL':
-      return {
-        ...state,
-        isActive: false,
-        onboardingScreen: null,
-        isCompleted: true,
-        userInteractionBlocked: false,
-        currentStepData: null
-      };
+      return { ...state, isActive: false, onboardingScreen: null, isCompleted: true };
 
     case 'SKIP_TUTORIAL':
-      return {
-        ...state,
-        isActive: false,
-        onboardingScreen: null,
-        isSkipped: true,
-        userInteractionBlocked: false,
-        currentStepData: null
-      };
-
-    case 'SET_INTERACTION_BLOCKED':
-      return { ...state, userInteractionBlocked: action.payload };
-
-    case 'SHOW_NEXT_BUTTON':
-      return { ...state, showNext: action.payload };
+      return { ...state, isActive: false, onboardingScreen: null, isSkipped: true };
 
     case 'RESET_TUTORIAL':
-      return {
-        ...initialState,
-        isLoading: false
-      };
-
-    case 'HIGHLIGHT_FIELD':
-      return {
-        ...state,
-        highlightedField: action.payload,
-        userFeedback: action.payload ? state.userFeedback : null // Clear feedback when removing highlight
-      };
-
-    case 'SET_FIELD_VALIDATION':
-      return {
-        ...state,
-        fieldValidationStatus: {
-          ...state.fieldValidationStatus,
-          [action.payload.fieldId]: action.payload.status
-        }
-      };
-
-    case 'SHOW_USER_FEEDBACK':
-      return {
-        ...state,
-        userFeedback: {
-          message: action.payload.message,
-          type: action.payload.type,
-          visible: true
-        }
-      };
-
-    case 'HIDE_USER_FEEDBACK':
-      return {
-        ...state,
-        userFeedback: state.userFeedback ? { ...state.userFeedback, visible: false } : null
-      };
+      return { ...initialState };
 
     default:
       return state;
   }
 }
 
-// Context
+// ---------------------------------------------------------------------------
+// Storage
+// ---------------------------------------------------------------------------
+
+const COMPLETED_KEY = TUTORIAL_STORAGE_KEYS.COMPLETED;
+const CURRENT_STEP_KEY = TUTORIAL_STORAGE_KEYS.CURRENT_STEP;
+const SKIPPED_KEY = TUTORIAL_STORAGE_KEYS.SKIPPED;
+const RESTARTED_KEY = TUTORIAL_STORAGE_KEYS.RESTARTED;
+const PREFS_KEY = TUTORIAL_STORAGE_KEYS.PREFS_COMPLETED;
+
+/** Diagnostics written by the retired tour: cleared on request, never written. */
+const LEGACY_DIAGNOSTIC_KEYS = [
+  TUTORIAL_STORAGE_KEYS.SESSION,
+  TUTORIAL_STORAGE_KEYS.SESSION_TIMESTAMP,
+  TUTORIAL_STORAGE_KEYS.CRASH_LOG,
+  TUTORIAL_STORAGE_KEYS.ERROR_COUNT,
+  TUTORIAL_STORAGE_KEYS.RECOVERY_STATE,
+];
+
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
 
-// Provider Component
-export function TutorialProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(tutorialReducer, initialState);
-  const { t } = useTranslation();
+interface TutorialProviderProps {
+  children: ReactNode;
+}
 
-  // Onboarding preferences gate (language + theme) - shown only on first launch
+export function TutorialProvider({ children }: TutorialProviderProps) {
+  const [state, dispatch] = useReducer(tutorialReducer, initialState);
   const [showOnboardingPrefs, setShowOnboardingPrefs] = useState(false);
   const [showOnboardingWelcome, setShowOnboardingWelcome] = useState(false);
 
-  // Create tutorial steps with translations
-  const TUTORIAL_STEPS = createTutorialSteps(t);
-
-  // Modal Coordination with XpAnimationContext - only for achievement modal detection
-  // useXpAnimation removed - achievement modal tracking via DeviceEventEmitter
-
-
-  // Helper Functions
-  const setLoading = (loading: boolean) => {
-    dispatch({ type: 'SET_LOADING', payload: loading });
-  };
-
-  const setError = (error: string | null) => {
-    dispatch({ type: 'SET_ERROR', payload: error });
-  };
-
-  // Storage Functions
-  const saveTutorialProgress = async (step: number) => {
+  const saveProgress = async (screen: number) => {
     try {
-      await AsyncStorage.setItem(TUTORIAL_STEP_KEY, step.toString());
+      await AsyncStorage.setItem(CURRENT_STEP_KEY, screen.toString());
     } catch (error) {
-      console.warn('Failed to save tutorial progress:', error);
+      console.warn('Failed to save onboarding progress:', error);
     }
   };
 
-  const markTutorialCompleted = async () => {
+  const markCompleted = async () => {
     try {
-      await AsyncStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
-      await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
+      await AsyncStorage.setItem(COMPLETED_KEY, 'true');
+      await AsyncStorage.removeItem(CURRENT_STEP_KEY);
     } catch (error) {
-      console.warn('Failed to mark tutorial as completed:', error);
+      console.warn('Failed to mark onboarding as completed:', error);
     }
   };
 
-  const markTutorialSkipped = async () => {
+  const markSkipped = async () => {
     try {
-      await AsyncStorage.setItem(TUTORIAL_SKIPPED_KEY, 'true');
-      await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
+      await AsyncStorage.setItem(SKIPPED_KEY, 'true');
+      await AsyncStorage.removeItem(CURRENT_STEP_KEY);
     } catch (error) {
-      console.warn('Failed to mark tutorial as skipped:', error);
+      console.warn('Failed to mark onboarding as skipped:', error);
     }
   };
 
-  const shouldShowTutorial = async (): Promise<boolean> => {
+  const shouldShowOnboarding = async (): Promise<boolean> => {
     try {
-      const isCompleted = await AsyncStorage.getItem(TUTORIAL_STORAGE_KEY);
-      const isSkipped = await AsyncStorage.getItem(TUTORIAL_SKIPPED_KEY);
-      return isCompleted !== 'true' && isSkipped !== 'true';
+      const completed = await AsyncStorage.getItem(COMPLETED_KEY);
+      const skipped = await AsyncStorage.getItem(SKIPPED_KEY);
+      return completed !== 'true' && skipped !== 'true';
     } catch (error) {
-      console.warn('Failed to check tutorial status:', error);
-      return true; // Show tutorial by default if we can't check
+      console.warn('Failed to check onboarding status:', error);
+      return true; // show it rather than silently skipping a first run
     }
   };
 
-  const getTutorialResumeStep = async (): Promise<number> => {
+  const getResumeStep = async (): Promise<number> => {
     try {
-      const step = await AsyncStorage.getItem(TUTORIAL_STEP_KEY);
+      const step = await AsyncStorage.getItem(CURRENT_STEP_KEY);
       return step ? parseInt(step, 10) : 1;
     } catch (error) {
-      console.warn('Failed to get tutorial resume step:', error);
+      console.warn('Failed to read onboarding progress:', error);
       return 1;
     }
   };
 
-  // Session Management Functions
-  const saveTutorialSession = async (tutorialState: TutorialState) => {
-    try {
-      const sessionData = {
-        state: {
-          isActive: tutorialState.isActive,
-          currentStep: tutorialState.currentStep,
-          totalSteps: tutorialState.totalSteps,
-          userInteractionBlocked: tutorialState.userInteractionBlocked,
-          showNext: tutorialState.showNext,
-          highlightedField: tutorialState.highlightedField,
-          fieldValidationStatus: tutorialState.fieldValidationStatus,
-          userFeedback: tutorialState.userFeedback,
-        },
-        timestamp: Date.now(),
-      };
+  // -------------------------------------------------------------------------
+  // Actions
+  // -------------------------------------------------------------------------
 
-      await AsyncStorage.setItem(TUTORIAL_SESSION_KEY, JSON.stringify(sessionData));
-      await AsyncStorage.setItem(TUTORIAL_SESSION_TIMESTAMP_KEY, sessionData.timestamp.toString());
-
-      console.log('💾 Tutorial session saved for backgrounding recovery');
-    } catch (error) {
-      console.warn('Failed to save tutorial session:', error);
-    }
-  };
-
-  const restoreTutorialSession = async (): Promise<boolean> => {
-    try {
-      const sessionDataStr = await AsyncStorage.getItem(TUTORIAL_SESSION_KEY);
-      const timestampStr = await AsyncStorage.getItem(TUTORIAL_SESSION_TIMESTAMP_KEY);
-
-      if (!sessionDataStr || !timestampStr) {
-        return false;
-      }
-
-      const sessionData = JSON.parse(sessionDataStr);
-      const sessionAge = Date.now() - parseInt(timestampStr, 10);
-
-      // Session expires after 1 hour (3600000 ms) to avoid stale sessions
-      if (sessionAge > 3600000) {
-        console.log('🕐 Tutorial session expired, starting fresh');
-        await clearTutorialSession();
-        return false;
-      }
-
-      console.log('🔄 Restoring tutorial session from background');
-
-      // Restore tutorial state
-      dispatch({
-        type: 'START_TUTORIAL',
-        payload: { steps: TUTORIAL_STEPS }
-      });
-
-      dispatch({
-        type: 'SET_CURRENT_STEP',
-        payload: { stepNumber: sessionData.state.currentStep, steps: TUTORIAL_STEPS }
-      });
-
-      // Restore UI state
-      if (sessionData.state.highlightedField) {
-        dispatch({
-          type: 'HIGHLIGHT_FIELD',
-          payload: sessionData.state.highlightedField
-        });
-      }
-
-      if (sessionData.state.userFeedback) {
-        dispatch({
-          type: 'SHOW_USER_FEEDBACK',
-          payload: sessionData.state.userFeedback
-        });
-      }
-
-      return true;
-    } catch (error) {
-      console.warn('Failed to restore tutorial session:', error);
-      await clearTutorialSession();
-      return false;
-    }
-  };
-
-  const clearTutorialSession = async () => {
-    try {
-      await AsyncStorage.removeItem(TUTORIAL_SESSION_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_SESSION_TIMESTAMP_KEY);
-    } catch (error) {
-      console.warn('Failed to clear tutorial session:', error);
-    }
-  };
-
-  // Crash Recovery System Functions
-  const logCrash = async (error: Error, context: { step: number; stepId: string; userAgent?: string }) => {
-    try {
-      const crashLog: TutorialCrashLog = {
-        timestamp: Date.now(),
-        error: error.message || 'Unknown error',
-        ...(error.stack && { stack: error.stack }),
-        step: context.step,
-        stepId: context.stepId,
-        userAgent: context.userAgent || 'Unknown',
-        appState: AppState.currentState === 'unknown' ? 'inactive' : AppState.currentState as 'active' | 'background' | 'inactive',
-        attempts: 1,
-      };
-
-      // Get existing crash logs
-      const existingLogs = await getCrashLogs();
-      const updatedLogs = [...existingLogs.slice(-9), crashLog]; // Keep last 10 crashes
-
-      await AsyncStorage.setItem(TUTORIAL_CRASH_LOG_KEY, JSON.stringify(updatedLogs));
-
-      // Update error count
-      const recoveryState = await getRecoveryState();
-      recoveryState.errorCount += 1;
-      recoveryState.lastCrash = crashLog;
-      recoveryState.recoveryTimestamp = Date.now();
-
-      await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
-
-      console.error('💥 Tutorial crash logged:', {
-        error: error.message,
-        step: context.step,
-        stepId: context.stepId
-      });
-    } catch (logError) {
-      console.error('Failed to log crash:', logError);
-    }
-  };
-
-  const getCrashLogs = async (): Promise<TutorialCrashLog[]> => {
-    try {
-      const logsStr = await AsyncStorage.getItem(TUTORIAL_CRASH_LOG_KEY);
-      return logsStr ? JSON.parse(logsStr) : [];
-    } catch (error) {
-      console.warn('Failed to get crash logs:', error);
-      return [];
-    }
-  };
-
-  const getRecoveryState = async (): Promise<TutorialRecoveryState> => {
-    try {
-      const stateStr = await AsyncStorage.getItem(TUTORIAL_RECOVERY_STATE_KEY);
-      if (stateStr) {
-        return JSON.parse(stateStr);
-      }
-    } catch (error) {
-      console.warn('Failed to get recovery state:', error);
-    }
-
-    // Default recovery state
-    return {
-      errorCount: 0,
-      recoveryAttempts: 0,
-      isInRecoveryMode: false,
-      fallbackEnabled: false,
-      recoveryTimestamp: Date.now(),
-    };
-  };
-
-  const attemptRecovery = async (error: Error): Promise<boolean> => {
-    try {
-      const recoveryState = await getRecoveryState();
-
-      // Increment recovery attempts
-      recoveryState.recoveryAttempts += 1;
-      recoveryState.isInRecoveryMode = true;
-      recoveryState.recoveryTimestamp = Date.now();
-
-      console.log(`🔧 Attempting tutorial recovery (attempt #${recoveryState.recoveryAttempts})`);
-
-      // Recovery strategy based on error count and type
-      if (recoveryState.errorCount < 3) {
-        // Low error count - try simple state reset
-        console.log('🔄 Simple state reset recovery');
-        dispatch({ type: 'SET_ERROR', payload: null });
-        dispatch({ type: 'SET_LOADING', payload: false });
-        dispatch({ type: 'SET_INTERACTION_BLOCKED', payload: false });
-
-        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
-        return true;
-
-      } else if (recoveryState.errorCount < 6) {
-        // Medium error count - try session restoration from backup
-        console.log('🔄 Session restoration recovery');
-        const restored = await restoreTutorialSession();
-        if (restored) {
-          await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
-          return true;
-        }
-
-        // If session restoration fails, reset to safe step
-        console.log('🔄 Safe step reset recovery');
-        const safeStep = Math.max(1, state.currentStep - 2); // Go back 2 steps
-        dispatch({
-          type: 'SET_CURRENT_STEP',
-          payload: { stepNumber: safeStep, steps: TUTORIAL_STEPS }
-        });
-        await saveTutorialProgress(safeStep);
-        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
-        return true;
-
-      } else {
-        // High error count - enable fallback mode
-        console.log('⚠️ Enabling fallback mode due to repeated crashes');
-        recoveryState.fallbackEnabled = true;
-
-        // Reset tutorial to beginning with fallback mode
-        dispatch({ type: 'RESET_TUTORIAL' });
-        dispatch({
-          type: 'SHOW_USER_FEEDBACK',
-          payload: {
-            message: t('tutorial.feedback.simplifiedMode'),
-            type: 'warning'
-          }
-        });
-
-        await AsyncStorage.setItem(TUTORIAL_RECOVERY_STATE_KEY, JSON.stringify(recoveryState));
-        return true;
-      }
-    } catch (recoveryError) {
-      console.error('Recovery attempt failed:', recoveryError);
-      return false;
-    }
-  };
-
-  const clearCrashData = async () => {
-    try {
-      await AsyncStorage.removeItem(TUTORIAL_CRASH_LOG_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_ERROR_COUNT_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_RECOVERY_STATE_KEY);
-      console.log('🧹 Crash recovery data cleared');
-    } catch (error) {
-      console.warn('Failed to clear crash data:', error);
-    }
-  };
-
-  const validateTutorialState = (): boolean => {
-    try {
-      // Check for invalid state combinations
-      if (state.currentStep < 1 || state.currentStep > state.totalSteps) {
-        console.warn('⚠️ Invalid current step detected');
-        return false;
-      }
-
-      if (state.isCompleted && state.isSkipped) {
-        console.warn('⚠️ Invalid completion state detected');
-        return false;
-      }
-
-      if (state.isActive && (state.isCompleted || state.isSkipped)) {
-        console.warn('⚠️ Invalid active state detected');
-        return false;
-      }
-
-      if (state.currentStepData && state.currentStepData.id !== TUTORIAL_STEPS[state.currentStep - 1]?.id) {
-        console.warn('⚠️ Step data mismatch detected');
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('State validation failed:', error);
-      return false;
-    }
-  };
-
-  const handleTutorialError = async (error: Error, context?: { action?: string; step?: number }) => {
-    console.error('🚨 Tutorial Error:', error);
-
-    // Log the crash
-    await logCrash(error, {
-      step: context?.step || state.currentStep,
-      stepId: state.currentStepData?.id || 'unknown',
-      userAgent: 'React Native App'
-    });
-
-    // Validate current state
-    if (!validateTutorialState()) {
-      console.warn('⚠️ Invalid state detected, attempting recovery');
-      const recovered = await attemptRecovery(error);
-
-      if (!recovered) {
-        console.error('💥 Recovery failed, resetting tutorial');
-        dispatch({ type: 'RESET_TUTORIAL' });
-        dispatch({
-          type: 'SHOW_USER_FEEDBACK',
-          payload: {
-            message: t('tutorial.feedback.errorReset'),
-            type: 'error'
-          }
-        });
-      }
-    } else {
-      // State is valid, try simple recovery
-      const recovered = await attemptRecovery(error);
-      if (!recovered) {
-        setError(t('tutorial.errors.generalError'));
-      }
-    }
-  };
-
-  // Action Functions
-
-  // Confirm onboarding preferences (language + theme + notification opt-in) and start
-  // the tutorial. Called by OnboardingPreferencesModal after its last step.
-  const completeOnboardingPrefs = async (wantsNotifications: boolean): Promise<void> => {
-    try {
-      await AsyncStorage.setItem(ONBOARDING_PREFS_KEY, 'true');
-
-      // Close the gate FIRST. The OS permission prompt is a native modal, so our RN
-      // modal must be gone before it appears — never two modals at once (iOS freeze).
-      setShowOnboardingPrefs(false);
-
-      if (wantsNotifications) {
-        // Ask the OS, then switch BOTH daily reminders on for the user. Awaited, so the
-        // tutorial's Welcome modal cannot appear while the OS prompt is still up.
-        const { enableAllRemindersAfterOptIn } = require('@/src/services/notifications') as typeof import('@/src/services/notifications');
-        await enableAllRemindersAfterOptIn();
-      }
-
-      // One welcome beat, then the 3-screen onboarding.
-      dispatch({ type: 'RESET_TUTORIAL' });
-      setShowOnboardingWelcome(true);
-    } catch (error) {
-      console.warn('Failed to complete onboarding preferences:', error);
-      // Fallback: keep going so the user is never stuck on the gate
-      setShowOnboardingPrefs(false);
-      setShowOnboardingWelcome(true);
-    }
-  };
-
-  const completeOnboardingWelcome = async (): Promise<void> => {
-    setShowOnboardingWelcome(false);
-    await startOnboardingAt(1);
-  };
-
-  // ---------------------------------------------------------------------------
-  // 3-screen onboarding (replaces the 25-step tutorial)
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Open onboarding at `screen` and remember it, so killing the app mid-flow
-   * resumes where the user left off instead of starting over.
-   */
   const startOnboardingAt = async (screen: OnboardingScreen): Promise<void> => {
     dispatch({ type: 'START_ONBOARDING', payload: { screen } });
-    await saveTutorialProgress(screen);
+    await saveProgress(screen);
+  };
+
+  const completeTutorial = async (): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem(RESTARTED_KEY);
+      dispatch({ type: 'COMPLETE_TUTORIAL' });
+      await markCompleted();
+    } catch (error) {
+      console.warn('Failed to complete onboarding:', error);
+    }
+  };
+
+  const skipOnboarding = async (): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem(RESTARTED_KEY);
+      dispatch({ type: 'SKIP_TUTORIAL' });
+      await markSkipped();
+    } catch (error) {
+      console.warn('Failed to skip onboarding:', error);
+    }
   };
 
   const nextOnboardingScreen = async (): Promise<void> => {
@@ -1108,802 +257,130 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
     const next = (current + 1) as OnboardingScreen;
     dispatch({ type: 'SET_ONBOARDING_SCREEN', payload: { screen: next } });
-    await saveTutorialProgress(next);
+    await saveProgress(next);
   };
 
-  // Reuses skipTutorial so the storage flags stay identical — XpAnimationContext
-  // reads COMPLETED/SKIPPED to suppress the level-up modal (dual-modal freeze).
-  const skipOnboarding = async (): Promise<void> => {
-    await skipTutorial();
-  };
-
-  const startTutorial = async (): Promise<void> => {
+  const completeOnboardingPrefs = async (wantsNotifications: boolean): Promise<void> => {
     try {
-      setLoading(true);
-      setError(null);
+      await AsyncStorage.setItem(PREFS_KEY, 'true');
 
-      const shouldShow = await shouldShowTutorial();
-      if (!shouldShow) {
-        setError(t('tutorial.errors.alreadyCompleted'));
-        return;
+      // Close the gate FIRST. The OS permission prompt is a native modal, so our
+      // RN modal must be gone before it appears — never two at once (iOS freeze).
+      setShowOnboardingPrefs(false);
+
+      if (wantsNotifications) {
+        // Awaited, so the welcome screen cannot appear while the OS prompt is up.
+        const { enableAllRemindersAfterOptIn } =
+          require('@/src/services/notifications') as typeof import('@/src/services/notifications');
+        await enableAllRemindersAfterOptIn();
       }
 
-      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-      await saveTutorialProgress(1);
-    } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to start tutorial'), {
-        action: 'startTutorial',
-        step: state.currentStep
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const nextStep = async (): Promise<void> => {
-    try {
-      const currentStepData = state.currentStepData;
-      const currentStepNumber = state.currentStep;
-
-      // Track step completion before moving to next
-
-      const newStep = state.currentStep + 1;
-
-      console.log(`🎓 [NEXT STEP] Current: ${state.currentStep}, New: ${newStep}, Total: ${state.totalSteps}`);
-
-      if (newStep > state.totalSteps) {
-        console.log(`🏁 [TUTORIAL] Completing tutorial - step ${newStep} exceeds total ${state.totalSteps}`);
-        await completeTutorial();
-        return;
-      }
-
-      dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: newStep, steps: TUTORIAL_STEPS } });
-      await saveTutorialProgress(newStep);
-
-      const newStepData = TUTORIAL_STEPS[newStep - 1];
-    } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to proceed to next step'), {
-        action: 'nextStep',
-        step: state.currentStep
-      });
-    }
-  };
-
-  const skipTutorial = async (): Promise<void> => {
-    try {
-      setLoading(true);
-
-      // Clear any saved session data
-      await clearTutorialSession();
-
-      // Clear restarted flag when tutorial is skipped
-      await AsyncStorage.removeItem(TUTORIAL_RESTARTED_KEY);
-
-      dispatch({ type: 'SKIP_TUTORIAL' });
-      await markTutorialSkipped();
-    } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to skip tutorial'), {
-        action: 'skipTutorial',
-        step: state.currentStep
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const completeTutorial = async (): Promise<void> => {
-    try {
-      setLoading(true);
-
-      // Clear any saved session data
-      await clearTutorialSession();
-
-      // Clear restarted flag when tutorial completes
-      await AsyncStorage.removeItem(TUTORIAL_RESTARTED_KEY);
-
-      dispatch({ type: 'COMPLETE_TUTORIAL' });
-      await markTutorialCompleted();
-    } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to complete tutorial'), {
-        action: 'completeTutorial',
-        step: state.currentStep
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resumeTutorial = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const shouldShow = await shouldShowTutorial();
-      if (!shouldShow) {
-        setError(t('tutorial.errors.alreadyCompleted'));
-        return;
-      }
-
-      const resumeStep = await getTutorialResumeStep();
-      dispatch({ type: 'START_TUTORIAL', payload: { steps: TUTORIAL_STEPS } });
-      dispatch({ type: 'SET_CURRENT_STEP', payload: { stepNumber: resumeStep, steps: TUTORIAL_STEPS } });
-    } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to resume tutorial'), {
-        action: 'resumeTutorial',
-        step: state.currentStep
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetTutorial = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      await AsyncStorage.removeItem(TUTORIAL_STORAGE_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
       dispatch({ type: 'RESET_TUTORIAL' });
+      setShowOnboardingWelcome(true);
     } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to reset tutorial'), {
-        action: 'resetTutorial',
-        step: state.currentStep
-      });
-    } finally {
-      setLoading(false);
+      console.warn('Failed to complete onboarding preferences:', error);
+      // Keep going regardless — never strand the user on the gate.
+      setShowOnboardingPrefs(false);
+      setShowOnboardingWelcome(true);
     }
+  };
+
+  const completeOnboardingWelcome = async (): Promise<void> => {
+    setShowOnboardingWelcome(false);
+    await startOnboardingAt(1);
   };
 
   const restartTutorial = async (): Promise<void> => {
     try {
-      setLoading(true);
+      dispatch({ type: 'SET_LOADING', payload: true });
 
-      // First reset all tutorial data
-      await AsyncStorage.removeItem(TUTORIAL_STORAGE_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_STEP_KEY);
-      await AsyncStorage.removeItem(TUTORIAL_SKIPPED_KEY);
+      await AsyncStorage.removeItem(COMPLETED_KEY);
+      await AsyncStorage.removeItem(CURRENT_STEP_KEY);
+      await AsyncStorage.removeItem(SKIPPED_KEY);
 
-      // 🎯 Set flag that this is a restarted tutorial
-      // This allows Habit/Goal contexts to handle achievements differently
-      await AsyncStorage.setItem(TUTORIAL_RESTARTED_KEY, 'true');
+      // Lets the Habit/Goal contexts know the first-habit/first-goal
+      // achievements are already owned, so they do not re-celebrate.
+      await AsyncStorage.setItem(RESTARTED_KEY, 'true');
 
       dispatch({ type: 'RESET_TUTORIAL' });
 
-      // Navigate to Home screen
       router.push('/(tabs)' as any);
-
-      // Small delay to ensure navigation completes
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Then immediately start onboarding, welcome screen included — a restart
-      // should feel like the real thing, not a stripped-down version.
+      // Welcome screen included — a restart should feel like the real thing.
       setShowOnboardingWelcome(true);
-
     } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to restart tutorial'), {
-        action: 'restartTutorial',
-        step: state.currentStep
-      });
+      console.warn('Failed to restart onboarding:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to restart onboarding' });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const setUserInteractionBlocked = (blocked: boolean) => {
-    dispatch({ type: 'SET_INTERACTION_BLOCKED', payload: blocked });
-  };
-
-  const showNextButton = (show: boolean) => {
-    dispatch({ type: 'SHOW_NEXT_BUTTON', payload: show });
-  };
-
-  const handleStepAction = async (action: string, value?: any): Promise<void> => {
+  const clearCrashData = async (): Promise<void> => {
     try {
-      const currentStepData = state.currentStepData;
-      if (!currentStepData) return;
-
-      console.log(`🎓 Tutorial Step Action: ${currentStepData.id} - ${action} - Value:`, value);
-
-      // Handle different action types with enhanced validation and user guidance
-      switch (action) {
-        case 'type_text':
-          await handleTextInput(currentStepData, value);
-          break;
-
-        case 'select_option':
-          // For select_option, when called from Next button (no value), advance to next step
-          if (value === undefined) {
-            await nextStep();
-          } else {
-            await handleOptionSelection(currentStepData, value);
-          }
-          break;
-
-        case 'select_date':
-          await handleDateSelection(currentStepData, value);
-          break;
-
-        case 'select_days':
-          // For select_days, when called from Next button (no value), advance to next step
-          if (value === undefined) {
-            await nextStep();
-          } else {
-            await handleDaySelection(currentStepData, value);
-          }
-          break;
-
-        case 'type_number':
-          await handleNumberInput(currentStepData, value);
-          break;
-
-        case 'click_element':
-          console.log(`🎯 Element clicked: ${currentStepData.target}`);
-
-          // Handle specific navigation actions for certain steps
-          if (currentStepData.id === 'create-habit-button' && currentStepData.target === 'add-habit-button') {
-            console.log(`🎯 Navigating to habit creation screen...`);
-            // Navigate to habits tab with quickAction to open add habit modal
-            router.push('/(tabs)/habits?quickAction=addHabit');
-
-            // Optimized wait: Start checking earlier with shorter initial delay
-            await new Promise(resolve => setTimeout(resolve, 400));
-
-            // Poll for tutorial targets to be registered in the modal
-            let retryCount = 0;
-            const maxRetries = 15; // More retries but faster polling
-            while (retryCount < maxRetries) {
-              const targetExists = await tutorialTargetManager.getTargetInfo('habit-name-input');
-              if (targetExists) {
-                console.log(`✅ Tutorial target 'habit-name-input' is ready after ${retryCount} retries (${400 + retryCount * 150}ms total)`);
-                break;
-              }
-              console.log(`⏳ Waiting for tutorial target 'habit-name-input' to be registered... (${retryCount + 1}/${maxRetries})`);
-              await new Promise(resolve => setTimeout(resolve, 150));
-              retryCount++;
-            }
-
-            if (retryCount >= maxRetries) {
-              console.warn(`⚠️ Tutorial target 'habit-name-input' still not found after ${maxRetries} retries`);
-            }
-          } else if (currentStepData.id === 'navigate-journal' && currentStepData.target === 'journal-tab') {
-            console.log(`🎯 Navigating to Journal tab...`);
-            router.push('/(tabs)/journal');
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } else if (currentStepData.id === 'navigate-goals' && currentStepData.target === 'goals-tab') {
-            console.log(`🎯 Navigating to Goals tab...`);
-            router.push('/(tabs)/goals');
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } else if (currentStepData.id === 'create-goal-button' && currentStepData.target === 'add-goal-button') {
-            console.log(`🎯 Navigating to goal creation screen...`);
-            router.push('/(tabs)/goals?quickAction=addGoal');
-
-            // Optimized wait: Start checking earlier with shorter initial delay
-            await new Promise(resolve => setTimeout(resolve, 400));
-
-            // Poll for tutorial targets to be registered in the modal
-            let goalRetryCount = 0;
-            const goalMaxRetries = 15;
-            while (goalRetryCount < goalMaxRetries) {
-              const targetExists = await tutorialTargetManager.getTargetInfo('goal-title-input');
-              if (targetExists) {
-                console.log(`✅ Tutorial target 'goal-title-input' is ready after ${goalRetryCount} retries (${400 + goalRetryCount * 150}ms total)`);
-                break;
-              }
-              console.log(`⏳ Waiting for tutorial target 'goal-title-input' to be registered... (${goalRetryCount + 1}/${goalMaxRetries})`);
-              await new Promise(resolve => setTimeout(resolve, 150));
-              goalRetryCount++;
-            }
-          } else if (currentStepData.id === 'navigate-home' && currentStepData.target === 'home-tab') {
-            console.log(`🎯 Navigating back to Home tab...`);
-            router.push('/(tabs)');
-
-            // Wait for navigation to complete
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // Scroll home screen to top to make XP progress bar visible
-            console.log(`📜 [TUTORIAL] Scrolling home screen to top for XP progress bar visibility...`);
-            DeviceEventEmitter.emit('tutorial_scroll_to', { y: 0, animated: true });
-
-            // Wait for scroll animation to complete
-            await new Promise(resolve => setTimeout(resolve, 600));
-
-            // Verify XP progress bar target is registered and visible
-            console.log(`🔍 [TUTORIAL] Verifying XP progress bar target registration...`);
-            let xpRetryCount = 0;
-            const xpMaxRetries = 10;
-            while (xpRetryCount < xpMaxRetries) {
-              const targetExists = await tutorialTargetManager.getTargetInfo('xp-progress-bar');
-              if (targetExists) {
-                console.log(`✅ [TUTORIAL] XP progress bar target ready after ${xpRetryCount} retries`);
-                break;
-              }
-              console.log(`⏳ [TUTORIAL] Waiting for XP progress bar target... (${xpRetryCount + 1}/${xpMaxRetries})`);
-              await new Promise(resolve => setTimeout(resolve, 100));
-              xpRetryCount++;
-            }
-
-            if (xpRetryCount >= xpMaxRetries) {
-              console.warn(`⚠️ [TUTORIAL] XP progress bar target still not found after ${xpMaxRetries} retries`);
-            }
-          }
-
-          await nextStep();
-          break;
-
-        case 'next':
-          await nextStep();
-          break;
-
-        default:
-          console.warn(`⚠️ Unknown tutorial action: ${currentStepData.action}`);
-      }
+      await Promise.all(LEGACY_DIAGNOSTIC_KEYS.map(key => AsyncStorage.removeItem(key)));
     } catch (error) {
-      await handleTutorialError(error instanceof Error ? error : new Error('Failed to handle step action'), {
-        action: 'handleStepAction',
-        step: state.currentStep
-      });
+      console.warn('Failed to clear onboarding diagnostics:', error);
     }
   };
 
-  // Enhanced Form Interaction Handlers
-  const handleTextInput = async (stepData: TutorialStep, value: string) => {
+  // -------------------------------------------------------------------------
+  // Auto-start on first launch
+  // -------------------------------------------------------------------------
 
-    // Highlight current field
-    if (stepData.target) {
-      highlightField(stepData.target);
-    }
-
-    // Progressive Form Filling Logic
-    if (stepData.nextTrigger === 'first_character' && value && value.length > 0) {
-      console.log(`✅ First character typed in ${stepData.id}, enabling Next button`);
-      showNextButton(true);
-      setFieldValidation(stepData.id, 'valid');
-      showUserFeedback(t('tutorial.feedback.greatStart'), 'success');
-    }
-
-    // Validate text input based on step type with visual feedback
-    if (stepData.id === 'habit-name') {
-      const isValid = validateHabitName(value);
-      setFieldValidation(stepData.id, isValid ? 'valid' : 'pending');
-    } else if (stepData.id === 'goal-title') {
-      const isValid = validateGoalTitle(value);
-      setFieldValidation(stepData.id, isValid ? 'valid' : 'pending');
-    } else if (stepData.id === 'goal-unit') {
-      const isValid = validateGoalUnit(value);
-      setFieldValidation(stepData.id, isValid ? 'valid' : 'pending');
-
-      // Clear highlight after successful validation
-      if (isValid) {
-        setTimeout(() => clearFieldHighlight(), 800);
-      }
-    }
-  };
-
-  const handleOptionSelection = async (stepData: TutorialStep, value: any) => {
-    if (value !== undefined && value !== null) {
-      console.log(`✅ Option selected in ${stepData.id}:`, value);
-
-      // Visual feedback
-      if (stepData.target) {
-        highlightField(stepData.target);
-      }
-
-      // Goal-specific category validation
-      if (stepData.id === 'goal-category') {
-        const isValid = validateGoalCategory(value);
-        setFieldValidation(stepData.id, isValid ? 'valid' : 'invalid');
-        if (isValid) {
-          showNextButton(true);
-        }
-      } else {
-        setFieldValidation(stepData.id, 'valid');
-        showUserFeedback(t('tutorial.feedback.perfectChoice'), 'success');
-        showNextButton(true);
-      }
-
-      // Add small delay for better UX before enabling Next
-      setTimeout(() => {
-        console.log(`🎯 ${stepData.id} selection confirmed, user can proceed`);
-        clearFieldHighlight();
-      }, 300);
-    }
-  };
-
-  const handleDateSelection = async (stepData: TutorialStep, value: Date) => {
-    if (value && value instanceof Date) {
-      // Visual feedback
-      if (stepData.target) {
-        highlightField(stepData.target);
-      }
-
-      // Validate date is in the future
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (value >= today) {
-        console.log(`✅ Valid future date selected: ${value.toDateString()}`);
-
-        // Goal-specific date validation
-        if (stepData.id === 'goal-date') {
-          const isValid = validateGoalDate(value);
-          setFieldValidation(stepData.id, isValid ? 'valid' : 'invalid');
-          if (isValid) {
-            showNextButton(true);
-          }
-        } else {
-          setFieldValidation(stepData.id, 'valid');
-          showUserFeedback(t('tutorial.feedback.targetDateSet', { date: value.toDateString() }), 'success');
-          showNextButton(true);
-        }
-
-        setTimeout(() => clearFieldHighlight(), 500);
-      } else {
-        console.log(`⚠️ Past date selected, showing helpful guidance`);
-        setFieldValidation(stepData.id, 'invalid');
-
-        // Use goal-specific validation for better feedback
-        if (stepData.id === 'goal-date') {
-          validateGoalDate(value);
-        } else {
-          showUserFeedback(t('tutorial.feedback.chooseFutureDate'), 'warning');
-        }
-      }
-    }
-  };
-
-  const handleDaySelection = async (stepData: TutorialStep, value: string[]) => {
-    if (value && Array.isArray(value) && value.length > 0) {
-      console.log(`✅ Days selected: ${value.join(', ')}`);
-
-      // Visual feedback
-      if (stepData.target) {
-        highlightField(stepData.target);
-      }
-      setFieldValidation(stepData.id, 'valid');
-      showNextButton(true);
-
-      // Provide encouraging feedback based on selection
-      if (value.length <= 3) {
-        showUserFeedback(t('tutorial.feedback.daysConsistency', { count: value.length }), 'success');
-      } else {
-        showUserFeedback(t('tutorial.feedback.daysMomentum', { count: value.length }), 'success');
-      }
-
-      setTimeout(() => clearFieldHighlight(), 500);
-    }
-  };
-
-  const handleNumberInput = async (stepData: TutorialStep, value: string) => {
-    const numValue = parseFloat(value);
-
-    // Visual feedback
-    if (stepData.target) {
-      highlightField(stepData.target);
-    }
-
-    if (!isNaN(numValue) && numValue > 0) {
-      console.log(`✅ Valid number entered: ${numValue}`);
-      setFieldValidation(stepData.id, 'valid');
-      showNextButton(true);
-
-      // Goal-specific value validation
-      if (stepData.id === 'goal-value') {
-        const isValid = validateGoalValue(numValue);
-        setFieldValidation(stepData.id, isValid ? 'valid' : 'invalid');
-        // Note: validateGoalValue already shows appropriate feedback
-      } else {
-        setFieldValidation(stepData.id, 'valid');
-        showUserFeedback(t('tutorial.feedback.perfectTarget', { value: numValue }), 'success');
-      }
-
-      setTimeout(() => clearFieldHighlight(), 500);
-    } else {
-      setFieldValidation(stepData.id, 'invalid');
-      showUserFeedback(t('tutorial.feedback.enterPositiveNumber'), 'warning');
-    }
-  };
-
-  // Validation Helpers with User-Friendly Feedback
-  const validateHabitName = (name: string) => {
-    if (!name || name.trim().length === 0) return false;
-
-    if (name.length < 2) {
-      console.log(`💡 Habit name guidance: Try something a bit longer like "Drink water" or "Read 10 pages"`);
-
-      return false;
-    }
-
-    if (name.length > 50) {
-      console.log(`💡 Habit name guidance: Keep it short and simple - under 50 characters works best!`);
-
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateGoalTitle = (title: string) => {
-    if (!title || title.trim().length === 0) return false;
-
-    if (title.length < 3) {
-      console.log(`💡 Goal title guidance: Try something descriptive like "Read 12 books" or "Run a marathon"`);
-      return false;
-    }
-
-    return true;
-  };
-
-
-  const validateGoalValue = (value: number) => {
-    if (value <= 0) {
-      console.log(`💡 Goal value guidance: Your target should be a positive number!`);
-      showUserFeedback(t('tutorial.feedback.enterPositiveGoal'), 'warning');
-      return false;
-    }
-
-    if (value > 10000) {
-      console.log(`💡 Goal value guidance: That's ambitious! Consider breaking it down into smaller milestones.`);
-      showUserFeedback(t('tutorial.feedback.veryAmbitious'), 'info');
-    } else if (value < 1) {
-      showUserFeedback(t('tutorial.feedback.goalAtLeastOne'), 'warning');
-      return false;
-    } else {
-      showUserFeedback(t('tutorial.feedback.achievableTarget', { value }), 'success');
-    }
-
-    return true;
-  };
-
-  // Enhanced Goal-Specific Validation Helpers
-  const validateGoalDate = (selectedDate: Date): boolean => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-    if (selectedDate < today) {
-      showUserFeedback(t('tutorial.feedback.chooseFutureDate'), 'warning');
-      return false;
-    }
-
-    if (selectedDate > oneYearFromNow) {
-      showUserFeedback(t('tutorial.feedback.farAhead'), 'info');
-    }
-
-    // Calculate days until goal
-    const timeDiff = selectedDate.getTime() - today.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-    if (daysDiff <= 7) {
-      showUserFeedback(t('tutorial.feedback.sprintGoal', { days: daysDiff }), 'success');
-    } else if (daysDiff <= 30) {
-      showUserFeedback(t('tutorial.feedback.monthlyChallenge', { days: daysDiff }), 'success');
-    } else if (daysDiff <= 90) {
-      showUserFeedback(t('tutorial.feedback.quarterlyGoal', { days: daysDiff }), 'success');
-    } else {
-      showUserFeedback(t('tutorial.feedback.longTermGoal', { days: daysDiff }), 'success');
-    }
-
-    return true;
-  };
-
-  const validateGoalCategory = (category: string): boolean => {
-    const validCategories = ['personal', 'health', 'career', 'finance', 'learning', 'creative'];
-
-    if (!category || category.trim().length === 0) {
-      showUserFeedback(t('tutorial.feedback.selectCategory'), 'warning');
-      return false;
-    }
-
-    if (validCategories.includes(category.toLowerCase())) {
-      showUserFeedback(t('tutorial.feedback.greatCategoryChoice', { category }), 'success');
-    } else {
-      showUserFeedback(t('tutorial.feedback.categoryHelpsTrack'), 'success');
-    }
-
-    return true;
-  };
-
-  const validateGoalUnit = (unit: string): boolean => {
-    if (!unit || unit.trim().length === 0) {
-      showUserFeedback(t('tutorial.feedback.specifyUnit'), 'warning');
-      return false;
-    };
-
-    if (unit.length < 2) {
-      showUserFeedback(t('tutorial.feedback.descriptiveUnit'), 'warning');
-      return false;
-    }
-
-    const commonUnits = ['books', 'pages', 'chapters', 'miles', 'kilometers', 'steps', 'dollars', 'euros', 'hours', 'minutes', 'sessions', 'workouts', 'classes', 'practices'];
-    const isCommonUnit = commonUnits.some(u => unit.toLowerCase().includes(u.toLowerCase()));
-
-    if (isCommonUnit) {
-      showUserFeedback(t('tutorial.feedback.excellentUnit', { unit }), 'success');
-    } else {
-      showUserFeedback(t('tutorial.feedback.goodUnit', { unit }), 'success');
-    }
-
-    return true;
-  };
-
-  // Auto-start tutorial on first app launch
   useEffect(() => {
-    const autoStartTutorial = async () => {
+    const autoStart = async () => {
       try {
-        const shouldShow = await shouldShowTutorial();
-        if (shouldShow) {
-          const resumeStep = await getTutorialResumeStep();
+        if (!(await shouldShowOnboarding())) return;
 
-          // Ensure we're on home screen before starting tutorial
-          router.push('/(tabs)' as any);
+        // Make sure we are on the home screen before anything appears.
+        router.push('/(tabs)' as any);
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-          // Wait for navigation to complete
-          await new Promise(resolve => setTimeout(resolve, 300));
-
-          if (resumeStep > 1) {
-            // Interrupted onboarding — resume where the user left off.
-            const screen = resolveOnboardingStartScreen(resumeStep);
-            console.log(`🎓 [ONBOARDING] Resuming from screen ${screen} (saved step ${resumeStep})`);
-            dispatch({ type: 'RESET_TUTORIAL' });
-            await startOnboardingAt(screen);
-          } else {
-            // New user - check if onboarding preferences (language + theme) were already chosen
-            const prefsCompleted = await AsyncStorage.getItem(ONBOARDING_PREFS_KEY);
-            if (prefsCompleted !== 'true') {
-              // First launch ever - show language + theme gate BEFORE the tutorial.
-              // The tutorial steps start once the user confirms (completeOnboardingPrefs).
-              console.log(`🎓 [TUTORIAL] First app launch - showing onboarding preferences gate`);
-              setShowOnboardingPrefs(true);
-              return;
-            }
-
-            // New user - welcome first, then the three screens.
-            console.log(`🎓 [ONBOARDING] First app launch detected - showing welcome`);
-            dispatch({ type: 'RESET_TUTORIAL' });
-            setShowOnboardingWelcome(true);
-          }
+        const resumeStep = await getResumeStep();
+        if (resumeStep > 1) {
+          // Interrupted onboarding — resume where the user left off, and do NOT
+          // show the welcome again; they have already read it.
+          const screen = resolveOnboardingStartScreen(resumeStep);
+          console.log(`🎓 [ONBOARDING] Resuming from screen ${screen} (saved step ${resumeStep})`);
+          dispatch({ type: 'RESET_TUTORIAL' });
+          await startOnboardingAt(screen);
+          return;
         }
+
+        const prefsCompleted = await AsyncStorage.getItem(PREFS_KEY);
+        if (prefsCompleted !== 'true') {
+          console.log('🎓 [ONBOARDING] First launch — showing preferences gate');
+          setShowOnboardingPrefs(true);
+          return;
+        }
+
+        console.log('🎓 [ONBOARDING] Showing welcome');
+        dispatch({ type: 'RESET_TUTORIAL' });
+        setShowOnboardingWelcome(true);
       } catch (error) {
-        console.warn('Failed to auto-start tutorial:', error);
+        console.warn('Failed to auto-start onboarding:', error);
       }
     };
 
-    // Gate the tutorial behind the first-launch native modals (ATT + UMP consent),
-    // run by the Startup Orchestrator. Presenting the onboarding gate's RN <Modal>
-    // while a native modal is still up freezes iOS (dual-modal) — the fresh-install
-    // freeze. awaitStartupComplete resolves once the whole startup sequence is done
-    // (near-instant on later launches, where nothing shows).
+    // Gate behind the first-launch native modals (ATT + ad consent). Presenting
+    // an RN modal while a native one is still up freezes iOS — that was the
+    // fresh-install freeze. awaitStartupComplete resolves once the whole startup
+    // sequence is done (near-instant on later launches, where nothing shows).
     let cancelled = false;
-    const runAfterStartupModals = async () => {
+    const run = async () => {
       await awaitStartupComplete();
       if (cancelled) return;
-      await autoStartTutorial();
+      await autoStart();
     };
-    // Small delay so contexts/navigation finish initializing before we start.
-    const timer = setTimeout(runAfterStartupModals, 300);
+    // Small delay so contexts and navigation finish initializing first.
+    const timer = setTimeout(run, 300);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
   }, []);
-
-  // Achievement Modal Coordination - Auto proceed when achievement modals complete
-  useEffect(() => {
-    if (!state.isActive || !state.currentStepData) return;
-
-    // Check if current step is an achievement waiting step
-    const isAchievementWaitingStep =
-      state.currentStepData.id === 'first-habit-achievement' ||
-      state.currentStepData.id === 'first-goal-achievement';
-
-    if (!isAchievementWaitingStep) return;
-
-    // Listen for achievement modal close event from centralized ModalQueueContext
-    const subscription = DeviceEventEmitter.addListener('achievementCelebrationClosed', () => {
-      console.log('🏆 Achievement modal completed, auto-proceeding to next tutorial step');
-      setTimeout(() => {
-        nextStep();
-      }, 500);
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [state.currentStepData, state.isActive]);
-
-  // Tutorial has its own overlay system and should not interfere with modal coordination
-  // Removing modal coordination notification to prevent conflicts with Monthly Challenge modals
-  useEffect(() => {
-    if (state.isActive) {
-      console.log('🎓 Tutorial started - independent of modal coordination system');
-    } else {
-      console.log('🎓 Tutorial ended - independent of modal coordination system');
-    }
-  }, [state.isActive]);
-
-  // Visual Feedback & Highlighting Helper Methods
-  const highlightField = (fieldId: string) => {
-    console.log(`🎯 Highlighting field: ${fieldId}`);
-    dispatch({ type: 'HIGHLIGHT_FIELD', payload: fieldId });
-  };
-
-  const clearFieldHighlight = () => {
-    console.log(`✨ Clearing field highlight`);
-    dispatch({ type: 'HIGHLIGHT_FIELD', payload: null });
-  };
-
-  const setFieldValidation = (fieldId: string, status: 'valid' | 'invalid' | 'pending') => {
-    console.log(`📋 Setting field validation: ${fieldId} = ${status}`);
-    dispatch({ type: 'SET_FIELD_VALIDATION', payload: { fieldId, status } });
-  };
-
-  const showUserFeedback = (message: string, type: 'success' | 'error' | 'info' | 'warning') => {
-    console.log(`💬 Showing user feedback: [${type}] ${message}`);
-    dispatch({ type: 'SHOW_USER_FEEDBACK', payload: { message, type } });
-
-    // Auto-hide feedback after 4 seconds for success/info, 6 seconds for warning/error
-    const hideDelay = type === 'success' || type === 'info' ? 4000 : 6000;
-    setTimeout(() => {
-      hideUserFeedback();
-    }, hideDelay);
-  };
-
-  const hideUserFeedback = () => {
-    dispatch({ type: 'HIDE_USER_FEEDBACK' });
-  };
-
-  // App State Management for Backgrounding
-  const appState = useRef(AppState.currentState);
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      // App going to background - save session if tutorial is active
-      if (appState.current.match(/active/) && nextAppState === 'background') {
-        if (state.isActive && !state.isCompleted && !state.isSkipped) {
-          console.log('📱 App backgrounding - saving tutorial session');
-          saveTutorialSession(state);
-        }
-      }
-
-      // App coming from background - attempt session restoration
-      if (appState.current.match(/background/) && nextAppState === 'active') {
-        if (!state.isActive && !state.isCompleted && !state.isSkipped) {
-          console.log('📱 App foregrounding - checking for tutorial session');
-          restoreTutorialSession().then((restored) => {
-            if (restored) {
-              console.log('✅ Tutorial session restored successfully');
-            }
-          }).catch((error) => {
-            console.warn('Failed to restore tutorial session:', error);
-          });
-        }
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription?.remove();
-    };
-  }, [state.isActive, state.isCompleted, state.isSkipped, state.currentStep]);
-
-  // Check for existing session on component mount
-  useEffect(() => {
-    const checkExistingSession = async () => {
-      if (!state.isActive && !state.isCompleted && !state.isSkipped) {
-        const restored = await restoreTutorialSession();
-        if (restored) {
-          console.log('🔄 Existing tutorial session restored on app start');
-        }
-      }
-    };
-
-    checkExistingSession();
-  }, []); // Run only on mount
 
   return (
     <TutorialContext.Provider
@@ -1912,27 +389,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         showOnboardingPrefs,
         showOnboardingWelcome,
         actions: {
-          startTutorial,
           completeOnboardingPrefs,
           completeOnboardingWelcome,
           nextOnboardingScreen,
           skipOnboarding,
-          nextStep,
-          skipTutorial,
-          completeTutorial,
-          resumeTutorial,
-          setUserInteractionBlocked,
-          showNextButton,
-          handleStepAction,
-          resetTutorial,
           restartTutorial,
           clearCrashData,
-          // Visual Feedback & Highlighting
-          highlightField,
-          clearFieldHighlight,
-          setFieldValidation,
-          showUserFeedback,
-          hideUserFeedback,
         },
       }}
     >
@@ -1941,8 +403,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook
-export function useTutorial() {
+export function useTutorial(): TutorialContextType {
   const context = useContext(TutorialContext);
   if (context === undefined) {
     throw new Error('useTutorial must be used within a TutorialProvider');
@@ -1950,31 +411,38 @@ export function useTutorial() {
   return context;
 }
 
-// Helper: Check if tutorial is restarted (for achievement handling)
-export async function isTutorialRestarted(): Promise<boolean> {
-  try {
-    const value = await AsyncStorage.getItem(TUTORIAL_RESTARTED_KEY);
-    return value === 'true';
-  } catch (error) {
-    console.error('Error checking tutorial restart status:', error);
-    return false;
-  }
-}
+// ---------------------------------------------------------------------------
+// Helpers read from OUTSIDE React (other contexts, the trophy gate)
+// ---------------------------------------------------------------------------
 
-// Helper: Check if tutorial is currently active
+/**
+ * Reads the STORAGE FLAGS, not React state — AchievementContext calls this from
+ * outside the tree to decide whether to suppress a celebration. It therefore
+ * survives on the same flags onboarding writes; change how those are written and
+ * the trophy filter breaks without anyone having touched it.
+ */
 export async function isTutorialActive(): Promise<boolean> {
   try {
-    const completed = await AsyncStorage.getItem(TUTORIAL_STORAGE_KEY);
-    const skipped = await AsyncStorage.getItem(TUTORIAL_SKIPPED_KEY);
-    // Tutorial is active if NOT completed and NOT skipped
+    const completed = await AsyncStorage.getItem(COMPLETED_KEY);
+    const skipped = await AsyncStorage.getItem(SKIPPED_KEY);
     return completed !== 'true' && skipped !== 'true';
   } catch (error) {
-    console.error('Error checking tutorial active status:', error);
+    console.error('Error checking onboarding active status:', error);
     return false;
   }
 }
 
-// Helper: Check if user has specific achievement
+/** True when onboarding was restarted from Settings (achievements already owned). */
+export async function isTutorialRestarted(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(RESTARTED_KEY)) === 'true';
+  } catch (error) {
+    console.error('Error checking onboarding restart status:', error);
+    return false;
+  }
+}
+
+/** Used by the trophy gate to tell "will a celebration appear?" before creating. */
 export async function hasAchievement(achievementId: string): Promise<boolean> {
   try {
     const userAchievements = await AchievementStorage.getUserAchievements();
@@ -1984,6 +452,3 @@ export async function hasAchievement(achievementId: string): Promise<boolean> {
     return false;
   }
 }
-
-// Note: Tutorial steps are now managed within the TutorialProvider context
-// and are dynamically generated using i18n translations.

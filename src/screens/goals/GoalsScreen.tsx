@@ -20,7 +20,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getGoalStorageImpl } from '@/src/config/featureFlags';
 
 const goalStorage = getGoalStorageImpl();
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 
 export function GoalsScreen() {
@@ -111,10 +110,6 @@ export function GoalsScreen() {
 
   // Tutorial target registration for Add Goal button
   const addGoalButtonRef = useRef<View>(null);
-  const { registerTarget: registerAddGoalButton, unregisterTarget: unregisterAddGoalButton } = useTutorialTarget(
-    'add-goal-button',
-    addGoalButtonRef
-  );
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -131,15 +126,7 @@ export function GoalsScreen() {
   // useEffect(() => { ... }, [goals, completionModalVisible]);
 
   // Tutorial target registration
-  useEffect(() => {
-    registerAddGoalButton();
-
-    return () => {
-      unregisterAddGoalButton();
-    };
-  }, [registerAddGoalButton, unregisterAddGoalButton]);
-
-  // Handle quick action from home screen
+    // Handle quick action from home screen
   useEffect(() => {
     if (params.quickAction === 'addGoal') {
       setEditingGoal(undefined);

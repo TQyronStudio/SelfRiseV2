@@ -9,7 +9,6 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { HabitColor, HabitIcon } from '@/src/types/common';
-import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
 import { HelpTooltip } from '@/src/components/common';
 
 interface QuickActionButtonsProps {
@@ -56,27 +55,9 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const quickActionsRef = useRef<View>(null);
   const addHabitRef = useRef<View>(null);
 
-  const { registerTarget: registerQuickActions, unregisterTarget: unregisterQuickActions } = useTutorialTarget(
-    'quick-actions-section',
-    quickActionsRef
-  );
 
-  const { registerTarget: registerAddHabit, unregisterTarget: unregisterAddHabit } = useTutorialTarget(
-    'add-habit-button',
-    addHabitRef
-  );
 
-  useEffect(() => {
-    registerQuickActions();
-    registerAddHabit();
-
-    return () => {
-      unregisterQuickActions();
-      unregisterAddHabit();
-    };
-  }, [registerQuickActions, unregisterQuickActions, registerAddHabit, unregisterAddHabit]);
-
-  const todayString = today();
+    const todayString = today();
   const todayHabits = getHabitsByDate(todayString);
   const todayDayOfWeek = getDayOfWeekFromDateString(todayString);
   
