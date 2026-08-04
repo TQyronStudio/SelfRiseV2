@@ -402,6 +402,10 @@ export interface TranslationKeys {
     addSelfPraiseButton: string;
     gratitudePlaceholder: string;
     minimumRequired: string;
+    empty: {
+      title: string;
+      body: string;
+    };
     bonusGratitude: string;
     currentStreak: string;
     longestStreak: string;
@@ -678,6 +682,7 @@ export interface TranslationKeys {
     editGoal: string;
     deleteGoal: string;
     noGoals: string;
+    noGoalsHint: string;
     error: string;
     goalNotFound: string;
     goalTitleLabel: string;
@@ -2447,6 +2452,7 @@ export interface TranslationKeys {
     };
     home: {
       recommendations: { title: string; content: string; };
+      quickActions: { title: string; content: string; };
       xpSystem: { title: string; content: string; };
     };
     achievements: {

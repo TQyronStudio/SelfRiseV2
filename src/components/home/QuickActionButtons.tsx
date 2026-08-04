@@ -10,6 +10,7 @@ import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { HabitColor, HabitIcon } from '@/src/types/common';
 import { useTutorialTarget } from '@/src/utils/TutorialTargetHelper';
+import { HelpTooltip } from '@/src/components/common';
 
 interface QuickActionButtonsProps {
   onHabitToggle?: (habitId: string) => void;
@@ -115,10 +116,15 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
       marginHorizontal: Layout.spacing.md,
       marginBottom: Layout.spacing.md,
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Layout.spacing.xs,
+      marginBottom: Layout.spacing.sm,
+    },
     title: {
       ...Typography.subheading,
       color: colors.text,
-      marginBottom: Layout.spacing.sm,
     },
     subtitle: {
       ...Typography.caption,
@@ -185,7 +191,11 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
 
   return (
     <View ref={quickActionsRef} style={styles.container} nativeID="quick-actions-section">
-      <Text style={styles.title}>{t('home.quickActionsTitle')}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{t('home.quickActionsTitle')}</Text>
+        {/* Replaces the retired tutorial's dedicated quick-actions step. */}
+        <HelpTooltip helpKey="home.quickActions" iconSize={16} maxWidth={300} />
+      </View>
 
       <View style={styles.actionsRow}>
         {/* Main Action Buttons */}

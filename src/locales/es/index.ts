@@ -598,6 +598,10 @@ const es: Partial<TranslationKeys> = {
     addSelfPraiseButton: '+ Añadir Autoelogio',
     gratitudePlaceholder: '¿Por qué estás agradecido hoy?',
     minimumRequired: 'Escribe al menos 3 entradas para mantener tu racha',
+    empty: {
+      title: '¿Qué salió bien hoy?',
+      body: 'Escribe tres cosas pequeñas por las que estés agradecido, o algo que hayas hecho bien. Lleva un minuto, y tres al día mantienen viva tu racha.',
+    },
     bonusGratitude: 'Entrada Bonus',
     currentStreak: 'Racha Actual',
     longestStreak: 'Racha Más Larga',
@@ -931,6 +935,7 @@ const es: Partial<TranslationKeys> = {
     editGoal: 'Editar Meta',
     deleteGoal: 'Eliminar Meta',
     noGoals: 'Aún no hay metas. ¡Comienza creando tu primera meta!',
+    noGoalsHint: 'Toca + para elegir una meta lista o escribir la tuya.',
 
     // Error states
     error: 'Error',
@@ -3341,6 +3346,10 @@ const es: Partial<TranslationKeys> = {
       recommendations: {
         title: 'Recomendaciones Personalizadas',
         content: 'Tu área "Para Ti" muestra sugerencias inteligentes como: "Escribe 2 entradas bonus de diario más hoy" o "Completa Yoga para mantener tu racha". Seguir estas recomendaciones te ayuda a mantenerte en camino y ganar logros.'
+      },
+      quickActions: {
+        title: 'Acciones Rápidas',
+        content: 'Atajos a lo que más haces 🚀 Añade un hábito, anota una gratitud o un auto-elogio, o define una nueva meta — sin buscar entre las pestañas.'
       },
       xpSystem: {
         title: 'Sistema XP',

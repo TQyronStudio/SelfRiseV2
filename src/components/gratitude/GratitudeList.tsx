@@ -268,6 +268,13 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
       alignItems: 'center',
       paddingHorizontal: Layout.spacing.lg,
     },
+    emptyTitle: {
+      fontSize: Fonts.sizes.lg,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: Layout.spacing.sm,
+    },
     emptyText: {
       fontSize: Fonts.sizes.md,
       color: colors.textSecondary,
@@ -276,11 +283,17 @@ export default function GratitudeList({ gratitudes, showDate = false, onEdit, on
     },
   });
 
+  // The retired tutorial spent two steps explaining this screen. Nothing else
+  // does now, so the empty state has to — and it leads with the invitation
+  // rather than the rule, which means nothing until you know what this is for.
   if (gratitudes.length === 0) {
     return (
       <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle} accessibilityRole="header">
+          {t('journal.empty.title')}
+        </Text>
         <Text style={styles.emptyText}>
-          {t('journal.minimumRequired')}
+          {t('journal.empty.body')}
         </Text>
       </View>
     );

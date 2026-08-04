@@ -659,9 +659,25 @@ otázkami a prvním osobním závazkem.
       a na telefonu se ořízlo. Ověřeno negativní kontrolou. **599/599**
 
 ### Etapa G — Přesun zbytku (nezávislá na H)
-- [ ] G1 Prázdné stavy: Journal, Trophy room, Goals
-- [ ] G2 Doplnit `HelpTooltip` témata (10 bublin už existuje)
-- [ ] G3 Texty EN/DE/ES; parity test zelený
+- [x] G1 **Journal** — přepsán: dnes to bylo pravidlo („napiš aspoň 3“), což
+      člověku, který ještě neví, k čemu obrazovka je, neřekne nic. Teď vede
+      pozvánka („Co se dnes povedlo?“) a pravidlo je až za ní.
+      **Trophy room** — ověřeno, že už je dobrý (`app/achievements.tsx:588`
+      říká přesně, co dělat) → **nesaháno**.
+      **Goals** — doplněn řádek ukazující na šablony
+- [x] G2 Přibyla `home.quickActions` (10 → 11) — jediné téma ze zrušených
+      kroků tutoriálu, které nic jiného nepokrývalo. XP systém už bublinu měl,
+      trofeje pokrývá prázdný stav
+- [x] G3 Texty ve všech 3 jazycích; parity zelená. Navíc **nový test
+      `helpTooltipKeys.test.ts`**: každý `helpKey` použitý v kódu musí existovat
+      ve všech 3 jazycích. Parity test tohle nechytí — hlídá jen symetrii
+      EN↔DE/ES, ne že klíč z kódu vůbec existuje. Ověřeno 2 negativními
+      kontrolami. **603/603**
+
+> 📌 Nález mimo rozsah (neopraveno): `GratitudeList.tsx:81-82` má natvrdo
+> psané barvy (`#70D6FF` na `#003D5C`) u odznaku s číslem záznamu — porušuje
+> theme systém, ve světlém režimu se nepřizpůsobí. Je to **z dřívějška**, ne
+> z etapy G. Fungující kód, takže neměněno bez zadání.
 
 ### Etapa H — Úklid (AŽ PO device matrix z F4)
 - [ ] H1 **Audit 129 odkazů ve 13 souborech** — (a) mechanické

@@ -598,6 +598,10 @@ const de: Partial<TranslationKeys> = {
     addSelfPraiseButton: '+ Lob',
     gratitudePlaceholder: 'Wofür bist du heute dankbar?',
     minimumRequired: 'Schreibe mindestens 3 Einträge, um deine Serie aufrechtzuerhalten',
+    empty: {
+      title: 'Was ist heute gut gelaufen?',
+      body: 'Schreibe drei kleine Dinge auf, für die du dankbar bist, oder etwas, das dir gelungen ist. Das dauert eine Minute — und drei pro Tag halten deine Serie am Leben.',
+    },
     bonusGratitude: 'Bonus',
     currentStreak: 'Aktuelle Serie',
     longestStreak: 'Längste Serie',
@@ -931,6 +935,7 @@ const de: Partial<TranslationKeys> = {
     editGoal: 'Bearbeiten',
     deleteGoal: 'Löschen',
     noGoals: 'Noch keine Ziele. Beginne mit der Erstellung deines ersten Ziels!',
+    noGoalsHint: 'Tippe auf +, um ein fertiges Ziel zu wählen oder ein eigenes zu schreiben.',
 
     // Error states
     error: 'Fehler',
@@ -3342,6 +3347,10 @@ const de: Partial<TranslationKeys> = {
       recommendations: {
         title: 'Deine persönlichen Vorschläge',
         content: 'Diese sind nur für dich gemacht! ⭐ Basierend auf deinen einzigartigen Mustern und Fortschritten schlagen wir Wege vor, motiviert zu bleiben und aufregende neue Möglichkeiten zu entdecken. Es ist wie einen persönlichen Coach zu haben!'
+      },
+      quickActions: {
+        title: 'Schnellaktionen',
+        content: 'Abkürzungen zu dem, was du am häufigsten tust 🚀 Gewohnheit anlegen, Dankbarkeit oder Selbstlob notieren oder ein neues Ziel setzen — ohne durch die Tabs zu suchen.'
       },
       xpSystem: {
         title: 'Deine EP-Reise',

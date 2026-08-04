@@ -588,6 +588,14 @@ const en: TranslationKeys = {
     addSelfPraiseButton: '+ Add Self-Praise',
     gratitudePlaceholder: 'What are you grateful for today?',
     minimumRequired: 'Write at least 3 entries to maintain your streak',
+    // Empty state — this is where the journal now teaches itself. The retired
+    // tutorial spent two steps explaining this screen; nothing else does.
+    // A rule ("write at least 3") means nothing to someone who does not yet
+    // know what the screen is for, so lead with the invitation.
+    empty: {
+      title: 'What went well today?',
+      body: 'Write down three small things you are grateful for, or something you did well. It takes a minute — and three a day keeps your streak alive.',
+    },
     bonusGratitude: 'Bonus Entry',
     currentStreak: 'Current Streak',
     longestStreak: 'Longest Streak',
@@ -925,6 +933,9 @@ const en: TranslationKeys = {
     editGoal: 'Edit Goal',
     deleteGoal: 'Delete Goal',
     noGoals: 'No goals yet. Start by creating your first goal!',
+    // Shown when every goal is gone — after onboarding this is a rare state,
+    // so it points at the templates rather than repeating the obvious.
+    noGoalsHint: 'Tap + to pick a ready-made goal, or write your own.',
 
     // Error states
     error: 'Error',
@@ -3367,6 +3378,12 @@ const en: TranslationKeys = {
       recommendations: {
         title: 'Your Personal Suggestions',
         content: 'These are made just for you! ⭐ Based on your unique patterns and progress, we suggest ways to stay motivated and discover exciting new opportunities. It\'s like having a personal coach!'
+      },
+      // Replaces the retired tutorial's dedicated "quick actions" step —
+      // taught here, at the moment the user is looking at the buttons.
+      quickActions: {
+        title: 'Quick Actions',
+        content: 'Shortcuts to the things you do most 🚀 Add a habit, jot down a gratitude or a self-praise, or set a new goal — without hunting through the tabs.'
       },
       xpSystem: {
         title: 'Your XP Journey',

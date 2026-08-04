@@ -51,6 +51,12 @@ export function GoalList({
       color: colors.textSecondary,
       textAlign: 'center',
     },
+    emptyHint: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 8,
+    },
   });
 
   const renderGoalItem = ({ item: goal }: { item: Goal }) => (
@@ -67,6 +73,8 @@ export function GoalList({
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>{t('goals.noGoals')}</Text>
+      {/* Points at the templates — the fastest way back to a goal. */}
+      <Text style={styles.emptyHint}>{t('goals.noGoalsHint')}</Text>
     </View>
   );
 
