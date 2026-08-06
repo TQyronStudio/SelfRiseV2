@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Keyboard,
-  DeviceEventEmitter,
   Dimensions,
 } from 'react-native';
 import { GoalCategory } from '../../types/goal';
@@ -90,40 +89,7 @@ export function GoalForm({
   const [showDateConfirmation, setShowDateConfirmation] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
 
-    // Tutorial auto-scroll support for modal
-  useEffect(() => {
-    const scrollListener = DeviceEventEmitter.addListener(
-      'tutorial_scroll_to',
-      ({ y, animated = true }: { y: number; animated?: boolean }) => {
-        console.log(`📜 [GOAL_FORM] Tutorial auto-scroll to Y: ${y}`);
-        if (scrollViewRef.current) {
-          scrollViewRef.current.scrollTo({ y, animated });
 
-          // Signal that scroll is completed
-          setTimeout(() => {
-            console.log(`🔄 [GOAL_FORM] Signaling position refresh after scroll`);
-            DeviceEventEmitter.emit('tutorial_scroll_completed');
-          }, animated ? 300 : 50);
-        }
-      }
-    );
-
-    return () => {
-      scrollListener.remove();
-    };
-  }, []);
-
-  // 🎯 Reset scroll position to top when modal opens during tutorial
-   // Run only once when component mounts
-
-  // 🎯 Auto-scroll to lower fields (goal-unit, goal-target, goal-date, goal-category) during tutorial
-  
-
-  // Auto-focus text/number inputs during tutorial
-  // Note: scrollEnabled={false} prevents native scroll-to-focused-input behavior
-  
-
-  // Tutorial-aware text input handlers
   const handleTitleChange = (text: string) => {
     const prevTitle = formData.title;
     setFormData(prev => ({ ...prev, title: text }));

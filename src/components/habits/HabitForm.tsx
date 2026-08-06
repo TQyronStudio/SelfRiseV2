@@ -1,6 +1,6 @@
 // src/components/habits/HabitForm.tsx
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  DeviceEventEmitter,
 } from 'react-native';
 import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
 import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
@@ -56,40 +55,6 @@ export function HabitForm({
   const createButtonRef = useRef<View>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Tutorial target registration
-
-
-
-
-
-    // Tutorial auto-scroll support for modal
-  useEffect(() => {
-    const scrollListener = DeviceEventEmitter.addListener(
-      'tutorial_scroll_to',
-      ({ y, animated = true }: { y: number; animated?: boolean }) => {
-        console.log(`📜 [HABIT_FORM] Tutorial auto-scroll to Y: ${y}`);
-        if (scrollViewRef.current) {
-          scrollViewRef.current.scrollTo({ y, animated });
-
-          // Signal that scroll is completed
-          setTimeout(() => {
-            console.log(`🔄 [HABIT_FORM] Signaling position refresh after scroll`);
-            DeviceEventEmitter.emit('tutorial_scroll_completed');
-          }, animated ? 300 : 50);
-        }
-      }
-    );
-
-    return () => {
-      scrollListener.remove();
-    };
-  }, []);
-
-  // Auto-focus text input during tutorial
-  
-
-  // 🎯 Auto-scroll to Create button during tutorial (step 9: habit-create)
-  
 
   const [formData, setFormData] = useState<HabitFormData>({
     name: initialData?.name || '',

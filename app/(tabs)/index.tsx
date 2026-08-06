@@ -55,31 +55,6 @@ export default function HomeScreen() {
   // Tutorial scroll reference
   const mainScrollRef = useRef<ScrollView>(null);
 
-  // Tutorial target registration for main scroll area
-
-    // Tutorial auto-scroll listener
-  useEffect(() => {
-    const scrollListener = DeviceEventEmitter.addListener(
-      'tutorial_scroll_to',
-      ({ y, animated = true }) => {
-        console.log(`📜 [HOME] Tutorial auto-scroll to Y: ${y}`);
-        if (mainScrollRef.current) {
-          mainScrollRef.current.scrollTo({ y, animated });
-
-          // After scroll completes, signal tutorial to refresh target positions
-          const scrollDuration = animated ? 500 : 0;
-          setTimeout(() => {
-            console.log(`🔄 [HOME] Signaling position refresh after scroll`);
-            DeviceEventEmitter.emit('tutorial_scroll_completed');
-          }, scrollDuration);
-        }
-      }
-    );
-
-    return () => {
-      scrollListener.remove();
-    };
-  }, []);
 
   // Listen for customize button press from header
   useEffect(() => {

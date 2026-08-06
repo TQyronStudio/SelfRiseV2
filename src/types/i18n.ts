@@ -298,9 +298,6 @@ export interface TranslationKeys {
 
   // UI Labels
   ui: {
-    progressStep: string;
-    skipTutorial: string;
-    nextStep: string;
     continue: string;
     next: string;
     cancel: string;
@@ -309,8 +306,6 @@ export interface TranslationKeys {
     delete: string;
     retry: string;
     // Tutorial Completion
-    tutorialComplete: string;
-    readyToRise: string;
   };
 
   // Habits screen
@@ -1855,8 +1850,6 @@ export interface TranslationKeys {
       promise: string;
       cta: string;
     };
-    continue: string;
-    back: string;
     progressA11y: string;
     habit: {
       title: string;
@@ -1889,7 +1882,6 @@ export interface TranslationKeys {
     };
     done: {
       title: string;
-      subtitle: string;
       body: string;
       cta: string;
     };
@@ -2219,16 +2211,8 @@ export interface TranslationKeys {
 
   // Tutorial System
   tutorial: {
-    // General Tutorial UI
-    skip: string;
-    next: string;
-    continue: string;
-    getStarted: string;
-    finish: string;
-    progressText: string;
-    loading: string;
-
-    // Onboarding Preferences Gate (first launch only - language + theme)
+    // Onboarding preferences gate (first launch: language, theme, notifications).
+    // Everything else that lived here belonged to the 25-step tour and went with it.
     languageSetup: {
       title: string;
       subtitle: string;
@@ -2241,198 +2225,6 @@ export interface TranslationKeys {
       dark: string;
       confirm: string;
     };
-
-    // Tutorial Step Content
-    steps: {
-      welcome: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      appOverview: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      quickActions: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      createHabitButton: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      habitName: {
-        title: string;
-        content: string;
-        placeholder: string;
-        examples: string[];
-        button: string;
-      };
-      habitColor: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      habitIcon: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      habitDays: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      habitCreate: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      habitComplete: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      journalIntro: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      gratitudeEntry: {
-        title: string;
-        content: string;
-        placeholder: string;
-        examples: string[];
-        button: string;
-      };
-      goalsIntro: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      goalCategory: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      goalTitle: {
-        title: string;
-        content: string;
-        placeholder: string;
-        examples: string[];
-        button: string;
-      };
-      goalUnit: {
-        title: string;
-        content: string;
-        placeholder: string;
-        examples: string[];
-        button: string;
-      };
-      goalTarget: {
-        title: string;
-        content: string;
-        placeholder: string;
-        button: string;
-      };
-      goalDate: {
-        title: string;
-        content: string;
-        placeholder: string;
-        button: string;
-      };
-      goalCreate: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      goalComplete: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      navigateHome: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      trophyRoom: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      xpIntro: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      completion: {
-        title: string;
-        content: string;
-        button: string;
-      };
-      createGoalButton: {
-        title: string;
-        content: string;
-        button: string;
-      };
-    };
-
-
-    // Error Messages
-    errors: {
-      loadingFailed: string;
-      savingFailed: string;
-      habitCreationFailed: string;
-      goalCreationFailed: string;
-      journalEntryFailed: string;
-      genericError: string;
-      recoveryMode: string;
-      reset: string;
-      retry: string;
-      generalError: string;
-      alreadyCompleted: string;
-    };
-
-
-
-
-
-    // Tutorial Feedback Messages
-    feedback?: {
-      simplifiedMode: string;
-      errorReset: string;
-      greatStart: string;
-      perfectChoice: string;
-      targetDateSet: string;
-      chooseFutureDate: string;
-      daysConsistency: string;
-      daysMomentum: string;
-      perfectTarget: string;
-      enterPositiveNumber: string;
-      enterPositiveGoal: string;
-      veryAmbitious: string;
-      goalAtLeastOne: string;
-      achievableTarget: string;
-      farAhead: string;
-      sprintGoal: string;
-      monthlyChallenge: string;
-      quarterlyGoal: string;
-      longTermGoal: string;
-      selectCategory: string;
-      greatCategoryChoice: string;
-      categoryHelpsTrack: string;
-      specifyUnit: string;
-      descriptiveUnit: string;
-      excellentUnit: string;
-      goodUnit: string;
-    };
-
-    // Tutorial step progress
-    stepProgress: string;
   };
 
   // Help system
@@ -2731,7 +2523,6 @@ export interface TranslationKeys {
   // Accessibility labels
   accessibility: {
     activateMultiplier: string;
-    tapToContinueTutorial: string;
     achievementGrid: string;
     closeAchievementDetails: string;
     shareAchievement: string;
@@ -2741,7 +2532,6 @@ export interface TranslationKeys {
     getNewQuote: string;
     copyQuoteToClipboard: string;
     shareQuote: string;
-    skipTutorial: string;
     viewAllLevels: string;
     refreshDailyHeroes: string;
     closeSharingModal: string;

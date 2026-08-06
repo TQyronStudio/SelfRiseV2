@@ -136,8 +136,6 @@ export interface AppEvents {
 
   // --- UI / misc ---
   openHomeCustomization: Record<string, never> | undefined;
-  tutorial_scroll_to: { target?: string; [key: string]: any };
-  tutorial_scroll_completed: { target?: string; [key: string]: any };
   marketing_demo_data_loaded: Record<string, never> | undefined;
   marketing_demo_data_cleared: Record<string, never> | undefined;
 }

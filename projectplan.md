@@ -693,9 +693,57 @@ otázkami a prvním osobním závazkem.
       `SpotlightEffect`, `TutorialTargetHelper` (402), a `TutorialContext`
       z 1988 → **454 ř.** Zachováno: `hasAchievement`, `isTutorialActive`,
       `isTutorialRestarted`, `TUTORIAL_STORAGE_KEYS`, brána předvoleb
-- [ ] H3 Smazat osiřelé i18n klíče ve všech 3 jazycích
-- [ ] H4 Device test; aktualizovat @technical-guides:Tutorial.md (smazat popis
-      starého 25krokového flow, ten už nebude existovat)
+- [x] H3 Smazáno **954 řádků** osiřelých i18n klíčů (EN/DE/ES + `types/i18n.ts`).
+      Z bloku `tutorial.*` zůstaly jen `languageSetup` a `themeSetup` — jediné,
+      co ještě něco volá (brána předvoleb). Pryč: `steps.*` (25 kroků),
+      `errors.*`, `feedback.*`, `stepProgress`, `skip/next/continue/getStarted/
+      finish/progressText/loading`. Nové onboarding má vlastní `onboarding.*`.
+      Negativní kontrola: odebrán `themeSetup.light` z DE → `localeParity`
+      spadl na obou stranách (chybějící i přebývající klíč), pak vráceno.
+      **Navíc mrtvá smyčka událostí po smazaném overlayi:** `tutorial_scroll_to`
+      mělo 3 posluchače a 0 vysílačů, `tutorial_scroll_completed` 3 vysílače
+      a 0 posluchačů. Smazáno v `HabitForm`, `GoalForm`, `app/(tabs)/index.tsx`
+      + deklarace v `appEvents.ts`.
+      **Zbytek k zamyšlení (nesmazáno, bez dopadu):** `habitNameRef`,
+      `habitColorRef`, `habitIconRef`, `habitDaysRef`, `createButtonRef`
+      v obou formulářích jsou navěšené, ale nikdo je nečte — byly pro měření
+      pozic starým overlayem. Ponecháno, ať se nesahá do živého renderu.
+- [x] H3b **Doplněk po revizi celé etapy H.** První průchod H3 uklidil jen blok
+      `tutorial.*`. Plošný sken všech 2356 klíčů (skener ověřen negativní
+      kontrolou — musel chytit známý osiřelý a neoznačit známý živý) našel
+      dalších **10 klíčů po tutoriálu jinde**: `ui.progressStep`,
+      `ui.skipTutorial`, `ui.nextStep`, `ui.tutorialComplete`, `ui.readyToRise`,
+      `accessibility.tapToContinueTutorial`, `accessibility.skipTutorial`
+      a **z nového onboardingu** `onboarding.continue`, `onboarding.back`,
+      `onboarding.done.subtitle` (klíče, které jsem v C–F zavedl a nikdy
+      nezapojil). Smazáno ve všech 3 jazycích + v typech.
+      ⚠️ **Sken našel i 638 osiřelých klíčů celkem** — drtivá většina je
+      z dřívějška a **část jsou falešné poplachy** (dynamické klíče typu
+      `` t(`home.quoteCategories.${cat}`) ``). Plošně je mazat NELZE.
+      Samostatný úkol, ne součást tohoto přepracování.
+- [x] H4a @technical-guides:Tutorial.md **přepsán od nuly: 1347 → 495 řádků.**
+      Popisuje výhradně současný stav — žádná historie, žádné návrhy
+      v budoucím čase. **Kostra sjednocena s ostatními průvodci** (vzor
+      @technical-guides:Startup-Orchestrator.md): CO TOHLE OBSAHUJE / KDY TOHLE
+      POUŽÍVAT → Proč systém existuje → 🚨 5 KRITICKÝCH PRAVIDEL s páry
+      ✅ CORRECT / ❌ WRONG a odstavcem „Proč“ → principy návrhu → ⚠️ NEBEZPEČNÉ
+      ZÓNY → Testování → Co se NESMÍ rozbít → Device scénáře → GOLDEN RULE.
+      Pět kritických pravidel: žádný RN `<Modal>`; start až za
+      `awaitStartupComplete()`; nabít bránu trofejí PŘED vytvořením a čekat na
+      `wait()`; neměnit sémantiku storage flagů; `CURRENT_STEP` mimo rozsah →
+      začít od 1, nikdy neořezávat.
+      **Všech 13 odkazů file:line ověřeno proti kódu** (`_layout.tsx:95`,
+      `TutorialContext.tsx:269/293/332`, `AdBanner.tsx:94`,
+      `AchievementContext.tsx:339-348`, `XpAnimationContext.tsx:13`,
+      `HabitItemWithCompletion.tsx:397`, `HabitsContext.tsx:201`,
+      `GoalsContext.tsx:165`, `settings.tsx:197-198`) i všechny konstanty
+      (`ONB_MAX_CONTENT_WIDTH=560`, `CELEBRATION_LINGER_MS=1200`,
+      `GOAL_TARGET_MAX=999999`, měna EN `$` / DE `€` / ES `€`).
+      Název souboru zůstal `Tutorial.md` — subsystém se tak jmenuje i v kódu
+      (`TutorialContext`, `TUTORIAL_STORAGE_KEYS`) a přejmenování klíčů by bylo
+      tiché rozbití. Důvod je vysvětlený hned v hlavičce průvodce.
+- [ ] H4b Device test (světlý/tmavý × EN/DE/ES × malý displej × tablet;
+      němčina musí u cíle ukázat „Bücher“ a €)
 
 **Nesahat:** `OnboardingPreferencesModal.tsx` (funguje),
 `tutorialAchievementGate.ts` (pracně odladěné), `AchievementContext.tsx:343`,

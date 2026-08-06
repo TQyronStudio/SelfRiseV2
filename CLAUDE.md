@@ -1,96 +1,175 @@
-1. MANDATORY PREPARATION: Before starting ANY task:
-   - Read projectplan.md for current status
-   - Read projectplan-archive.md for implementation context  
-   - Read technical-guides.md for coding standards
+# Pravidla práce na SelfRise V2
 
-2. WORKING MODE: Choose the simplest workflow that fits the task:
-   - For small tasks, work directly and keep the change minimal.
-   - For larger or risky tasks, first gather context, explain the approach, and use any available supporting tools only when they clearly reduce risk or speed up the work.
-   - Do not rely on hardcoded specialist names or old agent lists. Use the current available capabilities of the environment.
+---
 
-3. DOCUMENTATION MANAGEMENT (CRITICAL PRIORITY):
-   - projectplan.md MAXIMUM 25,000 tokens - check token count before writing
-   - When adding implementation details: brief summary in projectplan.md, full details in appropriate archive
-   - When completing tasks: move detailed notes to archive, keep only essential info in main plan
-   - Archive locations: projectplan-archive.md, technical-guides.md, implementation-history.md
+## 1. 🚨 OPONUJ DŘÍV, NEŽ ZAČNEŠ STAVĚT
 
-4. First think through the problem, read the codebase for relevant files, and write a plan to projectplan.md.
+Když Petr navrhne koncept, funkci, architekturu nebo postup, **než napíšeš první řádek kódu** řekni:
 
-5. The plan should have a list of todo items that you can check off as you complete them
+1. **Jak se tahle třída problému řeší běžně** — co dělají zavedené produkty a proč
+2. **Kde má návrh slabinu** — konkrétně, ne mlhavě („tohle bude problém, protože…")
+3. **Jak by vypadala špičková verze** — ne nejlevnější, ale ta, kvůli které si uživatel appku nechá. Co v tomhle místě dělá horních 5 % aplikací jinak.
 
-6. Before you begin working, check in with me and I will verify the plan.
+Pak **rozhoduje Petr**. Když si za svým stojí, postav to jeho — celé, poctivě a bez dalšího přemílání.
 
-7. Then, begin working on the todo items, marking them as complete as you go.
+> **MLČENÍ = SOUHLAS.** Když neoponuješ, potvrzuješ, že je to dobrý přístup.
+>
+> **DEADLINE je před prvním řádkem kódu.** Potom už to není oponentura, ale zpochybňování hotové práce.
 
-8. Please every step of the way just give me a high level explanation of what changes you made
+⚠️ **Tohle pravidlo mluví o AMBICI NÁVRHU. Pravidla 6 a 7 mluví o VELIKOSTI ZÁSAHU do kódu. Jsou to dvě různé osy** — 3 obrazovky místo 25 byly pro uživatele jednodušší a zároveň největší zásah v projektu.
 
-9. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
+*Proč: 25 kroků tutoriálu a všechna data v AsyncStorage byly hodiny práce, které stačilo neudělat. Obojí bylo postavené bez jediné námitky.*
 
-10. Finally, add implementation summary to appropriate archive file and brief review to projectplan.md.
+---
 
-11. DO NOT BE LAZY. If there is a bug, find the root cause and fix it properly. No temporary fixes. Act like a senior developer.
+## 2. Příprava podle rozsahu
 
-12. After completing any planned task, immediately update the corresponding checkbox in `projectplan.md` to `[x]`.
+- **Malá změna v existujícím kódu** → přečti relevantního technického průvodce (pravidlo 3)
+- **Nová funkčnost nebo zásah do více oblastí** → navíc `projectplan.md`
+- **Nejasná historie** → navíc `projectplan-archive.md`
 
-13. The `projectplan.md` file is the single source of truth for project work. Do not delete, clear, or overwrite the entire content without explicit permission. Only add relevant notes, update relevant sections, or check off completed tasks.
+Nečti všechno pokaždé. `projectplan.md` má ~25 000 tokenů — přečíst ho kvůli překlepu ubere kontext vlastní práci.
 
-14. Po dokončení úkolu a mé pochvale (např. „Dobrá práce", „Skvěle",
-  „Perfektní", „Hezky", „Výborně", „Skvělá práce"):
-     - Udělej `git add .` pro všechny změny
-     - Vytvoř commit s popisným názvem (např. „Checkpoint XXX -
-  Complete")
-     - AUTOMATICKY pushni pomocí `git push` do remote repository
-     - Potvrď úspěšné uložení a push
+---
 
-15. Vytváření a správa Technických  Průvodců (Technical Guides)
+## 3. Technický průvodce je nadřazený a povinný
 
- Při definování nové klíčové funkcionality, logiky nebo sady pravidel pro určitou oblast aplikace (např. Gamifikace, Návyky, Cíle) se budeš řídit tímto postupem pro vytvoření centralizované dokumentace:
+1. **Konzultace před akcí**: před prací na existující funkčnosti aktivně vyhledej a prostuduj jejího průvodce. Je to první krok.
+2. **Identifikace tématu**: „Oprav chybu v odměnách za návyky" → klíčová slova „odměny" + „návyky" → `technical-guides:Gamification-Core.md` a `technical-guides:Habits.md`.
+3. **Soulad**: veškerý kód musí být v souladu s logikou, hodnotami a principy v průvodci. **Průvodce je nadřazený tvým předchozím znalostem o projektu.**
+4. **Nejasnosti**: je-li zadání v rozporu s průvodcem nebo průvodce případ nepokrývá → **upozorni a navrhni jeho úpravu**, teprve po odsouhlasení implementuj.
 
- 1. Identifikace tématu: Jakmile spolu finalizujeme koncept nové funkčnosti, jasně identifikuješ její hlavní téma (např. "Gamifikace", "Sociální interakce", "Notifikace").
+---
 
- 2. Ověření existence průvodce: Než vytvoříš nový soubor, vždy zkontroluješ, jestli již neexistuje technický průvodce pro dané téma. Cílem je centralizovat informace a zabránit duplicitě.
+## 4. Plán a schválení
 
-   - Pokud průvodce existuje, nové informace a pravidla přidáš nebo zaktualizuješ v rámci stávajícího souboru.
+U větších úkolů: promysli problém, přečti relevantní kód, napiš plán do `projectplan.md` jako seznam odškrtávacích bodů a **počkej na schválení**.
 
-   - Pokud průvodce neexistuje, vytvoříš nový.
+Rozděl ho na části zvládnutelné na jedno posezení — chybovost roste s velikostí kroku.
 
- 3. Vytvoření nového technického průvodce:
+*U drobných oprav plán nepiš, rovnou pracuj.*
 
-   - Vytvoříš nový soubor ve formátu Markdown (.md).
+---
 
-   - Název souboru bude striktně dodržovat formát: technical-guides:Téma.md (např. technical-guides:Gamification.md, technical-guides:Habits.md).
+## 5. Průběžné hlášení
 
- 4. Struktura a styl obsahu:
+Po každém kroku stručně vysvětli, co se změnilo. Hotový bod **hned** odškrtni na `[x]` v `projectplan.md`.
 
-   - Obsah průvodce napíšeš jasně,   strukturovaně a srozumitelně – jako bys to vysvětloval kolegovi. Používej nadpisy, odrážky a zvýraznění textu pro maximální čitelnost.
+---
 
-   - Dokument musí komplexně shrnovat veškerou dohodnutou logiku, pravidla, hodnoty (např. výše odměn), podmínky a principy fungování dané funkčnosti. Bude sloužit jako hlavní referenční bod.
+## 6. 🚨 CHIRURGICKÉ ZMĚNY — „Nerozbij fungující systémy"
 
- 5. Propojení s projectplan.md:
+- PŘED každým úkolem: **„Co teď FUNGUJE a NESMÍ se pokazit?"**
+- ZMĚŇ pouze minimum potřebné k vyřešení problému
+- OVĚŘ po každé změně, že funkční systémy pořád fungují
+- Musíš-li sáhnout na funkční kód → **ZEPTEJ SE NEJDŘÍV**
+- Přestane-li něco fungovat → **OKAMŽITĚ zastav a diagnostikuj**
 
-   - Do souboru projectplan.md nebudeš kopírovat detailní popis z technického průvodce.
+---
 
-   - Místo toho vložíš pouze jednoduchý a přímý odkaz na příslušný soubor.
+## 7. Malý zásah, ne malá ambice
 
-   - Formát odkazu bude: [Popis úkolu] - Technická pravidla a logika pro [Téma]: @[název-souboru]
+Sahej na co nejmíň kódu — to je **řízení rizika**, ne skromnost v návrhu. Kvalita výsledku se řeší v pravidle 1, ne tady.
 
-   - Příklad: Implementace Měsíčních Výzev - Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification.md
+> **Výjimka:** dohodnuté přepracování. Tam je velký zásah správná odpověď a tohle pravidlo na něj neplatí.
 
- Cíl tohoto pravidla: Vytvořit ucelenou, snadno dostupnou a lidsky čitelnou znalostní bázi pro klíčové mechaniky aplikace. Tím se zjednoduší projectplan.md na přehledný seznam úkolů a zajistí se, že při jakékoliv práci na dané oblasti budeš mít okamžitě k dispozici všechna platná pravidla a logiku.
+---
 
-16. Povinné Použití Průvodce Před Zahájením Práce
+## 8. Žádné dočasné záplaty
 
- 1. Konzultace před akcí: Před zahájením jakéhokoliv úkolu (úprava, oprava, rozšíření), který se týká již existující funkčnosti, jsi povinen nejprve aktivně vyhledat a prostudovat relevantní technický průvodce. Je to tvůj první krok.
+**NEBUĎ LÍNÝ.** Je-li chyba, najdi **příčinu** a oprav ji pořádně. Chovej se jako senior vývojář.
 
- 2. Identifikace tématu: Pokud je úkol "Opravit chybu v odměnách za návyky", automaticky identifikuješ klíčová slova "odměny" a "návyky" a vyhledáš soubory technical-guides:Gamification-Core.md a technical-guides:Habits.md.
+---
 
- 3. Soulad s pravidly: Veškerý kód, který napíšeš nebo upravíš, musí být v naprostém souladu s logikou, hodnotami a principy definovanými v tomto průvodci. Průvodce je nadřazený tvým předchozím znalostem o projektu.
+## 9. Ověřuj, než řekneš hotovo
 
- 4. Řešení nejasností: Pokud je zadání v rozporu s technickým průvodcem nebo pokud průvodce nepokrývá daný specifický případ, jsi povinen na to upozornit. Navrhneš aktualizaci průvodce a teprve po jejím odsouhlasení začneš implementovat změny v kódu.
+Nikdy nehlas hotovo bez ověření:
 
-16. 🚨 SURGICAL CHANGES ONLY - "Nerozbij fungující systémy"
-    - PŘED každým úkolem: "Co aktuálně FUNGUJE a NESMÍ se pokazit?"
-    - ZMĚŇ pouze minimum potřebné k vyřešení problému
-    - TESTUJ po každé změně že funkční systémy stále fungují
-    - Pokud zjistíš že musíš měnit funkční kód → ZEPTEJ SE NEJDŘÍV
-    - Pokud něco přestane fungovat → OKAMŽITĚ zastav a diagnostikuj
+- `npx tsc --noEmit` a `npm test` musí projít
+- **Testy vyžadují Node ≥ 22.5:**
+  ```bash
+  PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npm test
+  ```
+- U nového testu **ověř i ten test**: rozbij schválně to, co má hlídat, a přesvědč se, že spadne
+- Neprošlo-li něco, **řekni to i s výstupem**. Nepřikrášluj.
+
+*Proč: prošel test, který svou chybu vůbec nedokázal chytit. Bez té zkoušky by hlídal vzduch.*
+
+---
+
+## 10. Průvodce se aktualizuje ve stejném commitu
+
+**Změníš-li chování oblasti, která má průvodce, aktualizuj ho hned — ne „potom".**
+
+*Proč: podle pravidla 3 je průvodce nadřazený. **Zastaralý průvodce je proto horší než žádný.***
+
+### Když průvodce neexistuje
+
+Jde-li o podstatnou funkčnost, založ ho:
+
+- **Název**: striktně `technical-guides:Téma.md` (např. `technical-guides:Gamification.md`)
+- **Nejdřív zkontroluj, jestli už neexistuje** — cílem je centralizace, ne duplicita
+- **Kostra jako ostatní průvodci** (vzor: `technical-guides:Startup-Orchestrator.md`):
+  1. `🏃 CO TOHLE OBSAHUJE` / `🔧 KDY TOHLE POUŽÍVAT`
+  2. Proč tenhle systém existuje
+  3. `🚨 KRITICKÁ PRAVIDLA` — každé s párem ✅ CORRECT / ❌ WRONG a odstavcem **Proč**
+  4. Popisné sekce
+  5. `⚠️ NEBEZPEČNÉ ZÓNY` — jak si to rozbít
+  6. Testování
+  7. Co se NESMÍ rozbít
+  8. Device scénáře
+  9. GOLDEN RULE
+- **Odkazy do kódu ověř** — průvodce se špatnými odkazy je horší než žádný
+- Piš srozumitelně, jako bys to vysvětloval kolegovi
+
+### Propojení s projectplan.md
+
+Do plánu **nekopíruj obsah průvodce**, vlož jen odkaz:
+
+`[Popis úkolu] - Technická pravidla a logika pro [Téma]: @[název-souboru]`
+
+Příklad: `Implementace Měsíčních Výzev - Technická pravidla a logika pro Gamifikaci: @technical-guides:Gamification.md`
+
+---
+
+## 11. projectplan.md — jediný zdroj pravdy
+
+- **Nemazat, nepřepisovat celé bez výslovného svolení.** Jen doplňovat, aktualizovat sekce a odškrtávat.
+- **Limit 25 000 tokenů.** Přesáhne-li 22 000, **archivuj dokončené etapy dřív, než přidáš další.**
+- Detaily patří do archivu, do plánu jen stručné shrnutí a odkaz.
+- Archivy: `projectplan-archive.md`, `technical-guides.md`, `implementation-history.md`
+
+---
+
+## 12. Commit na výslovné slovo
+
+Commit a push spouští **jednoznačný pokyn** — „commitni", „ulož to", „pushni".
+
+**Pochvala („dobrá práce", „super", „výborně") commit NESPOUŠTÍ.** Může znamenat „hotovo, ulož" i „dobře, pokračuj" a ten rozdíl nelze spolehlivě poznat. Navíc `git add .` sebere i nesouvisející rozdělanou práci.
+
+Postup: `git add .` → commit s popisným názvem → `git push` → potvrdit úspěch.
+
+---
+
+## 13. Agenti
+
+- **Bez ptaní:** čtecí hledání napříč kódem a **nezávislá revize vlastní hotové práce**
+- **Po dohodě:** cokoliv, co mění soubory nebo běží dlouho na pozadí
+
+Nespoléhej na natvrdo jmenované seznamy agentů — zastarávají. Používej, co prostředí zrovna nabízí.
+
+*Proč: kontrola vlastní práce je nejslabší forma kontroly.*
+
+---
+
+## 14. Komunikace
+
+Česky. Každou odpověď zakonči sekcí **„DOPAD NA UŽIVATELE"**:
+
+- **Co se změnilo** — jednou větou
+- **Co jsi viděl předtím** — konkrétně, co v aplikaci nesedělo
+- **Co uvidíš teď** — konkrétně, jak se to projeví
+
+**Nedotkne-li se změna uživatele, napiš to rovnou.** Úklid kódu, dokumentace nebo testy nemají žádný viditelný dopad — vymýšlet jim význam je horší než přiznat, že žádný nemají.
+
+Žádné cesty k souborům, názvy funkcí ani technické zkratky v této sekci. Zbytek odpovědi nad ní může být technický, jak je potřeba.

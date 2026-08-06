@@ -495,9 +495,6 @@ const de: Partial<TranslationKeys> = {
 
   // UI Labels
   ui: {
-    progressStep: '{{current}}/{{total}}',
-    skipTutorial: 'Überspringen',
-    nextStep: 'Weiter',
     continue: 'Weiter',
     next: 'Weiter',
     cancel: 'Abbrechen',
@@ -505,8 +502,6 @@ const de: Partial<TranslationKeys> = {
     edit: 'Bearbeiten',
     delete: 'Löschen',
     retry: 'Nochmal',
-    tutorialComplete: 'Fertig!',
-    readyToRise: 'Los geht\'s',
   },
 
   // Habits screen
@@ -3506,15 +3501,8 @@ const de: Partial<TranslationKeys> = {
 
   // Tutorial System (UI elements only - full content falls back to EN for first-time experience)
   tutorial: {
-    skip: 'Tutorial überspringen',
-    next: 'Weiter',
-    continue: 'Fortfahren',
-    getStarted: 'Los geht\'s',
-    finish: 'Tutorial beenden',
-    progressText: 'Schritt {{current}} von {{total}}',
-    loading: 'Tutorial wird eingerichtet...',
-
-    // Onboarding-Voreinstellungen (nur beim ersten Start - Sprache + Design)
+    // Onboarding preferences gate (first launch: language, theme, notifications).
+    // Everything else that lived here belonged to the 25-step tour and went with it.
     languageSetup: {
       title: 'Wähle deine Sprache 🌍',
       subtitle: 'Wähle deine bevorzugte Sprache. Du kannst sie jederzeit in den Einstellungen ändern.',
@@ -3527,246 +3515,6 @@ const de: Partial<TranslationKeys> = {
       dark: 'Dunkel',
       confirm: 'Bestätigen',
     },
-
-    steps: {
-      // Schritt 1: Willkommen & Grundlagen
-      welcome: {
-        title: 'Willkommen bei SelfRise! 🌟',
-        content: 'Starte deine Reise des Wachstums! Wir zeigen dir, wie du Gewohnheiten erstellst, Tagebuch führst und Ziele setzt. Alles, was du brauchst, um dein bestes Leben zu leben! ✨',
-        button: 'Weiter',
-      },
-
-      // App-Übersicht
-      appOverview: {
-        title: 'Dein Persönliches Wachstums-Dashboard 📊',
-        content: 'Dies ist dein Startbildschirm, auf dem du deinen Fortschritt, Serien und Erfolge siehst. Schau täglich vorbei, um motiviert zu bleiben!',
-        button: 'Weiter',
-      },
-
-      // Schnellaktionen
-      quickActions: {
-        title: 'Schnellaktionen 🚀',
-        content: 'Diese Schaltflächen ermöglichen dir, schnell Gewohnheiten, Tagebucheinträge oder Ziele hinzuzufügen. Tippe sie jederzeit an, wenn du Fortschritte machen möchtest!',
-        button: 'Weiter',
-      },
-
-      // Gewohnheit erstellen Button
-      createHabitButton: {
-        title: 'Lass uns deine erste Gewohnheit erstellen! 🌱',
-        content: 'Tippe auf diese Schaltfläche, um deine erste positive Gewohnheit aufzubauen. Wir führen dich Schritt für Schritt durch den Prozess.',
-        button: 'Weiter',
-      },
-
-      // Gewohnheit erstellen (Speichern-Button)
-      habitCreate: {
-        title: 'Speichere deine Gewohnheit 💾',
-        content: 'Fertig mit Anpassen? Tippe auf die Speichern-Schaltfläche, um deine Gewohnheit zu erstellen und deine Serie zu starten!',
-        button: 'Weiter',
-      },
-
-      // Zielkategorie
-      goalCategory: {
-        title: 'Wähle eine Kategorie 🏷️',
-        content: 'Wähle eine Kategorie, die dein Ziel am besten beschreibt. Dies hilft, deine Ziele zu organisieren und den Fortschritt in verschiedenen Lebensbereichen zu verfolgen.',
-        button: 'Weiter',
-      },
-
-      // Ziel erstellen (Speichern-Button)
-      goalCreate: {
-        title: 'Erstelle dein Ziel 🎯',
-        content: 'Bereit zum Verfolgen zu starten? Tippe auf die Erstellen-Schaltfläche, um dein Ziel zu speichern und deine Reise zu beginnen!',
-        button: 'Weiter',
-      },
-
-      // Ziel abgeschlossen
-      goalComplete: {
-        title: 'Ziel erstellt! 🎉',
-        content: 'Fantastisch! Dein Ziel ist jetzt aktiv. Füge Fortschrittsaktualisierungen hinzu, um Vorhersagen zu sehen und deine Reise zu verfolgen!',
-        button: 'Weiter',
-      },
-
-      // Zur Startseite navigieren
-      navigateHome: {
-        title: 'Lass uns nach Hause gehen 🏠',
-        content: 'Tippe auf den Home-Tab, um dein Dashboard mit all deinen Fortschritten, Gewohnheiten und Erfolgen zu sehen!',
-        button: 'Weiter',
-      },
-
-      // Trophäenraum
-      trophyRoom: {
-        title: 'Dein Trophäenraum 🏆',
-        content: 'Hier leben all deine Erfolge! Schließe Herausforderungen ab, um Abzeichen freizuschalten und deine Siege zu feiern!',
-        button: 'Weiter',
-      },
-
-      // Schritt 2: Gewohnheitsname eingeben
-      habitName: {
-        title: 'Erstelle deine erste Gewohnheit 🌱',
-        content: 'Was möchtest du täglich tun? Lesen, Sport, Meditation - wähle eine positive Gewohnheit, die dir guttut!',
-        placeholder: 'z.B. 10 Minuten lesen',
-        examples: ['Morgenmeditation', 'Täglicher Spaziergang', '8 Gläser Wasser trinken', 'In Dankbarkeitstagebuch schreiben', '20 Liegestütze machen'],
-        button: 'Weiter',
-      },
-
-      // Schritt 3: Gewohnheitsfarbe auswählen
-      habitColor: {
-        title: 'Mach es zu deinem! 🎨',
-        content: 'Wähle eine Farbe, die dich begeistert! Sie wird dich an deine neue Gewohnheit erinnern.',
-        button: 'Weiter',
-      },
-
-      // Schritt 4: Gewohnheitssymbol auswählen
-      habitIcon: {
-        title: 'Wähle dein Symbol ✨',
-        content: 'Wähle ein Symbol für deine Gewohnheit! Es hilft dir, sie sofort zu erkennen.',
-        button: 'Weiter',
-      },
-
-      // Schritt 5: Gewohnheitstage planen
-      habitDays: {
-        title: 'Wann wirst du dies tun? 📅',
-        content: 'Wähle die Tage, die zu deinem Leben passen. Täglich oder nur an bestimmten Tagen - du entscheidest!',
-        button: 'Weiter',
-      },
-
-      // Schritt 6: Gewohnheit erfolgreich erstellt
-      habitComplete: {
-        title: 'Gewohnheit erstellt! 🎉',
-        content: 'Fantastisch! Deine erste Gewohnheit ist bereit. Morgen kannst du sie abhaken und deine Serie starten!',
-        button: 'Weiter',
-      },
-
-      // Schritt 7: Tagebuch-Einführung
-      journalIntro: {
-        title: 'Probiere das Tagebuch aus! 📝',
-        content: 'Dankbarkeit aufschreiben stärkt positive Gedanken. Lass uns deinen ersten Eintrag schreiben!',
-        button: 'Weiter',
-      },
-
-      // Schritt 8: Erster Dankbarkeitseintrag
-      gratitudeEntry: {
-        title: 'Wofür bist du dankbar? 🙏',
-        content: 'Denke an etwas, das du schätzt - groß oder klein. Eine Person, Erfahrung oder etwas Einfaches wie Morgenkaffee! ☕',
-        placeholder: 'Ich bin dankbar für...',
-        examples: ['Die Unterstützung meiner Familie', 'Ein Dach über dem Kopf zu haben', 'Die Fähigkeit, neue Dinge zu lernen', 'Einen sonnigen Tag', 'Meine Gesundheit'],
-        button: 'Weiter',
-      },
-
-
-      // Schritt 10: Ziele-Einführung
-      goalsIntro: {
-        title: 'Zeit für ein Ziel! 🎯',
-        content: 'Ziele geben Richtung. Wir helfen dir, Fortschritte zu verfolgen und vorherzusagen, wann du es erreichst!',
-        button: 'Weiter',
-      },
-
-      // Schritt 11: Zieltitel
-      goalTitle: {
-        title: 'Was ist dein Ziel? 🏆',
-        content: 'Wähle etwas Bedeutungsvolles und Spezifisches, worauf du stolz wärst!',
-        placeholder: 'z.B. 24 Bücher dieses Jahr lesen',
-        examples: ['5.000€ für Urlaub sparen', 'Spanisch fließend lernen', 'Einen 5K-Marathon laufen', 'Ein Buch schreiben', 'Gitarre lernen'],
-        button: 'Weiter',
-      },
-
-      // Schritt 12: Zieleinheit
-      goalUnit: {
-        title: 'Wie misst du den Fortschritt? 📊',
-        content: 'Wähle eine Einheit für dein Ziel. Das hilft uns, deinen Fortschritt zu zeigen!',
-        placeholder: 'z.B. Bücher',
-        examples: ['Bücher', 'Euro', 'Kilogramm', 'Stunden', 'Kilometer', 'Seiten', 'Tage'],
-        button: 'Weiter',
-      },
-
-      // Schritt 13: Zielzahl
-      goalTarget: {
-        title: 'Was ist deine Zielzahl? 🎯',
-        content: 'Wie viele {{unit}} möchtest du erreichen? Herausfordernd aber realistisch!',
-        placeholder: 'z.B. 24',
-        button: 'Weiter',
-      },
-
-      // Schritt 14: Zieldatum (Optional)
-      goalDate: {
-        title: 'Wann möchtest du fertig sein? 📅',
-        content: 'Ein Zieldatum hilft bei Vorhersagen. Optional - du kannst es später ändern.',
-        placeholder: 'Zieldatum auswählen (optional)',
-        button: 'Weiter',
-      },
-
-      // Schritt 14b: Ziel erstellen Button
-      createGoalButton: {
-        title: 'Erstelle dein erstes Ziel',
-        content: 'Klicke auf + Ziel hinzufügen, um dein erstes bedeutungsvolles Ziel zu setzen!',
-        button: 'Weiter',
-      },
-
-      // Schritt 15: XP-System-Einführung
-      xpIntro: {
-        title: 'Du verdienst XP! ⚡',
-        content: 'Du sammelst Erfahrungspunkte! Jede Aktion bringt XP und hilft dir, Level aufzusteigen. Wie ein Spiel für dein Leben! 🎮',
-        button: 'Weiter',
-      },
-
-      // Schritt 16: Tutorial abgeschlossen
-      completion: {
-        title: 'Du bist bereit! 🚀',
-        content: 'Glückwunsch! Gewohnheit, Tagebuch und Ziel sind erstellt. Schau täglich vorbei für Serien, XP und Erfolge! Willkommen bei SelfRise! 🌟',
-        button: 'Starte meine Reise!',
-      },
-    },
-
-
-    // Fehlermeldungen
-    errors: {
-      loadingFailed: 'Hoppla! Beim Laden des Tutorials ist etwas schiefgelaufen. Bitte versuche es erneut.',
-      savingFailed: 'Wir konnten deinen Fortschritt nicht speichern. Bitte überprüfe deine Verbindung und versuche es erneut.',
-      habitCreationFailed: 'Wir konnten deine Gewohnheit nicht erstellen. Bitte versuche es erneut.',
-      goalCreationFailed: 'Wir konnten dein Ziel nicht erstellen. Bitte versuche es erneut.',
-      journalEntryFailed: 'Wir konnten deinen Tagebucheintrag nicht speichern. Bitte versuche es erneut.',
-      genericError: 'Etwas Unerwartetes ist passiert. Bitte versuche es erneut.',
-      recoveryMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
-      reset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
-      retry: 'Erneut versuchen',
-      generalError: 'Das Tutorial ist auf einen Fehler gestoßen. Bitte versuche es erneut.',
-      alreadyCompleted: 'Tutorial bereits abgeschlossen oder übersprungen',
-    },
-
-    // Benutzerfeedback-Nachrichten
-    feedback: {
-      simplifiedMode: 'Das Tutorial hatte Probleme. Wird im vereinfachten Modus ausgeführt.',
-      errorReset: 'Das Tutorial hatte einen Fehler und wurde zurückgesetzt.',
-      greatStart: 'Toller Start! Weiter tippen...',
-      perfectChoice: 'Perfekte Wahl! 👌',
-      targetDateSet: 'Super! Zieldatum: {{date}} 📅',
-      chooseFutureDate: 'Bitte wähle ein zukünftiges Datum für dein Ziel! 🔮',
-      daysConsistency: 'Perfekt! Mit {{count}} Tag(en) baust du Beständigkeit auf! 💪',
-      daysMomentum: 'Ehrgeizig! {{count}} Tage sind großartig für Schwung! 🚀',
-      perfectTarget: 'Super! {{value}} ist ein perfektes Ziel! ✨',
-      enterPositiveNumber: 'Bitte gib eine positive Zahl ein! 🔢',
-      enterPositiveGoal: 'Bitte gib eine positive Zahl für dein Ziel ein! 🎯',
-      veryAmbitious: 'Das ist sehr ehrgeizig! Erwäge kleinere Meilensteine für besseren Erfolg! 🚀',
-      goalAtLeastOne: 'Dein Ziel sollte mindestens 1 sein! Höher hinaus! ⭐',
-      achievableTarget: 'Perfektes Ziel: {{value}}! Sieht erreichbar und motivierend aus! 🎯',
-      farAhead: 'Das ist ziemlich weit voraus! Erwäge kürzerfristige Ziele für besseren Schwung! 📅',
-      sprintGoal: '{{days}} Tage - ein schnelles Sprintziel! Perfekt für Schwung! ⚡',
-      monthlyChallenge: '{{days}} Tage - tolle Monatsherausforderung! Erreichbar und motivierend! 📅',
-      quarterlyGoal: '{{days}} Tage - ausgezeichnetes Quartalsziel! Perfekter Zeitrahmen! 🎯',
-      longTermGoal: '{{days}} Tage - ehrgeiziges Langzeitziel! Erwäge Meilenstein-Checkpoints! 🏔️',
-      selectCategory: 'Bitte wähle eine Kategorie zum Organisieren deines Ziels! 📂',
-      greatCategoryChoice: 'Tolle Wahl! {{category}}-Ziele sind sehr wichtig für ausgewogenes Wachstum! 🌟',
-      categoryHelpsTrack: 'Perfekt! Diese Kategorie hilft dir den Fortschritt zu verfolgen! 📊',
-      specifyUnit: 'Bitte gib an, in welcher Einheit du messen wirst! 📏',
-      descriptiveUnit: 'Versuche eine beschreibendere Einheit wie "Bücher" oder "Stunden"! 📚',
-      excellentUnit: 'Ausgezeichnete Einheitswahl: "{{unit}}" - sehr klar und messbar! 📊',
-      goodUnit: 'Gute Einheit: "{{unit}}" - stelle sicher, dass sie leicht zu verfolgen ist! ✅',
-    },
-
-
-
-
-
-    stepProgress: 'Schritt {{current}} von {{total}}',
   },
 
   onboarding: {
@@ -3777,8 +3525,6 @@ const de: Partial<TranslationKeys> = {
       promise: 'Gleich richten wir deine erste Gewohnheit und dein erstes Ziel ein. Das dauert eine Minute — und du kannst später alles ändern.',
       cta: 'Los geht\'s',
     },
-    continue: 'Weiter',
-    back: 'Zurück',
     progressA11y: 'Schritt {{current}} von {{total}}',
 
     habit: {
@@ -3815,7 +3561,6 @@ const de: Partial<TranslationKeys> = {
 
     done: {
       title: 'Alles bereit',
-      subtitle: 'Deine erste Gewohnheit und dein erstes Ziel stehen.',
       body: 'Hake deine Gewohnheit ab und sieh zu, wie deine XP wachsen. Das ist die ganze App.',
       cta: 'Verstanden',
     },
@@ -4171,7 +3916,6 @@ const de: Partial<TranslationKeys> = {
   // Accessibility
   accessibility: {
     activateMultiplier: 'Aktiviere 2x XP Multiplikator',
-    tapToContinueTutorial: 'Tippe zum Fortfahren des Tutorials',
     achievementGrid: 'Errungenschaftsgitter',
     closeAchievementDetails: 'Errungenschaftsdetails schließen',
     shareAchievement: 'Errungenschaft teilen',
@@ -4181,7 +3925,6 @@ const de: Partial<TranslationKeys> = {
     getNewQuote: 'Neues Zitat abrufen',
     copyQuoteToClipboard: 'Zitat in Zwischenablage kopieren',
     shareQuote: 'Zitat teilen',
-    skipTutorial: 'Tutorial überspringen',
     viewAllLevels: 'Alle Level anzeigen',
     refreshDailyHeroes: 'Tägliche Helden aktualisieren',
     closeSharingModal: 'Freigabedialog schließen',
