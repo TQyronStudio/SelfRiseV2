@@ -2922,7 +2922,6 @@ const en: TranslationKeys = {
     tutorialResetDescription: 'Restart the tutorial from the beginning',
     tutorialResetConfirmTitle: 'Restart Tutorial?',
     tutorialResetConfirmMessage: 'This will restart the tutorial from the beginning and guide you through the app again. This action cannot be undone.',
-    tutorialResetSuccess: 'Tutorial has been restarted successfully! You are now being guided through the app.',
 
     // Common
     cancel: 'Cancel',

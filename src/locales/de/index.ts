@@ -1656,7 +1656,6 @@ const de: Partial<TranslationKeys> = {
     tutorialResetDescription: 'Tutorial von vorne beginnen',
     tutorialResetConfirmTitle: 'Tutorial neustarten?',
     tutorialResetConfirmMessage: 'Dies startet das Tutorial von Anfang an neu. Diese Aktion kann nicht rückgängig gemacht werden.',
-    tutorialResetSuccess: 'Tutorial wurde erfolgreich neu gestartet!',
 
     // Common
     cancel: 'Abbrechen',

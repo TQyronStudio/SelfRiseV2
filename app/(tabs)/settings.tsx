@@ -194,10 +194,15 @@ export default function SettingsScreen() {
   const performRestart = async () => {
     try {
       setIsResetting(true);
+      // No success modal on purpose. `restartTutorial()` navigates to the tabs
+      // and opens onboarding, so the confirmation IS the onboarding appearing.
+      // Setting modal state here would arm an RN <Modal> on a tab screen the
+      // user has already left: it stays "open" through the whole onboarding and
+      // fires the next time they visit Settings, as a leftover from an action
+      // finished long ago. Onboarding also depends on RN modals never
+      // overlapping (see technical-guides:Tutorial.md, rule 1).
       await restartTutorial();
       await clearCrashData();
-      setSuccessMessage(t('settings.tutorialResetSuccess'));
-      setShowSuccessModal(true);
     } catch (error) {
       console.error('Failed to restart tutorial:', error);
       setErrorMessage('Failed to restart tutorial. Please try again.');

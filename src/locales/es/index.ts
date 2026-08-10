@@ -1656,7 +1656,6 @@ const es: Partial<TranslationKeys> = {
     tutorialResetDescription: 'Reiniciar el tutorial desde el principio',
     tutorialResetConfirmTitle: '¿Reiniciar Tutorial?',
     tutorialResetConfirmMessage: 'Esto reiniciará el tutorial desde el principio. Esta acción no se puede deshacer.',
-    tutorialResetSuccess: '¡Tutorial reiniciado exitosamente!',
 
     // Common
     cancel: 'Cancelar',

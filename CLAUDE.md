@@ -9,6 +9,13 @@ Když Petr navrhne koncept, funkci, architekturu nebo postup, **než napíšeš 
 1. **Jak se tahle třída problému řeší běžně** — co dělají zavedené produkty a proč
 2. **Kde má návrh slabinu** — konkrétně, ne mlhavě („tohle bude problém, protože…")
 3. **Jak by vypadala špičková verze** — ne nejlevnější, ale ta, kvůli které si uživatel appku nechá. Co v tomhle místě dělá horních 5 % aplikací jinak.
+4. **Čím to zvednout na maximum** — nejen co dělá špička, ale **jak se toho dá reálně dosáhnout v našem nastavení**: který skill nebo nástroj v prostředí tu oblast pokrývá a jaký postup se na tuhle třídu problému dnes v AI-asistovaném vývoji používá.
+
+> **Cíl je maximální výsledek napoprvé, ne hrubá verze k dolaďování.** Petrův čas na testování je nejdražší zdroj v projektu — doladí se až to, co už je dobré.
+>
+> **U bodu 4 nespoléhej na paměť.** Praxe kolem AI vývoje se mění rychleji než tvůj cutoff. Když na tom v daném úkolu záleží, **ověř si aktuální stav** — neříkej „myslím, že se používá".
+
+Body 3 a 4 patří k rozhodnutím, kde se širší pohled vyplatí — nová oblast, návrh, architektura, něco, co jsme ještě nedělali. Ne k překlepu.
 
 Pak **rozhoduje Petr**. Když si za svým stojí, postav to jeho — celé, poctivě a bez dalšího přemílání.
 
@@ -151,14 +158,16 @@ Postup: `git add .` → commit s popisným názvem → `git push` → potvrdit �
 
 ---
 
-## 13. Agenti
+## 13. Agenti a skilly
 
 - **Bez ptaní:** čtecí hledání napříč kódem a **nezávislá revize vlastní hotové práce**
 - **Po dohodě:** cokoliv, co mění soubory nebo běží dlouho na pozadí
 
-Nespoléhej na natvrdo jmenované seznamy agentů — zastarávají. Používej, co prostředí zrovna nabízí.
+**Než začneš pracovat v oblasti, kde skill nejspíš existuje** — návrh UI, ikony, i18n, theme, grafy, App Store podklady — **podívej se, co prostředí nabízí**, místo ručního řešení.
 
-*Proč: kontrola vlastní práce je nejslabší forma kontroly.*
+Nejmenuj konkrétní skilly ani agenty z hlavy. Zastarávají. Používej, co je zrovna k dispozici.
+
+*Proč: kontrola vlastní práce je nejslabší forma kontroly. A ruční řešení tam, kde existuje nástroj, je zbytečně horší výsledek.*
 
 ---
 

@@ -314,7 +314,13 @@ ne animace v liště.)
 
 ## Restart ze Settings
 
-`settings.tsx:197-198` → `restartTutorial()` + `clearCrashData()`.
+`settings.tsx:204-205` → `restartTutorial()` + `clearCrashData()`.
+
+**Žádná hláška „úspěšně restartováno".** `restartTutorial()` odnaviguje na taby
+a otevře onboarding — potvrzením je ten onboarding. Nastavit tu stav modálu
+znamená natáhnout RN `<Modal>` na obrazovce, ze které uživatel právě odešel:
+zůstane „otevřený" po celý onboarding a vyskočí, až na Settings příště přijde.
+Settings je záložka, takže se neodmontuje. Viz pravidlo 1 (nikdy dva modály).
 
 `restartTutorial()` (`TutorialContext.tsx:293-318`) smaže `COMPLETED`,
 `CURRENT_STEP`, `SKIPPED` → nastaví `RESTARTED='true'` → `router.push('/(tabs)')`

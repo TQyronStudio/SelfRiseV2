@@ -1692,7 +1692,6 @@ export interface TranslationKeys {
     tutorialResetDescription: string;
     tutorialResetConfirmTitle: string;
     tutorialResetConfirmMessage: string;
-    tutorialResetSuccess: string;
     cancel: string;
     reset: string;
     success: string;
