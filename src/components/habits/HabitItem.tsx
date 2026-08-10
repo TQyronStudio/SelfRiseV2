@@ -8,6 +8,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '../../types/habit';
 import { HabitColor, HabitIcon, DayOfWeek } from '../../types/common';
+// Habit icons live in ONE map — see constants/habitIcons.ts (a local copy is how
+// Home ended up drawing a bed for the moon icon).
+import { getHabitIonicon } from '@/src/constants/habitIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
@@ -23,23 +26,6 @@ interface HabitItemProps {
   onDrag?: (() => void) | undefined;
   isDragging?: boolean;
 }
-
-const ICON_MAP = {
-  [HabitIcon.FITNESS]: 'fitness-outline',
-  [HabitIcon.BOOK]: 'book-outline',
-  [HabitIcon.WATER]: 'water-outline',
-  [HabitIcon.MEDITATION]: 'leaf-outline',
-  [HabitIcon.MUSIC]: 'musical-notes-outline',
-  [HabitIcon.FOOD]: 'restaurant-outline',
-  [HabitIcon.SLEEP]: 'moon-outline',
-  [HabitIcon.WORK]: 'briefcase-outline',
-  [HabitIcon.HEALTH]: 'heart-outline',
-  [HabitIcon.SOCIAL]: 'people-outline',
-  [HabitIcon.CREATIVE]: 'color-palette-outline',
-  [HabitIcon.LEARNING]: 'school-outline',
-  [HabitIcon.FINANCE]: 'card-outline',
-  [HabitIcon.HOME]: 'home-outline',
-} as const;
 
 // Day labels are now handled dynamically via i18n
 const getDayLabel = (day: DayOfWeek, t: (key: string) => string): string => {
@@ -223,7 +209,7 @@ export function HabitItem({ habit, onEdit, onDelete, onToggleActive, onReorder, 
       <View style={styles.mainContent}>
         <View style={[styles.iconContainer, { backgroundColor: COLOR_MAP[habit.color] }]}>
           <Ionicons
-            name={ICON_MAP[habit.icon] as any}
+            name={getHabitIonicon(habit.icon)}
             size={24}
             color={colors.white}
           />

@@ -3,28 +3,14 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HabitIcon } from '../../types/common';
 import { useTheme } from '../../contexts/ThemeContext';
+// Single source of truth — the picker renders straight from it, so adding an icon
+// there is all it takes to offer it here. See constants/habitIcons.ts.
+import { HABIT_ICON_MAP } from '../../constants/habitIcons';
 
 interface IconPickerProps {
   selectedIcon: HabitIcon;
   onIconSelect: (icon: HabitIcon) => void;
 }
-
-const ICON_MAP = {
-  [HabitIcon.FITNESS]: 'fitness-outline',
-  [HabitIcon.BOOK]: 'book-outline',
-  [HabitIcon.WATER]: 'water-outline',
-  [HabitIcon.MEDITATION]: 'leaf-outline',
-  [HabitIcon.MUSIC]: 'musical-notes-outline',
-  [HabitIcon.FOOD]: 'restaurant-outline',
-  [HabitIcon.SLEEP]: 'moon-outline',
-  [HabitIcon.WORK]: 'briefcase-outline',
-  [HabitIcon.HEALTH]: 'heart-outline',
-  [HabitIcon.SOCIAL]: 'people-outline',
-  [HabitIcon.CREATIVE]: 'color-palette-outline',
-  [HabitIcon.LEARNING]: 'school-outline',
-  [HabitIcon.FINANCE]: 'card-outline',
-  [HabitIcon.HOME]: 'home-outline',
-} as const;
 
 export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
   const { colors } = useTheme();
@@ -55,7 +41,7 @@ export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
 
   return (
     <View style={styles.container}>
-      {Object.entries(ICON_MAP).map(([icon, iconName]) => (
+      {Object.entries(HABIT_ICON_MAP).map(([icon, iconName]) => (
         <TouchableOpacity
           key={icon}
           style={[
@@ -66,7 +52,7 @@ export function IconPicker({ selectedIcon, onIconSelect }: IconPickerProps) {
           activeOpacity={0.8}
         >
           <Ionicons
-            name={iconName as any}
+            name={iconName}
             size={24}
             color={selectedIcon === icon ? colors.textInverse : colors.textSecondary}
           />

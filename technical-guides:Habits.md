@@ -105,13 +105,44 @@ if (state.habits !== lastHabitsRef.current ||
 const cacheKey = `${habits.length}-${completions.length}`;
 ```
 
+### 🎨 Ikony návyků — JEDNA sdílená mapa
+
+**`src/constants/habitIcons.ts` → `HABIT_ICON_MAP` je jediný zdroj pravdy.**
+Každá obrazovka (výběr ikon, seznamy návyků, statistiky, Home) ji importuje.
+
+```typescript
+// ❌ WRONG — vlastní kopie mapy v komponentě
+const ICON_MAP = { [HabitIcon.SLEEP]: 'bed-outline', … };
+<Ionicons name={ICON_MAP[habit.icon] as any} />
+
+// ❌ WRONG — surová hodnota rovnou do Ionicons
+<Ionicons name={habit.icon as any} />   // 'sleep' není název Ionicons → prázdná ikona
+
+// ✅ CORRECT
+import { getHabitIonicon } from '@/src/constants/habitIcons';
+<Ionicons name={getHabitIonicon(habit.icon)} />
+```
+
+**Proč**: tahle mapa byla zkopírovaná v **5 komponentách** a jedna kopie se rozešla —
+Home kreslil u „spánku" **postel**, zatímco výběr nabízel **měsíček**. Uživatel si vybral
+🌙 a dostal 🛏️. Žádný typ ani test to nechytil, protože každá kopie byla sama o sobě
+platná. Se sdílenou mapou je taková neshoda **nevyjádřitelná**.
+
+Pozor i na druhou past: `habit.icon` drží **naše** klíče (`'sleep'`, `'meditation'`…),
+a jen 4 ze 15 náhodou existují i jako názvy Ionicons — zbytek se vykreslí prázdný.
+Proto vždy přes `getHabitIonicon()` (má i bezpečný fallback pro neznámé uložené hodnoty).
+
+**Přidání ikony** = jeden člen do `HabitIcon` + jedna položka do `HABIT_ICON_MAP`.
+Výběr ikon se vykresluje přímo z mapy, takže se objeví sám. Hlídá
+`src/constants/__tests__/habitIcons.test.ts` (pokrytí, platnost názvů, unikátnost).
+
 ### Core Data Models
 ```typescript
 // Core Habit Entity
 interface Habit extends BaseEntity {
   name: string;
   color: HabitColor;
-  icon: HabitIcon;
+  icon: HabitIcon;                   // → ikona přes HABIT_ICON_MAP (viz výše)
   scheduledDays: DayOfWeek[];        // Kdy má být habit vykonáván (pondělí-neděle)
   isActive: boolean;                 // Aktivní/neaktivní stav
   description?: string;

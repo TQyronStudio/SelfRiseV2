@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Habit } from '../../types/habit';
 import { HabitColor, HabitIcon } from '../../types/common';
+// Habit icons live in ONE map — see constants/habitIcons.ts (a local copy is how
+// Home ended up drawing a bed for the moon icon).
+import { getHabitIonicon } from '@/src/constants/habitIcons';
 import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { HabitCalendarView } from './HabitCalendarView';
@@ -13,23 +16,6 @@ interface HabitStatsAccordionItemProps {
   habit: Habit;
   initiallyExpanded?: boolean;
 }
-
-const ICON_MAP = {
-  [HabitIcon.FITNESS]: 'fitness-outline',
-  [HabitIcon.BOOK]: 'book-outline',
-  [HabitIcon.WATER]: 'water-outline',
-  [HabitIcon.MEDITATION]: 'leaf-outline',
-  [HabitIcon.MUSIC]: 'musical-notes-outline',
-  [HabitIcon.FOOD]: 'restaurant-outline',
-  [HabitIcon.SLEEP]: 'moon-outline',
-  [HabitIcon.WORK]: 'briefcase-outline',
-  [HabitIcon.HEALTH]: 'heart-outline',
-  [HabitIcon.SOCIAL]: 'people-outline',
-  [HabitIcon.CREATIVE]: 'color-palette-outline',
-  [HabitIcon.LEARNING]: 'school-outline',
-  [HabitIcon.FINANCE]: 'card-outline',
-  [HabitIcon.HOME]: 'home-outline',
-} as const;
 
 export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: HabitStatsAccordionItemProps) {
   const { t } = useI18n();
@@ -186,7 +172,7 @@ export function HabitStatsAccordionItem({ habit, initiallyExpanded = false }: Ha
         <View style={styles.leftSection}>
           <View style={[styles.iconContainer, { backgroundColor: COLOR_MAP[habit.color] }]}>
             <Ionicons
-              name={ICON_MAP[habit.icon] as any}
+              name={getHabitIonicon(habit.icon)}
               size={20}
               color={colors.textInverse}
             />

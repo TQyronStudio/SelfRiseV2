@@ -26,6 +26,7 @@ export enum HabitColor {
 // Habit icon enum
 export enum HabitIcon {
   FITNESS = 'fitness',
+  DUMBBELL = 'dumbbell',
   BOOK = 'book',
   WATER = 'water',
   MEDITATION = 'meditation',

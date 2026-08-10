@@ -9,29 +9,14 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { today, getDayOfWeekFromDateString } from '@/src/utils/date';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { HabitColor, HabitIcon } from '@/src/types/common';
+// Habit icons live in ONE map — see constants/habitIcons.ts (a local copy is how
+// Home ended up drawing a bed for the moon icon).
+import { getHabitIonicon } from '@/src/constants/habitIcons';
 import { HelpTooltip } from '@/src/components/common';
 
 interface QuickActionButtonsProps {
   onHabitToggle?: (habitId: string) => void;
 }
-
-// Icon mapping for habits
-const ICON_MAP = {
-  [HabitIcon.FITNESS]: 'fitness-outline',
-  [HabitIcon.BOOK]: 'book-outline',
-  [HabitIcon.WATER]: 'water-outline',
-  [HabitIcon.MEDITATION]: 'leaf-outline',
-  [HabitIcon.MUSIC]: 'musical-notes-outline',
-  [HabitIcon.FOOD]: 'restaurant-outline',
-  [HabitIcon.SLEEP]: 'bed-outline',
-  [HabitIcon.HEALTH]: 'heart-outline',
-  [HabitIcon.WORK]: 'briefcase-outline',
-  [HabitIcon.SOCIAL]: 'people-outline',
-  [HabitIcon.CREATIVE]: 'color-palette-outline',
-  [HabitIcon.LEARNING]: 'school-outline',
-  [HabitIcon.FINANCE]: 'card-outline',
-  [HabitIcon.HOME]: 'home-outline',
-} as const;
 
 export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
   const { t } = useI18n();
@@ -216,7 +201,7 @@ export function QuickActionButtons({ onHabitToggle }: QuickActionButtonsProps) {
               >
                 <View style={[styles.symbolCircle, { backgroundColor: COLOR_MAP[habit.color] }]}>
                   <Ionicons
-                    name={ICON_MAP[habit.icon] as any}
+                    name={getHabitIonicon(habit.icon)}
                     size={16}
                     color={colors.textInverse}
                   />

@@ -101,25 +101,10 @@ export const getHabitColorValue = (color: HabitColor): string => {
   return colorMap[color];
 };
 
-export const getHabitIconName = (icon: HabitIcon): string => {
-  const iconMap: Record<HabitIcon, string> = {
-    [HabitIcon.FITNESS]: 'figure.run',
-    [HabitIcon.BOOK]: 'book.fill',
-    [HabitIcon.WATER]: 'drop.fill',
-    [HabitIcon.MEDITATION]: 'leaf.fill',
-    [HabitIcon.MUSIC]: 'music.note',
-    [HabitIcon.FOOD]: 'fork.knife',
-    [HabitIcon.SLEEP]: 'moon.fill',
-    [HabitIcon.WORK]: 'briefcase.fill',
-    [HabitIcon.HEALTH]: 'heart.fill',
-    [HabitIcon.SOCIAL]: 'person.2.fill',
-    [HabitIcon.CREATIVE]: 'paintbrush.fill',
-    [HabitIcon.LEARNING]: 'graduationcap.fill',
-    [HabitIcon.FINANCE]: 'creditcard.fill',
-    [HabitIcon.HOME]: 'house.fill',
-  };
-  return iconMap[icon];
-};
+// NOTE: `getHabitIconName()` lived here and mapped habit icons onto Apple SF Symbols
+// ('figure.run', 'moon.fill', …) — a different icon set than the Ionicons the app
+// actually draws. It had no callers, and wiring it up would have rendered nothing at
+// all. Removed July 2026. Habit icons: @/src/constants/habitIcons (HABIT_ICON_MAP).
 
 // Gratitude utilities
 export const createGratitude = (

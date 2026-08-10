@@ -12,6 +12,7 @@ import { useHabitsData } from '../../hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
 import { formatDateToString, getDayOfWeek, formatDateForDisplay, parseDate } from '../../utils/date';
 import { DateString } from '../../types/common';
+import { getHabitIonicon } from '@/src/constants/habitIcons';
 import { Habit, HabitCompletion } from '../../types/habit';
 // XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '../../constants/gamification';
@@ -322,7 +323,10 @@ export const DailyHabitTracker: React.FC<DailyHabitTrackerProps> = ({
                   {/* Habit Icon */}
                   <View style={[styles.habitIcon, { backgroundColor: habit.color }]}>
                     <Ionicons
-                      name={habit.icon as any}
+                      // Must go through the map: habit.icon holds our own keys
+                      // ('sleep', 'meditation', …), and only 4 of them happen to be
+                      // real Ionicons names — the rest rendered blank.
+                      name={getHabitIonicon(habit.icon)}
                       size={24}
                       color={colors.white}
                     />
