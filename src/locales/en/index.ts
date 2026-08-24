@@ -2988,6 +2988,7 @@ const en: TranslationKeys = {
           journalEntries: 'journal entries',
           journalMilestones: 'journal milestones',
           goals: 'goals',
+          goalProgress: 'goal updates',
           goalMilestones: 'goal milestones',
           streaks: 'streaks',
           achievements: 'achievements',
@@ -3001,6 +3002,7 @@ const en: TranslationKeys = {
           journalEntries: 'journal entry',
           journalMilestones: 'journal milestone',
           goals: 'goal',
+          goalProgress: 'goal update',
           goalMilestones: 'goal milestone',
           streaks: 'streak',
           achievements: 'achievement',
@@ -3008,6 +3010,23 @@ const en: TranslationKeys = {
           multiplierBonuses: 'multiplier bonus',
           recommendations: 'recommendation',
           activities: 'activity',
+        },
+        // Full sentences, not noun + a global "completed" — the old build said
+        // "3 journal entries completed" and "streaks completed". Each language
+        // needs its own verb (and in Spanish its own gender agreement), so the
+        // whole phrase lives here.
+        summaries: {
+          habits: { one: 'Habit completed', other: '{{count}} habits completed' },
+          journalEntries: { one: 'Journal entry written', other: '{{count}} journal entries written' },
+          journalMilestones: { one: 'Journal milestone reached', other: '{{count}} journal milestones reached' },
+          goalProgress: { one: 'Goal updated', other: '{{count}} goal updates logged' },
+          goals: { one: 'Goal completed', other: '{{count}} goals completed' },
+          goalMilestones: { one: 'Goal milestone reached', other: '{{count}} goal milestones reached' },
+          streaks: { one: 'Streak milestone reached', other: '{{count}} streak milestones reached' },
+          achievements: { one: 'Achievement unlocked', other: '{{count}} achievements unlocked' },
+          monthlyChallenges: { one: 'Monthly challenge completed', other: '{{count}} monthly challenges completed' },
+          multiplierBonuses: { one: 'Multiplier bonus earned', other: '{{count}} multiplier bonuses earned' },
+          activities: { one: 'Activity completed', other: '{{count}} activities completed' },
         },
         messages: {
           completed: 'completed',

@@ -468,22 +468,12 @@
 
 ---
 
-## ✅ HOTOVO: Android build spadl — AdMob SDK zkompilované novějším Kotlinem (2026-07-30)
+## ✅ HOTOVO: Android build spadl — AdMob SDK vs. Kotlin (2026-07-30)
 
-**Symptom**: EAS Android build padal (~4 min), iOS procházel opakovaně. EAS hlásil jen „unknown gradle error".
-
-**Skutečná příčina**: `react-native-google-mobile-ads` byl v package.json jako `^16.0.1` → npm nainstaloval **16.4.0**, který táhne `play-services-ads:25.4.0`. Google ho zkompiloval **Kotlinem 2.3.0**, ale Expo SDK 55 staví **Kotlinem 2.1.20** → kompilátor neumí přečíst novější metadata. **iOS to nikdy neodhalí** (Kotlin je jen Android).
-
-- [x] Změřena Kotlin metadata všech kandidátů (rozbalené `.aar`): 16.0.2→24.6.0 = **2.1.0 ✅**; 16.0.3→24.9.0 = 2.2.0 ❌; 16.1–16.3→25.0.0 = 2.2.0 ❌; 16.4.0→25.4.0 = 2.3.0 ❌ — **„downgrade o minor" by NEPOMOHL**
-- [x] **Pin na přesně `16.0.2`** (bez stříšky — právě ta tiše vytáhla 16.4.0). Appka používá jen stabilní jádro API, peer deps identické
-- [x] Zamítnuto zvýšení Kotlinu přes `expo-build-properties`: rozbilo by **KSP** (mapa Kotlin→KSP v expo-modules-core končí na 2.0.21, `kspVersion` nelze nastavit) → padly by `expo-image` a `async-storage`
-- [x] Zamítnuto vynucení starší reklamní SDK při ponechání 16.4.0: riziko pádu **až za běhu** (horší než chyba buildu)
-- [x] **Ověřeno lokálně reálným buildem** (Java 17 + Android SDK): `:react-native-google-mobile-ads:compileReleaseKotlin` ✅ + `:app:bundleRelease` ✅; tsc 0 chyb, 520/520 testů
-- [x] Pojistka proti opakování: tabulka verzí + měřicí skript + varování o KSP v @technical-guides:AdMob.md
-
-**Poznámka na později** (není příčina, neověřeno): release build kompiluje `expo-dev-client`/`dev-launcher`/`dev-menu`, protože je v `dependencies` — stojí za prověření kvůli velikosti aplikace.
-
-Detaily: @implementation-history.md → „Android build failure — AdMob SDK compiled with a newer Kotlin"
+`react-native-google-mobile-ads` byl `^16.0.1` → npm vytáhl 16.4.0 s `play-services-ads`
+zkompilovaným Kotlinem 2.3.0, zatímco Expo SDK 55 staví Kotlinem 2.1.20. **Pin na přesně
+`16.0.2`**; ověřeno reálným buildem (`:app:bundleRelease` ✅). Tabulka verzí + měřicí skript
++ varování o KSP: @technical-guides:AdMob.md. Detaily: @implementation-history.md.
 
 ---
 
@@ -527,227 +517,150 @@ Detaily: @implementation-history.md → „Android build failure — AdMob SDK c
 
 ---
 
-## 🚧 Přepracování onboardingu — 25 kroků → 3 obrazovky
+## 🚧 Přepracování onboardingu — 25 kroků → 3 obrazovky (43/44 hotovo)
 
 > 📘 **Technická pravidla a logika pro Onboarding: @technical-guides:Tutorial.md**
-> (sekce „NOVÝ NÁVRH“ — architektura, pravidla lokalizace, měny, trofejí
-> a upravitelnosti. **Guide je nadřazený tomuto seznamu.**)
+> Guide byl kvůli tomuto přepracování celý přepsán a je **nadřazený** tomuto seznamu:
+> 5 kritických pravidel, integrační kontrakt K1–K7, storage klíče, brána trofejí.
 
-**Cíl beze změny:** uživatel odejde z úvodu s vlastním návykem a cílem. Nově
-navíc s prvním odškrtnutím a prvním XP. Z ~28 ťuknutí na ~7.
+**Hotovo** (etapy A–H): data a překlady, skelet a napojení, D-KIT stavební bloky,
+obrazovky 1–3 (návyk → cíl → první odškrtnutí), uvítací obrazovka F5, přesun zbytku,
+úklid starého 25krokového flow. Z ~28 ťuknutí na ~7; uživatel odchází s návykem, cílem,
+prvním odškrtnutím a prvním XP.
 
-> ⚠️ Plán prověřen proti kódu 2026-08-02. Závazné vazby **K1–K7** (orchestrator,
-> ne-Modal, storage klíče, brána trofejí, filtr trofejí, restart, AdBanner):
-> @technical-guides:Tutorial.md → „INTEGRAČNÍ KONTRAKT“. **Číst před etapou B.**
-
-**Rozhodnutí 2026-08-02:** původní „etapa 1 — záchrana starého overlaye“
-**ZRUŠENA**. Petr jde rovnou na přepracování, opravovat kód určený ke smazání
-nemá smysl. Důsledek: starý průvodce zůstává rozbitý (oříznutý text) až do
-nasazení etapy F — testeři to uvidí.
-
-> 🎨 2. prověrka 2026-08-02 (lokalizace/theme/zařízení/design): doplněna
-> **DESIGN SPECIFIKACE** (D-VIZ, D-POHYB, D-DEV, D-A11Y, D-UX, D-KIT, D-TPL,
-> D-CHECK) do @technical-guides:Tutorial.md — staví jen na tom, co v projektu
-> už je (`responsive.ts`, `useTheme`, `useAccessibility`, reanimated 4).
-> Nález: `GoalTemplatesModal` JE `<Modal>` (`:372`) → do onboardingu se
-> vytahuje mřížka dlaždic, ne modál (pravidlo D-TPL).
-
-**Dělení etap:** každá = jeden zátah, končí zeleným `tsc` + testy, jde
-commitnout. A–C bez viditelné změny v UI (data, skelet, stavební bloky),
-D–F staví obrazovky, G–H uklízejí.
-
-### Etapa A — Data a překlady (bez UI, plně ověřitelné testy)
-Všechen text pro celý nový flow najednou, ať se DE/ES nedoplňuje po kouskách.
-- [x] A1 Klíče `goals.units.*` (10 jednotek × EN/DE/ES = 30 řetězců);
-      měna EN `$`, DE/ES `€`; `kg` stejné všude
-- [x] A2 `GoalTemplatesModal.tsx` — 11 natvrdo psaných `unit:` → `t()`
-      *(opravuje chybu v nasazeném kódu: DE dnes dostane „12 books“ a dolary)*
-- [x] A3 Definice 6 předvoleb návyků + „Něco jiného“ (data + i18n klíče,
-      žádné UI) — ikony/barvy dle guide, `scheduledDays` = všech 7
-- [x] A4 Texty obrazovek 1–3 do EN/DE/ES (včetně a11y popisků dlaždic, D-A11Y)
-- [x] A5 `localeParity.test.ts` zelený (+ negativní kontrola), `tsc` 0 chyb,
-      520/520 testů
-- [x] A6 ~~unitPlaceholder v DE/ES~~ — prověrkou ověřeno: `€` už tam je
-      (`de:941`, `es:941`), nic k práci
-
-### Etapa B — Skelet a napojení (nejrizikovější, izolovaně)
-Prázdné obrazovky, ale kompletní integrace. Když projde tohle, zbytek je obsah.
-- [x] B1 `OnboardingFlow` renderovaný jako **view, ne `<Modal>`** (K2);
-      `elevation` i `zIndex` (poučení z nálezu #3 — na Androidu elevation vyhrává)
-- [x] B2 Start za `awaitStartupComplete()` ze stejného místa jako dnes (K1)
-- [x] B3 Zápis `TUTORIAL_STORAGE_KEYS` se stejnou sémantikou (K3 —
-      **čte je `XpAnimationContext`**); `CURRENT_STEP` = obnova po zabití
-      appky uprostřed flow (D-UX)
-- [x] B4 Přeskočení (na KAŽDÉ obrazovce, D-UX) + `restartTutorial()` ze
-      Settings spouští nový flow (K6)
-- [x] B5 AdBanner skrytý (K7 ✅ čte `isActive`); filtr trofejí (K5 ✅ — ale čte
-      storage flagy, ne `isActive`; drží díky K3)
-- [x] B6 12 testů + **3 negativní kontroly** (isActive, currentStepData,
-      staré číslo kroku); tsc 0, **532/532**
-- [x] B7 **Device smoke test** — ověřeno Petrem 2026-08-02: start, průchod
-      1→2→3, přeskočení, restart ze Settings, bez reklam, lišta neprosvítá,
-      obnova po zabití appky
-
-### Etapa C — Stavební bloky UI (D-KIT; bez napojení na flow)
-Sdílené komponenty v `src/components/onboarding/`, obrazovky je pak skládají.
-- [x] C1 `OnbScreenContainer` — safe areas, progress tečky 1/2/3, Přeskočit,
-      CTA vždy nad klávesnicí (`KeyboardAvoidingView`, D-DEV)
-- [x] C2 `OnbTile` — ikona+popisek, vybraný stav, stisk scale 0.97
-      s reduce-motion (D-POHYB), a11y role+label (D-A11Y), 44pt cíle
-- [x] C3 Vytaženo do `src/constants/goalTemplates.ts` — **sdílí se DATA, ne
-      vzhled**: modál má široké řádky, onboarding dlaždice `OnbTileGrid`.
-      Jedna komponenta pro obojí by změnila vzhled Goals (viz D-TPL v guide).
-      Ověřeno: 11 šablon pole po poli shodných s gitovou verzí
-- [x] C4 Vše: theme 2-tier přes `useTheme()` (StyleSheet UVNITŘ komponenty),
-      responsive přes `responsive.ts` (2 sloupce SMALL/MEDIUM, 3 LARGE/TABLET,
-      tablet kontejner ~560 px), žádné natvrdo barvy (D-VIZ)
-- [x] C5 theme-validator: 0 natvrdo barev, StyleSheet uvnitř komponent,
-      žádné stíny (jediný `elevation` je záměrná androidí vrstva), bez čisté
-      černé. 8 testů + negativní kontrola strážce jednotek. tsc 0, **540/540**
-
-### Etapa D — Obrazovka 1: první návyk
-- [x] D1 Složit z C-bloků: 6 dlaždic + „Něco jiného“; formulář se objeví až
-      po výběru (prázdný formulář nad dlaždicemi vypadá jako práce předem)
-- [x] D2 Znovupoužity `ColorPicker`, `IconPicker`, `DayPicker` z `HabitForm`
-      (samostatné komponenty s čistými props) — nic nového se nepsalo
-- [x] D3 Pořadí nabít→vytvořit→čekat vytaženo do `createWithTrophyGate.ts`,
-      aby ho etapa E jen znovupoužila a nemusela objevovat stejné chyby
-- [x] D4 9 testů + 3 negativní kontroly (obě historické chyby brány + překlep
-      v předvolbě). **Jedna kontrola odhalila vadný test** — měl moc těsné
-      časování a neprošlá varianta jím prošla; opraveno. theme-validator čistý,
-      tsc 0, **549/549**
-
-### Etapa E — Obrazovka 2: první cíl
-- [x] E1 11 šablon + „Něco jiného“ jako dlaždice přímo ve view; ověřeno
-      grepem, že v `src/components/onboarding/` není žádný `<Modal>` (K2)
-- [x] E2 Upravitelné: název, číslo, jednotka, kategorie. **Datum vynecháno** —
-      je nepovinné, žádná šablona ho nenastavuje (nic se tedy nezamyká)
-      a kalendář v sedmiťuknutovém úvodu je jen tření; jde doplnit úpravou cíle
-- [x] E3 Znovupoužit `createWithTrophyGate` z etapy D — pořadí se neobjevuje
-      podruhé
-- [x] E4 10 testů validace (pravidla zrcadlí `GoalForm:290,326-330`, aby se
-      cíl z úvodu a z formuláře nechovaly různě) + 3 negativní kontroly;
-      theme-validator čistý, tsc 0, **559/559**
-
-### Etapa F — Obrazovka 3: první odškrtnutí + dokončení
-- [x] F1 Karta dole na hlavní obrazovce — **nepřekrývá aplikaci** (jinak by
-      uživatel nemohl ťuknout na zaškrtávátko); odškrtnutí ji zavře samo
-- [x] F2 `highlight` prop na `HabitCompletionButton` — pulzující halo jako
-      vlastní vrstva (nemíchá se s animací stisku); reduce-motion dostane
-      statický kroužek. **Bez overlay a bez měření pozic**
-- [x] F3 Ověřeno v `XpAnimationContext:207-218`: potlačuje se **jen okno
-      o levelu**, XP animace běží → karta na ni 1,2 s počká.
-      **Past:** naivní podmínka by při restartu ze Settings kartu zavřela hned;
-      řeší se výchozím počtem a čekáním na nárůst (`checkDetection.ts`)
-- [x] F4 **Device test proveden Petrem 2026-08-02** — obě trofeje, pulzování,
-      XP, karta nemizí sama (ověřen i restartový scénář). Zbývá projít matici
-      light/dark × EN/DE/ES × malý displej, ideálně spolu s uvítáním (F5)
-
-### F5 — Uvítací obrazovka (doplněno na Petrův podnět po device testu)
-Postřeh z testu: „je to takové hrrr“ — chyběl přechod mezi nastavovacími
-otázkami a prvním osobním závazkem.
-- [x] F5.1 `WelcomeScreen.tsx` mezi předvolbami a obrazovkou 1; tři řádky,
-      jedno tlačítko; klíčový je řádek „zabere to chvilku, změnit se dá cokoliv“
-- [x] F5.2 Samostatný přepínač `showOnboardingWelcome` (ne 4. číslovaná
-      obrazovka) → tečky dál říkají „tři úkoly“, `1|2|3` i testy netknuté
-- [x] F5.3 Zobrazí se při prvním spuštění, po předvolbách i při restartu —
-      **ne při obnově rozdělaného průvodce** (kdo se vrací na obrazovku 2,
-      nechce číst uvítání znovu)
-- [x] F5.4 12 nových řetězců (4 × EN/DE/ES); theme, tablet, a11y, safe areas
-- [x] F5.5 **Test délky textů** (`onboardingCopy.test.ts`, 31 kontrol) vymáhá
-      pravidlo „jedna obrazovka, tři řádky“ — staré uvítání mělo 244 znaků
-      a na telefonu se ořízlo. Ověřeno negativní kontrolou. **599/599**
-
-### Etapa G — Přesun zbytku (nezávislá na H)
-- [x] G1 **Journal** — přepsán: dnes to bylo pravidlo („napiš aspoň 3“), což
-      člověku, který ještě neví, k čemu obrazovka je, neřekne nic. Teď vede
-      pozvánka („Co se dnes povedlo?“) a pravidlo je až za ní.
-      **Trophy room** — ověřeno, že už je dobrý (`app/achievements.tsx:588`
-      říká přesně, co dělat) → **nesaháno**.
-      **Goals** — doplněn řádek ukazující na šablony
-- [x] G2 Přibyla `home.quickActions` (10 → 11) — jediné téma ze zrušených
-      kroků tutoriálu, které nic jiného nepokrývalo. XP systém už bublinu měl,
-      trofeje pokrývá prázdný stav
-- [x] G3 Texty ve všech 3 jazycích; parity zelená. Navíc **nový test
-      `helpTooltipKeys.test.ts`**: každý `helpKey` použitý v kódu musí existovat
-      ve všech 3 jazycích. Parity test tohle nechytí — hlídá jen symetrii
-      EN↔DE/ES, ne že klíč z kódu vůbec existuje. Ověřeno 2 negativními
-      kontrolami. **603/603**
-
-> 📌 Nález mimo rozsah (neopraveno): `GratitudeList.tsx:81-82` má natvrdo
-> psané barvy (`#70D6FF` na `#003D5C`) u odznaku s číslem záznamu — porušuje
-> theme systém, ve světlém režimu se nepřizpůsobí. Je to **z dřívějška**, ne
-> z etapy G. Fungující kód, takže neměněno bez zadání.
-
-### Etapa H — Úklid (AŽ PO device matrix z F4)
-- [x] H1 Audit hotový — a **našel 4 živé chyby**, které jsem sám zanesl
-      v etapě B (`isActive` true + `currentStepData` null = podmínky typu
-      `currentStepData?.id !== 'habit-create'` byly trvale pravdivé):
-      1. `HabitForm` blokoval odeslání formuláře po celou dobu onboardingu
-      2. tlačítko „Vytvořit" bylo zašedlé a nefunkční (HabitForm i GoalForm)
-      3. formuláře měly vypnuté scrollování
-      4. modály nešly zavřít tlačítkem zpět
-      Neprojevilo se na obrazovkách 1–2 (překrývají appku), ale na obrazovce 3
-      je aplikace použitelná → uživatel mohl narazit
-- [x] H2 Smazáno **3506 řádků**: `TutorialOverlay` (735), `TutorialModal`,
-      `SpotlightEffect`, `TutorialTargetHelper` (402), a `TutorialContext`
-      z 1988 → **454 ř.** Zachováno: `hasAchievement`, `isTutorialActive`,
-      `isTutorialRestarted`, `TUTORIAL_STORAGE_KEYS`, brána předvoleb
-- [x] H3 Smazáno **954 řádků** osiřelých i18n klíčů (EN/DE/ES + `types/i18n.ts`).
-      Z bloku `tutorial.*` zůstaly jen `languageSetup` a `themeSetup` — jediné,
-      co ještě něco volá (brána předvoleb). Pryč: `steps.*` (25 kroků),
-      `errors.*`, `feedback.*`, `stepProgress`, `skip/next/continue/getStarted/
-      finish/progressText/loading`. Nové onboarding má vlastní `onboarding.*`.
-      Negativní kontrola: odebrán `themeSetup.light` z DE → `localeParity`
-      spadl na obou stranách (chybějící i přebývající klíč), pak vráceno.
-      **Navíc mrtvá smyčka událostí po smazaném overlayi:** `tutorial_scroll_to`
-      mělo 3 posluchače a 0 vysílačů, `tutorial_scroll_completed` 3 vysílače
-      a 0 posluchačů. Smazáno v `HabitForm`, `GoalForm`, `app/(tabs)/index.tsx`
-      + deklarace v `appEvents.ts`.
-      **Zbytek k zamyšlení (nesmazáno, bez dopadu):** `habitNameRef`,
-      `habitColorRef`, `habitIconRef`, `habitDaysRef`, `createButtonRef`
-      v obou formulářích jsou navěšené, ale nikdo je nečte — byly pro měření
-      pozic starým overlayem. Ponecháno, ať se nesahá do živého renderu.
-- [x] H3b **Doplněk po revizi celé etapy H.** První průchod H3 uklidil jen blok
-      `tutorial.*`. Plošný sken všech 2356 klíčů (skener ověřen negativní
-      kontrolou — musel chytit známý osiřelý a neoznačit známý živý) našel
-      dalších **10 klíčů po tutoriálu jinde**: `ui.progressStep`,
-      `ui.skipTutorial`, `ui.nextStep`, `ui.tutorialComplete`, `ui.readyToRise`,
-      `accessibility.tapToContinueTutorial`, `accessibility.skipTutorial`
-      a **z nového onboardingu** `onboarding.continue`, `onboarding.back`,
-      `onboarding.done.subtitle` (klíče, které jsem v C–F zavedl a nikdy
-      nezapojil). Smazáno ve všech 3 jazycích + v typech.
-      ⚠️ **Sken našel i 638 osiřelých klíčů celkem** — drtivá většina je
-      z dřívějška a **část jsou falešné poplachy** (dynamické klíče typu
-      `` t(`home.quoteCategories.${cat}`) ``). Plošně je mazat NELZE.
-      Samostatný úkol, ne součást tohoto přepracování.
-- [x] H4a @technical-guides:Tutorial.md **přepsán od nuly: 1347 → 495 řádků.**
-      Popisuje výhradně současný stav — žádná historie, žádné návrhy
-      v budoucím čase. **Kostra sjednocena s ostatními průvodci** (vzor
-      @technical-guides:Startup-Orchestrator.md): CO TOHLE OBSAHUJE / KDY TOHLE
-      POUŽÍVAT → Proč systém existuje → 🚨 5 KRITICKÝCH PRAVIDEL s páry
-      ✅ CORRECT / ❌ WRONG a odstavcem „Proč“ → principy návrhu → ⚠️ NEBEZPEČNÉ
-      ZÓNY → Testování → Co se NESMÍ rozbít → Device scénáře → GOLDEN RULE.
-      Pět kritických pravidel: žádný RN `<Modal>`; start až za
-      `awaitStartupComplete()`; nabít bránu trofejí PŘED vytvořením a čekat na
-      `wait()`; neměnit sémantiku storage flagů; `CURRENT_STEP` mimo rozsah →
-      začít od 1, nikdy neořezávat.
-      **Všech 13 odkazů file:line ověřeno proti kódu** (`_layout.tsx:95`,
-      `TutorialContext.tsx:269/293/332`, `AdBanner.tsx:94`,
-      `AchievementContext.tsx:339-348`, `XpAnimationContext.tsx:13`,
-      `HabitItemWithCompletion.tsx:397`, `HabitsContext.tsx:201`,
-      `GoalsContext.tsx:165`, `settings.tsx:197-198`) i všechny konstanty
-      (`ONB_MAX_CONTENT_WIDTH=560`, `CELEBRATION_LINGER_MS=1200`,
-      `GOAL_TARGET_MAX=999999`, měna EN `$` / DE `€` / ES `€`).
-      Název souboru zůstal `Tutorial.md` — subsystém se tak jmenuje i v kódu
-      (`TutorialContext`, `TUTORIAL_STORAGE_KEYS`) a přejmenování klíčů by bylo
-      tiché rozbití. Důvod je vysvětlený hned v hlavičce průvodce.
+**Zbývá:**
 - [ ] H4b Device test (světlý/tmavý × EN/DE/ES × malý displej × tablet;
-      němčina musí u cíle ukázat „Bücher“ a €)
+      němčina musí u cíle ukázat „Bücher" a €)
 
-**Nesahat:** `OnboardingPreferencesModal.tsx` (funguje),
-`tutorialAchievementGate.ts` (pracně odladěné), `AchievementContext.tsx:343`,
-`TUTORIAL_STORAGE_KEYS` (single source of truth, čte i XpAnimationContext).
+**Nesahat:** `OnboardingPreferencesModal.tsx`, `tutorialAchievementGate.ts`,
+`AchievementContext.tsx:343`, `TUTORIAL_STORAGE_KEYS` (čte i XpAnimationContext).
+
+---
+
+## 🎯 AKTUÁLNÍ ÚKOL: XP oznámení — přepracování podání (2026-08-03)
+
+**Nálezy testerky** (Android + iOS) + vlastní průzkum. Všechno **ověřené v kódu** — ani jeden
+nález není zařízením.
+
+1. 🔴 **„5 habits completed" při klikání na JEDEN návyk.** `batchXpGains()` počítá **události,
+   ne entity** (`count: existing.count + 1`), a událost `xpSmartNotification`
+   ([gamificationService.ts:2469](src/services/gamificationService.ts#L2469)) **nenese `sourceId`**
+   — identita se zahodí, takže „5 návyků" od „jeden 5×" nejde rozlišit.
+2. 🔴 **Odškrtnutí počet ZVYŠUJE.** Zaškrtnu/odškrtnu/zaškrtnu → „3 habits completed",
+   XP je přitom správně (`+25 −25 +25`). Platí i pro smazaný záznam v deníku a mínusový pokrok u cíle.
+3. 🔴 **Blikání a „skákání".** `XpAnimationContainer` vyrábí **nové pole při každém renderu**
+   (`pendingNotifications.map(...)`) → `useEffect([xpGains])` přepočte `batchedData` → a protože
+   na `batchedData` visí i **animační efekt**, resetuje se `opacity` na 0 a nástup se přehraje znovu.
+   XP bubliny se rodí a mizí každých 1,4 s → oznámení se přeanimovává, i když uživatel nic nedělá.
+   Není to starým Androidem, běží to i na iOS — rychlý telefon to jen schová.
+4. 🟠 **Čím víc aktivity, tím hektičtější.** `shouldUseReducedMotion = xpGains.length > 3`
+   animace **zrychlí** (300→150 ms) a zobrazení **zkrátí** (3→2 s). Přesně naopak, než má být.
+5. 🟠 **Malé/placaté popupy na Androidu.** `XpPopupAnimation` jako jediná komponenta nepoužívá
+   `scaleFont()` (natvrdo `fontSize: 16`). Stín je **mrtvý kód**: předává se `shadowColor`, ale
+   chybí `shadowOpacity`, `shadowRadius` i `elevation` → nevykreslí se nic, na Androidu obzvlášť.
+6. 🟠 **NOVÝ: jeden ťuk u cíle = „2 goals".** `GOAL_PROGRESS` i `GOAL_COMPLETION` spadají do
+   stejné skupiny `goals` ([SQLiteGoalStorage.ts:566](src/services/storage/SQLiteGoalStorage.ts#L566)
+   pošle obě události naráz, když pokrok cíl dokončí).
+7. 🟠 **NOVÝ: věta vždy končí slovem „completed".** I u deníku („3 journal entries completed"),
+   u sérií („streaks completed") a u trofejí. Právě tohle Petr myslel tím „aby to dávalo smysl".
+
+**Cíl**: jedno stabilní oznámení, které **neodskakuje** — naskočí jednou, dál jen tiše
+aktualizuje obsah, zmizí ~2 s po poslední akci. A **věta, která je pravdivá**.
+
+**Co NESMÍ se rozbít**: výpočet XP (je správný!), okamžitost popupů (0 ms, pravidlo z guide),
+ModalQueue a level-up okna, potlačení během onboardingu, haptika (Petr ji schválil jak je),
+překrývání popupů na stejném místě (Petr potvrdil, že vypadá dobře).
+
+### 🌍 ROZSAH: globální, ne jen návyky
+
+Popup i souhrnné oznámení jsou **jedna komponenta pro celou aplikaci** — `XpAnimationContainer`
+visí v [RootProvider.tsx:29](src/contexts/RootProvider.tsx#L29), tedy nad všemi obrazovkami.
+Zdroj událostí je taky jediný: `triggerXPAnimation`
+([gamificationService.ts:2447](src/services/gamificationService.ts#L2447)) pro **všechny** typy XP.
+→ **FIX 2, 3 a 4 jsou tím pádem automaticky globální** (jedna komponenta = jedna oprava).
+
+### 📐 ROZHODNUTÍ PETRA: co je „jedna věc" se liší podle oblasti
+
+> „Cíle — tohle je v pořádku, pokud dávám progres a ne mínus, na to je potřeba dávat pozor."
+
+Zavádí se **dva režimy počítání** podle typu zdroje:
+
+| Režim | Význam | Zdroje |
+|---|---|---|
+| **`entity`** | přepínač — opakovaný ťuk na TÉŽE věc = pořád jedna věc (klíč `sourceId`) | návyk (splnění i bonus), **dokončení cíle**, trofej |
+| **`event`** | přírůstek — každý kladný záznam je samostatná věc | **pokrok u cíle**, záznam v deníku, milníky, série, měsíční výzvy |
+
+**Záporný zisk nikdy nezvyšuje počet** — v režimu `entity` ruší dřívější zaškrtnutí téhož
+`sourceId`, v režimu `event` snižuje počet (nejméně na 0). Když nezbude nic kladného,
+oznámení ukáže dnešní „📉 Progress reversed", ne vymyšlený počet.
+
+| Oblast | Dnes | Po opravě |
+|---|---|---|
+| **Návyky** | 1 návyk 5× → „5 habits completed" | „1 habit completed" |
+| **Návyky — odškrtnutí** | zvyšuje počet | ruší dřívější zaškrtnutí |
+| **Cíle — pokrok** | ✅ počítá se každý záznam (Petrovo rozhodnutí) | beze změny + mínus odečítá |
+| **Cíle — dokončení** | 🔴 jeden ťuk → „2 goals" | „1 goal completed", vlastní skupina |
+| **Deník — psaní** | ✅ počet je správně | beze změny |
+| **Deník — smazání** | 🔴 napsat + smazat → „2 journal entries" (XP je 0) | nezobrazí se |
+| Trofeje, výzvy, násobiče | ok | ok |
+| Level-up (nemá `sourceId`) | ok | fallback na počet událostí |
+
+---
+
+### FIX 1 [🔴] — Počítá se to, co se opravdu stalo
+
+- [x] 1.1 `xpSmartNotification` doplnit o **`sourceId`** — **NEJDŘÍV** do `AppEvents`
+      ([appEvents.ts:117](src/utils/appEvents.ts#L117)), pak teprve do emitu
+      (`triggerXPAnimation` už `sourceId` má, jen ho do tohoto eventu neposílá)
+- [x] 1.2 `XpGain` (v kontextu i v komponentě) + `showSmartNotification()` protáhnout
+      `sourceId` jako **volitelný** (level-up a `xpBatchCommitted` ho nemají)
+- [x] 1.3 **Vytáhnout čistou logiku** z komponenty do `xpNotificationBatching.ts`
+      (bez Reactu → jde otestovat; dnes je uvnitř `XpNotification.tsx` a testovat nejde)
+- [x] 1.4 Implementovat režimy `entity` / `event` podle tabulky výše
+- [x] 1.5 Záporné zisky: `entity` = odebrat `sourceId` ze sady, `event` = odečíst (min. 0)
+- [x] 1.6 **Rozdělit `GOAL_COMPLETION` do vlastní skupiny** (jinak jeden ťuk = „2 goals")
+- [x] 1.7 **Sloveso podle skupiny** místo věčného „completed": splněno / zapsáno /
+      zaznamenáno / dosaženo / odemčeno. U smíšených zdrojů věta **bez slovesa**
+      („🎉 2 habits · 3 journal entries"), XP se stejně ukazuje zvlášť vpravo
+- [x] 1.8 Překlady **EN + DE + ES** + `src/types/i18n.ts` (hlídá `localeParity.test.ts`)
+- [x] 1.9 Testy: 1 návyk 5× → „1"; 3 návyky → „3"; zaškrtnout+odškrtnout → žádné „2";
+      1 cíl 5× pokrok → „5"; pokrok + mínus → „4"; ťuk dokončující cíl → „1 goal completed"
+      a ne „2 goals"; deník napsat+smazat → nezobrazí se; bez `sourceId` → fallback
+
+### FIX 2 [🔴] — Oznámení přestane blikat a skákat
+
+- [x] 2.1 `XpAnimationContainer`: **přestat vyrábět nové pole** při každém renderu (`useMemo`)
+- [x] 2.2 **Oddělit nástup od aktualizace obsahu**: nástupní animace se spustí JEN při
+      přechodu neviditelné→viditelné. Změna obsahu jen překreslí text — **žádný reset
+      `opacity`/`translateY`**
+- [x] 2.3 **Odpočet do zmizení se novým XP prodlouží**, ne restartuje animaci
+      (klouzavé okno ~2,5 s od poslední akce)
+- [x] 2.4 Test: opakované zisky během viditelnosti **nesmí** resetovat `opacity` na 0
+
+### FIX 3 [🟠] — Klid místo zrychlování
+
+- [x] 3.1 Zrušit `shouldUseReducedMotion` navázané na `xpGains.length > 3`
+- [x] 3.2 Respektovat **systémové „omezit pohyb"** přes existující `useAccessibility()`
+      ([useAccessibility.ts:11](src/hooks/useAccessibility.ts#L11)) — hook bez provideru,
+      používají ho i trofeje
+
+### FIX 4 [🟠] — Popup viditelný i na Androidu
+
+- [x] 4.1 `scaleFont()` na text i ikonu (sjednotit se zbytkem aplikace), ikonu zvětšit
+- [x] 4.2 Doplnit **funkční** stín: `shadowOpacity` + `shadowRadius` + **`elevation`**
+      — ⚠️ **JEN pro světlý režim**. technical-guides.md → „NEVER use shadows in dark mode"
+      zakazuje i `elevation`; v tmavém držet hloubku přes `cardBackgroundElevated` + border
+- [x] 4.3 Totéž zkontrolovat u `XpNotification` (taky bez stínu) a ověřit obě platformy
+
+### FIX 5 — Ověření a dokumentace
+
+- [x] 5.1 `npx tsc --noEmit` 0 chyb + celá test suite zelená (Node ≥ 22.5)
+- [x] 5.2 U nových testů **ověřit i testy** — schválně rozbít, co hlídají (pravidlo 9)
+- [x] 5.3 Aktualizovat @technical-guides:Gamification-UI.md — implementace se od průvodce
+      rozešla. Doplnit: režimy počítání, „oznámení se nesmí přeanimovat při aktualizaci obsahu",
+      stín jen ve světlém režimu
+- [ ] 5.4 **Device test**: Android i iOS, rychlé klikání na jeden návyk, pokrok u cíle,
+      napsat a smazat záznam v deníku, světlý i tmavý režim
 
 ---
 

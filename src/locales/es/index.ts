@@ -2996,6 +2996,7 @@ const es: Partial<TranslationKeys> = {
           journalEntries: 'entradas de diario',
           journalMilestones: 'hitos de diario',
           goals: 'metas',
+          goalProgress: 'avances de meta',
           goalMilestones: 'hitos de meta',
           streaks: 'rachas',
           achievements: 'logros',
@@ -3009,6 +3010,7 @@ const es: Partial<TranslationKeys> = {
           journalEntries: 'entrada de diario',
           journalMilestones: 'hito de diario',
           goals: 'meta',
+          goalProgress: 'avance de meta',
           goalMilestones: 'hito de meta',
           streaks: 'racha',
           achievements: 'logro',
@@ -3016,6 +3018,22 @@ const es: Partial<TranslationKeys> = {
           multiplierBonuses: 'bono de multiplicador',
           recommendations: 'recomendación',
           activities: 'actividad',
+        },
+        // Frases completas en lugar de sustantivo + un «completado» global: antes
+        // decía «3 entradas de diario completado». El español además exige
+        // concordancia de género y número, así que la frase entera vive aquí.
+        summaries: {
+          habits: { one: 'Hábito completado', other: '{{count}} hábitos completados' },
+          journalEntries: { one: 'Entrada de diario escrita', other: '{{count}} entradas de diario escritas' },
+          journalMilestones: { one: 'Hito de diario alcanzado', other: '{{count}} hitos de diario alcanzados' },
+          goalProgress: { one: 'Meta actualizada', other: '{{count}} avances de meta registrados' },
+          goals: { one: 'Meta completada', other: '{{count}} metas completadas' },
+          goalMilestones: { one: 'Hito de meta alcanzado', other: '{{count}} hitos de meta alcanzados' },
+          streaks: { one: 'Hito de racha alcanzado', other: '{{count}} hitos de racha alcanzados' },
+          achievements: { one: 'Logro desbloqueado', other: '{{count}} logros desbloqueados' },
+          monthlyChallenges: { one: 'Desafío mensual completado', other: '{{count}} desafíos mensuales completados' },
+          multiplierBonuses: { one: 'Bono de multiplicador obtenido', other: '{{count}} bonos de multiplicador obtenidos' },
+          activities: { one: 'Actividad completada', other: '{{count}} actividades completadas' },
         },
         messages: {
           completed: 'completado',

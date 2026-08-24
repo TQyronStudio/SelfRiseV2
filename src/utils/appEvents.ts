@@ -114,7 +114,10 @@ export interface AppEvents {
   // --- XP / gamification core ---
   xpGained: XpGainedPayload;
   xpBatchCommitted: XpBatchCommittedPayload;
-  xpSmartNotification: { amount: number; source: XPSourceType; timestamp: number };
+  // `sourceId` identifies WHICH entity produced the XP (habit id, goal id, journal
+  // entry id). Without it the summary bar cannot tell "5 habits" from "one habit
+  // tapped 5×" — it used to count events. Optional: level-up and batch-commit have none.
+  xpSmartNotification: { amount: number; source: XPSourceType; timestamp: number; sourceId?: string };
   levelUp: LevelUpPayload;
   xpMultiplierActivated: XpMultiplierActivatedPayload;
 

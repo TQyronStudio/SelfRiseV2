@@ -27,12 +27,14 @@ export const XpAnimationContainer: React.FC<XpAnimationContainerProps> = ({ chil
       {isAnimationEnabled && (
         <XpNotification
           visible={isNotificationVisible}
-          xpGains={pendingNotifications.map(notification => ({
-            id: notification.id,
-            amount: notification.amount,
-            source: notification.source,
-            timestamp: notification.timestamp,
-          }))}
+          /*
+           * Passed straight through. Re-mapping it here built a NEW array on
+           * every render of this container (which re-renders whenever an XP
+           * popup appears or disappears, i.e. constantly), defeating the memo
+           * on XpNotification and making the summary bar replay its entrance
+           * animation — the flicker reported from the field.
+           */
+          xpGains={pendingNotifications}
           onAnimationComplete={dismissNotification}
           onDismiss={dismissNotification}
         />

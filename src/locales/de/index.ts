@@ -2996,6 +2996,7 @@ const de: Partial<TranslationKeys> = {
           journalEntries: 'Einträge',
           journalMilestones: 'Meilensteine',
           goals: 'Ziele',
+          goalProgress: 'Zielfortschritte',
           goalMilestones: 'Meilensteine',
           streaks: 'Serien',
           achievements: 'Erfolge',
@@ -3009,6 +3010,7 @@ const de: Partial<TranslationKeys> = {
           journalEntries: 'Eintrag',
           journalMilestones: 'Meilenstein',
           goals: 'Ziel',
+          goalProgress: 'Zielfortschritt',
           goalMilestones: 'Meilenstein',
           streaks: 'Serie',
           achievements: 'Erfolg',
@@ -3016,6 +3018,21 @@ const de: Partial<TranslationKeys> = {
           multiplierBonuses: 'Bonus',
           recommendations: 'Tipp',
           activities: 'Aktivität',
+        },
+        // Ganze Sätze statt Substantiv + globalem „abgeschlossen" — sonst stand
+        // dort „3 Einträge abgeschlossen". Jede Sprache braucht ihr eigenes Verb.
+        summaries: {
+          habits: { one: 'Routine abgehakt', other: '{{count}} Routinen abgehakt' },
+          journalEntries: { one: 'Eintrag geschrieben', other: '{{count}} Einträge geschrieben' },
+          journalMilestones: { one: 'Tagebuch-Meilenstein erreicht', other: '{{count}} Tagebuch-Meilensteine erreicht' },
+          goalProgress: { one: 'Ziel aktualisiert', other: '{{count}} Zielfortschritte erfasst' },
+          goals: { one: 'Ziel abgeschlossen', other: '{{count}} Ziele abgeschlossen' },
+          goalMilestones: { one: 'Ziel-Meilenstein erreicht', other: '{{count}} Ziel-Meilensteine erreicht' },
+          streaks: { one: 'Serien-Meilenstein erreicht', other: '{{count}} Serien-Meilensteine erreicht' },
+          achievements: { one: 'Erfolg freigeschaltet', other: '{{count}} Erfolge freigeschaltet' },
+          monthlyChallenges: { one: 'Monatsaufgabe abgeschlossen', other: '{{count}} Monatsaufgaben abgeschlossen' },
+          multiplierBonuses: { one: 'Multiplikator-Bonus erhalten', other: '{{count}} Multiplikator-Boni erhalten' },
+          activities: { one: 'Aktivität abgeschlossen', other: '{{count}} Aktivitäten abgeschlossen' },
         },
         messages: {
           completed: 'abgeschlossen',

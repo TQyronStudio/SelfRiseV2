@@ -2001,6 +2001,7 @@ export interface TranslationKeys {
           journalEntries: string;
           journalMilestones: string;
           goals: string;
+          goalProgress: string;
           goalMilestones: string;
           streaks: string;
           achievements: string;
@@ -2014,6 +2015,7 @@ export interface TranslationKeys {
           journalEntries: string;
           journalMilestones: string;
           goals: string;
+          goalProgress: string;
           goalMilestones: string;
           streaks: string;
           achievements: string;
@@ -2021,6 +2023,19 @@ export interface TranslationKeys {
           multiplierBonuses: string;
           recommendations: string;
           activities: string;
+        };
+        summaries: {
+          habits: { one: string; other: string };
+          journalEntries: { one: string; other: string };
+          journalMilestones: { one: string; other: string };
+          goalProgress: { one: string; other: string };
+          goals: { one: string; other: string };
+          goalMilestones: { one: string; other: string };
+          streaks: { one: string; other: string };
+          achievements: { one: string; other: string };
+          monthlyChallenges: { one: string; other: string };
+          multiplierBonuses: { one: string; other: string };
+          activities: { one: string; other: string };
         };
         messages: {
           completed: string;

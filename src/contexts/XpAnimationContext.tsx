@@ -30,6 +30,13 @@ interface XpGain {
   amount: number;
   source: XPSourceType;
   timestamp: number;
+  /**
+   * WHICH entity produced this XP (habit id, goal id, journal entry id).
+   * The summary bar needs it to count entities instead of taps — without it
+   * one habit tapped 5× reported "5 habits completed". Optional: level-up and
+   * batch-commit gains have no single owner.
+   */
+  sourceId?: string;
 }
 
 interface XpAnimationState {
@@ -52,7 +59,7 @@ interface XpAnimationContextValue {
   clearAllPopups: () => void;
   
   // Smart notification system
-  showSmartNotification: (amount: number, source: XPSourceType) => void;
+  showSmartNotification: (amount: number, source: XPSourceType, sourceId?: string) => void;
   dismissNotification: () => void;
   
   // Settings
@@ -111,7 +118,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
   const batchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showSmartNotification = useCallback((amount: number, source: XPSourceType) => {
+  const showSmartNotification = useCallback((amount: number, source: XPSourceType, sourceId?: string) => {
     const now = Date.now();
 
     const newGain: XpGain = {
@@ -119,6 +126,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
       amount,
       source,
       timestamp: now,
+      ...(sourceId ? { sourceId } : {}),
     };
 
     // Add gain to pending batch (no limit - all gains are accumulated)
@@ -183,7 +191,7 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
 
     const handleSmartNotification = (eventData: any) => {
       if (eventData && eventData.amount && eventData.source) {
-        showSmartNotification(eventData.amount, eventData.source);
+        showSmartNotification(eventData.amount, eventData.source, eventData.sourceId);
       }
     };
 

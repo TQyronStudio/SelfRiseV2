@@ -2469,6 +2469,7 @@ export class GamificationService {
       DeviceEventEmitter.emit('xpSmartNotification', {
         amount,
         source,
+        sourceId,
         timestamp: Date.now(),
       });
       

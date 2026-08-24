@@ -351,19 +351,52 @@ Z_INDEX: 1000                         // Above all other content
 
 ### Visual Consistency Standards
 ```typescript
-// POPUP STYLING CONSISTENCY
-background: 'rgba(255, 255, 255, 0.98)'  // Semi-transparent white
-borderRadius: 24px                        // Rounded corners
-shadowOffset: { width: 0, height: 4 }    // Drop shadow
-shadowOpacity: 0.25                      // Shadow transparency
-elevation: 8                             // Android shadow
-borderWidth: 1.5                         // Subtle border
-useNativeDriver: true                    // 60fps performance guarantee
+// POPUP STYLING CONSISTENCY (XpPopupAnimation.tsx)
+backgroundColor: colors.cardBackgroundElevated  // theme-aware, NOT a hardcoded white
+borderRadius: 24                                // Rounded corners
+borderWidth: 1.5, borderColor: colors.border    // Subtle border
+fontSize: scaleFont(18)                         // icon AND amount — see rule below
+useNativeDriver: true                           // 60fps performance guarantee
+
+// DEPTH — light mode only:
+ios:     { shadowColor: <source colour>, shadowOffset: {0,3}, shadowOpacity: 0.35, shadowRadius: 8 }
+android: { elevation: 8 }
+dark:    NOTHING — depth comes from cardBackgroundElevated + border
 
 // COLOR CODING BY AMOUNT (not source):
 Positive amounts: Source-specific colors (habits=green, journal=blue, etc.)
 Negative amounts: '#F44336' (red) regardless of source
 ```
+
+#### 🚨 A shadow needs opacity AND radius AND elevation — or it does not exist
+
+```typescript
+// ❌ WRONG — this draws absolutely nothing, on either platform
+<View style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]} />
+// styles.popup has no shadowOpacity, no shadowRadius, no elevation
+
+// ✅ CORRECT — a complete shadow, and only where it is allowed
+...(isDark ? {} : Platform.select({
+  ios:     { shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 8 },
+  android: { elevation: 8 },
+}))
+```
+
+**Why**: `shadowColor` on its own is dead code — iOS defaults `shadowOpacity` to 0 and Android
+ignores shadows without `elevation`. The XP bubble shipped like this and Android testers
+reported it as "tiny, flat, looks like a bug". The `isDark` guard is not optional either:
+@technical-guides.md bans every shadow property in dark mode, `elevation` included.
+
+#### 🚨 Popup text must use `scaleFont()`
+
+```typescript
+// ❌ WRONG          // ✅ CORRECT
+fontSize: 16         fontSize: scaleFont(18)
+```
+
+**Why**: the rest of the app scales typography with screen width. A raw `fontSize` shrinks
+relative to its surroundings on wide Android devices, which is exactly how the bubble ended
+up looking "malinkatá" next to scaled-up UI.
 
 ### Performance Requirements
 ```typescript
@@ -378,6 +411,104 @@ Screen Reader: Announce meaningful XP changes (≥5 XP)
 Haptic Feedback: Light impact for all XP gains
 Reduced Motion: Respect system accessibility settings
 ```
+
+---
+
+## Smart XP Notification (the summary bar)
+
+The bar at the top that says "2 habits completed  +50 XP". It batches gains for 1.5 s
+(`BATCHING_WINDOW` in `XpAnimationContext`) and then summarises them.
+Pure counting logic lives in **`src/components/gamification/xpNotificationBatching.ts`**
+so it can be unit-tested; the component only renders it.
+
+### 🚨 KRITICKÉ PRAVIDLO: count entities, not events
+
+Every XP source declares a **counting mode**. Getting this wrong produces sentences that are
+simply false, which costs more trust than showing nothing would.
+
+| Mode | Meaning | Sources |
+|---|---|---|
+| `entity` | a TOGGLE — the same thing touched repeatedly is still one thing (keyed by `sourceId`) | habit completion + bonus, **goal completion**, achievements, monthly challenges |
+| `event` | an INCREMENT — every positive record is its own thing | **goal progress**, journal entries, milestones, streaks, multiplier bonuses |
+
+```typescript
+// ❌ WRONG — counts taps
+count: existing.count + 1
+
+// ✅ CORRECT — entity mode dedupes by identity, event mode nets out
+if (mode === 'entity') { positive ? keys.add(sourceId) : keys.delete(sourceId); }
+else                   { positive ? count++ : count = Math.max(0, count - 1); }
+```
+
+**Why**: tapping one habit five times used to announce "5 habits completed". A goal that has
+five progress entries genuinely *is* five updates, so goals must NOT be de-duplicated —
+that distinction is deliberate, not an oversight.
+
+### 🚨 KRITICKÉ PRAVIDLO: a negative gain never raises the count
+
+```typescript
+// ❌ WRONG — un-checking a habit reported "2 habits completed" (XP was correctly 0)
+totalXP: existing.totalXP + gain.amount, count: existing.count + 1
+
+// ✅ CORRECT — an undo cancels; if nothing positive is left, the group disappears
+```
+
+An un-check whose check happened in an *earlier* batch is a no-op, not a negative count.
+Total XP still sums every gain, including negatives — the XP arithmetic was never the bug.
+
+### 🚨 KRITICKÉ PRAVIDLO: GOAL_PROGRESS and GOAL_COMPLETION are separate groups
+
+`SQLiteGoalStorage.addProgress()` emits **both** when one tap finishes a goal. Sharing a
+display group turned that single tap into "2 goals".
+
+### 🚨 KRITICKÉ PRAVIDLO: updating content must not replay the entrance animation
+
+```typescript
+// ❌ WRONG — animation effect depends on the batched data
+useEffect(() => { fadeAnim.setValue(0); ...animate in... }, [visible, batchedData]);
+
+// ✅ CORRECT — entrance runs once per appearance; new gains only re-arm the dismiss timer
+useEffect(() => { if (!hasEnteredRef.current) { ...animate in... } ; setTimeout(exit, DISMISS_DELAY) },
+          [visible, contentKey]);
+```
+
+**Why**: `XpAnimationContainer` re-renders constantly (every XP bubble appears and dies within
+1.4 s). While it rebuilt the `xpGains` array on each render, `batchedData` changed identity,
+the animation effect re-fired and reset `opacity` to 0 — the "flickering, jumping" notification
+reported from the field. Pass `pendingNotifications` straight through and derive the batch with
+`useMemo`.
+
+### 🚨 KRITICKÉ PRAVIDLO: never speed animations up because there is more activity
+
+```typescript
+// ❌ WRONG
+const shouldUseReducedMotion = xpGains.length > 3;  // 300ms → 150ms, 3s → 2s
+
+// ✅ CORRECT
+const { isReduceMotionEnabled } = useAccessibility();  // the system switch, nothing else
+```
+
+**Why**: a productive minute is exactly when the app should feel calm and rewarding. Shortening
+the display time when the user earns *more* punishes success and reads as hectic. The dismiss
+delay is a **sliding window** — 2.5 s from the LAST gain — so rapid tapping keeps one steady bar.
+
+### 🚨 KRITICKÉ PRAVIDLO: the sentence lives in the translation, not in the code
+
+```typescript
+// ❌ WRONG — one global verb glued onto every noun
+`${count} ${noun} ${t('...messages.completed')}`   // "3 journal entries completed"
+
+// ✅ CORRECT — whole phrase per group, per language
+t(`...summaries.${nameKey}.${count === 1 ? 'one' : 'other'}`, { count })
+```
+
+**Why**: German and Spanish need their own verbs, and Spanish needs gender/number agreement
+("2 hábitos completados" vs "3 entradas de diario escritas"). A shared verb cannot agree with
+every noun. When several kinds of activity are summarised together the sentence drops the verb
+entirely and just lists nouns — the XP chip on the right already carries the reward.
+
+> Adding a group means adding `sources`, `sources_one` and `summaries` keys to **en, de and es**
+> plus `src/types/i18n.ts`. `localeParity.test.ts` fails if any language is missing one.
 
 ---
 

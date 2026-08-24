@@ -186,9 +186,14 @@ Emituje: `gamificationService.triggerXPAnimation()` (vzdy spolu s xpGained)
 {
   amount: number;              // XP castka
   source: XPSourceType;        // Enum zdroje XP
+  sourceId?: string;           // KTERA entita XP vyrobila (habit id / goal id / entry id)
   timestamp: number;           // Cas vytvoreni
 }
 ```
+⚠️ **`sourceId` neni volitelny detail.** Bez nej souhrnna listka nedokaze odlisit „5 navyku"
+od „jeden navyk 5x" a pocitala udalosti — proto hlasila „5 habits completed" po peti tuknutich
+na jeden navyk. Je optional jen proto, ze level-up a `xpBatchCommitted` zadnou entitu nemaji;
+tam se pouzije fallback na pocet udalosti. Pravidla pocitani: @technical-guides:Gamification-UI.md
 
 ### levelUp
 Emituje: `gamificationService.addXP()`, `achievementService` (foreground + background)

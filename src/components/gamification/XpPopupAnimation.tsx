@@ -4,11 +4,13 @@ import {
   Text,
   StyleSheet,
   Animated,
+  Platform,
   AccessibilityInfo
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
+import { scaleFont } from '../../utils/responsive';
 
 // const { height: screenHeight } = Dimensions.get('window'); // Unused
 
@@ -28,7 +30,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   onAnimationComplete,
 }) => {
   const { t } = useI18n();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -233,7 +235,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     return null;
   }
 
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, isDark);
   const accessibilityLabel = getAccessibilityAnnouncement();
 
   return (
@@ -258,7 +260,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
       importantForAccessibility={Math.abs(amount) >= 5 ? "yes" : "no-hide-descendants"}
     >
       <View
-        style={[styles.popup, { shadowColor: sourceStyle.shadowColor }]}
+        style={[styles.popup, isDark ? null : { shadowColor: sourceStyle.shadowColor }]}
         accessible={true}
         accessibilityRole="text"
         accessibilityLabel={accessibilityLabel}
@@ -287,7 +289,7 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     position: 'absolute',
     alignItems: 'center',
@@ -303,13 +305,30 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 18,
     borderWidth: 1.5,
     borderColor: colors.border,
+    // The bubble used to receive only `shadowColor` — with no opacity, radius
+    // or elevation, that is dead code and nothing was ever drawn. On Android it
+    // left a flat rectangle that read as a rendering glitch rather than a
+    // reward. Light mode only: dark mode bans shadows AND elevation.
+    ...(isDark
+      ? {}
+      : Platform.select({
+          ios: {
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.35,
+            shadowRadius: 8,
+          },
+          android: { elevation: 8 },
+          default: {},
+        })),
   },
+  // Sized with scaleFont like the rest of the app. Raw 16pt made the bubble
+  // look shrunken next to scaled-up UI on wide Android screens.
   icon: {
-    fontSize: 16,
+    fontSize: scaleFont(18),
     marginRight: 6,
   },
   xpText: {
-    fontSize: 16,
+    fontSize: scaleFont(18),
     fontWeight: 'bold',
     textShadowColor: 'rgba(0, 0, 0, 0.1)',
     textShadowOffset: { width: 0, height: 1 },
