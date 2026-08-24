@@ -16,6 +16,7 @@ import { join } from 'path';
 import en from '../en';
 import de from '../de';
 import es from '../es';
+import { HOW_IT_WORKS_SECTIONS, allHowItWorksTopicKeys } from '../../constants/helpTopics';
 
 const ROOT = join(__dirname, '../../..');
 const SEARCH_DIRS = [join(ROOT, 'src'), join(ROOT, 'app')];
@@ -64,6 +65,57 @@ describe('help tooltip keys', () => {
           }
         }
         expect(broken).toEqual([]);
+      });
+    });
+  }
+});
+
+/**
+ * The "How SelfRise works" screen builds itself from HOW_IT_WORKS_SECTIONS, so a
+ * key renamed in the locales — or a section added without its heading — shows up
+ * as a raw key string on screen and nothing else notices. The tooltip scan above
+ * cannot catch it: these keys live in a constant, not in a `helpKey=` prop.
+ */
+describe('how-it-works screen keys', () => {
+  it('has sections and topics to check', () => {
+    // A guard on the guard: an emptied constant would make everything below
+    // pass while asserting nothing.
+    expect(HOW_IT_WORKS_SECTIONS.length).toBeGreaterThanOrEqual(3);
+    expect(allHowItWorksTopicKeys().length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('never lists the same topic twice', () => {
+    const keys = allHowItWorksTopicKeys();
+    expect(keys).toEqual([...new Set(keys)]);
+  });
+
+  for (const [name, locale] of Object.entries({ en, de, es } as Record<string, any>)) {
+    describe(name, () => {
+      it('has a heading for every section', () => {
+        const broken = HOW_IT_WORKS_SECTIONS.filter(section => {
+          const heading = resolve(locale, section.titleKey);
+          return typeof heading !== 'string' || !heading.trim();
+        }).map(section => section.titleKey);
+        expect(broken).toEqual([]);
+      });
+
+      it('has a title and content for every topic', () => {
+        const broken = allHowItWorksTopicKeys().filter(key => {
+          const entry = resolve(locale, key);
+          return (
+            !entry ||
+            typeof entry.title !== 'string' ||
+            typeof entry.content !== 'string' ||
+            !entry.title.trim() ||
+            !entry.content.trim()
+          );
+        });
+        expect(broken).toEqual([]);
+      });
+
+      it('has the screen intro', () => {
+        expect(typeof locale.help?.howItWorksIntro).toBe('string');
+        expect(locale.help?.howItWorksIntro?.trim()).toBeTruthy();
       });
     });
   }

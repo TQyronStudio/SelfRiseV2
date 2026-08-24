@@ -87,6 +87,7 @@ function LayoutContent() {
           <Stack.Screen name="goal-stats" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="levels-overview" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="reorder-habits" options={{ headerShown: false, presentation: 'card' }} />
+          <Stack.Screen name="how-it-works" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="light" translucent={true} />

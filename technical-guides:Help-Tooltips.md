@@ -2,7 +2,87 @@
 
 ## Overview
 
-Help Tooltip systém poskytuje kontextové nápovědy v aplikaci pomocí HelpTooltip komponenty. Systém je navržen tak, aby pomáhal uživatelům tam, kde může být funkcionalita nejasná, ale nepřeplňoval interface zbytečnými informacemi.
+Nápověda má **dvě podoby a jediný zdroj textu** — všechno žije pod klíči `help.*`:
+
+| Podoba | Kde | Odpovídá na |
+|---|---|---|
+| **Bublinka** `HelpTooltip` | ikonka „?" u konkrétního prvku | „co je *tohle*?" |
+| **Obrazovka „Jak SelfRise funguje"** | `app/how-it-works.tsx` | „jak ta aplikace funguje?" |
+
+🚨 **Text se NIKDY nekopíruje.** Obrazovka renderuje ty samé klíče, které
+používají bublinky (`src/constants/helpTopics.ts`). Duplikát by znamenal dvě
+místa k úpravě a žádný způsob, jak poznat, že se změnilo jen jedno.
+
+Systém je navržen tak, aby pomáhal uživatelům tam, kde může být funkcionalita nejasná, ale nepřeplňoval interface zbytečnými informacemi.
+
+---
+
+## Obrazovka „Jak SelfRise funguje"
+
+**Proč existuje:** bublinky se vytahují po jedné, u prvku, na který se člověk
+zrovna dívá. Na otázku „jak to celé funguje?" neodpovídaly — a uživatel, který
+si to chce nastudovat předem, neměl kam jít. Přesně proto přicházely žádosti
+o delší onboarding. Správná odpověď je **dobrovolná hloubka**, ne delší povinný
+úvod.
+
+**Kudy se tam dostane:**
+1. Nastavení → „Jak SelfRise funguje"
+2. Poslední karta onboardingu → tichý odkaz pod hlavním tlačítkem
+
+**Nikdy se nikomu nevnucuje.** Na poslední kartě je to **druhotný odkaz, ne
+rozcestník** — hlavní akce zůstává „Rozumím". Ta karta je moment odměny;
+rozhodnutí navíc tam nepatří.
+
+### Co na obrazovku smí — vstupní test
+
+> **„Když to uživatel neví, stojí ho to něco?"**
+
+```
+✅ habits.makeupFunction  — bez toho si myslí, že o sérii přišel nespravedlivě
+✅ journal.selfRiseStreak — bez toho mu série tiše spadne u 2 zápisů
+❌ home.quickActions      — tlačítka mají popisky, které říkají, co dělají
+❌ home.recommendations   — zřejmé, jakmile se na kartu podívá
+```
+
+Vyřazená témata **si bublinku ponechávají** — jen nestojí za odstavec na
+stránce, kterou si někdo vybral číst.
+
+**Proč ta laťka:** stránky „jak to funguje" bobtnají, dokud je nikdo nečte.
+Přesně tak umřel 25krokový tutoriál, který aplikace dřív měla.
+
+### Struktura
+
+`src/constants/helpTopics.ts` drží **jen klíče**, ne texty. Všechny jsou
+relativní k `help.` — obrazovka i test si prefix přidávají samy.
+
+```typescript
+HOW_IT_WORKS_SECTIONS = [
+  { id: 'habits',   titleKey: 'sections.habits',   topicKeys: [...] },
+  { id: 'journal',  titleKey: 'sections.journal',  topicKeys: [...] },
+  { id: 'goals',    titleKey: 'sections.goals',    topicKeys: [...] },
+  { id: 'progress', titleKey: 'sections.progress', topicKeys: [...] },
+]
+```
+
+Soubor je **záměrně bez importů**, aby šlo seskupení testovat bez theme, i18n
+a navigace.
+
+### Testování
+
+`src/locales/__tests__/helpTooltipKeys.test.ts` hlídá obojí:
+
+```
+✅ každý helpKey použitý v kódu existuje ve všech 3 jazycích
+✅ každá sekce obrazovky má nadpis ve všech 3 jazycích
+✅ každé téma obrazovky má title i content ve všech 3 jazycích
+✅ žádné téma není na obrazovce dvakrát
+✅ obě sady mají „guard on the guard" — prázdná konstanta test neprojde
+```
+
+⚠️ **Parity test tohle nechytí.** `localeParity` hlídá jen symetrii EN↔DE/ES —
+klíč přejmenovaný stejně ve všech třech jazycích mu projde. A `tsc` taky ne:
+klíče jsou obyčejné řetězce v konstantě. Bez tohohle testu by se chyba objevila
+až na obrazovce jako vypsaný název klíče.
 
 ## Aktuální Implementace Tooltips
 

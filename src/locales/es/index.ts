@@ -359,6 +359,7 @@ const es: Partial<TranslationKeys> = {
     levelOverview: 'Descripción General de Niveles',
     levelsLoading: 'Cargando niveles...',
     goBack: 'Atrás',
+    howItWorks: 'Como funciona SelfRise',
     backNavigation: 'Inicio',
     reorderHabits: {
       title: 'Reordenar Hábitos',
@@ -1654,6 +1655,8 @@ const es: Partial<TranslationKeys> = {
     tutorial: 'Tutorial',
     tutorialReset: 'Reiniciar Tutorial',
     tutorialResetDescription: 'Reiniciar el tutorial desde el principio',
+    howItWorks: 'Como funciona SelfRise',
+    howItWorksDescription: 'Lo que no se ve a simple vista',
     tutorialResetConfirmTitle: '¿Reiniciar Tutorial?',
     tutorialResetConfirmMessage: 'Esto reiniciará el tutorial desde el principio. Esta acción no se puede deshacer.',
 
@@ -3302,6 +3305,13 @@ const es: Partial<TranslationKeys> = {
 
   // Help System
   help: {
+    howItWorksIntro: 'Todo lo de abajo es algo que la app hace por ti sin que se vea en pantalla. Lo evidente no esta aqui.',
+    sections: {
+      habits: 'Habitos',
+      journal: 'Mi Diario',
+      goals: 'Metas',
+      progress: 'XP y progreso',
+    },
     habits: {
       scheduling: {
         title: 'Programación de Hábitos',
@@ -3561,6 +3571,7 @@ const es: Partial<TranslationKeys> = {
       title: 'Todo listo',
       body: 'Marca tu hábito y observa cómo crece tu XP. Eso es toda la app.',
       cta: 'Entendido',
+      learnMore: 'Como funciona todo →',
     },
   },
 

@@ -256,6 +256,31 @@ z obrazovky práci dřív, než si uživatel cokoliv vybral.
 
 `OnbScreenContainer.tsx:157-164`. Nikdo nesmí být rukojmí úvodu.
 
+### Hloubka je dobrovolná, ne delší úvod
+
+Kdo chce vědět víc, jde na obrazovku **„Jak SelfRise funguje"**
+(`app/how-it-works.tsx`, podrobně v @technical-guides:Help-Tooltips.md).
+
+```tsx
+// ❌ WRONG: rozcestník na poslední kartě
+<Button title="Rozumím" />
+<Button title="Projít si, jak to funguje" />
+// → rozhodnutí přesně v momentě odměny, a „čti návod" soupeří s „jdi to používat"
+
+// ✅ CORRECT (FirstCheckCard.tsx): hlavní akce + tichý druhotný odkaz
+<TouchableOpacity style={styles.cta}>…Rozumím…</TouchableOpacity>
+<TouchableOpacity style={styles.learnMore}>…Jak to celé funguje →…</TouchableOpacity>
+```
+
+**Proč**: poslední karta je moment odměny — uživatel právě odškrtl první návyk.
+Postavit tam volbu je přesně to, čeho se celé přepracování zbavovalo. Odkaz
+je nabídka, ne rozhodnutí.
+
+Odkaz **nejdřív zavře onboarding** (`onDone()`) a teprve pak naviguje. Jinak by
+karta zůstala viset za čtenářem a čekala na zavření, až se vrátí.
+
+**Odpověď na „chtěla bych delší tutoriál" je tahle obrazovka, ne delší úvod.**
+
 ### Obrazovka 3 nepřekrývá aplikaci
 
 Ostatní obrazovky aplikaci zakrývají. Tahle **nesmí** — celý smysl je, že
@@ -296,7 +321,7 @@ komponenta pro obojí by změnila vzhled Cílů.
 | Uvítání | `WelcomeScreen.tsx` | jedna stránka, tři řádky, jedno tlačítko. Je to **příznak**, ne čtvrtá obrazovka, aby tečky mluvily pravdu. |
 | 1 | `FirstHabitScreen.tsx` | 6 předvoleb + „Něco jiného". CTA se rozsvítí při neprázdném názvu a aspoň jednom dni. |
 | 2 | `FirstGoalScreen.tsx` | 11 šablon + „Něco jiného". Číslo a jednotka na jednom řádku — „12 knih" je jedna odpověď. **Bez výběru data** (volitelné, kalendář uprostřed flow je překážka). |
-| 3 | `FirstCheckCard.tsx` | karta u spodního okraje. Zmizí sama po odškrtnutí, tlačítko je východ. |
+| 3 | `FirstCheckCard.tsx` | karta u spodního okraje. Zmizí sama po odškrtnutí, tlačítko je východ. Pod ním **tichý odkaz na „Jak SelfRise funguje"** — viz níže. |
 
 **`CUSTOM_HABIT_DEFAULTS.scheduledDays = ALL_DAYS`**: dny jsou jediné povinné
 pole bez výchozí hodnoty; prázdné by uživatele zastavila validace.

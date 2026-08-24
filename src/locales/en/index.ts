@@ -348,6 +348,7 @@ const en: TranslationKeys = {
     levelOverview: 'Level Overview',
     levelsLoading: 'Loading levels...',
     goBack: 'Go back',
+    howItWorks: 'How SelfRise Works',
     backNavigation: 'Home',
     reorderHabits: {
       title: 'Reorder Habits',
@@ -2920,6 +2921,8 @@ const en: TranslationKeys = {
     tutorial: 'Tutorial',
     tutorialReset: 'Restart Tutorial',
     tutorialResetDescription: 'Restart the tutorial from the beginning',
+    howItWorks: 'How SelfRise Works',
+    howItWorksDescription: 'The things that are not obvious at a glance',
     tutorialResetConfirmTitle: 'Restart Tutorial?',
     tutorialResetConfirmMessage: 'This will restart the tutorial from the beginning and guide you through the app again. This action cannot be undone.',
 
@@ -3327,6 +3330,13 @@ const en: TranslationKeys = {
 
   // Help system
   help: {
+    howItWorksIntro: 'Everything below is something the app does for you that you cannot see on screen. The obvious parts are not here.',
+    sections: {
+      habits: 'Habits',
+      journal: 'My Journal',
+      goals: 'Goals',
+      progress: 'XP and progress',
+    },
     // Habits screen help
     habits: {
       scheduling: {
@@ -3608,6 +3618,7 @@ const en: TranslationKeys = {
       title: "You're all set",
       body: 'Tick your habit off and watch your XP grow. That is the whole app.',
       cta: 'Got it',
+      learnMore: 'How it all works →',
     },
   },
 

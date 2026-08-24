@@ -430,6 +430,27 @@ export default function SettingsScreen() {
         {/* Tutorial */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.tutorial')}</Text>
+
+          {/* Optional depth. Onboarding stays short for everyone; whoever wants
+              the whole picture can read it here instead of being walked through
+              it on first launch. */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/how-it-works' as any)}
+            accessibilityRole="button"
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="help-circle" size={24} color={colors.primary} />
+              <View style={styles.menuItemTextContainer}>
+                <Text style={styles.menuItemText}>{t('settings.howItWorks')}</Text>
+                <Text style={styles.menuItemDescription}>
+                  {t('settings.howItWorksDescription')}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.menuItem, isResetting && styles.menuItemDisabled]}
             onPress={handleRestartTutorial}

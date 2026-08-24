@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useHabits } from '@/src/contexts/HabitsContext';
@@ -35,8 +36,17 @@ export function FirstCheckCard({ onDone }: FirstCheckCardProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { state: habitsState } = useHabits();
   const finished = useRef(false);
+
+  // Reading the overview is a post-onboarding activity, so this closes the flow
+  // exactly like the CTA does and then opens the page. Leaving onboarding active
+  // would park this card behind the reader, waiting to be dismissed on return.
+  const handleLearnMore = () => {
+    onDone();
+    router.push('/how-it-works' as any);
+  };
 
   const today = formatDateToString(new Date());
 
@@ -110,6 +120,20 @@ export function FirstCheckCard({ onDone }: FirstCheckCardProps) {
       fontWeight: 'bold',
       color: colors.white,
     },
+    // Secondary on purpose: an option, not a second decision. The moment the
+    // card appears is the payoff, and a fork here would put a choice exactly
+    // where the rework spent its effort removing them.
+    learnMore: {
+      alignSelf: 'center',
+      minHeight: 44,
+      justifyContent: 'center',
+      paddingHorizontal: Layout.spacing.md,
+      marginTop: Layout.spacing.xs,
+    },
+    learnMoreText: {
+      fontSize: scaleFont(Fonts.sizes.sm),
+      color: colors.textSecondary,
+    },
   });
 
   return (
@@ -126,6 +150,15 @@ export function FirstCheckCard({ onDone }: FirstCheckCardProps) {
           accessibilityLabel={t('onboarding.done.cta')}
         >
           <Text style={styles.ctaText}>{t('onboarding.done.cta')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.learnMore}
+          onPress={handleLearnMore}
+          accessibilityRole="button"
+          accessibilityLabel={t('onboarding.done.learnMore')}
+        >
+          <Text style={styles.learnMoreText}>{t('onboarding.done.learnMore')}</Text>
         </TouchableOpacity>
       </View>
     </View>

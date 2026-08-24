@@ -277,6 +277,7 @@ export interface TranslationKeys {
     levelOverview: string;
     levelsLoading: string;
     goBack: string;
+    howItWorks: string;
     backNavigation: string;
     reorderHabits: {
       title: string;
@@ -1690,6 +1691,8 @@ export interface TranslationKeys {
     tutorial: string;
     tutorialReset: string;
     tutorialResetDescription: string;
+    howItWorks: string;
+    howItWorksDescription: string;
     tutorialResetConfirmTitle: string;
     tutorialResetConfirmMessage: string;
     cancel: string;
@@ -1883,6 +1886,7 @@ export interface TranslationKeys {
       title: string;
       body: string;
       cta: string;
+      learnMore: string;
     };
   };
 
@@ -2228,6 +2232,13 @@ export interface TranslationKeys {
 
   // Help system
   help: {
+    howItWorksIntro: string;
+    sections: {
+      habits: string;
+      journal: string;
+      goals: string;
+      progress: string;
+    };
     habits: {
       scheduling: { title: string; content: string; };
       bonusConversion: { title: string; content: string; };
