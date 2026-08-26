@@ -659,8 +659,35 @@ oznámení ukáže dnešní „📉 Progress reversed", ne vymyšlený počet.
 - [x] 5.3 Aktualizovat @technical-guides:Gamification-UI.md — implementace se od průvodce
       rozešla. Doplnit: režimy počítání, „oznámení se nesmí přeanimovat při aktualizaci obsahu",
       stín jen ve světlém režimu
-- [ ] 5.4 **Device test**: Android i iOS, rychlé klikání na jeden návyk, pokrok u cíle,
-      napsat a smazat záznam v deníku, světlý i tmavý režim
+- [x] 5.4 **Device test — kolo 1 hotovo** (testerka, Android, tmavý režim). Souhrnná lišta
+      a texty v pořádku, ale **XP bublina se ukazovala v poloviční velikosti** a správná
+      velikost jen problikla → viz FIX 6
+
+### FIX 6 [🔴] — Bublina se zasekávala v malé fázi (Android) — HOTOVO
+
+**Příčina** (prokázaná ze snímků): rozdíl velikostí NENÍ font, je to `scale` transformace.
+Důkaz — malý popup je zároveň posunutý doleva, protože `translateX` byl v poli transformací
+**až za `scale`**, takže se jím násobil (50 px při 0,5 vs. 57 px při 1,15).
+Animace běžela jako **tři navazující kroky**; nativní vrstva dostane jen první z nich a mezi
+každými dvěma se musí zeptat JS vlákna — které v ten okamžik zapisuje splnění do SQLite
+a překresluje seznam návyků. Na Androidu se animace zasekla, obvykle v úvodní malé fázi.
+iOS stejnou pauzu jen schová, takže „na iOS to funguje" tady nic nedokazuje.
+
+- [x] 6.1 Vytáhnout časovou osu do `xpPopupTimeline.ts` (data místo kódu → testovatelné)
+- [x] 6.2 Jedna hodnota 0→1 hnaná nativně + `interpolate()` na měřítko, průhlednost a posun
+      → **nula dotazů na JS vlákno** během běhu animace
+- [x] 6.3 Zrušit `setValue()` v efektu (každá bublina je nová instance, není co resetovat)
+      a zakládat hodnotu rovnou správně (dřív `0.8` → korekce na `0.5` o snímek později)
+- [x] 6.4 `Easing.linear` — tvarování je v klíčových snímcích, výchozí easing by je roztáhl
+- [x] 6.5 Přesunout posuny **před** `scale`, aby se jimi nenásobily
+- [x] 6.6 22 testů časové osy + ověřeno třemi schválnými rozbitími (pravidlo 9)
+- [x] 6.7 Průvodce: @technical-guides:Gamification-UI.md — pravidlo „jedna osa, nula
+      mezikroků" a „posuny mimo měřítko"
+- [ ] 6.8 **Device test kolo 2** (testerka, Android): bublina musí naskočit na správnou
+      velikost pokaždé, i při rychlém klikání
+
+**Neřešeno (samostatný nález):** průvodce v sekci Accessibility tvrdí, že popup respektuje
+systémové „omezit pohyb" — **nerespektuje**. Souhrnná lišta ano (FIX 3), bublina ne.
 
 ---
 

@@ -325,16 +325,72 @@ if (options.source === XPSourceType.ACHIEVEMENT_UNLOCK ||
 
 ### Standard Animation Parameters
 ```typescript
-// UNIFIED TIMING CONSTANTS (XpPopupAnimation.tsx)
-BOUNCE_IN_DURATION: 300ms        // Fade + scale in
-SCALE_ADJUSTMENT: 100ms          // Brief pause at full scale  
-FLOAT_UP_DURATION: 800ms         // Translate + scale down
-FADE_OUT_DURATION: 600ms         // Opacity to 0
-FADE_OUT_DELAY: 200ms           // Delay before fade starts
-CLEANUP_TIMEOUT: 1400ms          // Popup removal (200ms buffer)
+// UNIFIED TIMING CONSTANTS (xpPopupTimeline.ts — data, not inline in the component)
+POP_IN: 300ms          // Fade + scale in (0.5 -> overshoot 1.18 -> 1.15)
+SETTLE: 100ms          // 1.15 -> 1.0
+FLOAT_UP: 800ms        // Translate -80px + scale down to 0.8
+FADE_OUT: 600ms        // Opacity to 0
+FADE_OUT_DELAY: 200ms  // Measured from the end of the settle
+CLEANUP_TIMEOUT: 1400ms // Popup removal from state (200ms buffer)
 
-// TOTAL ANIMATION TIME: 1200ms (400ms bounce + 800ms float)
+// TOTAL ANIMATION TIME: 1200ms — and everything MUST land exactly there
 ```
+
+### 🚨 KRITICKÉ PRAVIDLO: one timeline, zero JS round-trips mid-animation
+
+```typescript
+// ❌ WRONG — three chained steps
+Animated.sequence([
+  Animated.parallel([Animated.spring(scaleAnim, ...), Animated.timing(fadeAnim, ...)]),
+  Animated.timing(scaleAnim, { toValue: 1.0, duration: 100 }),
+  Animated.parallel([...float out...]),
+]).start();
+
+// ✅ CORRECT — one driver, native from start to finish
+Animated.timing(progress, {
+  toValue: 1, duration: XP_POPUP_TOTAL_DURATION,
+  easing: Easing.linear,          // shaping lives in the keyframes
+  useNativeDriver: true,
+}).start();
+const scale = progress.interpolate(XP_POPUP_SCALE);
+```
+
+**Why**: a chained animation hands the native driver only its FIRST step. Every boundary
+after that waits for a round-trip back to the JS thread before the next step may start —
+and right after a habit tap that thread is writing the completion to SQLite and re-rendering
+the habit list. On Android the bubble froze mid-flight, usually still in the small pop-in
+phase, with the correct size only flashing through; testers photographed it at roughly half
+size. iOS devices were fast enough to hide the identical stall, so "it works on iOS" proves
+nothing here. A single `0 -> 1` value with `interpolate()` per channel is handed over once
+and never asks JS for anything again.
+
+**Corollaries, all enforced by `xpPopupTimeline.test.ts`:**
+- **Easing must be `linear`.** The default `inOut` easing would stretch every keyframe.
+- **Every channel must end at exactly 1.0.** Change a duration and the keyframes move with
+  it, or the bubble is cut off while still visible.
+- **No `setValue()` in an effect.** Each popup is a fresh mount with its own key, so there is
+  nothing to reset, and a `setValue` racing `start()` is precisely the JS/native ordering gap
+  that stranded the bubble. Seed the `Animated.Value` at its correct opening value instead —
+  the old code seeded scale at `0.8` and corrected to `0.5` one frame later, a size that
+  appears nowhere in the intended animation.
+- **While the bubble is smaller than its resting size it must still be invisible.** A visible
+  half-size bubble IS the reported bug.
+
+### 🚨 KRITICKÉ PRAVIDLO: offsets go OUTSIDE the scale
+
+```typescript
+// ❌ WRONG — translateX is multiplied by scale, so the bubble slides as it grows
+transform: [{ translateY }, { scale }, { translateX: position.x }]
+
+// ✅ CORRECT — both offsets sit outside the scale and stay put
+transform: [{ translateX: position.x }, { translateY }, { scale }]
+```
+
+**Why**: RN transforms compose right-to-left, so anything listed AFTER `scale` is scaled by
+it. With `translateX` last, a 50px offset became 25px at scale 0.5 and 57px at 1.15 — the
+bubble drifted sideways while it popped. This is also how the field bug was diagnosed: the
+small screenshot sat visibly further left than the large one, which proved the size
+difference was the scale transform and not the font.
 
 ### Standard Positioning & Coordinates
 ```typescript

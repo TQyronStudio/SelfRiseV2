@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Animated,
+  Easing,
   Platform,
   AccessibilityInfo
 } from 'react-native';
@@ -11,8 +12,12 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { XPSourceType } from '../../types/gamification';
 import { useI18n } from '../../hooks/useI18n';
 import { scaleFont } from '../../utils/responsive';
-
-// const { height: screenHeight } = Dimensions.get('window'); // Unused
+import {
+  XP_POPUP_OPACITY,
+  XP_POPUP_SCALE,
+  XP_POPUP_TOTAL_DURATION,
+  XP_POPUP_TRANSLATE_Y,
+} from './xpPopupTimeline';
 
 interface XpPopupAnimationProps {
   visible: boolean;
@@ -31,9 +36,18 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
 }) => {
   const { t } = useI18n();
   const { colors, isDark } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateYAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  // Starts at 0, so the very FIRST painted frame is already the correct opening
+  // state (invisible, scale 0.5). The old code seeded scale at 0.8 and only
+  // corrected it to 0.5 from an effect — one frame late, in a size that appears
+  // nowhere in the intended animation.
+  const progress = useRef(new Animated.Value(0)).current;
+
+  // Timeline lives in `xpPopupTimeline.ts` so it can be unit-tested; the
+  // component only feeds the driver into it.
+  const scale = progress.interpolate(XP_POPUP_SCALE);
+  const opacity = progress.interpolate(XP_POPUP_OPACITY);
+  const translateY = progress.interpolate(XP_POPUP_TRANSLATE_Y);
 
   // Get source-specific colors and icons
   const getSourceStyle = () => {
@@ -172,64 +186,32 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
     }
   }, [visible, amount, source]);
 
-  useEffect(() => {
-    if (visible) {
-      // Reset animations
-      fadeAnim.setValue(0);
-      translateYAnim.setValue(0);
-      scaleAnim.setValue(0.5);
+  // Kept in a ref so a changing callback identity can never restart the
+  // animation half-way through.
+  const onAnimationCompleteRef = useRef(onAnimationComplete);
+  onAnimationCompleteRef.current = onAnimationComplete;
 
-      // Start improved animation sequence with better easing
-      Animated.sequence([
-        // Bounce in effect with spring animation
-        Animated.parallel([
-          Animated.spring(scaleAnim, {
-            toValue: 1.15,
-            damping: 8,
-            mass: 1,
-            stiffness: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-        
-        // Brief pause at full scale
-        Animated.timing(scaleAnim, {
-          toValue: 1.0,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        
-        // Smooth float up with gentle fade out
-        Animated.parallel([
-          Animated.timing(translateYAnim, {
-            toValue: -80,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 0.8,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 600,
-            delay: 200,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(({ finished }) => {
-        if (finished && onAnimationComplete) {
-          onAnimationComplete();
-        }
-      });
+  useEffect(() => {
+    if (!visible) {
+      return;
     }
-  }, [visible, fadeAnim, translateYAnim, scaleAnim, onAnimationComplete]);
+
+    // No setValue() anywhere: every popup is a fresh mount with its own key, so
+    // there is nothing to reset — and a setValue racing the start() is exactly
+    // the kind of JS/native ordering gap that stranded the bubble at 0.5.
+    // Easing must be linear: the shaping lives in the timeline keyframes, and
+    // the default inOut easing would stretch every one of them.
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: XP_POPUP_TOTAL_DURATION,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        onAnimationCompleteRef.current?.();
+      }
+    });
+  }, [visible, progress]);
 
   if (!visible) {
     return null;
@@ -243,11 +225,16 @@ export const XpPopupAnimation: React.FC<XpPopupAnimationProps> = ({
       style={[
         styles.container,
         {
-          opacity: fadeAnim,
+          opacity,
+          // Order matters: transforms apply right-to-left, so anything listed
+          // AFTER scale gets multiplied by it. With translateX last, the bubble
+          // slid sideways as it grew (50px at scale 0.5 but 57px at 1.15) — the
+          // small and large screenshots sit at visibly different x positions.
+          // Both offsets now sit outside the scale and stay put.
           transform: [
-            { translateY: translateYAnim },
-            { scale: scaleAnim },
             { translateX: position.x },
+            { translateY },
+            { scale },
           ],
           top: position.y,
         },
