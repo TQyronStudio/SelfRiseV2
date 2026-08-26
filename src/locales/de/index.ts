@@ -3351,7 +3351,7 @@ const de: Partial<TranslationKeys> = {
       },
       debtRecovery: {
         title: 'Serien-Wiederherstellung',
-        content: 'Das Leben passiert, und das ist völlig okay! 💪 Wenn du einen Tag verpasst, schau eine kurze Werbung, um bis zu 3 verpasste Tage wiederherzustellen. Wir glauben an zweite Chancen und daran, dich wieder auf Kurs zu bringen!'
+        content: 'Das Leben passiert, und das ist völlig okay! 💪 Wenn du einen Tag verpasst, schau eine kurze Werbung, um ihn zurückzuholen — eine Werbung pro verpasstem Tag, bis zu 3 Tage. Wir glauben an zweite Chancen und daran, dich wieder auf Kurs zu bringen!'
       }
     },
     goals: {

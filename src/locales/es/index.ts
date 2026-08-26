@@ -3341,7 +3341,7 @@ const es: Partial<TranslationKeys> = {
       },
       makeupFunction: {
         title: 'Sistema Inteligente de Recuperación',
-        content: 'Si pierdes un día para un hábito, puedes recuperar hasta 2 días programados perdidos viendo un anuncio por día. Esto mantiene viva tu racha si estuviste enfermo o excepcionalmente ocupado.'
+        content: '¡La vida pasa, y te cubrimos! ✨ Cuando te saltas un día programado, las veces que completes el hábito de más pueden convertirse automáticamente en la recuperación de ese día. Busca la marca dorada ✓ en tu calendario: significa que recuperaste un día perdido con tu esfuerzo extra.'
       }
     },
     journal: {
@@ -3351,7 +3351,7 @@ const es: Partial<TranslationKeys> = {
       },
       debtRecovery: {
         title: 'Recuperación de Racha',
-        content: 'Si pierdes tu racha de diario, puedes recuperar hasta 2 días perdidos viendo un anuncio por día. Esto puede prevenir perder semanas de progreso debido a un solo día perdido.'
+        content: 'Si pierdes tu racha de diario, puedes recuperar hasta 3 días perdidos viendo un anuncio por cada día. Esto puede prevenir perder semanas de progreso debido a un solo día perdido.'
       }
     },
     goals: {

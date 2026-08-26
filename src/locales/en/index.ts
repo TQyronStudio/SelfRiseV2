@@ -3368,7 +3368,7 @@ const en: TranslationKeys = {
       },
       makeupFunction: {
         title: 'Smart Make-up System',
-        content: 'Life happens, and we\'ve got your back! ✨ When you miss a scheduled day, any bonus completions you earn can automatically convert to "make-up" that day. Look for the golden checkmark ✓ in your calendar - it means you recovered a missed day with your extra effort!'
+        content: 'Life happens, and we\'ve got your back! ✨ When you miss a scheduled day, any bonus completions that you earn can automatically convert to "make-up" that day. Look for the golden checkmark ✓ in your calendar - it means you recovered a missed day with your extra effort!'
       }
     },
 
@@ -3380,7 +3380,7 @@ const en: TranslationKeys = {
       },
       debtRecovery: {
         title: 'Streak Recovery',
-        content: 'Life happens, and that\'s totally okay! 💪 If you miss a day, watch a quick ad to recover up to 3 missed days. We believe in second chances and getting you back on track!'
+        content: 'Life happens, and that\'s totally okay! 💪 If you miss a day, watch a quick ad to bring it back — one ad per missed day, up to 3 days. We believe in second chances and getting you back on track!'
       }
     },
 
