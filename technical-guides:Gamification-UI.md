@@ -534,6 +534,48 @@ the animation effect re-fired and reset `opacity` to 0 — the "flickering, jump
 reported from the field. Pass `pendingNotifications` straight through and derive the batch with
 `useMemo`.
 
+### 🚨 KRITICKÉ PRAVIDLO: the animated style must keep its identity across re-renders
+
+```typescript
+// ❌ WRONG — a new StyleSheet and a new style array on EVERY render
+const styles = createStyles(colors, insets.top, isDark);
+<Animated.View style={[styles.container, { opacity: fadeAnim, transform: [...] }]} />
+
+// ✅ CORRECT — built once, so the native nodes are never re-attached
+const styles = useMemo(() => createStyles(colors, insets.top, isDark), [colors, insets.top, isDark]);
+const animatedStyle = useMemo(
+  () => [styles.container, { opacity, transform: [{ translateY }, { scale }] }],
+  [styles, opacity, translateY, scale]
+);
+<Animated.View style={animatedStyle} />
+```
+
+**Why**: unlike the XP bubble, the summary bar STAYS MOUNTED and re-renders every time new
+XP lands — several times a second during rapid tapping. Handing `Animated.View` a fresh style
+object each time makes React Native detach and re-attach the native animated nodes, and doing
+that mid-flight is visible as a stutter. This is a different failure from the bubble's (which
+stalled because it asked the JS thread between chained steps) and needs its own fix. Memoise
+the derived text too, so an unrelated re-render costs nothing.
+
+### 🚨 KRITICKÉ PRAVIDLO: one presence value, never setValue()
+
+```typescript
+// ❌ WRONG — three values, three resets, three animations, one race
+fadeAnim.setValue(0); translateYAnim.setValue(-50); scaleAnim.setValue(0.9);
+Animated.parallel([timing(fadeAnim, ...), spring(translateYAnim, ...), spring(scaleAnim, ...)]).start();
+
+// ✅ CORRECT — 0 = gone, 1 = present; every channel interpolates from it
+const presence = useRef(new Animated.Value(0)).current;
+Animated.timing(presence, { toValue: 1, easing: Easing.out(Easing.back(1.2)), useNativeDriver: true }).start();
+```
+
+**Why**: showing means animating towards 1, leaving means animating towards 0, and XP landing
+mid-exit simply retargets the same value back to 1 **from wherever it currently is** — no
+special case, no snap back to the top, no `setValue` racing a `start()`. The overshooting
+entrance easing gives scale and translateY a spring settle for free; only opacity needs
+`extrapolate: 'clamp'` so it cannot exceed 1. Reset to 0 ONLY while the bar is out of the
+tree, where it cannot be seen.
+
 ### 🚨 KRITICKÉ PRAVIDLO: never speed animations up because there is more activity
 
 ```typescript

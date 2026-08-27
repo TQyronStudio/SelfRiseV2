@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  Easing,
   Platform,
   AccessibilityInfo
 } from 'react-native';
@@ -33,6 +34,12 @@ const EXIT_DURATION_REDUCED = 150;
 /** Sliding window: the bar leaves this long after the LAST gain, not the first. */
 const DISMISS_DELAY = 2500;
 
+/** 0 = fully gone, 1 = fully present. Every visual channel derives from this. */
+const HIDDEN = 0;
+const SHOWN = 1;
+
+type Phase = 'hidden' | 'shown' | 'leaving';
+
 interface XpNotificationProps {
   visible: boolean;
   xpGains: XpGainInput[];
@@ -49,9 +56,16 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   const { colors, isDark } = useTheme();
   const { isReduceMotionEnabled } = useAccessibility();
   const insets = useSafeAreaInsets();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateYAnim = useRef(new Animated.Value(-50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  // ONE driver instead of three separate values.
+  //
+  // The bar used to hold fadeAnim / translateYAnim / scaleAnim and reset all
+  // three with setValue() immediately before starting three animations at once
+  // — the same JS/native ordering gap we removed from the XP bubble. With a
+  // single presence value there is nothing to reset: showing means animating
+  // towards 1, leaving means animating towards 0, and XP landing mid-exit just
+  // retargets the same value back to 1 from wherever it happens to be.
+  const presence = useRef(new Animated.Value(HIDDEN)).current;
 
   // Derived, not stored. While this was state fed by an effect, every parent
   // render produced a fresh object, the animation effect depended on it, and
@@ -65,10 +79,43 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   // without ever restarting the entrance animation.
   const contentKey = batchedData?.timestamp ?? 0;
 
-  const hasEnteredRef = useRef(false);
-  const isDismissingRef = useRef(false);
+  const phaseRef = useRef<Phase>('hidden');
   const onAnimationCompleteRef = useRef(onAnimationComplete);
   onAnimationCompleteRef.current = onAnimationComplete;
+
+  // ========================================
+  // ANIMATED STYLE — built ONCE
+  // ========================================
+
+  // The entrance easing overshoots past 1, which gives scale and translateY a
+  // small spring settle for free. Opacity must be clamped so it cannot exceed 1.
+  const opacity = useMemo(
+    () => presence.interpolate({ inputRange: [HIDDEN, SHOWN], outputRange: [0, 1], extrapolate: 'clamp' }),
+    [presence]
+  );
+  const translateY = useMemo(
+    () => presence.interpolate({ inputRange: [HIDDEN, SHOWN], outputRange: [-50, 0] }),
+    [presence]
+  );
+  const scale = useMemo(
+    () => presence.interpolate({ inputRange: [HIDDEN, SHOWN], outputRange: [0.9, 1] }),
+    [presence]
+  );
+
+  const styles = useMemo(
+    () => createStyles(colors, insets.top, isDark),
+    [colors, insets.top, isDark]
+  );
+
+  // CRITICAL: this identity must survive a content update. Rebuilding the style
+  // array (or re-running StyleSheet.create) on every render makes React Native
+  // detach and re-attach the native animated nodes, and doing that mid-flight
+  // is visible as a stutter. New XP arrives several times a second while the
+  // bar is on screen, so this is the difference between smooth and jerky.
+  const animatedStyle = useMemo(
+    () => [styles.container, { opacity, transform: [{ translateY }, { scale }] }],
+    [styles, opacity, translateY, scale]
+  );
 
   // ========================================
   // HELPERS
@@ -91,10 +138,6 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
       : `gamification.xp.xpNotification.summaries.${source.nameKey}.other`;
     return t(key as any, { count: source.count });
   };
-
-  // ========================================
-  // ACCESSIBILITY SUPPORT
-  // ========================================
 
   const generateAccessibilityAnnouncement = (data: BatchedNotification): string => {
     const netXP = data.totalXP;
@@ -120,18 +163,6 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
       sourceCount: data.sources.length,
     });
   };
-
-  // Announce to screen readers when XP is gained
-  useEffect(() => {
-    if (visible && batchedData) {
-      AccessibilityInfo.announceForAccessibility(generateAccessibilityAnnouncement(batchedData));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, contentKey]);
-
-  // ========================================
-  // NOTIFICATION TEXT GENERATION
-  // ========================================
 
   const generateNotificationText = (data: BatchedNotification): string => {
     const netXP = data.totalXP;
@@ -167,18 +198,42 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     return `🎉 ${parts.join(', ')}, ${and} ${last ?? ''}`;
   };
 
+  // Built once per content change rather than on every render, so a re-render
+  // caused by something else costs nothing.
+  const texts = useMemo(
+    () => (batchedData
+      ? {
+          message: generateNotificationText(batchedData),
+          announcement: generateAccessibilityAnnouncement(batchedData),
+        }
+      : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [batchedData, t]
+  );
+
   // ========================================
   // ANIMATIONS
   // ========================================
 
-  // Reset the lifecycle flags once the bar is actually gone, so the next batch
-  // gets a proper entrance.
+  // Announce to screen readers when XP is gained
   useEffect(() => {
-    if (!visible) {
-      hasEnteredRef.current = false;
-      isDismissingRef.current = false;
+    if (visible && texts) {
+      AccessibilityInfo.announceForAccessibility(texts.announcement);
     }
-  }, [visible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, contentKey]);
+
+  // Once the bar is out of the tree, put the driver back to its opening state
+  // so the next batch gets a real entrance. Nothing is on screen at this point,
+  // so this cannot be seen.
+  useEffect(() => {
+    if (visible) {
+      return;
+    }
+    presence.stopAnimation();
+    presence.setValue(HIDDEN);
+    phaseRef.current = 'hidden';
+  }, [visible, presence]);
 
   useEffect(() => {
     if (!visible || !batchedData) {
@@ -188,46 +243,30 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     const entranceDuration = isReduceMotionEnabled ? ENTRANCE_DURATION_REDUCED : ENTRANCE_DURATION;
     const exitDuration = isReduceMotionEnabled ? EXIT_DURATION_REDUCED : EXIT_DURATION;
 
-    if (!hasEnteredRef.current) {
-      // FIRST appearance only. Everything after this is a content update, and
-      // a content update must never touch opacity or position.
-      hasEnteredRef.current = true;
-      fadeAnim.setValue(0);
-      translateYAnim.setValue(-50);
-      scaleAnim.setValue(0.9);
-
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: entranceDuration,
-          useNativeDriver: true,
-        }),
-        isReduceMotionEnabled
-          ? Animated.timing(translateYAnim, { toValue: 0, duration: entranceDuration, useNativeDriver: true })
-          : Animated.spring(translateYAnim, { toValue: 0, tension: 100, friction: 8, useNativeDriver: true }),
-        isReduceMotionEnabled
-          ? Animated.timing(scaleAnim, { toValue: 1, duration: entranceDuration, useNativeDriver: true })
-          : Animated.spring(scaleAnim, { toValue: 1, tension: 100, friction: 8, useNativeDriver: true }),
-      ]).start();
-    } else if (isDismissingRef.current) {
-      // New XP landed while the bar was already fading out — pull it back
-      // instead of letting it vanish mid-sentence.
-      isDismissingRef.current = false;
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: entranceDuration, useNativeDriver: true }),
-        Animated.timing(translateYAnim, { toValue: 0, duration: entranceDuration, useNativeDriver: true }),
-      ]).start();
+    if (phaseRef.current !== 'shown') {
+      // Covers BOTH the first appearance and new XP landing mid-exit. In the
+      // second case the driver simply turns around from wherever it is, instead
+      // of the bar vanishing mid-sentence or snapping back to the top.
+      phaseRef.current = 'shown';
+      Animated.timing(presence, {
+        toValue: SHOWN,
+        duration: entranceDuration,
+        easing: isReduceMotionEnabled ? Easing.out(Easing.quad) : Easing.out(Easing.back(1.2)),
+        useNativeDriver: true,
+      }).start();
     }
 
     // Sliding auto-dismiss: re-armed by each new gain, so rapid tapping keeps
     // the bar alive instead of restarting its animation.
     const dismissTimer = setTimeout(() => {
-      isDismissingRef.current = true;
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 0, duration: exitDuration, useNativeDriver: true }),
-        Animated.timing(translateYAnim, { toValue: -30, duration: exitDuration, useNativeDriver: true }),
-      ]).start(({ finished }) => {
-        if (finished && isDismissingRef.current) {
+      phaseRef.current = 'leaving';
+      Animated.timing(presence, {
+        toValue: HIDDEN,
+        duration: exitDuration,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished && phaseRef.current === 'leaving') {
           onAnimationCompleteRef.current?.();
         }
       });
@@ -237,36 +276,23 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
     // `contentKey` re-arms the timer; `batchedData` itself deliberately does not
     // appear here, because a re-render must not be able to replay the entrance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, contentKey, isReduceMotionEnabled]);
+  }, [visible, contentKey, isReduceMotionEnabled, presence]);
 
   // ========================================
   // RENDER
   // ========================================
 
-  if (!visible || !batchedData) {
+  if (!visible || !batchedData || !texts) {
     return null;
   }
 
-  const styles = createStyles(colors, insets.top, isDark);
-  const notificationText = generateNotificationText(batchedData);
-  const accessibilityLabel = generateAccessibilityAnnouncement(batchedData);
-
   return (
     <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [
-            { translateY: translateYAnim },
-            { scale: scaleAnim },
-          ],
-        },
-      ]}
+      style={animatedStyle}
       pointerEvents="none"
       accessible={true}
       accessibilityRole="alert"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={texts.announcement}
       accessibilityLiveRegion="assertive"
       importantForAccessibility="yes"
     >
@@ -274,7 +300,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
         style={styles.notification}
         accessible={true}
         accessibilityRole="text"
-        accessibilityLabel={accessibilityLabel}
+        accessibilityLabel={texts.announcement}
       >
         {/* Notification Text */}
         <Text
@@ -282,9 +308,9 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
           numberOfLines={2}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={t('gamification.xp.xpNotification.accessibility.notification', { message: notificationText })}
+          accessibilityLabel={t('gamification.xp.xpNotification.accessibility.notification', { message: texts.message })}
         >
-          {notificationText}
+          {texts.message}
         </Text>
 
         {/* XP Amount */}

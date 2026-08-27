@@ -683,8 +683,29 @@ iOS stejnou pauzu jen schová, takže „na iOS to funguje" tady nic nedokazuje.
 - [x] 6.6 22 testů časové osy + ověřeno třemi schválnými rozbitími (pravidlo 9)
 - [x] 6.7 Průvodce: @technical-guides:Gamification-UI.md — pravidlo „jedna osa, nula
       mezikroků" a „posuny mimo měřítko"
-- [ ] 6.8 **Device test kolo 2** (testerka, Android): bublina musí naskočit na správnou
-      velikost pokaždé, i při rychlém klikání
+- [x] 6.8 **Device test kolo 2 — POTVRZENO** (testerka, Android): bublina naskakuje
+      správně a plynule, stejně jako na iOS
+
+### FIX 7 [🟠] — Souhrnná lišta škubala — HOTOVO
+
+**Jiná příčina než u bubliny.** Lišta neběží v navazujících krocích, takže se JS vlákna
+uprostřed animace neptá. Škubala proto, že **zůstává připojená a překresluje se při každém
+novém XP** (při rychlém klikání několikrát za vteřinu) — a při každém překreslení dostávala
+animovaná vrstva **nový objekt se styly**. React Native na to reaguje odpojením a znovupřipojením
+nativních uzlů animace; když se to stane uprostřed běhu, je to vidět jako trhnutí.
+`StyleSheet.create` se navíc volal při každém překreslení.
+
+- [x] 7.1 Jedna hodnota „přítomnost" 0→1 místo tří hodnot + tří `setValue` + tří animací.
+      Nástup = k 1, odchod = k 0, nové XP během mizení jen **otočí směr z místa, kde je**
+- [x] 7.2 Ustálit stylopis (`useMemo`) i pole stylů animované vrstvy → konec odpojování
+- [x] 7.3 Ustálit skládání textu a hlášení pro odečítač obrazovky
+- [x] 7.4 Zrušit `setValue` úplně; nulování jen když je lišta mimo strom (není vidět)
+- [x] 7.5 Průvodce: @technical-guides:Gamification-UI.md — dvě nová pravidla
+- [ ] 7.6 **Device test** (testerka, Android): rychlé klikání na návyky, lišta nesmí škubat
+
+⚠️ **Automatickými testy nepokryto.** `__tests__/setup.ts` nahrazuje celý modul react-native
+stubem bez `View`/`Animated`, takže vykreslovací test tu bez zásahu do globálního nastavení
+napsat nejde. Ověřeno jen typovou kontrolou, lintem, regresní sadou a device testem.
 
 **Neřešeno (samostatný nález):** průvodce v sekci Accessibility tvrdí, že popup respektuje
 systémové „omezit pohyb" — **nerespektuje**. Souhrnná lišta ano (FIX 3), bublina ne.
