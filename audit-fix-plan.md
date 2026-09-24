@@ -297,7 +297,7 @@ Tato fáze řeší problém s drag & drop knihovnou, která závisí na Reanimat
 4. Pokud funguje bez chyb → Fáze 4 je hotová, přeskočit bod 4.2
 5. Pokud crashuje nebo nefunguje → pokračovat na bod 4.2
 
-**Status:** [ ] ČEKÁ
+**Status:** [x] VYŘEŠENO 2026-09-24 — knihovna ve vnoření do ScrollView blokovala scroll (iOS i Android) → řešeno bodem 4.2
 
 ---
 
@@ -313,7 +313,7 @@ Tato fáze řeší problém s drag & drop knihovnou, která závisí na Reanimat
 3. Zachovat identické chování: táhnout, drop, callback s novým pořadím, vizuální feedback při tažení
 4. Důkladně otestovat na iOS i Android
 
-**Status:** [ ] ČEKÁ (pouze pokud selže bod 4.1)
+**Status:** [x] HOTOVO 2026-09-24 — nahrazeno `react-native-sortables` (sdílený `ReorderableList`), stará knihovna odinstalována; pravidla: @technical-guides:Habits.md → „Řazení (reorder mode)“
 
 ---
 

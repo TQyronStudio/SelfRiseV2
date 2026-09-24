@@ -350,10 +350,6 @@ const en: TranslationKeys = {
     goBack: 'Go back',
     howItWorks: 'How SelfRise Works',
     backNavigation: 'Home',
-    reorderHabits: {
-      title: 'Reorder Habits',
-      instructions: 'Hold and drag any habit to reorder them',
-    },
     habitStats: {
       activeHabits: 'Active Habits',
       inactiveHabits: 'Inactive Habits',
@@ -487,8 +483,6 @@ const en: TranslationKeys = {
   ui: {
     continue: 'Continue',
     next: 'Next',
-    cancel: 'Cancel',
-    save: 'Save',
     edit: 'Edit',
     delete: 'Delete',
     retry: 'Retry',
@@ -542,10 +536,6 @@ const en: TranslationKeys = {
         submitFailed: 'Failed to save habit. Please try again.',
       },
     },
-    emptyState: {
-      title: 'No habits yet',
-      subtitle: 'Start building better habits by creating your first one',
-    },
     emptyStateWithCompletion: {
       title: 'No habits created yet',
       subtitle: 'Tap "Add New Habit" to get started!',
@@ -566,7 +556,6 @@ const en: TranslationKeys = {
     },
     // Habit list summary
     days: 'Days',
-    listSummary: '{{active}} active • {{inactive}} inactive',
     // Error messages
     errors: {
       failedToSave: 'Failed to save habit',

@@ -279,10 +279,6 @@ export interface TranslationKeys {
     goBack: string;
     howItWorks: string;
     backNavigation: string;
-    reorderHabits: {
-      title: string;
-      instructions: string;
-    };
     habitStats: {
       activeHabits: string;
       inactiveHabits: string;
@@ -301,8 +297,6 @@ export interface TranslationKeys {
   ui: {
     continue: string;
     next: string;
-    cancel: string;
-    save: string;
     edit: string;
     delete: string;
     retry: string;
@@ -356,10 +350,6 @@ export interface TranslationKeys {
         submitFailed: string;
       };
     };
-    emptyState: {
-      title: string;
-      subtitle: string;
-    };
     emptyStateWithCompletion: {
       title: string;
       subtitle: string;
@@ -380,7 +370,6 @@ export interface TranslationKeys {
     };
     // Habit list summary
     days: string;
-    listSummary: string;
     // Error messages
     errors: {
       failedToSave: string;

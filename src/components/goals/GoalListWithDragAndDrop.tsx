@@ -90,7 +90,6 @@ export function GoalListWithDragAndDrop({
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
         onAddProgress={() => onAddProgress(goal)}
-        isDragging={false}
         isEditMode={isEditMode}
       />
     </View>

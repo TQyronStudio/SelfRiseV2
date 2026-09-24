@@ -132,8 +132,6 @@ export function HabitListWithCompletion({
           onToggleCompletion={onToggleCompletion}
           onReorder={onReorderHabits}
           onViewStats={onViewHabitStats}
-          onDrag={undefined}
-          isDragging={false}
           isEditMode={false}
           date={date}
         />

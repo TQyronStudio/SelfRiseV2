@@ -39,8 +39,6 @@ interface HabitItemWithCompletionProps {
   onToggleCompletion: (habitId: string, date: string, isBonus: boolean) => Promise<void>;
   onReorder: (habitOrders: Array<{ id: string; order: number }>) => void;
   onViewStats: (habitId: string) => void;
-  onDrag?: (() => void) | undefined;
-  isDragging?: boolean;
   /** Render the grip used by ReorderableList (reorder mode, active habits only). */
   showReorderHandle?: boolean;
   isEditMode: boolean;
@@ -70,8 +68,6 @@ export const HabitItemWithCompletion = React.memo(({
   onToggleCompletion,
   onReorder, 
   onViewStats,
-  onDrag, 
-  isDragging,
   showReorderHandle,
   isEditMode,
   date = formatDateToString(new Date())
@@ -306,13 +302,6 @@ export const HabitItemWithCompletion = React.memo(({
     inactiveDayLabel: {
       color: colors.textSecondary,
     },
-    draggingContainer: {
-      opacity: 0.8,
-      transform: [{ scale: 1.02 }],
-    },
-    draggingActionButton: {
-      backgroundColor: colors.primary,
-    },
     actionButton: {
       width: 28,
       height: 28,
@@ -320,9 +309,6 @@ export const HabitItemWithCompletion = React.memo(({
       backgroundColor: colors.cardBackgroundElevated,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    actionButtonDragging: {
-      backgroundColor: colors.primary,
     },
     // Grip spans both action columns (28 + 4 + 28); the 44 pt touch area
     // around it eats the grid gap above so the card grows as little as possible.
@@ -369,7 +355,6 @@ export const HabitItemWithCompletion = React.memo(({
         styles.container,
         !habit.isActive && styles.inactiveContainer,
         isCompleted && styles.completedContainer,
-        isDragging && styles.draggingContainer,
         // Jemný modrý rámeček pro návyky naplánované na dnešek (pouze aktivní a nesplněné návyky)
         isActiveHabit && isHabitScheduledToday && !isCompleted && styles.todayScheduledContainer,
         animatedStyle, // Wiggle animace pouze na iOS
@@ -378,7 +363,6 @@ export const HabitItemWithCompletion = React.memo(({
         styles.container,
         !habit.isActive && styles.inactiveContainer,
         isCompleted && styles.completedContainer,
-        isDragging && styles.draggingContainer,
         // Jemný modrý rámeček pro návyky naplánované na dnešek (pouze aktivní a nesplněné návyky)
         isActiveHabit && isHabitScheduledToday && !isCompleted && styles.todayScheduledContainer,
         // Žádná animace na Androidu
@@ -472,17 +456,7 @@ export const HabitItemWithCompletion = React.memo(({
               <Ionicons name="bar-chart-outline" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
-          {/* Drag handle row - jen pro aktivní návyky */}
-          {habit.isActive && onDrag && (
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                onPressIn={onDrag}
-                style={[styles.actionButton, isDragging && styles.actionButtonDragging]}
-              >
-                <Ionicons name="reorder-three-outline" size={16} color={isDragging ? colors.white : colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* Úchyt pro řazení - jen pro aktivní návyky v režimu řazení */}
           {habit.isActive && showReorderHandle && (
             <ReorderHandle style={styles.reorderHandleHitArea}>
               <View style={styles.reorderHandleGrip}>

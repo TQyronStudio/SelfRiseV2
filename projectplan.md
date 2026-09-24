@@ -33,7 +33,9 @@ nová architektura, čistý JS → bez nového buildu).
 - [x] 8. Průvodci @technical-guides:Habits.md + @technical-guides:Goals.md — sekce Řazení
 - [x] 9. **Device test Petr** (iOS + Android) — ✅ 2026-09-24: „rychlý, 100% spokojenost"
 
-**Mimo rozsah (čeká na rozhodnutí Petra)**: mrtvá obrazovka `reorder-habits` a odinstalace staré knihovny.
+- [x] 10. Úklid (rozhodnutí Petra): smazána stará knihovna, mrtvá obrazovka `reorder-habits`, nepoužívané `HabitList` + `HabitItem`, props `onDrag`/`isDragging`, 7 osiřelých i18n klíčů × 3 jazyky
+
+**Ponecháno (Petr: „ničemu to nevadí“)**: dokončené cíle se v režimu řazení kývají, i když řadit nejdou.
 
 ---
 

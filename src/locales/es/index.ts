@@ -361,10 +361,6 @@ const es: Partial<TranslationKeys> = {
     goBack: 'Atrás',
     howItWorks: 'Como funciona SelfRise',
     backNavigation: 'Inicio',
-    reorderHabits: {
-      title: 'Reordenar Hábitos',
-      instructions: 'Mantén presionado y arrastra cualquier hábito para reordenarlos',
-    },
     habitStats: {
       activeHabits: 'Hábitos Activos',
       inactiveHabits: 'Hábitos Inactivos',
@@ -498,8 +494,6 @@ const es: Partial<TranslationKeys> = {
   ui: {
     continue: 'Continuar',
     next: 'Siguiente',
-    cancel: 'Cancelar',
-    save: 'Guardar',
     edit: 'Editar',
     delete: 'Eliminar',
     retry: 'Reintentar',
@@ -552,10 +546,6 @@ const es: Partial<TranslationKeys> = {
         submitFailed: 'No se pudo guardar el hábito. Por favor, inténtalo de nuevo.',
       },
     },
-    emptyState: {
-      title: 'Aún no hay hábitos',
-      subtitle: 'Comienza a construir mejores hábitos creando tu primero',
-    },
     emptyStateWithCompletion: {
       title: 'Aún no se han creado hábitos',
       subtitle: '¡Toca "Añadir Nuevo Hábito" para comenzar!',
@@ -576,7 +566,6 @@ const es: Partial<TranslationKeys> = {
     },
     // Habit list summary
     days: 'Días',
-    listSummary: '{{active}} activos • {{inactive}} inactivos',
     // Error messages
     errors: {
       failedToSave: 'No se pudo guardar el hábito',

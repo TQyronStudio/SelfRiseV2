@@ -21,14 +21,12 @@ interface GoalItemProps {
   onDelete: () => void;
   onViewStats: () => void;
   onAddProgress: () => void;
-  onDrag?: () => void;
-  isDragging?: boolean;
   /** Render the grip used by ReorderableList (reorder mode). */
   showReorderHandle?: boolean;
   isEditMode: boolean;
 }
 
-export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging, showReorderHandle, isEditMode }: GoalItemProps) => {
+export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, showReorderHandle, isEditMode }: GoalItemProps) => {
   const { t } = useI18n();
   const { colors } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -231,11 +229,6 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
           </Text>
         </View>
         <View style={styles.actions}>
-          {onDrag && (
-            <TouchableOpacity style={styles.actionButton} onPressIn={onDrag}>
-              <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
           {showReorderHandle && (
             <ReorderHandle style={styles.reorderHandleHitArea}>
               <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />

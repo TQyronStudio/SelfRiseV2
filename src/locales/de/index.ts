@@ -361,10 +361,6 @@ const de: Partial<TranslationKeys> = {
     goBack: 'Zurück',
     howItWorks: 'So funktioniert SelfRise',
     backNavigation: 'Startseite',
-    reorderHabits: {
-      title: 'Gewohnheiten neu ordnen',
-      instructions: 'Halte eine Gewohnheit und ziehe sie, um sie neu zu ordnen',
-    },
     habitStats: {
       activeHabits: 'Aktive Gewohnheiten',
       inactiveHabits: 'Inaktive Gewohnheiten',
@@ -498,8 +494,6 @@ const de: Partial<TranslationKeys> = {
   ui: {
     continue: 'Weiter',
     next: 'Weiter',
-    cancel: 'Abbrechen',
-    save: 'Speichern',
     edit: 'Bearbeiten',
     delete: 'Löschen',
     retry: 'Nochmal',
@@ -552,10 +546,6 @@ const de: Partial<TranslationKeys> = {
         submitFailed: 'Gewohnheit konnte nicht gespeichert werden. Bitte versuche es erneut.',
       },
     },
-    emptyState: {
-      title: 'Noch keine Gewohnheiten',
-      subtitle: 'Beginne bessere Gewohnheiten aufzubauen, indem du deine erste erstellst',
-    },
     emptyStateWithCompletion: {
       title: 'Noch keine Gewohnheiten erstellt',
       subtitle: 'Tippe auf "Gewohnheit hinzufügen", um loszulegen!',
@@ -576,7 +566,6 @@ const de: Partial<TranslationKeys> = {
     },
     // Habit list summary
     days: 'Tage',
-    listSummary: '{{active}} aktiv • {{inactive}} inaktiv',
     // Error messages
     errors: {
       failedToSave: 'Gewohnheit konnte nicht gespeichert werden',

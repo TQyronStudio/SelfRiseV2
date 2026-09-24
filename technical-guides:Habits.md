@@ -636,8 +636,9 @@ na původní místo — ťuknutí na úchyt nezapisuje do databáze.
   „nechytá to". Hlídá `reorderConfig.test.ts`.
 - `ReorderHandle` mimo `ReorderableList` spadne (`Sortable.Handle` potřebuje kontext mřížky) —
   proto ho karty vykreslují jen s `showReorderHandle`.
-- Starý prop `onDrag`/`isDragging` na kartách patří jen mrtvé obrazovce `reorder-habits`
-  (čeká na rozhodnutí Petra o smazání spolu se starou knihovnou).
+- Stará cesta je **smazaná** (2026-09-24, rozhodnutí Petra): knihovna
+  `react-native-draggable-flatlist`, obrazovka `reorder-habits`, nepoužívané `HabitList`
+  + `HabitItem` a props `onDrag`/`isDragging` na kartách. Nevracet — viz pravidla 1–3.
 
 ### Testování
 - `src/components/common/__tests__/reorderConfig.test.ts` — nastavení gesta a výpočet pořadí
