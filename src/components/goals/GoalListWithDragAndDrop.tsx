@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView, Text, FlatList } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import { ReorderableList } from '../common/ReorderableList';
 import { Goal, GoalStatus } from '../../types/goal';
 import { GoalItem } from './GoalItem';
 import { useI18n } from '../../hooks/useI18n';
@@ -32,8 +33,8 @@ export function GoalListWithDragAndDrop({
 }: GoalListWithDragAndDropProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  // Reorder mode needs the page's scroll view for auto-scroll at the edges.
+  const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
 
   const styles = StyleSheet.create({
     container: {
@@ -80,24 +81,6 @@ export function GoalListWithDragAndDrop({
   const completedGoals = goals.filter(goal => goal.status === GoalStatus.COMPLETED).sort((a, b) => a.order - b.order);
   const otherGoals = goals.filter(goal => goal.status !== GoalStatus.ACTIVE && goal.status !== GoalStatus.COMPLETED).sort((a, b) => a.order - b.order);
 
-  const handleDragBegin = () => {
-    setIsDragging(true);
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
-  };
-
-  const handleActiveDragEnd = ({ data }: { data: Goal[] }) => {
-    setIsDragging(false);
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: true });
-    
-    // Update order for active goals
-    const goalOrders = data.map((goal, index) => ({
-      id: goal.id,
-      order: index,
-    }));
-    
-    onReorderGoals(goalOrders);
-  };
-
   // Renderovací funkce pro FlatList
   const renderActiveGoalItem = ({ item: goal }: { item: Goal }) => (
     <View style={styles.goalItemContainer}>
@@ -113,8 +96,8 @@ export function GoalListWithDragAndDrop({
     </View>
   );
 
-  // Renderovací funkce pro DraggableFlatList
-  const renderDraggableGoalItem = ({ item: goal, drag, isActive }: RenderItemParams<Goal>) => (
+  // Renderovací funkce pro režim řazení (úchyt místo celé karty)
+  const renderReorderableGoalItem = (goal: Goal) => (
     <View style={styles.goalItemContainer}>
       <GoalItem
         goal={goal}
@@ -122,12 +105,13 @@ export function GoalListWithDragAndDrop({
         onDelete={() => onDeleteGoal(goal.id)}
         onViewStats={() => onViewGoalStats(goal.id)}
         onAddProgress={() => onAddProgress(goal)}
-        onDrag={drag}
-        isDragging={isActive}
+        showReorderHandle={true}
         isEditMode={isEditMode}
       />
     </View>
   );
+
+  const goalKeyExtractor = (goal: Goal) => goal.id;
 
   const renderStaticGoalItem = (goal: Goal) => (
     <View key={goal.id} style={styles.goalItemContainer}>
@@ -160,8 +144,9 @@ export function GoalListWithDragAndDrop({
     );
   }
 
+  // Animated.ScrollView: v režimu řazení ji seznam sám posouvá u okraje
   return (
-    <ScrollView
+    <Animated.ScrollView
       ref={scrollViewRef}
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -183,15 +168,12 @@ export function GoalListWithDragAndDrop({
             />
           </View>
           {isEditMode ? (
-            <DraggableFlatList
+            <ReorderableList
               data={activeGoals}
-              renderItem={renderDraggableGoalItem}
-              keyExtractor={(item) => item.id}
-              onDragBegin={handleDragBegin}
-              onDragEnd={handleActiveDragEnd}
-              scrollEnabled={false}
-              nestedScrollEnabled={true}
-              activationDistance={10}
+              keyExtractor={goalKeyExtractor}
+              renderItem={renderReorderableGoalItem}
+              onReorder={onReorderGoals}
+              scrollableRef={scrollViewRef}
             />
           ) : (
             <FlatList
@@ -223,6 +205,6 @@ export function GoalListWithDragAndDrop({
           {otherGoals.map(renderStaticGoalItem)}
         </View>
       )}
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }

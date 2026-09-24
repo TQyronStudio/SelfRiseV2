@@ -13,6 +13,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ConfirmationModal } from '../common';
+import { ReorderHandle } from '../common/ReorderableList';
 
 interface GoalItemProps {
   goal: Goal;
@@ -22,10 +23,12 @@ interface GoalItemProps {
   onAddProgress: () => void;
   onDrag?: () => void;
   isDragging?: boolean;
+  /** Render the grip used by ReorderableList (reorder mode). */
+  showReorderHandle?: boolean;
   isEditMode: boolean;
 }
 
-export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging, isEditMode }: GoalItemProps) => {
+export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAddProgress, onDrag, isDragging, showReorderHandle, isEditMode }: GoalItemProps) => {
   const { t } = useI18n();
   const { colors } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -149,6 +152,11 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
     actionButton: {
       padding: 8,
     },
+    // 44 pt touch area; the negative margin keeps the row as tall as the other
+    // 36 pt buttons and only reaches into the 8 pt gaps between them.
+    reorderHandleHitArea: {
+      margin: -4,
+    },
     description: {
       fontSize: 14,
       fontFamily: Fonts.regular,
@@ -227,6 +235,11 @@ export const GoalItem = React.memo(({ goal, onEdit, onDelete, onViewStats, onAdd
             <TouchableOpacity style={styles.actionButton} onPressIn={onDrag}>
               <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
+          )}
+          {showReorderHandle && (
+            <ReorderHandle style={styles.reorderHandleHitArea}>
+              <Ionicons name="reorder-three-outline" size={20} color={colors.textSecondary} />
+            </ReorderHandle>
           )}
           <TouchableOpacity style={styles.actionButton} onPress={onAddProgress}>
             <Ionicons name="add-circle-outline" size={20} color={colors.success} />

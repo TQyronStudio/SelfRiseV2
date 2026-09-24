@@ -28,6 +28,7 @@ import { HabitCompletionButton } from './HabitCompletionButton';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
 import { ConfirmationModal, HelpTooltip } from '@/src/components/common';
+import { ReorderHandle } from '@/src/components/common/ReorderableList';
 
 interface HabitItemWithCompletionProps {
   habit: Habit;
@@ -40,6 +41,8 @@ interface HabitItemWithCompletionProps {
   onViewStats: (habitId: string) => void;
   onDrag?: (() => void) | undefined;
   isDragging?: boolean;
+  /** Render the grip used by ReorderableList (reorder mode, active habits only). */
+  showReorderHandle?: boolean;
   isEditMode: boolean;
   date?: string;
 }
@@ -69,6 +72,7 @@ export const HabitItemWithCompletion = React.memo(({
   onViewStats,
   onDrag, 
   isDragging,
+  showReorderHandle,
   isEditMode,
   date = formatDateToString(new Date())
 }: HabitItemWithCompletionProps) => {
@@ -320,6 +324,20 @@ export const HabitItemWithCompletion = React.memo(({
     actionButtonDragging: {
       backgroundColor: colors.primary,
     },
+    // Grip spans both action columns (28 + 4 + 28); the 44 pt touch area
+    // around it eats the grid gap above so the card grows as little as possible.
+    reorderHandleHitArea: {
+      alignSelf: 'stretch',
+      marginTop: -4,
+    },
+    reorderHandleGrip: {
+      width: 60,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.cardBackgroundElevated,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     todayScheduledContainer: {
       borderWidth: 1,
       borderColor: colors.primary + '30',
@@ -464,6 +482,13 @@ export const HabitItemWithCompletion = React.memo(({
                 <Ionicons name="reorder-three-outline" size={16} color={isDragging ? colors.white : colors.textSecondary} />
               </TouchableOpacity>
             </View>
+          )}
+          {habit.isActive && showReorderHandle && (
+            <ReorderHandle style={styles.reorderHandleHitArea}>
+              <View style={styles.reorderHandleGrip}>
+                <Ionicons name="reorder-three-outline" size={18} color={colors.textSecondary} />
+              </View>
+            </ReorderHandle>
           )}
         </View>
       </View>

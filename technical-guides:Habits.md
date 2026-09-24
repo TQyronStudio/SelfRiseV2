@@ -567,6 +567,87 @@ Data Flow:
 
 ---
 
+## Řazení (reorder mode) — platí pro Návyky i Cíle
+
+**Kód**: `src/components/common/ReorderableList.tsx` (`ReorderableList` + `ReorderHandle`),
+nastavení a výpočet pořadí `src/components/common/reorderConfig.ts`. Používají ho
+`HabitListWithCompletion` a `GoalListWithDragAndDrop` — **jedno chování pro obě oblasti**.
+Knihovna: `react-native-sortables` (čistý JS nad Reanimated 4 + gesture-handler, bez nového buildu).
+
+**Proč vznikl (2026-09-24)**: se starou `react-native-draggable-flatlist` nešlo v režimu řazení
+scrollovat (iOS i Android, „občas to popojede"). Knihovna obalovala CELÝ seznam pan gestem,
+které se zapnulo po 10 bodech svislého pohybu, a my ji vnořovali do ScrollView → dvě gesta
+soupeřila o každý tah. Vnoření nepodporovala, neudržovala se a neznala Reanimated 4. Navíc
+chyběl autoscroll (stránka se při tažení zamykala).
+
+### 🚨 KRITICKÁ PRAVIDLA
+
+**1. Položku zvedá JEN úchyt.**
+```tsx
+// ✅ CORRECT
+<Sortable.Grid customHandle ... />   // + <ReorderHandle> v kartě
+// ❌ WRONG — gesto na celém seznamu / celé kartě
+<DraggableFlatList activationDistance={10} ... />   // uvnitř ScrollView
+```
+**Proč**: všude mimo úchyt patří prst scrollu stránky. Gesto přes celý seznam s ním soupeří
+a scroll pak vyhraje jen občas — přesně nahlášená chyba.
+
+**2. Úchyt zvedá okamžitě (`dragActivationDelay: 0`).**
+```tsx
+// ✅ CORRECT                              // ❌ WRONG — výchozí 200 ms knihovny
+dragActivationDelay={0}                    dragActivationDelay={200}
+```
+**Proč**: úchyt je výslovné místo pro chycení (jako nativní řazení na iOS). Se zpožděním se
+chycení zruší, jakmile se prst pohne o 5 bodů dřív, než zpoždění uplyne — úchyt „nechce chytit".
+
+**3. Seznam leží v `Animated.ScrollView` a dostává její `scrollableRef`.**
+```tsx
+// ✅ CORRECT
+const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
+<Animated.ScrollView ref={scrollViewRef}> <ReorderableList scrollableRef={scrollViewRef} … />
+// ❌ WRONG — obyčejná ScrollView + ruční setNativeProps({ scrollEnabled: false }) při tažení
+```
+**Proč**: bez reference se stránka u okraje sama neposune — položku by nešlo přenést za
+okraj obrazovky jedním tahem. Scroll se při tažení ručně NEzamyká (tak to dělá i oficiální
+příklad knihovny); zamykání bylo součástí starého řešení.
+
+**4. Úchyt má dotykovou plochu aspoň 44 × 44 pt.** Viditelná část může být menší; velikost
+řádku se drží zápornými okraji (návyk: lišta 60 × 28 přes oba sloupce akcí, karta v režimu
+řazení naroste o ~12 pt; cíl: `margin: -4`, výška řádku beze změny).
+
+**5. Režim řazení končí při odchodu z obrazovky** (`useFocusEffect` v `HabitsScreen`
+a `GoalsScreen`). **Proč**: knihovna hlásí u gesture-handler 2 na iOS zaseknutí přetahované
+položky po odpojení a znovupřipojení obrazovky (opraveno až v gesture-handler 3 = nativní
+build). Vypnutý režim tenhle stav vůbec nepřipustí.
+
+**6. Ukládá se jen skutečná změna.** `toOrderUpdates()` vrací `null`, když položka dopadla
+na původní místo — ťuknutí na úchyt nezapisuje do databáze.
+
+### Vzhled a haptika
+- Chycená karta se zvětší na 1,03 (plná šířka by se při výchozích 1,1 ořízla), ostatní
+  zeslábnou na 0,85. **Stín jen ve světlém režimu** (`activeItemShadowOpacity` 0 v tmavém).
+- Vibrace: zvednutí, každé prohození, puštění — **jen když má uživatel vibrace zapnuté**
+  (`isHapticsEnabled()`); knihovna je spouští přes `expo-haptics`.
+- Vstupní/výstupní animace položek vypnuté (`itemEntering/itemExiting = null`) — v režimu
+  řazení se položky nepřidávají ani neodebírají, animace by jen rozblikaly karty při zapnutí.
+
+### ⚠️ NEBEZPEČNÉ ZÓNY
+- Vrátit `customHandle` na `false` nebo přidat zpoždění → vrací se konflikt se scrollem /
+  „nechytá to". Hlídá `reorderConfig.test.ts`.
+- `ReorderHandle` mimo `ReorderableList` spadne (`Sortable.Handle` potřebuje kontext mřížky) —
+  proto ho karty vykreslují jen s `showReorderHandle`.
+- Starý prop `onDrag`/`isDragging` na kartách patří jen mrtvé obrazovce `reorder-habits`
+  (čeká na rozhodnutí Petra o smazání spolu se starou knihovnou).
+
+### Testování
+- `src/components/common/__tests__/reorderConfig.test.ts` — nastavení gesta a výpočet pořadí
+  (negativní kontrola: se starými hodnotami padají 3 z 5).
+- Gesta a scroll **automatické testy neověří** (Jest nahrazuje React Native stubem) →
+  device test na iOS i Androidu: scroll přes karty v režimu řazení, chycení za úchyt,
+  přenos položky z vrchu na spodek jedním tahem (autoscroll), odchod z obrazovky a návrat.
+
+---
+
 ## Storage Layer Integration
 
 ### HabitStorage Methods

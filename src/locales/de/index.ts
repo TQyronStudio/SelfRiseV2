@@ -503,6 +503,7 @@ const de: Partial<TranslationKeys> = {
     edit: 'Bearbeiten',
     delete: 'Löschen',
     retry: 'Nochmal',
+    dragToReorder: 'Zum Neuordnen ziehen',
   },
 
   // Habits screen

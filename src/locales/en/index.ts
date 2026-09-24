@@ -492,6 +492,7 @@ const en: TranslationKeys = {
     edit: 'Edit',
     delete: 'Delete',
     retry: 'Retry',
+    dragToReorder: 'Drag to reorder',
     // Tutorial Completion
   },
 

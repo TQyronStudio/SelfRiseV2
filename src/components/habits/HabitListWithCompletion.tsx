@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import { ReorderableList } from '@/src/components/common/ReorderableList';
 import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
@@ -46,8 +47,8 @@ export function HabitListWithCompletion({
 }: HabitListWithCompletionProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const [isDragging, setIsDragging] = React.useState(false);
-  const scrollViewRef = React.useRef<ScrollView>(null);
+  // Reorder mode needs the page's scroll view for auto-scroll at the edges.
+  const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
 
   // 1. Filtrování a řazení návyků
   const activeHabits = habits
@@ -143,8 +144,8 @@ export function HabitListWithCompletion({
     onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
   ]);
 
-  // Renderovací funkce pro DraggableFlatList (s drag funkcionalitou) - MEMOIZED
-  const renderDraggableHabitItem = useCallback(({ item, drag, isActive }: RenderItemParams<Habit>) => {
+  // Renderovací funkce pro režim řazení (úchyt místo celé karty) - MEMOIZED
+  const renderReorderableHabitItem = useCallback((item: Habit) => {
     return (
       <View style={styles.habitContainer}>
         <HabitItemWithCompletion
@@ -156,8 +157,7 @@ export function HabitListWithCompletion({
           onToggleCompletion={onToggleCompletion}
           onReorder={onReorderHabits}
           onViewStats={onViewHabitStats}
-          onDrag={drag}
-          isDragging={isActive}
+          showReorderHandle={true}
           isEditMode={isEditMode}
           date={date}
         />
@@ -167,29 +167,11 @@ export function HabitListWithCompletion({
     styles, getHabitCompletion, onEditHabit, onDeleteHabit, onToggleActive,
     onToggleCompletion, onReorderHabits, onViewHabitStats, isEditMode, date
   ]);
-  
-  // Funkce pro uložení nového pořadí aktivních návyků
-  const handleActiveDragEnd = ({ data }: { data: Habit[] }) => {
-    setIsDragging(false);
-    // Re-enable ScrollView scrolling after drag
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: true });
-    const habitOrders = data.map((habit, index) => ({
-      id: habit.id,
-      order: index,
-    }));
-    onReorderHabits(habitOrders);
-  };
 
-  const handleDragBegin = useCallback(() => {
-    setIsDragging(true);
-    // Disable ScrollView scrolling during drag
-    scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
-  }, []);
-
-  // Memoized keyExtractor pro DraggableFlatList
-  const draggableKeyExtractor = useCallback((item: Habit, index: number) => {
+  // Memoized keyExtractor pro režim řazení
+  const reorderableKeyExtractor = useCallback((item: Habit) => {
     if (!item.id || typeof item.id !== 'string') {
-      console.error('[DraggableFlatList] CHYBNÝ KLÍČ!', item);
+      console.error('[ReorderableList] CHYBNÝ KLÍČ!', item);
     }
     return item.id;
   }, []);
@@ -202,9 +184,9 @@ export function HabitListWithCompletion({
     return item.id;
   }, []);
 
-  // Vrácení k ScrollView struktuře, ale s nestedScrollEnabled
+  // Animated.ScrollView: v režimu řazení ji seznam sám posouvá u okraje
   return (
-    <ScrollView
+    <Animated.ScrollView
       ref={scrollViewRef}
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -219,15 +201,12 @@ export function HabitListWithCompletion({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('habits.activeHabits')}</Text>
           {isEditMode ? (
-            <DraggableFlatList
+            <ReorderableList
               data={activeHabits}
-              renderItem={renderDraggableHabitItem}
-              keyExtractor={draggableKeyExtractor}
-              onDragBegin={handleDragBegin}
-              onDragEnd={handleActiveDragEnd}
-              scrollEnabled={false}
-              nestedScrollEnabled={true}
-              activationDistance={10}
+              keyExtractor={reorderableKeyExtractor}
+              renderItem={renderReorderableHabitItem}
+              onReorder={onReorderHabits}
+              scrollableRef={scrollViewRef}
             />
           ) : (
             /* Android + iOS normal mode: Vždy FlatList */
@@ -275,6 +254,6 @@ export function HabitListWithCompletion({
           <Text style={styles.emptyStateSubtext}>{t('habits.emptyStateWithCompletion.subtitle')}</Text>
         </View>
       )}
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }

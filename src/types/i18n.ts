@@ -306,6 +306,7 @@ export interface TranslationKeys {
     edit: string;
     delete: string;
     retry: string;
+    dragToReorder: string;
     // Tutorial Completion
   };
 

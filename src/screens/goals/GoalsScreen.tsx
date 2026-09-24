@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -112,6 +113,13 @@ export function GoalsScreen() {
   const addGoalButtonRef = useRef<View>(null);
   
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Reorder mode ends when the screen loses focus. A dragged item can get stuck
+  // after the screen is detached and re-attached (react-native-sortables with
+  // gesture-handler 2 on iOS) — leaving the mode prevents that state entirely.
+  useFocusEffect(
+    useCallback(() => () => setIsEditMode(false), [])
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
   const [progressModalVisible, setProgressModalVisible] = useState(false);

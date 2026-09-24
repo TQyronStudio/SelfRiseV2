@@ -995,6 +995,12 @@ interface ProgressEntry {
 
 ## UI/UX Standards
 
+### Řazení aktivních cílů (reorder mode)
+Stejná sdílená komponenta a pravidla jako u návyků — **jediný zdroj pravdy**:
+@technical-guides:Habits.md → „Řazení (reorder mode)". Řadí se jen sekce Aktivní cíle;
+dokončené a ostatní cíle zůstávají statické. Úchyt v `GoalItem` (`showReorderHandle`)
+má dotykovou plochu 44 pt se zápornými okraji, takže výška hlavičky karty se nemění.
+
 ### Visual Consistency
 ```typescript
 // Goal card styling
