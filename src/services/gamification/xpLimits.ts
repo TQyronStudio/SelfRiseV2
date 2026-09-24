@@ -238,9 +238,15 @@ export function validateXPAddition(params: ValidateXPAdditionParams): XPValidati
 
   const timeSinceLastTransaction = nowMs - dailyData.lastTransactionTime;
 
+  // A last transaction stamped in the FUTURE is not "recent" — the device clock
+  // was set back (manually, or corrected by network time), or seeded data carried
+  // a future time. A negative gap is always < 100 ms, so without this guard every
+  // user action was rejected for hours, until the clock caught up — while undo
+  // (subtractXP, which skips validation) kept taking XP away.
   if (
     !SYSTEM_GRANTED_REWARDS.has(source) &&
     !skipRateLimit &&
+    timeSinceLastTransaction >= 0 &&
     timeSinceLastTransaction < BALANCE_VALIDATION.MIN_TIME_BETWEEN_IDENTICAL_GAINS
   ) {
     return {

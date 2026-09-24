@@ -271,6 +271,28 @@ describe('xpLimits — daily limits & anti-spam (pure rules)', () => {
       expect(result.reason).toBe('Too many transactions in short time');
     });
 
+    // Device test 2026-09-24: marketing demo data stamped today's XP row at 20:29.
+    // Before that time `now - last` was negative — always "< 100 ms" — so every
+    // habit, journal and goal gain was rejected while undo kept subtracting. The
+    // same happens to a real user whose phone clock is set back.
+    test.each([
+      ['habit completion', XPSourceType.HABIT_COMPLETION],
+      ['journal entry', XPSourceType.JOURNAL_ENTRY],
+      ['goal progress', XPSourceType.GOAL_PROGRESS],
+    ])('a last transaction in the future does not block: %s', (_label, source) => {
+      const now = 1_000_000;
+      const result = validateXPAddition({
+        amount: 25,
+        source,
+        dailyData: snapshot({ lastTransactionTime: now + 3 * 60 * 60 * 1000 }), // 3 h ahead
+        multiplier: NO_MULTIPLIER,
+        nowMs: now,
+      });
+
+      expect(result.isValid).toBe(true);
+      expect(result.allowedAmount).toBe(25);
+    });
+
     test('negative XP (undo) is not blocked by goal anti-spam', () => {
       const r = validateXPAddition({
         amount: -35,

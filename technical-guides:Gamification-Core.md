@@ -310,6 +310,24 @@ v testech musí **injektovat mockem** (viz `sqliteGoalStorage.progressXP.test.ts
 1 ms po předchozí transakci, 4 uživatelské akce jsou dál blokované). Negativní
 kontrola: se starou podmínkou padají 3.
 
+### 🚨 PRODUCTION FIX (24. 9. 2026): Transakce „z budoucnosti“ zablokovala veškeré XP
+
+**Problém**: rate limit počítá `now − lastTransactionTime`. Leží-li poslední
+transakce v budoucnosti, rozdíl je záporný → vždy „< 100 ms“ → **každý** zisk
+z návyku, deníku i progressu cíle byl odmítnut, dokud hodiny budoucnost nedohnaly.
+Odebírání (`subtractXP`) validací neprochází, takže odškrtnutí XP dál bralo.
+Nalezeno device testem po načtení marketingových demo dat (dnešní XP řádek měl
+čas 20:29, demo se načetlo ve 20:06). Stejně dopadne skutečný uživatel, kterému
+se **posunou hodiny v telefonu dozadu** (ručně, nebo korekcí podle sítě).
+Časová pásma to NEzpůsobují — timestampy jsou absolutní (epoch ms).
+
+**Pravidlo**: záporný odstup = žádná nedávná transakce (`timeSinceLastTransaction >= 0`
+v `xpLimits.ts`). Po dobu posunu hodin tak rate limit nebrzdí; denní stropy,
+limit transakcí na cíl a symetrické vracení XP platí dál.
+
+**Regresní testy**: `xpLimits.test.ts` § „a last transaction in the future does
+not block“ (3 testy). Negativní kontrola: bez podmínky padají všechny 3.
+
 ### 🚨 PRODUCTION FIX (26. 7. 2026): Vracení XP ignorovalo multiplier → farmení
 
 **Problém**: `performXPAdditionInternal()` násobí odměnu aktivním multiplierem

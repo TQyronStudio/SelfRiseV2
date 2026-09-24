@@ -1371,6 +1371,15 @@ Zásady pro každodenní vývoj:
 - Default behavior: keep this unset or set to `false` in production/release builds so the marketing demo controls are not visible to users.
 - Use `EXPO_PUBLIC_ENABLE_MARKETING_DEMO=true` only for local development, development builds, and screenshot sessions.
 - The demo data service stays in the codebase as an internal marketing workflow tool, but production UI access is controlled by this flag.
+- For `npm start` sessions put the flag in the local, gitignored `.env` and restart Metro with `--clear` — no new build is needed.
+
+**Habit filming scenarios** (everything is computed relative to *today* — reload the demo on the filming day):
+- 6 habits, 30 days of history at roughly 85–90 % completion: red missed days, Smart Make-ups (a bonus on a free day in the same Mon–Sun week as a miss) and occasional gold bonuses. The history is deterministic per date (`roll()` hash), so a reload on the same day gives the same picture.
+- **Drink Water**: perfect streak, already checked today. **Morning Walk**: daily, a few red days, open today (plain check-off shot).
+- **Read / Meditate / Sleep Early**: the *current week* is kept clean, so whichever of them is not scheduled today gives a pure gold **bonus** when checked.
+- **Workout** (dumbbell, 3×/week): scheduled yesterday, 3 and 5 days ago, never today; yesterday is missed → checking it today is a **Smart Make-up** that turns yesterday green. Make-up pairs only within one Mon–Sun week, so **on a Monday** this is a plain gold bonus instead.
+- Journal, goals, XP (level 16), achievements and the monthly challenge are unchanged. Today already has 13 journal entries, so a new one on camera earns 0 XP (entries 14+ are anti-spam).
+- **Nothing is ever seeded in the future** (`asTimestamp`): today's records are squeezed into the part of today that has already passed, order preserved. A future XP row (formerly today 20:29) made the anti-spam rate limit reject every habit/journal/goal XP gain until that time — no +XP on camera right after loading. Guarded by `marketingDemoTimestamps.test.ts`; see also @technical-guides:Gamification-Core.md (fix 24. 9. 2026).
 
 ### Environment Files
 - `.env.example` - Example environment file with all required keys

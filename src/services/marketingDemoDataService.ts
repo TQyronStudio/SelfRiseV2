@@ -15,6 +15,10 @@ type DemoHabit = {
   icon: HabitIcon;
   scheduledDays: DayOfWeek[];
   order: number;
+  /** Share (0-100) of past scheduled days left missed before this week. 0 = perfect streak. */
+  missRate: number;
+  /** Whether today's scheduled occurrence is already checked off after loading. */
+  doneToday: boolean;
 };
 
 type DemoGoal = {
@@ -93,13 +97,27 @@ const weekdays = [
   DayOfWeek.FRIDAY,
 ];
 
-const demoHabits: DemoHabit[] = [
+const WORKOUT_HABIT_ID = 'marketing-habit-workout';
+
+// Filming scenarios the seed prepares for TODAY (reload the demo on the filming day):
+// - Drink Water: perfect streak, already checked today.
+// - Morning Walk: daily, a few red days in history (a daily habit has no free day
+//   to make up on), not yet checked today → plain check-off shot.
+// - Read / Meditate / Sleep: realistic history with red days, make-ups and gold
+//   bonuses; the current week is clean, so whichever is NOT scheduled today gives a
+//   pure gold BONUS when checked.
+// - Workout: scheduled YESTERDAY (missed, red) but not today → checking it today is a
+//   SMART MAKE-UP that turns yesterday green. Make-up pairs only within one Mon–Sun
+//   week, so on a Monday this becomes a plain bonus instead.
+const staticDemoHabits: DemoHabit[] = [
   {
     id: 'marketing-habit-morning-walk',
     color: HabitColor.BLUE,
     icon: HabitIcon.FITNESS,
     scheduledDays: allDays,
     order: 0,
+    missRate: 18,
+    doneToday: false,
   },
   {
     id: 'marketing-habit-water',
@@ -107,6 +125,8 @@ const demoHabits: DemoHabit[] = [
     icon: HabitIcon.WATER,
     scheduledDays: allDays,
     order: 1,
+    missRate: 0,
+    doneToday: true,
   },
   {
     id: 'marketing-habit-reading',
@@ -114,6 +134,8 @@ const demoHabits: DemoHabit[] = [
     icon: HabitIcon.BOOK,
     scheduledDays: weekdays,
     order: 2,
+    missRate: 25,
+    doneToday: false,
   },
   {
     id: 'marketing-habit-meditation',
@@ -121,6 +143,8 @@ const demoHabits: DemoHabit[] = [
     icon: HabitIcon.MEDITATION,
     scheduledDays: [DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY, DayOfWeek.SUNDAY],
     order: 3,
+    missRate: 25,
+    doneToday: false,
   },
   {
     id: 'marketing-habit-sleep',
@@ -128,8 +152,25 @@ const demoHabits: DemoHabit[] = [
     icon: HabitIcon.SLEEP,
     scheduledDays: [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.SATURDAY],
     order: 4,
+    missRate: 25,
+    doneToday: false,
   },
 ];
+
+const dayOf = (dateString: string): DayOfWeek => getDayOfWeek(new Date(`${dateString}T12:00:00`));
+
+/** Workout runs 3×/week on yesterday, 3 and 5 days ago — never today. */
+const getWorkoutHabit = (): DemoHabit => ({
+  id: WORKOUT_HABIT_ID,
+  color: HabitColor.RED,
+  icon: HabitIcon.DUMBBELL,
+  scheduledDays: [1, 3, 5].map(daysAgo => dayOf(subtractDays(today(), daysAgo))),
+  order: 5,
+  missRate: 25,
+  doneToday: false,
+});
+
+const getDemoHabits = (): DemoHabit[] => [...staticDemoHabits, getWorkoutHabit()];
 
 const demoGoals: DemoGoal[] = [
   {
@@ -189,6 +230,10 @@ const demoContent: Record<MarketingDemoLocale, MarketingDemoContent> = {
       'marketing-habit-sleep': {
         name: 'Sleep Early',
         description: 'Protect recovery with a consistent bedtime.',
+      },
+      'marketing-habit-workout': {
+        name: 'Workout',
+        description: 'Strength training three times a week.',
       },
     },
     goals: {
@@ -265,6 +310,10 @@ const demoContent: Record<MarketingDemoLocale, MarketingDemoContent> = {
         name: 'Früh schlafen',
         description: 'Schütze deine Erholung mit einer festen Schlafenszeit.',
       },
+      'marketing-habit-workout': {
+        name: 'Training',
+        description: 'Krafttraining dreimal pro Woche.',
+      },
     },
     goals: {
       'marketing-goal-books': {
@@ -339,6 +388,10 @@ const demoContent: Record<MarketingDemoLocale, MarketingDemoContent> = {
       'marketing-habit-sleep': {
         name: 'Dormir temprano',
         description: 'Protege tu recuperación con una hora de sueño constante.',
+      },
+      'marketing-habit-workout': {
+        name: 'Entrenamiento',
+        description: 'Entrenamiento de fuerza tres veces por semana.',
       },
     },
     goals: {
@@ -424,8 +477,31 @@ const unlockedAchievementIds = [
 ];
 
 const id = (prefix: string, value: string | number) => `marketing-${prefix}-${value}`;
-const asTimestamp = (dateString: string, hour = 9, minute = 0): number =>
-  new Date(`${dateString}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`).getTime();
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TODAY_SAFETY_MARGIN_MS = 60 * 1000;
+
+/**
+ * Seed time for a demo record. Past days keep their wall-clock time.
+ *
+ * TODAY's records are squeezed into the part of today that has already passed
+ * (order preserved), so nothing is ever stamped in the future. A future
+ * `xp_transactions` row made the anti-spam rate limit reject every habit,
+ * journal and goal XP gain until the clock caught up (20:29 for the XP row) —
+ * the demo is loaded right before filming, so that meant no +XP on camera.
+ */
+export const asTimestamp = (dateString: string, hour = 9, minute = 0): number => {
+  const wallClock = new Date(
+    `${dateString}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+  ).getTime();
+  if (dateString < today()) {
+    return wallClock;
+  }
+
+  const startOfDay = new Date(`${dateString}T00:00:00`).getTime();
+  const latest = Date.now() - TODAY_SAFETY_MARGIN_MS;
+  const fraction = Math.min(1, (wallClock - startOfDay) / DAY_MS);
+  return Math.max(startOfDay, Math.round(startOfDay + fraction * (latest - startOfDay)));
+};
 const currentMonth = () => today().substring(0, 7);
 const monthStart = () => `${currentMonth()}-01`;
 const getDemoTotalXP = () => getXPRequiredForLevel(demoLevel) + demoLevelProgressXP;
@@ -435,49 +511,85 @@ const getDateRange = (daysBack: number): string[] => {
   return Array.from({ length: daysBack }, (_, index) => subtractDays(end, daysBack - index - 1));
 };
 
-const shouldCompleteHabit = (habit: DemoHabit, dateString: string): boolean => {
-  const day = getDayOfWeek(new Date(`${dateString}T12:00:00`));
-
-  if (!habit.scheduledDays.includes(day)) {
-    return false;
+/** Deterministic 0-99 roll, so the same day always gets the same history. */
+const roll = (key: string): number => {
+  // FNV-1a + murmur3 finalizer: neighbouring dates must not get similar rolls,
+  // otherwise misses cluster (four in a row) or alternate day by day.
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < key.length; index += 1) {
+    hash = Math.imul(hash ^ key.charCodeAt(index), 0x01000193);
   }
-
-  const dayOfMonth = Number(dateString.slice(-2));
-
-  if (habit.id === 'marketing-habit-reading' && [7, 14].includes(dayOfMonth)) {
-    return false;
-  }
-
-  if (habit.id === 'marketing-habit-meditation' && [10, 17].includes(dayOfMonth)) {
-    return false;
-  }
-
-  if (habit.id === 'marketing-habit-sleep' && [12, 19].includes(dayOfMonth)) {
-    return false;
-  }
-
-  return true;
+  hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b);
+  hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+  return ((hash ^ (hash >>> 16)) >>> 0) % 100;
 };
 
-const getBonusDatesForHabit = (habit: DemoHabit, dates: string[]): string[] => {
-  const missedScheduledDates = dates.filter(dateString => {
-    const day = getDayOfWeek(new Date(`${dateString}T12:00:00`));
-    return habit.scheduledDays.includes(day) && !shouldCompleteHabit(habit, dateString);
-  });
+/** Monday of the week containing the date (Smart Make-up pairs within Mon–Sun). */
+const weekStartOf = (dateString: string): string => {
+  const mondayBased = (new Date(`${dateString}T12:00:00`).getDay() + 6) % 7;
+  return subtractDays(dateString, mondayBased);
+};
 
-  const bonusDates = missedScheduledDates
-    .map(missedDate => {
-      const missedIndex = dates.indexOf(missedDate);
-      const weekWindow = dates.slice(missedIndex + 1, missedIndex + 7);
+/**
+ * Plans a habit's completions over the demo window.
+ * - scheduled: completed scheduled days (green)
+ * - bonus: completions on unscheduled days — the app itself converts them into
+ *   make-ups when the same week has a missed scheduled day, otherwise they stay gold
+ * Missed scheduled days are simply absent (red unless a bonus covers them).
+ */
+const planHabitHistory = (habit: DemoHabit, dates: string[]): { scheduled: string[]; bonus: string[] } => {
+  const todayDate = today();
+  const yesterday = subtractDays(todayDate, 1);
+  const currentWeek = weekStartOf(todayDate);
+  const isScheduled = (dateString: string) => habit.scheduledDays.includes(dayOf(dateString));
 
-      return weekWindow.find(dateString => {
-        const day = getDayOfWeek(new Date(`${dateString}T12:00:00`));
-        return !habit.scheduledDays.includes(day);
-      });
-    })
-    .filter((dateString): dateString is string => Boolean(dateString));
+  const weeks = new Map<string, string[]>();
+  for (const dateString of dates) {
+    const week = weekStartOf(dateString);
+    weeks.set(week, [...(weeks.get(week) ?? []), dateString]);
+  }
 
-  return [...new Set(bonusDates)].slice(0, 3);
+  const scheduled: string[] = [];
+  const bonus: string[] = [];
+
+  for (const [week, weekDates] of weeks) {
+    const isCurrentWeek = week === currentWeek;
+    const missed: string[] = [];
+
+    for (const dateString of weekDates) {
+      if (!isScheduled(dateString)) continue;
+
+      if (dateString === todayDate) {
+        if (habit.doneToday) scheduled.push(dateString);
+        continue;
+      }
+
+      // The Workout miss that today's check-off makes up for.
+      if (habit.id === WORKOUT_HABIT_ID && dateString === yesterday) continue;
+
+      // Keep the current week clean so today's shots behave predictably.
+      if (isCurrentWeek || roll(`${habit.id}|${dateString}|miss`) >= habit.missRate) {
+        scheduled.push(dateString);
+      } else {
+        missed.push(dateString);
+      }
+    }
+
+    // No pre-made bonuses this week: they would pre-empt today's make-up / bonus shots.
+    if (isCurrentWeek) continue;
+
+    const freeDays = weekDates.filter(dateString => !isScheduled(dateString));
+    for (const missedDate of missed) {
+      if (freeDays.length > 0 && roll(`${habit.id}|${missedDate}|makeup`) < 55) {
+        bonus.push(freeDays.shift()!);
+      }
+    }
+    if (missed.length === 0 && freeDays.length > 0 && roll(`${habit.id}|${week}|gold`) < 40) {
+      bonus.push(freeDays[0]!);
+    }
+  }
+
+  return { scheduled, bonus };
 };
 
 const createEmptyXPBySource = (): Record<XPSourceType, number> => ({
@@ -574,7 +686,8 @@ async function seedHabits(content: MarketingDemoContent): Promise<number> {
   const firstDate = dates[0] ?? today();
   let completionCount = 0;
 
-  for (const habit of demoHabits) {
+  for (const habit of getDemoHabits()) {
+    const plan = planHabitHistory(habit, dates);
     const habitText = content.habits[habit.id] ?? demoContent.en.habits[habit.id]!;
     const createdAt = asTimestamp(dates[0]!, 7, habit.order);
 
@@ -609,11 +722,7 @@ async function seedHabits(content: MarketingDemoContent): Promise<number> {
       ]
     );
 
-    for (const dateString of dates) {
-      if (!shouldCompleteHabit(habit, dateString)) {
-        continue;
-      }
-
+    for (const dateString of plan.scheduled) {
       completionCount += 1;
       const completedAt = asTimestamp(dateString, 8 + (habit.order % 4), 10 + habit.order);
 
@@ -634,7 +743,7 @@ async function seedHabits(content: MarketingDemoContent): Promise<number> {
       );
     }
 
-    for (const dateString of getBonusDatesForHabit(habit, dates)) {
+    for (const dateString of plan.bonus) {
       completionCount += 1;
       const completedAt = asTimestamp(dateString, 17, 20 + habit.order);
 
@@ -1235,7 +1344,7 @@ export async function loadMarketingDemoData(locale: MarketingDemoLocale = 'en'):
   DeviceEventEmitter.emit('monthly_progress_updated', { challengeId: 'marketing-challenge-balanced-month' });
 
   return {
-    habits: demoHabits.length,
+    habits: getDemoHabits().length,
     habitCompletions,
     journalEntries,
     goals: demoGoals.length,
