@@ -676,3 +676,175 @@ statistiky do minulosti bez omezení.
 
 - Až bude jádro návyků stabilní v produkci (po super auditu)
 - Vyžaduje produktové rozhodnutí Petra k bodům v Design Considerations výše
+
+
+---
+
+> 📦 **Odloženo z projectplan.md 2026-10-04** — Petr: „zatím není v plánu". Text přesunut doslova.
+
+## Phase 8: Startup Orchestrator — Úroveň 2 (pipeline řízená Remote Configem) 🛰️
+
+> Úroveň 1 je hotová a v produkci (pravidla: @technical-guides:Startup-Orchestrator.md).
+> Bod 2.8 (průvodce) je HOTOVÝ — průvodce existuje od 2026-07-20.
+
+### 🥈 ÚROVEŇ 2: Pipeline řízená remote configem (nulové nasazování přes update)
+
+**Rozsah**: zapnutí/pořadí/timeouty (a u „consent-only" oken i texty) registrovaných kroků přichází z **Firebase Remote Config** → nové EU okno zapneš **bez aktualizace v App Store**. Firebase `app`+`analytics`+`crashlytics` už v projektu jsou (v23.8.8); `remote-config` **není** nainstalovaný. Stavíme až po device ověření Úrovně 1.
+
+- [ ] **2.1 Instalace** `@react-native-firebase/remote-config@^23.8.8` (sladit verzi s ostatními RNFB) → vyžádá `expo prebuild --clean` + rebuild; wrapper po vzoru `crashReportingService.ts` (bezpečný no-op v Jest/Expo Go, NIKDY neimportovat RNFB přímo)
+- [ ] **2.2 Remote schéma** — versionovaný JSON: `[{ id, enabled, order, timeoutMs, critical }]`. Config **nikdy neposílá kód** — jen vybírá/řadí kroky z registru (2.3) podle `id`
+- [ ] **2.3 Registr kroků** — mapa `id → StartupStep` (z Úrovně 1: `att`, `adConsent`). Orchestrator sestaví běhovou pipeline = registr ∩ remote schéma, seřazeno dle `order`. **Neznámé `id` z configu se bezpečně ignoruje** (starý build + nový config nespadne)
+- [ ] **2.4 Fetch s bezpečným defaultem** — `fetchAndActivate()` s krátkým timeoutem v app-ready gate; když config nedorazí/je nevalidní → **fallback na zabudovanou pipeline z Úrovně 1** (appka se nikdy nezasekne kvůli configu). Cache dle RNFB `minimumFetchInterval`
+- [ ] **2.5 „Consent-only" kroky z dat** — generický `RemoteConsentStep` (emoji/nadpis/text/tlačítka + uložení volby do AsyncStorage) plně definovatelný z configu → nové čistě souhlasové okno **bez nového buildu** (princip CMP jako OneTrust/Didomi). Vizuál = CelebrationModal standard.
+  - ⚠️ **Můstek await-na-zavření**: RN `<Modal>` (na rozdíl od nativních kroků) nemá promise, který se resolvuje při zavření. `present()` musí modal zobrazit a **vrátit promise, který resolvne až po tapu na tlačítko**. Přes ModalQueue to znamená: enqueue + počkat na `closeCurrentModal`/callback daného modalu. Musí ctít ModalQueue **pinning invariant** (zobrazené čelo se nepřeřazuje) — jinak se do toho vrací dual-modal zamrznutí.
+- [ ] **2.6 Telemetrie** — log které kroky proběhly/skipnuly/vypršely do Firebase (diagnostika budoucích zamrznutí u testerů) přes `crashReportingService.log()`
+- [ ] **2.7 Testy**: fallback na default při nedostupném/nevalidním/prázdném configu; neznámé `id` ignorováno; změna `order`/`enabled` přes config se projeví; `RemoteConsentStep` uloží volbu a projde ModalQueue
+- [ ] **2.8 Dokumentace** — nový `technical-guides:Startup-Orchestrator.md` (architektura, jak přidat krok v kódu i přes config, app-ready gate, invarianty, vazba na ModalQueue + jeho pinning pravidlo)
+
+**Doporučení**: Úroveň 1 teď (vyřeší problém natrvalo, čistě v kódu, testovatelné). Úroveň 2 jako druhý krok po device ověření L1 — přidává hodnotu (compliance bez App Store updatu), ale i závislost na síti + nový native modul (`prebuild`), takže až na stabilním základu.
+
+---
+
+## Phase 9: Meta Ads & Marketing Analytics Integration 📈
+
+**Goal**: Připravit SelfRise V2 pro běh marketingových kampaní na Meta Ads (Facebook + Instagram) a zároveň začít aktivně sbírat custom eventy do Firebase Analytics pro vlastní reporting.
+
+**Background** (potvrzeno auditem 2026-05-18):
+- ✅ Firebase Analytics SDK instalovaný, hook `useFirebaseAnalytics` napojený v `app/_layout.tsx`
+- ✅ ATT (App Tracking Transparency) plugin + permission flow funkční
+- ✅ SKAdNetwork 48 ID v `app.json` (včetně Meta `v9wttpbfk9`, `n38lu8286q`)
+- ✅ AdMob bannery + rewarded ads kompletní – **nekolidují s Meta Ads akvizicí** (různý účel: AdMob = monetizace, Meta Ads = akvizice)
+- ⚠️ Žádné custom eventy se zatím nelogují (kromě `app_open` a `att_permission_response`)
+- ⚠️ Meta SDK (`react-native-fbsdk-next`) NENÍ nainstalovaný
+- ⚠️ Premium tier NENÍ v plánu – Value Optimization eventy v Metě vynechány
+
+---
+
+### 🧑 Část A: Úkoly pro Petra (mimo kód)
+
+Tyto kroky musí Petr udělat v externích nástrojích – kód na nich závisí:
+
+- [ ] **A1. Vytvořit Meta App v Meta for Developers**
+  - URL: https://developers.facebook.com/apps/
+  - Type: "Consumer"
+  - Spojit s bundle ID `com.petrturek.selfrise` (iOS) i Android package `com.petrturek.selfrise`
+  - Zapsat si: **Meta App ID** + **Client Token** (App Settings → Basic + Advanced)
+- [ ] **A2. Přidat platformy v Meta App Settings**
+  - iOS: Bundle ID + App Store ID
+  - Android: Package Name + Class Name `com.facebook.react.ReactActivity`
+- [ ] **A3. Aktivovat App Events v Meta App Dashboardu**
+  - Audience Network nepovolovat (jen pro monetizaci přes Metu – není náš případ)
+- [ ] **A4. (Volitelně) Zažádat o Meta Ads MCP open beta**
+  - URL: https://mcp.facebook.com/ads
+  - Vyžaduje Claude Pro/Max plán
+- [ ] **A5. Předat mi Meta App ID + Client Token** → odblokuje Část C
+
+---
+
+### 💻 Část B: Custom Eventy do Firebase (nezávislé na Metě)
+
+Tato část má hodnotu sama o sobě – lepší interní data o chování uživatelů. Lze začít hned.
+
+- [ ] **B1. Vytvořit `src/services/analyticsService.ts`**
+  - Sjednocený eventový dispatcher (zatím jen Firebase, později paralelně i Meta)
+  - Wrapper kolem `FirebaseAnalytics.logEvent` z existujícího hooku
+  - Type-safe event names (TypeScript union type)
+- [ ] **B2. Tier 1 eventy – Acquisition signal**
+  - `complete_onboarding` – konec tutorialu (Tutorial system)
+  - `create_first_habit` – první vytvořený návyk (HabitsContext)
+  - `complete_first_habit` – první zaškrtnutí návyku
+  - `journal_first_entry` – první zápis do deníku (GratitudeContext)
+- [ ] **B3. Tier 2 eventy – Retention signal**
+  - `streak_7_days` – sedmidenní streak (deník nebo návyky)
+  - `streak_30_days` – třicetidenní streak
+  - `goal_completed` – dokončený cíl
+  - `monthly_challenge_completed` – splněná měsíční výzva
+  - `achievement_unlocked` – odemčený achievement (param `achievement_id`)
+- [ ] **B4. Tier 3 eventy – Monetization signal**
+  - `rewarded_ad_completed` – sledování rewarded reklamy (AdMob WarmUp)
+- [ ] **B5. Ověření v Firebase Console**
+  - Dev build, projít tutorialem, založit návyk, zaškrtnout
+  - Firebase Console → Analytics → DebugView ověří příchozí eventy
+
+---
+
+### 🔌 Část C: Meta SDK Integrace (blokováno Částí A)
+
+Tato část navazuje na Část A a B. **Blokovaná dokud Petr nedodá Meta App ID + Client Token.**
+
+- [ ] **C1. Instalace `react-native-fbsdk-next`**
+  - `npm install react-native-fbsdk-next`
+  - Verify kompatibilita s Expo SDK 55 + RN 0.83
+- [ ] **C2. Konfigurace pluginu v `app.json`**
+  - Přidat `react-native-fbsdk-next` do `plugins` s App ID a Client Tokenem
+  - Nastavit `advertiserIDCollectionEnabled`, `autoLogAppEventsEnabled`, `isAutoInitEnabled`
+- [x] **C3. Update `NSUserTrackingUsageDescription`** (provedeno preventivně 2026-05-18)
+  - Z: "This data helps us keep the app free and show you more relevant ads."
+  - Na: "We use this to measure ad performance and personalize your experience. This keeps SelfRise free for everyone."
+- [ ] **C4. Rozšířit `analyticsService.ts` o Meta App Events**
+  - Paralelní dispatch: jedno `Analytics.track()` → Firebase + Meta zároveň
+  - Type-safe mapping interních event names na Meta standard event names
+- [ ] **C5. Mapování interních eventů na Meta Standard Events**
+  - `complete_onboarding` → `fb_mobile_complete_registration`
+  - `create_first_habit` → `fb_mobile_content_view` (custom params)
+  - `streak_7_days` → `fb_mobile_achievement_unlocked`
+  - `rewarded_ad_completed` → custom event
+- [ ] **C6. Expo Prebuild + Native Builds**
+  - `npx expo prebuild --clean`
+  - iOS test build → ověření v Meta Events Manager Test Events tool
+  - Android test build → ověření v Meta Events Manager Test Events tool
+- [ ] **C7. Verifikace v Meta Events Manager**
+  - Test Events tool zobrazuje příchozí eventy z obou platform
+  - App Dashboard → Activity Log bez chyb
+
+---
+
+### 📚 Část D: Dokumentace
+
+- [ ] **D1. Vytvořit `technical-guides:Marketing-Analytics.md`**
+  - Architektura `analyticsService`
+  - Seznam všech eventů: kdy se triggerují, jaké parametry posílají
+  - Dual-dispatch logika (Firebase + Meta)
+  - ATT / SKAdNetwork pravidla a důsledky pro attribution
+- [ ] **D2. Update `technical-guides:AdMob.md`**
+  - Krátká sekce: AdMob (monetizace) vs Meta Ads (akvizice) – nekolidují
+  - Sdílený ATT prompt – relevance pro oba systémy
+
+---
+
+### Surgical Scope
+
+- ✅ Žádný stávající kód se nerozbije – jen se rozšiřuje existující `useFirebaseAnalytics` infrastruktura
+- ✅ AdMob bannery + rewarded ads zůstávají beze změny
+- ✅ Tutorial, Habits, Goals, Journal logika beze změny – pouze přibudou `Analytics.track()` volání na klíčových místech
+- ⚠️ `app.json`: nový plugin (Část C2) + úprava ATT permission textu (C3 – hotovo)
+- ⚠️ Vyžaduje `expo prebuild --clean` po C2 → reinstall na zařízeních
+
+### Dependencies / Pořadí prací
+
+```
+Část A (Petr, externí) ─┐
+                        ├─→ Část C (Meta SDK) ─→ Část D (dokumentace)
+Část B (Firebase) ──────┘
+```
+
+Část B lze začít kdykoliv – je nezávislá. Část C blokovaná Částí A.
+
+---
+
+## Phase 10: Super audit — dojezd Fáze 13 (úklid) 🧹
+
+- [ ] N-13.6 — 3 konstanty `ENGAGEMENT` (mrtvé)
+- [ ] Úklid `.md` souborů v kořeni projektu
+- [ ] 87 osamocených i18n klíčů — mazat jen celé mrtvé jmenné prostory (poučení 13.8:
+      hrubý seznam byl nespolehlivý kvůli dynamickým klíčům s tečkou)
+
+Zpráva: @docs/audits/super-audit-2026-07/faze-13-nalezy.md
+
+## Phase 11: XP bublina respektuje systémové „omezit pohyb" ♿
+
+**Nález (2026-08, XP oznámení FIX 7)**: průvodce @technical-guides:Gamification-UI.md v sekci
+Accessibility tvrdí, že popup respektuje systémové „omezit pohyb" — **nerespektuje**
+(`XpPopupAnimation` nepoužívá `useAccessibility()`). Souhrnná lišta ano, bublina ne.
+- [ ] Bublina: při zapnutém „omezit pohyb" bez skoku/zvětšení (jen fade) + test časové osy
+- [ ] Do té doby opravit tvrzení v průvodci, aby nelhal
