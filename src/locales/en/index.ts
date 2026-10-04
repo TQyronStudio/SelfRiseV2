@@ -281,7 +281,6 @@ const en: TranslationKeys = {
         xpMultiplier: 'XP Multiplier',
         journalStreak: 'Journal Streak',
         quickActions: 'Quick Actions',
-        dailyQuote: 'Daily Quote',
         recommendations: 'Recommendations',
         streakHistory: 'Streak History',
         habitStats: 'Habit Statistics',

@@ -240,7 +240,6 @@ export interface TranslationKeys {
         xpMultiplier: string;
         journalStreak: string;
         quickActions: string;
-        dailyQuote: string;
         recommendations: string;
         streakHistory: string;
         habitStats: string;

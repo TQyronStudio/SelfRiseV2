@@ -184,7 +184,6 @@ const es: Partial<TranslationKeys> = {
         xpMultiplier: 'Multiplicador de XP',
         journalStreak: 'Racha del Diario',
         quickActions: 'Acciones Rápidas',
-        dailyQuote: 'Inspiración Diaria',
         recommendations: 'Para Ti',
         streakHistory: 'Historial de Rachas',
         habitStats: 'Estadísticas de Hábitos',

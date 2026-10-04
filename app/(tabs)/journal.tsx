@@ -15,6 +15,7 @@ import { Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeInput from '@/src/components/gratitude/GratitudeInput';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
+import { DailyMotivationalQuote } from '@/src/components/gratitude/DailyMotivationalQuote';
 import DailyGratitudeProgress from '@/src/components/gratitude/DailyGratitudeProgress';
 // CelebrationModal removed - now rendered by ModalQueueContext
 import { HelpTooltip } from '@/src/components/common';
@@ -355,6 +356,9 @@ export default function JournalScreen() {
             <Text style={styles.actionButtonText}>{t('journal.statistics')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Daily Inspiration — permanent card (moved from Home 2026-10-04) */}
+        <DailyMotivationalQuote />
 
         <GratitudeList
           gratitudes={todaysGratitudes}

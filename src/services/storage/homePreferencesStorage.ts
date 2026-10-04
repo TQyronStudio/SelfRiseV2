@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HomeScreenPreferences, defaultHomePreferences } from '../../types/homeCustomization';
+import { mergeHomeComponents } from '../../utils/homeComponents';
 
 class HomePreferencesStorage {
   private readonly STORAGE_KEY = '@home_preferences';
@@ -9,18 +10,13 @@ class HomePreferencesStorage {
       const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const preferences = JSON.parse(stored);
-        // Ensure all default components exist (for app updates)
-        // Use new order values from defaults but preserve user customizations (visibility)
-        const mergedComponents = defaultHomePreferences.components.map(defaultComp => {
-          const existingComp = preferences.components?.find((c: any) => c.id === defaultComp.id);
-          if (existingComp) {
-            return {
-              ...defaultComp, // Use new order values from defaults
-              visible: existingComp.visible, // Preserve user visibility settings
-            };
-          }
-          return defaultComp;
-        });
+        // Section list from the app, visibility from the user, order from the
+        // user only if they reordered — see mergeHomeComponents.
+        const mergedComponents = mergeHomeComponents(
+          defaultHomePreferences.components,
+          preferences.components,
+          preferences.hasCustomOrder === true
+        );
         
         return {
           ...defaultHomePreferences,
@@ -81,6 +77,7 @@ class HomePreferencesStorage {
     const updatedPreferences = {
       ...preferences,
       components: reorderedComponents,
+      hasCustomOrder: true,
     };
     
     await this.savePreferences(updatedPreferences);

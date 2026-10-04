@@ -291,6 +291,23 @@ visibility: "Always visible when frozen"
 tapBehavior: "Opens recovery modal"
 ```
 
+### Daily Inspiration — trvalá karta deníku (od 2026-10-04, rozhodnutí Petra)
+
+`src/components/gratitude/DailyMotivationalQuote.tsx` se vykresluje v `app/(tabs)/journal.tsx`
+**pod tlačítky Historie / Statistiky a nad dnešními záznamy — vždy**, i když už den má zápisy.
+Přesunuto z Home: sekce `dailyQuote` už v Home ani v jeho přizpůsobení neexistuje
+(`defaultHomeComponents`); staré uložené preference ji zahodí samy, protože
+`homePreferencesStorage.getPreferences()` staví seznam z výchozích sekcí.
+
+```tsx
+// ✅ CORRECT — karta i prázdný stav, každé má svou roli
+<DailyMotivationalQuote />          // nálada dne, vždy viditelná
+<GratitudeList gratitudes={…} />    // prázdný den → „What went well today?" + popisek
+// ❌ WRONG — citát MÍSTO prázdného stavu
+```
+**Proč**: prázdný stav je jediné místo, které novému uživateli vysvětlí, co do deníku psát
+(zrušený tutoriál to dělal ve dvou krocích). Citát místo něj by navíc zmizel s prvním zápisem dne.
+
 ---
 
 ## Ad Integration

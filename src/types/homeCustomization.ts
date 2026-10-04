@@ -8,6 +8,8 @@ export interface HomeScreenComponent {
 
 export interface HomeScreenPreferences {
   components: HomeScreenComponent[];
+  /** True once the user reorders sections — then their order survives app updates. */
+  hasCustomOrder?: boolean;
   quickActions: {
     showHabitToggle: boolean;
     showAddButtons: boolean;
@@ -62,38 +64,31 @@ export const defaultHomeComponents: HomeScreenComponent[] = [
     configurable: true,
   },
   {
-    id: 'dailyQuote',
-    name: 'Daily Quote',
-    visible: true,
-    order: 6,
-    configurable: true,
-  },
-  {
     id: 'habitStats',
     name: 'Habit Statistics',
     visible: true,
-    order: 7,
+    order: 6,
     configurable: true,
   },
   {
     id: 'recommendations',
     name: 'Recommendations',
     visible: true,
-    order: 8,
+    order: 7,
     configurable: true,
   },
   {
     id: 'habitPerformance',
     name: 'Performance Indicators',
     visible: true,
-    order: 9,
+    order: 8,
     configurable: true,
   },
   {
     id: 'habitTrends',
     name: 'Trend Analysis',
     visible: true,
-    order: 10,
+    order: 9,
     configurable: true,
   },
 ];

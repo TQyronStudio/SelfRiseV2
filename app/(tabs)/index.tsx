@@ -11,7 +11,6 @@ import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
 import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
 import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
 import { QuickActionButtons } from '@/src/components/home/QuickActionButtons';
-import { DailyMotivationalQuote } from '@/src/components/home/DailyMotivationalQuote';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedXpProgressBar';
@@ -239,8 +238,6 @@ export default function HomeScreen() {
             onViewAllPress={handleViewAllChallenges}
           />
         );
-      case 'dailyQuote':
-        return <DailyMotivationalQuote key={componentId} />;
       case 'habitStats':
         return <HabitStatsDashboard key={componentId} />;
       case 'recommendations':

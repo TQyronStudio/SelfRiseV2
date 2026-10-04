@@ -178,8 +178,10 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
                   <Switch
                     value={component.visible}
                     onValueChange={() => handleToggleComponent(component.id)}
-                    trackColor={{ false: colors.border, true: colors.primary + '40' }}
-                    thumbColor={component.visible ? colors.primary : colors.textSecondary}
+                    // Same switch as Settings. A constant thumb colour also sidesteps the
+                    // iOS bug where thumbColor is ignored on first render (white until toggled).
+                    trackColor={{ false: colors.textSecondary, true: colors.primary }}
+                    thumbColor={colors.white}
                   />
                 </View>
               ))

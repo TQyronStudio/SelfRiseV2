@@ -615,6 +615,15 @@ const challenge = await db.getFirstAsync(
 'i18n_locale'              // Current locale
 ```
 
+**Home customization (`@home_preferences`) — merge rule** (`src/utils/homeComponents.ts`,
+fix 2026-10-04): the section LIST always comes from `defaultHomeComponents` (a removed section
+disappears, a new one appears), VISIBILITY is always the user's, ORDER is the user's only when
+`hasCustomOrder` is true (set by `reorderComponents`). Previously the order was always taken
+from defaults, so a saved custom order was lost on the next load — latent, because no UI calls
+`reorderComponents` yet. Tests: `src/utils/__tests__/homeComponents.test.ts`.
+Toggles in the customization modal use the app-wide switch style (`trackColor` textSecondary /
+primary, `thumbColor` white — a constant thumb also avoids the iOS first-render thumbColor bug).
+
 **Why AsyncStorage?**
 - ✅ Read on app startup (before SQLite init)
 - ✅ Single key reads (2-5ms)

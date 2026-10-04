@@ -184,7 +184,6 @@ const de: Partial<TranslationKeys> = {
         xpMultiplier: 'Multiplikator',
         journalStreak: 'Serie',
         quickActions: 'Aktionen',
-        dailyQuote: 'Inspiration',
         recommendations: 'Tipps',
         streakHistory: 'Verlauf',
         habitStats: 'Statistik',
