@@ -235,10 +235,10 @@ const de: Partial<TranslationKeys> = {
     // XP Multiplier Section
     xpMultiplier: {
       sectionTitle: '⚡ XP Multiplikator',
-      activeTitle: '2x XP Aktiv! {{time}}',
+      activeTitle: '{{multiplier}}x XP Aktiv! {{time}}',
       harmonyReward: 'Harmonie-Serien-Belohnung',
       multiplierActive: 'Multiplikator Aktiv',
-      activeDescription: 'Alle XP-Gewinne werden verdoppelt, während dieser Multiplikator aktiv ist',
+      activeDescription: 'Alle XP-Gewinne werden mit {{multiplier}} multipliziert, während dieser Multiplikator aktiv ist',
       harmonyStreak: 'Harmonie-Serie: {{current}}/7',
       readyToActivate: 'Bereit, 2x XP zu aktivieren!',
       moreDays: '{days, plural, one {# weiterer Tag} other {# weitere Tage}} für 2x XP',

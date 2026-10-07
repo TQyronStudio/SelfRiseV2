@@ -250,7 +250,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
       <View style={styles.activeMultiplierContainer}>
         <View style={styles.multiplierInfo}>
           <Text style={styles.multiplierTitle}>
-            {t('home.xpMultiplier.activeTitle', { time: formatTimeRemaining() })}
+            {t('home.xpMultiplier.activeTitle', { multiplier: activeMultiplier.multiplier, time: formatTimeRemaining() })}
           </Text>
           <Text style={styles.multiplierSubtext}>
             {activeMultiplier.source === 'harmony_streak' ? t('home.xpMultiplier.harmonyReward') : t('home.xpMultiplier.multiplierActive')}
@@ -259,7 +259,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
 
         {!compact && (
           <Text style={styles.multiplierDescription}>
-            {t('home.xpMultiplier.activeDescription')}
+            {t('home.xpMultiplier.activeDescription', { multiplier: activeMultiplier.multiplier })}
           </Text>
         )}
       </View>

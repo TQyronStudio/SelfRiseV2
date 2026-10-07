@@ -274,6 +274,13 @@ appka uděluje sama.** Vyňaté zdroje (`SYSTEM_GRANTED_REWARDS`):
 (trofej se odemkne jednou, milníky cílů hlídá tabulka `goal_milestones`, výzva je
 jednou za měsíc). Návyky, deník a progress cílů zůstávají brzděné.
 
+**Doplněno 7. 10. 2026 — `XP_MULTIPLIER_BONUS`**: Achievement Combo se aktivuje
+pár ms po XP za trofej, která ho spustila → aktivační bonus (+60 XP) narazil na
+100ms závoru a **zahodil se, zatímco multiplier se zapnul** (device log:
+`Validating XP addition: 60 from xp_multiplier_bonus` → „Too many transactions").
+Stejně ohrožená je aktivace po dokončení výzvy. Pojistka u zdroje: každá
+aktivační cesta odmítne, když už multiplier běží, a pak nastaví vlastní cooldown.
+
 **Druhé pravidlo: hlas uživateli jen to, co DORAZILO.** Všechna 3 místa udělení
 XP za trofej teď čtou `xpResult.success ? xpResult.xpGained : 0` a tuhle částku
 používají pro modal, `xpGained` event i návratovou hodnotu. Dřív modal hlásil
@@ -306,7 +313,7 @@ celou validaci, když běží pod Jestem (`isTestEnvironment`). Proto se odmítn
 v testech musí **injektovat mockem** (viz `sqliteGoalStorage.progressXP.test.ts`
 § „refused milestone XP"). Tohle je důvod, proč chyba přežila všech 13 fází auditu.
 
-**Regresní testy**: `xpLimits.test.ts` (23 testů — 4 vyňaté zdroje projdou
+**Regresní testy**: `xpLimits.test.ts` (5 vyňatých zdrojů projde
 1 ms po předchozí transakci, 4 uživatelské akce jsou dál blokované). Negativní
 kontrola: se starou podmínkou padají 3.
 
@@ -383,6 +390,16 @@ INACTIVE_USER_MULTIPLIER: 2.0x XP        // Double XP for comeback
 INACTIVE_USER_DURATION: 48 hours         // 2 days of 2x XP
 INACTIVE_USER_TRIGGER: 4+ days away      // Auto-activates on return
 ```
+
+⚠️ **UI nesmí násobek ani délku psát natvrdo.** Multiplierů jsou 4 druhy s různou
+hodnotou (2× / 2,5× / 1,5×) i délkou. Do 7. 10. 2026 měl Home text
+`'2x XP Active!'` a „All XP gains are doubled", takže při Achievement Combo hlásil
+2× a uživatel dostával 25 × 2,5 = 62,5 XP. Aktivační modal (`MultiplierActivationModal`)
+navíc u každého zdroje ukazoval počet dní Harmony Streaku, „24h" a Harmony příběh.
+**Pravidlo**: násobek a délka se berou z `ActiveMultiplierInfo`
+(`multiplier`, `activatedAt`/`expiresAt`). Harmony-specifické prvky (streak, příběh
+„3 funkce 7 dní") jen při `source === 'harmony_streak'`. Event
+`xpMultiplierActivated` nese `xpBonusAwarded`, jinak modal ukáže „+0".
 
 ### Harmony Streak Activation Requirements
 ```typescript

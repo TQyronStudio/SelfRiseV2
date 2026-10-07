@@ -230,11 +230,14 @@ describe('xpLimits — daily limits & anti-spam (pure rules)', () => {
     // said "+200 XP", the transaction was rejected — and because the achievement
     // was already stored as unlocked, that XP was gone for good. Goal milestone
     // XP (awarded immediately after the progress-entry XP) had the same fate.
+    // Device test 2026-10-07: the Achievement Combo activation bonus (+60 XP)
+    // arrived right after the achievement XP and was rejected the same way.
     test.each([
       ['achievement unlock', XPSourceType.ACHIEVEMENT_UNLOCK, 200],
       ['goal milestone', XPSourceType.GOAL_MILESTONE, 50],
       ['monthly challenge', XPSourceType.MONTHLY_CHALLENGE, 500],
       ['goal completion', XPSourceType.GOAL_COMPLETION, 250],
+      ['multiplier activation bonus', XPSourceType.XP_MULTIPLIER_BONUS, 60],
     ])('rate limiting exempts system-granted reward: %s', (_label, source, amount) => {
       const now = 1_000_000;
       const result = validateXPAddition({

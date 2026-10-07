@@ -105,10 +105,10 @@ const en: TranslationKeys = {
     // XP Multiplier Section
     xpMultiplier: {
       sectionTitle: '⚡ XP Multiplier',
-      activeTitle: '2x XP Active! {{time}}',
+      activeTitle: '{{multiplier}}x XP Active! {{time}}',
       harmonyReward: 'Harmony Streak Reward',
       multiplierActive: 'Multiplier Active',
-      activeDescription: 'All XP gains are doubled while this multiplier is active',
+      activeDescription: 'All XP gains are multiplied by {{multiplier}} while this multiplier is active',
       harmonyStreak: 'Harmony Streak: {{current}}/7',
       readyToActivate: 'Ready to activate 2x XP!',
       moreDays: '{days, plural, one {# more day} other {# more days}} for 2x XP',

@@ -229,11 +229,18 @@ export function validateXPAddition(params: ValidateXPAdditionParams): XPValidati
   // `goal_milestones`, a monthly challenge completes once per month. The limit
   // exists to stop rapid repeated tapping, and none of these can be tapped.
   // (GOAL_COMPLETION was already exempt for exactly this reason.)
+  //
+  // XP_MULTIPLIER_BONUS (device test 2026-10-07): the Achievement Combo activates
+  // milliseconds after the achievement XP that triggered it, so its +60 XP
+  // activation bonus was dropped while the multiplier itself switched on. It is
+  // guarded at its source too — every activation path refuses while a multiplier
+  // is running and then sets its own cooldown.
   const SYSTEM_GRANTED_REWARDS = new Set<XPSourceType>([
     XPSourceType.GOAL_COMPLETION,
     XPSourceType.ACHIEVEMENT_UNLOCK,
     XPSourceType.GOAL_MILESTONE,
     XPSourceType.MONTHLY_CHALLENGE,
+    XPSourceType.XP_MULTIPLIER_BONUS,
   ]);
 
   const timeSinceLastTransaction = nowMs - dailyData.lastTransactionTime;

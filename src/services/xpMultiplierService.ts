@@ -1318,6 +1318,7 @@ export class XPMultiplierService {
         source: multiplier.source,
         achievementCount,
         expiresAt: multiplier.expiresAt,
+        xpBonusAwarded: bonusXP,
         timestamp: Date.now(),
       });
 
@@ -1487,6 +1488,7 @@ export class XPMultiplierService {
         challengeId,
         starRating,
         expiresAt: multiplier.expiresAt,
+        xpBonusAwarded: bonusXP,
         timestamp: Date.now(),
       });
 

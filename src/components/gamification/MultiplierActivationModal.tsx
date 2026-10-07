@@ -429,15 +429,26 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
    * Render achievement summary
    */
   const renderAchievementSummary = () => {
+    // The same modal celebrates every activation path (Harmony 2x/24h, Achievement
+    // Combo 2.5x/6h, Challenge Completion 1.5x/…), so value and duration come from
+    // the multiplier itself — the harmony streak stat and its "double XP for 24
+    // hours" story only apply to the harmony source.
+    const isHarmony = multiplier?.source === 'harmony_streak';
+    const durationHours = multiplier?.activatedAt && multiplier?.expiresAt
+      ? Math.round((new Date(multiplier.expiresAt).getTime() - new Date(multiplier.activatedAt).getTime()) / (1000 * 60 * 60))
+      : Math.ceil((multiplier?.timeRemaining || 0) / (1000 * 60 * 60));
+
     return (
       <View style={styles.achievementSummary}>
         <Text style={styles.achievementTitle}>{t('gamification.multiplier.achievementUnlocked')}</Text>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{harmonyStreakLength}</Text>
-            <Text style={styles.statLabel}>{t('gamification.multiplier.harmonyStreakLabel')}</Text>
-          </View>
+          {isHarmony && (
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{harmonyStreakLength}</Text>
+              <Text style={styles.statLabel}>{t('gamification.multiplier.harmonyStreakLabel')}</Text>
+            </View>
+          )}
 
           <View style={styles.statItem}>
             <Text style={styles.statValue}>+{bonusXP}</Text>
@@ -445,13 +456,15 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
           </View>
 
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>24h</Text>
+            <Text style={styles.statValue}>{durationHours}h</Text>
             <Text style={styles.statLabel}>{t('gamification.multiplier.duration')}</Text>
           </View>
         </View>
 
         <Text style={styles.achievementDescription}>
-          {t('gamification.multiplier.achievementDescription', { days: harmonyStreakLength })}
+          {isHarmony
+            ? t('gamification.multiplier.achievementDescription', { days: harmonyStreakLength })
+            : t('gamification.multiplier.multiplierActivatedMessage', { multiplier: multiplier?.multiplier, hours: durationHours })}
         </Text>
       </View>
     );

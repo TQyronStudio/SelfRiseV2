@@ -43,6 +43,7 @@
 'xpMultiplierActivated'  // Multiplier aktivovan → XpMultiplierSection (Home; harmony zdroj ignoruje, resi ho primo UI)
                          //    Emituji 3 ze 4 aktivacnich cest: Harmony, Achievement Combo, Challenge Completion.
                          //    Inactive User Boost NEemituje (aktivuje se pri startu, pred mountem Home — zamerne bez eventu).
+                         //    Payload: multiplier, source, expiresAt, xpBonusAwarded (Combo + Challenge; bez nej modal ukaze "+0").
 ```
 
 #### Monthly Challenge eventy (5 primych + dynamicka rodina)
