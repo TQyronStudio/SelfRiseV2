@@ -10,6 +10,19 @@ export interface Habit extends BaseEntity {
   order: number; // For custom ordering in UI
   // IMMUTABILITY PRINCIPLE: Historical schedule tracking (minimal invasive)
   scheduleHistory?: ScheduleTimeline;
+  // Periods the habit was paused — paused days are never scheduled, so they
+  // can't show as missed (see habitImmutability.isHabitPausedOnDate)
+  pausePeriods?: HabitPausePeriod[];
+}
+
+/**
+ * One pause of a habit. Covers startDate up to (but NOT including) endDate:
+ * the resume day is a normal scheduled day again. endDate is absent while
+ * the habit is still paused.
+ */
+export interface HabitPausePeriod {
+  startDate: DateString;
+  endDate?: DateString;
 }
 
 // ROBUST TIMELINE-BASED SCHEDULE TRACKING

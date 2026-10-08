@@ -4,7 +4,7 @@ import { Habit, HabitCompletion } from '../types/habit';
 import { DateString } from '../types/common';
 import { findEarliestDate, formatDateToString, getDateRangeFromToday, daysBetween, today, parseDate, getWeekDates, getDayOfWeekFromDateString } from '../utils/date';
 import { calculateHabitCompletionRate } from '../utils/habitCalculations';
-import { wasScheduledOnDate } from '../utils/habitImmutability';
+import { wasScheduledOnDate, isHabitActiveOnDate } from '../utils/habitImmutability';
 
 export function useHabitsData() {
   const { state, actions } = useHabits();
@@ -74,8 +74,10 @@ export function useHabitsData() {
         return habitsByDateCache.get(date)!;
       }
       
-      // Compute habits for date
-      const habitsForDate = habitsData.activeHabits.map(habit => {
+      // Habits in play on THAT date: a habit paused today still shows on the
+      // days before its pause (history doesn't change), and never on its
+      // paused days (no penalty after resuming).
+      const habitsForDate = habitsData.habits.filter(habit => isHabitActiveOnDate(habit, date)).map(habit => {
         // Use converted completions for accurate data
         const convertedCompletions = getHabitCompletionsWithConversion(habit.id);
         const completion = convertedCompletions.find(c => c.date === date);
@@ -97,7 +99,7 @@ export function useHabitsData() {
       
       return habitsForDate;
     };
-  }, [habitsData.activeHabits, getHabitCompletionsWithConversion]); // Recompute when habits or conversion function changes
+  }, [habitsData.habits, getHabitCompletionsWithConversion]); // Recompute when habits or conversion function changes
 
   const getHabitCompletion = (habitId: string, date: DateString): HabitCompletion | null => {
     return state.completions.find(

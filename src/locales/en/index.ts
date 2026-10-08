@@ -552,6 +552,7 @@ const en: TranslationKeys = {
       legendMissed: 'Missed',
       legendMakeup: 'Makeup',
       bonus: 'Bonus',
+      legendPaused: 'Paused',
     },
     // Habit list summary
     days: 'Days',

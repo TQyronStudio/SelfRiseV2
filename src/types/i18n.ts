@@ -364,6 +364,7 @@ export interface TranslationKeys {
       legendScheduled: string;
       legendCompleted: string;
       legendMissed: string;
+      legendPaused: string;
       legendMakeup: string;
       bonus?: string;
     };

@@ -105,8 +105,9 @@ export const HabitTrendAnalysis: React.FC = () => {
       let totalWeekCompletionRate = 0;
       let validHabits = 0;
 
-      // Calculate proper completion rate for each habit in this week
-      activeHabits.forEach(habit => {
+      // Calculate proper completion rate for each habit in this week —
+      // ALL habits: a habit paused now still has its past weeks
+      habits.forEach(habit => {
         const habitCreationDate = formatDateToString(new Date(habit.createdAt));
         const relevantWeekDates = weekDates.filter(date => date >= habitCreationDate);
         
@@ -132,6 +133,10 @@ export const HabitTrendAnalysis: React.FC = () => {
             bonusCompletions++;
           }
         });
+
+        // Nothing to rate this week (paused all week) — skip instead of
+        // averaging in a 0 % that the pause would cause
+        if (scheduledDays === 0 && bonusCompletions === 0) return;
 
         // Use unified calculation for this habit's week performance
         const habitWeekResult = calculateHabitCompletionRate(habit, {

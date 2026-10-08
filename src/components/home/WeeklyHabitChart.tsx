@@ -4,7 +4,7 @@ import { useHabitsData } from '@/src/hooks/useHabitsData';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Layout, Fonts } from '@/src/constants';
 import { formatDate, getPast7Days, formatDateToString, getDayOfWeekFromDateString, today, parseDate, isToday } from '@/src/utils/date';
-import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { wasScheduledOnDate, isHabitActiveOnDate } from '@/src/utils/habitImmutability';
 import { useTheme } from '@/src/contexts/ThemeContext';
 
 export const WeeklyHabitChart: React.FC = React.memo(() => {
@@ -17,7 +17,9 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
     const availableDataRange = getDataDateRange();
     const past7Days = getPast7Days();
     const weekDates = availableDataRange.length <= 7 ? availableDataRange : past7Days;
-    const activeHabits = habits.filter(habit => habit.isActive);
+    // ALL habits, not just the ones active NOW: a paused habit keeps its past,
+    // and its paused days drop out per date (wasScheduledOnDate / isHabitActiveOnDate).
+    const activeHabits = habits;
     
     return weekDates.map(dateStr => {
       const dayOfWeek = getDayOfWeekFromDateString(dateStr);
@@ -33,7 +35,7 @@ export const WeeklyHabitChart: React.FC = React.memo(() => {
       // Filter habits that existed on this date (for bonus calculation)
       const existingHabits = activeHabits.filter(habit => {
         const relevantDatesForHabit = getRelevantDatesForHabit(habit, [dateStr]);
-        return relevantDatesForHabit.length > 0;
+        return relevantDatesForHabit.length > 0 && isHabitActiveOnDate(habit, dateStr);
       });
       
       // Count completions using Smart Bonus Conversion logic

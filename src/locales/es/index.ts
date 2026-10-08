@@ -562,6 +562,7 @@ const es: Partial<TranslationKeys> = {
       legendMissed: 'Perdido',
       legendMakeup: 'Recuperado',
       bonus: 'Bonificación',
+      legendPaused: 'En pausa',
     },
     // Habit list summary
     days: 'Días',

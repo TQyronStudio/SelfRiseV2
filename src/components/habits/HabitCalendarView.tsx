@@ -6,7 +6,7 @@ import { Fonts } from '../../constants/fonts';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { formatDateToString, getDayOfWeek, parseDate } from '../../utils/date';
 import { DayOfWeek } from '../../types/common';
-import { wasScheduledOnDate } from '../../utils/habitImmutability';
+import { wasScheduledOnDate, isHabitPausedOnDate } from '../../utils/habitImmutability';
 import { HelpTooltip } from '../common/HelpTooltip';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
@@ -62,6 +62,10 @@ export function HabitCalendarView({
     const dayOfWeek = getDayOfWeek(date);
     // IMMUTABILITY PRINCIPLE: Use historical scheduled days for calendar display
     return wasScheduledOnDate(habit, dateString, dayOfWeek);
+  };
+
+  const isPausedDay = (day: number): boolean => {
+    return isHabitPausedOnDate(habit, formatDateToString(new Date(year, month, day)));
   };
 
   const isHabitExisting = (day: number): boolean => {
@@ -144,6 +148,26 @@ export function HabitCalendarView({
     },
     missedDay: {
       backgroundColor: colors.error,
+    },
+    // Paused (vacation, illness…) — neutral grey, deliberately unlike "missed"
+    pausedDay: {
+      backgroundColor: colors.border,
+    },
+    pausedText: {
+      color: colors.textTertiary,
+    },
+    pausedIndicator: {
+      position: 'absolute',
+      bottom: 1,
+    },
+    legendPausedBox: {
+      width: 12,
+      height: 12,
+      borderRadius: 3,
+      marginRight: 4,
+      backgroundColor: colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     makeupDay: {
       backgroundColor: colors.success,
@@ -270,6 +294,8 @@ export function HabitCalendarView({
     const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
     const dayDate = new Date(year, month, day);
     const isPastDay = dayDate < new Date() && !isToday; // Only past days, not today or future
+    // Grey up to today only — an open pause has no end yet, the future stays plain
+    const isPaused = !isCompleted && habitExisted && (isPastDay || isToday) && isPausedDay(day);
 
     // Determine display type for smart conversion
     const isMakeupCompletion = isCompleted && isConverted && !isBonus && completion?.convertedFromDate; // Bonus converted to makeup
@@ -286,9 +312,11 @@ export function HabitCalendarView({
           isMakeupCompletion && styles.makeupDay, // Green for makeup (converted bonus)
           isRegularBonus && styles.bonusDay, // Gold for real bonus
           isScheduled && !isCompleted && !isCoveredMissed && habitExisted && isPastDay && styles.missedDay,
+          isPaused && styles.pausedDay,
         ]}>
           <Text style={[
             styles.dayText,
+            isPaused && styles.pausedText,
             isToday && styles.todayText,
             (isScheduledCompletion || isMakeupCompletion) && styles.completedText,
           ]}>
@@ -297,6 +325,11 @@ export function HabitCalendarView({
           {isRegularBonus && (
             <View style={styles.bonusIndicator}>
               <Ionicons name="star" size={8} color={colors.warning} />
+            </View>
+          )}
+          {isPaused && (
+            <View style={styles.pausedIndicator}>
+              <Ionicons name="pause" size={8} color={colors.textTertiary} />
             </View>
           )}
           {isMakeupCompletion && (
@@ -387,6 +420,12 @@ export function HabitCalendarView({
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.warning }]} />
             <Text style={styles.legendText}>{t('habits.calendar.bonus')}</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={styles.legendPausedBox}>
+              <Ionicons name="pause" size={8} color={colors.textTertiary} />
+            </View>
+            <Text style={styles.legendText}>{t('habits.calendar.legendPaused')}</Text>
           </View>
         </View>
       </View>

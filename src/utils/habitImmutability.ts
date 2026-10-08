@@ -91,8 +91,53 @@ export function getHabitFrequencyForDate(habit: Habit, date: DateString): number
  * @returns True if the day was scheduled on that date
  */
 export function wasScheduledOnDate(habit: Habit, date: DateString, dayOfWeek: DayOfWeek): boolean {
+  // A paused day is not a scheduled day — this is what keeps the calendar,
+  // Home charts, completion rates and bonus conversion from counting a pause
+  // (vacation, illness…) as missed days.
+  if (isHabitPausedOnDate(habit, date)) return false;
   const scheduledDaysForDate = getScheduledDaysForDate(habit, date);
   return scheduledDaysForDate.includes(dayOfWeek);
+}
+
+/**
+ * Was the habit paused on the given date?
+ *
+ * A pause covers [startDate, endDate): the day the user pauses is paused, the
+ * day they resume is a normal day again. An open period (no endDate) runs
+ * until today and beyond.
+ *
+ * Safety net: a paused habit (isActive === false) without an open period —
+ * paused before pause periods were recorded and not yet backfilled — counts
+ * as paused since its last update, the same rule the DB backfill uses.
+ */
+export function isHabitPausedOnDate(habit: Habit, date: DateString): boolean {
+  const periods = habit.pausePeriods ?? [];
+
+  for (const period of periods) {
+    if (date >= period.startDate && (!period.endDate || date < period.endDate)) {
+      return true;
+    }
+  }
+
+  if (habit.isActive === false && !periods.some(period => !period.endDate)) {
+    if (!habit.updatedAt) return false;
+    const updatedAt = habit.updatedAt instanceof Date ? habit.updatedAt : new Date(habit.updatedAt);
+    if (isNaN(updatedAt.getTime())) return false;
+    return date >= formatDateToString(updatedAt);
+  }
+
+  return false;
+}
+
+/**
+ * Was the habit in play on the given date — i.e. not paused that day?
+ * Use this instead of `habit.isActive` for any date-based view: `isActive`
+ * only says whether the habit is paused NOW, so filtering history by it
+ * erases a paused habit's past (and brings the pause back as misses after
+ * resuming).
+ */
+export function isHabitActiveOnDate(habit: Habit, date: DateString): boolean {
+  return !isHabitPausedOnDate(habit, date);
 }
 
 /**

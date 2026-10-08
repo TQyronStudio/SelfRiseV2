@@ -105,6 +105,69 @@ if (state.habits !== lastHabitsRef.current ||
 const cacheKey = `${habits.length}-${completions.length}`;
 ```
 
+### ⏸️ PAUZA NÁVYKU — pozastavený den NIKDY není vynechaný den (říjen 2026)
+
+Uživatel si návyk ručně pozastaví (dovolená, nemoc…) a až chce, zase ho
+aktivuje. Žádné plánování od–do (rozhodnutí Petra 2026-10-08). **Za dny pauzy
+nesmí být nikde penalizace.**
+
+**Problém před opravou**: pauza byla jen příznak `is_active` bez dat. Po
+aktivaci se proto každý naplánovaný den pauzy vrátil jako vynechaný: červená
+pole v kalendáři, nižší úspěšnost, propad grafů na Home a bonusová splnění po
+návratu se spotřebovala jako „make-up“ za dovolenou. Během pauzy navíc Home
+filtroval podle `isActive`, takže návyk zmizel i s celou MINULOSTÍ.
+
+**Datový model**: tabulka `habit_pause_periods` (`habit_id`, `start_date`,
+`end_date` NULL = stále pozastaveno) → `habit.pausePeriods` (připojuje
+`SQLiteHabitStorage.getAll/getById`). Období pokrývá **[start, end)**:
+
+| Akce | Zápis (`SQLiteHabitStorage.recordPauseChange`) |
+|---|---|
+| Pozastavit | `start = dnes`; byl-li návyk **dnes už splněný** → `start = zítra` (dnešek zůstane naplánované splnění) |
+| Aktivovat | `end = dnes` → den aktivace je normální naplánovaný den |
+| Pozastavit + aktivovat týž den | období se smaže (nepokrylo žádný den) |
+| Pozastavit už pozastavený | nic (žádné druhé otevřené období) |
+
+**Jediný centrální bod**: `wasScheduledOnDate()` vrací pro den pauzy `false`
+(`isHabitPausedOnDate`). Tím se pauza propíše všude, kde se počítá „měl se
+návyk ten den dělat“: kalendář, úspěšnost, Smart Bonus Conversion, grafy na
+Home, doporučení.
+
+```typescript
+// ✅ CORRECT: date-based pohled filtruje podle dne
+habits.filter(h => isHabitActiveOnDate(h, date))
+
+// ❌ WRONG: isActive říká jen, jestli je pozastavený TEĎ —
+// smaže minulost pozastaveného návyku a po aktivaci vrátí pauzu jako „vynecháno“
+habits.filter(h => h.isActive)
+```
+
+`habit.isActive` patří jen na pohledy „TEĎ“: dnešní seznam, počet aktivních
+návyků, notifikace, žebříček nejlepší/nejslabší návyk.
+
+**Žebříčky a průměry**: návyk, který měl v období samé dny pauzy, nemá co
+hodnotit → **přeskočit, ne počítat 0 %** (trend po týdnech, roční výkon,
+nejslabší návyk). Doporučení „uprav rozvrh“ se pro týden obsahující pauzu
+nevyhodnocuje.
+
+**Kalendář**: dny pauzy (do dneška včetně) jsou **šedé s ikonou ⏸**, v legendě
+„Pozastaveno“, aby uživatel časem nepřemýšlel, proč tam nic není. Budoucí dny
+otevřené pauzy zůstávají prázdné. Splnění má přednost před šedou.
+
+**Pauzy z doby před opravou**: data o nich neexistují. Návyk pozastavený
+v okamžiku aktualizace dostane při startu otevřené období od své poslední
+úpravy (`backfillHabitPausePeriods` v `database/init.ts`, idempotentní).
+Starší, už ukončené pauzy zpětně opravit nejde. Pojistka v kódu:
+`isHabitPausedOnDate` bere pozastavený návyk bez otevřeného období jako
+pozastavený od `updatedAt` (stejné pravidlo jako backfill).
+
+**Testy**: `sqliteHabitStorage.pausePeriods.test.ts` (reálné úložiště: zápis
+pauzy/aktivace, hranice období, backfill) a `__tests__/hooks/useHabitsData.pause.test.tsx`
+(úspěšnost bez penalizace, bonus po návratu se nespotřebuje na dovolenou,
+data pro Home před/během/po pauze). Negativní kontrola: bez kontroly pauzy
+ve `wasScheduledOnDate` padají 4 testy, s filtrem `isActive` v
+`getHabitsByDate` padají 2.
+
 ### 🎨 Ikony návyků — JEDNA sdílená mapa
 
 **`src/constants/habitIcons.ts` → `HABIT_ICON_MAP` je jediný zdroj pravdy.**
@@ -144,7 +207,8 @@ interface Habit extends BaseEntity {
   color: HabitColor;
   icon: HabitIcon;                   // → ikona přes HABIT_ICON_MAP (viz výše)
   scheduledDays: DayOfWeek[];        // Kdy má být habit vykonáván (pondělí-neděle)
-  isActive: boolean;                 // Aktivní/neaktivní stav
+  isActive: boolean;                 // Pozastaven TEĎ? (pro historii pausePeriods)
+  pausePeriods?: HabitPausePeriod[]; // [startDate, endDate) — viz „PAUZA NÁVYKU“
   description?: string;
   order: number;                     // Pořadí v UI pro custom sorting
 }
@@ -515,6 +579,7 @@ Color Coding:
 - Green: Scheduled completion OR makeup completion
 - Gold: Real bonus (not converted)
 - Red: Missed scheduled day (no coverage)
+- Grey + ⏸: Paused day (see "PAUZA NÁVYKU") — never red
 - Blue dot: Underlying schedule indicator
 ```
 

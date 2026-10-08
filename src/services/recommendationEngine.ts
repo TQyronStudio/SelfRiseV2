@@ -9,7 +9,7 @@ import { getGoalStorageImpl } from '../config/featureFlags';
 
 const goalStorage = getGoalStorageImpl();
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '../utils/habitCalculations';
-import { wasScheduledOnDate } from '../utils/habitImmutability';
+import { wasScheduledOnDate, isHabitPausedOnDate } from '../utils/habitImmutability';
 
 export interface HabitRecommendation {
   type: 'habit_schedule' | 'new_habit' | 'habit_adjustment';
@@ -119,6 +119,10 @@ export class RecommendationEngine {
 
       // Filter dates to only include days since habit creation
       const relevantDates = this.getRelevantDatesForHabit(habit, past7Days);
+
+      // A week that contains a pause says nothing about the habit — just back
+      // from vacation it would read as ~0 % and get an "adjust schedule" nudge
+      if (relevantDates.some(date => isHabitPausedOnDate(habit, date))) return;
       
       // Calculate proper completion data for the past 7 days
       let scheduledDays = 0;

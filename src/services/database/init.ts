@@ -232,6 +232,22 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_schedule_history_habit ON habit_schedule_history(habit_id, effective_from_date DESC);
 
     -- ========================================
+    -- HABIT PAUSE PERIODS
+    -- ========================================
+    -- [start_date, end_date) — end_date NULL while the habit is still paused.
+    -- Paused days are not scheduled days, so they never count as missed.
+    CREATE TABLE IF NOT EXISTS habit_pause_periods (
+      id TEXT PRIMARY KEY,
+      habit_id TEXT NOT NULL,
+      start_date TEXT NOT NULL,
+      end_date TEXT,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_pause_periods_habit ON habit_pause_periods(habit_id, start_date);
+
+    -- ========================================
     -- HABIT COMPLETIONS
     -- ========================================
     CREATE TABLE IF NOT EXISTS habit_completions (
@@ -487,6 +503,9 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       await database.execAsync(`ALTER TABLE streak_state ADD COLUMN auto_reset_reason TEXT;`);
     }
   }
+
+  // Habits paused before pause periods were recorded get an open period
+  await backfillHabitPausePeriods(database);
 
   // ========================================
   // CHALLENGE_DAILY_SNAPSHOTS MIGRATION - Add daily_contributions column
@@ -771,6 +790,41 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     await database.execAsync(`DROP TABLE challenge_lifecycle_state_backup;`);
     console.log('✅ Lifecycle state backup table cleaned up');
   }
+}
+
+/**
+ * HABIT PAUSE PERIODS BACKFILL (October 2026)
+ *
+ * Pauses used to be a bare is_active flag with no dates, so a habit paused
+ * before habit_pause_periods existed has no open period. Its last update is
+ * the best available pause date (the pause toggle itself bumps updated_at).
+ * If the habit was completed that same day, the pause starts the next day so
+ * the completion stays a scheduled one. Idempotent: only habits that are
+ * paused without an open period get a row — runs on every start.
+ */
+export async function backfillHabitPausePeriods(database: SQLite.SQLiteDatabase): Promise<void> {
+  await database.execAsync(`
+    INSERT INTO habit_pause_periods (id, habit_id, start_date, end_date, created_at)
+    SELECT
+      h.id || '_pause_backfill_' || CAST(strftime('%s', 'now') AS TEXT),
+      h.id,
+      CASE
+        WHEN EXISTS (
+          SELECT 1 FROM habit_completions c
+          WHERE c.habit_id = h.id AND c.date = date(h.updated_at / 1000, 'unixepoch', 'localtime')
+        )
+        THEN date(h.updated_at / 1000, 'unixepoch', 'localtime', '+1 day')
+        ELSE date(h.updated_at / 1000, 'unixepoch', 'localtime')
+      END,
+      NULL,
+      strftime('%s', 'now') * 1000
+    FROM habits h
+    WHERE h.is_active = 0
+      AND h.is_archived = 0
+      AND NOT EXISTS (
+        SELECT 1 FROM habit_pause_periods p WHERE p.habit_id = h.id AND p.end_date IS NULL
+      );
+  `);
 }
 
 /**

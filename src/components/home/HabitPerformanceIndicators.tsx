@@ -6,7 +6,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout, Fonts } from '@/src/constants';
 import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates, subtractDays } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
-import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { wasScheduledOnDate, isHabitActiveOnDate } from '@/src/utils/habitImmutability';
 
 interface PerformanceIndicatorProps {
   title: string;
@@ -179,7 +179,8 @@ export const HabitPerformanceIndicators: React.FC = () => {
       const habitsOnDate = getHabitsByDate(date);
       const completed = habitsOnDate.filter(h => h.isCompleted).length;
       currentWeekCompletions += completed;
-      currentWeekPossible += activeHabits.length;
+      // Habits in play THAT day — a paused day is not a possible completion
+      currentWeekPossible += habits.filter(h => isHabitActiveOnDate(h, date)).length;
     });
 
     // Previous week progress for comparison
@@ -190,7 +191,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
       const habitsOnDate = getHabitsByDate(date);
       const completed = habitsOnDate.filter(h => h.isCompleted).length;
       previousWeekCompletions += completed;
-      previousWeekPossible += activeHabits.length;
+      previousWeekPossible += habits.filter(h => isHabitActiveOnDate(h, date)).length;
     });
 
     const currentWeekRate = currentWeekPossible > 0 ? (currentWeekCompletions / currentWeekPossible) * 100 : 0;
@@ -203,6 +204,11 @@ export const HabitPerformanceIndicators: React.FC = () => {
 
     // Calculate weekly top performer (current calendar week - Monday to Sunday)
     const weekDatesForTopPerformer = getWeekDates(today());
+    // Ranked only when the habit had something to rate in the period — a habit
+    // paused the whole time must not end up as the "struggling" one at 0 %
+    const hasDataInPeriod = (p: { scheduledDays: number; bonusCompletions: number }) =>
+      p.scheduledDays > 0 || p.bonusCompletions > 0;
+
     const weeklyPerformances = activeHabits.map(habit => {
       const performance = calculatePeriodCompletionRate(habit, weekDatesForTopPerformer, getHabitsByDate, getRelevantDatesForHabit);
       return {
@@ -212,7 +218,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
         completedScheduled: performance.completedScheduled,
         bonusCompletions: performance.bonusCompletions
       };
-    }).sort((a, b) => b.completionRate - a.completionRate);
+    }).filter(hasDataInPeriod).sort((a, b) => b.completionRate - a.completionRate);
 
     // Calculate monthly top performer (current calendar month)
     const currentMonthDates = getMonthDates(today());
@@ -225,7 +231,7 @@ export const HabitPerformanceIndicators: React.FC = () => {
         completedScheduled: performance.completedScheduled,
         bonusCompletions: performance.bonusCompletions
       };
-    }).sort((a, b) => b.completionRate - a.completionRate);
+    }).filter(hasDataInPeriod).sort((a, b) => b.completionRate - a.completionRate);
 
     const weeklyTopPerformer = weeklyPerformances[0];
     const monthlyTopPerformer = monthlyPerformances[0];

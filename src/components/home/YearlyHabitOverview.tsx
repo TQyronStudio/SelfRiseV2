@@ -87,7 +87,9 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
         totalDays: 0
       };
     }
-    const activeHabits = habits.filter(habit => habit.isActive);
+    // ALL habits, not just the ones active NOW: a paused habit keeps its past,
+    // and its paused days drop out per date (wasScheduledOnDate is pause-aware).
+    const activeHabits = habits;
     const totalActiveHabits = activeHabits.length;
 
     if (totalActiveHabits === 0) {
@@ -162,7 +164,8 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
       return [];
     }
 
-    const activeHabits = habits.filter(habit => habit.isActive);
+    // ALL habits — a habit paused now still has this year's history
+    const activeHabits = habits;
     
     // Calculate yearly completion rates using actual yearly data (not lifetime stats)
     const performanceData = activeHabits.map(habit => {
@@ -205,7 +208,11 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
         completedScheduled,
         bonusCompletions
       };
-    }).sort((a, b) => b.completionRate - a.completionRate);
+    })
+      // A habit paused for the whole period has nothing to rate — listing it
+      // at 0 % would be a penalty for the pause
+      .filter(p => p.scheduledDays > 0 || p.bonusCompletions > 0)
+      .sort((a, b) => b.completionRate - a.completionRate);
 
     return performanceData;
   }, [habits, getHabitsByDate, getRelevantDatesForHabit, isLoading, yearDates]);

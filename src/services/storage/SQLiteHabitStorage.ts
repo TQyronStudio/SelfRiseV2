@@ -3,9 +3,9 @@
  * Phase 1.2.4 - Replace AsyncStorage with SQLite for habits
  */
 
-import { Habit, HabitCompletion, CreateHabitInput, ScheduleTimeline } from '../../types/habit';
+import { Habit, HabitCompletion, CreateHabitInput, ScheduleTimeline, HabitPausePeriod } from '../../types/habit';
 import { DateString, DayOfWeek } from '../../types/common';
-import { formatDateToString } from '../../utils/date';
+import { formatDateToString, addDays } from '../../utils/date';
 import { getDatabase } from '../database/init';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
@@ -35,6 +35,7 @@ export class SQLiteHabitStorage {
       console.log(`📊 SQLite getAll: Found ${rows.length} habits in DB`);
       const habits = rows.map(row => this.rowToHabit(row));
       await this.attachScheduleHistories(habits);
+      await this.attachPausePeriods(habits);
       console.log(`📊 SQLite getAll: Mapped to ${habits.length} Habit objects`);
       if (habits.length > 0 && habits[0]) {
         console.log(`📊 First habit:`, habits[0].name, habits[0].id);
@@ -59,6 +60,7 @@ export class SQLiteHabitStorage {
       const habit = this.rowToHabit(row);
       const history = await this.getScheduleHistory(id);
       if (history) habit.scheduleHistory = history;
+      await this.attachPausePeriods([habit]);
       return habit;
     } catch (error) {
       console.error(`❌ SQLite getById habit failed (${id}):`, error);
@@ -164,6 +166,11 @@ export class SQLiteHabitStorage {
             [`${id}_${today}_${Date.now()}`, id, scheduledDaysJson, today, Date.now()]
           );
         }
+      }
+
+      // Pause / resume — record WHEN, so paused days never count as missed
+      if (updates.isActive !== undefined && updates.isActive !== currentHabit.isActive) {
+        await this.recordPauseChange(id, updates.isActive);
       }
 
       // Build UPDATE query dynamically
@@ -641,6 +648,81 @@ export class SQLiteHabitStorage {
     for (const habit of habits) {
       const timeline = byHabit.get(habit.id);
       if (timeline) habit.scheduleHistory = timeline;
+    }
+  }
+
+  /**
+   * Open or close a pause period when the habit is paused / resumed.
+   *
+   * - Pause: the period starts today — unless the habit was already completed
+   *   today, then tomorrow, so today's completion stays a scheduled one.
+   * - Resume: the open period ends today (exclusive), so today is a normal
+   *   scheduled day again. A period that never covered a whole day (paused and
+   *   resumed the same day) is removed instead of being kept empty.
+   */
+  private async recordPauseChange(habitId: string, isActive: boolean): Promise<void> {
+    const db = this.getDb();
+    const today = formatDateToString(new Date());
+
+    const openPeriod = await db.getFirstAsync<{ id: string; start_date: string }>(
+      `SELECT id, start_date FROM habit_pause_periods WHERE habit_id = ? AND end_date IS NULL`,
+      [habitId]
+    );
+
+    if (!isActive) {
+      if (openPeriod) return; // already paused
+
+      const completedToday = await db.getFirstAsync<{ id: string }>(
+        `SELECT id FROM habit_completions WHERE habit_id = ? AND date = ?`,
+        [habitId, today]
+      );
+      const startDate = completedToday ? (addDays(today, 1) as DateString) : today;
+
+      await db.runAsync(
+        `INSERT INTO habit_pause_periods (id, habit_id, start_date, end_date, created_at)
+         VALUES (?, ?, ?, NULL, ?)`,
+        [`${habitId}_pause_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, habitId, startDate, Date.now()]
+      );
+      return;
+    }
+
+    if (!openPeriod) return; // nothing to close
+
+    if (openPeriod.start_date >= today) {
+      await db.runAsync(`DELETE FROM habit_pause_periods WHERE id = ?`, [openPeriod.id]);
+    } else {
+      await db.runAsync(
+        `UPDATE habit_pause_periods SET end_date = ? WHERE id = ?`,
+        [today, openPeriod.id]
+      );
+    }
+  }
+
+  /** Attach pause periods to habit objects in one batch query. */
+  private async attachPausePeriods(habits: Habit[]): Promise<void> {
+    if (habits.length === 0) return;
+
+    const db = this.getDb();
+    const rows = await db.getAllAsync<{ habit_id: string; start_date: string; end_date: string | null }>(
+      `SELECT habit_id, start_date, end_date FROM habit_pause_periods ORDER BY start_date ASC`
+    );
+    if (rows.length === 0) return;
+
+    const byHabit = new Map<string, HabitPausePeriod[]>();
+    for (const row of rows) {
+      const period: HabitPausePeriod = { startDate: row.start_date as DateString };
+      if (row.end_date) period.endDate = row.end_date as DateString;
+      const periods = byHabit.get(row.habit_id);
+      if (periods) {
+        periods.push(period);
+      } else {
+        byHabit.set(row.habit_id, [period]);
+      }
+    }
+
+    for (const habit of habits) {
+      const periods = byHabit.get(habit.id);
+      if (periods) habit.pausePeriods = periods;
     }
   }
 
