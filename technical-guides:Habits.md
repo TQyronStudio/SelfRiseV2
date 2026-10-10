@@ -157,6 +157,9 @@ otevřené pauzy zůstávají prázdné. Splnění má přednost před šedou.
 **Pauzy z doby před opravou**: data o nich neexistují. Návyk pozastavený
 v okamžiku aktualizace dostane při startu otevřené období od své poslední
 úpravy (`backfillHabitPausePeriods` v `database/init.ts`, idempotentní).
+Backfill je **best-effort v try/catch** — jeho chyba se jen zaloguje a start
+pokračuje (selhání `createTables()` by nechalo DB neinicializovanou a appka by
+nenaběhla); příště se zkusí znovu.
 Starší, už ukončené pauzy zpětně opravit nejde. Pojistka v kódu:
 `isHabitPausedOnDate` bere pozastavený návyk bez otevřeného období jako
 pozastavený od `updatedAt` (stejné pravidlo jako backfill).

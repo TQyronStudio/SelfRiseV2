@@ -504,8 +504,17 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     }
   }
 
-  // Habits paused before pause periods were recorded get an open period
-  await backfillHabitPausePeriods(database);
+  // Habits paused before pause periods were recorded get an open period.
+  // Best-effort: a failure here must NOT fail createTables() — that would leave
+  // the database uninitialized and the app unable to start. Nothing is lost
+  // without it: isHabitPausedOnDate() treats a paused habit with no open
+  // period as paused since its last update (the same rule), and the backfill
+  // retries on the next start.
+  try {
+    await backfillHabitPausePeriods(database);
+  } catch (error) {
+    console.error('⚠️ Habit pause periods backfill failed (startup continues):', error);
+  }
 
   // ========================================
   // CHALLENGE_DAILY_SNAPSHOTS MIGRATION - Add daily_contributions column
