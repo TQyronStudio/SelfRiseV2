@@ -3736,6 +3736,8 @@ const es: Partial<TranslationKeys> = {
       journalCategory: 'Diario',
       goalsCategory: 'Metas',
       consistencyCategory: 'Consistencia',
+      masteryCategory: 'Maestría',
+      specialCategory: 'Especial',
       categoryLabel: 'Categoría',
       rarityLabel: 'Rareza',
       recentLabel: 'Reciente',

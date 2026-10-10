@@ -1544,6 +1544,7 @@ export class MonthlyProgressTracker {
       DeviceEventEmitter.emit(this.EVENTS.MILESTONE_REACHED, {
         challengeId: challenge.id,
         challengeTitle: challenge.title,
+        challengeTemplateId: challenge.templateId, // UI renders the title in the current language
         milestone: milestone.milestone,
         xpAwarded: milestone.xpAwarded,
         requirements: milestone.requirements,

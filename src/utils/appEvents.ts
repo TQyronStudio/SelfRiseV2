@@ -73,6 +73,7 @@ export interface MonthlyProgressUpdatedPayload {
 export interface MonthlyMilestoneReachedPayload {
   challengeId: string;
   challengeTitle: string;
+  challengeTemplateId?: string | undefined;
   milestone: 25 | 50 | 75;
   xpAwarded: number;
   requirements: Record<string, number>;

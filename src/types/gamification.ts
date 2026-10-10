@@ -718,6 +718,7 @@ export interface MonthlyChallengeCompletionResult extends ChallengeCompletionRes
 export interface MonthlyChallengeFailureResult {
   challengeId: string;
   challengeTitle: string;
+  challengeTemplateId?: string | undefined; // title rendered in the current language
   category: AchievementCategory;
   month: string; // YYYY-MM format
 

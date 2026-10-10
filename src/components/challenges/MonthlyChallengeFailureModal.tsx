@@ -15,6 +15,7 @@ import { MonthlyChallengeFailureResult, AchievementCategory } from '../../types/
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
+import { getChallengeTitle } from '../../services/challengeDisplayText';
 
 interface MonthlyChallengeFailureModalProps {
   visible: boolean;
@@ -370,7 +371,7 @@ const MonthlyChallengeFailureModal: React.FC<MonthlyChallengeFailureModalProps> 
             <View style={styles.challengeInfo}>
               <Text style={styles.challengeIcon}>{getCategoryIcon(failureResult.category)}</Text>
               <View style={styles.challengeDetails}>
-                <Text style={styles.challengeTitle}>{failureResult.challengeTitle}</Text>
+                <Text style={styles.challengeTitle}>{getChallengeTitle({ templateId: failureResult.challengeTemplateId, title: failureResult.challengeTitle })}</Text>
                 <Text style={[styles.challengeCategory, { color: categoryColor }]}>
                   {t(`monthlyChallenge.categories.${failureResult.category}`)}
                 </Text>

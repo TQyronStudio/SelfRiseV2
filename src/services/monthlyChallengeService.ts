@@ -2310,6 +2310,9 @@ export class MonthlyChallengeService {
       isActive: true,
       generationReason: 'retry',
       categoryRotation: [],
+      // Lets the UI rebuild the texts in the current language
+      // (challengeDisplayText — FALLBACK_TEMPLATE_PREFIX)
+      templateId: `fallback:${template.id}`,
       createdAt: new Date(),
       updatedAt: new Date()
     };

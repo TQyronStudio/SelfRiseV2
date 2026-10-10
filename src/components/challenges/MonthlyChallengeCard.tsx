@@ -7,6 +7,7 @@ import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { HelpTooltip } from '../common';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
+import { getChallengeTitle, getChallengeDescription } from '../../services/challengeDisplayText';
 
 interface MonthlyChallengeCardProps {
   challenge: MonthlyChallenge;
@@ -26,38 +27,6 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   const { colors } = useTheme();
   const { t, currentLanguage } = useI18n();
 
-  // Helper function to translate text that might be an i18n key
-  const translateIfKey = (text: string): string => {
-    if (!text) return text;
-
-    // Strip hardcoded "First Month: " or "Warm-Up: " prefix (including variations with emojis)
-    // This handles legacy challenges created before i18n implementation
-    let cleanedText = text.replace(/^(🌱\s*)?(First Month|Warm-Up):\s*/i, '');
-
-    // Check if text contains i18n key patterns
-    if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
-      // Extract any prefix and the key
-      const keyMatch = cleanedText.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
-
-      if (keyMatch && keyMatch[2]) {
-        const prefix = keyMatch[1] || '';
-        let key = keyMatch[2];
-
-        // Fix old key format to new format
-        if (key.startsWith('challenges.templates.')) {
-          key = key.replace('challenges.templates.', 'help.challenges.templates.');
-        }
-
-        const translated = t(key);
-        // If translation succeeded, return prefix + translated text
-        if (translated !== key) {
-          return prefix + translated;
-        }
-      }
-    }
-
-    return cleanedText;
-  };
 
   // Helper function to translate category
   const translateCategory = (category: AchievementCategory): string => {
@@ -65,8 +34,9 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   };
 
   // Translate challenge fields if they contain i18n keys
-  let displayTitle = translateIfKey(challenge.title);
-  let displayDescription = translateIfKey(challenge.description);
+  // Rebuilt from the template in the CURRENT language (see challengeDisplayText)
+  let displayTitle = getChallengeTitle(challenge);
+  let displayDescription = getChallengeDescription(challenge);
 
   // Add Warm-Up prefix if this is a warm-up challenge (user has < 14 days of activity)
   if (challenge.generationReason === 'warm_up') {

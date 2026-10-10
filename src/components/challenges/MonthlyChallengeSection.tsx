@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, EmitterSubscription } from 'react-native';
 import { addAppEventListener } from '@/src/utils/appEvents';
 import { MonthlyChallengeService } from '../../services/monthlyChallengeService';
+import { getRequirementDescription } from '../../services/challengeDisplayText';
 import { MonthlyProgressTracker } from '../../services/monthlyProgressTracker';
 import { StarRatingService } from '../../services/starRatingService';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
@@ -164,6 +165,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
             props: {
               milestone: eventData.milestone,
               challengeTitle: eventData.challengeTitle,
+              challengeTemplateId: eventData.challengeTemplateId,
               xpAwarded: eventData.xpAwarded || 0,
             },
           });
@@ -865,7 +867,7 @@ const MonthlyChallengeSection: React.FC<MonthlychallengeSectionProps> = ({
                     {reqCompleted ? '✓' : '○'}
                   </Text>
                   <Text style={styles.requirementRowLabel} numberOfLines={1}>
-                    {requirement.description.includes('challenges.templates.') ? t(requirement.description.replace('challenges.templates.', 'help.challenges.templates.').replace('help.help.', 'help.')) : requirement.description}
+                    {getRequirementDescription(challenge, requirement)}
                   </Text>
                   <Text style={[
                     styles.requirementRowValue,

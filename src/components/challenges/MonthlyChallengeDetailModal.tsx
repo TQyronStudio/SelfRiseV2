@@ -15,6 +15,7 @@ import MonthlyProgressCalendar from './MonthlyProgressCalendar';
 import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
+import { getChallengeTitle, getChallengeDescription, getRequirementDescription } from '../../services/challengeDisplayText';
 
 interface MonthlyChallengeDetailModalProps {
   challenge: MonthlyChallenge | null;
@@ -64,42 +65,11 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
 
   if (!challenge || !progress) return null;
 
-  // Helper function to translate text that might be an i18n key
-  const translateIfKey = (text: string): string => {
-    if (!text) return text;
-
-    // Strip hardcoded "First Month: " or "Warm-Up: " prefix (including variations with emojis)
-    // This handles legacy challenges created before i18n implementation
-    let cleanedText = text.replace(/^(🌱\s*)?(First Month|Warm-Up):\s*/i, '');
-
-    // Check if text contains i18n key patterns
-    if (cleanedText.includes('challenges.templates.') || cleanedText.includes('help.challenges.templates.')) {
-      // Extract any prefix and the key
-      const keyMatch = cleanedText.match(/(.*?)(help\.challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+)|challenges\.templates\.[a-z_]+\.(?:title|description|requirement|bonus\d+))/);
-
-      if (keyMatch && keyMatch[2]) {
-        const prefix = keyMatch[1] || '';
-        let key = keyMatch[2];
-
-        // Fix old key format to new format
-        if (key.startsWith('challenges.templates.')) {
-          key = key.replace('challenges.templates.', 'help.challenges.templates.');
-        }
-
-        const translated = t(key);
-        // If translation succeeded, return prefix + translated text
-        if (translated !== key) {
-          return prefix + translated;
-        }
-      }
-    }
-
-    return cleanedText;
-  };
 
   // Clean up any "Beginner-friendly target" text from challenge requirements
-  let cleanedTitle = translateIfKey(challenge.title);
-  let cleanedDescription = translateIfKey(challenge.description);
+  // Rebuilt from the template in the CURRENT language (see challengeDisplayText)
+  let cleanedTitle = getChallengeTitle(challenge);
+  let cleanedDescription = getChallengeDescription(challenge);
 
   // Add Warm-Up prefix if this is a warm-up challenge (user has < 14 days of activity)
   // Check both generationReason AND baseXPReward as fallback (400 XP is warm-up specific value)
@@ -115,7 +85,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
     description: cleanedDescription,
     requirements: challenge.requirements.map(req => ({
       ...req,
-      description: translateIfKey(req.description)
+      description: getRequirementDescription(challenge, req)
         .replace(/\(?\s*beginner-?friendly\s+target\s*\)?/gi, '')
         .replace(/\(?\s*beginner\s+friendly\s+target\s*\)?/gi, '')
         .replace(/beginner-?friendly\s+target/gi, 'target')
@@ -595,7 +565,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
                     styles.requirementText,
                     isRequirementCompleted && styles.completedRequirementText
                   ]}>
-                    {requirement.description.includes('challenges.templates.') ? t(requirement.description.replace('challenges.templates.', 'help.challenges.templates.').replace('help.help.', 'help.')) : requirement.description}
+                    {getRequirementDescription(challenge, requirement)}
                   </Text>
                   
                   <View style={styles.requirementProgress}>

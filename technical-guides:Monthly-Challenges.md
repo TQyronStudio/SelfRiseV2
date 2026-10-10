@@ -22,6 +22,23 @@
 ### 🌐 **i18n Coverage**  
 - **Každý nový XPSourceType** → přidat do `src/locales/en/index.ts`
 - **Testuj missing key warnings** v console.log - často přehlédnuto
+- **Texty výzvy se PŘEKLÁDAJÍ PŘI GENEROVÁNÍ a UKLÁDAJÍ** (title, description,
+  requirements). Do generování se proto musí předat SKUTEČNÉ `t` — nikdy mock
+  `(key) => key`. Do 10. 10. 2026 ho předával `MonthlyChallengeLifecycleManager.getTranslationFunction()`
+  (cesta při startu a na přelomu měsíce) → výzvy měly v DB surové klíče a modal
+  milníku/neúspěchu ukazoval `help.challenges.templates.….title`. Regresní test:
+  `monthlyChallengeLifecycle.translation.test.ts`.
+- **Každé místo, které zobrazuje název/popis/požadavek výzvy, jde přes
+  `src/services/challengeDisplayText.ts`** (`getChallengeTitle`,
+  `getChallengeDescription`, `getRequirementDescription`) — karta, detail,
+  sekce na Home, dokončení, milník, neúspěch. Texty se skládají ze šablony
+  podle `templateId` v **AKTUÁLNÍM jazyce**, takže přepnutí jazyka uprostřed
+  měsíce přeloží i běžící výzvu (uložený text je v jazyce generování).
+  Požadavky se párují přes `trackingKey`, popis `journal_consistency_writer`
+  se skládá s počtem podle hvězd, záložní výzva má `templateId =
+  'fallback:<id>'` (předpona názvu + dovětek popisu). Bez šablony (marketing
+  demo, staré řádky) → uložený text přes `translateIfKey` (léčí surové klíče).
+  Události milníku a neúspěchu proto nesou i `challengeTemplateId`.
 
 ### 🔍 **Debug Logging Strategy**
 - **Comprehensive logging** v MonthlyProgressTracker klíčové pro diagnostiku

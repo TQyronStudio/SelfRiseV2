@@ -2352,6 +2352,8 @@ export interface TranslationKeys {
       journalCategory: string;
       goalsCategory: string;
       consistencyCategory: string;
+      masteryCategory: string;
+      specialCategory: string;
       categoryLabel: string;
       rarityLabel: string;
       recentLabel: string;

@@ -76,9 +76,14 @@ export const getLanguageDisplayName = (language: SupportedLanguage): string => {
  * WHY (July 2026 log finding): monthly challenges generated before i18next
  * finished its async init were persisted with the KEY as their title/
  * description (e.g. 'help.challenges.templates.habits_consistency_master.title').
- * This helper heals such data at render time. The root cause is also fixed
- * (generation now awaits i18n readiness), but challenges persisted during the
- * broken window — and any future race — display correctly through this.
+ * This helper heals such data at render time. Root causes, both fixed:
+ * generation now awaits i18n readiness (July 2026), and the lifecycle manager
+ * no longer passes a mock `(key) => key` t into generation (October 2026 —
+ * every startup/month-boundary challenge before that stored raw keys).
+ * Challenges persisted before the fixes display correctly through this.
+ * Components don't call it for challenges directly — they use
+ * services/challengeDisplayText, which rebuilds the texts from the template
+ * in the current language and falls back to this for template-less data.
  *
  * Single shared implementation — do NOT copy it into components.
  */

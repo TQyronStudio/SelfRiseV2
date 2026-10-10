@@ -321,6 +321,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
           visible={true}
           milestone={props.milestone}
           challengeTitle={props.challengeTitle}
+          challengeTemplateId={props.challengeTemplateId}
           xpAwarded={props.xpAwarded}
           onClose={onClose}
         />

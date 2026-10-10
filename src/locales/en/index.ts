@@ -3789,6 +3789,8 @@ const en: TranslationKeys = {
       journalCategory: 'Journal',
       goalsCategory: 'Goals',
       consistencyCategory: 'Consistency',
+      masteryCategory: 'Mastery',
+      specialCategory: 'Special',
       categoryLabel: 'Category',
       rarityLabel: 'Rarity',
       recentLabel: 'Recent',

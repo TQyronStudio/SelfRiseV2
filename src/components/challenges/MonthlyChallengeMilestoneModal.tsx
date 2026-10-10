@@ -12,6 +12,7 @@ import {
 import { notification as hapticNotification, NotificationFeedbackType } from '@/src/services/hapticsService';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
+import { getChallengeTitle } from '@/src/services/challengeDisplayText';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ interface MonthlyChallengeMilestoneModalProps {
   visible: boolean;
   milestone: 25 | 50 | 75;
   challengeTitle: string;
+  challengeTemplateId?: string | undefined;
   xpAwarded: number;
   onClose: () => void;
 }
@@ -27,11 +29,14 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
   visible,
   milestone,
   challengeTitle,
+  challengeTemplateId,
   xpAwarded,
   onClose,
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
+  // Current language from the template; falls back to the stored title
+  const displayTitle = getChallengeTitle({ templateId: challengeTemplateId, title: challengeTitle });
   // 4-Tier Modal coordination removed - now handled by centralized ModalQueueContext
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -108,7 +113,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
           accessibilityRole="alert"
           accessibilityLabel={t('monthlyChallenge.milestone.accessibility', {
             milestone,
-            title: challengeTitle,
+            title: displayTitle,
           })}
         >
           {/* Emoji */}
@@ -120,7 +125,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
           </Text>
 
           {/* Challenge name */}
-          <Text style={styles.challengeTitle}>{challengeTitle}</Text>
+          <Text style={styles.challengeTitle}>{displayTitle}</Text>
 
           {/* Progress bar */}
           <View style={styles.progressContainer}>

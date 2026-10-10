@@ -3735,6 +3735,8 @@ const de: Partial<TranslationKeys> = {
       journalCategory: 'Tagebuch',
       goalsCategory: 'Ziele',
       consistencyCategory: 'Beständigkeit',
+      masteryCategory: 'Meisterschaft',
+      specialCategory: 'Besonders',
       categoryLabel: 'Kategorie',
       rarityLabel: 'Seltenheit',
       recentLabel: 'Kürzlich',
