@@ -2205,7 +2205,7 @@ const de: Partial<TranslationKeys> = {
       description: 'Erstelle 5 verschiedene Gewohnheiten, um deine persönliche Entwicklung zu diversifizieren'
     },
     century_club: {
-      name: 'Century Club',
+      name: 'Hunderter-Club',
       description: 'Schließe 100 Gewohnheitsaufgaben ab - tritt den Elite-Reihen der konsequenten Leistungsträger bei'
     },
     consistency_king: {
@@ -2417,7 +2417,7 @@ const de: Partial<TranslationKeys> = {
 
     // MASTERY ACHIEVEMENTS (9 achievements)
     level_up: {
-      name: 'Level Up',
+      name: 'Levelaufstieg',
       description: 'Erreiche Level 10 "Anfänger V" - du wirst stärker'
     },
     selfrise_expert: {
@@ -2871,7 +2871,7 @@ const de: Partial<TranslationKeys> = {
         action: 'Erstelle mehr Gewohnheiten, um {{target}} aktive Gewohnheiten zu erreichen!'
       },
       persistence_pays: {
-        progress: 'Comebacks: {{current}}/{{target}}',
+        progress: 'Rückkehren: {{current}}/{{target}}',
         requirement: 'Kehre zur App zurück nach 7+ Tagen Inaktivität ({{target}} Mal)',
         action: 'Auch wenn du eine Pause machst, Zurückkommen zählt!'
       },
