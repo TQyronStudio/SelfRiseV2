@@ -129,7 +129,11 @@ export const daysBetween = (startDate: DateString, endDate: DateString): number 
   const start = parseDate(startDate);
   const end = parseDate(endDate);
   const diffTime = end.getTime() - start.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // ROUND, not ceil: both ends are local midnights, so the gap is a whole number
+  // of days ± one DST hour. A day containing the autumn change lasts 25 h, and
+  // ceil turned "Oct 25 → Oct 26" into 2 days (spring's 23 h day broke negative
+  // differences the same way).
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
 };
 
 // Week utilities

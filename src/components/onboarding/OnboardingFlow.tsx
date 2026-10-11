@@ -24,7 +24,8 @@ import { OnboardingPreferencesModal } from '@/src/components/tutorial/Onboarding
  * draw order; that is exactly why the old overlay failed to dim the tab bar.
  */
 export function OnboardingFlow() {
-  const { state, actions, showOnboardingWelcome, showOnboardingPrefs } = useTutorial();
+  const { state, actions, showOnboardingWelcome, showOnboardingPrefs, onboardingHabitId } =
+    useTutorial();
   const screen = state.onboardingScreen;
 
   // The language/theme/notification gate. It used to be rendered by
@@ -46,9 +47,15 @@ export function OnboardingFlow() {
 
   if (screen === null) return null;
 
-  // Screen 3 positions itself along the bottom and must leave the app usable.
+  // Screen 3 positions itself along the bottom and must leave the app usable
+  // (its ending, after the check or "later", takes the full screen itself).
   if (screen === 3) {
-    return <FirstCheckCard onDone={actions.nextOnboardingScreen} />;
+    return (
+      <FirstCheckCard
+        onboardingHabitId={onboardingHabitId}
+        onDone={actions.nextOnboardingScreen}
+      />
+    );
   }
 
   const styles = StyleSheet.create({

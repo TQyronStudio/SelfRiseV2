@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resolveDeviceLanguage } from './deviceLanguage';
 
 // Import translation files (with explicit index paths for better bundler compatibility)
 import en from '../locales/en/index';
@@ -24,10 +25,16 @@ const languageDetector = {
         return;
       }
       
-      // Only English is supported for now
-      const languageToUse = 'en';
-      
-      callback(languageToUse);
+      // First launch: the phone's language when the app ships it, else English.
+      // i18next caches the result through cacheUserLanguage, so this runs once.
+      let deviceLocales: Localization.Locale[] = [];
+      try {
+        deviceLocales = Localization.getLocales();
+      } catch (localeError) {
+        console.warn('Could not read device locales, falling back to English:', localeError);
+      }
+
+      callback(resolveDeviceLanguage(deviceLocales));
     } catch (error) {
       console.error('Error detecting language:', error);
       callback('en'); // Default to English on error

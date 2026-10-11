@@ -16,6 +16,27 @@ import {
   notificationScheduler,
   progressAnalyzer,
 } from '../services/notifications';
+import { FirstDayAnalytics } from '../services/analytics';
+import {
+  claimNotificationResponse,
+  openLaunchNotification,
+} from '../services/notifications/launchNotification';
+import { awaitStartupComplete } from '../services/startup';
+import { isTutorialActive } from '../contexts/TutorialContext';
+
+/** Identifies one tap across both delivery paths (live listener + launch lookup). */
+function responseKey(response: Notifications.NotificationResponse): string {
+  const { notification } = response;
+  return `${notification.request.identifier}|${notification.date}`;
+}
+
+/** Fire-and-forget `reminder_open` (deduplicated by the same key). */
+function trackReminderOpen(response: Notifications.NotificationResponse): void {
+  void FirstDayAnalytics.reminderOpened(
+    response.notification.request.content.data?.category,
+    responseKey(response)
+  );
+}
 
 export function useNotificationLifecycle() {
   const appState = useRef(AppState.currentState);
@@ -49,6 +70,28 @@ export function useNotificationLifecycle() {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       handleNotificationResponse
     );
+
+    // A tap that LAUNCHED the app (cold start) is not replayed to the listener
+    // above — it is only available as the "last response". Count it, and open
+    // the same screen a live tap would — but only after the startup windows and
+    // never during onboarding (see launchNotification.ts). Each tap navigates
+    // once, whichever path sees it first.
+    try {
+      const launchResponse = Notifications.getLastNotificationResponse();
+      if (launchResponse) {
+        trackReminderOpen(launchResponse);
+        void openLaunchNotification(launchResponse, responseKey(launchResponse), {
+          waitForStartup: awaitStartupComplete,
+          // Same settle time onboarding's autoStart gives navigation.
+          settle: () => new Promise(resolve => setTimeout(resolve, 300)),
+          isOnboardingActive: isTutorialActive,
+          open: navigateForResponse,
+          clear: () => Notifications.clearLastNotificationResponse(),
+        });
+      }
+    } catch (error) {
+      console.warn('[useNotificationLifecycle] Could not read launch notification:', error);
+    }
 
     // Reschedule notifications on initial mount
     rescheduleNotifications();
@@ -91,9 +134,18 @@ export function useNotificationLifecycle() {
   };
 
   /**
-   * Handle notification tap - navigate to relevant screen
+   * Handle a live notification tap (app running or in background).
    */
   const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
+    trackReminderOpen(response);
+    if (!claimNotificationResponse(responseKey(response))) return; // already opened
+    navigateForResponse(response);
+  };
+
+  /**
+   * Navigate to the screen a notification points at (shared by both tap paths).
+   */
+  const navigateForResponse = (response: Notifications.NotificationResponse) => {
     try {
       const data = response.notification.request.content.data;
       const category = data?.category as string;

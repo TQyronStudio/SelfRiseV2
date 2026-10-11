@@ -2907,6 +2907,12 @@ const en: TranslationKeys = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
 
+    // Privacy
+    privacy: 'Privacy',
+    privacyPolicyDescription: 'How SelfRise handles your data',
+    privacySettings: 'Privacy Settings',
+    privacySettingsDescription: 'Change your consent for ads and data',
+
     // Tutorial & Onboarding
     tutorial: 'Tutorial',
     tutorialReset: 'Restart Tutorial',
@@ -3585,7 +3591,9 @@ const en: TranslationKeys = {
     // letting screens like this multiply.
     welcome: {
       title: 'Welcome to SelfRise',
-      tagline: 'Habits, gratitude and goals in one place.',
+      // The brand slogan ("SelfRise, build a better life") — the same line the
+      // marketing videos use, so a new user lands on what they were promised.
+      tagline: 'Build a better life, one small step a day.',
       promise: 'In a moment we\'ll set up your first habit and your first goal. It takes a minute — and you can change anything later.',
       cta: 'Let\'s go',
     },
@@ -3623,10 +3631,26 @@ const en: TranslationKeys = {
       cta: 'Create Goal',
     },
 
+    // Screen 3: the ask card (names the habit from screen 1; title/body are the
+    // fallback when it is unknown), then a full-screen ending — "Day 1 done"
+    // after a real check, or the honest "later" variant without rewards.
     done: {
-      title: "You're all set",
-      body: 'Tick your habit off and watch your XP grow. That is the whole app.',
-      cta: 'Got it',
+      title: 'One last step',
+      body: 'Tick off your habit and watch your XP grow.',
+      askTitleNamed: 'Last step: tick off “{{habit}}”',
+      askBodyNamed: "Tap the circle next to it once you've done it today.",
+      later: "I'll do it later",
+      dayOneTitle: 'Day 1 done 🔥',
+      dayOneBodyReminders: "That's SelfRise: one small step a day. Come back tomorrow, we'll remind you in the afternoon.",
+      dayOneBodyNoReminders: "That's SelfRise: one small step a day. Come back tomorrow and keep your streak growing.",
+      laterTitle: 'Your journey starts today 🌱',
+      laterBodyNamed: "Tick off “{{habit}}” once you've done it today. That's your Day 1.",
+      laterBody: "Tick off your habit once you've done it today. That's your Day 1.",
+      laterReminder: "We'll remind you.",
+      statXp: '+{{xp}} XP today',
+      statLevel: 'Level {{level}}',
+      statStreak: '1-day streak',
+      cta: "Let's do this",
       learnMore: 'How it all works →',
     },
   },

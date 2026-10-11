@@ -1641,6 +1641,12 @@ const es: Partial<TranslationKeys> = {
     privacyPolicy: 'Política de Privacidad',
     termsOfService: 'Términos de Servicio',
 
+    // Privacy
+    privacy: 'Privacidad',
+    privacyPolicyDescription: 'Cómo trata SelfRise tus datos',
+    privacySettings: 'Ajustes de privacidad',
+    privacySettingsDescription: 'Cambia tu consentimiento para anuncios y datos',
+
     // Tutorial & Onboarding
     tutorial: 'Tutorial',
     tutorialReset: 'Reiniciar Tutorial',
@@ -3537,7 +3543,7 @@ const es: Partial<TranslationKeys> = {
     skip: 'Omitir',
     welcome: {
       title: 'Bienvenido a SelfRise',
-      tagline: 'Hábitos, gratitud y metas en un solo lugar.',
+      tagline: 'Construye una vida mejor, un pequeño paso cada día.',
       promise: 'En un momento configuraremos tu primer hábito y tu primera meta. Solo lleva un minuto, y podrás cambiarlo todo más tarde.',
       cta: 'Vamos',
     },
@@ -3576,10 +3582,23 @@ const es: Partial<TranslationKeys> = {
     },
 
     done: {
-      title: 'Todo listo',
-      body: 'Marca tu hábito y observa cómo crece tu XP. Eso es toda la app.',
-      cta: 'Entendido',
-      learnMore: 'Como funciona todo →',
+      title: 'Un último paso',
+      body: 'Marca tu hábito y observa cómo crece tu XP.',
+      askTitleNamed: 'Último paso: marca «{{habit}}»',
+      askBodyNamed: 'Toca el círculo de al lado cuando lo hayas hecho hoy.',
+      later: 'Lo haré más tarde',
+      dayOneTitle: 'Día 1 completado 🔥',
+      dayOneBodyReminders: 'Así es SelfRise: un pequeño paso cada día. Vuelve mañana, te lo recordaremos por la tarde.',
+      dayOneBodyNoReminders: 'Así es SelfRise: un pequeño paso cada día. Vuelve mañana y haz crecer tu racha.',
+      laterTitle: 'Tu viaje empieza hoy 🌱',
+      laterBodyNamed: 'Marca «{{habit}}» cuando lo hayas hecho hoy. Ese será tu Día 1.',
+      laterBody: 'Marca tu hábito cuando lo hayas hecho hoy. Ese será tu Día 1.',
+      laterReminder: 'Te lo recordaremos.',
+      statXp: '+{{xp}} XP hoy',
+      statLevel: 'Nivel {{level}}',
+      statStreak: 'Racha de 1 día',
+      cta: '¡Manos a la obra!',
+      learnMore: 'Cómo funciona todo →',
     },
   },
 

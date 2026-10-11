@@ -52,8 +52,27 @@ export async function finalizeAdsAndDiagnostics(): Promise<void> {
 }
 
 /**
- * Optional helper: re-open the privacy options form so users can change their
- * choice later (e.g. from a Settings screen). Returns true if shown.
+ * Whether this user must be offered a way to change their consent (EEA/UK and
+ * other regions where Google requires a privacy options entry point). Settings
+ * shows its "Privacy settings" row only when this is true — for everyone else
+ * the form would not open, so the row would be a dead button. Never throws.
+ */
+export async function isPrivacyOptionsRequired(): Promise<boolean> {
+  try {
+    const consentInfo = await AdsConsent.getConsentInfo();
+    return (
+      consentInfo.privacyOptionsRequirementStatus ===
+      AdsConsentPrivacyOptionsRequirementStatus.REQUIRED
+    );
+  } catch (error) {
+    console.warn('⚠️ AdConsent: could not read privacy options requirement', error);
+    return false;
+  }
+}
+
+/**
+ * Re-open the privacy options form so users can change their choice later
+ * (Settings → Privacy settings). Returns true if shown.
  */
 export async function showPrivacyOptionsForm(): Promise<boolean> {
   try {

@@ -481,6 +481,32 @@ This hook **must be called inside RootProvider** (app/_layout.tsx) to have acces
 3. **On Notification Tap**:
    - Afternoon reminder → Navigate to Home tab
    - Evening reminder → Navigate to missing task (smart navigation)
+   - Analytics: `reminder_open { type: afternoon | evening }` for every user
+     (since 2026-10-10, @technical-guides:Analytics.md)
+
+> ⚠️ **Cold start** (fixed 2026-10-10): a tap that LAUNCHES a killed app is not
+> replayed to `addNotificationResponseReceivedListener` (expo-notifications 55) —
+> it is only available through `Notifications.getLastNotificationResponse()`.
+> Until 2026-10-10 that tap was lost and the app opened on Home. Now, on mount,
+> `useNotificationLifecycle` hands it to `openLaunchNotification()`
+> (`src/services/notifications/launchNotification.ts`), which:
+> 1. **waits for `awaitStartupComplete()` + 300 ms settle** — navigating under the
+>    ATT / consent windows is the iOS freeze the Startup Orchestrator prevents, and
+>    the navigator must be ready (same settle time onboarding's autoStart uses);
+> 2. **does nothing while onboarding is active** (`isTutorialActive()`) —
+>    onboarding owns the screen;
+> 3. **navigates once per tap** — `claimNotificationResponse(identifier|date)` is
+>    shared with the live listener, so a tap seen by both paths opens one screen;
+> 4. then calls `clearLastNotificationResponse()` so a JS reload cannot replay it.
+>
+> Both paths use the same `navigateForResponse()`, so a cold-start tap lands on
+> exactly the screen a live tap would. Tests: `launchNotification.test.ts`.
+>
+> ```typescript
+> // ❌ WRONG: navigate straight from the launch response on mount
+> const last = Notifications.getLastNotificationResponse();
+> if (last) router.push(...);   // may run under the ATT prompt or over onboarding
+> ```
 
 #### Smart Navigation on Tap
 
@@ -830,6 +856,11 @@ Ensure expo-notifications plugin is present:
 ## Testing & Debugging
 
 ### Manual Testing
+
+0. **Cold-start tap** (since 2026-10-10): kill the app completely, wait for the
+   evening reminder (or schedule a near one), tap it → the app opens on the screen
+   with the missing task, not just Home. Repeat with the app in the background →
+   same screen, opened once.
 
 1. **Enable Notifications**:
    - Go to Settings tab

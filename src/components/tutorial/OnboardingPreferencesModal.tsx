@@ -13,6 +13,7 @@ import { Fonts } from '@/src/constants/fonts';
 import { useTheme, ThemeMode } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import type { SupportedLanguage } from '@/src/utils/i18n';
+import { FirstDayAnalytics } from '@/src/services/analytics';
 import {
   getModalWidth,
   getModalPadding,
@@ -98,8 +99,10 @@ export const OnboardingPreferencesModal: React.FC<OnboardingPreferencesModalProp
 
   const handleConfirm = () => {
     if (step === 'language') {
+      void FirstDayAnalytics.languageChosen(currentLanguage);
       setStep('theme');
     } else if (step === 'theme') {
+      void FirstDayAnalytics.themeChosen(selectedTheme);
       setStep('notifications');
     } else {
       // Notification step's primary button = "yes, remind me".

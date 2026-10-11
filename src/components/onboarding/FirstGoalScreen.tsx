@@ -13,6 +13,7 @@ import { OnbScreenContainer } from './OnbScreenContainer';
 import { OnbTileGrid, OnbTileGridItem } from './OnbTileGrid';
 import { createWithTrophyGate } from './createWithTrophyGate';
 import { parseGoalTarget, isGoalDraftComplete } from './goalDraft';
+import { FirstDayAnalytics } from '@/src/services/analytics';
 
 /**
  * Onboarding screen 2 — the user leaves with a goal of their own.
@@ -112,6 +113,8 @@ export function FirstGoalScreen({ onCreated, onSkip }: FirstGoalScreenProps) {
             category,
           }),
       });
+      // Which template the user started from — never the goal's title.
+      void FirstDayAnalytics.goalCreated(selectedId);
       onCreated();
     } catch (error) {
       console.warn('[ONBOARDING] Failed to create first goal:', error);

@@ -94,6 +94,13 @@ await logEvent(analytics, 'app_open', { ... });        // pak teprve událost
 **Proč**: sledování nesmí začít dřív, než uživatel odpoví na ATT. Pořadí ATT→UMP
 navíc doporučuje Google.
 
+> ℹ️ **Upřesnění (ověřeno 2026-10-10)**: `firebase.json` automatický sběr Firebase
+> Analytics **nevypíná**, takže Firebase sbírá anonymní údaje o používání už od
+> spuštění a `setAnalyticsCollectionEnabled(true)` je jen formalita. Pořadí výš tedy
+> chrání hlavně `app_open` a reklamní identifikátor (ten iOS bez ATT stejně nevydá).
+> Pro trychtýř prvního dne to nevadí — úvod startuje až za bariérou. Detaily:
+> @technical-guides:Analytics.md
+
 ---
 
 ## Kontrakt `StartupStep` — jak přidat nové okno

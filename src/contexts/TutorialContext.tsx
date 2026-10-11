@@ -4,6 +4,7 @@ import { AchievementStorage } from '@/src/services/achievementStorage';
 import { router } from 'expo-router';
 import { TUTORIAL_STORAGE_KEYS } from '../constants/tutorialStorageKeys';
 import { awaitStartupComplete } from '@/src/services/startup';
+import { FirstDayAnalytics } from '@/src/services/analytics';
 
 /**
  * Onboarding state: a preferences gate, one welcome screen, then three screens
@@ -72,12 +73,20 @@ export interface TutorialContextType {
    * the truth about the three tasks.
    */
   showOnboardingWelcome: boolean;
+  /**
+   * The habit created on screen 1 of THIS run (first launch or a Settings
+   * restart). Screen 3 names it, pulses only its checkbox and waits for its
+   * check. `null` when unknown — screen 3 then falls back to generic wording.
+   */
+  onboardingHabitId: string | null;
   actions: {
     completeOnboardingPrefs: (wantsNotifications: boolean) => Promise<void>;
     /** Leaves the welcome screen and opens screen 1. */
     completeOnboardingWelcome: () => Promise<void>;
     /** Advance the onboarding, finishing it after the last screen. */
     nextOnboardingScreen: () => Promise<void>;
+    /** Screen 1 → remember which habit this run created (persisted for resume). */
+    setOnboardingHabit: (habitId: string) => Promise<void>;
     /** Leave onboarding early; writes the same SKIPPED flag as finishing does. */
     skipOnboarding: () => Promise<void>;
     /** Settings → run onboarding again from the top. */
@@ -152,6 +161,7 @@ const CURRENT_STEP_KEY = TUTORIAL_STORAGE_KEYS.CURRENT_STEP;
 const SKIPPED_KEY = TUTORIAL_STORAGE_KEYS.SKIPPED;
 const RESTARTED_KEY = TUTORIAL_STORAGE_KEYS.RESTARTED;
 const PREFS_KEY = TUTORIAL_STORAGE_KEYS.PREFS_COMPLETED;
+const HABIT_ID_KEY = TUTORIAL_STORAGE_KEYS.HABIT_ID;
 
 /** Diagnostics written by the retired tour: cleared on request, never written. */
 const LEGACY_DIAGNOSTIC_KEYS = [
@@ -172,6 +182,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   const [state, dispatch] = useReducer(tutorialReducer, initialState);
   const [showOnboardingPrefs, setShowOnboardingPrefs] = useState(false);
   const [showOnboardingWelcome, setShowOnboardingWelcome] = useState(false);
+  const [onboardingHabitId, setOnboardingHabitId] = useState<string | null>(null);
 
   const saveProgress = async (screen: number) => {
     try {
@@ -185,6 +196,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     try {
       await AsyncStorage.setItem(COMPLETED_KEY, 'true');
       await AsyncStorage.removeItem(CURRENT_STEP_KEY);
+      await AsyncStorage.removeItem(HABIT_ID_KEY);
     } catch (error) {
       console.warn('Failed to mark onboarding as completed:', error);
     }
@@ -194,6 +206,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     try {
       await AsyncStorage.setItem(SKIPPED_KEY, 'true');
       await AsyncStorage.removeItem(CURRENT_STEP_KEY);
+      await AsyncStorage.removeItem(HABIT_ID_KEY);
     } catch (error) {
       console.warn('Failed to mark onboarding as skipped:', error);
     }
@@ -233,6 +246,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     try {
       await AsyncStorage.removeItem(RESTARTED_KEY);
       dispatch({ type: 'COMPLETE_TUTORIAL' });
+      setOnboardingHabitId(null);
       await markCompleted();
     } catch (error) {
       console.warn('Failed to complete onboarding:', error);
@@ -240,12 +254,24 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   };
 
   const skipOnboarding = async (): Promise<void> => {
+    // Fire-and-forget: analytics must never delay or break the flow.
+    void FirstDayAnalytics.onboardingSkipped(state.onboardingScreen ?? 1);
     try {
       await AsyncStorage.removeItem(RESTARTED_KEY);
       dispatch({ type: 'SKIP_TUTORIAL' });
+      setOnboardingHabitId(null);
       await markSkipped();
     } catch (error) {
       console.warn('Failed to skip onboarding:', error);
+    }
+  };
+
+  const setOnboardingHabit = async (habitId: string): Promise<void> => {
+    setOnboardingHabitId(habitId);
+    try {
+      await AsyncStorage.setItem(HABIT_ID_KEY, habitId);
+    } catch (error) {
+      console.warn('Failed to remember the onboarding habit:', error);
     }
   };
 
@@ -268,12 +294,14 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       // RN modal must be gone before it appears — never two at once (iOS freeze).
       setShowOnboardingPrefs(false);
 
+      let remindersOn = false;
       if (wantsNotifications) {
         // Awaited, so the welcome screen cannot appear while the OS prompt is up.
         const { enableAllRemindersAfterOptIn } =
           require('@/src/services/notifications') as typeof import('@/src/services/notifications');
-        await enableAllRemindersAfterOptIn();
+        remindersOn = await enableAllRemindersAfterOptIn();
       }
+      void FirstDayAnalytics.notificationsChosen(wantsNotifications, remindersOn);
 
       dispatch({ type: 'RESET_TUTORIAL' });
       setShowOnboardingWelcome(true);
@@ -286,6 +314,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   };
 
   const completeOnboardingWelcome = async (): Promise<void> => {
+    void FirstDayAnalytics.welcomeDone();
     setShowOnboardingWelcome(false);
     await startOnboardingAt(1);
   };
@@ -297,6 +326,9 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       await AsyncStorage.removeItem(COMPLETED_KEY);
       await AsyncStorage.removeItem(CURRENT_STEP_KEY);
       await AsyncStorage.removeItem(SKIPPED_KEY);
+      // A restart creates a new habit on screen 1; forget the previous run's one.
+      await AsyncStorage.removeItem(HABIT_ID_KEY);
+      setOnboardingHabitId(null);
 
       // Lets the Habit/Goal contexts know the first-habit/first-goal
       // achievements are already owned, so they do not re-celebrate.
@@ -325,6 +357,21 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     }
   };
 
+  // Resuming on screen 3 after the app was killed: the habit was remembered in
+  // storage on screen 1, React state starts empty.
+  useEffect(() => {
+    if (state.onboardingScreen !== 3 || onboardingHabitId !== null) return;
+    let cancelled = false;
+    AsyncStorage.getItem(HABIT_ID_KEY)
+      .then(id => {
+        if (!cancelled && id) setOnboardingHabitId(id);
+      })
+      .catch(error => console.warn('Failed to read the onboarding habit:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, [state.onboardingScreen, onboardingHabitId]);
+
   // -------------------------------------------------------------------------
   // Auto-start on first launch
   // -------------------------------------------------------------------------
@@ -352,6 +399,9 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         const prefsCompleted = await AsyncStorage.getItem(PREFS_KEY);
         if (prefsCompleted !== 'true') {
           console.log('🎓 [ONBOARDING] First launch — showing preferences gate');
+          // The single entry point into the first-day funnel: only a first
+          // launch reaches the gate, so updating users never enter it.
+          void FirstDayAnalytics.onboardingStarted();
           setShowOnboardingPrefs(true);
           return;
         }
@@ -388,10 +438,12 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         state,
         showOnboardingPrefs,
         showOnboardingWelcome,
+        onboardingHabitId,
         actions: {
           completeOnboardingPrefs,
           completeOnboardingWelcome,
           nextOnboardingScreen,
+          setOnboardingHabit,
           skipOnboarding,
           restartTutorial,
           clearCrashData,

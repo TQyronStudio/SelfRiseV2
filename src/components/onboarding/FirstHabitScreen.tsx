@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useHabits } from '@/src/contexts/HabitsContext';
+import { useTutorial } from '@/src/contexts/TutorialContext';
 import { armTutorialAchievementGate } from '@/src/utils/tutorialAchievementGate';
 import { HABIT_PRESETS, CUSTOM_HABIT_DEFAULTS, ALL_DAYS } from '@/src/constants/habitPresets';
 import { DayOfWeek, HabitColor, HabitIcon } from '@/src/types/common';
@@ -15,6 +16,7 @@ import { DayPicker } from '@/src/components/habits/DayPicker';
 import { OnbScreenContainer } from './OnbScreenContainer';
 import { OnbTileGrid, OnbTileGridItem } from './OnbTileGrid';
 import { createWithTrophyGate } from './createWithTrophyGate';
+import { FirstDayAnalytics } from '@/src/services/analytics';
 
 /**
  * Onboarding screen 1 — the user leaves with a habit of their own.
@@ -48,6 +50,9 @@ export function FirstHabitScreen({ onCreated, onSkip }: FirstHabitScreenProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
   const { actions: habitActions } = useHabits();
+  const {
+    actions: { setOnboardingHabit },
+  } = useTutorial();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -101,7 +106,7 @@ export function FirstHabitScreen({ onCreated, onSkip }: FirstHabitScreenProps) {
     try {
       // Arm-create-wait, in that order — see createWithTrophyGate for why it
       // matters and how it has gone wrong before (K4).
-      await createWithTrophyGate({
+      const habit = await createWithTrophyGate({
         arm: () => armTutorialAchievementGate('first-habit'),
         create: () =>
           habitActions.createHabit({
@@ -111,6 +116,10 @@ export function FirstHabitScreen({ onCreated, onSkip }: FirstHabitScreenProps) {
             scheduledDays: days,
           }),
       });
+      // Screen 3 names this habit and waits for exactly its check.
+      await setOnboardingHabit(habit.id);
+      // Which tile the user started from — never the habit's name.
+      void FirstDayAnalytics.habitCreated(selectedId);
       onCreated();
     } catch (error) {
       console.warn('[ONBOARDING] Failed to create first habit:', error);

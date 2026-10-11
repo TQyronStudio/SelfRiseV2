@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useMemo, React
 import { Gratitude, GratitudeStreak, GratitudeStats, CreateGratitudeInput, UpdateGratitudeInput, WarmUpPayment } from '../types/gratitude';
 import { getGratitudeStorageImpl } from '../config/featureFlags';
 import { DateString } from '../types/common';
+import { FirstDayAnalytics } from '../services/analytics';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
@@ -138,6 +139,9 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       // immediately after the button unlocks — critical for warm-up recovery
       // where frozenDays must reflect the just-created entry.
       await refreshStats();
+
+      // First-day funnel: only the very first entry of a new install is sent.
+      void FirstDayAnalytics.journalEntryCreated();
 
       return newGratitude;
     } catch (error) {

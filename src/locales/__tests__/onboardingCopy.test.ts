@@ -31,6 +31,17 @@ const LIMITS: Record<string, number> = {
   'goal.subtitle': 110,
   'done.title': 40,
   'done.body': 130,
+  'done.askTitleNamed': 60,
+  'done.askBodyNamed': 90,
+  'done.later': 25,
+  'done.dayOneTitle': 40,
+  'done.dayOneBodyReminders': 130,
+  'done.dayOneBodyNoReminders': 130,
+  'done.laterTitle': 40,
+  'done.laterBodyNamed': 110,
+  'done.laterBody': 110,
+  'done.laterReminder': 40,
+  'done.cta': 25,
 };
 
 const read = (locale: any, path: string): string =>

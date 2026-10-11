@@ -745,6 +745,9 @@ Tyto kroky musí Petr udělat v externích nástrojích – kód na nich závis�
 
 Tato část má hodnotu sama o sobě – lepší interní data o chování uživatelů. Lze začít hned.
 
+> ➡️ **2026-10-10: B1 a B2 převzal úkol „Analytika prvního dne" v @projectplan.md** (jiné názvy
+> událostí, viz tam). Body B3–B5 zůstávají tady jako odložené.
+
 - [ ] **B1. Vytvořit `src/services/analyticsService.ts`**
   - Sjednocený eventový dispatcher (zatím jen Firebase, později paralelně i Meta)
   - Wrapper kolem `FirebaseAnalytics.logEvent` z existujícího hooku

@@ -76,7 +76,7 @@ sourozenců — bez něj se přes obrazovku prokreslí spodní lišta.
 useEffect(() => { autoStart(); }, []);
 // → naskočí přes ještě zobrazený ATT / consent prompt → ZAMRZNUTÍ
 
-// ✅ CORRECT (TutorialContext.tsx:371-382)
+// ✅ CORRECT (TutorialContext.tsx:421-432)
 const run = async () => {
   await awaitStartupComplete();   // bariéra Startup Orchestratoru
   if (cancelled) return;
@@ -141,7 +141,7 @@ pohled:
 |---|---|---|
 | `AchievementContext.tsx:339-348` | propustí jen `first-habit` a `first-goal`, ostatní oslavy potlačí | `isTutorialActive()` |
 | `XpAnimationContext.tsx:11-14` | potlačí **modál** level-upu | `COMPLETED` / `SKIPPED` |
-| `HabitsContext.tsx:201`, `GoalsContext.tsx:165` | při restartu neslaví trofej znovu | `isTutorialRestarted()` |
+| `HabitsContext.tsx:202`, `GoalsContext.tsx:165` | při restartu neslaví trofej znovu | `isTutorialRestarted()` |
 
 Klíče jsou v `src/constants/tutorialStorageKeys.ts` jako **single source of
 truth** právě proto, že to jsou obyčejné řetězce — překlep by neodhalil ani
@@ -155,7 +155,7 @@ const screen = Math.min(Math.max(savedStep, 1), 3);
 // → uživatel, který upgradoval uprostřed starého flow, má uloženo třeba 17
 //   a skončí rovnou na obrazovce 3 — bez návyku a bez cíle
 
-// ✅ CORRECT (TutorialContext.tsx:39-44)
+// ✅ CORRECT (TutorialContext.tsx:40-45)
 export function resolveOnboardingStartScreen(savedStep: number): OnboardingScreen {
   if (!Number.isFinite(savedStep)) return 1;
   const step = Math.trunc(savedStep);
@@ -173,7 +173,7 @@ přesně to, čemu má celý onboarding zabránit.
 
 ## Kde se onboarding spouští
 
-`TutorialContext.tsx:332-383`, v tomto pořadí:
+`TutorialContext.tsx:379-433`, v tomto pořadí:
 
 1. `awaitStartupComplete()` (pravidlo 2)
 2. `setTimeout(…, 300)` — kontexty a navigace se stihnou inicializovat
@@ -187,7 +187,7 @@ přesně to, čemu má celý onboarding zabránit.
 | `PREFS_COMPLETED ≠ 'true'` | brána předvoleb |
 | jinak | uvítání |
 
-Namontováno je to na **jediném místě**: `app/_layout.tsx:95`, jako poslední
+Namontováno je to na **jediném místě**: `app/_layout.tsx:99`, jako poslední
 sourozenec, aby kreslilo přes navigátor.
 
 ---
@@ -222,6 +222,7 @@ flagů, rozbije filtr, aniž by se ho dotkl. To je důvod pravidla 4.
 | `CURRENT_STEP` | číslo rozdělané obrazovky (1–3) |
 | `PREFS_COMPLETED` | brána předvoleb proběhla |
 | `RESTARTED` | běží znovu ze Settings (trofeje už vlastněné) |
+| `HABIT_ID` | id návyku z obrazovky 1 **tohoto běhu** — obrazovka 3 ho jmenuje a čeká na jeho odškrtnutí. Zapisuje `setOnboardingHabit()`, maže dokončení, přeskočení i restart (od 2026-10-11) |
 | `SESSION`, `SESSION_TIMESTAMP`, `CRASH_LOG`, `ERROR_COUNT`, `RECOVERY_STATE` | **nikdy se nezapisují**, jen maže `clearCrashData()` |
 
 ---
@@ -234,7 +235,7 @@ flagů, rozbije filtr, aniž by se ho dotkl. To je důvod pravidla 4.
 // ❌ WRONG: ťuknu na dlaždici a mám hotovo, nic nejde změnit
 <OnbTileGrid items={presets} onSelect={createHabitImmediately} />
 
-// ✅ CORRECT (FirstHabitScreen.tsx:151-186): pod mřížkou skutečné ovládací prvky
+// ✅ CORRECT (FirstHabitScreen.tsx:160-194): pod mřížkou skutečné ovládací prvky
 <OnbTileGrid items={tiles} selectedId={selectedId} onSelect={handleSelect} />
 {selectedId !== null && (
   <>
@@ -267,37 +268,42 @@ Kdo chce vědět víc, jde na obrazovku **„Jak SelfRise funguje"**
 <Button title="Projít si, jak to funguje" />
 // → rozhodnutí přesně v momentě odměny, a „čti návod" soupeří s „jdi to používat"
 
-// ✅ CORRECT (FirstCheckCard.tsx): hlavní akce + tichý druhotný odkaz
-<TouchableOpacity style={styles.cta}>…Rozumím…</TouchableOpacity>
+// ✅ CORRECT (DayOneCelebration.tsx): hlavní akce + tichý druhotný odkaz
+<TouchableOpacity style={styles.cta}>…Let's do this…</TouchableOpacity>
 <TouchableOpacity style={styles.learnMore}>…Jak to celé funguje →…</TouchableOpacity>
 ```
 
-**Proč**: poslední karta je moment odměny — uživatel právě odškrtl první návyk.
+**Proč**: závěr úvodu je moment odměny — uživatel právě odškrtl první návyk.
+(Prohodit důraz ve prospěch „Jak to funguje" Petr zvažoval 2026-10-11 a zůstalo
+se u tohohle; kolik lidí odkaz použije, ukazuje událost `onb_learn_more`.)
 Postavit tam volbu je přesně to, čeho se celé přepracování zbavovalo. Odkaz
 je nabídka, ne rozhodnutí.
 
 Odkaz **nejdřív zavře onboarding** (`onDone()`) a teprve pak naviguje. Jinak by
-karta zůstala viset za čtenářem a čekala na zavření, až se vrátí.
+závěr zůstal viset za čtenářem a čekal na zavření, až se vrátí.
 
 **Odpověď na „chtěla bych delší tutoriál" je tahle obrazovka, ne delší úvod.**
 
-### Obrazovka 3 nepřekrývá aplikaci
+### Výzva na obrazovce 3 nepřekrývá aplikaci
 
-Ostatní obrazovky aplikaci zakrývají. Tahle **nesmí** — celý smysl je, že
-uživatel vidí svůj návyk a ťukne na skutečné zaškrtávátko.
+Ostatní obrazovky aplikaci zakrývají. Výzva obrazovky 3 **nesmí** — celý smysl je,
+že uživatel vidí svůj návyk a ťukne na skutečné zaškrtávátko. (Závěr, který přijde
+po odškrtnutí nebo „později", už celou obrazovku zakrývá — viz Obrazovky.)
 
 ```tsx
 // ❌ WRONG: karta uvnitř celoobrazovkového překryvu
 <View style={styles.takeover}><FirstCheckCard /></View>
 // → zablokuje přesně to ťuknutí, o které si říká
 
-// ✅ CORRECT (FirstCheckCard.tsx:116): karta u spodního okraje, klikatelná appka
+// ✅ CORRECT (FirstCheckCard.tsx:189): karta u spodního okraje, klikatelná appka
 <View style={styles.root} pointerEvents="box-none">
 ```
 
 Ukazuje se **pulzováním samotného zaškrtávátka**
-(`HabitItemWithCompletion.tsx:397` → `HabitCompletionButton highlight`), ne
-overlayem, který by dopočítával souřadnice.
+(`HabitItemWithCompletion` → `HabitCompletionButton highlight`), ne overlayem,
+který by dopočítával souřadnice. Pulzuje **jen návyk z obrazovky 1**
+(`onboardingHabitId`); když ho úvod nezná (žádné id, nebo uživatel návyk mezitím
+smazal), pulzují všechny neodškrtnuté jako dřív.
 
 ### Validace kopíruje pravidla normálního formuláře
 
@@ -317,29 +323,96 @@ komponenta pro obojí by změnila vzhled Cílů.
 
 | | Soubor | Obsah |
 |---|---|---|
-| Brána | `OnboardingPreferencesModal.tsx` | jazyk → téma → notifikace. Zavírá se **před** systémovým promptem (`TutorialContext.tsx:269`) — nikdy dva modály. |
+| Brána | `OnboardingPreferencesModal.tsx` | jazyk → téma → notifikace. Zavírá se **před** systémovým promptem (`TutorialContext.tsx:295`) — nikdy dva modály. |
 | Uvítání | `WelcomeScreen.tsx` | jedna stránka, tři řádky, jedno tlačítko. Je to **příznak**, ne čtvrtá obrazovka, aby tečky mluvily pravdu. |
 | 1 | `FirstHabitScreen.tsx` | 6 předvoleb + „Něco jiného". CTA se rozsvítí při neprázdném názvu a aspoň jednom dni. |
 | 2 | `FirstGoalScreen.tsx` | 11 šablon + „Něco jiného". Číslo a jednotka na jednom řádku — „12 knih" je jedna odpověď. **Bez výběru data** (volitelné, kalendář uprostřed flow je překážka). |
-| 3 | `FirstCheckCard.tsx` | karta u spodního okraje. Zmizí sama po odškrtnutí, tlačítko je východ. Pod ním **tichý odkaz na „Jak SelfRise funguje"** — viz níže. |
+| 3 | `FirstCheckCard.tsx` + `DayOneCelebration.tsx` | **výzva** u spodního okraje jmenuje návyk z obrazovky 1 („Last step: tick off „…"") + tichý odkaz „I'll do it later" → **závěr přes celou obrazovku**: po odškrtnutí „Day 1 done 🔥" (XP dnes, úroveň, série 1), po „později" „Your journey starts today 🌱" (bez odměn, s úkolem). Hlavní tlačítko „Let's do this", tichý odkaz na „Jak SelfRise funguje". |
 
 **`CUSTOM_HABIT_DEFAULTS.scheduledDays = ALL_DAYS`**: dny jsou jediné povinné
 pole bez výchozí hodnoty; prázdné by uživatele zastavila validace.
 
-**Základní hodnota na obrazovce 3** (`checkDetection.ts`): kdo si onboarding
-pustí znovu večer, může mít dnešní návyky **už odškrtnuté**. Naivní podmínka by
-vyhlásila vítězství v okamžiku, kdy se karta objeví. Proto se při zobrazení
-zapamatuje počet a čeká se, až **naroste**.
+**Obrazovka 3 v detailu (od 2026-10-11, podle Petrova testu):**
 
-Po odškrtnutí se čeká `CELEBRATION_LINGER_MS = 1200`, aby doběhla XP animace —
-ta je důvod, proč obrazovka existuje. (Potlačuje se jen **modál** level-upu,
-ne animace v liště.)
+| Fáze | Kdy | Co se ukáže |
+|---|---|---|
+| Výzva | dokud návyk z obrazovky 1 není dnes odškrtnutý | karta dole: `askTitleNamed`/`askBodyNamed` (s názvem), jinak `title`/`body`; tichý odkaz `later` |
+| Závěr „done" | 1,2 s po odškrtnutí (`ENDING_AFTER_CHECK_MS`) | celá obrazovka: `dayOneTitle` + odměny + `dayOneBodyReminders` / `…NoReminders` |
+| Závěr „later" | po ťuknutí na „I'll do it later" | celá obrazovka: `laterTitle` + `laterBodyNamed` / `laterBody` (+ `laterReminder`) — **bez odměn** |
+
+```tsx
+// ❌ WRONG: „Day 1 done" i bez odškrtnutí
+onLater={() => setEnding('done')}
+// → oslava za nic: uživatel se hned první den naučí, že odškrtnutí nic neznamená
+
+// ❌ WRONG: výzva bez únikové cesty
+// → kdo návyk ještě nesplnil (ráno „Jít běhat"), musí odškrtnout naprázdno, nebo zůstane rukojmím
+
+// ✅ CORRECT (FirstCheckCard.tsx): poctivé dvě varianty téhož motivujícího závěru
+const checked = habit ? isHabitCheckedOn(completions, habit.id, today) : hasNewCheckSince(…);
+```
+
+- **Který návyk**: ten, který vytvořila obrazovka 1 **tohoto běhu**
+  (`setOnboardingHabit()` → React stav `onboardingHabitId` + klíč `HABIT_ID`, po
+  zabití appky se načte zpět). Při restartu ze Settings vzniká nový návyk, takže
+  úvod vždy ví, co jmenovat — **žádný pomocný „falešný" návyk** (rozhodnutí Petra
+  2026-10-11: propsal by se do XP, trofejí, statistik, výzev i měření).
+- **Odškrtnutí se pozná na tom návyku** (`isHabitCheckedOn`) — bez základní hodnoty:
+  návyk je nový, takže každé jeho odškrtnutí je první. Večerní restart s jinými už
+  odškrtnutými návyky tím nic nespustí.
+- **Náhradní cesta**: když návyk neznáme (smazaný, ztracený stav), obecné texty a
+  **základní hodnota** (`countChecksOn` při zobrazení → čeká se, až počet
+  **naroste**), jako dřív.
+- **Pauza 1,2 s** před závěrem: odškrtnutí a XP v liště se stihnou ukázat dřív, než
+  je závěr zakryje. Odškrtnutí zpět během pauzy závěr zruší. Ťuknutí na „later"
+  během pauzy (už odškrtnuto) vede na závěr „done" — odškrtnutí se počítá.
+- **Dlouhý název** se do vět vkládá zkrácený na 40 znaků (`quotedHabitName`) — ne
+  přes limit řádků, protože němčina má sloveso až za názvem („Hake „…“ ab").
+- **Závěr je pohled přes celou obrazovku, ne `<Modal>`** (pravidlo 1). Zakrývá
+  appku, takže za ním nejde nic získat — úvod proto stačí zapsat jako dokončený až
+  **při zavření závěru** (`onDone` → `completeTutorial`). Po zabití appky na závěru
+  se vrátí výzva; je-li návyk už odškrtnutý, naváže hned závěr „done".
+- **Odměny jen po odškrtnutí**: XP dnes (z XP záznamů, ne dopočítané), úroveň a
+  „série 1 den" (jen pro známý návyk — nový návyk odškrtnutý dnes má sérii přesně 1).
+  Modál level-upu je během úvodu potlačený, takže tady uživatel svou úroveň poprvé vidí.
+- **Připomínku slibuje jen tomu, kdo ji dostane** (`afternoonReminderEnabled`);
+  do načtení nastavení platí varianta bez slibu.
+- **Čtečka obrazovky**: závěr se na iOS ohlásí přes `announceForAccessibility`;
+  reduce-motion vynechá náběhovou animaci.
+
+---
+
+## Analytika úvodu (trychtýř prvního dne)
+
+Od 2026-10-10 úvod posílá anonymní kroky trychtýře (`onb_start` … `onb_complete` /
+`onb_skip`). Pravidla, seznam událostí a místa volání:
+@technical-guides:Analytics.md
+
+Co z toho platí pro práci na úvodu:
+
+```typescript
+// ✅ CORRECT: vypálit a zapomenout, posílat id dlaždice
+void FirstDayAnalytics.habitCreated(selectedId);
+onCreated();
+
+// ❌ WRONG: čekat na analytiku nebo posílat text od uživatele
+await FirstDayAnalytics.habitCreated(name);
+```
+
+- **Nikdy `await`** — přechody úvodu nesmí na analytice čekat (pravidlo 1 a 2
+  tohoto průvodce stojí na přesném pořadí oken).
+- **Do trychtýře vstupuje jen větev brány předvoleb** v autoStartu. Restart ze
+  Settings ani obnovení po zabití appky nový průchod nezakládají.
+- **Nová obrazovka nebo krok úvodu** = nová událost ve whitelistu
+  `src/services/analytics/firstDayEvents.ts`, jinak trychtýř krok neuvidí.
+- **Nová předvolba návyku nebo šablona cíle** = přidat id do `HABIT_PRESET_IDS` /
+  `GOAL_TEMPLATE_IDS` (test na to upozorní).
 
 ---
 
 ## Restart ze Settings
 
-`settings.tsx:204-205` → `restartTutorial()` + `clearCrashData()`.
+`settings.tsx:224-225` → `restartTutorial()` + `clearCrashData()`.
 
 **Žádná hláška „úspěšně restartováno".** `restartTutorial()` odnaviguje na taby
 a otevře onboarding — potvrzením je ten onboarding. Nastavit tu stav modálu
@@ -347,7 +420,7 @@ znamená natáhnout RN `<Modal>` na obrazovce, ze které uživatel právě odeš
 zůstane „otevřený" po celý onboarding a vyskočí, až na Settings příště přijde.
 Settings je záložka, takže se neodmontuje. Viz pravidlo 1 (nikdy dva modály).
 
-`restartTutorial()` (`TutorialContext.tsx:293-318`) smaže `COMPLETED`,
+`restartTutorial()` (`TutorialContext.tsx:322-350`) smaže `COMPLETED`,
 `CURRENT_STEP`, `SKIPPED` → nastaví `RESTARTED='true'` → `router.push('/(tabs)')`
 + 300 ms → **uvítání** (restart má působit jako to pravé).
 
@@ -361,9 +434,21 @@ Maže se při dokončení i přeskočení.
 **EN, DE, ES.** Texty onboardingu pod `onboarding.*`, brána pod
 `tutorial.languageSetup.*` a `tutorial.themeSetup.*`.
 
+**Jazyk při prvním spuštění** (od 2026-10-10): první z jazyků telefonu, který appka
+umí, jinak angličtina — `resolveDeviceLanguage()` v `src/config/deviceLanguage.ts`,
+volaný z detektoru v `src/config/i18n.ts`. Prochází **celý** seznam preferovaných
+jazyků jako iOS/Android (český telefon s němčinou na druhém místě dostane němčinu).
+i18next výsledek hned uloží, takže od druhého spuštění platí uložená volba a
+stávající uživatelé (mají uloženou angličtinu) změnu nevidí. Krok jazyka v bráně
+zůstává — jen je rovnou předvybraný správně.
+
+**Podtitul uvítání = slogan značky** („Build a better life, one small step a day.")
+— stejná věta jako ve videích, aby nový uživatel po instalaci viděl, co mu reklama
+slíbila. Při změně sloganu změň i `onboarding.welcome.tagline` ve všech 3 jazycích.
+
 ```typescript
 // ✅ CORRECT: název se překládá v okamžiku vytvoření
-setName(t(preset.nameKey));   // FirstHabitScreen.tsx:80
+setName(t(preset.nameKey));   // FirstHabitScreen.tsx:85
 
 // ❌ WRONG: natvrdo psaný anglický řetězec v konstantě
 { id: 'read', name: 'Read', ... }
@@ -457,6 +542,13 @@ displejích a flow se stane slepou uličkou.
    nepřizpůsobí se tmavému režimu.
 8. **Zvýšení limitu v `onboardingCopy.test.ts`** místo zkrácení textu — tak
    vznikl 25krokový průvodce, který nikdo nedočetl.
+9. **`await` analytiky v toku úvodu** nebo zápis stavu trychtýře mimo bránu
+   předvoleb — viz sekce Analytika úvodu a @technical-guides:Analytics.md.
+10. **Závěr obrazovky 3 jako `<Modal>`** nebo **„Day 1 done" bez odškrtnutí** —
+    první zamrazí iOS při souběhu s oslavou trofeje, druhé oslavuje nic. Závěr je
+    pohled přes celou obrazovku a „later" má vlastní poctivou variantu.
+11. **Odebrat „I'll do it later"** — bez únikové cesty je uživatel úvodu rukojmím
+    a kdo návyk ještě nesplnil, odškrtne naprázdno.
 
 ---
 
@@ -471,7 +563,7 @@ displejích a flow se stane slepou uličkou.
 ✅ onboardingKit.test.ts — chunkIntoRows, sdílené bloky
 ✅ firstHabit.test.ts    — předvolby návyků
 ✅ firstGoal.test.ts     — parseGoalTarget, isGoalDraftComplete (hranice 0, 999999, "12abc")
-✅ firstCheck.test.ts    — detekce odškrtnutí VČETNĚ večerního restartu
+✅ firstCheck.test.ts    — detekce odškrtnutí (počet i konkrétní návyk, VČETNĚ večerního restartu) + texty výzvy a závěru („Day 1 done" jen po odškrtnutí, připomínku slíbí jen tomu, kdo ji dostane)
 
 // src/locales/__tests__/
 ✅ localeParity.test.ts   — úplnost DE/ES v obou směrech
@@ -494,7 +586,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npm test
 
 ## Co se NESMÍ rozbít
 
-- Onboarding vždy skončí návykem, cílem a odškrtnutím — nebo vědomým „Přeskočit"
+- Onboarding vždy skončí návykem, cílem a odškrtnutím — nebo vědomým „Přeskočit" /
+  „I'll do it later"
 - Nikdy dva modály přes sebe (nativní × RN × oslava trofeje)
 - Filtr trofejí: během onboardingu projde jen `first-habit` a `first-goal`
 - Potlačení level-up **modálu**, ale ne XP animace v liště
@@ -511,9 +604,17 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npm test
    **Nikdy dvě okna přes sebe.** Trofeje za první návyk a cíl vyskočí a čeká se
    na jejich zavření.
 2. **Zabití aplikace na obrazovce 2** → další start pokračuje na 2, bez uvítání.
-3. **Restart ze Settings večer**, když už je dnes něco odškrtnuté → karta na
-   obrazovce 3 **nesmí zmizet hned**, čeká na nové odškrtnutí.
+3. **Restart ze Settings večer**, když už je dnes něco odškrtnuté → výzva na
+   obrazovce 3 jmenuje **nově vytvořený** návyk a závěr naskočí až po jeho
+   odškrtnutí (ne kvůli starým). Pulzuje jen on.
+3a. **Obrazovka 3 oběma cestami**: odškrtnout → po ~1 s „Day 1 done 🔥" s XP,
+   úrovní a sérií; podruhé „I'll do it later" → „Your journey starts today 🌱"
+   bez odměn. Text o připomínce jen tomu, kdo v bráně připomínky povolil.
+3b. **Zabít appku na závěru** → po spuštění výzva; když je návyk odškrtnutý,
+   hned naváže závěr „done". Zabít až po „Let's do this" → úvod se už neukáže.
 4. **Světlý i tmavý režim × EN/DE/ES** — němčina u cíle ukáže „Bücher" a €.
+   Čistá instalace na německém / španělském telefonu otevře bránu rovnou v tom
+   jazyce; na českém telefonu anglicky.
 5. **Malý displej** — CTA nesmí zmizet pod klávesnicí u „Něco jiného".
 6. **Tablet** — dlaždice se neroztáhnou přes celou šířku.
 7. **Na obrazovce 3 otevřít „+ Přidat návyk"** — formulář jde scrollovat, uložit

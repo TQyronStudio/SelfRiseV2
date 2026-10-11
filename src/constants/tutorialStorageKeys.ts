@@ -25,4 +25,6 @@ export const TUTORIAL_STORAGE_KEYS = {
   RECOVERY_STATE: 'onboarding_tutorial_recovery_state',
   RESTARTED: 'onboarding_tutorial_restarted',
   PREFS_COMPLETED: 'onboarding_prefs_completed',
+  /** Id of the habit created on screen 1 — screen 3 names it and waits for its check. */
+  HABIT_ID: 'onboarding_habit_id',
 } as const;

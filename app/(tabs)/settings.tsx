@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch, DeviceEventEmitter } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch, DeviceEventEmitter, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,9 @@ import { useHabits } from '@/src/contexts/HabitsContext';
 import { useGoals } from '@/src/contexts/GoalsContext';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { useAchievements } from '@/src/contexts/AchievementContext';
+import { awaitStartupComplete } from '@/src/services/startup';
+import { isPrivacyOptionsRequired, showPrivacyOptionsForm } from '@/src/services/adConsentService';
+import { PRIVACY_POLICY_URL } from '@/src/constants/legal';
 import {
   isMarketingDemoModeEnabled,
   MARKETING_DEMO_MODE_CHANGED_EVENT,
@@ -47,6 +50,23 @@ export default function SettingsScreen() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
   const [hapticsEnabled, setHapticsEnabledState] = useState(isHapticsEnabled());
   const [isMarketingDemoMode, setIsMarketingDemoMode] = useState(false);
+  const [privacyOptionsRequired, setPrivacyOptionsRequired] = useState(false);
+
+  // Consent info is only fresh after the startup consent step has run, so ask
+  // once the startup sequence is done. Outside regions that require a privacy
+  // options entry point the form would not open — the row stays hidden there.
+  useEffect(() => {
+    let cancelled = false;
+    awaitStartupComplete()
+      .then(isPrivacyOptionsRequired)
+      .then(required => {
+        if (!cancelled) setPrivacyOptionsRequired(required);
+      })
+      .catch(error => console.warn('Failed to check privacy options requirement:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(HAPTICS_CHANGED_EVENT, (value: boolean) => {
@@ -288,6 +308,20 @@ export default function SettingsScreen() {
     }
   };
 
+  // In-app browser sheet, so the user stays in SelfRise; the system browser is
+  // only the fallback if the sheet cannot open.
+  const handleOpenPrivacyPolicy = async () => {
+    try {
+      const WebBrowser = require('expo-web-browser') as typeof import('expo-web-browser');
+      await WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL);
+    } catch (error) {
+      console.warn('In-app browser unavailable, opening the system browser:', error);
+      Linking.openURL(PRIVACY_POLICY_URL).catch(linkError =>
+        console.error('Failed to open the privacy policy:', linkError)
+      );
+    }
+  };
+
   const handleLanguageChange = async (language: 'en' | 'de' | 'es') => {
     try {
       await changeLanguage(language);
@@ -478,6 +512,47 @@ export default function SettingsScreen() {
               <Text style={styles.loadingText}>{t('settings.resetting')}</Text>
             )}
           </TouchableOpacity>
+        </View>
+
+        {/* Privacy */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleOpenPrivacyPolicy}
+            accessibilityRole="link"
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="shield-checkmark" size={24} color={colors.primary} />
+              <View style={styles.menuItemTextContainer}>
+                <Text style={styles.menuItemText}>{t('settings.privacyPolicy')}</Text>
+                <Text style={styles.menuItemDescription}>
+                  {t('settings.privacyPolicyDescription')}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="open-outline" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          {privacyOptionsRequired && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => void showPrivacyOptionsForm()}
+              accessibilityRole="button"
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="options" size={24} color={colors.primary} />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemText}>{t('settings.privacySettings')}</Text>
+                  <Text style={styles.menuItemDescription}>
+                    {t('settings.privacySettingsDescription')}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {ENABLE_MARKETING_DEMO_TOOLS && (

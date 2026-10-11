@@ -25,6 +25,7 @@
 19. [Help Tooltip System](#help-tooltip-system)
 20. [Onboarding Tutorial System](#onboarding-tutorial-system)
 21. [AdMob Integration](#admob-integration)
+22. [Analytics (trychtýř prvního dne)](#analytics-trychtýř-prvního-dne)
 
 ---
 
@@ -1333,6 +1334,19 @@ Zásady pro každodenní vývoj:
   (datová vrstva, streaky, XP, výzvy) — ne do běžného UI šumu
 - **`log(msg)`** = levný breadcrumb u významných přechodů stavu
 - Po změnách: report se v Firebase Console objeví až po restartu appky (black-box princip)
+
+---
+
+## Analytics (trychtýř prvního dne)
+
+Anonymní kroky nového uživatele od úvodu po návrat v dalších dnech (od října 2026).
+Kompletní pravidla a seznam událostí: **@technical-guides:Analytics.md**
+
+Zásady pro každodenní vývoj:
+- **Jen přes `FirstDayAnalytics`** (`src/services/analytics/`) — každá hodnota musí být
+  na whitelistu v `firstDayEvents.ts`; text od uživatele nikdy
+- **Vypálit a zapomenout**: `void FirstDayAnalytics.x()` — nikdy `await` v toku UI
+- **Do trychtýře jen nové instalace** — stav se zakládá jen v bráně předvoleb
 
 ---
 

@@ -5,6 +5,7 @@ import { DateString } from '../types/common';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
 import { generateUUID } from '../utils/uuid';
+import { FirstDayAnalytics } from '../services/analytics';
 
 // Get storage implementation based on feature flag
 const habitStorage = getHabitStorageImpl();
@@ -310,6 +311,8 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       try {
         const result = await habitStorage.toggleCompletion(habitId, date, isBonus, preGeneratedId);
         invalidateQueryCache();
+        // First-day funnel: only the very first check of a new install is sent.
+        void FirstDayAnalytics.habitChecked();
         return result;
       } catch (storageError) {
         // Storage failed → rollback optimistic ADD with same ID

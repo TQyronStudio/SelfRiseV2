@@ -1641,6 +1641,12 @@ const de: Partial<TranslationKeys> = {
     privacyPolicy: 'Datenschutzrichtlinie',
     termsOfService: 'Nutzungsbedingungen',
 
+    // Privacy
+    privacy: 'Datenschutz',
+    privacyPolicyDescription: 'Wie SelfRise mit deinen Daten umgeht',
+    privacySettings: 'Datenschutz-Einstellungen',
+    privacySettingsDescription: 'Deine Einwilligung zu Werbung und Daten ändern',
+
     // Tutorial & Onboarding
     tutorial: 'Tutorial',
     tutorialReset: 'Tutorial neustarten',
@@ -3537,7 +3543,7 @@ const de: Partial<TranslationKeys> = {
     skip: 'Überspringen',
     welcome: {
       title: 'Willkommen bei SelfRise',
-      tagline: 'Gewohnheiten, Dankbarkeit und Ziele an einem Ort.',
+      tagline: 'Bau dir ein besseres Leben, jeden Tag ein kleiner Schritt.',
       promise: 'Gleich richten wir deine erste Gewohnheit und dein erstes Ziel ein. Das dauert eine Minute — und du kannst später alles ändern.',
       cta: 'Los geht\'s',
     },
@@ -3576,9 +3582,22 @@ const de: Partial<TranslationKeys> = {
     },
 
     done: {
-      title: 'Alles bereit',
-      body: 'Hake deine Gewohnheit ab und sieh zu, wie deine XP wachsen. Das ist die ganze App.',
-      cta: 'Verstanden',
+      title: 'Noch ein letzter Schritt',
+      body: 'Hake deine Gewohnheit ab und sieh zu, wie deine XP wachsen.',
+      askTitleNamed: 'Letzter Schritt: Hake „{{habit}}“ ab',
+      askBodyNamed: 'Tippe auf den Kreis daneben, sobald du es heute erledigt hast.',
+      later: 'Mache ich später',
+      dayOneTitle: 'Tag 1 geschafft 🔥',
+      dayOneBodyReminders: 'So ist SelfRise: jeden Tag ein kleiner Schritt. Komm morgen wieder, wir erinnern dich am Nachmittag.',
+      dayOneBodyNoReminders: 'So ist SelfRise: jeden Tag ein kleiner Schritt. Komm morgen wieder und lass deine Serie wachsen.',
+      laterTitle: 'Heute beginnt deine Reise 🌱',
+      laterBodyNamed: 'Hake „{{habit}}“ ab, sobald du es heute erledigt hast. Das ist dein Tag 1.',
+      laterBody: 'Hake deine Gewohnheit ab, sobald du sie heute erledigt hast. Das ist dein Tag 1.',
+      laterReminder: 'Wir erinnern dich daran.',
+      statXp: '+{{xp}} XP heute',
+      statLevel: 'Level {{level}}',
+      statStreak: 'Serie: 1 Tag',
+      cta: "Packen wir's an",
       learnMore: 'Wie alles funktioniert →',
     },
   },

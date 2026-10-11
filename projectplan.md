@@ -12,8 +12,116 @@
 
 ## 🎯 AKTUÁLNÍ ÚKOLY
 
-*Žádný rozpracovaný úkol.* Nový úkol se zapisuje sem jako seznam odškrtávacích bodů
-(pravidlo 4 v CLAUDE.md) s odkazem na technického průvodce.
+### 📊 Analytika prvního dne + úpravy úvodu před marketingem (od 2026-10-10)
+
+**Proč**: lidé hned odcházejí (D1 jednotky %, D7 9 %) a před organickým marketingem (videa
+s Mendem) chceme vidět, na kterém kroku prvního dne odpadají. Vše vyjde **v jedné
+aktualizaci před prvním videem**. Stav: 🔨 **schváleno 2026-10-10** — Etapa 1 a 2 hotové, další krok je Etapa 3
+(Petrův test na zařízení a vydání).
+
+Technická pravidla: Onboarding @technical-guides:Tutorial.md · Start a souhlasy
+@technical-guides:Startup-Orchestrator.md · Připomínky @technical-guides:Notifications.md ·
+Analytika @technical-guides:Analytics.md
+
+**Hranice**: žádný osobní obsah. Parametry jsou jen pevné hodnoty z naší nabídky, nikdy
+text od uživatele. Analytika běží na oprávněném zájmu podle Privacy Policy
+(https://tqyronstudio.github.io/privacy.html), consent mode v AdMob zůstává vypnutý.
+
+**Etapa 0 – Petr (mimo kód)**
+- [x] AdMob propojený s Firebase
+- [x] Consent mode v AdMob zjištěn: vypnutý → necháváme
+- [ ] Zkontrolovat deklarace v obchodech: App Privacy (Product Interaction + Device ID) a
+      Data safety (App interactions + Device or other IDs); když chybí, doplnit
+
+**Etapa 1 – Měření (1 posezení)**
+- [x] Typovaný analytický modul: pevné hodnoty parametrů, odeslání bez čekání, nikdy nehází
+- [x] Příznak „nová instalace" + datum při první úvodní bráně (staří uživatelé a restart
+      úvodu z Nastavení se do trychtýře nepočítají)
+- [x] Úvod (parametry v závorce):
+  - `onb_start`
+  - `onb_language` (`language`: en/de/es)
+  - `onb_theme` (`theme`: light/dark)
+  - `onb_notifications` (`choice`: yes/later, `os`: granted/denied/none)
+  - `onb_welcome_done`
+  - `onb_habit_created` (`source`: preset/custom, `preset`: id předvolby)
+  - `onb_goal_created` (`source`: template/custom, `template`: id šablony)
+  - `onb_complete` (`method`: check/button/learn_more, `duration_s`)
+  - `onb_skip` (`screen`: 1/2)
+- [x] Mimo úvod:
+  - `first_habit_check` (`in_onboarding`: 0/1, `min_since_start`)
+  - `first_journal_entry` (`day`: dny od instalace; 0 = den instalace)
+  - `day_return` (`day`: 1–7)
+  - `reminder_open` (`type`: afternoon/evening; u všech uživatelů, nejen nových)
+- [x] Štítky uživatele: `onb_result`, `notif_optin`
+- [x] Testy (včetně ověření, že spadnou) + nový průvodce Analytics.md
+
+**Etapa 2 – Úpravy appky (1 posezení)**
+- [x] Nastavení: „Zásady ochrany soukromí" (web v prohlížeči uvnitř appky) a „Nastavení
+      soukromí" (souhlasové okno Googlu, jen kde je vyžadováno)
+- [x] Jazyk podle telefonu (de/es, jinak en); krok výběru zůstává, jen předvybraný
+- [x] Uvítání: podtitul „Build a better life, one small step a day." (+ DE/ES)
+- [x] Konec úvodu jako karta se dvěma stavy (schváleno Petrem 2026-10-10):
+  - výzva „One last step / Tick off your habit and watch your XP grow."
+  - po odškrtnutí „Day 1 done 🔥" + text podle připomínek („… Come back tomorrow,
+    we'll remind you in the afternoon." / „… Come back tomorrow and keep your streak
+    growing."), EN/DE/ES
+  - karta po odškrtnutí zůstane, dokud uživatel neťukne na tlačítko
+- [x] Aktualizovat Tutorial.md (+ Notifications, AdMob, Startup-Orchestrator); `tsc` + `npm test`
+- [x] Ťuknutí na připomínku při zavřené appce otevře správnou obrazovku (dnes se
+      navigace ztratí; schváleno Petrem 2026-10-10) — @technical-guides:Notifications.md
+- [x] Počítání dní přes změnu času (`daysBetween` ceil → round; 25. 10. by počítal
+      o den víc; schváleno Petrem 2026-10-10)
+
+**Etapa 2b – Konec úvodu podle Petrova testu (schváleno 2026-10-11)**
+- [x] Úvod si pamatuje návyk z obrazovky 1 (i při restartu, i po zabití appky)
+- [x] Výzva s názvem návyku („Last step: tick off „…"") + tichý odkaz „I'll do it
+      later" místo „Got it"; pulzuje jen ten návyk; odškrtnutí se pozná na něm
+- [x] Závěr přes celou obrazovku (pohled, ne modal) ve 2 variantách:
+  - odškrtl → „Day 1 done 🔥" + dnešní XP, úroveň, série 1 + slib na zítřek
+  - „později" → „Your journey starts today 🌱" + úkol „odškrtni „…", až ho splníš"
+  - hlavní tlačítko „Let's do this", tichý odkaz „How it all works →"
+  - úvod se zapíše jako dokončený až při zavření závěru (předchozí mezikrok
+    „zapsat 1,2 s po odškrtnutí" se ruší — závěr zakrývá appku)
+- [x] Měření: `onb_complete.method` = check/later, nová `onb_learn_more`
+- [x] Texty EN/DE/ES (ukázat Petrovi), testy, Tutorial.md + Analytics.md
+
+**Etapa 3 – Vydání (Petr)**
+- [ ] Device test: čistá instalace iOS + Android, EN/DE/ES, události ve Firebase → Realtime
+  - konec úvodu: výzva jmenuje návyk z obrazovky 1 a pulzuje jen on → po odškrtnutí
+    závěr přes celou obrazovku „Day 1 done 🔥" s XP, úrovní a sérií; podruhé „I'll do
+    it later" → „Your journey starts today 🌱" bez odměn; text o připomínce jen při
+    povolených připomínkách; restart ze Settings večer; zabití appky na závěru
+  - zavřít appku úplně, ťuknout na večerní připomínku → otevře se obrazovka s tím, co
+    chybí (ne jen Domů)
+  - Nastavení → Soukromí: odkaz otevře web v appce; „Nastavení soukromí" jen v EU
+- [ ] Build + odeslání do obchodů
+- [ ] Ve Firebase označit `onb_complete` a `first_habit_check` jako klíčové události
+- [ ] Předat marketingu:
+  - Úvod teď používá slogan „Build a better life, one small step a day." Videa by ho
+    měla používat taky, aby uživatel po instalaci viděl tutéž větu.
+  - Mendo v appce zatím není. Ve videích ho ukazovat jako tvář značky, ne jako funkci
+    appky.
+
+**Etapa 4 – Vyhodnocení (po ~200 nových instalacích)**
+- [ ] Trychtýř po krocích, zvlášť iOS a Android; návratnost podle `notif_optin` a `onb_result`
+- [ ] Výnos z reklam na uživatele podle kohort (AdMob je propojený, `ad_impression` přichází
+      automaticky)
+- [ ] Srovnávat stejné metriky: dnešní „D1 jednotky %" a „týden 9 %" si odporují,
+      pravděpodobně se míchá denní a týdenní kohorta
+- [ ] Rozhodnout o vlně B podle dat:
+  - **Kandidát 1: úvod před souhlasová okna.** Nejdřív uvítání → návyk → první
+    odškrtnutí, žádosti (notifikace, ATT, souhlas EU) až potom. Rozhoduje úbytek mezi
+    `first_open` a `onb_start`. Povoleno pravidly Applu i Googlu (ověřeno 2026-10-10)
+    za podmínek: reklamy až po souhlasu, žádná odměna za povolení, vlastní
+    obrazovka nesmí napodobovat systémové okno.
+  - Cíl až po prvním odškrtnutí
+  - Deník (první zápis) přímo v úvodu
+  - Druhá nabídka notifikací po prvním úspěchu (pro ty, kdo dali „Teď ne")
+  - Personalizovaná připomínka na den 2 (návyk + série; zůstává lokálně v telefonu)
+  - Čas připomínek podle návyku místo pevných 16:00 a 20:00
+  - Vzhled podle systému a jazyk bez zvláštního kroku: úvod by se zkrátil o 2 obrazovky
+- [ ] **Později: Mendo v appce.** Až se marketing usadí; přesný záměr ještě
+      nerozhodnutý. Navazuje na „důvod vrátit se zítra" (příběh pejska na pokračování).
 
 ---
 

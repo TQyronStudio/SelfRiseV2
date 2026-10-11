@@ -1678,6 +1678,10 @@ export interface TranslationKeys {
     version: string;
     privacyPolicy: string;
     termsOfService: string;
+    privacy: string;
+    privacyPolicyDescription: string;
+    privacySettings: string;
+    privacySettingsDescription: string;
     tutorial: string;
     tutorialReset: string;
     tutorialResetDescription: string;
@@ -1875,6 +1879,19 @@ export interface TranslationKeys {
     done: {
       title: string;
       body: string;
+      askTitleNamed: string;
+      askBodyNamed: string;
+      later: string;
+      dayOneTitle: string;
+      dayOneBodyReminders: string;
+      dayOneBodyNoReminders: string;
+      laterTitle: string;
+      laterBodyNamed: string;
+      laterBody: string;
+      laterReminder: string;
+      statXp: string;
+      statLevel: string;
+      statStreak: string;
       cta: string;
       learnMore: string;
     };

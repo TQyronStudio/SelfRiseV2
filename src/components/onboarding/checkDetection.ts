@@ -9,6 +9,10 @@
  *
  * So the card records a baseline when it mounts and waits for that count to
  * GROW. Import-free so both cases can be tested directly.
+ *
+ * Since 2026-10-11 screen 3 normally knows WHICH habit the onboarding created
+ * and asks `isHabitCheckedOn` instead; the count-based check is the fallback
+ * for when that habit is unknown (deleted, or remembered state lost).
  */
 
 export interface CompletionLike {
@@ -28,4 +32,24 @@ export function hasNewCheckSince(
   baseline: number
 ): boolean {
   return countChecksOn(completions, today) > baseline;
+}
+
+/** A completion that also says which habit it belongs to. */
+export interface HabitCompletionLike extends CompletionLike {
+  habitId: string;
+}
+
+/**
+ * Has THIS habit been ticked on `today`? Used when screen 3 knows which habit
+ * the onboarding created — the normal case. It needs no baseline: that habit
+ * was created minutes ago in this very run, so any tick on it is the user's
+ * first. It also survives a force-quit: a habit ticked before the kill is
+ * still ticked on resume, so the flow continues to the Day 1 screen.
+ */
+export function isHabitCheckedOn(
+  completions: HabitCompletionLike[],
+  habitId: string,
+  today: string
+): boolean {
+  return completions.some(c => c.habitId === habitId && c.date === today && c.completed);
 }

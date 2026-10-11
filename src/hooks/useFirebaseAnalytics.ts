@@ -110,4 +110,16 @@ export const FirebaseAnalytics = {
       console.error(`❌ Analytics logEvent error (${eventName}):`, error);
     }
   },
+
+  /**
+   * Set a user property from non-React code (services, utilities)
+   */
+  setUserProperty: async (name: string, value: string | null) => {
+    try {
+      const analytics = getAnalytics();
+      await firebaseSetUserProperty(analytics, name, value);
+    } catch (error) {
+      console.error(`❌ Analytics setUserProperty error (${name}):`, error);
+    }
+  },
 };

@@ -460,6 +460,20 @@ AdMob collects:
 - Use AdMob's User Messaging Platform (UMP) for consent management
 - See: [AdMob GDPR Guide](https://support.google.com/admob/answer/10113207)
 
+**In-app entry points (since 2026-10-10, Settings → Privacy):**
+- **Privacy Policy** — opens https://tqyronstudio.github.io/privacy.html in the in-app
+  browser (`PRIVACY_POLICY_URL`, `src/constants/legal.ts`). Required in-app by Apple
+  5.1.1(i) and Google Play, not only in the store listing.
+- **Privacy Settings** — re-opens the UMP form (`showPrivacyOptionsForm()`), so users
+  can change their consent later, as Google requires and the Privacy Policy promises.
+  Shown **only** when `isPrivacyOptionsRequired()` is true (EEA/UK etc.); elsewhere
+  the form would not open. Checked after `awaitStartupComplete()`, because consent
+  info is only fresh after the startup consent step.
+
+**Consent mode** (UMP → Firebase Analytics) is **off** in the AdMob console (Petr's
+decision 2026-10-10): analytics runs on legitimate interest per the Privacy Policy.
+See @technical-guides:Analytics.md before changing it.
+
 ---
 
 ## Troubleshooting

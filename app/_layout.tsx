@@ -23,6 +23,7 @@ import { OnboardingFlow } from '../src/components/onboarding';
 
 // Notification Lifecycle
 import { useNotificationLifecycle } from '../src/hooks/useNotificationLifecycle';
+import { useDayReturnTracking } from '../src/hooks/useDayReturnTracking';
 
 // Startup Orchestrator — runs the first-launch native modals (ATT → UMP) strictly
 // one-at-a-time so they never collide with each other or the onboarding/tutorial UI.
@@ -52,6 +53,9 @@ function LayoutContent() {
   // Initialize notification lifecycle management (unconditional hook)
   // Mock implementation active - requires native rebuild for full functionality
   useNotificationLifecycle();
+
+  // First-day funnel: counts a return on each of days 1–7 after install.
+  useDayReturnTracking();
 
   // Startup sequence: run the first-launch native modals (ATT → UMP consent) strictly
   // one at a time, THEN the unconditional post-startup work. Analytics is enabled only

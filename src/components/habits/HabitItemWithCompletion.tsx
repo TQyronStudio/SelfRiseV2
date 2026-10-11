@@ -26,6 +26,7 @@ import { formatDateToString, getDayOfWeek, parseDate } from '@/src/utils/date';
 import { DateString } from '@/src/types/common';
 import { HabitCompletionButton } from './HabitCompletionButton';
 import { useTutorial } from '@/src/contexts/TutorialContext';
+import { useHabits } from '@/src/contexts/HabitsContext';
 import { BonusCompletionIndicator } from './BonusCompletionIndicator';
 import { ConfirmationModal, HelpTooltip } from '@/src/components/common';
 import { ReorderHandle } from '@/src/components/common/ReorderableList';
@@ -74,8 +75,15 @@ export const HabitItemWithCompletion = React.memo(({
 }: HabitItemWithCompletionProps) => {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const { state: tutorialState } = useTutorial();
+  const { state: tutorialState, onboardingHabitId } = useTutorial();
+  const { state: habitsState } = useHabits();
   const onboardingScreen = tutorialState.onboardingScreen;
+  // Screen 3 names one habit, so only that one pulses. When that habit is
+  // unknown — no id, or the habit was deleted — screen 3 falls back to generic
+  // wording, and every unticked habit pulses, as before.
+  const onboardingHabitExists =
+    onboardingHabitId !== null && habitsState.habits.some(h => h.id === onboardingHabitId);
+  const isOnboardingTarget = !onboardingHabitExists || onboardingHabitId === habit.id;
   const isTogglingRef = useRef(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -382,7 +390,7 @@ export const HabitItemWithCompletion = React.memo(({
             // Last onboarding screen points here. Decided by the item, which
             // already knows the app's state, rather than by the button — and
             // without an overlay having to measure where this sits on screen.
-            highlight={onboardingScreen === 3 && !isCompleted}
+            highlight={onboardingScreen === 3 && isOnboardingTarget && !isCompleted}
           />
           {completion?.isBonus && (
             <View style={styles.bonusIndicator}>
