@@ -2,7 +2,7 @@
   "expo": {
     "name": "SelfRise",
     "slug": "SelfRiseV2",
-    "version": "7.0.1",
+    "version": "7.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "selfrisev2",
@@ -234,7 +234,8 @@
             "forceStaticLinking": ["RNFBApp", "RNFBAnalytics", "RNFBCrashlytics"]
           },
           "android": {
-            "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }"
+            "enableMinifyInReleaseBuilds": true,
+            "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class expo.modules.ExpoModulesPackageList { *; }\n-keep class expo.modules.adapters.react.apploader.RNHeadlessAppLoader { *; }\n-keep interface expo.modules.kotlin.records.Record\n-keep public class * extends java.lang.Exception\n-keepattributes SourceFile,LineNumberTable\n-renamesourcefileattribute SourceFile"
           }
         }
       ],

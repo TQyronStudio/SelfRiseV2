@@ -400,6 +400,14 @@ export const adService = new AdService();
 - [ ] Verify no console errors/warnings
 - [ ] Test all 3 languages (EN/DE/ES)
 - [ ] Test Light + Dark theme compatibility
+- [ ] Android release (R8, since 7.0.2): the UMP keep rule
+      (`-keep class com.google.android.gms.internal.consent_sdk.** { *; }`) stays in `app.json` —
+      never remove it (@technical-guides:Android-Release-Build.md)
+- [ ] Test devices: Android emulators are AdMob test devices automatically; a physical tester phone
+      must be added in AdMob → Settings → Test devices (Advertising ID), or the tester must not
+      click ads — repeated real-ad views/clicks from one device risk "invalid traffic"
+- [ ] Rewarded ad on a clean install needs a frozen journal streak: 3 entries today → device date
+      +2 days → kill and reopen the app → Home → journal streak card (1 missed day = 1 ad)
 
 ---
 

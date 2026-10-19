@@ -851,6 +851,25 @@ Ensure expo-notifications plugin is present:
 }
 ```
 
+### 🚨 Android release build (R8) — stored reminders must survive updates
+
+expo-notifications stores every scheduled reminder in SharedPreferences as a **Java-serialized
+object under its class name** (`SharedPreferencesNotificationsStore`). The store is read on app
+update (`MY_PACKAGE_REPLACED`), after reboot (`BOOT_COMPLETED`) and whenever an alarm fires; an
+unreadable request is **deleted** when its alarm fires.
+
+- 🚨 **The rule `-keep class expo.modules.notifications.** { *; }` in `app.json` must never be
+  removed.** The library's own keep rule never reaches the build (prebuilt AAR without
+  `proguard.txt`). Without ours, R8 renames the classes and users who don't open the app after an
+  automatic update silently stop getting reminders. Guarded by
+  `__tests__/config/androidReleaseBuild.test.ts`.
+- When testing reminders, never use Android's **Force stop** — it cancels all of the app's alarms
+  and the test lies. Closing the app from recents is fine.
+- On Android 14+ exact alarms are denied by default for new installs → a reminder can arrive
+  tens of minutes late (not a bug). In an emulator, allow them for tests:
+  `adb shell appops set com.petrturek.selfrise SCHEDULE_EXACT_ALARM allow`.
+- Details and the update-survival test: @technical-guides:Android-Release-Build.md
+
 ---
 
 ## Testing & Debugging

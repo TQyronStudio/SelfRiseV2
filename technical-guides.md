@@ -1337,6 +1337,21 @@ Zásady pro každodenní vývoj:
 
 ---
 
+## Android release build (R8)
+
+Od 7.0.2 je v Android release buildu zapnuté R8 (Google Play od února 2027 vyžaduje ≥ 25 %
+optimalizace, obfuskace i zmenšení). Kompletní pravidla: **@technical-guides:Android-Release-Build.md**
+
+Zásady pro každodenní vývoj:
+- **Keep pravidla v `app.json` (`expo-build-properties`) se nemažou** — každé chrání něco, co dev
+  build neukáže (hlavně uložené připomínky expo-notifications)
+- **Nová nativní knihovna** → kontrola reflexe / serializace / keep pravidel a release build s testem
+  přes aktualizaci (`npm start` R8 vůbec nemá)
+- **Upgrade Expo SDK / React Native** → schválně spadnou pojistky v
+  `__tests__/config/androidReleaseBuild.test.ts`; přehodnotit `plugins/withR8Optimization.js`
+
+---
+
 ## Analytics (trychtýř prvního dne)
 
 Anonymní kroky nového uživatele od úvodu po návrat v dalších dnech (od října 2026).

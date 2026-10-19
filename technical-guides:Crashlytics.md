@@ -57,5 +57,11 @@ Při přidávání dalších: jen катастrofické/datové chyby, ne běžn�
    - App Store Connect → App Privacy: přidat **Crash Data + Performance Data**
      (Diagnostics, not linked, no tracking)
    - Google Play → Data Safety: Crash logs + Diagnostics, účel App functionality
-4. EAS build nahrává dSYM/mapping soubory automaticky — pokud by stack traces
-   v Console byly nesymbolikované, zkontrolovat EAS build log.
+4. **Android mapping (R8, od 7.0.2):** Gradle plugin Crashlytics nahrává `mapping.txt`
+   automaticky — v logu EAS buildu musí proběhnout `:app:uploadCrashlyticsMappingFileRelease`.
+   Kdyby stack traces byly nečitelné (jednopísmenné třídy), mapping jde vytáhnout z AAB
+   (`unzip -p app.aab BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`)
+   a nahrát ručně (`firebase crashlytics:mappingfile:upload`). iOS dSYM nahrává EAS.
+   Detaily: @technical-guides:Android-Release-Build.md
+5. **Pád při nativním startu Crashlytics nevidí** — sběr se zapíná až po souhlasu UMP
+   (`firebase.json`). U každého nového vydání proto sledovat hlavně Play Console → Android vitals.

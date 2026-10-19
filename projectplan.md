@@ -123,6 +123,20 @@ text od uživatele. Analytika běží na oprávněném zájmu podle Privacy Poli
 - [ ] **Později: Mendo v appce.** Až se marketing usadí; přesný záměr ještě
       nerozhodnutý. Navazuje na „důvod vrátit se zítra" (příběh pejska na pokračování).
 
+### 🤖 Google Play – varování z Play Console (od 2026-10-13)
+
+Stav: ✅ **fáze 1 a 2 hotové 2026-10-17** (necommitnuto). Generálka: **7.0.2 = R8 bez optimalizace (V1)**,
+ověřeno v emulátoru vč. přežití připomínek přes aktualizaci; optimalizace rozbila data a databázi →
+fáze 8 (do 15. 1. 2027). Další krok: commit → EAS build → interní testování s testerkou. Celý plán, testy a postup krok za krokem:
+**@google-play-compliance-plan.md**
+
+- [ ] A – Zapnout R8 + optimalizaci (Google chce ≥ 25 % optimalizace, obfuskace i zmenšení, termín
+      **únor 2027**; teď hlášena obfuskace 1 %) → samostatné vydání 7.0.2
+- [ ] B – Zastaralá API edge-to-edge → jen knihovny, sledovat při upgradu Expo SDK
+- [ ] C – Velké obrazovky (Android 16 už ignoruje zámek na výšku) → diagnostika hotová 2026-10-18 (nic
+      nebrání používání; po otočení za běhu je graf deníku a mřížka achievementů částečně mimo obrazovku);
+      návrh: teď nic, oprava (varianta C) v Q1 2027 – čeká na data o tabletech (C-0) a Petrovo rozhodnutí
+
 ---
 
 ## 🚨 DŮLEŽITÉ - NEMAZAT 🚨
