@@ -60,20 +60,20 @@ selhala na dvou věcech a jde do fáze 8 (termín 15. 1. 2027). Další krok: co
 
 Každé má moje doporučení. Mlčení = souhlas s doporučením.
 
-- [ ] **R-1: 7.0.2 obsahuje jen R8** (varianta V1 nebo V2 podle R-8), nic jiného. Doporučuji ANO –
+- [x] **R-1: 7.0.2 obsahuje jen R8** *(2026-10-20 Petr změnil: 7.0.2 = R8 s optimalizací + velké obrazovky + drobnosti nalezené cestou)* (varianta V1 nebo V2 podle R-8), nic jiného. Doporučuji ANO –
       když by se něco pokazilo, víme hned proč a data z trychtýře prvního dne se nemíchají s jinou změnou.
 - [x] **R-2: ~~Zvýšit paměť Gradlu pluginem~~ – ZRUŠENO** (2. revize, ověřeno v dokumentaci Expa):
       EAS si paměť nastavuje sám přes `GRADLE_OPTS` (střední stroj: 4 GB heap, 1 GB metaspace)
       a přebije cokoli z `gradle.properties` → plugin by neměl účinek. Lokálně se paměť předává
       parametrem (fáze 2). Kdyby EAS někdy došla paměť: `env.GRADLE_OPTS` v `eas.json`
       nebo `resourceClass: large`.
-- [ ] **R-3: Generálka na Macu** – 3 lokální buildy (V0 bez R8, V1, V2) + testy v emulátoru (fáze 2).
+- [x] **R-3: Generálka na Macu** *(hotovo 2026-10-17 a 2026-10-20)* – 3 lokální buildy (V0 bez R8, V1, V2) + testy v emulátoru (fáze 2).
       Doporučuji ANO – chytí chyby R8 dřív a zadarmo, porovná V1 s V2 a otestuje přežití připomínek
       přes update. Běží hodiny strojového času (Mac má 8 GB RAM, první build je nejdelší), Petrova
       práce žádná. Když Mac nestačí paměťově, přejdeme na EAS – **přijdeme ale o porovnání V1/V2
       a o rychlý test přežití připomínek** (EAS AAB nejde nainstalovat přes lokální V0) → test
       přežití pak jen přes Play (A29 blok 5) a do 7.0.2 doporučím **V1**.
-- [ ] **R-4: Verze 7.0.2** (ne jen nový versionCode). Doporučuji ANO – v Crashlytics a Play vitals půjde
+- [x] **R-4: Verze 7.0.2** *(ano – `app.json` 7.0.2)* (ne jen nový versionCode). Doporučuji ANO – v Crashlytics a Play vitals půjde
       R8 verze jasně oddělit od 7.0.1.
 - [x] **R-5: Jak se nahrává do Play** → **ručně v Play Console** (Petr, 2026-10-14). Platí ruční
       postup v A26.
@@ -83,7 +83,7 @@ Každé má moje doporučení. Mlčení = souhlas s doporučením.
       Doporučené rozdělení: **update test na telefonu** (reálný upgrade s daty), **všechny čisté instalace
       v emulátoru** (nepočítají se do analytiky, reklamy jsou automaticky testovací, jde měnit datum).
       Bez telefonu → všechno v emulátoru (7.0.1 se do něj nainstaluje z Play).
-- [ ] **R-7: Průvodce** – založit `technical-guides:Android-Release-Build.md` + krátké odkazy
+- [x] **R-7: Průvodce** *(hotovo – @technical-guides:Android-Release-Build.md)* – založit `technical-guides:Android-Release-Build.md` + krátké odkazy
       z Crashlytics.md, Notifications.md a AdMob.md. Doporučuji ANO – keep pravidla jsou přesně ten
       typ věci, kterou za půl roku někdo smaže, protože „vypadá zbytečně".
 - [x] **R-8 → varianta (a) adaptivně** (Petr souhlasí, 2026-10-14). **Výsledek generálky 2026-10-17:
@@ -319,7 +319,7 @@ nula nových pádů, připomínky přežijí aktualizaci, čitelné pády v Cras
       schválení se musí ručně kliknout *Publish changes*.
 - [ ] **A5** 👤 **Pre-launch report:** *Testing* → *Pre-launch report* → *Settings* → zapnutý.
       (Jestli běží i pro interní stopu, uvidíme v A27; je to bonus, ne podmínka.)
-- [ ] **A6** 👤 Odpovědět na **R-1 až R-9** (sekce 1).
+- [x] **A6** 👤 *(odpovězeno 2026-10-14)* Odpovědět na **R-1 až R-9** (sekce 1).
 - [ ] **A7** 👤 Ověřit s testerkou: v telefonu má **SelfRise z Obchodu Play** (produkční 7.0.1), reálně
       ho používá (návyky, deník) a má zapnuté připomínky. Ať zatím nic neaktualizuje – návod jí
       řekne, kdy a jak (včetně dočasného vypnutí automatických aktualizací SelfRise).
@@ -704,7 +704,7 @@ Pro **V0 → V1** i **V0 → V2** (stejný debug podpis, takže aktualizace proj
   vlastnosti správně (ověřeno buildem přes plugin: DEX bajt po bajtu shodný s V2'').
 
 ### Fáze 3 – Commit (🤖 jen na výslovný pokyn „commitni")
-- [ ] **A23** 🤖 V commitu jen: `app.json`, `plugins/withR8Optimization.js`,
+- [x] **A23** 🤖 *(commit `ed768ee` 2026-10-21 – na pokyn Petra „vem to všechno“ i s velkými obrazovkami a opravami textů)* V commitu jen: `app.json`, `plugins/withR8Optimization.js`,
       `__tests__/config/androidReleaseBuild.test.ts`, průvodci, tento plán, `projectplan.md`. Žádné `android/`.
       Commit „Enable R8 for Android release builds (7.0.2)" + push.
 
@@ -995,6 +995,25 @@ proxy).
 
 - Úklid: appka odinstalovaná, debug režim Firebase vypnutý, emulátor vypnutý, `android/` smazaný.
 
+✅ **Audit R8 před vydáním (2026-10-21, release build z commitu `ed768ee`):**
+- **Knihovny se zvláštními nároky na R8** (reflexe, serializace, JNI) prověřené v kódu i ve výsledném DEX:
+  - Expo (`ReactActivityDelegateWrapper`) – R8 přepsal jména polí i v hledaných řetězcích (`mReactDelegate`→`e`,
+    `mDelegate`→`d0`), metody volané podle jména zůstaly díky pravidlům Expa.
+  - Skia – všechny JNI třídy a nativní metody zachované (`SkiaPictureView`, `SkiaManager`, `PlatformContext`).
+  - `expo-haptics`, `expo-localization`, datetimepicker, worklets – reflexe jen na systémové třídy Androidu
+    (R8 je nemění), často v `try/catch`.
+  - Moduly bez vlastních pravidel (předkompilované Expo AAR) – kromě notifikací a Records (naše pravidla 2 a 6)
+    nic nečte podle jména třídy. Lottie appka nepoužívá.
+- **Varování z buildu:** jen „Invalid stack map table" v `play-services-auth` (přináší ho Firebase, appka
+  přihlašování Googlem nepoužívá) – kód knihovny, ne náš, beze změny chování.
+- **Na zařízení navíc oproti A39:** souhlas UMP → „Spravovat možnosti" → odmítnout (appka pokračuje, reklamy se
+  načtou); **reklama za odměnu** u zmrzlé série (posun data o 2 dny) – načetla se, přehrála, odměna připsaná,
+  série zachráněná; Firebase Analytics (události appky i reklam přichází), Crashlytics se inicializuje;
+  „Jak to funguje", Síň trofejí, oslavy. Log appky bez jediné chyby R8, crash buffer prázdný.
+- Pozn.: testovací reklama Googlu připíše odměnu už po pár sekundách (SDK zalogovalo `ad_reward` před
+  zavřením) – „zavřít předčasně" proto v emulátoru odměnu nezablokuje; logika appky odměnu dá jen po
+  `EARNED_REWARD`. Na telefonu testerky (skutečná reklama) ověřit podle A29.
+
 - [ ] **A40** 🤝 *(= vydání 7.0.2, fáze 3–7)* Vydání 7.0.x podle A23–A37 (stejný checklist A29, release notes beze změn funkcí).
       Pokud Play u V2 ukazuje „-" i s AGP 8.12.3: zkontrolovat `app-metadata.properties` v AAB
       a jestli Google nevydal novější patch 8.12.x (Play chce „poslední patch") → zvednout verzi
@@ -1036,15 +1055,15 @@ by to ani nešlo.
 
 **Příprava emulátorů** (👤 v Android Studiu, nebo 🤖 přes `sdkmanager`/`avdmanager` na pokyn –
 ~1,5 GB na obraz):
-- [ ] *Device Manager* → **+** → *Create Virtual Device* → **Tablet** → **Pixel Tablet** → obraz
+- [x] *Device Manager* → **+** → *Create Virtual Device* → **Tablet** → **Pixel Tablet** → obraz
       **API 36, Google Play**, arm64-v8a → název `Pixel_Tablet_API_36`. (Stávající `Pixel_Tablet` je
       API 35 = Android 15 → zámek ještě drží; poslouží jako srovnání „jak to dnes vidí většina tabletů".)
-- [ ] Stejně: **Phone** → **Pixel 9 Pro Fold** (nebo jiný *Foldable*) → API 36, Google Play →
+- [ ] *(neudělán – skládačka zatím neověřena)* Stejně: **Phone** → **Pixel 9 Pro Fold** (nebo jiný *Foldable*) → API 36, Google Play →
       `Pixel_Fold_API_36`.
-- [ ] Přihlásit Google účet → Play Store → nainstalovat **SelfRise z Play** (stejná appka jako mají
+- [x] *(místo Play lokální build stejného kódu)* Přihlásit Google účet → Play Store → nainstalovat **SelfRise z Play** (stejná appka jako mají
       uživatelé; účet testera dostane nejvyšší verzi z interního testování – pro vzhled to nevadí). **Před prvním spuštěním debug režim Firebase** (`adb shell setprop …`), ať se
       testovací instalace nepočítá do trychtýře. Reklamy v emulátoru jsou automaticky testovací.
-- [ ] Zapnout automatické otáčení; tlačítka rotace v liště emulátoru.
+- [x] Zapnout automatické otáčení; tlačítka rotace v liště emulátoru.
 
 **Scénáře** (každý na `Pixel_Tablet_API_36`, vybrané na `Pixel_Fold_API_36`); u každého screenshot
 (🤖 `adb exec-out screencap -p > c1-XX.png`) + zápis:
@@ -1120,9 +1139,11 @@ Rozhodnutí závisí ještě na C-0 (kolik uživatelů má tablet).
 Výchozí doporučení: **C-1 hned → pokud „rozbité", varianta B v nejbližším vydání po 7.0.2 → varianta C
 naplánovat na Q1 2027** (s rezervou před srpnem 2027).
 
-- [ ] 👤 Rozhodnutí: `____`
+- [x] 👤 Rozhodnutí: *(2026-10-19: varianta C – sloupec uprostřed + přepočet za běhu, hned v 7.0.2)* `____`
 
 ### Etapa C-3 – Varianta B (jen když se zvolí)
+
+> ⏭️ **Nezvolena** (2026-10-19 Petr zvolil variantu C) – body níže se nedělají.
 - [ ] 🤖 **Ověřit v aktuální dokumentaci** přesný název a hodnotu property
       (`android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY`, `true`) a že na API 36 vrací
       letterbox na výšku.
@@ -1195,7 +1216,7 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
       iPad (appka má `supportsTablet: true`).
 - [x] 🤖 Průvodce: sekce „Rozvržení pro velké obrazovky" *(nový @technical-guides:Large-Screens.md + odkaz v `technical-guides.md`)* (pravidlo: **nikdy `Dimensions.get` mimo
       komponentu**) + aktualizace dotčených průvodců.
-- [ ] 🤝 Po C: rozhodnout o odstranění výjimky z B (pokud byla) a o otáčení na tabletech pod Androidem 16.
+- [x] 🤝 Po C: *(B nebyla potřeba; na tabletech se appka pod Androidem 16 otáčí a vše se přepočítá – ověřeno 2026-10-20)* rozhodnout o odstranění výjimky z B (pokud byla) a o otáčení na tabletech pod Androidem 16.
 
 ---
 

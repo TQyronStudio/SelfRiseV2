@@ -219,6 +219,8 @@ V Play: *App bundle explorer* → bundle → *Details* → **App optimization** 
    přežití připomínek přes aktualizaci.
 10. **„Shodné třídy“ u buildu, kde R8 vůbec neběželo** – vždy zkontrolovat velikost DEX a hlavičku
     `mapping.txt`; ruční zásah do `gradle.properties` jednou R8 tiše vypnul (slepený řádek).
+11. **Varování „Invalid stack map table" z `play-services-auth`** v logu buildu je známé a neškodné (kód
+    Googlu, přináší ho Firebase; ověřeno 2026-10-21). Nové varování z jiné knihovny ale prověřit.
 
 ---
 
