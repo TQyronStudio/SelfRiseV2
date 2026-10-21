@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
+import { isJournalStreakMilestone } from '@/src/utils/journalStreakMilestones';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
@@ -12,6 +13,7 @@ import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 import { today } from '@/src/utils/date';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import GratitudeInput from '@/src/components/gratitude/GratitudeInput';
 import GratitudeList from '@/src/components/gratitude/GratitudeList';
@@ -107,16 +109,15 @@ export default function JournalScreen() {
       setTimeout(async () => {
         await actions.refreshStats();
         const currentStreak = state.streakInfo?.currentStreak || 0;
-        const milestones = [7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000];
-
-        if (milestones.includes(currentStreak)) {
+        if (isJournalStreakMilestone(currentStreak)) {
           enqueueModal({
             type: 'celebration_streak_milestone',
             priority: ModalPriority.ACTIVITY_CELEBRATION,
+            // Texts are chosen by CelebrationModal (own texts or the generic
+            // ones) — passing t() results here can't fall back: t() returns
+            // the KEY for a missing text, which is truthy, so `||` never fired
             props: {
               streakDays: currentStreak,
-              title: t(`journal.streakMilestone${currentStreak}_title`) || t('journal.streakMilestone_generic_title'),
-              message: t(`journal.streakMilestone${currentStreak}_text`) || t('journal.streakMilestone_generic_text').replace('{days}', String(currentStreak)),
             },
           });
         }
@@ -159,6 +160,7 @@ export default function JournalScreen() {
       flex: 1,
     },
     content: {
+      ...contentColumn,
       flexGrow: 1,
       paddingTop: Layout.spacing.md,
       paddingBottom: 60, // Extra padding for banner

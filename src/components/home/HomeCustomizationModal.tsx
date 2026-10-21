@@ -15,6 +15,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useHomeCustomization } from '@/src/contexts/HomeCustomizationContext';
 import { Layout, Typography } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 
 interface HomeCustomizationModalProps {
   visible: boolean;
@@ -85,6 +86,7 @@ export function HomeCustomizationModal({ visible, onClose }: HomeCustomizationMo
       padding: Layout.spacing.xs,
     },
     content: {
+      ...contentColumn,
       flex: 1,
       padding: Layout.spacing.md,
     },

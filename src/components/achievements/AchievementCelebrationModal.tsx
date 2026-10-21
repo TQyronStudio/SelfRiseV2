@@ -5,7 +5,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   AccessibilityInfo,
   Animated,
 } from 'react-native';
@@ -15,8 +15,7 @@ import { useXpFeedback } from '@/src/hooks/useXpFeedback';
 import { Achievement, AchievementRarity } from '@/src/types/gamification';
 import { useAccessibility, getHighContrastRarityColors } from '@/src/hooks/useAccessibility';
 import { useTheme } from '../../contexts/ThemeContext';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 interface AchievementCelebrationModalProps {
   visible: boolean;
@@ -66,6 +65,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   achievement,
   xpAwarded,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   // Early return BEFORE any hooks - safe now because parent only renders with valid achievement
   if (!achievement) {
     return null;
@@ -99,7 +99,7 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {

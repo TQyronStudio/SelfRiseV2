@@ -1,14 +1,7 @@
-import { Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
-
 // Application dimension constants
+// Window size is NOT here: a module-level value goes stale on rotation — use
+// useWindowDimensions() in the component (utils/layout.ts).
 export const Layout = {
-  window: {
-    width,
-    height,
-  },
-  
   // Spacing
   spacing: {
     xs: 4,

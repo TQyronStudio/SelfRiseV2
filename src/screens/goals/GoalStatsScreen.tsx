@@ -12,6 +12,7 @@ import { GoalCompletionPredictions } from '@/src/components/goals/GoalCompletion
 import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useGoals } from '@/src/contexts/GoalsContext';
 import { Fonts } from '@/src/constants/fonts';
+import { contentColumn } from '@/src/utils/layout';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -220,7 +221,7 @@ export function GoalStatsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 60) }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ ...contentColumn, paddingBottom: Math.max(insets.bottom, 60) }} showsVerticalScrollIndicator={false}>
         {activeTab === 'stats' && (
           <>
             <GoalStatsCard goal={goal} stats={stats} isLoading={isLoading} />

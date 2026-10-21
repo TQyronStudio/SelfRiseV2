@@ -2,7 +2,7 @@
 // Shows progression history and trend analysis
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AchievementCategory, StarRatingHistoryEntry } from '../../types/gamification';

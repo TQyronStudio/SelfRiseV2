@@ -7,6 +7,7 @@ import { GoalItem } from './GoalItem';
 import { useI18n } from '../../hooks/useI18n';
 import { useTheme } from '../../contexts/ThemeContext';
 import { HelpTooltip } from '../common/HelpTooltip';
+import { contentColumn } from '../../utils/layout';
 
 interface GoalListWithDragAndDropProps {
   goals: Goal[];
@@ -42,6 +43,7 @@ export function GoalListWithDragAndDrop({
       backgroundColor: colors.backgroundSecondary,
     },
     content: {
+      ...contentColumn,
       flexGrow: 1,
       padding: 16,
     },

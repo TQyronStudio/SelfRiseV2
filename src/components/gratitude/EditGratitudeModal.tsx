@@ -14,6 +14,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { Gratitude } from '@/src/types/gratitude';
 import { Layout, Fonts } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { contentColumn } from '@/src/utils/layout';
 
 interface EditGratitudeModalProps {
   visible: boolean;
@@ -102,6 +103,7 @@ export default function EditGratitudeModal({
       color: colors.white,
     },
     content: {
+      ...contentColumn,
       flex: 1,
       padding: Layout.spacing.md,
     },

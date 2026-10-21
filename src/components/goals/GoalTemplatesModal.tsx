@@ -5,6 +5,7 @@ import { GoalCategory, CreateGoalInput } from '@/src/types/goal';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout } from '@/src/constants/dimensions';
+import { contentColumn } from '@/src/utils/layout';
 import { GoalTemplate, useGoalTemplates, templateToGoalInput } from '@/src/constants/goalTemplates';
 
 
@@ -97,6 +98,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       padding: Layout.spacing.xs,
     },
     searchSection: {
+      ...contentColumn,
       paddingHorizontal: Layout.spacing.md,
       paddingVertical: Layout.spacing.md,
     },
@@ -115,6 +117,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       color: colors.text,
     },
     categoriesSection: {
+      ...contentColumn,
       marginBottom: Layout.spacing.md,
     },
     categoriesContainer: {
@@ -145,6 +148,7 @@ export function GoalTemplatesModal({ visible, onClose, onSelectTemplate }: GoalT
       color: colors.white,
     },
     templatesContainer: {
+      ...contentColumn,
       flex: 1,
       paddingHorizontal: Layout.spacing.md,
     },

@@ -7,7 +7,6 @@ import {
   Modal,
   ScrollView,
   Pressable,
-  Dimensions,
 } from 'react-native';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
@@ -16,6 +15,7 @@ import { BeginnerTargetFixer } from '../../utils/fixBeginnerTargetText';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 import { getChallengeTitle, getChallengeDescription, getRequirementDescription } from '../../services/challengeDisplayText';
+import { contentColumn } from '@/src/utils/layout';
 
 interface MonthlyChallengeDetailModalProps {
   challenge: MonthlyChallenge | null;
@@ -25,8 +25,6 @@ interface MonthlyChallengeDetailModalProps {
 }
 
 type TabType = 'overview' | 'calendar' | 'tips';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = ({
   challenge,
@@ -303,6 +301,7 @@ const MonthlyChallengeDetailModal: React.FC<MonthlyChallengeDetailModalProps> = 
       // color will be set dynamically
     },
     content: {
+      ...contentColumn,
       flex: 1,
       padding: 20,
     },

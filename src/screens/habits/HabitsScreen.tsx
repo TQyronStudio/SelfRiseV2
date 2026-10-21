@@ -20,6 +20,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 // XPSourceType removed - XP handled by habitStorage
 import { XP_REWARDS } from '@/src/constants/gamification';
+import { contentColumn } from '@/src/utils/layout';
 
 export function HabitsScreen() {
   const { t } = useI18n();
@@ -35,6 +36,7 @@ export function HabitsScreen() {
       backgroundColor: colors.backgroundSecondary,
     },
     addButtonContainer: {
+      ...contentColumn,
       paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: 8,

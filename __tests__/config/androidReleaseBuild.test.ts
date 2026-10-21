@@ -107,6 +107,12 @@ const REQUIRED_RULES: Array<[string, string]> = [
     'empty marker interface Expo checks at runtime (isAssignableFrom); optimization may drop it',
   ],
   [
+    '-keep @interface expo.modules.** { *; }',
+    'Expo reads @Field/@Required on Records by reflection. Annotations are only ever instantiated ' +
+      'as runtime proxies, so the optimizer concludes the @Field value is always null and turns ' +
+      'Record conversion into a throw — the database cannot open (verified 2026-10-17).',
+  ],
+  [
     '-keep public class * extends java.lang.Exception',
     'readable exception names in Crashlytics issue titles',
   ],
@@ -132,20 +138,20 @@ describe('app.json – R8 in release builds', () => {
     }
   });
 
-  test('the R8 optimization plugin is not registered yet (known breakage)', () => {
-    // Verified 2026-10-17: with optimization on, Expo Record conversion fails and the app
-    // cannot open its database. Register only after phase 8 of google-play-compliance-plan.md
-    // passes on a device – then turn this test around.
-    if (appJson.expo.plugins.includes('./plugins/withR8Optimization')) {
+  test('the R8 optimization plugin is registered', () => {
+    // Google Play requires >= 25 % optimization from February 2027. Without the plugin the
+    // template's -dontoptimize stays and Play measures 0 % (technical-guides:Android-Release-Build.md).
+    if (!appJson.expo.plugins.includes('./plugins/withR8Optimization')) {
       throw new Error(
-        'plugins/withR8Optimization is registered in app.json, but R8 optimization still breaks ' +
-          'Expo Records (the database cannot open). See google-play-compliance-plan.md, phase 8.'
+        'plugins/withR8Optimization is not registered in app.json → release builds are not ' +
+          'optimized and fail the Google Play requirement (>= 25 % optimization).'
       );
     }
   });
 
-  test('orientation is still locked to portrait (large-screen support is a separate task)', () => {
-    // Changing this belongs to Part C of google-play-compliance-plan.md, not to R8 work.
+  test('orientation is still locked to portrait on phones', () => {
+    // Android 16 ignores the lock on screens >= 600 dp; large screens are handled by
+    // src/utils/layout.ts (technical-guides:Large-Screens.md), not by unlocking it here.
     expect(appJson.expo.orientation).toBe('portrait');
   });
 });

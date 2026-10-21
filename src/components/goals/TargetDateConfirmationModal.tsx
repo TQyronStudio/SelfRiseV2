@@ -5,13 +5,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts, Layout } from '@/src/constants';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 interface TargetDateConfirmationModalProps {
   visible: boolean;
@@ -26,6 +25,7 @@ export default function TargetDateConfirmationModal({
   onAddDate,
   onContinueWithoutDate,
 }: TargetDateConfirmationModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useI18n();
   const { colors } = useTheme();
 
@@ -43,7 +43,7 @@ export default function TargetDateConfirmationModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {

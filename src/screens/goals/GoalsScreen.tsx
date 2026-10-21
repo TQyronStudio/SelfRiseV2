@@ -12,6 +12,7 @@ import { useGoalsData } from '@/src/hooks/useGoalsData';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
+import { contentColumn } from '@/src/utils/layout';
 // XPSourceType removed - XP handled by goalStorage
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +39,7 @@ export function GoalsScreen() {
       backgroundColor: colors.backgroundSecondary,
     },
     addButtonContainer: {
+      ...contentColumn,
       paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: 8,

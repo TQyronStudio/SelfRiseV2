@@ -7,7 +7,7 @@ import {
   Modal,
   Pressable,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   ScrollView,
 } from 'react-native';
 import { notification as hapticNotification, NotificationFeedbackType } from '../../services/hapticsService';
@@ -20,6 +20,7 @@ import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 import { getChallengeTitle } from '../../services/challengeDisplayText';
+import { getModalWidth } from '@/src/utils/layout';
 
 interface MonthlyChallengeCompletionModalProps {
   visible: boolean;
@@ -39,8 +40,6 @@ interface ParticleProps {
   delay: number;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalProps> = ({
   visible,
   challenge,
@@ -48,6 +47,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
   onClose,
   onContinue
 }) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { colors } = useTheme();
   const { t, currentLanguage } = useI18n();
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -285,7 +285,7 @@ const MonthlyChallengeCompletionModal: React.FC<MonthlyChallengeCompletionModalP
       backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 20,
       maxHeight: screenHeight * 0.9,
-      width: screenWidth * 0.9,
+      width: getModalWidth(screenWidth, 0.9),
       maxWidth: 400,
       elevation: 10,
     },

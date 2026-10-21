@@ -87,7 +87,9 @@ Každé má moje doporučení. Mlčení = souhlas s doporučením.
       z Crashlytics.md, Notifications.md a AdMob.md. Doporučuji ANO – keep pravidla jsou přesně ten
       typ věci, kterou za půl roku někdo smaže, protože „vypadá zbytečně".
 - [x] **R-8 → varianta (a) adaptivně** (Petr souhlasí, 2026-10-14). **Výsledek generálky 2026-10-17:
-      V2 neprošla → 7.0.2 = V1, optimalizace ve fázi 8** (detaily u A22). **Optimalizace (V2).** Varianty:
+      V2 neprošla → 7.0.2 = V1, optimalizace ve fázi 8** (detaily u A22). **2026-10-20 Petr: všechno naráz
+      v 7.0.2** → fáze 8 udělaná hned: oprava Records (`-keep @interface expo.modules.**`) + generálka
+      V0 → V2f prošla (výsledky u A39) → **7.0.2 = V2 s optimalizací**. **Optimalizace (V2).** Varianty:
   - **(a) adaptivně – DOPORUČUJI:** generálka postaví V1 i V2. Když V2 projde **všemi** testy
     (start, moduly, přežití připomínek přes update, všechny 3 metriky ≥ 30 %, AAB hlásí AGP 8.12.3),
     vydá se rovnou V2 →
@@ -940,6 +942,8 @@ Pro **V0 → V1** i **V0 → V2** (stejný debug podpis, takže aktualizace proj
 
 ### Fáze 8 – Optimalizace samostatně (jen pokud 7.0.2 vyšla jako V1)
 
+> ✅ **2026-10-20: přesunuto do 7.0.2** (Petr: „všechno naráz“). A38 a A39 hotové, A40 = vydání 7.0.2 (fáze 3–7).
+
 > Termín: **v produkci na 100 % nejpozději 15. 1. 2027** (rezerva před únorem 2027). Spouštěč dřív:
 > kdyby se mezitím dělal upgrade Expo SDK, který optimalizaci a nové R8 přinese sám (pak plugin
 > z A10 odebrat – pojistka v testu A11 na to upozorní).
@@ -953,18 +957,45 @@ Kotlin reflexi (`RecordTypeConverter.kt:35`); anotace v DEX jsou, R8 ale při op
 „zjednoduší“ kód kolem `findAnnotation` (u anotačních rozhraní nevidí implementace – jsou to runtime
 proxy).
 
-- [ ] **A38** 🤖 Oprava Records – kandidáti (ověřovat po jednom, každý buildem + otevřením appky):
+- [x] **A38** 🤖 *(2026-10-20: kandidát (1) stačil – `-keep @interface expo.modules.** { *; }` v `app.json`, test + průvodce; příčinu potvrzuje oprava v `expo-modules-core` 58.0.15)* Oprava Records – kandidáti (ověřovat po jednom, každý buildem + otevřením appky):
       (1) `-keep @interface expo.modules.kotlin.records.**` + `-keep class kotlin.Metadata { *; }`
       + `-keepattributes RuntimeVisibleAnnotations,…` (už v profilu); (2) zkontrolovat, co přidávají
       novější verze `expo-modules-core` (Expo šablona 57+/58 optimalizaci zapíná – jejich pravidla
       převzít); (3) `-keep,allowobfuscation class expo.modules.kotlin.records.RecordTypeConverter { *; }`
       a `JSTypeConverterHelper` (zákaz optimalizace převodníku). Přidané pravidlo do `app.json` + testu
       + průvodce.
-- [ ] **A39** 🤖 Generálka V0 → V2-opravená: měření (3 metriky ≥ 30 %), shoda uložených tříd
+- [x] **A39** 🤖 *(2026-10-20, výsledky v tabulce níže)* Generálka V0 → V2-opravená: měření (3 metriky ≥ 30 %), shoda uložených tříd
       připomínek s V0 (dexdump), test přežití připomínek (aktualizace + restart), **otevření appky
       a průchod všemi moduly s Recordy** (sqlite, web-browser, notifications, splash, haptika…), čistá
       instalace. Pak teprve zaregistrovat plugin a otočit test „not registered yet“.
-- [ ] **A40** 🤝 Vydání 7.0.x podle A23–A37 (stejný checklist A29, release notes beze změn funkcí).
+> **Drobnost z cesty (2026-10-20, Petr zvolil variantu a):** dlaždice v úvodu (návyky, cíle) na telefonu
+> **2 sloupce místo 3** – `getOnbTileColumns(width)` podle skutečné šířky okna (3 až od 600 dp). Dřív rozhodovalo
+> `getScreenSize()`, které kvůli `isTablet()` hlásí TABLET i na telefonech → 3 sloupce a dělená slova
+> („Somet / hing else", „Bewerbunge / n"). Ověřeno na emulátoru v angličtině i němčině. Test v `onboardingKit.test.ts`.
+
+✅ **Výsledky A38–A39 (2026-10-20, emulátor Pixel_7, Android 16) – V2f = V2'' + `-keep @interface expo.modules.** { *; }`:**
+
+| Test | V2f |
+|---|---|
+| AGP / R8 (AAB metadata, hlavička mappingu) | 8.12.3 / 8.12.22 |
+| DEX | 13,0 MB (V0 33,7 MB) |
+| `r8.json`: obfuskace / optimalizace / zmenšení | **87,9 / 86,9 / 87,9 %** (Google chce ≥ 25 %) |
+| Konfigurace | `-allowaccessmodification` ani `-dontoptimize` nejsou; compat mode; anotační keep v `configuration.txt` |
+| `Field` / `Required` / `Record` v mappingu | jména zachována |
+| Uložené třídy připomínek (dexdump V0 vs V2f) | `NotificationRequest`, `ChannelAwareTrigger`, všechny triggery a `NotificationAction` **shodné**; `NotificationContent` se liší jen pořadím interních metod a má vlastní `serialVersionUID`; `NotificationCategory` jen syntetický konstruktor (Parcelable, kategorie appka nativně neukládá) |
+| Čistá instalace: souhlas UMP, jazyk, vzhled, oprávnění k notifikacím, úvod (návyk + cíl), **databáze se otevřela** | ✅ |
+| Deník 3 zápisy + oslavy (level, multiplikátor, achievement, splněný den) | ✅ |
+| Nastavení: tmavý vzhled, výběr času, němčina, zásady soukromí (prohlížeč) | ✅ |
+| Druhý návyk s vybranými dny, odškrtnutí, **přetažení v režimu řazení**, statistiky návyku | ✅ |
+| Cíl s cílovým datem (výběr rok → měsíc → den), Síň trofejí | ✅ |
+| **V0 → V2f bez otevření appky:** připomínka 20:30 přišla (20:30) | ✅ |
+| **Restart** → alarmy znovu naplánované (`BOOT_COMPLETED`) → večerní 20:55 přišla | ✅ |
+| Ťuknutí na připomínku → appka se otevřela s daty z V0 (na obrazovce Návyky – správně, návyk byl nesplněný) | ✅ |
+| Log procesu appky (ClassNotFound/NoSuchMethod/InvalidClass/cast/NPE) a crash buffer | čisté |
+
+- Úklid: appka odinstalovaná, debug režim Firebase vypnutý, emulátor vypnutý, `android/` smazaný.
+
+- [ ] **A40** 🤝 *(= vydání 7.0.2, fáze 3–7)* Vydání 7.0.x podle A23–A37 (stejný checklist A29, release notes beze změn funkcí).
       Pokud Play u V2 ukazuje „-" i s AGP 8.12.3: zkontrolovat `app-metadata.properties` v AAB
       a jestli Google nevydal novější patch 8.12.x (Play chce „poslední patch") → zvednout verzi
       v pluginu, znovu změřit a otestovat.
@@ -1103,6 +1134,20 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
 
 ### Etapa C-4 – Varianta C (návrh – před kódem oponentura podle pravidla 1)
 
+> ✅ **Rozhodnutí Petra 2026-10-19:** opravit **hned, v 7.0.2** spolu s R8; rozsah = **sloupec uprostřed +
+> přepočet za běhu** (bez dvousloupcového rozložení); **vzhled telefonů zachovat** (varianta a – `isTablet()`
+> a `responsive.ts` beze změny, nová logika jen nad šířkou telefonu). Pravidla: @technical-guides:Large-Screens.md
+>
+> **Jak se realizace liší od návrhu níže (záměrně):**
+> - Místo vlastního hooku přímo `useWindowDimensions()` + čisté funkce v `src/utils/layout.ts`
+>   (`contentColumn` 640, `getModalWidth` strop 560, `getContentWidth`, `getColumnCount`) – méně kódu, testovatelné.
+> - Graf na Domů počítá šířku ze **sloupce** (`getGraphMetrics`), ne z `onLayout` – bez probliknutí
+>   prvního vykreslení, na telefonu matematicky stejné.
+> - `src/utils/responsive.ts` **zůstává** (čte při startu): na tabletu dává v obou orientacích stejné hodnoty,
+>   na telefonu se orientace nemění. Vědomá výjimka v hlídači testu. `src/constants/dimensions.ts`: odstraněno
+>   nepoužívané `Layout.window`.
+> - C4-4 onboarding: **beze změny** – má vlastní sloupec 560 dp a v C-1 prošel i po otočení.
+
 **Cílový stav (návrh):**
 - Na telefonu **beze změny** (žádný vizuální rozdíl – nejdůležitější podmínka).
 - Na širokém displeji: obsah ve **sloupci max ~640 dp vycentrovaném**, pozadí přes celou šířku.
@@ -1112,7 +1157,7 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
 - Dvousloupcové rozložení (seznam + detail) **ne** – pro habit tracker nepřiměřené.
 
 **Části (každá = 1 posezení):**
-- [ ] 🤖 **C4-1 Základ:** sdílený hook (např. `src/hooks/useLayoutMetrics.ts`) nad `useWindowDimensions()` →
+- [x] 🤖 **C4-1 Základ:** *(2026-10-19: `src/utils/layout.ts` + `contentColumn` na 11 obrazovkách / seznamech)* sdílený hook (např. `src/hooks/useLayoutMetrics.ts`) nad `useWindowDimensions()` →
       `width`, `height`, `isWide` (≥ 600 dp), `contentWidth`. `src/utils/responsive.ts`
       a `src/constants/dimensions.ts` tak, aby **nečetly rozměry při načtení modulu**. Testy hooku
       (telefon 390, tablet 1280, otočení). Kontejner `ContentColumn` (`maxWidth` + `alignSelf: 'center'`)
@@ -1124,7 +1169,7 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
       Přepnutí na „≥ 600 dp" by **změnilo vzhled na telefonech**. Rozhodnout před kódem: (a) zachovat
       dnešní výstupy na každém zařízení (nová logika jen pro skutečně široké displeje) – doporučuji,
       nebo (b) změnu přijmout a porovnat screenshoty před/po.
-- [ ] 🤖 **C4-2 Modaly a překryvy (≈ 20 souborů):** `screenWidth`/`screenHeight` z modulu → hook; šířky
+- [x] 🤖 **C4-2 Modaly a překryvy (≈ 20 souborů):** *(2026-10-19; `GoalTemplatesModal` a `OnboardingPreferencesModal` jedou přes `responsive.ts` – stabilní)* `screenWidth`/`screenHeight` z modulu → hook; šířky
       `min(x % šířky, max)`: `common/BaseModal`, `common/HelpTooltip`, `achievements/AchievementDetailModal`,
       `achievements/AchievementCelebrationModal`, `achievements/AchievementTooltip`,
       `goals/GoalCompletionModal`, `goals/TargetDateConfirmationModal`, `goals/TargetDateStepSelectionModal`,
@@ -1133,7 +1178,7 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
       `challenges/MonthlyChallengeMilestoneModal`, `challenges/MonthlyChallengeCompletionModal`,
       `challenges/StarLevelChangeModal`, `gratitude/WarmUpModals`, `gratitude/CelebrationModal`,
       `gratitude/StreakWarmUpModal`, `tutorial/OnboardingPreferencesModal`.
-- [ ] 🤖 **C4-3 Grafy, mřížky, karty, animace (≈ 15 souborů):** `home/StreakHistoryGraph` (šířka z `onLayout`),
+- [x] 🤖 **C4-3 Grafy, mřížky, karty, animace (≈ 15 souborů):** *(2026-10-19; mřížka trofejí `key={numColumns}`, 4 mrtvé deklarace smazány)* `home/StreakHistoryGraph` (šířka z `onLayout`),
       `achievements/AchievementGrid`, `achievements/CategorySection`, `app/achievements.tsx` (sloupce),
       `challenges/MonthlyProgressCalendar`, `challenges/MonthlyChallengeCard`,
       `gamification/OptimizedXpProgressBar`, `gamification/XpMultiplierIndicator`,
@@ -1141,14 +1186,14 @@ naplánovat na Q1 2027** (s rezervou před srpnem 2027).
       `gamification/XpPopupAnimation`, `gamification/ParticleEffects`, `goals/GoalPerformanceDashboard`,
       `goals/ProgressTrendAnalysis`, `goals/GoalCompletionPredictions`,
       `screens/levels/LevelsOverviewScreen`, `screens/help/HowItWorksScreen`.
-- [ ] 🤖 **C4-4 Onboarding (8 souborů):** `onboarding/WelcomeScreen`, `OnbScreenContainer`,
+- [x] 🤖 **C4-4 Onboarding (8 souborů):** *(beze změny – viz rozhodnutí výše)* `onboarding/WelcomeScreen`, `OnbScreenContainer`,
       `FirstHabitScreen`, `FirstGoalScreen`, `OnbTileGrid`, `OnbTile`, `FirstCheckCard`,
       `DayOneCelebration` – pozice a velikosti po otočení. Průvodce @technical-guides:Tutorial.md.
-- [ ] 🤖 Po každé části: `tsc`, `npm test`, kontrola tématu (skill na theme), **screenshoty telefonu
+- [x] 🤖 *(tsc + npm test zelené; screenshoty telefonu po změně beze rozdílu)* Po každé části: `tsc`, `npm test`, kontrola tématu (skill na theme), **screenshoty telefonu
       před/po** (Pixel_7) – na telefonu nesmí být rozdíl.
-- [ ] 🤝 Závěrečný test: celá tabulka C-1 na `Pixel_Tablet_API_36` + `Pixel_Fold_API_36` + telefon;
+- [x] 🤝 *(2026-10-20 🤖 na `Pixel_Tablet_API_36` + `Pixel_7`: Domů s grafem, Síň trofejí (mřížka i po otočení), Návyky + formulář, Deník, Cíle + šablony + formulář, Nastavení, úprava Domů – vše ve sloupci, graf celý, mřížka bez uříznutí; telefon beze změny. Skládačka a iPad neověřeny – iPad pokryje Petr/testerka)* Závěrečný test: celá tabulka C-1 na `Pixel_Tablet_API_36` + `Pixel_Fold_API_36` + telefon;
       iPad (appka má `supportsTablet: true`).
-- [ ] 🤖 Průvodce: sekce „Rozvržení pro velké obrazovky" (pravidlo: **nikdy `Dimensions.get` mimo
+- [x] 🤖 Průvodce: sekce „Rozvržení pro velké obrazovky" *(nový @technical-guides:Large-Screens.md + odkaz v `technical-guides.md`)* (pravidlo: **nikdy `Dimensions.get` mimo
       komponentu**) + aktualizace dotčených průvodců.
 - [ ] 🤝 Po C: rozhodnout o odstranění výjimky z B (pokud byla) a o otáčení na tabletech pod Androidem 16.
 

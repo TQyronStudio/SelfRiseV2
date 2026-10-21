@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Fonts } from '@/src/constants/fonts';
 import { Layout } from '@/src/constants/dimensions';
+import { contentColumn } from '@/src/utils/layout';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { GamificationService } from '@/src/services/gamificationService';
@@ -221,6 +222,7 @@ export const LevelsOverviewScreen: React.FC = () => {
       color: colors.textSecondary,
     },
     listContainer: {
+      ...contentColumn,
       paddingHorizontal: Layout.spacing.md,
       paddingBottom: Layout.spacing.xl + insets.bottom,
     },

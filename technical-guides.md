@@ -1339,8 +1339,8 @@ Zásady pro každodenní vývoj:
 
 ## Android release build (R8)
 
-Od 7.0.2 je v Android release buildu zapnuté R8 (Google Play od února 2027 vyžaduje ≥ 25 %
-optimalizace, obfuskace i zmenšení). Kompletní pravidla: **@technical-guides:Android-Release-Build.md**
+Od 7.0.2 je v Android release buildu zapnuté R8 včetně optimalizace (Google Play od února 2027
+vyžaduje ≥ 25 % optimalizace, obfuskace i zmenšení; naměřeno ~87 % u všech tří). Kompletní pravidla: **@technical-guides:Android-Release-Build.md**
 
 Zásady pro každodenní vývoj:
 - **Keep pravidla v `app.json` (`expo-build-properties`) se nemažou** — každé chrání něco, co dev
@@ -1349,6 +1349,21 @@ Zásady pro každodenní vývoj:
   přes aktualizaci (`npm start` R8 vůbec nemá)
 - **Upgrade Expo SDK / React Native** → schválně spadnou pojistky v
   `__tests__/config/androidReleaseBuild.test.ts`; přehodnotit `plugins/withR8Optimization.js`
+
+---
+
+## Velké obrazovky (tablety, otočení)
+
+Android 16 ignoruje zámek na výšku na obrazovkách ≥ 600 dp — na tabletu se appka otáčí za běhu.
+Od 7.0.2 je obsah ve sloupci uprostřed a modaly mají strop. Kompletní pravidla:
+**@technical-guides:Large-Screens.md**
+
+Zásady pro každodenní vývoj:
+- **Velikost okna jen `useWindowDimensions()` uvnitř komponenty**, nikdy `Dimensions.get` na úrovni
+  modulu (hlídá test `__tests__/utils/layout.test.ts`)
+- **Nová obrazovka** → `contentColumn` na `contentContainerStyle`; **nový modal** →
+  `getModalWidth(screenWidth, 0.85)` (obojí ze `src/utils/layout.ts`)
+- **Výpočet ze šířky** (graf, mřížka) → `getContentWidth` / `getColumnCount`, ne celá obrazovka
 
 ---
 

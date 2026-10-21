@@ -5,7 +5,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   ScrollView
 } from 'react-native';
 import { Fonts, Layout } from '@/src/constants';
@@ -14,8 +14,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility, getHighContrastRarityColors } from '@/src/hooks/useAccessibility';
 import { ProgressHint, CompletionInfo, SmartTooltip } from '@/src/utils/achievementPreviewUtils';
 import { useTheme } from '@/src/contexts/ThemeContext';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 interface AchievementTooltipProps {
   visible: boolean;
@@ -48,6 +47,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
   completionInfo,
   smartTooltip
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useI18n();
   const { isHighContrastEnabled } = useAccessibility();
   const { colors } = useTheme();
@@ -68,7 +68,7 @@ export const AchievementTooltip: React.FC<AchievementTooltipProps> = ({
       borderWidth: 2,
       paddingVertical: Layout.spacing.lg,
       paddingHorizontal: Layout.spacing.md,
-      maxWidth: screenWidth * 0.9,
+      maxWidth: getModalWidth(screenWidth, 0.9),
       maxHeight: '80%',
       width: '100%',
     },

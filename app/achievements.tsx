@@ -8,7 +8,7 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
-  Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
@@ -22,6 +22,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Layout } from '@/src/constants';
+import { contentColumn, getColumnCount } from '@/src/utils/layout';
 import { HelpTooltip } from '@/src/components/common';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
@@ -44,8 +45,6 @@ import {
   AchievementRarity
 } from '@/src/types/gamification';
 
-const { width: screenWidth } = Dimensions.get('window');
-
 // ========================================
 // ACHIEVEMENTS SCREEN COMPONENT
 // ========================================
@@ -55,6 +54,7 @@ export default function AchievementsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
 
   // ========================================
   // STATE MANAGEMENT
@@ -692,6 +692,7 @@ export default function AchievementsScreen() {
     },
 
     scrollContent: {
+      ...contentColumn,
       paddingBottom: 120 + insets.bottom, // Extra padding for banner + safe area
       paddingTop: 16,
     },
@@ -1026,7 +1027,7 @@ export default function AchievementsScreen() {
   const renderGridView = () => {
     if (!userAchievements) return null;
 
-    const numColumns = Math.floor((Dimensions.get('window').width - 32) / 158); // 150 (card) + 8 (margins)
+    const numColumns = getColumnCount(windowWidth, 32, 158); // 150 (card) + 8 (margins)
     const rows: Achievement[][] = [];
     
     // Group achievements into rows

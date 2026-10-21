@@ -19,7 +19,6 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -65,8 +64,6 @@ export interface MultiplierCountdownTimerProps {
    */
   autoUpdate?: boolean;
 }
-
-const { width: screenWidth } = Dimensions.get('window');
 
 /**
  * Get size configuration based on variant

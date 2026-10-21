@@ -9,9 +9,20 @@
  *     the source guard below is what stops the hardcoded English units from
  *     creeping back in
  */
-import { chunkIntoRows } from '../gridLayout';
+import { chunkIntoRows, getOnbTileColumns } from '../gridLayout';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+describe('getOnbTileColumns', () => {
+  it.each([320, 360, 375, 390, 393, 412, 430, 440])('%i dp phone gets two columns', (width) => {
+    // Three columns left ~80 dp per label and broke words mid-way ("Somet / hing else").
+    expect(getOnbTileColumns(width)).toBe(2);
+  });
+
+  it.each([600, 744, 800, 1280])('%i dp large screen gets three columns', (width) => {
+    expect(getOnbTileColumns(width)).toBe(3);
+  });
+});
 
 describe('chunkIntoRows', () => {
   it('fills complete rows', () => {

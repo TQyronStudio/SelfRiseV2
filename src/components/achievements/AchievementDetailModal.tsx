@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   AccessibilityInfo,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +16,7 @@ import { UserStats, ProgressHint, generateProgressHintAsync } from '@/src/utils/
 import { AchievementService } from '@/src/services/achievementService';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 import { useI18n } from '@/src/hooks/useI18n';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { contentColumn } from '@/src/utils/layout';
 
 // ========================================
 // INTERFACES
@@ -190,6 +188,7 @@ export const AchievementDetailModal: React.FC<AchievementDetailModalProps> = ({
       flex: 1,
     },
     scrollContent: {
+      ...contentColumn,
       paddingBottom: 20,
     },
     header: {

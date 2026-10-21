@@ -3,14 +3,12 @@ import {
   View,
   Animated,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   Easing,
   AccessibilityInfo
 } from 'react-native';
 import i18next from 'i18next';
 import { useTheme } from '../../contexts/ThemeContext';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface Particle {
   id: string;
@@ -40,6 +38,7 @@ export const ParticleEffects: React.FC<ParticleEffectsProps> = ({
   duration = 3000,
   onComplete,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors: themeColors } = useTheme();
   const particlesRef = useRef<Particle[]>([]);
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Fonts } from '../../constants/fonts';
+import { contentColumn } from '../../utils/layout';
 import { useI18n } from '../../hooks/useI18n';
 import { useHabitsData } from '../../hooks/useHabitsData';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -56,7 +57,7 @@ export function IndividualHabitStatsScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={true}>
+    <ScrollView style={styles.container} contentContainerStyle={{ ...contentColumn, paddingBottom: 60 }} showsVerticalScrollIndicator={true}>
         {/* Active Habits Section */}
         {activeHabits.length > 0 && (
           <View style={styles.section}>

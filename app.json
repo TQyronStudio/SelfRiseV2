@@ -226,6 +226,7 @@
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
       "./plugins/withModularHeaders",
+      "./plugins/withR8Optimization",
       [
         "expo-build-properties",
         {
@@ -235,7 +236,7 @@
           },
           "android": {
             "enableMinifyInReleaseBuilds": true,
-            "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class expo.modules.ExpoModulesPackageList { *; }\n-keep class expo.modules.adapters.react.apploader.RNHeadlessAppLoader { *; }\n-keep interface expo.modules.kotlin.records.Record\n-keep public class * extends java.lang.Exception\n-keepattributes SourceFile,LineNumberTable\n-renamesourcefileattribute SourceFile"
+            "extraProguardRules": "-keep class com.google.android.gms.internal.consent_sdk.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class expo.modules.ExpoModulesPackageList { *; }\n-keep class expo.modules.adapters.react.apploader.RNHeadlessAppLoader { *; }\n-keep interface expo.modules.kotlin.records.Record\n-keep @interface expo.modules.** { *; }\n-keep public class * extends java.lang.Exception\n-keepattributes SourceFile,LineNumberTable\n-renamesourcefileattribute SourceFile"
           }
         }
       ],

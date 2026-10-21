@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { Layout } from '@/src/constants/dimensions';
-import { OnbTile, getOnbTileColumns } from './OnbTile';
-import { chunkIntoRows } from './gridLayout';
+import { OnbTile } from './OnbTile';
+import { chunkIntoRows, getOnbTileColumns } from './gridLayout';
 
 /**
  * Lays tiles out in a responsive grid — two columns on phones, three when
@@ -28,7 +28,8 @@ export interface OnbTileGridProps {
 
 
 export function OnbTileGrid({ items, selectedId, onSelect }: OnbTileGridProps) {
-  const columns = getOnbTileColumns();
+  const { width: windowWidth } = useWindowDimensions();
+  const columns = getOnbTileColumns(windowWidth);
 
   const styles = StyleSheet.create({
     row: {

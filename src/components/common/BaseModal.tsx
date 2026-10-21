@@ -5,15 +5,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { Fonts, Layout } from '@/src/constants';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 interface BaseModalProps {
   visible: boolean;
@@ -40,13 +39,15 @@ export default function BaseModal({
   children,
   showCloseButton = true,
   closeButtonText,
-  maxWidth = screenWidth * 0.85,
+  maxWidth: maxWidthProp,
   animationType = 'fade',
 }: BaseModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
   const resolvedCloseButtonText = closeButtonText || t('common.close');
+  const maxWidth = maxWidthProp ?? getModalWidth(screenWidth, 0.85);
 
   const styles = StyleSheet.create({
     keyboardView: {

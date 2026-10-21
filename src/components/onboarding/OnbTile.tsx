@@ -5,7 +5,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
 import { Fonts } from '@/src/constants/fonts';
 import { Layout } from '@/src/constants/dimensions';
-import { scaleFont, getScreenSize, ScreenSize } from '@/src/utils/responsive';
+import { scaleFont } from '@/src/utils/responsive';
 
 /**
  * A pickable tile: icon, label, optional secondary line.
@@ -28,15 +28,6 @@ export interface OnbTileProps {
   /** Optional second line, e.g. "12 books". */
   detail?: string | undefined;
   onPress: () => void;
-}
-
-/**
- * Two columns on phones, three once there is room. Kept here so every grid in
- * onboarding lines up without each screen inventing its own breakpoint.
- */
-export function getOnbTileColumns(): number {
-  const size = getScreenSize();
-  return size === ScreenSize.SMALL || size === ScreenSize.MEDIUM ? 2 : 3;
 }
 
 export function OnbTile({
@@ -112,7 +103,8 @@ export function OnbTile({
         <View style={styles.iconChip}>
           <Ionicons name={icon as any} size={22} color={colors.white} />
         </View>
-        <Text style={styles.label} numberOfLines={2}>
+        {/* Three lines: room for long German labels ("Professionelles Networking") */}
+        <Text style={styles.label} numberOfLines={3}>
           {label}
         </Text>
         {detail ? (

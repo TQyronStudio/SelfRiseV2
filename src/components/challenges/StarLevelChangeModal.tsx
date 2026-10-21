@@ -8,7 +8,7 @@ import {
   Modal,
   Pressable,
   Animated,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import ReAnimated, {
   useSharedValue,
@@ -22,8 +22,6 @@ import { impact as hapticImpact, notification as hapticNotification, ImpactFeedb
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementCategory } from '@/src/types/gamification';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 // Star level display info - colors and names match starRatingService.ts
 const STAR_CONFIG: Record<number, { color: string; nameKey: string }> = {
@@ -52,6 +50,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
   data,
   onClose,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -425,7 +424,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
     return stars;
   };
 
-  const staticStyles = createStyles(colors);
+  const staticStyles = createStyles(colors, screenWidth);
 
   return (
     <Modal
@@ -563,7 +562,7 @@ const StarLevelChangeModal: React.FC<StarLevelChangeModalProps> = ({
 };
 
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, screenWidth: number) =>
   StyleSheet.create({
     overlay: {
       flex: 1,

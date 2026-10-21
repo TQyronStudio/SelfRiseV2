@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Fonts, Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 // Base modal props interface
 interface BaseModalProps {
@@ -45,6 +44,7 @@ export function WarmUpSuccessModal({
   message,
   buttonText
 }: BaseModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -62,7 +62,7 @@ export function WarmUpSuccessModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -130,6 +130,7 @@ export function WarmUpErrorModal({
   message,
   buttonText
 }: BaseModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -147,7 +148,7 @@ export function WarmUpErrorModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -217,6 +218,7 @@ export function WarmUpConfirmationModal({
   confirmText,
   cancelText
 }: ConfirmationModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -234,7 +236,7 @@ export function WarmUpConfirmationModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -325,6 +327,7 @@ export function WarmUpIssueModal({
   primaryActionText,
   secondaryActionText
 }: MultiActionModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -342,7 +345,7 @@ export function WarmUpIssueModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -432,6 +435,7 @@ export function QuickWarmUpModal({
   confirmText,
   cancelText
 }: ConfirmationModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -449,7 +453,7 @@ export function QuickWarmUpModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {

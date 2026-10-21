@@ -15,6 +15,7 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal } from '@/src/components/common';
 import { today } from '../../utils/date';
+import { contentColumn } from '@/src/utils/layout';
 
 export type ProgressEntryFormData = {
   value: number;
@@ -127,6 +128,7 @@ export function ProgressEntryForm({
       flex: 1,
     },
     content: {
+      ...contentColumn,
       padding: 20,
       paddingBottom: 40,
     },

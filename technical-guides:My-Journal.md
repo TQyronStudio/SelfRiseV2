@@ -540,7 +540,7 @@ Journal celebrations represent immediate user actions and MUST have highest prio
 1. ACTIVITY MODALS (Tier 1 - HIGHEST Priority - Journal is HERE)
    ✅ Daily completion celebrations (3 gratitude entries)
    ✅ Bonus milestone celebrations (⭐ 4th, 🔥 8th, 👑 13th entries)
-   ✅ Streak milestone celebrations (7, 14, 30, 100 days)
+   ✅ Streak milestone celebrations (17 days — see below)
    ✅ All Journal-specific celebrations
 
 2. ACHIEVEMENT MODALS (Tier 2 - Wait for Journal modals)
@@ -549,6 +549,31 @@ Journal celebrations represent immediate user actions and MUST have highest prio
 3. LEVEL-UP MODALS (Tier 3 - Wait for Journal + Achievement modals)
    - Level celebrations caused by journal XP
 ```
+
+### 🏆 Milníky série deníku — JEDNO místo pro dny i texty (říjen 2026)
+
+`src/utils/journalStreakMilestones.ts`: `JOURNAL_STREAK_MILESTONES` (kdy se slaví —
+7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000)
+a `getJournalStreakMilestoneTexts(days)` (jaké texty). Vlastní texty
+(`journal.streakMilestone<N>_title/_text`) mají jen 7, 14, 21, 100, 365, 1000 —
+ostatní dny dostanou obecné texty s počtem dní. Rozhoduje `i18next.exists`, takže
+doplnění textů pro další den nevyžaduje změnu kódu.
+
+```typescript
+// ✅ CORRECT: obrazovka posílá jen počet dní, texty vybírá CelebrationModal
+props: { streakDays: currentStreak }
+
+// ❌ WRONG: t() vrací pro chybějící text KLÍČ (truthy) → `||` se nikdy neuplatní
+title: t(`journal.streakMilestone${n}_title`) || t('journal.streakMilestone_generic_title')
+// ❌ WRONG: locale má {{days}}, ne {days} → „{75}“
+t('journal.streakMilestone_generic_text').replace('{days}', String(n))
+```
+
+**Proč**: deník slavil 17 dní, `CelebrationModal` znal texty pro 6 → na 75. den
+testerka viděla `journal.streakMilestone75_title` (2026-10-19). Hlídá
+`src/utils/__tests__/journalStreakMilestones.test.ts` (každý den × EN/DE/ES,
+bez fallbacku do EN).
+
 
 ### Journal Modal Coordination (via ModalQueueContext)
 ```typescript

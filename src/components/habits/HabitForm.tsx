@@ -18,6 +18,7 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
 import { useTheme } from '../../contexts/ThemeContext';
+import { contentColumn } from '../../utils/layout';
 
 // ZMĚNA: Vytváříme a exportujeme typ pro data formuláře
 export type HabitFormData = {
@@ -135,6 +136,7 @@ export function HabitForm({
       flex: 1,
     },
     scrollContent: {
+      ...contentColumn,
       flexGrow: 1,
       paddingBottom: 60,
     },

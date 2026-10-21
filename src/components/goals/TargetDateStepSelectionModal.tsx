@@ -6,22 +6,21 @@ import {
   Modal,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import ErrorModal from '../common/ErrorModal';
+import { getModalWidth } from '@/src/utils/layout';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Step-by-Step Modal specifications  
-const MODAL_SIZES = {
-  year: { width: SCREEN_WIDTH * 0.95, minHeight: 310 },    // 3×7 grid: 126px content + 170px padding = 296px + buffer
-  month: { width: SCREEN_WIDTH * 0.75, minHeight: 310 },  // 3×4 grid: 126px content + 170px padding = 296px + buffer
-  day: { width: SCREEN_WIDTH * 0.95, minHeight: 400 },    // 7×variable: 212px content + 170px padding = 382px + buffer
-};
+// Step-by-Step Modal specifications — from the live window width (rotation, large screens)
+const getModalSizes = (windowWidth: number) => ({
+  year: { width: getModalWidth(windowWidth, 0.95), minHeight: 310 },    // 3×7 grid: 126px content + 170px padding = 296px + buffer
+  month: { width: getModalWidth(windowWidth, 0.75), minHeight: 310 },  // 3×4 grid: 126px content + 170px padding = 296px + buffer
+  day: { width: getModalWidth(windowWidth, 0.95), minHeight: 400 },    // 7×variable: 212px content + 170px padding = 382px + buffer
+});
 
 // Square specifications (blue/green squares)
 const SQUARE_SIZE = 40;        // Slightly smaller for better fit
@@ -70,6 +69,8 @@ export function TargetDateStepSelectionModal({
 }: StepSelectionModalProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const MODAL_SIZES = getModalSizes(windowWidth);
 
   // Default date calculation: First day of month +2 from current
   const getDefaultDate = (): Date => {
@@ -113,6 +114,13 @@ export function TargetDateStepSelectionModal({
       contentOpacity.setValue(1);
     }
   }, [visible, initialDate]);
+
+  // Window resized while open (tablet rotated) — snap the size to the current step. Height too:
+  // setValue stops a running resize, and the parallel animation stops both values together.
+  useEffect(() => {
+    modalWidth.setValue(MODAL_SIZES[currentStep].width);
+    modalHeight.setValue(MODAL_SIZES[currentStep].minHeight);
+  }, [windowWidth]);
 
   // Simple approach - calculate every time (no caching)
   const isLeapYear = (year: number): boolean => {

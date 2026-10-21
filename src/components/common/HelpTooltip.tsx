@@ -4,7 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   Animated,
   Platform,
@@ -14,8 +14,6 @@ import { Fonts, Layout } from '@/src/constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useAccessibility } from '@/src/hooks/useAccessibility';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Global state to prevent multiple tooltips from being open
 let currentOpenTooltip: string | null = null;
@@ -40,6 +38,7 @@ const HelpTooltipComponent: React.FC<HelpTooltipProps> = ({
   variant = 'default',
   children,
 }) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
   const { isHighContrastEnabled } = useAccessibility();

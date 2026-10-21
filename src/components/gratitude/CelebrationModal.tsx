@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getJournalStreakMilestoneTexts } from '@/src/utils/journalStreakMilestones';
 import {
   Modal,
   View,
@@ -6,7 +7,7 @@ import {
   TouchableOpacity,
   Pressable,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   AccessibilityInfo,
   Animated,
 } from 'react-native';
@@ -14,8 +15,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts, Layout } from '@/src/constants';
 import { useXpFeedback } from '../../hooks/useXpFeedback';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { getModalWidth } from '@/src/utils/layout';
 
 interface CelebrationModalProps {
   visible: boolean;
@@ -51,6 +51,7 @@ export default function CelebrationModal({
   levelUpData,
   disableXpAnimations = false,
 }: CelebrationModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useI18n();
   const { colors } = useTheme();
 
@@ -165,15 +166,9 @@ export default function CelebrationModal({
           emoji: '🎉',
         };
       case 'streak_milestone':
-        // Použít speciální texty pro klíčové milníky nebo generický text
-        const hasSpecialMilestone = [7, 14, 21, 100, 365, 1000].includes(streakDays || 0);
-        const milestoneKey = hasSpecialMilestone ? `streakMilestone${streakDays}` : 'streakMilestone_generic';
-        
+        // Own texts for the milestone, or the generic ones (journalStreakMilestones)
         return {
-          title: t(`journal.${milestoneKey}_title`),
-          message: hasSpecialMilestone 
-            ? t(`journal.${milestoneKey}_text`)
-            : t('journal.streakMilestone_generic_text').replace('{days}', String(streakDays)),
+          ...getJournalStreakMilestoneTexts(streakDays || 0),
           emoji: '🏆',
         };
       case 'bonus_milestone':
@@ -257,7 +252,7 @@ export default function CelebrationModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
       // Removed all shadows for AMOLED-friendly design
     },
@@ -378,7 +373,7 @@ export default function CelebrationModal({
       paddingVertical: Layout.spacing.xl * 1.5,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.9, // Slightly wider for epic impact
+      maxWidth: getModalWidth(screenWidth, 0.9), // Slightly wider for epic impact
       width: '100%',
       borderWidth: 3,
       borderColor: '#FFD700', // Keep royal golden border

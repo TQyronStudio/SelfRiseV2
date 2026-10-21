@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   ScrollView,
   AccessibilityInfo,
@@ -69,8 +69,6 @@ export interface MultiplierActivationModalProps {
   showShare?: boolean;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 /**
  * Particle interface for animation effects
  */
@@ -96,6 +94,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
   onShare,
   showShare = false,
 }) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { t } = useTranslation();
   const { colors } = useTheme();
   
@@ -505,7 +504,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
   // MAIN RENDER
   // ========================================
 
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, screenWidth, screenHeight);
 
   return (
     <Modal
@@ -567,7 +566,7 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
 // STYLES
 // ========================================
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, screenWidth: number, screenHeight: number) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',

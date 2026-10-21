@@ -2,7 +2,7 @@
 
 **🏃 CO TOHLE OBSAHUJE:**
 - **Proč je v release buildu zapnuté R8** a co Google Play požaduje od února 2027
-- **8 keep pravidel** a proč žádné z nich nesmí zmizet (hlavně uložené připomínky)
+- **9 keep pravidel** a proč žádné z nich nesmí zmizet (hlavně uložené připomínky a převod parametrů Expo modulů)
 - **Plugin `withR8Optimization`** (optimalizace + AGP 8.12.3) a kdy ho odebrat
 - **Jak změřit**, že R8 opravdu běží a co uvidí Play (`mapping.txt`, `r8.json`, metadata AAB)
 - **Nebezpečné zóny** — jak si rozbít release build, aniž by to dev build ukázal
@@ -25,7 +25,8 @@ a možnost publikovat".
 
 Šablona Expo SDK 55 má R8 **vypnuté** (`enableMinifyInReleaseBuilds` ve výchozím stavu `false`)
 a optimalizaci **zakázanou** (`proguard-android.txt` obsahuje `-dontoptimize`). Proto jsme R8
-zapnuli sami (od 7.0.2) a přidali keep pravidla pro všechno, co se načítá podle jména třídy.
+zapnuli sami (od 7.0.2) i s optimalizací a přidali keep pravidla pro všechno, co se načítá podle
+jména třídy nebo čte přes reflexi.
 
 Celý plán, rozhodnutí a historie: @google-play-compliance-plan.md
 
@@ -49,7 +50,7 @@ Vypnutí je jen krajní nouzové řešení s okamžitým plánem nápravy.
 
 ### Pravidlo 2: Keep pravidla se nemažou
 
-Všech 8 pravidel je v `app.json:238` (`extraProguardRules`) a každé hlídá test:
+Všech 9 pravidel je v `app.json:239` (`extraProguardRules`) a každé hlídá test:
 
 | # | Pravidlo | Co chrání |
 |---|---|---|
@@ -58,9 +59,10 @@ Všech 8 pravidel je v `app.json:238` (`extraProguardRules`) a každé hlídá t
 | 3 | `-keep class expo.modules.ExpoModulesPackageList { *; }` | načítá se přes `Class.forName` (`expo/.../ExpoModulesPackage.kt:23`); bez něj appka naběhne bez Expo modulů |
 | 4 | `-keep class expo.modules.adapters.react.apploader.RNHeadlessAppLoader { *; }` | jméno je jen v `meta-data` manifestu, automatická pravidla ho nekryjí |
 | 5 | `-keep interface expo.modules.kotlin.records.Record` | prázdné rozhraní, které Expo testuje za běhu (`TypeConverterProvider.kt:145`); optimalizace ho umí odstranit |
-| 6 | `-keep public class * extends java.lang.Exception` | čitelné názvy výjimek v Crashlytics |
-| 7 | `-keepattributes SourceFile,LineNumberTable` | čísla řádků ve stack trace |
-| 8 | `-renamesourcefileattribute SourceFile` | skryje názvy zdrojových souborů; mapping je vrátí |
+| 6 | 🚨 `-keep @interface expo.modules.** { *; }` | **převod parametrů Expo modulů (Records)** – viz níže; bez něj se neotevře databáze |
+| 7 | `-keep public class * extends java.lang.Exception` | čitelné názvy výjimek v Crashlytics |
+| 8 | `-keepattributes SourceFile,LineNumberTable` | čísla řádků ve stack trace |
+| 9 | `-renamesourcefileattribute SourceFile` | skryje názvy zdrojových souborů; mapping je vrátí |
 
 **Pravidlo 2 podrobně** — expo-notifications ukládá každou naplánovanou připomínku do
 SharedPreferences jako **Java-serializovaný objekt pod jménem třídy**
@@ -101,12 +103,14 @@ statistikách (`r8.json`), a Play bere procenta z `r8.json` jen u buildů s **po
 (verzi čte z metadat AAB). AGP 8.12.3 nese opravené R8 8.12.22. Gradle při konfliktu verzí vybere
 vyšší, takže plugin AGP nikdy nesníží.
 
-> 🚨 **Stav k 2026-10-17 – plugin NENÍ připravený a je záměrně nezaregistrovaný** (test to hlídá).
-> Generálka ukázala, že optimalizace **rozbije převod parametrů Expo modulů (Records)**:
-> `NativeDatabase.constructor` → „cannot be cast to OpenDatabaseOptions“ → NPE na přejmenovaném
-> `Field.key()` → appka neotevře databázi. Expo čte `@Field` přes Kotlin reflexi
-> (`expo-modules-core/.../records/RecordTypeConverter.kt:35`). 7.0.2 proto jde **bez optimalizace**
-> (R8 jen obfuskuje a zmenšuje); oprava je fáze 8 plánu, termín 15. 1. 2027.
+> ✅ **Od 7.0.2 je plugin zaregistrovaný** (test hlídá, že zůstane). Funguje jen spolu s keep
+> pravidlem 6 (`-keep @interface expo.modules.** { *; }`). Proč: Expo čte `@Field`/`@Required`
+> u Records přes Kotlin reflexi (`expo-modules-core/.../records/RecordTypeConverter.kt:35`).
+> Anotace existují jen jako runtime proxy, R8 je proto považuje za nikdy nevytvořené, odvodí, že
+> `fieldAnnotation` je vždy `null`, a převod parametrů nahradí výjimkou. Projev (2026-10-17):
+> `NativeDatabase.constructor` → „cannot be cast to OpenDatabaseOptions“ → NPE na `Field.key()`
+> → appka neotevře databázi. Stejnou opravu dělá Expo v `expo-modules-core` 58.0.15 („Keep the
+> `@Field` annotation class from being renamed by R8"). Ověřeno na zařízení 2026-10-20.
 
 ### Pravidlo 4: Nová nativní knihovna = kontrola R8
 
@@ -143,7 +147,7 @@ se nedostane.
 - **CNG** – složka `android/` se generuje při každém EAS buildu. Nikdy ji necommitovat; po lokálním
   `expo prebuild` ji smazat.
 - **`plugins/withR8Optimization.js`** + **`plugins/r8/proguard-optimize-base.pro`** – optimalizace
-  (Pravidlo 3); zatím nezaregistrované.
+  (Pravidlo 3); zaregistrované v `app.json` (`plugins`) od 7.0.2.
 - **Mapping** – Gradle plugin Crashlytics nahrává `mapping.txt` automaticky
   (`:app:uploadCrashlyticsMappingFileRelease` v logu buildu). Play ho bere přímo z AAB
   (`BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`). EAS ho samostatně neukládá.
@@ -208,10 +212,11 @@ V Play: *App bundle explorer* → bundle → *Details* → **App optimization** 
    cizích `ClassNotFoundException` (Play služby, ART); tester dostane z Play vždy nejvyšší verzi;
    na Androidu 14+ jsou přesné alarmy u nových instalací vypnuté (připomínka přijde později).
 8. **Upgrade Expa bez přehodnocení pluginu** – pojistky v testu spadnou schválně, neobcházet je.
-9. **⛔ Zapnout optimalizaci bez testu na zařízení** – optimalizace (ne obfuskace) rozbila v generálce
+9. **⛔ Změnit optimalizaci bez testu na zařízení** – optimalizace (ne obfuskace) rozbila v generálce
    dvě věci, které dev build ani Jest neukážou: uložené připomínky (R8 full mode mění přístup tříd)
-   a převod parametrů Expo modulů (databáze se neotevře). Každá změna optimalizace = otevřít appku
-   v release buildu + test přežití připomínek přes aktualizaci.
+   a převod parametrů Expo modulů (databáze se neotevře – opraveno pravidlem 6). Každá změna
+   pravidel, profilu, AGP nebo upgrade knihovny s Records = otevřít appku v release buildu + test
+   přežití připomínek přes aktualizaci.
 10. **„Shodné třídy“ u buildu, kde R8 vůbec neběželo** – vždy zkontrolovat velikost DEX a hlavičku
     `mapping.txt`; ruční zásah do `gradle.properties` jednou R8 tiše vypnul (slepený řádek).
 
@@ -220,11 +225,11 @@ V Play: *App bundle explorer* → bundle → *Details* → **App optimization** 
 ## Testování
 
 ```text
-__tests__/config/androidReleaseBuild.test.ts (19 testů)
+__tests__/config/androidReleaseBuild.test.ts (20 testů)
 ✅ R8 je zapnuté pro release
-✅ všech 8 keep pravidel – každé s důvodem v chybové hlášce
-✅ optimalizační plugin NENÍ zaregistrovaný (rozbité Records – fáze 8)
-✅ orientace na výšku (změna patří do samostatné práce na velkých obrazovkách)
+✅ všech 9 keep pravidel – každé s důvodem v chybové hlášce
+✅ optimalizační plugin JE zaregistrovaný (bez něj Play naměří 0 % optimalizace)
+✅ orientace na výšku na telefonech (velké obrazovky řeší @technical-guides:Large-Screens.md)
 ✅ profil plugins/r8/proguard-optimize-base.pro: bez -allowaccessmodification a -dontoptimize
 ✅ plugin: compat mode právě jednou; nad skutečnou šablonou (node_modules/expo/template.tgz)
    vlastní profil a AGP 8.12.3, nic jiného se nezmění, opakované spuštění nic nemění,
@@ -280,6 +285,7 @@ Podrobný checklist a matice „nativní modul → test": @google-play-complianc
 | 7.0.2 – lokální generálka (V1) | 8.12.0 / 8.12.14 | 15,0 MB | 90,8 % | 0 % | 90,8 % | `r8.json` 2026-10-17 |
 | 7.0.2 – v Play | *(doplnit po vydání)* | | | | | App bundle explorer |
 | pokus V2'' (nevydáno) | 8.12.3 / 8.12.22 | 13,0 MB | 87,9 % | 86,9 % | 87,9 % | `r8.json` – rozbité Records |
+| **7.0.2 – lokální generálka (V2 + pravidlo 6)** | 8.12.3 / 8.12.22 | 13,0 MB | **87,9 %** | **86,9 %** | **87,9 %** | `r8.json` 2026-10-20 |
 
 ---
 

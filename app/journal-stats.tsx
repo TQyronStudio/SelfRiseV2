@@ -9,6 +9,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { GratitudeStats } from '@/src/types/gratitude';
 import { Layout } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import StatisticsCard from '@/src/components/gratitude/StatisticsCard';
@@ -128,6 +129,7 @@ export default function JournalStatsScreen() {
       backgroundColor: colors.backgroundSecondary,
     },
     contentContainer: {
+      ...contentColumn,
       flexGrow: 1,
       paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area
     },

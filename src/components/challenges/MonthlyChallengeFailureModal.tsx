@@ -7,7 +7,7 @@ import {
   Modal,
   Pressable,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   ScrollView,
 } from 'react-native';
 import { notification as hapticNotification, NotificationFeedbackType } from '../../services/hapticsService';
@@ -16,6 +16,7 @@ import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 import { getChallengeTitle } from '../../services/challengeDisplayText';
+import { getModalWidth } from '@/src/utils/layout';
 
 interface MonthlyChallengeFailureModalProps {
   visible: boolean;
@@ -23,13 +24,12 @@ interface MonthlyChallengeFailureModalProps {
   onClose: () => void;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 const MonthlyChallengeFailureModal: React.FC<MonthlyChallengeFailureModalProps> = ({
   visible,
   failureResult,
   onClose,
 }) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { colors } = useTheme();
   const { t, currentLanguage } = useI18n();
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -126,7 +126,7 @@ const MonthlyChallengeFailureModal: React.FC<MonthlyChallengeFailureModalProps> 
       backgroundColor: colors.cardBackgroundElevated,
       borderRadius: 20,
       maxHeight: screenHeight * 0.85,
-      width: screenWidth * 0.9,
+      width: getModalWidth(screenWidth, 0.9),
       maxWidth: 400,
       elevation: 10,
     },

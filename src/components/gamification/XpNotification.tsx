@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   Easing,
   Platform,
   AccessibilityInfo
@@ -20,8 +20,7 @@ import {
   type BatchedSource,
   type XpGainInput,
 } from './xpNotificationBatching';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { MODAL_MAX_WIDTH } from '@/src/utils/layout';
 
 // Timing is CONSTANT on purpose. The old build sped the animation up and cut
 // the display time short once more than three gains piled up, which made a
@@ -52,6 +51,7 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   xpGains,
   onAnimationComplete,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useI18n();
   const { colors, isDark } = useTheme();
   const { isReduceMotionEnabled } = useAccessibility();
@@ -103,8 +103,8 @@ export const XpNotification: React.FC<XpNotificationProps> = React.memo(({
   );
 
   const styles = useMemo(
-    () => createStyles(colors, insets.top, isDark),
-    [colors, insets.top, isDark]
+    () => createStyles(colors, insets.top, isDark, screenWidth),
+    [colors, insets.top, isDark, screenWidth]
   );
 
   // CRITICAL: this identity must survive a content update. Rebuilding the style
@@ -361,7 +361,7 @@ XpNotification.displayName = 'XpNotification';
 // STYLES
 // ========================================
 
-const createStyles = (colors: any, topInset: number, isDark: boolean) => StyleSheet.create({
+const createStyles = (colors: any, topInset: number, isDark: boolean, screenWidth: number) => StyleSheet.create({
   container: {
     position: 'absolute',
     top: topInset + 10,
@@ -380,7 +380,7 @@ const createStyles = (colors: any, topInset: number, isDark: boolean) => StyleSh
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: colors.border,
-    maxWidth: screenWidth - 32,
+    maxWidth: Math.min(screenWidth - 32, MODAL_MAX_WIDTH),
     minWidth: 280,
     // Depth in light mode only. Dark mode gets it from the elevated background
     // plus the border — shadows (elevation included) are banned there.

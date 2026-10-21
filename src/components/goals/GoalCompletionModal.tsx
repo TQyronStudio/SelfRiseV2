@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Goal } from '../../types/goal';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { Layout } from '../../constants/dimensions';
 import { useI18n } from '../../hooks/useI18n';
 import { XP_REWARDS } from '../../constants/gamification';
+import { getModalWidth } from '@/src/utils/layout';
 
 interface GoalCompletionModalProps {
   visible: boolean;
@@ -13,9 +14,8 @@ interface GoalCompletionModalProps {
   onClose: () => void;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-
 export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useI18n();
   const { colors } = useTheme();
   // Modal coordination removed - handled by ModalQueueContext
@@ -67,7 +67,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
       borderRadius: 20,
       padding: 24,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emojiContainer: {

@@ -3,13 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, AchievementCategory, UserAchievements } from '@/src/types/gamification';
 import { UserStats } from '@/src/utils/achievementPreviewUtils';
+import { getColumnCount } from '@/src/utils/layout';
 
 interface CategorySectionProps {
   category: AchievementCategory;
@@ -54,6 +55,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const { width: windowWidth } = useWindowDimensions();
 
   if (achievements.length === 0) {
     return null;
@@ -63,8 +65,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
     userAchievements.unlockedAchievements.includes(achievement.id)
   ).length;
 
-  const screenWidth = Dimensions.get('window').width;
-  const numColumns = Math.floor((screenWidth - 32) / 158); // 150 (card) + 8 (margins)
+  const numColumns = getColumnCount(windowWidth, 32, 158); // 150 (card) + 8 (margins)
   const categoryColor = getCategoryColor(category);
   const categoryIcon = getCategoryIcon(category);
 

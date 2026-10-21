@@ -10,6 +10,7 @@ import { useGratitude } from '@/src/contexts/GratitudeContext';
 import { DateString } from '@/src/types/common';
 import { Gratitude } from '@/src/types/gratitude';
 import { Layout } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { GratitudeListItem } from '@/src/components/gratitude/GratitudeList';
@@ -227,6 +228,7 @@ export default function JournalHistoryScreen() {
       backgroundColor: colors.backgroundSecondary,
     },
     contentContainer: {
+      ...contentColumn,
       flexGrow: 1,
       paddingHorizontal: Layout.spacing.md, // Item side padding (was inside GratitudeList)
       paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area

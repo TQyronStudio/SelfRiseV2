@@ -6,6 +6,7 @@ import { Habit, HabitCompletion } from '@/src/types/habit';
 import { HabitItemWithCompletion } from './HabitItemWithCompletion';
 import { formatDateToString } from '@/src/utils/date';
 import { Fonts } from '@/src/constants/fonts';
+import { contentColumn } from '@/src/utils/layout';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 
@@ -79,6 +80,7 @@ export function HabitListWithCompletion({
       backgroundColor: colors.backgroundSecondary,
     },
     content: {
+      ...contentColumn,
       flexGrow: 1,
       paddingBottom: 20,
     },

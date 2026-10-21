@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 import { JournalStreakCard } from '@/src/components/home/GratitudeStreakCard';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
 import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
@@ -267,6 +268,7 @@ export default function HomeScreen() {
       flex: 1,
     },
     content: {
+      ...contentColumn,
       paddingVertical: Layout.spacing.md,
       paddingBottom: 80, // Extra padding for banner (50px banner + 30px spacing)
     },

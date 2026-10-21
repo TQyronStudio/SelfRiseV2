@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Keyboard,
-  Dimensions,
 } from 'react-native';
 import { GoalCategory } from '../../types/goal';
 import { CreateGoalInput, UpdateGoalInput } from '../../types/goal';
@@ -18,6 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
 import { TargetDateStepSelectionModal } from './TargetDateStepSelectionModal';
+import { contentColumn } from '../../utils/layout';
 
 export type GoalFormData = {
   title: string;
@@ -239,6 +239,7 @@ export function GoalForm({
       flex: 1,
     },
     scrollContent: {
+      ...contentColumn,
       flexGrow: 1,
     },
     content: {

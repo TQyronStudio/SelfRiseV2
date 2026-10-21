@@ -228,7 +228,7 @@ export function FirstGoalScreen({ onCreated, onSkip }: FirstGoalScreenProps) {
                   style={styles.input}
                   value={unit}
                   onChangeText={setUnit}
-                  placeholder={t('goals.form.unitPlaceholder')}
+                  placeholder={t('goals.form.placeholders.unit')}
                   placeholderTextColor={colors.textSecondary}
                   accessibilityLabel={t('onboarding.goal.unitLabel')}
                   maxLength={20}

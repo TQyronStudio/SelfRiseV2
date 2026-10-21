@@ -3,12 +3,13 @@ import {
   View,
   FlatList,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { AchievementCard } from './AchievementCard';
 import { Achievement, UserAchievements } from '@/src/types/gamification';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
+import { getColumnCount } from '../../utils/layout';
 
 interface AchievementGridProps {
   achievements: Achievement[];
@@ -16,10 +17,8 @@ interface AchievementGridProps {
   onAchievementPress?: (achievement: Achievement) => void;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = 150;
 const spacing = 8; // marginHorizontal: 4 * 2
-const numColumns = Math.floor((screenWidth - 32) / (cardWidth + spacing));
 
 export const AchievementGrid: React.FC<AchievementGridProps> = ({
   achievements,
@@ -28,6 +27,8 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const { width: windowWidth } = useWindowDimensions();
+  const numColumns = getColumnCount(windowWidth, 32, cardWidth + spacing);
 
   const styles = StyleSheet.create({
     container: {
@@ -59,6 +60,8 @@ export const AchievementGrid: React.FC<AchievementGridProps> = ({
 
   return (
     <FlatList
+      // FlatList can't change numColumns in place — a new key remounts it after rotation
+      key={numColumns}
       data={achievements}
       renderItem={renderAchievementCard}
       keyExtractor={(item) => item.id}

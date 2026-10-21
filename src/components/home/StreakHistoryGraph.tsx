@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -11,6 +11,13 @@ import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { getGratitudeStorageImpl } from '../../config/featureFlags';
 import { DateString } from '../../types/common';
+import {
+  GRAPH_HEIGHT,
+  DAYS_TO_SHOW,
+  SIDE_PADDING,
+  Y_AXIS_WIDTH,
+  getGraphMetrics,
+} from './streakHistoryGraphLayout';
 
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
@@ -27,16 +34,6 @@ interface JournalPoint {
   hasBonus: boolean;   // 4+ entries
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-const GRAPH_HEIGHT = 120;
-const DAYS_TO_SHOW = 30;
-const Y_AXIS_WIDTH = 30; // Width of Y-axis labels
-const CONTAINER_PADDING = 16; // Container inner padding
-const CONTAINER_MARGIN = 16; // Container horizontal margin
-const SIDE_PADDING = 8; // Small padding on sides for better look
-// Available width = screen - margins - container padding - Y-axis width - side padding
-const AVAILABLE_WIDTH = screenWidth - (CONTAINER_MARGIN * 2) - (CONTAINER_PADDING * 2) - Y_AXIS_WIDTH - (SIDE_PADDING * 2);
-const DAY_WIDTH = Math.max(6, Math.floor(AVAILABLE_WIDTH / DAYS_TO_SHOW)); // Min 6px per day for visibility
 // Lowest the Y-axis ever scales to, so a chart with few/no entries still looks right.
 // Purely cosmetic — must never leak into a user-facing statistic.
 const AXIS_MIN = 5;
@@ -44,6 +41,8 @@ const AXIS_MIN = 5;
 export function StreakHistoryGraph() {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const { availableWidth, dayWidth } = getGraphMetrics(windowWidth);
   const [journalHistory, setJournalHistory] = useState<JournalPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   // Y-axis scale ONLY — floored at AXIS_MIN so an empty/low chart still renders nicely.
@@ -149,7 +148,7 @@ export function StreakHistoryGraph() {
             {/* Bar chart */}
             <View style={styles.barsContainer}>
               {journalHistory.map((point, index) => {
-                const x = index * DAY_WIDTH;
+                const x = index * dayWidth;
                 const barHeight = (point.count / axisMax) * GRAPH_HEIGHT;
                 const y = GRAPH_HEIGHT - barHeight;
                 
@@ -161,7 +160,7 @@ export function StreakHistoryGraph() {
                       {
                         left: x,
                         top: y,
-                        width: Math.max(DAY_WIDTH - 2, 2), // Responsive width with minimum gap
+                        width: Math.max(dayWidth - 2, 2), // Responsive width with minimum gap
                         height: Math.max(barHeight, 2), // Minimum height for visibility
                         backgroundColor: getPointColor(point),
                       }
@@ -179,7 +178,7 @@ export function StreakHistoryGraph() {
             .filter((_, index) => index % Math.ceil(DAYS_TO_SHOW / 6) === 0 || index === journalHistory.length - 1)
             .map((point) => {
               const originalIndex = journalHistory.findIndex(p => p.date === point.date);
-              const x = originalIndex * DAY_WIDTH;
+              const x = originalIndex * dayWidth;
               
               return (
                 <View
@@ -233,7 +232,7 @@ export function StreakHistoryGraph() {
       color: colors.textSecondary,
     },
     graphContainer: {
-      width: AVAILABLE_WIDTH + Y_AXIS_WIDTH,
+      width: availableWidth + Y_AXIS_WIDTH,
       height: GRAPH_HEIGHT + 40,
     },
     graph: {

@@ -8,6 +8,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Fonts, Layout } from '@/src/constants';
+import { contentColumn } from '@/src/utils/layout';
 import ConfirmationModal from '@/src/components/common/ConfirmationModal';
 import BaseModal from '@/src/components/common/BaseModal';
 import { NotificationSettings } from '@/src/components/settings/NotificationSettings';
@@ -106,6 +107,7 @@ export default function SettingsScreen() {
       flex: 1,
     },
     contentContainer: {
+      ...contentColumn,
       padding: 16,
       paddingBottom: 80, // Extra padding for banner
     },

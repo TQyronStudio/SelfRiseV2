@@ -20,11 +20,10 @@
  * Remove once the Expo template ships optimization (see the tripwire tests in
  * __tests__/config/androidReleaseBuild.test.ts and technical-guides:Android-Release-Build.md).
  *
- * ⚠️ NOT READY – keep it unregistered in app.json (a test enforces this). Verified 2026-10-17:
- * steps 1–3 keep stored reminders readable, but optimization still breaks Expo's Record argument
- * conversion: `NativeDatabase.constructor` fails with "cannot be cast to OpenDatabaseOptions"
- * (NPE on the obfuscated `Field.key()`), so the app cannot open its database. Needs a fix plus a
- * full device test before registering (google-play-compliance-plan.md, phase 8).
+ * Registered since 7.0.2 (a test enforces it). It depends on the app.json keep rule
+ * `-keep @interface expo.modules.** { *; }`: annotations exist only as runtime proxies, so without
+ * it the optimizer decides the Records' @Field value is always null and Expo's argument conversion
+ * throws – the app cannot open its database (verified 2026-10-17, fixed and re-verified 2026-10-20).
  */
 const fs = require('fs');
 const path = require('path');

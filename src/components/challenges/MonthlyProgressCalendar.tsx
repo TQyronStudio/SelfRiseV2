@@ -1,7 +1,7 @@
 // Monthly Progress Calendar Component
 // Visual calendar showing daily contributions and milestones for monthly challenges
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import {
   MonthlyChallenge,
   MonthlyChallengeProgress,
@@ -38,8 +38,6 @@ interface DayData {
    */
   dailyValue: number;
 }
-
-const { width: screenWidth } = Dimensions.get('window');
 
 const MonthlyProgressCalendar: React.FC<MonthlyProgressCalendarProps> = ({
   challenge,

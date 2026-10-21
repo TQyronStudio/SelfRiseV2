@@ -14,7 +14,7 @@
  */
 
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Animated as RNAnimated, Dimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated as RNAnimated, useWindowDimensions, AccessibilityInfo, DeviceEventEmitter, Platform, TouchableOpacity } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -165,15 +165,15 @@ const OptimizedXpProgressBarComponent = React.forwardRef<View, OptimizedXpProgre
 
   // levelInfo and isMilestone already defined above with GamificationService data
 
-  // Screen dimensions with caching
+  // Screen dimensions — live, so they follow rotation and window resizes
+  const { width: screenWidth } = useWindowDimensions();
   const screenMetrics = useMemo(() => {
-    const screenWidth = Dimensions.get('window').width;
     return {
       screenWidth,
       isSmallScreen: screenWidth < 375,
       isLargeScreen: screenWidth > 414
     };
-  }, []);
+  }, [screenWidth]);
 
   // Performance mode detection
   const effectivePerformanceMode = useMemo(() => {

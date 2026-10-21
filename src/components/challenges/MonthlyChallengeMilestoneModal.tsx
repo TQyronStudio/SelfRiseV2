@@ -7,14 +7,12 @@ import {
   Modal,
   Pressable,
   Animated,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { notification as hapticNotification, NotificationFeedbackType } from '@/src/services/hapticsService';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { getChallengeTitle } from '@/src/services/challengeDisplayText';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface MonthlyChallengeMilestoneModalProps {
   visible: boolean;
@@ -33,6 +31,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
   xpAwarded,
   onClose,
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
   // Current language from the template; falls back to the stored title
@@ -93,7 +92,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
     outputRange: ['0%', '100%'],
   });
 
-  const styles = createStyles(colors, config.color);
+  const styles = createStyles(colors, config.color, screenWidth);
 
   return (
     <Modal
@@ -168,7 +167,7 @@ const MonthlyChallengeMilestoneModal: React.FC<MonthlyChallengeMilestoneModalPro
   );
 };
 
-const createStyles = (colors: any, accentColor: string) =>
+const createStyles = (colors: any, accentColor: string, screenWidth: number) =>
   StyleSheet.create({
     overlay: {
       flex: 1,

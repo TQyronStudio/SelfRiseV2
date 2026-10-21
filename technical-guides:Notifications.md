@@ -863,6 +863,10 @@ unreadable request is **deleted** when its alarm fires.
   `proguard.txt`). Without ours, R8 renames the classes and users who don't open the app after an
   automatic update silently stop getting reminders. Guarded by
   `__tests__/config/androidReleaseBuild.test.ts`.
+- 🚨 **R8 optimization (since 7.0.2) must stay in compat mode without access modification**
+  (`plugins/withR8Optimization.js`). The stored classes have no `serialVersionUID`; full mode
+  widens `protected` → `public`, the computed UID changes and reminders saved by the previous
+  version are deleted when they fire (verified 2026-10-17; the shipped setup re-verified 2026-10-20).
 - When testing reminders, never use Android's **Force stop** — it cancels all of the app's alarms
   and the test lies. Closing the app from recents is fine.
 - On Android 14+ exact alarms are denied by default for new installs → a reminder can arrive

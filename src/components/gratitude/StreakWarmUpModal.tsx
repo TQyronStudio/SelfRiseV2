@@ -5,15 +5,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Fonts, Layout } from '@/src/constants';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { contentColumn, getModalWidth } from '@/src/utils/layout';
 
 // Specialized modal components following CelebrationModal pattern
 interface WarmUpModalProps {
@@ -32,6 +31,7 @@ interface WarmUpConfirmationModalProps extends WarmUpModalProps {
 
 // AdFailedModal Component
 function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -49,7 +49,7 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -111,6 +111,7 @@ function AdFailedModal({ visible, onClose, title, message, buttonText }: WarmUpM
 
 // WarmUpErrorModal Component
 function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: WarmUpModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -128,7 +129,7 @@ function WarmUpErrorModal({ visible, onClose, title, message, buttonText }: Warm
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -198,6 +199,7 @@ function WarmUpConfirmationModal({
   confirmText,
   cancelText
 }: WarmUpConfirmationModalProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -215,7 +217,7 @@ function WarmUpConfirmationModal({
       paddingVertical: Layout.spacing.xl,
       paddingHorizontal: Layout.spacing.lg,
       alignItems: 'center',
-      maxWidth: screenWidth * 0.85,
+      maxWidth: getModalWidth(screenWidth, 0.85),
       width: '100%',
     },
     emoji: {
@@ -410,6 +412,7 @@ export default function StreakWarmUpModal({
       width: 40,
     },
     content: {
+      ...contentColumn,
       flex: 1,
       padding: Layout.spacing.md,
     },

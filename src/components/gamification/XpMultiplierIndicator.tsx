@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
   AccessibilityInfo,
 } from 'react-native';
@@ -64,8 +64,6 @@ export interface XpMultiplierIndicatorProps {
   position?: 'top' | 'bottom' | 'inline';
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-
 /**
  * XP Multiplier Indicator Component
  */
@@ -77,6 +75,7 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   showHarmonyProgress = true,
   position = 'inline',
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { t } = useTranslation();
   const { colors } = useTheme();
   
@@ -485,7 +484,7 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
   
   if (!visible) return null;
 
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, screenWidth);
 
   return (
     <View style={[styles.container, style]} testID="xp-multiplier-indicator">
@@ -499,7 +498,7 @@ export const XpMultiplierIndicator: React.FC<XpMultiplierIndicatorProps> = ({
 // STYLES
 // ========================================
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, screenWidth: number) => StyleSheet.create({
   container: {
     alignItems: 'center',
     marginVertical: 8,

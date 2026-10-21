@@ -1,6 +1,6 @@
 // Monthly Challenge Card Component - Display individual monthly challenge with progress
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { MonthlyChallenge, MonthlyChallengeProgress, AchievementCategory } from '../../types/gamification';
 import { StarRatingService } from '../../services/starRatingService';
 import { StarRatingDisplay } from '../gamification/StarRatingDisplay';
@@ -8,6 +8,7 @@ import { HelpTooltip } from '../common';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 import { getChallengeTitle, getChallengeDescription } from '../../services/challengeDisplayText';
+import { getContentWidth } from '@/src/utils/layout';
 
 interface MonthlyChallengeCardProps {
   challenge: MonthlyChallenge;
@@ -16,14 +17,13 @@ interface MonthlyChallengeCardProps {
   compact?: boolean;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-
 const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
   challenge,
   progress,
   onPress,
   compact = false
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
   const { colors } = useTheme();
   const { t, currentLanguage } = useI18n();
 
@@ -227,7 +227,7 @@ const MonthlyChallengeCard: React.FC<MonthlyChallengeCardProps> = ({
       borderRadius: 12,
       padding: 12,
       marginBottom: 12,
-      minWidth: screenWidth * 0.8,
+      minWidth: getContentWidth(screenWidth) * 0.8,
     },
     compactHeader: {
       flexDirection: 'row',

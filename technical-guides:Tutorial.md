@@ -495,11 +495,14 @@ export function OnbTile() {
 - Typografie přes `Fonts` + `scaleFont()`. Žádné holé číselné `fontSize`.
 - Breakpointy z `src/utils/responsive.ts` — `getScreenSize()`, `scaleFont()`,
   `getCardPadding()`, `isTablet()`. Nevymýšlet vlastní.
-- Mřížka: **2 sloupce** na SMALL/MEDIUM, **3** na LARGE/TABLET
-  (`getOnbTileColumns()`).
+- Mřížka: **2 sloupce** na telefonu, **3** od šířky okna 600 dp (`getOnbTileColumns(width)`
+  v `gridLayout.ts`, šířka z `useWindowDimensions()`). ⚠️ Ne podle `getScreenSize()` — `isTablet()`
+  hlásí TABLET i na většině telefonů a 3 sloupce dělily slova („Somet / hing else", do 7.0.2).
 - **Tablety**: obsah do sloupce `ONB_MAX_CONTENT_WIDTH = 560`. Dlaždice přes
   celý iPad vypadají rozbitě.
-- Orientace zamčená na portrait (`app.json:6`) — landscape se neřeší.
+- Orientace zamčená na portrait (`app.json:6`) — platí na telefonech. Android 16 zámek na
+  obrazovkách ≥ 600 dp ignoruje; onboarding to zvládá díky sloupci 560 dp (ověřeno i po otočení,
+  @technical-guides:Large-Screens.md).
 
 **Klávesnice** — klasický zdroj chyb:
 
