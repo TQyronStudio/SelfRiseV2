@@ -306,6 +306,13 @@ Unlock exclusive visual themes as gamification rewards
 
 ### Phase 2.1: T-Qyron Theme (Level 20 Unlock) 👑
 
+> **Potvrzeno Petrem 2026-10-22:** odemyká se na **úrovni 20** (zvažovaná 35 zamítnuta – pravidelný
+> uživatel by na ni šel ~10 měsíců, příležitostný přes 2 roky). Vzhled = modro-fialový „kvantový"
+> styl T-Qyron studia; výchozím bodem je bývalý směr A „Krystal" z @premium-design-plan.md
+> (indigo, ledová azurová, fialová). **Teď se neřeší** – přijde až po redesignu; předpoklad jsou
+> barevné tokeny z redesignu (bez nich by režim přebarvil jen část appky). Zamčený režim má být
+> v Nastavení vidět od začátku s náhledem („odemkne se na úrovni 20").
+
 **Implementation Priority**: Medium (after base theme system complete)
 **Complexity**: Low (extends existing theme infrastructure)
 **Prerequisites**: Theme system (Context API) implemented, Gamification level tracking

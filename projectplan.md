@@ -140,6 +140,10 @@ fáze 8 (do 15. 1. 2027). Další krok: commit → EAS build → interní testov
       **2026-10-19 Petr: opravit hned v 7.0.2** → kód hotový (sloupec uprostřed, živý přepočet, telefony beze
       změny; @technical-guides:Large-Screens.md), ověřeno 2026-10-20 na emulátoru tabletu (na výšku, na šířku, otočení za běhu) i telefonu
 
+### ✨ Prémiový vzhled – design systém a pohyb (od 2026-10-22)
+
+- [ ] **Plně implementováno** – audit, dva směry, rozhodnutí a plán po fázích: @premium-design-plan.md
+
 ---
 
 ## 🚨 DŮLEŽITÉ - NEMAZAT 🚨

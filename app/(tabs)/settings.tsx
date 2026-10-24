@@ -26,8 +26,10 @@ import {
   MARKETING_DEMO_MODE_CHANGED_EVENT,
   setMarketingDemoModeEnabled,
 } from '@/src/services/marketingDemoModeService';
+import { isDesignLabEnabled } from '@/src/config/designLab';
 
 const ENABLE_MARKETING_DEMO_TOOLS = process.env.EXPO_PUBLIC_ENABLE_MARKETING_DEMO === 'true';
+const SHOW_DESIGN_LAB = isDesignLabEnabled();
 
 export default function SettingsScreen() {
   const { t } = useI18n();
@@ -556,6 +558,30 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Internal tool, never in a store build (src/config/designLab.ts). Like the
+            marketing demo tools it is English-only on purpose. */}
+        {SHOW_DESIGN_LAB && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Design Lab</Text>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/design-lab' as any)}
+              accessibilityRole="button"
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="color-palette" size={24} color={colors.primary} />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemText}>Test design</Text>
+                  <Text style={styles.menuItemDescription}>
+                    Playground for the new look. Mock data only — nothing here touches your habits, XP or settings.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {ENABLE_MARKETING_DEMO_TOOLS && (
           <View style={styles.section}>
