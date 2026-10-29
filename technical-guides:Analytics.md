@@ -154,6 +154,19 @@ Soubor pravdy: `src/services/analytics/firstDayEvents.ts` (`FIRST_DAY_EVENTS`).
   nezavřel, druhý den ji jen přepne. „Den" je **kalendářní den** v čase telefonu:
   instalace ve 23:00 a návrat v 00:30 je `day: 1`.
 
+### Události mimo trychtýř
+
+| Událost | Kdy | Parametry | Odkud |
+|---|---|---|---|
+| `ad_banner_failed` | banner se nenačetl (**všichni uživatelé**) | `code`: kód z AdMob SDK (`no-fill`, `network-error`, `invalid-request`, … / `unknown`), `attempt`: 1–3 (kolikátý pokus od posledního úspěchu), `will_retry`: 0/1 | `useBannerRetry` (`src/components/ads/`) |
+
+- Není ve whitelistu `firstDayEvents.ts` — s trychtýřem nesouvisí. Hodnoty nejsou
+  od uživatele: `getBannerErrorCode()` pustí jen krátký kód `[a-z0-9-]`, jinak `unknown`.
+- „Reklama nepřišla vůbec" = počet `will_retry = 0`; podíl `code` ukáže, jestli
+  chybí inventář (`no-fill`), nebo síť.
+- Posílá se přes stejný líný most (pravidlo 5), vypálit a zapomenout (pravidlo 2).
+- Pravidla opakování: @technical-guides:AdMob.md → *Banner retry*.
+
 ### Štítky uživatele (user properties)
 
 | Štítek | Hodnoty | Kdy |
@@ -231,6 +244,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/services/analyti
   úvodu a prvního odškrtnutí), konec po skipu/dokončení, restart ze Settings nic
   nepošle, `day_return` dny 0/1/2/7/8, deduplikace `reminder_open`, nic nehází
 - `src/config/__tests__/deviceLanguage.test.ts` — jazyk podle telefonu (pro úvod)
+- `src/components/ads/__tests__/useBannerRetry.test.ts` — `ad_banner_failed`
+  (kód, pokus, `will_retry`) a pravidla opakování banneru
 
 Každý z těchto testů byl ověřen záměrným rozbitím hlídaného chování (2026-10-10).
 

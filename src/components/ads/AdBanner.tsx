@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { DeviceEventEmitter, View, StyleSheet, Platform } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import {
   isMarketingDemoModeEnabled,
   MARKETING_DEMO_MODE_CHANGED_EVENT,
 } from '@/src/services/marketingDemoModeService';
+import { useBannerRetry } from './useBannerRetry';
 
 /**
  * AdBanner Component
  *
  * Displays Google AdMob banner ads with theme support and error handling.
+ * A failed load is retried (no fill / network only) — see useBannerRetry.
  * Optimized for minimal spacing to preserve screen real estate.
  *
  * @param adUnitId - AdMob Ad Unit ID (optional - uses test ID by platform)
@@ -43,8 +46,8 @@ export const AdBanner: React.FC<AdBannerProps> = ({
 }) => {
   const { colors } = useTheme();
   const { state: tutorialState } = useTutorial();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const isFocused = useIsFocused();
+  const retry = useBannerRetry(isFocused);
   const [isMarketingDemoMode, setIsMarketingDemoMode] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -79,19 +82,18 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   );
 
   const handleAdLoaded = () => {
-    setIsLoaded(true);
-    setHasError(false);
+    retry.onLoaded();
     console.log('✅ AdMob banner loaded successfully');
   };
 
   const handleAdFailedToLoad = (error: Error) => {
-    setIsLoaded(false);
-    setHasError(true);
     console.warn('AdMob banner failed to load:', error.message);
+    retry.onFailed(error);
   };
 
-  // Hide ads during tutorial, in marketing demo mode, and on error
-  if (hasError || tutorialState.isActive || isMarketingDemoMode !== false) {
+  // Hide ads during tutorial, in marketing demo mode, and while waiting for a
+  // retry / after giving up (no empty space)
+  if (!retry.shouldRender || tutorialState.isActive || isMarketingDemoMode !== false) {
     return null;
   }
 
@@ -99,6 +101,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
     <View style={[styles.container, { backgroundColor: colors.backgroundSecondary }]}>
       <View style={styles.bannerWrapper}>
         <BannerAd
+          key={retry.adKey}
           unitId={bannerAdUnitId}
           size={size}
           requestOptions={{

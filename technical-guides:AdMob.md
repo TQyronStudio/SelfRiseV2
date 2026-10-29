@@ -2,7 +2,7 @@
 
 **SelfRise V2 - Advertising System Documentation**
 
-*Last Updated: 2026-07-16*
+*Last Updated: 2026-10-29*
 
 ---
 
@@ -347,8 +347,30 @@ const BANNER_AD_UNIT_IDS = __DEV__
 const bannerAdUnitId = adUnitId || (Platform.OS === 'ios' ? BANNER_AD_UNIT_IDS.ios : BANNER_AD_UNIT_IDS.android);
 ```
 
-Also hides itself (`return null`) during the tutorial, in marketing demo mode, or after a load
-error — see the component for the full guard.
+Also hides itself (`return null`) during the tutorial, in marketing demo mode, and while a failed
+load waits for a retry or has given up — see the component for the full guard.
+
+### Banner retry (since 2026-10-29)
+
+Logic: `src/components/ads/useBannerRetry.ts` (tests: `src/components/ads/__tests__/useBannerRetry.test.ts`).
+
+| Failure | What happens |
+|---|---|
+| `no-fill` or `network-error`, 1st | hidden, new load after **10 s** |
+| `no-fill` or `network-error`, 2nd | hidden, new load after another **20 s** |
+| 3rd failure, or any other code | hidden for good (until the screen unmounts) |
+| successful load | retry budget starts over (a later refresh failure gets 2 retries again) |
+
+- **Codes are strings, not numbers.** The library reports `googleMobileAds/no-fill`,
+  `googleMobileAds/network-error`, … — the SDK's numeric codes differ per platform (no fill = 3
+  on Android, 1 on iOS), so never compare numbers.
+- **Retry = remount.** A new `key` on `<BannerAd>` makes it request a fresh ad.
+- **Hidden = `return null`**, so no empty strip while waiting.
+- **Timers stop when the screen loses focus** (`useIsFocused`), not only on unmount: tab screens
+  stay mounted when the user switches tabs. On return the pending retry is scheduled again with
+  its full delay. Unmount cancels it too.
+- **Every failure is logged** to Firebase as `ad_banner_failed { code, attempt, will_retry }` —
+  see @technical-guides:Analytics.md. "No ad came at all" = events with `will_retry = 0`.
 
 ### AdService (Rewarded Ads, actual implementation)
 
