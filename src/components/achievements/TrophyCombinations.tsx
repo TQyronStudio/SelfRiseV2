@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Achievement, AchievementCategory, AchievementRarity, UserAchievements } from '@/src/types/gamification';
 import { TrophyCollectionCard3D } from './TrophyCollectionCard3D';
+import { TROPHY_COLLECTIONS } from '@/src/constants/trophyCollections';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -31,91 +32,6 @@ interface TrophyCollection {
   totalCount: number;
 }
 
-const getTrophyCollections = (t: any): Omit<TrophyCollection, 'isCompleted' | 'completedCount' | 'totalCount'>[] => [
-  // Category-based collections
-  {
-    id: 'habits-master',
-    nameKey: 'social.trophy_combinations.collections.habits-master',
-    description: t('social.achievements_trophies.habitMastery'),
-    icon: '🏃‍♂️',
-    requiredAchievements: ['first-habit', 'weekly-warrior', 'habit-collector', 'completion-machine'],
-    bonusXP: 200,
-    rarity: AchievementRarity.EPIC,
-    category: AchievementCategory.HABITS,
-  },
-  {
-    id: 'journal-sage',
-    nameKey: 'social.trophy_combinations.collections.journal-sage',
-    description: t('social.achievements_trophies.journalMastery'),
-    icon: '📖',
-    requiredAchievements: ['first-journal', 'journal-streaker', 'journal-master'],
-    bonusXP: 150,
-    rarity: AchievementRarity.RARE,
-    category: AchievementCategory.JOURNAL,
-  },
-  {
-    id: 'goal-champion',
-    nameKey: 'social.trophy_combinations.collections.goal-champion',
-    description: t('social.achievements_trophies.goalMastery'),
-    icon: '🎯',
-    requiredAchievements: ['first-goal', 'goal-achiever'],
-    bonusXP: 100,
-    rarity: AchievementRarity.RARE,
-    category: AchievementCategory.GOALS,
-  },
-
-  // Rarity-based collections
-  {
-    id: 'legendary-collector',
-    nameKey: 'social.trophy_combinations.collections.legendary-collector',
-    description: t('social.achievements_trophies.legendaryCollector'),
-    icon: '👑',
-    requiredAchievements: ['hundred-days', 'legendary-master'],
-    bonusXP: 500,
-    rarity: AchievementRarity.LEGENDARY,
-  },
-  {
-    id: 'epic-hunter',
-    nameKey: 'social.trophy_combinations.collections.epic-hunter',
-    description: t('social.achievements_trophies.epicCollector'),
-    icon: '⚔️',
-    requiredAchievements: ['monthly-master', 'completion-machine', 'journal-master', 'goal-achiever', 'perfect-week', 'weekend-warrior'],
-    bonusXP: 300,
-    rarity: AchievementRarity.EPIC,
-  },
-
-  // Special themed collections
-  {
-    id: 'first-steps',
-    nameKey: 'social.trophy_combinations.collections.first-steps',
-    description: t('social.achievements_trophies.universalBeginning'),
-    icon: '🌱',
-    requiredAchievements: ['first-habit', 'first-journal', 'first-goal'],
-    bonusXP: 75,
-    rarity: AchievementRarity.COMMON,
-  },
-  {
-    id: 'consistency-king',
-    nameKey: 'social.trophy_combinations.collections.consistency-king',
-    description: t('social.achievements_trophies.consistencyMaster'),
-    icon: '👑',
-    requiredAchievements: ['weekly-warrior', 'monthly-master', 'journal-streaker'],
-    bonusXP: 250,
-    rarity: AchievementRarity.EPIC,
-    category: AchievementCategory.CONSISTENCY,
-  },
-  {
-    id: 'time-master',
-    nameKey: 'social.trophy_combinations.collections.time-master',
-    description: t('social.achievements_trophies.timeMaster'),
-    icon: '⏰',
-    requiredAchievements: ['early-bird', 'perfect-week', 'weekend-warrior'],
-    bonusXP: 200,
-    rarity: AchievementRarity.EPIC,
-    category: AchievementCategory.CONSISTENCY,
-  },
-];
-
 const getRarityColor = (rarity: AchievementRarity): string => {
   switch (rarity) {
     case AchievementRarity.COMMON: return '#9E9E9E';
@@ -135,8 +51,6 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
   const { colors } = useTheme();
   const { t } = useI18n();
 
-  const TROPHY_COLLECTIONS = getTrophyCollections(t);
-
   // Calculate collection progress
   const collectionsWithProgress: TrophyCollection[] = TROPHY_COLLECTIONS.map(collection => {
     const completedCount = collection.requiredAchievements.filter(achievementId =>
@@ -145,6 +59,7 @@ export const TrophyCombinations: React.FC<TrophyCombinationsProps> = ({
 
     return {
       ...collection,
+      description: t(collection.descriptionKey),
       isCompleted: completedCount === collection.requiredAchievements.length,
       completedCount,
       totalCount: collection.requiredAchievements.length,

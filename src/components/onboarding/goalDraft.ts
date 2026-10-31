@@ -2,15 +2,16 @@
  * Validation for the goal the user sketches on onboarding screen 2.
  *
  * Deliberately mirrors GoalForm's rules (`GoalForm.tsx:290,326-330`): whole
- * numbers, greater than zero, at most 999999. A goal created here and then
+ * numbers, greater than zero, at most MAX_GOAL_VALUE. A goal created here and then
  * edited in the normal form must not obey two different sets of rules.
  *
- * Import-free so the edge cases — an empty field, a lone minus sign, "abc",
- * a value over the cap — can be tested without the theme and i18n stack.
+ * Imports only a plain constant, so the edge cases — an empty field, a lone minus
+ * sign, "abc", a value over the cap — can be tested without the theme and i18n stack.
  */
+import { MAX_GOAL_VALUE } from '@/src/constants/goals';
 
-/** Upper bound copied from GoalForm's `targetValueTooLarge` check. */
-export const GOAL_TARGET_MAX = 999999;
+/** The same bound as GoalForm's `targetValueTooLarge` check. */
+export const GOAL_TARGET_MAX = MAX_GOAL_VALUE;
 
 /** Returns the usable number, or null when the field cannot be submitted yet. */
 export function parseGoalTarget(raw: string): number | null {

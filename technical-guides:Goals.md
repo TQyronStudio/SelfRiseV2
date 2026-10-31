@@ -81,7 +81,10 @@ interface CreateGoalInput {
 // validace žije ve formulářích GoalForm/ProgressEntryForm, žádná
 // GoalValidationService třída neexistuje):
 1. Title: 2-100 znaků po trim (GoalForm.validateForm)
-2. Target Value: > 0 a ≤ 999 999 (GoalForm)
+2. Target Value: > 0 a ≤ MAX_GOAL_VALUE (src/constants/goals.ts, 1 bilion) — strop je jen
+   pojistka proti nesmyslu. Do 2026-10 byl 999 999: kontroloval ho jen formulář, nic pod ním,
+   a brzdil měny s velkými částkami a dvě trofeje (Mega Dreamer, Million Achiever).
+   GoalForm, ProgressEntryForm i onboarding (goalDraft) sdílí tuhle jednu konstantu.
 3. Current Value: dolní mez 0 drží datová vrstva (updateGoalValue clampuje);
    HORNÍ MEZ NEEXISTUJE — progress smí překročit target (overachievement je
    záměr, rozhodnutí Petra 2026-07-19)
@@ -89,7 +92,7 @@ interface CreateGoalInput {
    při výběru dne (lokální půlnoc)
 5. Unit: 1-20 znaků po trim (GoalForm)
 6. Description: ≤ 300 znaků (GoalForm)
-7. Progress value: > 0 a ≤ 1 000 000; note ≤ 200 znaků (ProgressEntryForm);
+7. Progress value: > 0 a ≤ MAX_GOAL_VALUE; note ≤ 200 znaků (ProgressEntryForm);
    datum zápisu je vždy dnešek (žádné backdating)
 ```
 
@@ -1091,7 +1094,7 @@ EASING_CURVES = {
 // Error handling patterns
 const COMMON_ERRORS = {
   INVALID_DATE: 'Selected date is invalid or in the past',
-  VALUE_TOO_LARGE: 'Target value exceeds maximum allowed (999,999)',
+  VALUE_TOO_LARGE: 'This number is too large', // nad MAX_GOAL_VALUE
   PROGRESS_OVERFLOW: 'Progress update would exceed target value',
   DAILY_LIMIT_REACHED: 'Daily progress update limit reached (3 updates)',
   NETWORK_ERROR: 'Unable to save goal. Please check your connection.',

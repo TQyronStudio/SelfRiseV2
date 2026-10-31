@@ -307,7 +307,8 @@ smazal), pulzují všechny neodškrtnuté jako dřív.
 
 ### Validace kopíruje pravidla normálního formuláře
 
-`goalDraft.ts` má stejná pravidla jako `GoalForm`: celé číslo, > 0, ≤ 999999.
+`goalDraft.ts` má stejná pravidla jako `GoalForm`: celé číslo, > 0, ≤ `MAX_GOAL_VALUE`
+(sdílená konstanta v `src/constants/goals.ts`).
 Cíl vytvořený v onboardingu a upravený potom v normálním formuláři nesmí
 poslouchat dvě různá pravidla.
 
@@ -565,7 +566,7 @@ displejích a flow se stane slepou uličkou.
 // src/components/onboarding/__tests__/
 ✅ onboardingKit.test.ts — chunkIntoRows, sdílené bloky
 ✅ firstHabit.test.ts    — předvolby návyků
-✅ firstGoal.test.ts     — parseGoalTarget, isGoalDraftComplete (hranice 0, 999999, "12abc")
+✅ firstGoal.test.ts     — parseGoalTarget, isGoalDraftComplete (hranice 0, `GOAL_TARGET_MAX`, "12abc")
 ✅ firstCheck.test.ts    — detekce odškrtnutí (počet i konkrétní návyk, VČETNĚ večerního restartu) + texty výzvy a závěru („Day 1 done" jen po odškrtnutí, připomínku slíbí jen tomu, kdo ji dostane)
 
 // src/locales/__tests__/

@@ -985,7 +985,7 @@ const es: Partial<TranslationKeys> = {
         unitRequired: 'La unidad es obligatoria',
         unitTooLong: 'La unidad debe tener menos de 20 caracteres',
         targetValueRequired: 'El valor objetivo debe ser mayor que 0',
-        targetValueTooLarge: 'El valor objetivo debe ser menor que 1.000.000',
+        targetValueTooLarge: 'Este número es demasiado grande',
         descriptionTooLong: 'La descripción debe tener menos de 300 caracteres',
         submitFailed: 'No se pudo guardar la meta. Por favor, inténtalo de nuevo.',
         pastDate: 'La fecha seleccionada no puede estar en el pasado',
@@ -1017,7 +1017,7 @@ const es: Partial<TranslationKeys> = {
         },
         errors: {
           valueRequired: 'El valor debe ser mayor que 0',
-          valueTooLarge: 'El valor debe ser menor que 1.000.000',
+          valueTooLarge: 'Este número es demasiado grande',
           noteTooLong: 'La nota debe tener menos de 200 caracteres',
           submitFailed: 'No se pudo añadir el progreso. Por favor, inténtalo de nuevo.',
         },

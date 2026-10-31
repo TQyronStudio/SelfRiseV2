@@ -21,6 +21,7 @@ import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
 import { ACHIEVEMENT_EVALUATION, ACHIEVEMENT_XP_REWARDS } from '../constants/achievements';
 import { GamificationService } from './gamificationService';
 import { AchievementStorage } from './achievementStorage';
+import { TrophyCollectionService } from './trophyCollectionService';
 import { DateString } from '../types/common';
 import { today, formatDateToString } from '../utils/date';
 import { getLevelInfo } from './levelCalculation';
@@ -1279,6 +1280,11 @@ export class AchievementService {
       
       // Save updated data using new storage service
       await AchievementStorage.saveUserAchievements(userAchievements);
+
+      // All unlock paths end here — the one place that sees every new trophy.
+      await TrophyCollectionService.payCompletedCollections(
+        userAchievements.unlockedAchievements
+      );
 
     } catch (error) {
       console.error('AchievementService.updateUserAchievements error:', error);

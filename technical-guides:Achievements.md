@@ -65,6 +65,33 @@ po reverzi, kumulativní creation count.
 
 ---
 
+## 🏆 Sbírky trofejí a jejich bonus (říjen 2026)
+
+**Co bylo špatně**: 4 z 8 sbírek (`habits-master`, `journal-sage`, `epic-hunter`, `time-master`)
+čekaly na trofeje smazané z katalogu, takže nešly dokončit, a bonus XP se jen ukazoval —
+žádný kód ho nevyplácel. Obrazovka tak slibovala 1 775 XP, které nikdo nikdy nedostal.
+
+**Jediný zdroj pravdy**: `src/constants/trophyCollections.ts` (obrazovka i výplata).
+
+**Výplata**: `TrophyCollectionService.payCompletedCollections()`, volaná z
+`AchievementService.updateUserAchievements` — tudy projdou všechny tři cesty odemčení.
+Kdo sbírku dokončil dávno, dostane bonus při další kontrole achievementů.
+
+```typescript
+// ✅ CORRECT: vyplaceno = existuje XP transakce se source_id `trophy_collection:<id>`
+// ❌ WRONG: zvláštní příznak „vyplaceno“ v AsyncStorage / jiné tabulce
+```
+**Proč**: transakce JE platba. Zapíše se atomicky s XP a reset dat smaže obojí, takže se
+stav „vyplaceno“ nemůže rozejít s XP. `skipLimits: true`, protože jde o slíbenou jednorázovou
+částku. Trofeje se neodebírají, takže se bonus nikdy nevrací.
+
+**Regresní testy**: `src/services/__tests__/trophyCollections.test.ts` (proti skutečné SQLite
+a skutečnému `addXP`): každé id sbírky musí být v katalogu, výplata jen jednou i při souběhu,
+opakování po odmítnutí, napojení na `updateUserAchievements`, dosažitelnost Mega Dreamer
+a Million Achiever přes limit formuláře. Negativní kontrola: 7 záměrných chyb, každá test shodí.
+
+---
+
 # 📋 PŘEHLED VŠECH ACHIEVEMENTS - PRO MAJITELE
 
 *Kompletní katalog všech 75 achievements v SelfRise V2 aplikaci*

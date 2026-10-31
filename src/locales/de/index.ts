@@ -985,7 +985,7 @@ const de: Partial<TranslationKeys> = {
         unitRequired: 'Einheit ist erforderlich',
         unitTooLong: 'Einheit muss weniger als 20 Zeichen lang sein',
         targetValueRequired: 'Zielwert muss größer als 0 sein',
-        targetValueTooLarge: 'Zielwert muss kleiner als 1.000.000 sein',
+        targetValueTooLarge: 'Diese Zahl ist zu groß',
         descriptionTooLong: 'Beschreibung muss weniger als 300 Zeichen lang sein',
         submitFailed: 'Ziel konnte nicht gespeichert werden. Bitte versuche es erneut.',
         pastDate: 'Das ausgewählte Datum kann nicht in der Vergangenheit liegen',
@@ -1017,7 +1017,7 @@ const de: Partial<TranslationKeys> = {
         },
         errors: {
           valueRequired: 'Wert muss größer als 0 sein',
-          valueTooLarge: 'Wert muss kleiner als 1.000.000 sein',
+          valueTooLarge: 'Diese Zahl ist zu groß',
           noteTooLong: 'Notiz muss weniger als 200 Zeichen lang sein',
           submitFailed: 'Fortschritt konnte nicht hinzugefügt werden. Bitte versuche es erneut.',
         },

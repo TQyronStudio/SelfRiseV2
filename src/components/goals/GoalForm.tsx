@@ -13,6 +13,7 @@ import { CreateGoalInput, UpdateGoalInput } from '../../types/goal';
 import { DateString } from '../../types/common';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { MAX_GOAL_VALUE } from '../../constants/goals';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ErrorModal } from '@/src/components/common';
 import TargetDateConfirmationModal from './TargetDateConfirmationModal';
@@ -128,7 +129,7 @@ export function GoalForm({
 
     if (formData.targetValue <= 0) {
       newErrors.targetValue = t('goals.form.errors.targetValueRequired');
-    } else if (formData.targetValue > 999999) {
+    } else if (formData.targetValue > MAX_GOAL_VALUE) {
       newErrors.targetValue = t('goals.form.errors.targetValueTooLarge');
     }
 

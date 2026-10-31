@@ -13,6 +13,7 @@ import { DateString } from '../../types/common';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
+import { MAX_GOAL_VALUE } from '../../constants/goals';
 import { ErrorModal } from '@/src/components/common';
 import { today } from '../../utils/date';
 import { contentColumn } from '@/src/utils/layout';
@@ -63,7 +64,7 @@ export function ProgressEntryForm({
 
     if (formData.value <= 0) {
       newErrors.value = t('goals.progress.form.errors.valueRequired');
-    } else if (formData.value > 1000000) {
+    } else if (formData.value > MAX_GOAL_VALUE) {
       newErrors.value = t('goals.progress.form.errors.valueTooLarge');
     }
 

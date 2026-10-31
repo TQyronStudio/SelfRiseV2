@@ -987,7 +987,7 @@ const en: TranslationKeys = {
         unitRequired: 'Unit is required',
         unitTooLong: 'Unit must be less than 20 characters',
         targetValueRequired: 'Target value must be greater than 0',
-        targetValueTooLarge: 'Target value must be less than 1,000,000',
+        targetValueTooLarge: 'This number is too large',
         descriptionTooLong: 'Description must be less than 300 characters',
         submitFailed: 'Failed to save goal. Please try again.',
         pastDate: 'Selected date cannot be in the past',
@@ -1019,7 +1019,7 @@ const en: TranslationKeys = {
         },
         errors: {
           valueRequired: 'Value must be greater than 0',
-          valueTooLarge: 'Value must be less than 1,000,000',
+          valueTooLarge: 'This number is too large',
           noteTooLong: 'Note must be less than 200 characters',
           submitFailed: 'Failed to add progress. Please try again.',
         },
