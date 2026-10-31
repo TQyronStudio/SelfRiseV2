@@ -16,6 +16,11 @@ crash-free rate a posílá velocity alerty na e-mail.
   není dostupný (Jest, Expo Go, web). Nikdy nevyhazuje výjimky.
 - 🚨 **PRAVIDLO: nikdy neimportuj `@react-native-firebase/crashlytics` přímo** —
   vždy přes tento wrapper (jinak se rozbijí testy).
+- 🚨 **PRAVIDLO: jen modulární API RNFB** (od 2026-10-26) — `getCrashlytics()`,
+  `log(crashlytics, msg)`, `recordError(crashlytics, err)`,
+  `setCrashlyticsCollectionEnabled(crashlytics, true)`.
+  ❌ `crashlytics()` / `instance.log(msg)` (namespaced) — RNFB 23 ho označilo za
+  zastaralé (2 varování v logu při každém startu) a v další hlavní verzi zmizí.
 
 **Consent gating (privacy-first):**
 - `firebase.json`: `crashlytics_auto_collection_enabled: false` — sběr je

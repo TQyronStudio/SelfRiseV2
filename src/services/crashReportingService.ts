@@ -14,19 +14,21 @@
 // Privacy policy note: adding Crashlytics requires the Diagnostics/Crash Data
 // disclosure in the privacy policy, App Store App Privacy and Play Data Safety.
 
-type CrashlyticsModule = {
-  setCrashlyticsCollectionEnabled: (enabled: boolean) => Promise<void>;
-  log: (message: string) => void;
-  recordError: (error: Error, jsErrorName?: string) => void;
-  setAttribute: (name: string, value: string) => Promise<void>;
-  crash: () => void;
-  isCrashlyticsCollectionEnabled: boolean;
+// MODULAR API (October 2026): RNFB 23 deprecated the namespaced API
+// (`crashlytics()`, `instance.method()`) — it logged two deprecation warnings
+// on every start and goes away in the next major. The modular functions take the
+// instance as the first argument: `log(crashlytics, msg)`.
+type CrashlyticsApi = typeof import('@react-native-firebase/crashlytics');
+
+type Crashlytics = {
+  api: CrashlyticsApi;
+  instance: ReturnType<CrashlyticsApi['getCrashlytics']>;
 };
 
-let cachedInstance: CrashlyticsModule | null | undefined;
+let cachedInstance: Crashlytics | null | undefined;
 
 /** Lazily resolve the native module; null when unavailable (tests, Expo Go). */
-function getCrashlytics(): CrashlyticsModule | null {
+function getCrashlytics(): Crashlytics | null {
   if (cachedInstance !== undefined) return cachedInstance;
   try {
     // FIRST check the native module is actually linked. Calling
@@ -45,8 +47,8 @@ function getCrashlytics(): CrashlyticsModule | null {
     }
 
     // Lazy require (project convention) — must not throw at import time
-    const mod = require('@react-native-firebase/crashlytics') as typeof import('@react-native-firebase/crashlytics');
-    cachedInstance = mod.default() as unknown as CrashlyticsModule;
+    const api = require('@react-native-firebase/crashlytics') as CrashlyticsApi;
+    cachedInstance = { api, instance: api.getCrashlytics() };
   } catch {
     cachedInstance = null;
   }
@@ -62,7 +64,7 @@ export const CrashReportingService = {
     try {
       const crashlytics = getCrashlytics();
       if (!crashlytics) return;
-      await crashlytics.setCrashlyticsCollectionEnabled(true);
+      await crashlytics.api.setCrashlyticsCollectionEnabled(crashlytics.instance, true);
       console.log('✅ CrashReporting: collection enabled');
     } catch (error) {
       console.warn('⚠️ CrashReporting: enable failed (non-critical)', error);
@@ -72,7 +74,9 @@ export const CrashReportingService = {
   /** Disable collection (e.g. if a privacy setting is added later). */
   async disable(): Promise<void> {
     try {
-      await getCrashlytics()?.setCrashlyticsCollectionEnabled(false);
+      const crashlytics = getCrashlytics();
+      if (!crashlytics) return;
+      await crashlytics.api.setCrashlyticsCollectionEnabled(crashlytics.instance, false);
     } catch {
       // no-op
     }
@@ -84,7 +88,9 @@ export const CrashReportingService = {
    */
   log(message: string): void {
     try {
-      getCrashlytics()?.log(message);
+      const crashlytics = getCrashlytics();
+      if (!crashlytics) return;
+      crashlytics.api.log(crashlytics.instance, message);
     } catch {
       // no-op
     }
@@ -99,9 +105,9 @@ export const CrashReportingService = {
     try {
       const crashlytics = getCrashlytics();
       if (!crashlytics) return;
-      if (context) crashlytics.log(`[context] ${context}`);
+      if (context) crashlytics.api.log(crashlytics.instance, `[context] ${context}`);
       const err = error instanceof Error ? error : new Error(String(error));
-      crashlytics.recordError(err, context);
+      crashlytics.api.recordError(crashlytics.instance, err, context);
     } catch {
       // no-op — crash reporting must never break the app
     }
@@ -112,6 +118,7 @@ export const CrashReportingService = {
    * (Report appears in Firebase Console after the NEXT app launch.)
    */
   testCrash(): void {
-    getCrashlytics()?.crash();
+    const crashlytics = getCrashlytics();
+    if (crashlytics) crashlytics.api.crash(crashlytics.instance);
   },
 };
