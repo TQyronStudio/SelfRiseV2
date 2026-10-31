@@ -14,6 +14,16 @@ jest.mock('../../../hooks/useFirebaseAnalytics', () => ({
   },
 }));
 
+// Jest runs with __DEV__ = true, which would make every call a no-op development
+// session. The funnel is tested as in a store build; one test flips it on purpose.
+jest.mock('../../../config/diagnosticsMode', () => ({
+  isDevelopmentSession: jest.fn(() => false),
+}));
+
+const { isDevelopmentSession } = jest.requireMock('../../../config/diagnosticsMode') as {
+  isDevelopmentSession: jest.Mock;
+};
+
 const { FirebaseAnalytics } = jest.requireMock('../../../hooks/useFirebaseAnalytics') as {
   FirebaseAnalytics: { logEvent: jest.Mock; setUserProperty: jest.Mock };
 };
@@ -35,9 +45,36 @@ async function enrolDaysAgo(daysAgo: number) {
 }
 
 beforeEach(async () => {
+  isDevelopmentSession.mockReturnValue(false);
   await AsyncStorage.clear();
   FirebaseAnalytics.logEvent.mockClear();
   FirebaseAnalytics.setUserProperty.mockClear();
+});
+
+describe('development sessions', () => {
+  it('send nothing and write nothing — no funnel state, no used-up once-flags', async () => {
+    isDevelopmentSession.mockReturnValue(true);
+
+    await FirstDayAnalytics.onboardingStarted();
+    await FirstDayAnalytics.welcomeDone();
+    await FirstDayAnalytics.habitChecked();
+    await FirstDayAnalytics.appActive();
+    await FirstDayAnalytics.reminderOpened('evening_reminder', 'evening_reminder_day_1|9000');
+
+    expect(FirebaseAnalytics.logEvent).not.toHaveBeenCalled();
+    expect(FirebaseAnalytics.setUserProperty).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getAllKeys()).toEqual([]);
+  });
+
+  it('leave the funnel untouched, so a deliberate test run afterwards still enrols', async () => {
+    isDevelopmentSession.mockReturnValue(true);
+    await FirstDayAnalytics.onboardingStarted();
+
+    isDevelopmentSession.mockReturnValue(false); // EXPO_PUBLIC_ANALYTICS_IN_DEV=true
+    await FirstDayAnalytics.onboardingStarted();
+
+    expect(sentEvents()).toEqual(['onb_start']);
+  });
 });
 
 describe('who enters the funnel', () => {

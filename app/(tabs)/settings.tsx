@@ -21,6 +21,8 @@ import { useAchievements } from '@/src/contexts/AchievementContext';
 import { awaitStartupComplete } from '@/src/services/startup';
 import { isPrivacyOptionsRequired, showPrivacyOptionsForm } from '@/src/services/adConsentService';
 import { PRIVACY_POLICY_URL } from '@/src/constants/legal';
+import { isDevelopmentSession } from '@/src/config/diagnosticsMode';
+import { describeCrashStatus } from '@/src/services/crashStatusText';
 import {
   isMarketingDemoModeEnabled,
   MARKETING_DEMO_MODE_CHANGED_EVENT,
@@ -29,6 +31,9 @@ import {
 import { isDesignLabEnabled } from '@/src/config/designLab';
 
 const ENABLE_MARKETING_DEMO_TOOLS = process.env.EXPO_PUBLIC_ENABLE_MARKETING_DEMO === 'true';
+// Developer-only Crashlytics check (technical-guides:Crashlytics.md). Off unless the
+// local .env opts in; never part of a store build.
+const ENABLE_CRASH_TEST_TOOLS = process.env.EXPO_PUBLIC_ENABLE_CRASH_TEST === 'true';
 const SHOW_DESIGN_LAB = isDesignLabEnabled();
 
 export default function SettingsScreen() {
@@ -54,6 +59,7 @@ export default function SettingsScreen() {
   const [hapticsEnabled, setHapticsEnabledState] = useState(isHapticsEnabled());
   const [isMarketingDemoMode, setIsMarketingDemoMode] = useState(false);
   const [privacyOptionsRequired, setPrivacyOptionsRequired] = useState(false);
+  const [showCrashTestConfirmation, setShowCrashTestConfirmation] = useState(false);
 
   // Consent info is only fresh after the startup consent step has run, so ask
   // once the startup sequence is done. Outside regions that require a privacy
@@ -326,6 +332,46 @@ export default function SettingsScreen() {
     }
   };
 
+  // --- Crash test (EXPO_PUBLIC_ENABLE_CRASH_TEST=true only) ---------------------
+  const handleShowCrashStatus = async () => {
+    try {
+      const { CrashReportingService } = await import('@/src/services/crashReportingService');
+      const status = await CrashReportingService.getStatus();
+      setSuccessMessage(describeCrashStatus(status, isDevelopmentSession()));
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to read the Crashlytics status:', error);
+      setErrorMessage('Failed to read the Crashlytics status.');
+      setShowErrorModal(true);
+    }
+  };
+
+  const handleSendHandledCrashError = async () => {
+    try {
+      const { CrashReportingService } = await import('@/src/services/crashReportingService');
+      CrashReportingService.recordError(new Error('Crash test: handled error'), 'crash_test_handled');
+      setSuccessMessage(
+        'Handled error recorded. It shows up in Crashlytics as a non-fatal after the next launch.'
+      );
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to record the handled test error:', error);
+      setErrorMessage('Failed to record the handled test error.');
+      setShowErrorModal(true);
+    }
+  };
+
+  const handleForceCrash = async () => {
+    setShowCrashTestConfirmation(false);
+    try {
+      const { CrashReportingService } = await import('@/src/services/crashReportingService');
+      // Let the confirmation close first, so the app dies from a clean screen.
+      setTimeout(() => CrashReportingService.testCrash(), 400);
+    } catch (error) {
+      console.error('Failed to force the test crash:', error);
+    }
+  };
+
   const handleLanguageChange = async (language: 'en' | 'de' | 'es') => {
     try {
       await changeLanguage(language);
@@ -583,6 +629,51 @@ export default function SettingsScreen() {
           </View>
         )}
 
+        {ENABLE_CRASH_TEST_TOOLS && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Crash test (developer)</Text>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleShowCrashStatus}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="pulse" size={24} color={colors.primary} />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemText}>Show Crashlytics status</Text>
+                  <Text style={styles.menuItemDescription}>
+                    Whether collection was ON when the app launched, and whether a forced crash can be expected to arrive. Do this first.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleSendHandledCrashError}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="warning-outline" size={24} color={colors.warning} />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemText}>Record a handled error</Text>
+                  <Text style={styles.menuItemDescription}>
+                    Sends a harmless non-fatal test error. The app keeps running.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => setShowCrashTestConfirmation(true)}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="skull-outline" size={24} color={colors.error} />
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemText}>Force a crash</Text>
+                  <Text style={styles.menuItemDescription}>
+                    Kills the app on purpose. Open it again afterwards; the report reaches Firebase within a few minutes. Launch from the home screen, not from Xcode.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {ENABLE_MARKETING_DEMO_TOOLS && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Marketing Demo</Text>
@@ -703,6 +794,18 @@ export default function SettingsScreen() {
       <View style={styles.bannerContainer}>
         <AdBanner />
       </View>
+
+      <ConfirmationModal
+        visible={showCrashTestConfirmation}
+        onClose={() => setShowCrashTestConfirmation(false)}
+        onConfirm={handleForceCrash}
+        title="Force a crash?"
+        message="The app will close immediately. Open it again and check Firebase → Crashlytics in a few minutes."
+        confirmText="Crash the app"
+        cancelText={t('settings.cancel')}
+        confirmButtonColor={colors.error}
+        emoji="💥"
+      />
 
       {/* Reset Confirmation Modal */}
       <ConfirmationModal

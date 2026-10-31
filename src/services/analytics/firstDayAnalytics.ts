@@ -21,12 +21,18 @@
  * 4. NO PERSONAL CONTENT. Parameters are checked against the whitelist in
  *    `firstDayEvents.ts` right before sending.
  *
+ * 5. NOT IN DEVELOPMENT SESSIONS. Every public function does nothing there — not
+ *    even writing the funnel state or the once-flags — so a developer's own fresh
+ *    onboarding runs neither enter the real funnel nor use up the flags that a
+ *    deliberate test (EXPO_PUBLIC_ANALYTICS_IN_DEV=true) needs.
+ *
  * Firebase is required lazily inside `send()`, so importing this module (from
  * contexts, screens) never drags the native module into a Jest graph.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { formatDateToString, daysBetween } from '../../utils/date';
 import { TUTORIAL_STORAGE_KEYS } from '../../constants/tutorialStorageKeys';
+import { isDevelopmentSession } from '../../config/diagnosticsMode';
 import {
   FirstDayEventName,
   FirstDayEventParams,
@@ -80,6 +86,7 @@ const claimsInFlight = new Set<string>();
 // ---------------------------------------------------------------------------
 
 async function guard(label: string, work: () => Promise<void>): Promise<void> {
+  if (isDevelopmentSession()) return;
   try {
     await work();
   } catch (error) {

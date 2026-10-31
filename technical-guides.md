@@ -1334,6 +1334,8 @@ Zásady pro každodenní vývoj:
   (datová vrstva, streaky, XP, výzvy) — ne do běžného UI šumu
 - **`log(msg)`** = levný breadcrumb u významných přechodů stavu
 - Po změnách: report se v Firebase Console objeví až po restartu appky (black-box princip)
+- **Zapnutí sběru je nezávislé na reklamách** (v `finalizeAdsAndDiagnostics` jde Crashlytics
+  první); na iOS se zapnutí uplatní až při příštím spuštění, v Debug buildu nikdy
 
 ---
 
@@ -1377,6 +1379,9 @@ Zásady pro každodenní vývoj:
   na whitelistu v `firstDayEvents.ts`; text od uživatele nikdy
 - **Vypálit a zapomenout**: `void FirstDayAnalytics.x()` — nikdy `await` v toku UI
 - **Do trychtýře jen nové instalace** — stav se zakládá jen v bráně předvoleb
+- **Vývojové relace nic neposílají** (`isDevelopmentSession()` v `src/config/diagnosticsMode.ts`):
+  `npm start` bez `EXPO_PUBLIC_ANALYTICS_IN_DEV=true` vypíná Analytics i Crashlytics.
+  Vlastní `__DEV__` kontroly nepřidávej. Test pádu: Crashlytics.md → „Test pádu na zařízení"
 
 ---
 

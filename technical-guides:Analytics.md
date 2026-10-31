@@ -188,9 +188,66 @@ lepší návratnost?"** — ve Firebase porovnání retence podle štítku.
 
 ---
 
+## Vývojové relace (od 2026-10-31)
+
+Týdenní kontrola Firebase 2026-10-31 ukázala, že se do čísel míchají vývojová data:
+165 zobrazení `DevLauncherViewController`, emulátor `sdk_gphone64_arm64` a hlavně
+Petrovy vlastní průchody úvodem na čisté instalaci (`onb_*`). Vývojové buildy sdílejí
+bundle ID i Firebase projekt s ostrou appkou.
+
+**Pravidlo**: relace, kde `__DEV__` platí (JS z `npm start`) a v `.env` není
+`EXPO_PUBLIC_ANALYTICS_IN_DEV=true`, je **vývojová relace** — nic z ní nesmí do
+Analytics ani Crashlytics. Rozhoduje jediná funkce `isDevelopmentSession()`
+(`src/config/diagnosticsMode.ts`).
+
+```typescript
+// ✅ CORRECT: jedno místo pravdy
+if (isDevelopmentSession()) return;
+
+// ❌ WRONG: vlastní kontrola __DEV__ jinde → rozejdou se podmínky
+if (__DEV__) return;
+```
+
+Co se ve vývojové relaci děje:
+- `applyDevelopmentSessionPolicy()` (volá ji `app/_layout.tsx` jako první věc, bez
+  čekání na souhlasová okna) **vypne sběr** — `setAnalyticsCollectionEnabled(false)`.
+  Firebase si volbu pamatuje, takže se další vývojová spuštění utlumí už nativně,
+  včetně událostí, které naskočí ještě před JS (spuštění relace, obrazovka launcheru).
+  Jednorázově unikne jen úplně první spuštění po přepnutí z ostré relace.
+- `initAnalyticsAfterConsent()` sběr **nezapíná** a neposílá `app_open`.
+- Most `FirebaseAnalytics` / `useFirebaseAnalytics` neodesílá události ani štítky.
+- **Trychtýř (`FirstDayAnalytics`) nedělá nic — nezapisuje ani svůj stav a příznaky.**
+  Kdyby je zapsal, vývojová relace by je „spotřebovala" a pozdější záměrný test
+  (`EXPO_PUBLIC_ANALYTICS_IN_DEV=true`) by už nic neposlal.
+- Crashlytics se vypíná, ne zapíná (@technical-guides:Crashlytics.md).
+
+**Ostrých uživatelů se to netýká**: store/TestFlight build má `__DEV__ = false`, a
+navíc `initAnalyticsAfterConsent()` zapíná sběr při **každém** startu, takže uložené
+„vypnuto" z vývoje se u nich samo napraví.
+
+**Záměrné testování událostí** (např. `day_return` posunem data): do `.env`
+`EXPO_PUBLIC_ANALYTICS_IN_DEV=true`, restart `npm start`, otevřít appku, události
+sledovat v Realtime. Po testu vrátit na `false`. Testovací data pak v GA4 odfiltruj
+(model zařízení / obrazovka), ať nezkreslí čísla.
+
+**Co NEDĚLAT**:
+- `analytics_auto_collection_enabled: false` v `firebase.json` — vypnulo by sběr i pro
+  ostré uživatele do konce souhlasových oken, `first_open` by přišel až po nich a
+  zmizel by odpad na ATT/souhlasu, který trychtýř měří (kandidát č. 1 vlny B).
+- Vypínat sběr nativně podle EAS profilu — Petrův iPhone běží na profilu `preview`,
+  který používají i testeři; přišli by o analytiku také.
+- Vlastní bundle ID + Firebase aplikace pro vývoj je čisté řešení, ale velký zásah
+  (druhá registrace, plist, profil, druhá ikona) — neřeší se, dokud to nebude nutné.
+
+**Historická vývojová data** v GA4 nejdou smazat, jen odfiltrovat (segment/filtr na
+model zařízení `sdk_gphone64_arm64`, obrazovku `DevLauncherViewController`).
+
+---
+
 ## Souhlasy, Privacy Policy, obchody
 
-- **Sběr Firebase Analytics běží od prvního spuštění.** `firebase.json` automatický
+- **Sběr Firebase Analytics běží od prvního spuštění** (v ostrých buildech; vývojové
+  relace viz výše). `firebase.json` automatický
   sběr nevypíná, takže `setAnalyticsCollectionEnabled(true)` v
   `initAnalyticsAfterConsent()` je jen formalita. Úvod ale startuje až za bariérou
   souhlasových oken, takže časování žádný krok trychtýře neztratí.
@@ -228,6 +285,11 @@ deklaracemi.** Cokoliv mimo „anonymní údaje o používání" vyžaduje jejic
    kontexty — rozbije Jest (pravidlo 5).
 7. **Změna klíčů `analytics_first_day_*`** — stávající instalace by vstoupily do
    trychtýře znovu nebo z něj vypadly.
+8. **Nová cesta, která posílá do Firebase mimo `FirebaseAnalytics` /
+   `useFirebaseAnalytics`** (přímé `logEvent` z `@react-native-firebase/analytics`) —
+   obejde pojistku vývojové relace a vývojová data poteče do čísel.
+9. **Vlastní `__DEV__` kontrola místo `isDevelopmentSession()`** — ztratí se
+   záměrné zapnutí přes `EXPO_PUBLIC_ANALYTICS_IN_DEV` a podmínky se rozejdou.
 
 ---
 
@@ -244,6 +306,11 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/services/analyti
   úvodu a prvního odškrtnutí), konec po skipu/dokončení, restart ze Settings nic
   nepošle, `day_return` dny 0/1/2/7/8, deduplikace `reminder_open`, nic nehází
 - `src/config/__tests__/deviceLanguage.test.ts` — jazyk podle telefonu (pro úvod)
+- `src/config/__tests__/diagnosticsMode.test.ts` — kdy je relace vývojová (opt-in nikdy
+  nepromění ostrý build ve vývojový)
+- `src/hooks/__tests__/useFirebaseAnalytics.session.test.ts` — vývojová relace sběr
+  vypne a nic neodešle; ostrá ho zapíná při každém startu a posílá dál
+- `firstDayAnalytics.test.ts` navíc: ve vývojové relaci se nic neposílá **ani nezapisuje**
 - `src/components/ads/__tests__/useBannerRetry.test.ts` — `ad_banner_failed`
   (kód, pokus, `will_retry`) a pravidla opakování banneru
 
@@ -269,6 +336,7 @@ potřebuje připojení k počítači, takže pro běžné ověření stačí Rea
 - Restart úvodu ze Settings nepřidá druhý průchod
 - Testy kontextů (`HabitsContext`, `GratitudeContext`, `TutorialContext`) běží bez
   mocku Firebase
+- Ostré buildy (`__DEV__ = false`) měří vždy — vývojová pojistka je nesmí nikdy vypnout
 
 ---
 
@@ -287,6 +355,10 @@ potřebuje připojení k počítači, takže pro běžné ověření stačí Rea
    podruhé ten den už nic.
 6. **Ťuknutí na připomínku při zavřené appce** → `reminder_open` jednou.
 7. **Aktualizace ze starší verze** (appka už prošla úvodem) → žádná událost trychtýře.
+8. **Vývojová relace** (`npm start`, bez opt-inu): čistá instalace a průchod úvodem →
+   v Realtime **žádná** událost z tohoto zařízení.
+9. **Záměrný test** (`EXPO_PUBLIC_ANALYTICS_IN_DEV=true`) → události v Realtime se objeví;
+   po vrácení na `false` a restartu zase ne.
 
 ---
 

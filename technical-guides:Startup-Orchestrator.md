@@ -76,6 +76,14 @@ await finalizeAdsAndDiagnostics();   // vždy
 // → non-EEA uživatel (bez formuláře) by přišel o reklamy I crash reporting
 ```
 
+> ℹ️ **Pořadí uvnitř `finalizeAdsAndDiagnostics()` (od 2026-10-31)**: nejdřív
+> Crashlytics, potom reklamy — sběr pádů nesmí záviset na `mobileAds().initialize()`
+> (zaseknutá inicializace reklam by ho tiše nechala vypnutý). Ve vývojové relaci se
+> Crashlytics vypíná, ne zapíná. Detaily: @technical-guides:Crashlytics.md
+> a @technical-guides:Analytics.md → „Vývojové relace". Navíc `app/_layout.tsx`
+> volá `applyDevelopmentSessionPolicy()` **před** `runStartupSequence()` (bez čekání),
+> aby se vývojová analytika vypnula i během dlouhých souhlasových oken.
+
 **Proč**: uživatelé mimo EEA žádný souhlasový formulář nevidí. Kdyby inicializace
 reklam a Crashlytics visela na tom, že se formulář zobrazil, přišli by o obojí.
 `adConsentStep` je proto **jen modal**; nepodmíněná práce žije mimo pipeline.

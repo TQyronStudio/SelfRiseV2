@@ -29,7 +29,10 @@ import { useDayReturnTracking } from '../src/hooks/useDayReturnTracking';
 // one-at-a-time so they never collide with each other or the onboarding/tutorial UI.
 import { runStartupSequence } from '../src/services/startup';
 // Post-startup unconditional work (order satisfied once the sequence is done):
-import { initAnalyticsAfterConsent } from '../src/hooks/useFirebaseAnalytics';
+import {
+  initAnalyticsAfterConsent,
+  applyDevelopmentSessionPolicy,
+} from '../src/hooks/useFirebaseAnalytics';
 import { finalizeAdsAndDiagnostics } from '../src/services/adConsentService';
 
 // SQLite Database
@@ -66,6 +69,9 @@ function LayoutContent() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Development sessions: switch Analytics off right away, before the (possibly
+      // long) first-launch windows — fire-and-forget, never delays the sequence.
+      void applyDevelopmentSessionPolicy();
       await runStartupSequence();
       if (cancelled) return;
       // Unconditional — must run even when no consent form was shown (non-EEA users).

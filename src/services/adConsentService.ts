@@ -2,6 +2,7 @@ import mobileAds, {
   AdsConsent,
   AdsConsentPrivacyOptionsRequirementStatus,
 } from 'react-native-google-mobile-ads';
+import { isDevelopmentSession } from '../config/diagnosticsMode';
 
 /**
  * AdConsentService - ads SDK init + Crashlytics enable + privacy-options helper.
@@ -30,25 +31,44 @@ async function startGoogleMobileAds(): Promise<void> {
 }
 
 /**
- * Unconditional post-startup work: initialize the ads SDK and enable crash
- * reporting. MUST run regardless of whether a consent form was shown — gating this
- * behind "was a form required?" would leave non-EEA users with no ads and no crash
- * reporting. Call once, AFTER the consent step has finished (privacy-first). Never throws.
+ * Crash reporting, switched ON for real users and OFF in development sessions.
+ *
+ * Diagnostics-only (not ads/tracking data). Runs AFTER the privacy flow, so
+ * collection never starts before the user has seen the privacy form. Single call
+ * site — condition here if a stricter opt-in is ever required. Never throws.
  */
-export async function finalizeAdsAndDiagnostics(): Promise<void> {
-  // 1. Ads SDK (SDK serves non-personalized ads automatically if consent not granted).
-  await startGoogleMobileAds();
-
-  // 2. Crash reporting (diagnostics-only — not ads/tracking data). Deliberately
-  //    AFTER the privacy flow, so collection never starts before the user has seen
-  //    the privacy form. Single call site — condition here if a stricter opt-in is
-  //    ever required.
+async function configureCrashReporting(): Promise<void> {
   try {
     const { CrashReportingService } = require('./crashReportingService') as typeof import('./crashReportingService');
+    if (isDevelopmentSession()) {
+      // Dev builds share the Firebase project with the store app: keep their
+      // crashes (and red-box JS errors) out of the real numbers. On iOS the stored
+      // preference decides the NEXT launch, so this also stops a persisted "on".
+      await CrashReportingService.disable();
+      return;
+    }
     await CrashReportingService.enable();
   } catch (error) {
-    console.warn('⚠️ AdConsent: could not enable crash reporting', error);
+    console.warn('⚠️ AdConsent: could not configure crash reporting', error);
   }
+}
+
+/**
+ * Unconditional post-startup work: configure crash reporting and initialize the
+ * ads SDK. MUST run regardless of whether a consent form was shown — gating this
+ * behind "was a form required?" would leave non-EEA users with no ads and no crash
+ * reporting. Call once, AFTER the consent step has finished (privacy-first). Never throws.
+ *
+ * ORDER MATTERS: crash reporting goes FIRST and does not depend on the ads SDK.
+ * It used to come after `await mobileAds().initialize()`, so a slow or hanging ads
+ * initialization (seen as a risk on iOS) silently kept crash reporting off.
+ */
+export async function finalizeAdsAndDiagnostics(): Promise<void> {
+  // 1. Crash reporting (independent of ads).
+  await configureCrashReporting();
+
+  // 2. Ads SDK (SDK serves non-personalized ads automatically if consent not granted).
+  await startGoogleMobileAds();
 }
 
 /**

@@ -12,6 +12,26 @@
 
 ## 🎯 AKTUÁLNÍ ÚKOLY
 
+### 🩺 Týdenní kontrola Firebase 2026-10-31 — čistá data a ověření Crashlytics (součást 7.0.2)
+
+**Proč**: do analytiky se míchají vývojová data (dev launcher, emulátor, vlastní testy úvodu)
+a iOS Crashlytics nikdy neprošel testovacím pádem. Petr schválil 2026-10-31 tři body;
+`day_return` se **nemění** (v dosud vydané verzi trychtýř vůbec není, nula je v pořádku).
+Verze zůstává 7.0.2 (ještě nevydaná).
+
+Technická pravidla: @technical-guides:Analytics.md · @technical-guides:Crashlytics.md ·
+@technical-guides:Startup-Orchestrator.md
+
+- [x] **Vývojová relace** (`__DEV__` bez `EXPO_PUBLIC_ANALYTICS_IN_DEV=true`): analytika se
+      vypne co nejdřív po startu, trychtýř se nezapisuje, `app_open` ani ruční události
+      neodcházejí, Crashlytics se v ní vypne; čistá funkce + testy
+- [x] **Crashlytics se zapíná nezávisle na reklamách** (dřív až za `mobileAds().initialize()`);
+      test, že visící inicializace reklam sběr nezablokuje
+- [x] **Testovací tlačítko pádu** v Nastavení za `EXPO_PUBLIC_ENABLE_CRASH_TEST=true` v `.env`:
+      ukáže nativní stav sběru, pošle nefatální chybu, vynutí pád (s potvrzením)
+- [x] `.env.example`, průvodci (Analytics, Crashlytics, Startup-Orchestrator), `tsc` + `npm test`
+- [ ] **Petr:** test pádu na iPhonu (postup v Crashlytics.md), pak výsledek do týdenní kontroly
+
 ### 📊 Analytika prvního dne + úpravy úvodu před marketingem (od 2026-10-10)
 
 **Proč**: lidé hned odcházejí (D1 jednotky %, D7 9 %) a před organickým marketingem (videa

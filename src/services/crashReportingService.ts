@@ -27,6 +27,27 @@ type Crashlytics = {
 
 let cachedInstance: Crashlytics | null | undefined;
 
+// What the NATIVE side decided at launch. RNFB's `isCrashlyticsCollectionEnabled`
+// is a plain JS property that `setCrashlyticsCollectionEnabled()` overwrites
+// immediately, so after enable() it only echoes our own request. It is read once,
+// when the module is first resolved — which is always before any enable()/disable().
+let enabledAtLaunch: boolean | null = null;
+
+export interface CrashReportingStatus {
+  /** False in Jest, Expo Go, web, or a binary built without the native module. */
+  moduleAvailable: boolean;
+  /**
+   * Whether native collection was on when the app launched. On iOS this is the
+   * stored preference of the PREVIOUS run (and always false in a Debug build);
+   * a freshly enabled setting only counts from the next launch.
+   */
+  enabledAtLaunch: boolean | null;
+  /** What JS last asked for in this session. */
+  requestedThisSession: boolean | null;
+  /** Did the previous run end in a crash that Crashlytics recorded? */
+  crashedOnPreviousExecution: boolean | null;
+}
+
 /** Lazily resolve the native module; null when unavailable (tests, Expo Go). */
 function getCrashlytics(): Crashlytics | null {
   if (cachedInstance !== undefined) return cachedInstance;
@@ -48,7 +69,9 @@ function getCrashlytics(): Crashlytics | null {
 
     // Lazy require (project convention) — must not throw at import time
     const api = require('@react-native-firebase/crashlytics') as CrashlyticsApi;
-    cachedInstance = { api, instance: api.getCrashlytics() };
+    const instance = api.getCrashlytics();
+    enabledAtLaunch = instance.isCrashlyticsCollectionEnabled;
+    cachedInstance = { api, instance };
   } catch {
     cachedInstance = null;
   }
@@ -111,6 +134,36 @@ export const CrashReportingService = {
     } catch {
       // no-op — crash reporting must never break the app
     }
+  },
+
+  /**
+   * DEV/QA: what the native side is actually doing (see the crash test in
+   * Settings). Never throws.
+   */
+  async getStatus(): Promise<CrashReportingStatus> {
+    const crashlytics = getCrashlytics();
+    if (!crashlytics) {
+      return {
+        moduleAvailable: false,
+        enabledAtLaunch: null,
+        requestedThisSession: null,
+        crashedOnPreviousExecution: null,
+      };
+    }
+    let crashedOnPreviousExecution: boolean | null = null;
+    try {
+      crashedOnPreviousExecution = await crashlytics.api.didCrashOnPreviousExecution(
+        crashlytics.instance
+      );
+    } catch {
+      // leave null — a status read must never throw
+    }
+    return {
+      moduleAvailable: true,
+      enabledAtLaunch,
+      requestedThisSession: crashlytics.instance.isCrashlyticsCollectionEnabled,
+      crashedOnPreviousExecution,
+    };
   },
 
   /**
