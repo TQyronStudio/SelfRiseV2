@@ -41,7 +41,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Animated as RNAnimated,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Animated, {
   Easing,
   SharedValue,
@@ -139,6 +145,10 @@ interface LabXp {
   level: number;
   ring: SharedValue<number>;
   pulse: SharedValue<number>;
+  /** Knock-back and swell of the badge on a hit — native driver, see `credit`. */
+  bodyX: RNAnimated.Value;
+  bodyY: RNAnimated.Value;
+  bodyScale: RNAnimated.Value;
   /** Where on the ring the last spark hit (radians) and its flash 0..1. */
   impactAngle: SharedValue<number>;
   impactFlash: SharedValue<number>;
@@ -150,6 +160,17 @@ interface LabXp {
 }
 
 const LabXpContext = createContext<LabXp | null>(null);
+/**
+ * `award` alone, in its own context, because it never changes. A list that only
+ * spends XP must not re-render when XP lands in the badge (kolo 27).
+ */
+const LabXpAwardContext = createContext<LabXp['award'] | null>(null);
+
+export function useLabXpAward(): LabXp['award'] {
+  const ctx = useContext(LabXpAwardContext);
+  if (!ctx) throw new Error('useLabXpAward must be used inside LabXpProvider');
+  return ctx;
+}
 
 export function useLabXp(): LabXp {
   const ctx = useContext(LabXpContext);
@@ -179,15 +200,55 @@ export function LabXpProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  /** JS side of a landed spark: the numbers and the level (the visuals already happened). */
-  const credit = useCallback((value: number, levelUp: boolean) => {
-    xpRef.current += value;
-    if (levelUp) {
-      setLevel(getXPProgress(xpRef.current).currentLevel);
-      setLevelUpKey(k => k + 1);
-      notification(NotificationFeedbackType.Success);
-    }
-  }, []);
+  const bodyX = useRef(new RNAnimated.Value(0)).current;
+  const bodyY = useRef(new RNAnimated.Value(0)).current;
+  const bodyScale = useRef(new RNAnimated.Value(1)).current;
+
+  /**
+   * JS side of a landed spark: the numbers, the level, and the badge's knock.
+   * The ring answers on the UI thread (`onHit`); the view around it moves through
+   * the native driver — as a Reanimated style it was a ShadowTree commit on every
+   * frame of the whole flight, on every screen (kolo 27).
+   */
+  const credit = useCallback(
+    (value: number, levelUp: boolean, angle: number) => {
+      xpRef.current += value;
+      const knock = (node: RNAnimated.Value, to: number) =>
+        RNAnimated.sequence([
+          RNAnimated.timing(node, {
+            toValue: to,
+            duration: 30,
+            useNativeDriver: true,
+          }),
+          RNAnimated.timing(node, {
+            toValue: 0,
+            duration: 230,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      knock(bodyX, -Math.cos(angle) * 3);
+      knock(bodyY, -Math.sin(angle) * 3);
+      RNAnimated.sequence([
+        RNAnimated.timing(bodyScale, {
+          toValue: 1.18,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        RNAnimated.spring(bodyScale, {
+          toValue: 1,
+          damping: 11,
+          stiffness: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      if (levelUp) {
+        setLevel(getXPProgress(xpRef.current).currentLevel);
+        setLevelUpKey(k => k + 1);
+        notification(NotificationFeedbackType.Success);
+      }
+    },
+    [bodyX, bodyY, bodyScale]
+  );
 
   /**
    * A spark hits the ring — runs on the UI thread in the very frame the spark
@@ -223,7 +284,7 @@ export function LabXpProvider({ children }: { children: ReactNode }) {
           easing: Easing.out(Easing.cubic),
         });
       }
-      scheduleOnRN(credit, value, levelUp);
+      scheduleOnRN(credit, value, levelUp, angle);
     },
     [impactAngle, impactFlash, pulse, ring, credit]
   );
@@ -324,6 +385,9 @@ export function LabXpProvider({ children }: { children: ReactNode }) {
       level,
       ring,
       pulse,
+      bodyX,
+      bodyY,
+      bodyScale,
       impactAngle,
       impactFlash,
       levelUpKey,
@@ -335,6 +399,9 @@ export function LabXpProvider({ children }: { children: ReactNode }) {
       level,
       ring,
       pulse,
+      bodyX,
+      bodyY,
+      bodyScale,
       impactAngle,
       impactFlash,
       levelUpKey,
@@ -345,7 +412,9 @@ export function LabXpProvider({ children }: { children: ReactNode }) {
 
   return (
     <LabXpContext.Provider value={value}>
-      {children}
+      <LabXpAwardContext.Provider value={award}>
+        {children}
+      </LabXpAwardContext.Provider>
       <View
         ref={frameRef}
         collapsable={false}
@@ -554,6 +623,9 @@ export function LevelBadge() {
     level,
     ring,
     pulse,
+    bodyX,
+    bodyY,
+    bodyScale,
     impactAngle,
     impactFlash,
     levelUpKey,
@@ -634,14 +706,8 @@ export function LevelBadge() {
     [center]
   );
 
-  // Each hit swells the badge and knocks it a little away from where the spark came in.
-  const bodyStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: -Math.cos(impactAngle.value) * 3 * impactFlash.value },
-      { translateY: -Math.sin(impactAngle.value) * 3 * impactFlash.value },
-      { scale: 1 + 0.18 * pulse.value },
-    ],
-  }));
+  // Each hit swells the badge and knocks it a little away from where the spark came
+  // in (driven from `credit`, native driver).
   // A ripple spreads from the point of impact while the flash fades — it soaks in.
   const rippleR = useDerivedValue(() => 4 + 11 * (1 - impactFlash.value));
 
@@ -666,7 +732,18 @@ export function LevelBadge() {
           pressScale={0.92}
           style={styles.badgeHit}
         >
-          <Animated.View style={[styles.badgeBody, bodyStyle]}>
+          <RNAnimated.View
+            style={[
+              styles.badgeBody,
+              {
+                transform: [
+                  { translateX: bodyX },
+                  { translateY: bodyY },
+                  { scale: bodyScale },
+                ],
+              },
+            ]}
+          >
             <Canvas style={styles.badgeCanvas} pointerEvents="none">
               <Circle cx={center} cy={center} r={glowR} opacity={glowOpacity}>
                 <RadialGradient
@@ -754,7 +831,7 @@ export function LevelBadge() {
                 style={{ fontFamily: labFonts.bold, color: c.text }}
               />
             </View>
-          </Animated.View>
+          </RNAnimated.View>
         </PressableScale>
       </View>
       <LevelUpTag levelUpKey={levelUpKey} level={level} />

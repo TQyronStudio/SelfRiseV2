@@ -187,6 +187,113 @@ interface Copy {
       none: string;
     };
   };
+  journal: {
+    subline: string;
+    gratitudeHint: string;
+    selfPraiseHint: string;
+    bonusRoad: string;
+    toNextMilestone: (left: number, emoji: string) => string;
+    allMilestones: string;
+    anotherPrompt: string;
+    anotherQuote: string;
+    entries: (count: number) => string;
+    writingLocked: string;
+    adPlaying: string;
+    calendarHint: string;
+    legend: {
+      complete: string;
+      bonus: string;
+      partial: string;
+      paid: string;
+    };
+    paidDay: string;
+    last30: string;
+    goalLine: string;
+    chartAtGoal: (days: number, total: number) => string;
+    chartAvg: (avg: string) => string;
+    chartHint: string;
+    activeDaysSub: (days: number) => string;
+    milestoneMeaning: { star: string; flame: string; crown: string };
+    newEntryXp: (xp: number) => string;
+  };
+  goals: {
+    subline: string;
+    onPace: string;
+    ahead: (days: number) => string;
+    behind: (days: number) => string;
+    noDeadline: string;
+    by: (date: string) => string;
+    daysLeft: (days: number) => string;
+    neededPerWeek: (amount: string) => string;
+    yourPerWeek: (amount: string) => string;
+    finish: (date: string) => string;
+    shouldBe: string;
+    logReading: string;
+    otherAmount: string;
+    reading: string;
+    undo: string;
+    logged: (amount: string) => string;
+    milestone: (percent: number) => string;
+    noXpLeft: string;
+    paceTitle: string;
+    plan: string;
+    you: string;
+    milestones: string;
+    reached: (date: string) => string;
+    ideas: string;
+    kindCount: string;
+    kindCountHint: string;
+    kindMeasure: string;
+    kindMeasureHint: string;
+    now: string;
+    deadline: string;
+    presets: {
+      m1: string;
+      m3: string;
+      m6: string;
+      year: string;
+      none: string;
+      pick: string;
+    };
+    inDays: (days: number) => string;
+    paceHint: (amount: string, unit: string) => string;
+    previewTitle: string;
+    nextDeadline: (title: string, days: number) => string;
+    allDone: string;
+    doneIn: (days: number) => string;
+    startRequired: string;
+    targetRequired: string;
+    tooLarge: string;
+  };
+  settings: {
+    subline: string;
+    labLanguages: string;
+    privacyLab: string;
+  };
+  onboarding: {
+    customize: string;
+    day: string;
+    slotStart: string;
+    slotHabit: string;
+    slotGoal: string;
+    slotGratitude: string;
+    slotCheck: string;
+    habitSmall: string;
+    gratitudeHint: string;
+    trophiesEarned: (count: number) => string;
+    noHabitBody: string;
+  };
+  trophies: {
+    subline: string;
+    wall: string;
+    filter: string;
+    secret: string;
+    secretHint: string;
+    collectionReward: (xp: number) => string;
+    collectionNote: string;
+    nextLoyalty: (days: number, name: string) => string;
+    ofTotal: (count: number, total: number) => string;
+  };
   detail: {
     title: string;
     today: string;
@@ -309,6 +416,127 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         todayOpen: 'Today — still open',
         none: 'Not planned',
       },
+    },
+    journal: {
+      subline: 'Three good things a day.',
+      gratitudeHint: 'Something good today',
+      selfPraiseHint: 'Something you did well',
+      bonusRoad: 'Bonus road',
+      toNextMilestone: (left, emoji) =>
+        left === 1 ? `1 more to ${emoji}` : `${left} more to ${emoji}`,
+      allMilestones: 'Every milestone of the day collected.',
+      anotherPrompt: 'Another prompt',
+      anotherQuote: 'Another quote',
+      entries: count => (count === 1 ? '1 entry' : `${count} entries`),
+      writingLocked: 'Writing opens again once your streak is warm.',
+      adPlaying: 'An ad would play here',
+      calendarHint: 'Tap a day to read it',
+      legend: {
+        complete: '3+ entries',
+        bonus: 'Bonus day',
+        partial: 'Started',
+        paid: 'Saved with an ad',
+      },
+      paidDay: 'Frozen day — saved with an ad, the streak went on',
+      last30: 'Last 30 days',
+      goalLine: 'Daily goal',
+      chartAtGoal: (days, total) => `of ${total} days at the daily goal`,
+      chartAvg: avg => `${avg} entries a day on average`,
+      chartHint: 'Tap or slide across the bars',
+      activeDaysSub: days =>
+        days === 1 ? '1 day with entries' : `${days} days with entries`,
+      milestoneMeaning: {
+        star: '4th entry of a day',
+        flame: '8th entry of a day',
+        crown: '13th entry of a day',
+      },
+      newEntryXp: xp => `+${xp} XP`,
+    },
+    goals: {
+      subline: 'Big things, one step at a time.',
+      onPace: 'On pace',
+      ahead: days => (days === 1 ? '1 day ahead' : `${days} days ahead`),
+      behind: days => (days === 1 ? '1 day behind' : `${days} days behind`),
+      noDeadline: 'No deadline',
+      by: date => `by ${date}`,
+      daysLeft: days => (days === 1 ? '1 day left' : `${days} days left`),
+      neededPerWeek: amount => `${amount} a week needed`,
+      yourPerWeek: amount => `${amount} a week so far`,
+      finish: date => `At this pace: ${date}`,
+      shouldBe: 'Where the plan is today',
+      logReading: 'Log a reading',
+      otherAmount: 'Other',
+      reading: 'Today’s reading',
+      undo: 'Undo',
+      logged: amount => `${amount} logged`,
+      milestone: percent => `${percent} % — milestone reached`,
+      noXpLeft: 'Saved. XP for this goal returns tomorrow.',
+      paceTitle: 'You vs. the plan',
+      plan: 'Plan',
+      you: 'You',
+      milestones: 'Milestones',
+      reached: date => `reached ${date}`,
+      ideas: 'Start from an idea',
+      kindCount: 'Count up',
+      kindCountHint: 'Add as you go — books, money, hours',
+      kindMeasure: 'Measure',
+      kindMeasureHint: 'Log a reading — weight, balance, time',
+      now: 'Now',
+      deadline: 'Deadline',
+      presets: {
+        m1: '1 month',
+        m3: '3 months',
+        m6: '6 months',
+        year: 'End of year',
+        none: 'No deadline',
+        pick: 'Pick a date',
+      },
+      inDays: days => (days === 1 ? 'tomorrow' : `in ${days} days`),
+      paceHint: (amount, unit) => `That’s about ${amount} ${unit} a week`,
+      previewTitle: 'Your new goal',
+      nextDeadline: (title, days) => `Next: ${title} in ${days} days`,
+      allDone: 'Nothing due — enjoy the momentum.',
+      doneIn: days =>
+        days === 1 ? 'reached in 1 day' : `reached in ${days} days`,
+      startRequired:
+        'Enter where you are now — it has to differ from the target.',
+      targetRequired: 'Enter the value you want to reach (0 is fine).',
+      tooLarge: 'That number is too large.',
+    },
+    settings: {
+      subline: 'Make it yours.',
+      labLanguages: 'The lab speaks EN and DE; the app adds Español.',
+      privacyLab: 'In the app this opens the consent form.',
+    },
+    onboarding: {
+      customize: 'Make it yours',
+      day: 'Your first day',
+      slotStart: 'Start',
+      slotHabit: 'Habit',
+      slotGoal: 'Goal',
+      slotGratitude: 'Gratitude',
+      slotCheck: 'First tick',
+      habitSmall:
+        'Pick something small enough to do today. You can change it anytime.',
+      gratitudeHint: 'A few words are enough.',
+      trophiesEarned: count =>
+        count === 1 ? '1 trophy earned' : `${count} trophies earned`,
+      noHabitBody:
+        "Add your first habit whenever you're ready. That's your Day 1.",
+    },
+    trophies: {
+      subline: 'Everything you have earned, in one room.',
+      wall: 'All trophies',
+      filter: 'Filter',
+      secret: 'Secret trophy',
+      secretHint: 'Some things are better discovered. Keep going.',
+      collectionReward: xp => `+${xp} XP for the full set`,
+      collectionNote: 'Tap a trophy to see how to earn it.',
+      nextLoyalty: (days, name) =>
+        days === 1
+          ? `1 active day to ${name}`
+          : `${days} active days to ${name}`,
+      ofTotal: (count, total) => `${count} of ${total}`,
     },
     detail: {
       title: 'My Journal',
@@ -433,6 +661,130 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         todayOpen: 'Heute – noch offen',
         none: 'Nicht geplant',
       },
+    },
+    journal: {
+      subline: 'Drei gute Dinge am Tag.',
+      gratitudeHint: 'Etwas Gutes heute',
+      selfPraiseHint: 'Etwas, das du gut gemacht hast',
+      bonusRoad: 'Bonusweg',
+      toNextMilestone: (left, emoji) =>
+        left === 1 ? `Noch 1 bis ${emoji}` : `Noch ${left} bis ${emoji}`,
+      allMilestones: 'Alle Meilensteine des Tages gesammelt.',
+      anotherPrompt: 'Andere Frage',
+      anotherQuote: 'Anderes Zitat',
+      entries: count => (count === 1 ? '1 Eintrag' : `${count} Einträge`),
+      writingLocked:
+        'Schreiben geht wieder, sobald deine Serie aufgewärmt ist.',
+      adPlaying: 'Hier liefe eine Werbung',
+      calendarHint: 'Tippe auf einen Tag, um ihn zu lesen',
+      legend: {
+        complete: '3+ Einträge',
+        bonus: 'Bonustag',
+        partial: 'Begonnen',
+        paid: 'Mit Werbung gerettet',
+      },
+      paidDay:
+        'Eingefrorener Tag – mit Werbung gerettet, die Serie lief weiter',
+      last30: 'Letzte 30 Tage',
+      goalLine: 'Tagesziel',
+      chartAtGoal: (days, total) => `von ${total} Tagen mit Tagesziel`,
+      chartAvg: avg => `Ø ${avg} Einträge pro Tag`,
+      chartHint: 'Tippe oder streiche über die Balken',
+      activeDaysSub: days =>
+        days === 1 ? '1 Tag mit Einträgen' : `${days} Tage mit Einträgen`,
+      milestoneMeaning: {
+        star: '4. Eintrag eines Tages',
+        flame: '8. Eintrag eines Tages',
+        crown: '13. Eintrag eines Tages',
+      },
+      newEntryXp: xp => `+${xp} XP`,
+    },
+    goals: {
+      subline: 'Große Dinge, Schritt für Schritt.',
+      onPace: 'Im Plan',
+      ahead: days => (days === 1 ? '1 Tag voraus' : `${days} Tage voraus`),
+      behind: days => (days === 1 ? '1 Tag zurück' : `${days} Tage zurück`),
+      noDeadline: 'Ohne Termin',
+      by: date => `bis ${date}`,
+      daysLeft: days => (days === 1 ? 'noch 1 Tag' : `noch ${days} Tage`),
+      neededPerWeek: amount => `${amount} pro Woche nötig`,
+      yourPerWeek: amount => `bisher ${amount} pro Woche`,
+      finish: date => `In diesem Tempo: ${date}`,
+      shouldBe: 'Wo der Plan heute steht',
+      logReading: 'Messwert eintragen',
+      otherAmount: 'Andere',
+      reading: 'Heutiger Messwert',
+      undo: 'Rückgängig',
+      logged: amount => `${amount} eingetragen`,
+      milestone: percent => `${percent} % – Meilenstein erreicht`,
+      noXpLeft: 'Gespeichert. XP für dieses Ziel gibt es morgen wieder.',
+      paceTitle: 'Du und der Plan',
+      plan: 'Plan',
+      you: 'Du',
+      milestones: 'Meilensteine',
+      reached: date => `erreicht ${date}`,
+      ideas: 'Mit einer Idee starten',
+      kindCount: 'Hochzählen',
+      kindCountHint: 'Nach und nach addieren – Bücher, Geld, Stunden',
+      kindMeasure: 'Messen',
+      kindMeasureHint: 'Messwert eintragen – Gewicht, Kontostand, Zeit',
+      now: 'Jetzt',
+      deadline: 'Termin',
+      presets: {
+        m1: '1 Monat',
+        m3: '3 Monate',
+        m6: '6 Monate',
+        year: 'Jahresende',
+        none: 'Ohne Termin',
+        pick: 'Datum wählen',
+      },
+      inDays: days => (days === 1 ? 'morgen' : `in ${days} Tagen`),
+      paceHint: (amount, unit) => `Das sind etwa ${amount} ${unit} pro Woche`,
+      previewTitle: 'Dein neues Ziel',
+      nextDeadline: (title, days) => `Als Nächstes: ${title} in ${days} Tagen`,
+      allDone: 'Nichts fällig – genieße den Schwung.',
+      doneIn: days =>
+        days === 1 ? 'erreicht in 1 Tag' : `erreicht in ${days} Tagen`,
+      startRequired:
+        'Gib deinen aktuellen Wert ein – er muss sich vom Ziel unterscheiden.',
+      targetRequired: 'Gib den Zielwert ein (0 ist erlaubt).',
+      tooLarge: 'Diese Zahl ist zu groß.',
+    },
+    settings: {
+      subline: 'Mach sie zu deiner App.',
+      labLanguages: 'Das Labor spricht EN und DE; die App auch Español.',
+      privacyLab: 'In der App öffnet sich hier das Einwilligungsformular.',
+    },
+    onboarding: {
+      customize: 'Mach es zu deinem',
+      day: 'Dein erster Tag',
+      slotStart: 'Start',
+      slotHabit: 'Routine',
+      slotGoal: 'Ziel',
+      slotGratitude: 'Dank',
+      slotCheck: 'Abhaken',
+      habitSmall:
+        'Wähle etwas so Kleines, dass du es heute schaffst. Du kannst es jederzeit ändern.',
+      gratitudeHint: 'Ein paar Worte genügen.',
+      trophiesEarned: count =>
+        count === 1 ? '1 Trophäe verdient' : `${count} Trophäen verdient`,
+      noHabitBody:
+        'Lege deine erste Gewohnheit an, wenn du bereit bist. Das ist dein Tag 1.',
+    },
+    trophies: {
+      subline: 'Alles, was du dir verdient hast, in einem Raum.',
+      wall: 'Alle Trophäen',
+      filter: 'Filter',
+      secret: 'Geheime Trophäe',
+      secretHint: 'Manches entdeckt man besser selbst. Mach weiter.',
+      collectionReward: xp => `+${xp} XP für das ganze Set`,
+      collectionNote:
+        'Tippe auf eine Trophäe, um zu sehen, wie du sie bekommst.',
+      nextLoyalty: (days, name) =>
+        days === 1
+          ? `Noch 1 aktiver Tag bis ${name}`
+          : `Noch ${days} aktive Tage bis ${name}`,
+      ofTotal: (count, total) => `${count} von ${total}`,
     },
     detail: {
       title: 'Tagebuch',

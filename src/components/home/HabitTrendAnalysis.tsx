@@ -267,7 +267,10 @@ export const HabitTrendAnalysis: React.FC = () => {
       if (totalNewCompletions > 0) {
         trends.push({
           title: t('home.habitTrends.buildingNewHabits'),
-          description: t('home.habitTrends.newHabitsProgress', { completions: totalNewCompletions, habits: newHabits.length }),
+          description: t('home.habitTrends.newHabitsProgress', {
+            completions: t('home.habitTrends.newHabitsCompletions', { count: totalNewCompletions }),
+            habits: t('home.habitTrends.newHabitsCount', { count: newHabits.length }),
+          }),
           icon: '🌱',
           color: colors.success,
           trend: 'improving' as const

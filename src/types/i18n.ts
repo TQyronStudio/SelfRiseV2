@@ -80,11 +80,16 @@ export interface TranslationKeys {
       consistencyStable: string;
       buildingNewHabits: string;
       newHabitsProgress: string;
+      newHabitsCompletions_one: string;
+      newHabitsCompletions_other: string;
+      newHabitsCount_one: string;
+      newHabitsCount_other: string;
       earlyMomentum: string;
       earlyMomentumDescription: string;
       starPerformer: string;
       streakChampions: string;
-      streakChampionsDescription: string;
+      streakChampionsDescription_one: string;
+      streakChampionsDescription_other: string;
       excellentWeek: string;
       excellentWeekDescription: string;
       last4Weeks: string;
@@ -110,7 +115,8 @@ export interface TranslationKeys {
       activeDescription: string;
       harmonyStreak: string;
       readyToActivate: string;
-      moreDays: string;
+      moreDays_one: string;
+      moreDays_other: string;
       activateButton: string;
       timeRemaining: {
         hoursMinutes: string;
@@ -511,7 +517,8 @@ export interface TranslationKeys {
       totalEntries: string;
       allTime: string;
       activeDays: string;
-      daysWithEntries: string;
+      daysWithEntries_one: string;
+      daysWithEntries_other: string;
       currentStreak: string;
       dailyAverage: string;
       entriesPerDay: string;

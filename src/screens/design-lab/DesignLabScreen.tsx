@@ -25,7 +25,12 @@
  * stays a development tool or is removed in F5.
  */
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  StyleSheet,
+  useColorScheme,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -55,7 +60,6 @@ import {
   LabThemeProvider,
   PressableScale,
   Rise,
-  Surface,
   useLab,
 } from './labPrimitives';
 import {
@@ -71,9 +75,25 @@ import {
 } from './labTokens';
 import { LabLang, MOCK_COPY } from './mockCopy';
 import { AchievementCelebrationConcept } from './AchievementCelebrationConcept';
+import {
+  OnboardingAsk,
+  OnboardingConcept,
+  OnboardingEnding,
+  OnboardingResult,
+  OnboardingXp,
+} from './OnboardingConcept';
+import { ScreenThreeEnding } from '@/src/components/onboarding/firstCheckCopy';
 import { LabXpProvider, LevelBadge } from './xpFlight';
 import { LabTodayProvider } from './habitsMock';
 import { HabitsConcept } from './HabitsConcept';
+import { JournalConcept } from './JournalConcept';
+import { LabJournalProvider } from './journalMock';
+import { GoalsConcept } from './GoalsConcept';
+import { LabGoalsProvider } from './goalsMock';
+import { LabPerfProbe } from './labPerf';
+import { SettingsConcept, ThemePref } from './SettingsConcept';
+import { TrophyRoomConcept } from './TrophyRoomConcept';
+import { SlidePage } from './journalParts';
 
 const RARITY_ORDER: LabRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
@@ -93,7 +113,20 @@ const TAB_ICONS: { active: IoniconName; idle: IoniconName }[] = [
 
 export function DesignLabScreen() {
   const { isDark } = useTheme();
-  const [mode, setMode] = useState<LabMode>(isDark ? 'dark' : 'light');
+  const scheme = useColorScheme();
+  const [themePref, setThemePref] = useState<ThemePref>(
+    isDark ? 'dark' : 'light'
+  );
+  const mode: LabMode =
+    themePref === 'system' ? (scheme === 'dark' ? 'dark' : 'light') : themePref;
+  const [trophies, setTrophies] = useState(false);
+  // Onboarding: 'flow' covers everything, 'ask' sits over the real Habits tab.
+  const [onboarding, setOnboarding] = useState<
+    'off' | 'flow' | 'ask' | ScreenThreeEnding
+  >('off');
+  const [onbResult, setOnbResult] = useState<OnboardingResult | null>(null);
+  const [pendingXp, setPendingXp] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
   const [lang, setLang] = useState<LabLang>('en');
   const [intro, setIntro] = useState<{ kind: IntroKind; key: number }>({
     kind: 'launch',
@@ -129,91 +162,173 @@ export function DesignLabScreen() {
         <View style={{ flex: 1, backgroundColor: c.canvas }}>
           <LabXpProvider>
             <LabTodayProvider>
-              <LabStatusBar mode={mode} />
-              <LabToolbar
-                topInset={insets.top}
-                reducedMotion={reducedMotion}
-                showFps={showFps}
-                crown={crown}
-                onToggleCrown={() => setCrown(v => !v)}
-                onToggleMode={() =>
-                  setMode(m => (m === 'dark' ? 'light' : 'dark'))
-                }
-                onToggleLang={() => setLang(l => (l === 'en' ? 'de' : 'en'))}
-                onToggleFps={() => setShowFps(v => !v)}
-                onLaunch={() => {
-                  setTab(0);
-                  play('launch');
-                }}
-                onSettle={() => play('settle')}
-                onAchievement={() => {
-                  const rarity =
-                    RARITY_ORDER[nextRarity.current % RARITY_ORDER.length] ??
-                    'common';
-                  nextRarity.current += 1;
-                  setCelebration(prev => ({
-                    rarity,
-                    key: (prev?.key ?? 0) + 1,
-                  }));
-                }}
-              />
+              <LabJournalProvider>
+                <LabGoalsProvider>
+                  <LabStatusBar mode={mode} />
+                  <LabToolbar
+                    topInset={insets.top}
+                    reducedMotion={reducedMotion}
+                    showFps={showFps}
+                    crown={crown}
+                    onToggleCrown={() => setCrown(v => !v)}
+                    onToggleMode={() =>
+                      setThemePref(mode === 'dark' ? 'light' : 'dark')
+                    }
+                    onToggleLang={() =>
+                      setLang(l => (l === 'en' ? 'de' : 'en'))
+                    }
+                    onToggleFps={() => setShowFps(v => !v)}
+                    onLaunch={() => {
+                      setTab(0);
+                      play('launch');
+                    }}
+                    onSettle={() => play('settle')}
+                    onAchievement={() => {
+                      const rarity =
+                        RARITY_ORDER[
+                          nextRarity.current % RARITY_ORDER.length
+                        ] ?? 'common';
+                      nextRarity.current += 1;
+                      setCelebration(prev => ({
+                        rarity,
+                        key: (prev?.key ?? 0) + 1,
+                      }));
+                    }}
+                  />
 
-              {/* Pages cross-fade; the incoming one also runs the quick entrance. */}
-              <View style={{ flex: 1 }}>
-                <Animated.View
-                  key={`${tab}-${intro.kind}-${intro.key}`}
-                  entering={FadeIn.duration(labMotion.base)}
-                  exiting={FadeOut.duration(labMotion.fast)}
-                  style={StyleSheet.absoluteFill}
-                >
-                  {tab === 0 ? (
-                    <HomeConcept bottomInset={bottomChrome} />
-                  ) : tab === 1 ? (
-                    <HabitsConcept bottomInset={bottomChrome} />
-                  ) : (
-                    <NextInLab title={MOCK_COPY[lang].tabs[tab] ?? ''} />
-                  )}
-                </Animated.View>
+                  {/* Pages cross-fade; the incoming one also runs the quick entrance. */}
+                  <View style={{ flex: 1 }}>
+                    <Animated.View
+                      key={`${tab}-${intro.kind}-${intro.key}`}
+                      entering={FadeIn.duration(labMotion.base)}
+                      exiting={FadeOut.duration(labMotion.fast)}
+                      style={StyleSheet.absoluteFill}
+                    >
+                      {tab === 0 ? (
+                        <HomeConcept
+                          bottomInset={bottomChrome}
+                          onOpenTrophies={() => setTrophies(true)}
+                        />
+                      ) : tab === 1 ? (
+                        <HabitsConcept
+                          bottomInset={bottomChrome}
+                          onboardingHabit={onbResult?.habit ?? null}
+                          asking={onboarding === 'ask'}
+                        />
+                      ) : tab === 2 ? (
+                        <JournalConcept bottomInset={bottomChrome} />
+                      ) : tab === 3 ? (
+                        <GoalsConcept bottomInset={bottomChrome} />
+                      ) : (
+                        <SettingsConcept
+                          bottomInset={bottomChrome}
+                          themePref={themePref}
+                          onThemePref={setThemePref}
+                          onLang={setLang}
+                          onRestartTutorial={() => setOnboarding('flow')}
+                        />
+                      )}
+                    </Animated.View>
 
-                {/* The level badge: same place on every screen, stays while pages scroll. */}
-                <View style={styles.badgePin} pointerEvents="box-none">
-                  <View
-                    style={[contentColumn, styles.badgeColumn]}
-                    pointerEvents="box-none"
-                  >
-                    <BadgeEntrance />
+                    {/* Opens from Home and Settings; the level badge stays above it. */}
+                    {trophies && (
+                      <SlidePage
+                        width={windowWidth}
+                        onClosed={() => setTrophies(false)}
+                      >
+                        {close => (
+                          <TrophyRoomConcept
+                            bottomInset={bottomChrome}
+                            onClose={close}
+                          />
+                        )}
+                      </SlidePage>
+                    )}
+
+                    {/* The level badge: same place on every screen, stays while pages scroll. */}
+                    <View style={styles.badgePin} pointerEvents="box-none">
+                      <View
+                        style={[contentColumn, styles.badgeColumn]}
+                        pointerEvents="box-none"
+                      >
+                        <BadgeEntrance />
+                      </View>
+                    </View>
                   </View>
-                </View>
-              </View>
 
-              <BottomChrome
-                bottomInset={insets.bottom}
-                activeTab={tab}
-                onSelectTab={next => {
-                  if (next === tab) return;
-                  setTab(next);
-                  play('settle');
-                }}
-              />
+                  <BottomChrome
+                    bottomInset={insets.bottom}
+                    activeTab={tab}
+                    onSelectTab={next => {
+                      if (next === tab) return;
+                      setTab(next);
+                      play('settle');
+                    }}
+                  />
 
-              {showFps && (
-                <View
-                  style={[styles.fps, { top: insets.top + 64 }]}
-                  pointerEvents="none"
-                >
-                  <PerformanceMonitor />
-                </View>
-              )}
+                  {showFps && (
+                    <View
+                      style={[styles.fps, { top: insets.top + 64 }]}
+                      pointerEvents="none"
+                    >
+                      <PerformanceMonitor />
+                    </View>
+                  )}
 
-              {celebration && (
-                <AchievementCelebrationConcept
-                  key={celebration.key}
-                  rarity={celebration.rarity}
-                  onClosed={() => setCelebration(null)}
-                />
-              )}
-
-              <LaunchCurtain />
+                  {celebration && (
+                    <AchievementCelebrationConcept
+                      key={celebration.key}
+                      rarity={celebration.rarity}
+                      onClosed={() => setCelebration(null)}
+                    />
+                  )}
+                  {onboarding === 'ask' && onbResult?.habit && (
+                    <OnboardingAsk
+                      habit={onbResult.habit}
+                      bottomInset={bottomChrome}
+                      onEnding={setOnboarding}
+                    />
+                  )}
+                  {(onboarding === 'done' || onboarding === 'later') &&
+                    onbResult && (
+                      <OnboardingEnding
+                        ending={onboarding}
+                        result={onbResult}
+                        onDone={xp => {
+                          setOnboarding('off');
+                          setPendingXp(xp);
+                        }}
+                        onLearnMore={() => {
+                          setOnboarding('off');
+                          router.push('/how-it-works' as never);
+                        }}
+                      />
+                    )}
+                  {onboarding === 'flow' && (
+                    <OnboardingConcept
+                      themePref={themePref}
+                      onThemePref={setThemePref}
+                      onLang={setLang}
+                      onReady={result => {
+                        setOnbResult(result);
+                        if (result.habit) {
+                          setTab(1);
+                          play('settle');
+                          setOnboarding('ask');
+                        } else {
+                          setOnboarding('later');
+                        }
+                      }}
+                    />
+                  )}
+                  <OnboardingXp
+                    xp={pendingXp}
+                    onLanded={() => setPendingXp(0)}
+                  />
+                  <LaunchCurtain />
+                  <LabPerfProbe />
+                </LabGoalsProvider>
+              </LabJournalProvider>
             </LabTodayProvider>
           </LabXpProvider>
         </View>
@@ -379,46 +494,6 @@ function ToolButton({
         </LabText>
       )}
     </PressableScale>
-  );
-}
-
-/** Tabs other than Home: shows the page transition and the entrance, nothing more yet. */
-function NextInLab({ title }: { title: string }) {
-  const { c, lang } = useLab();
-  const { timeline } = useIntro();
-  return (
-    <View
-      style={[
-        contentColumn,
-        { paddingHorizontal: labSpace.xl, paddingTop: 72 },
-      ]}
-    >
-      <Rise window={timeline.header} distance={18}>
-        <LabText variant="display">{title}</LabText>
-      </Rise>
-      <Rise window={timeline.hero} scaleFrom={0.97}>
-        <Surface
-          style={{
-            marginTop: labSpace.xxl,
-            alignItems: 'center',
-            paddingVertical: labSpace.xxxl,
-          }}
-        >
-          <Ionicons
-            name="color-palette-outline"
-            size={32}
-            color={c.textFaint}
-          />
-          <LabText
-            variant="titleSm"
-            italic
-            style={{ marginTop: labSpace.md, textAlign: 'center' }}
-          >
-            {MOCK_COPY[lang].nextInLab}
-          </LabText>
-        </Surface>
-      </Rise>
-    </View>
   );
 }
 

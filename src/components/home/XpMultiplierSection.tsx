@@ -291,7 +291,7 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
             <Text style={styles.progressSubtext}>
               {canActivate
                 ? t('home.xpMultiplier.readyToActivate')
-                : t('home.xpMultiplier.moreDays', { days: 7 - harmonyStreak.currentStreak })
+                : t('home.xpMultiplier.moreDays', { count: 7 - harmonyStreak.currentStreak })
               }
             </Text>
           </View>

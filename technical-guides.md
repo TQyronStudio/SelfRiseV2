@@ -99,6 +99,26 @@
 
 ---
 
+### 🚨 Plurals: `_one` / `_other` keys, never ICU
+
+```typescript
+// ✅ CORRECT
+daysWithEntries_one: '{{count}} day with entries',
+daysWithEntries_other: '{{count}} days with entries',
+t('journal.stats.daysWithEntries', { count }); // the parameter must be called count
+
+// ❌ WRONG: shown to the user verbatim
+daysWithEntries: '{count, plural, one {# day} other {# days}} with entries',
+```
+
+**Proč**: i18next v této appce nemá ICU plugin, takže ICU zápis nikdo nezpracuje a uživatel vidí surový
+text. `tsc` ani test parity to nepoznají. Hlídá `src/locales/__tests__/pluralFormat.test.ts`.
+
+Dva počty v jedné větě: každý má vlastní `_one` / `_other` klíč a do věty se vloží už přeložený
+(vzor `home.habitTrends.newHabitsProgress`).
+
+---
+
 ### HARDCODED EXCEPTION: Rarity Tiers (Always English)
 
 **These 5 terms are INTENTIONALLY hardcoded in English** and should NEVER be translated:

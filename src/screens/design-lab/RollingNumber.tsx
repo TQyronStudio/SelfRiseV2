@@ -15,8 +15,9 @@
  * GOING LIVE (1:1): shared component as is. Digits need tabular figures (Figtree);
  * Fraunces has none — never roll a serif number.
  */
-import React, { useEffect } from 'react';
+import React, { ReactNode, useEffect, useMemo, useRef } from 'react';
 import {
+  Animated as RNAnimated,
   StyleProp,
   StyleSheet,
   Text,
@@ -27,9 +28,7 @@ import {
 import Animated, {
   SharedValue,
   useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { LabTone, toneColor, typeStyle, useLab } from './labPrimitives';
 import { labType, LabTypeVariant } from './labTokens';
@@ -49,6 +48,11 @@ interface RollingNumberProps {
   delay?: number;
   /** Continuous driver for a single-digit number (e.g. sun × habits). */
   source?: SharedValue<number>;
+  /**
+   * false = the first value just stands there; only later changes roll. For lists
+   * of many numbers (goal cards): 30 springs at once on opening a tab stutter.
+   */
+  rollIn?: boolean;
   style?: StyleProp<TextStyle>;
 }
 
@@ -58,14 +62,41 @@ export function RollingNumber({
   tone = 'text',
   delay = 0,
   source,
+  rollIn = true,
   style,
 }: RollingNumberProps) {
   const { c } = useLab();
   const { fontScale } = useWindowDimensions();
   const t = labType[variant];
-  const textStyle = [typeStyle(variant, toneColor(c, tone)), style];
+  // Margins belong to the whole number, not to each digit: inside a digit's
+  // clipped column a margin shifts the digit out of view (kolo 20 — "9" showed
+  // as a sliver under the ⭐). Split them off onto the row.
+  const {
+    margin,
+    marginTop,
+    marginBottom,
+    marginLeft,
+    marginRight,
+    marginHorizontal,
+    marginVertical,
+    marginStart,
+    marginEnd,
+    ...ownText
+  } = StyleSheet.flatten([typeStyle(variant, toneColor(c, tone)), style]);
+  const rowMargins = {
+    margin,
+    marginTop,
+    marginBottom,
+    marginLeft,
+    marginRight,
+    marginHorizontal,
+    marginVertical,
+    marginStart,
+    marginEnd,
+  };
+  const textStyle = ownText;
   // Column height follows the system text size, capped like the text itself.
-  const flat = StyleSheet.flatten(textStyle);
+  const flat = ownText;
   const lineHeight =
     (flat.lineHeight ?? t.lineHeight) * Math.min(fontScale, t.maxScale);
 
@@ -82,7 +113,7 @@ export function RollingNumber({
     .reverse();
 
   return (
-    <View style={styles.row} accessible accessibilityLabel={text}>
+    <View style={[styles.row, rowMargins]} accessible accessibilityLabel={text}>
       {columns.map(col =>
         col.isDigit ? (
           <DigitColumn
@@ -93,6 +124,7 @@ export function RollingNumber({
             maxScale={t.maxScale}
             delay={delay + col.order * COLUMN_STAGGER}
             source={source && chars.length === 1 ? source : undefined}
+            rollIn={rollIn}
           />
         ) : (
           <Text
@@ -116,6 +148,7 @@ function DigitColumn({
   maxScale,
   delay,
   source,
+  rollIn,
 }: {
   digit: number;
   height: number;
@@ -123,21 +156,17 @@ function DigitColumn({
   maxScale: number;
   delay: number;
   source: SharedValue<number> | undefined;
+  rollIn: boolean;
 }) {
-  const { seen, seenAfter } = useCardSeen();
-  const position = useSharedValue(0);
-  const startIn = seenDelay(seenAfter, delay);
-
-  useEffect(() => {
-    if (source || !seen) return;
-    position.value = withDelay(startIn, withSpring(digit, ROLL_SPRING));
-  }, [digit, seen, startIn, position, source]);
-
-  const stripStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: -(source ? source.value : position.value) * height },
-    ],
-  }));
+  const digits = DIGITS.map(d => (
+    <Text
+      key={d}
+      style={[textStyle, { height, lineHeight: height, textAlign: 'center' }]}
+      maxFontSizeMultiplier={maxScale}
+    >
+      {d}
+    </Text>
+  ));
 
   return (
     <View
@@ -151,21 +180,90 @@ function DigitColumn({
       >
         8
       </Text>
-      <Animated.View style={[styles.strip, stripStyle]}>
-        {DIGITS.map(d => (
-          <Text
-            key={d}
-            style={[
-              textStyle,
-              { height, lineHeight: height, textAlign: 'center' },
-            ]}
-            maxFontSizeMultiplier={maxScale}
-          >
-            {d}
-          </Text>
-        ))}
-      </Animated.View>
+      {source ? (
+        <SourceStrip source={source} height={height}>
+          {digits}
+        </SourceStrip>
+      ) : (
+        <SpringStrip
+          digit={digit}
+          height={height}
+          delay={delay}
+          rollIn={rollIn}
+        >
+          {digits}
+        </SpringStrip>
+      )}
     </View>
+  );
+}
+
+/** Driven frame by frame by another animation (the sun on Home) — Reanimated. */
+function SourceStrip({
+  source,
+  height,
+  children,
+}: {
+  source: SharedValue<number>;
+  height: number;
+  children: ReactNode;
+}) {
+  const stripStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -source.value * height }],
+  }));
+  return (
+    <Animated.View style={[styles.strip, stripStyle]}>{children}</Animated.View>
+  );
+}
+
+/**
+ * An ordinary roll: RN Animated with the native driver (kolo 27). No ShadowTree
+ * commits, and a React commit cannot pause it — with Reanimated, every digit also
+ * stayed in the props map that each React commit has to re-apply.
+ * The target lives in a JS ref: never read a shared value from JS (lesson 45).
+ */
+function SpringStrip({
+  digit,
+  height,
+  delay,
+  rollIn,
+  children,
+}: {
+  digit: number;
+  height: number;
+  delay: number;
+  rollIn: boolean;
+  children: ReactNode;
+}) {
+  const { seen, seenAfter } = useCardSeen();
+  const reducedMotion = useReducedMotion();
+  const position = useRef(new RNAnimated.Value(rollIn ? 0 : digit)).current;
+  const target = useRef(rollIn ? 0 : digit);
+  const startIn = seenDelay(seenAfter, delay);
+
+  useEffect(() => {
+    if (!seen || target.current === digit) return;
+    target.current = digit;
+    if (reducedMotion) {
+      position.setValue(digit);
+      return;
+    }
+    RNAnimated.spring(position, {
+      toValue: digit,
+      ...ROLL_SPRING,
+      delay: startIn,
+      useNativeDriver: true,
+    }).start();
+  }, [digit, seen, startIn, position, reducedMotion]);
+
+  const translateY = useMemo(
+    () => RNAnimated.multiply(position, -height),
+    [position, height]
+  );
+  return (
+    <RNAnimated.View style={[styles.strip, { transform: [{ translateY }] }]}>
+      {children}
+    </RNAnimated.View>
   );
 }
 

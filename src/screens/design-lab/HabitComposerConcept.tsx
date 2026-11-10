@@ -18,7 +18,7 @@
  * validation with HabitForm (do not copy it twice); icons only via HABIT_ICON_MAP;
  * the sheet's bottom bar must clear the banner + tab bar (lesson 11).
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   Pressable,
@@ -66,9 +66,10 @@ import {
   onHabitColor,
 } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
+import { useKeyboardLift } from './journalParts';
 import { addDays, LabHabit, mondayOf, startOfDay } from './habitsMock';
 
-const COLORS: LabHabitColor[] = [
+export const COLORS: LabHabitColor[] = [
   'blue',
   'teal',
   'green',
@@ -78,7 +79,7 @@ const COLORS: LabHabitColor[] = [
   'pink',
   'purple',
 ];
-const ICONS = Object.values(HABIT_ICON_MAP) as IoniconName[];
+export const ICONS = Object.values(HABIT_ICON_MAP) as IoniconName[];
 const SHEET_TOP = 64;
 
 interface ComposerProps {
@@ -162,6 +163,33 @@ export function HabitComposerConcept({
     opacity: 0.45 + 0.55 * ready.value,
   }));
 
+  // --- Keyboard: Create rides on top of it; a focused field stays above the bar.
+  const rootRef = useRef<View>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollYRef = useRef(0);
+  const barHeight = useRef(0);
+  const nameRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+  const { lift, keyboardTop } = useKeyboardLift(rootRef, bottomInset);
+  const barStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -lift.value }],
+  }));
+  const reveal = (node: TextInput | null) => {
+    setTimeout(() => {
+      const top = keyboardTop.current;
+      if (top === null || !node) return;
+      node.measureInWindow((_x, y, _w, h) => {
+        const limit = top - (barHeight.current - bottomInset) - labSpace.md;
+        if (y + h > limit) {
+          scrollRef.current?.scrollTo({
+            y: scrollYRef.current + (y + h - limit),
+            animated: true,
+          });
+        }
+      });
+    }, 320);
+  };
+
   const create = () => {
     // The app's own rules and texts (HabitForm.validateForm).
     let message: string | null = null;
@@ -217,7 +245,7 @@ export function HabitComposerConcept({
   };
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View ref={rootRef} style={StyleSheet.absoluteFill} collapsable={false}>
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={() => dismiss(onClose)}
@@ -258,9 +286,14 @@ export function HabitComposerConcept({
         </View>
 
         <ScrollView
+          ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={e => {
+            scrollYRef.current = e.nativeEvent.contentOffset.y;
+          }}
           contentContainerStyle={[
             contentColumn,
             styles.body,
@@ -322,50 +355,52 @@ export function HabitComposerConcept({
             </Surface>
           </Animated.View>
 
-          {/* Name */}
-          <Animated.View
-            entering={FadeInDown.delay(130).duration(260)}
-            style={shakeStyle}
-          >
-            <View
-              style={[
-                styles.nameBox,
-                {
-                  backgroundColor: c.surface,
-                  borderColor: error ? c.missed : c.border,
-                },
-              ]}
-            >
-              <TextInput
-                value={name}
-                onChangeText={value => {
-                  setName(value);
-                  setError(null);
-                }}
-                placeholder={k.placeholder}
-                placeholderTextColor={c.textFaint}
-                maxLength={50}
-                returnKeyType="done"
-                maxFontSizeMultiplier={1.4}
-                style={[typeStyle('title', c.text), styles.nameInput]}
-              />
-              <Text
-                style={[typeStyle('caption', c.textFaint)]}
-                maxFontSizeMultiplier={1.3}
-              >
-                {`${trimmed.length}/50`}
-              </Text>
-            </View>
-            {error && (
-              <Text
+          {/* Name — the shake lives on an inner view: a layout animation (entering)
+              and an animated transform on one view fight (Reanimated warning). */}
+          <Animated.View entering={FadeInDown.delay(130).duration(260)}>
+            <Animated.View style={shakeStyle}>
+              <View
                 style={[
-                  typeStyle('caption', c.missed),
-                  { marginTop: 6, marginLeft: labSpace.xs },
+                  styles.nameBox,
+                  {
+                    backgroundColor: c.surface,
+                    borderColor: error ? c.missed : c.border,
+                  },
                 ]}
               >
-                {error}
-              </Text>
-            )}
+                <TextInput
+                  ref={nameRef}
+                  onFocus={() => reveal(nameRef.current)}
+                  value={name}
+                  onChangeText={value => {
+                    setName(value);
+                    setError(null);
+                  }}
+                  placeholder={k.placeholder}
+                  placeholderTextColor={c.textFaint}
+                  maxLength={50}
+                  returnKeyType="done"
+                  maxFontSizeMultiplier={1.4}
+                  style={[typeStyle('title', c.text), styles.nameInput]}
+                />
+                <Text
+                  style={[typeStyle('caption', c.textFaint)]}
+                  maxFontSizeMultiplier={1.3}
+                >
+                  {`${trimmed.length}/50`}
+                </Text>
+              </View>
+              {error && (
+                <Text
+                  style={[
+                    typeStyle('caption', c.missed),
+                    { marginTop: 6, marginLeft: labSpace.xs },
+                  ]}
+                >
+                  {error}
+                </Text>
+              )}
+            </Animated.View>
           </Animated.View>
 
           {/* Ideas */}
@@ -501,6 +536,8 @@ export function HabitComposerConcept({
           <Animated.View entering={FadeInDown.delay(380).duration(260)}>
             <Label text={t('habits.form.description')} />
             <TextInput
+              ref={descriptionRef}
+              onFocus={() => reveal(descriptionRef.current)}
               value={description}
               onChangeText={setDescription}
               placeholder={t('habits.form.descriptionPlaceholder')}
@@ -517,8 +554,12 @@ export function HabitComposerConcept({
           </Animated.View>
         </ScrollView>
 
-        {/* Create — fixed above the bottom chrome */}
-        <View
+        {/* Create — above the bottom chrome, and on top of the keyboard when it is
+            up (kolo 25: the keyboard used to hide it). */}
+        <Animated.View
+          onLayout={e => {
+            barHeight.current = e.nativeEvent.layout.height;
+          }}
           style={[
             styles.createBar,
             {
@@ -526,6 +567,7 @@ export function HabitComposerConcept({
               backgroundColor: c.canvas,
               borderTopColor: c.border,
             },
+            barStyle,
           ]}
         >
           <Animated.View style={[contentColumn, createStyle]}>
@@ -556,7 +598,7 @@ export function HabitComposerConcept({
               </LabText>
             </PressableScale>
           </Animated.View>
-        </View>
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -574,7 +616,7 @@ function Label({ text }: { text: string }) {
   );
 }
 
-function Swatch({
+export function Swatch({
   color,
   selected,
   onPress,
@@ -615,7 +657,7 @@ function Swatch({
   );
 }
 
-function DayToggle({
+export function DayToggle({
   letter,
   on,
   color,

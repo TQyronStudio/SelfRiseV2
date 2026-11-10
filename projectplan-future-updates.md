@@ -858,3 +858,36 @@ Accessibility tvrdí, že popup respektuje systémové „omezit pohyb" — **ne
 (`XpPopupAnimation` nepoužívá `useAccessibility()`). Souhrnná lišta ano, bublina ne.
 - [ ] Bublina: při zapnutém „omezit pohyb" bez skoku/zvětšení (jen fade) + test časové osy
 - [ ] Do té doby opravit tvrzení v průvodci, aby nelhal
+
+## Phase 12: Časová osa dne (plánování návyků v čase) 🕘
+
+**Origin**: Petr 2026-10-31 při návrhu onboardingu (R-27). Vzor: appka Structured, kde uživatel vidí mapu
+dne a postupuje jí. Teď je to nová část appky a mají přednost jiné priority.
+
+### Goal
+
+Uživatel si může dát návykům čas a vidí, jak jeho den postupuje. **Volitelně**: ne každý si chce určovat,
+kdy co bude plnit, a kdo nechce, nesmí o nic přijít.
+
+### Jak velké to může být
+
+- **Části dne** (ráno, odpoledne, večer, kdykoliv): přesunuto do @premium-design-plan.md, R-30. Vyzkouší se
+  v laboratoři, na plnou osu může navázat.
+- **Plná časová osa**: přesný začátek a délka, mapa dne. Nová část appky.
+- **Samotný štítek „Večer“ na kartě**: zamítnuto. Čas se v praxi posouvá a štítek pak nic neříká.
+
+### Design Considerations (k rozhodnutí při implementaci)
+
+- [ ] **Posun v čase**: návyk splněný v jinou dobu nesmí vypadat jako selhání („dám si čtení večer, ale
+      dostanu se k tomu odpoledne"). Laskavý průvodce, ne trenér s píšťalkou
+- [ ] **Prázdná osa**: se třemi až pěti návyky bude skoro prázdná. Co na ní bude ještě (Deník, kroky k cílům)?
+- [ ] **Řazení**: vztah k ručnímu řazení a k dělení na plánované a bonusové návyky
+- [ ] **Data**: nový údaj u návyku v databázi, tedy migrace a záloha
+- [ ] **Připomínky**: dnes jsou dvě společné a žádný návyk nejmenují. Připomínka v čase návyku je samostatný kus
+      práce (@technical-guides:Notifications.md)
+
+### When to Implement
+
+- Až po ladění appky, trychtýři prvního dne a marketingu
+- Onboarding se dá rozšířit až ve chvíli, kdy funkce opravdu existuje: otázka „Kdy?" byla z tutoriálu odstraněna
+  právě proto, že neměla kde pokračovat (premium-design-plan.md, R-27)

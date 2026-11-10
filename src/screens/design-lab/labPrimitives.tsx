@@ -28,6 +28,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  Animated as RNAnimated,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -44,6 +45,7 @@ import Animated, {
   useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
+  useReducedMotion,
   useDerivedValue,
   useSharedValue,
   withDelay,
@@ -259,7 +261,12 @@ export function Surface({ children, style, gradient }: SurfaceProps) {
 // PressableScale — every tap gets a slight press-in and a light haptic
 // ---------------------------------------------------------------------------
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+/**
+ * RN Animated with the native driver, not Reanimated (kolo 27). Every button of
+ * the lab uses this; a Reanimated spring here meant a ShadowTree commit per frame
+ * on every touch — also on the finger that only starts a scroll.
+ */
+const AnimatedPressable = RNAnimated.createAnimatedComponent(Pressable);
 
 interface PressableScaleProps {
   children: ReactNode;
@@ -273,6 +280,11 @@ interface PressableScaleProps {
   accessibilityRole?: 'button' | 'checkbox' | 'tab' | 'link';
   accessibilityState?: { checked?: boolean; selected?: boolean };
   onLayout?: React.ComponentProps<typeof Pressable>['onLayout'];
+  /**
+   * Ms before the press-in shrink starts. A big card in a scroll list uses it, so
+   * a finger that starts a scroll does not start a spring (kolo 23).
+   */
+  pressDelay?: number;
 }
 
 export function PressableScale({
@@ -285,11 +297,18 @@ export function PressableScale({
   accessibilityRole = 'button',
   accessibilityState,
   onLayout,
+  pressDelay,
 }: PressableScaleProps) {
-  const scale = useSharedValue(1);
-  const pressStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new RNAnimated.Value(1)).current;
+  const reducedMotion = useReducedMotion();
+  const springTo = (toValue: number) => {
+    if (reducedMotion) return;
+    RNAnimated.spring(scale, {
+      toValue,
+      ...labMotion.pressSpring,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <AnimatedPressable
@@ -297,18 +316,15 @@ export function PressableScale({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={accessibilityState}
       onLayout={onLayout}
-      onPressIn={() => {
-        scale.value = withSpring(pressScale, labMotion.pressSpring);
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, labMotion.pressSpring);
-      }}
+      {...(pressDelay ? { unstable_pressDelay: pressDelay } : null)}
+      onPressIn={() => springTo(pressScale)}
+      onPressOut={() => springTo(1)}
       onPress={() => {
         if (haptic === 'selection') selection();
         else if (haptic === 'light') impact(ImpactFeedbackStyle.Light);
         onPress?.();
       }}
-      style={[style, pressStyle]}
+      style={[style, { transform: [{ scale }] }]}
     >
       {children}
     </AnimatedPressable>

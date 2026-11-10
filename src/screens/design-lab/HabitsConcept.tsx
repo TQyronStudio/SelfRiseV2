@@ -40,6 +40,7 @@ import Animated, {
   FadeIn,
   withSequence,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
@@ -67,7 +68,7 @@ import { useIntro } from './introTimeline';
 import { ScrollCard, ScrollFrameProvider } from './scrollChoreography';
 import { RollingNumber } from './RollingNumber';
 import { MOCK_COPY } from './mockCopy';
-import { useLabXp, XpPop } from './xpFlight';
+import { useLabXpAward, XpPop } from './xpFlight';
 import {
   addDays,
   dateKey,
@@ -92,9 +93,17 @@ const XP_BONUS = 15;
 
 interface HabitsConceptProps {
   bottomInset: number;
+  /** The habit onboarding created: on top of the list from then on. */
+  onboardingHabit: LabHabit | null;
+  /** Onboarding is waiting for its first check: that check calls for the tap. */
+  asking: boolean;
 }
 
-export function HabitsConcept({ bottomInset }: HabitsConceptProps) {
+export function HabitsConcept({
+  bottomInset,
+  onboardingHabit,
+  asking,
+}: HabitsConceptProps) {
   const { c, lang, crown } = useLab();
   const { timeline } = useIntro();
   const copy = MOCK_COPY[lang];
@@ -109,10 +118,14 @@ export function HabitsConcept({ bottomInset }: HabitsConceptProps) {
   // Habits created in the composer (lab state) — appended, like the app does.
   const [created, setCreated] = useState<LabHabit[]>([]);
   const [composing, setComposing] = useState(false);
-  const [freshId, setFreshId] = useState<string | null>(null);
-  const ordered = [...LAB_HABITS, ...created].sort(
-    (a, b) => order.indexOf(a.id) - order.indexOf(b.id)
+  const [freshId, setFreshId] = useState<string | null>(
+    asking ? (onboardingHabit?.id ?? null) : null
   );
+  const ordered = [
+    ...(onboardingHabit ? [onboardingHabit] : []),
+    ...LAB_HABITS,
+    ...created,
+  ].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   const active = ordered.filter(x => !isPaused(x, today, today));
   const paused = ordered.filter(x => isPaused(x, today, today));
   const planned = active.filter(x => isScheduled(x, today));
@@ -222,6 +235,7 @@ export function HabitsConcept({ bottomInset }: HabitsConceptProps) {
       <HabitCard
         habit={habit}
         fresh={freshId === habit.id}
+        highlight={asking && onboardingHabit?.id === habit.id}
         kind={kind}
         today={today}
         monday={monday}
@@ -622,6 +636,7 @@ function DayColumn({
 function HabitCard({
   habit,
   fresh,
+  highlight,
   kind,
   today,
   monday,
@@ -631,6 +646,8 @@ function HabitCard({
   habit: LabHabit;
   /** Just created: the card glows twice in its own colour as it arrives. */
   fresh: boolean;
+  /** Onboarding: the check pulses until it is ticked. */
+  highlight: boolean;
   kind: 'planned' | 'bonus';
   today: Date;
   monday: Date;
@@ -641,7 +658,7 @@ function HabitCard({
   const copy = MOCK_COPY[lang];
   const h = copy.habits;
   const { done, toggle } = useLabToday();
-  const { award } = useLabXp();
+  const award = useLabXpAward();
   const isDone = !!done[habit.id];
   const checkRef = useRef<View>(null);
   const [pops, setPops] = useState<{ key: number; amount: number }[]>([]);
@@ -805,6 +822,7 @@ function HabitCard({
             />
           </PressableScale>
           <View ref={checkRef} collapsable={false}>
+            {highlight && !isDone && <CheckHalo color={c.primary} />}
             <CheckButton
               done={isDone}
               tone={kind === 'bonus' && !makeupFor ? 'reward' : 'success'}
@@ -923,6 +941,47 @@ function DotMark({ shape, color }: { shape: DotShape; color: string }) {
         }
       />
     </View>
+  );
+}
+
+/**
+ * Onboarding's pointer: the real check pulses (no overlay working out where it is).
+ * Reduce motion: a still ring. The highlight may stop moving, it may not disappear.
+ */
+function CheckHalo({ color }: { color: string }) {
+  const reducedMotion = useReducedMotion();
+  const p = useRef(new RNAnimated.Value(0.4)).current;
+  useEffect(() => {
+    if (reducedMotion) return undefined;
+    const loop = RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(p, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(p, {
+          toValue: 0.4,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [p, reducedMotion]);
+  const scale = useMemo(
+    () => p.interpolate({ inputRange: [0.4, 1], outputRange: [0.92, 1.12] }),
+    [p]
+  );
+  return (
+    <RNAnimated.View
+      pointerEvents="none"
+      style={[
+        styles.halo,
+        { borderColor: color, opacity: p, transform: [{ scale }] },
+      ]}
+    />
   );
 }
 
@@ -1407,6 +1466,15 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  halo: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: 2,
+    bottom: 2,
+    borderRadius: 24,
+    borderWidth: 3,
   },
   popAnchor: {
     position: 'absolute',

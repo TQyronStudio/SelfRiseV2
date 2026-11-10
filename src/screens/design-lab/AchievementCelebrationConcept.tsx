@@ -83,7 +83,7 @@ import {
   labSpace,
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
-import { useLabXp } from './xpFlight';
+import { useLabXpAward } from './xpFlight';
 
 /** One real achievement per rarity, so all four variants can be judged. */
 export const CELEBRATION_SAMPLES: Record<
@@ -166,7 +166,7 @@ export function AchievementCelebrationConcept({
   const out = useSharedValue(0);
   const closing = useRef(false);
   const ctaRef = useRef<View>(null);
-  const { award } = useLabXp();
+  const award = useLabXpAward();
 
   useEffect(() => {
     clock.value = withTiming(1, { duration: TOTAL, easing: Easing.linear });

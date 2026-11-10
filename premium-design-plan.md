@@ -231,6 +231,24 @@ se písmo, místo, povrchy a pohyb. Barvy se jen zklidní a opraví.
 | **R-10** | Nový XP systém (odznak úrovně vlevo nahoře na každé obrazovce + jiskry místo souhrnné lišty) ve skutečné appce; velký modal level-upu jen u milníků? | Doporučuji ano; modal jen u milníkových úrovní, jinak stačí odznak |
 | **R-11** | Dny návyku: barva = identita návyku (libovolná, i žlutá/červená), stav = tvar (● ○ ★ × ━) – i ve skutečném kalendáři a grafech | Doporučuji ano (srozumitelnost u každé barvy návyku, WCAG 1.4.1, laskavý tón) |
 | ~~R-12~~ | ~~Barvy RED/YELLOW zobrazovat jinak~~ | **Zrušeno (kolo 19)** – stav nese tvar, barvy uživatelům zůstávají |
+| **R-13** | Deník: splnění dne (3. záznam) **na místě** – zezelenání, jedno rozzáření, haptika, série naskočí – **místo gratulačního modalu**; modal (jedno okno z fronty) zůstává jen pro ⭐🔥👑 s XP a pro milníky série | Doporučuji ano – denní modal se opakuje každý den a nic nového neříká (Petr: „kostrbaté a o ničem") |
+| **R-14** | Deník: zmrzlá série zamkne psaní **dřív, než uživatel začne psát**, a ohřátí (reklamy / Začít znovu) je přímo v Deníku; dnes appka nechá napsat celý text, při uložení ho zahodí a pošle na Home | Doporučuji ano – zahozený text je nejhorší chvíle deníku; pojistka v ukládání (Debt Gate) zůstává beze změny |
+| **R-15** | Historie deníku jako **měsíční kalendář** (stav dne tvarem, stuha série) místo listování po dni (‹ › zůstává v panelu dne) + ve Statistikách nový graf **posledních 30 dní** | Doporučuji ano – jen jiné zobrazení existujících dat, žádná nová logika |
+| **R-16** | Cíle: **dva druhy** – „Hochzählen“ (přičítá se: knihy, peníze, hodiny) a „Messen“ (zapisuje se naměřená hodnota od startu k cíli, i směrem dolů: váha 84,6 → 78 kg). Dnes si uživatel u hubnutí musí odečítat sám | ✅ **Schváleno 2026-10-26 (Petr):** **mění data** (počáteční hodnota + druh), potřebuje migraci (stávající cíle = „Hochzählen“, start 0) a úpravu @technical-guides:Goals.md |
+| **R-17** | Cíle: **tempo na každé kartě** („v plánu / o 6 dní napřed / o 10 dní pozadu“, kolik je potřeba za týden, kdy to vyjde) místo záložek Trendy + Předpovědi s pěti metodami; jedna funkce v `goalCalculations.ts` | ✅ **Schváleno 2026-10-26 (Petr):** laskavý tón („pozadu“ v teplé, ne červené barvě) |
+| **R-18** | Cíle: **zápis jedním ťuknutím** (+1, +50 $, „Jiné“ = panel s vlastní klávesnicí; u „Messen“ dnešní hodnota) + **Zpět** místo potvrzovacího okna; zápis zůstává přes `addProgress` se všemi pravidly XP | ✅ **Schváleno 2026-10-26 (Petr)** – zápis dál přes `addProgress` se všemi pravidly XP |
+| **R-19** | Cíle: **termín** předvolbami (1/3/6 měsíců, konec roku, bez termínu) + kalendář přímo v okně místo třístupňového výběru rok → měsíc → den; šablony jako „Začni z nápadu“ v okně místo zvláštního tlačítka a okna | ✅ **Schváleno 2026-10-26 (Petr):** @technical-guides:Goals.md kapitolu „Target Date Step-by-Step Selection Modal“ pak přepsat (pravidlo 3.4) |
+| **R-20** | Cíle: **žádný umělý strop hodnot** (dnes cíl ≤ 999 999, zápis ≤ 1 000 000 – kontroluje je jen `GoalForm` a `ProgressEntryForm`, úložiště ani výpočty je nepotřebují) a u „Messen“ **smí být cíl i start 0** (dluh 5 000 000 Kč → 0). Zůstává jen pojistka proti nesmyslu (bilion) | ✅ **Strop hotov v ostré appce 2026-10-31** (`MAX_GOAL_VALUE`; cíl 0 u „Messen“ až s R-16). Schváleno 2026-10-26 (Petr): „důležitá je flexibilita, aby si to lidi z různých zemí mohli nastavit, jak potřebují“. **Vedlejší oprava:** trofeje `mega-dreamer` (cíl ≥ 1 000 000) a `million-achiever` (dokončit takový cíl) jsou s dnešním stropem 999 999 **nedosažitelné** – od 2026-10-31 dosažitelné. **Otevřené:** bonus za „velký cíl“ (cíl ≥ 10 000 → 350 místo 250 XP) pak závisí na měně – 10 000 Kč je malý cíl. Návrh do převodu: počítat „velký“ jinak (např. podle délky cíle ve dnech), rozhodne Petr |
+| **R-21** | Sbírky trofejí – **2 chyby v ostré appce:** (a) 4 z 8 sbírek (`habits-master`, `journal-sage`, `epic-hunter`, `time-master`) odkazují na smazané trofeje (`habit-collector`, `completion-machine`, `journal-master`, `perfect-week`, `weekend-warrior`, `early-bird`) a **nejdou dokončit**; (b) „Bonus XP“ se ukazuje a sčítá, ale **žádná služba ho nevyplácí**. Laboratoř navrhuje náhrady v `trophiesMock.ts` | ✅ **Hotovo v ostré appce 2026-10-31 (Petr):** odkazy opravené (`trophyCollections.ts`), bonus se vyplácí jednou (`trophyCollectionService`, vyplaceno = XP transakce) |
+| **R-22** | Síň trofejí jako **jedna místnost** místo dvou záložek: počet + rarity, Nedávné, Blíží se, Sbírky (klepnutí otevře sadu – dnes prázdné TODO), Věrnostní cesta, zeď všech 75 s hledáním a filtry; pryč statistické tabulky a Spotlight rotující po 30 s; vstup z Home | ✅ **Schváleno 2026-10-31 (Petr):** „nová síň se mi velice líbí“ |
+| **R-23** | Nastavení: náhledy vzhledu místo 3 přepínačů, jazyk jedním řádkem, čas připomínky hned u přepínače, verze dole. Logika beze změny | Doporučuji ano |
+| **R-24** | Onboarding: **uvítání jako první krok** bez brány tří otázek. Jazyk a vzhled jsou předvybrané podle zařízení a leží pod tlačítkem jako dva tiché štítky | ✅ **Schváleno 2026-10-31 (Petr):** „líbí se mi, jak jsi to udělal“. Pozor při převodu: `onb_language`/`onb_theme` se pošlou s výchozí hodnotou |
+| **R-25** | Onboarding: **dotaz na připomínky až po návyku a cíli**, ne před nimi (dnes se ptáme, když ještě není o čem připomínat) | ✅ **Schváleno 2026-10-31 (Petr):** dotaz až ke konci, kdy je uživatel víc motivovaný. Přesné místo se dořeší s krokem vděčnosti (R-27). Změna pořadí proti systémovému oknu – ověřit se Startup Orchestratorem, `onb_notifications` se přesune |
+| **R-26** | Onboarding: **východ slunce** napříč kroky a „Tvůj první den" se třemi políčky místo teček; po dlaždici živý náhled a „Přizpůsobit" místo otevřeného formuláře | ✅ **Schváleno 2026-10-31 (Petr):** „postupný východ je sympatický“ |
+| **R-27** | Onboarding podle psychologie (rozbor 2026-10-31): (1) „Přeskočit“ jen daného kroku, ne celého úvodu; (2) ~~„Kdy?“ po dlaždici návyku~~ **odstraněno, Petr 2026-10-31**: výběr nikde nezůstal a ne každý si chce čas určovat; (3) závěr jako vrchol: vlastní návyk, cíl a slova z vděčnosti, trofeje najednou (mění pravidlo 3 v Tutorial.md); (4) krok vděčnosti před odškrtnutím; (5) první políčko hotové po „Let's go“; (6) podnadpis „začni malým“; (7) připomínky úplně nakonec, skutečným obecným textem (skutečné připomínky žádný návyk nejmenují). Vědomě NE: falešný počet uživatelů, odpočty, vina za přeskočení, otázka „proč jsi tady“ (zatím) | ✅ **Schváleno 2026-10-31 (Petr):** „postav to celé v laboratoři“. Hotovo v kolech 31 a 32. Při převodu: mění pravidlo 3 v Tutorial.md a význam `onb_skip`, nová událost pro vděčnost |
+| **R-28** | Trofeje: nový katalog, 75 → 51, vzácnost podle času, první den jen běžné trofeje, cíl se do trofejí počítá až po 7 dnech. Katalog a simulace: @achievements-rework-plan.md | ✅ **Schváleno 2026-10-31 (Petr):** vyřazené zmizí úplně i těm, kdo je získali, XP zůstávají. V ostré appce samostatný krok po novém vzhledu, včetně povinného vyčištění uložených trofejí (počet se bere z délky seznamu) |
+| **R-29** | Jedna oslava na jednu akci: běžné tiše, velké okno pro epic a legendary, trofeje a nová úroveň ze stejné akce v jednom momentu. Žádné časové pauzy mezi okny | Petr 2026-10-31: zpětná vazba testerů, chce to řešit. Navrhnout v laboratoři před dokončením zbylých oslav |
+| **R-30** | Části dne: návyky po ráno, odpoledne, večer a „Kdykoliv“, volitelné, ne v tutoriálu. Ruční řazení uvnitř části, bonusové návyky zůstávají zvlášť | Petr zvažuje („zajímavější, ale ne každý to ocení“). Vyzkoušet v laboratoři, v ostré appce samostatný krok (nový údaj v databázi). Plná časová osa zůstává v @projectplan-future-updates.md Phase 12 |
 | **T-Qyron** | Třetí režim | ✅ **Rozhodnuto 2026-10-22:** úroveň **20**, základ = bývalý směr A, **teď se neřeší** (@projectplan-future-updates.md Phase 2.1) |
 
 ---
@@ -459,6 +477,136 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
       zachráněným dnem červeného návyku); ━ pauza; tenký neutrální kroužek = plánováno / dnes. Barvy návyku
       RED a YELLOW jsou zase pravá červená a žlutá. Symbol na barvě návyku (✓, ★, ↺, výběr barvy, dny
       v tvorbě) má **čitelnou barvu podle jasu** (tmavý na žluté, bílý na tmavších) – `onHabitColor()`
+- [x] **Kolo 20 – Můj deník** (`JournalConcept.tsx` + `JournalHistoryConcept.tsx` + `JournalStatsConcept.tsx`,
+      díly v `journalParts.tsx`, kulisy `journalMock.tsx`) – všechny prokliky ostré verze:
+      - **Hlavní obrazovka** v pořadí podle průvodce (citát dne vždy nad dnešními záznamy): „Dnes" = počet,
+        3 díly, plamen série (ťuknutí = náhled zmrzlé série); po 3. záznamu se otevře **bonusová cesta**
+        4→13 s ⭐ 🔥 👑; milníkové odznaky celkem; dvě dlaždice (vděčnost / sebechvála), každá ukazuje, kolik
+        XP přinese **další** záznam (podle pozice); citát dne ze skutečných citátů appky + „jiný citát";
+        dnešní záznamy číslované 1..N s ⋯ = upravit / smazat, prázdný stav = skutečný text appky
+      - **Psaní** = sheet nad klávesnicí: přepínač typu, otázka ze skutečných nápověd appky (Fraunces
+        kurzíva) + „jiná otázka", 200 znaků, validace a texty jako `GratitudeInput`, chyba = zatřesení;
+        XP vyletí z tlačítka Přidat; 3. záznam = splnění dne na místě (R-13); 4./8./13. = okno ⭐🔥👑 s XP
+        až po „Pokračovat"; nový záznam stránka dorolí a 2× zazáří; úprava ve stejném sheetu
+      - **Smazání** = potvrzení se skutečnými texty; den se přečísluje (čísla se odrolují) a vrací se XP
+        **poslední pozice** (průvodce My-Journal; ověřeno dočasným testem i negativní zkouškou: Petrův
+        příklad 4 záznamy → smazání 2. → −33 XP)
+      - **Zmrzlá série** (náhled): psaní zamčené předem, ohřátí reklamami přímo v Deníku (simulace), led →
+        oheň, „Začít znovu" s potvrzením (R-14)
+      - **Historie** = měsíční kalendář: ● splněno, ●★ bonusový den, přerušovaný kroužek = začato,
+        ❄ = zmrzlý den zachráněný reklamou, stuha spojuje dny série; panel dne s ‹ › a záznamy (upravit /
+        smazat); hledání nahradí kalendář a zvýrazní nalezené slovo (R-15)
+      - **Statistiky**: série s plamenem a nejlepší sérií, 4 čísla, která se dopočítají, graf 30 dní
+        s čarou denního cíle (ťuknutí na sloupec = hodnota), poměr vděčnost / sebechvála, ⭐🔥👑 s významem,
+        povzbuzení appky. Barvy grafu ověřené validátorem skillu `dataviz` (pravidlo 13)
+      - Home a Deník sdílejí stav (dnešní počet, série, odznaky)
+- [x] **Kolo 21 – Deník podle Petrova snímku**: opravena rozbitá čísla u ⭐🔥👑 (příčina v `RollingNumber`,
+      opraveno u zdroje); pryč zdvojená tlačítka Historie / Statistiky na konci stránky; **graf 30 dní
+      předělán** – nahoře „26 z 30 dní s denním cílem“ + průměr, sloupek na jemné stopě, zaoblený jen
+      nahoře, čára cíle přerušovaná s položkou v legendě (ne popisek pod odznakem úrovně), týdenní
+      vodítka a data pondělků, měřítko do 8 (vyšší den nese číslo), ťuknutí nebo tažení prstem =
+      bublina s datem, počtem a ⭐🔥👑, ostatní sloupky se ztlumí, opětovné ťuknutí bublinu zavře
+- [x] **Kolo 22 – Cíle** (`GoalsConcept.tsx`, `GoalDetailConcept.tsx`, `GoalComposerConcept.tsx`, díly
+      `goalParts.tsx`, kulisy `goalsMock.tsx`) – Petr: „počítadla a zapisování progresu jsou neohrabané“:
+      - **Přehled**: aktivní / v tempu / splněné + **čára termínů** (dnes vlevo, každý cíl tečkou na svém datu,
+        „Další: … za N dní“)
+      - **Karta cíle**: hodnota (odroluje se), pruh se **zářezy 25/50/75 %** (rozsvítí se, když se zaplatí
+        jejich XP – dnes se platí potichu) a **ryskou „kde je dnes plán“**, tempo slovy, počet dní,
+        **rychlé zápisy** (+1 kniha, +50/100/250 $, +0,5/1/2 h, „Jiné“), u váhy „Zapsat hodnotu“
+      - **Zápis**: ťuknutí = zapsáno, XP vyletí z tlačítka, lišta **Zpět** 4 s (XP se vrátí); milník zaplatí
+        ze svého zářezu; 100 % = jedno okno s bonusem 250/350 XP až po „Pokračovat“; po 3 zápisech
+        za den se ukládá bez XP s vysvětlením (pravidlo appky)
+      - **Panel zápisu**: Přidat / Odečíst / Nastavit na (jako dnes), vlastní číselná klávesnice, rychlé
+        částky, náhled „10 → 11 knih · 92 %“, poznámka; u váhy ± 0,1 a dnešní hodnota
+      - **Detail**: kruh s %, fakta (dní zbývá, kolik je potřeba / týden, tvoje tempo, kdy to vyjde),
+        **graf „Ty a plán“** (tvoje čára, přerušovaný plán, tečkovaný odhad, terč; tažením prstu hodnota),
+        milníky s datem dosažení a XP, historie se smazáním (potvrzení), úprava
+      - **Nový cíl**: živý náhled, nápady = skutečné šablony appky, druh (R-16), cíl + jednotka (rychlé
+        jednotky), kategorie, **termín** (R-19) + „to je asi 0,5 knihy týdně“, popis; validace a texty
+        z `GoalForm`
+      - Ověřeno dočasným testem kulis (strop 3 XP zápisů / den, milník nikdy podruhé, dokončení a jeho
+        zrušení, tempo všech 5 stavů) + negativní zkouškou; 83 klíčů textů v EN i DE vykresleno bez `{…}`
+- [x] Petr 2026-10-26 k Cílům: „celkově se mi tvoje nápady líbí“ → **R-16 až R-19 schváleno**
+- [ ] Při převodu Cílů (F4): **R-16** = změna dat – nové pole počáteční hodnota + druh cíle, migrace
+      (stávající cíle = „Hochzählen“ od 0), testy úložiště; **R-19** + R-16 = přepsat
+      @technical-guides:Goals.md (výběr termínu, typy zápisu, tempo) ve stejném commitu (pravidlo 10)
+- [ ] **Pořadí v ostré appce (Petr 2026-10-31, doporučení):** 1. nový vzhled bez nové logiky, 2. části dne jako
+      vlastní krok, 3. nové trofeje jako vlastní krok. Nic z toho v jednom vydání, aby šlo poznat, co způsobilo chybu
+- [ ] **Co v laboratoři ještě chybí (soupis proti obrazovkám a oknům appky, 2026-10-31), v pořadí podle dopadu:**
+  - [x] **Onboarding** – kola 30 až 32
+  - [ ] **Trofeje (R-29)** – katalog R-28 je schválený, teď pravidlo jedné oslavy; zbylé oslavy až po něm
+  - [ ] **Části dne (R-30)** – vyzkoušet na obrazovce Návyků
+  - [ ] **Měsíční výzva** – detail výzvy + okna: splnění, nesplnění, milník, změna hvězd
+  - [ ] **Zbylé oslavy** – postup na úroveň (potřebné k R-10), milník série deníku, aktivace násobiče XP
+  - [ ] **Přehled úrovní** (`levels-overview`)
+  - [ ] **Přizpůsobení Home** (tlačítko v laboratoři zatím nic neotevírá)
+  - [ ] **Jak SelfRise funguje** (`how-it-works`, v laboratoři vede na ostrou verzi)
+  - [ ] **Drobnosti** – bublinky nápovědy, chybové okno, stránka „nenalezeno“
+- [x] **Kolo 32 – „Kdy?“ pryč z onboardingu** (Petr): „Dám si čtení večer, ale dostanu se k tomu odpoledne“,
+      štítek by neměl význam, a uživatel by zmateně hledal funkci, která neexistuje. Odstraněn výběr, věta
+      plánu i údaj na závěru. Dotaz na připomínky používá skutečný obecný text, protože skutečné připomínky
+      žádný návyk nejmenují. Cesta: 9 ťuknutí a pár vlastních slov. Části dne a časová osa jsou v
+      @projectplan-future-updates.md Phase 12. Ověřeno
+      dočasným průchodem EN/DE + 2 negativní zkoušky; na zařízení neviděno
+- [x] **Kolo 31 – Onboarding podle psychologie (R-27)**: pět políček „Tvůj první den“ (Start je hotový po
+      „Let's go“, pak návyk, cíl, vděčnost, odškrtnutí; právě získané políčko na další obrazovce doskočí).
+      „Přeskočit“ opouští jen daný krok. Po dlaždici návyku jedno ťuknutí „Kdy?“ a věta plánu (v kole 32 odstraněno).
+      Nový krok vděčnosti se skutečnými otázkami z Deníku (zápis se objeví v laboratorním Deníku). Trofeje
+      během toku nevyskakují, všechny přijdou najednou na závěru spolu s vlastním návykem, cílem a slovy.
+      Připomínky jsou úplně poslední (jmenování plánu v kole 32 odstraněno). XP doletí do odznaku až po zavření. Cesta: 10 ťuknutí a
+      pár vlastních slov. Ověřeno dočasným průchodem (24 testů, všechny texty EN/DE ve všech závěrech)
+      + 11 negativních zkoušek; na zařízení neviděno
+- [x] **Kolo 30 – Onboarding** (`OnboardingConcept.tsx`, spouští se z Nastavení → Restart Tutorial). Měřítko
+      Petra: noví uživatelé musí mít **chuť to proklikat**. Každé ťuknutí něco udělá: nebe se rozednívá od noci
+      z úvodu po první den, slunce se pohne už při výběru dlaždice, „Tvůj první den" se plní vlastním
+      návykem, cílem a odškrtnutím. Skutečné texty, předvolby, šablony a pravidla (`goalDraft`,
+      `firstCheckCopy`). Odškrtnutí proběhne na skutečném seznamu Návyků (pulzující zaškrtávátko), závěr
+      „hotovo" i poctivé „později". Cesta: 10 ťuknutí proti dnešním 12. Ověřeno dočasným testem průchodu
+      (38 textů EN/DE, Přeskočit, brána trofejí, závěry) + 4 negativní zkoušky; na zařízení neviděno
+- [x] **Kolo 29 – 4 chyby v ostré appce opravené + Nastavení bez karty úrovně** (Petr: sekce s úrovní
+      a prokliknutím do trofejí je zbytečná, Síň trofejí zůstává na Home): sbírky jdou dokončit, bonus se
+      vyplácí, Mega Dreamer a Million Achiever jsou dosažitelné (`MAX_GOAL_VALUE`), `goalDraft` sdílí stejný
+      limit. **Poučení:** stav trofejí je v SQLite, ne v AsyncStorage – první návrh výplaty s vlastním
+      příznakem odhalil až test; vyplaceno je teď samotná XP transakce
+- [x] **Kolo 28 – Nastavení a Síň trofejí** (`SettingsConcept.tsx`, `TrophyRoomConcept.tsx`, kulisy
+      `trophiesMock.ts` nad **skutečným katalogem 75 trofejí**): v laboratoři je tím všech 5 záložek.
+      Vzhled a jazyk v Nastavení opravdu přepínají laboratoř; Síň trofejí se otevírá z Home i z Nastavení.
+      Ověřeno dočasným testem (ID v katalogu, 228 textů EN/DE bez holých klíčů, vykreslení obou obrazovek,
+      tajná trofej nejde najít hledáním – negativní zkouška: bez pojistky test padá). Na zařízení neviděno
+- [x] **Kolo 27 – sekání při zápisu pokroku** (Petr: „jakmile doběhly procesy, je to plynulé“): zmáčknutí
+      (`PressableScale`, celá laboratoř), odvalování číslic (`RollingNumber`, kromě řízení sluncem na Home),
+      pruh cíle, zářezy, lišta Zpět a odskok odznaku přešly na nativní ovladač (P46); `useLabXpAward`
+      (P47); sonda `labPerf.tsx` (P48). **Na zařízení ověřeno 2026-11-10 (Petr): „v pohodě“**; Skia let jisker
+      zůstal beze změny a nevadí
+- [ ] **F2:** statické přepínače Reanimatedu (`USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS` aj.) potřebují nový
+      nativní build – po kole 27 je jejich přínos menší, ale ověřit při převodu
+- [x] **Kolo 26 – „seká se úplně všechno, každý screen“** (Petr): příčina v kole 25 – `RollingNumber` četl
+      `position.value` z JS (blokující volání UI vlákna u každé číslice) → nahrazeno `useRef` (P45)
+- [x] **Kolo 25 – Cíle znovu: sekání + klávesnice** (Petr): vysoká sekce (seznam cílů) už nemá žádný styl
+      navázaný na rolování (i stálý posun se na obří prvek posílal každý snímek); čísla na kartách cílů
+      se při otevření záložky neodvalují od nuly (~30 pružin naráz), rolují jen při změně (`RollingNumber`
+      `rollIn={false}`, pružina „z 9 na 9“ se přeskakuje); **tlačítko Create** v okně cíle i návyku teď jede
+      nad klávesnicí (dřív bylo pod ní) a pole, do kterého se píše, se posune nad lištu
+      (`useKeyboardLift` – sdílené se spodním panelem Deníku)
+- [x] **Mimo laboratoř – opraveno 2026-10-26 (Petr: „jestli je to rychlovka, oprav“):** varování Firebase v logu – `crashReportingService.ts` volá Crashlytics
+      starým „namespaced“ API (`default()`, `setCrashlyticsCollectionEnabled`), RNFB 23 ho označilo za
+      zastaralé a v další hlavní verzi zmizí → přepsat ten jeden soubor na modulární API
+      (`getCrashlytics(getApp())`, `setCrashlyticsCollectionEnabled(crashlytics, …)`), dnes funguje
+- [x] **Kolo 24 – Cíle podle Petrova testu**: „Messen“ přijme cíl i start **0** (dluh → 0), **bez stropu
+      999 999 / 1 000 000** (R-20), klávesnice zápisu až 13 číslic, čísla se při psaní seskupují
+      („4 500 000“), ± u „Messen“ krokuje podle velikosti cíle (váha 0,1, dluh 1 000); **varování Reanimatedu**
+      („transform … may be overwritten by a layout animation“) – zatřesení pole bylo na stejném prvku
+      jako animace vjezdu (okno cíle i návyku) → vnořený prvek; **sekání Cílů**: karty bez animace
+      rozvržení (jen nově vytvořený cíl vjede), karty si nepřekreslují všechny ostatní (memo + datum jako
+      vlastnost, ne z kontextu), zmáčknutí karty se zpožděním 110 ms (začátek rolování nespustí pružinu);
+      k tomu oprava z kola 23 (dlouhý seznam se při rolování zmenšoval = drahé překreslování)
+- [x] **Kolo 23 – překrytí na Cílech** (Petrův snímek): seznam aktivních cílů odplouval při rolování přes
+      sekci Splněné (příčina a oprava v P39); týká se i dlouhých seznamů v Návycích a Deníku – ty teď
+      při rolování jen najedou
+- [ ] **Chyba v ostré appce (mimo laboratoř), nalezeno v kole 20:** Statistiky deníku → „Aktivní dny"
+      ukazují **syrový text `{count, plural, one {# day} other {# days}} with entries`** v EN, DE i ES –
+      klíč `journal.stats.daysWithEntries` používá zápis ICU, ale i18next nemá ICU plugin zapnutý
+      (ověřeno vykreslením). Oprava = přepsat klíč na `_one`/`_other` ve 3 jazycích (rozhodnutí Petra)
 - [x] ~~**R-12**: appka dnes nabízí barvy návyku **RED** a **YELLOW** (a předvolba „Cvičení" v úvodu je RED) →
       zobrazovat je jako **korálovou** (`#FF6F61` / `#FFA08C`) a **limetkovou** (`#7FB800` / `#9ED11F`);
       uložená hodnota se nemění (žádná migrace dat), mění se jen kreslení; při převodu přidat test ΔE~~
@@ -657,6 +805,92 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     v EN i DE (kolo 8, 13).
 28. **Nalezený nesoulad v appce:** nápověda „Smart Make-up System" píše „zlatá fajfka" pro nahrazený
     den – po kole 17 je bonus zlatý a nahrazení v barvě návyku → text nápovědy přepsat (kolo 13, 17).
+29. **Ověřit vykreslený text, ne jen existenci klíče** – `journal.stats.daysWithEntries` existuje ve všech
+    jazycích, a přesto uživatel čte syrový zápis ICU (kolo 20). Test textů má volat `t()` s parametry
+    a hledat `{`, `}` a název klíče ve výsledku.
+
+### 10.8 Deník
+30. **Sheet s textovým polem se zvedá o skutečný překryv klávesnice se stránkou** (změřit stránku
+    a `endCoordinates.screenY`), ne o pevnou výšku – pak funguje na iOS i na Androidu, ať se okno
+    zmenšuje, nebo ne. Reklamní pruh za klávesnicí zmizí (stejně jako dnes v `journal.tsx`) (kolo 20).
+31. **Zámek dřív než práce** – co uživatel nesmí uložit, nesmí ani začít psát (zmrzlá série). Pojistka
+    v ukládání zůstává, zámek je navíc (kolo 20, R-14).
+32. **Barvy grafu jsou vlastní stupně, ověřené validátorem** (skill `dataviz`, `validate_palette.js`)
+    pro světlý i tmavý povrch: UI zlatá `#F4B63F` má jako výplň na bílé jen 1,8:1 → graf používá
+    `#B97F0E` / `#BE8A1A`; sloupce rostou od základny, zaoblené jen nahoře, 2 px mezera mezi díly,
+    popisky v barvě textu, legenda u 2+ řad. Měřítko končí na 8 záznamech a vyšší den nese
+    svou hodnotu („13“) – jinak jeden rekordní den smáčkne celý měsíc na pahýly (kolo 20–21).
+33. **Pořadí obrazovky deníku je Petrovo rozhodnutí** (průvodce 2026-10-04): citát dne vždy nad
+    dnešními záznamy, prázdný stav = vysvětlení, co psát – citát ho nenahrazuje (kolo 20).
+34. **Rolující číslo nedostává okraje do stylu číslic** – každá číslice je ve výřezu a okraj ji
+    vysune ven (⭐🔥👑 ukazovaly jen půlky „9 / 4 / 1“). Opraveno u zdroje: `RollingNumber` okraje
+    přesouvá na celé číslo (kolo 21, Petrův snímek).
+35. **Jedna cesta na jedno místo** – Historie a Statistiky jsou vpravo nahoře; stejná tlačítka
+    znovu na konci stránky jsou šum (kolo 21, Petr).
+
+### 10.9 Cíle
+36. **Častá akce = jedno ťuknutí + Zpět**, ne formulář a potvrzovací okno. Formulář jen pro „jiné“
+    množství; vratné akce se nepotvrzují, nabízí se jejich vrácení (kolo 22).
+37. **Tempo z jednoho místa** – „napřed / v plánu / pozadu“ počítá jedna funkce (přímka start → termín
+    proti skutečnosti); karta, detail i přehled ji jen zobrazují. Bez termínu tempo není, jen odhad (kolo 22).
+38. **Barva kategorie jako čára grafu** prošla kontrastem ≥ 3:1 na obou površích (validátor skillu), ale
+    kategorie mezi sebou nejsou rozlišitelné pro barvoslepé (modrá × fialová) → **jeden cíl = jeden graf**;
+    kde je víc cílů vedle sebe (čára termínů), nese identitu ikona a název, ne barva (kolo 22).
+39. **Efekt „odplutí“ při rolování patří jedné kartě, ne seznamu.** Sekce s celým seznamem cílů se
+    posouvala o 22 % své výšky (~330 bodů) přes sekci Splněné a zmenšovala se (kolo 23, Petrův snímek).
+    Opraveno u zdroje: sekce vyšší než 60 % obrazovky jen najede, neodplouvá (`ScrollCard`); karta
+    „hero“ zůstává beze změny. Při převodu: dlouhé seznamy nikdy do jedné animované karty.
+40. **Animace vjezdu/odjezdu a animovaný `transform` nikdy na jednom prvku** – Reanimated varuje, že
+    se přepíšou (zatřesení pole + vjezd v okně cíle i návyku). Vjezd na obal, zatřesení na vnořený prvek
+    (kolo 24).
+41. **Žádné umělé stropy u čísel uživatele.** Měny a jednotky se liší o řády (Kč, jeny, forinty); strop
+    jen jako pojistka proti nesmyslu. Nula je platný cíl (dluh, zůstatek). Každé pravidlo „> 0“ musí mít
+    důvod – u „Hochzählen“ má (nejde počítat k nule), u „Messen“ ne (kolo 24, R-20).
+42. **Seznam karet: animace rozvržení (`layout`) ne na každý řádek** – zdražuje každou změnu na obrazovce;
+    řádky `React.memo` se stabilními funkcemi a **bez čtení sdíleného kontextu uvnitř karty** (kontext
+    obejde memo a překreslí všechny karty). Velká karta v rolovacím seznamu: zmáčknutí se zpožděním,
+    ať začátek rolování nespouští animaci (kolo 24).
+43. **Hlavní tlačítko formuláře jede nad klávesnicí** a pole, do kterého se píše, se posune nad něj
+    (změřený překryv klávesnice, ne pevná výška). Lišta „pevně dole“ bez toho zmizí pod klávesnicí –
+    stalo se v okně cíle i návyku (kolo 25, Petr).
+44. **Seznam mnoha čísel se při otevření obrazovky neodvaluje** – jen při změně. Třicet pružin naráz při
+    otevření záložky = zadrhnutí. Na prvek bez pohybu se nenapojuje žádný styl řízený rolováním (kolo 25).
+45. 🚨 **Nikdy nečíst `sharedValue.value` z JavaScriptu** (v efektu, v obsluze ťuknutí, při renderu).
+    V Reanimated 4 je to **blokující skok na UI vlákno** (`runOnUISync`). Kontrola „už tam je?“ v rolujícím
+    čísle to dělala u každé číslice každé obrazovky → **sekala se celá laboratoř** (kolo 26, Petr). Co
+    JS potřebuje vědět, si drží v `useRef`; `.value` se z JS jen zapisuje, číst se smí jen ve workletu.
+46. 🚨 **Běžné reakce UI = nativní ovladač React Native, ne Reanimated** (zmáčknutí, odvalení čísla, plnění
+    pruhu, toast, odskok odznaku). Důvod přímo ve zdroji Reanimated 4.2 (`ReanimatedCommitHook.cpp`): každý
+    snímek animovaného stylu je zápis do ShadowTree a **každý zápis z Reactu znovu aplikuje vlastnosti všech
+    animovaných prvků a animace pozastaví** (`pauseReanimatedCommits`). Akce, která zároveň mění stav
+    a animuje (zápis pokroku), se proto sekala a po doběhnutí byla zase plynulá (kolo 27, Petr). Reanimated
+    jen tam, kde je potřeba: sdílený hodinový signál úvodu, řízení z jiné animace, Skia, gesta.
+47. **Spotřebitel kontextu obchází `React.memo`, a kontext s `settledXp` se mění po každé vlně XP** → kdo
+    jen utrácí XP, bere `useLabXpAward()` (stálá funkce ve vlastním kontextu). Překreslení se **měří**,
+    ne odhaduje: zápis = 1 karta z 5, bez memo všech 5 (dočasný test + negativní zkouška, kolo 27).
+48. **Sekání se měří sondou, ne dojmem:** `measureLabPerf('…')` vypíše do logu `[LabPerf]` – nejhorší snímek
+    a počet záseků zvlášť pro UI a JS vlákno (kolo 27). Před ostrým převodem sondu odstranit.
+51. **Text přes barevné pozadí: kontrast spočítat a překryv vyloučit rozložením.** Slunce by jelo za bílý
+    text (1,7:1) → obsah končí nad spodním pásem a slunce vychází jen v něm. Neplatí „ono se to nepotká",
+    ale „nemůže se to potkat" (kolo 30).
+52. **Onboarding: každé ťuknutí má viditelný výsledek** a postup je vidět na vlastním obsahu uživatele,
+    ne na anonymních tečkách. Povinné pole žádné, předvolba je start, ne zámek (kolo 30, Petr).
+53. **Přeskočitelný krok = každý další text musí unést, že se nestal.** Výpis textů všech závěrů odhalil
+    „odškrtni svůj návyk“ pro člověka bez návyku, připomínku v čase, který si nikdo nevybral, a „Level 0“
+    jako odměnu. Běžné testy na tlačítka to nechytí, u toku s více výstupy projít každý konec a číst ho
+    (kolo 31).
+54. **Laboratorní součty nepatří do pohledu nového uživatele.** Úroveň 16 z kulis by v onboardingu vypadala
+    jako hotová věc. Závěr počítá jen to, co se stalo v toku; v ostré appce je to shodou okolností totéž,
+    protože nový uživatel nic jiného nemá (kolo 31).
+55. **Neptej se na nic, co appka potom nepoužije, a neslibuj, co neumí.** „Kdy?“ znělo jako nejlepší
+    doložená technika, ale bez trvalého místa v appce je to prázdné ťuknutí a čekání na funkci, která
+    neexistuje. Výzkum neomlouvá chybějící funkci: u každého vstupu a slibu nejdřív ověřit, kde se projeví
+    druhý den (kolo 32, Petr).
+49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
+    čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
+    dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).
+50. **Zeď mnoha položek = `FlatList` bez animace na položku.** Filtry jako prvek v `ListHeaderComponent`
+    (ne funkce, jinak hledání ztratí fokus); tajné trofeje skrýt i ve vyhledávání, včetně popisu (kolo 28).
 
 ## Příloha A – původní zadání (vzkaz z jiného chatu Claude, 2026-10-22)
 

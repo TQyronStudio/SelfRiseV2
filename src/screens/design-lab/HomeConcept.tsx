@@ -94,8 +94,9 @@ import {
 import { RollingNumber } from './RollingNumber';
 import { FlameState, StreakFlame } from './StreakFlame';
 import { DetailRect, JournalDetailConcept } from './JournalDetailConcept';
-import { useLabXp, XpPop } from './xpFlight';
+import { useLabXp, useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
+import { useLabJournal } from './journalMock';
 import { getLevelInfo, getXPProgress } from '@/src/services/levelCalculation';
 import { useIntro, useIntroWindow } from './introTimeline';
 import {
@@ -126,15 +127,17 @@ const COMPACT_HEADER_HEIGHT = 64;
 interface HomeConceptProps {
   /** Space the fixed banner + tab bar take at the bottom. */
   bottomInset: number;
+  onOpenTrophies: () => void;
 }
 
-export function HomeConcept({ bottomInset }: HomeConceptProps) {
+export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
   const { c, lang, mode, crown } = useLab();
   const { t, timeline } = useIntro();
   const copy = MOCK_COPY[lang];
   const { width: windowWidth } = useWindowDimensions();
   // Today's checks are shared with the Habits concept (habitsMock.tsx).
   const { done, toggle } = useLabToday();
+  const journal = useLabJournal();
   const [celebrateKey, setCelebrateKey] = useState(0);
   const [flame, setFlame] = useState<FlameState>('fire');
   const [detailOrigin, setDetailOrigin] = useState<DetailRect | null>(null);
@@ -390,6 +393,7 @@ export function HomeConcept({ bottomInset }: HomeConceptProps) {
                   tint={c.rewardText}
                   background={c.rewardSoft}
                   label="Trophies"
+                  onPress={onOpenTrophies}
                 />
                 <RoundButton
                   icon="options-outline"
@@ -685,7 +689,7 @@ export function HomeConcept({ bottomInset }: HomeConceptProps) {
                         label={copy.flameHint}
                       />
                       <LabText variant="display" style={styles.streakNumber}>
-                        {MOCK_STATS.journalStreak}
+                        {journal.stats.currentStreak}
                       </LabText>
                       <LabText
                         variant="label"
@@ -734,9 +738,7 @@ export function HomeConcept({ bottomInset }: HomeConceptProps) {
                               styles.dot,
                               {
                                 backgroundColor:
-                                  i < MOCK_STATS.journalToday
-                                    ? c.primary
-                                    : c.track,
+                                  i < journal.todayCount ? c.primary : c.track,
                               },
                             ]}
                           />
@@ -746,13 +748,13 @@ export function HomeConcept({ bottomInset }: HomeConceptProps) {
                           tone="muted"
                           style={{ marginLeft: labSpace.sm }}
                         >
-                          {copy.entriesToday(MOCK_STATS.journalToday)}
+                          {copy.entriesToday(journal.todayCount)}
                         </LabText>
                       </View>
                       <View style={styles.badgesRow}>
-                        <Badge emoji="⭐" count={MOCK_STATS.stars} />
-                        <Badge emoji="🔥" count={MOCK_STATS.flames} />
-                        <Badge emoji="👑" count={MOCK_STATS.crowns} />
+                        <Badge emoji="⭐" count={journal.stats.stars} />
+                        <Badge emoji="🔥" count={journal.stats.flames} />
+                        <Badge emoji="👑" count={journal.stats.crowns} />
                       </View>
                     </View>
                     <PressableScale
@@ -979,7 +981,7 @@ function HabitRow({
   onToggle: () => void;
 }) {
   const { c, lang } = useLab();
-  const { award } = useLabXp();
+  const award = useLabXpAward();
   const checkRef = useRef<View>(null);
   const [pops, setPops] = useState<{ key: number; amount: number }[]>([]);
   const glow = useSharedValue(done ? 1 : 0);
@@ -1066,15 +1068,18 @@ function RoundButton({
   tint,
   background,
   label,
+  onPress,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   tint: string;
   background: string;
   label: string;
+  onPress?: () => void;
 }) {
   const { c } = useLab();
   return (
     <PressableScale
+      {...(onPress ? { onPress } : null)}
       accessibilityLabel={label}
       pressScale={0.92}
       style={[

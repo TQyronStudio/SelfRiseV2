@@ -32,6 +32,10 @@
  * - Cards: transform only, no opacity. "Seen" state lives in the card.
  * - If Reanimated's static flags get enabled later (plan F2), re-test before
  *   moving this back — and mind the Pressable caveat noted in the plan.
+ * - Recede is for ONE card. A section taller than ~60 % of the viewport (a list
+ *   of goals, a day of entries) only surfaces: shifting it by 22 % of its height
+ *   slid a 1 500 pt list ~330 pt down over the next section and shrank it (kolo 23,
+ *   Petr's screenshot of Goals).
  */
 import React, {
   createContext,
@@ -42,7 +46,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated as RNAnimated } from 'react-native';
+import {
+  Animated as RNAnimated,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
 export interface ScrollFrame {
@@ -92,11 +101,56 @@ export function seenDelay(seenAfter: number, introDelay: number): number {
 const SURFACE_LEAD = 60;
 /** A card counts as seen once its top is this far into the visible area. */
 const SEEN_MARGIN = 48;
+/** Taller than this share of the viewport = a list, not a card: no recede. */
+const TALL_SHARE = 0.6;
 
 interface ScrollCardProps {
   children: ReactNode;
   /** The hero recedes more — it hands the day over to the compact header. */
   variant?: 'card' | 'hero';
+}
+
+/**
+ * Everything a screen needs for the native-driven scroll: the frame for
+ * ScrollFrameProvider, plus onScroll and onLayout for its Animated.ScrollView.
+ */
+export function useLabScrollFrame(bottomInset: number, enabled: boolean) {
+  const scrollY = useRef(new RNAnimated.Value(0)).current;
+  const lastScrollY = useRef(0);
+  const listeners = useRef(new Set<(y: number) => void>());
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const onScroll = useMemo(
+    () =>
+      RNAnimated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+        useNativeDriver: true,
+        listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          lastScrollY.current = e.nativeEvent.contentOffset.y;
+          listeners.current.forEach(fn => fn(lastScrollY.current));
+        },
+      }),
+    [scrollY]
+  );
+  const frame = useMemo<ScrollFrame>(
+    () => ({
+      scrollY,
+      getScrollY: () => lastScrollY.current,
+      subscribe: (fn: (y: number) => void) => {
+        listeners.current.add(fn);
+        return () => {
+          listeners.current.delete(fn);
+        };
+      },
+      viewportHeight,
+      bottomInset,
+      enabled,
+    }),
+    [scrollY, viewportHeight, bottomInset, enabled]
+  );
+  const onLayout = (e: LayoutChangeEvent) => {
+    const height = e.nativeEvent.layout.height;
+    setViewportHeight(prev => (prev === height ? prev : height));
+  };
+  return { frame, onScroll, onLayout };
 }
 
 export function ScrollCard({ children, variant = 'card' }: ScrollCardProps) {
@@ -131,6 +185,12 @@ export function ScrollCard({ children, variant = 'card' }: ScrollCardProps) {
     if (!enabled || !layout || frame.viewportHeight === 0) return undefined;
     const visibleBottom = frame.viewportHeight - frame.bottomInset;
     const { y, h } = layout;
+    // A tall section (a list) must not move with its own height — see above.
+    // The hero is always one card, however tall.
+    const tall = !hero && h > frame.viewportHeight * TALL_SHARE;
+    // No scroll-linked style at all: even a constant transform is re-sent to a
+    // huge view on every scroll frame (kolo 25).
+    if (tall) return undefined;
     const surface = frame.scrollY.interpolate({
       inputRange: [
         y - visibleBottom - SURFACE_LEAD,
@@ -144,8 +204,12 @@ export function ScrollCard({ children, variant = 'card' }: ScrollCardProps) {
       outputRange: [0, 1],
       extrapolate: 'clamp',
     });
+    const rise = surface.interpolate({
+      inputRange: [0, 1],
+      outputRange: [30, 0],
+    });
     const translateY = RNAnimated.add(
-      surface.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }),
+      rise,
       recede.interpolate({
         inputRange: [0, 1],
         outputRange: [0, h * (hero ? 0.35 : 0.22)],
