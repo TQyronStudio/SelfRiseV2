@@ -51,6 +51,7 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
+import { useLabCover } from './labCover';
 import {
   labFonts,
   LabPalette,
@@ -98,6 +99,7 @@ export function HabitDetailConcept({
   onClosed,
 }: HabitDetailProps) {
   const { c, lang } = useLab();
+  useLabCover();
   const copy = MOCK_COPY[lang];
   const h = copy.habits;
   const t = useMemo(() => i18n.getFixedT(lang), [lang]);

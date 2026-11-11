@@ -36,6 +36,10 @@
  * - Keep: native-driven scroll (lesson 1), fills start when seen (lesson 5), no
  *   haptics while scrolling (lesson 7), compact header slides, never fades.
  * - The pinned level badge sits top-left → header buttons on the right (R-10).
+ * - No Level card and no second "3/5" (R-31, kolo 34): the level is the pinned
+ *   badge and its panel (levelPanel.tsx); the day's count is said once, in the hero
+ *   (and in the compact header that replaces it). The stored "Level" section of
+ *   Home customisation needs a migration.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -94,10 +98,16 @@ import {
 import { RollingNumber } from './RollingNumber';
 import { FlameState, StreakFlame } from './StreakFlame';
 import { DetailRect, JournalDetailConcept } from './JournalDetailConcept';
-import { useLabXp, useLabXpAward, XpPop } from './xpFlight';
+import {
+  ChallengeDetailConcept,
+  Stars,
+  useChallengeText,
+} from './ChallengeDetailConcept';
+import { challengePace, challengeShare } from './challengeLogic';
+import { useLabChallenge } from './challengeMock';
+import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';
-import { getLevelInfo, getXPProgress } from '@/src/services/levelCalculation';
 import { useIntro, useIntroWindow } from './introTimeline';
 import {
   ScrollCard,
@@ -105,13 +115,7 @@ import {
   seenDelay,
   useCardSeen,
 } from './scrollChoreography';
-import {
-  formatThousands,
-  MOCK_COPY,
-  MOCK_HABITS,
-  MOCK_STATS,
-  MockHabit,
-} from './mockCopy';
+import { MOCK_COPY, MOCK_HABITS, MOCK_STATS, MockHabit } from './mockCopy';
 
 const SCREEN_PADDING = labSpace.xl;
 const XP_PER_HABIT = 25;
@@ -144,6 +148,17 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
   const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const pageRef = useRef<View>(null);
   const journalCardRef = useRef<View>(null);
+  // The monthly challenge card grows into its detail the same way (kolo 36).
+  const [challengeOrigin, setChallengeOrigin] = useState<DetailRect | null>(
+    null
+  );
+  const challengeCardRef = useRef<View>(null);
+  const { challenge } = useLabChallenge();
+  const challengeWords = useChallengeText(challenge);
+  const challengeDone =
+    challengePace(challenge.requirements, challenge.day, challenge.days)
+      .state === 'done';
+  const challengeFirst = challenge.requirements[0];
   const doneCount = MOCK_HABITS.filter(h => done[h.id]).length;
   const total = MOCK_HABITS.length;
   const initialDone = MOCK_HABITS.filter(h => h.done).length;
@@ -161,14 +176,7 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
     getContentWidth(windowWidth) - SCREEN_PADDING * 2 - labSpace.xl * 2,
     300
   );
-  const sep = copy.thousandsSeparator;
   const xpWord = copy.xpChipWord;
-  // The level card shows the same XP as the badge — it moves when a wave of sparks has landed.
-  const { settledXp } = useLabXp();
-  const progressNow = getXPProgress(settledXp);
-  const levelNow = progressNow.currentLevel;
-  const levelTitle = getLevelInfo(levelNow).title;
-  const levelProgress = progressNow.xpProgress / 100;
   const sectionStart = (i: number) =>
     timeline.sections[Math.min(i, timeline.sections.length - 1)]?.[0] ?? 0;
 
@@ -321,6 +329,18 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
       card.measureInWindow((x, y, width, height) => {
         selection();
         setDetailOrigin({ x: x - pageX, y: y - pageY, width, height });
+      });
+    });
+  };
+
+  const openChallenge = () => {
+    const page = pageRef.current;
+    const card = challengeCardRef.current;
+    if (!page || !card) return;
+    page.measureInWindow((pageX, pageY) => {
+      card.measureInWindow((x, y, width, height) => {
+        selection();
+        setChallengeOrigin({ x: x - pageX, y: y - pageY, width, height });
       });
     });
   };
@@ -570,12 +590,8 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
 
           <ScrollCard>
             <Rise window={timeline.sections[1] ?? timeline.hero}>
-              <SectionHeader
-                title={copy.todaysHabits}
-                trailing={
-                  <RollingNumber text={`${doneCount}/${total}`} tone="muted" />
-                }
-              />
+              {/* The count lives in the hero only — once on the screen is enough. */}
+              <SectionHeader title={copy.todaysHabits} />
               <Surface
                 style={{
                   paddingVertical: labSpace.sm,
@@ -596,67 +612,9 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
             </Rise>
           </ScrollCard>
 
-          {/* Level */}
-          <ScrollCard>
-            <Rise window={timeline.sections[2] ?? timeline.hero}>
-              <PressableScale
-                pressScale={CARD_PRESS}
-                accessibilityLabel={copy.level(levelNow)}
-              >
-                <Surface style={{ marginTop: labSpace.lg }}>
-                  <View style={styles.levelRow}>
-                    <LinearGradient
-                      colors={c.tierGreen}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.levelBadge}
-                    >
-                      <LabText
-                        variant="bodyStrong"
-                        tone="onPrimary"
-                        style={styles.levelNumber}
-                      >
-                        {levelNow}
-                      </LabText>
-                    </LinearGradient>
-                    <View style={{ flex: 1, marginLeft: labSpace.md }}>
-                      <LabText variant="overline" tone="muted">
-                        {copy.level(levelNow)}
-                      </LabText>
-                      <LabText variant="title" numberOfLines={1}>
-                        {levelTitle}
-                      </LabText>
-                    </View>
-                    <RollingNumber
-                      text={`${formatThousands(settledXp, sep)} XP`}
-                      tone="muted"
-                      delay={sectionStart(2) + 150}
-                    />
-                  </View>
-                  <ProgressBar
-                    progress={levelProgress}
-                    colors={c.primaryGradient}
-                    delay={sectionStart(2) + 150}
-                    style={{ marginTop: labSpace.lg }}
-                  />
-                  <LabText
-                    variant="caption"
-                    tone="muted"
-                    style={{ marginTop: labSpace.sm }}
-                  >
-                    {copy.toNext(
-                      formatThousands(progressNow.xpToNextLevel, sep),
-                      levelNow + 1
-                    )}
-                  </LabText>
-                </Surface>
-              </PressableScale>
-            </Rise>
-          </ScrollCard>
-
           {/* Journal streak */}
           <ScrollCard>
-            <Rise window={timeline.sections[3] ?? timeline.hero}>
+            <Rise window={timeline.sections[2] ?? timeline.hero}>
               {/* The original hides while its detail is open — one card, not two. */}
               <View
                 ref={journalCardRef}
@@ -782,82 +740,81 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
 
           {/* Monthly challenge */}
           <ScrollCard>
-            <Rise window={timeline.sections[4] ?? timeline.hero}>
-              <PressableScale
-                pressScale={CARD_PRESS}
-                accessibilityLabel={copy.challengeTitle}
+            <Rise window={timeline.sections[3] ?? timeline.hero}>
+              {/* The original hides while its detail is open — one card, not two. */}
+              <View
+                ref={challengeCardRef}
+                collapsable={false}
+                style={{
+                  marginTop: labSpace.lg,
+                  opacity: challengeOrigin ? 0 : 1,
+                }}
               >
-                <Surface style={{ marginTop: labSpace.lg }}>
-                  <View style={styles.spaceBetween}>
-                    <LabText
-                      variant="overline"
-                      tone="primary"
-                      style={{ flexShrink: 1 }}
-                    >
-                      {copy.challengeOverline}
-                    </LabText>
-                    <View style={{ flexDirection: 'row' }}>
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <Ionicons
-                          key={i}
-                          name={
-                            i <= MOCK_STATS.challengeStars
-                              ? 'star'
-                              : 'star-outline'
-                          }
-                          size={14}
-                          color={
-                            i <= MOCK_STATS.challengeStars
-                              ? c.reward
-                              : c.textFaint
-                          }
-                          style={{ marginLeft: 2 }}
-                        />
-                      ))}
+                <PressableScale
+                  pressScale={CARD_PRESS}
+                  haptic={null}
+                  onPress={openChallenge}
+                  accessibilityLabel={challengeWords.title}
+                >
+                  <Surface>
+                    <View style={styles.spaceBetween}>
+                      <LabText
+                        variant="overline"
+                        tone="primary"
+                        style={{ flexShrink: 1 }}
+                      >
+                        {copy.challengeOverline}
+                      </LabText>
+                      <Stars count={challenge.stars} />
                     </View>
-                  </View>
-                  <LabText variant="title" style={{ marginTop: labSpace.sm }}>
-                    {copy.challengeTitle}
-                  </LabText>
-                  <LabText
-                    variant="body"
-                    tone="muted"
-                    style={{ marginTop: labSpace.xs }}
-                  >
-                    {copy.challengeGoal(MOCK_STATS.challengeTarget)}
-                  </LabText>
-                  <ProgressBar
-                    progress={
-                      MOCK_STATS.challengeDone / MOCK_STATS.challengeTarget
-                    }
-                    colors={c.primaryGradient}
-                    delay={sectionStart(4) + 150}
-                    style={{ marginTop: labSpace.lg }}
-                  />
-                  <View
-                    style={[styles.spaceBetween, { marginTop: labSpace.sm }]}
-                  >
-                    <LabText variant="caption">
-                      {copy.challengeProgress(
-                        MOCK_STATS.challengeDone,
-                        MOCK_STATS.challengeTarget
-                      )}
+                    <LabText variant="title" style={{ marginTop: labSpace.sm }}>
+                      {challengeWords.title}
                     </LabText>
-                    <LabText variant="caption" tone="muted">
-                      {copy.challengeDay(
-                        MOCK_STATS.monthDay,
-                        MOCK_STATS.monthDays
-                      )}
+                    <LabText
+                      variant="body"
+                      tone="muted"
+                      style={{ marginTop: labSpace.xs }}
+                    >
+                      {challengeWords.description}
                     </LabText>
-                  </View>
-                </Surface>
-              </PressableScale>
+                    <ProgressBar
+                      // A new situation (lab switch) fills from the start again.
+                      key={challenge.templateId + challenge.day}
+                      progress={challengeShare(challenge.requirements)}
+                      colors={
+                        challengeDone
+                          ? [c.success, c.success]
+                          : c.primaryGradient
+                      }
+                      delay={sectionStart(3) + 150}
+                      style={{ marginTop: labSpace.lg }}
+                    />
+                    <View
+                      style={[styles.spaceBetween, { marginTop: labSpace.sm }]}
+                    >
+                      <LabText variant="caption">
+                        {challengeDone
+                          ? copy.challenge.done
+                          : challengeFirst
+                            ? copy.challenge.count(
+                                challengeFirst.done,
+                                challengeFirst.target
+                              )
+                            : ''}
+                      </LabText>
+                      <LabText variant="caption" tone="muted">
+                        {copy.challengeDay(challenge.day, challenge.days)}
+                      </LabText>
+                    </View>
+                  </Surface>
+                </PressableScale>
+              </View>
             </Rise>
           </ScrollCard>
 
           {/* This week */}
           <ScrollCard>
-            <Rise window={timeline.sections[5] ?? timeline.hero}>
+            <Rise window={timeline.sections[4] ?? timeline.hero}>
               <Surface style={{ marginTop: labSpace.lg }}>
                 <View style={styles.spaceBetween}>
                   <LabText variant="titleSm">{copy.thisWeek}</LabText>
@@ -865,7 +822,7 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                     <RollingNumber
                       text={copy.consistent(73)}
                       variant="caption"
-                      delay={sectionStart(5) + 150}
+                      delay={sectionStart(4) + 150}
                       style={{
                         color: chipColors(c, 'primary').fg,
                         fontFamily: labFonts.semibold,
@@ -877,7 +834,7 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                   {MOCK_STATS.week.map((value, i) => (
                     <WeekBar
                       key={i}
-                      delay={sectionStart(5) + 150 + i * 45}
+                      delay={sectionStart(4) + 150 + i * 45}
                       value={value}
                       max={MOCK_STATS.weekTotal}
                       label={copy.weekdays[i] ?? ''}
@@ -923,6 +880,14 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
             size={pageSize}
             bottomInset={bottomInset}
             onClosed={() => setDetailOrigin(null)}
+          />
+        )}
+        {challengeOrigin && pageSize.width > 0 && (
+          <ChallengeDetailConcept
+            origin={challengeOrigin}
+            size={pageSize}
+            bottomInset={bottomInset}
+            onClosed={() => setChallengeOrigin(null)}
           />
         )}
       </View>
@@ -1317,22 +1282,6 @@ const styles = StyleSheet.create({
     top: 4,
     bottom: 4,
     borderRadius: labRadius.sm,
-  },
-  levelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  levelBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelNumber: {
-    fontFamily: labFonts.bold,
-    fontSize: 20,
-    lineHeight: 24,
   },
   spaceBetween: {
     flexDirection: 'row',

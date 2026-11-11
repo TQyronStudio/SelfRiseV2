@@ -32,7 +32,6 @@ interface CelebrationModalProps {
     newLevel: number;
     levelTitle: string;
     levelDescription?: string;
-    rewards?: string[];
     isMilestone: boolean;
   };
   // Optional flag to disable XP animation hooks (for GamificationContext usage)
@@ -322,26 +321,6 @@ export default function CelebrationModal({
       textAlign: 'center',
       marginTop: Layout.spacing.md,
       marginBottom: Layout.spacing.sm,
-    },
-    rewardsContainer: {
-      backgroundColor: colors.cardBackgroundElevated, // Elevated card
-      borderRadius: 8,
-      padding: Layout.spacing.md,
-      marginTop: Layout.spacing.sm,
-      width: '100%',
-    },
-    rewardsTitle: {
-      fontSize: Fonts.sizes.md,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-      textAlign: 'center',
-    },
-    rewardItem: {
-      fontSize: Fonts.sizes.sm,
-      color: colors.textSecondary,
-      lineHeight: 20,
-      marginBottom: 2,
     },
     // XP Badge styles
     xpBadge: {
@@ -648,39 +627,6 @@ export default function CelebrationModal({
               >
                 {levelUpData.levelTitle}
               </Text>
-              
-              {levelUpData.rewards && levelUpData.rewards.length > 0 && (
-                <View
-                  style={styles.rewardsContainer}
-                  accessible={true}
-                  accessibilityRole="list"
-                  accessibilityLabel={t('gamification.celebration.rewards_section_accessibility', {
-                    count: levelUpData.rewards.length
-                  })}
-                >
-                  <Text
-                    style={styles.rewardsTitle}
-                    accessible={true}
-                    accessibilityRole="header"
-                  >
-                    {t('gamification.celebration.rewards_title')}
-                  </Text>
-                  {levelUpData.rewards.map((reward, index) => (
-                    <Text
-                      key={index}
-                      style={styles.rewardItem}
-                      accessible={true}
-                      accessibilityRole="text"
-                      accessibilityLabel={t('gamification.celebration.reward_item_accessibility', {
-                        index: index + 1,
-                        reward
-                      })}
-                    >
-                      • {reward}
-                    </Text>
-                  ))}
-                </View>
-              )}
             </View>
           )}
           

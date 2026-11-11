@@ -58,6 +58,7 @@ import {
   selection,
 } from '@/src/services/hapticsService';
 import { contentColumn } from '@/src/utils/layout';
+import { useLabCover } from './labCover';
 import { LabText, PressableScale, typeStyle, useLab } from './labPrimitives';
 import {
   labFonts,
@@ -148,6 +149,7 @@ export function SlidePage({
   children: (close: () => void) => ReactNode;
 }) {
   const { c } = useLab();
+  useLabCover();
   const p = useSharedValue(0);
 
   useEffect(() => {
@@ -303,6 +305,7 @@ export function BottomSheet({
   children: (dismiss: Dismiss) => ReactNode;
 }) {
   const { c } = useLab();
+  useLabCover();
   const rootRef = useRef<View>(null);
   const p = useSharedValue(0);
 
@@ -1030,6 +1033,7 @@ const AD_MS = 1600;
 
 export function AdSimulation({ onDone }: { onDone: () => void }) {
   const { c, lang } = useLab();
+  useLabCover();
   const p = useSharedValue(0);
   // The latest callback, without restarting the "ad" when the parent re-renders.
   const done = useRef(onDone);
@@ -1084,6 +1088,7 @@ export function MilestoneMoment({
   onClosed: () => void;
 }) {
   const { c } = useLab();
+  useLabCover();
   const t = useJournalT();
   const award = useLabXpAward();
   const buttonRef = useRef<View>(null);

@@ -1029,7 +1029,6 @@ const simultaneousAchievements = [
 
 3. LEVEL-UP MODALS (3rd Priority - System Celebrations): TŘETÍ PRIORITA
    - Level-up celebrations (XP způsobí level-up)
-   - Level milestone rewards
    - XP multiplier activations
 
 COORDINATION RULES:

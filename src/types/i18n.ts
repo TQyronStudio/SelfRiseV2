@@ -2115,9 +2115,6 @@ export interface TranslationKeys {
       level_up_section_accessibility: string;
       level_badge_accessibility: string;
       level_title_accessibility: string;
-      rewards_section_accessibility: string;
-      rewards_title: string;
-      reward_item_accessibility: string;
       continue_button_accessibility: string;
       continue_button_hint: string;
       emoji: {
@@ -2230,8 +2227,6 @@ export interface TranslationKeys {
     };
     // Level tier descriptions
     levelTiers?: Record<string, string>;
-    // Milestone rewards
-    milestoneRewards?: Record<string, any>;
     // XP Source descriptions
     xpSources?: Record<string, string>;
     // Validation messages

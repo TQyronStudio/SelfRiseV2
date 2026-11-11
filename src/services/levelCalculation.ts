@@ -292,10 +292,6 @@ export function getLevelInfo(level: number): LevelInfo {
     isMilestone,
   };
   
-  if (isMilestone) {
-    levelInfo.rewards = getMilestoneRewards(level);
-  }
-  
   return levelInfo;
 }
 
@@ -370,42 +366,6 @@ function getPhaseStartLevel(phase: 'beginner' | 'intermediate' | 'advanced' | 'm
     case 'advanced': return LEVEL_PROGRESSION.INTERMEDIATE_PHASE_END + 1;
     case 'master': return LEVEL_PROGRESSION.ADVANCED_PHASE_END + 1;
   }
-}
-
-/**
- * Get rewards for milestone levels
- */
-function getMilestoneRewards(level: number): string[] {
-  const rewards: Record<number, string[]> = {
-    10: [
-      i18next.t('gamification.milestoneRewards.level10.badge'),
-      i18next.t('gamification.milestoneRewards.level10.theme'),
-      i18next.t('gamification.milestoneRewards.level10.multiplier'),
-    ],
-    25: [
-      i18next.t('gamification.milestoneRewards.level25.badge'),
-      i18next.t('gamification.milestoneRewards.level25.trophy'),
-      i18next.t('gamification.milestoneRewards.level25.challenge'),
-    ],
-    50: [
-      i18next.t('gamification.milestoneRewards.level50.badge'),
-      i18next.t('gamification.milestoneRewards.level50.prestige'),
-      i18next.t('gamification.milestoneRewards.level50.stats'),
-    ],
-    75: [
-      i18next.t('gamification.milestoneRewards.level75.badge'),
-      i18next.t('gamification.milestoneRewards.level75.legacy'),
-      i18next.t('gamification.milestoneRewards.level75.mentor'),
-    ],
-    100: [
-      i18next.t('gamification.milestoneRewards.level100.badge'),
-      i18next.t('gamification.milestoneRewards.level100.hallOfFame'),
-      i18next.t('gamification.milestoneRewards.level100.title'),
-      i18next.t('gamification.milestoneRewards.level100.customAchievement'),
-    ],
-  };
-
-  return rewards[level] || [i18next.t('gamification.milestoneRewards.default', { level })];
 }
 
 // ========================================

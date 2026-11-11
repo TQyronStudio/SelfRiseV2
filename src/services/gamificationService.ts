@@ -75,7 +75,6 @@ export interface XPTransactionResult {
   levelUpInfo?: {
     newLevelTitle: string;
     newLevelDescription: string;
-    rewards?: string[];
     isMilestone: boolean;
   };
   transaction?: XPTransaction;
@@ -880,17 +879,11 @@ export class GamificationService {
       let levelUpInfo: XPTransactionResult['levelUpInfo'] = undefined;
       if (leveledUp) {
         const levelInfo = getLevelInfo(newLevel);
-        const levelUpData = {
+        levelUpInfo = {
           newLevelTitle: levelInfo.title,
           newLevelDescription: levelInfo.description || '',
           isMilestone: levelInfo.isMilestone,
-        } as const;
-        
-        if (levelInfo.rewards) {
-          levelUpInfo = { ...levelUpData, rewards: levelInfo.rewards };
-        } else {
-          levelUpInfo = levelUpData;
-        }
+        };
 
         // Store level-up event in history
         await GamificationService.storeLevelUpEvent(newLevel, previousLevel, newTotalXP, transaction.source);

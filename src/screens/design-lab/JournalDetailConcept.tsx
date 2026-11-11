@@ -28,6 +28,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { selection } from '@/src/services/hapticsService';
 import { Chip, LabText, PressableScale, useLab } from './labPrimitives';
+import { useLabCover } from './labCover';
 import { labRadius, labSpace } from './labTokens';
 import { MOCK_COPY, MOCK_STATS } from './mockCopy';
 import { StreakFlame } from './StreakFlame';
@@ -63,6 +64,7 @@ export function JournalDetailConcept({
   onClosed,
 }: JournalDetailProps) {
   const { c, lang } = useLab();
+  useLabCover();
   const copy = MOCK_COPY[lang];
   const p = useSharedValue(0);
 

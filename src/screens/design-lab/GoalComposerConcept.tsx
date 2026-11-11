@@ -54,6 +54,7 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
+import { useLabCover } from './labCover';
 import { labFonts, labRadius, labSpace } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
 import { addDays, dateKey, weekdayIndex } from './habitsMock';
@@ -243,6 +244,7 @@ export function GoalComposerConcept({
   onSave: (goal: NewGoal, editingId: string | null) => void;
 }) {
   const { c, lang, mode } = useLab();
+  useLabCover();
   const copy = MOCK_COPY[lang];
   const g = copy.goals;
   const t = useJournalT();

@@ -15,9 +15,10 @@
  *   compare it with the calm version
  * - speedometer: Reanimated's FPS monitor (JS and UI thread)
  * - play: the full launch again · refresh: the quick entrance (every later open)
- * - trophy: an achievement unlocks — each tap the next rarity (common → legendary);
- *   its XP flies into the level badge after "Continue" (xpFlight.tsx)
- * The level badge is pinned top-left on every lab page.
+ * - trophy: the next scenario of "one celebration per action" (R-29,
+ *   celebrationDirector.tsx) — the subtitle names it; XP flies into the level badge
+ * The level badge is pinned top-left on every lab page; a tap on it opens the level
+ * panel (R-31, levelPanel.tsx) — on the five tabs only, not over an open detail.
  * The subtitle says when the OS "reduce motion" setting is on (animations then jump
  * to their end state — that is the intended behaviour, not a bug).
  *
@@ -69,12 +70,17 @@ import {
   labMotion,
   labPalettes,
   labRadius,
-  LabRarity,
   labSpace,
   SPLASH_BACKGROUND,
 } from './labTokens';
 import { LabLang, MOCK_COPY } from './mockCopy';
-import { AchievementCelebrationConcept } from './AchievementCelebrationConcept';
+import {
+  CELEBRATION_SCENARIOS,
+  CelebrationModalOutlet,
+  CelebrationNoteOutlet,
+  LabCelebrationProvider,
+  useLabCelebrate,
+} from './celebrationDirector';
 import {
   OnboardingAsk,
   OnboardingConcept,
@@ -84,18 +90,25 @@ import {
 } from './OnboardingConcept';
 import { ScreenThreeEnding } from '@/src/components/onboarding/firstCheckCopy';
 import { LabXpProvider, LevelBadge } from './xpFlight';
+import { useLabCover } from './labCover';
+import {
+  LEVEL_BADGE_PIN,
+  LevelPanel,
+  LevelPanelControl,
+  useLevelPanel,
+} from './levelPanel';
 import { LabTodayProvider } from './habitsMock';
 import { HabitsConcept } from './HabitsConcept';
 import { JournalConcept } from './JournalConcept';
 import { LabJournalProvider } from './journalMock';
 import { GoalsConcept } from './GoalsConcept';
 import { LabGoalsProvider } from './goalsMock';
+import { LabChallengeProvider } from './challengeMock';
 import { LabPerfProbe } from './labPerf';
 import { SettingsConcept, ThemePref } from './SettingsConcept';
 import { TrophyRoomConcept } from './TrophyRoomConcept';
+import { LevelsOverviewConcept } from './LevelsOverviewConcept';
 import { SlidePage } from './journalParts';
-
-const RARITY_ORDER: LabRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
 const TAB_BAR_HEIGHT = 60;
 const BANNER_HEIGHT = 50;
@@ -120,6 +133,7 @@ export function DesignLabScreen() {
   const mode: LabMode =
     themePref === 'system' ? (scheme === 'dark' ? 'dark' : 'light') : themePref;
   const [trophies, setTrophies] = useState(false);
+  const [levels, setLevels] = useState(false);
   // Onboarding: 'flow' covers everything, 'ask' sits over the real Habits tab.
   const [onboarding, setOnboarding] = useState<
     'off' | 'flow' | 'ask' | ScreenThreeEnding
@@ -135,15 +149,13 @@ export function DesignLabScreen() {
   const [tab, setTab] = useState(0);
   const [showFps, setShowFps] = useState(false);
   const [crown, setCrown] = useState(true);
-  const [celebration, setCelebration] = useState<{
-    rarity: LabRarity;
-    key: number;
-  } | null>(null);
-  const nextRarity = React.useRef(0);
+  const [scenario, setScenario] = useState<string | null>(null);
   const [fontsLoaded, fontError] = useFonts(labFontFiles);
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const c = labPalettes[mode];
+  // The tutorial sits over the tabs: the level panel stays shut under it.
+  useLabCover(onboarding !== 'off');
 
   // Fonts load only here, so the rest of the app's startup is untouched. Until they
   // are in, the splash frame is shown — exactly where the launch starts.
@@ -161,175 +173,175 @@ export function DesignLabScreen() {
       <IntroProvider kind={intro.kind} playKey={intro.key}>
         <View style={{ flex: 1, backgroundColor: c.canvas }}>
           <LabXpProvider>
-            <LabTodayProvider>
-              <LabJournalProvider>
-                <LabGoalsProvider>
-                  <LabStatusBar mode={mode} />
-                  <LabToolbar
-                    topInset={insets.top}
-                    reducedMotion={reducedMotion}
-                    showFps={showFps}
-                    crown={crown}
-                    onToggleCrown={() => setCrown(v => !v)}
-                    onToggleMode={() =>
-                      setThemePref(mode === 'dark' ? 'light' : 'dark')
-                    }
-                    onToggleLang={() =>
-                      setLang(l => (l === 'en' ? 'de' : 'en'))
-                    }
-                    onToggleFps={() => setShowFps(v => !v)}
-                    onLaunch={() => {
-                      setTab(0);
-                      play('launch');
-                    }}
-                    onSettle={() => play('settle')}
-                    onAchievement={() => {
-                      const rarity =
-                        RARITY_ORDER[
-                          nextRarity.current % RARITY_ORDER.length
-                        ] ?? 'common';
-                      nextRarity.current += 1;
-                      setCelebration(prev => ({
-                        rarity,
-                        key: (prev?.key ?? 0) + 1,
-                      }));
-                    }}
-                  />
+            <LabCelebrationProvider>
+              <LabTodayProvider>
+                <LabJournalProvider>
+                  <LabGoalsProvider>
+                    <LabChallengeProvider>
+                      <LabStatusBar mode={mode} />
+                      <LabToolbar
+                        topInset={insets.top}
+                        reducedMotion={reducedMotion}
+                        scenario={scenario}
+                        onScenario={setScenario}
+                        showFps={showFps}
+                        crown={crown}
+                        onToggleCrown={() => setCrown(v => !v)}
+                        onToggleMode={() =>
+                          setThemePref(mode === 'dark' ? 'light' : 'dark')
+                        }
+                        onToggleLang={() =>
+                          setLang(l => (l === 'en' ? 'de' : 'en'))
+                        }
+                        onToggleFps={() => setShowFps(v => !v)}
+                        onLaunch={() => {
+                          setTab(0);
+                          play('launch');
+                        }}
+                        onSettle={() => play('settle')}
+                      />
 
-                  {/* Pages cross-fade; the incoming one also runs the quick entrance. */}
-                  <View style={{ flex: 1 }}>
-                    <Animated.View
-                      key={`${tab}-${intro.kind}-${intro.key}`}
-                      entering={FadeIn.duration(labMotion.base)}
-                      exiting={FadeOut.duration(labMotion.fast)}
-                      style={StyleSheet.absoluteFill}
-                    >
-                      {tab === 0 ? (
-                        <HomeConcept
-                          bottomInset={bottomChrome}
+                      {/* Pages cross-fade; the incoming one also runs the quick entrance. */}
+                      <View style={{ flex: 1 }}>
+                        <Animated.View
+                          key={`${tab}-${intro.kind}-${intro.key}`}
+                          entering={FadeIn.duration(labMotion.base)}
+                          exiting={FadeOut.duration(labMotion.fast)}
+                          style={StyleSheet.absoluteFill}
+                        >
+                          {tab === 0 ? (
+                            <HomeConcept
+                              bottomInset={bottomChrome}
+                              onOpenTrophies={() => setTrophies(true)}
+                            />
+                          ) : tab === 1 ? (
+                            <HabitsConcept
+                              bottomInset={bottomChrome}
+                              onboardingHabit={onbResult?.habit ?? null}
+                              asking={onboarding === 'ask'}
+                            />
+                          ) : tab === 2 ? (
+                            <JournalConcept bottomInset={bottomChrome} />
+                          ) : tab === 3 ? (
+                            <GoalsConcept bottomInset={bottomChrome} />
+                          ) : (
+                            <SettingsConcept
+                              bottomInset={bottomChrome}
+                              themePref={themePref}
+                              onThemePref={setThemePref}
+                              onLang={setLang}
+                              onRestartTutorial={() => setOnboarding('flow')}
+                            />
+                          )}
+                        </Animated.View>
+
+                        {/* Opens from Home and Settings; the level badge stays above it. */}
+                        {trophies && (
+                          <SlidePage
+                            width={windowWidth}
+                            onClosed={() => setTrophies(false)}
+                          >
+                            {close => (
+                              <TrophyRoomConcept
+                                bottomInset={bottomChrome}
+                                onClose={close}
+                              />
+                            )}
+                          </SlidePage>
+                        )}
+
+                        {/* "All levels" in the level panel; the badge stays above it too. */}
+                        {levels && (
+                          <SlidePage
+                            width={windowWidth}
+                            onClosed={() => setLevels(false)}
+                          >
+                            {close => (
+                              <LevelsOverviewConcept
+                                bottomInset={bottomChrome}
+                                onClose={close}
+                              />
+                            )}
+                          </SlidePage>
+                        )}
+
+                        <BadgeLayer
+                          closeKey={`${tab}-${intro.key}`}
                           onOpenTrophies={() => setTrophies(true)}
+                          onOpenLevels={() => setLevels(true)}
                         />
-                      ) : tab === 1 ? (
-                        <HabitsConcept
+                      </View>
+
+                      <BottomChrome
+                        bottomInset={insets.bottom}
+                        activeTab={tab}
+                        onSelectTab={next => {
+                          if (next === tab) return;
+                          setTab(next);
+                          play('settle');
+                        }}
+                      />
+
+                      {showFps && (
+                        <View
+                          style={[styles.fps, { top: insets.top + 64 }]}
+                          pointerEvents="none"
+                        >
+                          <PerformanceMonitor />
+                        </View>
+                      )}
+
+                      <CelebrationModalOutlet />
+                      {onboarding === 'ask' && onbResult?.habit && (
+                        <OnboardingAsk
+                          habit={onbResult.habit}
                           bottomInset={bottomChrome}
-                          onboardingHabit={onbResult?.habit ?? null}
-                          asking={onboarding === 'ask'}
+                          onEnding={setOnboarding}
                         />
-                      ) : tab === 2 ? (
-                        <JournalConcept bottomInset={bottomChrome} />
-                      ) : tab === 3 ? (
-                        <GoalsConcept bottomInset={bottomChrome} />
-                      ) : (
-                        <SettingsConcept
-                          bottomInset={bottomChrome}
+                      )}
+                      {(onboarding === 'done' || onboarding === 'later') &&
+                        onbResult && (
+                          <OnboardingEnding
+                            ending={onboarding}
+                            result={onbResult}
+                            onDone={xp => {
+                              setOnboarding('off');
+                              setPendingXp(xp);
+                            }}
+                            onLearnMore={() => {
+                              setOnboarding('off');
+                              router.push('/how-it-works' as never);
+                            }}
+                          />
+                        )}
+                      {onboarding === 'flow' && (
+                        <OnboardingConcept
                           themePref={themePref}
                           onThemePref={setThemePref}
                           onLang={setLang}
-                          onRestartTutorial={() => setOnboarding('flow')}
+                          onReady={result => {
+                            setOnbResult(result);
+                            if (result.habit) {
+                              setTab(1);
+                              play('settle');
+                              setOnboarding('ask');
+                            } else {
+                              setOnboarding('later');
+                            }
+                          }}
                         />
                       )}
-                    </Animated.View>
-
-                    {/* Opens from Home and Settings; the level badge stays above it. */}
-                    {trophies && (
-                      <SlidePage
-                        width={windowWidth}
-                        onClosed={() => setTrophies(false)}
-                      >
-                        {close => (
-                          <TrophyRoomConcept
-                            bottomInset={bottomChrome}
-                            onClose={close}
-                          />
-                        )}
-                      </SlidePage>
-                    )}
-
-                    {/* The level badge: same place on every screen, stays while pages scroll. */}
-                    <View style={styles.badgePin} pointerEvents="box-none">
-                      <View
-                        style={[contentColumn, styles.badgeColumn]}
-                        pointerEvents="box-none"
-                      >
-                        <BadgeEntrance />
-                      </View>
-                    </View>
-                  </View>
-
-                  <BottomChrome
-                    bottomInset={insets.bottom}
-                    activeTab={tab}
-                    onSelectTab={next => {
-                      if (next === tab) return;
-                      setTab(next);
-                      play('settle');
-                    }}
-                  />
-
-                  {showFps && (
-                    <View
-                      style={[styles.fps, { top: insets.top + 64 }]}
-                      pointerEvents="none"
-                    >
-                      <PerformanceMonitor />
-                    </View>
-                  )}
-
-                  {celebration && (
-                    <AchievementCelebrationConcept
-                      key={celebration.key}
-                      rarity={celebration.rarity}
-                      onClosed={() => setCelebration(null)}
-                    />
-                  )}
-                  {onboarding === 'ask' && onbResult?.habit && (
-                    <OnboardingAsk
-                      habit={onbResult.habit}
-                      bottomInset={bottomChrome}
-                      onEnding={setOnboarding}
-                    />
-                  )}
-                  {(onboarding === 'done' || onboarding === 'later') &&
-                    onbResult && (
-                      <OnboardingEnding
-                        ending={onboarding}
-                        result={onbResult}
-                        onDone={xp => {
-                          setOnboarding('off');
-                          setPendingXp(xp);
-                        }}
-                        onLearnMore={() => {
-                          setOnboarding('off');
-                          router.push('/how-it-works' as never);
-                        }}
+                      <OnboardingXp
+                        xp={pendingXp}
+                        onLanded={() => setPendingXp(0)}
                       />
-                    )}
-                  {onboarding === 'flow' && (
-                    <OnboardingConcept
-                      themePref={themePref}
-                      onThemePref={setThemePref}
-                      onLang={setLang}
-                      onReady={result => {
-                        setOnbResult(result);
-                        if (result.habit) {
-                          setTab(1);
-                          play('settle');
-                          setOnboarding('ask');
-                        } else {
-                          setOnboarding('later');
-                        }
-                      }}
-                    />
-                  )}
-                  <OnboardingXp
-                    xp={pendingXp}
-                    onLanded={() => setPendingXp(0)}
-                  />
-                  <LaunchCurtain />
-                  <LabPerfProbe />
-                </LabGoalsProvider>
-              </LabJournalProvider>
-            </LabTodayProvider>
+                      <LaunchCurtain />
+                      <LabPerfProbe />
+                    </LabChallengeProvider>
+                  </LabGoalsProvider>
+                </LabJournalProvider>
+              </LabTodayProvider>
+            </LabCelebrationProvider>
           </LabXpProvider>
         </View>
       </IntroProvider>
@@ -337,8 +349,43 @@ export function DesignLabScreen() {
   );
 }
 
+/**
+ * The level badge and what comes out of it: its panel (a tap), the quiet trophy
+ * note and the "LEVEL UP" tag. Same place on every screen, stays while pages scroll.
+ */
+function BadgeLayer({
+  closeKey,
+  onOpenTrophies,
+  onOpenLevels,
+}: {
+  /** The tab and the intro on screen: a new one closes the level panel. */
+  closeKey: string;
+  onOpenTrophies: () => void;
+  onOpenLevels: () => void;
+}) {
+  const panel = useLevelPanel(closeKey);
+  return (
+    <>
+      {/* Under the badge: the ring of the open panel is the badge itself. */}
+      {panel.shown && <LevelPanel panel={panel} onOpenLevels={onOpenLevels} />}
+      <View style={styles.badgePin} pointerEvents="box-none">
+        <View
+          style={[contentColumn, styles.badgeColumn]}
+          pointerEvents="box-none"
+        >
+          <BadgeEntrance panel={panel} />
+          {/* Quiet trophies slide out of the badge (R-29). */}
+          <View style={styles.notePin} pointerEvents="box-none">
+            <CelebrationNoteOutlet onOpenTrophies={onOpenTrophies} />
+          </View>
+        </View>
+      </View>
+    </>
+  );
+}
+
 /** The badge enters with the header in the intro, then never moves again. */
-function BadgeEntrance() {
+function BadgeEntrance({ panel }: { panel: LevelPanelControl }) {
   const { timeline } = useIntro();
   return (
     // Sized to the badge and see-through around it: it sits over every page, and a
@@ -350,7 +397,12 @@ function BadgeEntrance() {
       pointerEvents="box-none"
       style={{ alignSelf: 'flex-start' }}
     >
-      <LevelBadge />
+      <LevelBadge
+        onPress={panel.onBadgePress}
+        openness={panel.progress}
+        open={panel.shown}
+        tagTappable={panel.canOpen}
+      />
     </Rise>
   );
 }
@@ -367,6 +419,8 @@ function LabStatusBar({ mode }: { mode: LabMode }) {
 function LabToolbar({
   topInset,
   reducedMotion,
+  scenario,
+  onScenario,
   showFps,
   crown,
   onToggleCrown,
@@ -375,10 +429,11 @@ function LabToolbar({
   onToggleFps,
   onLaunch,
   onSettle,
-  onAchievement,
 }: {
   topInset: number;
   reducedMotion: boolean;
+  scenario: string | null;
+  onScenario: (label: string) => void;
   showFps: boolean;
   crown: boolean;
   onToggleCrown: () => void;
@@ -387,9 +442,10 @@ function LabToolbar({
   onToggleFps: () => void;
   onLaunch: () => void;
   onSettle: () => void;
-  onAchievement: () => void;
 }) {
   const { c, mode, lang } = useLab();
+  const celebrate = useLabCelebrate();
+  const nextScenario = React.useRef(0);
   return (
     <View
       style={[
@@ -414,7 +470,9 @@ function LabToolbar({
             Lab
           </LabText>
           <LabText variant="caption" tone="muted" numberOfLines={1}>
-            {reducedMotion ? 'no motion' : 'mock'}
+            {[reducedMotion ? 'no motion' : 'mock', scenario]
+              .filter(Boolean)
+              .join(' · ')}
           </LabText>
         </View>
         <ToolButton
@@ -451,8 +509,17 @@ function LabToolbar({
         />
         <ToolButton
           icon="trophy"
-          label="Unlock an achievement"
-          onPress={onAchievement}
+          label="Unlock achievements: next scenario"
+          onPress={() => {
+            const i = nextScenario.current % CELEBRATION_SCENARIOS.length;
+            const next = CELEBRATION_SCENARIOS[i];
+            nextScenario.current += 1;
+            if (!next) return;
+            onScenario(
+              `${i + 1}/${CELEBRATION_SCENARIOS.length} ${next.label}`
+            );
+            celebrate(next.batch);
+          }}
         />
       </View>
     </View>
@@ -634,12 +701,18 @@ const styles = StyleSheet.create({
   },
   badgePin: {
     position: 'absolute',
-    top: labSpace.sm,
+    top: LEVEL_BADGE_PIN.top,
     left: 0,
     right: 0,
   },
   badgeColumn: {
-    paddingHorizontal: labSpace.xl,
+    paddingHorizontal: LEVEL_BADGE_PIN.left,
+  },
+  notePin: {
+    position: 'absolute',
+    top: 0,
+    left: LEVEL_BADGE_PIN.left + 48 + labSpace.sm,
+    right: labSpace.xl,
   },
   fps: {
     position: 'absolute',

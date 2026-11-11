@@ -3075,7 +3075,7 @@ const de: Partial<TranslationKeys> = {
 
       accessibility: {
         label: 'Erfahrungslevel {{currentLevel}}, {{levelTitle}}. {{progress}} Prozent Fortschritt bis Level {{nextLevel}}. {{xpRemaining}} Erfahrungspunkte verbleibend.{{#isMilestone}} Dies ist ein Meilenstein-Level.{{/isMilestone}}',
-        hint: 'Dein aktuelles Erfahrungslevel und Fortschritt zum nächsten Level.{{#isMilestone}} Du hast ein besonderes Meilenstein-Level mit einzigartigen Belohnungen erreicht.{{/isMilestone}}',
+        hint: 'Dein aktuelles Erfahrungslevel und Fortschritt zum nächsten Level.{{#isMilestone}} Du hast ein besonderes Meilenstein-Level erreicht.{{/isMilestone}}',
       },
 
 
@@ -3112,9 +3112,6 @@ const de: Partial<TranslationKeys> = {
       level_up_section_accessibility: 'Level {{level}} Erfolg{{#isMilestone}} Meilenstein{{/isMilestone}} Details',
       level_badge_accessibility: 'Level {{level}}{{#isMilestone}} Meilenstein{{/isMilestone}} Abzeichen',
       level_title_accessibility: 'Level-Titel: {{title}}',
-      rewards_section_accessibility: 'Liste neuer Belohnungen mit {{count}} Einträgen',
-      rewards_title: 'Neue Belohnungen:',
-      reward_item_accessibility: 'Belohnung {{index}}: {{reward}}',
       continue_button_accessibility: 'Fortfahren und Feier schließen',
       continue_button_hint: 'Tippe, um diese Feier zu schließen und zur App zurückzukehren',
 
@@ -3211,36 +3208,6 @@ const de: Partial<TranslationKeys> = {
       default: 'Fortsetzung deiner Reise des persönlichen Wachstums und der Selbstverbesserung.',
     },
 
-    // Milestone rewards
-    milestoneRewards: {
-      level10: {
-        badge: 'Erfolgsabzeichen: Anfänger V',
-        theme: 'Freischaltung eines benutzerdefinierten Farbthemas',
-        multiplier: 'Bonus-XP-Multiplikator (1 Stunde)',
-      },
-      level25: {
-        badge: 'Erfolgsabzeichen: Adept V',
-        trophy: 'Trophäenraum-Erweiterung',
-        challenge: 'Wöchentliche Herausforderung freigeschaltet',
-      },
-      level50: {
-        badge: 'Erfolgsabzeichen: Spezialist V',
-        prestige: 'Prestige-System-Zugang',
-        stats: 'Erweiterte Statistiken freigeschaltet',
-      },
-      level75: {
-        badge: 'Erfolgsabzeichen: Herausforderer V',
-        legacy: 'Legacy-Funktionen freigeschaltet',
-        mentor: 'Mentor-Modus freigeschaltet',
-      },
-      level100: {
-        badge: 'Erfolgsabzeichen: Mythisch V Ultimativ',
-        hallOfFame: 'Hall of Fame Eintrag',
-        title: 'Ultimativer Titel freigeschaltet',
-        customAchievement: 'Benutzerdefinierte Erfolge erstellen',
-      },
-      default: 'Level {{level}} Erfolgsabzeichen',
-    },
 
     // XP Source descriptions
     xpSources: {

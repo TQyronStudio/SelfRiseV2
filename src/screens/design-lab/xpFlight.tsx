@@ -43,6 +43,7 @@ import React, {
 } from 'react';
 import {
   Animated as RNAnimated,
+  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -615,7 +616,30 @@ function Spark({
 const BADGE = 48;
 const BADGE_CANVAS = 76;
 
-export function LevelBadge() {
+export const LEVEL_BADGE_SIZE = BADGE;
+/** While its panel is open (levelPanel.tsx) the badge is the panel's big ring. */
+export const LEVEL_BADGE_OPEN_SCALE = 1.25;
+/** …and sits this much lower, inside the panel's padding. */
+export const LEVEL_BADGE_OPEN_DROP = 8;
+export const LEVEL_GOLD: readonly [string, string] = [GOLD, GOLD_DEEP];
+
+interface LevelBadgeProps {
+  /** A tap on the badge or on its "LEVEL UP" tag. */
+  onPress?: () => void;
+  /** 0 = the badge alone … 1 = its panel is open; the ring grows with it. */
+  openness?: RNAnimated.Value;
+  /** The panel is out: nothing else may come out of the badge. */
+  open?: boolean;
+  /** A tap on the "LEVEL UP" tag would do something right now. */
+  tagTappable?: boolean;
+}
+
+export function LevelBadge({
+  onPress,
+  openness,
+  open = false,
+  tagTappable = true,
+}: LevelBadgeProps) {
   const { c, mode } = useLab();
   // The hit must read on a white badge too: deep gold in light mode, bright gold in dark.
   const hitColor = mode === 'light' ? '#EE8A12' : '#FFE08A';
@@ -711,6 +735,27 @@ export function LevelBadge() {
   // A ripple spreads from the point of impact while the flash fades — it soaks in.
   const rippleR = useDerivedValue(() => 4 + 11 * (1 - impactFlash.value));
 
+  // The ring grows into the panel's big ring from its own top-left corner, so its
+  // centre moves only a few px: sparks still in the air land on it, slightly off.
+  const openStyle = useMemo(() => {
+    if (!openness) return null;
+    const grow = (BADGE * (LEVEL_BADGE_OPEN_SCALE - 1)) / 2;
+    const to = (value: number) =>
+      openness.interpolate({ inputRange: [0, 1], outputRange: [0, value] });
+    return {
+      transform: [
+        { translateX: to(grow) },
+        { translateY: to(grow + LEVEL_BADGE_OPEN_DROP) },
+        {
+          scale: openness.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, LEVEL_BADGE_OPEN_SCALE],
+          }),
+        },
+      ],
+    };
+  }, [openness]);
+
   return (
     <View style={styles.badgeBox} pointerEvents="box-none">
       {/* Measure THIS (48×48), not the row: the row also holds the hidden "LEVEL UP"
@@ -727,135 +772,174 @@ export function LevelBadge() {
           );
         }}
       >
-        <PressableScale
-          accessibilityLabel={`Level ${level}`}
-          pressScale={0.92}
-          style={styles.badgeHit}
-        >
-          <RNAnimated.View
-            style={[
-              styles.badgeBody,
-              {
-                transform: [
-                  { translateX: bodyX },
-                  { translateY: bodyY },
-                  { scale: bodyScale },
-                ],
-              },
-            ]}
+        <RNAnimated.View style={openStyle}>
+          <PressableScale
+            {...(onPress ? { onPress } : null)}
+            // The panel plays its own haptic — only when the tap does something.
+            haptic={null}
+            accessibilityLabel={`Level ${level}`}
+            pressScale={0.92}
+            style={styles.badgeHit}
           >
-            <Canvas style={styles.badgeCanvas} pointerEvents="none">
-              <Circle cx={center} cy={center} r={glowR} opacity={glowOpacity}>
-                <RadialGradient
-                  c={vec(center, center)}
-                  r={glowR}
-                  colors={[GOLD, `${GOLD}00`]}
-                />
-              </Circle>
-              <Circle
-                cx={center}
-                cy={center}
-                r={BADGE / 2 - 2}
-                color={c.surface}
-              />
-              <Circle
-                cx={center}
-                cy={center}
-                r={BADGE_RING_R}
-                style="stroke"
-                strokeWidth={4}
-                color={c.track}
-              />
-              <Path
-                path={ringPath}
-                style="stroke"
-                strokeWidth={4}
-                strokeCap="round"
-                start={0}
-                end={ring}
-              >
-                <SkiaLinearGradient
-                  start={vec(center - BADGE_RING_R, 0)}
-                  end={vec(center + BADGE_RING_R, 0)}
-                  colors={[GOLD, GOLD_DEEP]}
-                />
-              </Path>
-              <Group
-                transform={impactTransform}
-                origin={vec(center, center)}
-                opacity={impactFlash}
-              >
-                <Circle cx={center + BADGE_RING_R} cy={center} r={14}>
+            <RNAnimated.View
+              style={[
+                styles.badgeBody,
+                {
+                  transform: [
+                    { translateX: bodyX },
+                    { translateY: bodyY },
+                    { scale: bodyScale },
+                  ],
+                },
+              ]}
+            >
+              <Canvas style={styles.badgeCanvas} pointerEvents="none">
+                <Circle cx={center} cy={center} r={glowR} opacity={glowOpacity}>
                   <RadialGradient
-                    c={vec(center + BADGE_RING_R, center)}
-                    r={14}
-                    colors={[hitColor, `${GOLD}00`]}
+                    c={vec(center, center)}
+                    r={glowR}
+                    colors={[GOLD, `${GOLD}00`]}
                   />
                 </Circle>
-                <Path
-                  path={impactArc}
-                  style="stroke"
-                  strokeWidth={6}
-                  strokeCap="round"
-                  color={hitColor}
+                <Circle
+                  cx={center}
+                  cy={center}
+                  r={BADGE / 2 - 2}
+                  color={c.surface}
                 />
                 <Circle
-                  cx={center + BADGE_RING_R}
+                  cx={center}
                   cy={center}
-                  r={rippleR}
+                  r={BADGE_RING_R}
                   style="stroke"
-                  strokeWidth={1.6}
-                  color={hitColor}
+                  strokeWidth={4}
+                  color={c.track}
                 />
-              </Group>
-              <Group
-                transform={burstTransform}
-                origin={vec(center, center)}
-                opacity={burstOpacity}
-              >
-                {sparks.map((s, i) => (
-                  <Circle
-                    key={i}
-                    cx={s.x}
-                    cy={s.y}
-                    r={2.4}
-                    color={i % 2 ? GOLD : SPARK_CORE}
+                <Path
+                  path={ringPath}
+                  style="stroke"
+                  strokeWidth={4}
+                  strokeCap="round"
+                  start={0}
+                  end={ring}
+                >
+                  <SkiaLinearGradient
+                    start={vec(center - BADGE_RING_R, 0)}
+                    end={vec(center + BADGE_RING_R, 0)}
+                    colors={[GOLD, GOLD_DEEP]}
                   />
-                ))}
-              </Group>
-            </Canvas>
-            <View style={styles.badgeNumber} pointerEvents="none">
-              <RollingNumber
-                text={`${level}`}
-                variant="bodyStrong"
-                style={{ fontFamily: labFonts.bold, color: c.text }}
-              />
-            </View>
-          </RNAnimated.View>
-        </PressableScale>
+                </Path>
+                <Group
+                  transform={impactTransform}
+                  origin={vec(center, center)}
+                  opacity={impactFlash}
+                >
+                  <Circle cx={center + BADGE_RING_R} cy={center} r={14}>
+                    <RadialGradient
+                      c={vec(center + BADGE_RING_R, center)}
+                      r={14}
+                      colors={[hitColor, `${GOLD}00`]}
+                    />
+                  </Circle>
+                  <Path
+                    path={impactArc}
+                    style="stroke"
+                    strokeWidth={6}
+                    strokeCap="round"
+                    color={hitColor}
+                  />
+                  <Circle
+                    cx={center + BADGE_RING_R}
+                    cy={center}
+                    r={rippleR}
+                    style="stroke"
+                    strokeWidth={1.6}
+                    color={hitColor}
+                  />
+                </Group>
+                <Group
+                  transform={burstTransform}
+                  origin={vec(center, center)}
+                  opacity={burstOpacity}
+                >
+                  {sparks.map((s, i) => (
+                    <Circle
+                      key={i}
+                      cx={s.x}
+                      cy={s.y}
+                      r={2.4}
+                      color={i % 2 ? GOLD : SPARK_CORE}
+                    />
+                  ))}
+                </Group>
+              </Canvas>
+              <View style={styles.badgeNumber} pointerEvents="none">
+                <RollingNumber
+                  text={`${level}`}
+                  variant="bodyStrong"
+                  style={{ fontFamily: labFonts.bold, color: c.text }}
+                />
+              </View>
+            </RNAnimated.View>
+          </PressableScale>
+        </RNAnimated.View>
       </View>
-      <LevelUpTag levelUpKey={levelUpKey} level={level} />
+      <LevelUpTag
+        levelUpKey={levelUpKey}
+        level={level}
+        onPress={tagTappable ? onPress : undefined}
+        hidden={open}
+      />
     </View>
   );
 }
 
-/** "LEVEL UP · 17" slides out of the badge for a moment after a level up. */
+/** The tag can be tapped while it is really there: from its slide-in to its fade. */
+const TAG_IN_MS = 300;
+const TAG_OUT_MS = 300 + 700 + 1700;
+
+/**
+ * "LEVEL UP · 17" slides out of the badge for a moment after a level up. A tap on
+ * it opens the level panel — that is how the user finds out the badge can be
+ * tapped at all (R-31).
+ */
 function LevelUpTag({
   levelUpKey,
   level,
+  onPress,
+  hidden,
 }: {
   levelUpKey: number;
   level: number;
+  onPress?: (() => void) | undefined;
+  /** The panel is out: the tag gives way at once. */
+  hidden: boolean;
 }) {
   const { c } = useLab();
   const p = useSharedValue(0);
+  const [live, setLive] = useState(false);
+  const hiddenNow = useRef(hidden);
+  hiddenNow.current = hidden;
   useEffect(() => {
-    if (levelUpKey === 0) return;
+    // A level up that lands while the panel is open: the ring and the panel show
+    // it — the tag would slide over the panel's header.
+    if (levelUpKey === 0 || hiddenNow.current) return undefined;
     p.value = withSequence(
-      withDelay(300, withSpring(1, { damping: 14, stiffness: 200 })),
+      withDelay(TAG_IN_MS, withSpring(1, { damping: 14, stiffness: 200 })),
       withDelay(1700, withTiming(0, { duration: 260 }))
     );
+    const on = setTimeout(() => setLive(true), TAG_IN_MS);
+    const off = setTimeout(() => setLive(false), TAG_OUT_MS);
+    return () => {
+      clearTimeout(on);
+      clearTimeout(off);
+    };
   }, [levelUpKey, p]);
+  useEffect(() => {
+    if (!hidden) return;
+    p.value = withTiming(0, { duration: 120 });
+    setLive(false);
+  }, [hidden, p]);
   const style = useAnimatedStyle(() => ({
     opacity: Math.min(1, p.value),
     transform: [
@@ -863,17 +947,27 @@ function LevelUpTag({
       { scale: 0.9 + 0.1 * p.value },
     ],
   }));
+  const tappable = live && !hidden && !!onPress;
   return (
     <Animated.View
-      pointerEvents="none"
+      pointerEvents={tappable ? 'auto' : 'none'}
       style={[styles.tag, { backgroundColor: c.text }, style]}
     >
-      <Text
-        maxFontSizeMultiplier={1.3}
-        style={[typeStyle('overline', c.canvas), { letterSpacing: 1.4 }]}
+      <Pressable
+        onPress={onPress}
+        disabled={!tappable}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={`Level up. Level ${level}`}
+        style={styles.tagHit}
       >
-        {`LEVEL UP · ${level}`}
-      </Text>
+        <Text
+          maxFontSizeMultiplier={1.3}
+          style={[typeStyle('overline', c.canvas), { letterSpacing: 1.4 }]}
+        >
+          {`LEVEL UP · ${level}`}
+        </Text>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -982,9 +1076,11 @@ const styles = StyleSheet.create({
   },
   tag: {
     marginLeft: labSpace.sm,
+    borderRadius: labRadius.pill,
+  },
+  tagHit: {
     paddingHorizontal: labSpace.md,
     paddingVertical: 5,
-    borderRadius: labRadius.pill,
   },
   pop: {
     paddingHorizontal: labSpace.sm,

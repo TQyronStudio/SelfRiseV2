@@ -63,6 +63,7 @@ import {
   chipColors,
   useLab,
 } from './labPrimitives';
+import { useLabCover } from './labCover';
 import { labFonts, labRadius, labSpace } from './labTokens';
 import { useIntro } from './introTimeline';
 import { ScrollCard, ScrollFrameProvider } from './scrollChoreography';
@@ -1220,6 +1221,7 @@ function ActionSheet({
   onCalendar: () => void;
 }) {
   const { c, lang, mode } = useLab();
+  useLabCover();
   const a = MOCK_COPY[lang].habits.actions;
   const p = useSharedValue(0);
   useEffect(() => {

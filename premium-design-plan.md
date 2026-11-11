@@ -247,8 +247,16 @@ se písmo, místo, povrchy a pohyb. Barvy se jen zklidní a opraví.
 | **R-26** | Onboarding: **východ slunce** napříč kroky a „Tvůj první den" se třemi políčky místo teček; po dlaždici živý náhled a „Přizpůsobit" místo otevřeného formuláře | ✅ **Schváleno 2026-10-31 (Petr):** „postupný východ je sympatický“ |
 | **R-27** | Onboarding podle psychologie (rozbor 2026-10-31): (1) „Přeskočit“ jen daného kroku, ne celého úvodu; (2) ~~„Kdy?“ po dlaždici návyku~~ **odstraněno, Petr 2026-10-31**: výběr nikde nezůstal a ne každý si chce čas určovat; (3) závěr jako vrchol: vlastní návyk, cíl a slova z vděčnosti, trofeje najednou (mění pravidlo 3 v Tutorial.md); (4) krok vděčnosti před odškrtnutím; (5) první políčko hotové po „Let's go“; (6) podnadpis „začni malým“; (7) připomínky úplně nakonec, skutečným obecným textem (skutečné připomínky žádný návyk nejmenují). Vědomě NE: falešný počet uživatelů, odpočty, vina za přeskočení, otázka „proč jsi tady“ (zatím) | ✅ **Schváleno 2026-10-31 (Petr):** „postav to celé v laboratoři“. Hotovo v kolech 31 a 32. Při převodu: mění pravidlo 3 v Tutorial.md a význam `onb_skip`, nová událost pro vděčnost |
 | **R-28** | Trofeje: nový katalog, 75 → 51, vzácnost podle času, první den jen běžné trofeje, cíl se do trofejí počítá až po 7 dnech. Katalog a simulace: @achievements-rework-plan.md | ✅ **Schváleno 2026-10-31 (Petr):** vyřazené zmizí úplně i těm, kdo je získali, XP zůstávají. V ostré appce samostatný krok po novém vzhledu, včetně povinného vyčištění uložených trofejí (počet se bere z délky seznamu) |
-| **R-29** | Jedna oslava na jednu akci: běžné tiše, velké okno pro epic a legendary, trofeje a nová úroveň ze stejné akce v jednom momentu. Žádné časové pauzy mezi okny | Petr 2026-10-31: zpětná vazba testerů, chce to řešit. Navrhnout v laboratoři před dokončením zbylých oslav |
+| **R-29** | Jedna oslava na jednu akci: běžné a vzácné tiše (oznámení vyjede z odznaku úrovně, XP se do něj vrátí), velké okno jen pro epic a legendary a ostatní z té akce v něm („Also unlocked“, jedno XP). Nová úroveň nikdy jako samostatné okno. Žádné časové pauzy mezi okny | ✅ Petr 2026-11-10: „pusť se do R-29“. Postaveno v kole 33, na zařízení neviděno. Milníkové úrovně (R-10) navazují |
 | **R-30** | Části dne: návyky po ráno, odpoledne, večer a „Kdykoliv“, volitelné, ne v tutoriálu. Ruční řazení uvnitř části, bonusové návyky zůstávají zvlášť | Petr zvažuje („zajímavější, ale ne každý to ocení“). Vyzkoušet v laboratoři, v ostré appce samostatný krok (nový údaj v databázi). Plná časová osa zůstává v @projectplan-future-updates.md Phase 12 |
+| **R-31** | Úroveň na Home: karta Úroveň pryč z výchozího Home, stačí připnutý odznak s kroužkem. **Ťuknutí na odznak vysune panel úrovně** (název úrovně, XP, kolik chybí do další, odkaz na přehled úrovní) | ✅ **Schváleno 2026-11-10 (Petr):** jeho nápad s panelem z odznaku. Postavit v laboratoři; při převodu ošetřit uloženou volbu sekce Úroveň v přizpůsobení Home |
+| **R-32** | Nájezd obrazovky jen při **prvním zobrazení záložky** po otevření appky; další přepnutí je okamžité a záložka si drží stav i polohu rolování (mění kolo 4: „settle při každém přepnutí“) | ✅ **Schváleno 2026-11-10 (Petr)** |
+| **R-33** | Detaily, sheety a oslavy jdou **zavřít tažením** a v půlce vrátit (dnes jen tlačítkem); Android „zpět“ a křížek zůstávají | ✅ **Schváleno 2026-11-10 (Petr)** |
+| **R-34** | **Vlastní podpisové ikony** (plamen, hvězda, koruna, trofej, slunce, spodní lišta) místo emoji a obecné sady; už ne „volitelně“ | ✅ **Schváleno 2026-11-10 (Petr)** |
+| **R-35** | Smysly: **zvuk** (víc než jeden volitelný) a **složené hmatové vzory** u oslav, obojí vypínatelné; potřebuje nativní build | ✅ **Schváleno 2026-11-10 (Petr)** – rozsah a knihovnu hmatu ověřit před stavbou |
+| **R-36** | Měsíční výzva: detail jako jedna stránka místo tří záložek, obecné tipy nahrazuje věta o tempu („stíháš“ / „chybí ti X za Y dní“). Kalendář ve čtyřech odstínech bez procentní legendy | ✅ **Schváleno 2026-11-11 (Petr: „nechám to na tvé profesionalitě“)** |
+| **R-37** | Měsíční výzva: milníky 25/50/75 % jako tiché oznámení z odznaku místo oken, XP zůstává | ✅ Schváleno 2026-11-11 (Petr) |
+| **R-38** | Měsíční výzva: splnění a povýšení hvězdy v jednom okně; nesplnění a sesazení v jednom klidném okně „Tvůj měsíc“ s novou výzvou | ✅ Schváleno 2026-11-11 (Petr) |
 | **T-Qyron** | Třetí režim | ✅ **Rozhodnuto 2026-10-22:** úroveň **20**, základ = bývalý směr A, **teď se neřeší** (@projectplan-future-updates.md Phase 2.1) |
 
 ---
@@ -534,14 +542,111 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
       vlastní krok, 3. nové trofeje jako vlastní krok. Nic z toho v jednom vydání, aby šlo poznat, co způsobilo chybu
 - [ ] **Co v laboratoři ještě chybí (soupis proti obrazovkám a oknům appky, 2026-10-31), v pořadí podle dopadu:**
   - [x] **Onboarding** – kola 30 až 32
-  - [ ] **Trofeje (R-29)** – katalog R-28 je schválený, teď pravidlo jedné oslavy; zbylé oslavy až po něm
+  - [x] **Trofeje (R-29)** – pravidlo jedné oslavy, kolo 33 (na zařízení neviděno)
   - [ ] **Části dne (R-30)** – vyzkoušet na obrazovce Návyků
-  - [ ] **Měsíční výzva** – detail výzvy + okna: splnění, nesplnění, milník, změna hvězd
+  - [ ] **Měsíční výzva v komplexní verzi** (Petr 2026-11-11, R-36 až R-38 schváleny; podklad:
+        @technical-guides:Monthly-Challenges.md; logika a čísla výzev se nemění, jen vzhled a počet oken)
+    - [x] **Kolo 36 – Detail výzvy jako jedna stránka** (na zařízení neviděno)
+    - [ ] **Kolo 37 – Momenty během měsíce:** milník 25/50/75 jako tiché oznámení z odznaku (ne okno);
+          splnění = jedno velké okno i s povýšením hvězdy (dnes dvě okna po sobě)
+    - [ ] **Kolo 38 – Přelom měsíce:** nesplněná výzva = jedno klidné okno „Tvůj měsíc“ (co se povedlo, dopad
+          na hvězdy včetně sesazení) a hned nová výzva; přepínač scénářů v panelu laboratoře; převodní mapa
+    - Při převodu opravit průvodce `Monthly-Challenges.md`: uvádí milníky 50/75/100 XP, kód vyplácí
+          50/100/150 XP (a k tomu násobí za vytrvalost); sekce „XP Reward Structure“ popisuje starý výpočet
+          (+20 % za splnění, +100 XP za měsíc série) – skutečně se vyplácí základ podle hvězd + podíl za
+          sérii měsíců (`completeMonthlyChallenge`). Šablony výzev nesou texty „bonusů“ (víkendový bonus
+          apod.), které appka nevyplácí; nikde se neukazují, při převodu je smazat
   - [ ] **Zbylé oslavy** – postup na úroveň (potřebné k R-10), milník série deníku, aktivace násobiče XP
-  - [ ] **Přehled úrovní** (`levels-overview`)
+  - [x] **Přehled úrovní** (`levels-overview`) – kolo 35 (na zařízení neviděno)
   - [ ] **Přizpůsobení Home** (tlačítko v laboratoři zatím nic neotevírá)
   - [ ] **Jak SelfRise funguje** (`how-it-works`, v laboratoři vede na ostrou verzi)
   - [ ] **Drobnosti** – bublinky nápovědy, chybové okno, stránka „nenalezeno“
+- [ ] **Revize s nadhledem (2026-11-10, Petr: „se vším souhlasím“ kromě pohledu „den 1“)** – jen čtení, nic se
+      neměnilo. Zdroje ověřené ten den: průvodce výkonem a přepínači Reanimatedu, changelog 4.3.0, npm
+  - **Laboratoř (vzhled a pocit):**
+    - [x] **Panel úrovně z odznaku (R-31)** – kolo 34 (na zařízení neviděno). Odkaz „Všechny úrovně“ vede
+          zatím na dnešní přehled; jeho nový vzhled je bod „Přehled úrovní“ výše
+    - [ ] **Nájezd jen při prvním zobrazení záložky (R-32)** – laboratoř dnes stránku při přepnutí zahodí
+          a postaví znovu (`key` v `DesignLabScreen.tsx`); stránky držet živé jako záložky Expo Routeru
+    - [ ] **Tažné zavírání (R-33)** – detail deníku, návyku a cíle, sheety, velká oslava
+    - [ ] **Vlastní podpisové ikony (R-34)** a **zvuk + hmatové vzory (R-35)**
+  - **Na pozadí (před převodem první obrazovky):**
+    - [ ] **Jeden nativní build pro všechno najednou:** přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
+          (jde zapnout už na 4.2.1; pozor na hlášení #10444 – probliknutí průhlednosti při přechodu obrazovek),
+          120 Hz na Androidu, `expo-audio`, knihovna hmatových vzorů
+    - [ ] **Přeměřit sondou a rozhodnout o poučení 46.** Laboratoř je nejednotná: na Reanimated stále běží
+          `CheckButton`, `ProgressBar`, rozzáření a poskok řádku návyku (Home i Návyky), sloupce týdne, věta
+          průvodce a pohyb slunce. Podle výsledku buď sjednotit na nativní ovladač, nebo poučení 46 zrušit
+    - [ ] **Měřit s ostrou zátěží:** každá převedená obrazovka s 20+ návyky na slabším Androidu (laboratoř má
+          5 vymyšlených návyků, žádné ukládání, XP výpočty ani reklamu)
+    - [ ] **Odškrtnutí překreslí jen dotčenou kartu:** dnes celé Home a každá karta v Návycích (čtou společný
+          stav dne). Výběr podle návyku, nebo React Compiler (`experiments.reactCompiler`, v SDK 55 dostupný,
+          u nás vypnutý) – ověřit, jestli jde zapnout jen pro nové obrazovky
+    - [ ] Drobnosti: `RollingNumber` má 11 textů na číslici (Home ~150–200 prvků); týdenní pruh v Návycích
+          má 7 kreslicích ploch místo jedné
+    - [ ] **Po převodu, ne dřív:** Expo 55 → aktuální (2026-11-10 je venku 58; Reanimated 4.3 až 4.6 podle
+          npm podporují i naše RN 0.83)
+  - **Zamítnuto (Petr):** pohled „nový účet / den 1“ v laboratoři – první den řeší tutoriál
+  - **Bez rozhodnutí, jen zaznamenáno:** trvalý reklamní pruh je strop prémiového dojmu (obchodní věc)
+  - [x] **Vymyšlené odměny za milníky úrovní odstraněny z ostré appky (Petr 2026-11-11: „odstraň je“).** Okno
+        nové úrovně slibovalo „Custom Color Theme“, „Prestige System“, „Mentor Mode“… – nic neexistovalo. Pryč je
+        seznam v okně, funkce `getMilestoneRewards`, pole `rewards` a texty EN/DE/ES; průvodce
+        `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
+        zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
+        v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kolo 36 – Měsíční výzva: detail jako jedna stránka (R-36)** (`ChallengeDetailConcept.tsx`,
+      `challengeLogic.ts`, `challengeMock.tsx`). Roste z karty výzvy na Home a vrací se do ní. Shora: která
+      výzva to je, kruh s procenty, hvězdy s názvem stupně a „zbývá 10 dní“; **jedna věta o tempu** („Stíháš.
+      Ještě 16 za 10 dní.“ / „Trochu pozadu… asi 1 denně a stihneš to.“) místo záložky s obecnými tipy;
+      požadavky s vlastními pruhy a milníky 25/50/75 % s XP; kalendář měsíce ve čtyřech odstínech bez
+      procent; co splnění vynese (XP podle hvězd, bonus za sérii měsíců, součet) a co bude příští měsíc;
+      hvězdy podle kategorií. Čtyři situace (stíhá, pozadu, zahřívací, hotovo) se přepínají dole na stránce
+      (ovladač laboratoře). Karta na Home čte stejnou výzvu a texty skutečných šablon appky. Čísla odpovídají
+      kódu appky (XP 5 000–25 000, zahřívací 500–2 532, série +5/10/15/25 %, milníky 50/100/150 XP, prahy
+      kalendáře 10/51/91 %); tempo je nové pravidlo. Ověřeno trvalým testem (14 testů) + 6 negativních
+      zkoušek, `tsc`, celá sada; nezávislá revize proběhne po kole 38 najednou; na zařízení neviděno
+- [x] **Kolo 35 – Přehled úrovní jako cesta** (`LevelsOverviewConcept.tsx`, `levelsJourney.ts`; Petr: „když se
+      prokliknu, je to staré“). Místo tabulky 100 stejných řádků: nahoře „Level 16 z 100“, název úrovně
+      a celá cesta jako pruh šesti barev stupňů vyplněný po místo, kde uživatel stojí, plus příští milník.
+      Pod tím šest kapitol (stupně). Kapitola uživatele je zaostřená: úroveň těsně za ním, jeho úroveň se
+      zlatým kroužkem odznaku a „237 XP do další“, úrovně před ním ztlumené s potřebným XP. Hotové kapitoly
+      jsou jeden řádek, budoucí ukazují svůj milník (zlatá hvězda), ťuknutí otevře kteroukoli celou. Stránka
+      vyjede z panelu úrovně (jako Síň trofejí, odznak zůstává) a seznam sám dojede na řádek uživatele.
+      Barvy stupňů jsou nové tokeny `labTier` (kontrast spočítán; dvě barvy ztmaveny, číslo sedí na plné
+      tmavší barvě, ne na přechodu). Milník jmenuje jen skutečnou trofej z katalogu (10, 25, 50), vymyšlené odměny ne.
+      Ověřeno trvalým testem (20 testů) + 9 negativních zkoušek (jedna odhalila test, který nic nehlídal –
+      doplněn), `tsc`, celá sada. Nezávislá revize tohoto kola neproběhla; na zařízení neviděno
+- [x] **Kolo 34 – Panel úrovně z odznaku (R-31, Petrův nápad)** (`levelPanel.tsx`, `levelPanelLogic.ts`).
+      Ťuknutí na připnutý odznak a z kroužku vyroste panel: kroužek se zvětší a stane se jeho hlavičkou
+      (odznak se nekopíruje), vedle něj úroveň a její název, pod tím zlatý pruh, celkové XP a kolik chybí do
+      další úrovně, dnešní zisk, běžící násobič a odkaz „Všechny úrovně“. Celý přechod řídí jedna hodnota;
+      zavírá se ťuknutím vedle, na kroužek, tlačítkem zpět, přepnutím záložky a **tažením** nahoru i dolů –
+      panel se pod prstem vrací do odznaku a v půlce ho jde pustit zpět (první okno s R-33). Pravidla:
+      z odznaku vyjíždí jen jedna věc (během tichého oznámení je ťuknutí na odznak ťuknutím na oznámení,
+      štítek „LEVEL UP“ ustoupí a sám jde ťuknout – tak uživatel zjistí, že odznak reaguje), nad otevřeným
+      detailem, sheetem ani oslavou se panel neotevře (`labCover.ts`, jen pro laboratoř) a oslava, která
+      přijde, ho zavře. **Home:** karta Úroveň pryč, počet hotových už jen v hrdinovi a kompaktní hlavičce.
+      Násobič je v laboratoři kulisa (vždy běží), v appce se řádek ukáže jen při běžícím násobiči. Ověřeno
+      trvalým testem pravidel (17 testů) + 6 negativních zkoušek, `tsc`, celá sada testů. Nezávislá revize
+      našla a je opraveno: „LEVEL UP“ mohl vyjet přes otevřený panel, okno „⋯“ v Návycích nebylo zapojené do
+      pravidla „ne nad oknem“, panel zavřený odjinud během tažení zůstal viset, chvění prstu rušilo zavření.
+      **Na zařízení ověřit:** že panel roste ze středu odznaku na iOS i Androidu (pevný počátek + nativně
+      řízená změna velikosti), stín na Androidu, a ostrost zvětšeného kroužku. Vědomě ponecháno: po postupu
+      na úroveň „za letu“ panel dožene kroužek o necelou vteřinu později; „Dnes“ v panelu počítá všechno XP
+      z laboratoře, čip na Home jen návyky (kulisy – v appce jeden zdroj). **Po Petrově zkoušce
+      (2026-11-11):** vypadá dobře, kroužek je ostrý; asi vteřinu po otevření byl měkký – pružina dobíhala
+      skoro vteřinu a kroužek mezitím seděl o zlomek bodu vedle, teď se usadí za necelou půlvteřinu (znovu
+      ověřit na zařízení). „Všechny úrovně“ je tiché tlačítko laboratoře místo holého řádku. Cíl odkazu je
+      pořád stará obrazovka → bod „Přehled úrovní“
+- [x] **Kolo 33 – Jedna oslava na jednu akci (R-29)** (`celebrationDirector.tsx`, testeři: „vyskakují moc po sobě“).
+      Pravidlo `momentFor`: v akci je epic nebo legendary → jedno velké okno pro nejvzácnější, ostatní uvnitř
+      („Also unlocked“) a jedno XP za všechny. Jinak tiché oznámení, které vyjede z odznaku úrovně (stejný
+      jazyk jako „LEVEL UP“): medaile, název, XP. Vzácná déle, silnější haptika a barva; víc najednou = jedno
+      oznámení. Ťuknutí otevře Síň trofejí, XP odletí do odznaku, když oznámení odchází. Momenty z různých
+      akcí čekají ve frontě, tiché čekající se slučují, to na obrazovce se nikdy nemění. Tlačítko trofeje
+      v panelu laboratoře prochází 5 scénářů se skutečnými trofejemi a vzácností podle R-28 (mimo jiné
+      souběh 7. a 30. dne). Ověřeno dočasným testem (14 testů EN/DE) + 5 negativních zkoušek; na zařízení
+      neviděno
 - [x] **Kolo 32 – „Kdy?“ pryč z onboardingu** (Petr): „Dám si čtení večer, ale dostanu se k tomu odpoledne“,
       štítek by neměl význam, a uživatel by zmateně hledal funkci, která neexistuje. Odstraněn výběr, věta
       plánu i údaj na závěru. Dotaz na připomínky používá skutečný obecný text, protože skutečné připomínky
@@ -686,7 +791,7 @@ Laboratoř ukazuje *jak* to vypadá. Do skutečné appky jen za těchto podmíne
 - [ ] Odstranit staré `colors`, až je nic nečte
 - [ ] Převést zbývající RN `Animated` → Reanimated v přestylovaných komponentách
 - [ ] Mrtvé pozůstatky (šablona Expo, Lottie, `SafeLinearGradient`)
-- [ ] Volitelně: vlastní ikony místo emoji ⭐🔥👑
+- [ ] Vlastní podpisové ikony místo emoji ⭐🔥👑 a obecné sady (R-34, od 2026-11-10 už ne „volitelně“)
 - [ ] Aktualizovat dotčené průvodce
 - [ ] Rozhodnout, jestli Design Lab zůstane (ladění dalších obrazovek, T-Qyron), nebo se smaže
 
@@ -798,7 +903,10 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 24. Detail roste z karty, ze které se otevřel, a vrací se do ní; původní karta je mezitím skrytá
     (jedna karta, ne dvě) (kolo 6, 13).
 25. Android „zpět" zavírá detail, gratulaci i sheet.
-26. Odznak úrovně je na **každé** obrazovce na stejném místě (kolo 9).
+26. Odznak úrovně je na **každé** obrazovce na stejném místě (kolo 9). Ťuknutí na něj vysune panel úrovně;
+    karta Úroveň proto na Home není (R-31).
+26b. **Nájezd obrazovky jen při prvním zobrazení záložky** po otevření appky. Co je hezké jednou, je po
+    dvacáté za den čekání; záložka si drží stav i polohu rolování (R-32, revize 2026-11-10).
 
 ### 10.7 Texty a data
 27. Laboratoř bere skutečné texty z překladů, kde existují (trofeje, legenda kalendáře) – ověřit klíče
@@ -865,6 +973,10 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     animovaných prvků a animace pozastaví** (`pauseReanimatedCommits`). Akce, která zároveň mění stav
     a animuje (zápis pokroku), se proto sekala a po doběhnutí byla zase plynulá (kolo 27, Petr). Reanimated
     jen tam, kde je potřeba: sdílený hodinový signál úvodu, řízení z jiné animace, Skia, gesta.
+    ⚠️ **Revize 2026-11-10:** laboratoř tohle pravidlo plní jen napůl (`CheckButton`, `ProgressBar`, rozzáření
+    řádku návyku aj. jsou stále na Reanimated) a příčinu řeší přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
+    (od 4.3 výchozí). **Před převodem první obrazovky zapnout, přeměřit a pravidlo buď dotáhnout, nebo zrušit**
+    – nepřenášet do ostré appky smíšený stav.
 47. **Spotřebitel kontextu obchází `React.memo`, a kontext s `settledXp` se mění po každé vlně XP** → kdo
     jen utrácí XP, bere `useLabXpAward()` (stálá funkce ve vlastním kontextu). Překreslení se **měří**,
     ne odhaduje: zápis = 1 karta z 5, bez memo všech 5 (dočasný test + negativní zkouška, kolo 27).
@@ -886,6 +998,33 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     doložená technika, ale bez trvalého místa v appce je to prázdné ťuknutí a čekání na funkci, která
     neexistuje. Výzkum neomlouvá chybějící funkci: u každého vstupu a slibu nejdřív ověřit, kde se projeví
     druhý den (kolo 32, Petr).
+56. **Hromadění oslav se řeší významem, ne pauzami.** Pauza mezi okny jen roztáhne stejné vyrušování a oslava,
+    která přijde pozdě, ztratí účinek. Co patří k jedné akci, je jeden moment, a velikost oslavy určuje
+    vzácnost, ne pořadí. Malé věci nesmí blokovat obrazovku (kolo 33).
+57. **Jedna hodnota řídí celý přechod a tažení ji jen posouvá.** Ztmavení stránky, růst panelu i zvětšení
+    kroužku visí na jediné hodnotě 0–1 a prst ji při tažení přímo nastavuje. Vratnost v půlce (R-33) tak
+    není zvláštní režim, ale vlastnost stavby, a nic se nemůže rozejít. Puštění „na cestě zpět“ nezavírá
+    (kolo 34, `levelPanel.tsx`).
+58. **Co je připnuté na každé obrazovce, se do okna nekopíruje – okno se postaví kolem toho.** Velký kroužek
+    v panelu úrovně je odznak sám. XP, které doletí při otevřeném panelu, dál dopadá do něj a nic se
+    nezdvojuje (kolo 34).
+59. **Z jednoho místa vyjíždí vždy jen jedna věc a okno se neotevírá nad oknem.** Panel, tiché oznámení
+    a „LEVEL UP“ sdílejí odznak: ťuknutí během oznámení patří oznámení, štítek ustoupí panelu, nad otevřeným
+    detailem zůstává odznak jen ukazatelem. Ťuknutí, které nic neudělá, nezavibruje (kolo 34).
+60. **Stejný údaj jen jednou na obrazovce.** Úroveň byla na Home dvakrát (odznak a karta) a počet hotových
+    třikrát. Co je vidět pořád, nepotřebuje vlastní kartu; podrobnosti patří na ťuknutí (R-31, kolo 34).
+61. **Dlouhý seznam stejných řádků není obrazovka, ale tabulka.** Přehled úrovní odpovídá na dvě otázky –
+    kde jsem a co mě čeká. Zaostřit na „teď“ (kapitola uživatele od úrovně za ním), hotové sbalit, z dálky
+    ukázat jen milníky a po otevření dojet na řádek uživatele (kolo 35).
+62. **Text na barevném přechodu se počítá proti jeho světlejšímu konci.** Bílé číslo prošlo na tmavém konci
+    a propadlo na světlém; číslo proto sedí na plné tmavší barvě. Kontrast nových barev spočítat hned,
+    ne od oka (kolo 35, `labTier`).
+63. **Místo obecných rad jedna věta o tom, co zbývá.** Záložka „Tipy“ radila všem totéž; uživatel chce
+    vědět, jestli stíhá a kolik má denně udělat. Tempo se počítá proti rovnoměrnému měsíci, dnešek se
+    počítá ve prospěch uživatele a mluví se o požadavku, který je nejvíc pozadu (kolo 36).
+64. **Před kreslením odměny dohledat kód, který ji vyplácí – ne průvodce.** Průvodce výzev popisoval dva
+    různé výpočty a šablony slibovaly bonusy, které nikdo nevyplácí. Pravda je v jedné funkci
+    (`completeMonthlyChallenge`); čísla na obrazovce jsou opsaná odtud a hlídá je test (kolo 36).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

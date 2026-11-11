@@ -3,6 +3,10 @@
  * (premium-design-plan.md, F1, kolo 8). Look only: real achievement texts from the
  * locales (EN/DE), mock trigger from the lab toolbar.
  *
+ * Since R-29 (kolo 33) this is the BIG moment only — epic and legendary. Whatever
+ * else the same action unlocked rides inside it ("Also unlocked"), and the one XP
+ * number is their sum. Common and rare never open it (celebrationDirector.tsx).
+ *
  * The story follows Home's: the medal RISES like the sun.
  *   1. the screen dims, a glow in the rarity's colour blooms where the medal will be
  *   2. the medal rises and settles with a little overshoot
@@ -84,17 +88,8 @@ import {
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
 import { useLabXpAward } from './xpFlight';
-
-/** One real achievement per rarity, so all four variants can be judged. */
-export const CELEBRATION_SAMPLES: Record<
-  LabRarity,
-  { key: string; icon: string; xp: number }
-> = {
-  common: { key: 'first_habit', icon: '🌱', xp: 50 },
-  rare: { key: 'habit_builder', icon: '🏗️', xp: 100 },
-  epic: { key: 'century_club', icon: '💯', xp: 200 },
-  legendary: { key: 'consistency_king', icon: '👑', xp: 500 },
-};
+import { MOCK_COPY } from './mockCopy';
+import type { LabTrophy } from './celebrationDirector';
 
 const TOTAL = 2000;
 const EXIT_MS = 520;
@@ -137,23 +132,28 @@ function buildRays(count: number, inner: number, outer: number) {
 }
 
 interface CelebrationProps {
-  rarity: LabRarity;
+  /** The rarest trophy of the action — it gets the stage. */
+  headliner: LabTrophy;
+  /** Everything else the same action unlocked. */
+  also: LabTrophy[];
   onClosed: () => void;
 }
 
 export function AchievementCelebrationConcept({
-  rarity,
+  headliner,
+  also,
   onClosed,
 }: CelebrationProps) {
+  const rarity: LabRarity = headliner.rarity;
   const { c, mode, lang } = useLab();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const tier = labRarity[rarity];
-  const sample = CELEBRATION_SAMPLES[rarity];
   const t = useMemo(() => i18n.getFixedT(lang), [lang]);
-  const name = t(`achievements.${sample.key}.name`);
-  const description = t(`achievements.${sample.key}.description`);
+  const name = t(headliner.nameKey);
+  const description = t(headliner.descriptionKey);
+  const totalXp = also.reduce((sum, item) => sum + item.xp, headliner.xp);
   const headline = t(`achievements.celebration.rarity_${rarity}`);
   const panelWidth = getModalWidth(width, 0.88);
 
@@ -174,8 +174,18 @@ export function AchievementCelebrationConcept({
       t('achievements.celebration.announcement', {
         rarity: tier.label,
         name,
-        xp: String(sample.xp),
-      })
+        xp: String(headliner.xp),
+      }) +
+        also
+          .map(
+            item =>
+              ` ${t('achievements.celebration.announcement', {
+                rarity: labRarity[item.rarity].label,
+                name: t(item.nameKey),
+                xp: String(item.xp),
+              })}`
+          )
+          .join('')
     );
     // The reveal haptic lands with the ring closing (1.1 s), strength by rarity.
     const id = setTimeout(
@@ -211,7 +221,7 @@ export function AchievementCelebrationConcept({
     stopLoops();
     // The XP is credited only now, on confirmation — and it leaves from the button.
     ctaRef.current?.measureInWindow((x, y, w, h) =>
-      award(sample.xp, { x: x + w / 2, y: y + h / 2 })
+      award(totalXp, { x: x + w / 2, y: y + h / 2 })
     );
     out.value = withTiming(
       1,
@@ -544,6 +554,30 @@ export function AchievementCelebrationConcept({
           </LabText>
         </Animated.View>
 
+        {also.length > 0 && (
+          <Animated.View
+            style={[styles.also, { borderColor: c.border }, descStyle]}
+          >
+            <LabText variant="caption" tone="muted">
+              {MOCK_COPY[lang].celebrate.alsoUnlocked}
+            </LabText>
+            <View style={styles.alsoRow}>
+              {also.map(item => (
+                <View key={item.id} style={styles.alsoItem}>
+                  <Medal trophy={item} size={28} />
+                  <LabText
+                    variant="label"
+                    numberOfLines={1}
+                    style={{ marginLeft: labSpace.sm, flexShrink: 1 }}
+                  >
+                    {t(item.nameKey)}
+                  </LabText>
+                </View>
+              ))}
+            </View>
+          </Animated.View>
+        )}
+
         <Animated.View style={[styles.xpRow, descStyle]}>
           <Ionicons
             name="sparkles"
@@ -552,7 +586,7 @@ export function AchievementCelebrationConcept({
             style={{ marginRight: labSpace.sm }}
           />
           <RollingNumber
-            text={`+${sample.xp} XP`}
+            text={`+${totalXp} XP`}
             variant="number"
             delay={reducedMotion ? 0 : 1450}
             style={{
@@ -616,7 +650,7 @@ export function AchievementCelebrationConcept({
               style={StyleSheet.absoluteFill}
             />
             <Text style={styles.medalIcon} maxFontSizeMultiplier={1}>
-              {sample.icon}
+              {headliner.icon}
             </Text>
             {!reducedMotion && (
               <Animated.View style={[styles.sheen, sheenStyle]}>
@@ -706,6 +740,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: labFonts.display,
   },
+  also: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    marginTop: labSpace.lg,
+    paddingTop: labSpace.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  alsoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: labSpace.md,
+    marginTop: labSpace.sm,
+  },
+  alsoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '100%',
+  },
   xpRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -747,5 +800,55 @@ const styles = StyleSheet.create({
     top: -MEDAL / 2,
     width: 34,
     height: MEDAL * 2,
+  },
+});
+
+/** A small medal in its rarity's ring — the note's and the big window's "also" row. */
+export function Medal({
+  trophy,
+  overlap = false,
+  size = 32,
+}: {
+  trophy: LabTrophy;
+  overlap?: boolean;
+  size?: number;
+}) {
+  const { c } = useLab();
+  return (
+    <LinearGradient
+      colors={labRarity[trophy.rarity].ring}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[
+        medalStyles.medal,
+        { width: size, height: size, borderRadius: size / 2 },
+        overlap && { marginLeft: -size / 3 },
+      ]}
+    >
+      <View
+        style={[
+          medalStyles.medalFace,
+          { borderRadius: size / 2, backgroundColor: c.surface },
+        ]}
+      >
+        <Text
+          maxFontSizeMultiplier={1}
+          style={{ fontSize: size * 0.5, lineHeight: size * 0.62 }}
+        >
+          {trophy.icon}
+        </Text>
+      </View>
+    </LinearGradient>
+  );
+}
+
+const medalStyles = StyleSheet.create({
+  medal: {
+    padding: 2,
+  },
+  medalFace: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

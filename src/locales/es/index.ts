@@ -3075,7 +3075,7 @@ const es: Partial<TranslationKeys> = {
 
       accessibility: {
         label: 'Nivel de experiencia {{currentLevel}}, {{levelTitle}}. {{progress}} por ciento de progreso hasta el nivel {{nextLevel}}. {{xpRemaining}} puntos de experiencia restantes.{{#isMilestone}} Este es un nivel hito.{{/isMilestone}}',
-        hint: 'Tu nivel de experiencia actual y progreso hacia el siguiente nivel.{{#isMilestone}} Has alcanzado un nivel hito especial con recompensas únicas.{{/isMilestone}}',
+        hint: 'Tu nivel de experiencia actual y progreso hacia el siguiente nivel.{{#isMilestone}} Has alcanzado un nivel hito especial.{{/isMilestone}}',
       },
 
 
@@ -3112,9 +3112,6 @@ const es: Partial<TranslationKeys> = {
       level_up_section_accessibility: 'Detalles de logro de nivel {{level}}{{#isMilestone}} hito{{/isMilestone}}',
       level_badge_accessibility: 'Insignia de nivel {{level}}{{#isMilestone}} hito{{/isMilestone}}',
       level_title_accessibility: 'Título de nivel: {{title}}',
-      rewards_section_accessibility: 'Lista de nuevas recompensas con {{count}} elementos',
-      rewards_title: 'Nuevas Recompensas:',
-      reward_item_accessibility: 'Recompensa {{index}}: {{reward}}',
       continue_button_accessibility: 'Continuar y cerrar celebración',
       continue_button_hint: 'Toca para cerrar esta celebración y volver a la aplicación',
 
@@ -3211,36 +3208,6 @@ const es: Partial<TranslationKeys> = {
       default: 'Continuando tu viaje de crecimiento personal y superación.',
     },
 
-    // Milestone rewards
-    milestoneRewards: {
-      level10: {
-        badge: 'Insignia de Logro: Principiante V',
-        theme: 'Desbloqueo de Tema de Color Personalizado',
-        multiplier: 'Multiplicador de XP Bonus (1 hora)',
-      },
-      level25: {
-        badge: 'Insignia de Logro: Adepto V',
-        trophy: 'Expansión de Sala de Trofeos',
-        challenge: 'Desbloqueo de Desafío Semanal',
-      },
-      level50: {
-        badge: 'Insignia de Logro: Especialista V',
-        prestige: 'Acceso al Sistema de Prestigio',
-        stats: 'Desbloqueo de Estadísticas Avanzadas',
-      },
-      level75: {
-        badge: 'Insignia de Logro: Retador V',
-        legacy: 'Desbloqueo de Funciones Legado',
-        mentor: 'Desbloqueo de Modo Mentor',
-      },
-      level100: {
-        badge: 'Insignia de Logro: Mítico V Definitivo',
-        hallOfFame: 'Entrada al Salón de la Fama',
-        title: 'Desbloqueo de Título Definitivo',
-        customAchievement: 'Creación de Logros Personalizados',
-      },
-      default: 'Insignia de Logro Nivel {{level}}',
-    },
 
     // XP Source descriptions
     xpSources: {

@@ -185,6 +185,24 @@ const getRarityColor = (currentLevel: number): string => {
 borderColor: getRarityColor(currentLevel)
 ```
 
+### 🚨 KRITICKÉ PRAVIDLO: milník úrovně neslibuje nic, co appka nedělá
+
+Milníkové úrovně (10, 25, 50, 75, 100) mají slavnostnější okno a zlatý odznak. **Žádný seznam „New Rewards“.**
+Jediná skutečná odměna jsou trofeje z katalogu: úroveň 10 „Level Up“, 25 „SelfRise Expert“, 50 „SelfRise
+Master“, 100 tajná „Ultimate SelfRise Legend“ (úroveň 75 nemá nic) – a ty se oznamují jako trofeje.
+
+```typescript
+// ✅ CORRECT – okno nové úrovně ukáže úroveň, název a případně „milník“
+levelUpInfo = { newLevelTitle, newLevelDescription, isMilestone };
+
+// ❌ WRONG – texty odměn bez funkce za nimi
+levelInfo.rewards = ['Custom Color Theme Unlock', 'Prestige System Access'];
+```
+
+**Proč:** do 2026-11-11 okno slibovalo „Custom Color Theme“, „Prestige System“, „Mentor Mode“, „Hall of Fame“…
+Nic z toho neexistovalo. Pole `rewards`, funkce `getMilestoneRewards` i texty `gamification.milestoneRewards`
+jsou odstraněné; hlídá to `src/services/__tests__/levelMilestonePromises.test.ts`.
+
 ### 🌱 Motivational Design Logic
 - **Grey (1-10)**: First steps, learning basics
 - **Green (11-20)**: Growth phase, building momentum - users see progress faster!

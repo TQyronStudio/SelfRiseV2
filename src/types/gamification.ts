@@ -135,7 +135,6 @@ export interface LevelInfo {
   title: string; // Level title (e.g., "Novice", "Expert")
   description?: string;
   isMilestone: boolean; // Special milestone levels (10, 25, 50, etc.)
-  rewards?: string[]; // Special rewards for reaching this level
 }
 
 /**

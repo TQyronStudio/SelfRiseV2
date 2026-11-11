@@ -58,6 +58,7 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
+import { useLabCover } from './labCover';
 import { labFonts, LabPalette, labRadius, labSpace } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
 import { RollingNumber } from './RollingNumber';
@@ -1001,6 +1002,7 @@ export function GoalDoneMoment({
   onClosed: () => void;
 }) {
   const { c, lang } = useLab();
+  useLabCover();
   const copy = MOCK_COPY[lang];
   const t = useJournalT();
   const award = useLabXpAward();

@@ -79,6 +79,8 @@ export const MOCK_STATS = {
   levelXp: 16512,
   levelStartXp: 15270,
   nextLevelXp: 17937,
+  /** An active XP multiplier (harmony streak) — the level panel shows it. */
+  multiplier: { factor: 2, minutesLeft: 14 * 60 + 20 },
   journalStreak: 24,
   journalToday: 2,
   stars: 9,
@@ -114,6 +116,55 @@ interface Copy {
   todaysHabits: string;
   level: (level: number) => string;
   toNext: (xp: string, level: number) => string;
+  /** The panel that grows out of the level badge (levelPanel.tsx). */
+  levelPanel: {
+    today: string;
+    multiplier: (factor: number) => string;
+    timeLeft: (value: number, unit: 'h' | 'min') => string;
+    allLevels: string;
+    close: string;
+  };
+  /** The monthly challenge's detail (ChallengeDetailConcept.tsx). */
+  challenge: {
+    count: (done: number, target: number) => string;
+    daysLeft: (days: number) => string;
+    done: string;
+    paceDone: string;
+    paceOnTrack: (left: number, days: number) => string;
+    paceBehind: (left: number, days: number, perDay: number) => string;
+    requirements: string;
+    milestone: (percent: number, xp: number) => string;
+    calendar: string;
+    less: string;
+    more: string;
+    reward: string;
+    earned: string;
+    starChallenge: (stars: number) => string;
+    streak: (months: number, percent: number) => string;
+    streakHint: string;
+    total: string;
+    nextMonth: (stars: number) => string;
+    topLevel: string;
+    warmUp: string;
+    levels: string;
+    labScenario: string;
+    scenarios: Record<'onTrack' | 'behind' | 'warmUp' | 'done', string>;
+  };
+  /** The levels overview as a journey (LevelsOverviewConcept.tsx). */
+  levels: {
+    title: string;
+    ofTotal: (total: number) => string;
+    range: (from: number, to: number) => string;
+    reached: (count: number, size: number) => string;
+    allReached: string;
+    ahead: string;
+    here: string;
+    milestone: (level: number) => string;
+    /** A milestone that unlocks a real trophy (achievementCatalog). */
+    milestoneTrophy: (name: string) => string;
+    nextMilestone: (level: number, left: number) => string;
+    top: string;
+  };
   journalStreak: string;
   days: string;
   streakActive: string;
@@ -283,6 +334,11 @@ interface Copy {
     trophiesEarned: (count: number) => string;
     noHabitBody: string;
   };
+  celebrate: {
+    alsoUnlocked: string;
+    trophiesUnlocked: (count: number) => string;
+    openTrophies: string;
+  };
   trophies: {
     subline: string;
     wall: string;
@@ -339,6 +395,61 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
     todaysHabits: 'Today’s habits',
     level: level => `Level ${level}`,
     toNext: (xp, level) => `${xp} XP to Level ${level}`,
+    levelPanel: {
+      today: 'Today',
+      multiplier: factor => `${factor}× XP multiplier`,
+      timeLeft: (value, unit) => `${value} ${unit} left`,
+      allLevels: 'All levels',
+      close: 'Close level details',
+    },
+    challenge: {
+      count: (done, target) => `${done} of ${target}`,
+      daysLeft: days => (days === 1 ? 'Last day' : `${days} days left`),
+      done: 'Done',
+      paceDone: 'Done. The rest of the month is yours.',
+      paceOnTrack: (left, days) =>
+        `You’re on track. ${left} more in ${days} ${days === 1 ? 'day' : 'days'}.`,
+      paceBehind: (left, days, perDay) =>
+        `A little behind. ${left} more in ${days} ${days === 1 ? 'day' : 'days'} — about ${perDay} a day gets you there.`,
+      requirements: 'What it takes',
+      milestone: (percent, xp) => `${percent} % · +${xp} XP`,
+      calendar: 'Your month',
+      less: 'Less',
+      more: 'More',
+      reward: 'What you earn',
+      earned: 'What you earned',
+      starChallenge: stars => `${stars}-star challenge`,
+      streak: (months, percent) => `${months} months in a row · +${percent} %`,
+      streakHint: 'Finish two months in a row for a bonus.',
+      total: 'Total',
+      nextMonth: stars =>
+        `Finish it and next month’s challenge is ${stars}-star.`,
+      topLevel: 'You are at the top level. Hold it.',
+      warmUp:
+        'A warm-up challenge, made easy on purpose. Stars start with your first full challenge.',
+      levels: 'Your challenge levels',
+      labScenario: 'Lab · situation',
+      scenarios: {
+        onTrack: 'On track',
+        behind: 'Behind',
+        warmUp: 'Warm-up',
+        done: 'Done',
+      },
+    },
+    levels: {
+      title: 'Your journey',
+      ofTotal: total => `of ${total}`,
+      range: (from, to) => `Levels ${from}–${to}`,
+      reached: (count, size) => `${count} of ${size} reached`,
+      allReached: 'All reached',
+      ahead: 'Still ahead',
+      here: 'You are here',
+      milestone: level => `Milestone · Level ${level}`,
+      milestoneTrophy: name => `Milestone · trophy “${name}”`,
+      nextMilestone: (level, left) =>
+        `Next milestone: Level ${level} · ${left} ${left === 1 ? 'level' : 'levels'} to go`,
+      top: 'You have reached the top.',
+    },
     journalStreak: 'Journal streak',
     days: 'days',
     streakActive: 'Streak active',
@@ -508,6 +619,11 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       labLanguages: 'The lab speaks EN and DE; the app adds Español.',
       privacyLab: 'In the app this opens the consent form.',
     },
+    celebrate: {
+      alsoUnlocked: 'Also unlocked',
+      trophiesUnlocked: count => `${count} trophies unlocked`,
+      openTrophies: 'Opens the Trophy Room',
+    },
     onboarding: {
       customize: 'Make it yours',
       day: 'Your first day',
@@ -584,6 +700,62 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
     todaysHabits: 'Heutige Routinen',
     level: level => `Level ${level}`,
     toNext: (xp, level) => `Noch ${xp} XP bis Level ${level}`,
+    levelPanel: {
+      today: 'Heute',
+      multiplier: factor => `${factor}× XP-Multiplikator`,
+      timeLeft: (value, unit) =>
+        `noch ${value} ${unit === 'h' ? 'Std.' : 'Min.'}`,
+      allLevels: 'Alle Level',
+      close: 'Level-Details schließen',
+    },
+    challenge: {
+      count: (done, target) => `${done} von ${target}`,
+      daysLeft: days => (days === 1 ? 'Letzter Tag' : `Noch ${days} Tage`),
+      done: 'Geschafft',
+      paceDone: 'Geschafft. Der Rest des Monats gehört dir.',
+      paceOnTrack: (left, days) =>
+        `Du liegst im Plan. Noch ${left} in ${days} ${days === 1 ? 'Tag' : 'Tagen'}.`,
+      paceBehind: (left, days, perDay) =>
+        `Etwas im Rückstand. Noch ${left} in ${days} ${days === 1 ? 'Tag' : 'Tagen'} – mit etwa ${perDay} pro Tag schaffst du es.`,
+      requirements: 'Was es braucht',
+      milestone: (percent, xp) => `${percent} % · +${xp} XP`,
+      calendar: 'Dein Monat',
+      less: 'Weniger',
+      more: 'Mehr',
+      reward: 'Was du bekommst',
+      earned: 'Was du bekommen hast',
+      starChallenge: stars => `${stars}-Sterne-Herausforderung`,
+      streak: (months, percent) => `${months} Monate in Folge · +${percent} %`,
+      streakHint: 'Schaffe zwei Monate in Folge für einen Bonus.',
+      total: 'Gesamt',
+      nextMonth: stars =>
+        `Schaffst du sie, hat die nächste Herausforderung ${stars} Sterne.`,
+      topLevel: 'Du bist auf der höchsten Stufe. Halte sie.',
+      warmUp:
+        'Eine Aufwärm-Herausforderung, bewusst leicht. Sterne gibt es ab der ersten vollen Herausforderung.',
+      levels: 'Deine Herausforderungs-Stufen',
+      labScenario: 'Labor · Situation',
+      scenarios: {
+        onTrack: 'Im Plan',
+        behind: 'Rückstand',
+        warmUp: 'Aufwärmen',
+        done: 'Geschafft',
+      },
+    },
+    levels: {
+      title: 'Dein Weg',
+      ofTotal: total => `von ${total}`,
+      range: (from, to) => `Level ${from}–${to}`,
+      reached: (count, size) => `${count} von ${size} erreicht`,
+      allReached: 'Alle erreicht',
+      ahead: 'Liegt noch vor dir',
+      here: 'Du bist hier',
+      milestone: level => `Meilenstein · Level ${level}`,
+      milestoneTrophy: name => `Meilenstein · Trophäe „${name}“`,
+      nextMilestone: (level, left) =>
+        `Nächster Meilenstein: Level ${level} · noch ${left} Level`,
+      top: 'Du hast den Gipfel erreicht.',
+    },
     journalStreak: 'Tagebuch-Serie',
     days: 'Tage',
     streakActive: 'Serie aktiv',
@@ -754,6 +926,11 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       subline: 'Mach sie zu deiner App.',
       labLanguages: 'Das Labor spricht EN und DE; die App auch Español.',
       privacyLab: 'In der App öffnet sich hier das Einwilligungsformular.',
+    },
+    celebrate: {
+      alsoUnlocked: 'Außerdem freigeschaltet',
+      trophiesUnlocked: count => `${count} Trophäen freigeschaltet`,
+      openTrophies: 'Öffnet die Trophäenhalle',
     },
     onboarding: {
       customize: 'Mach es zu deinem',

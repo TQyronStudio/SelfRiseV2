@@ -8,7 +8,6 @@ export interface LevelUpCelebrationData {
     newLevel: number;
     levelTitle: string;
     levelDescription?: string;
-    rewards?: string[];
     isMilestone: boolean;
   };
 }
@@ -33,7 +32,6 @@ export const useLevelUpCelebrations = () => {
           newLevel: xpResult.newLevel,
           levelTitle: xpResult.levelUpInfo.newLevelTitle,
           levelDescription: xpResult.levelUpInfo.newLevelDescription,
-          ...(xpResult.levelUpInfo.rewards && { rewards: xpResult.levelUpInfo.rewards }),
           isMilestone: xpResult.levelUpInfo.isMilestone,
         },
       });

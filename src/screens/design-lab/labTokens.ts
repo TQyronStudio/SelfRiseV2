@@ -266,6 +266,63 @@ export const labRarity: Record<
   },
 };
 
+/**
+ * The six level tiers (technical-guides:Gamification-UI.md: grey → green → blue →
+ * purple → gold → red; the colours carry meaning and stay). Tuned to the new
+ * surfaces like `labRarity`: `fill` for bars and marks, `on` for a number on the
+ * DARKER stop (`fill[1]`, AA ≥ 4.5 — never on the gradient: its light end fails),
+ * `text`/`soft` for a label and its background per mode (AA on surface and canvas).
+ */
+export type LabTierId =
+  'beginner' | 'growing' | 'rare' | 'epic' | 'legendary' | 'mythic';
+
+export const labTier: Record<
+  LabTierId,
+  {
+    fill: readonly [string, string];
+    on: string;
+    text: Record<LabMode, string>;
+    soft: Record<LabMode, string>;
+  }
+> = {
+  beginner: {
+    fill: ['#9AA5B5', '#687488'],
+    on: '#FFFFFF',
+    text: { light: '#4A5568', dark: '#D3DAE6' },
+    soft: { light: '#EEF1F6', dark: 'rgba(201, 209, 221, 0.14)' },
+  },
+  growing: {
+    fill: ['#22A565', '#157F4A'],
+    on: '#FFFFFF',
+    text: { light: '#12733F', dark: '#6FDBA3' },
+    soft: { light: '#E3F6EC', dark: 'rgba(34, 165, 101, 0.16)' },
+  },
+  rare: {
+    fill: ['#5A9DFF', '#1E6CEB'],
+    on: '#FFFFFF',
+    text: { light: '#0A62D8', dark: '#8CC2FF' },
+    soft: { light: '#E8F0FE', dark: 'rgba(90, 157, 255, 0.16)' },
+  },
+  epic: {
+    fill: ['#A97CFF', '#7C4DFF'],
+    on: '#FFFFFF',
+    text: { light: '#6A3BE0', dark: '#C9A8FF' },
+    soft: { light: '#F1EAFF', dark: 'rgba(169, 124, 255, 0.16)' },
+  },
+  legendary: {
+    fill: ['#F6C350', '#F09A2C'],
+    on: '#4A2F00',
+    text: { light: '#8A5A00', dark: '#FFD97A' },
+    soft: { light: '#FFF4DA', dark: 'rgba(246, 195, 80, 0.16)' },
+  },
+  mythic: {
+    fill: ['#FF7A7A', '#D8304A'],
+    on: '#FFFFFF',
+    text: { light: '#C0243C', dark: '#FF9AA5' },
+    soft: { light: '#FFE9EC', dark: 'rgba(255, 122, 122, 0.16)' },
+  },
+};
+
 /** The native splash (app.json → expo-splash-screen). The launch intro starts from this exact frame. */
 export const SPLASH_BACKGROUND = '#07051A';
 export const SPLASH_ICON_SIZE = 200;

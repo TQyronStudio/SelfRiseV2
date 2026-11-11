@@ -58,6 +58,7 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
+import { useLabCover } from './labCover';
 import {
   labFonts,
   LabHabitColor,
@@ -94,6 +95,7 @@ export function HabitComposerConcept({
   onCreate,
 }: ComposerProps) {
   const { c, lang } = useLab();
+  useLabCover();
   const copy = MOCK_COPY[lang];
   const k = copy.habits.composer;
   const t = useMemo(() => i18n.getFixedT(lang), [lang]);

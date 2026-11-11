@@ -3069,7 +3069,7 @@ const en: TranslationKeys = {
       
       accessibility: {
         label: 'Experience level {{currentLevel}}, {{levelTitle}}. {{progress}} percent progress to level {{nextLevel}}. {{xpRemaining}} experience points remaining.{{#isMilestone}} This is a milestone level.{{/isMilestone}}',
-        hint: 'Your current experience level and progress toward the next level.{{#isMilestone}} You have reached a special milestone level with unique rewards.{{/isMilestone}}',
+        hint: 'Your current experience level and progress toward the next level.{{#isMilestone}} You have reached a special milestone level.{{/isMilestone}}',
       },
       
       
@@ -3108,9 +3108,6 @@ const en: TranslationKeys = {
       level_up_section_accessibility: 'Level {{level}} achievement{{#isMilestone}} milestone{{/isMilestone}} details',
       level_badge_accessibility: 'Level {{level}}{{#isMilestone}} milestone{{/isMilestone}} badge',
       level_title_accessibility: 'Level title: {{title}}',
-      rewards_section_accessibility: 'New rewards list with {{count}} items',
-      rewards_title: 'New Rewards:',
-      reward_item_accessibility: 'Reward {{index}}: {{reward}}',
       continue_button_accessibility: 'Continue and close celebration',
       continue_button_hint: 'Tap to close this celebration and return to the app',
       
@@ -3207,36 +3204,6 @@ const en: TranslationKeys = {
       default: 'Continuing your journey of personal growth and self-improvement.',
     },
 
-    // Milestone rewards
-    milestoneRewards: {
-      level10: {
-        badge: 'Achievement Badge: Beginner V',
-        theme: 'Custom Color Theme Unlock',
-        multiplier: 'Bonus XP Multiplier (1 hour)',
-      },
-      level25: {
-        badge: 'Achievement Badge: Adept V',
-        trophy: 'Trophy Room Expansion',
-        challenge: 'Weekly Challenge Unlock',
-      },
-      level50: {
-        badge: 'Achievement Badge: Specialist V',
-        prestige: 'Prestige System Access',
-        stats: 'Advanced Statistics Unlock',
-      },
-      level75: {
-        badge: 'Achievement Badge: Challenger V',
-        legacy: 'Legacy Features Unlock',
-        mentor: 'Mentor Mode Unlock',
-      },
-      level100: {
-        badge: 'Achievement Badge: Mythic V Ultimate',
-        hallOfFame: 'Hall of Fame Entry',
-        title: 'Ultimate Title Unlock',
-        customAchievement: 'Custom Achievement Creation',
-      },
-      default: 'Level {{level}} Achievement Badge',
-    },
 
     // XP Source descriptions
     xpSources: {
