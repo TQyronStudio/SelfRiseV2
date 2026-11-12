@@ -544,13 +544,11 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
   - [x] **Onboarding** – kola 30 až 32
   - [x] **Trofeje (R-29)** – pravidlo jedné oslavy, kolo 33 (na zařízení neviděno)
   - [ ] **Části dne (R-30)** – vyzkoušet na obrazovce Návyků
-  - [ ] **Měsíční výzva v komplexní verzi** (Petr 2026-11-11, R-36 až R-38 schváleny; podklad:
+  - [x] **Měsíční výzva v komplexní verzi** (Petr 2026-11-11, R-36 až R-38 schváleny; podklad:
         @technical-guides:Monthly-Challenges.md; logika a čísla výzev se nemění, jen vzhled a počet oken)
     - [x] **Kolo 36 – Detail výzvy jako jedna stránka** (na zařízení neviděno)
-    - [ ] **Kolo 37 – Momenty během měsíce:** milník 25/50/75 jako tiché oznámení z odznaku (ne okno);
-          splnění = jedno velké okno i s povýšením hvězdy (dnes dvě okna po sobě)
-    - [ ] **Kolo 38 – Přelom měsíce:** nesplněná výzva = jedno klidné okno „Tvůj měsíc“ (co se povedlo, dopad
-          na hvězdy včetně sesazení) a hned nová výzva; přepínač scénářů v panelu laboratoře; převodní mapa
+    - [x] **Kolo 37 – Momenty během měsíce** (na zařízení neviděno)
+    - [x] **Kolo 38 – Přelom měsíce** (na zařízení neviděno)
     - Při převodu opravit průvodce `Monthly-Challenges.md`: uvádí milníky 50/75/100 XP, kód vyplácí
           50/100/150 XP (a k tomu násobí za vytrvalost); sekce „XP Reward Structure“ popisuje starý výpočet
           (+20 % za splnění, +100 XP za měsíc série) – skutečně se vyplácí základ podle hvězd + podíl za
@@ -594,6 +592,34 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kola 37 a 38 – Momenty měsíční výzvy (R-37, R-38)** (`challengeMoments.tsx`, rozšířený
+      `celebrationDirector.tsx`). Místo až pěti oken tři momenty, každý je jedna věc a všechny jdou jednou
+      frontou oslav (R-29), takže se nic neskládá přes sebe. **Milník 25/50/75 %** = tiché oznámení u odznaku
+      („50 % of Consistency Master · +100 XP“), XP odletí do kroužku, obrazovku nic nezakryje. **Splnění** =
+      jedno okno: pohár, název výzvy, pět hvězd, do kterých za okamžik „dopadne“ nová (silná haptika),
+      „Next month: 4-star · Expert“, rozpis XP (základ podle hvězd, bonus za sérii měsíců, součet) a řádek
+      o násobiči 1,5× XP na 12 hodin, který appka po splnění skutečně zapíná; XP se připíše až na
+      „Continue“ a odletí z tlačítka. Zahřívací výzva hvězdy nemění, na 5 hvězdách žádná nepřibývá.
+      **Konec měsíce bez splnění** = jedno klidné okno: kruh s dosaženým procentem, „You made it 78 % of the
+      way.“, hvězdy (zůstaly, nebo poslední zhasne po druhém měsíci po sobě pod 70 %; varovná haptika jen
+      tehdy), konec série měsíců a hned nová výzva na nové úrovni hvězd. O XP se nemluví, žádné se nevyplácí.
+      Pravidlo hvězd je opsané ze `StarRatingService` (`starAfter`) a hlídá ho test. Momenty se v laboratoři
+      spouštějí tlačítky dole v detailu výzvy. Ověřeno: 26 testů pravidel výzvy (čísla se porovnávají
+      s konstantami appky) + 14 negativních zkoušek, `tsc`, celá sada; na zařízení neviděno.
+      **Nezávislá revize kol 36–38** potvrdila shodu čísel a pravidla hvězd s appkou a našla, opraveno:
+      laboratoř slibovala „příští měsíc N hvězd“, ale hvězdy patří kategorii a další výzva bývá z jiné
+      (teď „tvoje úroveň pro Návyky stoupne“; okno konce měsíce ukazuje novou výzvu na úrovni její vlastní
+      kategorie); hotová výzva ukazovala texty „dokonči a…“; věta o tempu neuměla říct, že výzvu už nejde
+      stihnout (nový stav „mimo dosah“: co ještě udrží hvězdy, tj. 70 %); okno by při přerušené animaci
+      zablokovalo frontu (pojistka); řádek násobiče jen u plné výzvy; okna se ohlásí čtečce.
+      **Nálezy v ostré appce – opraveno 2026-11-12 (Petr: „ty 2 ostré chyby oprav“):**
+      (1) **Bonus za sérii měsíců se nikdy nevyplácel** – četl se z pole, které bylo vždy 0. Série se teď
+      počítá z uložených výzev (měsíc + výsledný stav, `src/services/monthlyStreak.ts`), bonus +5/10/15/25 %
+      se vyplácí a okno splnění hlásí skutečný počet měsíců. (2) **Milníky vyplácejí přesně 50/100/150 XP**
+      (dřív většinou 55/110/165). Test `monthlyStreak.test.ts` (16 testů, 5 negativních zkoušek), průvodce
+      `Monthly-Challenges.md` opraven (pravidlo série, skutečná struktura odměn, milníky).
+      **Zbývá pro převod:** víc milníků najednou dnes pošle víc událostí – udělat z nich jedno oznámení;
+      tři zahřívací výzvy po sobě sesadí hvězdu v nejvyšší kategorii a laboratoř to nekreslí
 - [x] **Kolo 36 – Měsíční výzva: detail jako jedna stránka (R-36)** (`ChallengeDetailConcept.tsx`,
       `challengeLogic.ts`, `challengeMock.tsx`). Roste z karty výzvy na Home a vrací se do ní. Shora: která
       výzva to je, kruh s procenty, hvězdy s názvem stupně a „zbývá 10 dní“; **jedna věta o tempu** („Stíháš.
@@ -1025,6 +1051,11 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 64. **Před kreslením odměny dohledat kód, který ji vyplácí – ne průvodce.** Průvodce výzev popisoval dva
     různé výpočty a šablony slibovaly bonusy, které nikdo nevyplácí. Pravda je v jedné funkci
     (`completeMonthlyChallenge`); čísla na obrazovce jsou opsaná odtud a hlídá je test (kolo 36).
+65. **Co k sobě patří, je jeden moment – i když to dnes hlásí dvě služby.** Splnění výzvy a nová hvězda,
+    nesplnění a ztracená hvězda: uživatel to prožívá jako jednu událost, dvě okna po sobě ji rozbijí.
+    Při převodu se událost změny hvězd musí vložit do okna téhož měsíce, ne řadit vlastní (kola 37–38).
+66. **Špatná zpráva končí tím, co je dál.** Okno o nesplněné výzvě neříká „neuspěl jsi“, ale kam uživatel
+    došel a jaká výzva ho čeká; trest (hvězda dolů) se řekne jednou, věcně a s důvodem (kolo 38).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

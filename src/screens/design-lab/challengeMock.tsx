@@ -18,6 +18,7 @@ import React, {
   useState,
 } from 'react';
 import { StarLevel } from './challengeLogic';
+import { useJournalT } from './journalParts';
 
 export type ChallengeCategory = 'habits' | 'journal' | 'goals' | 'consistency';
 
@@ -29,7 +30,7 @@ export interface LabChallenge {
   /** Made easy on purpose for a new user; gives no stars. */
   warmUp: boolean;
   /** One line per requirement; the first one feeds the calendar. */
-  requirements: { done: number; target: number }[];
+  requirements: { done: number; target: number; perDayMax?: number }[];
   /** Today's day of the month, and the month's length. */
   day: number;
   days: number;
@@ -42,6 +43,7 @@ export interface LabChallenge {
 export const CHALLENGE_SCENARIOS = [
   'onTrack',
   'behind',
+  'tooLate',
   'warmUp',
   'done',
 ] as const;
@@ -67,10 +69,25 @@ const CHALLENGES: Record<ChallengeScenario, LabChallenge> = {
     category: 'consistency',
     stars: 2,
     warmUp: false,
-    requirements: [{ done: 9, target: 18 }],
+    // "Days with all three features": a day can add one at most.
+    requirements: [{ done: 9, target: 18, perDayMax: 1 }],
     day: 22,
     days: CHALLENGE_MONTH.days,
     daily: [1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+    streakBefore: 0,
+  },
+  // 12 days missing, 7 days open: the full challenge is gone, 70 % is not.
+  tooLate: {
+    templateId: 'consistency_triple_master',
+    category: 'consistency',
+    stars: 2,
+    warmUp: false,
+    requirements: [{ done: 6, target: 18, perDayMax: 1 }],
+    day: 25,
+    days: CHALLENGE_MONTH.days,
+    daily: [
+      1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+    ],
     streakBefore: 0,
   },
   warmUp: {
@@ -135,4 +152,32 @@ export function useLabChallenge(): LabChallengeState {
     throw new Error('useLabChallenge must be used inside LabChallengeProvider');
   }
   return ctx;
+}
+
+export const STAR_NAMES = [
+  'novice',
+  'explorer',
+  'challenger',
+  'expert',
+  'master',
+] as const;
+
+/** Texts of a challenge: the app's own, by template id. */
+export function useChallengeText(challenge: LabChallenge) {
+  const t = useJournalT();
+  return useMemo(() => {
+    const base = `help.challenges.templates.${challenge.templateId}`;
+    const title = t(`${base}.title`);
+    return {
+      title: challenge.warmUp
+        ? `${t('monthlyChallenge.warmUpPrefix')}: ${title}`
+        : title,
+      description: t(`${base}.description`),
+      requirement: t(`${base}.requirement`),
+      category: t(`monthlyChallenge.categories.${challenge.category}`),
+      starName: t(
+        `monthlyChallenge.starLevels.${STAR_NAMES[challenge.stars - 1]}`
+      ),
+    };
+  }, [t, challenge]);
 }

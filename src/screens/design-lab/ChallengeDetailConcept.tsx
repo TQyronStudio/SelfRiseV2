@@ -26,7 +26,7 @@
  *   updates on `monthly_progress_updated`; texts through challengeDisplayText.ts.
  * - The pace is new: one function next to the tracker (challengeLogic.ts).
  */
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -47,6 +47,7 @@ import {
   dayLevel,
   DayLevel,
   requirementShare,
+  starAfter,
   StarLevel,
 } from './challengeLogic';
 import {
@@ -55,8 +56,11 @@ import {
   CHALLENGE_SCENARIOS,
   ChallengeCategory,
   LabChallenge,
+  STAR_NAMES,
+  useChallengeText,
   useLabChallenge,
 } from './challengeMock';
+import { ChallengeMomentKind, useChallengeMoments } from './challengeMoments';
 import { Ring } from './GoalDetailConcept';
 import { DetailRect } from './JournalDetailConcept';
 import { useJournalT } from './journalParts';
@@ -81,39 +85,13 @@ const OPEN_SPRING = {
 };
 const CLOSE_MS = 320;
 
-const STAR_NAMES = [
-  'novice',
-  'explorer',
-  'challenger',
-  'expert',
-  'master',
-] as const;
+const MOMENTS: ChallengeMomentKind[] = ['milestone', 'finish', 'kept', 'lost'];
 const CATEGORIES: ChallengeCategory[] = [
   'habits',
   'journal',
   'goals',
   'consistency',
 ];
-
-/** Texts of a challenge: the app's own, by template id. */
-export function useChallengeText(challenge: LabChallenge) {
-  const t = useJournalT();
-  return useMemo(() => {
-    const base = `help.challenges.templates.${challenge.templateId}`;
-    const title = t(`${base}.title`);
-    return {
-      title: challenge.warmUp
-        ? `${t('monthlyChallenge.warmUpPrefix')}: ${title}`
-        : title,
-      description: t(`${base}.description`),
-      requirement: t(`${base}.requirement`),
-      category: t(`monthlyChallenge.categories.${challenge.category}`),
-      starName: t(
-        `monthlyChallenge.starLevels.${STAR_NAMES[challenge.stars - 1]}`
-      ),
-    };
-  }, [t, challenge]);
-}
 
 export function Stars({ count, size = 14 }: { count: number; size?: number }) {
   const { c } = useLab();
@@ -159,6 +137,7 @@ export function ChallengeDetailConcept({
   const t = useJournalT();
   const { challenge, scenario, setScenario } = useLabChallenge();
   const words = useChallengeText(challenge);
+  const play = useChallengeMoments();
 
   const share = challengeShare(challenge.requirements);
   const pace = challengePace(
@@ -174,7 +153,20 @@ export function ChallengeDetailConcept({
     ? text.paceDone
     : pace.state === 'onTrack'
       ? text.paceOnTrack(pace.left, pace.daysLeft)
-      : text.paceBehind(pace.left, pace.daysLeft, pace.perDay);
+      : pace.state === 'behind'
+        ? text.paceBehind(pace.left, pace.daysLeft, pace.perDay)
+        : pace.toKeepLevel === null
+          ? text.paceOutFar
+          : pace.toKeepLevel === 0
+            ? text.paceOutSafe
+            : text.paceOut(pace.toKeepLevel, pace.daysLeft);
+  // Stars belong to the category, not to "next month": the next challenge is
+  // usually from another category, with its own level.
+  const categoryName = text.categoryName[challenge.category];
+  const levelNow: StarLevel =
+    finished && !challenge.warmUp
+      ? starAfter(challenge.stars, 100, 0).stars
+      : challenge.stars;
 
   const p = useSharedValue(0);
   useEffect(() => {
@@ -391,11 +383,17 @@ export function ChallengeDetailConcept({
                   </LabText>
                 </View>
               ) : (
-                <View style={styles.row}>
-                  <LabText variant="label" tone="muted" style={styles.flexText}>
-                    {text.streakHint}
-                  </LabText>
-                </View>
+                !finished && (
+                  <View style={styles.row}>
+                    <LabText
+                      variant="label"
+                      tone="muted"
+                      style={styles.flexText}
+                    >
+                      {text.streakHint}
+                    </LabText>
+                  </View>
+                )
               )}
               <LabText
                 variant="caption"
@@ -404,9 +402,17 @@ export function ChallengeDetailConcept({
               >
                 {challenge.warmUp
                   ? text.warmUp
-                  : challenge.stars >= 5
-                    ? text.topLevel
-                    : text.nextMonth(challenge.stars + 1)}
+                  : finished
+                    ? text.starUp(
+                        categoryName,
+                        levelNow,
+                        t(
+                          `monthlyChallenge.starLevels.${STAR_NAMES[levelNow - 1]}`
+                        )
+                      )
+                    : challenge.stars >= 5
+                      ? text.topLevel
+                      : text.levelRises(categoryName, challenge.stars + 1)}
               </LabText>
             </View>
 
@@ -425,7 +431,7 @@ export function ChallengeDetailConcept({
                     category={category}
                     stars={
                       category === challenge.category && !challenge.warmUp
-                        ? challenge.stars
+                        ? levelNow
                         : CHALLENGE_LEVELS[category]
                     }
                     current={category === challenge.category}
@@ -470,6 +476,29 @@ export function ChallengeDetailConcept({
                 );
               })}
             </View>
+            {/* Lab: play the moments around a challenge (challengeMoments.tsx). */}
+            <LabText
+              variant="overline"
+              tone="faint"
+              style={{ marginTop: labSpace.xl }}
+            >
+              {text.labMoments}
+            </LabText>
+            <View style={styles.scenarios}>
+              {MOMENTS.map(kind => (
+                <PressableScale
+                  key={kind}
+                  onPress={() => play(kind)}
+                  pressScale={0.95}
+                  accessibilityLabel={text.moments[kind]}
+                  style={[styles.scenario, { borderColor: c.border }]}
+                >
+                  <LabText variant="caption" tone="muted">
+                    {`▶ ${text.moments[kind]}`}
+                  </LabText>
+                </PressableScale>
+              ))}
+            </View>
           </ScrollView>
         </Animated.View>
       </Animated.View>
@@ -496,13 +525,14 @@ function Milestones({ share }: { share: number }) {
   return (
     <View style={styles.milestones}>
       {CHALLENGE_MILESTONES.map(milestone => {
-        const reached = share * 100 >= milestone.at;
+        // The app checks milestones against the rounded percentage.
+        const reached = Math.round(share * 100) >= milestone.at;
+        const label = text.milestone(milestone.at, milestone.xp);
         return (
           <View
             key={milestone.at}
             accessible
-            accessibilityLabel={text.milestone(milestone.at, milestone.xp)}
-            accessibilityState={{ checked: reached }}
+            accessibilityLabel={reached ? `${label}, ${text.reached}` : label}
             style={[
               styles.milestone,
               {

@@ -18,6 +18,7 @@ import { StarRatingService } from './starRatingService';
 import { generateUUID } from '../utils/uuid';
 import { FEATURE_FLAGS, getGratitudeStorageImpl } from '../config/featureFlags';
 import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
+import { monthStreakBonusShare } from './monthlyStreak';
 
 // Journal entries live in SQLite (USE_SQLITE_JOURNAL) — the legacy AsyncStorage
 // singleton used here before returned zero entries, which kept the Depth Explorer
@@ -1514,18 +1515,10 @@ export class MonthlyProgressTracker {
         75: 150  // 75% milestone: 150 XP
       };
 
-      let bonus = baseBonuses[milestone];
-
-      // Bonus multipliers for exceptional performance
-      if (progress.dailyConsistency > 0.8) {
-        bonus = Math.round(bonus * 1.2); // +20% for high consistency
-      }
-      
-      if (progress.daysActive >= milestone * 0.3) { // High activity level
-        bonus = Math.round(bonus * 1.1); // +10% for high activity
-      }
-
-      return bonus;
+      // Exactly these amounts — the screen names them before the user earns them.
+      // (Until 2026-11-12 an "activity" multiplier compared active DAYS with the
+      // milestone PERCENT and paid 55/110/165 to most users.)
+      return baseBonuses[milestone];
     } catch (error) {
       console.error('MonthlyProgressTracker.calculateMilestoneXPBonus error:', error);
       return 0;
@@ -1577,11 +1570,17 @@ export class MonthlyProgressTracker {
 
       // Calculate final XP reward
       const baseXPReward = challenge.baseXPReward;
-      // Milestone-based streak bonus: scales with base XP and consecutive months
-      const streak = progress.currentStreak;
-      const streakMultiplier = streak >= 12 ? 0.25 : streak >= 6 ? 0.15 : streak >= 4 ? 0.10 : streak >= 2 ? 0.05 : 0;
-      const streakBonus = Math.round(baseXPReward * streakMultiplier);
+      // Month-streak bonus: a share of the base XP for consecutive completed
+      // months, this one included (see monthlyStreak.ts for why it is counted
+      // from the stored challenges and not from progress.currentStreak).
+      const { MonthlyChallengeService } = require('./monthlyChallengeService');
+      const monthsBefore: number = await MonthlyChallengeService.getCompletedMonthsInRowBefore(
+        challenge.startDate.substring(0, 7)
+      );
+      const streak = monthsBefore + 1;
+      const streakBonus = Math.round(baseXPReward * monthStreakBonusShare(streak));
       const totalXP = baseXPReward + streakBonus;
+      progress.currentStreak = streak;
 
       progress.xpEarned = totalXP;
 
@@ -1632,7 +1631,7 @@ export class MonthlyProgressTracker {
       const milestonesReached = progress.milestonesReached
         ? Object.values(progress.milestonesReached).filter(m => m.reached).length
         : 0;
-      const monthlyStreak = progress.currentStreak + 1;
+      const monthlyStreak = streak;
       const oldStarLevel = starResult.previousStars;
       const newStarLevel = starResult.newStars;
 

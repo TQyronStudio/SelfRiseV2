@@ -650,6 +650,27 @@ hvězdy se mapují lineárně od minima (1⭐) po maximum (5⭐) rozsahu — nap
 > **💡 Business Logic**: 10x XP motivuje uživatele používat aplikaci celý měsíc aby splnili výzvu. Jedna 5⭐ výzva = více XP než celý měsíc denních aktivit!
 
 #### **Monthly Streak Bonus (milníkový systém)**
+
+> 🚨 **KRITICKÉ PRAVIDLO: série měsíců se počítá z uložených výzev, ne z `progress.currentStreak`.**
+>
+> ```typescript
+> // ✅ CORRECT – skutečná historie: měsíc + výsledný stav každé výzvy
+> const monthsBefore = await MonthlyChallengeService.getCompletedMonthsInRowBefore(month);
+> const streak = monthsBefore + 1;                      // právě dokončený měsíc se počítá
+> const streakBonus = Math.round(base * monthStreakBonusShare(streak));
+>
+> // ❌ WRONG – pole se zakládá na 0 a nikdo ho nikdy neaktualizoval
+> const streak = progress.currentStreak;
+> ```
+>
+> **Proč:** do 12. 11. 2026 se bonus četl z `progress.currentStreak`, které bylo vždy 0. Bonus za sérii
+> tak **nikdy nikdo nedostal** a okno splnění hlásilo vždy „1 měsíc“. Série je teď počet kalendářních
+> měsíců po sobě se stavem `completed` v tabulce `monthly_challenges` (bez ohledu na kategorii – ta se
+> každý měsíc střídá); měsíc bez výzvy nebo s nesplněnou výzvou řadu ukončí. Logika je v
+> `src/services/monthlyStreak.ts`, hlídá ji `src/services/__tests__/monthlyStreak.test.ts`.
+> Záznamy v `GamificationService` (`updateMonthlyStreak`, po kategoriích) se pro bonus nepoužívají –
+> nesplněný měsíc zapisují pod následující měsíc a další splnění ho přepíše.
+
 Bonus za po sobě jdoucí měsíce splněných výzev. Počítá se jako % z base XP:
 - **Streak 1**: žádný bonus (první splnění)
 - **Streak 2–3**: +5% z base XP
@@ -946,11 +967,13 @@ class MonthlyProgressTracker {
 ## 🎮 **GAMIFICATION & REWARDS**
 
 ### **💰 XP Reward Structure**
-Progresivní systém odměn motivuje k vyšší obtížnosti:
-- **Base XP**: Podle star levelu (500-2,532 XP)
-- **Completion Bonus**: +20% při 100% splnění
-- **Streak Bonus**: +300-1200 XP za consecutive měsíce
-- **Milestone Bonuses**: +50-100 XP za 25%, 50%, 75% progress
+Co se skutečně vyplácí (`MonthlyProgressTracker.completeMonthlyChallenge`, opraveno 12. 11. 2026):
+- **Base XP**: podle hvězd – plná výzva 5 000 / 7 500 / 12 000 / 17 500 / 25 000, zahřívací 500–2 532
+- **Streak Bonus**: +5 / 10 / 15 / 25 % z base XP za 2+ / 4+ / 6+ / 12+ měsíců po sobě (viz výše)
+- **Milestone Bonuses**: přesně +50 / +100 / +150 XP za 25 % / 50 % / 75 % – vyplácí se hned při dosažení
+- **Žádný „Completion Bonus +20 %“** – ten je jen ve starém, nepoužívaném výpočtu
+  (`GamificationService.calculateEnhancedXPReward`); na obrazovce se nesmí slibovat
+- Po splnění **plné** výzvy appka zapne násobič 1,5× XP na 12 hodin (pokud neběží jiný a není cooldown)
 
 ### **🏆 Achievement Integration**
 Monthly challenges se propojují s achievement systémem:
@@ -962,8 +985,11 @@ Monthly challenges se propojují s achievement systémem:
 ### **🎯 Milestone System**
 Každá výzva má 3 mezicíle pro udržení motivace:
 - **25% Progress**: +50 XP milestone reward
-- **50% Progress**: +75 XP milestone reward  
-- **75% Progress**: +100 XP milestone reward
+- **50% Progress**: +100 XP milestone reward
+- **75% Progress**: +150 XP milestone reward
+- Částky jsou **pevné**. Do 12. 11. 2026 je násobil „bonus za aktivitu“ (×1,1), který porovnával počet
+  aktivních DNÍ s PROCENTEM milníku, takže většina lidí dostávala 55 / 110 / 165 XP. Obrazovka částku
+  jmenuje předem, proto musí sedět přesně (`calculateMilestoneXPBonus`, test `monthlyStreak.test.ts`).
 - **100% Complete**: Base XP + completion bonus
 
 ---

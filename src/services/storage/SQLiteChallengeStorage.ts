@@ -55,6 +55,7 @@ export interface SQLiteChallengeStorageInterface {
   // History
   archiveChallenge(challenge: MonthlyChallenge): Promise<void>;
   getChallengeHistory(limit?: number): Promise<MonthlyChallenge[]>;
+  getMonthResults(limit?: number): Promise<{ month: string; status: string }[]>;
 }
 
 // ========================================
@@ -526,6 +527,20 @@ class SQLiteChallengeStorage implements SQLiteChallengeStorageInterface {
     );
 
     return rows.map(row => this.rowToChallengeWithRequirements(row));
+  }
+
+  /**
+   * Month and final status of the stored challenges, newest first — the record
+   * the month streak is counted from (src/services/monthlyStreak.ts).
+   */
+  async getMonthResults(limit: number = 36): Promise<{ month: string; status: string }[]> {
+    return this.db.getAllAsync<{ month: string; status: string }>(
+      `SELECT month, status FROM monthly_challenges
+       WHERE status != 'active'
+       ORDER BY month DESC
+       LIMIT ?`,
+      [limit]
+    );
   }
 
   // ========================================

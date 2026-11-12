@@ -98,13 +98,9 @@ import {
 import { RollingNumber } from './RollingNumber';
 import { FlameState, StreakFlame } from './StreakFlame';
 import { DetailRect, JournalDetailConcept } from './JournalDetailConcept';
-import {
-  ChallengeDetailConcept,
-  Stars,
-  useChallengeText,
-} from './ChallengeDetailConcept';
+import { ChallengeDetailConcept, Stars } from './ChallengeDetailConcept';
 import { challengePace, challengeShare } from './challengeLogic';
-import { useLabChallenge } from './challengeMock';
+import { useChallengeText, useLabChallenge } from './challengeMock';
 import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';

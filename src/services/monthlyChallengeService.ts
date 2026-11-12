@@ -21,6 +21,7 @@ import {
 } from '../types/gamification';
 import { generateUUID } from '../utils/uuid';
 import { FEATURE_FLAGS } from '../config/featureFlags';
+import { completedMonthsInRowBefore } from './monthlyStreak';
 import { sqliteChallengeStorage } from './storage/SQLiteChallengeStorage';
 
 export class MonthlyChallengeService {
@@ -2489,6 +2490,24 @@ export class MonthlyChallengeService {
     } catch (error) {
       console.error('Failed to get stored challenges:', error);
       return [];
+    }
+  }
+
+  /**
+   * Completed challenge months in a row directly before `month` ('YYYY-MM').
+   * Never throws: a streak that cannot be read counts as none, so completing a
+   * challenge is never blocked by it.
+   */
+  static async getCompletedMonthsInRowBefore(month: string): Promise<number> {
+    try {
+      if (FEATURE_FLAGS.USE_SQLITE_CHALLENGES && this.storage) {
+        const results = await this.storage.getMonthResults();
+        return completedMonthsInRowBefore(month, results);
+      }
+      return 0;
+    } catch (error) {
+      console.error('Failed to read the month streak:', error);
+      return 0;
     }
   }
 

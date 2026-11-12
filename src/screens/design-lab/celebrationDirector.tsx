@@ -52,6 +52,7 @@ import {
   View,
 } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import i18n from '@/src/config/i18n';
 import { CORE_ACHIEVEMENTS } from '@/src/constants/achievementCatalog';
 import { ACHIEVEMENT_XP_REWARDS } from '@/src/constants/achievements';
@@ -81,9 +82,20 @@ export interface LabTrophy {
   xp: number;
 }
 
+/** A quiet note that is not a trophy (a monthly challenge milestone, kolo 37). */
+export interface LabNote {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  overline: string;
+  title: string;
+  xp: number;
+}
+
 export type Moment =
   | { id: number; kind: 'quiet'; items: LabTrophy[] }
-  | { id: number; kind: 'big'; headliner: LabTrophy; also: LabTrophy[] };
+  | { id: number; kind: 'big'; headliner: LabTrophy; also: LabTrophy[] }
+  | { id: number; kind: 'note'; note: LabNote }
+  /** Any other full-screen moment; it calls `done` when it has closed. */
+  | { id: number; kind: 'window'; render: (done: () => void) => ReactNode };
 
 const RANK: Record<LabRarity, number> = {
   common: 0,
@@ -117,6 +129,8 @@ export function momentFor(batch: LabTrophy[], id = 0): Moment | null {
 }
 
 export function momentXp(moment: Moment): number {
+  if (moment.kind === 'note') return moment.note.xp;
+  if (moment.kind === 'window') return 0;
   const items =
     moment.kind === 'big' ? [moment.headliner, ...moment.also] : moment.items;
   return items.reduce((sum, item) => sum + item.xp, 0);
@@ -166,6 +180,11 @@ export const CELEBRATION_SCENARIOS: { label: string; batch: LabTrophy[] }[] = [
 const CelebrateContext = createContext<((batch: LabTrophy[]) => void) | null>(
   null
 );
+interface MomentsApi {
+  showNote: (note: LabNote) => void;
+  showWindow: (render: (done: () => void) => ReactNode) => void;
+}
+const MomentsApiContext = createContext<MomentsApi | null>(null);
 const MomentContext = createContext<{
   current: Moment | null;
   finish: () => void;
@@ -182,13 +201,31 @@ export function LabCelebrationProvider({ children }: { children: ReactNode }) {
     if (moment) setQueue(q => enqueueMoment(q, moment));
   }, []);
   const finish = useCallback(() => setQueue(q => q.slice(1)), []);
+  // Other moments join the same line: still one thing at a time (R-29).
+  const api = useMemo<MomentsApi>(
+    () => ({
+      showNote: note =>
+        setQueue(q =>
+          enqueueMoment(q, { id: nextId.current++, kind: 'note', note })
+        ),
+      showWindow: render =>
+        setQueue(q =>
+          enqueueMoment(q, { id: nextId.current++, kind: 'window', render })
+        ),
+    }),
+    []
+  );
   const state = useMemo(
     () => ({ current: queue[0] ?? null, finish, noteTap }),
     [queue, finish]
   );
   return (
     <CelebrateContext.Provider value={celebrate}>
-      <MomentContext.Provider value={state}>{children}</MomentContext.Provider>
+      <MomentsApiContext.Provider value={api}>
+        <MomentContext.Provider value={state}>
+          {children}
+        </MomentContext.Provider>
+      </MomentsApiContext.Provider>
     </CelebrateContext.Provider>
   );
 }
@@ -196,6 +233,13 @@ export function LabCelebrationProvider({ children }: { children: ReactNode }) {
 export function useLabCelebrate(): (batch: LabTrophy[]) => void {
   const ctx = useContext(CelebrateContext);
   if (!ctx) throw new Error('useLabCelebrate needs LabCelebrationProvider');
+  return ctx;
+}
+
+/** Queue a quiet note or a full-screen moment that is not a trophy. */
+export function useLabMoments(): MomentsApi {
+  const ctx = useContext(MomentsApiContext);
+  if (!ctx) throw new Error('useLabMoments needs LabCelebrationProvider');
   return ctx;
 }
 
@@ -211,17 +255,29 @@ function useMoment() {
  * note is out, a tap on the badge is a tap on the note.
  */
 export function useCelebrationGate(): {
-  moment: Moment['kind'] | null;
+  moment: 'quiet' | 'big' | null;
   openNote: () => void;
 } {
   const { current, noteTap } = useMoment();
   const openNote = useCallback(() => noteTap.current?.(), [noteTap]);
-  return { moment: current?.kind ?? null, openNote };
+  const kind = current?.kind;
+  const moment =
+    kind === 'quiet' || kind === 'note'
+      ? 'quiet'
+      : kind === 'big' || kind === 'window'
+        ? 'big'
+        : null;
+  return { moment, openNote };
 }
 
 /** Full screen: the big window. */
 export function CelebrationModalOutlet() {
   const { current, finish } = useMoment();
+  if (current?.kind === 'window') {
+    return (
+      <React.Fragment key={current.id}>{current.render(finish)}</React.Fragment>
+    );
+  }
   if (current?.kind !== 'big') return null;
   return (
     <AchievementCelebrationConcept
@@ -240,6 +296,9 @@ export function CelebrationNoteOutlet({
   onOpenTrophies: () => void;
 }) {
   const { current, finish } = useMoment();
+  if (current?.kind === 'note') {
+    return <PlainNote key={current.id} note={current.note} onDone={finish} />;
+  }
   if (current?.kind !== 'quiet') return null;
   return (
     <TrophyNote
@@ -416,6 +475,133 @@ function TrophyNote({
   );
 }
 
+// ---------------------------------------------------------------------------
+// A quiet note that is not a trophy (monthly challenge milestone)
+// ---------------------------------------------------------------------------
+
+const PLAIN_HOLD_MS = 3000;
+
+/**
+ * Same place, same motion and the same deal as the trophy note: it slides out of
+ * the level badge, holds, and its XP flies home as it leaves. A tap (on it or on
+ * the badge) lets it go early.
+ */
+function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
+  const { c, mode } = useLab();
+  const reducedMotion = useReducedMotion();
+  const award = useLabXpAward();
+  const gold = mode === 'light' ? c.rewardText : c.reward;
+
+  const p = useRef(new RNAnimated.Value(0)).current;
+  const xpRef = useRef<View>(null);
+  const left = useRef(false);
+  const done = useRef(onDone);
+  done.current = onDone;
+
+  const leave = useCallback(() => {
+    if (left.current) return;
+    left.current = true;
+    xpRef.current?.measureInWindow((x, y, w, h) =>
+      award(note.xp, { x: x + w / 2, y: y + h / 2 })
+    );
+    RNAnimated.timing(p, {
+      toValue: 0,
+      duration: 240,
+      useNativeDriver: true,
+    }).start(() => done.current());
+  }, [award, note.xp, p]);
+  const leaveRef = useRef(leave);
+  leaveRef.current = leave;
+
+  const { noteTap } = useMoment();
+  useEffect(() => {
+    noteTap.current = () => leaveRef.current();
+    return () => {
+      noteTap.current = null;
+    };
+  }, [noteTap]);
+
+  useEffect(() => {
+    impact(ImpactFeedbackStyle.Light);
+    AccessibilityInfo.announceForAccessibility(
+      `${note.overline}. ${note.title}. +${note.xp} XP`
+    );
+    RNAnimated.spring(p, {
+      toValue: 1,
+      damping: 14,
+      stiffness: 200,
+      useNativeDriver: true,
+    }).start();
+    const id = setTimeout(() => leaveRef.current(), PLAIN_HOLD_MS);
+    return () => clearTimeout(id);
+    // Mount-only: one note = one entrance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const motion = reducedMotion
+    ? { opacity: p }
+    : {
+        opacity: p,
+        transform: [
+          {
+            translateX: p.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-16, 0],
+            }),
+          },
+          {
+            scale: p.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.92, 1],
+            }),
+          },
+        ],
+      };
+
+  return (
+    <RNAnimated.View style={[styles.noteWrap, motion]} pointerEvents="box-none">
+      <PressableScale
+        onPress={leave}
+        haptic={null}
+        accessibilityLabel={`${note.overline}. ${note.title}. +${note.xp} XP`}
+        style={[
+          styles.note,
+          { backgroundColor: c.surface, borderColor: c.border },
+        ]}
+      >
+        <View style={[styles.noteIcon, { backgroundColor: c.rewardSoft }]}>
+          <Ionicons name={note.icon} size={18} color={gold} />
+        </View>
+        <View style={styles.noteText}>
+          <Text
+            maxFontSizeMultiplier={1.2}
+            numberOfLines={1}
+            style={typeStyle('overline', c.textMuted)}
+          >
+            {note.overline}
+          </Text>
+          <Text
+            maxFontSizeMultiplier={1.2}
+            numberOfLines={1}
+            style={typeStyle('label', c.text)}
+          >
+            {note.title}
+          </Text>
+        </View>
+        <View ref={xpRef} collapsable={false} style={styles.noteXp}>
+          <Text
+            maxFontSizeMultiplier={1.2}
+            numberOfLines={1}
+            style={[typeStyle('label', gold), { fontFamily: labFonts.bold }]}
+          >
+            {`+${note.xp} XP`}
+          </Text>
+        </View>
+      </PressableScale>
+    </RNAnimated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   noteWrap: {
     alignSelf: 'flex-start',
@@ -433,6 +619,13 @@ const styles = StyleSheet.create({
   },
   medals: {
     flexDirection: 'row',
+  },
+  noteIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   noteText: {
     flexShrink: 1,

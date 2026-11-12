@@ -132,6 +132,15 @@ interface Copy {
     paceDone: string;
     paceOnTrack: (left: number, days: number) => string;
     paceBehind: (left: number, days: number, perDay: number) => string;
+    /** The full challenge cannot be reached any more; `toKeep` protects the stars. */
+    paceOut: (toKeep: number, days: number) => string;
+    paceOutSafe: string;
+    paceOutFar: string;
+    reached: string;
+    categoryName: Record<
+      'habits' | 'journal' | 'goals' | 'consistency',
+      string
+    >;
     requirements: string;
     milestone: (percent: number, xp: number) => string;
     calendar: string;
@@ -143,12 +152,29 @@ interface Copy {
     streak: (months: number, percent: number) => string;
     streakHint: string;
     total: string;
-    nextMonth: (stars: number) => string;
+    levelRises: (category: string, stars: number) => string;
     topLevel: string;
     warmUp: string;
     levels: string;
     labScenario: string;
-    scenarios: Record<'onTrack' | 'behind' | 'warmUp' | 'done', string>;
+    scenarios: Record<
+      'onTrack' | 'behind' | 'tooLate' | 'warmUp' | 'done',
+      string
+    >;
+    /** The moments around a challenge (challengeMoments.tsx). */
+    milestoneNote: (percent: number, title: string) => string;
+    completeOverline: string;
+    starUp: (category: string, stars: number, name: string) => string;
+    multiplier: (factor: string, hours: number) => string;
+    continue: string;
+    recapTitle: (percent: number) => string;
+    starKept: (category: string, stars: number, name: string) => string;
+    starLost: (category: string, stars: number, name: string) => string;
+    streakReset: string;
+    newChallenge: string;
+    recapButton: string;
+    labMoments: string;
+    moments: Record<'milestone' | 'finish' | 'kept' | 'lost', string>;
   };
   /** The levels overview as a journey (LevelsOverviewConcept.tsx). */
   levels: {
@@ -411,6 +437,19 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         `You’re on track. ${left} more in ${days} ${days === 1 ? 'day' : 'days'}.`,
       paceBehind: (left, days, perDay) =>
         `A little behind. ${left} more in ${days} ${days === 1 ? 'day' : 'days'} — about ${perDay} a day gets you there.`,
+      paceOut: (toKeep, days) =>
+        `The full challenge is out of reach this month. ${toKeep} more in ${days} ${days === 1 ? 'day' : 'days'} keeps your star level.`,
+      paceOutSafe:
+        'The full challenge is out of reach this month, but your star level is safe.',
+      paceOutFar:
+        'The full challenge is out of reach this month. Every day you add still counts.',
+      reached: 'reached',
+      categoryName: {
+        habits: 'Habits',
+        journal: 'Journal',
+        goals: 'Goals',
+        consistency: 'Consistency',
+      },
       requirements: 'What it takes',
       milestone: (percent, xp) => `${percent} % · +${xp} XP`,
       calendar: 'Your month',
@@ -422,18 +461,41 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       streak: (months, percent) => `${months} months in a row · +${percent} %`,
       streakHint: 'Finish two months in a row for a bonus.',
       total: 'Total',
-      nextMonth: stars =>
-        `Finish it and next month’s challenge is ${stars}-star.`,
+      levelRises: (category, stars) =>
+        `Finish it and your ${category} level rises to ${stars} stars.`,
       topLevel: 'You are at the top level. Hold it.',
       warmUp:
-        'A warm-up challenge, made easy on purpose. Stars start with your first full challenge.',
+        'A warm-up challenge, made easy on purpose. It does not raise your star level.',
       levels: 'Your challenge levels',
       labScenario: 'Lab · situation',
       scenarios: {
         onTrack: 'On track',
         behind: 'Behind',
+        tooLate: 'Out of reach',
         warmUp: 'Warm-up',
         done: 'Done',
+      },
+      milestoneNote: (percent, title) => `${percent} % of ${title}`,
+      completeOverline: 'Challenge complete',
+      starUp: (category, stars, name) =>
+        `Your ${category} level: ${stars}-star · ${name}`,
+      multiplier: (factor, hours) =>
+        `${factor}× XP for the next ${hours} hours`,
+      continue: 'Continue',
+      recapTitle: percent => `You made it ${percent} % of the way.`,
+      starKept: (category, stars, name) =>
+        `Your ${category} level stays: ${stars}-star · ${name}.`,
+      starLost: (category, stars, name) =>
+        `Your ${category} level drops to ${stars}-star · ${name} for now. Two months in a row fell short.`,
+      streakReset: 'Your month streak starts again.',
+      newChallenge: 'New · November challenge',
+      recapButton: 'Start November',
+      labMoments: 'Lab · moments',
+      moments: {
+        milestone: 'Milestone',
+        finish: 'Finished',
+        kept: 'Month end · star kept',
+        lost: 'Month end · star lost',
       },
     },
     levels: {
@@ -717,6 +779,19 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         `Du liegst im Plan. Noch ${left} in ${days} ${days === 1 ? 'Tag' : 'Tagen'}.`,
       paceBehind: (left, days, perDay) =>
         `Etwas im Rückstand. Noch ${left} in ${days} ${days === 1 ? 'Tag' : 'Tagen'} – mit etwa ${perDay} pro Tag schaffst du es.`,
+      paceOut: (toKeep, days) =>
+        `Die volle Herausforderung ist diesen Monat nicht mehr zu schaffen. Noch ${toKeep} in ${days} ${days === 1 ? 'Tag' : 'Tagen'} und deine Sterne-Stufe bleibt.`,
+      paceOutSafe:
+        'Die volle Herausforderung ist diesen Monat nicht mehr zu schaffen, aber deine Sterne-Stufe ist sicher.',
+      paceOutFar:
+        'Die volle Herausforderung ist diesen Monat nicht mehr zu schaffen. Jeder weitere Tag zählt trotzdem.',
+      reached: 'erreicht',
+      categoryName: {
+        habits: 'Routinen',
+        journal: 'Tagebuch',
+        goals: 'Ziele',
+        consistency: 'Beständigkeit',
+      },
       requirements: 'Was es braucht',
       milestone: (percent, xp) => `${percent} % · +${xp} XP`,
       calendar: 'Dein Monat',
@@ -728,18 +803,41 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       streak: (months, percent) => `${months} Monate in Folge · +${percent} %`,
       streakHint: 'Schaffe zwei Monate in Folge für einen Bonus.',
       total: 'Gesamt',
-      nextMonth: stars =>
-        `Schaffst du sie, hat die nächste Herausforderung ${stars} Sterne.`,
+      levelRises: (category, stars) =>
+        `Schaffst du sie, steigt deine Stufe für ${category} auf ${stars} Sterne.`,
       topLevel: 'Du bist auf der höchsten Stufe. Halte sie.',
       warmUp:
-        'Eine Aufwärm-Herausforderung, bewusst leicht. Sterne gibt es ab der ersten vollen Herausforderung.',
+        'Eine Aufwärm-Herausforderung, bewusst leicht. Sie erhöht deine Sterne-Stufe nicht.',
       levels: 'Deine Herausforderungs-Stufen',
       labScenario: 'Labor · Situation',
       scenarios: {
         onTrack: 'Im Plan',
         behind: 'Rückstand',
+        tooLate: 'Nicht mehr zu schaffen',
         warmUp: 'Aufwärmen',
         done: 'Geschafft',
+      },
+      milestoneNote: (percent, title) => `${percent} % von ${title}`,
+      completeOverline: 'Herausforderung geschafft',
+      starUp: (category, stars, name) =>
+        `Deine Stufe für ${category}: ${stars} Sterne · ${name}`,
+      multiplier: (factor, hours) =>
+        `${factor}× XP für die nächsten ${hours} Stunden`,
+      continue: 'Weiter',
+      recapTitle: percent => `Du hast ${percent} % des Weges geschafft.`,
+      starKept: (category, stars, name) =>
+        `Deine Stufe für ${category} bleibt: ${stars} ${stars === 1 ? 'Stern' : 'Sterne'} · ${name}.`,
+      starLost: (category, stars, name) =>
+        `Deine Stufe für ${category} sinkt vorerst auf ${stars} ${stars === 1 ? 'Stern' : 'Sterne'} · ${name}. Zwei Monate in Folge haben nicht gereicht.`,
+      streakReset: 'Deine Monatsserie beginnt neu.',
+      newChallenge: 'Neu · November-Herausforderung',
+      recapButton: 'November starten',
+      labMoments: 'Labor · Momente',
+      moments: {
+        milestone: 'Meilenstein',
+        finish: 'Geschafft',
+        kept: 'Monatsende · Stern bleibt',
+        lost: 'Monatsende · Stern weg',
       },
     },
     levels: {

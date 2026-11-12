@@ -1,4 +1,6 @@
 import {
+  COMPLETION_MULTIPLIER,
+  starAfter,
   CHALLENGE_MILESTONES,
   challengePace,
   challengeReward,
@@ -7,6 +9,8 @@ import {
   requirementShare,
   streakBonusShare,
 } from '../challengeLogic';
+import { XP_MULTIPLIERS, XP_REWARDS } from '../../../constants/gamification';
+import { monthStreakBonusShare } from '../../../services/monthlyStreak';
 
 describe('monthly challenge: what it pays', () => {
   it('pays by star level, full challenges ten times the warm-up', () => {
@@ -28,6 +32,29 @@ describe('monthly challenge: what it pays', () => {
       streakBonus: 1200,
       total: 13200,
     });
+  });
+
+  it('uses the same numbers as the app’s own constants', () => {
+    const live = XP_REWARDS.MONTHLY_CHALLENGES;
+    expect(
+      ([1, 2, 3, 4, 5] as const).map(s => challengeReward(s, false, 1).base)
+    ).toEqual([
+      live.ONE_STAR,
+      live.TWO_STAR,
+      live.THREE_STAR,
+      live.FOUR_STAR,
+      live.FIVE_STAR,
+    ]);
+    expect(COMPLETION_MULTIPLIER).toEqual({
+      factor: XP_MULTIPLIERS.CHALLENGE_COMPLETION_MULTIPLIER,
+      hours: XP_MULTIPLIERS.CHALLENGE_COMPLETION_DURATION,
+    });
+  });
+
+  it('uses the app’s own month-streak rule', () => {
+    for (let months = 0; months <= 15; months++) {
+      expect(streakBonusShare(months)).toBe(monthStreakBonusShare(months));
+    }
   });
 
   it('pays the first finished month without a bonus', () => {
@@ -76,6 +103,7 @@ describe('monthly challenge: the pace', () => {
       left: 16,
       daysLeft: 10,
       perDay: 2,
+      toKeepLevel: null,
     });
   });
 
@@ -85,6 +113,11 @@ describe('monthly challenge: the pace', () => {
       left: 9,
       daysLeft: 10,
       perDay: 1,
+      toKeepLevel: null,
+    });
+    expect(challengePace([{ done: 20, target: 62 }], 22, 31)).toMatchObject({
+      state: 'behind',
+      perDay: 5,
     });
   });
 
@@ -137,6 +170,47 @@ describe('monthly challenge: the pace', () => {
     ).toMatchObject({ state: 'done', left: 0, perDay: 0 });
   });
 
+  it('says so when a day-capped requirement cannot be reached any more', () => {
+    // "Days with…": one a day at most. 12 left, 7 days open.
+    const days = { done: 6, target: 18, perDayMax: 1 };
+    expect(challengePace([days], 25, 31)).toEqual({
+      state: 'outOfReach',
+      left: 12,
+      daysLeft: 7,
+      perDay: 2,
+      // 70 % of 18 = 12.6 → 13; 7 more, and 7 days are open.
+      toKeepLevel: 7,
+    });
+    // Still exactly reachable: 7 left in 7 days.
+    expect(
+      challengePace([{ done: 11, target: 18, perDayMax: 1 }], 25, 31).state
+    ).toBe('behind');
+    // Without a cap anything can still be caught up.
+    expect(challengePace([{ done: 6, target: 18 }], 25, 31).state).toBe(
+      'behind'
+    );
+  });
+
+  it('does not promise the star level when even 70 % is gone', () => {
+    expect(
+      challengePace([{ done: 2, target: 18, perDayMax: 1 }], 27, 31)
+    ).toMatchObject({ state: 'outOfReach', toKeepLevel: null });
+  });
+
+  it('tells a user past 70 % that the level is already safe', () => {
+    expect(
+      challengePace([{ done: 13, target: 18, perDayMax: 1 }], 29, 31)
+    ).toMatchObject({ state: 'outOfReach', toKeepLevel: 0 });
+  });
+
+  it('never speaks in fractions and survives odd input', () => {
+    expect(challengePace([{ done: 8.5, target: 18 }], 22, 31).left).toBe(10);
+    // A day past the month's end still leaves one day, never zero or less.
+    expect(challengePace([{ done: 1, target: 18 }], 40, 31).daysLeft).toBe(1);
+    // A requirement without a target is simply done.
+    expect(requirementShare({ done: 0, target: 0 })).toBe(1);
+  });
+
   it('counts the last day as one day left', () => {
     expect(challengePace([{ done: 59, target: 62 }], 31, 31)).toMatchObject({
       daysLeft: 1,
@@ -161,5 +235,67 @@ describe('monthly challenge: a day in the calendar', () => {
   it('does not divide by a missing target', () => {
     expect(dayLevel(1, 0)).toBe('full');
     expect(dayLevel(0, 0)).toBe('none');
+  });
+});
+
+describe('monthly challenge: what a month does to the stars', () => {
+  it('gives a star for a full finish and forgets earlier misses', () => {
+    expect(starAfter(3, 100, 1)).toEqual({
+      stars: 4,
+      change: 'up',
+      failures: 0,
+    });
+  });
+
+  it('cannot go above five', () => {
+    expect(starAfter(5, 100, 0)).toEqual({
+      stars: 5,
+      change: 'same',
+      failures: 0,
+    });
+  });
+
+  it('keeps the level for 70–99 %, but counts the miss', () => {
+    expect(starAfter(2, 78, 0)).toEqual({
+      stars: 2,
+      change: 'same',
+      failures: 1,
+    });
+    // Even as the second miss: a partial month never costs a star.
+    expect(starAfter(2, 70, 1)).toEqual({
+      stars: 2,
+      change: 'same',
+      failures: 2,
+    });
+  });
+
+  it('keeps the level after the first month under 70 %', () => {
+    expect(starAfter(2, 50, 0)).toEqual({
+      stars: 2,
+      change: 'same',
+      failures: 1,
+    });
+  });
+
+  it('takes a star for the second miss in a row under 70 %', () => {
+    expect(starAfter(2, 50, 1)).toEqual({
+      stars: 1,
+      change: 'down',
+      failures: 0,
+    });
+    // A partial month before counts as a miss too.
+    expect(starAfter(4, 69, 2).stars).toBe(3);
+  });
+
+  it('never goes below one', () => {
+    expect(starAfter(1, 10, 1)).toEqual({
+      stars: 1,
+      change: 'same',
+      failures: 0,
+    });
+  });
+
+  it('knows the multiplier the app runs after a finished challenge', () => {
+    expect(COMPLETION_MULTIPLIER).toEqual({ factor: 1.5, hours: 12 });
   });
 });

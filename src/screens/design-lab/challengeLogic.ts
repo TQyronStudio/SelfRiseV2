@@ -63,7 +63,12 @@ export const CHALLENGE_MILESTONES = [
 export interface RequirementProgress {
   done: number;
   target: number;
+  /** The most a single day can add (1 for "days with…" requirements). */
+  perDayMax?: number;
 }
+
+/** Below this share of the challenge a month counts as missed for the stars. */
+export const KEEP_LEVEL_SHARE = 0.7;
 
 /** One requirement's share, never above 1 (extra work does not count twice). */
 export function requirementShare({
@@ -81,7 +86,7 @@ export function challengeShare(requirements: RequirementProgress[]): number {
   return sum / requirements.length;
 }
 
-export type PaceState = 'done' | 'onTrack' | 'behind';
+export type PaceState = 'done' | 'onTrack' | 'behind' | 'outOfReach';
 
 export interface Pace {
   state: PaceState;
@@ -91,6 +96,11 @@ export interface Pace {
   daysLeft: number;
   /** What a day has to bring from now on (rounded up, at least 1 while not done). */
   perDay: number;
+  /**
+   * Out of reach only: how much more still protects the star level (70 % of the
+   * challenge), or null when even that cannot be reached any more.
+   */
+  toKeepLevel: number | null;
 }
 
 /**
@@ -98,6 +108,10 @@ export interface Pace {
  * `(day - 1) / days` of every requirement should be done — today itself still
  * counts in the user's favour. The sentence speaks about the requirement that is
  * furthest behind, because that one decides the month.
+ *
+ * A requirement that can only grow so much a day ("days with…") can become
+ * impossible; then the honest sentence is not "2 a day gets you there" but what
+ * is still worth doing: 70 % keeps the star level.
  */
 export function challengePace(
   requirements: RequirementProgress[],
@@ -107,18 +121,35 @@ export function challengePace(
   const daysLeft = Math.max(1, days - day + 1);
   const open = requirements.filter(r => requirementShare(r) < 1);
   if (open.length === 0) {
-    return { state: 'done', left: 0, daysLeft, perDay: 0 };
+    return { state: 'done', left: 0, daysLeft, perDay: 0, toKeepLevel: null };
   }
   const slowest = open.reduce((a, b) =>
     requirementShare(b) < requirementShare(a) ? b : a
   );
-  const left = slowest.target - slowest.done;
+  const left = Math.ceil(slowest.target - slowest.done);
+  const perDay = Math.max(1, Math.ceil(left / daysLeft));
+  const room =
+    slowest.perDayMax === undefined ? Infinity : daysLeft * slowest.perDayMax;
+  if (left > room) {
+    const toKeep = Math.max(
+      0,
+      Math.ceil(slowest.target * KEEP_LEVEL_SHARE - slowest.done)
+    );
+    return {
+      state: 'outOfReach',
+      left,
+      daysLeft,
+      perDay,
+      toKeepLevel: toKeep <= room ? toKeep : null,
+    };
+  }
   const expected = (day - 1) / days;
   return {
     state: requirementShare(slowest) >= expected ? 'onTrack' : 'behind',
     left,
     daysLeft,
-    perDay: Math.max(1, Math.ceil(left / daysLeft)),
+    perDay,
+    toKeepLevel: null,
   };
 }
 
@@ -136,4 +167,39 @@ export function dayLevel(value: number, dailyTarget: number): DayLevel {
   if (share >= 0.51) return 'good';
   if (share >= 0.1) return 'some';
   return 'none';
+}
+
+/** After a finished challenge the app runs an XP multiplier (XP_MULTIPLIERS). */
+export const COMPLETION_MULTIPLIER = { factor: 1.5, hours: 12 } as const;
+
+export interface StarOutcome {
+  stars: StarLevel;
+  change: 'up' | 'same' | 'down';
+  /** Months in a row without a full finish, after this one. */
+  failures: number;
+}
+
+/**
+ * What a month does to the star level of its category — StarRatingService's rule
+ * for a full challenge (a warm-up never changes stars):
+ * - 100 % → one star up (5 is the top), the failure count starts again;
+ * - 70–99 % → the level stays, but the month counts as a miss;
+ * - under 70 % → a miss; the second miss in a row costs a star (1 is the floor)
+ *   and the count starts again.
+ */
+export function starAfter(
+  stars: StarLevel,
+  percent: number,
+  failuresBefore: number
+): StarOutcome {
+  if (percent >= 100) {
+    const up = Math.min(5, stars + 1) as StarLevel;
+    return { stars: up, change: up > stars ? 'up' : 'same', failures: 0 };
+  }
+  const failures = failuresBefore + 1;
+  if (percent >= 70 || failures < 2) {
+    return { stars, change: 'same', failures };
+  }
+  const down = Math.max(1, stars - 1) as StarLevel;
+  return { stars: down, change: down < stars ? 'down' : 'same', failures: 0 };
 }
