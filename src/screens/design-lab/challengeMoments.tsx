@@ -181,7 +181,7 @@ export function useChallengeMoments(): (kind: ChallengeMomentKind) => void {
 
 const LEAVE_MS = 240;
 
-function useWindowMotion(onClosed: () => void, announcement: string) {
+export function useWindowMotion(onClosed: () => void, announcement: string) {
   const p = useSharedValue(0);
   const leaving = useRef(false);
   const closed = useRef(false);
@@ -262,12 +262,16 @@ function ChangingStars({ from, to }: { from: StarLevel; to: StarLevel }) {
   }));
   const changing = to > from ? to : from;
   return (
-    <View style={styles.stars} accessible accessibilityLabel={`${to} / 5`}>
+    <View
+      style={momentStyles.stars}
+      accessible
+      accessibilityLabel={`${to} / 5`}
+    >
       {[1, 2, 3, 4, 5].map(i => {
         const lit = i <= Math.min(from, to);
         const changes = from !== to && i === changing;
         return (
-          <View key={i} style={styles.star}>
+          <View key={i} style={momentStyles.star}>
             <Ionicons
               name={lit ? 'star' : 'star-outline'}
               size={30}
@@ -277,7 +281,7 @@ function ChangingStars({ from, to }: { from: StarLevel; to: StarLevel }) {
               <Animated.View
                 style={[
                   StyleSheet.absoluteFill,
-                  styles.starOver,
+                  momentStyles.starOver,
                   to > from ? arriving : leaving,
                 ]}
               >
@@ -291,7 +295,7 @@ function ChangingStars({ from, to }: { from: StarLevel; to: StarLevel }) {
   );
 }
 
-function PrimaryButton({
+export function PrimaryButton({
   label,
   onPress,
   buttonRef,
@@ -307,7 +311,7 @@ function PrimaryButton({
         onPress={onPress}
         haptic={null}
         accessibilityLabel={label}
-        style={styles.button}
+        style={momentStyles.button}
       >
         <LinearGradient
           colors={c.primaryGradient}
@@ -399,38 +403,46 @@ export function ChallengeDoneWindow({
   return (
     <View style={StyleSheet.absoluteFill} accessibilityViewIsModal>
       <Animated.View
-        style={[StyleSheet.absoluteFill, styles.scrim, scrimStyle]}
+        style={[StyleSheet.absoluteFill, momentStyles.scrim, scrimStyle]}
       />
-      <View style={styles.center} pointerEvents="box-none">
+      <View style={momentStyles.center} pointerEvents="box-none">
         <Animated.View
           style={[
-            styles.card,
+            momentStyles.card,
             { backgroundColor: c.surface, borderColor: c.border },
             cardStyle,
           ]}
         >
-          <View style={styles.medalBox}>
+          <View style={momentStyles.medalBox}>
             <Animated.View
-              style={[styles.medalRing, { borderColor: GOLD[1] }, ringStyle]}
+              style={[
+                momentStyles.medalRing,
+                { borderColor: GOLD[1] },
+                ringStyle,
+              ]}
             />
             <Animated.View style={medalStyle}>
               <LinearGradient
                 colors={GOLD}
                 start={{ x: 0.2, y: 0 }}
                 end={{ x: 0.8, y: 1 }}
-                style={styles.medal}
+                style={momentStyles.medal}
               >
                 <Ionicons name="trophy" size={40} color="#4A2F00" />
               </LinearGradient>
             </Animated.View>
           </View>
 
-          <LabText variant="overline" tone="reward" style={styles.centered}>
+          <LabText
+            variant="overline"
+            tone="reward"
+            style={momentStyles.centered}
+          >
             {text.completeOverline}
           </LabText>
           <LabText
             variant="title"
-            style={[styles.centered, { marginTop: labSpace.xs }]}
+            style={[momentStyles.centered, { marginTop: labSpace.xs }]}
           >
             {words.title}
           </LabText>
@@ -439,7 +451,7 @@ export function ChallengeDoneWindow({
           <LabText
             variant="label"
             tone="muted"
-            style={[styles.centered, { marginTop: labSpace.sm }]}
+            style={[momentStyles.centered, { marginTop: labSpace.sm }]}
           >
             {challenge.warmUp
               ? text.warmUp
@@ -452,24 +464,34 @@ export function ChallengeDoneWindow({
                 : text.topLevel}
           </LabText>
 
-          <View style={[styles.earned, { backgroundColor: c.surfaceRaised }]}>
-            <View style={styles.row}>
-              <LabText variant="label" tone="muted" style={styles.flexText}>
+          <View
+            style={[momentStyles.earned, { backgroundColor: c.surfaceRaised }]}
+          >
+            <View style={momentStyles.row}>
+              <LabText
+                variant="label"
+                tone="muted"
+                style={momentStyles.flexText}
+              >
                 {text.starChallenge(challenge.stars)}
               </LabText>
               <LabText variant="numberSm">{xp(reward.base)}</LabText>
             </View>
             {reward.streakBonus > 0 && (
-              <View style={styles.row}>
-                <LabText variant="label" tone="muted" style={styles.flexText}>
+              <View style={momentStyles.row}>
+                <LabText
+                  variant="label"
+                  tone="muted"
+                  style={momentStyles.flexText}
+                >
                   {text.streak(months, Math.round(reward.streakShare * 100))}
                 </LabText>
                 <LabText variant="numberSm">{`+${xp(reward.streakBonus)}`}</LabText>
               </View>
             )}
             <Divider style={{ marginVertical: labSpace.xs }} />
-            <View style={styles.row}>
-              <LabText variant="bodyStrong" style={styles.flexText}>
+            <View style={momentStyles.row}>
+              <LabText variant="bodyStrong" style={momentStyles.flexText}>
                 {text.total}
               </LabText>
               <Text
@@ -485,7 +507,7 @@ export function ChallengeDoneWindow({
           </View>
           {/* The app switches it on only after a full challenge. */}
           {!challenge.warmUp && (
-            <View style={styles.multiplier}>
+            <View style={momentStyles.multiplier}>
               <Ionicons name="flash" size={14} color={gold} />
               <LabText
                 variant="caption"
@@ -570,29 +592,33 @@ export function MonthRecapWindow({
   return (
     <View style={StyleSheet.absoluteFill} accessibilityViewIsModal>
       <Animated.View
-        style={[StyleSheet.absoluteFill, styles.scrim, scrimStyle]}
+        style={[StyleSheet.absoluteFill, momentStyles.scrim, scrimStyle]}
       />
-      <View style={styles.center} pointerEvents="box-none">
+      <View style={momentStyles.center} pointerEvents="box-none">
         <Animated.View
           style={[
-            styles.card,
+            momentStyles.card,
             { backgroundColor: c.surface, borderColor: c.border },
             cardStyle,
           ]}
         >
-          <LabText variant="overline" tone="muted" style={styles.centered}>
+          <LabText
+            variant="overline"
+            tone="muted"
+            style={momentStyles.centered}
+          >
             {copy.challengeOverline}
           </LabText>
-          <View style={styles.recapRing}>
+          <View style={momentStyles.recapRing}>
             <Ring fraction={share} color={c.primary} />
           </View>
-          <LabText variant="title" style={styles.centered}>
+          <LabText variant="title" style={momentStyles.centered}>
             {text.recapTitle(percent)}
           </LabText>
           <LabText
             variant="body"
             tone="muted"
-            style={[styles.centered, { marginTop: labSpace.xs }]}
+            style={[momentStyles.centered, { marginTop: labSpace.xs }]}
           >
             {first
               ? `${words.title} · ${text.count(first.done, first.target)}`
@@ -603,7 +629,7 @@ export function MonthRecapWindow({
           <LabText
             variant="label"
             tone="muted"
-            style={[styles.centered, { marginTop: labSpace.sm }]}
+            style={[momentStyles.centered, { marginTop: labSpace.sm }]}
           >
             {lost
               ? text.starLost(
@@ -620,7 +646,7 @@ export function MonthRecapWindow({
           </LabText>
 
           {/* Straight to what is next: the miss is the start of a month, not its end. */}
-          <View style={[styles.next, { backgroundColor: c.primarySoft }]}>
+          <View style={[momentStyles.next, { backgroundColor: c.primarySoft }]}>
             <LabText variant="overline" tone="primary">
               {text.newChallenge}
             </LabText>
@@ -639,7 +665,8 @@ export function MonthRecapWindow({
   );
 }
 
-const styles = StyleSheet.create({
+/** The frame every full-screen moment shares (otherMoments.tsx uses it too). */
+export const momentStyles = StyleSheet.create({
   scrim: {
     backgroundColor: '#000000',
   },

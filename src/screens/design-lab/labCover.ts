@@ -11,7 +11,24 @@
  * GOING LIVE: lab scaffolding only. In the app the details are routes and modals of
  * their own, so "is a main tab on top?" comes from the navigation state instead.
  */
-import { useEffect, useSyncExternalStore } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
+import { BackHandler } from 'react-native';
+
+/**
+ * Is the tab this component lives in the one on screen? Tabs stay mounted when
+ * the user switches away (R-32, kolo 40) — an overlay left open in a hidden tab
+ * must not count as "something is open", and its loops should rest.
+ * Outside a tab (pages and windows of the lab screen itself) it is always true.
+ */
+const LabPageActiveContext = createContext(true);
+export const LabPageActiveProvider = LabPageActiveContext.Provider;
+export const useLabPageActive = () => useContext(LabPageActiveContext);
 
 let covers = 0;
 const listeners = new Set<() => void>();
@@ -30,14 +47,35 @@ function change(by: number) {
 
 /** Call in every overlay; `active = false` for one that is mounted but not showing. */
 export function useLabCover(active = true) {
+  const onScreen = useLabPageActive();
+  const covering = active && onScreen;
   useEffect(() => {
-    if (!active) return undefined;
+    if (!covering) return undefined;
     change(1);
     return () => change(-1);
-  }, [active]);
+  }, [covering]);
 }
 
 /** True while at least one overlay is open over the tab. */
 export function useLabCovered(): boolean {
   return useSyncExternalStore(subscribe, () => covers > 0);
+}
+
+/**
+ * Android back for an overlay — only while its tab is on screen. An overlay left
+ * open in a hidden tab (tabs stay mounted, R-32) must not swallow the back press
+ * meant for the tab the user is looking at.
+ */
+export function useLabBack(onBack: () => void) {
+  const onScreen = useLabPageActive();
+  const latest = useRef(onBack);
+  latest.current = onBack;
+  useEffect(() => {
+    if (!onScreen) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      latest.current();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onScreen]);
 }

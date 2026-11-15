@@ -24,6 +24,7 @@ import {
   selection,
 } from '@/src/services/hapticsService';
 import { PressableScale } from './labPrimitives';
+import { useLabPageActive } from './labCover';
 
 const FIRE = require('../../../assets/animations/fire-effect.json');
 const ICE = require('../../../assets/animations/ice-effect.json');
@@ -50,6 +51,9 @@ export function StreakFlame({
 
   const source = state === 'fire' ? FIRE : state === 'ice' ? ICE : ICE_TO_FIRE;
   const loop = state !== 'warming';
+  // A loop nobody sees rests: tabs stay mounted when the user leaves (R-32).
+  const onScreen = useLabPageActive();
+  const still = reducedMotion || (loop && !onScreen);
 
   return (
     <PressableScale
@@ -66,13 +70,11 @@ export function StreakFlame({
     >
       <View pointerEvents="none" style={{ width: size, height: size }}>
         <LottieView
-          key={`${state}-${playKey}`}
+          key={`${state}-${playKey}-${still}`}
           source={source}
-          autoPlay={!reducedMotion}
+          autoPlay={!still}
           loop={loop}
-          {...(reducedMotion
-            ? { progress: state === 'ice' ? 0.5 : 0.4 }
-            : null)}
+          {...(still ? { progress: state === 'ice' ? 0.5 : 0.4 } : null)}
           style={{ width: size, height: size }}
           resizeMode="contain"
           onAnimationFinish={isCancelled => {

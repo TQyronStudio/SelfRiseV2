@@ -90,9 +90,34 @@ Entry #4 (first bonus): +25 XP (⭐ First Bonus Milestone)
 Entry #8 (fifth bonus): +50 XP (🔥 Fifth Bonus Milestone)  
 Entry #13 (tenth bonus): +100 XP (👑 Tenth Bonus Milestone)
 
-// Streak milestones
+// Streak milestones (XPSourceType.JOURNAL_STREAK_MILESTONE) — vyplácí se od 14. 11. 2026
 7 days: 75 XP, 21 days: 100 XP, 30 days: 150 XP, 100 days: 250 XP, 365 days: 500 XP
 ```
+
+**🚨 KRITICKÉ PRAVIDLO: odměna za sérii deníku se vyplácí jednou za běh série a značka se zapisuje až po XP.**
+
+```typescript
+// ✅ CORRECT – SQLiteGratitudeStorage.awardStreakReward(), voláno na konci calculateAndUpdateStreak()
+const result = await GamificationService.addXP(xp, { source: XPSourceType.JOURNAL_STREAK_MILESTONE, … });
+if (result?.success) await db.runAsync('INSERT OR REPLACE INTO journal_streak_rewards …');
+
+// ❌ WRONG – značka před XP (při selhání je odměna navždy ztracená) nebo výplata z obrazovky
+await db.runAsync('INSERT INTO journal_streak_rewards …');
+await GamificationService.addXP(xp, …);
+```
+
+**Proč:** hodnoty `XP_REWARDS.JOURNAL.STREAK_*` ležely v konstantách od prvního návrhu, ale **nic je
+nevyplácelo** (zjištěno 14. 11. 2026, rozhodnutí Petra: vyplácet). Pravidla:
+- platí se, když série **je** přesně 7/21/30/100/365 dní a tahle délka ještě v tomto běhu zaplacená nebyla
+  (ne „když série právě vzrostla“ – selže-li XP, další přepočet to zkusí znovu);
+- „tento běh“ = poslední výplata téže délky je mladší než ta délka ve dnech (dosáhnout 7 dní znovu trvá
+  nejméně 7 dní) → smazání a nové napsání záznamu nikdy neplatí dvakrát;
+- zdroj je **vyňatý z denních limitů i z rate limitu** (`getSourceDailyLimit` → `null`,
+  `SYSTEM_GRANTED_REWARDS`): 500 XP by denní strop deníku (315) ořízl a odměna přichází pár ms po XP za
+  záznam, který den dokončil;
+- při smazání záznamu se odměna nevrací; znovu ji v témže běhu získat nejde;
+- zpětně se nedoplácí. Kdo má při aktualizaci sérii přesně na placené délce, dostane ji při prvním přepočtu.
+Test: `src/services/storage/__tests__/sqliteGratitudeStorage.streakRewards.test.ts`.
 
 ### Goal System XP  
 ```typescript
@@ -270,7 +295,8 @@ zaplatila, a přijdou pár milisekund po ní:
 **Pravidlo: rate limit brzdí OPAKOVATELNÉ UŽIVATELSKÉ AKCE, ne odměny, které
 appka uděluje sama.** Vyňaté zdroje (`SYSTEM_GRANTED_REWARDS`):
 `GOAL_COMPLETION` (bylo už dřív), `ACHIEVEMENT_UNLOCK`, `GOAL_MILESTONE`,
-`MONTHLY_CHALLENGE`. Farmit je nelze — každý má vlastní pojistku u zdroje
+`MONTHLY_CHALLENGE`, od 14. 11. 2026 i `JOURNAL_STREAK_MILESTONE` (pojistka: tabulka
+`journal_streak_rewards`). Farmit je nelze — každý má vlastní pojistku u zdroje
 (trofej se odemkne jednou, milníky cílů hlídá tabulka `goal_milestones`, výzva je
 jednou za měsíc). Návyky, deník a progress cílů zůstávají brzděné.
 

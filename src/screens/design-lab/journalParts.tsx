@@ -26,7 +26,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  BackHandler,
   Keyboard,
   Platform,
   Pressable,
@@ -58,7 +57,9 @@ import {
   selection,
 } from '@/src/services/hapticsService';
 import { contentColumn } from '@/src/utils/layout';
-import { useLabCover } from './labCover';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useDragToClose } from './dragToClose';
+import { useLabBack, useLabCover } from './labCover';
 import { LabText, PressableScale, typeStyle, useLab } from './labPrimitives';
 import {
   labFonts,
@@ -172,18 +173,20 @@ export function SlidePage({
     );
   }, [p, onClosed]);
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      close();
-      return true;
-    });
-    return () => sub.remove();
-  }, [close]);
+  useLabBack(() => close());
 
   const scrimStyle = useAnimatedStyle(() => ({ opacity: 0.25 * p.value }));
   const pageStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: (1 - p.value) * (width + 24) }],
   }));
+  // Back with a swipe from the left edge; the page follows the finger (R-33).
+  const swipeBack = useDragToClose({
+    p,
+    axis: 'x',
+    range: width,
+    close,
+    edge: 28,
+  });
 
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -195,16 +198,18 @@ export function SlidePage({
           scrimStyle,
         ]}
       />
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          styles.page,
-          { backgroundColor: c.canvas },
-          pageStyle,
-        ]}
-      >
-        {children(close)}
-      </Animated.View>
+      <GestureDetector gesture={swipeBack}>
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.page,
+            { backgroundColor: c.canvas },
+            pageStyle,
+          ]}
+        >
+          {children(close)}
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }
@@ -331,13 +336,7 @@ export function BottomSheet({
     [p, onClosed]
   );
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      dismiss();
-      return true;
-    });
-    return () => sub.remove();
-  }, [dismiss]);
+  useLabBack(() => dismiss());
 
   // The keyboard's real overlap with this page (measured) — see useKeyboardLift.
   const { lift } = useKeyboardLift(rootRef, bottomInset, keyboardAware);
@@ -346,6 +345,15 @@ export function BottomSheet({
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: (1 - p.value) * 520 - lift.value }],
   }));
+  // Pulled down, the sheet follows the finger (R-33). Never a sheet with a text
+  // field: a slip of the finger must not throw away what was typed.
+  const pullDown = useDragToClose({
+    p,
+    axis: 'y',
+    range: 520,
+    close: dismiss,
+    enabled: !keyboardAware,
+  });
 
   return (
     <View ref={rootRef} style={StyleSheet.absoluteFill} collapsable={false}>
@@ -362,21 +370,23 @@ export function BottomSheet({
           ]}
         />
       </Pressable>
-      <Animated.View
-        style={[
-          styles.sheet,
-          contentColumn,
-          {
-            backgroundColor: c.surface,
-            borderColor: c.border,
-            paddingBottom: bottomInset + labSpace.lg,
-          },
-          panelStyle,
-        ]}
-      >
-        <View style={[styles.grabber, { backgroundColor: c.track }]} />
-        {children(dismiss)}
-      </Animated.View>
+      <GestureDetector gesture={pullDown}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            contentColumn,
+            {
+              backgroundColor: c.surface,
+              borderColor: c.border,
+              paddingBottom: bottomInset + labSpace.lg,
+            },
+            panelStyle,
+          ]}
+        >
+          <View style={[styles.grabber, { backgroundColor: c.track }]} />
+          {children(dismiss)}
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }

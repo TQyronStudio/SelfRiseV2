@@ -513,6 +513,13 @@ dailyEntryCount: used by both systems
 completionStatus: journal → gamification (for streak milestone XP)
 ```
 
+**Odměna za sérii (od 14. 11. 2026):** na konci `calculateAndUpdateStreak()` se volá
+`awardStreakReward(finalCurrentStreak)` – 75/100/150/250/500 XP za 7/21/30/100/365 dní, jednou za běh
+série (tabulka `journal_streak_rewards`). Volá se až **po uložení série** a **nikdy nevyhazuje výjimku**:
+chyba odměny nesmí rozbít výpočet série. Cesta automatického resetu (dluh > 3 dny) neplatí nic.
+Slavených délek je 17 (`JOURNAL_STREAK_MILESTONES`), platí jen těchto pět (`JOURNAL_STREAK_REWARDS`).
+Pravidla výplaty: @technical-guides:Gamification-Core.md → „Journal System XP“.
+
 ### Storage Integration
 ```typescript
 // gratitudeStorage.ts responsibilities

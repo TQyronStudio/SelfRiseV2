@@ -7,6 +7,7 @@
 // "journal.streakMilestone75_title" (tester, 2026-10-19).
 
 import i18next from 'i18next';
+import { XP_REWARDS } from '../constants/gamification';
 
 /** Streak lengths (days) that trigger the journal streak celebration. */
 export const JOURNAL_STREAK_MILESTONES = [
@@ -15,6 +16,27 @@ export const JOURNAL_STREAK_MILESTONES = [
 
 export function isJournalStreakMilestone(streakDays: number): boolean {
   return (JOURNAL_STREAK_MILESTONES as readonly number[]).includes(streakDays);
+}
+
+/**
+ * XP paid the day the journal streak reaches a length. Five of the celebrated
+ * lengths pay; the others are a celebration only.
+ *
+ * Until 2026-11-14 these values sat unused in XP_REWARDS — nothing paid them.
+ * The payout lives in SQLiteGratitudeStorage (awardStreakReward), once per
+ * streak run; see technical-guides:My-Journal.md.
+ */
+export const JOURNAL_STREAK_REWARDS: Readonly<Record<number, number>> = {
+  7: XP_REWARDS.JOURNAL.STREAK_7_DAYS,
+  21: XP_REWARDS.JOURNAL.STREAK_21_DAYS,
+  30: XP_REWARDS.JOURNAL.STREAK_30_DAYS,
+  100: XP_REWARDS.JOURNAL.STREAK_100_DAYS,
+  365: XP_REWARDS.JOURNAL.STREAK_365_DAYS,
+};
+
+/** XP for reaching this streak length; 0 when the length pays nothing. */
+export function getJournalStreakReward(streakDays: number): number {
+  return JOURNAL_STREAK_REWARDS[streakDays] ?? 0;
 }
 
 /**

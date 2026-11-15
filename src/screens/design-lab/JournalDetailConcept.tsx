@@ -14,7 +14,7 @@
  * tab) — decision R-4 first. Close button sits in the badge row (lesson 10).
  */
 import React, { useEffect } from 'react';
-import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
@@ -28,7 +28,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { selection } from '@/src/services/hapticsService';
 import { Chip, LabText, PressableScale, useLab } from './labPrimitives';
-import { useLabCover } from './labCover';
+import { DetailScroll } from './dragToClose';
+import { useLabBack, useLabCover } from './labCover';
 import { labRadius, labSpace } from './labTokens';
 import { MOCK_COPY, MOCK_STATS } from './mockCopy';
 import { StreakFlame } from './StreakFlame';
@@ -83,15 +84,7 @@ export function JournalDetailConcept({
     );
   };
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      close();
-      return true;
-    });
-    return () => sub.remove();
-    // `close` only touches the shared value and the stable onClosed callback.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useLabBack(() => close());
 
   const frameStyle = useAnimatedStyle(() => ({
     left: interpolate(p.value, [0, 1], [origin.x, 0]),
@@ -130,7 +123,9 @@ export function JournalDetailConcept({
         <Animated.View
           style={[{ width: size.width, height: size.height }, contentStyle]}
         >
-          <ScrollView
+          <DetailScroll
+            p={p}
+            close={close}
             contentContainerStyle={{
               padding: labSpace.xl,
               paddingTop: labSpace.sm,
@@ -277,7 +272,7 @@ export function JournalDetailConcept({
                 {copy.writeEntry}
               </LabText>
             </PressableScale>
-          </ScrollView>
+          </DetailScroll>
         </Animated.View>
       </Animated.View>
     </View>

@@ -27,6 +27,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import {
+  Keyboard,
   StyleSheet,
   useColorScheme,
   useWindowDimensions,
@@ -35,12 +36,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
-  FadeIn,
-  FadeOut,
   PerformanceMonitor,
   useAnimatedStyle,
   useReducedMotion,
@@ -67,7 +66,6 @@ import {
   labFontFiles,
   labFonts,
   LabMode,
-  labMotion,
   labPalettes,
   labRadius,
   labSpace,
@@ -75,11 +73,9 @@ import {
 } from './labTokens';
 import { LabLang, MOCK_COPY } from './mockCopy';
 import {
-  CELEBRATION_SCENARIOS,
   CelebrationModalOutlet,
   CelebrationNoteOutlet,
   LabCelebrationProvider,
-  useLabCelebrate,
 } from './celebrationDirector';
 import {
   OnboardingAsk,
@@ -90,7 +86,8 @@ import {
 } from './OnboardingConcept';
 import { ScreenThreeEnding } from '@/src/components/onboarding/firstCheckCopy';
 import { LabXpProvider, LevelBadge } from './xpFlight';
-import { useLabCover } from './labCover';
+import { useLabScenarios } from './labScenarios';
+import { LabPageActiveProvider, useLabCover } from './labCover';
 import {
   LEVEL_BADGE_PIN,
   LevelPanel,
@@ -147,6 +144,11 @@ export function DesignLabScreen() {
     key: 0,
   });
   const [tab, setTab] = useState(0);
+  // Tabs the user has been to stay mounted (R-32); per-tab replays are a lab tool.
+  const [visited, setVisited] = useState<ReadonlySet<number>>(
+    () => new Set([0])
+  );
+  const [replays, setReplays] = useState<Record<number, number>>({});
   const [showFps, setShowFps] = useState(false);
   const [crown, setCrown] = useState(true);
   const [scenario, setScenario] = useState<string | null>(null);
@@ -167,9 +169,18 @@ export function DesignLabScreen() {
     BANNER_HEIGHT + labSpace.sm * 2 + TAB_BAR_HEIGHT + insets.bottom;
   const play = (kind: IntroKind) =>
     setIntro(prev => ({ kind, key: prev.key + 1 }));
+  const goTab = (next: number) => {
+    // A keyboard left up by the tab being left would sit over the next one.
+    Keyboard.dismiss();
+    setTab(next);
+    setVisited(prev => (prev.has(next) ? prev : new Set(prev).add(next)));
+  };
 
   return (
     <LabThemeProvider mode={mode} lang={lang} crown={crown}>
+      {/* The lab's pages swipe back from the left edge themselves (R-33); the
+          route's own back swipe would leave the whole lab instead. */}
+      <Stack.Screen options={{ gestureEnabled: false }} />
       <IntroProvider kind={intro.kind} playKey={intro.key}>
         <View style={{ flex: 1, backgroundColor: c.canvas }}>
           <LabXpProvider>
@@ -195,45 +206,62 @@ export function DesignLabScreen() {
                         }
                         onToggleFps={() => setShowFps(v => !v)}
                         onLaunch={() => {
-                          setTab(0);
+                          goTab(0);
                           play('launch');
                         }}
-                        onSettle={() => play('settle')}
+                        // The quick entrance of the tab on screen, once more.
+                        onSettle={() =>
+                          tab === 0
+                            ? play('settle')
+                            : setReplays(prev => ({
+                                ...prev,
+                                [tab]: (prev[tab] ?? 0) + 1,
+                              }))
+                        }
                       />
 
-                      {/* Pages cross-fade; the incoming one also runs the quick entrance. */}
+                      {/* Tabs stay alive (R-32): a tab is built on its first visit, plays
+                          its entrance once, and from then on switching is instant and it
+                          keeps its state and scroll position. */}
                       <View style={{ flex: 1 }}>
-                        <Animated.View
-                          key={`${tab}-${intro.kind}-${intro.key}`}
-                          entering={FadeIn.duration(labMotion.base)}
-                          exiting={FadeOut.duration(labMotion.fast)}
-                          style={StyleSheet.absoluteFill}
-                        >
-                          {tab === 0 ? (
-                            <HomeConcept
-                              bottomInset={bottomChrome}
-                              onOpenTrophies={() => setTrophies(true)}
-                            />
-                          ) : tab === 1 ? (
-                            <HabitsConcept
-                              bottomInset={bottomChrome}
-                              onboardingHabit={onbResult?.habit ?? null}
-                              asking={onboarding === 'ask'}
-                            />
-                          ) : tab === 2 ? (
-                            <JournalConcept bottomInset={bottomChrome} />
-                          ) : tab === 3 ? (
-                            <GoalsConcept bottomInset={bottomChrome} />
-                          ) : (
-                            <SettingsConcept
-                              bottomInset={bottomChrome}
-                              themePref={themePref}
-                              onThemePref={setThemePref}
-                              onLang={setLang}
-                              onRestartTutorial={() => setOnboarding('flow')}
-                            />
-                          )}
-                        </Animated.View>
+                        {TAB_ICONS.map((_, i) =>
+                          visited.has(i) ? (
+                            <LabPage
+                              // Replaying an entrance from the toolbar rebuilds the page.
+                              key={`${i}-${i === 0 ? intro.key : (replays[i] ?? 0)}`}
+                              active={i === tab}
+                              // Home rides the lab's own intro (the launch).
+                              ownEntrance={i !== 0}
+                            >
+                              {i === 0 ? (
+                                <HomeConcept
+                                  bottomInset={bottomChrome}
+                                  onOpenTrophies={() => setTrophies(true)}
+                                />
+                              ) : i === 1 ? (
+                                <HabitsConcept
+                                  bottomInset={bottomChrome}
+                                  onboardingHabit={onbResult?.habit ?? null}
+                                  asking={onboarding === 'ask'}
+                                />
+                              ) : i === 2 ? (
+                                <JournalConcept bottomInset={bottomChrome} />
+                              ) : i === 3 ? (
+                                <GoalsConcept bottomInset={bottomChrome} />
+                              ) : (
+                                <SettingsConcept
+                                  bottomInset={bottomChrome}
+                                  themePref={themePref}
+                                  onThemePref={setThemePref}
+                                  onLang={setLang}
+                                  onRestartTutorial={() =>
+                                    setOnboarding('flow')
+                                  }
+                                />
+                              )}
+                            </LabPage>
+                          ) : null
+                        )}
 
                         {/* Opens from Home and Settings; the level badge stays above it. */}
                         {trophies && (
@@ -277,8 +305,7 @@ export function DesignLabScreen() {
                         activeTab={tab}
                         onSelectTab={next => {
                           if (next === tab) return;
-                          setTab(next);
-                          play('settle');
+                          goTab(next);
                         }}
                       />
 
@@ -322,8 +349,13 @@ export function DesignLabScreen() {
                           onReady={result => {
                             setOnbResult(result);
                             if (result.habit) {
-                              setTab(1);
-                              play('settle');
+                              goTab(1);
+                              // Habits may already be mounted: the tutorial
+                              // needs it fresh, at the top, with its new habit lit.
+                              setReplays(prev => ({
+                                ...prev,
+                                1: (prev[1] ?? 0) + 1,
+                              }));
                               setOnboarding('ask');
                             } else {
                               setOnboarding('later');
@@ -346,6 +378,44 @@ export function DesignLabScreen() {
         </View>
       </IntroProvider>
     </LabThemeProvider>
+  );
+}
+
+/**
+ * One tab's page. Hidden tabs stay mounted but out of sight and out of reach;
+ * they know they are hidden (useLabPageActive) so their loops can rest and an
+ * overlay left open inside does not count as "something is open".
+ *
+ * GOING LIVE: nothing of this — expo-router's Tabs already keep screens alive and
+ * detach the hidden ones natively. What converts is the RULE: the entrance plays
+ * on a tab's first focus only (R-32).
+ */
+function LabPage({
+  active,
+  ownEntrance,
+  children,
+}: {
+  active: boolean;
+  ownEntrance: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <View
+      style={[StyleSheet.absoluteFill, !active && styles.pageHidden]}
+      pointerEvents={active ? 'auto' : 'none'}
+      accessibilityElementsHidden={!active}
+      importantForAccessibility={active ? 'auto' : 'no-hide-descendants'}
+    >
+      <LabPageActiveProvider value={active}>
+        {ownEntrance ? (
+          <IntroProvider kind="settle" playKey={0}>
+            {children}
+          </IntroProvider>
+        ) : (
+          children
+        )}
+      </LabPageActiveProvider>
+    </View>
   );
 }
 
@@ -444,7 +514,7 @@ function LabToolbar({
   onSettle: () => void;
 }) {
   const { c, mode, lang } = useLab();
-  const celebrate = useLabCelebrate();
+  const scenarios = useLabScenarios();
   const nextScenario = React.useRef(0);
   return (
     <View
@@ -511,14 +581,12 @@ function LabToolbar({
           icon="trophy"
           label="Unlock achievements: next scenario"
           onPress={() => {
-            const i = nextScenario.current % CELEBRATION_SCENARIOS.length;
-            const next = CELEBRATION_SCENARIOS[i];
+            const i = nextScenario.current % scenarios.length;
+            const next = scenarios[i];
             nextScenario.current += 1;
             if (!next) return;
-            onScenario(
-              `${i + 1}/${CELEBRATION_SCENARIOS.length} ${next.label}`
-            );
-            celebrate(next.batch);
+            onScenario(`${i + 1}/${scenarios.length} ${next.label}`);
+            next.play();
           }}
         />
       </View>
@@ -698,6 +766,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pageHidden: {
+    opacity: 0,
   },
   badgePin: {
     position: 'absolute',

@@ -176,6 +176,17 @@ interface Copy {
     labMoments: string;
     moments: Record<'milestone' | 'finish' | 'kept' | 'lost', string>;
   };
+  /** The remaining celebrations (otherMoments.tsx). */
+  moments: {
+    chapterOverline: string;
+    chapterLine: (from: number, to: number) => string;
+    streakOverline: string;
+    streakDays: (days: number) => string;
+    multiplierOverline: (days: number) => string;
+    multiplierTitle: (factor: string, hours: number) => string;
+    multiplierLine: string;
+    letsGo: string;
+  };
   /** The levels overview as a journey (LevelsOverviewConcept.tsx). */
   levels: {
     title: string;
@@ -497,6 +508,17 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         kept: 'Month end · star kept',
         lost: 'Month end · star lost',
       },
+    },
+    moments: {
+      chapterOverline: 'New chapter',
+      chapterLine: (from, to) => `Levels ${from}–${to} lie ahead of you.`,
+      streakOverline: 'Journal streak',
+      streakDays: days => `${days} days in a row`,
+      multiplierOverline: days => `Harmony streak · ${days} days`,
+      multiplierTitle: (factor, hours) => `${factor}× XP for ${hours} hours`,
+      multiplierLine:
+        'You used habits, journal and goals every day. Everything you earn now counts double.',
+      letsGo: 'Let’s go',
     },
     levels: {
       title: 'Your journey',
@@ -839,6 +861,17 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         kept: 'Monatsende · Stern bleibt',
         lost: 'Monatsende · Stern weg',
       },
+    },
+    moments: {
+      chapterOverline: 'Neues Kapitel',
+      chapterLine: (from, to) => `Level ${from}–${to} liegen vor dir.`,
+      streakOverline: 'Tagebuch-Serie',
+      streakDays: days => `${days} Tage in Folge`,
+      multiplierOverline: days => `Harmonie-Serie · ${days} Tage`,
+      multiplierTitle: (factor, hours) => `${factor}× XP für ${hours} Stunden`,
+      multiplierLine:
+        'Du hast Routinen, Tagebuch und Ziele jeden Tag genutzt. Alles, was du jetzt verdienst, zählt doppelt.',
+      letsGo: 'Los geht’s',
     },
     levels: {
       title: 'Dein Weg',

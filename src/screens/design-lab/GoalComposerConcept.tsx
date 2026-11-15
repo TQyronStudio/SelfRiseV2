@@ -20,7 +20,6 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  BackHandler,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -54,7 +53,7 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
-import { useLabCover } from './labCover';
+import { useLabBack, useLabCover } from './labCover';
 import { labFonts, labRadius, labSpace } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
 import { addDays, dateKey, weekdayIndex } from './habitsMock';
@@ -297,14 +296,7 @@ export function GoalComposerConcept({
       if (finished) scheduleOnRN(after);
     });
   };
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      dismiss(onClose);
-      return true;
-    });
-    return () => sub.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useLabBack(() => dismiss(onClose));
   const scrimStyle = useAnimatedStyle(() => ({ opacity: 0.35 * p.value }));
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: (1 - p.value) * 900 }],

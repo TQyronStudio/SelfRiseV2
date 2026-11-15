@@ -27,7 +27,7 @@
  * - The pace is new: one function next to the tracker (challengeLogic.ts).
  */
 import React, { useEffect } from 'react';
-import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
@@ -64,7 +64,8 @@ import { ChallengeMomentKind, useChallengeMoments } from './challengeMoments';
 import { Ring } from './GoalDetailConcept';
 import { DetailRect } from './JournalDetailConcept';
 import { useJournalT } from './journalParts';
-import { useLabCover } from './labCover';
+import { DetailScroll } from './dragToClose';
+import { useLabBack, useLabCover } from './labCover';
 import {
   Chip,
   Divider,
@@ -184,15 +185,7 @@ export function ChallengeDetailConcept({
     );
   };
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      close();
-      return true;
-    });
-    return () => sub.remove();
-    // `close` only touches the shared value and the stable onClosed callback.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useLabBack(() => close());
 
   const frameStyle = useAnimatedStyle(() => ({
     left: interpolate(p.value, [0, 1], [origin.x, 0]),
@@ -229,7 +222,9 @@ export function ChallengeDetailConcept({
         <Animated.View
           style={[{ width: size.width, height: size.height }, contentStyle]}
         >
-          <ScrollView
+          <DetailScroll
+            p={p}
+            close={close}
             contentContainerStyle={{
               padding: labSpace.xl,
               paddingTop: labSpace.sm,
@@ -499,7 +494,7 @@ export function ChallengeDetailConcept({
                 </PressableScale>
               ))}
             </View>
-          </ScrollView>
+          </DetailScroll>
         </Animated.View>
       </Animated.View>
     </View>

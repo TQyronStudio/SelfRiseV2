@@ -87,7 +87,10 @@ export interface LabNote {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   overline: string;
   title: string;
+  /** 0 = nothing is paid for it (a journal streak length): no XP is shown. */
   xp: number;
+  /** The journal streak speaks in its own colour. */
+  tone?: 'reward' | 'flame';
 }
 
 export type Moment =
@@ -491,6 +494,11 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
   const reducedMotion = useReducedMotion();
   const award = useLabXpAward();
   const gold = mode === 'light' ? c.rewardText : c.reward;
+  const flame = note.tone === 'flame';
+  const spoken =
+    note.xp > 0
+      ? `${note.overline}. ${note.title}. +${note.xp} XP`
+      : `${note.overline}. ${note.title}`;
 
   const p = useRef(new RNAnimated.Value(0)).current;
   const xpRef = useRef<View>(null);
@@ -523,9 +531,7 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
 
   useEffect(() => {
     impact(ImpactFeedbackStyle.Light);
-    AccessibilityInfo.announceForAccessibility(
-      `${note.overline}. ${note.title}. +${note.xp} XP`
-    );
+    AccessibilityInfo.announceForAccessibility(spoken);
     RNAnimated.spring(p, {
       toValue: 1,
       damping: 14,
@@ -563,14 +569,19 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
       <PressableScale
         onPress={leave}
         haptic={null}
-        accessibilityLabel={`${note.overline}. ${note.title}. +${note.xp} XP`}
+        accessibilityLabel={spoken}
         style={[
           styles.note,
           { backgroundColor: c.surface, borderColor: c.border },
         ]}
       >
-        <View style={[styles.noteIcon, { backgroundColor: c.rewardSoft }]}>
-          <Ionicons name={note.icon} size={18} color={gold} />
+        <View
+          style={[
+            styles.noteIcon,
+            { backgroundColor: flame ? c.flameSoft : c.rewardSoft },
+          ]}
+        >
+          <Ionicons name={note.icon} size={18} color={flame ? c.flame : gold} />
         </View>
         <View style={styles.noteText}>
           <Text
@@ -588,15 +599,17 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
             {note.title}
           </Text>
         </View>
-        <View ref={xpRef} collapsable={false} style={styles.noteXp}>
-          <Text
-            maxFontSizeMultiplier={1.2}
-            numberOfLines={1}
-            style={[typeStyle('label', gold), { fontFamily: labFonts.bold }]}
-          >
-            {`+${note.xp} XP`}
-          </Text>
-        </View>
+        {note.xp > 0 && (
+          <View ref={xpRef} collapsable={false} style={styles.noteXp}>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              numberOfLines={1}
+              style={[typeStyle('label', gold), { fontFamily: labFonts.bold }]}
+            >
+              {`+${note.xp} XP`}
+            </Text>
+          </View>
+        )}
       </PressableScale>
     </RNAnimated.View>
   );

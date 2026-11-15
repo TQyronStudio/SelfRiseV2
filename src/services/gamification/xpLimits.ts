@@ -76,7 +76,9 @@ export function getSourceDailyLimit(source: XPSourceType): number | null {
     [XPSourceType.JOURNAL_ENTRY]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
     [XPSourceType.JOURNAL_BONUS]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
     [XPSourceType.JOURNAL_BONUS_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
-    [XPSourceType.JOURNAL_STREAK_MILESTONE]: DAILY_XP_LIMITS.JOURNAL_MAX_DAILY,
+    // A reward the app grants for the streak (up to 500 XP), not a repeatable
+    // action: the journal's daily cap (315) would trim it (2026-11-14)
+    [XPSourceType.JOURNAL_STREAK_MILESTONE]: null,
     [XPSourceType.GOAL_PROGRESS]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
     [XPSourceType.GOAL_COMPLETION]: null, // No daily limit - milestone achievement
     [XPSourceType.GOAL_MILESTONE]: DAILY_XP_LIMITS.GOALS_MAX_DAILY,
@@ -241,6 +243,9 @@ export function validateXPAddition(params: ValidateXPAdditionParams): XPValidati
     XPSourceType.GOAL_MILESTONE,
     XPSourceType.MONTHLY_CHALLENGE,
     XPSourceType.XP_MULTIPLIER_BONUS,
+    // Arrives milliseconds after the XP of the entry that completed the day;
+    // guarded at its source by the journal_streak_rewards table.
+    XPSourceType.JOURNAL_STREAK_MILESTONE,
   ]);
 
   const timeSinceLastTransaction = nowMs - dailyData.lastTransactionTime;

@@ -19,7 +19,7 @@
  * - The app's help text "golden checkmark = make-up" is wrong — fix it (lesson 28).
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -51,7 +51,8 @@ import {
   typeStyle,
   useLab,
 } from './labPrimitives';
-import { useLabCover } from './labCover';
+import { DetailScroll } from './dragToClose';
+import { useLabBack, useLabCover } from './labCover';
 import {
   labFonts,
   LabPalette,
@@ -122,15 +123,7 @@ export function HabitDetailConcept({
       }
     );
   };
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      close();
-      return true;
-    });
-    return () => sub.remove();
-    // `close` touches only the shared value and the stable onClosed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useLabBack(() => close());
   const frameStyle = useAnimatedStyle(() => ({
     left: interpolate(p.value, [0, 1], [origin.x, 0]),
     top: interpolate(p.value, [0, 1], [origin.y, 0]),
@@ -264,7 +257,9 @@ export function HabitDetailConcept({
         <Animated.View
           style={[{ width: size.width, height: size.height }, contentStyle]}
         >
-          <ScrollView
+          <DetailScroll
+            p={p}
+            close={close}
             contentContainerStyle={[
               styles.content,
               { paddingBottom: bottomInset + labSpace.xxl },
@@ -475,7 +470,7 @@ export function HabitDetailConcept({
                 {h.explainBody}
               </LabText>
             </Surface>
-          </ScrollView>
+          </DetailScroll>
         </Animated.View>
       </Animated.View>
     </View>

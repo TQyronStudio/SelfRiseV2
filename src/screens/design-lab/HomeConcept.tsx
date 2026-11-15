@@ -101,6 +101,7 @@ import { DetailRect, JournalDetailConcept } from './JournalDetailConcept';
 import { ChallengeDetailConcept, Stars } from './ChallengeDetailConcept';
 import { challengePace, challengeShare } from './challengeLogic';
 import { useChallengeText, useLabChallenge } from './challengeMock';
+import { useLabPageActive } from './labCover';
 import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';
@@ -226,16 +227,26 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
   const [viewportHeight, setViewportHeight] = useState(0);
   // The arc's ambient loops run only at rest and while the hero is on screen.
   const ambient = useSharedValue(1);
+  // …and only while this tab is the one on screen (tabs stay mounted, R-32).
+  const pageActive = useLabPageActive();
+  const onScreen = useRef(pageActive);
   const dragging = useRef(false);
   const gliding = useRef(false);
   const updateAmbient = () => {
     const on =
+      onScreen.current &&
       !dragging.current &&
       !gliding.current &&
       lastScrollY.current < HERO_VISIBLE_UNTIL;
     const next = on ? 1 : 0;
     if (ambient.value !== next) ambient.value = next;
   };
+  useEffect(() => {
+    onScreen.current = pageActive;
+    updateAmbient();
+    // `updateAmbient` reads refs only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageActive]);
 
   const onScroll = useMemo(
     () =>

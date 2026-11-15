@@ -192,6 +192,19 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_warmup_date ON warm_up_payments(missed_date);
     CREATE INDEX IF NOT EXISTS idx_warmup_paid_at ON warm_up_payments(paid_at DESC);
 
+    -- ========================================
+    -- JOURNAL STREAK REWARDS (XP paid for reaching a streak length)
+    -- One row per payout: the same length cannot be earned twice in one
+    -- streak run (deleting and re-adding an entry must not pay again).
+    -- ========================================
+    CREATE TABLE IF NOT EXISTS journal_streak_rewards (
+      streak_days INTEGER NOT NULL,
+      awarded_on TEXT NOT NULL,
+      xp INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      PRIMARY KEY (streak_days, awarded_on)
+    );
+
     -- Initialize singleton row in streak_state if not exists
     INSERT OR IGNORE INTO streak_state (id, updated_at)
     VALUES (1, strftime('%s', 'now') * 1000);

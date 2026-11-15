@@ -23,7 +23,8 @@ import { XPSourceType } from '../../types/gamification';
 import { XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
-import { today, subtractDays, formatDateToString, calculateStreakWithWarmUp } from '../../utils/date';
+import { today, subtractDays, formatDateToString, calculateStreakWithWarmUp, daysBetween } from '../../utils/date';
+import { getJournalStreakReward } from '../../utils/journalStreakMilestones';
 
 /**
  * SQLite-based Gratitude Storage
@@ -1277,6 +1278,10 @@ export class SQLiteGratitudeStorage {
 
       console.log(`✅ [FULL STREAK] Complete: streak=${finalCurrentStreak}, frozen=${frozenDays}, canRecover=${canRecoverWithAd}`);
 
+      // XP for reaching a streak length (7/21/30/100/365). After the streak is
+      // saved, and never able to break it.
+      await this.awardStreakReward(finalCurrentStreak);
+
       return updatedStreak;
     } catch (error) {
       console.error('❌ [FULL STREAK] Calculation failed:', error);
@@ -1285,6 +1290,53 @@ export class SQLiteGratitudeStorage {
       const { CrashReportingService } = require('../crashReportingService') as typeof import('../crashReportingService');
       CrashReportingService.recordError(error, 'streak_calculation_failed');
       throw error;
+    }
+  }
+
+  /**
+   * Pay the XP for the streak length the user stands at — once per streak run.
+   *
+   * - Pays while the streak IS exactly a rewarded length and that length has not
+   *   been paid in this run. Not tied to "the streak just grew": if the XP call
+   *   fails, the next recalculation tries again instead of losing the reward.
+   * - "This run": reaching the same length again takes at least that many days
+   *   (the streak has to restart), so a payout younger than that is this run's.
+   *   Deleting an entry and adding it back therefore never pays twice.
+   * - The mark is written only AFTER the XP really arrived (Gamification-Core:
+   *   a reward marked as paid before the XP call is lost for good when it fails).
+   * - Never throws: a failed reward must not break the streak calculation.
+   */
+  private async awardStreakReward(streakDays: number): Promise<void> {
+    try {
+      const xp = getJournalStreakReward(streakDays);
+      if (xp === 0) return;
+
+      const db = this.getDb();
+      const currentDate = today();
+      const last = await db.getFirstAsync<{ awarded_on: string }>(
+        'SELECT awarded_on FROM journal_streak_rewards WHERE streak_days = ? ORDER BY awarded_on DESC LIMIT 1',
+        [streakDays]
+      );
+      if (last && daysBetween(last.awarded_on as DateString, currentDate) < streakDays) return;
+
+      const result = await GamificationService.addXP(xp, {
+        source: XPSourceType.JOURNAL_STREAK_MILESTONE,
+        description: `Journal streak: ${streakDays} days`,
+        sourceId: `journal_streak_${streakDays}_${currentDate}`,
+        metadata: { streakDays },
+      });
+      if (!result?.success) {
+        console.warn(`⚠️ Journal streak reward (${streakDays} days) was not paid — will retry`);
+        return;
+      }
+
+      await db.runAsync(
+        'INSERT OR REPLACE INTO journal_streak_rewards (streak_days, awarded_on, xp, created_at) VALUES (?, ?, ?, ?)',
+        [streakDays, currentDate, xp, Date.now()]
+      );
+      console.log(`🔥 Journal streak reward: ${streakDays} days, +${xp} XP`);
+    } catch (error) {
+      console.error('❌ Journal streak reward failed:', error);
     }
   }
 

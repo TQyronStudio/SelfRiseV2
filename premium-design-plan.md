@@ -257,6 +257,9 @@ se písmo, místo, povrchy a pohyb. Barvy se jen zklidní a opraví.
 | **R-36** | Měsíční výzva: detail jako jedna stránka místo tří záložek, obecné tipy nahrazuje věta o tempu („stíháš“ / „chybí ti X za Y dní“). Kalendář ve čtyřech odstínech bez procentní legendy | ✅ **Schváleno 2026-11-11 (Petr: „nechám to na tvé profesionalitě“)** |
 | **R-37** | Měsíční výzva: milníky 25/50/75 % jako tiché oznámení z odznaku místo oken, XP zůstává | ✅ Schváleno 2026-11-11 (Petr) |
 | **R-38** | Měsíční výzva: splnění a povýšení hvězdy v jednom okně; nesplnění a sesazení v jednom klidném okně „Tvůj měsíc“ s novou výzvou | ✅ Schváleno 2026-11-11 (Petr) |
+| **R-39** | Nová úroveň: okno jen při vstupu do nového stupně (úrovně 11/21/41/61/81 – „Nová kapitola“), jinak jen záblesk odznaku a štítek „LEVEL UP“. Kulaté úrovně 10/25/50/100 slaví trofej, kterou odemknou. Upřesňuje R-10 („modal jen u milníků“) | ✅ Schváleno 2026-11-14 (Petr: „dám na tvé doporučení“) |
+| **R-40** | Série deníku: appka slaví 17 délek a každou oknem. Okno zůstane pro 7, 30, 100, 365 a 1000 dní, ostatní (14, 21, 50, 60, 75, 90, 150, 180, 200, 250, 500, 750) jako tiché oznámení u odznaku | ✅ Schváleno 2026-11-14 (Petr) |
+| **R-41** | Série deníku nevyplácí žádné XP, i když pro ni v appce existují konstanty (75/100/150/250/500 XP za 7/21/30/100/365 dní), které nikdo nepoužívá. Rozhodnout: začít vyplácet, nebo konstanty smazat | ✅ **Petr 2026-11-14: „je to opravdu nedodělané, takže vyplácet“.** V ostré appce hotovo (`awardStreakReward`, tabulka `journal_streak_rewards`, 15 testů), laboratoř XP ukazuje |
 | **T-Qyron** | Třetí režim | ✅ **Rozhodnuto 2026-10-22:** úroveň **20**, základ = bývalý směr A, **teď se neřeší** (@projectplan-future-updates.md Phase 2.1) |
 
 ---
@@ -554,7 +557,7 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
           (+20 % za splnění, +100 XP za měsíc série) – skutečně se vyplácí základ podle hvězd + podíl za
           sérii měsíců (`completeMonthlyChallenge`). Šablony výzev nesou texty „bonusů“ (víkendový bonus
           apod.), které appka nevyplácí; nikde se neukazují, při převodu je smazat
-  - [ ] **Zbylé oslavy** – postup na úroveň (potřebné k R-10), milník série deníku, aktivace násobiče XP
+  - [x] **Zbylé oslavy** – kolo 39 (na zařízení neviděno); R-39 až R-41 schváleny
   - [x] **Přehled úrovní** (`levels-overview`) – kolo 35 (na zařízení neviděno)
   - [ ] **Přizpůsobení Home** (tlačítko v laboratoři zatím nic neotevírá)
   - [ ] **Jak SelfRise funguje** (`how-it-works`, v laboratoři vede na ostrou verzi)
@@ -564,9 +567,9 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
   - **Laboratoř (vzhled a pocit):**
     - [x] **Panel úrovně z odznaku (R-31)** – kolo 34 (na zařízení neviděno). Odkaz „Všechny úrovně“ vede
           zatím na dnešní přehled; jeho nový vzhled je bod „Přehled úrovní“ výše
-    - [ ] **Nájezd jen při prvním zobrazení záložky (R-32)** – laboratoř dnes stránku při přepnutí zahodí
-          a postaví znovu (`key` v `DesignLabScreen.tsx`); stránky držet živé jako záložky Expo Routeru
-    - [ ] **Tažné zavírání (R-33)** – detail deníku, návyku a cíle, sheety, velká oslava
+    - [x] **Nájezd jen při prvním zobrazení záložky (R-32)** – kolo 40 (na zařízení neviděno)
+    - [x] **Tažné zavírání (R-33)** – kolo 40: stránky, sheety, detail deníku, návyku a výzvy (na zařízení
+          neviděno). Zbývá: detail cíle uvnitř stránky a okna oslav (ta se dál potvrzují tlačítkem)
     - [ ] **Vlastní podpisové ikony (R-34)** a **zvuk + hmatové vzory (R-35)**
   - **Na pozadí (před převodem první obrazovky):**
     - [ ] **Jeden nativní build pro všechno najednou:** přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
@@ -592,6 +595,43 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kolo 40 – Pocit z ovládání: záložky žijí dál (R-32) a tažné zavírání (R-33)** (`DesignLabScreen.tsx`,
+      `dragToClose.tsx`, `dragToCloseLogic.ts`). **Záložky:** stránka se postaví při první návštěvě, přehraje
+      nájezd jednou a pak už je přepnutí okamžité – záložka si drží stav i polohu rolování. Skryté záložky
+      vědí, že jsou skryté (`useLabPageActive`): slunce na Home i plamen deníku odpočívají a otevřený detail
+      ve skryté záložce se nepočítá jako „něco je otevřeno“. Tlačítko „refresh“ v panelu laboratoře přehraje
+      nájezd právě zobrazené záložky. **Tažení:** stránka, která přijela zprava, se vrací tažením od levého
+      okraje; sheet jde stáhnout dolů (ne ten s textovým polem – nesmí zahodit rozepsaný text); detail, který
+      vyrostl z karty (deník, návyk, výzva), se při tažení dolů od začátku obsahu vrací do karty, a když je
+      obsah odrolovaný, tažení roluje. Prst vždy posouvá tu samou hodnotu, která věc otevírá a zavírá, takže
+      jde v půlce pustit zpět. Při omezení pohybu tažení není, křížek a tlačítko zpět zůstávají. Ověřeno:
+      9 testů pravidel tažení + 5 negativních zkoušek, `tsc`, celá sada; na zařízení neviděno – gesta je
+      nutné vyzkoušet na iOS i Androidu. **Nezávislá revize našla, opraveno:** gesto běželo přes vlákno
+      JavaScriptu (funkce gesta musí mít `'worklet'` samy, doplněk je přidá jen řetězci začínajícímu
+      `Gesture.Pan()`); detail mohl zůstat napůl zmenšený, když se prst během tažení vrátil a obsah začal
+      rolovat; přerušené gesto mohlo zavřít; tlačítko zpět na Androidu zavíralo neviditelné okno ve skryté
+      záložce (`useLabBack`); tutoriál po předání na Návyky nerozsvítil nový návyk, když už byly Návyky
+      otevřené; systémové gesto zpět by na iOS opustilo celou laboratoř místo stránky; klávesnice ze skryté
+      záložky zůstávala nahoře. **Vědomě ponecháno:** první návštěva záložky ji teprve staví, takže okamžité
+      je až každé další přepnutí; v Síni trofejí se tažení od levého okraje může přetahovat s vodorovnými
+      pásy; detail na iOS nemá pružení ani dole
+- [x] **Kolo 39 – Zbylé oslavy** (`otherMoments.tsx`, `momentRules.ts`, `labScenarios.tsx`). Tři momenty ve
+      stejném jazyce a stejnou frontou jako trofeje a výzva. **Nová kapitola** (R-39): jediné okno za novou
+      úroveň – při vstupu do nového stupně; kruh v barvě stupně s číslem úrovně, název stupně, „Level 11 ·
+      Learner I“ a pruh cesty z přehledu úrovní s právě začatým dílem. **Série deníku** (R-40): pro 7, 30,
+      100, 365 a 1000 dní okno s živým plamenem, číslem dní a texty appky (bez emoji na konci); ostatní
+      délky tiché oznámení v barvě plamene. Pět délek platí XP (7/21/30/100/365 – R-41, v appce se vyplácí
+      od 2026-11-14); okno ho ukáže a po „Continue“ odletí z tlačítka, ostatní délky XP nemají. **Násobič**: jedno
+      okno „2× XP for 24 hours“ při zapnutí násobiče za 7 dní harmonie (čísla přímo z konstant appky).
+      Spouští se tlačítkem trofeje v panelu laboratoře (scénáře 6–10). Tiché oznámení umí být bez XP.
+      Ověřeno: 9 testů pravidel + 5 negativních zkoušek (jedna odhalila nadbytečný řádek – odstraněn),
+      `tsc`, celá sada; bez nezávislé revize; na zařízení neviděno.
+      **Nález k rozhodnutí (Petr):** stejně nedodělané je XP za sérii návyku – konstanty 75/100/150/200/300
+      XP za 7/14/30/50/100 dní existují (`XP_REWARDS.HABIT.STREAK_*`) a průvodce je uvádí jako zdroj XP, ale
+      žádný kód je nevyplácí.
+      **Otevřené pro převod:** vstup do stupně a velká trofej ze stejné akce mají být jeden moment (dnes by
+      šly po sobě); běžící násobič není mimo panel úrovně nikde vidět; tlačítko pro zapnutí násobiče nemá
+      v novém Home místo (patří k bodu „Přizpůsobení Home“)
 - [x] **Kola 37 a 38 – Momenty měsíční výzvy (R-37, R-38)** (`challengeMoments.tsx`, rozšířený
       `celebrationDirector.tsx`). Místo až pěti oken tři momenty, každý je jedna věc a všechny jdou jednou
       frontou oslav (R-29), takže se nic neskládá přes sebe. **Milník 25/50/75 %** = tiché oznámení u odznaku
@@ -1056,6 +1096,15 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     Při převodu se událost změny hvězd musí vložit do okna téhož měsíce, ne řadit vlastní (kola 37–38).
 66. **Špatná zpráva končí tím, co je dál.** Okno o nesplněné výzvě neříká „neuspěl jsi“, ale kam uživatel
     došel a jaká výzva ho čeká; trest (hvězda dolů) se řekne jednou, věcně a s důvodem (kolo 38).
+67. **Okno si zaslouží to, co se stane párkrát za život účtu.** Nová úroveň přijde stokrát, nový stupeň
+    pětkrát; série deníku má 17 slavených délek, zapamatovatelných je pět. Zbytek patří tichému oznámení
+    – jinak okna zevšední a přestanou něco znamenat (kolo 39).
+68. **Záložka, která žije dál, musí vědět, že ji nikdo nevidí.** Držet stav a polohu rolování je levné,
+    ale skryté smyčky (slunce, plamen) by běžely dál a otevřený detail ve skryté záložce by blokoval ostatní.
+    Ve skutečné appce to řeší navigace sama; pravidlo „nájezd jen při prvním zobrazení“ platí stejně (kolo 40).
+69. **Tažení a rolování se dělí podle polohy obsahu.** U začátku obsahu patří tah dolů oknu, jinde seznamu;
+    okno s textovým polem se tažením nikdy nezavírá. Jedna sdílená pravidla pro stránky, sheety i detaily
+    (`dragToCloseLogic.ts`) – ne vlastní prahy v každé komponentě (kolo 40).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).
