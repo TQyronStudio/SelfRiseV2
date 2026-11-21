@@ -607,6 +607,8 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kola 41–49 schválena na zařízení** (Petr 2026-11-21: „prošel jsem to, všechno vypadá skvěle“) –
+      poznámky „na zařízení neviděno“ u nich tím neplatí
 - [x] **Kolo 49 – Když se něco nepovede** (`systemScreens.tsx`; část dluhu L-4). **Neúspěšná akce:** dnes
       `ErrorModal` se surovým textem výjimky (`error.message`, anglicky, z kódu) a okno, které se musí
       zavřít. Nově klidný pruh nad spodní lištou: jedna věta, co se nestalo a co je v bezpečí („Návyk se
