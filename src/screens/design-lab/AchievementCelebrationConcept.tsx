@@ -71,12 +71,7 @@ import {
   vec,
 } from '@shopify/react-native-skia';
 import i18n from '@/src/config/i18n';
-import {
-  impact,
-  ImpactFeedbackStyle,
-  notification,
-  NotificationFeedbackType,
-} from '@/src/services/hapticsService';
+import { impact, ImpactFeedbackStyle } from '@/src/services/hapticsService';
 import { getModalWidth } from '@/src/utils/layout';
 import { LabText, PressableScale, typeStyle, useLab } from './labPrimitives';
 import {
@@ -87,6 +82,7 @@ import {
   labSpace,
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
+import { feel } from './feelPlayer';
 import { useLabXpAward } from './xpFlight';
 import { MOCK_COPY } from './mockCopy';
 import type { LabTrophy } from './celebrationDirector';
@@ -190,16 +186,14 @@ export function AchievementCelebrationConcept({
     // The reveal haptic lands with the ring closing (1.1 s), strength by rarity.
     const id = setTimeout(
       () => {
-        if (rarity === 'legendary') {
-          notification(NotificationFeedbackType.Success);
-          setTimeout(() => impact(ImpactFeedbackStyle.Medium), 300);
+        // The big window's moment of the feel vocabulary (kolo 50): taps + sound.
+        if (rarity === 'legendary' || rarity === 'epic') {
+          feel('trophyWindow');
         } else {
           impact(
-            rarity === 'epic'
-              ? ImpactFeedbackStyle.Heavy
-              : rarity === 'rare'
-                ? ImpactFeedbackStyle.Medium
-                : ImpactFeedbackStyle.Light
+            rarity === 'rare'
+              ? ImpactFeedbackStyle.Medium
+              : ImpactFeedbackStyle.Light
           );
         }
       },

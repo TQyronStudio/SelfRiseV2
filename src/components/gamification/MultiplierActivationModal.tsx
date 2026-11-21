@@ -449,10 +449,13 @@ export const MultiplierActivationModal: React.FC<MultiplierActivationModalProps>
             </View>
           )}
 
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>+{bonusXP}</Text>
-            <Text style={styles.statLabel}>{t('gamification.multiplier.bonusXP')}</Text>
-          </View>
+          {/* Harmony pays no activation bonus any more (O-10): never show "+0". */}
+          {bonusXP > 0 && (
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>+{bonusXP}</Text>
+              <Text style={styles.statLabel}>{t('gamification.multiplier.bonusXP')}</Text>
+            </View>
+          )}
 
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{durationHours}h</Text>

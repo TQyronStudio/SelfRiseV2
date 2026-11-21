@@ -99,6 +99,7 @@ import {
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
 import { StreakFlame } from './StreakFlame';
+import { SignatureIcon, SignatureName } from './SignatureIcon';
 import {
   AdSimulation,
   ConfirmSheet,
@@ -807,15 +808,15 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                                   </View>
                                   <View style={styles.badgesRow}>
                                     <Badge
-                                      emoji="⭐"
+                                      icon="star"
                                       count={journal.stats.stars}
                                     />
                                     <Badge
-                                      emoji="🔥"
+                                      icon="flame"
                                       count={journal.stats.flames}
                                     />
                                     <Badge
-                                      emoji="👑"
+                                      icon="crown"
                                       count={journal.stats.crowns}
                                     />
                                   </View>
@@ -1283,10 +1284,10 @@ function SectionHeader({
   );
 }
 
-function Badge({ emoji, count }: { emoji: string; count: number }) {
+function Badge({ icon, count }: { icon: SignatureName; count: number }) {
   return (
     <View style={styles.badge}>
-      <LabText variant="label">{emoji}</LabText>
+      <SignatureIcon name={icon} size={16} />
       <LabText variant="numberSm" style={{ marginLeft: 4 }}>
         {count}
       </LabText>

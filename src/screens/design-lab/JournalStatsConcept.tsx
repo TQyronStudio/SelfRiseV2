@@ -48,14 +48,10 @@ import { labFonts, LabMode, labRadius, labSpace } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
 import { RollingNumber } from './RollingNumber';
 import { StreakFlame } from './StreakFlame';
+import { InlineIcon, SignatureIcon } from './SignatureIcon';
 import { addDays, dateKey } from './habitsMock';
 import { DAILY_GOAL, MilestoneKind, useLabJournal } from './journalMock';
-import {
-  formatDay,
-  MILESTONE_EMOJI,
-  PageTopBar,
-  useJournalT,
-} from './journalParts';
+import { formatDay, PageTopBar, useJournalT } from './journalParts';
 
 /** Validated with the dataviz palette script against each theme's surface. */
 function chartColors(mode: LabMode) {
@@ -175,7 +171,16 @@ export function JournalStatsConcept({
           color={c.rewardText}
           label={t('journal.stats.milestoneBadges')}
           value={stats.stars + stats.flames + stats.crowns}
-          sub={`⭐ ${stats.stars} · 🔥 ${stats.flames} · 👑 ${stats.crowns}`}
+          subLabel={`${stats.stars} ${MOCK_COPY[lang].iconNames.star}, ${stats.flames} ${MOCK_COPY[lang].iconNames.flame}, ${stats.crowns} ${MOCK_COPY[lang].iconNames.crown}`}
+          sub={
+            <>
+              <InlineIcon name="star" /> {stats.stars}
+              {'   '}
+              <InlineIcon name="flame" /> {stats.flames}
+              {'   '}
+              <InlineIcon name="crown" /> {stats.crowns}
+            </>
+          }
           delay={480}
         />
       </View>
@@ -200,7 +205,7 @@ export function JournalStatsConcept({
               <View
                 style={[styles.medalDisc, { backgroundColor: c.rewardSoft }]}
               >
-                <LabText variant="title">{MILESTONE_EMOJI[kind]}</LabText>
+                <SignatureIcon name={kind} size={28} />
               </View>
               <RollingNumber
                 text={`${n}`}
@@ -245,6 +250,7 @@ function StatTile({
   label,
   value,
   sub,
+  subLabel,
   decimals = false,
   delay,
 }: {
@@ -252,7 +258,9 @@ function StatTile({
   color: string;
   label: string;
   value: number;
-  sub: string;
+  sub: React.ReactNode;
+  /** Spoken form of `sub` when it holds icon glyphs. */
+  subLabel?: string;
   decimals?: boolean;
   delay: number;
 }) {
@@ -283,7 +291,12 @@ function StatTile({
         variant="number"
         delay={delay}
       />
-      <LabText variant="caption" tone="faint" numberOfLines={2}>
+      <LabText
+        variant="caption"
+        tone="faint"
+        numberOfLines={2}
+        {...(subLabel ? { accessibilityLabel: subLabel } : null)}
+      >
         {sub}
       </LabText>
     </Surface>
@@ -404,8 +417,15 @@ function Last30() {
               variant="bodyStrong"
               style={{ color: c.canvas }}
               numberOfLines={1}
+              accessibilityLabel={`${j.entries(selCount)}${selKind ? `, ${MOCK_COPY[lang].iconNames[selKind]}` : ''}`}
             >
-              {`${j.entries(selCount)}${selKind ? `  ${MILESTONE_EMOJI[selKind]}` : ''}`}
+              {j.entries(selCount)}
+              {selKind ? (
+                <>
+                  {'  '}
+                  <InlineIcon name={selKind} />
+                </>
+              ) : null}
             </LabText>
           </Animated.View>
         )}

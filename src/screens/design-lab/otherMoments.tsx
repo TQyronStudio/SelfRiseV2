@@ -37,10 +37,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import i18n from '@/src/config/i18n';
 import { XP_MULTIPLIERS } from '@/src/constants/gamification';
-import {
-  notification,
-  NotificationFeedbackType,
-} from '@/src/services/hapticsService';
 import { getLevelInfo } from '@/src/services/levelCalculation';
 import { getJournalStreakReward } from '@/src/utils/journalStreakMilestones';
 import {
@@ -63,6 +59,7 @@ import { LabLang, MOCK_COPY } from './mockCopy';
 import { chapterOfAction, streakMomentSize, tierEntered } from './momentRules';
 import { StreakFlame } from './StreakFlame';
 import { useLabXpAward } from './xpFlight';
+import { feel } from './feelPlayer';
 
 const GOLD: readonly [string, string] = ['#FFD36B', '#F4A93F'];
 
@@ -241,7 +238,7 @@ export function ChapterWindow({
   }, [award, leave, xp]);
   useBackToClose(close);
   useEffect(() => {
-    notification(NotificationFeedbackType.Success);
+    feel('chapter');
   }, []);
 
   return (
@@ -406,7 +403,7 @@ export function StreakWindow({
   }, [award, leave, xp]);
   useBackToClose(close);
   useEffect(() => {
-    notification(NotificationFeedbackType.Success);
+    feel('streakWindow');
   }, []);
 
   return (
@@ -499,7 +496,7 @@ export function MultiplierWindow({ onClosed }: { onClosed: () => void }) {
   const close = useCallback(() => leave(), [leave]);
   useBackToClose(close);
   useEffect(() => {
-    notification(NotificationFeedbackType.Success);
+    feel('multiplierOn');
   }, []);
 
   return (

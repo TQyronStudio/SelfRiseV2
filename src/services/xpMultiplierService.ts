@@ -544,22 +544,10 @@ export class XPMultiplierService {
       // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
       await this.storeActiveMultiplier(multiplier);
 
-      // Award bonus XP for activation
-      const bonusXP = XP_MULTIPLIERS.HARMONY_STREAK_DURATION * 10; // 10 XP per hour of multiplier
-      
-      try {
-        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
-        await GamificationService.addXP(bonusXP, {
-          source: 'xp_multiplier_bonus' as any,
-          description: i18next.t('gamification.multiplier.descriptions.harmonyActivated', { hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION }),
-          metadata: {
-            multiplierSource: 'harmony_streak',
-            harmonyStreakLength: harmonyStreak.currentStreak,
-          },
-        });
-      } catch (error) {
-        console.error('Failed to award multiplier activation bonus XP:', error);
-      }
+      // No XP for switching it on (Petr 2026-11-21, O-10): the reward IS the 2×.
+      // The old activation bonus (10 XP per hour = 240) was added AFTER the
+      // multiplier was stored, so it doubled itself to 480 — and no screen said so.
+      const bonusXP = 0;
 
       // Record activation history
       await this.recordMultiplierActivation(multiplier, harmonyStreak.currentStreak, bonusXP);
@@ -1128,26 +1116,32 @@ export class XPMultiplierService {
         }
       };
       
-      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
-      await this.storeActiveMultiplier(multiplier);
-
-      // Award bonus XP for comeback
+      // Award the comeback bonus BEFORE the 2× is stored (Petr 2026-11-21, O-16):
+      // credited after it, the bonus doubled itself. A failed bonus must not cost
+      // the user the boost, so it is caught and the boost still starts.
       const bonusXP = XP_REWARDS.SPECIAL.COMEBACK_BONUS;
       const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
 
-      await GamificationService.addXP(bonusXP, {
-        // Audit fix (July 2026): was the UPPERCASE string 'XP_MULTIPLIER_BONUS',
-        // which is NOT the enum value ('xp_multiplier_bonus') — limit lookups
-        // and daily-summary column mapping silently failed for this source.
-        source: 'xp_multiplier_bonus' as any,
-        sourceId: multiplier.id,
-        description: i18next.t('gamification.multiplier.descriptions.comebackBonus', { days: inactiveStatus.daysSinceLastActivity }),
-        skipLimits: true,
-        metadata: {
-          type: 'inactive_user_return_bonus',
-          daysSinceLastActivity: inactiveStatus.daysSinceLastActivity,
-        }
-      });
+      try {
+        await GamificationService.addXP(bonusXP, {
+          // Audit fix (July 2026): was the UPPERCASE string 'XP_MULTIPLIER_BONUS',
+          // which is NOT the enum value ('xp_multiplier_bonus') — limit lookups
+          // and daily-summary column mapping silently failed for this source.
+          source: 'xp_multiplier_bonus' as any,
+          sourceId: multiplier.id,
+          description: i18next.t('gamification.multiplier.descriptions.comebackBonus', { days: inactiveStatus.daysSinceLastActivity }),
+          skipLimits: true,
+          metadata: {
+            type: 'inactive_user_return_bonus',
+            daysSinceLastActivity: inactiveStatus.daysSinceLastActivity,
+          }
+        });
+      } catch (error) {
+        console.error('Failed to award comeback bonus XP:', error);
+      }
+
+      // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
+      await this.storeActiveMultiplier(multiplier);
       
       // Record activation in history
       await this.recordMultiplierActivation(multiplier, 0, bonusXP);
@@ -1289,21 +1283,9 @@ export class XPMultiplierService {
       await this.storeActiveMultiplier(multiplier);
 
       // Award bonus XP for activation (10 XP per hour)
-      const bonusXP = durationHours * 10;
-
-      try {
-        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
-        await GamificationService.addXP(bonusXP, {
-          source: 'xp_multiplier_bonus' as any,
-          description: i18next.t('gamification.multiplier.descriptions.achievementComboActivated', { count: achievementCount, hours: durationHours }),
-          metadata: {
-            multiplierSource: 'achievement_combo',
-            achievementCount,
-          },
-        });
-      } catch (error) {
-        console.error('Failed to award achievement combo bonus XP:', error);
-      }
+      // No activation bonus (Petr 2026-11-21, O-16): the 2.5× is the reward. The old
+      // bonus was added after the multiplier was stored, so it multiplied itself.
+      const bonusXP = 0;
 
       // Record activation history
       await this.recordMultiplierActivation(multiplier, achievementCount, bonusXP);
@@ -1456,23 +1438,9 @@ export class XPMultiplierService {
       // Store active multiplier (SQLite when flag on — see storeActiveMultiplier)
       await this.storeActiveMultiplier(multiplier);
 
-      // Award bonus XP for activation (10 XP per hour)
-      const bonusXP = durationHours * 10;
-
-      try {
-        const { GamificationService } = require('./gamificationService') as typeof import('./gamificationService');
-        await GamificationService.addXP(bonusXP, {
-          source: 'xp_multiplier_bonus' as any,
-          description: i18next.t('gamification.multiplier.descriptions.challengeCompletedActivated', { stars: starRating, hours: durationHours }),
-          metadata: {
-            multiplierSource: 'challenge_completion',
-            challengeId,
-            starRating,
-          },
-        });
-      } catch (error) {
-        console.error('Failed to award challenge completion bonus XP:', error);
-      }
+      // No activation bonus (Petr 2026-11-21, O-16): the 1.5× is the reward. The old
+      // bonus was added after the multiplier was stored, so it multiplied itself.
+      const bonusXP = 0;
 
       // Record activation history
       await this.recordMultiplierActivation(multiplier, starRating, bonusXP);

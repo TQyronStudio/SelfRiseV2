@@ -57,6 +57,7 @@ import { labRadius, labSpace, labTier } from './labTokens';
 import { LEVEL_TIERS } from './levelsJourney';
 import { MOCK_COPY } from './mockCopy';
 import { formatFactor } from './multiplierLogic';
+import { SignatureIcon, SignatureName } from './SignatureIcon';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -473,7 +474,11 @@ function MakeUpWeek() {
 /** Thirteen entries of a day: three keep the streak, 4 / 8 / 13 add the bonus. */
 function BonusRoad() {
   const { c } = useLab();
-  const marks: Record<number, string> = { 4: '⭐', 8: '🔥', 13: '👑' };
+  const marks: Record<number, SignatureName> = {
+    4: 'star',
+    8: 'flame',
+    13: 'crown',
+  };
   return (
     <View style={styles.road}>
       {Array.from({ length: 13 }, (_, i) => {
@@ -482,9 +487,7 @@ function BonusRoad() {
         return (
           <View key={position} style={styles.roadStop}>
             {mark ? (
-              <Text style={styles.roadMark} maxFontSizeMultiplier={1}>
-                {mark}
-              </Text>
+              <SignatureIcon name={mark} size={18} />
             ) : (
               <View
                 style={[
@@ -596,10 +599,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-  },
-  roadMark: {
-    fontSize: 15,
-    lineHeight: 20,
   },
   segments: {
     flexDirection: 'row',

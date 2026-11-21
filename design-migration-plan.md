@@ -88,7 +88,7 @@ bez zhoršení plynulosti a bez rozbité logiky.
 
 **Tři vydání** (Petr 2026-11, potvrdit v bráně B0):
 1. **Vydání A – nový vzhled celý najednou** (etapy E0 až E27). Smíšený vzhled se do obchodu nepouští (R-5).
-2. **Vydání B – části dne** (R-30, etapa E28). Nový údaj v databázi.
+2. ~~**Vydání B – části dne** (R-30, etapa E28)~~ – **zrušeno, Petr 2026-11-21 (O-13).**
 3. **Vydání C – nový katalog trofejí** (R-28, etapa E29). Mění uložené trofeje.
 Potom E30: přechod na aktuální Expo.
 
@@ -267,7 +267,7 @@ R-29, R-31 a R-39 stojí na R-10 (odznak a jiskry) – R-10 je tím fakticky sch
 | R-14 | deník: zámek zmrzlé série dřív, než se píše; ohřátí v Deníku | E12 |
 | R-15 | historie deníku jako kalendář + graf 30 dní | E13 |
 | R-23 | nové Nastavení | E20 |
-| R-30 | části dne (Petr zvažuje) | E28 |
+| R-30 | části dne – **zrušeno (O-13)** | ~~E28~~ |
 
 ### 4.3 Otevřené věci, které nejsou rozhodnutí o vzhledu
 
@@ -282,6 +282,13 @@ R-29, R-31 a R-39 stojí na R-10 (odznak a jiskry) – R-10 je tím fakticky sch
 | O-7 | Karta série deníku na Home: vyrůst do vlastního detailu, nebo přepnout na Deník? | ✅ **Petr 2026-11-16 nechal na autorovi a výsledek potvrdil:** ťuknutí vede na záložku Deník a karta do ní **vyroste jako přechod**. Samostatný detail z laboratoře (`JournalDetailConcept.tsx`) se jako stránka nepřevádí – byl by to druhý Deník (P35); převádí se jen jeho pohyb |
 | O-8 | Bonus za „velký cíl“ (dnes cíl ≥ 10 000 → 350 XP místo 250) | ✅ **Petr 2026-11-16: souhlas – měřit úsilím, ne číslem.** Bonus dostane cíl, na kterém uživatel pracoval aspoň 30 dní a zapsal aspoň 10 pokroků. Provedení v E16 (viz tam) |
 | O-9 | Funkce „dnešní XP“ | ✅ **Petr 2026-11-16: ano.** V appce hotovo: `GamificationService.getTodayXP()` (jen čtení, test `__tests__/services/gamification/TodayXP.test.ts`). Čip na Home (E11) a řádek v panelu úrovně (E9) čtou tuhle jednu funkci |
+| O-10 | Bonus za zapnutí násobiče (dnes se omylem zdvojí 240 → 480 XP, okno o něm mlčí) | ✅ **Petr 2026-11-21: zrušit** (varianta c). Zapnutí násobiče žádné XP nedává; odměnou je samotný násobič |
+| O-11 | Trasa `habit-stats` (přehled statistik všech návyků) | ✅ **Petr 2026-11-21: zrušit** (varianta a). Stačí statistiky na Home (kolo 41) a detail návyku; trasa, `IndividualHabitStatsScreen` a `DailyHabitTrackingScreen` v E26 smazat, odkazy na ně přesměrovat na detail návyku |
+| O-12 | Zvuk a hmat (L-6, R-35) | ✅ **Petr 2026-11-21: vibrace + pár jemných zvuků u velkých okamžiků** (varianta b), zvuky vypínatelné v Nastavení. Musí být v nativním buildu E0 |
+| O-13 | Části dne u návyků (L-1, R-30) | ✅ **Petr 2026-11-21: ne.** L-1 a E28 se ruší |
+| O-14 | Systémová okna `Alert.alert` (14 míst) | ✅ **Petr 2026-11-21: souhlas – všechna na nová okna** (`ConfirmSheet` / pruh `ProblemNote`); mapa míst v L-4 |
+| O-15 | Vlastní ikony místo emoji ⭐🔥👑 (L-5, R-34) | ✅ **Petr 2026-11-21: ano, vlastní sada** (varianta a) |
+| O-16 | Ostatní bonusy při zapnutí násobiče (návrat po neaktivitě `COMEBACK_BONUS`, kombo trofejí a splněná výzva `durationHours × 10`) – připisují se až po uložení násobiče, takže se zdvojí; žádné okno o nich neříká | ✅ **Petr 2026-11-21: souhlas – hotovo v appce.** Kombo a výzva bez bonusu; bonus za návrat se připisuje před zapnutím násobiče (nezdvojí se, jeho selhání boost nezruší). Testy v `xpMultiplier.loyalty.test.ts` (+ negativní zkouška), průvodce `Gamification-Core.md` |
 
 ### 4.4 Brány (bez nich se dál nejde)
 
@@ -308,12 +315,12 @@ a teprve pak smí proběhnout etapa, která na něm závisí.
 
 | Kód | Co chybí | Proč to chybí / co přesně | Potřebuje etapa |
 |---|---|---|---|
-| **L-1** | **Části dne** (R-30): návyky po ráno / odpoledne / večer / „Kdykoliv“, volitelné | Petr zvažuje; nový údaj v databázi | E28 |
+| **L-1** | ~~**Části dne** (R-30)~~ | **Zrušeno – Petr 2026-11-21 (O-13): ne.** Nestavět | ~~E28~~ |
 | **L-2** | **Home – sekce, které laboratoř nemá, přizpůsobení Home a ovládání v horním řádku** (vstup do Síně trofejí, tlačítko přizpůsobení, časovač násobiče – v laboratoři jsou tlačítka bez funkce) | Ostrý Home má 10 sekcí (`src/types/homeCustomization.ts`): `xpProgressBar`, `xpMultiplier`, `quickActions`, `journalStreak`, `streakHistory`, `monthlyChallenges`, `habitStats`, `recommendations`, `habitPerformance`, `habitTrends`. Laboratoř kreslí jen hrdinu dne, rychlé akce, dnešní návyky, sérii deníku, výzvu a týden. **Chybí:** historie sérií (graf), statistiky návyků (týden / 30 dní / rok), doporučení, výkon a trendy návyků, sekce násobiče (průběh harmonie x/7 + tlačítko zapnutí; O-4) a samotné okno přizpůsobení (`HomeCustomizationModal`). U každé rozhodnout: nový vzhled / sloučit / zrušit. Grafy návyků používají tvary stavů (R-11) a ověřenou paletu grafů (P32). **Stav 2026-11-17: hotovo v laboratoři.** Statistiky návyků (týden / 30 dní / rok) – `HabitStatsConcept.tsx` + `homeChartsLogic.ts` (kolo 41). Přehledy (místo výkonu a trendů), Pro tebe (místo doporučení), sheet přizpůsobení a funkční horní řádek – `HomeSectionsConcept.tsx` + `homeLayoutLogic.ts` (kolo 42). Historie série na Home zrušena (graf je ve Statistikách deníku, P35; Petr potvrdil 2026-11-21). Karta série deníku na Home zůstává a při zamrznutí nabízí zahřátí přímo na místě (kolo 43). Ukazatel násobiče je L-10, ne L-2 | E11 |
 | **L-3** | **„Jak SelfRise funguje“** (`how-it-works`) | v laboratoři odkaz vede na starou obrazovku. **Stav 2026-11-21: postaveno v laboratoři** (kolo 47) – `HowItWorksConcept.tsx`: sedm oddílů skrytých mechanik, čísla z konstant appky; dnešní texty `help.*` mají věcné chyby (série deníku, lišta XP, „věštec“) – stránka je už nevykresluje, bublinky `?` si je zatím nechávají (jejich oprava patří k L-4) | E22 |
-| **L-4** | **Drobnosti:** bublinky nápovědy (`HelpTooltip`), potvrzovací a chybové okno (`ConfirmationModal`, `ErrorModal`, `BaseModal`), stránka „nenalezeno“, obrazovka chyby databáze, načítací a prázdné stavy; systémová okna `Alert.alert` (historie deníku, přizpůsobení Home, připomínky ×8, úprava záznamu) – nahradit sheetem, nebo nechat; **kam se přestěhuje nápověda**, jejíž hostitel zaniká (`home.xpSystem` v `OptimizedXpProgressBar`, `goals.predictions` v `GoalCompletionPredictions`; celkem 11 klíčů – ke každému nový hostitel); **trasa `habit-stats`** (`IndividualHabitStatsScreen`, `DailyHabitTrackingScreen`) – laboratoř má jen detail jednoho návyku rostoucí z karty; rozhodnout, jestli přehled všech návyků zůstane **Stav 2026-11-21: bublinky hotové v laboratoři** (kolo 48, `labHelp.tsx`): z 11 klíčů zůstává 6 témat na místech skrytých pravidel (kalendář návyku, karta Dnes v deníku, zamrzlá série, tempo cíle, harmonie v panelu úrovně = nový hostitel `home.xpSystem`, hvězdy výzvy = nový hostitel za `goals.predictions` není – předpovědi zanikají); zanikají `home.quickActions`, `home.recommendations`, `goals.overview`, `habits.scheduling`. Texty = texty stránky „Jak SelfRise funguje“. Chybové okno, „nenalezeno“ a chyba databáze hotové v laboratoři (kolo 49, `systemScreens.tsx`; potvrzovací okno = `ConfirmSheet`, už existuje). Zbývá: `Alert.alert` (nahradit `ConfirmSheet`/`ProblemNote`) a trasa `habit-stats` (rozhodnout s Petrem) | E6, E22 |
-| **L-5** | **Vlastní podpisové ikony** (R-34): plamen, hvězda, koruna, trofej, slunce, spodní lišta – místo emoji ⭐🔥👑 a obecné sady | zatím emoji a Ionicons | E24 |
-| **L-6** | **Zvuk a hmatové vzory** (R-35) | rozsah a knihovnu hmatu ověřit; potřebuje nativní build (E0) | E25 |
+| **L-4** | **Drobnosti:** bublinky nápovědy (`HelpTooltip`), potvrzovací a chybové okno (`ConfirmationModal`, `ErrorModal`, `BaseModal`), stránka „nenalezeno“, obrazovka chyby databáze, načítací a prázdné stavy; systémová okna `Alert.alert` (historie deníku, přizpůsobení Home, připomínky ×8, úprava záznamu) – nahradit sheetem, nebo nechat; **kam se přestěhuje nápověda**, jejíž hostitel zaniká (`home.xpSystem` v `OptimizedXpProgressBar`, `goals.predictions` v `GoalCompletionPredictions`; celkem 11 klíčů – ke každému nový hostitel); **trasa `habit-stats`** (`IndividualHabitStatsScreen`, `DailyHabitTrackingScreen`) – laboratoř má jen detail jednoho návyku rostoucí z karty; rozhodnout, jestli přehled všech návyků zůstane **Stav 2026-11-21: bublinky hotové v laboratoři** (kolo 48, `labHelp.tsx`): z 11 klíčů zůstává 6 témat na místech skrytých pravidel (kalendář návyku, karta Dnes v deníku, zamrzlá série, tempo cíle, harmonie v panelu úrovně = nový hostitel `home.xpSystem`, hvězdy výzvy = nový hostitel za `goals.predictions` není – předpovědi zanikají); zanikají `home.quickActions`, `home.recommendations`, `goals.overview`, `habits.scheduling`. Texty = texty stránky „Jak SelfRise funguje“. Chybové okno, „nenalezeno“ a chyba databáze hotové v laboratoři (kolo 49, `systemScreens.tsx`; potvrzovací okno = `ConfirmSheet`, už existuje). `Alert.alert`: mapa všech 14 míst v kap. 7.9 (O-14). Trasa `habit-stats`: zrušit (O-11). L-4 tím uzavřen | E6, E22 |
+| **L-5** | **Vlastní podpisové ikony** (R-34): plamen, hvězda, koruna, trofej, slunce, spodní lišta – místo emoji ⭐🔥👑 a obecné sady | zatím emoji a Ionicons. **Stav 2026-11-21: hvězda, plamen, koruna, trofej postaveny** (kolo 51) – písmo `assets/fonts/SelfRiseIcons.ttf` (zdroj `scripts/build-icon-font.py`), `SignatureIcon` (dvoubarevná) a `InlineIcon` (ve větě). Spodní lišta hotová (Dnes = vycházející slunce, Návyky, Deník, Cíle, Nastavení; jeden tvar, stav barvou) | E24 |
+| **L-6** | **Zvuk a hmatové vzory** (R-35) | rozsah a knihovnu hmatu ověřit; potřebuje nativní build (E0). **Stav 2026-11-21: postaveno v laboratoři** (kolo 50) – slovník pocitů `labFeel.ts` i s testem (18 okamžiků; zvuk jen 6 vzácných), `feelPlayer.ts`, přepínač „Zvuky“ v Nastavení, 4 kandidátní zvuky v `assets/sounds/` (zatím se nepřehrávají – přehrávač až s buildem E0) | E25 |
 | **L-7** | **Stavy karty měsíční výzvy:** „připravuje se“, „žádná výzva“, načítání, chyba s tlačítkem „Zkusit znovu“ | ostrá karta je má (`monthlyChallenge.{loading,preparing,noActiveChallenge,errorLoading,retry}`), laboratoř ne. **Stav 2026-11-21: postaveno v laboratoři** (kolo 45) – `ChallengeCardStates.tsx`, pravidlo `challengeCardState` (`challengeLogic.ts`) i s testem: **známá data vždy vyhrají** (obnovení nikdy nepřepne kartu na načítání ani chybu); kostra až po `SKELETON_DELAY_MS`; chyba bez surového textu s jedním „Zkusit znovu“ = `loadMonthlyChallenge()`. Nové texty místo dnešních s emoji | E17 |
 | **L-8** | **Spojení momentů:** vstup do nového stupně + velká trofej ze stejné akce = jedno okno; víc milníků výzvy naráz = jedno oznámení; trest za 3 zahřívací výzvy (`warmup_penalty`) | dnes by šly po sobě / nejsou nakreslené. **Stav 2026-11-21: postaveno v laboratoři** (kolo 46): (1) `chapterOfAction(xpBefore, xpAkce)` (`momentRules.ts`) – kapitola vede, trofeje akce jedou v `ChapterWindow` (`also`), XP z jejího tlačítka; level-up po přistání XP tutéž kapitolu znovu neukáže (v ostré appce: posluchač `levelUp` v `XpAnimationContext` musí znát kapitoly už ukázané akcí). (2) `milestonesCrossed(před, po)` (`challengeLogic.ts`) – události `monthly_milestone_reached` z jednoho zápisu složit do jednoho oznámení se součtem XP. (3) `warmUpStepDown` (`challengeLogic.ts`) kopíruje `starRatingService` (3 zahřívací po sobě, nejvyšší kategorie −1, shoda: Konzistence, nikdy pod 1★) – řádek v okně výzvy téhož měsíce, událost `star_level_changed` s důvodem `warmup_penalty` nesmí řadit vlastní okno | E8, E18 |
 | **L-9** | **Tažení:** detail cíle; rozhodnutí O-3 o oknech oslav | kolo 40 je nedělalo. **Stav 2026-11-21: ověřeno, nic se nestavělo.** Detail cíle je v laboratoři stránka (`SlidePage` v `GoalsConcept.tsx`) a od kola 40 se vrací tahem od levého okraje (pás 28 px – graf s prstem začíná dál, nekoliduje); v ostré appce je to trasa `goal-stats` s nativním gestem zpět. Okna oslav (O-3): tažením se nezavírají; ťuknutí vedle okna jen zrychlí jeho nájezd (`skip` v `AchievementCelebrationConcept.tsx`), zavírá tlačítko (a systémové zpět na Androidu) – tak to zůstane | E15 |
@@ -375,11 +382,16 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    - přepínač Reanimatedu `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS` (statický; ověř přesný zápis
      v dokumentaci nainstalované verze, než ho napíšeš do `package.json`);
    - 120 Hz na Androidu (ověřit postup pro Expo 55); iPhone už má klíč v Info.plist;
-   - balíčky pro R-35 (`expo-audio` + knihovna hmatových vzorů) – **jen pokud L-6 už určilo rozsah
-     a knihovnu**; jinak je přidej do buildu později a počítej s druhým buildem před E25.
+   - **`expo-audio`** pro zvuky R-35 – rozsah je určený (O-12, kolo 50): 5 okamžiků, 4 zvuky
+     v `assets/sounds/`. Nainstalovat `npx expo install expo-audio` (verze podle Expo 55). Hmat zvládá
+     stávající `expo-haptics` (vzory jsou časované tapy, `labFeel.ts`) – další knihovna **není potřeba**.
    Přepínač Reanimatedu je od verze 4.3 výchozí – při přechodu na nové Expo (E30) se z konfigurace odstraní.
 4. Měření v laboratoři na novém buildu (kap. 7.4): odškrtnutí návyku na Home a v Návycích, zápis pokroku
-   cíle, přepínání záložek, přechody obrazovek. Sleduj známé riziko přepínače: probliknutí průhlednosti
+   cíle, přepínání záložek, přechody obrazovek.
+   **Petr 2026-11-21:** posun Home hned po odškrtání návyků se jednou trhal, po restartu appky a stejném
+   postupu byl téměř 100% plynulý (s měřičem). Nejspíš nahromadění po rychlých přenačteních ve vývojovém
+   režimu – na novém buildu přesto změřit přesně tenhle scénář (odškrtat všechny návyky → hned rychle
+   posouvat; v tu chvíli běží slunce, záře a lety XP). Sleduj známé riziko přepínače: probliknutí průhlednosti
    při výměně obrazovek (hlášení Reanimated #10444).
 5. **Rozhodnutí o P46:** když je s přepínačem odškrtnutí plynulé i na Reanimated → P46 se ruší a primitiva
    zůstávají, jak jsou. Když ne → všechny běžné reakce (`CheckButton`, `ProgressBar`, rozzáření a poskok
@@ -1049,6 +1061,14 @@ opony (dnes průvodce říká, že každé startovní UI je až za `awaitStartup
 **Závisí na:** L-5, resp. L-6 a nativním buildu z E0. Ikony nahradí emoji ⭐🔥👑 a obecnou sadu na
 podpisových místech. Zvuk i hmatové vzory musí jít vypnout v Nastavení a respektují tichý režim.
 
+**E25 podrobně (kolo 50, O-12):** slovník `labFeel.ts` (+ test) přesunout do `src/constants/feel.ts`;
+přehrávač `feelPlayer.ts` do `src/services/` – hmat přes `hapticsService`, zvuk přes `expo-audio`
+(jeden přednačtený přehrávač na zvuk, hlasitost ~0,6, `playsInSilentMode: false`, chyba přehrání nikdy
+neshodí okamžik). Přepínač „Zvuky“ v Nastavení pod „Hmatová odezva“, uložený jako ona. **Všechna ruční
+volání `notification(...)` / `impact(...)` v nových obrazovkách nahradit `feel('<okamžik>')`** podle mapy
+v `PREVOD.md` (řádek `labFeel.ts`). Zvuky zatím syntetizované návrhy – před E25 Petr poslechne
+(`afplay assets/sounds/<název>.m4a`) a rozhodne, jestli je nahradit profesionální sadou.
+
 ---
 
 ### E26 – Úklid (jen se svolením Petra, CLAUDE.md pravidlo 6)
@@ -1076,7 +1096,7 @@ největší písmo. Nové snímky do obchodů a popis novinky; předání market
 
 ---
 
-### E28 – Části dne (R-30) – vydání B
+### E28 – Části dne (R-30) – vydání B — ❌ ZRUŠENO (Petr 2026-11-21, O-13): nestavět, karta níže jen pro historii
 
 **Závisí na:** L-1, B5. Nový údaj u návyku (část dne, volitelná) → migrace, záloha/obnova. Ruční řazení
 uvnitř části; bonusové návyky zůstávají zvlášť; **ne v tutoriálu**. Plná časová osa není součástí
@@ -1170,6 +1190,28 @@ napsáno, co se stane s daty při návratu ke starší verzi appky, dřív než 
 
 ---
 
+### 7.9 Mapa systémových oken `Alert.alert` (O-14, Petr 2026-11-21: všechna na nová okna)
+
+Žádné `Alert.alert` po převodu nezůstane. Chyba = pruh `ProblemNote` (`systemScreens.tsx`): jedna věta, co
+se nestalo a co je v bezpečí, „Zkusit znovu“ jen tam, kde to pomůže; nikdy obecné „Error“ jako nadpis.
+Rozhodnutí = `ConfirmSheet` (`journalParts.tsx`). Texty do locales EN/DE/ES.
+
+| Místo | Dnes | Po převodu |
+|---|---|---|
+| `NotificationSettings.tsx:78` | chyba načtení | `ProblemNote` „Nastavení připomínek se nenačetlo.“ + Zkusit znovu |
+| `NotificationSettings.tsx:104` | chybí oprávnění: Zrušit / Otevřít nastavení | `ConfirmSheet`: věta, proč appka oprávnění potřebuje, hlavní tlačítko „Otevřít nastavení“, vedlejší „Teď ne“ |
+| `NotificationSettings.tsx:115` | žádost o oprávnění selhala | `ProblemNote` + Zkusit znovu |
+| `NotificationSettings.tsx:124` | uložení nastavení selhalo | `ProblemNote` „Změna se neuložila.“ + Zkusit znovu; přepínač se vrátí do původní polohy |
+| `NotificationSettings.tsx:156, 186` | odpolední / večerní připomínka se neuložila | jako řádek výše; vlastní věta pro odpoledne a večer |
+| `NotificationSettings.tsx:219, 249` | čas připomínky se neuložil | `ProblemNote` „Čas se neuložil.“ + Zkusit znovu; čas se vrátí na původní |
+| `HomeCustomizationModal.tsx:34, 54` | změna viditelnosti selhala | `ProblemNote` „Změna Home se neuložila.“; přepínač zpět |
+| `HomeCustomizationModal.tsx:42` | potvrzení „Obnovit výchozí“ | **bez potvrzení** jako v laboratoři (`HomeCustomizeSheet`): obnovení je vidět hned v seznamu a rozložení jde hned znovu upravit |
+| `EditGratitudeModal.tsx:52` | chyba úpravy záznamu – **s chybným textem** `journal.export.error` (text exportu!) | `ProblemNote` „Úprava se neuložila. Text zůstal v okně.“ – okno zůstane otevřené |
+| `app/journal-history.tsx:57` | hledání selhalo | `ProblemNote` „Hledání se nepovedlo.“ + Zkusit znovu |
+| `app/journal-history.tsx:114` | smazání záznamu selhalo | `ProblemNote` „Záznam se nesmazal. Je pořád v deníku.“ |
+
+**Test:** stráž v testech, že `Alert.alert` se ve `src/` a `app/` nevyskytuje (kromě `__tests__`).
+
 ## 8. NOVÉ FUNKCE, KTERÉ OSTRÁ APPKA NEMÁ (soupis)
 
 | Funkce | R-# | V laboratoři | Etapa |
@@ -1258,8 +1300,8 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | E25 – zvuk a hmat | ☐ | | |
 | E26 – úklid | ☐ | | |
 | E27 – vydání A (vyžaduje B4) | ☐ | | |
-| E28 – části dne (vyžaduje B5) | ☐ | | |
+| E28 – části dne | ✖ zrušeno (O-13) | | |
 | E29 – katalog trofejí | ☐ | | |
 | E30 – Expo | ☐ | | |
 
-Laboratorní dluhy (Petr prošel kola 41–49 na zařízení 2026-11-21: „všechno vypadá skvěle“): L-1 ☐ · L-2 ☑ (kolo 41–42) · L-3 ☑ (kolo 47, schváleno 2026-11-21) · L-4 ☐ · L-5 ☐ · L-6 ☐ · L-7 ☑ (kolo 45, schváleno 2026-11-21) · L-8 ☑ (kolo 46, schváleno 2026-11-21) · L-9 ☑ (ověřeno 2026-11-21) · L-10 ☑ (kolo 44, schváleno 2026-11-21)
+Laboratorní dluhy (Petr prošel kola 41–49 na zařízení 2026-11-21: „všechno vypadá skvěle“): L-1 ✖ (zrušeno, O-13) · L-2 ☑ (kolo 41–42) · L-3 ☑ (kolo 47, schváleno 2026-11-21) · L-4 ☑ (kola 48–49 + mapa 7.9, schváleno) · L-5 ☑ (kolo 51) · L-6 ☑ (kolo 50; zvuky slyšet až po E0) · L-7 ☑ (kolo 45, schváleno 2026-11-21) · L-8 ☑ (kolo 46, schváleno 2026-11-21) · L-9 ☑ (ověřeno 2026-11-21) · L-10 ☑ (kolo 44, schváleno 2026-11-21)

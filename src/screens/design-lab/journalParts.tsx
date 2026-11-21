@@ -71,6 +71,7 @@ import {
 import { LabLang, MOCK_COPY } from './mockCopy';
 import { RollingNumber } from './RollingNumber';
 import { useLabXpAward } from './xpFlight';
+import { InlineIcon, SignatureIcon } from './SignatureIcon';
 import {
   EntryType,
   LabEntry,
@@ -92,12 +93,6 @@ export function useJournalT() {
   const { lang } = useLab();
   return useMemo(() => i18n.getFixedT(lang), [lang]);
 }
-
-export const MILESTONE_EMOJI: Record<MilestoneKind, string> = {
-  star: '⭐',
-  flame: '🔥',
-  crown: '👑',
-};
 
 /** Ice of a frozen streak — the one cold colour of the journal. */
 export function iceColors(mode: LabMode) {
@@ -631,10 +626,19 @@ export function EntryCard({
               variant="caption"
               tone="reward"
               style={{ fontFamily: labFonts.semibold, fontSize: 10 }}
+              {...(milestone
+                ? {
+                    accessibilityLabel: `${MOCK_COPY[lang].iconNames[milestone]} BONUS`,
+                  }
+                : null)}
             >
-              {milestone
-                ? `${MILESTONE_EMOJI[milestone]} BONUS`
-                : t('gratitude.bonus.label')}
+              {milestone ? (
+                <>
+                  <InlineIcon name={milestone} /> BONUS
+                </>
+              ) : (
+                t('gratitude.bonus.label')
+              )}
             </LabText>
           </View>
         )}
@@ -1012,8 +1016,15 @@ export function EntryComposer({
                     variant="caption"
                     tone="reward"
                     style={{ marginLeft: 4, fontFamily: labFonts.semibold }}
+                    accessibilityLabel={`+${xp} XP${milestone ? ` ${MOCK_COPY[lang].iconNames[milestone]}` : ''}`}
                   >
-                    {`+${xp} XP${milestone ? ` ${MILESTONE_EMOJI[milestone]}` : ''}`}
+                    {`+${xp} XP`}
+                    {milestone ? (
+                      <>
+                        {' '}
+                        <InlineIcon name={milestone} />
+                      </>
+                    ) : null}
                   </LabText>
                 </View>
               )}
@@ -1282,7 +1293,12 @@ export function MilestoneMoment({
                 end={{ x: 0.8, y: 1 }}
                 style={styles.medal}
               >
-                <Text style={styles.medalEmoji}>{MILESTONE_EMOJI[kind]}</Text>
+                {/* Light on the gold medal, so it reads as an emblem. */}
+                <SignatureIcon
+                  name={kind}
+                  size={48}
+                  tones={['#FFFFFF', '#FFF3C4']}
+                />
               </LinearGradient>
             </Animated.View>
           </View>
@@ -1600,10 +1616,6 @@ const styles = StyleSheet.create({
     borderRadius: 46,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  medalEmoji: {
-    fontSize: 46,
-    lineHeight: 56,
   },
   medalRing: {
     position: 'absolute',

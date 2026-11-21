@@ -347,6 +347,8 @@ export const labFontFiles = {
   [labFonts.medium]: require('../../../assets/fonts/Figtree-Medium.ttf'),
   [labFonts.semibold]: require('../../../assets/fonts/Figtree-SemiBold.ttf'),
   [labFonts.bold]: require('../../../assets/fonts/Figtree-Bold.ttf'),
+  // The signature icons ⭐ 🔥 👑 🏆 as a font (kolo 51, SignatureIcon.tsx).
+  SelfRiseIcons: require('../../../assets/fonts/SelfRiseIcons.ttf'),
 };
 
 export interface LabTypeStyle {

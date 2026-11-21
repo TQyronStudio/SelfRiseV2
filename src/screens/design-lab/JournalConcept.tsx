@@ -98,7 +98,6 @@ import {
   EntryCard,
   EntryComposer,
   iceColors,
-  MILESTONE_EMOJI,
   MilestoneMoment,
   SlidePage,
   typeLook,
@@ -106,6 +105,7 @@ import {
   WarmUpControls,
 } from './journalParts';
 import { HelpLink } from './labHelp';
+import { InlineIcon, SignatureIcon } from './SignatureIcon';
 import { JournalHistoryConcept } from './JournalHistoryConcept';
 import { JournalStatsConcept } from './JournalStatsConcept';
 
@@ -666,7 +666,7 @@ function TodayCard({
           ] as const
         ).map(([kind, n]) => (
           <View key={kind} style={styles.badge}>
-            <LabText variant="body">{MILESTONE_EMOJI[kind]}</LabText>
+            <SignatureIcon name={kind} size={18} />
             <RollingNumber
               text={`${n}`}
               variant="caption"
@@ -696,10 +696,22 @@ function BonusRoad({ count }: { count: number }) {
         <LabText variant="overline" tone="reward" style={{ flex: 1 }}>
           {j.bonusRoad}
         </LabText>
-        <LabText variant="caption" tone="muted">
-          {next && nextKind
-            ? j.toNextMilestone(next - count, MILESTONE_EMOJI[nextKind])
-            : j.allMilestones}
+        <LabText
+          variant="caption"
+          tone="muted"
+          {...(next && nextKind
+            ? {
+                accessibilityLabel: `${j.toNextMilestone(next - count)} ${MOCK_COPY[lang].iconNames[nextKind]}`,
+              }
+            : null)}
+        >
+          {next && nextKind ? (
+            <>
+              {j.toNextMilestone(next - count)} <InlineIcon name={nextKind} />
+            </>
+          ) : (
+            j.allMilestones
+          )}
         </LabText>
       </View>
       <View style={styles.roadTrackBox}>
@@ -721,12 +733,9 @@ function BonusRoad({ count }: { count: number }) {
                     },
                   ]}
                 >
-                  <LabText
-                    variant="caption"
-                    style={{ opacity: reached ? 1 : 0.45, fontSize: 13 }}
-                  >
-                    {MILESTONE_EMOJI[kind]}
-                  </LabText>
+                  <View style={{ opacity: reached ? 1 : 0.45 }}>
+                    <SignatureIcon name={kind} size={15} />
+                  </View>
                 </View>
               );
             }
@@ -821,8 +830,15 @@ function WriteTile({
               variant="caption"
               tone="reward"
               style={{ fontFamily: labFonts.semibold }}
+              accessibilityLabel={`+${xp} XP${kind ? ` ${MOCK_COPY[lang].iconNames[kind]}` : ''}`}
             >
-              {`+${xp}${kind ? ` ${MILESTONE_EMOJI[kind]}` : ''}`}
+              {`+${xp}`}
+              {kind ? (
+                <>
+                  {' '}
+                  <InlineIcon name={kind} />
+                </>
+              ) : null}
             </LabText>
           )}
         </View>

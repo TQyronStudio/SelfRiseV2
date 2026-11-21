@@ -37,6 +37,7 @@ import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { selection } from '@/src/services/hapticsService';
+import { setLabSounds, useLabSounds } from './feelPlayer';
 import { PRIVACY_POLICY_URL } from '@/src/constants/legal';
 import { contentColumn } from '@/src/utils/layout';
 import {
@@ -109,6 +110,7 @@ export function SettingsConcept({
   });
   const [picking, setPicking] = useState<'afternoon' | 'evening' | null>(null);
   const [haptics, setHaptics] = useState(true);
+  const sounds = useLabSounds();
   const [confirmReset, setConfirmReset] = useState(false);
   const [toast, setToast] = useState<{ key: number; text: string } | null>(
     null
@@ -278,6 +280,24 @@ export function SettingsConcept({
                       label={t('settings.hapticFeedback')}
                       onChange={next => {
                         setHaptics(next);
+                        if (next) selection();
+                      }}
+                    />
+                  }
+                />
+                <Divider style={styles.rowDivider} />
+                {/* Sounds at the big moments only (kolo 50, O-12). */}
+                <Row
+                  icon="musical-notes-outline"
+                  color={c.habit.purple}
+                  title={copy.feel.sounds}
+                  description={copy.feel.soundsDescription}
+                  trailing={
+                    <LabSwitch
+                      value={sounds}
+                      label={copy.feel.sounds}
+                      onChange={next => {
+                        setLabSounds(next);
                         if (next) selection();
                       }}
                     />

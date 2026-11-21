@@ -25,7 +25,7 @@ import React, {
 import { XP_MULTIPLIERS } from '@/src/constants/gamification';
 import { useLabMoments } from './celebrationDirector';
 import { useLabToday } from './habitsMock';
-import { useLabJournal } from './journalMock';
+import { DAILY_GOAL, useLabJournal } from './journalMock';
 import { useLab } from './labPrimitives';
 import { MOCK_COPY } from './mockCopy';
 import {
@@ -82,7 +82,8 @@ export function LabMultiplierProvider({ children }: { children: ReactNode }) {
   const today = useMemo(
     () => ({
       habits: Object.values(done).some(Boolean),
-      journal: journal.todayCount > 0,
+      // The app's rule: three entries (xpMultiplierService, hasJournalActivity).
+      journal: journal.todayCount >= DAILY_GOAL,
       // Kulisy: no goal progress logged today.
       goals: false,
     }),

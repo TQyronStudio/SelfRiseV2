@@ -85,6 +85,7 @@ import {
 import { labFonts, labRadius, labSpace } from './labTokens';
 import { formatThousands, MOCK_COPY } from './mockCopy';
 import { useLabXpAward } from './xpFlight';
+import { feel } from './feelPlayer';
 
 const GOLD: readonly [string, string] = ['#FFD36B', '#F4A93F'];
 /** When the star changes inside a window (ms after it opened). */
@@ -411,7 +412,7 @@ export function ChallengeDoneWindow({
 
   const ring = useSharedValue(0);
   useEffect(() => {
-    notification(NotificationFeedbackType.Success);
+    feel('challengeDone');
     ring.value = withDelay(
       200,
       withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) })

@@ -202,6 +202,10 @@ interface Copy {
       string
     >;
   };
+  /** Spoken names of the signature icons inside text (InlineIcon has no voice). */
+  iconNames: Record<'star' | 'flame' | 'crown', string>;
+  /** The sounds switch (feelPlayer.ts, kolo 50). */
+  feel: { sounds: string; soundsDescription: string };
   /** When something goes wrong (systemScreens.tsx, kolo 49). */
   system: {
     notFoundTitle: string;
@@ -420,7 +424,8 @@ interface Copy {
     gratitudeHint: string;
     selfPraiseHint: string;
     bonusRoad: string;
-    toNextMilestone: (left: number, emoji: string) => string;
+    /** Followed by the milestone's icon (InlineIcon). */
+    toNextMilestone: (left: number) => string;
     allMilestones: string;
     anotherPrompt: string;
     anotherQuote: string;
@@ -580,7 +585,8 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       harmonyDays: (days, required) => `${days} of ${required} days`,
       harmonyNext: days =>
         days === 1 ? 'Next one tomorrow' : `Next one in ${days} days`,
-      harmonyHint: 'A day counts when you use habits, journal and goals.',
+      harmonyHint:
+        'A day counts with one habit done, three journal entries and one goal step.',
       parts: { habits: 'Habits', journal: 'Journal', goals: 'Goals' },
       partDone: part => `${part}: done today`,
       partOpen: part => `${part}: not yet today`,
@@ -679,6 +685,12 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         lost: 'Month end · star lost',
       },
     },
+    iconNames: { star: 'star', flame: 'flame', crown: 'crown' },
+    feel: {
+      sounds: 'Sounds',
+      soundsDescription:
+        'A soft sound at the big moments: trophies, new chapters, a finished challenge. Silent mode always wins.',
+    },
     system: {
       notFoundTitle: 'This page isn’t here',
       notFoundText:
@@ -716,7 +728,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       threeTitle: 'Three entries keep your streak',
       three: perEntry =>
         `Write three a day and the streak grows by one. Each of the three earns ${perEntry} XP.`,
-      bonusTitle: '⭐ 🔥 👑 on the way',
+      bonusTitle: 'Writing more pays a bonus',
       bonus: (star, flame, crown, each) =>
         `Entries 4, 8 and 13 of a day add +${star}, +${flame} and +${crown} XP. Entries 4 to 13 earn ${each} XP each; after the 13th, nothing more.`,
       frozenTitle: 'A missed day freezes the streak',
@@ -744,7 +756,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       harmonyTitle: (factor, days) =>
         `${days} days of all three = ${factor} XP`,
       harmonyText: (days, hours, cooldownDays) =>
-        `A day counts when you use habits, journal and goals. After ${days} in a row, switch it on from the level badge: everything earns double for ${hours} hours. The next one is possible ${cooldownDays} days later.`,
+        `A day counts with one habit done, three journal entries and one goal step. After ${days} in a row, switch it on from the level badge: everything earns double for ${hours} hours. The next one is possible ${cooldownDays} days later.`,
       challenge: 'Monthly challenge',
       madeTitle: 'One challenge a month, made for you',
       made: 'It comes from one area — habits, journal, goals or consistency — and is sized to how you did before.',
@@ -909,8 +921,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       gratitudeHint: 'Something good today',
       selfPraiseHint: 'Something you did well',
       bonusRoad: 'Bonus road',
-      toNextMilestone: (left, emoji) =>
-        left === 1 ? `1 more to ${emoji}` : `${left} more to ${emoji}`,
+      toNextMilestone: left => `${left} more to`,
       allMilestones: 'Every milestone of the day collected.',
       anotherPrompt: 'Another prompt',
       anotherQuote: 'Another quote',
@@ -1086,7 +1097,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       harmonyNext: days =>
         days === 1 ? 'Der nächste ab morgen' : `Der nächste in ${days} Tagen`,
       harmonyHint:
-        'Ein Tag zählt, wenn du Gewohnheiten, Tagebuch und Ziele nutzt.',
+        'Ein Tag zählt mit einer erledigten Gewohnheit, drei Tagebucheinträgen und einem Schritt bei einem Ziel.',
       parts: { habits: 'Gewohnheiten', journal: 'Tagebuch', goals: 'Ziele' },
       partDone: part => `${part}: heute erledigt`,
       partOpen: part => `${part}: heute noch offen`,
@@ -1185,6 +1196,12 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         lost: 'Monatsende · Stern weg',
       },
     },
+    iconNames: { star: 'Stern', flame: 'Flamme', crown: 'Krone' },
+    feel: {
+      sounds: 'Töne',
+      soundsDescription:
+        'Ein leiser Ton bei den großen Momenten: Trophäen, neue Kapitel, eine geschaffte Herausforderung. Der Lautlos-Modus hat immer Vorrang.',
+    },
     system: {
       notFoundTitle: 'Diese Seite gibt es nicht',
       notFoundText:
@@ -1224,7 +1241,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       threeTitle: 'Drei Einträge halten deine Serie',
       three: perEntry =>
         `Schreib drei am Tag und die Serie wächst um eins. Jeder der drei bringt ${perEntry} XP.`,
-      bonusTitle: '⭐ 🔥 👑 unterwegs',
+      bonusTitle: 'Mehr schreiben bringt einen Bonus',
       bonus: (star, flame, crown, each) =>
         `Die Einträge 4, 8 und 13 eines Tages bringen +${star}, +${flame} und +${crown} XP. Die Einträge 4 bis 13 bringen je ${each} XP, nach dem 13. nichts mehr.`,
       frozenTitle: 'Ein verpasster Tag friert die Serie ein',
@@ -1252,7 +1269,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       harmonyTitle: (factor, days) =>
         `${days} Tage mit allen dreien = ${factor} XP`,
       harmonyText: (days, hours, cooldownDays) =>
-        `Ein Tag zählt, wenn du Gewohnheiten, Tagebuch und Ziele nutzt. Nach ${days} Tagen in Folge schaltest du ihn am Level-Abzeichen ein: ${hours} Stunden lang zählt alles doppelt. Der nächste ist ${cooldownDays} Tage später möglich.`,
+        `Ein Tag zählt mit einer erledigten Gewohnheit, drei Tagebucheinträgen und einem Schritt bei einem Ziel. Nach ${days} Tagen in Folge schaltest du ihn am Level-Abzeichen ein: ${hours} Stunden lang zählt alles doppelt. Der nächste ist ${cooldownDays} Tage später möglich.`,
       challenge: 'Monatliche Herausforderung',
       madeTitle: 'Eine Herausforderung im Monat, für dich gemacht',
       made: 'Sie kommt aus einem Bereich — Gewohnheiten, Tagebuch, Ziele oder Beständigkeit — und richtet sich danach, wie es bisher lief.',
@@ -1420,8 +1437,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       gratitudeHint: 'Etwas Gutes heute',
       selfPraiseHint: 'Etwas, das du gut gemacht hast',
       bonusRoad: 'Bonusweg',
-      toNextMilestone: (left, emoji) =>
-        left === 1 ? `Noch 1 bis ${emoji}` : `Noch ${left} bis ${emoji}`,
+      toNextMilestone: left => `Noch ${left} bis`,
       allMilestones: 'Alle Meilensteine des Tages gesammelt.',
       anotherPrompt: 'Andere Frage',
       anotherQuote: 'Anderes Zitat',

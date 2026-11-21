@@ -582,7 +582,8 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
     - [x] **Tažné zavírání (R-33)** – kolo 40: stránky, sheety, detail deníku, návyku a výzvy (na zařízení
           neviděno). Detail cíle i okna oslav ověřeny 2026-11-21 (L-9): detail cíle je stránka s tahem od
           okraje už od kola 40, okna se zavírají jen tlačítkem (O-3) – nic dalšího se nestavělo
-    - [ ] **Vlastní podpisové ikony (R-34)** a **zvuk + hmatové vzory (R-35)**
+    - [x] **Vlastní podpisové ikony (R-34)** – kolo 51 (⭐ 🔥 👑 🏆 a spodní lišta) ·
+          [x] **zvuk + hmatové vzory (R-35)** – kolo 50 (O-12)
   - **Na pozadí (před převodem první obrazovky):**
     - [ ] **Jeden nativní build pro všechno najednou:** přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
           (jde zapnout už na 4.2.1; pozor na hlášení #10444 – probliknutí průhlednosti při přechodu obrazovek),
@@ -607,6 +608,45 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Rozhodnutí 2026-11-21 (O-10 až O-15):** bonus za zapnutí násobiče zrušit (hotovo v appce), trasa
+      `habit-stats` zrušit, zvuk = vibrace + pár jemných zvuků u velkých okamžiků, části dne ne, všechna
+      `Alert.alert` na nová okna (mapa v plánu převodu 7.9), vlastní ikony ano
+- [x] **Oprava v appce: zapnutí násobiče harmonie nedává XP** (O-10; `xpMultiplierService.ts`, test
+      v `xpMultiplier.loyalty.test.ts` + negativní zkouška, průvodce `Gamification-Core.md`). Dosud 240 XP,
+      které se samy zdvojily na 480 a žádná obrazovka o nich neříkala. Ostatní bonusy (návrat po
+      neaktivitě, kombo trofejí, splněná výzva) zůstávají – ty se také připisují až po zapnutí násobiče,
+      takže se zdvojovaly – **Petr 2026-11-21 (O-16): kombo a výzva bez bonusu, bonus za návrat se připíše
+      před zapnutím násobiče** (hotovo, 2 testy + negativní zkouška). Okno zapnutí (`MultiplierActivationModal`)
+      dlaždici s bonusem při nule skryje – revize našla, že by jinak ukázalo „+0 bonusových XP“
+- [x] **Oprava textů: den harmonie** – appka ho počítá až od **tří** záznamů v deníku (+ jeden návyk + jeden
+      krok cíle); věta v panelu úrovně i na stránce pravidel to teď říká a laboratoř to tak počítá
+- [x] **Kolo 51 – Vlastní ikony místo emoji ⭐ 🔥 👑 🏆** (`SignatureIcon.tsx`, `assets/fonts/SelfRiseIcons.ttf`,
+      `scripts/build-icon-font.py`; dluh L-5, O-15). Emoji vypadají na každém telefonu jinak a lámou paletu.
+      Nová hvězda, plamen, koruna a trofej jsou **písmo s ikonami** – ostré v každé velikosti, lehké i ve
+      dlouhých seznamech (je to text, ne plátno pro každou ikonu) a **nepotřebuje nativní build** (knihovna
+      na SVG v appce není). Každá ikona je **dvoubarevná**: podklad a světlejší jádro v barvách appky,
+      zvlášť pro světlý a tmavý režim – hloubka jako u emoji, ale v naší paletě. Ve větách („+20 XP ⭐“,
+      „Ještě 2 do 🔥“, štítek BONUS) jednobarevný znak, který teče s textem. Nahrazeno všude v laboratoři:
+      cesta bonusů v deníku, odznaky na kartě série, moment ⭐🔥👑 (světlá ikona na zlaté medaili),
+      statistiky deníku, stránka pravidel. Tvary jsem kontroloval na vykresleném náhledu (oprava: světlá
+      jádra byla posunutá kvůli metrikám písma; úchyty trofeje měly zářez – obrysy teď mají stejný směr).
+      **Spodní lišta** má vlastních pět ikon podle obrazů appky: Dnes = slunce vycházející nad obzorem (jako
+      hrdina dne), Návyky = háček v kruhu, Deník = stránka se záložkou, Cíle = vlajka, Nastavení =
+      posuvníky. Otevřená záložka je v barvě appky se zlatým jádrem (slunce, záložka), ostatní tlumené –
+      **stejný tvar v obou stavech**, mění se jen barva, takže při přepnutí nic neposkočí. Ověřeno: `tsc`,
+      lint, celá sada; nezávislá revize kol 50–51 + opravy v appce (opraveno: okno násobiče by ukázalo
+      „+0“; ikony uvnitř textu teď čtečka přečte slovem – „Ještě 2 do hvězdy“); na zařízení neviděno
+- [x] **Kolo 50 – Pocit z appky: jeden slovník dotyku a zvuku** (`labFeel.ts` + test, `feelPlayer.ts`,
+      přepínač „Zvuky“ v Nastavení, `assets/sounds/`; dluh L-6, O-12). V laboratoři bylo 32 ručních
+      vibrací a stejný okamžik se jinde cítil jinak. Teď má každý okamžik jedno jméno (18: ťuknutí, uložení,
+      chyba v poli, tiché oznámení, hotový den, zapálení série, nová kapitola…) a jméno určuje vzor i zvuk.
+      **Zvuk jen u šesti vzácných oken:** velká trofej, okno série deníku, nová kapitola, splněná výzva,
+      zapnutý násobič, dosažený cíl. Každodenní věci tiché (po týdnu by byly hlukem), varování nikdy se
+      zvukem, vzor nejvýš 400 ms a jeden těžký tap; vypínače uživatele a ztlumený telefon vždy vyhrají.
+      Čtyři kandidátní zvuky (marimba a skleněný zvon, tiché, 0,75–1,7 s) jsou syntetizované návrhy –
+      **zatím se nepřehrávají**, přehrávač (`expo-audio`) je nativní a přijde s buildem E0; do té doby se
+      jen zapíše do logu, kdy by zazněly. Vibrace už fungují. Ověřeno: 4 testy + 6 negativních zkoušek,
+      `tsc`, lint, celá sada; na zařízení neviděno
 - [x] **Kola 41–49 schválena na zařízení** (Petr 2026-11-21: „prošel jsem to, všechno vypadá skvěle“) –
       poznámky „na zařízení neviděno“ u nich tím neplatí
 - [x] **Kolo 49 – Když se něco nepovede** (`systemScreens.tsx`; část dluhu L-4). **Neúspěšná akce:** dnes
@@ -1268,6 +1308,11 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 76. **Nápověda patří ke skrytému pravidlu, ne ke každému prvku.** Tlačítko, které říká, co dělá, nápovědu
     nepotřebuje; pravidlo, které na obrazovce vidět není, ji potřebuje přesně tam, kde se projeví – a jeden
     text pro bublinu i stránku pravidel, jinak se rozejdou (kolo 48).
+77. **Zvuk jen u vzácného, dotyk všude stejně.** Jeden slovník okamžiků (jméno → vzor + zvuk) místo ručních
+    vibrací; co se děje denně, zní ticho (kolo 50).
+78. **Ikona, která není emoji, je písmo.** Bez nativní knihovny, ostrá, levná v seznamu; dvě vrstvy dají
+    hloubku. Tvary kontrolovat na vykresleném náhledu – chyby metrik a směru obrysů jsou okem vidět hned,
+    v kódu ne (kolo 51).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

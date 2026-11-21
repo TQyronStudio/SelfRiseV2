@@ -63,6 +63,7 @@ import { labFonts, LabPalette, labRadius, labSpace } from './labTokens';
 import { MOCK_COPY } from './mockCopy';
 import { RollingNumber } from './RollingNumber';
 import { useLabXpAward } from './xpFlight';
+import { feel } from './feelPlayer';
 import {
   CATEGORY_LOOK,
   completionXp,
@@ -1023,7 +1024,7 @@ export function GoalDoneMoment({
   );
 
   useEffect(() => {
-    notification(NotificationFeedbackType.Success);
+    feel('goalDone');
     p.value = withSpring(1, { damping: 16, stiffness: 170, mass: 0.9 });
     ring.value = withDelay(
       200,

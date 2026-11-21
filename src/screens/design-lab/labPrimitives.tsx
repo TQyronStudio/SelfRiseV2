@@ -192,6 +192,8 @@ interface LabTextProps {
   italic?: boolean;
   numberOfLines?: number;
   style?: StyleProp<TextStyle>;
+  /** What a screen reader says instead — for text with an icon glyph inside. */
+  accessibilityLabel?: string;
   children: ReactNode;
 }
 
@@ -201,6 +203,7 @@ export function LabText({
   italic,
   numberOfLines,
   style,
+  accessibilityLabel,
   children,
 }: LabTextProps) {
   const { c } = useLab();
@@ -208,6 +211,7 @@ export function LabText({
     <Text
       maxFontSizeMultiplier={labType[variant].maxScale}
       numberOfLines={numberOfLines}
+      {...(accessibilityLabel ? { accessibilityLabel } : null)}
       style={[typeStyle(variant, toneColor(c, tone), italic), style]}
     >
       {children}

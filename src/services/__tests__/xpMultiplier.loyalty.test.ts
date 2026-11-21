@@ -141,6 +141,69 @@ describe('XP Multipliers + Loyalty — regression suite (release blockers)', () 
       const second = await XPMultiplierService.activateHarmonyMultiplier();
       expect(second.success).toBe(false);
     });
+
+    test('switching the harmony multiplier on pays no XP (O-10)', async () => {
+      jest.spyOn(XPMultiplierService, 'calculateHarmonyStreak').mockResolvedValue({
+        currentStreak: 7,
+        longestStreak: 7,
+        isActive: true,
+        canActivateMultiplier: true,
+        streakHistory: [],
+      });
+      const { GamificationService } = require('../gamificationService');
+      const addXP = jest.spyOn(GamificationService, 'addXP');
+
+      const result = await XPMultiplierService.activateHarmonyMultiplier();
+
+      expect(result.success).toBe(true);
+      expect(result.xpBonusAwarded).toBe(0);
+      expect(addXP).not.toHaveBeenCalled();
+      addXP.mockRestore();
+    });
+
+    test('an achievement combo and a finished challenge pay no activation XP (O-16)', async () => {
+      const { GamificationService } = require('../gamificationService');
+      const addXP = jest.spyOn(GamificationService, 'addXP');
+
+      const combo = await XPMultiplierService.activateAchievementComboMultiplier(3);
+      expect(combo.success).toBe(true);
+      expect(combo.xpBonusAwarded).toBe(0);
+      await (XPMultiplierService as any).clearActiveMultiplierStorage();
+
+      const challenge = await XPMultiplierService.activateChallengeCompletionMultiplier(
+        'challenge-2026-11',
+        3
+      );
+      expect(challenge.success).toBe(true);
+      expect(challenge.xpBonusAwarded).toBe(0);
+
+      expect(addXP).not.toHaveBeenCalled();
+      addXP.mockRestore();
+    });
+
+    test('the comeback bonus is credited BEFORE the 2× starts, so it is not doubled (O-16)', async () => {
+      jest.spyOn(XPMultiplierService, 'checkInactiveUserStatus').mockResolvedValue({
+        isInactive: true,
+        daysSinceLastActivity: 5,
+        shouldActivateBoost: true,
+      } as any);
+      const { GamificationService } = require('../gamificationService');
+      let activeWhenCredited: boolean | null = null;
+      const addXP = jest
+        .spyOn(GamificationService, 'addXP')
+        .mockImplementation(async () => {
+          activeWhenCredited = (await XPMultiplierService.getActiveMultiplier()).isActive;
+          return { success: true } as any;
+        });
+
+      const result = await XPMultiplierService.activateInactiveUserBoost();
+
+      expect(result.success).toBe(true);
+      expect(addXP).toHaveBeenCalledTimes(1);
+      expect(activeWhenCredited).toBe(false);
+      expect((await XPMultiplierService.getActiveMultiplier()).isActive).toBe(true);
+      addXP.mockRestore();
+    });
   });
 
   // ========================================

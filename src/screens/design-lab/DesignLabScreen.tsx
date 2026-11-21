@@ -111,6 +111,7 @@ import { LevelsOverviewConcept } from './LevelsOverviewConcept';
 import { HowItWorksConcept, SectionId } from './HowItWorksConcept';
 import { LabHelpProvider } from './labHelp';
 import { LabSystemProvider } from './systemScreens';
+import { SignatureIcon, SignatureName } from './SignatureIcon';
 import { SlidePage } from './journalParts';
 
 const TAB_BAR_HEIGHT = 60;
@@ -119,12 +120,14 @@ const TAB_PILL_WIDTH = 52;
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
-const TAB_ICONS: { active: IoniconName; idle: IoniconName }[] = [
-  { active: 'home', idle: 'home-outline' },
-  { active: 'repeat', idle: 'repeat-outline' },
-  { active: 'book', idle: 'book-outline' },
-  { active: 'locate', idle: 'locate-outline' },
-  { active: 'settings', idle: 'settings-outline' },
+/** The tab bar's own icons (kolo 51, SignatureIcon): the same silhouette open or
+ *  not — colour says which tab is open, so nothing jumps on a switch. */
+const TAB_ICONS: SignatureName[] = [
+  'today',
+  'habits',
+  'journal',
+  'goals',
+  'settings',
 ];
 
 export function DesignLabScreen() {
@@ -712,7 +715,7 @@ function BottomChrome({
   activeTab: number;
   onSelectTab: (index: number) => void;
 }) {
-  const { c, lang } = useLab();
+  const { c, lang, mode } = useLab();
   const copy = MOCK_COPY[lang];
   const tabWidth = useSharedValue(0);
   const indicatorX = useSharedValue(activeTab);
@@ -783,7 +786,7 @@ function BottomChrome({
             const active = i === activeTab;
             return (
               <PressableScale
-                key={icon.active}
+                key={icon}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
                 accessibilityLabel={copy.tabs[i] ?? ''}
@@ -792,10 +795,14 @@ function BottomChrome({
                 style={styles.tab}
               >
                 <View style={styles.tabPill}>
-                  <Ionicons
-                    name={active ? icon.active : icon.idle}
-                    size={21}
-                    color={active ? c.primary : c.textFaint}
+                  <SignatureIcon
+                    name={icon}
+                    size={23}
+                    tones={
+                      active
+                        ? [c.primary, mode === 'light' ? '#F4A93F' : '#FFC24A']
+                        : [c.textFaint, c.textFaint]
+                    }
                   />
                 </View>
                 <LabText

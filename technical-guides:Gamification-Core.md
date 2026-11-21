@@ -441,8 +441,17 @@ Daily Requirements for Harmony Streak:
 HARMONY_STREAK_DAYS_REQUIRED: 7          // Must maintain for 7 days
 Consecutive days only - missing any requirement breaks streak
 
-// Activation Bonus:
-Multiplier activation = +240 XP          // 24h * 10 XP per hour bonus
+// Activation Bonus: NONE (Petr 2026-11-21, O-10)
+// Switching the harmony multiplier on pays no XP — the reward is the 2× itself.
+// The old +240 (24 h × 10) was added after the multiplier was stored, so it
+// silently doubled to 480 and no screen mentioned it. Guard test:
+// xpMultiplier.loyalty.test.ts → "switching the harmony multiplier on pays no XP".
+// Achievement combo and challenge completion: no activation bonus either
+// (Petr 2026-11-21, O-16). The comeback boost keeps its COMEBACK_BONUS, but it is
+// credited BEFORE the 2× is stored, so it is never doubled; a failed bonus does
+// not cancel the boost. Guard tests in xpMultiplier.loyalty.test.ts (O-16).
+// Rule for any future multiplier: an XP bonus that belongs to switching a
+// multiplier on is credited before storeActiveMultiplier(), never after.
 ```
 
 ### Daily Limits Scale with Multipliers
